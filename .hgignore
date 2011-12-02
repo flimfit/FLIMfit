@@ -1,0 +1,10 @@
+
+syntax: glob
+*.dll
+*.so
+*.exp
+*.lib
+*.obj
+.DS_Store
+GlobalProcessingLibrary/boost*
+TestDatasets/*
