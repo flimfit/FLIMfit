@@ -6,3 +6,7 @@ syntax: glob
 *.lib
 *.obj
 .DS_Store
+GlobalProcessingLibrary/Boost/*
+TestDatasets/*
+GlobalProcessingLibrary/GeneratedProjects/*
+GlobalProcessingLibaries/Libraries/*
