@@ -5,7 +5,7 @@ project(FLIMGlobalAnalysis)
 
 # Include the BOOST header files
 #===================================================
-include_directories( "../boost_1_47_0" )
+include_directories( "../Boost" )
 
 # Set the source and header files
 #===================================================
