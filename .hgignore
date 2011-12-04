@@ -9,4 +9,5 @@ syntax: glob
 GlobalProcessingLibrary/Boost/*
 TestDatasets/*
 GlobalProcessingLibrary/GeneratedProjects/*
-GlobalProcessingLibaries/Libraries/*
+GlobalProcessingLibrary/Libraries/*
+GlobalProcessingFrontEnd/FLIMGlobalAnalysisProto_*

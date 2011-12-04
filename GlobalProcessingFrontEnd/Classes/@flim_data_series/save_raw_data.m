@@ -21,9 +21,7 @@ function save_raw_data(obj,mapfile_name)
     fclose(fid);
     delete(fname);
               
-    mapfile = fopen(mapfile_name,'w');
-    
-    ser_info = serialize(dinfo);          
+    mapfile = fopen(mapfile_name,'w');      
 
     fwrite(mapfile,length(byteData),'uint16');
     fwrite(mapfile,byteData,'uint8');

@@ -1,5 +1,6 @@
 function GlobalProcessing
 
+addpath_global_analysis();
 global_processing_ui();
 
 %{

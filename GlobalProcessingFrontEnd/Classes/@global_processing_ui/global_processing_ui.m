@@ -59,7 +59,7 @@ classdef global_processing_ui
             %set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
             
             try
-                v = textread(['GeneratedFiles' filesep 'version.txt','%s']);
+                v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
             catch
                 v = '[unknown version]';
             end

@@ -344,7 +344,7 @@ void FLIMGlobalFitController::Init()
    n_regions_buf   = new int[ n_group ]; //free ok 
    tvb_profile_buf = new double[ n_meas ]; //free ok 
 
-   thread_handle = new (tthread::thread*)[ n_thread ];
+   thread_handle = new tthread::thread*[ n_thread ];
 
    if (mask != NULL)
    {
