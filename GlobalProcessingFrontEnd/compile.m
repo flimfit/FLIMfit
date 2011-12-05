@@ -68,4 +68,8 @@ function compile(v)
     system(['hg commit -m "' v ' (' computer ')"']);
     cd('GlobalProcessingFrontEnd');
     
+    try
+        delete(['GlobalProcessing_' sys]);
+    end
+    
 end
