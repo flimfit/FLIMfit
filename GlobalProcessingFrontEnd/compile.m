@@ -12,8 +12,10 @@ function compile(v)
         sys = '32';
     end
 
+    try
     exe = ['DeployFiles\GlobalProcessing_' sys '.exe'];
     delete(exe);
+    end
     
     eval(['deploytool -build GlobalProcessing_' sys '.prj']);
     
@@ -27,9 +29,9 @@ function compile(v)
     
     copyfile(exe,deploy_folder);
     
-    if instr(computer,'PCWIN')
+    if ~isempty(strfind(computer,'PCWIN'))
         lib_ext = 'dll';
-    elseif instr(computer,'MAC')
+    elseif ~isempty(strfind(computer,'MAC'))
         lib_ext = 'dylib';
     else
         lib_ext = 'so';

@@ -49,14 +49,13 @@ function update_plots(obj,file_root)
                         h = ha(subplot_idx);
                         c = hc(subplot_idx);
                     else
-                        [h,c] = tight_subplot(f_save,1,1,1,ratio);
+                        [h,c] = tight_subplot(f_save,1,1,1,save,[d.width d.height]);
                     end
                     
                     im_data = obj.plot_figure(h,c,cur_im,obj.plot_names{plot_idx},false,'');
                     
                     subplot_idx = subplot_idx + 1;
                     if save
-                        printfig
                         savefig([name_root ' ' char(obj.plot_names(plot_idx))],ext)
                         SaveFPTiff(im_data,[name_root ' ' char(obj.plot_names(plot_idx)) ' raw.tiff'])
                     end

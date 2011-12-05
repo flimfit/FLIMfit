@@ -20,6 +20,12 @@ function[delays,im_data,tcspc,path,channel] = load_flim_file(file,channel)
             siz = size(dirStruct);
             noOfFiles = siz(1);
 
+            if noOfFiles == 0
+                im_data = [];
+                delays = [];
+                return
+            end
+            
             first = [path filesep dirStruct(1).name];
             im = imread(first,'tif');
 

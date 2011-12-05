@@ -714,7 +714,7 @@ classdef flim_data_series < handle
            obj.save_data_settings();
            obj.clear_memory_mapping();
            
-           del_files = dir([tempdir 'GPTEMP_'])
+           del_files = dir([tempdir 'GPTEMP_']);
            
         end
         

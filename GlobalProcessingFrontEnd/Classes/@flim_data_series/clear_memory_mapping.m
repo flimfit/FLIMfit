@@ -8,7 +8,7 @@ function clear_memory_mapping(obj)
             delete(obj.mapfile_name);
         end
 
-        if exist(obj.tr_mapfile_name,'file') && ~obj.raw
+        if exist(obj.tr_mapfile_name,'file')
             delete(obj.tr_mapfile_name);
         end
     end

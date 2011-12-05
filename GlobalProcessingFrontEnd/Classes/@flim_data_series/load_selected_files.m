@@ -52,6 +52,10 @@ function load_selected_files(obj,selected)
                     file = obj.file_names{selected(j)};
                     [~,data] = load_flim_file(file,obj.channels);
                 end
+                
+                if isempty(data)
+                        data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
+                end
 
                 c1=fwrite(mapfile,data,'double');
                 c2=fwrite(tr_mapfile,data,'double');
