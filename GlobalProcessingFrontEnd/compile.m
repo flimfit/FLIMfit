@@ -41,7 +41,7 @@ function compile(v)
     copyfile(['..\GlobalProcessingLibrary\Libraries\FLIMGlobalAnalysis_' sys '.' lib_ext],deploy_folder);
 
     mkdir([distrib_folder 'GlobalProcessing_' v]);
-    copyfile(deploy_folder,[distrib_folder 'GlobalProcessing_' v filesep 'GlobalProcessing_' v '_' computer pathsep]);
+    copyfile(deploy_folder,[distrib_folder 'GlobalProcessing_' v filesep 'GlobalProcessing_' v '_' computer filesep]);
     
     
     chlog_file = [distrib_folder 'Changelog.txt'];
@@ -66,6 +66,6 @@ function compile(v)
     cd('..');
     %system('hg addremove');
     system(['hg commit -m "' v ' (' computer ')"']);
-    cd('GlobalFittingFrontEnd');
+    cd('GlobalProcessingFrontEnd');
     
 end

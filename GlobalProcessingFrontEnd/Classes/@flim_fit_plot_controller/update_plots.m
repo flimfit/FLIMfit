@@ -101,7 +101,7 @@ function update_plots(obj,file_root)
         save = true;
         [path,root,ext] = fileparts(file_root);
         ext = ext(2:end);
-        root = [path pathsep root];
+        root = [path filesep root];
     else
         save = false;
     end

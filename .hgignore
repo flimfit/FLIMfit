@@ -11,3 +11,7 @@ TestDatasets/*
 GlobalProcessingLibrary/GeneratedProjects/*
 GlobalProcessingLibrary/Libraries/*
 GlobalProcessingFrontEnd/FLIMGlobalAnalysisProto_*
+GlobalProcessingFrontEnd/Testing/simulation/*
+GlobalProcessingFrontEnd/DeployFiles/*
+GlobalProcessingFrontEnd/GlobalProcessing_*
+GlobalProcessingStandalone/*
