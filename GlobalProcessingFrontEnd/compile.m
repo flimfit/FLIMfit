@@ -70,6 +70,7 @@ function compile(v)
     
     try
         delete(['GlobalProcessing_' sys]);
+    catch e %#ok
     end
     
 end
