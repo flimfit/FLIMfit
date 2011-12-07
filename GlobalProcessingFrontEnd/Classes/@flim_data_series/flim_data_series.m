@@ -117,7 +117,8 @@ classdef flim_data_series < handle
         file_names;
         channels;
         
-        loaded = [];        
+        loaded = [];
+        load_time = [];
     end
     
     events

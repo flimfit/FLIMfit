@@ -66,6 +66,8 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     set(obj.im,'CData',mapped_data);
                 else
                     obj.im = image(mapped_data,'Parent',ax);
+                    set(obj.im, 'HitTest', 'off');
+                    set(obj.intensity_axes,'ButtonDownFcn',obj.callback);
                 end
                 
                 set(ax, 'units', 'pixels','XTick',[],'YTick',[]);
@@ -113,8 +115,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
     
                 colormap(ax,'gray');
                
-                set(obj.im, 'HitTest', 'off');
-                set(obj.intensity_axes,'ButtonDownFcn',obj.callback);
+                
                 
                 set(ax, 'units', 'normalized');
                 set(obj.colorbar_axes, 'units', 'normalized');

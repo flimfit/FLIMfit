@@ -44,17 +44,21 @@ function load_selected_files(obj,selected)
 
 
             for j=1:num_sel
-
+%{
+                import java.io.*
+                a = File(obj.file_names{selected(j)});
+                b = a.lastModified();
+%}                
                 if obj.load_multiple_channels
-                    file = obj.file_names{1};
-                    [~,data] = load_flim_file(file,obj.channels(selected(j)));
+                    filename = obj.file_names{1};
+                    [~,data] = load_flim_file(filename,obj.channels(selected(j)));
                 else
-                    file = obj.file_names{selected(j)};
-                    [~,data] = load_flim_file(file,obj.channels);
+                    filename = obj.file_names{selected(j)};
+                    [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
                 if isempty(data)
-                        data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
+                    data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
 
                 c1=fwrite(mapfile,data,'double');
@@ -75,11 +79,11 @@ function load_selected_files(obj,selected)
             for j=1:num_sel
 
                 if obj.load_multiple_channels
-                    file = obj.file_names{1};
-                    [~,data] = load_flim_file(file,obj.channels(selected(j)));
+                    filename = obj.file_names{1};
+                    [~,data] = load_flim_file(filename,obj.channels(selected(j)));
                 else
-                    file = obj.file_names{selected(j)};
-                    [~,data] = load_flim_file(file,obj.channels);
+                    filename = obj.file_names{selected(j)};
+                    [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
                 obj.tr_data_series_mem(:,:,:,:,j) = double(data);

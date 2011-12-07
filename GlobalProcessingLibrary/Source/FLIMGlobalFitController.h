@@ -7,7 +7,6 @@
 #  pragma warning(disable: 4610) // can never be instantiated - user defined constructor required.
 #endif
 
-//#include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 
 #include "FitStatus.h"
