@@ -889,7 +889,6 @@ L99:
 
 /*        CHECK VALIDITY OF INPUT PARAMETERS, AND DETERMINE NUMBER OF */
 /*        CONSTANT FUNCTIONS. */
-
 /*     .................................................................. */
 
 

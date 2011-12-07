@@ -461,10 +461,11 @@ doublereal xnorm_(integer *n, doublereal *x)
     /* Function Body */
     rmax = (float)0.;
     i__1 = *n;
-    for (i__ = 1; i__ <= i__1; ++i__) {
-	if ((d__1 = x[i__], dabs(d__1)) > rmax) {
-	    rmax = (d__2 = x[i__], dabs(d__2));
-	}
+    for (i__ = 1; i__ <= i__1; ++i__)
+	{
+		d__1 = fabs(x[i__]);		
+		if (d__1  > rmax) 
+			rmax = d__1;
 /* L10: */
     }
 
@@ -476,7 +477,7 @@ doublereal xnorm_(integer *n, doublereal *x)
     ////#pragma omp parallel reduction (+: sum) private (term)
     for (i__ = 1; i__ <= i__1; ++i__) {
 	term = (float)0.;
-	if (rmax + (d__1 = x[i__], abs(d__1)) != rmax) {
+	if (rmax + (d__1 = x[i__], fabs(d__1)) != rmax) {
 	    term = x[i__] / rmax;
 	}
 /* L20: */

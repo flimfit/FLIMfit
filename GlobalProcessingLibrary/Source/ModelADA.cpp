@@ -162,12 +162,12 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 	
 //   FILE* fx;
 
-	int i,j,k, d_offset, total_n_exp, idx;
+   int i,j,k, d_offset, total_n_exp, idx;
    int a_col, inc_row, inc_col, n_exp_col, cur_col;
    
    double kap, ref_lifetime;
 
-	int S    = *s;
+   int S    = *s;
    int N    = *n;
    int Ndim = *ndim;
 
