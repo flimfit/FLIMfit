@@ -16,7 +16,7 @@ function[delays,im_data,tcspc,path,channel] = load_flim_file(file,channel)
 
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case '.tif'
-            dirStruct = dir([path '\*.tif']);
+            dirStruct = dir([path filesep '*.tif']);
             siz = size(dirStruct);
             noOfFiles = siz(1);
 
