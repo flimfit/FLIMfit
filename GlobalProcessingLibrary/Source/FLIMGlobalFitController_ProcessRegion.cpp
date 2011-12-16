@@ -172,19 +172,33 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       }
    }
 
+   if (anscombe_tranform)
+      for(i=0; i<s_thresh*n_meas; i++)
+         y[i] = anscombe(y[i]);
+
    // Check we have pixels left to process
    if (s_thresh == 0)
       goto skip_processing;
 
    // Compute weights
-   for(j=0; j<n_meas; j++)
+   if (anscombe_tranform)
    {
-      if (count_buf[j] == 0 || w[j] == 0)
-         w[j] = count_buf[j];   // If we have a zero data point set to 1
-      else
-         w[j] = count_buf[j] / w[j]; // we're averaging over the s_thresh points
+      for(j=0; j<n_meas; j++)
+      {
+            w[j] = 1;
+      }
    }
-    
+   else
+   {
+      for(j=0; j<n_meas; j++)
+      {
+         if (count_buf[j] == 0 || w[j] == 0)
+            w[j] = count_buf[j];   // If we have a zero data point set to 1
+         else
+            w[j] = count_buf[j] / w[j]; // we're averaging over the s_thresh points
+      }
+   }
+
    // Check for termination request
    if (status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;

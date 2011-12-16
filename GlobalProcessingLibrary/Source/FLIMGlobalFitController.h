@@ -107,18 +107,18 @@ public:
    
    bool use_kappa;
 
-   integer s; integer lmax; integer l; integer nl; integer n; integer nmax; integer ndim; integer lpps1; integer lps; integer pp2; integer iv; integer p; integer iprint; integer lnls1; integer n_v;
+   integer s; integer lmax; integer l; integer nl; integer n; integer nmax; integer ndim; 
+   integer lpps1; integer lps; integer pp2; integer iv; integer p; integer iprint; integer lnls1; integer n_v;
 	double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *lin_params; 
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
+
+   double *a_cpy;
 
    bool beta_global;
    int n_beta;
 
    int grid_search, grid_size, grid_factor, grid_positions, grid_iter, chi2_map_mode;
    double *var_min, *var_max, *grid, *var_buf;
-
-   //boost::interprocess::interprocess_mutex cleanup_mutex;
-   //boost::interprocess::interprocess_mutex mutex; 
 
    tthread::mutex cleanup_mutex;
    tthread::mutex mutex;
@@ -141,6 +141,8 @@ public:
    bool calculate_errs;
    double* lin_params_err;
    double* alf_err;
+
+   bool anscombe_tranform;
 
    conv_func Convolve;
    conv_deriv_func ConvolveDerivative;

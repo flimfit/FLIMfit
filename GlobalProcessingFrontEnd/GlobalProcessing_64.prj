@@ -66,6 +66,7 @@
       <file>${PROJECT_ROOT}\GeneratedFiles\version.txt</file>
       <file>${PROJECT_ROOT}\GUIDEInterfaces</file>
       <file>${PROJECT_ROOT}\HelperFunctions</file>
+      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\+uiextras\Resources</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch\getpixelposition.p</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch\isHGUsingMATLABClasses.p</file>
@@ -85,15 +86,6 @@
     <matlab>
       <root>C:\Program Files\MATLAB\R2011b</root>
       <path>
-        <directory>${PROJECT_ROOT}\..\GlobalProcessingLibrary\Libraries</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\layoutHelp</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions</directory>
-        <directory>${PROJECT_ROOT}\GeneratedFiles</directory>
-        <directory>${PROJECT_ROOT}\GUIDEInterfaces</directory>
-        <directory>${PROJECT_ROOT}\Classes</directory>
-        <directory>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingLocal\GlobalProcessingFrontEnd</directory>
         <directory>\\icfs16.cc.ic.ac.uk\scw09\MATLAB</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\demos</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\graph2d</directory>

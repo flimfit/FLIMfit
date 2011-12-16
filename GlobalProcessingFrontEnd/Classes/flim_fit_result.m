@@ -199,8 +199,8 @@ classdef flim_fit_result < handle
             n_regions = max(mask(:));
             obj.n_regions(dataset) = n_regions;
             
-            img_mean = trimmean(img(mask>0 & ~isnan(img)),0.1);
-            img_std = trimstd(img(mask>0 & ~isnan(img)),0.1);
+            img_mean = trimmean(img(mask>0 & ~isnan(img)),1);
+            img_std = trimstd(img(mask>0 & ~isnan(img)),1);
             img_n = nansum(mask(:)>0);
                         
             region_mean = zeros(1,n_regions);
@@ -211,7 +211,7 @@ classdef flim_fit_result < handle
             end
             for i=1:n_regions
                 region_mean(i) = trimmean(img(mask==i & ~isnan(img)),1);
-                region_std(i) = nanstd(img(mask==i));
+                region_std(i) = trimstd(img(mask>0 & ~isnan(img)),1);
                 region_n(i) = nansum(mask(:)==i);
             end
             

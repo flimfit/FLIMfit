@@ -185,6 +185,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    double *tau_buf = gc->tau_buf + *thread * gc->n_exp * (gc->n_fret + 1);
    double *beta_buf = gc->beta_buf + *thread * gc->n_exp;
    double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
+   double *a_cpy = gc->a_cpy + *thread * n_meas * (gc->l+1);
 
    int locked_param = gc->locked_param[*thread];
    double locked_value = gc->locked_value[*thread];
@@ -210,121 +211,121 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // Make sure two threads don't try to set up INC
          // - it's shared between all threads!
          
-          //scoped_lock<interprocess_mutex> lock(cleanup_mutex);
-          //WaitForSingleObject(gc->mutex,INFINITE); 
-
-         gc->mutex.lock();
-
          if (gc->first_call)
          {
-            // Set up incidence matrix
-            //----------------------------------------------------------------------
+            gc->mutex.lock();
 
-            inc_row = 0;   // each row represents a non-linear variable
-            inc_col = 0;   // each column represents a phi, eg. exp(...)
+            if (gc->first_call)
+            {
+               // Set up incidence matrix
+               //----------------------------------------------------------------------
 
-			   // Set incidence matrix zero
-			   for(i=0; i<96; i++)
-				   inc[i] = 0;
+               inc_row = 0;   // each row represents a non-linear variable
+               inc_col = 0;   // each column represents a phi, eg. exp(...)
+
+			      // Set incidence matrix zero
+			      for(i=0; i<96; i++)
+				      inc[i] = 0;
 		
-            // Set inc for local offset if required
-            // Independent of all variables
-            if( gc->fit_offset == FIT_LOCALLY )
-               inc_col++;
+               // Set inc for local offset if required
+               // Independent of all variables
+               if( gc->fit_offset == FIT_LOCALLY )
+                  inc_col++;
 
-            // Set inc for local scatter if required
-            // Independent of all variables
-            if( gc->fit_scatter == FIT_LOCALLY )
-               inc_col++;
+               // Set inc for local scatter if required
+               // Independent of all variables
+               if( gc->fit_scatter == FIT_LOCALLY )
+                  inc_col++;
 
-            if( gc->fit_tvb == FIT_LOCALLY )
-               inc_col++;
+               if( gc->fit_tvb == FIT_LOCALLY )
+                  inc_col++;
             
-            // Set diagonal elements of incidence matrix for variable tau's	
-            n_exp_col = gc->beta_global ? 1 : gc->n_v;
-            for(i=0; i<gc->n_v; i++)
-		      {
-               cur_col = gc->beta_global ? 0 : i;
-               for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
-                  inc[inc_row + (inc_col+j*gc->n_exp_phi+cur_col)*12] = 1;
+               // Set diagonal elements of incidence matrix for variable tau's	
+               n_exp_col = gc->beta_global ? 1 : gc->n_v;
+               for(i=0; i<gc->n_v; i++)
+		         {
+                  cur_col = gc->beta_global ? 0 : i;
+                  for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
+                     inc[inc_row + (inc_col+j*gc->n_exp_phi+cur_col)*12] = 1;
                                 
-               //kappa derivative
-               if (i>0 && gc->use_kappa)
-                  inc[inc_row + gc->l * 12] = 1;
+                  //kappa derivative
+                  if (i>0 && gc->use_kappa)
+                     inc[inc_row + gc->l * 12] = 1;
 
-               inc_row++;
-			   }
+                  inc_row++;
+			      }
 
-            // Set diagonal elements of incidence matrix for variable beta's	
-            for(i=0; i<gc->n_beta; i++)
-		      {
-               for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
-                  inc[inc_row + (inc_col+j*gc->n_exp_phi)*12] = 1;
+               // Set diagonal elements of incidence matrix for variable beta's	
+               for(i=0; i<gc->n_beta; i++)
+		         {
+                  for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
+                     inc[inc_row + (inc_col+j*gc->n_exp_phi)*12] = 1;
                                 
-               inc_row++;
-			   }
+                  inc_row++;
+			      }
 
-            for(i=0; i<gc->n_theta_v; i++)
-            {
-               inc[inc_row+(inc_col+i)*12] = 1;
-               inc_row++;
-            }
-			
-            // Set elements of incidence matrix for R derivatives
-            for(i=0; i<gc->n_fret_v; i++)
-            {
-				   for(j=0; j<gc->n_exp_phi; j++)
-                  inc[inc_row+(inc_col+i*gc->n_exp_phi+j)*12] = 1;
-               inc_row++;
-            }
-
-            if (gc->ref_reconvolution == FIT_GLOBALLY)
-            {
-               // Set elements of inc for ref lifetime derivatives
-               for(i=0; i<(gc->n_decay_group * gc->n_exp_phi); i++)
+               for(i=0; i<gc->n_theta_v; i++)
                {
                   inc[inc_row+(inc_col+i)*12] = 1;
-               }
-               inc_row++;
-            }
-
-               /*
-			      // Set inc elements for t0 if required
-			      if( gc->fit_t0 )
-               {
-				      for(i=0; i<gc->n_exp; i++)
-				            inc[inc_row+(inc_col+i)*12] = 1;
                   inc_row++;
                }
-               */
+			
+               // Set elements of incidence matrix for R derivatives
+               for(i=0; i<gc->n_fret_v; i++)
+               {
+				      for(j=0; j<gc->n_exp_phi; j++)
+                     inc[inc_row+(inc_col+i*gc->n_exp_phi+j)*12] = 1;
+                  inc_row++;
+               }
 
-            if (gc->n_decay_group > 1)
-               inc_col += gc->n_decay_group * gc->n_exp_phi;
+               if (gc->ref_reconvolution == FIT_GLOBALLY)
+               {
+                  // Set elements of inc for ref lifetime derivatives
+                  for(i=0; i<(gc->n_decay_group * gc->n_exp_phi); i++)
+                  {
+                     inc[inc_row+(inc_col+i)*12] = 1;
+                  }
+                  inc_row++;
+               }
+
+                  /*
+			         // Set inc elements for t0 if required
+			         if( gc->fit_t0 )
+                  {
+				         for(i=0; i<gc->n_exp; i++)
+				               inc[inc_row+(inc_col+i)*12] = 1;
+                     inc_row++;
+                  }
+                  */
+
+               if (gc->n_decay_group > 1)
+                  inc_col += gc->n_decay_group * gc->n_exp_phi;
               
-            // Both global offset and scatter are in col L+1
+               // Both global offset and scatter are in col L+1
 
-            if( gc->fit_offset == FIT_GLOBALLY )
-            {
-               inc[inc_row + inc_col*12] = 1;
-               inc_row++;
+               if( gc->fit_offset == FIT_GLOBALLY )
+               {
+                  inc[inc_row + inc_col*12] = 1;
+                  inc_row++;
+               }
+
+               if( gc->fit_scatter == FIT_GLOBALLY )
+               {
+                  inc[inc_row + inc_col*12] = 1;
+                  inc_row++;
+               }
+
+               if( gc->fit_tvb == FIT_GLOBALLY )
+               {
+                  inc[inc_row + inc_col*12] = 1;
+                  inc_row++;
+               }
+
+               gc->first_call = false;
             }
 
-            if( gc->fit_scatter == FIT_GLOBALLY )
-            {
-               inc[inc_row + inc_col*12] = 1;
-               inc_row++;
-            }
-
-            if( gc->fit_tvb == FIT_GLOBALLY )
-            {
-               inc[inc_row + inc_col*12] = 1;
-               inc_row++;
-            }
-
-            gc->first_call = false;
+            gc->mutex.unlock();  
          }
-
-         gc->mutex.unlock();            
             //ReleaseMutex(gc->mutex);
 
          // Set constant phi values
@@ -437,7 +438,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          for(i=0; i<gc->n_decay_group; i++)
             a_col += flim_model(gc, gc->n_t, t, exp_buf+i*gc->exp_buf_size, gc->n_exp, tau_buf+(i+gc->tau_start)*gc->n_exp, beta_buf, gc->n_theta, theta_buf, ref_lifetime, N, a+N*a_col, gc->beta_global);
        
-
          // Set L+1 phi value (without associated beta), to include global offset/scatter
          //----------------------------------------------
 
@@ -499,6 +499,12 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          }
          */
          
+         memcpy(a_cpy,a,n_meas*(gc->l+1)*sizeof(double));
+
+         if (gc->anscombe_tranform)
+            for(i=0; i<N; i++)
+               a[i] = anscombe(a[i]);
+
          
          if (*isel==2 || gc->getting_fit)
 				break;
@@ -517,6 +523,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += ref_lifetime_deriv(gc, gc->n_t, t, exp_buf, gc->n_exp, tau_buf, beta_buf, gc->n_theta, theta_buf, ref_lifetime, Ndim, b + col*Ndim);
             
+         if (gc->anscombe_tranform)
+            for(j=0; j<col; j++)
+               for(i=0; i<N; i++)
+                  b[i+j*Ndim] *= anscombe_diff(a_cpy[i]);
 
          /*
          fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");

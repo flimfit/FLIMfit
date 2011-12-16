@@ -50,6 +50,7 @@ function save_param_table(obj,file,append,save_images)
         
         for i=1:rows
             fprintf(fid,'%f,',i);
+            
             fprintf(fid,'%s,',obj.fit_result.names{i});
             for j=1:length(metadata_fields)
                 if isnumeric(metadata.(metadata_fields{j}){i})
@@ -58,6 +59,7 @@ function save_param_table(obj,file,append,save_images)
                     fprintf(fid,'%s,',metadata.(metadata_fields{j}){i});
                 end
             end
+            
             for j=1:length(param_list)
                 fprintf(fid,'%s %s.tif,images,',obj.fit_result.names{i},param_list{j});
             end

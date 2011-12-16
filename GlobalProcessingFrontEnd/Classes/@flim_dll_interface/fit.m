@@ -157,8 +157,8 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         switch p.global_fitting
             case 0
                 obj.n_group = width * height * n_im;            
-                obj.n_regions = ones([1 obj.n_group]);
-                obj.n_regions_total = obj.n_group;
+                obj.n_regions = mask;
+                obj.n_regions_total = max(mask(:));
 
                 obj.n_px = 1;
                 obj.globals_size = size(mask);

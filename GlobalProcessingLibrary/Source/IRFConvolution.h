@@ -33,4 +33,21 @@ int ref_lifetime_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double 
 void sample_irf(FLIMGlobalFitController *gc, double a[], int pol_group = 0, double* scale_fact = 0);
 
 
+inline double anscombe(double x)
+{
+   return 2 * sqrt(x + 0.375);
+}
+
+inline double inv_anscombe(double x)
+{
+   return x*x*0.25 - 0.375;
+}
+
+inline double anscombe_diff(double x)
+{
+   return 1 / sqrt(x + 0.375);
+}
+
+
+
 #endif

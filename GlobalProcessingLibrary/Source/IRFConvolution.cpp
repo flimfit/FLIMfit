@@ -28,7 +28,7 @@ void calc_exps(FLIMGlobalFitController *gc, int n_t, double t[], int total_n_exp
 
          // IRF exponential factor
 
-         e0 = exp( (gc->t_irf[0] + gc->t0_guess) * rate );// gc->t_g;
+         e0 = exp( (gc->t_irf[0] + gc->t0_guess) * rate ) * gc->t_g;
          de = exp( + gc->t_g * rate );
          ej = e0;
 

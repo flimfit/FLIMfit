@@ -9,8 +9,6 @@ class FLIMGlobalFitController;
 
 class FitStatus
 {
-   //HANDLE running_mutex;
-   //boost::interprocess::interprocess_mutex running_mutex;
    tthread::mutex running_mutex;
    int (*callback)();
 

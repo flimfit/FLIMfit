@@ -84,7 +84,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_re
    offset_err(offset_err), scatter_err(scatter_err), tvb_err(tvb_err), ref_lifetime_err(ref_lifetime_err),
    chi2(chi2), ierr(ierr),
    n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
-   error(0), init(false), chi2_map_mode(false), polarisation_resolved(false), has_fit(false)
+   error(0), init(false), chi2_map_mode(false), polarisation_resolved(false), has_fit(false), 
+   anscombe_tranform(false), thread_handle(NULL)
 {
    status = new FitStatus(this,n_group,n_thread,callback); //free ok
    params = new WorkerParams[n_thread]; //free ok
@@ -130,49 +131,57 @@ int FLIMGlobalFitController::RunWorkers()
 
 void WorkerThread(void* wparams)
 {
-   WorkerParams* p = (WorkerParams*) wparams;
-   FLIMGlobalFitController* controller = p->controller;
-   int thread = p->thread;
-
-   int idx = 0;
-
-   if (thread >= controller->n_regions_total)
-	   return;
-
-   controller->status->AddThread();
-
-   for(int g=0; g<controller->n_group; g++)
+   try
    {
-      for(int r=1; r<=controller->n_regions[g]; r++)
+      WorkerParams* p = (WorkerParams*) wparams;
+      FLIMGlobalFitController* controller = p->controller;
+      int thread = p->thread;
+
+      int idx = 0;
+
+      if (thread >= controller->n_regions_total)
+	      return;
+
+      controller->status->AddThread();
+
+      for(int g=0; g<controller->n_group; g++)
       {
-         if(idx % controller->n_thread == thread)
+         for(int r=1; r<=controller->n_regions[g]; r++)
          {
-            if (!controller->init)
-               break;
+            if(idx % controller->n_thread == thread)
+            {
+               if (!controller->init)
+                  break;
 
-            controller->ProcessRegion(g,r,thread);
+               controller->ProcessRegion(g,r,thread);
 
-			if (controller->ierr[0] > -1)
-				int a = 1;
+			   if (controller->ierr[0] > -1)
+				   int a = 1;
 
-            if (r == controller->n_regions[g])
-               controller->status->FinishedGroup(thread);
+               if (r == controller->n_regions[g])
+                  controller->status->FinishedGroup(thread);
+            }
+            if (controller->status->terminate)
+               goto terminated;
+            idx++;
          }
-         if (controller->status->terminate)
-            goto terminated;
-         idx++;
       }
+
+   terminated:
+
+      int threads_running = controller->status->RemoveThread();
+
+      if (threads_running == 0 && controller->runAsync)
+      {
+         controller->CleanupTempVars();
+      }
+
    }
-
-terminated:
-
-   int threads_running = controller->status->RemoveThread();
-
-   if (threads_running == 0 && controller->runAsync)
+   catch(exception e)
    {
-      controller->CleanupTempVars();
-   }
+      e = e;
 
+   }
    return;
 }
 
@@ -490,7 +499,8 @@ void FLIMGlobalFitController::Init()
       l++;
    }
 
-
+   anscombe_tranform = (l == 1);
+   
 	ndim   = max( n_meas, 2*nl+3 );
 	ndim   = max( ndim, s*n_meas - (s-1)*l );
 	nmax   = n_meas;
@@ -513,6 +523,7 @@ void FLIMGlobalFitController::Init()
       alf          = new double[ n_regions_total * nl ]; //free ok
       alf_best     = new double[ n_regions_total * nl ]; //free ok
 	   a            = new double[ n_thread_buf * n_meas * lps ]; //free ok
+      a_cpy        = new double[ n_thread_buf * n_meas * (l+1) ];
 	   b            = new double[ n_thread_buf * ndim * pp2 ]; //free ok
 
       y            = new double[ n_thread_buf * s * n_meas ]; //free ok 
@@ -966,6 +977,9 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
                            fit[idx*n_meas + i] += at[n_meas*j+i] * lin_params[r_idx*n_px*l + l*px_thresh +j];
 
                         fit[idx*n_meas + i] += at[n_meas*l+i];
+
+                        if (anscombe_tranform)
+                           fit[idx*n_meas + i] = inv_anscombe(fit[idx*n_meas + i]);
                      }
                      idx++;
                      if (idx == n_fit)
@@ -1040,12 +1054,6 @@ void FLIMGlobalFitController::CleanupTempVars()
    ClearVariable(alf_err);
    
    
-   if (thread_handle != NULL)
-   {
-      delete[] thread_handle;
-      thread_handle = NULL;
-   }
-   
 
    if (grid_search)
    {
@@ -1064,6 +1072,7 @@ void FLIMGlobalFitController::CleanupResults()
 
    init = false;
    ClearVariable(lin_params);
+   ClearVariable(a_cpy);
    ClearVariable(alf);
    ClearVariable(alf_best);
    ClearVariable(mask_buf);
@@ -1078,5 +1087,11 @@ void FLIMGlobalFitController::CleanupResults()
    ClearVariable(chan_fact);
    ClearVariable(locked_param);
    ClearVariable(locked_value);
+
+   if (thread_handle != NULL)
+   {
+      delete[] thread_handle;
+      thread_handle = NULL;
+   }
 
 }

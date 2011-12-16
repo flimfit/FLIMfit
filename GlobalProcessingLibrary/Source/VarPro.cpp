@@ -712,44 +712,45 @@ L99:
     lp1 = *l + 1;
 
     i__1 = nl;
-    for (k = 1; k <= i__1; ++k) {
-	lpk = *l + k;
-	i__2 = nsls1 + 1 - lpk;
-	d__1 = xnorm_(&i__2, &b[lpk + k * b_dim1]);
-	alpha = d_sign(&d__1, &b[lpk + k * b_dim1]);
-	u = b[lpk + k * b_dim1] + alpha;
-	b[lpk + k * b_dim1] = u;
-	beta = alpha * u;
-	if (alpha != (float)0.) {
-	    goto L13;
-	}
-/*                                                   COLUMN WAS ZERO */
-	*ierr = -8;
-	i__2 = lp1 + k;
-	varerr_(iprint, ierr, &i__2);
-	goto L99;
-/*                                APPLY REFLECTIONS TO REMAINING COLUMNS */
-/*                                OF B AND TO RESIDUAL VECTOR. */
-L13:
-	kp1 = k + 1;
-	i__2 = *nlp1;
-	for (j = kp1; j <= i__2; ++j) {
-	    acum = (float)0.;
-	    i__3 = nsls1;
-	    for (i__ = lpk; i__ <= i__3; ++i__) {
-/* L20: */
-		acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
-	    }
-	    acum /= beta;
-	    i__3 = nsls1;
-	    for (i__ = lpk; i__ <= i__3; ++i__) {
-/* L25: */
-		b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
-	    }
-	}
-/* L30: */
-	b[lpk + k * b_dim1] = -alpha;
-    }
+    for (k = 1; k <= i__1; ++k) 
+    {
+	   lpk = *l + k;
+	   i__2 = nsls1 + 1 - lpk;
+	   d__1 = xnorm_(&i__2, &b[lpk + k * b_dim1]);
+	   alpha = d_sign(&d__1, &b[lpk + k * b_dim1]);
+	   u = b[lpk + k * b_dim1] + alpha;
+	   b[lpk + k * b_dim1] = u;
+	   beta = alpha * u;
+	   if (alpha != (float)0.) {
+	       goto L13;
+	   }
+   /*                                                   COLUMN WAS ZERO */
+	   *ierr = -8;
+	   i__2 = lp1 + k;
+	   varerr_(iprint, ierr, &i__2);
+	   goto L99;
+   /*                                APPLY REFLECTIONS TO REMAINING COLUMNS */
+   /*                                OF B AND TO RESIDUAL VECTOR. */
+   L13:
+	   kp1 = k + 1;
+	   i__2 = *nlp1;
+	   for (j = kp1; j <= i__2; ++j) {
+	       acum = (float)0.;
+	       i__3 = nsls1;
+	       for (i__ = lpk; i__ <= i__3; ++i__) {
+   /* L20: */
+		   acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
+	       }
+	       acum /= beta;
+	       i__3 = nsls1;
+	       for (i__ = lpk; i__ <= i__3; ++i__) {
+   /* L25: */
+		   b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
+	       }
+	   }
+   /* L30: */
+	   b[lpk + k * b_dim1] = -alpha;
+   }
 
     *prjres = xnorm_(&nl, &b[lp1 + *nlp1 * b_dim1]);
 
