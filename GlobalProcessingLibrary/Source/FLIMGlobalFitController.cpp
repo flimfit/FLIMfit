@@ -52,13 +52,13 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_re
                                                  int fit_offset, double offset_guess,  
                                                  int fit_scatter, double scatter_guess,
                                                  int fit_tvb, double tvb_guess, double tvb_profile[],
-                                                 int n_fret, int n_fret_fix, int inc_Rinf, double R_guess[],
+                                                 int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                                                  int pulsetrain_correction, double t_rep,
                                                  int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                                                 double tau[], double I0[], double beta[], double R[], double gamma[],
+                                                 double tau[], double I0[], double beta[], double E[], double gamma[],
                                                  double theta[], double r[],
                                                  double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
-                                                 int calculate_errs, double tau_err[], double beta_err[], double R_err[], double theta_err[],
+                                                 int calculate_errs, double tau_err[], double beta_err[], double E_err[], double theta_err[],
                                                  double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
                                                  double chi2[], int ierr[],
                                                  int n_thread, int runAsync, int (*callback)()) :
@@ -75,12 +75,12 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_re
    fit_offset(fit_offset), offset_guess(offset_guess), 
    fit_scatter(fit_scatter), scatter_guess(scatter_guess), 
    fit_tvb(fit_tvb), tvb_guess(tvb_guess), tvb_profile(tvb_profile),
-   n_fret(n_fret), n_fret_fix(n_fret_fix), inc_Rinf(inc_Rinf), R_guess(R_guess),
+   n_fret(n_fret), n_fret_fix(n_fret_fix), inc_donor(inc_donor), E_guess(E_guess),
    pulsetrain_correction(pulsetrain_correction), t_rep(t_rep),
    ref_reconvolution(ref_reconvolution), ref_lifetime_guess(ref_lifetime_guess),
-   tau(tau), I0(I0), beta(beta), R(R), gamma(gamma), theta(theta), r(r), t0(t0), offset(offset), 
+   tau(tau), I0(I0), beta(beta), E(E), gamma(gamma), theta(theta), r(r), t0(t0), offset(offset), 
    scatter(scatter), tvb(tvb), ref_lifetime(ref_lifetime), 
-   calculate_errs(calculate_errs), tau_err(tau_err), beta_err(beta_err), R_err(R_err), theta_err(theta_err), 
+   calculate_errs(calculate_errs), tau_err(tau_err), beta_err(beta_err), E_err(E_err), theta_err(theta_err), 
    offset_err(offset_err), scatter_err(scatter_err), tvb_err(tvb_err), ref_lifetime_err(ref_lifetime_err),
    chi2(chi2), ierr(ierr),
    n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
@@ -262,14 +262,14 @@ void FLIMGlobalFitController::Init()
    if (!fit_fret)
    {
       n_fret_fix = 0;
-      inc_Rinf = true;
+      inc_donor = true;
    }
    else
       n_fret_fix = min(n_fret_fix,n_fret);
  
    n_fret_v = n_fret - n_fret_fix;
       
-   tau_start = inc_Rinf ? 0 : 1;
+   tau_start = inc_donor ? 0 : 1;
 
    beta_global = (fit_beta != FIT_LOCALLY);
 
@@ -415,7 +415,7 @@ void FLIMGlobalFitController::Init()
       }
    }
 
-   n_decay_group = n_fret + inc_Rinf;        // Number of decay 'groups', i.e. FRETing species + no FRET
+   n_decay_group = n_fret + inc_donor;        // Number of decay 'groups', i.e. FRETing species + no FRET
 
 /*
    if (n_decay_group == 1 && n_pol_group == 1 && fit_beta == FIT_GLOBALLY)
@@ -588,7 +588,7 @@ void FLIMGlobalFitController::Init()
 
    if (fit_fret == FIT)
    {
-     alf_iR6_idx = idx;
+     alf_E_idx = idx;
      idx += n_fret_v;
    }
 
@@ -632,7 +632,7 @@ void FLIMGlobalFitController::Init()
    SetNaN(theta,   n_group*n_px*n_theta);
    SetNaN(r,       n_group*n_px*n_r);
 
-   SetNaN(R,       n_group*n_px*n_fret);
+   SetNaN(E,       n_group*n_px*n_fret);
    SetNaN(gamma,   n_group*n_px*n_decay_group);
 
    SetNaN(ref_lifetime, n_group*n_px);
@@ -644,7 +644,7 @@ void FLIMGlobalFitController::Init()
    SetNaN(tau_err,     n_group*n_px*n_exp);
    SetNaN(beta_err,    n_group*n_px*n_exp);
    SetNaN(theta_err,   n_group*n_px*n_theta);
-   SetNaN(R_err,       n_group*n_px*n_fret);
+   SetNaN(E_err,       n_group*n_px*n_fret);
    SetNaN(ref_lifetime_err, n_group*n_px);
    
 

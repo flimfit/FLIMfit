@@ -39,10 +39,10 @@ classdef flim_dll_interface < handle
         p_irf;
         p_t_irf;
         p_tau;
-        p_R_guess;
+        p_E_guess;
         p_I0;
         p_beta;
-        p_R;
+        p_E;
         p_chi2;
         p_ierr;
         p_t0;
@@ -57,7 +57,7 @@ classdef flim_dll_interface < handle
         
         p_tau_err;
         p_beta_err;
-        p_R_err;
+        p_E_err;
         p_theta_err;
         p_offset_err;
         p_scatter_err;
@@ -73,7 +73,7 @@ classdef flim_dll_interface < handle
         I0_size;
         beta_size;
         gamma_size;
-        R_size;
+        E_size;
         tau_size;
         globals_size;
         n_regions;

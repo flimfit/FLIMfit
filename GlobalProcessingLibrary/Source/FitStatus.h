@@ -7,6 +7,8 @@
 
 class FLIMGlobalFitController;
 
+double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed = false);
+
 class FitStatus
 {
    tthread::mutex running_mutex;

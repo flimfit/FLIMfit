@@ -1,4 +1,11 @@
 #include "FitStatus.h"
+#include "FLIMGlobalFitController.h"
+
+double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_param)
+{
+   return chi2 * chi2 / (gc->n_meas * s - (gc->nl-(int)fixed_param) - s*gc->l);
+}
+
 
 FitStatus::FitStatus(FLIMGlobalFitController* gc, int n_group, int n_thread, int (*callback)()) : 
    gc(gc), n_group(n_group), n_thread(n_thread), callback(callback), 
@@ -71,7 +78,7 @@ int FitStatus::UpdateStatus(int thread, int t_group, int t_iter, double t_chi2)
    if (t_group >= 0)
       group[thread] = t_group;
    iter[thread] = t_iter;
-   chi2[thread] = t_chi2;//norm_chi2(gc, t_chi2, 1);
+   chi2[thread] = norm_chi2(gc, t_chi2, 1);
 
    for(int i=0; i<n_thread; i++)
    {

@@ -28,7 +28,7 @@
     properties(Access='protected')
         n_exp_list = 0;
         n_fret_list = 0;
-        inc_Rinf_list = 0;
+        inc_donor_list = 0;
     end
     
     methods

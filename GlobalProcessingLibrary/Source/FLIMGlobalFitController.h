@@ -49,11 +49,11 @@ public:
    int fit_offset; double offset_guess; 
    int fit_scatter; double scatter_guess;
    int fit_tvb; double tvb_guess; double *tvb_profile;
-   int fit_fret; int inc_Rinf; double *R_guess; int n_fret; int n_fret_fix; int n_fret_v;
+   int fit_fret; int inc_donor; double *E_guess; int n_fret; int n_fret_fix; int n_fret_v;
    int pulsetrain_correction; double t_rep;
    int ref_reconvolution; double ref_lifetime_guess;
    double *tau; double *tau_err; double *I0; double *beta; double *beta_err; 
-   double *R; double *R_err; double *gamma; double *t0; 
+   double *E; double *E_err; double *gamma; double *t0; 
    double *offset; double *offset_err; double *scatter; double *scatter_err ;
    double *tvb;  double *tvb_err; double *ref_lifetime; double *ref_lifetime_err;
    double *chi2; int *ierr; int algorithm;
@@ -131,7 +131,7 @@ public:
    FitStatus *status;
    WorkerParams* params;
 
-   int alf_t0_idx, alf_offset_idx, alf_scatter_idx, alf_iR6_idx, alf_beta_idx, alf_theta_idx, alf_tvb_idx, alf_ref_idx;
+   int alf_t0_idx, alf_offset_idx, alf_scatter_idx, alf_E_idx, alf_beta_idx, alf_theta_idx, alf_tvb_idx, alf_ref_idx;
    double t_g;
 
    int *locked_param;
@@ -160,13 +160,13 @@ public:
                            int fit_offset, double offset_guess, 
                            int fit_scatter, double scatter_guess,
                            int fit_tvb, double tvb_guess, double tvb_profile[],
-                           int n_fret, int n_fret_fix, int inc_Rinf, double R_guess[],
+                           int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                            int pulsetrain_correction, double t_rep,
                            int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                           double tau[], double I0[], double beta[], double R[], double gamma[],
+                           double tau[], double I0[], double beta[], double E[], double gamma[],
                            double theta[], double r[],
                            double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
-                           int calculate_errs, double tau_err[], double beta_err[], double R_err[], double theta_err[],
+                           int calculate_errs, double tau_err[], double beta_err[], double E_err[], double theta_err[],
                            double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
                            double chi2[], int ierr[],
                            int n_thread, int runAsync, int callback());

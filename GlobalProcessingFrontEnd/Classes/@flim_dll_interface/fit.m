@@ -228,9 +228,9 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.theta_size = [p.n_theta size(mask)];
     obj.r_size = [p.n_theta size(mask)];
     
-    n_decay_group = p.n_fret + p.inc_Rinf;
+    n_decay_group = p.n_fret + p.inc_donor;
     obj.gamma_size = [n_decay_group size(mask)];
-    obj.R_size = [p.n_fret size(mask)];
+    obj.E_size = [p.n_fret size(mask)];
     
     
     magic_decay = zeros([1 length(d.tr_t)]);
@@ -245,7 +245,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.p_t_irf = libpointer('doublePtr', d.tr_t_irf);
         obj.p_n_regions = libpointer('int32Ptr', int32(obj.n_regions));
         obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta / sum(p.fixed_beta));
-        obj.p_R_guess = libpointer('doublePtr',p.fret_guess);
+        obj.p_E_guess = libpointer('doublePtr',p.fret_guess);
         obj.p_theta_guess = libpointer('doublePtr',p.theta_guess);
         
         obj.p_tvb_profile = libpointer('doublePtr',d.tr_tvb_profile);
@@ -256,10 +256,10 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
             obj.p_r = libpointer('doublePtr',zeros(obj.r_size));
             obj.p_theta = libpointer('doublePtr',zeros(obj.theta_size));
             
-            obj.p_R = [];
+            obj.p_E = [];
             obj.p_gamma = [];
         else
-            obj.p_R = libpointer('doublePtr',zeros(obj.R_size));
+            obj.p_E = libpointer('doublePtr',zeros(obj.E_size));
             obj.p_gamma = libpointer('doublePtr',zeros(obj.gamma_size));
             
             obj.p_r = [];
@@ -309,7 +309,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.p_tau_err = [];
         obj.p_beta_err = [];
         obj.p_theta_err = [];
-        obj.p_R_err = [];
+        obj.p_E_err = [];
         obj.p_offset_err = [];
         obj.p_scatter_err = [];
         obj.p_tvb_err = [];
@@ -325,7 +325,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
             if p.polarisation_resolved
                 obj.p_theta_err = libpointer('doublePtr',zeros(obj.theta_size));
             else
-                obj.p_R_err = libpointer('doublePtr',zeros(obj.R_size));
+                obj.p_E_err = libpointer('doublePtr',zeros(obj.E_size));
             end
             
             if p.fit_offset == 2

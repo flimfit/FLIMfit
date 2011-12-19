@@ -68,7 +68,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
 
     add_fitting_param_control('fret','n_fret','popupmenu','No. FRET Species', {'0','1', '2', '3', '4', '5'});
     add_fitting_param_control('fret','n_fret_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
-    add_fitting_param_control('fret','inc_Rinf','popupmenu','Include donor only', {'No', 'Yes'});
+    add_fitting_param_control('fret','inc_donor','popupmenu','Include donor only', {'No', 'Yes'});
     
     handles.fret_guess_table = uitable('Parent', fit_params_fret_extra_layout);
 

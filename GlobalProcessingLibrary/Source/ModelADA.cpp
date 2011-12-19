@@ -35,12 +35,12 @@ double d_tau_d_alf(double tau, double tau_min, double tau_max)
 
 double beta2alf(double beta)
 {
-   return log(beta);
+   return beta; //log(beta);
 }
 
 double alf2beta(double alf)
 {
-   return exp(alf);
+   return alf; //exp(alf);
 }
 
 double d_beta_d_alf(double beta)
@@ -74,12 +74,6 @@ double d_kappa_d_tau(double tau2, double tau1)
    if (d > 100)
       d = d;
    return d;
-}
-
-
-double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_param)
-{
-   return chi2 * chi2 / (gc->n_meas * s - (gc->nl-(int)fixed_param) - s*gc->l);
 }
 
 void updatestatus_(int* gc_int, int* thread, int* iter, double* chi2, int* terminate)
@@ -418,18 +412,14 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          idx = gc->n_exp;
          for(i=0; i<gc->n_fret; i++)
          {
-            double iR6,f;
+            double E;
             if (i<gc->n_fret_fix)
-               iR6 = pow(gc->R_guess[i],-6.0);
+               E = gc->E_guess[i];
             else
-               iR6 = alf2beta(alf[gc->alf_iR6_idx+i-gc->n_fret_fix]);
-
-            double R = pow(iR6,-1.0/6.0);
-
-            f = 1/( 1 + iR6 );
+               E = alf2beta(alf[gc->alf_E_idx+i-gc->n_fret_fix]); //alf[gc->alf_E_idx+i-gc->n_fret_fix];
 
             for(j=0; j<gc->n_exp; j++)
-               tau_buf[idx++] = tau_buf[j] * f; // alf[gc->alf_iR6_idx] = iR6
+               tau_buf[idx++] = tau_buf[j] * (1-E);
          }
 
          // Precalculate exponentials

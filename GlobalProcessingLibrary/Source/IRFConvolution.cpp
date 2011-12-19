@@ -285,7 +285,7 @@ int flim_model(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[
 
 
 
-int flim_model_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int n_theta, double theta[], double ref_lifetime, int dim, double b[], int inc_tau)
+int flim_model_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int n_theta, double theta[], double ref_lifetime, int dim, double b[], int inc_tau, double donor_tau[])
 {
    double c, tau_recp, fact, ref_fact, theta_recp, rate;
    int row, idx;
@@ -334,7 +334,7 @@ int flim_model_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double ex
          if (inc_tau)
             fact = tau_recp * tau_recp * d_tau_d_alf(tau[j],gc->tau_min[j],gc->tau_max[j]);
          else
-            fact = -tau_recp;
+            fact = - tau_recp * tau_recp * donor_tau[j];
 
          fact *= gc->beta_global ? beta[j] : 1;
 
@@ -449,10 +449,10 @@ int flim_fret_model_deriv(FLIMGlobalFitController *gc, int n_t, double t[], doub
    for(int i=0; i<gc->n_fret_v; i++)
    {
       b_offset = dim * col;
-      exp_group = i+gc->inc_Rinf+gc->n_fret_fix;
+      exp_group = i+gc->inc_donor+gc->n_fret_fix;
       tau_group = i+1+gc->n_fret_fix;
       cur_exp_buf = exp_buf+exp_group*gc->exp_buf_size;
-      col += flim_model_deriv(gc, n_t, t, cur_exp_buf, gc->n_exp, tau+gc->n_exp*tau_group, beta, 0, NULL, ref_lifetime, dim, b+b_offset, 0); // d(phi_fret)/d(iR6) <- this actually depends on tau too.     
+      col += flim_model_deriv(gc, n_t, t, cur_exp_buf, gc->n_exp, tau+gc->n_exp*tau_group, beta, 0, NULL, ref_lifetime, dim, b+b_offset, 0, tau); // d(phi_fret)/d(E) <- this actually depends on tau too.     
    }
 
    return col;
