@@ -201,7 +201,7 @@ int FLIMGlobalFitController::SetData(char* data_file, int data_type)
    }
    catch(std::exception& e)
    {
-      return -1;
+      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
    }
 
    return error;

@@ -7,6 +7,8 @@ project(FLIMGlobalAnalysis)
 #===================================================
 include_directories( "../Boost" )
 
+find_package("OpenMP")
+
 # Set the source and header files
 #===================================================
 set(SOURCE
@@ -55,6 +57,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
 # Copy header to output directory
 #===================================================
 file(COPY  ${CMAKE_SOURCE_DIR}/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
+
+# Include optimisation flags in Visual Studio
+#===================================================
+if(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} /Oi /fp:fast")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Ob2")
+endif(MSVC)
+
 
 # Make library
 #===================================================

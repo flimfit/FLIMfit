@@ -32,25 +32,32 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    int r_idx = r_start[g] + (region-1);
 
-   int map_offset, aligned_offset, correcting_offset, buf_size;
+   std::size_t map_offset, aligned_offset, correcting_offset, buf_size;
 
-   if (data_mode == DATA_MAPPED)
+   try
    {
-      buf_size = n_px * n_meas * sizeof(double);
-      map_offset = g * n_px * n_meas * sizeof(double);
-      aligned_offset = (map_offset / 65536) * 65536;       // memmap must be aligned to 64k chucks
-      buf_size += (map_offset - aligned_offset);
-      correcting_offset = (map_offset - aligned_offset) / sizeof(double);
+      if (data_mode == DATA_MAPPED)
+      {
+         buf_size = n_px * n_meas * sizeof(double);
+         map_offset = g * n_px * n_meas * sizeof(double);
+         aligned_offset = (map_offset / 65536) * 65536;       // memmap must be aligned to 64k chucks
+         buf_size += (map_offset - aligned_offset);
+         correcting_offset = (map_offset - aligned_offset) / sizeof(double);
 
-      data_map_view = mapped_region(data_map_file, read_only, aligned_offset, buf_size);
-      data = (double*) data_map_view.get_address();
+         data_map_view = mapped_region(data_map_file, read_only, aligned_offset, buf_size);
+         data = (double*) data_map_view.get_address();
 
-      data += correcting_offset;
+         data += correcting_offset;
 
+      }
+      else
+      {
+         data = this->data + g*n_px*n_meas;
+      }
    }
-   else
+   catch(std::exception& e)
    {
-      data = this->data + g*n_px*n_meas;
+      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
    }
 
    int        *mask_buf = this->mask_buf + g*n_px;
