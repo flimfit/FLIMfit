@@ -73,9 +73,12 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         if ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) && isfield(r.image_stats{j},param)
   
                             n = r.image_stats{j}.(param).n;
-                            y = y + r.image_stats{j}.(param).mean * n; 
-                            yv = yv + (r.image_stats{j}.(param).std)^2*n;
-                            yn = yn + r.image_stats{j}.(param).n;
+                            if n > 0
+                                y = y + r.image_stats{j}.(param).mean * n; 
+                                yv = yv + (r.image_stats{j}.(param).std)^2*n;
+                                yn = yn + r.image_stats{j}.(param).n;
+                            end
+                            
                             if ~isempty(err_name)
                                 e = e + r.image_stats{j}.(err_name).mean * n;
                             end
