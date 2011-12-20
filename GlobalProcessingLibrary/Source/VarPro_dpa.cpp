@@ -24,7 +24,7 @@ static integer c__3 = 3;
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, r_dim1, 
-    r_offset, y_dim1, y_offset, i__1, i__2, i__3;
+    r_offset, y_dim1, y_offset, i__1, i__2;
     doublereal d__1;
     double rn;
 
@@ -183,12 +183,12 @@ L30:
    else
    {
       #pragma omp parallel for private(i__)
-      for(j=*s; j > 0; --j)
+      for(j=*s; j > 1; --j)
          for(i__=1; i__ <= *n; ++i__)
             r__[i__ + j * r_dim1] = y[i__ + j * y_dim1] - r__[i__ + r_dim1];
         
       for(i__=1; i__ <= *n; ++i__)
-         r__[i__ + 0 * r_dim1] = y[i__ + 0 * y_dim1] - r__[i__ + r_dim1];
+         r__[i__ + r_dim1] = y[i__ + y_dim1] - r__[i__ + r_dim1];
 
 
    }
@@ -386,8 +386,7 @@ L99:
 doublereal xnorm_(integer *n, doublereal *x)
 {
     /* System generated locals */
-    integer i__1;
-    doublereal ret_val, d__1, d__2;
+    doublereal ret_val, d__1;
 
     /* Builtin functions */
     double sqrt(doublereal);

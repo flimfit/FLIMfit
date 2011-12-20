@@ -211,14 +211,11 @@ int flim_model(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[
   
    bool inc_irf_component = (gc->ref_reconvolution && !inc_ref_deriv_fact);
 
-   //if (!inc_irf_component)
-   //{
-      if (add_components)
-         memset(a, 0, gc->n_meas*gc->n_pol_group*sizeof(double)); 
-      else
-         for(int j=0; j<total_n_exp; j++)
-            memset(a+j*dim, 0, gc->n_meas*sizeof(double));
-   //}
+   if (add_components)
+      memset(a, 0, gc->n_meas*gc->n_pol_group*sizeof(double)); 
+   else
+      for(int j=0; j<total_n_exp; j++)
+         memset(a+j*dim, 0, gc->n_meas*sizeof(double));
 
    for(int p=0; p<gc->n_pol_group; p++)
    {
@@ -567,76 +564,3 @@ for(j=i; j<n_tau;     j++)
 */
 
 
-
-/*
-int flim_model_deriv(int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int n_theta, double theta[], int dim, double b[], int inc_tau)
-{
-   double c, d, tau_recp, fact, ref_fact;
-   int row, idx;
-   double *exp_model_buf, *exp_irf_buf, *exp_irf_cum_buf, *exp_irf_tirf_buf, *exp_irf_tirf_cum_buf, *exp_irf_rep_buf;
-
-   int fret_derivatives =  (!inc_tau && gc->beta_global);
-
-   int col = 0;
-
-   if (fret_derivatives)
-   {
-      memset(b, 0, n_t*sizeof(double));
-      col = 1;
-   }
-
-   for(int j=0; j<n_tau ; j++)
-   {
-      idx = fret_derivatives ? 0 : col*dim;
-
-      tau_recp = 1/tau[j];
-      
-      row = N_EXP_BUF_ROWS*j;
-      exp_model_buf         = exp_buf +  row   *gc->exp_dim;
-      exp_irf_rep_buf       = exp_buf + (row+1)*gc->exp_dim;
-      exp_irf_tirf_cum_buf  = exp_buf + (row+2)*gc->exp_dim;
-      exp_irf_tirf_buf      = exp_buf + (row+3)*gc->exp_dim;
-      exp_irf_cum_buf       = exp_buf + (row+4)*gc->exp_dim;
-      exp_irf_buf           = exp_buf + (row+5)*gc->exp_dim;
-
-      
-      fact  = inc_tau ? tau_recp * tau_recp * d_tau_d_alf(tau[j],gc->tau_min[j],gc->tau_max[j]) : -tau_recp;
-      fact *= gc->beta_global ? beta[j] : 1;
-
-      ref_fact = gc->ref_reconvolution ? (1/gc->ref_lifetime - tau_recp) : 1;
-
-      for(int i=0; i<n_t; i++)
-      {
-         gc->ConvolveDerivative(t[i], tau[j], exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, 0, i, ref_fact, c);
-         
-         d = c * exp_model_buf[i] * fact;
-    
-         if (!inc_tau && gc->beta_global) // we're calculating fret derivatives with fixed fractions
-            b[idx++] += d;
-         else
-            b[idx++] = d;
-
-      }
-
-      if (!fret_derivatives)
-         col++;
-
-      double dkap; // maintains order of taus
-      if (j>0 && j < gc->n_v)
-      {
-         dkap = d_kappa_d_tau(tau[j],tau[j-1]);
-         for(int i=0; i<n_t; i++)
-            b[i+col*dim] = dkap;
-         dkap = dkap;
-         col++;
-      }
-   }
-
-   if (gc->fit_beta == FIT_GLOBALLY)
-   {
-      col += flim_model(n_t, t, exp_buf, gc->n_beta, tau, beta, n_theta, theta, dim, b+col*dim, 0, 1);
-   }
-   return col;
-
-}
-*/

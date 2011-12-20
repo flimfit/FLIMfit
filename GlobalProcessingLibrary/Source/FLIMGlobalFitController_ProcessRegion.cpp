@@ -57,6 +57,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    }
    catch(std::exception& e)
    {
+      ierr[r_idx] = ERR_COULD_NOT_OPEN_MAPPED_FILE;
       return ERR_COULD_NOT_OPEN_MAPPED_FILE;
    }
 

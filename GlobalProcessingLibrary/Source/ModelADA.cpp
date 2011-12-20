@@ -153,10 +153,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
    if (gc == NULL)
       return -1;
-	
-//   FILE* fx;
 
-   int i,j,k, d_offset, total_n_exp, idx;
+   int i,j,k, d_offset, total_n_exp, idx, i_start;
    int a_col, inc_row, inc_col, n_exp_col, cur_col;
    
    double kap, ref_lifetime;
@@ -221,6 +219,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 			      for(i=0; i<96; i++)
 				      inc[i] = 0;
 		
+      
                // Set inc for local offset if required
                // Independent of all variables
                if( gc->fit_offset == FIT_LOCALLY )
@@ -268,7 +267,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                for(i=0; i<gc->n_fret_v; i++)
                {
 				      for(j=0; j<gc->n_exp_phi; j++)
-                     inc[inc_row+(inc_col+i*gc->n_exp_phi+j)*12] = 1;
+                     inc[inc_row+(gc->inc_donor+gc->n_fret_fix+inc_col+i*gc->n_exp_phi+j)*12] = 1;
                   inc_row++;
                }
 
@@ -292,8 +291,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   }
                   */
 
-               if (gc->n_decay_group > 1)
-                  inc_col += gc->n_decay_group * gc->n_exp_phi;
+               //if (gc->n_decay_group > 1)
+               inc_col += gc->n_decay_group * gc->n_exp_phi;
               
                // Both global offset and scatter are in col L+1
 
@@ -318,7 +317,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                gc->first_call = false;
             }
 
-            gc->mutex.unlock();  
+              gc->mutex.unlock();  
          }
             //ReleaseMutex(gc->mutex);
 
@@ -328,7 +327,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          a_col = 0;
          
          // set constant phi value for offset
-         if( gc->fit_offset == FIT_LOCALLY )
+         if( gc->fit_offset == FIT_LOCALLY  )
          {
             for(i=0; i<N; i++)
                a[ i + N*a_col ] = 1;
@@ -425,8 +424,12 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // Precalculate exponentials
          calc_exps(gc, gc->n_t, t, total_n_exp, tau_buf+gc->tau_start*gc->n_exp, gc->n_theta, theta_buf, exp_buf);
          
-         for(i=0; i<gc->n_decay_group; i++)
-            a_col += flim_model(gc, gc->n_t, t, exp_buf+i*gc->exp_buf_size, gc->n_exp, tau_buf+(i+gc->tau_start)*gc->n_exp, beta_buf, gc->n_theta, theta_buf, ref_lifetime, N, a+N*a_col, gc->beta_global);
+         // If we have FRET and donor, only include the 1st time
+         a_col += i_start = (gc->n_fret > 0 && *isel == 2) ? (gc->inc_donor + gc->n_fret_fix) : 0;
+
+         for(i=i_start; i<gc->n_decay_group; i++)
+            a_col += flim_model(gc, gc->n_t, t, exp_buf+i*gc->exp_buf_size, gc->n_exp, tau_buf+(i+gc->tau_start)*gc->n_exp, 
+                                beta_buf, gc->n_theta, theta_buf, ref_lifetime, N, a+N*a_col, gc->beta_global);
        
          // Set L+1 phi value (without associated beta), to include global offset/scatter
          //----------------------------------------------
@@ -519,7 +522,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   b[i+j*Ndim] *= anscombe_diff(a_cpy[i]);
 
          /*
-         fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
+         FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
          if (fx!=NULL)
          {
             for(j=0; j<n_meas; j++)

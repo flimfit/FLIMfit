@@ -599,7 +599,7 @@ void FLIMGlobalFitController::Init()
    }
 
    alf_theta_idx = idx; 
-   idx += n_v;
+//   idx += n_v;
 
 
    if (fit_t0)
