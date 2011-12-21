@@ -11,9 +11,9 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
    double* exp_irf_cum_buf       = local_exp_buf + (row+4)*exp_dim;
    double* exp_irf_buf           = local_exp_buf + (row+5)*exp_dim;
             
-   double rate = 1/tau[tau_idx] + ((theta_idx<n_theta) ? 1/theta[theta_idx] : 0);
+   double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
-   fact  = ref_reconvolution ? 1/ref_lifetime - rate : 1;
+   fact *= ref_reconvolution ? 1/ref_lifetime - rate : 1;
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
@@ -40,7 +40,7 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    double* exp_irf_cum_buf       = local_exp_buf + (row+4)*exp_dim;
    double* exp_irf_buf           = local_exp_buf + (row+5)*exp_dim;
             
-   double rate = 1/tau[tau_idx] + ((theta_idx<n_theta) ? 1/theta[theta_idx] : 0);
+   double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
    double ref_fact = ref_reconvolution ? (1/ref_lifetime - rate) : 1;
 
@@ -80,11 +80,15 @@ int FLIMGlobalFitController::flim_model(int thread, double tau[], double beta[],
    if (fit_fret && !include_fixed && n_fix == n_exp)
       g_start = n_fret_fix + (inc_donor ? 1 : 0);
 
+   int p_start = 0;
+   if (polarisation_resolved && !include_fixed && n_fix == n_exp)
+      p_start = 1 + n_theta_fix;
+
    int n_col = n_decay_group * n_pol_group * (beta_global ? 1 : n_exp);
 
-   int idx = 0;
+   int idx = p_start * n_meas;
 
-   for(int p=0; p<n_pol_group; p++)
+   for(int p=p_start; p<n_pol_group; p++)
    {
       idx += g_start * n_meas;
 
@@ -232,14 +236,14 @@ int FLIMGlobalFitController::theta_derivatives(int thread, double tau[], double 
    int col = 0;
    int idx = 0;
 
-   for(int p=0; p<n_theta_v; p++)
+   for(int p=n_theta_fix; p<n_theta; p++)
    {
       memset(b+idx, 0, n_meas*sizeof(double));
 
       for(int j=0; j<n_exp; j++)
       {      
          fact  = beta[j] / theta[p] / theta[p] * d_tau_d_alf(theta[p],0,1000000);
-         add_derivative(thread, j, p, 0, tau, theta, fact, ref_lifetime, b+idx);
+         add_derivative(thread, j, p+1, 0, tau, theta, fact, ref_lifetime, b+idx);
       }
 
       idx += ndim;

@@ -259,7 +259,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
                for(i=0; i<gc->n_theta_v; i++)
                {
-                  inc[inc_row+(inc_col+i)*12] = 1;
+                  inc[inc_row+(inc_col+i+1+gc->n_theta_fix)*12] = 1;
                   inc_row++;
                }
 			
@@ -292,7 +292,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   */
 
                //if (gc->n_decay_group > 1)
-               inc_col += gc->n_decay_group * gc->n_exp_phi;
+               inc_col += gc->n_pol_group * gc->n_decay_group * gc->n_exp_phi;
               
                // Both global offset and scatter are in col L+1
 
@@ -372,10 +372,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             tau_buf[j+gc->n_fix] = alf2tau(alf[j],gc->tau_min[j+gc->n_fix],gc->tau_max[j+gc->n_fix]);
 
          // Set theta's
-         for(j=0; j<gc->n_theta_v; j++)
-            theta_buf[j] = alf2tau(alf[gc->alf_theta_idx+j],0,1000000);
          for(j=0; j<gc->n_theta_fix; j++)
-            theta_buf[j+gc->n_theta_v] = gc->theta_guess[j];
+            theta_buf[j] = gc->theta_guess[j];
+         for(j=0; j<gc->n_theta_v; j++)
+            theta_buf[j+gc->n_theta_fix] = alf2tau(alf[gc->alf_theta_idx+j],0,1000000);
 
 
          // Set beta's
@@ -424,14 +424,14 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          
          a_col += gc->flim_model(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
 
-         
+         /*
          // If we have FRET and donor, only include the 1st time
          a_col += i_start = (gc->n_fret > 0 && *isel == 2) ? (gc->inc_donor + gc->n_fret_fix) : 0;
 
          for(i=i_start; i<gc->n_decay_group; i++)
             a_col += flim_model(gc, gc->n_t, t, exp_buf+i*gc->exp_buf_size, gc->n_exp, tau_buf+(i+gc->tau_start)*gc->n_exp, 
                                 beta_buf, gc->n_theta, theta_buf, ref_lifetime, N, a+N*a_col, gc->beta_global);
-         
+         */
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
@@ -521,7 +521,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
          
-            
+            /*
          col = 0;
          if (gc->fit_fret == FIT)
             col = flim_fret_model_deriv(gc, gc->n_t, t, exp_buf, tau_buf, beta_buf, ref_lifetime, Ndim, b);
@@ -532,7 +532,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += ref_lifetime_deriv(gc, gc->n_t, t, exp_buf, gc->n_exp, tau_buf, beta_buf, gc->n_theta, theta_buf, ref_lifetime, Ndim, b + col*Ndim);
-          
+          */
 
 
          if (gc->anscombe_tranform)

@@ -12,8 +12,8 @@ void calc_exps(FLIMGlobalFitController *gc, int n_t, double t[], int total_n_exp
    n_no_theta = gc->n_pol_group - n_theta;
    for(m=gc->n_pol_group-1; m>=0; m--)
    {
-      if (m<n_theta)
-         inv_theta = 1/theta[m];
+      if (m>0)
+         inv_theta = 1/theta[m-1];
       else
          inv_theta = 0;
 

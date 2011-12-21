@@ -292,14 +292,15 @@ void FLIMGlobalFitController::Init()
 
       double f = +0.00;
 
-      for(i=0; i<n_pol_group-1; i++)
+      chan_fact[0] = 1.0/3.0 - f*1.0/3.0;
+      chan_fact[1] = (1.0/3.0) + f*1.0/3.0;
+
+      for(i=1; i<n_pol_group ; i++)
       {
          chan_fact[i*2  ] =   2.0/3.0 - f*2.0/3.0;
          chan_fact[i*2+1] =  -(1.0/3.0) + f*2.0/3.0;
       }
 
-      chan_fact[i*2] = 1.0/3.0 - f*1.0/3.0;
-      chan_fact[i*2+1] = (1.0/3.0) + f*1.0/3.0;
      
    }
    else
@@ -599,8 +600,7 @@ void FLIMGlobalFitController::Init()
    }
 
    alf_theta_idx = idx; 
-//   idx += n_v;
-
+   idx += n_theta_v;
 
    if (fit_t0)
       alf_t0_idx = idx++;

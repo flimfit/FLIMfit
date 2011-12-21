@@ -451,10 +451,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
             if (polarisation_resolved)
             {
-               I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx + n_r ];
+               I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
                
                for(j=0; j<n_r; j++)
-                  r[ g*n_px*n_r + i*n_r + j ] = lin_params[ i_thresh*l + j + lin_idx ] / I0[ g*n_px + i ];
+                  r[ g*n_px*n_r + i*n_r + j ] = lin_params[ i_thresh*l + j + lin_idx + 1 ] / I0[ g*n_px + i ];
 
                double norm = 0;
                for(j=0; j<n_exp; j++)
