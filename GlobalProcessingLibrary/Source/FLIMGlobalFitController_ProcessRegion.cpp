@@ -331,6 +331,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   tau[ (g*n_px+i)*n_exp + j ] = tau_guess[j];
                for(j=0; j<n_v; j++)
                   tau[ (g*n_px+i)*n_exp + j + n_fix ] = alf2tau(alf[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]);
+
                if (calculate_errs && tau_err != NULL)
                   for(j=0; j<n_v; j++)
                      tau_err[ (g*n_px+i)*n_exp + j + n_fix ] = abs(alf2tau(conf_lim[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]) - tau[ (g*n_px+i)*n_exp + j + n_fix ]);
@@ -515,9 +516,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   }
 
                   for(j=0; j<n_v; j++)
-                     beta[ g*n_px*n_exp + i*n_exp + j ] = lin_params[ i_thresh*l + sort_idx_buf[j] + n_fix + lin_idx] / I0[ g*n_px + i ];
+                     beta[ g*n_px*n_exp + i*n_exp + j + n_fix ] = lin_params[ i_thresh*l + sort_idx_buf[j] + n_fix + lin_idx] / I0[ g*n_px + i ];
                   for(j=0; j<n_fix; j++)
-                     beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = lin_params[ i_thresh*l + j + lin_idx] / I0[ g*n_px + i ];
+                     beta[ g*n_px*n_exp + i*n_exp + j ] = lin_params[ i_thresh*l + j + lin_idx] / I0[ g*n_px + i ];
                }
             }
 

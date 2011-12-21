@@ -19,6 +19,7 @@ set(SOURCE
 	FLIMGlobalAnalysis.cpp
 	FLIMGlobalFitController.cpp
 	FLIMGlobalFitController_ProcessRegion.cpp
+	FLIMGlobalFitController_Model.cpp
 	VarPro.cpp
 	VarPro_dpa.cpp
 	VarProGrid.cpp

@@ -234,8 +234,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   inc_col++;
             
                // Set diagonal elements of incidence matrix for variable tau's	
-               n_exp_col = gc->beta_global ? 1 : gc->n_v;
-               for(i=0; i<gc->n_v; i++)
+               n_exp_col = gc->beta_global ? 1 : gc->n_exp;
+               for(i=gc->n_fix; i<gc->n_exp; i++)
 		         {
                   cur_col = gc->beta_global ? 0 : i;
                   for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
@@ -263,7 +263,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   inc_row++;
                }
 			
-               // Set elements of incidence matrix for R derivatives
+               // Set elements of incidence matrix for E derivatives
                for(i=0; i<gc->n_fret_v; i++)
                {
 				      for(j=0; j<gc->n_exp_phi; j++)
@@ -366,12 +366,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
              a_col++;
          
          // Set tau's
-         for(j=0; j<gc->n_v; j++)
-         {
-            tau_buf[j] = alf2tau(alf[j],gc->tau_min[j],gc->tau_max[j]);
-         }
          for(j=0; j<gc->n_fix; j++)
-            tau_buf[j+gc->n_v] = gc->tau_guess[j];
+            tau_buf[j] = gc->tau_guess[j];
+         for(j=0; j<gc->n_v; j++)
+            tau_buf[j+gc->n_fix] = alf2tau(alf[j],gc->tau_min[j+gc->n_fix],gc->tau_max[j+gc->n_fix]);
 
          // Set theta's
          for(j=0; j<gc->n_theta_v; j++)
@@ -424,13 +422,18 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // Precalculate exponentials
          calc_exps(gc, gc->n_t, t, total_n_exp, tau_buf+gc->tau_start*gc->n_exp, gc->n_theta, theta_buf, exp_buf);
          
+         a_col += gc->flim_model(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
+
+         
          // If we have FRET and donor, only include the 1st time
          a_col += i_start = (gc->n_fret > 0 && *isel == 2) ? (gc->inc_donor + gc->n_fret_fix) : 0;
 
          for(i=i_start; i<gc->n_decay_group; i++)
             a_col += flim_model(gc, gc->n_t, t, exp_buf+i*gc->exp_buf_size, gc->n_exp, tau_buf+(i+gc->tau_start)*gc->n_exp, 
                                 beta_buf, gc->n_theta, theta_buf, ref_lifetime, N, a+N*a_col, gc->beta_global);
-       
+         
+
+
          // Set L+1 phi value (without associated beta), to include global offset/scatter
          //----------------------------------------------
 
@@ -506,6 +509,20 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 		
          int col = 0;
          
+         
+         col += gc->tau_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         
+         if (gc->fit_beta == FIT_GLOBALLY)
+            col += gc->beta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+
+         col += gc->theta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         col += gc->E_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+
+         if (gc->ref_reconvolution == FIT_GLOBALLY)
+            col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         
+            
+         col = 0;
          if (gc->fit_fret == FIT)
             col = flim_fret_model_deriv(gc, gc->n_t, t, exp_buf, tau_buf, beta_buf, ref_lifetime, Ndim, b);
          else
@@ -515,12 +532,15 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += ref_lifetime_deriv(gc, gc->n_t, t, exp_buf, gc->n_exp, tau_buf, beta_buf, gc->n_theta, theta_buf, ref_lifetime, Ndim, b + col*Ndim);
-            
+          
+
+
          if (gc->anscombe_tranform)
             for(j=0; j<col; j++)
                for(i=0; i<N; i++)
                   b[i+j*Ndim] *= anscombe_diff(a_cpy[i]);
-
+                  
+                  
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
          if (fx!=NULL)

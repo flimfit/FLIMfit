@@ -198,8 +198,19 @@ public:
 
    double ErrMinFcn(double x, ErrMinParams& params);
 
-
    void CleanupTempVars();
+
+
+   void add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
+   void add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
+   void add_irf(double a[],int pol_group, double* scale_fact = NULL);
+
+   int flim_model(int thread, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
+   int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int beta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
 private:
    void CalculateIRFMax(int n_t, double t[]);
