@@ -587,16 +587,16 @@ void FLIMGlobalFitController::Init()
    //-----------------------------
    int idx = n_v;
 
-   if (fit_fret == FIT)
-   {
-     alf_E_idx = idx;
-     idx += n_fret_v;
-   }
-
    if (fit_beta == FIT_GLOBALLY)
    {
      alf_beta_idx = idx;
      idx += n_beta;
+   }
+
+   if (fit_fret == FIT)
+   {
+     alf_E_idx = idx;
+     idx += n_fret_v;
    }
 
    alf_theta_idx = idx; 

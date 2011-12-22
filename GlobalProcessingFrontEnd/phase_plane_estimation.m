@@ -10,8 +10,8 @@ function [tau] = phase_plane_estimation(t_f,g,f,N)
     G(:,1) = cumtrapz(t_f,g,1);
     
     for i=2:N
-        F(:,i) = cumtrapz(t_f,F(:,i-1),2);
-        G(:,i) = cumtrapz(t_f,G(:,i-1),2);
+        F(:,i) = cumtrapz(t_f,F(:,i-1),1);
+        G(:,i) = cumtrapz(t_f,G(:,i-1),1);
     end
 
     A = [-F G];

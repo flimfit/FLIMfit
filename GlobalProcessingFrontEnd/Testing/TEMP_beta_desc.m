@@ -1,4 +1,4 @@
-n_tau = 2;
+n_tau = 5;
 
 d = cell(n_tau-1,n_tau);
 
@@ -23,5 +23,3 @@ for i=1:(n_tau-1)
         
     end 
 end
-
-d

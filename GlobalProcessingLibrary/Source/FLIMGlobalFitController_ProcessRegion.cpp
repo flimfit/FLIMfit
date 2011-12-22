@@ -117,11 +117,11 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    for(j=0; j<n_v; j++)
       alf[i++] = tau2alf(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]); //tau_guess[i+n_fix];
    
+   for(j=0; j<n_beta; j++)
+      alf[i++] = fixed_beta[j]; //]tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
+
    for(j=0; j<n_fret_v; j++)
       alf[i++] = beta2alf(E_guess[j+n_fret_fix]);
-
-   for(j=0; j<n_beta; j++)
-      alf[i++] = tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
 
    for(j=0; j<n_theta_v; j++)
       alf[i++] =  tau2alf(theta_guess[j+n_theta_fix],0,1000000);

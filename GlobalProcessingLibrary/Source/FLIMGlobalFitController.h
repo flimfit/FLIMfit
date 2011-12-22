@@ -208,7 +208,7 @@ public:
    int flim_model(int thread, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
    int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
-   int beta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int beta_derivatives(int thread, double tau[], double alf[], double theta[], double ref_lifetime, double b[]);
    int theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 

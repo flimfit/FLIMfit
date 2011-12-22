@@ -32,6 +32,9 @@ int ref_lifetime_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double 
 
 void sample_irf(FLIMGlobalFitController *gc, double a[], int pol_group = 0, double* scale_fact = 0);
 
+void alf2beta(int n, double alf[], double beta[]);
+double beta_derv(int n_beta, int alf_idx, int beta_idx, double alf[]);
+
 
 inline double anscombe(double x)
 {

@@ -381,10 +381,12 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // Set beta's
          if (gc->fit_beta == FIT_GLOBALLY)
          {
+            alf2beta(gc->n_exp,alf+gc->alf_beta_idx,beta_buf);
+            /*
             for(j=0; j<gc->n_beta; j++)
                beta_buf[j] = alf2tau(alf[gc->alf_beta_idx+j],0,10);
             beta_buf[gc->n_beta] = 1;
-
+            */
 			//for(j=0; j<gc->n_beta; j++)
             //   beta_buf[j] = alf2beta(alf[gc->alf_beta_idx+j]);
          }
@@ -513,11 +515,11 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          col += gc->tau_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
          
          if (gc->fit_beta == FIT_GLOBALLY)
-            col += gc->beta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+            col += gc->beta_derivatives(*thread, tau_buf, alf+gc->alf_beta_idx, theta_buf, ref_lifetime, b+col*Ndim);
 
-         col += gc->theta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
          col += gc->E_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
-
+         col += gc->theta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
          
