@@ -323,7 +323,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          // Set constant phi values
          //----------------------------
-
          a_col = 0;
          
          // set constant phi value for offset
@@ -354,16 +353,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if (locked_param >= 0)
             alf[locked_param] = locked_value;
 
-         a_col = 0;
-         
-         if (gc->fit_offset == FIT_LOCALLY)
-             a_col++;
-
-         if (gc->fit_scatter == FIT_LOCALLY)
-             a_col++;
-
-         if (gc->fit_tvb == FIT_LOCALLY)
-             a_col++;
+         a_col = (gc->fit_offset == FIT_LOCALLY) + (gc->fit_scatter == FIT_LOCALLY) + (gc->fit_tvb == FIT_LOCALLY);
          
          // Set tau's
          for(j=0; j<gc->n_fix; j++)
@@ -382,13 +372,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if (gc->fit_beta == FIT_GLOBALLY)
          {
             alf2beta(gc->n_exp,alf+gc->alf_beta_idx,beta_buf);
-            /*
-            for(j=0; j<gc->n_beta; j++)
-               beta_buf[j] = alf2tau(alf[gc->alf_beta_idx+j],0,10);
-            beta_buf[gc->n_beta] = 1;
-            */
-			//for(j=0; j<gc->n_beta; j++)
-            //   beta_buf[j] = alf2beta(alf[gc->alf_beta_idx+j]);
          }
          else if (gc->fit_beta == FIX) 
          {
@@ -415,26 +398,17 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             if (i<gc->n_fret_fix)
                E = gc->E_guess[i];
             else
-               E = alf2beta(alf[gc->alf_E_idx+i-gc->n_fret_fix]); //alf[gc->alf_E_idx+i-gc->n_fret_fix];
+               E = alf[gc->alf_E_idx+i-gc->n_fret_fix]; //alf[gc->alf_E_idx+i-gc->n_fret_fix];
 
             for(j=0; j<gc->n_exp; j++)
                tau_buf[idx++] = tau_buf[j] * (1-E);
          }
 
          // Precalculate exponentials
-         calc_exps(gc, gc->n_t, t, total_n_exp, tau_buf+gc->tau_start*gc->n_exp, gc->n_theta, theta_buf, exp_buf);
-         
+//         gc->calc_exps(gc, gc->n_t, t, total_n_exp, tau_buf+gc->tau_start*gc->n_exp, gc->n_theta, theta_buf, exp_buf);
+         gc->calculate_exponentials(*thread, tau_buf, theta_buf);
+
          a_col += gc->flim_model(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
-
-         /*
-         // If we have FRET and donor, only include the 1st time
-         a_col += i_start = (gc->n_fret > 0 && *isel == 2) ? (gc->inc_donor + gc->n_fret_fix) : 0;
-
-         for(i=i_start; i<gc->n_decay_group; i++)
-            a_col += flim_model(gc, gc->n_t, t, exp_buf+i*gc->exp_buf_size, gc->n_exp, tau_buf+(i+gc->tau_start)*gc->n_exp, 
-                                beta_buf, gc->n_theta, theta_buf, ref_lifetime, N, a+N*a_col, gc->beta_global);
-         */
-
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
          //----------------------------------------------
@@ -522,20 +496,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
-         
-            /*
-         col = 0;
-         if (gc->fit_fret == FIT)
-            col = flim_fret_model_deriv(gc, gc->n_t, t, exp_buf, tau_buf, beta_buf, ref_lifetime, Ndim, b);
-         else
-            col = flim_model_deriv(gc, gc->n_t, t, exp_buf, gc->n_v, tau_buf, beta_buf, gc->n_theta, theta_buf, ref_lifetime, Ndim, b);
-
-         col += anisotropy_model_deriv(gc, gc->n_t, t, exp_buf, gc->n_exp, tau_buf, beta_buf, gc->n_theta, theta_buf, ref_lifetime, Ndim, b + col*Ndim);
-
-         if (gc->ref_reconvolution == FIT_GLOBALLY)
-            col += ref_lifetime_deriv(gc, gc->n_t, t, exp_buf, gc->n_exp, tau_buf, beta_buf, gc->n_theta, theta_buf, ref_lifetime, Ndim, b + col*Ndim);
-          */
-
 
          if (gc->anscombe_tranform)
             for(j=0; j<col; j++)

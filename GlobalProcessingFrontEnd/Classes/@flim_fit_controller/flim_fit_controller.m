@@ -40,6 +40,7 @@ classdef flim_fit_controller < flim_data_series_observer
         use_popup = false;
         
         lh = {};
+                
     end
     
     events

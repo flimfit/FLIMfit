@@ -37,6 +37,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             end
         end
         
+        
         function draw_plot(obj,ax,param)
 
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param)

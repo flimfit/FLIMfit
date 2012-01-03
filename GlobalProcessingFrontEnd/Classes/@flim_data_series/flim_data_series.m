@@ -178,12 +178,16 @@ classdef flim_data_series < handle
             
             del_files = dir([tempdir 'GPTEMP_*']);
             
+            warning('off','MATLAB:DELETE:Permission');
+            
             for i=1:length(del_files)
                 try
                    delete([tempdir del_files(i).name]); 
                 catch e %#ok
                 end
             end
+            
+            warning('on','MATLAB:DELETE:Permission');
             
         end
         

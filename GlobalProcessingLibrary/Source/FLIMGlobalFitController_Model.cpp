@@ -3,6 +3,101 @@
 
 
 
+void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], double theta[])
+{
+
+   double e0, de, ej, cum, tcspc_fact, inv_theta, rate;
+   int i, j, k, m, idx, next_idx;
+   
+   double* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
+   int row = n_pol_group*n_decay_group*n_exp*N_EXP_BUF_ROWS;
+
+   for(m=n_pol_group-1; m>=0; m--)
+   {
+
+      inv_theta = m>0 ? 1/theta[m-1] : 0; 
+
+      for(i=n_decay_group*n_exp-1; i>=0; i--)
+      {
+         row--;
+
+         rate = 1/tau[i] + inv_theta;
+
+         // IRF exponential factor
+         e0 = exp( (t_irf[0] + t0_guess) * rate ) * t_g;
+         de = exp( + t_g * rate );
+         ej = e0;
+
+         for(j=0; j<n_irf; j++)
+         {
+            for(k=0; k<n_chan; k++)
+            {
+               local_exp_buf[j+k*n_irf+row*exp_dim] = ej * irf[j+k*n_irf];
+            }
+            ej *= de;
+         }
+
+         row--;
+
+         // Cumulative IRF expontial
+         for(k=0; k<n_chan; k++)
+         {
+            next_idx = row*exp_dim + k*n_irf;
+            idx = next_idx + exp_dim;
+            cum = exp_buf[idx++];
+            for(j=0; j<n_irf; j++)
+            {
+   	         local_exp_buf[next_idx++] = cum;
+               cum += local_exp_buf[idx++];
+            }
+         }
+
+         row--;
+
+         // IRF exponential factor * t_irf
+         for(k=0; k<n_chan; k++)
+         {
+            next_idx = row*exp_dim + k*n_irf;
+            idx = next_idx + 2*exp_dim;
+            for(j=0; j<n_irf; j++)
+            {
+   	         local_exp_buf[next_idx++] = local_exp_buf[idx++] * (t_irf[j] + t0_guess);
+            }
+         }
+
+         row--;
+
+         // Cumulative IRF expontial * t_irf
+         for(k=0; k<n_chan; k++)
+         {
+            next_idx = row*exp_dim + k*n_irf;
+            idx = next_idx + exp_dim;
+            cum = exp_buf[idx++];
+            for(j=0; j<n_irf; j++)
+            {
+   	         local_exp_buf[next_idx++] = cum;
+               cum += local_exp_buf[idx++];
+            }
+         }
+
+         row--;
+      
+         // Actual decay
+         if (data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
+            tcspc_fact = ( 1 - exp( - (t[1] - t[0]) * rate ) ) / rate;
+         else
+            tcspc_fact = 1;
+      
+         for(k=0; k<n_chan; k++)
+         {
+            for(j=0; j<n_t; j++)
+               local_exp_buf[j+k*n_t+row*exp_dim] = tcspc_fact * exp( - t[j] * rate ) * chan_fact[m*n_chan+k];
+         }
+
+      }
+   }
+}
+
 
 
 void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[])

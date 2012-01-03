@@ -200,6 +200,7 @@ public:
 
    void CleanupTempVars();
 
+   void calculate_exponentials(int thread, double tau[], double theta[]);
 
    void add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    void add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);

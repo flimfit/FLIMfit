@@ -121,7 +121,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       alf[i++] = fixed_beta[j]; //]tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
 
    for(j=0; j<n_fret_v; j++)
-      alf[i++] = beta2alf(E_guess[j+n_fret_fix]);
+      alf[i++] = E_guess[j+n_fret_fix];
 
    for(j=0; j<n_theta_v; j++)
       alf[i++] =  tau2alf(theta_guess[j+n_theta_fix],0,1000000);
@@ -136,7 +136,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if(fit_scatter == FIT_GLOBALLY)
       alf[i++] = scatter_guess;
 
-   if(fit_tvb == FIT_GLOBALLY)
+   if(fit_tvb == FIT_GLOBALLY) 
       alf[i++] = tvb_guess;
 
    if(ref_reconvolution == FIT_GLOBALLY)
@@ -352,10 +352,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                for(j=0; j<n_fret_fix; j++)
                   E[ g*n_px*n_fret + i*n_fret + j ] = E_guess[j];
                for(j=0; j<n_fret_v; j++)
-                  E[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ] = alf2beta(alf[alf_E_idx+j]);
+                  E[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ] = alf[alf_E_idx+j];
                if (calculate_errs && E_err != NULL)
                   for(j=0; j<n_fret_v; j++)
-                     E_err[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ] = abs(alf2beta(conf_lim[alf_E_idx+j]) - E[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ]);
+                     E_err[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ] = abs(conf_lim[alf_E_idx+j] - E[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ]);
             }
 
             /*
