@@ -3,7 +3,7 @@ classdef flim_data_series_observer < handle
     properties
         data_series;
         data_series_controller;
-        ds_lh = {};
+        ds_lh;
     end
     
     methods
@@ -22,8 +22,9 @@ classdef flim_data_series_observer < handle
         
         function set.data_series(obj, data_series)
             obj.data_series = data_series; 
-            obj.ds_lh{end+1} = addlistener(obj.data_series,'data_updated',@obj.data_update_evt);
-                obj.data_set();
+            delete(obj.ds_lh);
+            obj.ds_lh = addlistener(obj.data_series,'data_updated',@obj.data_update_evt);
+            obj.data_set();
             if obj.data_series.init
                 obj.data_update();
             end
@@ -39,13 +40,6 @@ classdef flim_data_series_observer < handle
         end
         
         function delete(obj)
-
-            for i=1:length(obj.ds_lh)
-                if ishandle(obj.ds_lh{i})
-                   delete(obj.ds_lh{i});
-                end
-            end
-            obj.ds_lh = {};
         end
         
     end

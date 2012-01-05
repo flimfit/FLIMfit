@@ -22,6 +22,12 @@ function get_return_data(obj)
     
     % get results
     
+    if ~isempty(obj.p_chi2)
+        chi2 = reshape(obj.p_chi2.Value,obj.I0_size);
+        clear obj.p_chi2;
+        f.set_image('chi2',chi2,mask,datasets,[0 5]);
+    end
+    
     if ~isempty(obj.p_tau)
         tau = reshape(obj.p_tau.Value,obj.tau_size);
         clear obj.p_tau;
@@ -218,12 +224,7 @@ function get_return_data(obj)
     end
     
     f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
-    
-    if ~isempty(obj.p_chi2)
-        chi2 = reshape(obj.p_chi2.Value,obj.I0_size);
-        clear obj.p_chi2;
-        f.set_image('chi2',chi2,mask,datasets,[0 5]);
-    end
+   
     
     if obj.fit_params.global_fitting == 0
         ierr = reshape(obj.p_ierr.Value,obj.I0_size);

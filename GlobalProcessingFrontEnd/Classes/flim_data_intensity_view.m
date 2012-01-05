@@ -6,6 +6,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
        im;
        colorbar_axes;
        callback = [];
+       lh;
     end
  
     methods
@@ -15,14 +16,14 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
             assign_handles(obj,handles);
             parent = get(obj.intensity_axes,'Parent');
             addlistener(parent,'Position','PostSet',@obj.update_figure);
+            if ~isempty(obj.data_series_list)
+                addlistener(obj.data_series_list,'selection_updated',@obj.data_update_evt);
+            end
             obj.update_figure();
         end
         
         function data_set(obj)
-            addlistener(obj.data_series,'masking_updated',@obj.data_update_evt);
-            if ~isempty(obj.data_series_list)
-                addlistener(obj.data_series_list,'selection_updated',@obj.data_update_evt);
-            end
+            obj.lh = addlistener(obj.data_series,'masking_updated',@obj.data_update_evt);
         end
         
         function set_click_callback(obj,callback)

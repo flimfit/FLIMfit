@@ -505,7 +505,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                      for(j=0; j<n_fix; j++)
                         beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = beta_buf[j] / norm;
                   }
-                     
+
                }
                else
                {
@@ -520,7 +520,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   for(j=0; j<n_fix; j++)
                      beta[ g*n_px*n_exp + i*n_exp + j ] = lin_params[ i_thresh*l + j + lin_idx] / I0[ g*n_px + i ];
                }
+
             }
+
+            I0[ g*n_px + i ] *= t_g;
 
             i_thresh++;
          }

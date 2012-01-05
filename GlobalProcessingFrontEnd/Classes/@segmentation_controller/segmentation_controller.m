@@ -105,7 +105,7 @@ classdef segmentation_controller < flim_data_series_observer
             end
             
             obj.update_display();
-            slh = addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
+            obj.slh = addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
 
         end
         
