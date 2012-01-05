@@ -341,7 +341,6 @@ L85:
 /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
 /*           L+NL+S+1. */
 
-   //PARFOR HERE IF GLOBAL?!
    #pragma omp parallel for private(is,isub,isback,m,k,j,acum,ksub)
    for (i__ = firstr; i__ <= *n; ++i__)
    {
@@ -370,10 +369,10 @@ L85:
                   acum += b[i__ + m * b_dim1];
                }
 
-               b[isub + k * b_dim1] = acum;
+               b[isub + k * b_dim1] = acum; // include factor for weighting by pixel intensity here?
             }
          }
-         b[isub + (*nl + 1) * b_dim1] = r__[i__ + is * r_dim1];
+         b[isub + (*nl + 1) * b_dim1] = r__[i__ + is * r_dim1]; // include factor for weighting by pixel intensity here?
       }
    }
 

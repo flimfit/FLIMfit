@@ -4,7 +4,7 @@
 
 #include "FLIMGlobalFitController.h"
 
-#define N_EXP_BUF_ROWS 6
+#define N_EXP_BUF_ROWS 5
 
 void calc_exps(FLIMGlobalFitController *gc, int n_t, double t[], int total_n_exp, double tau[], int n_theta, double theta[], double exp_buf[]);
 

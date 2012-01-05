@@ -107,8 +107,8 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+decay_group_idx)*n_exp);
    
    double* exp_model_buf         = local_exp_buf +  row   *exp_dim;
-   double* exp_irf_cum_buf       = local_exp_buf + (row+4)*exp_dim;
-   double* exp_irf_buf           = local_exp_buf + (row+5)*exp_dim;
+   double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
+   double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
             
    double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
@@ -134,10 +134,10 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+decay_group_idx)*n_exp);
 
    double* exp_model_buf         = local_exp_buf +  row   *exp_dim;
-   double* exp_irf_tirf_cum_buf  = local_exp_buf + (row+2)*exp_dim;
-   double* exp_irf_tirf_buf      = local_exp_buf + (row+3)*exp_dim;
-   double* exp_irf_cum_buf       = local_exp_buf + (row+4)*exp_dim;
-   double* exp_irf_buf           = local_exp_buf + (row+5)*exp_dim;
+   double* exp_irf_tirf_cum_buf  = local_exp_buf + (row+1)*exp_dim;
+   double* exp_irf_tirf_buf      = local_exp_buf + (row+2)*exp_dim;
+   double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
+   double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
             
    double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
