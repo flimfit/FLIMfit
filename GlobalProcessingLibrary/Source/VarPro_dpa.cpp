@@ -5,7 +5,10 @@ extern "C" {
 #endif
 #include "f2c.h"
 
+#ifndef NO_OMP	
 #include <omp.h>
+#endif
+	
 #include <emmintrin.h>
 
 
@@ -119,7 +122,6 @@ static integer c__3 = 3;
     t_offset = 1 + t_dim1;
     t -= t_offset;
 
-    omp_set_num_threads(4); 
     /* Function Body */
     save = 0.;
 

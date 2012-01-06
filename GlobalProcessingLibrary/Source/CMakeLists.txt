@@ -7,7 +7,20 @@ project(FLIMGlobalAnalysis)
 #===================================================
 include_directories( "../Boost" )
 
-find_package("OpenMP")
+
+# enable openmp support in xcode
+#===================================================
+if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
+#	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#	set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_OMP")
+else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
+	find_package("OpenMP")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
+
+
 
 # Set the source and header files
 #===================================================
@@ -55,6 +68,12 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
 
+
+
+
+
+
+
 # Copy header to output directory
 #===================================================
 file(COPY  ${CMAKE_SOURCE_DIR}/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
@@ -62,10 +81,22 @@ file(COPY  ${CMAKE_SOURCE_DIR}/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
 # Include optimisation flags in Visual Studio
 #===================================================
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} /Oi /fp:fast")
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Ob2")
-	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
+	set(PLATFORM_FLAGS_ALL "/Oi /fp:fast")
+	set(PLATFORM_FLAGS_RELEASE "/Ox /Ot /Ob2")
+	set(PLATFORM_FLAGS_DEBUG "/ZI")
 endif(MSVC)
+
+if(UNIX)
+	set(PLATFORM_FLAGS_ALL "-msse3")
+	set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
+	set(PLATFORM_FLAGS_DEBUG "")
+endif(UNIX)
+
+# Add platform specific flags
+#===================================================
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 
 
 # Make library

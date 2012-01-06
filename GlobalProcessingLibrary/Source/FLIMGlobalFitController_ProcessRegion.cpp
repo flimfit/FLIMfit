@@ -242,6 +242,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       if (calculate_errs)
       {
          ErrMinParams pr;
+		 pr.gc = this;
          pr.s_thresh = s_thresh;
          pr.r_idx = r_idx;
          pr.region = region;
