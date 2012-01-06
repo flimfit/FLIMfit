@@ -8,6 +8,10 @@
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
 
+#ifndef NO_OMP	
+#include <omp.h>
+#endif
+
 using namespace boost::interprocess;
 using namespace std;
 
@@ -254,6 +258,14 @@ void FLIMGlobalFitController::Init()
 
    if (n_thread < 1)
       n_thread = 1;
+	
+   #ifndef NO_OMP
+   if (n_group == 1)
+	   omp_set_num_threads(n_thread);
+   else
+	   omp_set_num_threads(1); 
+   #endif
+
 
 
    // Set up FRET parameters
