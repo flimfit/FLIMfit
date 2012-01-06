@@ -7,8 +7,6 @@ classdef flim_fit_result < handle
         
         n_regions;
         
-        default_lims;
-        
         chi2;
         ierr;
         iter;
@@ -24,7 +22,11 @@ classdef flim_fit_result < handle
         
         params = {};
     end
-        
+    
+    properties(SetObservable = true)
+        default_lims; 
+    end
+    
     properties(Transient = true)
         has_grid;
         grid;
@@ -34,6 +36,8 @@ classdef flim_fit_result < handle
         ready = true;
         is_temp = true;
     end
+    
+    
    
     
     methods
@@ -171,7 +175,7 @@ classdef flim_fit_result < handle
         
         function img = get_image(obj,dataset,param)
            
-            if dataset > length(obj.names)
+            if dataset > length(obj.names) || dataset < 1
                 img = nan;
                 return;
             end

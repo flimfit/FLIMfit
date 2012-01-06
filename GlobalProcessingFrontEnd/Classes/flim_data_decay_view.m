@@ -11,7 +11,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
        highlight_decay_mode_popupmenu;
        fit;
        
-       lh = {};
+       lh;
     end
 
     methods
@@ -32,7 +32,8 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
         end
         
         function data_set(obj)
-            addlistener(obj.data_series,'masking_updated',@obj.data_update_evt);
+            delete(obj.lh);
+            obj.lh = addlistener(obj.data_series,'masking_updated',@obj.data_update_evt);
         end
         
         function display_mode_update(obj,~,~)

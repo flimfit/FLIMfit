@@ -86,7 +86,7 @@ FITDLL_API void FLIMGlobalRelinquishID(int id);
  * scatter_guess           Initial guess for scatter contribution 
 
  * fit_fret                Reserved for future use. Set to zero
- * R_guess                Reserved for future use. Set to zero
+ * E_guess                Reserved for future use. Set to zero
 
  * pulsetrain_correction   Indicates whether to account for incomplete decays
  * t_rep                   Repetition rate of laser,  used for pulse train correction. Ignored if pulsetrain_correction = false
@@ -102,7 +102,7 @@ FITDLL_API void FLIMGlobalRelinquishID(int id);
  * tau[]        [n_group, n_px, n_exp] array of fitted (and fixed) tau values for each pixel
  * I0[]         [n_group, n_px] array of pixel intensities. Zero for masked values
  * beta[]       [n_group, n_px, n_exp] array of fractional pre-exponetial factors
- * R[]         Reserved for future use. Set to NULL
+ * E[]         Reserved for future use. Set to NULL
  * t0[]         [n_group, n_px] array of zero timepoints
  * offset[]     [n_group, n_px] array of measurement offsets
  * scatter[]    [n_group, n_px] array of scatter contributions
@@ -140,12 +140,12 @@ FITDLL_API int FLIMGlobalFit(int c_idx, int n_group, int n_px, int n_regions[], 
                              int fit_offset, double offset_guess, 
                              int fit_scatter, double scatter_guess,
                              int fit_tvb, double tvb_guess, double tvb_profile[],
-                             int n_fret, int n_fret_fix, int inc_Rinf, double R_guess[],
+                             int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                              int pulsetrain_correction, double t_rep,
                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                             double tau[], double I0[], double beta[], double R[], double gamma[],
+                             double tau[], double I0[], double beta[], double E[], double gamma[],
                              double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
-                             int calculate_errs, double tau_err[], double beta_err[], double R_err[],
+                             int calculate_errs, double tau_err[], double beta_err[], double E_err[],
                              double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
                              double chi2[], int ierr[],
                              int n_thread, int run_async, int use_callback, int (*callback)());
@@ -172,12 +172,12 @@ FITDLL_API int FLIMGlobalFitMemMap(int c_idx, int n_group, int n_px, int n_regio
                              int fit_offset, double offset_guess, 
                              int fit_scatter, double scatter_guess,
                              int fit_tvb, double tvb_guess, double tvb_profile[],
-                             int n_fret, int n_fret_fix, int inc_Rinf, double R_guess[],
+                             int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                              int pulsetrain_correction, double t_rep,
                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                             double tau[], double I0[], double beta[], double R[], double gamma[], 
+                             double tau[], double I0[], double beta[], double E[], double gamma[], 
                              double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
-                             int calculate_errs, double tau_err[], double beta_err[], double R_err[],
+                             int calculate_errs, double tau_err[], double beta_err[], double E_err[],
                              double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
                              double chi2[], int ierr[],
                              int n_thread, int runAsync, int use_callback, int (*callback)());
@@ -240,11 +240,11 @@ FITDLL_API int FLIMGlobalGetChi2Map(int c_idx, int data_type, double data[], int
                                     int fit_offset, double offset_guess, 
                                     int fit_scatter, double scatter_guess,
                                     int fit_tvb, double tvb_guess, double tvb_profile[],
-                                    int n_fret, int n_fret_fix, int inc_Rinf, double R_guess[],
+                                    int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                                     int pulsetrain_correction, double t_rep,
                                     int ref_reconvolution, double ref_lifetime_guess,
                                     int grid_size, double grid[], 
-                                    double tau[], double I0[], double beta[], double R[], double gamma[],
+                                    double tau[], double I0[], double beta[], double E[], double gamma[],
                                     double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
                                     double chi2[],
                                     int runAsync, int use_callback, int (*callback)());

@@ -31,6 +31,7 @@ set(SOURCE
 	FLIMGlobalAnalysis.cpp
 	FLIMGlobalFitController.cpp
 	FLIMGlobalFitController_ProcessRegion.cpp
+	FLIMGlobalFitController_Model.cpp
 	VarPro.cpp
 	VarPro_dpa.cpp
 	VarProGrid.cpp
@@ -81,6 +82,7 @@ file(COPY  ${CMAKE_SOURCE_DIR}/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
 if(MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} /Oi /fp:fast")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /Ot /Ob2")
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
 endif(MSVC)
 
 

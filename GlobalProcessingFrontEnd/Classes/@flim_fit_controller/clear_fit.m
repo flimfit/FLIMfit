@@ -1,5 +1,6 @@
 function clear_fit(obj)
 
+    had_fit = obj.has_fit;
     obj.has_fit = false;
 
     obj.fit_result = flim_fit_result();
@@ -10,6 +11,7 @@ function clear_fit(obj)
     set(obj.progress_table,'ColumnName',[]);
     set(obj.progress_table,'Data',[]);    
 
-    notify(obj,'fit_updated');
-
+    if had_fit
+        notify(obj,'fit_updated');
+    end
 end

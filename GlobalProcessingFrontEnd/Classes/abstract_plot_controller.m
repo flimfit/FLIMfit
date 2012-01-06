@@ -10,6 +10,8 @@ classdef abstract_plot_controller < flim_fit_observer
         cur_param;
 
         data_series_list;
+        
+        ap_lh;
     end
     
     methods(Abstract = true)
@@ -43,6 +45,7 @@ classdef abstract_plot_controller < flim_fit_observer
             uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
                 @(~,~,~) obj.export_to_ppt() );
             set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
+           
         end
         
         function save_as(obj)
@@ -158,9 +161,10 @@ classdef abstract_plot_controller < flim_fit_observer
         end
         
         function fit_update(obj)
-            obj.update_param_menu();
             obj.plot_fit_update();
-            obj.update_display();
+            obj.update_param_menu();
+            
+            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'default_lims','PostSet',@obj.param_select_update);
         end
         
         function update_display(obj)

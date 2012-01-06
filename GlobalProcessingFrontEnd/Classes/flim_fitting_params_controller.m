@@ -23,7 +23,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
         fitting_algorithm_popupmenu;
         n_fret_popupmenu;
         n_fret_fix_popupmenu;
-        inc_Rinf_popupmenu;
+        inc_donor_popupmenu;
         fret_guess_table;
         global_variable_popupmenu;
         use_phase_plane_estimation_popupmenu;
@@ -83,7 +83,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             obj.bind_control(obj.fitting_algorithm_popupmenu,'popupmenu','fitting_algorithm');
             obj.bind_control(obj.n_fret_popupmenu,'popupmenu','n_fret');
             obj.bind_control(obj.n_fret_fix_popupmenu,'popupmenu','n_fret_fix');
-            obj.bind_control(obj.inc_Rinf_popupmenu,'popupmenu','inc_Rinf');
+            obj.bind_control(obj.inc_donor_popupmenu,'popupmenu','inc_donor');
             
             obj.bind_control(obj.n_theta_popupmenu,'popupmenu','n_theta');
             obj.bind_control(obj.n_theta_fix_popupmenu,'popupmenu','n_theta_fix');
@@ -252,7 +252,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             
             set(obj.fret_guess_table,'Data',obj.fit_params.fret_guess);
             set(obj.fret_guess_table,'ColumnEditable',true)
-            set(obj.fret_guess_table,'ColumnName',{'R/R0'});
+            set(obj.fret_guess_table,'ColumnName',{'E'});
             
             set(obj.theta_guess_table,'Data',obj.fit_params.theta_guess);
             set(obj.theta_guess_table,'ColumnEditable',true)
@@ -262,13 +262,13 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             if obj.fit_params.fit_beta ~= 1
                 set(obj.n_fret_popupmenu,'Enable','on');
                 set(obj.n_fret_fix_popupmenu,'Enable','on');
-                set(obj.inc_Rinf_popupmenu,'Enable','on');
+                set(obj.inc_donor_popupmenu,'Enable','on');
             else
                 set(obj.n_fret_popupmenu,'Value',1);
                 set(obj.fret_guess_table,'Data',[]);
                 set(obj.n_fret_popupmenu,'Enable','off');
                 set(obj.n_fret_fix_popupmenu,'Enable','off');
-                set(obj.inc_Rinf_popupmenu,'Enable','off');
+                set(obj.inc_donor_popupmenu,'Enable','off');
             end
             
             

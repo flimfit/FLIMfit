@@ -63,13 +63,15 @@ function compile(v)
         change = ['v' v];
     end
     
+    %{
     cd('..');
     %system('hg addremove');
     system(['hg commit -m "' v ' (' computer ')"']);
     cd('GlobalProcessingFrontEnd');
+    %}
     
     try
-        delete(['GlobalProcessing_' sys]);
+        rmdir(['GlobalProcessing_' sys]);
     catch e %#ok
     end
     

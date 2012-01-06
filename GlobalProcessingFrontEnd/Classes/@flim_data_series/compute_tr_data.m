@@ -11,7 +11,7 @@ function calculated = compute_tr_data(obj,notify_update)
     if obj.init && ~obj.suspend_transformation
 
         calculated = true;
-        
+         
         % Display popup window if requested
         if obj.use_popup && ~obj.lazy_loading
             wait_handle = waitbar(0,'Transforming Data...');

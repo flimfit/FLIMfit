@@ -3,13 +3,7 @@
     properties
         plot_select_table;
         plot_panel;
-        %{
-        gallery_panel;
-        gallery_plot_popupmenu;
-        gallery_cols_edit;
-        gallery_overlay_popupmenu;
-        gallery_unit_edit;
-        %}
+
         dataset_selected = 1;
         
         n_plots = 0;
@@ -28,7 +22,7 @@
     properties(Access='protected')
         n_exp_list = 0;
         n_fret_list = 0;
-        inc_Rinf_list = 0;
+        inc_donor_list = 0;
     end
     
     methods
@@ -43,13 +37,7 @@
             
             addlistener(obj.plot_panel,'Position','PostSet',@obj.panel_resized);
             addlistener(obj.data_series_list,'selection_updated',@obj.dataset_selected_update);
-            %{
-            set(obj.gallery_plot_popupmenu,'Callback',@obj.gallery_params_update);
-            set(obj.gallery_cols_edit,'Callback',@obj.gallery_params_update);
-            set(obj.gallery_overlay_popupmenu,'Callback',@obj.gallery_params_update);
-            set(obj.gallery_unit_edit,'Callback',@obj.gallery_params_update);
-                        
-            %}
+
             obj.update_list();
             obj.update_table();
             
@@ -62,7 +50,6 @@
         
         function panel_resized(obj,~,~)
             obj.update_plots();
-            %obj.update_gallery();
         end
         
         function lims = get_lims(~,var)
@@ -102,7 +89,6 @@
                 obj.update_list();
                 obj.update_table();
                 obj.update_plots();
-                %obj.update_gallery();
             end
         end
         
@@ -133,23 +119,8 @@
                 set(obj.plot_select_table,'ColumnEditable',logical([0 1 1 1 1 1]));
                 set(obj.plot_select_table,'RowName',[]);
                 
-                %set(obj.gallery_plot_popupmenu,'String',names);
-                
-                %metafields = fieldnames(r.metadata);
-                
-                %set(obj.gallery_overlay_popupmenu,'String',['-' metafields']);
             end
         end
-        %{
-        function gallery_params_update(obj,~,~)
-           
-            cols = round(str2double(get(obj.gallery_cols_edit,'String')));
-            set(obj.gallery_cols_edit,'String',num2str(cols));
-            
-            obj.update_gallery();
-            
-        end
-        %}
                 
     end
     

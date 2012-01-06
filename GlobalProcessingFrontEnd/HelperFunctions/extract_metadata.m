@@ -45,7 +45,7 @@ function metadata = extract_metadata(strings)
         end
         
         % Look for things of the form 'nnxx'
-        [match,tokens] = regexp(s,'\s([\d_-,]+)([a-zA-Z]+)','match','tokens');
+        [match,tokens] = regexp(s,'\s([\d]+(?:[_-,]\d+)*)([a-zA-Z]+)','match','tokens');
         for j=1:length(tokens)
             t = tokens{j};
             t{1} = strrep(t{1},'_','.');
@@ -56,7 +56,7 @@ function metadata = extract_metadata(strings)
         end
         
         % Look for things of the form 'Xnn'
-        [match,tokens] = regexp(s,'\s([A-Z])([\d- _,]+)','match','tokens');
+        [match,tokens] = regexp(s,'\s([A-Z])([\d]+(?:[_-,]\d+)*)','match','tokens');
         for j=1:length(tokens)
             t = tokens{j};
             t{2} = strrep(t{2},'_','.');

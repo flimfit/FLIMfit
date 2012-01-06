@@ -24,7 +24,7 @@ static integer c__3 = 3;
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, r_dim1, 
-    r_offset, y_dim1, y_offset, i__1, i__2, i__3;
+    r_offset, y_dim1, y_offset, i__1, i__2;
     doublereal d__1;
     double rn;
 
@@ -183,12 +183,12 @@ L30:
    else
    {
       #pragma omp parallel for private(i__)
-      for(j=*s; j > 0; --j)
+      for(j=*s; j > 1; --j)
          for(i__=1; i__ <= *n; ++i__)
             r__[i__ + j * r_dim1] = y[i__ + j * y_dim1] - r__[i__ + r_dim1];
         
       for(i__=1; i__ <= *n; ++i__)
-         r__[i__ + 0 * r_dim1] = y[i__ + 0 * y_dim1] - r__[i__ + r_dim1];
+         r__[i__ + r_dim1] = y[i__ + y_dim1] - r__[i__ + r_dim1];
 
 
    }
@@ -341,7 +341,6 @@ L85:
 /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
 /*           L+NL+S+1. */
 
-   //PARFOR HERE IF GLOBAL?!
    #pragma omp parallel for private(is,isub,isback,m,k,j,acum,ksub)
    for (i__ = firstr; i__ <= *n; ++i__)
    {
@@ -370,10 +369,10 @@ L85:
                   acum += b[i__ + m * b_dim1];
                }
 
-               b[isub + k * b_dim1] = acum;
+               b[isub + k * b_dim1] = acum; // include factor for weighting by pixel intensity here?
             }
          }
-         b[isub + (*nl + 1) * b_dim1] = r__[i__ + is * r_dim1];
+         b[isub + (*nl + 1) * b_dim1] = r__[i__ + is * r_dim1]; // include factor for weighting by pixel intensity here?
       }
    }
 
@@ -386,8 +385,7 @@ L99:
 doublereal xnorm_(integer *n, doublereal *x)
 {
     /* System generated locals */
-    integer i__1;
-    doublereal ret_val, d__1, d__2;
+    doublereal ret_val, d__1;
 
     /* Builtin functions */
     double sqrt(doublereal);

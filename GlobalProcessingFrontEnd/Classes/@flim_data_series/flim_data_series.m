@@ -175,6 +175,20 @@ classdef flim_data_series < handle
         %===============================================================
 
         function obj = flim_data_series()
+            
+            del_files = dir([tempdir 'GPTEMP_*']);
+            
+            warning('off','MATLAB:DELETE:Permission');
+            
+            for i=1:length(del_files)
+                try
+                   delete([tempdir del_files(i).name]); 
+                catch e %#ok
+                end
+            end
+            
+            warning('on','MATLAB:DELETE:Permission');
+            
         end
         
         
@@ -714,8 +728,6 @@ classdef flim_data_series < handle
            % On object deletion, clear mapped data 
            obj.save_data_settings();
            obj.clear_memory_mapping();
-           
-           del_files = dir([tempdir 'GPTEMP_']);
            
         end
         

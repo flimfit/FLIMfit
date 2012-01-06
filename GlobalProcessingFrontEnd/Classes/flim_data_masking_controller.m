@@ -72,20 +72,24 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
         end
         
         function data_update(obj)
-            addlistener(obj.data_series,'binning','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'downsampling','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'thresh_min','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'thresh_max','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'t_min','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'t_max','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'t_irf_min','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'t_irf_max','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'irf_background','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'background_type','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'background_value','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'g_factor','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'afterpulsing_correction','PostSet',@obj.controls_updated);
-            addlistener(obj.data_series,'t0','PostSet',@obj.controls_updated);
+            for i=1:length(obj.lh)
+                delete(obj.lh{i});
+            end
+            obj.lh = {};
+            obj.lh{end+1} = addlistener(obj.data_series,'binning','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'downsampling','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'thresh_min','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'thresh_max','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'t_min','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'t_max','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'t_irf_min','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'t_irf_max','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'irf_background','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'background_type','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'background_value','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'g_factor','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'afterpulsing_correction','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'t0','PostSet',@obj.controls_updated);
                       
             obj.update_controls();
         end

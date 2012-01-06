@@ -29,7 +29,6 @@ function setup_menu(obj)
     handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...','Separator','on');
 
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Plots...','Separator','on');
-    handles.menu_file_export_gallery = uimenu(menu_file,'Label','Export Gallery...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
     
     menu_irf       = uimenu(obj.window,'Label','IRF');

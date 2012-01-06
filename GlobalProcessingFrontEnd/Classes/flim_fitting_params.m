@@ -37,7 +37,7 @@ classdef flim_fitting_params < handle
         
         n_fret = 0;
         n_fret_fix = 0;
-        inc_Rinf = 0;
+        inc_donor = 0;
         fret_guess = [];
         
         polarisation_resolved = false;

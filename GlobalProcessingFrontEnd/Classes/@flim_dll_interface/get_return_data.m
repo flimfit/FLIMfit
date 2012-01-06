@@ -22,6 +22,12 @@ function get_return_data(obj)
     
     % get results
     
+    if ~isempty(obj.p_chi2)
+        chi2 = reshape(obj.p_chi2.Value,obj.I0_size);
+        clear obj.p_chi2;
+        f.set_image('chi2',chi2,mask,datasets,[0 5]);
+    end
+    
     if ~isempty(obj.p_tau)
         tau = reshape(obj.p_tau.Value,obj.tau_size);
         clear obj.p_tau;
@@ -119,26 +125,24 @@ function get_return_data(obj)
     
     
     if obj.fit_params.n_fret > 0
-        if ~isempty(obj.p_R)
-            R = reshape(obj.p_R.Value,obj.R_size);
-            E = 1./(1+R.^6);
+        if ~isempty(obj.p_E)
+            E = reshape(obj.p_E.Value,obj.E_size);
 
-            if ~isempty(obj.p_R_err)
-                R_err = reshape(obj.p_R_err.Value,obj.R_size);
-                clear obj.p_R_err R_err;
+            if ~isempty(obj.p_E_err)
+                E_err = reshape(obj.p_E_err.Value,obj.E_size);
+                clear obj.p_E_err E_err;
             else
-                R_err = [];
+                E_err = [];
             end
             
-            f.set_image_split('R',R,mask,datasets,[0 2],R_err);
-            f.set_image_split('E',E,mask,datasets,[0 1]);
-            clear obj.p_R R E R_err obj.p_R_err;
+            f.set_image_split('E',E,mask,datasets,[0 1],E_err);
+            clear obj.p_E E E_err obj.p_E_err;
         end
 
             
         gamma = reshape(obj.p_gamma.Value,obj.gamma_size);
         
-        if obj.fit_params.inc_Rinf
+        if obj.fit_params.inc_donor
             for i=1:size(gamma,1)
                 g = gamma(i,:,:,:);
                 sz = size(g);
@@ -220,12 +224,7 @@ function get_return_data(obj)
     end
     
     f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
-    
-    if ~isempty(obj.p_chi2)
-        chi2 = reshape(obj.p_chi2.Value,obj.I0_size);
-        clear obj.p_chi2;
-        f.set_image('chi2',chi2,mask,datasets,[0 5]);
-    end
+   
     
     if obj.fit_params.global_fitting == 0
         ierr = reshape(obj.p_ierr.Value,obj.I0_size);

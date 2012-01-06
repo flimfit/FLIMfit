@@ -3,12 +3,16 @@ function regression_testing(handles)
 
     test_folder = ['..' filesep 'TestDatasets' filesep];
     
+    if ~exist(test_folder,'dir')
+       test_folder = '\\icfs17.cc.ic.ac.uk\fogim\Group\Software\Global Analysis\TestDatasets\'; 
+    end
+    
     % Get Tests
     %----------------------------------------------------
     contents = dir(test_folder);
     tests = {};
     
-    for i = 6:6 %length(contents)
+    for i = 3:6 %length(contents)
         if isdir([test_folder contents(i).name])
             tests{end+1} = contents(i).name;
         end

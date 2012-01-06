@@ -945,35 +945,33 @@ L3:
 	goto L99;
 L9:
 	w[i__] = sqrt(w[i__]);
-    }
+   }
 
-    nconp1_buf__ = lp1;
-    ncon_buf__ = *l;
-    *philp1 = *l == 0;
+   nconp1_buf__ = lp1;
+   ncon_buf__ = *l;
+   *philp1 = *l == 0;
 /*     PHILP1 = .TRUE. */
-    if (*l == 0 || *nl == 0) {
-	goto L99;
-    }
+   if (*l == 0 || *nl == 0) 
+   {
+      goto L99;
+   }
 /*                                   CHECK INC MATRIX FOR VALID INPUT AND */
 /*                                   DETERMINE NUMBER OF CONSTANT FCNS. */
-    p = 0;
-    i__1 = lp1;
-    for (j = 1; j <= i__1; ++j) {
-	if (p == 0) {
-	    nconp1_buf__ = j;
-	}
-	i__2 = *nl;
-	for (k = 1; k <= i__2; ++k) {
-	    inckj = inc[k + j * 12];
-	    if (inckj != 0 && inckj != 1) {
-		goto L15;
-	    }
-	    if (inckj == 1) {
-		++p;
-	    }
-/* L11: */
-	}
-    }
+   p = 0;
+   for (j = 1; j <= lp1; ++j) 
+   {
+      if (p == 0) 
+         nconp1_buf__ = j;
+      i__2 = *nl;
+      for (k = 1; k <= i__2; ++k) 
+      {
+         inckj = inc[k + j * 12];
+         if (inckj != 0 && inckj != 1)
+            goto L15;
+         if (inckj == 1)
+            ++p;
+      }
+   }
 
 /*     IF (IPRINT .GE. 0) WRITE (OUTPUT, 210) NCON */
     if (*l + p + *s + 1 == *lpps1) {

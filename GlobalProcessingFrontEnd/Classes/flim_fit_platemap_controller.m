@@ -87,7 +87,6 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
             else
                 im=image(zeros([n_row n_col]),'Parent',ax);
-                colormap(ax,'gray');
                 set(ax,'YTickLabel',{'A' 'B' 'C' 'D' 'E' 'F' 'G' 'H'});
                 set(ax,'XTick',0:1:n_col);
                 set(ax,'TickLength',[0 0]);

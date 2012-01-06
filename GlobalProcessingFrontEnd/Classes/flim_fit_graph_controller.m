@@ -37,6 +37,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             end
         end
         
+        
         function draw_plot(obj,ax,param)
 
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param)
@@ -56,6 +57,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                 md = r.metadata.(obj.ind_param);
 
+                empty = cellfun(@isempty,md);
+                md = md(~empty);
+                
                 var_is_numeric = all(cellfun(@isnumeric,md));
 
                 if var_is_numeric
@@ -70,7 +74,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 for i=1:length(x_data)
                     y = 0; yv = 0; yn = 0; e = 0; ymask = [];
                     for j=1:n_im
-                        if ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) && isfield(r.image_stats{j},param)
+                        if ~empty(j) && ...
+                           ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) && isfield(r.image_stats{j},param)
   
                             n = r.image_stats{j}.(param).n;
                             if n > 0

@@ -67,7 +67,7 @@ function update_plots(obj,file_root)
                         h = ha(subplot_idx);
                         c = hc(subplot_idx);
                     else
-                        [h,c] = tight_subplot(f_save,1,1,1,ratio);
+                        [h,c] = tight_subplot(f_save,1,1,1,save,[d.width d.height]);
                     end
                     
                     obj.plot_figure(h,c,cur_im,obj.plot_names{plot_idx},true,'');

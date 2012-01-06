@@ -86,8 +86,6 @@ double d_beta_d_alf(double beta);
 double kappa(double tau2, double tau1);
 double d_kappa_d_tau(double tau2, double tau1);
 
-double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed = false);
-
 extern "C"
 void updatestatus_(int* gc, int* thread, int* iter, double* chi2, int* terminate);
 
