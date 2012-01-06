@@ -288,7 +288,7 @@ classdef Container < hgsetget
         
         function onChildAdded( obj, source, eventData ) %#ok<INUSD>
             %onChildAdded  Callback that fires when a child is added to a container.
-            obj.redraw();
+            %obj.redraw();
         end % onChildAdded
         
         function onChildRemoved( obj, source, eventData ) %#ok<INUSD>

@@ -58,24 +58,24 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 md = r.metadata.(obj.ind_param);
 
                 empty = cellfun(@isempty,md);
-                md = md(~empty);
                 
-                var_is_numeric = all(cellfun(@isnumeric,md));
+                var_is_numeric = all(cellfun(@isnumeric,md(~empty)));
 
                 if var_is_numeric
-                    x_data = cell2mat(md);
+                    x_data = cell2mat(md(~empty));
                     x_data = unique(x_data);
                     x_data = sort(x_data);
                 else
-                    x_data = unique(md);
+                    x_data = unique(md(~empty));
                     x_data = sort(x_data);
                 end
 
                 for i=1:length(x_data)
                     y = 0; yv = 0; yn = 0; e = 0; ymask = [];
                     for j=1:n_im
-                        if ~empty(j) && ...
-                           ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) && isfield(r.image_stats{j},param)
+                        if ~empty(j) ... 
+                            && ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) ...
+                            && isfield(r.image_stats{j},param)
   
                             n = r.image_stats{j}.(param).n;
                             if n > 0
