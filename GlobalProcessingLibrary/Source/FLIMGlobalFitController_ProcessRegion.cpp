@@ -61,6 +61,15 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       return ERR_COULD_NOT_OPEN_MAPPED_FILE;
    }
 
+
+   if (use_FMM)
+   {
+      mean_fit_controller->ProcessRegion(g,region,thread);
+      mean_tau[thread] = mean_fit_tau[g*n_px];
+   }
+
+
+
    int        *mask_buf = this->mask_buf + g*n_px;
    doublereal *a = this->a + thread * n_meas * lps;
    doublereal *b = this->b + thread * ndim * pp2;
@@ -114,18 +123,25 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    i=0;
 
-   for(j=0; j<n_v; j++)
-      alf[i++] = tau2alf(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]); //tau_guess[i+n_fix];
+   if (use_FMM)
+   {
+      alf[0] = 1.05*mean_tau[thread]; //tau_guess[0];
+      alf[1] = 0.8;
+   }
+   else
+   {
+      for(j=0; j<n_v; j++)
+         alf[i++] = tau2alf(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]); //tau_guess[i+n_fix];
    
-   for(j=0; j<n_beta; j++)
-      alf[i++] = fixed_beta[j]; //]tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
+      for(j=0; j<n_beta; j++)
+         alf[i++] = fixed_beta[j]; //]tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
 
-   for(j=0; j<n_fret_v; j++)
-      alf[i++] = E_guess[j+n_fret_fix];
+      for(j=0; j<n_fret_v; j++)
+         alf[i++] = E_guess[j+n_fret_fix];
 
-   for(j=0; j<n_theta_v; j++)
-      alf[i++] =  tau2alf(theta_guess[j+n_theta_fix],0,1000000);
-
+      for(j=0; j<n_theta_v; j++)
+         alf[i++] =  tau2alf(theta_guess[j+n_theta_fix],0,1000000);
+   }
 
    if(fit_t0)
       alf[i++] = t0_guess;
@@ -236,50 +252,52 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (ierr[r_idx] >= -1 || ierr[r_idx] == -9) // if successful (or failed due to too many iterations) return fit results
    {
 
-      c2 = CalculateChi2(region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask_buf, chi2+g*n_px);
-
-      // calculate errors
-      if (calculate_errs)
+      if (chi2 != NULL)
       {
-         ErrMinParams pr;
-		 pr.gc = this;
-         pr.s_thresh = s_thresh;
-         pr.r_idx = r_idx;
-         pr.region = region;
-         pr.group = g;
-         pr.chi2 = c2;
-         pr.thread = thread;
-         std::pair<double , double> ans;
+         c2 = CalculateChi2(region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask_buf, chi2+g*n_px);
 
-         for(i=0; i<nl; i++)
+         // calculate errors
+         if (calculate_errs)
          {
-            locked_param[thread] = i;
-            pr.param_value = alf[i];
+            ErrMinParams pr;
+		      pr.gc = this;
+            pr.s_thresh = s_thresh;
+            pr.r_idx = r_idx;
+            pr.region = region;
+            pr.group = g;
+            pr.chi2 = c2;
+            pr.thread = thread;
+            std::pair<double , double> ans;
 
-            double f[3] = {0.1, 0.5, 1.0};
-
-            for(int k=0; k<3; k++)
+            for(i=0; i<nl; i++)
             {
-               for(j=0; j<nl; j++)
-                  alf_err[j] = alf[j];
+               locked_param[thread] = i;
+               pr.param_value = alf[i];
 
-               ans = brent_find_minima(boost::bind(&FLIMGlobalFitController::ErrMinFcn,this,_1,pr), 
-                                              0.0, f[k]*pr.param_value, 9);
+               double f[3] = {0.1, 0.5, 1.0};
+
+               for(int k=0; k<3; k++)
+               {
+                  for(j=0; j<nl; j++)
+                     alf_err[j] = alf[j];
+
+                  ans = brent_find_minima(boost::bind(&FLIMGlobalFitController::ErrMinFcn,this,_1,pr), 
+                                                 0.0, f[k]*pr.param_value, 9);
                
-               if (ans.second < 1)
-                  break;   
+                  if (ans.second < 1)
+                     break;   
+               }
+
+               if (ans.second > 1)
+                  ans.first = 0;
+            
+               conf_lim[i] = pr.param_value + ans.first;
             }
 
-            if (ans.second > 1)
-               ans.first = 0;
-            
-            conf_lim[i] = pr.param_value + ans.first;
+            locked_param[thread] = -1;
+
          }
-
-         locked_param[thread] = -1;
-
       }
-
 
       // Determine order of variable tau's
       //----------------------------
@@ -328,25 +346,32 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
             if (tau != NULL)
             {
-               for(j=0; j<n_fix; j++)
-                  tau[ (g*n_px+i)*n_exp + j ] = tau_guess[j];
-               for(j=0; j<n_v; j++)
-                  tau[ (g*n_px+i)*n_exp + j + n_fix ] = alf2tau(alf[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]);
-
-               if (calculate_errs && tau_err != NULL)
+               if (use_FMM)
+               {
+                  tau[ (g*n_px+i)*n_exp + j + 0 ] = tau_buf[0];
+                  tau[ (g*n_px+i)*n_exp + j + 1 ] = tau_buf[1];
+               }
+               else
+               {
+                  for(j=0; j<n_fix; j++)
+                     tau[ (g*n_px+i)*n_exp + j ] = tau_guess[j];
                   for(j=0; j<n_v; j++)
-                     tau_err[ (g*n_px+i)*n_exp + j + n_fix ] = abs(alf2tau(conf_lim[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]) - tau[ (g*n_px+i)*n_exp + j + n_fix ]);
+                     tau[ (g*n_px+i)*n_exp + j + n_fix ] = alf2tau(alf[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]);
 
+                  if (calculate_errs && tau_err != NULL)
+                     for(j=0; j<n_v; j++)
+                        tau_err[ (g*n_px+i)*n_exp + j + n_fix ] = abs(alf2tau(conf_lim[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]) - tau[ (g*n_px+i)*n_exp + j + n_fix ]);
+               }
             }
             if (theta != NULL)
             {
+               for(j=0; j<n_theta_fix; j++)
+                  theta[ (g*n_px+i)*n_theta + j ] =  theta_guess[ j ];
                for(j=0; j<n_theta_v; j++)
-                  theta[ (g*n_px+i)*n_theta + j ] =  alf2tau(alf[alf_theta_idx + j], 0, 1000000);
+                  theta[ (g*n_px+i)*n_theta + j + n_theta_fix ] =  alf2tau(alf[alf_theta_idx + j], 0, 1000000);
                if (calculate_errs && theta_err != NULL)
                   for(j=0; j<n_theta_v; j++)
                      theta_err[ (g*n_px+i)*n_theta + j ] =  abs(alf2tau(conf_lim[alf_theta_idx + j], 0, 1000000) - theta[ (g*n_px+i)*n_theta + j ]);
-               for(j=0; j<n_theta_fix; j++)
-                  theta[ (g*n_px+i)*n_theta + j + n_theta_v ] =  theta_guess[ j ];
             }
             if (E != NULL)
             {
@@ -450,81 +475,92 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   ref_lifetime[ g*n_px + i ] = 0;
             }
 
-            if (polarisation_resolved)
+            if (I0 != NULL)
             {
-               I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
+               if (polarisation_resolved)
+               {
+                  I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
                
-               for(j=0; j<n_r; j++)
-                  r[ g*n_px*n_r + i*n_r + j ] = lin_params[ i_thresh*l + j + lin_idx + 1 ] / I0[ g*n_px + i ];
+                  for(j=0; j<n_r; j++)
+                     r[ g*n_px*n_r + i*n_r + j ] = lin_params[ i_thresh*l + j + lin_idx + 1 ] / I0[ g*n_px + i ];
 
-               double norm = 0;
-               for(j=0; j<n_exp; j++)
-                  norm += beta_buf[j];
-
-               for(j=0; j<n_v; j++)
-                  beta[ g*n_px*n_exp + i*n_exp + j ] = beta_buf[sort_idx_buf[j]+n_fix] / norm;
-               for(j=0; j<n_fix; j++)
-                  beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = beta_buf[j] / norm;
-                 
-            }
-            else
-            {
-               if (fit_fret)
-               {
-                  I0[ g*n_px + i ] = 0;
-                  for(j=0; j<n_decay_group; j++)
-                     I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
-
-                  for (j=0; j<n_decay_group; j++)
-                     gamma[ g*n_px*n_decay_group + i*n_decay_group + j] = lin_params[ i_thresh*l + lin_idx + j] / I0[ g*n_px + i ];
-               }
-
-               if (beta_global)
-               {
                   double norm = 0;
                   for(j=0; j<n_exp; j++)
                      norm += beta_buf[j];
                   
-                  I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
-
-                  if (beta != NULL)
+                  if ( beta != NULL )
                   {
                      for(j=0; j<n_v; j++)
                         beta[ g*n_px*n_exp + i*n_exp + j ] = beta_buf[sort_idx_buf[j]+n_fix] / norm;
-
-                     if (calculate_errs && beta_err != NULL)
-                     {
-                        beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] = 0;
-                        for(j=0; j<n_beta; j++)
-                        {
-                           beta_err[ g*n_px*n_exp + i*n_exp + j ] = conf_lim[alf_beta_idx+sort_idx_buf[j]] / norm - beta[ g*n_px*n_exp + i*n_exp + j ];
-                           beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] += beta_err[ g*n_px*n_exp + i*n_exp + j ];
-                        }
-                     
-                     }
-
                      for(j=0; j<n_fix; j++)
                         beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = beta_buf[j] / norm;
                   }
-
                }
                else
                {
-                  I0[ g*n_px + i ] = 0;
-                  for(j=0; j<n_exp; j++)
-                  {               
-                     I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
+                  if (fit_fret)
+                  {
+                     I0[ g*n_px + i ] = 0;
+                     for(j=0; j<n_decay_group; j++)
+                        I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
+
+                     if (gamma != NULL)
+                     {
+                        for (j=0; j<n_decay_group; j++)
+                           gamma[ g*n_px*n_decay_group + i*n_decay_group + j] = lin_params[ i_thresh*l + lin_idx + j] / I0[ g*n_px + i ];
+                     }
                   }
 
-                  for(j=0; j<n_v; j++)
-                     beta[ g*n_px*n_exp + i*n_exp + j + n_fix ] = lin_params[ i_thresh*l + sort_idx_buf[j] + n_fix + lin_idx] / I0[ g*n_px + i ];
-                  for(j=0; j<n_fix; j++)
-                     beta[ g*n_px*n_exp + i*n_exp + j ] = lin_params[ i_thresh*l + j + lin_idx] / I0[ g*n_px + i ];
+                  if (beta_global)
+                  {
+                     double norm = 0;
+                     for(j=0; j<n_exp; j++)
+                        norm += beta_buf[j];
+                  
+                     I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
+
+                     if (beta != NULL)
+                     {
+                        for(j=0; j<n_v; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j ] = beta_buf[sort_idx_buf[j]+n_fix] / norm;
+
+                        if (calculate_errs && beta_err != NULL)
+                        {
+                           beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] = 0;
+                           for(j=0; j<n_beta; j++)
+                           {
+                              beta_err[ g*n_px*n_exp + i*n_exp + j ] = conf_lim[alf_beta_idx+sort_idx_buf[j]] / norm - beta[ g*n_px*n_exp + i*n_exp + j ];
+                              beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] += beta_err[ g*n_px*n_exp + i*n_exp + j ];
+                           }
+                     
+                        }
+
+                        for(j=0; j<n_fix; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = beta_buf[j] / norm;
+                     }
+
+                  }
+                  else
+                  {
+                     I0[ g*n_px + i ] = 0;
+                     for(j=0; j<n_exp; j++)
+                     {               
+                        I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
+                     }
+
+                     if (beta != NULL)
+                     {
+                        for(j=0; j<n_v; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j + n_fix ] = lin_params[ i_thresh*l + sort_idx_buf[j] + n_fix + lin_idx] / I0[ g*n_px + i ];
+                        for(j=0; j<n_fix; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j ] = lin_params[ i_thresh*l + j + lin_idx] / I0[ g*n_px + i ];
+                     }
+                  }
+
                }
 
+               I0[ g*n_px + i ] *= t_g;
             }
-
-            I0[ g*n_px + i ] *= t_g;
 
             i_thresh++;
          }

@@ -40,29 +40,35 @@ function get_return_data(obj)
         clear obj.p_tau_err tau_err;
     end
 
-    if ~isempty(obj.p_beta)
-        beta = reshape(obj.p_beta.Value,obj.tau_size);
-        clear obj.p_beta;
-        f.set_image_split('beta',beta,mask,datasets,[0 1]);
-    end
-    
-    if ~isempty(obj.p_beta_err)
-        beta_err = reshape(obj.p_beta_err.Value,obj.tau_size);
-        if ~all(isnan(beta_err(:)))
-            f.set_image_split('beta_err',beta_err,mask,datasets,[0 1]);
+    if obj.fit_params.n_exp > 1
+        
+        if ~isempty(obj.p_beta)
+            beta = reshape(obj.p_beta.Value,obj.tau_size);
+            clear obj.p_beta;
+            f.set_image_split('beta',beta,mask,datasets,[0 1]);
         end
-        clear obj.p_beta_err beta_err;
+
+        if ~isempty(obj.p_beta_err)
+            beta_err = reshape(obj.p_beta_err.Value,obj.tau_size);
+            if ~all(isnan(beta_err(:)))
+                f.set_image_split('beta_err',beta_err,mask,datasets,[0 1]);
+            end
+            clear obj.p_beta_err beta_err;
+        end
+
+        if ~isempty(obj.p_tau) && ~isempty(obj.p_beta)
+            tau_sqr = tau.*tau;
+            mean_tau = nansum(tau.*beta,1);
+            w_mean_tau = nansum(tau_sqr.*beta,1)./mean_tau;
+            w_mean_tau = reshape(w_mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
+            mean_tau = reshape(mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
+            f.set_image('mean_tau',mean_tau,mask,datasets,[0 4000]);
+            f.set_image('w_mean_tau',w_mean_tau,mask,datasets,[0 4000]);
+        end
+    
+        clear w_mean_tau mean_tau beta tau tau_sqr;
     end
     
-    if ~isempty(obj.p_tau) && ~isempty(obj.p_beta)
-        tau_sqr = tau.*tau;
-        mean_tau = nansum(tau_sqr.*beta,1)./nansum(tau.*beta,1);
-        mean_tau = reshape(mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
-        f.set_image('mean_tau',mean_tau,mask,datasets,[0 4000]);
-    end
-    
-    clear mean_tau beta tau tau_sqr;
-      
     I0 = reshape(obj.p_I0.Value,obj.I0_size);
     f.set_image('I0',I0,mask,datasets,[0 ceil(nanmax(I0(:)))]);
     clear obj.p_I0 I0;

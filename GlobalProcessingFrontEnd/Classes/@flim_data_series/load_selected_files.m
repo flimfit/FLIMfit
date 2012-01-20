@@ -44,11 +44,7 @@ function load_selected_files(obj,selected)
 
 
             for j=1:num_sel
-%{
-                import java.io.*
-                a = File(obj.file_names{selected(j)});
-                b = a.lastModified();
-%}                
+
                 if obj.load_multiple_channels
                     filename = obj.file_names{1};
                     [~,data] = load_flim_file(filename,obj.channels(selected(j)));

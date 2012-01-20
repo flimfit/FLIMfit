@@ -46,7 +46,7 @@ void SetNaN(double* var, int n)
 FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_regions[], int global_mode,
                                                  int mask[], int n_t, double t[],
                                                  int n_irf, double t_irf[], double irf[], double pulse_pileup,
-                                                 int n_exp, int n_fix, 
+                                                 int use_FMM, int n_exp, int n_fix, 
                                                  double tau_min[], double tau_max[], 
                                                  int single_guess, double tau_guess[],
                                                  int fit_beta, double fixed_beta[],
@@ -69,7 +69,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_re
    n_group(n_group), n_px(n_px), n_regions(n_regions), global_mode(global_mode),
    mask(mask), n_t(n_t), t(t),
    n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
-   n_exp(n_exp), n_fix(n_fix), 
+   use_FMM(use_FMM), n_exp(n_exp), n_fix(n_fix), 
    tau_min(tau_min), tau_max(tau_max),
    single_guess(single_guess), tau_guess(tau_guess),
    fit_beta(fit_beta), fixed_beta(fixed_beta),
@@ -93,6 +93,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_re
 {
    status = new FitStatus(this,n_group,n_thread,callback); //free ok
    params = new WorkerParams[n_thread]; //free ok
+
+   use_FMM = true;
 }
 
 int FLIMGlobalFitController::RunWorkers()
@@ -149,7 +151,6 @@ void WorkerThread(void* wparams)
       controller->status->AddThread();
 
       for(int g=0; g<controller->n_group; g++)
-      {
          for(int r=1; r<=controller->n_regions[g]; r++)
          {
             if(idx % controller->n_thread == thread)
@@ -169,7 +170,6 @@ void WorkerThread(void* wparams)
                goto terminated;
             idx++;
          }
-      }
 
    terminated:
 
@@ -199,6 +199,9 @@ int FLIMGlobalFitController::SetData(char* data_file, int data_type)
    data_mode = DATA_MAPPED;
    this->data_type = data_type;
    
+   this->data_file = new char[ strlen(data_file) + 1 ];
+   strcpy(this->data_file,data_file);
+
    try
    {
       data_map_file = boost::interprocess::file_mapping(data_file,boost::interprocess::read_only);
@@ -235,6 +238,46 @@ void FLIMGlobalFitController::SetPolarisationMode(int mode)
       this->polarisation_resolved = false;
    else
       this->polarisation_resolved = true;
+}
+
+int FLIMGlobalFitController::SetupMeanFitController()
+{
+   
+   mean_fit_tau = new double[ n_group * n_px ];
+   mean_fit_ierr = new int[ n_group * n_px ];
+   mean_tau = new double[ n_thread ];
+
+   mean_fit_controller = new FLIMGlobalFitController( n_group, n_px, n_regions, global_mode,
+                                      mask, n_t, t,
+                                      n_irf, t_irf, irf, pulse_pileup,
+                                      false, 1, 0, tau_min, tau_max, 
+                                      single_guess, tau_guess,
+                                      false, fixed_beta,
+                                      use_magic_decay, magic_decay,
+                                      n_theta, n_theta_fix, inc_rinf, theta_guess,
+                                      fit_t0, t0_guess, 
+                                      fit_offset, offset_guess, 
+                                      fit_scatter, scatter_guess,
+                                      fit_tvb, tvb_guess, tvb_profile,
+                                      n_fret, n_fret_fix, inc_donor, E_guess, 
+                                      pulsetrain_correction, t_rep,
+                                      ref_reconvolution, ref_lifetime_guess, algorithm,
+                                      mean_fit_tau, NULL, NULL, NULL, NULL, NULL, r,
+                                      NULL, NULL, NULL, NULL, NULL, 
+                                      false, NULL, NULL, NULL, NULL, NULL, 
+                                      NULL, NULL, NULL,
+                                      NULL, mean_fit_ierr,
+                                      n_thread, runAsync, NULL );
+
+   if (this->data_mode == DATA_DIRECT)
+      mean_fit_controller->SetData(data, data_type);
+   else
+   {
+      mean_fit_controller->SetData(data_file, data_type);
+   }
+   mean_fit_controller->Init();
+
+   return 0;
 }
 
 void FLIMGlobalFitController::Init()
@@ -304,7 +347,7 @@ void FLIMGlobalFitController::Init()
 
       double f = +0.00;
 
-      chan_fact[0] = 1.0/3.0 - f*1.0/3.0;
+      chan_fact[0] = 1.0/3.0- f*1.0/3.0;
       chan_fact[1] = (1.0/3.0) + f*1.0/3.0;
 
       for(i=1; i<n_pol_group ; i++)
@@ -453,11 +496,20 @@ void FLIMGlobalFitController::Init()
    
    n_beta = (fit_beta == FIT_GLOBALLY) ? n_exp - 1 : 0;
    
-   nl  = n_v + n_fret_v + n_beta + n_theta_v;                                // (varp) Number of non-linear parameters to fit
-   p   = (n_v + n_beta)*n_decay_group*n_pol_group + n_exp_phi * n_fret_v + n_theta_v;    // (varp) Number of elements in INC matrix 
-   if (use_kappa)
-      p  += (n_v > 1) ? n_v-1 : 0; // for kappa derivates
-   l   = n_exp_phi * n_decay_group * n_pol_group;          // (varp) Number of linear parameters
+   if (use_FMM)
+   {
+      nl = 2;
+      p = 2;
+      l = 1;
+   }
+   else
+   {
+      nl  = n_v + n_fret_v + n_beta + n_theta_v;                                // (varp) Number of non-linear parameters to fit
+      p   = (n_v + n_beta)*n_decay_group*n_pol_group + n_exp_phi * n_fret_v + n_theta_v;    // (varp) Number of elements in INC matrix 
+      if (use_kappa)
+         p  += (n_v > 1) ? n_v-1 : 0; // for kappa derivates
+      l   = n_exp_phi * n_decay_group * n_pol_group;          // (varp) Number of linear parameters
+   }
 
    s   = s_max;                              // (varp) Number of pixels (right hand sides)
 	iv  = 1;                                  // (varp) Number of observations -> might change this if we have (say) polarisation resolved measuremnts
@@ -512,7 +564,7 @@ void FLIMGlobalFitController::Init()
       l++;
    }
 
-   anscombe_tranform = (l == 1);
+   anscombe_tranform = false && !use_FMM && (l == 1);
    
 	ndim   = max( n_meas, 2*nl+3 );
 	ndim   = max( ndim, s*n_meas - (s-1)*l );
@@ -677,6 +729,11 @@ void FLIMGlobalFitController::Init()
       var_buf = new double[nl * n_thread]; //free ok
    }
 
+
+   if (use_FMM)   
+      SetupMeanFitController();
+
+
 }
 
 FLIMGlobalFitController::~FLIMGlobalFitController()
@@ -704,7 +761,7 @@ void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
       {
          irf_max[j*n_t+i] = 0;
          int k=0;
-         while(k < n_irf && (t[i] - t_irf[k] - t0_guess) >= 0)
+         while(k < n_irf && (t[i] - t_irf[k] - t0_guess) >= -1.0)
          {
             irf_max[j*n_t+i] = k + j*n_irf;
             k++;

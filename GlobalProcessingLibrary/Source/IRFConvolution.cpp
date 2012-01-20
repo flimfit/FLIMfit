@@ -159,7 +159,7 @@ void calc_exps(FLIMGlobalFitController *gc, int n_t, double t[], int total_n_exp
          row--;
       
          // Actual decay
-         if (gc->data_type == DATA_TYPE_TCSPC && !gc->ref_reconvolution)
+         if (gc->data_type == DATA_TYPE_TCSPC) // !gc->ref_reconvolution)
             tcspc_fact = ( 1 - exp( - (gc->t[1] - gc->t[0]) * rate ) ) / rate;
          else
             tcspc_fact = 1;
@@ -180,8 +180,10 @@ void conv_irf_tcspc(FLIMGlobalFitController *gc, double rate, double exp_irf_buf
 {
    c = exp_irf_cum_buf[gc->irf_max[k*gc->n_t+i]];
    if (gc->pulsetrain_correction)
-      c += exp_irf_cum_buf[(k+1)*gc->n_irf-1] * exp( - gc->t_rep * rate );
-
+   {
+      double q = exp( - gc->t_rep * rate );
+      c += exp_irf_cum_buf[(k+1)*gc->n_irf-1] * q/(1-q);
+   }
 }
 
 void conv_irf_timegate(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double& c)
@@ -190,7 +192,10 @@ void conv_irf_timegate(FLIMGlobalFitController *gc, double rate, double exp_irf_
    c = exp_irf_cum_buf[gc->irf_max[j]] - 0.5*exp_irf_buf[gc->irf_max[j]];
 
    if (gc->pulsetrain_correction)
-      c += (exp_irf_cum_buf[(k+1)*gc->n_irf-1] - 0.5*exp_irf_buf[(k+1)*gc->n_irf-1]) * exp( - gc->t_rep * rate );
+   {
+      double q = exp( - gc->t_rep * rate );
+      c += (exp_irf_cum_buf[(k+1)*gc->n_irf-1] - 0.5*exp_irf_buf[(k+1)*gc->n_irf-1]) * q/(1-q);
+   }
 }
 
 void conv_irf_deriv_tcspc(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double ref_fact, double& c)

@@ -82,6 +82,9 @@ classdef flim_data_series < handle
         data_series;
         tr_data_series;
         
+        bleedthrough_data_series;
+        tr_bleedthrough_data_series;
+        
         root_path;
         
         intensity = [];

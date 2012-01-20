@@ -1,8 +1,6 @@
 function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
-    if libisloaded(obj.lib_name)
-        obj.load_global_library();
-    end
+    obj.load_global_library();
     
     if nargin < 4
         roi_mask = [];

@@ -105,8 +105,8 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             if obj.data_series.init
                 obj.set_polarisation_mode(obj.data_series.polarisation_resolved);
                 
-                obj.fit_params.split_fit = obj.data_series.lazy_loading;
-                obj.fit_params.use_memory_mapping = obj.data_series.lazy_loading || ~is64;
+                %obj.fit_params.split_fit = obj.data_series.lazy_loading;
+                %obj.fit_params.use_memory_mapping = obj.data_series.lazy_loading || ~is64;
 
                 var_list = fieldnames(obj.data_series.metadata);
                 var_list = ['-'; var_list];
