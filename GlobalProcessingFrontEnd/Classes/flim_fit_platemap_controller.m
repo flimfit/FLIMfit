@@ -51,7 +51,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                             end
                         end
 
-                        plate(row_idx,col) = mean(y);
+                        plate(row_idx,col) = nanmean(y);
 
                     end
                 end
