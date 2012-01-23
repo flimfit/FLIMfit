@@ -22,7 +22,7 @@ function varargout = yuiry_segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 16-Nov-2010 14:37:10
+% Last Modified by GUIDE v2.5 23-Jan-2012 14:47:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -378,3 +378,12 @@ function menu_file_load_single_segmentation_Callback(hObject, eventdata, handles
     if ~isempty(filename)
         handles.segmentation_controller.load_single_segmentation([pathname filename])
     end
+
+
+% --- Executes on button press in seg_use_multiple_regions.
+function seg_use_multiple_regions_Callback(hObject, eventdata, handles)
+% hObject    handle to seg_use_multiple_regions (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of seg_use_multiple_regions

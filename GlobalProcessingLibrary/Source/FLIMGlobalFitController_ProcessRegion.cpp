@@ -23,7 +23,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    bool swapped;
    double swap_buf;
    int swap_idx_buf;
-   double c2;
+   double c2, ref;
 
    double *data; 
    mapped_region data_map_view;
@@ -465,14 +465,25 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
             {
                if (ref_reconvolution == FIT_GLOBALLY)
                {
-                  ref_lifetime[ g*n_px + i ] = alf[alf_ref_idx];
+                  ref = alf[alf_ref_idx];
+                  ref_lifetime[ g*n_px + i ] = ref;
                   if (calculate_errs && ref_lifetime_err != NULL)
                      ref_lifetime_err[ g*n_px + i ] = abs(conf_lim[alf_ref_idx] - ref_lifetime[ g*n_px + i ]);
                }
                else if (ref_reconvolution)
-                  ref_lifetime[ g*n_px + i ] = ref_lifetime_guess;
+               {
+                  ref = ref_lifetime_guess;
+                  ref_lifetime[ g*n_px + i ] = ref;
+               }
                else
                   ref_lifetime[ g*n_px + i ] = 0;
+            }
+            else
+            {
+               if (ref_reconvolution == FIT_GLOBALLY)
+                  ref = alf[alf_ref_idx];
+               else if (ref_reconvolution)
+                  ref = ref_lifetime_guess;
             }
 
             if (I0 != NULL)
@@ -560,6 +571,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                }
 
                I0[ g*n_px + i ] *= t_g;
+               if (ref_reconvolution)
+                  I0[ g*n_px + i ] /= ref;   // accounts for the amplitude of the reference in the model, since we've normalised the IRF to 1
             }
 
             i_thresh++;

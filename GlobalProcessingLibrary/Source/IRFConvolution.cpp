@@ -180,10 +180,7 @@ void conv_irf_tcspc(FLIMGlobalFitController *gc, double rate, double exp_irf_buf
 {
    c = exp_irf_cum_buf[gc->irf_max[k*gc->n_t+i]];
    if (gc->pulsetrain_correction)
-   {
-      double q = exp( - gc->t_rep * rate );
-      c += exp_irf_cum_buf[(k+1)*gc->n_irf-1] * q/(1-q);
-   }
+      c += exp_irf_cum_buf[(k+1)*gc->n_irf-1] / ( exp( gc->t_rep * rate ) - 1 );
 }
 
 void conv_irf_timegate(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double& c)
@@ -192,10 +189,7 @@ void conv_irf_timegate(FLIMGlobalFitController *gc, double rate, double exp_irf_
    c = exp_irf_cum_buf[gc->irf_max[j]] - 0.5*exp_irf_buf[gc->irf_max[j]];
 
    if (gc->pulsetrain_correction)
-   {
-      double q = exp( - gc->t_rep * rate );
-      c += (exp_irf_cum_buf[(k+1)*gc->n_irf-1] - 0.5*exp_irf_buf[(k+1)*gc->n_irf-1]) * q/(1-q);
-   }
+      c += (exp_irf_cum_buf[(k+1)*gc->n_irf-1] - 0.5*exp_irf_buf[(k+1)*gc->n_irf-1])  / ( exp( gc->t_rep * rate ) - 1 );
 }
 
 void conv_irf_deriv_tcspc(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double ref_fact, double& c)
@@ -205,7 +199,7 @@ void conv_irf_deriv_tcspc(FLIMGlobalFitController *gc, double t, double rate, do
    
    c = t * exp_irf_cum_buf[gc->irf_max[j]] - exp_irf_tirf_cum_buf[gc->irf_max[j]];
    if (gc->pulsetrain_correction)
-      c += ((t + gc->t_rep) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end]) * exp( - gc->t_rep * rate );
+      c += ((t + gc->t_rep) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end])  / ( exp( gc->t_rep * rate ) - 1 );
 }
 
 void conv_irf_deriv_timegate(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double ref_fact, double& c)
@@ -223,7 +217,7 @@ void conv_irf_deriv_timegate(FLIMGlobalFitController *gc, double t, double rate,
       c_rep -= 0.5 * ((t+gc->t_rep) * exp_irf_buf[irf_end] -  exp_irf_tirf_buf[irf_end]);
       
       
-      c     += c_rep * exp( - gc->t_rep * rate );
+      c     += c_rep / ( exp( gc->t_rep * rate ) - 1 );
    }
 
 }
@@ -239,7 +233,7 @@ void conv_irf_deriv_ref_tcspc(FLIMGlobalFitController *gc, double t, double rate
    if (gc->pulsetrain_correction)
    {
       c_rep = ( (t+gc->t_rep) * ref_fact + 1 ) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact;
-      c += c_rep * exp( - gc->t_rep * rate );
+      c += c_rep / ( exp( gc->t_rep * rate ) - 1 );
    }  
 }
 
@@ -257,7 +251,7 @@ void conv_irf_deriv_ref_timegate(FLIMGlobalFitController *gc, double t, double r
    {
       c_rep  =        ( (t+gc->t_rep) * ref_fact + 1 ) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact;
       c_rep -= 0.5 * (( (t+gc->t_rep) * ref_fact + 1 ) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact);
-      c_rep *= exp( - gc->t_rep * rate );
+      c_rep /= ( exp( gc->t_rep * rate ) - 1 );
       c += c_rep;
    }
 

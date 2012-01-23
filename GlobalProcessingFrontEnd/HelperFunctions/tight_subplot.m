@@ -42,7 +42,7 @@ if numel(marg_h)==1;
     marg_h = [marg_h marg_h];
 end
 
-cbarw = 30;
+cbarw = 10;
 
 children = get(parent,'Children');
 

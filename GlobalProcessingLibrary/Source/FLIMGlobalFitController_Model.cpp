@@ -83,10 +83,10 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          row--;
       
          // Actual decay
-         if (data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
-            tcspc_fact = ( 1 - exp( - (t[1] - t[0]) * rate ) ) / rate;
-         else
-            tcspc_fact = 1;
+         //if (data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
+         //   tcspc_fact = ( 1 - exp( - (t[1] - t[0]) * rate ) ) / rate;
+         //else
+         tcspc_fact = 1;
       
          for(k=0; k<n_chan; k++)
          {

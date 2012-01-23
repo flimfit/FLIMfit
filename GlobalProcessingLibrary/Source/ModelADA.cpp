@@ -284,7 +284,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                if (gc->ref_reconvolution == FIT_GLOBALLY)
                {
                   // Set elements of inc for ref lifetime derivatives
-                  for(i=0; i<(gc->n_decay_group * gc->n_exp_phi); i++)
+                  for(i=0; i<( gc->n_pol_group* gc->n_decay_group * gc->n_exp_phi ); i++)
                   {
                      inc[inc_row+(inc_col+i)*12] = 1;
                   }
@@ -499,11 +499,14 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          }
          */
          
-         memcpy(a_cpy,a,n_meas*(gc->l+1)*sizeof(double));
+         
 
          if (gc->anscombe_tranform)
+         {
+            memcpy(a_cpy,a,n_meas*(gc->l+1)*sizeof(double));
             for(i=0; i<N; i++)
                a[i] = anscombe(a[i]);
+         }
 
          
          if (*isel==2 || gc->getting_fit)

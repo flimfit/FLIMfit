@@ -113,10 +113,12 @@ classdef flim_dll_interface < handle
                 end
                 warning('on','MATLAB:loadlibrary:TypeNotFound');
                 
-                obj.dll_id = calllib(obj.lib_name,'FLIMGlobalGetUniqueID');
+                
             end
 
-           
+            if isempty(obj.dll_id)
+                obj.dll_id = calllib(obj.lib_name,'FLIMGlobalGetUniqueID');
+            end
 
             
          end
