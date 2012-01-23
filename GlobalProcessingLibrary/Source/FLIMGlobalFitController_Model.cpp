@@ -44,7 +44,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          {
             next_idx = row*exp_dim + k*n_irf;
             idx = next_idx + exp_dim;
-            cum = exp_buf[idx++];
+            cum = local_exp_buf[idx++];
             for(j=0; j<n_irf; j++)
             {
    	         local_exp_buf[next_idx++] = cum;
@@ -72,7 +72,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          {
             next_idx = row*exp_dim + k*n_irf;
             idx = next_idx + exp_dim;
-            cum = exp_buf[idx++];
+            cum = local_exp_buf[idx++];
             for(j=0; j<n_irf; j++)
             {
    	         local_exp_buf[next_idx++] = cum;

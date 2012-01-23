@@ -177,20 +177,20 @@ L6:
 L30:
    if (!philp1)
    {
-      #pragma omp parallel for private(i__)
+      #pragma omp parallel for
       for (j = 1; j <= *s; ++j)
-         for (i__ = 1; i__ <= *n; ++i__)
-            r__[i__ + j * r_dim1] = y[i__ + j * y_dim1];
+         for (int i = 1; i <= *n; ++i)
+            r__[i + j * r_dim1] = y[i + j * y_dim1];
    }
    else
    {
-      #pragma omp parallel for private(i__)
+      #pragma omp parallel for
       for(j=*s; j > 1; --j)
-         for(i__=1; i__ <= *n; ++i__)
-            r__[i__ + j * r_dim1] = y[i__ + j * y_dim1] - r__[i__ + r_dim1];
+         for(int i=1; i <= *n; ++i)
+            r__[i + j * r_dim1] = y[i + j * y_dim1] - r__[i + r_dim1];
         
-      for(i__=1; i__ <= *n; ++i__)
-         r__[i__ + r_dim1] = y[i__ + y_dim1] - r__[i__ + r_dim1];
+      for(int i=1; i <= *n; ++i)
+         r__[i + r_dim1] = y[i + y_dim1] - r__[i + r_dim1];
 
 
    }
@@ -202,16 +202,16 @@ L50:
 
    if (firstca != 0)
    {
-      #pragma omp parallel for private(j,i__)
+      #pragma omp parallel for
       for (j = firstca; j <= lastca; ++j)
-         for (i__ = 1; i__ <= *n; ++i__)
-            a[i__ + j * a_dim1] *= w[i__];    //Profiling: 12.1%
+         for (int i = 1; i <= *n; ++i)
+            a[i + j * a_dim1] *= w[i];    //Profiling: 12.1%
    }
    if (firstcb != 0)
    {
       for (j = firstcb; j <= lastcb; ++j)
-         for (i__ = 1; i__ <= *n; ++i__)
-            b[i__ + j * b_dim1] *= w[i__];
+         for (int i = 1; i<= *n; ++i)
+            b[i + j * b_dim1] *= w[i];
    }
 
 
@@ -259,15 +259,15 @@ L60:
       {
          acum = u[k] * a[k + j * a_dim1];
 
-         for (i__ = kp1; i__ <= *n; ++i__) 
+         for (int i = kp1; i <= *n; ++i) 
          {
-            acum += a[i__ + k * a_dim1] * a[i__ + j * a_dim1];
+            acum += a[i + k * a_dim1] * a[i + j * a_dim1];
          }
          acum /= beta;
 
          a[k + j * a_dim1] -= u[k] * acum;
-         for (i__ = kp1; i__ <= *n; ++i__) 
-            a[i__ + j * a_dim1] -= a[i__ + k * a_dim1] * acum;
+         for (int i = kp1; i <= *n; ++i) 
+            a[i + j * a_dim1] -= a[i + k * a_dim1] * acum;
       }
 
    L64:
@@ -277,13 +277,13 @@ L60:
       for (j = firstcb; j <= lastcb; ++j)
       {
          acum = u[k] * b[k + j * b_dim1];
-         for (i__ = kp1; i__ <= *n; ++i__) 
-            acum += a[i__ + k * a_dim1] * b[i__ + j * b_dim1];
+         for (int i = kp1; i <= *n; ++i) 
+            acum += a[i + k * a_dim1] * b[i + j * b_dim1];
          acum /= beta;
 
          b[k + j * b_dim1] -= u[k] * acum;
-         for (i__ = kp1; i__ <= *n; ++i__) 
-            b[i__ + j * b_dim1] -= a[i__ + k * a_dim1] * acum;
+         for (int i = kp1; i <= *n; ++i) 
+            b[i + j * b_dim1] -= a[i + k * a_dim1] * acum;
       }
    L70:
       ;
@@ -325,7 +325,7 @@ L75:
 L85:
    if (*l != 0)
    {   
-      #pragma omp parallel for private(j)
+      #pragma omp parallel for
       for (j = 1; j <= *s; ++j) 
          bacsub_(n, l, &a[a_offset], &r__[j * r_dim1 + 1]);
    }
@@ -344,12 +344,12 @@ L85:
 /*           L+NL+S+1. */
 
    #pragma omp parallel for private(is,isub,isback,m,k,j,acum,ksub)
-   for (i__ = firstr; i__ <= *n; ++i__)
+   for (int i = firstr; i <= *n; ++i)
    {
       for (isback = 1; isback <= *s; ++isback) 
       {
          is = *s - isback + 1;
-         isub = (*n - *l) * (is - 1) + i__;
+         isub = (*n - *l) * (is - 1) + i;
          if (*l != ncon) 
          {
             m = 0;
@@ -361,20 +361,20 @@ L85:
                   if (inc[k + j * 12 - 13] != 0) 
                   {
                      ++m;
-                     acum += b[i__ + m * b_dim1] * r__[j + is * r_dim1];     // Profiling: 11.8%
+                     acum += b[i + m * b_dim1] * r__[j + is * r_dim1];     // Profiling: 11.8%
                   }
                }
                ksub = *lps + k;
                if (inc[k + lp1 * 12 - 13] != 0)
                {   
                   ++m;
-                  acum += b[i__ + m * b_dim1];
+                  acum += b[i + m * b_dim1];
                }
 
                b[isub + k * b_dim1] = acum; // include factor for weighting by pixel intensity here?
             }
          }
-         b[isub + (*nl + 1) * b_dim1] = r__[i__ + is * r_dim1]; // include factor for weighting by pixel intensity here?
+         b[isub + (*nl + 1) * b_dim1] = r__[i + is * r_dim1]; // include factor for weighting by pixel intensity here?
       }
    }
 
@@ -393,7 +393,7 @@ doublereal xnorm_(integer *n, doublereal *x)
     double sqrt(doublereal);
 
     /* Local variables */
-    integer i__;
+    //integer i__;
     doublereal sum, rmax, term;
 
 /*     ============================================================== */
@@ -410,9 +410,9 @@ doublereal xnorm_(integer *n, doublereal *x)
     /* Function Body */
    rmax = 0.0;
    //#pragma omp parallel for private(d__1)
-   for (i__ = 1; i__ <= *n; ++i__)
+   for (int i = 1; i <= *n; ++i)
    {
-      d__1 = fabs(x[i__]);
+      d__1 = fabs(x[i]);
       //#pragma omp critical
       {
       if (d__1  > rmax) 
@@ -424,11 +424,11 @@ doublereal xnorm_(integer *n, doublereal *x)
    if (rmax != 0.0) 
    {
       //#pragma omp parallel for reduction(+:sum) private(term)
-      for (i__ = 1; i__ <= *n; ++i__) 
+      for (int i = 1; i <= *n; ++i) 
       {
          term = 0.0;
-         if (rmax + (d__1 = x[i__], fabs(d__1)) != rmax) 
-            term = x[i__] / rmax;
+         if (rmax + (d__1 = x[i], fabs(d__1)) != rmax) 
+            term = x[i] / rmax;
          sum += term * term;
       }
    }

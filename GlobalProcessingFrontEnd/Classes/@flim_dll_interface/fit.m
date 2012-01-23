@@ -174,7 +174,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
                 obj.n_regions_total = sum(obj.n_regions);
 
                 obj.n_px = width * height;
-                obj.globals_size = [1 length(sel)];
+                obj.globals_size = [1 obj.n_regions_total];
                 
                 if p.use_phase_plane_estimation         
                     est_decay = zeros(d.n_tr_t,n_im);

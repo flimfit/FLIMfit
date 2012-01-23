@@ -883,7 +883,7 @@ L99:
     double sqrt(doublereal);
 
     /* Local variables */
-    integer ncon_buf__, i__, j, k, p, nconp1_buf__, lp1, lnls1, inckj;
+    integer ncon_buf__, i__, j, k, p, nconp1_buf__, lp1, lnls1, inckj, philp1_buf__;
     extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
 
 /*     ============================================================== */
@@ -949,7 +949,7 @@ L9:
 
    nconp1_buf__ = lp1;
    ncon_buf__ = *l;
-   *philp1 = *l == 0;
+   philp1_buf__ = *l == 0;
 /*     PHILP1 = .TRUE. */
    if (*l == 0 || *nl == 0) 
    {
@@ -988,7 +988,7 @@ L20:
     for (k = 1; k <= i__2; ++k) {
 /* L25: */
 	if (inc[k + lp1 * 12] == 1) {
-	    *philp1 = TRUE_;
+	    philp1_buf__ = TRUE_;
 	}
     }
 
@@ -996,6 +996,7 @@ L99:
     ncon_buf__ = nconp1_buf__ - 1;
     *ncon = ncon_buf__;
     *nconp1 = nconp1_buf__;
+    *philp1 = philp1_buf__;
     return 0;
 /* L210: */
 } /* init_ */

@@ -248,25 +248,34 @@ function get_return_data(obj)
     clear obj.p_ierr
     
     for i=1:length(datasets)
-       if p.global_fitting == 0
-           ierrd = ierr(:,:,i);
-       elseif p.global_fitting == 1
-           ierrd = ierr(i);
+       r_start = 1+sum(obj.n_regions(1:i-1));
+       r_end = r_start + obj.n_regions(i)-1;
+       
+       if r_end < r_start
+           f.ierr(datasets(i)) = 0;
+           f.iter(datasets(i)) = 0;
+           f.success(datasets(i)) = 100;
        else
-           ierrd = ierr;
+           if p.global_fitting == 0
+               ierrd = ierr(:,:,r_start:r_end);
+           elseif p.global_fitting == 1
+               ierrd = ierr(r_start:r_end);
+           else
+               ierrd = ierr;
+           end
+
+           ierrs = double(ierrd(ierrd<0));
+           if isempty(ierrs)
+               ierrs = 0;
+           else
+               ierrs = mode(ierrs);
+           end
+
+           f.ierr(datasets(i)) = ierrs;
+           f.iter(datasets(i)) = sum(ierrd(ierrd>=0));
+           f.success(datasets(i)) = sum(ierrd(:)>=0)/length(ierrd(:)) * 100;
+           
        end
-       
-       ierrs = double(ierrd(ierrd<0));
-       if isempty(ierrs)
-           ierrs = 0;
-       else
-           ierrs = mode(ierrs);
-       end
-       
-       f.ierr(datasets(i)) = ierrs;
-       f.iter(datasets(i)) = sum(ierrd(ierrd>=0));
-       f.success(datasets(i)) = sum(ierrd(:)>=0)/length(ierrd(:)) * 100;
-       
 
     end
     clear ierr       

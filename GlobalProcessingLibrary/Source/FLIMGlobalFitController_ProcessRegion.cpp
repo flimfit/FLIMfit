@@ -19,7 +19,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    using namespace boost::math::tools;
    using namespace boost::interprocess;
 
-   int i, j, i_thresh, s_thresh, lin_idx, nlin_idx, lpps1_, guess_idx, itmax;
+   int i, j, i_thresh, s_thresh, lin_idx, nlin_idx, lpps1_, guess_idx, itmax, lps_;
    bool swapped;
    double swap_buf;
    int swap_idx_buf;
@@ -229,25 +229,28 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    // Update lpps1 which depends on s
    lpps1_ = l + p + s_thresh + 1;
+   lps_ = l + s_thresh;
    
    itmax = 200;
+
+   int ierr_local = 0;
      
    if (grid_search)
    {
-      varp2_grid( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps, &pp2, &iv, 
+      varp2_grid( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
                t, y, w, (U_fp)ada, a, b, &iprint, (int*) this, (int*) &thread, alf, lin_params, 
-               ierr+r_idx, (doublereal*)chi2+r_idx, (int*)&algorithm,
+               &ierr_local, (doublereal*)chi2+r_idx, (int*)&algorithm,
                var_min, var_max, grid, grid_size, grid_factor, var_buf, grid_iter );
    }
    else
    {
-      varp2_( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps, &pp2, &iv, 
+      varp2_( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
                t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
-               alf, lin_params, ierr+r_idx, &c2, &algorithm, alf_best );
+               alf, lin_params, &ierr_local, &c2, &algorithm, alf_best );
    }
 
   
-
+  ierr[r_idx] = ierr_local;
 
    if (ierr[r_idx] >= -1 || ierr[r_idx] == -9) // if successful (or failed due to too many iterations) return fit results
    {
