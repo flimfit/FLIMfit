@@ -1,6 +1,8 @@
 classdef front_end_menu_controller < handle
     
     properties
+        menu_file_new_window;
+        
         menu_file_load_single;
         menu_file_load_widefield;
         menu_file_load_tcspc;
@@ -41,7 +43,7 @@ classdef front_end_menu_controller < handle
         
         menu_background_background_load;
         
-        menu_segmentation_manua  l;
+        menu_segmentation_manual;
         menu_segmentation_yuriy;
         
         menu_view_data
@@ -135,6 +137,13 @@ classdef front_end_menu_controller < handle
 
         function add_recent_irf(obj,path)
             obj.recent_irf = [obj.recent_irf; path];
+        end
+        
+        %------------------------------------------------------------------
+        % Default Path
+        %------------------------------------------------------------------
+        function menu_file_new_window_callback(obj,~,~)
+            GlobalProcessing();
         end
         
         %------------------------------------------------------------------

@@ -50,13 +50,13 @@ function save_param_table(obj,file,append,save_images)
         
         for i=1:rows
             fprintf(fid,'%f,',i);
-            
-            fprintf(fid,'%s,',obj.fit_result.names{i});
+            im_group = obj.param_table(i,1);
+            fprintf(fid,'%s,',obj.fit_result.names{im_group});
             for j=1:length(metadata_fields)
-                if isnumeric(metadata.(metadata_fields{j}){i})
-                    fprintf(fid,'%f,',metadata.(metadata_fields{j}){i});
+                if isnumeric(metadata.(metadata_fields{j}){im_group})
+                    fprintf(fid,'%f,',metadata.(metadata_fields{j}){im_group});
                 else
-                    fprintf(fid,'%s,',metadata.(metadata_fields{j}){i});
+                    fprintf(fid,'%s,',metadata.(metadata_fields{j}){im_group});
                 end
             end
             

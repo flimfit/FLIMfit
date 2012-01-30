@@ -8,7 +8,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
     methods
         function obj = flim_fit_graph_controller(handles)
                        
-            obj = obj@abstract_plot_controller(handles,handles.graph_axes,handles.graph_dependent_popupmenu);            
+            obj = obj@abstract_plot_controller(handles,handles.graph_axes,handles.graph_dependent_popupmenu,true);            
             assign_handles(obj,handles);
 
             set(obj.graph_independent_popupmenu,'Callback',@obj.ind_param_select_update);
@@ -110,12 +110,18 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                 if var_is_numeric
                     errorbar(ax,x_data,y_data,y_err,'o-');
+                    cell_x_data = num2cell(x_data);
                 else
                     errorbar(ax,y_data,y_err,'o-');
                     set(ax,'XTick',1:length(y_data));
                     set(ax,'XTickLabel',x_data);
+                    cell_x_data = x_data;
                 end
 
+                obj.raw_data = [cell_x_data; num2cell(y_data)]';
+                
+                obj.raw_data = [{obj.ind_param param}; obj.raw_data]; 
+                
                 ylabel(ax,param);
                 xlabel(ax,obj.ind_param);
             end

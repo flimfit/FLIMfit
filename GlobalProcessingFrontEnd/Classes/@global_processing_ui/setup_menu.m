@@ -4,7 +4,8 @@ function setup_menu(obj)
     handles = guidata(obj.window);
 
     menu_file      = uimenu(obj.window,'Label','File');
-    menu_file_load = uimenu(menu_file,'Label','Load FLIM Data');
+    handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
+    menu_file_load = uimenu(menu_file,'Label','Load FLIM Data','Separator','on');
     handles.menu_file_load_single = uimenu(menu_file_load,'Label','Load Single Image...','Accelerator','O');
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','W','Separator','on');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
