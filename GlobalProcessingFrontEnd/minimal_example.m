@@ -1,4 +1,6 @@
-function [tau_1,tau_2,A_1,A_2,decay,chi2] = minimal_example(t,data,mask,t_irf,irf,bg)
+function [Itot, f_1, tau_1, tau_2, decay, chi2 ] = minimal_example(t,data,mask,t_irf,irf,bg,t0,rep_rate)
+
+addpath_global_analysis();
 
 %%%% Initialise the data series to load from memory
 data_series = flim_data_series();
@@ -36,25 +38,27 @@ data_series.seg_mask = mask;
 fitting_params = flim_fitting_params();
 fitting_params.n_exp = 2;
 fitting_params.n_fix = 0;
-fitting_params.global_fitting = 1;
+fitting_params.global_fitting = 0; % 0=pixel wise, 1=imagewise, 2=global
 fitting_params.fit_offset = 0;
 fitting_params.fit_scatter = 0;
 
-fitting_params.t0 = 0;
+fitting_params.t0 = t0;
 fitting_params.offset = bg;
 fitting_params.scatter = 0;
 
-fitting_params.rep_rate = 80e6;
+fitting_params.rep_rate = rep_rate; %80e6;
 fitting_params.ref_lifetime = 20;
 
 fitting_params.pulsetrain_correction = false;
-fitting_params.ref_reconvolution = true;
+%fitting_params.pulsetrain_correction = true; %YA
 
-fitting_params.tau_guess = [4000; 500]; % must be in descending order
+fitting_params.ref_reconvolution = false;
 
+fitting_params.tau_guess = [4000; 200]; % must be in descending order
 
 fitting_params.tau_min = [0; 0];
-fitting_params.tau_max = [10000; 10000];
+%fitting_params.tau_max = [10000; 10000];
+fitting_params.tau_max = [20000; 20000]; %YA
 
 %fitting_params.n_thread = 8; %automatically set to number of processors if
 %not specified
@@ -81,15 +85,24 @@ decay = fit_controller.fitted_decay(t,1,1);
 
 images = images{1};
 
-tau_1 = images.tau_1;
-tau_2 = images.tau_2;
+tau_2 = images.tau_1;
+tau_1 = images.tau_2;
+    A_2 = images.beta_1; 
+    A_1 = images.beta_2; 
 
-A_1 = images.beta_1;
-A_2 = images.beta_2;
+if isfinite(tau_1) && isfinite(tau_2) && isfinite(A_1) && isfinite(A_2) && A_2>0 && A_1>0
+    Itot = A_1*tau_1 + A_2*tau_2;
+    f_1 = A_1*tau_1/Itot;
+    chi2 = fit_result.chi2;
+else
+    Itot = 0;
+    f_1 = 0;
+    chi2 = 0;
+    tau_1 = 0;
+    tau_2 = 0;    
+end
 
-chi2 = fit_result.chi2;
-
-disp([fit_result.ierr tau_1 tau_2]);
+%disp([tau_1 tau_2 fit_result.ierr])
 
 function fit_complete(~,~,hx)
     uiresume(hx);
