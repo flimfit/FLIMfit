@@ -52,6 +52,7 @@ function init_dataset(obj,setting_file_name)
     obj.data_size = [obj.data_size ones(1,4-length(obj.data_size))];
 
     % If a data setting file exists load it
+    %{
     if nargin < 2 || isempty(setting_file_name)
         if obj.polarisation_resolved
             setting_file_name = [obj.root_path 'polarisation_data_settings.xml'];
@@ -59,8 +60,9 @@ function init_dataset(obj,setting_file_name)
             setting_file_name = [obj.root_path 'data_settings.xml'];
         end
     end
+    %}
     
-    if exist(setting_file_name,'file')
+    if nargin >= 2 && exist(setting_file_name,'file')
        obj.load_data_settings(setting_file_name); 
     end
     

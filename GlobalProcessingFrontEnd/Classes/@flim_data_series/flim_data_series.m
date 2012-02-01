@@ -687,7 +687,7 @@ classdef flim_data_series < handle
                 if obj.polarisation_resolved
                     in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
                 end
-                obj.intensity(:,:,i) = squeeze(in);
+                obj.intensity(:,:,i) = reshape(in,obj.data_size(3:4)');
                
             end
                        

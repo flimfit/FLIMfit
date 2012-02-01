@@ -12,7 +12,6 @@ function set_data(obj,t,data,polarisation_resolved)
     
     data = obj.ensure_correct_dimensionality(data);
     
-    obj.data_size = size(data);
     obj.t = t;
     
     if ndims(data) > 4
@@ -29,9 +28,17 @@ function set_data(obj,t,data,polarisation_resolved)
     nstr = cellfun(@(x)num2str(x),nstr,'UniformOutput',false);
     obj.names = nstr;   
     
+    obj.use_memory_mapping = false;
+    obj.loaded = ones([1 obj.n_datasets]);
+    
+    obj.tr_data_series_mem = data;
+    obj.data_series_mem = data;
+    
+    
+    
     % Write to mem map file
     %--------------------------------------
-    
+    %{
     mapfile_name = global_tempname;
     tr_mapfile_name = global_tempname;
         
@@ -43,11 +50,14 @@ function set_data(obj,t,data,polarisation_resolved)
  
     fclose(mapfile);
     fclose(tr_mapfile);
-    
+    %}
     % Initialise
     %--------------------------------------
  
-    obj.init_memory_mapping(obj.data_size, obj.num_datasets, mapfile_name, tr_mapfile_name);   
+    %obj.init_memory_mapping(obj.data_size, obj.num_datasets, mapfile_name, tr_mapfile_name);   
+    
+    obj.switch_active_dataset(1);
+    
     obj.init_dataset();
     
 end
