@@ -39,7 +39,8 @@ function setup_menu(obj)
     handles.menu_irf_set_gaussian = uimenu(menu_irf,'Label','Set Gaussian IRF...');
     
     menu_background = uimenu(obj.window,'Label','Background');
-    handles.menu_background_background_load = uimenu(menu_background,'Label','Load Background Image...');
+    handles.menu_background_background_load = uimenu(menu_background,'Label','Load background image...');
+    handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load series of background image to smooth...');
     
     menu_segmentation = uimenu(obj.window,'Label','Segmentation');
     handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager');

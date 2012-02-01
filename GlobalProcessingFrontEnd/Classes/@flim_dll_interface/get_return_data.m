@@ -248,9 +248,14 @@ function get_return_data(obj)
     clear obj.p_ierr
     
     for i=1:length(datasets)
-       r_start = 1+sum(obj.n_regions(1:i-1));
-       r_end = r_start + obj.n_regions(i)-1;
-       
+       if p.global_fitting < 2
+           r_start = 1+sum(obj.n_regions(1:i-1));
+           r_end = r_start + obj.n_regions(i)-1;
+       else
+           r_start = 1;
+           r_end = obj.n_regions(1);
+       end
+           
        if r_end < r_start
            f.ierr(datasets(i)) = 0;
            f.iter(datasets(i)) = 0;

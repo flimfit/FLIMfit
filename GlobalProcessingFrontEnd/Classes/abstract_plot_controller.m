@@ -211,7 +211,7 @@ classdef abstract_plot_controller < flim_fit_observer
             
             cscale = obj.colourmap(param);
             
-            m=2^16;
+            m=2^8;
             data = data - lims(1);
             data = data / (lims(2) - lims(1));
             data(data > 1) = 1;

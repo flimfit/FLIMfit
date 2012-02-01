@@ -54,7 +54,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         
         % open first file
-        [obj.t,data] = open_flim_files([],obj.file_names{1},channel);         
+        [obj.t,data] = load_flim_file(obj.file_names{1},channel);         
         data_size = size(data);
         
         % if only one channel reshape to include singleton dimension
@@ -118,7 +118,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         obj.file_names = file_names;
         
-        [obj.t,data] = open_flim_files([],first_file); 
+        [obj.t,data] = load_flim_file(first_file); 
         data_size = size(data);
 
         % if only one channel reshape to include singleton dimension

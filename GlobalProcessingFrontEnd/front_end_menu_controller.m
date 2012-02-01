@@ -42,6 +42,7 @@ classdef front_end_menu_controller < handle
         menu_irf_set_gaussian;
         
         menu_background_background_load;
+        menu_background_background_load_series;
         
         menu_segmentation_manual;
         menu_segmentation_yuriy;
@@ -346,9 +347,19 @@ classdef front_end_menu_controller < handle
         % Background
         %------------------------------------------------------------------
         function menu_background_background_load_callback(obj,~,~)
-            [file,path] = uigetfile('*.*','Select a background image file',obj.default_path);
+            [file,path] = uigetfile('*.tif','Select a background image file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_background([path file]);    
+            end
+        end
+        
+        %------------------------------------------------------------------
+        % Background
+        %------------------------------------------------------------------
+        function menu_background_background_load_series_callback(obj,~,~)
+            [path] = uigetdir(obj.default_path,'Select a folder of background images');
+            if path ~= 0
+                obj.data_series_controller.data_series.load_background(path);    
             end
         end
         

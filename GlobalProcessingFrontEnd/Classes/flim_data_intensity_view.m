@@ -39,6 +39,8 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
             
             ax = obj.intensity_axes;
             
+            m = 2^8;
+            
             if (obj.data_series.init)
                             
                 selected = obj.data_series_list.selected;
@@ -54,11 +56,11 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                 
                 intensity = (intensity - lim(1))/(lim(2)-lim(1));
                 mask = intensity < 0 | intensity > 1;
-                intensity = uint32(intensity * 2^16);
+                intensity = uint32(intensity * m);
                 intensity = intensity + 1;
                 intensity(mask) = 0;
 
-                cmap = gray(2^16-1);
+                cmap = gray(m-1);
                 cmap = [ [1,0,0]; cmap];
 
                 mapped_data = ind2rgb(intensity,cmap);
