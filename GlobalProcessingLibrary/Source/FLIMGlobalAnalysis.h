@@ -13,16 +13,8 @@
 
 #define _CRTDBG_MAPALLOC  
 
-#define MAX_CONTROLLER_IDX 255
+#include "FlagDefinitions.h"
 
-#define SUCCESS                        0
-#define ERR_NOT_INIT                   -1001
-#define ERR_FIT_IN_PROGRESS            -1002
-#define ERR_FAILED_TO_START_THREADS    -1003
-#define ERR_NO_FIT                     -1004
-#define ERR_OUT_OF_MEMORY              -1005
-#define ERR_COULD_NOT_OPEN_MAPPED_FILE -1006
-#define ERR_COULD_NOT_START_FIT        -1007
 
 #ifdef _WINDOWS
 #define FITDLL_API __declspec(dllexport)
@@ -37,6 +29,68 @@ extern "C" {
 
 FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
+
+
+FITDLL_API int SetupGlobalFit(int c_idx,
+                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                              int n_exp, int n_fix,  double tau_min[], double tau_max[], 
+                              int single_guess, double tau_guess[],
+                              int fit_beta, double fixed_beta[],
+                              int fit_t0, double t0_guess, 
+                              int fit_offset, double offset_guess, 
+                              int fit_scatter, double scatter_guess,
+                              int fit_tvb, double tvb_guess, double tvb_profile[],
+                              int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
+                              int pulsetrain_correction, double t_rep,
+                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
+                              double tau[], double I0[], double beta[], double E[], double gamma[],
+                              double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
+                              int calculate_errs, double tau_err[], double beta_err[], double E_err[],
+                              double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
+                              double chi2[], int ierr[],
+                              int n_thread, int runAsync, int use_callback, int (*callback)());
+
+FITDLL_API int SetupGlobalPolarisationFit(int c_idx, 
+                             int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                             int n_exp, int n_fix, 
+                             double tau_min[], double tau_max[], 
+                             int single_guess, double tau_guess[],
+                             int fit_beta, double fixed_beta[],
+                             int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[],
+                             int fit_t0, double t0_guess,
+                             int fit_offset, double offset_guess, 
+                             int fit_scatter, double scatter_guess,
+                             int fit_tvb, double tvb_guess, double tvb_profile[],
+                             int pulsetrain_correction, double t_rep,
+                             int ref_reconvolution, double ref_lifetime_guess, int algorithm,
+                             double tau[], double I0[], double beta[], double theta[], double r[], 
+                             double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
+                             int calculate_errs, double tau_err[], double beta_err[], double theta_err[],
+                             double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
+                             double chi2[], int ierr[],
+                             int n_thread, int runAsync, int use_callback, int (*callback)());
+
+FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t,
+                             int data_type, int *mask, int threshold, int limit, int global_mode, int smoothing_factor);
+
+FITDLL_API int SetData(int c_idx, double* data_file);
+FITDLL_API int SetDataFile(int c_idx, char* data_file);
+
+FITDLL_API int SetBackgroundImage(int c_idx, double* background_image);
+FITDLL_API int SetBackgroundValue(int c_idx, double background_value);
+
+FITDLL_API int StartFit(int c_idx);
+
+
+
+
+
+
+
+
+
+
+
 
 
 /* =============================================
@@ -64,9 +118,9 @@ FITDLL_API void FLIMGlobalRelinquishID(int id);
  * global_mode             Reserved for future use
  * mask[]                  [n_group, n_px, n_t] array indicating which which region each pixel belongs to. 
                            Zero indicates the pixel is excluded from any fit 
- * n_t	                  Number of timepoints in each measurement
+ * n_t                     Number of timepoints in each measurement
  * t[]                     [n_t] array of gate/bin times in ps
- * n_irf	                  Number of points in IRF
+ * n_irf                     Number of points in IRF
  * t_irf                   [n_irf] array of time points for IRF measurements
  * irf                     [n_irf] array of irf measurements
  * n_exp                   Number of exponential species to fit
@@ -128,6 +182,7 @@ FITDLL_API void FLIMGlobalRelinquishID(int id);
  * 0     Success
  * ...
  */
+/*
 FITDLL_API int FLIMGlobalFit(int c_idx, int n_group, int n_px, int n_regions[], int global_mode,
                              int data_type, double data[], int mask[],
                              int n_t, double t[],
@@ -149,7 +204,7 @@ FITDLL_API int FLIMGlobalFit(int c_idx, int n_group, int n_px, int n_regions[], 
                              double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
                              double chi2[], int ierr[],
                              int n_thread, int run_async, int use_callback, int (*callback)());
-
+*/
 
 /* =============================================
  * FLIMGlobalFitMemMap
@@ -160,6 +215,7 @@ FITDLL_API int FLIMGlobalFit(int c_idx, int n_group, int n_px, int n_regions[], 
  * Here data is the path to a file containing the FLIM data.
  *
  */
+ /*
 FITDLL_API int FLIMGlobalFitMemMap(int c_idx, int n_group, int n_px, int n_regions[], int global_mode,
                              int data_type, char* data_file, int mask[],
                              int n_t, double t[],
@@ -248,7 +304,7 @@ FITDLL_API int FLIMGlobalGetChi2Map(int c_idx, int data_type, double data[], int
                                     double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
                                     double chi2[],
                                     int runAsync, int use_callback, int (*callback)());
-
+*/
                                     
 
 /* =============================================
@@ -331,9 +387,9 @@ FITDLL_API int FLIMGlobalClearFit(int c_idx);
  * INPUT PARAMETERS
  * ---------------------------
  * n_px                    Number of pixels in each group
- * n_t	                  Number of timepoints in each measurement
+ * n_t                     Number of timepoints in each measurement
  * t[]                     [n_t] array of gate/bin times in ps
- * n_irf	                  Number of points in IRF
+ * n_irf                     Number of points in IRF
  * t_irf                   [n_irf] array of time points for IRF measurements
  * irf                     [n_irf] array of irf measurements
  * n_exp                   Number of exponential species to fit

@@ -12,7 +12,7 @@ function regression_testing(handles)
     contents = dir(test_folder);
     tests = {};
     
-    for i = 3:6 %length(contents)
+    for i =3:3 %length(contents)
         if isdir([test_folder contents(i).name])
             tests{end+1} = contents(i).name;
         end
@@ -85,6 +85,7 @@ function regression_testing(handles)
             
             
         end
+        
             
         disp('--------------------------------------------');
         disp(['PASSED ' num2str(tests_passed) '/' num2str(tests_passed+tests_failed)]);

@@ -5,7 +5,7 @@ function [data, column_headers] = get_param_list(obj)
     d = obj.data_series;
     
     n_px = d.width * d.height;
-    n_group = sum(d.use);
+    n_group = d.n_datasets;
     n_im = n_group;
    
     if obj.bin

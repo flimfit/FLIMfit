@@ -74,17 +74,10 @@ classdef flim_data_series < handle
         mapfile_name;
         memmap;
         mapfile_offset = 0;
-        
-        tr_mapfile_name;
-        tr_memmap;
-        tr_mapfile_len = 0;
-        
-        data_series;
-        tr_data_series;
-        
-        bleedthrough_data_series;
-        tr_bleedthrough_data_series;
-        
+                
+        cur_data;
+        cur_tr_data;
+                
         root_path;
         
         intensity = [];
@@ -95,6 +88,8 @@ classdef flim_data_series < handle
         
         tr_t_irf;
         tr_irf;
+        
+        t_skip;
         
         irf_perp_shift = 0;
 
@@ -122,6 +117,8 @@ classdef flim_data_series < handle
         
         loaded = [];
         load_time = [];
+        
+        active = 0;
     end
     
     events
@@ -165,14 +162,6 @@ classdef flim_data_series < handle
     end
     
     methods
-        
-        function data = data(obj,idx)          
-            if obj.init
-                data = squeeze(obj.data_series(:,:,:,idx));  
-            else
-                data = [];
-            end
-        end
         
         
         %===============================================================
@@ -225,13 +214,14 @@ classdef flim_data_series < handle
             %> Return an array of data points both in internal mask
             %> and roi_mask from dataset selected
             
+            obj.switch_active_dataset(dataset);
+            
             n_tr_t = length(obj.tr_t);
             
             idx = obj.get_intensity_idx(dataset);
             
             % Get mask from thresholding
-            %m = 1-(obj.mask(:,:,dataset) > 0);
-            m = (obj.mask(:,:,idx) > 0);
+            m = (obj.mask > 0);
             
             % Combine with segmentation mask, if it exists
             if ~isempty(obj.seg_mask)
@@ -246,8 +236,8 @@ classdef flim_data_series < handle
             end
             
             % Get data
-            obj.switch_active_dataset(dataset);
-            data = obj.tr_data_series;
+
+            data = obj.cur_tr_data;
             
             % Reshape mask to apply to flim data
             n_mask = sum(roi_mask(:));
@@ -264,7 +254,7 @@ classdef flim_data_series < handle
         function data = define_tvb_profile(obj,roi_mask,dataset)
             % Get data
             obj.switch_active_dataset(dataset);
-            data = obj.data_series - obj.background;
+            data = obj.cur_data - obj.background;
             
             % Reshape mask to apply to flim data
             n_mask = sum(roi_mask(:));
@@ -298,10 +288,13 @@ classdef flim_data_series < handle
                 apply_mask = true;
             end
             
-            idx = obj.get_intensity_idx(sel);           
-            sel_intensity = obj.intensity(:,:,idx);            
+            obj.switch_active_dataset(sel);
+            sel_intensity = obj.intensity;            
             if apply_mask
-                sel_intensity(obj.mask(:,:,idx)==0) = 0;
+                sel_intensity(obj.mask==0) = 0;
+                if ~isempty(obj.seg_mask)
+                    sel_intensity(obj.seg_mask(:,:,sel)==0) = 0;
+                end
             end
         end
         
@@ -643,26 +636,18 @@ classdef flim_data_series < handle
             if obj.init
                 obj.thresh_mask = obj.intensity >= obj.thresh_min & obj.intensity <= obj.thresh_max;
                 obj.mask = obj.thresh_mask;
-                                    
-                %{
-                if obj.width > 1
-                    se = strel('disk',5);
-                    obj.mask = imclose(obj.mask,se);
-                end
-                %}
-                
+
                 v = obj.intensity(obj.mask);
                 obj.max = max(v);  %#ok
                 obj.min = min(v);  %#ok
                 
                 % If we have a segmentation mask apply it the mask
                 if ~isempty(obj.seg_mask)
-                    seg = obj.seg_mask(:,:,obj.loaded);
+                    seg = obj.seg_mask(:,:,obj.active);
                     seg(~obj.mask) = 0;
                     obj.mask = seg;
                 end
                 
-                %notify(obj,'masking_updated');
             end
         end
 
@@ -678,18 +663,13 @@ classdef flim_data_series < handle
             obj.intensity = zeros([obj.height obj.width num_loaded]);
             bg = obj.background;
             
-        
-            for i = 1:num_loaded
-                obj.switch_active_dataset(loaded_idx(i));
-                in = (double(obj.data_series)-bg)/obj.downsampling;
-                %obj.px_max(:,:,i) = nanmax(nanmax(in,[],1),[],2);
-                in = nansum(in,1);
-                if obj.polarisation_resolved
-                    in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
-                end
-                obj.intensity(:,:,i) = reshape(in,obj.data_size(3:4)');
-               
+            in = (double(obj.cur_data)-bg)/obj.downsampling;
+            in = nansum(in,1);
+            if obj.polarisation_resolved
+                in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
             end
+            obj.intensity = reshape(in,obj.data_size(3:4)');
+
                        
             obj.compute_mask();
         end
@@ -709,7 +689,7 @@ classdef flim_data_series < handle
                 
                 for i = 1:num_loaded
                     obj.switch_active_dataset(loaded_idx(i));
-                    in = obj.tr_data_series;
+                    in = obj.cur_tr_data;
                     in = nansum(in,1);
                     
                     para = squeeze(in(1,1,:,:));

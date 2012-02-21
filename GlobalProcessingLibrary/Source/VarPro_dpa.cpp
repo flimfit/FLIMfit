@@ -5,10 +5,10 @@ extern "C" {
 #endif
 #include "f2c.h"
 
-#ifndef NO_OMP	
+#ifndef NO_OMP   
 #include <omp.h>
 #endif
-	
+   
 #include <emmintrin.h>
 
 
@@ -53,7 +53,7 @@ static integer c__3 = 3;
     */
 
     /* Local variables */
-    integer i__, j, k, m, p;
+    integer j, k, m, p;
     integer is, kp1;
     integer lsp1;
     doublereal beta, acum;

@@ -21,10 +21,7 @@ function load_raw_data(obj,file)
     obj.lazy_loading = true;
     obj.mapfile_offset = ser_len + 2;
     obj.mapfile_name = file;
-    
-    obj.tr_mapfile_name = global_tempname;
-    obj.tr_mapfile_len = 0;
-    
+        
     obj.load_selected_files(1);
     
     obj.init_dataset([]);

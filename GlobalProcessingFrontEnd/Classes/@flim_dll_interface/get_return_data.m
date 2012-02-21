@@ -8,15 +8,16 @@ function get_return_data(obj)
     
     if obj.bin
         datasets = 1;
-        mask = 1;
+        mask = [];
     else
         datasets = obj.datasets;
-        for i=1:length(datasets)
-            datasets(i) = sum(obj.data_series.use(1:datasets(i)));
-        end
-        mask = double(obj.data_series.mask);
-        flt = obj.data_series.use(obj.data_series.loaded);
-        mask = mask(:,:,flt);
+        %for i=1:length(datasets)
+        %    datasets(i) = sum(obj.data_series.use(1:datasets(i)));
+        %end
+        %mask = double(obj.data_series.mask);
+        %flt = obj.data_series.use(obj.data_series.loaded);
+        %mask = mask(:,:,flt);
+        mask = obj.data_series.seg_mask;
     end
     
     
@@ -229,8 +230,9 @@ function get_return_data(obj)
         clear obj.p_ref_lifetime_err ref_lifetime_err;
     end
     
-    f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
-   
+    if ~isempty(mask)   
+        f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
+    end
     
     if obj.fit_params.global_fitting == 0
         ierr = reshape(obj.p_ierr.Value,obj.I0_size);

@@ -8,7 +8,7 @@
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
 
-#ifndef NO_OMP	
+#ifndef NO_OMP   
 #include <omp.h>
 #endif
 
@@ -43,14 +43,11 @@ void SetNaN(double* var, int n)
          var[i] = nan;
 }
 
-FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_regions[], int global_mode,
-                                                 int mask[], int n_t, double t[],
-                                                 int n_irf, double t_irf[], double irf[], double pulse_pileup,
-                                                 int use_FMM, int n_exp, int n_fix, 
+FLIMGlobalFitController::FLIMGlobalFitController(int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                                                 int n_exp, int n_fix, 
                                                  double tau_min[], double tau_max[], 
                                                  int single_guess, double tau_guess[],
                                                  int fit_beta, double fixed_beta[],
-                                                 int use_magic_decay, double magic_decay[],
                                                  int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[],
                                                  int fit_t0, double t0_guess, 
                                                  int fit_offset, double offset_guess,  
@@ -66,14 +63,11 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_re
                                                  double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
                                                  double chi2[], int ierr[],
                                                  int n_thread, int runAsync, int (*callback)()) :
-   n_group(n_group), n_px(n_px), n_regions(n_regions), global_mode(global_mode),
-   mask(mask), n_t(n_t), t(t),
    n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
-   use_FMM(use_FMM), n_exp(n_exp), n_fix(n_fix), 
+   n_exp(n_exp), n_fix(n_fix), 
    tau_min(tau_min), tau_max(tau_max),
    single_guess(single_guess), tau_guess(tau_guess),
    fit_beta(fit_beta), fixed_beta(fixed_beta),
-   use_magic_decay(use_magic_decay), magic_decay(magic_decay),
    n_theta(n_theta), n_theta_fix(n_theta_fix), inc_rinf(inc_rinf), theta_guess(theta_guess),
    fit_t0(fit_t0), t0_guess(t0_guess), 
    fit_offset(fit_offset), offset_guess(offset_guess), 
@@ -91,10 +85,16 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_group, int n_px, int n_re
    error(0), init(false), chi2_map_mode(false), polarisation_resolved(false), has_fit(false), 
    anscombe_tranform(false), thread_handle(NULL)
 {
-   status = new FitStatus(this,n_group,n_thread,callback); //free ok
    params = new WorkerParams[n_thread]; //free ok
+   status = new FitStatus(this,n_thread,NULL);
+   use_FMM = false;
 
-   use_FMM = true;
+   data = NULL;
+
+   global_binning = false;
+
+   //aux_n_regions = NULL;
+   //aux_data = NULL;
 }
 
 int FLIMGlobalFitController::RunWorkers()
@@ -125,7 +125,6 @@ int FLIMGlobalFitController::RunWorkers()
          for(int thread = 0; thread < n_thread; thread++)
             thread_handle[thread]->join();
 
-
          CleanupTempVars();
          has_fit = true;
       }
@@ -135,23 +134,26 @@ int FLIMGlobalFitController::RunWorkers()
 }
 
 
+
 void WorkerThread(void* wparams)
 {
    try
    {
       WorkerParams* p = (WorkerParams*) wparams;
       FLIMGlobalFitController* controller = p->controller;
+      FLIMData* data = controller->data;
       int thread = p->thread;
 
       int idx = 0;
 
-      if (thread >= controller->n_regions_total)
-	      return;
+      if (thread >= controller->data->n_regions_total)
+         return;
 
       controller->status->AddThread();
 
-      for(int g=0; g<controller->n_group; g++)
-         for(int r=1; r<=controller->n_regions[g]; r++)
+      for(int g=0; g<data->n_group; g++)
+      {
+         for(int r=data->GetMinRegion(g); r<=data->GetMaxRegion(g); r++)
          {
             if(idx % controller->n_thread == thread)
             {
@@ -160,16 +162,14 @@ void WorkerThread(void* wparams)
 
                controller->ProcessRegion(g,r,thread);
 
-			   if (controller->ierr[0] > -1)
-				   int a = 1;
-
-               if (r == controller->n_regions[g])
+               if (r == data->GetMaxRegion(g))
                   controller->status->FinishedGroup(thread);
             }
             if (controller->status->terminate)
                goto terminated;
             idx++;
          }
+      }
 
    terminated:
 
@@ -189,40 +189,14 @@ void WorkerThread(void* wparams)
    return;
 }
 
-
-
-
-int FLIMGlobalFitController::SetData(char* data_file, int data_type)
-{
-   int error = 0;
-
-   data_mode = DATA_MAPPED;
-   this->data_type = data_type;
-   
-   this->data_file = new char[ strlen(data_file) + 1 ];
-   strcpy(this->data_file,data_file);
-
-   try
-   {
-      data_map_file = boost::interprocess::file_mapping(data_file,boost::interprocess::read_only);
-   }
-   catch(std::exception& e)
-   {
-      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
-   }
-
-   return error;
-
-
-}
-
-
-void FLIMGlobalFitController::SetData(double data[], int data_type)
+void FLIMGlobalFitController::SetData(FLIMData* data)
 {
    this->data = data;
-   this->data_type = data_type;
-   data_mode = DATA_DIRECT;
+
+   n_t = data->n_t;
+   t = data->GetT();
 }
+
 
 void FLIMGlobalFitController::SetChi2MapMode(int grid_size, double grid[])
 {
@@ -240,20 +214,56 @@ void FLIMGlobalFitController::SetPolarisationMode(int mode)
       this->polarisation_resolved = true;
 }
 
-int FLIMGlobalFitController::SetupMeanFitController()
-{
-   
-   mean_fit_tau = new double[ n_group * n_px ];
-   mean_fit_ierr = new int[ n_group * n_px ];
-   mean_tau = new double[ n_thread ];
 
-   mean_fit_controller = new FLIMGlobalFitController( n_group, n_px, n_regions, global_mode,
+
+int FLIMGlobalFitController::SetupBinnedFitController()
+{
+/*
+   int n_group = data->n_group;
+   int n_px    = data->n_px;
+
+   aux_fit_tau = new double[ n_group * n_px ];
+   aux_fit_ierr = new int[ n_group * n_px ];
+   aux_tau = new double[ n_thread ];
+
+   boost::interprocess::mapped_region data_map_view;
+
+
+   aux_n_regions = new int[ n_regions_total ];
+   for(int j=0; j<n_group; j++)
+      aux_n_regions[j] = 1;
+      
+   aux_data = new double[ n_regions_total * n_meas ];
+
+   int region = 0;
+   for(int g=0; g<n_group; g++)
+   {
+      double* data = GetDataPointer(g, data_map_view);
+      int count = 0;
+      for(int i=0; i<n_px; i++)
+      {
+         if (mask[g*n_px+i] > 0)
+         {
+            for(int j=0; j<n_meas; j++)
+            {
+               aux_data[(region+mask[g*n_px+i]-1)*n_meas+j] = data[i*n_meas + j];
+               count++;
+            }
+         }
+      }
+      for(int i=0; i<n_regions[g]; i++)
+         for(int j=0; j<n_meas; j++)
+            aux_data[(region+i-1)*n_meas+j] /= count;
+      region += n_regions[g];
+
+   }
+   
+   aux_controller = new FLIMGlobalFitController( n_group, 1, aux_n_regions, MODE_GLOBAL_ANALYSIS,
                                       mask, n_t, t,
                                       n_irf, t_irf, irf, pulse_pileup,
-                                      false, 1, 0, tau_min, tau_max, 
+                                      false, n_exp, 0, tau_min, tau_max, 
                                       single_guess, tau_guess,
                                       false, fixed_beta,
-                                      use_magic_decay, magic_decay,
                                       n_theta, n_theta_fix, inc_rinf, theta_guess,
                                       fit_t0, t0_guess, 
                                       fit_offset, offset_guess, 
@@ -262,27 +272,72 @@ int FLIMGlobalFitController::SetupMeanFitController()
                                       n_fret, n_fret_fix, inc_donor, E_guess, 
                                       pulsetrain_correction, t_rep,
                                       ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      mean_fit_tau, NULL, NULL, NULL, NULL, NULL, r,
+                                      aux_fit_tau, NULL, NULL, NULL, NULL, NULL, r,
                                       NULL, NULL, NULL, NULL, NULL, 
                                       false, NULL, NULL, NULL, NULL, NULL, 
                                       NULL, NULL, NULL,
-                                      NULL, mean_fit_ierr,
+                                      NULL, aux_fit_ierr,
+                                      n_thread, runAsync, NULL );
+
+   //aux_controller->SetData(aux_data, data_type);
+   
+   aux_controller->Init();
+   */
+   return 0;
+
+}
+
+int FLIMGlobalFitController::SetupMeanFitController()
+{
+   /*
+   int n_group = data->n_group;
+   int n_px    = data->n_px;
+
+   aux_fit_tau = new double[ n_group * n_px ];
+   aux_fit_ierr = new int[ n_group * n_px ];
+   aux_tau = new double[ n_thread ];
+
+   aux_controller = new FLIMGlobalFitController( n_group, n_px, n_regions, global_mode,
+                                      mask, n_t, t,
+                                      n_irf, t_irf, irf, pulse_pileup,
+                                      false, 1, 0, tau_min, tau_max, 
+                                      single_guess, tau_guess,
+                                      false, fixed_beta,
+                                      n_theta, n_theta_fix, inc_rinf, theta_guess,
+                                      fit_t0, t0_guess, 
+                                      fit_offset, offset_guess, 
+                                      fit_scatter, scatter_guess,
+                                      fit_tvb, tvb_guess, tvb_profile,
+                                      n_fret, n_fret_fix, inc_donor, E_guess, 
+                                      pulsetrain_correction, t_rep,
+                                      ref_reconvolution, ref_lifetime_guess, algorithm,
+                                      aux_fit_tau, NULL, NULL, NULL, NULL, NULL, r,
+                                      NULL, NULL, NULL, NULL, NULL, 
+                                      false, NULL, NULL, NULL, NULL, NULL, 
+                                      NULL, NULL, NULL,
+                                      NULL, aux_fit_ierr,
                                       n_thread, runAsync, NULL );
 
    if (this->data_mode == DATA_DIRECT)
-      mean_fit_controller->SetData(data, data_type);
+      aux_controller->SetData(data, data_type);
    else
    {
-      mean_fit_controller->SetData(data_file, data_type);
+      aux_controller->SetData(data_file, data_type);
    }
-   mean_fit_controller->Init();
-
+   aux_controller->Init();
+   */
    return 0;
 }
 
 void FLIMGlobalFitController::Init()
 {
-   int s_max, n_thread_buf;
+
+   int n_group = data->n_group;
+   int n_px    = data->n_px;
+
+   status->SetNumGroup(n_group);
+
+   int s_max;
 
    getting_fit = false;
 
@@ -301,15 +356,15 @@ void FLIMGlobalFitController::Init()
 
    if (n_thread < 1)
       n_thread = 1;
-	
+   
    #ifndef NO_OMP
    if (n_group == 1)
-	   omp_set_num_threads(n_thread);
+      omp_set_num_threads(n_thread);
    else
-	   omp_set_num_threads(1); 
+      omp_set_num_threads(1); 
    #endif
 
-
+  
 
    // Set up FRET parameters
    //---------------------------------------
@@ -328,11 +383,8 @@ void FLIMGlobalFitController::Init()
 
    beta_global = (fit_beta != FIT_LOCALLY);
 
-   if (use_magic_decay)
-   {
-      n_exp = 1;
-      n_fix = 1;
-   }
+   //if (global_mode == MODE_GLOBAL_BINNING)
+   //   n_fix = n_exp;
 
    // Set up polarisation resolved measurements
    //---------------------------------------
@@ -386,16 +438,10 @@ void FLIMGlobalFitController::Init()
    }
    grid_factor = 2;
 
-   // Determine total number of regions across all groups
-   //---------------------------------------
-   n_regions_total = 0;
-   for(int i=0; i<n_group; i++)
-      n_regions_total += n_regions[i];
-
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
    //---------------------------------------
-   n_thread_buf = min(n_thread,n_regions_total);
+   n_thread = min(n_thread,data->n_regions_total);
   
 
 
@@ -403,25 +449,26 @@ void FLIMGlobalFitController::Init()
    // to get the fitted decays even if the user has removed the memory. These will 
    // be cleared when Cleanup() is called
    //----------------------------------------------------
-   mask_buf        = new int[ n_group * n_px ]; //free ok
+   //mask        = new int[ n_group * n_px ]; //free ok
    irf_buf         = new double[ n_irf * n_chan ]; //free ok
    t_irf_buf       = new double[ n_irf ]; //free ok 
-   n_regions_buf   = new int[ n_group ]; //free ok 
+   //n_regions_buf   = new int[ n_group ]; //free ok 
    tvb_profile_buf = new double[ n_meas ]; //free ok 
 
    thread_handle = new tthread::thread*[ n_thread ];
 
+   /*
    if (mask != NULL)
    {
       for(int i=0; i<n_group*n_px; i++)
-         mask_buf[i] = mask[i];
+         mask[i] = mask[i];
    }
    else
    {
       for(int i=0; i<n_group*n_px; i++)
-         mask_buf[i] = 1;
+         mask[i] = 1;
    }
-
+   */
    if (tvb_profile != NULL)
    {
       for(int i=0; i<n_meas; i++)
@@ -439,59 +486,15 @@ void FLIMGlobalFitController::Init()
       t_irf_buf[i] = t_irf[i];
 
 
-   for(int i=0; i<n_group; i++)
-   {
-      n_regions_buf[i] = n_regions[i];
-   }
-
    // Supplied t_rep in seconds, convert to ps
    this->t_rep = t_rep * 1e12;
 
-   // Determine largest region size
-   //-----------------------------------------------
-   s_max = 0;
-   r_start = new int[n_group]; //free ok
-   for(int i=0; i<n_group; i++)
-   {
-      if (i>0)
-         r_start[i] = r_start[i-1] + n_regions[i-1];
-      else
-         r_start[0] = 0;
-
-      for(int j=0; j<n_regions[i]; j++)
-      {
-         s = 0;
-         for(int k=0; k<n_px; k++)
-         {
-            if(mask_buf[i*n_px+k]==(j+1))
-                s++;
-         }
-         if (s > s_max)
-            s_max = s;
-      }
-   }
+   s_max = data->max_region_size;
 
    n_decay_group = n_fret + inc_donor;        // Number of decay 'groups', i.e. FRETing species + no FRET
 
-/*
-   if (n_decay_group == 1 && n_pol_group == 1 && fit_beta == FIT_GLOBALLY)
-      no_linear_exps = true;
-   else
-      no_linear_exps = false;
-*/
-   no_linear_exps = false;
-   
    n_v = n_exp - n_fix;                      // Number of unfixed exponentials
    
-   /*
-   if (beta_global)
-      if (no_linear_exps)
-         n_exp_phi = 0;
-      else
-         n_exp_phi = 1;
-   else
-         n_exp_phi = n_exp;       // Number of non-linear functions associated with each exponetial group 
-   */
    n_exp_phi = (beta_global ? 1 : n_exp);
    
    n_beta = (fit_beta == FIT_GLOBALLY) ? n_exp - 1 : 0;
@@ -512,11 +515,11 @@ void FLIMGlobalFitController::Init()
    }
 
    s   = s_max;                              // (varp) Number of pixels (right hand sides)
-	iv  = 1;                                  // (varp) Number of observations -> might change this if we have (say) polarisation resolved measuremnts
+   iv  = 1;                                  // (varp) Number of observations -> might change this if we have (say) polarisation resolved measuremnts
 
    max_dim = max(n_irf,n_t);
    exp_dim = max_dim * n_chan;
-	
+   
 
    if (ref_reconvolution == FIT_GLOBALLY) // fitting reference lifetime
    {
@@ -524,11 +527,11 @@ void FLIMGlobalFitController::Init()
       p += l;
    }
 
-	// Check whether t0 has been specified
-	if (fit_t0)
-	{
-		nl++;
-		p += l;
+   // Check whether t0 has been specified
+   if (fit_t0)
+   {
+      nl++;
+      p += l;
    }
 
    if (fit_offset == FIT_GLOBALLY)
@@ -566,14 +569,14 @@ void FLIMGlobalFitController::Init()
 
    anscombe_tranform = false && !use_FMM && (l == 1);
    
-	ndim   = max( n_meas, 2*nl+3 );
-	ndim   = max( ndim, s*n_meas - (s-1)*l );
-	nmax   = n_meas;
+   ndim   = max( n_meas, 2*nl+3 );
+   ndim   = max( ndim, s*n_meas - (s-1)*l );
+   nmax   = n_meas;
    lpps1  = l + p + s + 1;
-	lps    = l + s;
-	pp2    = p + 2;
-	iprint = -1;
-	lnls1  = l + nl + s + 1;
+   lps    = l + s;
+   pp2    = p + 2;
+   iprint = -1;
+   lnls1  = l + nl + s + 1;
    lmax   = l;
 
    if (nl == 0)
@@ -585,37 +588,37 @@ void FLIMGlobalFitController::Init()
 
    try
    {
-      alf          = new double[ n_regions_total * nl ]; //free ok
-      alf_best     = new double[ n_regions_total * nl ]; //free ok
-	   a            = new double[ n_thread_buf * n_meas * lps ]; //free ok
-      a_cpy        = new double[ n_thread_buf * n_meas * (l+1) ];
-	   b            = new double[ n_thread_buf * ndim * pp2 ]; //free ok
+      alf          = new double[ data->n_regions_total * nl ]; //free ok
+      alf_best     = new double[ data->n_regions_total * nl ]; //free ok
+      a            = new double[ n_thread * n_meas * lps ]; //free ok
+      a_cpy        = new double[ n_thread * n_meas * (l+1) ];
+      b            = new double[ n_thread * ndim * pp2 ]; //free ok
 
-      y            = new double[ n_thread_buf * s * n_meas ]; //free ok 
-      lin_params   = new double[ n_regions_total * n_px * l ]; //free ok
+      y            = new double[ n_thread * (s+1) * n_meas ]; //free ok 
+      lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
 
-      w            = new double[ n_thread_buf * n_meas ]; //free ok
+      w            = new double[ n_thread * n_meas ]; //free ok
 
-      sort_buf     = new double[ n_thread_buf * n_exp ]; //free ok
-      sort_idx_buf = new int[ n_thread_buf * n_exp ]; //free ok
-      exp_buf      = new double[ n_thread_buf * n_decay_group * exp_buf_size ]; //free ok
-      tau_buf      = new double[ n_thread_buf * (n_fret+1) * n_exp ]; //free ok 
-      beta_buf     = new double[ n_thread_buf * n_exp ]; //free ok
-      theta_buf    = new double[ n_thread_buf * n_theta ]; //free ok 
-      fit_buf      = new double[ n_thread_buf * n_meas ]; // free ok 
-      count_buf    = new double[ n_thread_buf * n_meas ]; // free ok 
-      adjust_buf   = new double[ n_thread_buf * n_meas ]; // free ok 
+      sort_buf     = new double[ n_thread * n_exp ]; //free ok
+      sort_idx_buf = new int[ n_thread * n_exp ]; //free ok
+      exp_buf      = new double[ n_thread * n_decay_group * exp_buf_size ]; //free ok
+      tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
+      beta_buf     = new double[ n_thread * n_exp ]; //free ok
+      theta_buf    = new double[ n_thread * n_theta ]; //free ok 
+      fit_buf      = new double[ n_thread * n_meas ]; // free ok 
+      count_buf    = new double[ n_thread * n_meas ]; // free ok 
+      adjust_buf   = new double[ n_thread * n_meas ]; // free ok 
 
       irf_max      = new int[n_meas]; //free ok
       resampled_irf= new double[n_meas]; //free ok 
 
-      conf_lim     = new double[ n_thread_buf * nl ]; //free ok
+      conf_lim     = new double[ n_thread * nl ]; //free ok
 
       locked_param = new int[n_thread];
       locked_value = new double[n_thread];
 
-      lin_params_err = new double[ n_thread_buf * n_px * l ]; //free ok
-      alf_err        = new double[ n_thread_buf * nl ]; //free ok
+      lin_params_err = new double[ n_thread * n_px * l ]; //free ok
+      alf_err        = new double[ n_thread * nl ]; //free ok
 
 
       init = true;
@@ -635,7 +638,7 @@ void FLIMGlobalFitController::Init()
 
    // Select correct convolution function for data type
    //-------------------------------------------------
-   if (data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
+   if (data->data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
    {
       Convolve = conv_irf_tcspc;
       ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
@@ -733,6 +736,8 @@ void FLIMGlobalFitController::Init()
    if (use_FMM)   
       SetupMeanFitController();
 
+   //if (global_mode == MODE_GLOBAL_BINNING)
+   //   SetupBinnedFitController();
 
 }
 
@@ -777,43 +782,46 @@ void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
    int last_j, c;
 
    for(int i=0; i<n_t; i++)
-	{
+   {
       td = t[i]-t0_guess;
 
       for(c=0; c<n_chan; c++)
          resampled_irf[c*n_t+i] = 0;
       
-	   resampled_irf[i] = 0;
+      resampled_irf[i] = 0;
       last_j = 0;
-	   for(int j=last_j; j<n_irf-2; j++)
-	   {
-	      if(td>t_irf[j] && td<=t_irf[j+1])
-	      {
+      for(int j=last_j; j<n_irf-2; j++)
+      {
+         if(td>t_irf[j] && td<=t_irf[j+1])
+         {
             // Interpolate between points
             weight = (td-t_irf[j]) / ( t_irf[j+1]-t_irf[j] );
-	         for(c=0; c<n_chan; c++)
+            for(c=0; c<n_chan; c++)
                resampled_irf[c*n_t+i] = irf[c*n_irf+j]*(1-weight) + irf[c*n_irf+j+1]*weight;
             last_j = j;
-	         break;
-	      }
-	   }
-	}   
+            break;
+         }
+      }
+   }   
 }
 
 void FLIMGlobalFitController::SetGlobalVariables()
 {       
 }
 
+/*
 int FLIMGlobalFitController::GetNumGroups()
 {
    return n_group;
 }
+*/
 
 int FLIMGlobalFitController::GetNumThreads()
 {
    return n_thread;
 }
 
+/*
 int FLIMGlobalFitController::GetNumRegions(int g)
 {
    if (g<n_group) 
@@ -821,6 +829,7 @@ int FLIMGlobalFitController::GetNumRegions(int g)
    else
       return 0;
 }
+*/
 
 int FLIMGlobalFitController::GetErrorCode()
 {
@@ -844,17 +853,21 @@ void FLIMGlobalFitController::SetupAdjust(double adjust[], double scatter_adj, d
 
 
 
-double FLIMGlobalFitController::CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask_buf[], double chi2[])
+double FLIMGlobalFitController::CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[])
 {
    int i,j;
    // calcuate chi2
    double ft;
    double chi2_tot = 0;
    int i_thresh = 0;
+
+   int n_group = data->n_group;
+   int n_px    = data->n_px;
+
    for(i=0; i<n_px; i++)
    {
  
-      if(mask_buf[i] == region)
+      if(mask[i] == region)
       {
 
          for(j=0; j<n_meas; j++)
@@ -890,7 +903,6 @@ double FLIMGlobalFitController::CalculateChi2(int region, int s_thresh, double y
       }
    }
 
-   //chi2_tot /= (n_meas * s_thresh - nl - l * s_thresh);
    return chi2_tot;
 
 }
@@ -909,7 +921,9 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
    int r_idx = params.r_idx;
    int lpps1_ = l + p + params.s_thresh + 1;
 
-   int        *mask_buf = this->mask_buf + params.group * n_px;
+   int n_px = data->n_px;
+
+   int    *mask = data->mask + params.group * n_px;
    double *a = this->a + params.thread * n_meas * lps;
    double *b = this->b + params.thread * ndim * pp2;
    double *y = this->y + params.thread * s * n_meas;
@@ -936,7 +950,7 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
             t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*)this, &params.thread, static_store, 
             alf_err, lin_params_err, &nierr, &c2, &algorithm, alf_best );
 
-   c2 = CalculateChi2(params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask_buf, NULL);
+   c2 = CalculateChi2(params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask, NULL);
 
    F = (c2-params.chi2)/params.chi2*(n_meas * params.s_thresh - nl - params.s_thresh * l);
   
@@ -964,6 +978,9 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
    this->n_t = n_t;
    this->n_meas = n_t*n_chan;
    this->nmax = this->n_meas;
+
+   int n_group = data->n_group;
+   int n_px = data->n_px;
 
    getting_fit = true;
 
@@ -1018,17 +1035,20 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
    for (int g=0; g<n_ret_groups; g++)
    {
       group = ret_group_start + g;
-      for(int r=1; r<=n_regions_buf[group]; r++)
+      for(int r=data->GetMinRegion(group); r<=data->GetMaxRegion(group); r++)
       {
          process_group = false;
          for(int p=0; p<n_px; p++)
-            if (fit_mask[n_px*g+p] && mask_buf[group*n_px+p] == r)
+            if (fit_mask[n_px*g+p] && data->mask[group*n_px+p] == r)
+            {
                process_group = true;
+               break;
+            }
 
          if (process_group)
          {
 
-            r_idx = r_start[group] + (r-1);
+            r_idx = data->GetRegionIndex(group,r);
             ada(&s,&lp1,&nl,(int*)&n_meas,&nmax,(int*)&n_meas,&lpp2,&pp2,&iv,at,bt,inc,t,alf+r_idx*nl,&isel,(int*)this, &thread);
 
             px_thresh = 0;
@@ -1037,7 +1057,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
                if (fit_mask[n_px*g+p])
                {
          
-                  if (mask_buf[group*n_px+p] == r)
+                  if (data->mask[group*n_px+p] == r)
                   {
                      for(i=0; i<n_meas; i++)
                      {
@@ -1057,7 +1077,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
             
                }
 
-               if (mask_buf[group*n_px+p] == r)
+               if (data->mask[group*n_px+p] == r)
                   px_thresh++;
 
             }
@@ -1086,7 +1106,7 @@ max_reached:
 
 }
 
-
+/*
 int FLIMGlobalFitController::SimulateData(double I0[], double beta[], double data[])
 {
 
@@ -1096,66 +1116,78 @@ int FLIMGlobalFitController::SimulateData(double I0[], double beta[], double dat
          lin_params[p*l+i] = I0[p] * beta[p*l+i];
    }
 
-   GetFit(0, 1, n_px, mask_buf, n_t, t, data);
+   GetFit(0, 1, n_px, mask, n_t, t, data);
 
    return 0;
 
 }
+*/
 
 void FLIMGlobalFitController::CleanupTempVars()
 {
-   tthread::lock_guard<tthread::mutex> guard(cleanup_mutex);
+   tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
-   ClearVariable(a);
-   ClearVariable(b);
-   ClearVariable(y);
-   ClearVariable(w);
-   ClearVariable(sort_buf);
-   ClearVariable(sort_idx_buf);
-   ClearVariable(exp_buf);
-   ClearVariable(irf_max);
-   ClearVariable(resampled_irf);
-   ClearVariable(fit_buf);
-   ClearVariable(count_buf);
-   ClearVariable(adjust_buf);
-   ClearVariable(conf_lim);
-   ClearVariable(lin_params_err);
-   ClearVariable(alf_err);
-   
-   
-
-   if (grid_search)
+   if (init)
    {
-      if (!chi2_map_mode)
-         ClearVariable(grid);
-      ClearVariable(var_min);
-      ClearVariable(var_max);
-      ClearVariable(var_buf);
-   }
+      ClearVariable(a);
+      ClearVariable(b);
+      ClearVariable(y);
+      ClearVariable(w);
+      ClearVariable(sort_buf);
+      ClearVariable(sort_idx_buf);
+      ClearVariable(exp_buf);
+      ClearVariable(irf_max);
+      ClearVariable(resampled_irf);
+      ClearVariable(fit_buf);
+      ClearVariable(count_buf);
+      ClearVariable(adjust_buf);
+      ClearVariable(conf_lim);
+      ClearVariable(lin_params_err);
+      ClearVariable(alf_err);
 
+      data->ClearMapping();
+
+//      ClearVariable(aux_data);
+//      ClearVariable(aux_n_regions);
+
+      if (grid_search)
+      {
+         if (!chi2_map_mode)
+            ClearVariable(grid);
+         ClearVariable(var_min);
+         ClearVariable(var_max);
+         ClearVariable(var_buf);
+      }
+   }
 }
 
 void FLIMGlobalFitController::CleanupResults()
 {
-   tthread::lock_guard<tthread::mutex> guard(cleanup_mutex);
+   tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
 
-   init = false;
-   ClearVariable(lin_params);
-   ClearVariable(a_cpy);
-   ClearVariable(alf);
-   ClearVariable(alf_best);
-   ClearVariable(mask_buf);
-   ClearVariable(tau_buf);
-   ClearVariable(beta_buf);
-   ClearVariable(theta_buf);
-   ClearVariable(irf_buf);
-   ClearVariable(t_irf_buf);
-   ClearVariable(tvb_profile_buf);
-   ClearVariable(n_regions_buf);
-   ClearVariable(r_start);
-   ClearVariable(chan_fact);
-   ClearVariable(locked_param);
-   ClearVariable(locked_value);
+   if (init)
+   {
+      init = false;
+      ClearVariable(lin_params);
+      ClearVariable(a_cpy);
+      ClearVariable(alf);
+      ClearVariable(alf_best);
+      ClearVariable(tau_buf);
+      ClearVariable(beta_buf);
+      ClearVariable(theta_buf);
+      ClearVariable(irf_buf);
+      ClearVariable(t_irf_buf);
+      ClearVariable(tvb_profile_buf);
+      ClearVariable(chan_fact);
+      ClearVariable(locked_param);
+      ClearVariable(locked_value);
+
+      if (data != NULL)
+      {
+         delete data;
+         data = NULL;
+      }
+   }
 
    if (thread_handle != NULL)
    {

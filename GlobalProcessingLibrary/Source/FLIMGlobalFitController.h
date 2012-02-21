@@ -11,24 +11,38 @@
 
 #include "FitStatus.h"
 #include "ModelADA.h"
+#include "FLIMData.h"
 #include <stdio.h>
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
+#include <boost/interprocess/mapped_region.hpp>
 
+#include "FlagDefinitions.h"
 
 #define _CRTDBG_MAPALLOC
 
-#define DATA_DIRECT 0
-#define DATA_MAPPED 1
-
-#define MODE_STANDARD     0
-#define MODE_POLARISATION 1
 
 class ErrMinParams;
 
 class WorkerParams
 {
 public:
+   WorkerParams(FLIMGlobalFitController* controller, int thread) : 
+   controller(controller), thread(thread) 
+   {};
+   
+   WorkerParams() 
+   { 
+      controller = NULL;
+      thread = NULL;
+   };
+
+   WorkerParams operator=(const WorkerParams& wp)
+   {
+      controller = wp.controller;
+      thread = wp.thread;
+   }; 
+   
    FLIMGlobalFitController* controller;
    int thread;
 };
@@ -39,8 +53,8 @@ class FLIMGlobalFitController
 {
 public:
 
-   int n_group; int n_px; int *n_regions; int global_mode;
-   int data_type; double *data; int *mask; 
+   //int n_group; int n_px; int *n_regions; int global_mode;
+   //int data_type; double *data; int *mask; 
    int n_t; double *t;
    int n_irf; double *t_irf; double *irf; double pulse_pileup;
    int n_exp; int n_fix; 
@@ -62,9 +76,10 @@ public:
    int n_thread; int (*callback)();
    int error;
 
-   char *data_file; int data_mode;
-   
-   boost::interprocess::file_mapping data_map_file;
+   FLIMData* data;
+
+   //char *data_file; int data_mode;
+   //boost::interprocess::file_mapping data_map_file;
 
    tthread::thread **thread_handle;
 
@@ -76,14 +91,9 @@ public:
    double *theta_guess;
    double *theta, *theta_err, *r;
    double *chan_fact;
-   bool no_linear_exps;
-
-   int use_magic_decay;
-   double *magic_decay;
-
-
-   int *mask_buf;
-   int *n_regions_buf;
+  
+   //int *mask;
+   //int *n_regions_buf;
    double *t_irf_buf;
    double *irf_buf;
    double *tvb_profile_buf;
@@ -102,8 +112,8 @@ public:
    double *resampled_irf;
 
    int max_dim, exp_dim;
-   int *r_start;
-   int n_regions_total;
+   //int *r_start;
+   //int n_regions_total;
 
    integer static_store[1000];
    
@@ -111,7 +121,7 @@ public:
 
    integer s; integer lmax; integer l; integer nl; integer n; integer nmax; integer ndim; 
    integer lpps1; integer lps; integer pp2; integer iv; integer p; integer iprint; integer lnls1; integer n_v;
-	double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *lin_params; 
+   double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *lin_params; 
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
    double *a_cpy;
@@ -122,8 +132,8 @@ public:
    int grid_search, grid_size, grid_factor, grid_positions, grid_iter, chi2_map_mode;
    double *var_min, *var_max, *grid, *var_buf;
 
-   tthread::mutex cleanup_mutex;
-   tthread::mutex mutex;
+   tthread::recursive_mutex cleanup_mutex;
+   tthread::recursive_mutex mutex;
 
    int first_call;
    int runAsync;
@@ -142,7 +152,7 @@ public:
    double *locked_value;
    bool getting_fit;
    double* conf_lim;
-   bool calculate_errs;
+   int calculate_errs;
    double* lin_params_err;
    double* alf_err;
 
@@ -151,14 +161,11 @@ public:
    conv_func Convolve;
    conv_deriv_func ConvolveDerivative;
 
-   FLIMGlobalFitController(int n_group, int n_px, int n_regions[], int global_mode,
-                           int mask[], int n_t, double t[],
-                           int n_irf, double t_irf[], double irf[], double pulse_pileup,
-                           int use_FMM, int n_exp, int n_fix, 
+   FLIMGlobalFitController(int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                           int n_exp, int n_fix, 
                            double tau_min[], double tau_max[], 
                            int single_guess, double tau_guess[],
                            int fit_beta, double fixed_beta[],
-                           int use_magic, double magic_angle[],
                            int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[],
                            int fit_t0, double t0_guess, 
                            int fit_offset, double offset_guess, 
@@ -179,6 +186,8 @@ public:
    void SetData(double data[], int data_type);
    int SetData(char* data_file, int data_type);
 
+   void SetData(FLIMData* data);
+
    void SetChi2MapMode(int grid_size, double grid[]);
    void SetPolarisationMode(int mode);
 
@@ -190,7 +199,6 @@ public:
 
    int  GetNumGroups();
    int  GetNumThreads();
-   int  GetNumRegions(int g);
    int  GetErrorCode();
    void SetGlobalVariables();
    int  ProcessRegion(int g, int r, int thread);
@@ -203,6 +211,9 @@ public:
    double ErrMinFcn(double x, ErrMinParams& params);
 
    int SetupMeanFitController();
+   int SetupBinnedFitController();
+
+   double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
 
    void CleanupTempVars();
 
@@ -220,17 +231,22 @@ public:
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
-   double* mean_tau;
+   int global_binning;
+   //double* aux_tau;
+   //double* aux_data;
+   //int* aux_n_regions;
 
 private:
    void CalculateIRFMax(int n_t, double t[]);
    void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
-   double CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask_buf[], double chi2[]);
+   double CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[]);
 
-   FLIMGlobalFitController* mean_fit_controller;
-   double* mean_fit_tau;
-   int* mean_fit_ierr;
+   //FLIMGlobalFitController* aux_controller;
+   //double* aux_fit_tau;
+   //int* aux_fit_ierr;
+
+   int* resample_idx;
 
 
 };
@@ -256,7 +272,25 @@ public:
 
 void WorkerThread(void* wparams);
 
-extern int hooke(FLIMGlobalFitController* gc, ErrMinParams params, double startpt, double& endpt, double rho, double epsilon, int itermax);
+/*
+// http://paulbourke.net/miscellaneous/interpolation/
+double CubicInterpolate(
+   double y0,double y1,
+   double y2,double y3,
+   double mu)
+{
+   // mu - distance between y1 and y2
+   double a0,a1,a2,a3,mu2;
+
+   mu2 = mu*mu;
+   a0 = -0.5*y0 + 1.5*y1 - 1.5*y2 + 0.5*y3;
+   a1 = y0 - 2.5*y1 + 2*y2 - 0.5*y3;
+   a2 = -0.5*y0 + 0.5*y2;
+   a3 = y1;
+
+   return(a0*mu*mu2+a1*mu2+a2*mu+a3);
+}
+*/
 
 
 #endif

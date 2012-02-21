@@ -98,6 +98,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     end
                     y_data(i) = y/yn;
                     y_err(i) = 2 * sqrt(yv/yn) / sqrt(yn); % 95% conf interval ~2*standard error 
+                    y_std(i) = sqrt(yv/yn);
+                    y_n(i) = yn;
                     err(i) = e/yn;
 
                     %y_mean_data(i) = nanmean(ymask);
@@ -118,9 +120,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     cell_x_data = x_data;
                 end
 
-                obj.raw_data = [cell_x_data; num2cell(y_data)]';
+                obj.raw_data = [cell_x_data; num2cell(y_data); num2cell(y_std); num2cell(y_err); num2cell(y_n)]';
                 
-                obj.raw_data = [{obj.ind_param param}; obj.raw_data]; 
+                obj.raw_data = [{obj.ind_param param 'std' '95% conf' 'count'}; obj.raw_data]; 
                 
                 ylabel(ax,param);
                 xlabel(ax,obj.ind_param);

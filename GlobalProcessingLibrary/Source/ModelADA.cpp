@@ -81,64 +81,7 @@ void updatestatus_(int* gc_int, int* thread, int* iter, double* chi2, int* termi
    FLIMGlobalFitController* gc= (FLIMGlobalFitController*) gc_int;
    int t = gc->status->UpdateStatus(*thread, -1, *iter, *chi2);
    *terminate = t;
-/*   int ret;
-   DWORD waitResult = WaitForSingleObject(statusMutex,50);
-   if (WAIT_OBJECT_0)
-   {
-      if (*group >= 0)
-         status.group = *group;
-      status.iter = *iter;
-      status.chi2 = *chi2;
-
-      if (status.callback != 0)
-      {
-         ret = status.callback(status.group,status.iter,status.chi2);
-         if (ret == 0)
-            status.terminate = 1;
-      }
-
-      *terminate = status.terminate;
-
-         ReleaseMutex(statusMutex);
-
-   }
-   else
-   {
-      terminate = 0;
-   }
-   */
-      
 }
-/*
-int UpdateStatus(int group, int iter, double chi2)
-{
-
-      int ret;
-      DWORD waitResult = WaitForSingleObject(statusMutex,50);
-      if (WAIT_OBJECT_0)
-      {
-         if (group >= 0)
-            status.group = group;
-         status.iter = iter;
-         status.chi2 = chi2;
-
-         if (status.callback != 0)
-         {
-            ret = status.callback(status.group,status.iter,status.chi2);
-            if (ret == 0)
-               status.terminate = 1;
-         }
-
-         ReleaseMutex(statusMutex);
-
-         if (status.terminate)
-            return 1;
-      }
-
-      
-      return 0;
-}
-*/
 
 
 /* ============================================================== */
@@ -147,14 +90,14 @@ int UpdateStatus(int group, int iter, double chi2)
 int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim, 
         int *lpp2, int *pp1, int *iv, double *a, double *b, int *inc, 
         double *t, double *alf, int *isel, int *gc_int, int *thread)
-{	
+{   
    
    FLIMGlobalFitController *gc = (FLIMGlobalFitController*) gc_int;
 
    if (gc == NULL)
       return -1;
 
-   int i,j,k, d_offset, total_n_exp, idx, i_start;
+   int i,j,k, d_offset, total_n_exp, idx;
    int a_col, inc_row, inc_col, n_exp_col, cur_col;
    
    double kap, ref_lifetime;
@@ -169,7 +112,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    scale_fact[1] = 0;
 
     
-	double t0;
+   double t0;
 
    int n_meas = N;
                                
@@ -179,14 +122,14 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
    double *a_cpy = gc->a_cpy + *thread * n_meas * (gc->l+1);
 
-   int locked_param = gc->locked_param[*thread];
-   double locked_value = gc->locked_value[*thread];
+   int locked_param = -1;//gc->locked_param[*thread];
+   double locked_value = 0;//gc->locked_value[*thread];
 
-	
-	if ( gc->fit_t0 )
-		t0 = alf[gc->alf_t0_idx];
-	else
-		t0 = gc->t0_guess;
+   
+   if ( gc->fit_t0 )
+      t0 = alf[gc->alf_t0_idx];
+   else
+      t0 = gc->t0_guess;
 
    if (gc->ref_reconvolution == FIT_GLOBALLY)
       ref_lifetime = alf[gc->alf_ref_idx];
@@ -195,11 +138,11 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
    total_n_exp = gc->n_exp * gc->n_decay_group;
         
-		
-	switch(*isel)
-	{
-		case 1:
-			
+      
+   switch(*isel)
+   {
+      case 1:
+         
          // Make sure two threads don't try to set up INC
          // - it's shared between all threads!
          
@@ -215,10 +158,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                inc_row = 0;   // each row represents a non-linear variable
                inc_col = 0;   // each column represents a phi, eg. exp(...)
 
-			      // Set incidence matrix zero
-			      for(i=0; i<96; i++)
-				      inc[i] = 0;
-		
+               // Set incidence matrix zero
+               for(i=0; i<96; i++)
+                  inc[i] = 0;
+      
       
                // Set inc for local offset if required
                // Independent of all variables
@@ -242,10 +185,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                }
                else
                {
-                  // Set diagonal elements of incidence matrix for variable tau's	
+                  // Set diagonal elements of incidence matrix for variable tau's   
                   n_exp_col = gc->beta_global ? 1 : gc->n_exp;
                   for(i=gc->n_fix; i<gc->n_exp; i++)
-		            {
+                  {
                      cur_col = gc->beta_global ? 0 : i;
                      for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
                         inc[inc_row + (inc_col+j*gc->n_exp_phi+cur_col)*12] = 1;
@@ -255,16 +198,16 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                         inc[inc_row + gc->l * 12] = 1;
 
                      inc_row++;
-			         }
+                  }
 
-                  // Set diagonal elements of incidence matrix for variable beta's	
+                  // Set diagonal elements of incidence matrix for variable beta's   
                   for(i=0; i<gc->n_beta; i++)
-		            {
+                  {
                      for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
                         inc[inc_row + (inc_col+j*gc->n_exp_phi)*12] = 1;
                                 
                      inc_row++;
-			         }
+                  }
                }
 
                for(i=0; i<gc->n_theta_v; i++)
@@ -272,11 +215,11 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   inc[inc_row+(inc_col+i+1+gc->n_theta_fix)*12] = 1;
                   inc_row++;
                }
-			
+         
                // Set elements of incidence matrix for E derivatives
                for(i=0; i<gc->n_fret_v; i++)
                {
-				      for(j=0; j<gc->n_exp_phi; j++)
+                  for(j=0; j<gc->n_exp_phi; j++)
                      inc[inc_row+(gc->inc_donor+gc->n_fret_fix+inc_col+i*gc->n_exp_phi+j)*12] = 1;
                   inc_row++;
                }
@@ -291,17 +234,16 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   inc_row++;
                }
 
-                  /*
-			         // Set inc elements for t0 if required
-			         if( gc->fit_t0 )
-                  {
-				         for(i=0; i<gc->n_exp; i++)
-				               inc[inc_row+(inc_col+i)*12] = 1;
-                     inc_row++;
-                  }
-                  */
+               /*
+               // Set inc elements for t0 if required
+               if( gc->fit_t0 )
+               {
+                  for(i=0; i<gc->n_exp; i++)
+                        inc[inc_row+(inc_col+i)*12] = 1;
+                  inc_row++;
+               }
+               */
 
-               //if (gc->n_decay_group > 1)
                inc_col += gc->n_pol_group * gc->n_decay_group * gc->n_exp_phi;
               
                // Both global offset and scatter are in col L+1
@@ -329,7 +271,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
               gc->mutex.unlock();  
          }
-            //ReleaseMutex(gc->mutex);
 
          // Set constant phi values
          //----------------------------
@@ -366,18 +307,21 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          a_col = (gc->fit_offset == FIT_LOCALLY) + (gc->fit_scatter == FIT_LOCALLY) + (gc->fit_tvb == FIT_LOCALLY);
          
          // Set tau's
+         
          if (gc->use_FMM)
          {
+            /*
             beta_buf[0] = alf[1];
             beta_buf[1] = 1 - alf[1];
 
             tau_buf[0] = alf[0];
-            //tau_buf[1] = (gc->mean_tau[*thread] - beta_buf[0] * tau_buf[0]) / beta_buf[1];
-            double t_m = gc->mean_tau[*thread];
+            //tau_buf[1] = (gc->aux_tau[*thread] - beta_buf[0] * tau_buf[0]) / beta_buf[1];
+            double t_m = gc->aux_tau[*thread];
             if ( 4*beta_buf[0]*tau_buf[0]*(tau_buf[0]-t_m) > beta_buf[1]*t_m*t_m )
                tau_buf[1] = 1e6;
             else
                tau_buf[1] = 0.5*t_m - 0.5/beta_buf[1] * sqrt( beta_buf[1]* ( beta_buf[1]*t_m*t_m - 4*beta_buf[0]*tau_buf[0]*(tau_buf[0]-t_m) ) );
+               */
          }
          else
          {
@@ -433,23 +377,15 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          }
 
          // Precalculate exponentials
-//         gc->calc_exps(gc, gc->n_t, t, total_n_exp, tau_buf+gc->tau_start*gc->n_exp, gc->n_theta, theta_buf, exp_buf);
          gc->calculate_exponentials(*thread, tau_buf, theta_buf);
 
          a_col += gc->flim_model(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
          //----------------------------------------------
-
-         if (gc->no_linear_exps)
-         {
-            a_col = 0;
-         }
-         else
-         {
-            for(i=0; i<N; i++)
-               a[ i + N*a_col ] = 0;
-         }
+         
+         for(i=0; i<N; i++)
+            a[ i + N*a_col ] = 0;
             
          // Add scatter
          if (gc->fit_scatter == FIT_GLOBALLY)
@@ -510,10 +446,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          
          if (*isel==2 || gc->getting_fit)
-				break;
-		
-		case 3: 	
-		
+            break;
+      
+      case 3:    
+      
          int col = 0;
          
          if (gc->use_FMM)
@@ -563,10 +499,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if(gc->fit_offset == FIT_GLOBALLY)
          {
             for(i=0; i<N; i++)
-			      b[ d_offset + i ] = 1;
+               b[ d_offset + i ] = 1;
             d_offset += Ndim;
          }
-			
+         
          // Set derivatives for scatter 
          if(gc->fit_scatter == FIT_GLOBALLY)
          {
@@ -580,7 +516,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if(gc->fit_tvb == FIT_GLOBALLY)
          {
             for(i=0; i<N; i++)
-			      b[ d_offset + i ] = gc->tvb_profile_buf[i];
+               b[ d_offset + i ] = gc->tvb_profile_buf[i];
          }
 
          if (locked_param >= 0)
@@ -600,11 +536,9 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                      b[ (count+i_inc)*Ndim + j ] *= 1e-10;
                   i_inc++;
                }
-                  //i = i;
-                  //memset(b+(count+i)*Ndim,0,N*sizeof(double));
             }
          }
    }
    
-	return 0;
+   return 0;
 }

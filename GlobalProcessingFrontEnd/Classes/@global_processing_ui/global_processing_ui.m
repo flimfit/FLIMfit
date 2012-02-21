@@ -7,10 +7,23 @@ classdef global_processing_ui
     
     methods
       
-        function obj = global_processing_ui(wait)
+        function obj = global_processing_ui(wait,require_auth)
         
+            function vx = split_ver(ver)
+                tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
+                if ~isempty(tk{1})
+                    tk = tk{1};
+                    vx = str2double(tk{1})*1e6 + str2double(tk{2})*1e3 + str2double(tk{3});
+                else 
+                    vx = 0;
+                end
+            end
+            
             if nargin < 1
                 wait = false;
+            end
+            if nargin < 2
+                require_auth = false;
             end
             
             if ~isdeployed
@@ -19,6 +32,40 @@ classdef global_processing_ui
                 wait = true;
             end
 
+            
+            try
+                v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
+            catch
+                v = '[unknown version]';
+            end
+            
+            disp(['Welcome to GlobalProcessing v' v{1}]);
+            
+            if require_auth
+                auth_text = urlread('https://global-analysis.googlecode.com/hg/GlobalAnalysisAuth.txt');
+                auth_success = false;
+                
+                if strfind(auth_text,'external_auth=false')
+                    auth_success = true;
+                end
+                
+                min_ver = regexp(auth_text,'min_version=([[0-9]\.]+)','tokens');
+                if ~isempty(min_ver)
+                    min_ver = split_ver(min_ver{1}{1});
+                else
+                    min_ver = 0;
+                end
+                
+                if min_ver == 0 || split_ver(v{1}) < min_ver
+                    auth_success = false;
+                end
+                
+                if ~auth_success 
+                    disp('Sorry, error occured while authenticating.');
+                    return
+                end
+            end
+            
                 % Open a window and add some menus
             obj.window = figure( ...
                 'Name', 'GlobalProcessing', ...
@@ -57,14 +104,6 @@ classdef global_processing_ui
 
             set(obj.window,'Visible','on');
             %set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
-            
-            try
-                v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
-            catch
-                v = '[unknown version]';
-            end
-            
-            disp(['Welcome to GlobalProcessing v' v{1}]);
             
             if wait
                 waitfor(obj.window);

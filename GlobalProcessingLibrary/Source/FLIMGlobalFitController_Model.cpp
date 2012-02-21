@@ -47,7 +47,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
             cum = local_exp_buf[idx++];
             for(j=0; j<n_irf; j++)
             {
-   	         local_exp_buf[next_idx++] = cum;
+               local_exp_buf[next_idx++] = cum;
                cum += local_exp_buf[idx++];
             }
          }
@@ -61,7 +61,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
             idx = next_idx + 2*exp_dim;
             for(j=0; j<n_irf; j++)
             {
-   	         local_exp_buf[next_idx++] = local_exp_buf[idx++] * (t_irf[j] + t0_guess);
+               local_exp_buf[next_idx++] = local_exp_buf[idx++] * (t_irf[j] + t0_guess);
             }
          }
 
@@ -75,7 +75,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
             cum = local_exp_buf[idx++];
             for(j=0; j<n_irf; j++)
             {
-   	         local_exp_buf[next_idx++] = cum;
+               local_exp_buf[next_idx++] = cum;
                cum += local_exp_buf[idx++];
             }
          }
@@ -122,7 +122,7 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
          
          Convolve(this, rate, exp_irf_buf, exp_irf_cum_buf, k, i, c);
          a[idx] += exp_model_buf[idx] * c * fact;
-         idx++;
+         idx++; //idx += resample_idx[i];
       }
    }
 }
@@ -251,9 +251,10 @@ int FLIMGlobalFitController::ref_lifetime_derivatives(int thread, double tau[], 
 
 int FLIMGlobalFitController::FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
+/*
    int j;
    double fact;
-   double t_m = mean_tau[thread];
+   double t_m = aux_tau[thread];
 
    int idx = 0;
    int col = 0;
@@ -284,7 +285,7 @@ int FLIMGlobalFitController::FMM_derivatives(int thread, double tau[], double be
    fact = -1;
    add_decay(thread, j, 0, 0, tau, theta, fact, ref_lifetime, b+idx);
 
-   //fact  = (mean_tau[thread] - tau[0]) / (1 - beta[0]) / (tau[j] * tau[j]) * d_tau_d_alf(tau[j],tau_min[j],tau_max[j]);
+   //fact  = (aux_tau[thread] - tau[0]) / (1 - beta[0]) / (tau[j] * tau[j]) * d_tau_d_alf(tau[j],tau_min[j],tau_max[j]);
    fact  = beta[j] / (tau[j] * tau[j]) * d_tau_d_alf(tau[j],tau_min[j],tau_max[j]);
    fact *= ((tau[0]*tau[0]-tau[1]*tau[1]-(tau[0]-tau[1])*t_m)) * f; //- tau[0] * (t_m - tau[0]) / beta[1] * f;
    add_derivative(thread, j, 0, 0, tau, theta, fact, ref_lifetime, b+idx);
@@ -293,7 +294,8 @@ int FLIMGlobalFitController::FMM_derivatives(int thread, double tau[], double be
    col++;
 
    return col;
-
+   */
+   return 0;
 }
 
 int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])

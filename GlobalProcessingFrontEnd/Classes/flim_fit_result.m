@@ -127,22 +127,40 @@ classdef flim_fit_result < handle
             end
             if nargin == 6 && ~isempty(default_lims)
                 obj.set_default_lims(name,default_lims);
-            end
+            end                
             s = size(im);
             if length(r) == 1
                 obj.write(r,name,im,mask);
             elseif iscell(im)
-                for i=1:length(r)
-                    obj.write(r(i),name,im{i},mask(:,:,i));
+                if ~isempty(mask)
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},mask(:,:,i));
+                    end
+                else
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},[]);
+                    end
                 end
             elseif s(end) == length(r)
                 im = num2cell(im,1:(length(s)-1));
-                for i=1:length(r)
-                    obj.write(r(i),name,im{i},mask(:,:,i));
+                if ~isempty(mask)
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},mask(:,:,i));
+                    end
+                else
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},[]);
+                    end
                 end
             else
-                for i=1:length(r)
-                    obj.write(r(i),name,im,mask(:,:,i));
+                if ~isempty(mask)
+                    for i=1:length(r)
+                        obj.write(r(i),name,im,mask(:,:,i));
+                    end
+                else
+                    for i=1:length(r)
+                        obj.write(r(i),name,im,[]);
+                    end
                 end
             end 
         end
@@ -200,26 +218,41 @@ classdef flim_fit_result < handle
         
         function write(obj,dataset,param,img,mask)
            
-            n_regions = max(mask(:));
-            obj.n_regions(dataset) = n_regions;
-            
-            sel = mask>0 & ~isnan(img);
-            timg = img(sel);
-            tmask = mask(sel);
+            if ~isempty(mask)
+                n_regions = max(mask(:));
+                obj.n_regions(dataset) = n_regions;
+
+                sel = mask>0 & ~isnan(img);
+                timg = img(sel);
+                tmask = mask(sel);
+            else
+                n_regions = 1;
+                obj.n_regions(dataset) = 1;
+                
+                sel = ~isnan(img);
+                timg = img(sel);
+                tmask = ones(size(timg));
+            end
             
             img_mean = trimmean(timg,1);
-            img_std = trimstd(timg,1);
-            img_n = nansum(mask(:)>0);
+            img_std = trimstd(double(timg),1);
+            img_n = sum(tmask);
                         
             region_mean = zeros(1,n_regions);
             region_std = zeros(1,n_regions);
             region_n = zeros(1,n_regions);
 
             for i=1:n_regions
-                td = timg(tmask==i);
-                region_mean(i) = trimmean(td,1);
-                region_std(i) = trimstd(td,1);
-                region_n(i) = length(td);
+                if isempty(timg)
+                    region_mean(i) = nan;
+                    region_std(i) = nan;
+                    region_n(i) = nan;
+                else
+                    td = timg(tmask==i);
+                    region_mean(i) = trimmean(td,1);
+                    region_std(i) = trimstd(double(td),1);
+                    region_n(i) = length(td);
+                end
             end
             
             stats = struct('mean',img_mean,'std',img_std,'n',img_n);

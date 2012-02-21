@@ -11,7 +11,7 @@ double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed = f
 
 class FitStatus
 {
-   tthread::mutex running_mutex;
+   tthread::recursive_mutex running_mutex;
    int (*callback)();
 
 public:
@@ -34,9 +34,10 @@ public:
 
    FLIMGlobalFitController* gc;
 
-   FitStatus(FLIMGlobalFitController* gc, int n_group, int n_thread, int (*callback)());
+   FitStatus(FLIMGlobalFitController* gc, int n_thread, int (*callback)());
    ~FitStatus();
 
+   void SetNumGroup(int n_group);
    int UpdateStatus(int thread, int t_group, int t_iter, double t_chi2);
    void FinishedGroup(int thread);
    void CalculateProgress();

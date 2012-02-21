@@ -12,7 +12,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Thresholds ', 'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'Time Crop ', 'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     
-    handles.binning_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', '2x2', '4x4', '8x8'}, 'Parent', data_transformation_layout );
+    handles.binning_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', '3x3 (B&H 1)', '5x5 (B&H 2)', '7x7 (B&H 3)' '9x9 (B&H 4)' '11x11 (B&H 5)'}, 'Parent', data_transformation_layout );
     handles.downsampling_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', '2', '4', '8', '16', '32'}, 'Parent', data_transformation_layout );
     
     data_threshold_layout = uiextras.HBox( 'Parent', data_transformation_layout );
