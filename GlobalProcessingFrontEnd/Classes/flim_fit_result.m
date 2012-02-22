@@ -203,20 +203,23 @@ classdef flim_fit_result < handle
             n_regions = max(mask(:));
             obj.n_regions(dataset) = n_regions;
             
-            img_mean = trimmean(img(mask>0 & ~isnan(img)),1);
-            img_std = trimstd(img(mask>0 & ~isnan(img)),1);
+            sel = mask>0 & ~isnan(img);
+            timg = img(sel);
+            tmask = mask(sel);
+            
+            img_mean = trimmean(timg,1);
+            img_std = trimstd(timg,1);
             img_n = nansum(mask(:)>0);
                         
             region_mean = zeros(1,n_regions);
             region_std = zeros(1,n_regions);
             region_n = zeros(1,n_regions);
-            if strcmp(param,'beta_2')
-                img = img;
-            end
+
             for i=1:n_regions
-                region_mean(i) = trimmean(img(mask==i & ~isnan(img)),1);
-                region_std(i) = trimstd(img(mask>0 & ~isnan(img)),1);
-                region_n(i) = nansum(mask(:)==i);
+                td = timg(tmask==i);
+                region_mean(i) = trimmean(td,1);
+                region_std(i) = trimstd(td,1);
+                region_n(i) = length(td);
             end
             
             stats = struct('mean',img_mean,'std',img_std,'n',img_n);
@@ -234,22 +237,22 @@ classdef flim_fit_result < handle
                 
             else
                 path = ['/' obj.names{dataset} '/' param];
-                if exist(obj.file,'file')
-                    try 
-                        info = h5info(obj.file,path);
-                        create = false;
-                    catch e %#ok
-                        create = true;
-                    end
-                else
-                    create = true;
-                end
-                if create
-                    h5create(obj.file,path,size(img),'ChunkSize',size(img),'Deflate',2);
-                end
+                %if exist(obj.file,'file')
+                %    try 
+                %        info = h5info(obj.file,path);
+                %        create = false;
+                %    catch e %#ok
+                %        create = true;
+                %    end
+                %else
+                %    create = true;
+                %end
+                %if create
+                h5create_direct(obj.file,path,size(img),'ChunkSize',size(img),'Deflate',0);
+                %end
                 h5write(obj.file,path,img);
-                h5writeatt(obj.file,path,'mean',img_mean);
-                h5writeatt(obj.file,path,'std',img_std);
+                %h5writeatt_direct(obj.file,path,'mean',img_mean);
+                %h5writeatt_direct(obj.file,path,'std',img_std);
             end
             
         end

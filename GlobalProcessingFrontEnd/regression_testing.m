@@ -59,6 +59,7 @@ function regression_testing(handles)
         handles.data_series_controller.data_series.load_data_settings([folder test_def.data_settings_file]);
         handles.fitting_params_controller.load_fitting_params([folder test_def.fit_param_file]);
         
+        
         handles.fit_controller.fit();
 
         while(~handles.fit_controller.has_fit)
@@ -91,6 +92,7 @@ function regression_testing(handles)
         
         overall_tests_passed = overall_tests_passed + tests_passed;
         overall_tests_failed = overall_tests_failed + tests_failed;
+        
          
     end
     

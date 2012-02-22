@@ -18,6 +18,7 @@ classdef segmentation_controller < flim_data_series_observer
         segmentation_axes;
         yuiry_segment_button;
         seg_results_table;
+        seg_use_multiple_regions;
         
         delete_all_button;
         copy_to_all_button;
@@ -166,10 +167,15 @@ classdef segmentation_controller < flim_data_series_observer
             params = get(obj.parameter_table,'Data');
             params = num2cell(params);
 
+            multiple_regions = get(obj.seg_use_multiple_regions,'Value');
+            
             obj.mask = zeros(size(obj.data_series.mask),'uint8');
             h = waitbar(0,'Segmenting Images...');
             for i=1:obj.data_series.n_datasets
                 obj.mask(:,:,i) = call_arb_segmentation_function(func,obj.data_series.selected_intensity(i,false),params);
+                if ~multiple_regions
+                    obj.mask(:,:,i) = obj.mask(:,:,i) > 0;
+                end
                 waitbar(i/obj.data_series.n_datasets,h);
             end
             close(h);

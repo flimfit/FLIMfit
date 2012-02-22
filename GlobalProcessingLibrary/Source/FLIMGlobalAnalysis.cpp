@@ -6,6 +6,8 @@
 
 #include <assert.h>
 
+#define USE_FMM false
+
 FLIMGlobalFitController* controller[MAX_CONTROLLER_IDX];
 int id_registered[MAX_CONTROLLER_IDX];
 
@@ -151,7 +153,7 @@ FITDLL_API int FLIMGlobalFitMemMap(int c_idx, int n_group, int n_px, int n_regio
          new FLIMGlobalFitController( n_group, n_px, n_regions, global_mode,
                                       mask, n_t, t,
                                       n_irf, t_irf, irf, pulse_pileup,
-                                      n_exp, n_fix, tau_min, tau_max, 
+                                      USE_FMM, n_exp, n_fix, tau_min, tau_max, 
                                       single_guess, tau_guess,
                                       fit_beta, fixed_beta,
                                       0, NULL,
@@ -228,7 +230,7 @@ FITDLL_API int FLIMGlobalPolarisationFitMemMap(int c_idx, int n_group, int n_px,
          new FLIMGlobalFitController( n_group, n_px, n_regions, global_mode,
                                       mask, n_t, t,
                                       n_irf, t_irf, irf, pulse_pileup,
-                                      n_exp, n_fix, tau_min, tau_max, 
+                                      0, n_exp, n_fix, tau_min, tau_max, 
                                       single_guess, tau_guess,
                                       fit_beta, fixed_beta,
                                       use_magic_decay, magic_decay,
@@ -299,7 +301,7 @@ FITDLL_API int FLIMGlobalFit(int c_idx, int n_group, int n_px, int n_regions[], 
          new FLIMGlobalFitController( n_group, n_px, n_regions, global_mode,
                                       mask, n_t, t,
                                       n_irf, t_irf, irf, pulse_pileup,
-                                      n_exp, n_fix, tau_min, tau_max, 
+                                      USE_FMM, n_exp, n_fix, tau_min, tau_max, 
                                       single_guess, tau_guess,
                                       fit_beta, fixed_beta,
                                       0, NULL,
@@ -368,7 +370,7 @@ FITDLL_API int FLIMGlobalPolarisationFit(int c_idx, int n_group, int n_px, int n
          new FLIMGlobalFitController( n_group, n_px, n_regions, global_mode,
                                       mask, n_t, t,
                                       n_irf, t_irf, irf, pulse_pileup,
-                                      n_exp, n_fix, tau_min, tau_max, 
+                                      0, n_exp, n_fix, tau_min, tau_max, 
                                       single_guess, tau_guess,
                                       fit_beta, fixed_beta,
                                       use_magic_decay, magic_decay,
@@ -504,7 +506,7 @@ FITDLL_API int FLIMGlobalGetChi2Map(int c_idx, int data_type, double data[], int
                                       &mask,
                                       n_t, t,
                                       n_irf, t_irf, irf, pulse_pileup,
-                                      n_exp, n_fix, tau_min, tau_max, 
+                                      0, n_exp, n_fix, tau_min, tau_max, 
                                       1, tau_guess,
                                       fit_beta, fixed_beta,
                                       0, NULL,

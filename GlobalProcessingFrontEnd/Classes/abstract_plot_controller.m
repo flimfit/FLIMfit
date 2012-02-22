@@ -12,6 +12,8 @@ classdef abstract_plot_controller < flim_fit_observer
         data_series_list;
         
         ap_lh;
+        
+        raw_data;
     end
     
     methods(Abstract = true)
@@ -21,18 +23,22 @@ classdef abstract_plot_controller < flim_fit_observer
     
     methods
         
-        function obj = abstract_plot_controller(handles,plot_handle,param_popupmenu)
+        function obj = abstract_plot_controller(handles,plot_handle,param_popupmenu,exports_data)
                        
             obj = obj@flim_fit_observer(handles.fit_controller);
             obj.plot_handle = plot_handle;
             
             obj.handle_is_axes = strcmp(get(plot_handle,'type'),'axes');
             
-            if nargin == 3
+            if nargin >= 3
                 obj.param_popupmenu = param_popupmenu;
                 set(obj.param_popupmenu,'Callback',@obj.param_select_update);
             else
                 obj.param_popupmenu = [];
+            end
+            
+            if nargin < 4
+                exports_data = false;
             end
             
             assign_handles(obj,handles);
@@ -44,6 +50,11 @@ classdef abstract_plot_controller < flim_fit_observer
                 @(~,~,~) obj.save_as_ppt() );
             uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
                 @(~,~,~) obj.export_to_ppt() );
+            if exports_data
+                uimenu(obj.contextmenu,'Label','Export Data...','Callback',...
+                @(~,~,~) obj.export_data() );
+            end
+            
             set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
            
         end
@@ -116,7 +127,10 @@ classdef abstract_plot_controller < flim_fit_observer
         end
         
         function export_to_ppt(obj)
-            f = figure('Visible','on');
+            
+            scr =  get( 0, 'ScreenSize' );
+            
+            f = figure('Visible','on','Position',scr);
             if obj.handle_is_axes
                 ref = axes('Parent',f);
             else
@@ -133,6 +147,28 @@ classdef abstract_plot_controller < flim_fit_observer
         end
             
         function plot_fit_update(obj)
+        end
+        
+        function export_data(obj)
+            if isempty(obj.raw_data)
+                return
+            end       
+            
+            if ispref('GlobalAnalysisFrontEnd','LastFigureExportFolder')
+                default_path = getpref('GlobalAnalysisFrontEnd','LastFigureExportFolder');
+            else
+                default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+            end
+            
+            [filename, pathname, ~] = uiputfile( ...
+                        {'*.csv', 'Comma Separated  Values (*.csv)'},...
+                         'Select file name',[default_path filesep]);
+
+            if filename ~= 0
+               
+                cell2csv([pathname filesep filename],obj.raw_data);
+                
+            end
         end
         
         function update_param_menu(obj)
@@ -175,7 +211,7 @@ classdef abstract_plot_controller < flim_fit_observer
             
             cscale = obj.colourmap(param);
             
-            m=2^16;
+            m=2^8;
             data = data - lims(1);
             data = data / (lims(2) - lims(1));
             data(data > 1) = 1;
@@ -219,7 +255,7 @@ classdef abstract_plot_controller < flim_fit_observer
             if ~merge
                 im=colorbar_flush(h,hc,im_data,isnan(intensity),r.default_lims.(im),cscale,text);
             else
-                im=colorbar_flush(h,hc,im_data,[],obj.plot_lims.(im),cscale,text,intensity,r.default_lims.I0);
+                im=colorbar_flush(h,hc,im_data,[],r.default_lims.(im),cscale,text,intensity,r.default_lims.I0);
             end
             
 

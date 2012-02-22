@@ -1,3 +1,9 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% THIS FUNCTION IS DEPRECIATED!
+% PLEASE USE LOAD_FLIM_FILE INSTEAD
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function[delays,ImData,tcspc,PathName,channel] = open_flim_files(prompt,FileName,channel)
 

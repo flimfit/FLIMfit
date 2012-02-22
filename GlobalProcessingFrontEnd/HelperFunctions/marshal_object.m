@@ -28,7 +28,7 @@ function obj = marshal_object(file,type,obj)
          child_name = char(child.getNodeName);
          if child.hasChildNodes && ~isempty(findprop(obj,child_name))
             child_value = char(child.getFirstChild.getData);
-            eval(['obj.' child_name ' = ' child_value ';']);
+            obj.(child_name) = eval(child_value);
          end
      end
 end

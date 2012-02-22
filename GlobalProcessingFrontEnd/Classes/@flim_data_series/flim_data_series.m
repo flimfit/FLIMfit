@@ -82,6 +82,9 @@ classdef flim_data_series < handle
         data_series;
         tr_data_series;
         
+        bleedthrough_data_series;
+        tr_bleedthrough_data_series;
+        
         root_path;
         
         intensity = [];
@@ -684,7 +687,7 @@ classdef flim_data_series < handle
                 if obj.polarisation_resolved
                     in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
                 end
-                obj.intensity(:,:,i) = squeeze(in);
+                obj.intensity(:,:,i) = reshape(in,obj.data_size(3:4)');
                
             end
                        

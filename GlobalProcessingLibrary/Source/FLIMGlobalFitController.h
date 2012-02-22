@@ -33,6 +33,8 @@ public:
    int thread;
 };
 
+class FLIMGlobalFitController;
+
 class FLIMGlobalFitController
 {
 public:
@@ -128,6 +130,8 @@ public:
    int init;
    bool has_fit;
 
+   bool use_FMM;
+
    FitStatus *status;
    WorkerParams* params;
 
@@ -150,7 +154,7 @@ public:
    FLIMGlobalFitController(int n_group, int n_px, int n_regions[], int global_mode,
                            int mask[], int n_t, double t[],
                            int n_irf, double t_irf[], double irf[], double pulse_pileup,
-                           int n_exp, int n_fix, 
+                           int use_FMM, int n_exp, int n_fix, 
                            double tau_min[], double tau_max[], 
                            int single_guess, double tau_guess[],
                            int fit_beta, double fixed_beta[],
@@ -198,6 +202,8 @@ public:
 
    double ErrMinFcn(double x, ErrMinParams& params);
 
+   int SetupMeanFitController();
+
    void CleanupTempVars();
 
    void calculate_exponentials(int thread, double tau[], double theta[]);
@@ -212,12 +218,20 @@ public:
    int beta_derivatives(int thread, double tau[], double alf[], double theta[], double ref_lifetime, double b[]);
    int theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+
+   double* mean_tau;
 
 private:
    void CalculateIRFMax(int n_t, double t[]);
    void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
    double CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask_buf[], double chi2[]);
+
+   FLIMGlobalFitController* mean_fit_controller;
+   double* mean_fit_tau;
+   int* mean_fit_ierr;
+
 
 };
 

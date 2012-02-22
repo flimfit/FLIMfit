@@ -57,6 +57,9 @@ classdef flim_fit_corr_controller < flim_fit_observer
                 params = [{'-'} params];
                 set(obj.corr_param_x_popupmenu,'String',params);
                 set(obj.corr_param_y_popupmenu,'String',params);
+                set(obj.corr_param_x_popupmenu,'Value',1);
+                set(obj.corr_param_y_popupmenu,'Value',1);
+
                 obj.param_updated()
             end
         end

@@ -1,6 +1,6 @@
 function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
 
-    m = 2^16;
+    m = 2^8;
     w = 10;
     
     if nargin < 7
@@ -18,7 +18,7 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
     cbar = repmat(cbar,[1,w]);
     cbar = int32(cbar * m);
         
-    % scale to lie between 1-2^16 
+    % scale to lie between 1-2^8 
     data = (data - lim(1))/(lim(2)-lim(1));
     nan_mask = isnan(data);
 
@@ -29,7 +29,7 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
         
         data(data < 0) = 0;
         data(data > 1) = 1;  
-        data = int32(data * 2^16 + 1);
+        data = int32(data * m + 1);
 
         cmap = cscale(m);
         cbar = ind2rgb(cbar,cmap);
