@@ -91,7 +91,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_irf, double t_irf[], doub
 
    data = NULL;
 
-   global_binning = false;
+   global_binning = true;
 
    //aux_n_regions = NULL;
    //aux_data = NULL;

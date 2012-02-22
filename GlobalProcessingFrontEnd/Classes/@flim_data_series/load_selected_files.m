@@ -50,7 +50,7 @@ function load_selected_files(obj,selected)
                 end
                 
                 if isempty(data)
-                    data = double([obj.n_t obj.n_chan obj.height obj.width]);
+                    data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
 
                 c1=fwrite(mapfile,data,'double');

@@ -140,19 +140,19 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, t_skip, length(d.tr_t),...
-            p.data_type, obj.p_mask, d.thresh_min, 1e10, p.global_fitting, d.binning);
-
-    if d.use_memory_mapping && ~obj.bin
-        calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name);
-    else
-        calllib(obj.lib_name,'SetData',obj.dll_id,obj.p_data);
-    end
-
+            p.data_type, obj.p_mask, d.thresh_min, 4096, p.global_fitting, d.binning);
+ 
     if d.background_type == 1
         calllib(obj.lib_name,'SetBackgroundValue',obj.dll_id,d.background_value);
     elseif d.background_type == 2
         obj.p_background = libpointer('doublePtr', d.background_image);
         calllib(obj.lib_name,'SetBackgroundImage',obj.dll_id,obj.p_background);
+    end
+        
+    if d.use_memory_mapping && ~obj.bin
+        calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name);
+    else
+        calllib(obj.lib_name,'SetData',obj.dll_id,obj.p_data);
     end
 
     calllib(obj.lib_name,'StartFit',obj.dll_id);

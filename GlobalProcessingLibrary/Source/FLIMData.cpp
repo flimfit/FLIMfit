@@ -202,6 +202,10 @@ void FLIMData::CalculateRegions()
             intensity += *ptr;
             ptr++;
          }
+         if (background_type == BG_VALUE)
+            intensity -= background_value * n_meas_full;
+         if (background_type == BG_IMAGE)
+            intensity -= background_image[p] * n_meas_full;
          if (intensity < threshold)
             mask[i*n_ipx+p] = 0;
        }
