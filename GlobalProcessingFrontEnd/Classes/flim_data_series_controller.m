@@ -141,6 +141,38 @@ classdef flim_data_series_controller < handle
         end
 
         
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % OMERO functions
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function fetch_TCSPC(obj, imageDescriptor)
+            
+            
+            polarisation_resolved = false;
+            
+            % load new dataset
+            obj.data_series = flim_data_series();
+            
+            % currently only allow one channel to be loaded
+            channel = obj.data_series.request_channels(polarisation_resolved);
+            
+            %for i=1:4           %assume 4 channel TCSPC data for now
+            %        chan_info{i} = ['sdt channel ' num2str(i)];
+            %end
+            % [obj.data_series.names,channel] = dataset_selection(chan_info);
+           
+           
+            
+            try
+                obj.data_series.fetch_TCSPC(imageDescriptor, polarisation_resolved, channel);
+            
+            catch err 
+                errordlg(err.message,'Error');   
+            end
+            
+        end
+        
+        
+        
         function intensity = selected_intensity(obj,selected,apply_mask)
            
             if nargin == 2

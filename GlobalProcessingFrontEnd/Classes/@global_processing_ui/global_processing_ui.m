@@ -7,18 +7,37 @@ classdef global_processing_ui
     
     methods
       
-        function obj = global_processing_ui(wait)
+        function obj = global_processing_ui(wait, OMERO_active)
         
             if nargin < 1
                 wait = false;
             end
+            
+            
             
             if ~isdeployed
                 addpath_global_analysis()
             else
                 wait = true;
             end
-
+            
+            client = [];
+            session = [];       %default value
+            
+            if nargin == 2
+            
+                logon = OMERO_logon;
+                
+                client = loadOmero(logon{1});
+                try 
+                    session = client.createSession(logon{2},logon{3})
+                catch  err
+                    errordlg('error with creating session');
+                end
+            end
+            
+            
+            
                 % Open a window and add some menus
             obj.window = figure( ...
                 'Name', 'GlobalProcessing', ...
@@ -29,9 +48,17 @@ classdef global_processing_ui
                 'Visible','off', ...
                 'Units','normalized', ...
                 'OuterPosition',[0 0.03 1 0.97]);
+            
+           
                 
             obj.setup_layout();
-            obj.setup_menu();
+            
+            if isempty(session)
+                obj.setup_menu();
+            else
+               obj.setup_alt_menu();
+            end
+            
             obj.setup_toolbar();
 
             handles = guidata(obj.window); 
@@ -52,11 +79,16 @@ classdef global_processing_ui
             handles.corr_controller = flim_fit_corr_controller(handles);
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);
+            
+            handles.OMERO_session = session;
+            handles.OMERO_client = client;
 
             handles.menu_controller = front_end_menu_controller(handles);
 
             set(obj.window,'Visible','on');
             %set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
+            
+            set(obj.window,'Closerequestfcn', {@obj.close_request_fcn, handles}) 
             
             try
                 v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
@@ -70,17 +102,46 @@ classdef global_processing_ui
                 waitfor(obj.window);
             end
             
+
+            
         end
         
-        function close_request_fcn(obj,src,evt)
-           
+        function close_request_fcn(obj,src,evt, handles)
+         
+            
+            disp('closing om fcn call');
+            
+            session = handles.OMERO_session;
+            client = handles.OMERO_client;
+            
+            
+         
             global f_temp
             if isempty(f_temp)
                 close(f_temp)
             end
             
-            %clear handles;
+            clear handles;
+            
+            
             delete(obj.window);
+            
+            clear obj;
+            
+            if ~isempty(session)
+                
+                %Close the OMERO session
+                disp('Closing OMERO session');
+                
+                
+                
+                client.closeSession();
+                %clear client;
+                %clear session;
+                %unloadOmero();
+                %clear java;
+            end
+            
             
         end
         

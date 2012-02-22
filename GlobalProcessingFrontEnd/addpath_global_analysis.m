@@ -11,6 +11,7 @@ function addpath_global_analysis()
         addpath([thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p8' filesep 'Patch']);
         addpath([thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p8' filesep 'layoutHelp']);
         addpath([thisdir filesep '..' filesep 'GlobalProcessingLibrary' filesep 'Libraries']);
+        addpath([thisdir filesep 'OMEROMatlab']);
     end
 
 end

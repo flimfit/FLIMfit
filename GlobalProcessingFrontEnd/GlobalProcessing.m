@@ -1,7 +1,16 @@
-function GlobalProcessing
+function GlobalProcessing(OM_active )
+
 
 addpath_global_analysis();
-global_processing_ui();
+
+if nargin == 0
+    global_processing_ui;
+else
+               
+    global_processing_ui(false, OM_active);
+    
+     
+end
 
 %{
 debug_info = struct();
