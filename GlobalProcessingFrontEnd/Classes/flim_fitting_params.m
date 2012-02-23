@@ -80,7 +80,7 @@ classdef flim_fitting_params < handle
         end
                 
         function set.n_exp(obj,n_exp)
-            if obj.n_fix > n_exp || obj.polarisation_resolved
+            if obj.n_fix > n_exp
                 obj.n_fix = n_exp;
             end
             obj.n_exp = n_exp;

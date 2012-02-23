@@ -255,13 +255,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.gamma_size = [n_decay_group sz];
     obj.E_size = [p.n_fret sz];
     
-    
-    %try
-    if ~isempty(mask)        
-        obj.p_mask = libpointer('int32Ptr', int32(mask));
-    else
-        obj.p_mask = [];
-    end
 
     obj.p_tau_guess = libpointer('doublePtr',p.tau_guess);
     obj.p_tau_min = libpointer('doublePtr',p.tau_min);
@@ -290,7 +283,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     end
 
     if ~d.use_memory_mapping
-        obj.p_data = libpointer('doublePtr', d.tr_data_series_mem);
+        obj.p_data = libpointer('doublePtr', d.data_series_mem);
     end
 
     obj.p_tau = libpointer('doublePtr', zeros(obj.tau_size));

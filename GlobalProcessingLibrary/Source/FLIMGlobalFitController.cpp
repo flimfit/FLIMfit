@@ -103,6 +103,9 @@ int FLIMGlobalFitController::RunWorkers()
    if (status->IsRunning())
       return ERR_FIT_IN_PROGRESS;
 
+   if (!init)
+      return ERR_COULD_NOT_START_FIT;
+
    if (n_thread == 1 && !runAsync)
    {
       params[0].controller = this;
@@ -438,11 +441,18 @@ void FLIMGlobalFitController::Init()
    }
    grid_factor = 2;
 
+   if (data->n_regions_total == 0)
+   {
+      error = ERR_FOUND_NO_REGIONS;
+      return;
+   }
+
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
    //---------------------------------------
    n_thread = min(n_thread,data->n_regions_total);
   
+   
 
 
    // Store copies of the mask, irf and regions so that we can use them after the fit

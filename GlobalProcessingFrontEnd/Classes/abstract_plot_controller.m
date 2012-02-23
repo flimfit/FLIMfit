@@ -67,6 +67,7 @@ classdef abstract_plot_controller < flim_fit_observer
                          '*.png','PNG image (*.png)';...
                          '*.eps','EPS level 1 image (*.eps)';...
                          '*.fig','Matlab figure (*.fig)';...
+                         '*.emf','Windows metafile (*.emf)';...
                          '*.*',  'All Files (*.*)'},...
                          'Select root file name',[default_path filesep]);
 
@@ -83,8 +84,11 @@ classdef abstract_plot_controller < flim_fit_observer
                 end
                 
                 obj.draw_plot(ref,obj.cur_param);
-                
-                savefig([pathname filesep name ' ' obj.cur_param],f,ext);
+                if strcmp(ext,'emf')
+                    print(f,'-dmeta',[pathname filesep name ' ' obj.cur_param '.' ext])
+                else
+                    savefig([pathname filesep name ' ' obj.cur_param],f,ext);
+                end
                 close(f);
             end
             
@@ -128,9 +132,13 @@ classdef abstract_plot_controller < flim_fit_observer
         
         function export_to_ppt(obj)
             
-            scr =  get( 0, 'ScreenSize' );
+            %scr =  get( 0, 'ScreenSize' );
             
-            f = figure('Visible','on','Position',scr);
+            f = figure('Visible','on','units','pixels');%,'Position',scr);
+            pos = get(f,'Position');
+            pos(3:4) = [400,300];
+            set(f,'Position',pos)
+            
             if obj.handle_is_axes
                 ref = axes('Parent',f);
             else
@@ -139,7 +147,7 @@ classdef abstract_plot_controller < flim_fit_observer
             
             obj.draw_plot(ref,obj.cur_param);
             if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
-                pptfigure(f,'SlideNumber','append');
+                saveppt2('current','figure',f,'stretch',false,'driver','meta','scale',false);
             else
                 saveppt2('current','figure',f,'stretch',false);
             end

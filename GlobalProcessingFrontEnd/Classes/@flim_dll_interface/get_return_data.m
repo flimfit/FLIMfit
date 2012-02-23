@@ -59,8 +59,8 @@ function get_return_data(obj)
 
         if ~isempty(obj.p_tau) && ~isempty(obj.p_beta)
             tau_sqr = tau.*tau;
-            mean_tau = nansum(tau.*beta,1);
-            w_mean_tau = nansum(tau_sqr.*beta,1)./mean_tau;
+            mean_tau = sum(tau.*beta,1);
+            w_mean_tau = sum(tau_sqr.*beta,1)./mean_tau;
             w_mean_tau = reshape(w_mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
             mean_tau = reshape(mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
             f.set_image('mean_tau',mean_tau,mask,datasets,[0 4000]);
@@ -126,7 +126,7 @@ function get_return_data(obj)
         if ~obj.bin
             steady_state = obj.data_series.steady_state_anisotropy();
             steady_state(mask == 0) = NaN;
-            f.set_image('r_ss',steady_state,mask,datasets,[0 0.4])
+            f.set_image('r_s',steady_state,mask,datasets,[0 0.4])
         end
     end
     

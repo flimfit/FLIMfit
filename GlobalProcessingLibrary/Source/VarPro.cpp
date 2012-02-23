@@ -877,7 +877,7 @@ L99:
    logical *philp1, logical *nowate, integer *gc, integer *thread)
 {
     /* System generated locals */
-    integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__1, i__2;
+    integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__2;
 
     /* Builtin functions */
     double sqrt(doublereal);
@@ -911,6 +911,14 @@ L99:
     lp1 = *l + 1;
     lnls1 = *l + *s + *nl + 1;
     nconp1_buf__ = 0;
+
+/*     NOWATE = .TRUE. */
+    *nowate = FALSE_;
+   nconp1_buf__ = lp1;
+   ncon_buf__ = *l;
+   philp1_buf__ = *l == 0;
+
+
 /*                                          CHECK FOR VALID INPUT */
     if (*l >= 0 && *nl >= 0 && *s * *l + *nl < *s * *n && lnls1 <= *lpps1 && (
        *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim && *iv > 0 &&
@@ -930,12 +938,6 @@ L99:
 L3:
     (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
        b_offset], &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
-
-/*     NOWATE = .TRUE. */
-    *nowate = FALSE_;
-   nconp1_buf__ = lp1;
-   ncon_buf__ = *l;
-   philp1_buf__ = *l == 0;
 
    for (i__ = 1; i__ <= *n; ++i__)
    {

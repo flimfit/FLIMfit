@@ -116,7 +116,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end
 
     if obj.bin
-       n_datasets = 1;
+        n_datasets = 1;
         height = 1;
         width = 1;
         
@@ -126,6 +126,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         t_skip = [];
         n_t = length(d.tr_t);
         obj.p_t = libpointer('doublePtr',d.tr_t);
+        obj.p_mask = libpointer('int32Ptr',1);
 
     else
         n_datasets = d.n_datasets;
@@ -135,12 +136,18 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         t_skip = d.t_skip;
         n_t = length(d.t);
         obj.p_t = libpointer('doublePtr',d.t);
+        
+        if ~isempty(d.seg_mask)        
+            obj.p_mask = libpointer('int32Ptr', int32(d.seg_mask));
+        else
+            obj.p_mask = [];
+        end
     end
     
     
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, t_skip, length(d.tr_t),...
-            p.data_type, obj.p_mask, d.thresh_min, 4096, p.global_fitting, d.binning);
+            p.data_type, obj.p_mask, d.thresh_min, 1e10, p.global_fitting, d.binning);
  
     if d.background_type == 1
         calllib(obj.lib_name,'SetBackgroundValue',obj.dll_id,d.background_value);

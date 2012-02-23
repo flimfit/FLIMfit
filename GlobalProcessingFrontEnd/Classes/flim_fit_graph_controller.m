@@ -120,11 +120,27 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     cell_x_data = x_data;
                 end
 
+                if isfield(r.default_lims,param)
+                    lims = r.default_lims.(param);
+
+                    if isnan(lims(1)) || lims(1) > min(y_data);
+                        lims(1) = 0.9*min(y_data);
+                    end
+                    if isnan(lims(2)) || lims(2) < max(y_data);
+                        lims(2) = 1.1*max(y_data);
+                    end
+                    set(ax,'YLim',lims);
+                end
+                
                 obj.raw_data = [cell_x_data; num2cell(y_data); num2cell(y_std); num2cell(y_err); num2cell(y_n)]';
                 
                 obj.raw_data = [{obj.ind_param param 'std' '95% conf' 'count'}; obj.raw_data]; 
                 
-                ylabel(ax,param);
+                latex_param = param;
+                latex_param = strrep(latex_param,'mean_tau','mean tau');
+                latex_param = strrep(latex_param,'w_mean','weighted mean');
+                
+                ylabel(ax,latex_param);
                 xlabel(ax,obj.ind_param);
             end
             

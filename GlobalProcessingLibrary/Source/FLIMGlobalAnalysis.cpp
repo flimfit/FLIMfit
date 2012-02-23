@@ -451,8 +451,10 @@ FITDLL_API int StartFit(int c_idx)
 {
 
    controller[c_idx]->Init();
-   return controller[c_idx]->RunWorkers();
+   if (!controller[c_idx]->init)
+      return controller[c_idx]->error;
 
+   return controller[c_idx]->RunWorkers();
 }
 
 

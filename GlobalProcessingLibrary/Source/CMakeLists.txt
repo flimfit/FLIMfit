@@ -50,6 +50,7 @@ set(HEADERS
    FLIMData.h
    ModelADA.h
    tinythread.h
+   FlagDefinitions.h
 )
 
 # Add _32/_64 appendix to library

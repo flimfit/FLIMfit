@@ -47,7 +47,7 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    {
       n_group = 1;
       n_px = n_im * n_x * n_y;
-      n_thread = 1;
+      n_thread = (n_thread > n_im) ? n_im : n_thread;
    }
 
    this->n_thread = n_thread;
@@ -191,7 +191,7 @@ void FLIMData::CalculateRegions()
       for(int p=0; p<n_ipx; p++)
       {
          double* ptr = data_ptr + p*n_meas_full;
-         int intensity = 0;
+         double intensity = 0;
          for(int j=0; j<n_meas_full; j++)
          {
             if (*ptr > limit)
@@ -262,7 +262,7 @@ void FLIMData::CalculateRegions()
       max_region_size = 0;
       
       for(int i=0; i<n_im; i++)
-         for(int p=0; p<n_p; p++)
+         for(int p=0; p<n_ipx; p++)
             r_count[mask[i*n_ipx+p]]++;
 
       max_region[0] = 0;
@@ -339,7 +339,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       for(int i=0; i<n_im; i++)
       {
          TransformImage(thread, i);
-         s += GetMaskedData(thread, group, region, adjust, region_data + s);
+         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas);
       }
    }
    
