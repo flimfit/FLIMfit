@@ -274,7 +274,7 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 
    int n_thread = controller[c_idx]->n_thread;
 
-   FLIMData* d = new FLIMData(n_im, n_x, n_y, n_chan, n_t_full, t, t_skip, n_t, data_type, mask, 
+   FLIMData<double>* d = new FLIMData<double>(n_im, n_x, n_y, n_chan, n_t_full, t, t_skip, n_t, data_type, mask, 
                               threshold, limit, global_mode, smoothing_factor, n_thread);
    
    controller[c_idx]->SetData(d);

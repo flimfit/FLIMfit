@@ -280,7 +280,17 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if( gc->fit_offset == FIT_LOCALLY  )
          {
             for(i=0; i<N; i++)
-               a[ i + N*a_col ] = 1;
+               a[N*a_col+i]=0;
+            idx = 0;
+            for(k=0; k<gc->n_chan; k++)
+            {
+               for(i=0; i<gc->n_t; i++)
+               {
+                  a[idx+N*a_col] += 1;
+                  idx += gc->resample_idx[i];
+               }
+               idx++;
+            }
             a_col++;
          }
 
@@ -295,7 +305,17 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if( gc->fit_tvb == FIT_LOCALLY )
          {
             for(i=0; i<N; i++)
-               a[ i + N*a_col ] = gc->tvb_profile_buf[i];
+               a[N*a_col+i]=0;
+            idx = 0;
+            for(k=0; k<gc->n_chan; k++)
+            {
+               for(i=0; i<gc->n_t; i++)
+               {
+                  a[idx+N*a_col] += gc->tvb_profile_buf[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
+                  idx += gc->resample_idx[i];
+               }
+               idx++;
+            }
             a_col++;
          }
 
@@ -398,8 +418,16 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // Add tvb
          if (gc->fit_tvb == FIT_GLOBALLY)
          {
-            for(i=0; i<N; i++)
-               a[ i + N*a_col ] += gc->tvb_profile_buf[i] * alf[gc->alf_tvb_idx];
+            idx = 0;
+            for(k=0; k<gc->n_chan; k++)
+            {
+               for(i=0; i<gc->n_t; i++)
+               {
+                  a[idx+N*a_col] += gc->tvb_profile_buf[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
+                  idx += gc->resample_idx[i];
+               }
+               idx++;
+            }
          }
 
          if (gc->use_kappa)
@@ -413,10 +441,19 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          }
 
          // Add offset
+         
          if (gc->fit_offset == FIT_GLOBALLY)
          {
-            for(i=0; i<N; i++)
-               a[ i + N*a_col ] += alf[gc->alf_offset_idx];
+            idx = 0;
+            for(k=0; k<gc->n_chan; k++)
+            {
+               for(i=0; i<gc->n_t; i++)
+               {
+                  a[idx+N*a_col] += alf[gc->alf_offset_idx];
+                  idx += gc->resample_idx[i];
+               }
+               idx++;
+            }
          }
 
          /*
@@ -499,7 +536,17 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if(gc->fit_offset == FIT_GLOBALLY)
          {
             for(i=0; i<N; i++)
-               b[ d_offset + i ] = 1;
+               b[d_offset+i]=0;
+            idx = 0;
+            for(k=0; k<gc->n_chan; k++)
+            {
+               for(i=0; i<gc->n_t; i++)
+               {
+                  b[d_offset + idx] += 1;
+                  idx += gc->resample_idx[i];
+               }
+               idx++;
+            }
             d_offset += Ndim;
          }
          
@@ -516,7 +563,17 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if(gc->fit_tvb == FIT_GLOBALLY)
          {
             for(i=0; i<N; i++)
-               b[ d_offset + i ] = gc->tvb_profile_buf[i];
+               b[d_offset+i]=0;
+            idx = 0;
+            for(k=0; k<gc->n_chan; k++)
+            {
+               for(i=0; i<gc->n_t; i++)
+               {
+                  b[ d_offset + idx ] += gc->tvb_profile_buf[k*gc->n_t+i];
+                  idx += gc->resample_idx[i];
+               }
+               idx++;
+            }
          }
 
          if (locked_param >= 0)

@@ -5,6 +5,10 @@ project(FLIMGlobalAnalysis)
 
 # Include the BOOST header files
 #===================================================
+FIND_PACKAGE(Boost)
+if(Boost_FOUND)
+    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+endif()
 include_directories( "../Boost" )
 
 

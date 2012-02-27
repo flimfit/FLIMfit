@@ -156,9 +156,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       w[j] = 0;
 
    for(i=0; i<n_meas; i++)
-   {
       count_buf[i] = 0;
-   }
 
    SetupAdjust(adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
                            (fit_offset == FIX)  ? offset_guess  : 0, 
@@ -201,7 +199,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       lpps1_ = l + p + 1 + 1;
       lps_ = l + 1;
       
-      varp2_( &s1, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+      varp2_( &s1, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
                t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
                alf, lin_params, &ierr_local_binning, &c2, &algorithm, alf_best );
    }
@@ -211,7 +209,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (grid_search)
    {
-      varp2_grid( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+      varp2_grid( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
                t, y+n_meas, w, (U_fp)ada, a, b, &iprint, (int*) this, (int*) &thread, alf, lin_params, 
                &ierr_local, (doublereal*)chi2+r_idx, (int*)&algorithm,
                var_min, var_max, grid, grid_size, grid_factor, var_buf, grid_iter );
@@ -220,7 +218,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    {
       lpps1_ = l + p + s_thresh + 1;
       lps_ = l + s_thresh;
-      varp2_( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+      varp2_( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
                t, y+n_meas, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
                alf, lin_params, &ierr_local, &c2, &algorithm, alf_best );
    }

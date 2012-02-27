@@ -142,7 +142,7 @@ void WorkerThread(void* wparams)
    {
       WorkerParams* p = (WorkerParams*) wparams;
       FLIMGlobalFitController* controller = p->controller;
-      FLIMData* data = controller->data;
+      FLIMData<double>* data = controller->data;
       int thread = p->thread;
 
       int idx = 0;
@@ -189,7 +189,7 @@ void WorkerThread(void* wparams)
    return;
 }
 
-void FLIMGlobalFitController::SetData(FLIMData* data)
+void FLIMGlobalFitController::SetData(FLIMData<double>* data)
 {
    this->data = data;
 
@@ -451,7 +451,13 @@ void FLIMGlobalFitController::Init()
    n_thread = min(n_thread,data->n_regions_total);
   
    
+   resample_idx = data->resample_idx;
+   n_t_res = 1;
+   for (int i=0; i<n_t; i++)
+      if (resample_idx[i])
+         n_t_res++;
 
+   n_meas_res = n_t_res * n_chan;
 
    // Store copies of the mask, irf and regions so that we can use them after the fit
    // to get the fitted decays even if the user has removed the memory. These will 
@@ -878,15 +884,15 @@ double FLIMGlobalFitController::CalculateChi2(int region, int s_thresh, double y
       if(mask[i] == region)
       {
 
-         for(j=0; j<n_meas; j++)
+         for(j=0; j<n_meas_res; j++)
          {
             ft = 0;
             for(int k=0; k<l; k++)
-               ft += a[n_meas*k+j] * lin_params[ i_thresh*l + k ];
+               ft += a[n_meas_res*k+j] * lin_params[ i_thresh*l + k ];
 
-            ft += a[n_meas*l+j];
+            ft += a[n_meas_res*l+j];
 
-            fit_buf[j] = ft - y[i_thresh*n_meas + j];
+            fit_buf[j] = ft - y[i_thresh*n_meas_res + j];
             fit_buf[j] *= fit_buf[j] * w[j];
 
             if (j>0)
@@ -895,13 +901,13 @@ double FLIMGlobalFitController::CalculateChi2(int region, int s_thresh, double y
 
          if (chi2 != NULL)
          {
-            chi2[i] = fit_buf[n_meas-1] / (n_meas - nl/s_thresh - l);
+            chi2[i] = fit_buf[n_meas_res-1] / (n_meas_res - nl/s_thresh - l);
             if (chi2[i] == std::numeric_limits<double>::infinity( ))
                chi2[i] = 0;
          }
 
-         if (fit_buf[n_meas-1] < 1e5)
-            chi2_tot += fit_buf[n_meas-1];
+         if (fit_buf[n_meas_res-1] < 1e5)
+            chi2_tot += fit_buf[n_meas_res-1];
          else
             chi2_tot = chi2_tot;
 
@@ -998,6 +1004,14 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
    exp_buf = new double[ n_decay_group * exp_buf_size ];
    irf_max = new int[ n_meas ];
    resampled_irf = new double[ n_meas ];
+
+   resample_idx = new int[n_t];
+
+   for(int i=0; i<n_t-1; i++)
+      resample_idx[i] = 1;
+   resample_idx[n_t-1] = 0;
+   n_t_res = n_t;
+   n_meas_res = n_meas;
 
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
@@ -1102,6 +1116,7 @@ max_reached:
    ClearVariable(exp_buf);
    ClearVariable(irf_max);
    ClearVariable(resampled_irf);
+   ClearVariable(resample_idx);
 
    delete[] adjust;
 

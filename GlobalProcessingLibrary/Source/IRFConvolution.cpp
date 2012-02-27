@@ -148,15 +148,17 @@ void sample_irf(FLIMGlobalFitController *gc, double a[],int pol_group, double* s
 {
    int k=0;
    double scale;
+   int idx = 0;
 
    for(int i=0; i<gc->n_chan; i++)
    {
       scale = (scale_fact == NULL) ? 1 : scale_fact[i];
       for(int j=0; j<gc->n_t; j++)
       {
-         a[k] += (gc->resampled_irf[k]) * gc->chan_fact[pol_group*gc->n_chan+i] * scale;
-         k++;
+         a[idx] += (gc->resampled_irf[k]) * gc->chan_fact[pol_group*gc->n_chan+i] * scale;
+         idx += gc->resample_idx[k];
       }
+      idx++;
    }
 }
 

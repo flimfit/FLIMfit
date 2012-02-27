@@ -76,10 +76,7 @@ public:
    int n_thread; int (*callback)();
    int error;
 
-   FLIMData* data;
-
-   //char *data_file; int data_mode;
-   //boost::interprocess::file_mapping data_map_file;
+   FLIMData<double>* data;
 
    tthread::thread **thread_handle;
 
@@ -92,8 +89,6 @@ public:
    double *theta, *theta_err, *r;
    double *chan_fact;
   
-   //int *mask;
-   //int *n_regions_buf;
    double *t_irf_buf;
    double *irf_buf;
    double *tvb_profile_buf;
@@ -111,9 +106,10 @@ public:
    int *irf_max;
    double *resampled_irf;
 
+   
+   int* resample_idx;
+
    int max_dim, exp_dim;
-   //int *r_start;
-   //int n_regions_total;
 
    integer static_store[1000];
    
@@ -186,7 +182,7 @@ public:
    void SetData(double data[], int data_type);
    int SetData(char* data_file, int data_type);
 
-   void SetData(FLIMData* data);
+   void SetData(FLIMData<double>* data);
 
    void SetChi2MapMode(int grid_size, double grid[]);
    void SetPolarisationMode(int mode);
@@ -232,9 +228,6 @@ public:
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
    int global_algorithm;
-   //double* aux_tau;
-   //double* aux_data;
-   //int* aux_n_regions;
 
 private:
    void CalculateIRFMax(int n_t, double t[]);
@@ -242,11 +235,8 @@ private:
    void CleanupResults();
    double CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[]);
 
-   //FLIMGlobalFitController* aux_controller;
-   //double* aux_fit_tau;
-   //int* aux_fit_ierr;
-
-   int* resample_idx;
+   int n_t_res;
+   int n_meas_res;
 
 
 };
