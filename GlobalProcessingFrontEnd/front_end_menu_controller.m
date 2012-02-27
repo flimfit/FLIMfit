@@ -10,6 +10,8 @@ classdef front_end_menu_controller < handle
         menu_file_load_single_pol;
         menu_file_load_tcspc_pol;
         
+        menu_file_reload_data;
+        
         menu_file_save_dataset;
         menu_file_save_raw;
         
@@ -208,6 +210,10 @@ classdef front_end_menu_controller < handle
                     obj.default_path = path;
                 end
             end
+        end
+        
+        function menu_file_reload_data_callback(obj,~,~)
+            obj.data_series_controller.data_series.reload_data;
         end
         
         function menu_file_load_test_callback(obj,~,~)

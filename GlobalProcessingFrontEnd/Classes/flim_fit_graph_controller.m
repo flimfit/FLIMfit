@@ -40,11 +40,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         
         function draw_plot(obj,ax,param)
 
-            if obj.fit_controller.has_fit && ~isempty(obj.ind_param)
+            if obj.fit_controller.has_fit && ~isempty(obj.ind_param) && ~isempty(obj.cur_param)
 
                 r = obj.fit_controller.fit_result;     
-
-                %mask = obj.roi_controller.roi_mask;
 
                 err_name = [param '_err'];
 
@@ -71,7 +69,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 end
 
                 for i=1:length(x_data)
-                    y = 0; yv = 0; yn = 0; e = 0; ymask = [];
+                    y = 0; yv = 0; yn = 0; e = 0; 
                     for j=1:n_im
                         if ~empty(j) ... 
                             && ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) ...
@@ -87,12 +85,6 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                             if ~isempty(err_name)
                                 e = e + r.image_stats{j}.(err_name).mean * n;
                             end
-
-                            %{
-                            ym = r.get_image(j,obj.dep);
-                            ym = ym(mask);
-                            ymask = [ymask; ym];
-                            %}
 
                         end
                     end

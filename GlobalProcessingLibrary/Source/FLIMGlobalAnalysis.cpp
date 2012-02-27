@@ -120,159 +120,11 @@ int CheckControllerIdx(int c_idx)
    return SUCCESS;
 }
 
-/*
-
-FITDLL_API int FLIMGlobalFitMemMap(int c_idx, int n_group, int n_px, int n_regions[], int global_mode,
-                             int data_type, char *data_file, int mask[],
-                             int n_t, doublereal t[],
-                             int n_irf, doublereal t_irf[], doublereal irf[], doublereal pulse_pileup,
-                             int n_exp, int n_fix, 
-                             doublereal tau_min[], doublereal tau_max[], 
-                             int single_guess, doublereal tau_guess[],
-                             int fit_beta, double fixed_beta[],
-                             int fit_t0, doublereal t0_guess, 
-                             int fit_offset, doublereal offset_guess, 
-                             int fit_scatter, doublereal scatter_guess,
-                             int fit_tvb, double tvb_guess, double tvb_profile[],
-                             int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
-                             int pulsetrain_correction, doublereal t_rep,
-                             int ref_reconvolution, doublereal ref_lifetime_guess, int algorithm,
-                             doublereal tau[], doublereal I0[], doublereal beta[], doublereal E[], double gamma[],
-                             doublereal t0[], doublereal offset[], doublereal scatter[], double tvb[], double ref_lifetime[],
-                             int calculate_errs, doublereal tau_err[], doublereal beta_err[], doublereal E_err[],
-                             doublereal offset_err[], doublereal scatter_err[], doublereal tvb_err[], doublereal ref_lifetime_err[],
-                             doublereal chi2[], int ierr[],
-                             int n_thread, int runAsync, int use_callback, int (*callback)())
-{
-
-   int error = CheckControllerIdx(c_idx);
-   if (error) 
-      return error;
-
-   if (!use_callback)
-      callback = NULL;
-
-   controller[c_idx] = 
-         new FLIMGlobalFitController( n_t, t,
-                                      n_irf, t_irf, irf, pulse_pileup,
-                                      USE_FMM, n_exp, n_fix, tau_min, tau_max, 
-                                      single_guess, tau_guess,
-                                      fit_beta, fixed_beta,
-                                      0, 0, 0, NULL,
-                                      fit_t0, t0_guess, 
-                                      fit_offset, offset_guess, 
-                                      fit_scatter, scatter_guess,
-                                      fit_tvb, tvb_guess, tvb_profile,
-                                      n_fret, n_fret_fix, inc_donor, E_guess, 
-                                      pulsetrain_correction, t_rep,
-                                      ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      tau, I0, beta, E, gamma, t0, NULL, NULL,
-                                      offset, scatter, tvb, ref_lifetime, 
-                                      calculate_errs, tau_err, beta_err, E_err, NULL, offset_err, 
-                                      scatter_err, tvb_err, ref_lifetime_err,
-                                      chi2, ierr,
-                                      n_thread, runAsync, callback );
-
-   error = controller[c_idx]->GetErrorCode();
-   
-   if (error) 
-      return error;
-
-   error = controller[c_idx]->SetData(data_file, data_type);
-   
-   if (error)
-      return error;
-
-   controller[c_idx]->Init();
-
-   error = controller[c_idx]->RunWorkers();
-   return error;
-
-}
-
-
-FITDLL_API int FLIMGlobalPolarisationFitMemMap(int c_idx, int n_group, int n_px, int n_regions[], int global_mode,
-                             int data_type, char* data_file, int mask[],
-                             int n_t, double t[],
-                             int n_irf, double t_irf[], double irf[], double pulse_pileup,
-                             int n_exp, int n_fix, 
-                             double tau_min[], double tau_max[], 
-                             int single_guess, double tau_guess[],
-                             int fit_beta, double fixed_beta[],
-                             int use_magic_decay, double magic_decay[],
-                             int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[],
-                             int fit_t0, double t0_guess,
-                             int fit_offset, double offset_guess, 
-                             int fit_scatter, double scatter_guess,
-                             int fit_tvb, double tvb_guess, double tvb_profile[],
-                             int pulsetrain_correction, double t_rep,
-                             int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                             double tau[], double I0[], double beta[], double theta[], double r[], 
-                             double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
-                             int calculate_errs, doublereal tau_err[], doublereal beta_err[], doublereal theta_err[],
-                             doublereal offset_err[], doublereal scatter_err[], doublereal tvb_err[], doublereal ref_lifetime_err[],
-                             double chi2[], int ierr[],
-                             int n_thread, int runAsync, int use_callback, int (*callback)())
-{
-
-   int error = CheckControllerIdx(c_idx);
-   if (error)
-      return error;
-
-   if (!use_callback)
-      callback = NULL;
-
-   int n_fret = 0;
-   int n_fret_fix = 0;
-   int inc_donor = 0;
-   double* E_guess = NULL;
-
-   controller[c_idx] = 
-         new FLIMGlobalFitController( n_t, t,
-                                      n_irf, t_irf, irf, pulse_pileup,
-                                      0, n_exp, n_fix, tau_min, tau_max, 
-                                      single_guess, tau_guess,
-                                      fit_beta, fixed_beta,
-                                      n_theta, n_theta_fix, inc_rinf, theta_guess,
-                                      fit_t0, t0_guess, 
-                                      fit_offset, offset_guess, 
-                                      fit_scatter, scatter_guess,
-                                      fit_tvb, tvb_guess, tvb_profile,
-                                      n_fret, n_fret_fix, inc_donor, E_guess, 
-                                      pulsetrain_correction, t_rep,
-                                      ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      tau, I0, beta, NULL, NULL, theta, r,
-                                      t0, offset, scatter, tvb, ref_lifetime, 
-                                      calculate_errs, tau_err, beta_err, NULL, theta_err, offset_err, 
-                                      scatter_err, tvb_err, ref_lifetime_err,
-                                      chi2, ierr,
-                                      n_thread, runAsync, callback );
-
-   controller[c_idx]->SetPolarisationMode(MODE_POLARISATION);
-   
-   error = controller[c_idx]->SetData(data_file, data_type);
-   if (error)
-      return error;
-
-   controller[c_idx]->Init();
-   
-   error = controller[c_idx]->GetErrorCode();
-   if (error)
-      return error;
-
-   error = controller[c_idx]->RunWorkers();
-   return error;
-
-}
-
-*/
 
 
 
 
-
-
-FITDLL_API int SetupGlobalFit(int c_idx,
+FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm,
                               int n_irf, doublereal t_irf[], doublereal irf[], doublereal pulse_pileup,
                               int n_exp, int n_fix,  doublereal tau_min[], doublereal tau_max[], 
                               int single_guess, doublereal tau_guess[],
@@ -306,7 +158,7 @@ FITDLL_API int SetupGlobalFit(int c_idx,
    double* theta_guess     = NULL;
 
    controller[c_idx] = 
-         new FLIMGlobalFitController( n_irf, t_irf, irf, pulse_pileup,
+         new FLIMGlobalFitController( global_algorithm, n_irf, t_irf, irf, pulse_pileup,
                                       n_exp, n_fix, tau_min, tau_max, 
                                       single_guess, tau_guess,
                                       fit_beta, fixed_beta,
@@ -330,7 +182,7 @@ FITDLL_API int SetupGlobalFit(int c_idx,
 }
 
 
-FITDLL_API int SetupGlobalPolarisationFit(int c_idx, 
+FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
                              int n_exp, int n_fix, 
                              double tau_min[], double tau_max[], 
@@ -364,7 +216,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx,
    double* E_guess = NULL;
 
    controller[c_idx] = 
-         new FLIMGlobalFitController( n_irf, t_irf, irf, pulse_pileup,
+         new FLIMGlobalFitController( global_algorithm, n_irf, t_irf, irf, pulse_pileup,
                                       n_exp, n_fix, tau_min, tau_max, 
                                       single_guess, tau_guess,
                                       fit_beta, fixed_beta,
@@ -456,70 +308,6 @@ FITDLL_API int StartFit(int c_idx)
 
    return controller[c_idx]->RunWorkers();
 }
-
-
-/*
-
-FITDLL_API int FLIMGlobalFit(int c_idx, int n_group, int n_px, int n_regions[], int global_mode,
-                             int data_type, doublereal data[], int mask[],
-                             int n_t, doublereal t[],
-                             int n_irf, doublereal t_irf[], doublereal irf[], doublereal pulse_pileup,
-                             int n_exp, int n_fix,  doublereal tau_min[], doublereal tau_max[], 
-                             int single_guess, doublereal tau_guess[],
-                             int fit_beta, double fixed_beta[],
-                             int fit_t0, doublereal t0_guess, 
-                             int fit_offset, doublereal offset_guess, 
-                             int fit_scatter, doublereal scatter_guess,
-                             int fit_tvb, double tvb_guess, double tvb_profile[],
-                             int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
-                             int pulsetrain_correction, doublereal t_rep,
-                             int ref_reconvolution, doublereal ref_lifetime_guess, int algorithm,
-                             doublereal tau[], doublereal I0[], doublereal beta[], doublereal E[], double gamma[],
-                             doublereal t0[], doublereal offset[], doublereal scatter[], double tvb[], double ref_lifetime[],
-                             int calculate_errs, doublereal tau_err[], doublereal beta_err[], doublereal E_err[],
-                             doublereal offset_err[], doublereal scatter_err[], doublereal tvb_err[], doublereal ref_lifetime_err[],
-                             doublereal chi2[], int ierr[],
-                             int n_thread, int runAsync, int use_callback, int (*callback)())
-{
-   int error;
-
-   error = CheckControllerIdx(c_idx);
-   if (error)
-      return error;
-
-   if (!use_callback)
-      callback = NULL;
-
-   controller[c_idx] = 
-         new FLIMGlobalFitController( n_t, t,
-                                      n_irf, t_irf, irf, pulse_pileup,
-                                      USE_FMM, n_exp, n_fix, tau_min, tau_max, 
-                                      single_guess, tau_guess,
-                                      fit_beta, fixed_beta,
-                                      0, 0, 0, NULL,
-                                      fit_t0, t0_guess, 
-                                      fit_offset, offset_guess, 
-                                      fit_scatter, scatter_guess,
-                                      fit_tvb, tvb_guess, tvb_profile,
-                                      n_fret, n_fret_fix, inc_donor, E_guess, 
-                                      pulsetrain_correction, t_rep,
-                                      ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      tau, I0, beta, E, gamma, NULL, NULL, 
-                                      t0, offset, scatter, tvb, ref_lifetime,
-                                      calculate_errs, tau_err, beta_err, E_err, NULL, offset_err, 
-                                      scatter_err, tvb_err, ref_lifetime_err,
-                                      chi2, ierr,
-                                      n_thread, runAsync, callback );
-
-   error = controller[c_idx]->GetErrorCode();
-   controller[c_idx]->SetData(data, data_type);
-   controller[c_idx]->Init();
-
-   error = controller[c_idx]->RunWorkers();
-   return error;
-   
-}
-*/
 
 
 FITDLL_API int FLIMGlobalGetChi2Map(int c_idx, int data_type, double data[], int n_t, double t[],

@@ -8,7 +8,6 @@
 #define MODE_GLOBAL_BINNING  1
 
 
-
 #define MAX_CONTROLLER_IDX 255
 
 #define SUCCESS                        0

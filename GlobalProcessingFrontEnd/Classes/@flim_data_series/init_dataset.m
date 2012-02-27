@@ -24,7 +24,7 @@ function init_dataset(obj,setting_file_name)
     
     obj.binning = 1;
     obj.thresh_min = 1;
-    obj.thresh_max = 1e10;
+    obj.gate_max = 2^16-1;
     
     obj.t_min = min(obj.t);
     obj.t_max = max(obj.t);   

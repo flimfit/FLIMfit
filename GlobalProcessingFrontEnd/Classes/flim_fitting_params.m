@@ -7,6 +7,7 @@ classdef flim_fitting_params < handle
         data_type = 0;
         global_fitting = 1;
         global_variable = 0;
+        global_algorithm = 0;
         fit_t0 = false;
         fit_offset = 0;
         fit_scatter = 0;
@@ -18,7 +19,7 @@ classdef flim_fitting_params < handle
         scatter = 0;
         tvb = 0;
         
-        rep_rate = 80e6;
+        rep_rate = 80;
         ref_lifetime = 80;
         
         pulsetrain_correction = true;

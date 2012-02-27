@@ -36,8 +36,12 @@ function handles = add_image_display_panel(obj,handles,parent)
     handles.gallery_overlay_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', '-', 'Parent', bottom_layout);
     handles.gallery_unit_edit = uicontrol( 'Style', 'edit', 'String', '', 'Parent', bottom_layout);
     
+    uicontrol( 'Style', 'text', 'String', 'Intensity Merge', 'Parent', bottom_layout );
+    uiextras.Empty( 'Parent', bottom_layout );
     
-    set( bottom_layout, 'ColumnSizes', [100 200 100 200], 'RowSizes', [22 22] );
+    handles.gallery_merge_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No', 'Yes'}, 'Parent', bottom_layout);
+        
+    set( bottom_layout, 'ColumnSizes',[90 120 90 120 90 120], 'RowSizes', [22 22] );
     
     
     set(gallery_layout,'Sizes',[-1,60]);

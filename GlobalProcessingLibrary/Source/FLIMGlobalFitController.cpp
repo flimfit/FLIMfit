@@ -43,7 +43,7 @@ void SetNaN(double* var, int n)
          var[i] = nan;
 }
 
-FLIMGlobalFitController::FLIMGlobalFitController(int n_irf, double t_irf[], double irf[], double pulse_pileup,
+FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf, double t_irf[], double irf[], double pulse_pileup,
                                                  int n_exp, int n_fix, 
                                                  double tau_min[], double tau_max[], 
                                                  int single_guess, double tau_guess[],
@@ -63,7 +63,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_irf, double t_irf[], doub
                                                  double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
                                                  double chi2[], int ierr[],
                                                  int n_thread, int runAsync, int (*callback)()) :
-   n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
+   global_algorithm(global_algorithm), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
    n_exp(n_exp), n_fix(n_fix), 
    tau_min(tau_min), tau_max(tau_max),
    single_guess(single_guess), tau_guess(tau_guess),
@@ -90,8 +90,6 @@ FLIMGlobalFitController::FLIMGlobalFitController(int n_irf, double t_irf[], doub
    use_FMM = false;
 
    data = NULL;
-
-   global_binning = true;
 
    //aux_n_regions = NULL;
    //aux_data = NULL;
@@ -165,8 +163,7 @@ void WorkerThread(void* wparams)
 
                controller->ProcessRegion(g,r,thread);
 
-               if (r == data->GetMaxRegion(g))
-                  controller->status->FinishedGroup(thread);
+               controller->status->FinishedRegion(thread);
             }
             if (controller->status->terminate)
                goto terminated;
@@ -338,8 +335,6 @@ void FLIMGlobalFitController::Init()
    int n_group = data->n_group;
    int n_px    = data->n_px;
 
-   status->SetNumGroup(n_group);
-
    int s_max;
 
    getting_fit = false;
@@ -440,6 +435,9 @@ void FLIMGlobalFitController::Init()
       grid_iter = 1;
    }
    grid_factor = 2;
+
+   status->SetNumRegion(data->n_regions_total);
+
 
    if (data->n_regions_total == 0)
    {

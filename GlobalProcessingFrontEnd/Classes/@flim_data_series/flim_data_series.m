@@ -27,7 +27,7 @@ classdef flim_data_series < handle
         t_min = 0;
         t_max = 0;
         thresh_min = 0;
-        thresh_max = 0;
+        gate_max = 2^16-1;
         t_irf_min = 0;
         t_irf_max = 0;
         irf_background = 0;
@@ -207,7 +207,11 @@ classdef flim_data_series < handle
             end
         end
         
-        
+        function reload_data(obj)
+            l = 1:obj.num_datasets;
+            obj.loaded(:) = false;
+            obj.load_selected_files(l);
+        end
         %===============================================================
         
         function data = get_roi(obj,roi_mask,dataset)
@@ -497,8 +501,8 @@ classdef flim_data_series < handle
             notify(obj,'masking_updated');
         end
         
-        function set.thresh_max(obj,thresh_max)
-           obj.thresh_max = thresh_max;
+        function set.gate_max(obj,gate_max)
+           obj.gate_max = gate_max;
            obj.compute_mask;
            notify(obj,'masking_updated');
         end
@@ -634,7 +638,7 @@ classdef flim_data_series < handle
             %> Compute mask based on thresholds and segmentation mask
             
             if obj.init
-                obj.thresh_mask = obj.intensity >= obj.thresh_min & obj.intensity <= obj.thresh_max;
+                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeeze(max(max(obj.cur_data,[],1),[],2)) <= obj.gate_max;
                 obj.mask = obj.thresh_mask;
 
                 v = obj.intensity(obj.mask);

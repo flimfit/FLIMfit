@@ -15,6 +15,8 @@ function setup_menu(obj)
     
     handles.menu_file_load_raw = uimenu(menu_file,'Label','Load Raw Data...');
     handles.menu_file_load_test = uimenu(menu_file,'Label','Load Test Data...');
+    handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
+    
     handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
     handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
     

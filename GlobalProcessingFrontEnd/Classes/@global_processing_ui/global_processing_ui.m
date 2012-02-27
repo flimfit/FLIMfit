@@ -103,7 +103,7 @@ classdef global_processing_ui
             handles.menu_controller = front_end_menu_controller(handles);
 
             set(obj.window,'Visible','on');
-            %set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
+            set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
             
             if wait
                 waitfor(obj.window);
@@ -113,13 +113,21 @@ classdef global_processing_ui
         
         function close_request_fcn(obj,src,evt)
            
-            global f_temp
-            if isempty(f_temp)
-                close(f_temp)
+            % Make sure we clean up all the left over classes
+            
+            handles = guidata(obj.window);
+            names = fieldnames(handles);
+           
+            for i=1:length(names)
+                if ishandle(handles.(names{i}))
+                    clear handles.(names{i});
+                end
             end
+            
             
             %clear handles;
             delete(obj.window);
+            
             
         end
         

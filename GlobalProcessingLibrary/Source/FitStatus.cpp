@@ -8,7 +8,7 @@ double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_par
 
 
 FitStatus::FitStatus(FLIMGlobalFitController* gc, int n_thread, int (*callback)()) : 
-   gc(gc), n_group(n_group), n_thread(n_thread), callback(callback), 
+   gc(gc), n_region(n_region), n_thread(n_thread), callback(callback), 
    threads_running(0), progress(0), terminate(0), has_fit(0), running(0)
 {
    group = new int[n_thread];
@@ -39,13 +39,13 @@ FitStatus::~FitStatus()
 }
 
 
-void FitStatus::SetNumGroup(int n_group)
+void FitStatus::SetNumRegion(int n_group)
 {
-   this->n_group = n_group;
+   this->n_region = n_group;
 }
 
 
-void FitStatus::FinishedGroup(int thread)
+void FitStatus::FinishedRegion(int thread)
 {
    n_completed[thread]++;
 }
@@ -69,13 +69,14 @@ int FitStatus::RemoveThread()
 
 void FitStatus::CalculateProgress()
 {
-   progress = 0;
+   double p = 0;
    for(int i=0; i<n_thread; i++)
    {
-      progress += n_completed[i]; 
+      p += n_completed[i]; 
    }
-   progress = progress / (double) n_group;
+   p = p / (double) n_region;
 
+   progress = p;
 }
 
 int FitStatus::UpdateStatus(int thread, int t_group, int t_iter, double t_chi2)
@@ -91,7 +92,7 @@ int FitStatus::UpdateStatus(int thread, int t_group, int t_iter, double t_chi2)
    {
       progress += n_completed[i]; 
    }
-   progress /= n_group;
+   progress /= (double) n_region;
 
    if (callback != 0)
    {

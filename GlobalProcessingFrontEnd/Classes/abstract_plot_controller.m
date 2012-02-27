@@ -184,7 +184,7 @@ classdef abstract_plot_controller < flim_fit_observer
                 obj.param_list = obj.fit_controller.fit_result.fit_param_list();
                 
                 if ~isempty(obj.param_popupmenu)    
-                    set(obj.param_popupmenu,'String',obj.param_list);
+                    set(obj.param_popupmenu,'String',['-',obj.param_list]);
                 end
                 
                 if get(obj.param_popupmenu,'Value') > length(obj.param_list)
@@ -198,8 +198,12 @@ classdef abstract_plot_controller < flim_fit_observer
         end
         
         function param_select_update(obj,~,~)
-            idx = get(obj.param_popupmenu,'Value');
-            obj.cur_param = obj.param_list{idx};
+            idx = get(obj.param_popupmenu,'Value')-1;
+            if idx == 0;
+                obj.cur_param = [];
+            else
+                obj.cur_param = obj.param_list{idx};
+            end
             
             obj.update_display();
         end

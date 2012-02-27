@@ -206,7 +206,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                alf, lin_params, &ierr_local_binning, &c2, &algorithm, alf_best );
    }
 
-   if (global_binning && s_thresh > 1)
+   if (global_algorithm == MODE_GLOBAL_BINNING && s_thresh > 1)
       itmax = 0;
 
    if (grid_search)
@@ -225,7 +225,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                alf, lin_params, &ierr_local, &c2, &algorithm, alf_best );
    }
 
-   if (global_binning && s_thresh > 1)
+   if (global_algorithm == MODE_GLOBAL_BINNING && s_thresh > 1)
       ierr[r_idx] = ierr_local_binning;
    else
       ierr[r_idx] = ierr_local;

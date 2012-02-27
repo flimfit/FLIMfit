@@ -24,7 +24,7 @@ classdef segmentation_controller < flim_data_series_observer
         copy_to_all_button;
         
         thresh_min_edit;
-        thresh_max_edit;
+        gate_max_edit;
         thresh_apply_button;
         
         

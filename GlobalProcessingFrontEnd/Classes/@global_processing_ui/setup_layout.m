@@ -83,7 +83,7 @@ function setup_layout(obj)
 
     set(fit_button_layout,'Sizes',[-1,-2]);
     
-    set(left_layout,'Sizes',[-1,140,280,30])
+    set(left_layout,'Sizes',[-1,140,200,30])
     
         
     set(top_layout,'Sizes',[550,-1]);

@@ -65,17 +65,17 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
         mapped_data = ind2rgb(data,cmap);
 
     end
-        
-    im(1)=image(mapped_data,'Parent',h);
-        
+    
+    im(1)=image(mapped_data,'Parent',h);    
     im(2)=image(cbar,'Parent',hc);
 
     set(h,'XTick',[],'YTick',[]);
     set(hc,'XTick',[],'YTick',[]);
  
+    set(h,'Units','pixels');
     pos=plotboxpos(h);
     
-    set(h,'Units','pixels');
+    
         
     
     ht1=text(pos(3), 2, num2str(lim(1)), 'Units','pixels','Parent',h,...
@@ -100,5 +100,6 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
     end
     
     set(h,'Units','normalized');
+    set(hc,'Units','normalized');
 
 end

@@ -17,7 +17,7 @@ class FitStatus
 public:
 
    int n_thread;
-   int n_group;
+   int n_region;
    double progress;
    int threads_running;
  
@@ -37,9 +37,9 @@ public:
    FitStatus(FLIMGlobalFitController* gc, int n_thread, int (*callback)());
    ~FitStatus();
 
-   void SetNumGroup(int n_group);
+   void SetNumRegion(int n_region);
    int UpdateStatus(int thread, int t_group, int t_iter, double t_chi2);
-   void FinishedGroup(int thread);
+   void FinishedRegion(int thread);
    void CalculateProgress();
    void Terminate();
    void AddThread();

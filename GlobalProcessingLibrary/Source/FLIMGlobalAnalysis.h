@@ -31,7 +31,7 @@ FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
 
 
-FITDLL_API int SetupGlobalFit(int c_idx,
+FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, 
                               int n_irf, double t_irf[], double irf[], double pulse_pileup,
                               int n_exp, int n_fix,  double tau_min[], double tau_max[], 
                               int single_guess, double tau_guess[],
@@ -50,7 +50,7 @@ FITDLL_API int SetupGlobalFit(int c_idx,
                               double chi2[], int ierr[],
                               int n_thread, int runAsync, int use_callback, int (*callback)());
 
-FITDLL_API int SetupGlobalPolarisationFit(int c_idx, 
+FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
                              int n_exp, int n_fix, 
                              double tau_min[], double tau_max[], 

@@ -161,7 +161,7 @@ public:
    conv_func Convolve;
    conv_deriv_func ConvolveDerivative;
 
-   FLIMGlobalFitController(int n_irf, double t_irf[], double irf[], double pulse_pileup,
+   FLIMGlobalFitController(int global_algorithm, int n_irf, double t_irf[], double irf[], double pulse_pileup,
                            int n_exp, int n_fix, 
                            double tau_min[], double tau_max[], 
                            int single_guess, double tau_guess[],
@@ -231,7 +231,7 @@ public:
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
-   int global_binning;
+   int global_algorithm;
    //double* aux_tau;
    //double* aux_data;
    //int* aux_n_regions;
