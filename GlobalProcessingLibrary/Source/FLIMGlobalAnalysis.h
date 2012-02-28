@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+typedef unsigned short uint16_t;
 
 FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
@@ -73,8 +74,9 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t,
                              int data_type, int *mask, int threshold, int limit, int global_mode, int smoothing_factor);
 
-FITDLL_API int SetData(int c_idx, double* data_file);
-FITDLL_API int SetDataFile(int c_idx, char* data_file);
+FITDLL_API int SetDataDouble(int c_idx, double* data);
+FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);
+FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_skip);
 
 FITDLL_API int SetBackgroundImage(int c_idx, double* background_image);
 FITDLL_API int SetBackgroundValue(int c_idx, double background_value);

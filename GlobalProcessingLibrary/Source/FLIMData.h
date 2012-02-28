@@ -3,6 +3,9 @@
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/cstdint.hpp>
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 
 #include "FlagDefinitions.h"
 
@@ -16,9 +19,8 @@
 #define BG_VALUE 1
 #define BG_IMAGE 2
 
-//using namespace boost::interprocess;
+using namespace boost;
 
-template <typename T>
 class FLIMData
 {
 
@@ -27,9 +29,11 @@ public:
    FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type,
             int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread);
 
-   void SetData(T data[]);
-   int  SetData(char* data_file);
+   void SetData(double data[]);
+   void SetData(uint16_t data[]);
+   int  SetData(char* data_file, int data_class, int data_skip);
 
+   template <typename T>
    void CalculateRegions();
 
    int GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data);
@@ -42,11 +46,7 @@ public:
    int GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data);
    int GetRegionIndex(int group, int region);
 
-   double* FLIMData::GetT();  
-
-   T* GetDataPointer(int thread, int im);
-
-   void TransformImage(int thread, int im);
+   double* GetT();  
 
    void SetBackground(double* background_image);
    void SetBackground(double background);
@@ -72,6 +72,8 @@ public:
    int max_region_size;
    int data_type;
 
+   int data_skip;
+
    int* mask;
 
    int* region_start;
@@ -88,7 +90,25 @@ public:
 
 private:
 
-   T* data;
+   void DetermineAutoSampling();
+
+   template <typename T>
+   T* GetDataPointer(int thread, int im);
+
+   template <typename T>
+   void TransformImage(int thread, int im);
+
+   template <typename T>
+   T* MemPointer() { return d_data; };
+
+   template <>
+   double* MemPointer<double>() { return d_data; };
+
+   template <>
+   uint16_t* MemPointer<uint16_t>() { return i_data; };
+
+   double* d_data;
+   uint16_t* i_data;
 
    double* tr_data;
    double* tr_buf;
@@ -121,219 +141,70 @@ private:
    int limit;
 
    int* cur_transformed;
+
+   double* average_data;
+
+   int data_class;
 };
 
-template <typename T>
-FLIMData<T>::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type, int mask[], 
-                   int threshold, int limit, int global_mode, int smoothing_factor, int n_thread) :
-   n_im(n_im), 
-   n_x(n_x),
-   n_y(n_y),
-   n_chan(n_chan),
-   n_t_full(n_t_full),
-   t(t),
-   n_t(n_t),
-   data_type(data_type),
-   mask(mask),
-   threshold(threshold),
-   limit(limit),
-   global_mode(global_mode),
-   smoothing_factor(smoothing_factor)
-{
-   has_data = false;
-
-   
-
-   if (mask == NULL)
-   {
-      this->mask = new int[n_im * n_x * n_y];
-      supplied_mask = false;
-      for(int i=0; i<n_im * n_x * n_y; i++)
-         this->mask[i] = 1;
-   }
-   else
-   {  
-      supplied_mask = true;
-   }
-
-
-   if (global_mode == MODE_PIXELWISE)
-   {
-      n_group = n_im * n_x * n_y;
-      n_px = 1;
-   }
-   else if (global_mode == MODE_IMAGEWISE)
-   {
-      n_group = n_im;
-      n_px = n_x * n_y;
-      n_thread = (n_thread > n_im) ? n_im : n_thread;
-   }
-   else
-   {
-      n_group = 1;
-      n_px = n_im * n_x * n_y;
-      n_thread = (n_thread > n_im) ? n_im : n_thread;
-   }
-
-   this->n_thread = n_thread;
-
-   n_meas = n_chan * n_t;
-   n_meas_full = n_chan * n_t_full;
-
-   background_value = 0;
-   background_type = BG_NONE;
-
-   if (n_thread < 1)
-      n_thread = 1;
-
-   n_p = n_x * n_y * n_meas;
-
-   this->t_skip = new int[n_chan];
-   if (t_skip == NULL)
-   {
-      for(int i=0; i<n_chan; i++)
-         this->t_skip[i] = 0;
-   }
-   else
-   {
-      for(int i=0; i<n_chan; i++)
-         this->t_skip[i] = t_skip[i];
-   }
-
-   tr_data = new double[ n_thread * n_p ]; 
-   tr_buf  = new double[ n_thread * n_x ];
-
-   region_start = new int[ n_group ];
-
-   data_map_view = new boost::interprocess::mapped_region[n_thread];
-
-   min_region = new int[n_im];
-   max_region = new int[n_im];
-
-   cur_transformed = new int[n_thread];
-
-   for (int i=0; i<n_thread; i++)
-      cur_transformed[i] = -1;
-
-   int dim_required = smoothing_factor*2 + 2;
-   if (n_x < dim_required || n_y < dim_required)
-      this->smoothing_factor = 0;
-
-     
-   resample_idx = new int[n_t];
-   n_t_res = 1;
-   
-
-   int i;
-   
-   for(i=0; i<(n_t-1); i++)
-   {
-      resample_idx[i] = 1;
-   }
-   resample_idx[n_t-1] = 0;
-   
-   /*
-   for (i=0; i<30; i++)
-   {
-      resample_idx[i] = 1;
-   }
-   for(i=i; i<n_t; i++)
-   {
-      resample_idx[i] = 0; //(i%2==0) ? 1 : 0;
-   }
-   */
-   
-   for(i=0; i<n_t; i++)
-      n_t_res += resample_idx[i];
-
-   n_meas_res = n_t_res * n_chan;
-
-}
 
 template <typename T>
-int FLIMData<T>::SetData(char* data_file)
+T* FLIMData::GetDataPointer(int thread, int im)
 {
+   using namespace boost::interprocess;
 
-   has_data = false;
+   std::size_t offset, buf_size;
 
-   data_mode = DATA_MAPPED;
-   
-   this->data_file = new char[ strlen(data_file) + 1 ];
-   strcpy(this->data_file,data_file);
+   int im_size = n_t_full * n_chan * n_x * n_y;
+
+   int data_size = sizeof(T);
+
+   T* data_ptr;
 
    try
    {
-      data_map_file = boost::interprocess::file_mapping(data_file,boost::interprocess::read_only);
+      if (data_mode == DATA_MAPPED)
+      {
+         buf_size = im_size * data_size;
+         offset   = im * im_size * data_size + data_skip;
+         
+         data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
+         data_ptr = (T*) data_map_view[thread].get_address();
+      }
+      else
+      {
+         data_ptr = MemPointer<T>() + im * im_size;
+      }
    }
    catch(std::exception& e)
    {
       e = e;
-      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
+      data_ptr = NULL;
    }
 
-   has_data = true;
-
-   CalculateRegions();
-
-   return 0;
-
+   return data_ptr;
 }
 
-template <typename T>
-void FLIMData<T>::SetData(T data[])
-{
-   this->data = data;
-   data_mode = DATA_DIRECT;
-   
-   CalculateRegions();
-   
-   has_data = true;
-}
+
 
 template <typename T>
-void FLIMData<T>::SetBackground(double* background_image)
-{
-   this->background_image = background_image;
-   this->background_type = BG_IMAGE;
-}
-
-template <typename T>
-void FLIMData<T>::SetBackground(double background)
-{
-   this->background_value = background;
-   this->background_type = BG_VALUE;
-}
-
-template <typename T>
-int FLIMData<T>::GetRegionIndex(int group, int region)
-{
-   if (global_mode == MODE_PIXELWISE)
-      return group;
-   else
-      return region_start[group]+region-1;
-}
-
-template <typename T>
-double* FLIMData<T>::GetT()
-{
-   return t + t_skip[0];
-}
-
-template <typename T>
-void FLIMData<T>::CalculateRegions()
+void FLIMData::CalculateRegions()
 {
 
    int* r_count = new int[MAX_REGION];
-
+   int average_count = 0;
    int n_ipx = n_x*n_y;
 
    n_regions_total = 0;
 
+   for(int j=0; j<n_meas_full; j++)
+      average_data[j] = 0;
+
    for(int i=0; i<n_im; i++)
    {
-      T* data_ptr = GetDataPointer(0, i);
+      T* data_ptr = GetDataPointer<T>(0, i);
       
-      #pragma omp parallel for
+      //#pragma omp parallel for
       for(int p=0; p<n_ipx; p++)
       {
          T* ptr = data_ptr + p*n_meas_full;
@@ -352,10 +223,23 @@ void FLIMData<T>::CalculateRegions()
             intensity -= background_value * n_meas_full;
          if (background_type == BG_IMAGE)
             intensity -= background_image[p] * n_meas_full;
+
          if (intensity < threshold)
             mask[i*n_ipx+p] = 0;
+
+         if (mask[i*n_ipx+p])
+         {
+            for(int j=0; j<n_meas_full; j++)
+               average_data[j] += data_ptr[p*n_meas_full+j];
+            average_count++;
+         }
        }
    }
+
+   for(int j=0; j<n_meas_full; j++)
+      average_data[j] /= average_count;
+
+   DetermineAutoSampling();
 
    region_start[0] = 0;
 
@@ -439,136 +323,13 @@ void FLIMData<T>::CalculateRegions()
 
 }
 
-template <typename T>
-int FLIMData<T>::GetMaxRegion(int group)
-{
-   if (global_mode == MODE_PIXELWISE)
-      return mask[group];
-   else
-      return max_region[group];
-}
 
 template <typename T>
-int FLIMData<T>::GetMinRegion(int group)
-{
-   if (global_mode == MODE_PIXELWISE)
-      if (mask[group] == 0)
-         return 1;
-      else
-         return mask[group];
-   else
-      return min_region[group];
-}
-
-template <typename T>
-int FLIMData<T>::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data)
-{
-   int s = 0;
-
-   if ( global_mode == MODE_PIXELWISE )
-   {
-      int im = group / (n_x*n_y);
-      int p = group - im*n_x*n_y;
-
-      if (im != cur_transformed[thread])
-         TransformImage(thread, im);
-
-      s = GetPixelData(thread, im, p, adjust, region_data);
-   }
-   else if ( global_mode == MODE_IMAGEWISE )
-   {
-      TransformImage(thread, group);
-      s = GetMaskedData(thread, group, region, adjust, region_data);
-   }
-   else
-   {
-      s = 0;
-      for(int i=0; i<n_im; i++)
-      {
-         TransformImage(thread, i);
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas_res);
-      }
-   }
-   
-   if ( mean_region_data != NULL )
-   {
-      memset(mean_region_data,0, n_meas * sizeof(double));
-
-      for(int i=0; i<s; i++)
-         for(int j=0; j<n_meas; j++)
-            mean_region_data[j] += region_data[i*n_meas + j];
-      
-      for(int j=0; j<n_meas; j++)
-         mean_region_data[j] /= s;
-   }
-
-   return s;
-}
-
-template <typename T>
-int FLIMData<T>::GetPixelData(int thread, int im, int p, double* adjust, double* masked_data)
-{
-   double* tr_data = this->tr_data + thread * n_p;
-
-   int s = 0;
-   int idx = 0;
-   if (mask[im*n_x*n_y+p])
-   {
-      for(int j=0; j<n_meas_res; j++)
-         masked_data[j] = 0;
-
-      for(int k=0; k<n_chan; k++)
-      {
-         for(int i=0; i<n_t; i++)
-         {
-            masked_data[idx] += tr_data[p*n_meas + k*n_t + i] - adjust[i];
-            idx += resample_idx[i];
-         }
-         idx++;
-      }
-      s = 1;  
-   }
-
-   return s;
-}
-
-template <typename T>
-int FLIMData<T>::GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data)
-{
-
-   int* im_mask = mask + im*n_x*n_y;
-   double* tr_data = this->tr_data + thread * n_p;
-   int idx = 0;
-
-   // Store masked values
-   int s = 0;
-   for(int p=0; p<n_x*n_y; p++)
-   {
-      if (im_mask[p] == region)
-      {
-         memset(masked_data+idx,0,n_meas_res*sizeof(double));
-         for(int k=0; k<n_chan; k++)
-         {
-            for(int i=0; i<n_t; i++)
-            {
-               masked_data[idx] += tr_data[p*n_meas + k*n_t + i] - adjust[k*n_t+i];
-               idx += resample_idx[i];
-            }
-            idx++;
-         }
-         s++;
-      }
-   }
-
-   return s;
-}
-
-template <typename T>
-void FLIMData<T>::TransformImage(int thread, int im)
+void FLIMData::TransformImage(int thread, int im)
 {
    int idx, tr_idx;
 
-   double* data_ptr = GetDataPointer(thread, im);
+   T* data_ptr = GetDataPointer<T>(thread, im);
 
    double* tr_data = this->tr_data + thread * n_p;
    double* tr_buf  = this->tr_buf  + thread * n_x;
@@ -582,7 +343,8 @@ void FLIMData<T>::TransformImage(int thread, int im)
          for(int x=0; x<n_x; x++)
             for(int c=0; c<n_chan; c++)
             {
-               memcpy(tr_ptr, data_ptr+t_skip[c], n_t*sizeof(double));
+               for(int i=0; i<n_t; i++)
+                  tr_ptr[i] = data_ptr[t_skip[c]+i];
                data_ptr += n_t_full;
                tr_ptr += n_t;
             }
@@ -686,65 +448,6 @@ void FLIMData<T>::TransformImage(int thread, int im)
 
 }
 
-template <typename T>
-T* FLIMData<T>::GetDataPointer(int thread, int im)
-{
-   using namespace boost::interprocess;
-
-   std::size_t offset, buf_size;
-
-   int im_size = n_t_full * n_chan * n_x * n_y;
-
-   T *data_ptr;
-
-   try
-   {
-      if (data_mode == DATA_MAPPED)
-      {
-         buf_size = im_size * sizeof(T);
-         offset   = im * im_size * sizeof(T);
-         
-         data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
-         data_ptr = (T*) data_map_view[thread].get_address();
-      }
-      else
-      {
-         data_ptr = this->data + im * im_size;
-      }
-   }
-   catch(std::exception& e)
-   {
-      e = e;
-      data_ptr = NULL;
-   }
-
-   return data_ptr;
-}
-
-template <typename T>
-void FLIMData<T>::ClearMapping()
-{
-   for(int i=0; i<n_thread; i++)
-      data_map_view[i] = boost::interprocess::mapped_region();
-}
-
-template <typename T>
-FLIMData<T>::~FLIMData()
-{
-   delete[] tr_data;
-   delete[] tr_buf;
-   delete[] cur_transformed;
-   delete[] resample_idx;
-   delete[] data_map_view;
-
-   if (!supplied_mask) 
-      delete[] mask;
-
-   delete[] max_region;
-   delete[] min_region;
-   delete[] t_skip;
-}
 
 
 #endif
-

@@ -242,25 +242,21 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
 }
 
 
-FITDLL_API int SetData(int c_idx, double* data)
+FITDLL_API int SetDataDouble(int c_idx, double* data)
 {
-//   int valid = ValidControllerIdx(c_idx);
-//   if (!valid)
-//      return -1; 
-
-   controller[c_idx]->data->SetData(data);
-   
+   controller[c_idx]->data->SetData(data);   
    return 0;
 }
 
-FITDLL_API int SetDataFile(int c_idx, char* data_file)
+FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data)
 {
-//   int valid = ValidControllerIdx(c_idx);
-//   if (!valid)
-//      return -1;
+   controller[c_idx]->data->SetData(data);   
+   return 0;
+}
 
-   return controller[c_idx]->data->SetData(data_file);
-
+FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_skip)
+{
+   return controller[c_idx]->data->SetData(data_file, data_class, data_skip);
 }
 
 
@@ -274,7 +270,7 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 
    int n_thread = controller[c_idx]->n_thread;
 
-   FLIMData<double>* d = new FLIMData<double>(n_im, n_x, n_y, n_chan, n_t_full, t, t_skip, n_t, data_type, mask, 
+   FLIMData* d = new FLIMData(n_im, n_x, n_y, n_chan, n_t_full, t, t_skip, n_t, data_type, mask, 
                               threshold, limit, global_mode, smoothing_factor, n_thread);
    
    controller[c_idx]->SetData(d);

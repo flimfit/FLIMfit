@@ -159,9 +159,14 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end
     
     if d.use_memory_mapping && ~obj.bin
-        calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name);
+        if d.raw
+            data_class = 1; % uint16
+        else
+            data_class = 0; % double
+        end
+        calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name,data_class,d.mapfile_offset);
     else
-        calllib(obj.lib_name,'SetData',obj.dll_id,obj.p_data);
+        calllib(obj.lib_name,'SetDataDouble',obj.dll_id,obj.p_data);
     end
 
     calllib(obj.lib_name,'StartFit',obj.dll_id);

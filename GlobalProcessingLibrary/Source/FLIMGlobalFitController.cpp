@@ -142,7 +142,7 @@ void WorkerThread(void* wparams)
    {
       WorkerParams* p = (WorkerParams*) wparams;
       FLIMGlobalFitController* controller = p->controller;
-      FLIMData<double>* data = controller->data;
+      FLIMData* data = controller->data;
       int thread = p->thread;
 
       int idx = 0;
@@ -181,7 +181,7 @@ void WorkerThread(void* wparams)
       }
 
    }
-   catch(exception e)
+   catch(std::exception e)
    {
       e = e;
 
@@ -189,7 +189,7 @@ void WorkerThread(void* wparams)
    return;
 }
 
-void FLIMGlobalFitController::SetData(FLIMData<double>* data)
+void FLIMGlobalFitController::SetData(FLIMData* data)
 {
    this->data = data;
 

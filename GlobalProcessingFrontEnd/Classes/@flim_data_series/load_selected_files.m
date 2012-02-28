@@ -90,7 +90,7 @@ function load_selected_files(obj,selected)
             
         end
     else
-        obj.init_memory_mapping(obj.data_size(1:4), num_sel);
+        obj.init_memory_mapping(obj.data_size(1:4), num_sel, obj.mapfile_name);
     end
         
             

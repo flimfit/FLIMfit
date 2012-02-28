@@ -134,6 +134,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 
                 ylabel(ax,latex_param);
                 xlabel(ax,obj.ind_param);
+  
             end
             
         end

@@ -7,6 +7,9 @@
 #define MODE_GLOBAL_ANALYSIS 0
 #define MODE_GLOBAL_BINNING  1
 
+#define DATA_DOUBLE 0
+#define DATA_UINT16 1
+
 
 #define MAX_CONTROLLER_IDX 255
 

@@ -5,6 +5,7 @@
 #include <limits>
 
 #include "FLIMGlobalFitController.h"
+#include "FLIMData.h"
 #include "IRFConvolution.h"
 
 

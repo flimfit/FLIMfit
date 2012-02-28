@@ -76,7 +76,7 @@ public:
    int n_thread; int (*callback)();
    int error;
 
-   FLIMData<double>* data;
+   FLIMData* data;
 
    tthread::thread **thread_handle;
 
@@ -182,7 +182,7 @@ public:
    void SetData(double data[], int data_type);
    int SetData(char* data_file, int data_type);
 
-   void SetData(FLIMData<double>* data);
+   void SetData(FLIMData* data);
 
    void SetChi2MapMode(int grid_size, double grid[]);
    void SetPolarisationMode(int mode);

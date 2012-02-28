@@ -267,7 +267,8 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                 end
                 end
 
-                dragzoom([obj.highlight_axes obj.residuals_axes]);
+                dragzoom([obj.highlight_axes],'on');
+                dragzoom([obj.residuals_axes],'on');
 
 
                 hold(obj.highlight_axes,'off');
