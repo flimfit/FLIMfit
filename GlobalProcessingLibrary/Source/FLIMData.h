@@ -46,6 +46,10 @@ public:
    int GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data);
    int GetRegionIndex(int group, int region);
 
+   void SetExternalResampleIdx(int ext_n_meas_res, int* ext_resample_idx);
+   int* GetResampleIdx(int thread);
+   int GetResampleNumMeas(int thread);
+
    double* GetT();  
 
    void SetBackground(double* background_image);
@@ -60,10 +64,9 @@ public:
    int n_x;
    int n_y;
    int n_t;
-   int n_t_res;
+
    int n_chan;
    int n_meas;
-   int n_meas_res;
 
    int n_group; 
    int n_px; 
@@ -86,11 +89,9 @@ public:
 
    double* t;
 
-   int* resample_idx;
-
 private:
 
-   void DetermineAutoSampling();
+   void DetermineAutoSampling(int thread, double decay[]);
 
    template <typename T>
    T* GetDataPointer(int thread, int im);
@@ -145,6 +146,14 @@ private:
    double* average_data;
 
    int data_class;
+
+   int* resample_idx;
+   //int* n_t_res;
+   int* n_meas_res;
+
+   bool use_ext_resample_idx;
+   int* ext_resample_idx;
+   int ext_n_meas_res;
 };
 
 
@@ -239,7 +248,8 @@ void FLIMData::CalculateRegions()
    for(int j=0; j<n_meas_full; j++)
       average_data[j] /= average_count;
 
-   DetermineAutoSampling();
+   for(int j=0; j<n_thread; j++)
+      DetermineAutoSampling(j,average_data);
 
    region_start[0] = 0;
 

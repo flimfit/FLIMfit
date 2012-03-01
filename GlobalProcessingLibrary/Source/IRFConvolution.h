@@ -21,7 +21,7 @@ void conv_irf_ref(FLIMGlobalFitController *gc, int n_t, double t[], double exp_b
 void conv_irf_diff_ref(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int dim, double b[], int inc_tau = 1);
 
 
-void sample_irf(FLIMGlobalFitController *gc, double a[], int pol_group = 0, double* scale_fact = 0);
+void sample_irf(int thread, FLIMGlobalFitController *gc, double a[], int pol_group = 0, double* scale_fact = 0);
 
 void alf2beta(int n, double alf[], double beta[]);
 double beta_derv(int n_beta, int alf_idx, int beta_idx, double alf[]);

@@ -112,6 +112,8 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
             
    double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
+   int* resample_idx = data->GetResampleIdx(thread);
+
    fact *= ref_reconvolution && ref_lifetime > 0 ? 1/ref_lifetime - rate : 1;
 
    int idx = 0;
@@ -139,10 +141,13 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    double* exp_irf_tirf_buf      = local_exp_buf + (row+2)*exp_dim;
    double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
    double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
+   
+   int* resample_idx = data->GetResampleIdx(thread);
             
    double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
    double ref_fact = ref_reconvolution ? (1/ref_lifetime - rate) : 1;
+
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
@@ -157,8 +162,10 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    }
 }
 
-void FLIMGlobalFitController::add_irf(double a[],int pol_group, double* scale_fact)
+void FLIMGlobalFitController::add_irf(int thread, double a[],int pol_group, double* scale_fact)
 {
+   int* resample_idx = data->GetResampleIdx(thread);
+
    int idx = 0;
    for(int k=0; k<n_chan; k++)
    {
@@ -174,6 +181,8 @@ void FLIMGlobalFitController::add_irf(double a[],int pol_group, double* scale_fa
 
 int FLIMGlobalFitController::flim_model(int thread, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[])
 {
+   int n_meas_res = data->GetResampleNumMeas(thread);
+
    double fact;
   
    int j_start = (include_fixed || beta_global) ? 0 : n_fix;
@@ -204,7 +213,7 @@ int FLIMGlobalFitController::flim_model(int thread, double tau[], double beta[],
                memset(a+idx, 0, n_meas_res*sizeof(double)); 
 
             if (ref_reconvolution && (!beta_global || j==0))
-               add_irf(a+idx, p);
+               add_irf(thread, a+idx, p);
 
             fact = beta_global       ? beta[j]    : 1;
 
@@ -224,6 +233,8 @@ int FLIMGlobalFitController::flim_model(int thread, double tau[], double beta[],
 
 int FLIMGlobalFitController::ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
+   int n_meas_res = data->GetResampleNumMeas(thread);
+
    double fact;
   
    int n_col = n_pol_group * (beta_global ? 1 : n_exp);
@@ -303,6 +314,8 @@ int FLIMGlobalFitController::FMM_derivatives(int thread, double tau[], double be
 
 int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
+   int n_meas_res = data->GetResampleNumMeas(thread);
+
    double fact;
 
    int col = 0;
@@ -350,6 +363,8 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
 
 int FLIMGlobalFitController::beta_derivatives(int thread, double tau[], double alf[], double theta[], double ref_lifetime, double b[])
 {
+   int n_meas_res = data->GetResampleNumMeas(thread);
+   
    double fact;
   
    int col = 0;
@@ -380,6 +395,8 @@ int FLIMGlobalFitController::beta_derivatives(int thread, double tau[], double a
 
 int FLIMGlobalFitController::theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
+   int n_meas_res = data->GetResampleNumMeas(thread);
+   
    double fact;
 
    int col = 0;
@@ -405,6 +422,8 @@ int FLIMGlobalFitController::theta_derivatives(int thread, double tau[], double 
 
 int FLIMGlobalFitController::E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
+   int n_meas_res = data->GetResampleNumMeas(thread);
+   
    double fact;
    
    int col = 0;

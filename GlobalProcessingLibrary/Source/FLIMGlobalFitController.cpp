@@ -450,14 +450,6 @@ void FLIMGlobalFitController::Init()
    //---------------------------------------
    n_thread = min(n_thread,data->n_regions_total);
   
-   
-   resample_idx = data->resample_idx;
-   n_t_res = 1;
-   for (int i=0; i<n_t; i++)
-      if (resample_idx[i])
-         n_t_res++;
-
-   n_meas_res = n_t_res * n_chan;
 
    // Store copies of the mask, irf and regions so that we can use them after the fit
    // to get the fitted decays even if the user has removed the memory. These will 
@@ -823,34 +815,18 @@ void FLIMGlobalFitController::SetGlobalVariables()
 {       
 }
 
-/*
-int FLIMGlobalFitController::GetNumGroups()
-{
-   return n_group;
-}
-*/
-
 int FLIMGlobalFitController::GetNumThreads()
 {
    return n_thread;
 }
 
-/*
-int FLIMGlobalFitController::GetNumRegions(int g)
-{
-   if (g<n_group) 
-      return n_regions_buf[g];
-   else
-      return 0;
-}
-*/
 
 int FLIMGlobalFitController::GetErrorCode()
 {
    return error;
 }
 
-void FLIMGlobalFitController::SetupAdjust(double adjust[], double scatter_adj, double offset_adj, double tvb_adj)
+void FLIMGlobalFitController::SetupAdjust(int thread, double adjust[], double scatter_adj, double offset_adj, double tvb_adj)
 {
    double scale_fact[2];
    scale_fact[0] = 1;
@@ -859,7 +835,7 @@ void FLIMGlobalFitController::SetupAdjust(double adjust[], double scatter_adj, d
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
 
-   sample_irf(this, adjust, n_r, scale_fact);
+   sample_irf(thread, this, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + tvb_profile_buf[i] * tvb_adj + offset_adj;
@@ -867,7 +843,7 @@ void FLIMGlobalFitController::SetupAdjust(double adjust[], double scatter_adj, d
 
 
 
-double FLIMGlobalFitController::CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[])
+double FLIMGlobalFitController::CalculateChi2(int thread, int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[])
 {
    int i,j;
    // calcuate chi2
@@ -877,6 +853,8 @@ double FLIMGlobalFitController::CalculateChi2(int region, int s_thresh, double y
 
    int n_group = data->n_group;
    int n_px    = data->n_px;
+
+   int n_meas_res = data->GetResampleNumMeas(thread);
 
    for(i=0; i<n_px; i++)
    {
@@ -964,7 +942,7 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
             t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*)this, &params.thread, static_store, 
             alf_err, lin_params_err, &nierr, &c2, &algorithm, alf_best );
 
-   c2 = CalculateChi2(params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask, NULL);
+   c2 = CalculateChi2(params.thread, params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask, NULL);
 
    F = (c2-params.chi2)/params.chi2*(n_meas * params.s_thresh - nl - params.s_thresh * l);
   
@@ -980,6 +958,7 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
 int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n_fit, int fit_mask[], int n_t, double t[], double fit[])
 {
    int i, px_thresh, idx, r_idx, group, process_group;
+
 
    // Set default values for regions lying outside of mask
    unsigned long nan_l[2]={0xffffffff, 0x7fffffff};
@@ -1005,21 +984,23 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
    irf_max = new int[ n_meas ];
    resampled_irf = new double[ n_meas ];
 
-   resample_idx = new int[n_t];
+   int* resample_idx = new int[ n_t ];
 
    for(int i=0; i<n_t-1; i++)
       resample_idx[i] = 1;
    resample_idx[n_t-1] = 0;
-   n_t_res = n_t;
-   n_meas_res = n_meas;
+
+   data->SetExternalResampleIdx(n_t, resample_idx);
+
+
 
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
 
    double *adjust = new double[n_meas];
-   SetupAdjust(adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
-                       (fit_offset == FIX)  ? offset_guess  : 0, 
-                       (fit_tvb == FIX )    ? tvb_guess     : 0);
+   SetupAdjust(0, adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
+                          (fit_offset == FIX)  ? offset_guess  : 0, 
+                          (fit_tvb == FIX )    ? tvb_guess     : 0);
 
    
    int s = 1;

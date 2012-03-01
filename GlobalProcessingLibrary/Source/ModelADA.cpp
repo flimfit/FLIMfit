@@ -138,6 +138,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
    total_n_exp = gc->n_exp * gc->n_decay_group;
         
+
+   int* resample_idx = gc->data->GetResampleIdx(*thread);
       
    switch(*isel)
    {
@@ -287,7 +289,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                for(i=0; i<gc->n_t; i++)
                {
                   a[idx+N*a_col] += 1;
-                  idx += gc->resample_idx[i];
+                  idx += resample_idx[i];
                }
                idx++;
             }
@@ -297,7 +299,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // set constant phi value for scatterer
          if( gc->fit_scatter == FIT_LOCALLY )
          {
-            sample_irf(gc, a+N*a_col,gc->n_r,scale_fact);
+            sample_irf(*thread, gc, a+N*a_col,gc->n_r,scale_fact);
             a_col++;
          }
 
@@ -312,7 +314,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                for(i=0; i<gc->n_t; i++)
                {
                   a[idx+N*a_col] += gc->tvb_profile_buf[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
-                  idx += gc->resample_idx[i];
+                  idx += resample_idx[i];
                }
                idx++;
             }
@@ -410,7 +412,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // Add scatter
          if (gc->fit_scatter == FIT_GLOBALLY)
          {
-            sample_irf(gc, a+N*a_col,gc->n_r,scale_fact);
+            sample_irf(*thread, gc, a+N*a_col,gc->n_r,scale_fact);
             for(i=0; i<N; i++)
                a[ i + N*a_col ] = a[ i + N*a_col ] * alf[gc->alf_scatter_idx];
          }
@@ -424,7 +426,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                for(i=0; i<gc->n_t; i++)
                {
                   a[idx+N*a_col] += gc->tvb_profile_buf[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
-                  idx += gc->resample_idx[i];
+                  idx += resample_idx[i];
                }
                idx++;
             }
@@ -450,7 +452,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                for(i=0; i<gc->n_t; i++)
                {
                   a[idx+N*a_col] += alf[gc->alf_offset_idx];
-                  idx += gc->resample_idx[i];
+                  idx += resample_idx[i];
                }
                idx++;
             }
@@ -543,7 +545,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                for(i=0; i<gc->n_t; i++)
                {
                   b[d_offset + idx] += 1;
-                  idx += gc->resample_idx[i];
+                  idx += resample_idx[i];
                }
                idx++;
             }
@@ -555,7 +557,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          {
             for(i=0; i<N; i++)
                b[d_offset+i]=0;
-            sample_irf(gc, b+d_offset,gc->n_r,scale_fact);
+            sample_irf(*thread, gc, b+d_offset,gc->n_r,scale_fact);
             d_offset += Ndim;
          }
 
@@ -570,7 +572,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                for(i=0; i<gc->n_t; i++)
                {
                   b[ d_offset + idx ] += gc->tvb_profile_buf[k*gc->n_t+i];
-                  idx += gc->resample_idx[i];
+                  idx += resample_idx[i];
                }
                idx++;
             }

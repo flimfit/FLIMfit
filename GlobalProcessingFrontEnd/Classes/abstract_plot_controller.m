@@ -243,7 +243,7 @@ classdef abstract_plot_controller < flim_fit_observer
             if strcmp(param,'I0')
                 cscale = @hot;
             elseif ~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta'))
-                cscale = @jet;
+                cscale = @inv_jet;
             else
                 cscale = @jet;
             end

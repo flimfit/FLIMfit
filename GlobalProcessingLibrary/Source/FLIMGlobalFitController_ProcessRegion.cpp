@@ -159,9 +159,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    for(i=0; i<n_meas; i++)
       count_buf[i] = 0;
 
-   SetupAdjust(adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
-                           (fit_offset == FIX)  ? offset_guess  : 0, 
-                           (fit_tvb == FIX)     ? tvb_guess     : 0);
+   SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
+                                   (fit_offset == FIX)  ? offset_guess  : 0, 
+                                   (fit_tvb == FIX)     ? tvb_guess     : 0);
 
    s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y+n_meas, y);
 
@@ -194,6 +194,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int ierr_local = 0;
    
    int s1 = 1;
+
+   int n_meas_res = data->GetResampleNumMeas(thread);
 
    if (s_thresh > 1)
    {
@@ -234,7 +236,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
       if (chi2 != NULL)
       {
-         c2 = CalculateChi2(region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask, chi2+g*n_px);
+         c2 = CalculateChi2(thread, region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask, chi2+g*n_px);
 
          // calculate errors
          if (calculate_errs)

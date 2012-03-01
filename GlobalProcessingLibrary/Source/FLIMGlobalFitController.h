@@ -107,7 +107,7 @@ public:
    double *resampled_irf;
 
    
-   int* resample_idx;
+   //int* resample_idx;
 
    int max_dim, exp_dim;
 
@@ -198,7 +198,7 @@ public:
    int  GetErrorCode();
    void SetGlobalVariables();
    int  ProcessRegion(int g, int r, int thread);
-   void SetupAdjust(double adjust[], double scatter_adj, double offset_adj, double tvb_adj);
+   void SetupAdjust(int thread, double adjust[], double scatter_adj, double offset_adj, double tvb_adj);
 
    int GetFit(int ret_group_start, int n_ret_groups, int n_fit, int fit_mask[], int n_t, double t[], double fit[]);
 
@@ -217,7 +217,7 @@ public:
 
    void add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    void add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
-   void add_irf(double a[],int pol_group, double* scale_fact = NULL);
+   void add_irf(int thread, double a[],int pol_group, double* scale_fact = NULL);
 
    int flim_model(int thread, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
    int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
@@ -233,10 +233,10 @@ private:
    void CalculateIRFMax(int n_t, double t[]);
    void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
-   double CalculateChi2(int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[]);
+   double CalculateChi2(int thread, int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[]);
 
-   int n_t_res;
-   int n_meas_res;
+   //int n_t_res;
+   //int n_meas_res;
 
 
 };

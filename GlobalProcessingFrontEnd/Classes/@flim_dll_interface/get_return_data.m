@@ -230,9 +230,9 @@ function get_return_data(obj)
         clear obj.p_ref_lifetime_err ref_lifetime_err;
     end
     
-    if ~isempty(mask)   
-        f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
-    end
+    %if ~isempty(mask)   
+    %    f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
+    %end
     
     if obj.fit_params.global_fitting == 0
         ierr = reshape(obj.p_ierr.Value,obj.I0_size);
