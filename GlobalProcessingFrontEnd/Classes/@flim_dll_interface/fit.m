@@ -89,6 +89,8 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
             
     end
     
+    datasets = datasets & (d.use)';
+     
     sel = 1:d.num_datasets;
     
     if obj.bin
@@ -111,8 +113,12 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
     if d.lazy_loading
         d.load_selected_files(sel);
+        use = ones(size(sel));
+    else
+        use = datasets;
     end    
-        
+            
+    
     loaded_datasets = d.loaded & datasets;
     n_datasets = sum(datasets);
     
@@ -255,7 +261,8 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.gamma_size = [n_decay_group sz];
     obj.E_size = [p.n_fret sz];
     
-
+    obj.p_use = libpointer('int32Ptr',use);
+    
     obj.p_tau_guess = libpointer('doublePtr',p.tau_guess);
     obj.p_tau_min = libpointer('doublePtr',p.tau_min);
     obj.p_tau_max = libpointer('doublePtr',p.tau_max);

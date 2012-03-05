@@ -54,6 +54,7 @@ classdef flim_dll_interface < handle
         p_fixed_beta;
         p_grid;
         p_gamma;
+        p_use;
         
         p_background;
         p_tau_err;

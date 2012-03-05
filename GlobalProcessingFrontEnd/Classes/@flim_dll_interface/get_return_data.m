@@ -14,10 +14,11 @@ function get_return_data(obj)
         %for i=1:length(datasets)
         %    datasets(i) = sum(obj.data_series.use(1:datasets(i)));
         %end
-        %mask = double(obj.data_series.mask);
-        %flt = obj.data_series.use(obj.data_series.loaded);
-        %mask = mask(:,:,flt);
         mask = obj.data_series.seg_mask;
+        if ~isempty(mask)
+            flt = obj.data_series.use(obj.data_series.loaded);
+            mask = mask(:,:,flt);
+        end
     end
     
     

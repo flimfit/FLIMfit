@@ -193,12 +193,13 @@ classdef flim_fit_result < handle
         
         function img = get_image(obj,dataset,param)
            
+            img = nan;
+            
             if dataset > length(obj.names) || dataset < 1
-                img = nan;
                 return;
             end
             
-            if ~obj.use_memory_mapping
+            if ~obj.use_memory_mapping && isfield(obj.images{dataset},param)
                 img = obj.images{dataset}.(param);
             else
                
@@ -207,10 +208,10 @@ classdef flim_fit_result < handle
                     try 
                         img = h5read(obj.file,path);
                     catch e %#ok
-                        img = [];
+                        img = nan;
                     end
                 else
-                    img = [];
+                    img = nan;
                 end
             end
             

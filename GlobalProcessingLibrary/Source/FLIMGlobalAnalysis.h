@@ -72,7 +72,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
                              int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t,
-                             int data_type, int *mask, int threshold, int limit, int global_mode, int smoothing_factor);
+                             int data_type, int* use_im, int *mask, int threshold, int limit, int global_mode, int smoothing_factor);
 
 FITDLL_API int SetDataDouble(int c_idx, double* data);
 FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);

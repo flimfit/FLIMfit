@@ -72,10 +72,13 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
 
             if ~strcmp(param,'-')
                 
-                if n_im>0 && (cols ~= obj.cols || rows ~= obj.rows)
-                    [obj.axes_handles,obj.colorbar_handles] = tight_subplot(f,n_im,rows,cols,save,[d.width d.height],5,5);
+                if save || (n_im>0 && (cols ~= obj.cols || rows ~= obj.rows))
+                    [ax_h,cb_h] = tight_subplot(f,n_im,rows,cols,save,[d.width d.height],5,5);
                     obj.cols = cols;
                     obj.rows = rows;
+                else
+                    ax_h = obj.axes_handles;
+                    cb_h = obj.colorbar_handles;
                 end
 
                 if isempty(overlay);
@@ -98,7 +101,12 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                         text = '';
                     end
 
-                    obj.plot_figure(obj.axes_handles(i),obj.colorbar_handles(i),i,param,merge,text);
+                    obj.plot_figure(ax_h(i),cb_h(i),i,param,merge,text);
+                    
+                    if ~save
+                        obj.axes_handles = ax_h;
+                        obj.colorbar_handles = cb_h;
+                    end
                 end
 
             end

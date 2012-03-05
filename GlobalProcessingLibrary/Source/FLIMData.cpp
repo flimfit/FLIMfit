@@ -1,7 +1,7 @@
 #include "FLIMData.h"
 
-FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type, int mask[], 
-                   int threshold, int limit, int global_mode, int smoothing_factor, int n_thread) :
+FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type, 
+                   int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread) :
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
@@ -10,6 +10,7 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    t(t),
    n_t(n_t),
    data_type(data_type),
+   use_im(use_im),
    mask(mask),
    threshold(threshold),
    limit(limit),
@@ -32,23 +33,39 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
       supplied_mask = true;
    }
 
+   n_im_used = 0;
+   if (use_im != NULL)
+   {
+      for(int i=0; i<n_im; i++)
+      {
+         if (use_im[i])
+         {
+            use_im[n_im_used] = i;
+            n_im_used++;
+         }
+      }
+   }
+   else
+   {
+      n_im_used = n_im;
+   }
 
    if (global_mode == MODE_PIXELWISE)
    {
-      n_group = n_im * n_x * n_y;
+      n_group = n_im_used * n_x * n_y;
       n_px = 1;
    }
    else if (global_mode == MODE_IMAGEWISE)
    {
-      n_group = n_im;
+      n_group = n_im_used;
       n_px = n_x * n_y;
-      n_thread = (n_thread > n_im) ? n_im : n_thread;
+      n_thread = (n_thread > n_im_used) ? n_im_used : n_thread;
    }
    else
    {
       n_group = 1;
-      n_px = n_im * n_x * n_y;
-      n_thread = (n_thread > n_im) ? n_im : n_thread;
+      n_px = n_im_used * n_x * n_y;
+      n_thread = (n_thread > n_im_used) ? n_im_used : n_thread;
    }
 
    this->n_thread = n_thread;
@@ -83,8 +100,8 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 
    data_map_view = new boost::interprocess::mapped_region[n_thread];
 
-   min_region = new int[n_im];
-   max_region = new int[n_im];
+   min_region = new int[n_im_used];
+   max_region = new int[n_im_used];
 
    cur_transformed = new int[n_thread];
 
@@ -225,7 +242,10 @@ int FLIMData::GetResampleNumMeas(int thread)
 
 void FLIMData::DetermineAutoSampling(int thread, double decay[])
 {
-   //return;
+
+   if (n_t < 100)
+      return;
+
    int* resample_idx = this->resample_idx + n_t * thread;
 
    int min_bin = 10.0 / ((smoothing_factor+1)*(smoothing_factor+1));
@@ -310,7 +330,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
    else
    {
       s = 0;
-      for(int i=0; i<n_im; i++)
+      for(int i=0; i<n_im_used; i++)
       {
          transform_fcn(i);
          s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas_res[thread]);
@@ -337,6 +357,9 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
 {
    double* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = this->resample_idx + thread * n_t; 
+
+   if (use_im != NULL)
+      im = use_im[im];
 
    if (mask[im*n_x*n_y+p]==0)
    {
@@ -379,6 +402,9 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
 
 int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data)
 {
+
+   if (use_im != NULL)
+      im = use_im[im];
 
    int* im_mask = mask + im*n_x*n_y;
    double* tr_data = this->tr_data + thread * n_p;

@@ -147,7 +147,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, t_skip, length(d.tr_t),...
-            p.data_type, obj.p_mask, d.thresh_min, d.gate_max, p.global_fitting, d.binning);
+            p.data_type, obj.p_use, obj.p_mask, d.thresh_min, d.gate_max, p.global_fitting, d.binning);
  
     if ~obj.bin
         if d.background_type == 1

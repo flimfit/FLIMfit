@@ -11,7 +11,6 @@ if(Boost_FOUND)
 endif()
 include_directories( "../Boost" )
 
-
 # enable openmp support in xcode
 #===================================================
 if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")

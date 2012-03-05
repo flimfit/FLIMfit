@@ -27,7 +27,7 @@ class FLIMData
 public:
 
    FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type,
-            int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread);
+            int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread);
 
    void SetData(double data[]);
    void SetData(uint16_t data[]);
@@ -154,6 +154,9 @@ private:
    bool use_ext_resample_idx;
    int* ext_resample_idx;
    int ext_n_meas_res;
+
+   int* use_im;
+   int n_im_used;
 };
 
 
@@ -162,6 +165,8 @@ T* FLIMData::GetDataPointer(int thread, int im)
 {
    using namespace boost::interprocess;
 
+   if (use_im != NULL)
+      im = use_im[im];
    std::size_t offset, buf_size;
 
    int im_size = n_t_full * n_chan * n_x * n_y;
@@ -209,7 +214,7 @@ void FLIMData::CalculateRegions()
    for(int j=0; j<n_meas_full; j++)
       average_data[j] = 0;
 
-   for(int i=0; i<n_im; i++)
+   for(int i=0; i<n_im_used; i++)
    {
       T* data_ptr = GetDataPointer<T>(0, i);
       
@@ -256,13 +261,16 @@ void FLIMData::CalculateRegions()
    if (global_mode == MODE_PIXELWISE)
    {
       max_region_size = 1;
-      n_regions_total = n_im*n_x*n_y;
+      n_regions_total = n_im_used*n_x*n_y;
    }
    else if (global_mode == MODE_IMAGEWISE)
    {
       max_region_size = 0;
-      for(int i=0; i<n_im; i++)
+      for(int i=0; i<n_im_used; i++)
       {
+         int im = i;
+         if (use_im != NULL)
+            im = use_im[im];
 
          if (i>0)
             region_start[i] = region_start[i-1] + max_region[i-1] - min_region[i-1] + 1;
@@ -270,7 +278,7 @@ void FLIMData::CalculateRegions()
          memset(r_count, 0, MAX_REGION*sizeof(int));
 
          for(int p=0; p<n_ipx; p++)
-            r_count[mask[i*n_ipx+p]]++;
+            r_count[mask[im*n_ipx+p]]++;
 
          max_region[i] = 0;
          min_region[i] = 1;
@@ -302,8 +310,14 @@ void FLIMData::CalculateRegions()
       max_region_size = 0;
       
       for(int i=0; i<n_im; i++)
+      {
+         int im = i;
+         if (use_im != NULL)
+            im = use_im[im];
+         
          for(int p=0; p<n_ipx; p++)
-            r_count[mask[i*n_ipx+p]]++;
+            r_count[mask[im*n_ipx+p]]++;
+      }
 
       max_region[0] = 0;
       min_region[0] = 1;
