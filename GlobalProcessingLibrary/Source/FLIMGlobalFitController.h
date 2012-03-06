@@ -235,9 +235,8 @@ private:
    void CleanupResults();
    double CalculateChi2(int thread, int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[]);
 
-   //int n_t_res;
-   //int n_meas_res;
-
+   boost::interprocess::file_mapping   b_map_file;
+   boost::interprocess::mapped_region* b_map_view;
 
 };
 

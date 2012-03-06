@@ -1,11 +1,11 @@
 classdef flim_fitting_params < handle
    
     properties(SetObservable)
-        n_exp = 2;
+        n_exp = 1;
         n_fix = 0;
         
         data_type = 0;
-        global_fitting = 1;
+        global_fitting = 0;
         global_variable = 0;
         global_algorithm = 0;
         fit_t0 = false;
@@ -23,14 +23,14 @@ classdef flim_fitting_params < handle
         ref_lifetime = 80;
         
         pulsetrain_correction = true;
-        ref_reconvolution = true;
+        ref_reconvolution = false;
         
         fitting_algorithm = 0;
         
-        tau_guess = [4000; 1000];
+        tau_guess = [2000];
         
-        tau_min = [0; 0];
-        tau_max = [5000; 5000];
+        tau_min = [0];
+        tau_max = [5000];
         
         use_phase_plane_estimation = false;
         
@@ -101,6 +101,10 @@ classdef flim_fitting_params < handle
                 obj.tau_min = obj.tau_min(1:n_exp);
                 obj.tau_max = obj.tau_max(1:n_exp);
                 
+            end
+            
+            if obj.n_exp == 1
+                obj.fixed_beta = 1;
             end
             
             % Sort variable tau's

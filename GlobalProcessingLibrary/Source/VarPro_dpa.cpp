@@ -131,44 +131,44 @@ static integer c__3 = 3;
     lpps = *lpps1 - 1;
     p = lpps - *l - *s;
 
-    if (*isel != 1) {
-   goto L3;
-    }
-    lp1 = *l + 1;
-    firstca = 1;
-    lastca = *lps;
-    firstcb = 1;
-    lastcb = p;
-    firstr = lp1;
-    init_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &
+   if (*isel != 1)
+      goto L3;
+
+   lp1 = *l + 1;
+   firstca = 1;
+   lastca = *lps;
+   firstcb = 1;
+   lastcb = p;
+   firstr = lp1;
+   init_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &
        w[1], &alf[1], (S_fp)ada, isel, iprint, &a[a_offset], &b[b_offset],
        inc, &ncon, &nconp1, &philp1, &nowate, gc, thread);
-    if (*isel != 1) {
-   goto L99;
-    }
-    goto L30;
+   if (*isel != 1)
+      goto L99;
+
+   goto L30;
 
 L3:
-    i__1 = min(*isel,3);
-    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
+   i__1 = min(*isel,3);
+   (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
        b_offset], inc, &t[t_offset], &alf[1], &i__1, gc, thread);
-    if (*isel == 2) {
-   goto L6;
-    }
+
+   if (*isel == 2)
+      goto L6;
 /*                                                 ISEL = 3 OR 4 */
-    firstcb = 1;
-    lastcb = p;
-    firstca = 0;
-    firstr = (4 - *isel) * *l + 1;
-    goto L50;
+   firstcb = 1;
+   lastcb = p;
+   firstca = 0;
+   firstr = (4 - *isel) * *l + 1;
+   goto L50;
 /*                                                 ISEL = 2 */
 L6:
-    firstca = nconp1;
-    lastca = *lps;
-    firstcb = 0;
-    if (ncon == 0) {
-   goto L30;
-    }
+   firstca = nconp1;
+   lastca = *lps;
+   firstcb = 0;
+   if (ncon == 0)
+      goto L30;
+
 /*     IF (A(1, NCON) .EQ. SAVE) GO TO 30 */
 /*        ISEL = -7 */
 /*        CALL VARERR (IPRINT, ISEL, NCON) */

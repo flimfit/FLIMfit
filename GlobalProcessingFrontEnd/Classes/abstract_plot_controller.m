@@ -4,6 +4,7 @@ classdef abstract_plot_controller < flim_fit_observer
         plot_handle;
         handle_is_axes;
         param_popupmenu;
+        invert_colormap_popupmenu;
         contextmenu;
         window;
         param_list;
@@ -36,12 +37,16 @@ classdef abstract_plot_controller < flim_fit_observer
             else
                 obj.param_popupmenu = [];
             end
-            
+                        
             if nargin < 4
                 exports_data = false;
             end
             
             assign_handles(obj,handles);
+            
+            if ~isempty(obj.invert_colormap_popupmenu)
+                set(obj.invert_colormap_popupmenu,'Callback',@(~,~,~) obj.update_display);
+            end
 
             obj.contextmenu = uicontextmenu('Parent',obj.window);
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
@@ -240,9 +245,11 @@ classdef abstract_plot_controller < flim_fit_observer
         
         function cscale = colourscale(obj,param)
             
+            invert = get(obj.invert_colormap_popupmenu,'Value') - 1;
+            
             if strcmp(param,'I0')
                 cscale = @hot;
-            elseif ~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta'))
+            elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
                 cscale = @inv_jet;
             else
                 cscale = @jet;

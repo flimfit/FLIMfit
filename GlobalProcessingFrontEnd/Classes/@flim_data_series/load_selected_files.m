@@ -49,7 +49,7 @@ function load_selected_files(obj,selected)
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
-                if isempty(data)
+                if isempty(data) || size(data,1) ~= obj.n_t
                     data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
 

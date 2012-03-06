@@ -57,13 +57,13 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
 
    int        *mask         = data->mask + g*n_px;
-   doublereal *a            = this->a + thread * n_meas * lps;
+   doublereal *a            = this->a + thread * n * lps;
    doublereal *b            = this->b + thread * ndim * pp2;
-   doublereal *y            = this->y + thread * (s+1) * n_meas;
+   doublereal *y            = this->y + thread * (s+1) * n;
    doublereal *lin_params   = this->lin_params + r_idx * n_px * l;
    doublereal *alf          = this->alf + r_idx * nl;
    doublereal *alf_best     = this->alf_best + r_idx * nl;
-   doublereal *w            = this->w + thread * n_meas;
+   doublereal *w            = this->w + thread * n;
    doublereal *sort_buf     = this->sort_buf + thread * n_exp;
    int        *sort_idx_buf = this->sort_idx_buf + thread * n_exp;
    doublereal *grid         = this->grid + thread * grid_positions;
@@ -152,11 +152,12 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if(ref_reconvolution == FIT_GLOBALLY)
       alf[i++] = ref_lifetime_guess;
 
+   int n_meas_res = data->GetResampleNumMeas(thread);
 
-   for(j=0; j<n_meas; j++)
+   for(j=0; j<n_meas_res; j++)
       w[j] = 0;
 
-   for(i=0; i<n_meas; i++)
+   for(i=0; i<n_meas_res; i++)
       count_buf[i] = 0;
 
    SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
@@ -168,7 +169,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (s_thresh == 0)
       goto skip_processing;
       
-   for(j=0; j<n_meas; j++)
+   for(j=0; j<n_meas_res; j++)
    {
       if (s_thresh == 0 || y[j] == 0)
          w[j] = 1;   // If we have a zero data point set to 1
@@ -177,7 +178,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    }
 
    if (anscombe_tranform)
-      for(i=0; i<s_thresh*n_meas; i++)
+      for(i=0; i<s_thresh*n_meas_res; i++)
          y[i] = anscombe(y[i]);
 
    // Check we have pixels left to process
@@ -195,7 +196,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    
    int s1 = 1;
 
-   int n_meas_res = data->GetResampleNumMeas(thread);
+
 
    if (s_thresh > 1)
    {

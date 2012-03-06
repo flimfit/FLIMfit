@@ -382,7 +382,7 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
    s = 1;  
 
 
-   this->DetermineAutoSampling(thread,masked_data);
+   DetermineAutoSampling(thread,masked_data);
 
    idx = 0;
    for(int j=0; j<n_meas_res[thread]; j++)
@@ -436,6 +436,8 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
 
 void FLIMData::ClearMapping()
 {
+   if (data_map_view == NULL)
+      return;
    for(int i=0; i<n_thread; i++)
       data_map_view[i] = boost::interprocess::mapped_region();
 }

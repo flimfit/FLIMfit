@@ -661,22 +661,22 @@ L99:
    integer *n, integer *l, integer *iprint, doublereal *b, doublereal *
    prjres, integer *ierr)
 {
-    /* System generated locals */
-    integer b_dim1, b_offset, i__1, i__2, i__3;
-    doublereal d__1;
+   /* System generated locals */
+   integer b_dim1, b_offset, i__1, i__2, i__3;
+   doublereal d__1;
 
-    /* Builtin functions */
-    double d_sign(doublereal *, doublereal *);
+   /* Builtin functions */
+   double d_sign(doublereal *, doublereal *);
 
-    /* Local variables */
-    integer i__, j, k;
-    doublereal u;
-    integer nl, kp1, lp1, nl23, lpk;
-    doublereal beta, acum;
-    integer jsub, nsls1;
-    doublereal alpha;
-    extern doublereal xnorm_(integer *, doublereal *);
-    extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
+   /* Local variables */
+   integer i__, j, k;
+   doublereal u;
+   integer nl, kp1, lp1, nl23, lpk;
+   doublereal beta, acum;
+   integer jsub, nsls1;
+   doublereal alpha;
+   extern doublereal xnorm_(integer *, doublereal *);
+   extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
 
 /*     ============================================================== */
 
@@ -700,20 +700,18 @@ L99:
 /*     .................................................................. */
 
 
-    /* Parameter adjustments */
-    b_dim1 = *ndim;
-    b_offset = 1 + b_dim1;
-    b -= b_offset;
+   /* Parameter adjustments */
+   b_dim1 = *ndim;
+   b_offset = 1 + b_dim1;
+   b -= b_offset;
+   /* Function Body */
+   nl = *nlp1 - 1;
+   nsls1 = *n * *s - *l * (*s - 1);
+   nl23 = (nl << 1) + 3;
+   lp1 = *l + 1;
 
-    /* Function Body */
-    nl = *nlp1 - 1;
-    nsls1 = *n * *s - *l * (*s - 1);
-    nl23 = (nl << 1) + 3;
-    lp1 = *l + 1;
-
-    i__1 = nl;
-    for (k = 1; k <= i__1; ++k) 
-    {
+   for (k = 1; k <= nl; ++k) 
+   {
       lpk = *l + k;
       i__2 = nsls1 + 1 - lpk;
       d__1 = xnorm_(&i__2, &b[lpk + k * b_dim1]);
@@ -721,34 +719,25 @@ L99:
       u = b[lpk + k * b_dim1] + alpha;
       b[lpk + k * b_dim1] = u;
       beta = alpha * u;
-      if (alpha != (float)0.) {
-          goto L13;
+      
+      if (alpha == (float)0.)
+      {
+         *ierr = -8;
+         i__2 = lp1 + k;
+         varerr_(iprint, ierr, &i__2);
+         goto L99;
       }
-   /*                                                   COLUMN WAS ZERO */
-      *ierr = -8;
-      i__2 = lp1 + k;
-      varerr_(iprint, ierr, &i__2);
-      goto L99;
-   /*                                APPLY REFLECTIONS TO REMAINING COLUMNS */
-   /*                                OF B AND TO RESIDUAL VECTOR. */
-   L13:
+
       kp1 = k + 1;
-      i__2 = *nlp1;
-      for (j = kp1; j <= i__2; ++j) {
-          acum = (float)0.;
-          i__3 = nsls1;
-          for (i__ = lpk; i__ <= i__3; ++i__) {
-   /* L20: */
-         acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
-          }
-          acum /= beta;
-          i__3 = nsls1;
-          for (i__ = lpk; i__ <= i__3; ++i__) {
-   /* L25: */
-         b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
-          }
+      for (j = kp1; j <= *nlp1; ++j) 
+      {
+         acum = 0.0;
+         for (i__ = lpk; i__ <= nsls1; ++i__) 
+            acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
+         acum /= beta;
+         for (i__ = lpk; i__ <= nsls1; ++i__)
+            b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
       }
-   /* L30: */
       b[lpk + k * b_dim1] = -alpha;
    }
 
@@ -757,22 +746,20 @@ L99:
 /*           SAVE UPPER TRIANGULAR FORM AND TRANSFORMED RESIDUAL, FOR USE */
 /*           IN CASE A STEP IS RETRACTED.  ALSO COMPUTE COLUMN LENGTHS. */
 
-    if (*ierr == 4) {
-   goto L99;
-    }
-    i__1 = nl;
-    for (k = 1; k <= i__1; ++k) {
-   lpk = *l + k;
-   i__3 = *nlp1;
-   for (j = k; j <= i__3; ++j) {
-       jsub = *nlp1 + j;
-       b[k + j * b_dim1] = b[lpk + j * b_dim1];
-/* L40: */
-       b[jsub + k * b_dim1] = b[lpk + j * b_dim1];
+   if (*ierr == 4)
+      goto L99;
+
+   for (k = 1; k <= nl; ++k) 
+   {
+      lpk = *l + k;
+      for (j = k; j <= *nlp1; ++j) 
+      {
+         jsub = *nlp1 + j;
+         b[k + j * b_dim1] = b[lpk + j * b_dim1];
+         b[jsub + k * b_dim1] = b[lpk + j * b_dim1];
+      }
+      b[nl23 + k * b_dim1] = xnorm_(&k, &b[lp1 + k * b_dim1]);
    }
-/* L50: */
-   b[nl23 + k * b_dim1] = xnorm_(&k, &b[lp1 + k * b_dim1]);
-    }
 
 L99:
     return 0;
@@ -830,41 +817,36 @@ L99:
     nl = *nlp1 - 1;
     nl2 = nl << 1;
     nl23 = nl2 + 3;
-    i__1 = nl;
-    for (k = 1; k <= i__1; ++k) {
-   kp1 = k + 1;
-   nlpk = nl + k;
-   nlpkm1 = nlpk - 1;
-   b[nlpk + k * b_dim1] = *nu * b[nl23 + k * b_dim1];
-   b[nl + k * b_dim1] = b[k + k * b_dim1];
-   i__2 = k + 1;
-   d__1 = xnorm_(&i__2, &b[nl + k * b_dim1]);
-   alpha = d_sign(&d__1, &b[k + k * b_dim1]);
-   u = b[k + k * b_dim1] + alpha;
-   beta = alpha * u;
-   b[k + k * b_dim1] = -alpha;
+    for (k = 1; k <= nl; ++k) 
+    {
+       kp1 = k + 1;
+       nlpk = nl + k;
+       nlpkm1 = nlpk - 1;
+       b[nlpk + k * b_dim1] = *nu * b[nl23 + k * b_dim1];
+       b[nl + k * b_dim1] = b[k + k * b_dim1];
+       i__2 = k + 1;
+       d__1 = xnorm_(&i__2, &b[nl + k * b_dim1]);
+       alpha = d_sign(&d__1, &b[k + k * b_dim1]);
+       u = b[k + k * b_dim1] + alpha;
+       beta = alpha * u;
+       b[k + k * b_dim1] = -alpha;
 /*                        THE K-TH REFLECTION MODIFIES ONLY ROWS K, */
 /*                        NL+1, NL+2, ..., NL+K, AND COLUMNS K TO NL+1. */
-   i__2 = *nlp1;
-   for (j = kp1; j <= i__2; ++j) {
-       b[nlpk + j * b_dim1] = (float)0.;
-       acum = u * b[k + j * b_dim1];
-       i__3 = nlpkm1;
-       for (i__ = *nlp1; i__ <= i__3; ++i__) {
-/* L20: */
-      acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
-       }
-       acum /= beta;
-       b[k + j * b_dim1] -= u * acum;
-       i__3 = nlpk;
-       for (i__ = *nlp1; i__ <= i__3; ++i__) {
-/* L30: */
-      b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
-       }
-   }
-    }
 
-    return 0;
+       for (j = kp1; j <= *nlp1; ++j) 
+       {
+          b[nlpk + j * b_dim1] = (float)0.;
+          acum = u * b[k + j * b_dim1];
+          for (i__ = *nlp1; i__ <= nlpkm1; ++i__)
+             acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
+          acum /= beta;
+          b[k + j * b_dim1] -= u * acum;
+          for (i__ = *nlp1; i__ <= nlpk; ++i__)
+             b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
+      }
+   }
+
+   return 0;
 } /* orfac2_ */
 
 

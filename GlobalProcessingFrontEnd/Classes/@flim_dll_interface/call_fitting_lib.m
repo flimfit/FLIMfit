@@ -169,7 +169,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         calllib(obj.lib_name,'SetDataDouble',obj.dll_id,obj.p_data);
     end
 
-    calllib(obj.lib_name,'StartFit',obj.dll_id);
+    err = calllib(obj.lib_name,'StartFit',obj.dll_id);
         
 
     end

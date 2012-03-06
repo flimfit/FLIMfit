@@ -262,6 +262,24 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             set(obj.theta_guess_table,'ColumnName',{'phi'});
             
             
+            if obj.fit_params.global_fitting == 0
+                set(obj.global_algorithm_popupmenu,'Enable','off')
+            else
+                set(obj.global_algorithm_popupmenu,'Enable','on');
+            end
+            
+            if obj.fit_params.global_fitting < 2
+                set(obj.global_variable_popupmenu,'Enable','off');
+            else
+                set(obj.global_variable_popupmenu,'Enable','on');
+            end
+            
+            if obj.fit_params.ref_reconvolution == 0
+                set(obj.ref_lifetime_edit,'Enable','off');
+            else
+                set(obj.ref_lifetime_edit,'Enable','on');
+            end
+            
             if obj.fit_params.fit_beta ~= 1
                 set(obj.n_fret_popupmenu,'Enable','on');
                 set(obj.n_fret_fix_popupmenu,'Enable','on');

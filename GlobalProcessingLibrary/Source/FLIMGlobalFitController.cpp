@@ -89,6 +89,39 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf
    status = new FitStatus(this,n_thread,NULL);
    use_FMM = false;
 
+      alf          = NULL;
+      alf_best     = NULL; 
+      a            = NULL;
+      a_cpy        = NULL;
+      b            = NULL;
+
+      y            = NULL;
+      lin_params   = NULL;
+
+      w            = NULL;
+
+      sort_buf     = NULL;
+      sort_idx_buf = NULL;
+      exp_buf      = NULL;
+      tau_buf      = NULL;
+      beta_buf     = NULL;
+      theta_buf    = NULL;
+      fit_buf      = NULL;
+      count_buf    = NULL;
+      adjust_buf   = NULL;
+
+      irf_max      = NULL;
+      resampled_irf= NULL;
+
+      conf_lim     = NULL;
+
+      locked_param = NULL;
+      locked_value = NULL;
+
+      lin_params_err = NULL;
+      alf_err        = NULL;
+
+
    data = NULL;
 
    //aux_n_regions = NULL;
@@ -335,7 +368,7 @@ void FLIMGlobalFitController::Init()
    int n_group = data->n_group;
    int n_px    = data->n_px;
 
-   int s_max;
+   int s_max, bdim;
 
    getting_fit = false;
 
@@ -575,12 +608,18 @@ void FLIMGlobalFitController::Init()
 
    anscombe_tranform = false && !use_FMM && (l == 1);
    
-   ndim   = max( n_meas, 2*nl+3 );
-   ndim   = max( ndim, s*n_meas - (s-1)*l );
-   nmax   = n_meas;
-   lpps1  = l + p + s + 1;
+   if (data->global_mode == MODE_GLOBAL)
+      n = data->GetResampleNumMeas(0);
+   else
+      n = n_meas;
+
+   ndim   = max( n, 2*nl+3 );
+   ndim   = max( ndim, s*n - (s-1)*l );
+   nmax   = n;
+   lpps1  = l + p + s + 1; 
    lps    = l + s;
-   pp2    = p + 2;
+   pp2    = max(p,nl + 1);
+   pp2    = p+2; //max(pp2, 2);
    iprint = -1;
    lnls1  = l + nl + s + 1;
    lmax   = l;
@@ -596,14 +635,15 @@ void FLIMGlobalFitController::Init()
    {
       alf          = new double[ data->n_regions_total * nl ]; //free ok
       alf_best     = new double[ data->n_regions_total * nl ]; //free ok
-      a            = new double[ n_thread * n_meas * lps ]; //free ok
-      a_cpy        = new double[ n_thread * n_meas * (l+1) ];
+      a            = new double[ n_thread * n * lps ]; //free ok
+      a_cpy        = new double[ n_thread * n * (l+1) ];
+
       b            = new double[ n_thread * ndim * pp2 ]; //free ok
 
       y            = new double[ n_thread * (s+1) * n_meas ]; //free ok 
       lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
 
-      w            = new double[ n_thread * n_meas ]; //free ok
+      w            = new double[ n_thread * n ]; //free ok
 
       sort_buf     = new double[ n_thread * n_exp ]; //free ok
       sort_idx_buf = new int[ n_thread * n_exp ]; //free ok
@@ -632,6 +672,9 @@ void FLIMGlobalFitController::Init()
    catch(...)
    {
       error = ERR_OUT_OF_MEMORY;
+      CleanupTempVars();
+      CleanupResults();
+      return;
    }
 
    if (n_irf > 2)
@@ -990,7 +1033,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
       resample_idx[i] = 1;
    resample_idx[n_t-1] = 0;
 
-   data->SetExternalResampleIdx(n_t, resample_idx);
+   data->SetExternalResampleIdx(n_meas, resample_idx);
 
 
 
@@ -1130,9 +1173,7 @@ int FLIMGlobalFitController::SimulateData(double I0[], double beta[], double dat
 void FLIMGlobalFitController::CleanupTempVars()
 {
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
-   
-   if (init)
-   {
+
       ClearVariable(a);
       ClearVariable(b);
       ClearVariable(y);
@@ -1149,7 +1190,8 @@ void FLIMGlobalFitController::CleanupTempVars()
       ClearVariable(lin_params_err);
       ClearVariable(alf_err);
 
-      data->ClearMapping();
+      if (data != NULL)
+         data->ClearMapping();
 
 //      ClearVariable(aux_data);
 //      ClearVariable(aux_n_regions);
@@ -1162,15 +1204,12 @@ void FLIMGlobalFitController::CleanupTempVars()
          ClearVariable(var_max);
          ClearVariable(var_buf);
       }
-   }
 }
 
 void FLIMGlobalFitController::CleanupResults()
 {
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
 
-   if (init)
-   {
       init = false;
       ClearVariable(lin_params);
       ClearVariable(a_cpy);
@@ -1191,7 +1230,6 @@ void FLIMGlobalFitController::CleanupResults()
          delete data;
          data = NULL;
       }
-   }
 
    if (thread_handle != NULL)
    {

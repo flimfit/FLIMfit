@@ -254,7 +254,7 @@ void FLIMData::CalculateRegions()
       average_data[j] /= average_count;
 
    for(int j=0; j<n_thread; j++)
-      DetermineAutoSampling(j,average_data);
+      DetermineAutoSampling(j,average_data+t_skip[0]);
 
    region_start[0] = 0;
 

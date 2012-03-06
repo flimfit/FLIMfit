@@ -117,7 +117,10 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     else
         use = datasets;
     end    
-            
+
+    if obj.bin
+        use = 1;
+    end
     
     loaded_datasets = d.loaded & datasets;
     n_datasets = sum(datasets);
@@ -377,8 +380,12 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     
     obj.start_time = tic;
    
-    obj.call_fitting_lib(roi_mask,selected);
+    err = obj.call_fitting_lib(roi_mask,selected);
     
+    if err ~= 0
+        obj.clear_temp_vars();
+        return;
+    end
                    
     obj.fit_round = obj.fit_round + 1;
 
