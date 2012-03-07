@@ -35,7 +35,7 @@ function save_data_series(obj,file)
     for i=1:obj.num_datasets
         dataset = [hdf_root 'FLIMData/' obj.names{i} ];
         obj.switch_active_dataset(i);
-        hdf5write(file,dataset,obj.cur_data,'WriteMode','append');
+        hdf5write(file,dataset,obj.data_series,'WriteMode','append');
     end
 
 

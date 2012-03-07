@@ -105,7 +105,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
                   case obj.t_irf_max_edit
                     obj.data_series.t_irf_max = str2double(get(obj.t_irf_max_edit,'String'));
                 case obj.binning_popupmenu
-                    obj.data_series.binning = get(obj.binning_popupmenu,'Value') - 1;
+                    obj.data_series.binning = 2^( get(obj.binning_popupmenu,'Value') - 1 );
                 case obj.downsampling_popupmenu
                     obj.data_series.downsampling = 2^( get(obj.downsampling_popupmenu,'Value') - 1 );
                 case obj.thresh_min_edit
@@ -212,7 +212,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
             if ~isempty(obj.binning_popupmenu)
                 
                 value = obj.data_series.binning;
-                value = value + 1;
+                value = log2(value) + 1;
                 set(obj.binning_popupmenu,'Value', value );
                 
                 value = obj.data_series.downsampling;

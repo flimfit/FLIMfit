@@ -41,14 +41,14 @@ if ~any(strcmpi(mode,{'ascend','descend'}))
 end
 
 % Replace runs of digits with '0'.
-c2 = regexprep(c,'-*\d+\.*\d*','0');
+c2 = regexprep(c,'\d+','0');
 
 % Compute char version of c2 and locations of zeros.
 s1 = char(c2);
 z = s1 == '0';
 
 % Extract the runs of digits and their start and end indices.
-[digruns,first,last] = regexp(c,'-*\d+\.*\d*','match','start','end');
+[digruns,first,last] = regexp(c,'\d+','match','start','end');
 
 % Create matrix of numerical values of runs of digits and a matrix of the
 % number of digits in each run.

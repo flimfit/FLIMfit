@@ -37,7 +37,11 @@ function load_selected_files(obj,selected)
         if obj.use_memory_mapping
             
             mapfile_name = global_tempname;
+            tr_mapfile_name = global_tempname;
+
             mapfile = fopen(mapfile_name,'w');
+            tr_mapfile = fopen(tr_mapfile_name,'w');
+
 
             for j=1:num_sel
 
@@ -54,6 +58,7 @@ function load_selected_files(obj,selected)
                 end
 
                 c1=fwrite(mapfile,data,'double');
+                c2=fwrite(tr_mapfile,data,'double');
 
                 if using_popup
                     waitbar(j/num_sel,wait_handle)
@@ -62,8 +67,9 @@ function load_selected_files(obj,selected)
             end
 
             fclose(mapfile);
-            
-            obj.init_memory_mapping(obj.data_size(1:4), num_sel, mapfile_name);    
+            fclose(tr_mapfile);
+
+            obj.init_memory_mapping(obj.data_size(1:4), num_sel, mapfile_name, tr_mapfile_name);    
         else
            
             for j=1:num_sel
@@ -76,6 +82,7 @@ function load_selected_files(obj,selected)
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
+                obj.tr_data_series_mem(:,:,:,:,j) = double(data);
                 obj.data_series_mem(:,:,:,:,j) = double(data);
                 
 
@@ -85,8 +92,8 @@ function load_selected_files(obj,selected)
 
             end
             
-            obj.active = 1;
-            obj.cur_data = obj.data_series_mem(:,:,:,:,1);
+            obj.tr_data_series = obj.tr_data_series_mem(:,:,:,:,1);
+            obj.data_series = obj.data_series_mem(:,:,:,:,1);
             
         end
     else

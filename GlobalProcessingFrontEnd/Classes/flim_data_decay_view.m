@@ -113,7 +113,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
 
                         if length(size(data)) > 2
                             n_sum = size(data,1) * size(data,2);
-                            data = squeeze(nanmean(data,3));
+                            data = squeeze(nansum(data,3));
                         else
                             n_sum = 1;
                         end
@@ -173,22 +173,19 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                             switch decay_mode
                                 case 1
                                     fitted = obj.fit_controller.fitted_decay(t,mask,obj.data_series_list.selected);
-                                    fitted_res = obj.fit_controller.fitted_decay(d.tr_t,mask,obj.data_series_list.selected);
                                 case 4
                                     fitted = obj.fit_controller.fitted_magic_angle(t,mask,obj.data_series_list.selected);
-                                    fitted_res = obj.fit_controller.fitted_magic_angle(d.tr_t,mask,obj.data_series_list.selected);
                                 case 5
                                     fitted = obj.fit_controller.fitted_anisotropy(t,mask,obj.data_series_list.selected);
-                                    fitted_res = obj.fit_controller.fitted_anisotropy(d.tr_t,mask,obj.data_series_list.selected);
 
                             end
 
                             if ~isempty(fitted) 
                                 plot_fcn(obj.highlight_axes,t,fitted,plot_style);
 
-                                if decay_mode == 1 || decay_mode == 4 || decay_mode == 5
+                                if decay_mode == 1
                                     % Calculate & plot normalised residuals
-                                    %fitted_res = obj.fit_controller.fitted_decay(d.tr_t,mask,obj.data_series_list.selected);                    
+                                    fitted_res = obj.fit_controller.fitted_decay(d.tr_t,mask,obj.data_series_list.selected);                    
                                     data(data<0) = 0;
 
                                     residual = (fitted_res-data)./sqrt(data);
@@ -242,11 +239,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                 % Set Y limits
                 if decay_mode == 1
                 if ~all(data==1)
-                   if display_mode == 1
-                       low = 0;
-                   else
-                       low = 0.9*min(data(:));
-                   end
+                   low = 5e-1;
                    high = max(data(:))*1.1;
 
                    if (isempty(low) || low == high )

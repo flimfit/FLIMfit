@@ -8,10 +8,6 @@ function metadata = extract_metadata(strings)
 
     n = length(strings);
         
-    for i=1:length(strings)
-        strings{i} = strrep(strings{i},'.ome','');
-    end
-    
     common_substring = strings{1};
  
     for i=1:n

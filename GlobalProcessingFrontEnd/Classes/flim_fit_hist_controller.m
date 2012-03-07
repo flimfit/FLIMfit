@@ -90,25 +90,21 @@ classdef flim_fit_hist_controller < flim_fit_observer
             if obj.fit_controller.has_fit && ~isempty(obj.param)
                 param_data =  obj.fit_controller.fit_result.get_image(obj.selected,obj.param);
                 %intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I0');
+                %intensity = intensity( param_data >= obj.hist_min & param_data <= obj.hist_max );
                 
-                filt = param_data >= obj.hist_min & param_data <= obj.hist_max & ~isnan(param_data);
-                
-                %intensity = intensity( filt );
-                param_data = param_data( filt );
+                param_data = param_data( param_data >= obj.hist_min & param_data <= obj.hist_max );
                 
                 diff = (obj.hist_max - obj.hist_min) / obj.hist_classes;
                 x = obj.hist_min:diff:obj.hist_max;
                 
-                
-                %if ~isempty(param_data)
-                %    f = ksdensity(param_data,x,'weight',intensity(:));
-                %    plot(obj.hist_axes,x,f)
-                %end
-                
+                %{
+                if ~isempty(param_data)
+                    f = ksdensity(param_data,x,'weight',intensity(:));
+                    plot(obj.hist_axes,x,f)
+                end
+                %}
                 
                 hist(obj.hist_axes,param_data,x);
-                xlabel(obj.param);
-                ylabel('Frequency');
             end
         end
         
@@ -134,17 +130,12 @@ classdef flim_fit_hist_controller < flim_fit_observer
             for i=1:r.n_results
                
                 param_data =  obj.fit_controller.fit_result.get_image(i,obj.param);
-                %intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I0');
-                
-                filt = param_data >= obj.hist_min & param_data <= obj.hist_max & ~isnan(param_data);
-                
-                %intensity = intensity( filt );
-                param_data = param_data( filt );
+                param_data = param_data(:);
+                param_data = param_data( param_data >= obj.hist_min & param_data <= obj.hist_max );
                 
                 diff = (obj.hist_max - obj.hist_min) / obj.hist_classes;
                 x = obj.hist_min:diff:obj.hist_max;
        
-                %count(:,i) = ksdensity(param_data,x,'weight',intensity(:));               
                 count(:,i) = hist(param_data,x)';
                 
                 hist_min_v(i) = nanmin(param_data);

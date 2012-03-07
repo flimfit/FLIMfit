@@ -28,7 +28,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         obj.channels = channel;
         
-        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif'])];            
+        files = [dir([root_path '*.sdt']); dir([root_path '*.txt'])];            
         num_datasets = length(files);
         
         file_names = cell(1,num_datasets);

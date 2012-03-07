@@ -31,6 +31,7 @@ function set_data(obj,t,data,polarisation_resolved)
     obj.use_memory_mapping = false;
     obj.loaded = ones([1 obj.n_datasets]);
     
+    obj.tr_data_series_mem = data;
     obj.data_series_mem = data;
     
     
