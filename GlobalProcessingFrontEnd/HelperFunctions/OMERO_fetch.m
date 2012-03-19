@@ -10,7 +10,7 @@ function [delays, data_cube, name ] =  OMERO_fetch(imageDescriptor, channel)
     
     session = imageDescriptor{1};
     
-    imageID = imageDescriptor{2}
+    imageID = imageDescriptor{2};
     
     imageId = java.lang.Long(imageID);
    
@@ -74,18 +74,18 @@ function [delays, data_cube, name ] =  OMERO_fetch(imageDescriptor, channel)
     str = char(byteArr');
 
     pos = findstr(str, 'bins');
-    nBins = str2num(str(pos+5:pos+7))
+    nBins = str2num(str(pos+5:pos+7));
 
     pos = findstr(str, 'base');
-    time_base = str2num(str(pos+5:pos+14)).*1000        % get time base & convert to ps
+    time_base = str2num(str(pos+5:pos+14)).*1000;        % get time base & convert to ps
 
     % Important to close the service
     rawFileStore.close();
 
     %metadataService.close();
     
-    time_points = 0:nBins- 1
-    delays = time_points.*(time_base/nBins)
+    time_points = 0:nBins- 1;
+    delays = time_points.*(time_base/nBins);
    
     % Determine which channels we need to load 
      

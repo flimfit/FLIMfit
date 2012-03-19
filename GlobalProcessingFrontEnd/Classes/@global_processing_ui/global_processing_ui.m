@@ -7,9 +7,14 @@ classdef global_processing_ui
     
     methods
       
-        function obj = global_processing_ui(wait, OMERO_active)
-        
-            if nargin < 1
+        function obj = global_processing_ui(OMERO_active,wait)
+            
+            
+            if nargin < 1 
+                OMERO_active = false;
+            end
+            
+            if nargin < 2
                 wait = false;
             end
             
@@ -24,15 +29,15 @@ classdef global_processing_ui
             client = [];
             session = [];       %default value
             
-            if nargin == 2
+            if OMERO_active == true
             
                 logon = OMERO_logon;
                 
                 client = loadOmero(logon{1});
                 try 
-                    session = client.createSession(logon{2},logon{3})
+                    session = client.createSession(logon{2},logon{3});
                 catch  err
-                    errordlg('error with creating session');
+                    errordlg('error while creating OMERO session');
                 end
             end
             
@@ -109,7 +114,7 @@ classdef global_processing_ui
         function close_request_fcn(obj,src,evt, handles)
          
             
-            disp('closing om fcn call');
+            disp('Closing GlobalProcessing on request');
             
             session = handles.OMERO_session;
             client = handles.OMERO_client;
