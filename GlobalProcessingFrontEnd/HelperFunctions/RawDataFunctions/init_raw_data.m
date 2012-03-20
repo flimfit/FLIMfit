@@ -1,4 +1,4 @@
-function mapfile = init_raw_data(file,t,data_size,n_datasets)
+function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata)
     
     [path name ext] = fileparts(file);
 
@@ -9,8 +9,16 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets)
         dinfo.names{i} = ['Data ' num2str(i)];
     end
     
-    dinfo.metadata = struct();
-    dinfo.metadata.FileName = dinfo.names;
+    if nargin < 5
+        metadata = struct();
+    end
+    
+    dinfo.metadata = metadata;
+
+    if ~isfield(dinfo.metadata,'FileName');
+        dinfo.metadata.FileName = dinfo.names;
+    end
+    
     dinfo.channels = 1;
     dinfo.data_size = [data_size(1) 1 data_size(2) data_size(3)];
     dinfo.polarisation_resolved = false;

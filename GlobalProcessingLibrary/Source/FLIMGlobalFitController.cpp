@@ -121,6 +121,11 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf
       lin_params_err = NULL;
       alf_err        = NULL;
 
+      irf_buf         = NULL;
+      t_irf_buf       = NULL;
+      tvb_profile_buf = NULL;
+      chan_fact       = NULL;
+
 
    data = NULL;
 

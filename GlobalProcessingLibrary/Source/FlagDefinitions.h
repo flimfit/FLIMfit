@@ -22,3 +22,4 @@
 #define ERR_COULD_NOT_OPEN_MAPPED_FILE -1006
 #define ERR_COULD_NOT_START_FIT        -1007
 #define ERR_FOUND_NO_REGIONS           -1008
+#define ERR_FAILED_TO_MAP_DATA         -1009

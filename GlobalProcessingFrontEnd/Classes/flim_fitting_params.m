@@ -34,7 +34,7 @@ classdef flim_fitting_params < handle
         
         use_phase_plane_estimation = false;
         
-        fixed_beta = 0;
+        fixed_beta = 1;
         
         n_fret = 0;
         n_fret_fix = 0;

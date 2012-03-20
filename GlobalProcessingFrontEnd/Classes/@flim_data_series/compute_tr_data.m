@@ -29,9 +29,13 @@ function calculated = compute_tr_data(obj,notify_update)
         % For polarisation resolved data, attempt to line up the two
         % polarisation channels to within a timegate. This allows the user
         % to sensibly crop the data
-        dt = obj.t(2) - obj.t(1);
-        coarse_shift = round(obj.irf_perp_shift/dt);      
-                
+        if length(obj.t) > 1
+            dt = obj.t(2) - obj.t(1);
+            coarse_shift = round(obj.irf_perp_shift/dt);      
+        else
+            coarse_shift = 0;
+        end
+        
         if coarse_shift < 0
            t_inc(end+coarse_shift:end) = 0;            
         elseif coarse_shift > 0
@@ -61,12 +65,16 @@ function calculated = compute_tr_data(obj,notify_update)
             
            
         % Downsample the data
-        sz = size(obj.cur_data);
-        sz(1) = sz(1) / obj.downsampling;
-        obj.cur_tr_data = reshape(double(obj.cur_data),[obj.downsampling sz]);
-        obj.cur_tr_data = nansum(obj.cur_tr_data,1);
-        obj.cur_tr_data = reshape(obj.cur_tr_data,sz);
-
+        if obj.downsampling > 1
+            sz = size(obj.cur_data);
+            sz(1) = sz(1) / obj.downsampling;
+            obj.cur_tr_data = reshape(double(obj.cur_data),[obj.downsampling sz]);
+            obj.cur_tr_data = nansum(obj.cur_tr_data,1);
+            obj.cur_tr_data = reshape(obj.cur_tr_data,sz);
+        else
+            obj.cur_tr_data = double(obj.cur_data);
+        end
+        
         % Subtract background and crop
         if length(bg) == 1 || all(size(bg)==size(obj.cur_tr_data))
             obj.cur_tr_data = obj.cur_tr_data - double(bg);

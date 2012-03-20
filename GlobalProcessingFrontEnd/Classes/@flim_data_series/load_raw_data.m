@@ -12,10 +12,14 @@ function load_raw_data(obj,file)
     fclose(fid);
     delete(fname);
         
+    obj.suspend_transformation = true;
+    
     fields = fieldnames(dinfo);
     for i=1:length(fields)
         eval(['obj.' fields{i} '= dinfo.' fields{i} ';']);
     end
+    
+    obj.suspend_transformation = false;
             
     obj.raw = true;
     %obj.lazy_loading = true;

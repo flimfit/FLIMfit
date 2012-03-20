@@ -53,10 +53,13 @@ function compute_tr_irf(obj)
         obj.tr_irf = obj.irf(t_irf_inc,:);
         obj.tr_t_irf = obj.t_irf(t_irf_inc);
 
-
-        dt = obj.t(2) - obj.t(1);
-        coarse_shift = round(obj.irf_perp_shift/dt);
-
+        if length(obj.t) > 1
+            dt = obj.t(2) - obj.t(1);
+            coarse_shift = round(obj.irf_perp_shift/dt);
+        else
+            coarse_shift = 0;
+        end
+        
         if obj.polarisation_resolved && size(obj.tr_irf,2) == 2
             obj.tr_irf(:,2) = circshift(obj.tr_irf(:,2),[coarse_shift 1]);
         end

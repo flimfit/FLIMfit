@@ -47,6 +47,13 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             %return
             save = (f ~= obj.plot_handle);
             
+            if save
+                pa = f;%get(f,'Parent');
+                pos = get(pa,'Position');
+                pos = [0,0,800,600];
+                set(pa,'Position',pos);
+            end
+            
             if ~obj.fit_controller.has_fit || isempty(param) 
                 return
             end
@@ -73,7 +80,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             if ~strcmp(param,'-')
                 
                 if save || (n_im>0 && (cols ~= obj.cols || rows ~= obj.rows))
-                    [ax_h,cb_h] = tight_subplot(f,n_im,rows,cols,save,[d.width d.height],5,5);
+                    [ax_h,cb_h] = tight_subplot(f,n_im,rows,cols,false,[d.width d.height],5,5);
                     obj.cols = cols;
                     obj.rows = rows;
                 else

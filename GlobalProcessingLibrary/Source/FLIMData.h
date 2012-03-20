@@ -34,7 +34,7 @@ public:
    int  SetData(char* data_file, int data_class, int data_skip);
 
    template <typename T>
-   void CalculateRegions();
+   int CalculateRegions();
 
    int GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data);
    int GetPixelData(int thread, int im, int p, double* adjust, double* masked_data);
@@ -202,7 +202,7 @@ T* FLIMData::GetDataPointer(int thread, int im)
 
 
 template <typename T>
-void FLIMData::CalculateRegions()
+int FLIMData::CalculateRegions()
 {
 
    int* r_count = new int[MAX_REGION];
@@ -217,6 +217,12 @@ void FLIMData::CalculateRegions()
    for(int i=0; i<n_im_used; i++)
    {
       T* data_ptr = GetDataPointer<T>(0, i);
+
+      if (data_ptr == NULL)
+      {
+         delete[] r_count;
+         return ERR_FAILED_TO_MAP_DATA;
+      }
       
       //#pragma omp parallel for
       for(int p=0; p<n_ipx; p++)
@@ -344,6 +350,8 @@ void FLIMData::CalculateRegions()
    }
 
    delete[] r_count;
+
+   return 0;
 
 }
 

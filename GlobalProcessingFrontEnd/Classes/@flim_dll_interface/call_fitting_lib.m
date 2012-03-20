@@ -164,9 +164,13 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         else
             data_class = 0; % double
         end
-        calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name,data_class,d.mapfile_offset);
+        err = calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name,data_class,d.mapfile_offset);
     else
-        calllib(obj.lib_name,'SetDataDouble',obj.dll_id,obj.p_data);
+        err = calllib(obj.lib_name,'SetDataDouble',obj.dll_id,obj.p_data);
+    end
+    
+    if err ~= 0
+        return;
     end
 
     err = calllib(obj.lib_name,'StartFit',obj.dll_id);

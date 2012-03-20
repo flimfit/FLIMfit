@@ -13,7 +13,7 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
     if strcmp(im,'I0')
         cscale = @hot;
     elseif ~isempty(strfind(im,'tau')) || ~isempty(strfind(im,'theta'))
-        cscale = @inv_jet;
+        cscale = @jet;
     else
         cscale = @jet;
     end

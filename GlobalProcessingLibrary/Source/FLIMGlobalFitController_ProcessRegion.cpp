@@ -59,7 +59,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int        *mask         = data->mask + g*n_px;
    doublereal *a            = this->a + thread * n * lps;
    doublereal *b            = this->b + thread * ndim * pp2;
-   doublereal *y            = this->y + thread * (s+1) * n;
+   doublereal *y            = this->y + thread * (s+1) * n_meas;
    doublereal *lin_params   = this->lin_params + r_idx * n_px * l;
    doublereal *alf          = this->alf + r_idx * nl;
    doublereal *alf_best     = this->alf_best + r_idx * nl;
