@@ -75,6 +75,14 @@ function get_return_data(obj)
     f.set_image('I0',I0,mask,datasets,[0 ceil(nanmax(I0(:)))]);
     clear obj.p_I0 I0;
     
+    if ~obj.bin
+        I = obj.data_series.integrated_intensity();
+        I(mask == 0) = NaN;
+        f.set_image('I',I,mask,datasets,[0 ceil(nanmax(I(:)))])
+        clear I;
+    end
+    
+    
     if obj.fit_params.polarisation_resolved
         
         if prod(obj.theta_size) > 0 && ~isempty(obj.p_theta)

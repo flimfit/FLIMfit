@@ -43,10 +43,8 @@ classdef abstract_plot_controller < flim_fit_observer
             end
             
             assign_handles(obj,handles);
-            
-            if ~isempty(obj.invert_colormap_popupmenu)
-                set(obj.invert_colormap_popupmenu,'Callback',@(~,~,~) obj.update_display);
-            end
+
+            add_callback(obj.invert_colormap_popupmenu,@(~,~,~) obj.update_display);
 
             obj.contextmenu = uicontextmenu('Parent',obj.window);
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
@@ -247,8 +245,8 @@ classdef abstract_plot_controller < flim_fit_observer
             
             invert = get(obj.invert_colormap_popupmenu,'Value') - 1;
             
-            if strcmp(param,'I0')
-                cscale = @hot;
+            if strcmp(param,'I0') || strcmp(param,'I')
+                cscale = @gray;
             elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
                 cscale = @inv_jet;
             else

@@ -20,8 +20,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             
             row_headers = {'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'};
 
-
-            if obj.fit_controller.has_fit
+            if obj.fit_controller.has_fit && ~isempty(param)
 
                 r = obj.fit_controller.fit_result;     
 

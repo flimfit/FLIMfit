@@ -10,10 +10,12 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
     intensity = r.get_image(dataset,'I0');
     im_data = r.get_image(dataset,im);
     
-    if strcmp(im,'I0')
-        cscale = @hot;
-    elseif ~isempty(strfind(im,'tau')) || ~isempty(strfind(im,'theta'))
-        cscale = @jet;
+    invert = get(obj.invert_colormap_popupmenu,'Value') - 1;
+    
+    if strcmp(im,'I0') || strcmp(im,'I')
+        cscale = @gray;
+    elseif invert && (~isempty(strfind(im,'tau')) || ~isempty(strfind(im,'theta')))
+        cscale = @inv_jet;
     else
         cscale = @jet;
     end

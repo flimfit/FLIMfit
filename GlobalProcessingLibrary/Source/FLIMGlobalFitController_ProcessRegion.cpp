@@ -152,6 +152,13 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if(ref_reconvolution == FIT_GLOBALLY)
       alf[i++] = ref_lifetime_guess;
 
+
+   SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
+                                   (fit_offset == FIX)  ? offset_guess  : 0, 
+                                   (fit_tvb == FIX)     ? tvb_guess     : 0);
+
+   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y+n_meas, y);
+
    int n_meas_res = data->GetResampleNumMeas(thread);
 
    for(j=0; j<n_meas_res; j++)
@@ -159,12 +166,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    for(i=0; i<n_meas_res; i++)
       count_buf[i] = 0;
-
-   SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
-                                   (fit_offset == FIX)  ? offset_guess  : 0, 
-                                   (fit_tvb == FIX)     ? tvb_guess     : 0);
-
-   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y+n_meas, y);
 
    if (s_thresh == 0)
       goto skip_processing;

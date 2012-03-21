@@ -105,7 +105,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
                 %    plot(obj.hist_axes,x,f)
                 %end
                 
-                
+                cla(obj.hist_axes);
                 hist(obj.hist_axes,param_data,x);
                 xlabel(obj.param);
                 ylabel('Frequency');

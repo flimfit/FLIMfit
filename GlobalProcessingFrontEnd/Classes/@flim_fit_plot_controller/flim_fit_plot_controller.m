@@ -15,6 +15,8 @@
         plot_lims = struct();
         auto_lim = struct();
         
+        invert_colormap_popupmenu;
+        
         data_series_list;
         lh = {};
     end
@@ -38,6 +40,8 @@
             addlistener(obj.plot_panel,'Position','PostSet',@obj.panel_resized);
             addlistener(obj.data_series_list,'selection_updated',@obj.dataset_selected_update);
 
+            add_callback(obj.invert_colormap_popupmenu,@(~,~,~) obj.update_plots);
+            
             obj.update_list();
             obj.update_table();
             

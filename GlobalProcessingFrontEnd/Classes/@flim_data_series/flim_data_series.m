@@ -679,6 +679,22 @@ classdef flim_data_series < handle
         end
         
         
+        function inten = integrated_intensity(obj)
+            
+            loaded_idx = 1:obj.num_datasets;
+            loaded_idx = loaded_idx(logical(obj.loaded));
+
+            num_loaded = length(loaded_idx);
+
+            inten = zeros([obj.height obj.width num_loaded]);
+
+            for i = 1:num_loaded
+                obj.switch_active_dataset(loaded_idx(i));
+                inten(:,:,i) = obj.intensity;
+            end
+
+        end
+        
         function anis = steady_state_anisotropy(obj)
             
             if obj.polarisation_resolved
