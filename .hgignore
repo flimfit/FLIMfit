@@ -16,3 +16,6 @@ GlobalProcessingFrontEnd/DeployFiles/*
 GlobalProcessingFrontEnd/GlobalProcessing_*
 GlobalProcessingStandalone/*
 *.zip
+*.orig
+data_settings.xml
+FLIMGlobalAnalysisProto_*

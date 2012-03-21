@@ -56,7 +56,6 @@ classdef flim_dll_interface < handle
         p_gamma;
         p_use;
         
-        p_background;
         p_tau_err;
         p_beta_err;
         p_E_err;

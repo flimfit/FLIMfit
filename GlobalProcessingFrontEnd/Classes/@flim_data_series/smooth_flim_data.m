@@ -12,7 +12,7 @@ function data = smooth_flim_data(data,extent,mode)
         return
     end
     
-    extent = extent*2+1;
+    extent = extent + 1;
         
     if strcmp(mode,'gaussian')
         kernel = fspecial('gaussian', [extent, extent]*2, extent);
@@ -21,7 +21,7 @@ function data = smooth_flim_data(data,extent,mode)
     end
     
     % Normalise kernel
-    kernel = kernel / sum(kernel(:));
+    %kernel = kernel / sum(kernel(:));
         
     for i = 1:n_t
         for j = 1:n_chan

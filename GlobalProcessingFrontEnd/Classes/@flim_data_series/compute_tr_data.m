@@ -11,6 +11,11 @@ function calculated = compute_tr_data(obj,notify_update)
     if obj.init && ~obj.suspend_transformation
 
         calculated = true;
+         
+        % Display popup window if requested
+        if obj.use_popup && ~obj.lazy_loading
+            wait_handle = waitbar(0,'Transforming Data...');
+        end
 
         % Select points to use if downsampling 
         sel = 0:(length(obj.t)-1);
@@ -19,7 +24,6 @@ function calculated = compute_tr_data(obj,notify_update)
 
         % Crop timegates
         t_inc = obj.tr_t >= obj.t_min & obj.tr_t <= obj.t_max;
-        
 
         % If there is a IRF ensure that we don't have data points before the IRF
         if ~isempty(obj.tr_t_irf)
@@ -55,8 +59,6 @@ function calculated = compute_tr_data(obj,notify_update)
                t_inc(1:n) = 0;
             end
         end
-        
-        obj.t_skip = [find(t_inc,1,'first') find(t_inc_perp,1,'first')]-1;
         
         % Apply all the masking above
         obj.tr_t = obj.tr_t(t_inc);
@@ -96,6 +98,11 @@ function calculated = compute_tr_data(obj,notify_update)
         obj.compute_tr_irf();
         obj.compute_intensity();
         obj.compute_tr_tvb_profile();
+        
+        % Close the popup window
+        if obj.use_popup && ~obj.lazy_loading
+            close(wait_handle);
+        end
         
         if notify_update
             notify(obj,'data_updated');

@@ -10,63 +10,45 @@ function[delays,im_data,tcspc,path,channel] = load_flim_file(file,channel)
         channel = -1;
     end
 
-    [path,fname,ext] = fileparts(file);
+    [path,~,ext] = fileparts(file);
 
     switch ext
 
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case '.tif'
+            dirStruct = dir([path filesep '*.tif']);
+            siz = size(dirStruct);
+            noOfFiles = siz(1);
+
+            if noOfFiles == 0
+                im_data = [];
+                delays = [];
+                return
+            end
             
-            if strcmp(fname(end-3:end),'.ome')
-                
-                info = imfinfo(file);
-                
-                n_im = length(info);
-                sz = [n_im info(1).Height info(1).Width];
-                im_data = zeros(sz);
-                
-                delays = (0:(n_im-1))/n_im*12.5e3;
-                
-                for i=1:n_im
-                    im_data(i,:,:) = imread(file,'Index',i,'Info',info);
-                    
-                end
-                
-            else
-                dirStruct = dir([path filesep '*.tif']);
-                siz = size(dirStruct);
-                noOfFiles = siz(1);
+            first = [path filesep dirStruct(1).name];
+            im = imread(first,'tif');
 
-                if noOfFiles == 0
-                    im_data = [];
-                    delays = [];
-                    return
-                end
+            im_data = zeros([noOfFiles size(im)],'uint16');
+            delays = zeros([1,noOfFiles]);
 
-                first = [path filesep dirStruct(1).name];
-                im = imread(first,'tif');
-
-                im_data = zeros([noOfFiles size(im)],'uint16');
-                delays = zeros([1,noOfFiles]);
-
-                for f = 1:noOfFiles
-                    filename = [path filesep dirStruct(f).name];
-                    [~,name] = fileparts(filename);
-                    name = name(end-4:end);      %last 6 chars contains delay 
-                    tmp = str2double(name);
-                    delays(f) = tmp;
-                    try
-                        im_data(f,:,:) = imread(filename,'tif');
-                    catch error
-                        throw(error);
-                    end
-                end
-
-                if min(im_data(:)) > 32500
-                    im_data = im_data - 32768;    % clear the sign bit which is set by labview
+            for f = 1:noOfFiles
+                filename = [path filesep dirStruct(f).name];
+                [~,name] = fileparts(filename);
+                name = name(end-4:end);      %last 6 chars contains delay 
+                tmp = str2double(name);
+                delays(f) = tmp;
+                try
+                    im_data(f,:,:) = imread(filename,'tif');
+                catch error
+                    throw(error);
                 end
             end
-                
+
+            if min(im_data(:)) > 32500
+                im_data = im_data - 32768;    % clear the sign bit which is set by labview
+            end
+
          % .sdt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
          case '.sdt'
 
