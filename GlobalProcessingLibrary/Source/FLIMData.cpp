@@ -169,9 +169,9 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
 
 }
 
-void FLIMData::SetData(double data[])
+void FLIMData::SetData(double* data)
 {
-   d_data = data;
+   this->data = (void*) data;
    data_mode = DATA_DIRECT;
    data_class = DATA_DOUBLE;
    
@@ -180,9 +180,9 @@ void FLIMData::SetData(double data[])
    has_data = true;
 }
 
-void FLIMData::SetData(uint16_t data[])
+void FLIMData::SetData(uint16_t* data)
 {
-   i_data = data;
+   this->data = (void*) data;
    data_mode = DATA_DIRECT;
    data_class = DATA_UINT16;
 

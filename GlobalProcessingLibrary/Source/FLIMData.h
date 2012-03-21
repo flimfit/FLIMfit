@@ -99,17 +99,7 @@ private:
    template <typename T>
    void TransformImage(int thread, int im);
 
-   template <typename T>
-   T* MemPointer() { return d_data; };
-
-   template <>
-   double* MemPointer<double>() { return d_data; };
-
-   template <>
-   uint16_t* MemPointer<uint16_t>() { return i_data; };
-
-   double* d_data;
-   uint16_t* i_data;
+   void* data;
 
    double* tr_data;
    double* tr_buf;
@@ -187,7 +177,7 @@ T* FLIMData::GetDataPointer(int thread, int im)
       }
       else
       {
-         data_ptr = MemPointer<T>() + im * im_size;
+         data_ptr = ((T*)data) + im * im_size;
       }
    }
    catch(std::exception& e)
