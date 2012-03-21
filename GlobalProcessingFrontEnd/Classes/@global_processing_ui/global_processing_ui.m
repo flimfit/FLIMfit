@@ -7,7 +7,7 @@ classdef global_processing_ui
     
     methods
       
-        function obj = global_processing_ui(wait,require_auth)
+        function obj = global_processing_ui(wait,OMERO_active,require_auth)
         
             function vx = split_ver(ver)
                 tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
@@ -23,6 +23,9 @@ classdef global_processing_ui
                 wait = false;
             end
             if nargin < 2
+                OMERO_active = false;
+            end
+            if nargin < 3
                 require_auth = false;
             end
             
@@ -31,7 +34,19 @@ classdef global_processing_ui
             else
                 wait = true;
             end
-
+            
+            client = [];
+            session = [];       %default value
+            
+            if OMERO_active
+            
+                logon = OMERO_logon;
+                
+                client = loadOmero(logon{1});
+                try 
+                    session = client.createSession(logon{2},logon{3});
+                end
+            end
             
             try
                 v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
@@ -39,7 +54,6 @@ classdef global_processing_ui
                 v = '[unknown version]';
             end
             
-            disp(['Welcome to GlobalProcessing v' v{1}]);
             
             if require_auth
                 auth_text = urlread('https://global-analysis.googlecode.com/hg/GlobalAnalysisAuth.txt');
@@ -55,11 +69,9 @@ classdef global_processing_ui
                 else
                     min_ver = 0;
                 end
-                
                 if min_ver == 0 || split_ver(v{1}) < min_ver
                     auth_success = false;
                 end
-                
                 if ~auth_success 
                     disp('Sorry, error occured while authenticating.');
                     return
@@ -76,9 +88,17 @@ classdef global_processing_ui
                 'Visible','off', ...
                 'Units','normalized', ...
                 'OuterPosition',[0 0.03 1 0.97]);
+            
+           
                 
             obj.setup_layout();
-            obj.setup_menu();
+            
+            if isempty(session)
+                obj.setup_menu();
+            else
+               obj.setup_alt_menu();
+            end
+            
             obj.setup_toolbar();
 
             handles = guidata(obj.window); 
@@ -99,35 +119,58 @@ classdef global_processing_ui
             handles.corr_controller = flim_fit_corr_controller(handles);
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);
+            
+            handles.OMERO_session = session;
+            handles.OMERO_client = client;
 
             handles.menu_controller = front_end_menu_controller(handles);
 
             set(obj.window,'Visible','on');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
-            
+                        
             if wait
                 waitfor(obj.window);
             end
             
+
+            
         end
         
         function close_request_fcn(obj,src,evt)
-           
-            % Make sure we clean up all the left over classes
+         
+            
+            disp('closing om fcn call');
             
             handles = guidata(obj.window);
+            session = handles.OMERO_session;
+            client = handles.OMERO_client;
+                  
+            if ~isempty(session)
+                
+                %Close the OMERO session
+                disp('Closing OMERO session');
+            
+                
+                client.closeSession();
+                %clear client;
+                %clear session;
+                %unloadOmero();
+                %clear java;
+            end
+
+            
+            % Make sure we clean up all the left over classes
             names = fieldnames(handles);
-           
             for i=1:length(names)
                 if ishandle(handles.(names{i}))
                     clear handles.(names{i});
                 end
             end
             
-            
-            %clear handles;
+            clear handles;
             delete(obj.window);
-            
+            clear obj;
+                        
             
         end
         

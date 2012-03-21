@@ -1,6 +1,12 @@
 classdef front_end_menu_controller < handle
     
     properties
+        
+        menu_OMERO_fetch_TCSPC;
+        menu_OMERO_irf_TCSPC;
+        
+       
+
         menu_file_new_window;
         
         menu_file_load_single;
@@ -64,6 +70,8 @@ classdef front_end_menu_controller < handle
         fitting_params_controller;
         plot_controller;
         hist_controller;
+        
+        session;    % OMERO session ID
     end
     
     properties(SetObservable = true)
@@ -97,6 +105,8 @@ classdef front_end_menu_controller < handle
                 addpref('GlobalAnalysisFrontEnd','RecentIRF',[])
                 obj.recent_irf = [];
             end
+            
+            obj.session = handles.OMERO_session;      % OMERO session ID
         end
         
         function set_callbacks(obj)
@@ -159,6 +169,55 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        
+        
+        %------------------------------------------------------------------
+        % OMERO
+        %------------------------------------------------------------------
+        function menu_OMERO_fetch_TCSPC_callback(obj,~,~)
+      
+            dlgTitle = 'Enter Image ID';
+            prompt = {'ID '};
+            defaultvalues = {'0'};
+            imageID = 0;
+            numLines = 1;
+           
+            while (imageID < 1) 
+                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                imageID = uint32(str2num(inputdata{1}));
+            end
+
+            session = obj.session; 
+           
+            obj.data_series_controller.fetch_TCSPC({session, imageID}); 
+          
+        end
+        
+        
+        function menu_OMERO_irf_TCSPC_callback(obj,~,~)
+      
+            dlgTitle = 'Enter Image ID';
+            prompt = {'ID '};
+            defaultvalues = {'0'};
+            imageID = 0;
+            numLines = 1;
+           
+            while (imageID < 1) 
+                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                imageID = uint32(str2num(inputdata{1}));
+            end
+            
+            session = obj.session;
+            
+            polarisation_resolved = false;
+            
+           
+            % allow one channel to be loaded as an irf
+            channel = obj.data_series_controller.data_series.request_channels(polarisation_resolved);
+           
+            obj.data_series_controller.data_series.fetchirf_TCSPC({session, imageID}, polarisation_resolved, channel); 
+          
+        end
         %------------------------------------------------------------------
         % Load Data
         %------------------------------------------------------------------
