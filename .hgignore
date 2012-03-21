@@ -5,6 +5,10 @@ syntax: glob
 *.exp
 *.lib
 *.obj
+*.zip
+*.orig
+data_settings.xml
+FLIMGlobalAnalysisProto_*
 .DS_Store
 GlobalProcessingLibrary/Boost/*
 TestDatasets/*
@@ -15,4 +19,3 @@ GlobalProcessingFrontEnd/Testing/simulation/*
 GlobalProcessingFrontEnd/DeployFiles/*
 GlobalProcessingFrontEnd/GlobalProcessing_*
 GlobalProcessingStandalone/*
-*.zip
