@@ -21,13 +21,9 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('main','global_algorithm','popupmenu','Global Mode', {'Global Analysis', 'Global Binning'})
     add_fitting_param_control('main','n_exp','popupmenu','No. Exp', {'1', '2', '3', '4', '5'});
     add_fitting_param_control('main','n_fix','popupmenu','No. Fixed', {'0', '1', '2', '3', '4', '5'});
-    %add_fitting_param_control('main','use_phase_plane_estimation','popupmenu','Estimate Initial Guess', {'No','Yes'});
     add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally'});
-    %add_fitting_param_control('main','data_type','popupmenu','Data Type', {'TCSPC', 'Time Gated'})
-        
-    %add_fitting_param_control('main','pulsetrain_correction','popupmenu','Pulse train correction', {'No','Yes'});
-    %add_fitting_param_control('main_col3','rep_rate','edit','Rep. Rate', '80');
     add_fitting_param_control('main','ref_reconvolution','popupmenu','IRF Type', {'Scatter','Fixed Reference','Fitted Reference'});
+    
     add_fitting_param_control('main_col3','ref_lifetime','edit','Ref. Lifetime', '100');
 
     set(fit_params_main_layout,'Sizes',[120 120 300])
@@ -97,6 +93,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('adv','split_fit','checkbox','Split Fit', '');
     add_fitting_param_control('adv','use_memory_mapping','checkbox','Memory Map Results', '');
     add_fitting_param_control('adv','calculate_errs','checkbox','Calculate Errors', '');
+    add_fitting_param_control('adv','use_autosampling','checkbox','Use Autosampling', '');
     set(fit_params_adv_layout,'Sizes',[120 120])
 
     set(fit_params_panel, 'TabNames', {'Lifetime'; 'Stray Light'; 'Anisotropy'; 'FRET'; 'Advanced'});

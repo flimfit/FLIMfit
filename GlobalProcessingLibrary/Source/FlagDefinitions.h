@@ -1,3 +1,6 @@
+#ifndef _FLAGDEFINITIONS_H
+#define _FLAGDEFINITIONS_H
+
 #define DATA_DIRECT 0
 #define DATA_MAPPED 1
 
@@ -10,6 +13,16 @@
 #define DATA_DOUBLE 0
 #define DATA_UINT16 1
 
+#define APPLY_ANSCOME_TRANSFORM  0
+
+#define FIX            0
+#define FIT_LOCALLY    1
+#define FIT_GLOBALLY   2
+
+#define FIT            1
+
+#define DATA_TYPE_TCSPC 0
+#define DATA_TYPE_TIMEGATED 1
 
 #define MAX_CONTROLLER_IDX 255
 
@@ -23,3 +36,5 @@
 #define ERR_COULD_NOT_START_FIT        -1007
 #define ERR_FOUND_NO_REGIONS           -1008
 #define ERR_FAILED_TO_MAP_DATA         -1009
+
+#endif

@@ -155,7 +155,11 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
                 %%% Get the fit results
                 fit_result = obj.fit_controller.fit_result();
                 
-                chi2 = nanmean(fit_result.images{1}.chi2);
+                if fit_result.ierr < 0
+                    chi2 = 100;
+                else
+                    chi2 = nanmean(fit_result.images{1}.chi2);
+                end
                 
                 return 
                 

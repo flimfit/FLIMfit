@@ -23,7 +23,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Time Max. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     
     handles.rep_rate_edit          = uicontrol( 'Style', 'edit', 'String', '80', 'Parent', data_transformation_layout );
-    handles.downsampling_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', '2', '4', '8', '16', '32'}, 'Parent', data_transformation_layout );
+    handles.downsampling_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None'}, 'Parent', data_transformation_layout );
     handles.gate_max_edit          = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
     handles.t_max_edit             = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
     

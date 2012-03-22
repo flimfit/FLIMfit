@@ -56,8 +56,13 @@ classdef flim_fit_hist_controller < flim_fit_observer
                 params = obj.fit_controller.fit_result.fit_param_list();
                 set(obj.hist_param_popupmenu,'String',params);
                 val = get(obj.hist_param_popupmenu,'Value');
+                if val > length(params);
+                    val = 1;
+                end
+                set(obj.hist_param_popupmenu,'Value',val);
                 str = get(obj.hist_param_popupmenu,'String');
                 obj.param = str{val};
+                
             end
         end
         

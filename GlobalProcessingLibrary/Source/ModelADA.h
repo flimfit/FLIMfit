@@ -14,16 +14,7 @@
 
 #include "f2c.h"
 
-#define APPLY_ANSCOME_TRANSFORM  0
-
-#define FIX            0
-#define FIT_LOCALLY    1
-#define FIT_GLOBALLY   2
-
-#define FIT            1
-
-#define DATA_TYPE_TCSPC 0
-#define DATA_TYPE_TIMEGATED 1
+#include "FlagDefinitions.h"
 
 class FLIMGlobalFitController;
 

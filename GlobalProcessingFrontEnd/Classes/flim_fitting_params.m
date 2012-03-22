@@ -53,6 +53,8 @@ classdef flim_fitting_params < handle
         split_fit = false;
         use_memory_mapping = false;
         
+        use_autosampling = true;
+        
         n_thread = 8;
     end
    

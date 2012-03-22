@@ -260,8 +260,8 @@ FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_
 }
 
 
-FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t,
-                             int data_type, int use_im[], int mask[], int threshold, int limit, int global_mode, int smoothing_factor)
+FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type,
+                             int use_im[], int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling)
 {
 
 //   int valid = ValidControllerIdx(c_idx);
@@ -271,7 +271,7 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
    int n_thread = controller[c_idx]->n_thread;
 
    FLIMData* d = new FLIMData(n_im, n_x, n_y, n_chan, n_t_full, t, t_skip, n_t, data_type, use_im,  
-                              mask, threshold, limit, global_mode, smoothing_factor, n_thread);
+                              mask, threshold, limit, global_mode, smoothing_factor, use_autosampling, n_thread);
    
    controller[c_idx]->SetData(d);
 

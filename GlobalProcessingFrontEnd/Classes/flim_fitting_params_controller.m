@@ -31,6 +31,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
         calculate_errs_checkbox;
         split_fit_checkbox;
         use_memory_mapping_checkbox;
+        use_autosampling_checkbox;
         
         n_theta_popupmenu;
         n_theta_fix_popupmenu;
@@ -93,6 +94,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             obj.bind_control(obj.calculate_errs_checkbox,'checkbox','calculate_errs');
             obj.bind_control(obj.split_fit_checkbox,'checkbox','split_fit');
             obj.bind_control(obj.use_memory_mapping_checkbox,'checkbox','use_memory_mapping');
+            obj.bind_control(obj.use_autosampling_checkbox,'checkbox','use_autosampling');
             
             obj.set_polarisation_mode(false);
             

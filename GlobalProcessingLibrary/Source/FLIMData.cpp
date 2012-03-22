@@ -1,7 +1,7 @@
 #include "FLIMData.h"
 
 FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type, 
-                   int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread) :
+                   int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
@@ -15,7 +15,8 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    threshold(threshold),
    limit(limit),
    global_mode(global_mode),
-   smoothing_factor(smoothing_factor)
+   smoothing_factor(smoothing_factor),
+   use_autosampling(use_autosampling)
 {
    has_data = false;
 
@@ -243,7 +244,7 @@ int FLIMData::GetResampleNumMeas(int thread)
 
 void FLIMData::DetermineAutoSampling(int thread, double decay[])
 {
-   if (n_t < 100 || n_chan > 1)
+   if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling)
       return;
 
    int* resample_idx = this->resample_idx + n_t * thread;
