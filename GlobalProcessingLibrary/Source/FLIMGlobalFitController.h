@@ -41,6 +41,7 @@ public:
    {
       controller = wp.controller;
       thread = wp.thread;
+      return wp;
    }; 
    
    FLIMGlobalFitController* controller;

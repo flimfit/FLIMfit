@@ -5,12 +5,10 @@ function setup_alt_menu(obj)
     
     
     menu_OMERO      = uimenu(obj.window,'Label','OMERO');
-    menu_OMERO_fetch = uimenu(menu_OMERO,'Label','Fetch data from OMERO');
-    handles.menu_OMERO_fetch_TCSPC = uimenu(menu_OMERO_fetch,'Label','Fetch single TCSPC image...','Accelerator','O');
-    
-    menu_OMERO_irf = uimenu(menu_OMERO,'Label','Fetch irf from OMERO');
-    handles.menu_OMERO_irf_TCSPC = uimenu(menu_OMERO_irf,'Label','Fetch TCSPC irf ...','Accelerator','O');
-    
+   
+    handles.menu_OMERO_fetch_TCSPC = uimenu(menu_OMERO,'Label','Fetch single TCSPC image from OMERO','Accelerator','O');
+    handles.menu_OMERO_irf_TCSPC = uimenu(menu_OMERO,'Label','Fetch TCSPC irf from OMERO','Accelerator','O');
+    handles.menu_OMERO_store_fit_result = uimenu(menu_OMERO,'Label','Store fit result into OMERO','Accelerator','O');
 
     menu_file      = uimenu(obj.window,'Label','File');
     %menu_file_load = uimenu(menu_file,'Label','Load FLIM Data');

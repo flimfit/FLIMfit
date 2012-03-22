@@ -1,5 +1,7 @@
 function handles = add_fitting_params_panel(obj,handles,parent)
     
+    external = handles.external;
+
     % Fit Params Panel
     %---------------------------------------
     fit_params_panel = uiextras.TabPanel( 'Parent', parent );
@@ -27,7 +29,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('main_col3','ref_lifetime','edit','Ref. Lifetime', '100');
 
     set(fit_params_main_layout,'Sizes',[120 120 300])
-    set(fit_params_main_col3_layout,'Sizes',[70 120])
+    set(fit_params_main_col3_layout,'Sizes',[120 120])
     set(fit_params_main_extra_layout,'Sizes',[137, -1])
 
     
@@ -45,58 +47,64 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('stray_col2','offset','edit','Offset', '0');
     add_fitting_param_control('stray','fit_scatter','popupmenu','Scatter',{'Fixed','Fitted Locally','Fitted Globally'});
     add_fitting_param_control('stray_col2','scatter','edit','Scatter', '0');
-    add_fitting_param_control('stray','fit_tvb','popupmenu','TVB',{'Fixed','Fitted Locally','Fitted Globally'});
+    add_fitting_param_control('stray','fit_tvb','popupmenu','TV Background',{'Fixed','Fitted Locally','Fitted Globally'});
     add_fitting_param_control('stray_col2','tvb','edit','TVB', '0');
 
     set(fit_params_stray_layout,'Sizes',[120 120 300])
     set(fit_params_stray_col2_layout,'Sizes',[70 120])
     
+    if ~external
+        % Anisotropy tab
+        fit_params_anis_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
+        fit_params_anis_label_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
+        fit_params_anis_opt_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
+        fit_params_anis_extra_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
+
+        add_fitting_param_control('anis','n_theta','popupmenu','No. Decays', {'0','1', '2', '3', '4', '5'});
+        add_fitting_param_control('anis','n_theta_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
+
+        handles.theta_guess_table = uitable('Parent', fit_params_anis_extra_layout);
+
+        set(fit_params_anis_layout,'Sizes',[120 120 300])
+        set(fit_params_anis_extra_layout,'Sizes',[92])
+
+        % FRET tab
+        fit_params_fret_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
+        fit_params_fret_label_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
+        fit_params_fret_opt_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
+        fit_params_fret_extra_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
+
+        add_fitting_param_control('fret','n_fret','popupmenu','No. FRET Species', {'0','1', '2', '3', '4', '5'});
+        add_fitting_param_control('fret','n_fret_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
+        add_fitting_param_control('fret','inc_donor','popupmenu','Include donor only', {'No', 'Yes'});
+
+        handles.fret_guess_table = uitable('Parent', fit_params_fret_extra_layout);
+
+        set(fit_params_fret_layout,'Sizes',[120 120 300])
+        set(fit_params_fret_extra_layout,'Sizes',[92])
+
+        % Advanced tab
+        fit_params_adv_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
+        fit_params_adv_label_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
+        fit_params_adv_opt_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
+
+        add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
+        add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Marquardt' 'Gauss-Newton' 'Grid Search'});
+        add_fitting_param_control('adv','pulsetrain_correction','popupmenu','Pulse train correction', {'No','Yes'});
+        add_fitting_param_control('adv','live_update','checkbox','Live Fit', '');
+        add_fitting_param_control('adv','split_fit','checkbox','Split Fit', '');
+        add_fitting_param_control('adv','use_memory_mapping','checkbox','Memory Map Results', '');
+        add_fitting_param_control('adv','calculate_errs','checkbox','Calculate Errors', '');
+        add_fitting_param_control('adv','use_autosampling','checkbox','Use Autosampling', '');
+        set(fit_params_adv_layout,'Sizes',[160 120])
+    end %external
     
-    % Anisotropy tab
-    fit_params_anis_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-    fit_params_anis_label_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
-    fit_params_anis_opt_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
-    fit_params_anis_extra_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
-
-    add_fitting_param_control('anis','n_theta','popupmenu','No. Decays', {'0','1', '2', '3', '4', '5'});
-    add_fitting_param_control('anis','n_theta_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
+    if ~external
+        set(fit_params_panel, 'TabNames', {'Lifetime'; 'Stray Light'; 'Anisotropy'; 'FRET'; 'Advanced'});
+    else
+        set(fit_params_panel, 'TabNames', {'Lifetime'; 'Stray Light'});
+    end
     
-    handles.theta_guess_table = uitable('Parent', fit_params_anis_extra_layout);
-
-    set(fit_params_anis_layout,'Sizes',[120 120 300])
-    set(fit_params_anis_extra_layout,'Sizes',[92])
-    
-    % FRET tab
-    fit_params_fret_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-    fit_params_fret_label_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
-    fit_params_fret_opt_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
-    fit_params_fret_extra_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
-
-    add_fitting_param_control('fret','n_fret','popupmenu','No. FRET Species', {'0','1', '2', '3', '4', '5'});
-    add_fitting_param_control('fret','n_fret_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
-    add_fitting_param_control('fret','inc_donor','popupmenu','Include donor only', {'No', 'Yes'});
-    
-    handles.fret_guess_table = uitable('Parent', fit_params_fret_extra_layout);
-
-    set(fit_params_fret_layout,'Sizes',[120 120 300])
-    set(fit_params_fret_extra_layout,'Sizes',[92])
-    
-    % Advanced tab
-    fit_params_adv_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-    fit_params_adv_label_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-    fit_params_adv_opt_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-
-    add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
-    add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Marquardt' 'Gauss-Newton' 'Grid Search'});
-    add_fitting_param_control('adv','pulsetrain_correction','popupmenu','Pulse train correction', {'No','Yes'});
-    add_fitting_param_control('adv','live_update','checkbox','Live Fit', '');
-    add_fitting_param_control('adv','split_fit','checkbox','Split Fit', '');
-    add_fitting_param_control('adv','use_memory_mapping','checkbox','Memory Map Results', '');
-    add_fitting_param_control('adv','calculate_errs','checkbox','Calculate Errors', '');
-    add_fitting_param_control('adv','use_autosampling','checkbox','Use Autosampling', '');
-    set(fit_params_adv_layout,'Sizes',[120 120])
-
-    set(fit_params_panel, 'TabNames', {'Lifetime'; 'Stray Light'; 'Anisotropy'; 'FRET'; 'Advanced'});
     set(fit_params_panel, 'SelectedChild', 1);
 
     

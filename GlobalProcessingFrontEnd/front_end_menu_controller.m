@@ -4,6 +4,7 @@ classdef front_end_menu_controller < handle
         
         menu_OMERO_fetch_TCSPC;
         menu_OMERO_irf_TCSPC;
+        menu_OMERO_store_fit_result;
         
        
 
@@ -218,6 +219,15 @@ classdef front_end_menu_controller < handle
             obj.data_series_controller.data_series.fetchirf_TCSPC({session, imageID}, polarisation_resolved, channel); 
           
         end
+        
+        
+        function menu_OMERO_store_fit_result_callback(obj,~,~)
+            
+            session = obj.session
+            obj.fit_controller.store_fit_result(session);         
+           
+        end
+        
         %------------------------------------------------------------------
         % Load Data
         %------------------------------------------------------------------

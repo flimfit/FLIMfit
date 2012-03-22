@@ -183,7 +183,7 @@ classdef flim_fit_result < handle
             end 
         end
         
-        function n_results = get.n_results(obj)
+        function n_results = get_n_results(obj)
             n_results = length(obj.images);
         end
         

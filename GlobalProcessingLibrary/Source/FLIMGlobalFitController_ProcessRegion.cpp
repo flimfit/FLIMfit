@@ -27,8 +27,15 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    bool swapped;
    double swap_buf;
    int swap_idx_buf;
-   double c2, ref;
+   double c2;
+   double ref = 0;
 
+   int ierr_local_binning = 0;
+   int ierr_local = 0;
+	
+   int s1 = 1;
+	
+	
    mapped_region data_map_view;
 
    locked_param[thread] = -1;
@@ -165,8 +172,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       w[j] = 0;
 
    for(i=0; i<n_meas_res; i++)
-      count_buf[i] = 0;
-
+	   count_buf[i] = 0;
+	
    if (s_thresh == 0)
       goto skip_processing;
       
@@ -191,12 +198,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    // Update lpps1 which depends on s   
    itmax = 200;
-
-   int ierr_local_binning = 0;
-   int ierr_local = 0;
-   
-   int s1 = 1;
-
 
 
    if (s_thresh > 1)

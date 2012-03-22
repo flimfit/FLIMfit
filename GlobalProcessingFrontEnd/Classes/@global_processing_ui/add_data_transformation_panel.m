@@ -13,7 +13,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Time Min. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     
     handles.data_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'TCSPC', 'Time Gated'}, 'Parent', data_transformation_layout );
-    handles.binning_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', '3x3 (B&H 1)', '5x5 (B&H 2)', '7x7 (B&H 3)' '9x9 (B&H 4)' '11x11 (B&H 5)'}, 'Parent', data_transformation_layout );
+    handles.binning_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', '3x3 (B&H 1)', '5x5 (B&H 2)', '7x7 (B&H 3)' '9x9 (B&H 4)' '11x11 (B&H 5)' '13x13 (B&H 6)' '15x15 (B&H 7)'}, 'Parent', data_transformation_layout );
     handles.thresh_min_edit   = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
     handles.t_min_edit        = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
     
@@ -28,7 +28,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     handles.t_max_edit             = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
     
     set(data_transformation_layout,'RowSizes',[22 22 22 22]);
-    set(data_transformation_layout,'ColumnSizes',[120 120 70 120]);   
+    set(data_transformation_layout,'ColumnSizes',[120 120 120 120]);   
     
    
     
@@ -43,7 +43,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     
     uicontrol( 'Style', 'text', 'String', 'Background ', 'HorizontalAlignment', 'right', 'Parent', background_layout );
     uicontrol( 'Style', 'text', 'String', 'Background Value ', 'HorizontalAlignment', 'right', 'Parent', background_layout );
-    uicontrol( 'Style', 'text', 'String', 'TV Background', 'HorizontalAlignment', 'right', 'Parent', background_layout );
+    uicontrol( 'Style', 'text', 'String', 'TV Background ', 'HorizontalAlignment', 'right', 'Parent', background_layout );
     
     handles.background_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', 'Single Value', 'Image'}, 'Parent', background_layout );
     handles.background_value_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', background_layout );
