@@ -12,7 +12,7 @@ function regression_testing(handles)
     contents = dir(test_folder);
     tests = {};
     
-    for i = 3:6 %length(contents)
+    for i=3:6 %length(contents)
         if isdir([test_folder contents(i).name])
             tests{end+1} = contents(i).name;
         end
@@ -59,6 +59,7 @@ function regression_testing(handles)
         handles.data_series_controller.data_series.load_data_settings([folder test_def.data_settings_file]);
         handles.fitting_params_controller.load_fitting_params([folder test_def.fit_param_file]);
         
+        
         handles.fit_controller.fit();
 
         while(~handles.fit_controller.has_fit)
@@ -84,6 +85,7 @@ function regression_testing(handles)
             
             
         end
+        
             
         disp('--------------------------------------------');
         disp(['PASSED ' num2str(tests_passed) '/' num2str(tests_passed+tests_failed)]);
@@ -91,6 +93,7 @@ function regression_testing(handles)
         
         overall_tests_passed = overall_tests_passed + tests_passed;
         overall_tests_failed = overall_tests_failed + tests_failed;
+        
          
     end
     

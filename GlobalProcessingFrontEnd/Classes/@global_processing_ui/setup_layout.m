@@ -27,10 +27,19 @@ function setup_layout(obj)
     set(display_panel, 'TabNames', {'Decay','Parameters','Images','Gallery','Histogram','Correlation','Plotter','Plate'});
     set(display_panel, 'SelectedChild', 1);
     
+    display_params_panel = uiextras.VBox( 'Parent', topright_layout );
+    
     col_names = {'Plot','Display','Merge','Min','Max','Auto'};
     col_width = {60 30 30 50 50 30};
-    handles.plot_select_table = uitable( 'ColumnName', col_names, 'ColumnWidth', col_width, 'RowName', [], 'Parent', topright_layout );
+    handles.plot_select_table = uitable( 'ColumnName', col_names, 'ColumnWidth', col_width, 'RowName', [], 'Parent', display_params_panel );
 
+    colormap_panel = uiextras.Grid( 'Parent', display_params_panel );
+    
+    uicontrol( 'Style', 'text', 'String', 'Invert Colorscale? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel );
+    handles.invert_colormap_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel );    
+    
+    set(display_params_panel, 'Sizes', [-1 22] );
+    
     set( topright_layout, 'Sizes', [-1, 0] );
    
     function display_panel_callback(~,src,~)
@@ -83,7 +92,7 @@ function setup_layout(obj)
 
     set(fit_button_layout,'Sizes',[-1,-2]);
     
-    set(left_layout,'Sizes',[-1,140,280,30])
+    set(left_layout,'Sizes',[-1,140,200,30])
     
         
     set(top_layout,'Sizes',[550,-1]);

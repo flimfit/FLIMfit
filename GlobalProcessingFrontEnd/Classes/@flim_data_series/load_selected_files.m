@@ -37,18 +37,10 @@ function load_selected_files(obj,selected)
         if obj.use_memory_mapping
             
             mapfile_name = global_tempname;
-            tr_mapfile_name = global_tempname;
-
             mapfile = fopen(mapfile_name,'w');
-            tr_mapfile = fopen(tr_mapfile_name,'w');
-
 
             for j=1:num_sel
-%{
-                import java.io.*
-                a = File(obj.file_names{selected(j)});
-                b = a.lastModified();
-%}                
+
                 if obj.load_multiple_channels
                     filename = obj.file_names{1};
                     [~,data] = load_flim_file(filename,obj.channels(selected(j)));
@@ -57,12 +49,11 @@ function load_selected_files(obj,selected)
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
-                if isempty(data)
+                if isempty(data) || size(data,1) ~= obj.n_t
                     data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
 
                 c1=fwrite(mapfile,data,'double');
-                c2=fwrite(tr_mapfile,data,'double');
 
                 if using_popup
                     waitbar(j/num_sel,wait_handle)
@@ -71,9 +62,8 @@ function load_selected_files(obj,selected)
             end
 
             fclose(mapfile);
-            fclose(tr_mapfile);
-
-            obj.init_memory_mapping(obj.data_size(1:4), num_sel, mapfile_name, tr_mapfile_name);    
+            
+            obj.init_memory_mapping(obj.data_size(1:4), num_sel, mapfile_name);    
         else
            
             for j=1:num_sel
@@ -86,7 +76,6 @@ function load_selected_files(obj,selected)
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
-                obj.tr_data_series_mem(:,:,:,:,j) = double(data);
                 obj.data_series_mem(:,:,:,:,j) = double(data);
                 
 
@@ -96,12 +85,12 @@ function load_selected_files(obj,selected)
 
             end
             
-            obj.tr_data_series = obj.tr_data_series_mem(:,:,:,:,1);
-            obj.data_series = obj.data_series_mem(:,:,:,:,1);
+            obj.active = 1;
+            obj.cur_data = obj.data_series_mem(:,:,:,:,1);
             
         end
     else
-        obj.init_memory_mapping(obj.data_size(1:4), num_sel);
+        obj.init_memory_mapping(obj.data_size(1:4), num_sel, obj.mapfile_name);
     end
         
             

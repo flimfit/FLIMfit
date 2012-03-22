@@ -54,7 +54,9 @@ classdef flim_dll_interface < handle
         p_fixed_beta;
         p_grid;
         p_gamma;
+        p_use;
         
+        p_background;
         p_tau_err;
         p_beta_err;
         p_E_err;
@@ -112,9 +114,13 @@ classdef flim_dll_interface < handle
                     loadlibrary(obj.lib_name,proto_ref);
                 end
                 warning('on','MATLAB:loadlibrary:TypeNotFound');
+                
+                
             end
 
-            obj.dll_id = calllib(obj.lib_name,'FLIMGlobalGetUniqueID');
+            if isempty(obj.dll_id)
+                obj.dll_id = calllib(obj.lib_name,'FLIMGlobalGetUniqueID');
+            end
 
             
          end

@@ -8,11 +8,11 @@ extern "C" {
 void GetVarsAtGridIdx(int idx, int nl, int grid_size, double var_min[], double var_step[], double var[]);
 
 void varp2_grid(integer *s, integer *l, integer *lmax, integer *
-	nl, integer *n, integer *nmax, integer *ndim, integer *lpps1, integer 
-	*lps, integer *pp2, integer *iv, doublereal *t, doublereal *y, 
-	doublereal *w, U_fp ada, doublereal *a, doublereal *b,
-	 integer *iprint, integer *gc, integer *thread, doublereal *alf, doublereal *beta, 
-	integer *ierr, doublereal *r__, integer *gn,
+   nl, integer *n, integer *nmax, integer *ndim, integer *lpps1, integer 
+   *lps, integer *pp2, integer *iv, doublereal *t, doublereal *y, 
+   doublereal *w, U_fp ada, doublereal *a, doublereal *b,
+    integer *iprint, integer *gc, integer *thread, doublereal *alf, doublereal *beta, 
+   integer *ierr, doublereal *r__, integer *gn,
    doublereal var_min[], doublereal var_max[], doublereal grid[], integer grid_size, integer grid_factor, doublereal buf[], integer n_iter )
 {   
    static doublereal eps1 = 1e-6;
@@ -148,5 +148,5 @@ void GetVarsAtGridIdx(int idx, int nl, int grid_size, double var_min[], double v
 
 
 #ifdef __cplusplus
-	}
+   }
 #endif

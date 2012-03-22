@@ -26,6 +26,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
         inc_donor_popupmenu;
         fret_guess_table;
         global_variable_popupmenu;
+        global_algorithm_popupmenu;
         use_phase_plane_estimation_popupmenu;
         calculate_errs_checkbox;
         split_fit_checkbox;
@@ -65,6 +66,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             obj.bind_control(obj.n_fix_popupmenu,'popupmenu','n_fix');
             obj.bind_control(obj.global_fitting_popupmenu,'popupmenu','global_fitting');
             obj.bind_control(obj.global_variable_popupmenu,'popupmenu','global_variable');
+            obj.bind_control(obj.global_algorithm_popupmenu,'popupmenu','global_algorithm');
             obj.bind_control(obj.use_phase_plane_estimation_popupmenu,'popupmenu','use_phase_plane_estimation');
             obj.bind_control(obj.data_type_popupmenu,'popupmenu','data_type');
             obj.bind_control(obj.fit_beta_popupmenu,'popupmenu','fit_beta');
@@ -105,8 +107,8 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             if obj.data_series.init
                 obj.set_polarisation_mode(obj.data_series.polarisation_resolved);
                 
-                obj.fit_params.split_fit = obj.data_series.lazy_loading;
-                obj.fit_params.use_memory_mapping = obj.data_series.lazy_loading || ~is64;
+                %obj.fit_params.split_fit = obj.data_series.lazy_loading;
+                %obj.fit_params.use_memory_mapping = obj.data_series.lazy_loading || ~is64;
 
                 var_list = fieldnames(obj.data_series.metadata);
                 var_list = ['-'; var_list];
@@ -217,10 +219,10 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             
             if ~isempty(flim_table_data)
                 obj.fit_params.tau_guess = flim_table_data(:,1);
-                obj.fit_params.tau_min = flim_table_data(:,2);
-                obj.fit_params.tau_max = flim_table_data(:,3);
+                %obj.fit_params.tau_min = flim_table_data(:,2);
+                %obj.fit_params.tau_max = flim_table_data(:,3);
                 if obj.fit_params.fit_beta ~= 1
-                    obj.fit_params.fixed_beta = flim_table_data(:,4);
+                    obj.fit_params.fixed_beta = flim_table_data(:,2);
                 end
             end
             
@@ -233,15 +235,16 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
                 
         function update_controls(obj)
             
-            table_header = {'Initial' 'Min' 'Max'};
-            table_data = [obj.fit_params.tau_guess obj.fit_params.tau_min obj.fit_params.tau_max];
+            table_header = {'Initial Tau'}; % 'Min' 'Max'};
+            %table_data = [obj.fit_params.tau_guess obj.fit_params.tau_min obj.fit_params.tau_max];
+            table_data = obj.fit_params.tau_guess;
             
             if obj.fit_params.fit_beta ~= 1
-                table_header = [table_header 'Fixed beta'];
+                table_header = [table_header 'Beta'];
                 table_data = [table_data obj.fit_params.fixed_beta];
             end
                         
-            table_width = ones(size(table_header)) * 50;
+            table_width = ones(size(table_header)) * 80;
             table_width = num2cell(table_width);
             
             set(obj.tau_guess_table,'ColumnName',table_header);
@@ -258,6 +261,24 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             set(obj.theta_guess_table,'ColumnEditable',true)
             set(obj.theta_guess_table,'ColumnName',{'phi'});
             
+            
+            if obj.fit_params.global_fitting == 0
+                set(obj.global_algorithm_popupmenu,'Enable','off')
+            else
+                set(obj.global_algorithm_popupmenu,'Enable','on');
+            end
+            
+            if obj.fit_params.global_fitting < 2
+                set(obj.global_variable_popupmenu,'Enable','off');
+            else
+                set(obj.global_variable_popupmenu,'Enable','on');
+            end
+            
+            if obj.fit_params.ref_reconvolution == 0
+                set(obj.ref_lifetime_edit,'Enable','off');
+            else
+                set(obj.ref_lifetime_edit,'Enable','on');
+            end
             
             if obj.fit_params.fit_beta ~= 1
                 set(obj.n_fret_popupmenu,'Enable','on');

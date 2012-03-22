@@ -2,9 +2,14 @@
 function setup_menu(obj)
 
     handles = guidata(obj.window);
+    
+    
+    handles.OMERO_session = [];
+    handles.OMERO_client =  [];
 
     menu_file      = uimenu(obj.window,'Label','File');
-    menu_file_load = uimenu(menu_file,'Label','Load FLIM Data');
+    handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
+    menu_file_load = uimenu(menu_file,'Label','Load FLIM Data','Separator','on');
     handles.menu_file_load_single = uimenu(menu_file_load,'Label','Load Single Image...','Accelerator','O');
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','W','Separator','on');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
@@ -14,6 +19,8 @@ function setup_menu(obj)
     
     handles.menu_file_load_raw = uimenu(menu_file,'Label','Load Raw Data...');
     handles.menu_file_load_test = uimenu(menu_file,'Label','Load Test Data...');
+    handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
+    
     handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
     handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
     
@@ -38,7 +45,8 @@ function setup_menu(obj)
     handles.menu_irf_set_gaussian = uimenu(menu_irf,'Label','Set Gaussian IRF...');
     
     menu_background = uimenu(obj.window,'Label','Background');
-    handles.menu_background_background_load = uimenu(menu_background,'Label','Load Background Image...');
+    handles.menu_background_background_load = uimenu(menu_background,'Label','Load background image...');
+    handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load series of background image to smooth...');
     
     menu_segmentation = uimenu(obj.window,'Label','Segmentation');
     handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager');

@@ -1,8 +1,11 @@
 
-function setup_alt_menu(obj)
+function setup_alt_menu(obj, client, session)
 
     handles = guidata(obj.window);
     
+    
+    handles.OMERO_session = session;
+    handles.OMERO_client = client;
     
     menu_OMERO      = uimenu(obj.window,'Label','OMERO');
    

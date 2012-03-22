@@ -24,7 +24,7 @@ function init_dataset(obj,setting_file_name)
     
     obj.binning = 1;
     obj.thresh_min = 1;
-    obj.thresh_max = 1e10;
+    obj.gate_max = 2^16-1;
     
     obj.t_min = min(obj.t);
     obj.t_max = max(obj.t);   
@@ -43,15 +43,16 @@ function init_dataset(obj,setting_file_name)
     end
     
     % Reshape data to so 2nd dimension is polarisation channel
-    s = size(obj.data_series);
+    s = size(obj.cur_data);
     if length(s) == 3
-        obj.data_series = reshape(obj.data_series,[s(1) 1 s(2) s(3)]);
+        obj.data_series = reshape(obj.cur_data,[s(1) 1 s(2) s(3)]);
     end
     
-    obj.data_size = size(obj.data_series);
+    obj.data_size = size(obj.cur_data);
     obj.data_size = [obj.data_size ones(1,4-length(obj.data_size))];
 
     % If a data setting file exists load it
+    %{
     if nargin < 2 || isempty(setting_file_name)
         if obj.polarisation_resolved
             setting_file_name = [obj.root_path 'polarisation_data_settings.xml'];
@@ -59,8 +60,9 @@ function init_dataset(obj,setting_file_name)
             setting_file_name = [obj.root_path 'data_settings.xml'];
         end
     end
+    %}
     
-    if exist(setting_file_name,'file')
+    if nargin >= 2 && exist(setting_file_name,'file')
        obj.load_data_settings(setting_file_name); 
     end
     

@@ -6,12 +6,19 @@ classdef front_end_menu_controller < handle
         menu_OMERO_irf_TCSPC;
         menu_OMERO_store_fit_result;
         
+        OMERO_client;
+        OMERO_session;     % OMERO session ID
+        
+        menu_file_new_window;
+        
         menu_file_load_single;
         menu_file_load_widefield;
         menu_file_load_tcspc;
         
         menu_file_load_single_pol;
         menu_file_load_tcspc_pol;
+        
+        menu_file_reload_data;
         
         menu_file_save_dataset;
         menu_file_save_raw;
@@ -45,8 +52,9 @@ classdef front_end_menu_controller < handle
         menu_irf_set_gaussian;
         
         menu_background_background_load;
+        menu_background_background_load_series;
         
-        menu_segmentation_manua  l;
+        menu_segmentation_manual;
         menu_segmentation_yuriy;
         
         menu_view_data
@@ -65,7 +73,7 @@ classdef front_end_menu_controller < handle
         plot_controller;
         hist_controller;
         
-        session;    % OMERO session ID
+        
     end
     
     properties(SetObservable = true)
@@ -100,7 +108,7 @@ classdef front_end_menu_controller < handle
                 obj.recent_irf = [];
             end
             
-            obj.session = handles.OMERO_session;      % OMERO session ID
+            
         end
         
         function set_callbacks(obj)
@@ -149,6 +157,13 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Default Path
         %------------------------------------------------------------------
+        function menu_file_new_window_callback(obj,~,~)
+            GlobalProcessing();
+        end
+        
+        %------------------------------------------------------------------
+        % Default Path
+        %------------------------------------------------------------------
         function menu_file_set_default_path_callback(obj,~,~)
             path = uigetdir(obj.default_path,'Select default path');
             if path ~= 0
@@ -174,7 +189,7 @@ classdef front_end_menu_controller < handle
                 imageID = uint32(str2num(inputdata{1}));
             end
 
-            session = obj.session; 
+            session = obj.OMERO_session; 
            
             obj.data_series_controller.fetch_TCSPC({session, imageID}); 
           
@@ -194,7 +209,7 @@ classdef front_end_menu_controller < handle
                 imageID = uint32(str2num(inputdata{1}));
             end
             
-            session = obj.session;
+            session = obj.OMERO_session;
             
             polarisation_resolved = false;
             
@@ -265,6 +280,10 @@ classdef front_end_menu_controller < handle
                     obj.default_path = path;
                 end
             end
+        end
+        
+        function menu_file_reload_data_callback(obj,~,~)
+            obj.data_series_controller.data_series.reload_data;
         end
         
         function menu_file_load_test_callback(obj,~,~)
@@ -404,9 +423,19 @@ classdef front_end_menu_controller < handle
         % Background
         %------------------------------------------------------------------
         function menu_background_background_load_callback(obj,~,~)
-            [file,path] = uigetfile('*.*','Select a background image file',obj.default_path);
+            [file,path] = uigetfile('*.tif','Select a background image file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_background([path file]);    
+            end
+        end
+        
+        %------------------------------------------------------------------
+        % Background
+        %------------------------------------------------------------------
+        function menu_background_background_load_series_callback(obj,~,~)
+            [path] = uigetdir(obj.default_path,'Select a folder of background images');
+            if path ~= 0
+                obj.data_series_controller.data_series.load_background(path);    
             end
         end
         

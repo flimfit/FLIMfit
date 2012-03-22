@@ -1,13 +1,13 @@
 /* VarPro.f -- translated by f2c (version 20060506).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+   on Microsoft Windows system, link with libf2c.lib;
+   on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+   or, if you install libf2c.a in a standard place, with -lf2c -lm
+   -- in that order, at the end of the command line, as in
+      cc *.o -lf2c -lm
+   Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+      http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -23,12 +23,12 @@ static integer c__2 = 2;
 
 /*     ============================================================== */
 /* Subroutine */ int varp2_(integer *s, integer *l, integer *lmax, integer *
-	nl, integer *n, integer *nmax, integer *ndim, integer *lpps1, integer 
-	*lps, integer *pp2, integer *iv, doublereal *t, doublereal *y, 
-	doublereal *w, S_fp ada, doublereal *a, doublereal *b, integer *
-	iprint, integer *itmax, integer *gc, integer *thread, real *sstore, 
-	doublereal *alf, doublereal *beta, integer *ierr, doublereal *r__, 
-	integer *gn, doublereal *alfbest)
+   nl, integer *n, integer *nmax, integer *ndim, integer *lpps1, integer 
+   *lps, integer *pp2, integer *iv, doublereal *t, doublereal *y, 
+   doublereal *w, S_fp ada, doublereal *a, doublereal *b, integer *
+   iprint, integer *itmax, integer *gc, integer *thread, real *sstore, 
+   doublereal *alf, doublereal *beta, integer *ierr, doublereal *r__, 
+   integer *gn, doublereal *alfbest)
 {
     /* Initialized data */
 
@@ -36,7 +36,7 @@ static integer c__2 = 2;
 
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, beta_dim1, beta_offset, 
-	    y_dim1, y_offset, t_dim1, t_offset, i__1, i__2;
+       y_dim1, y_offset, t_dim1, t_offset, i__1, i__2;
     real r__1;
     doublereal d__1;
 
@@ -48,11 +48,11 @@ static integer c__2 = 2;
     doublereal nu;
     integer lp1;
     extern /* Subroutine */ int dpa_(integer *, integer *, integer *, integer 
-	    *, integer *, integer *, integer *, integer *, integer *, integer 
-	    *, integer *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, S_fp, integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
-	     integer *, real *);
+       *, integer *, integer *, integer *, integer *, integer *, integer 
+       *, integer *, doublereal *, doublereal *, doublereal *, 
+       doublereal *, S_fp, integer *, integer *, doublereal *, 
+       doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+        integer *, real *);
     doublereal dta;
     integer inc, nlp1, last_prjres__;
     doublereal acum;
@@ -62,24 +62,24 @@ static integer c__2 = 2;
     doublereal rnew;
     integer lnls1;
     extern /* Subroutine */ int updatestatus_(integer *, integer *, integer *,
-	     doublereal *, integer *);
+        doublereal *, integer *);
     integer modit;
     extern doublereal xnorm_(integer *, doublereal *);
     extern /* Subroutine */ int orfac1_(integer *, integer *, integer *, 
-	    integer *, integer *, integer *, doublereal *, doublereal *, 
-	    integer *), orfac2_(integer *, integer *, doublereal *, 
-	    doublereal *), bacsub_(integer *, integer *, doublereal *, 
-	    doublereal *);
+       integer *, integer *, integer *, doublereal *, doublereal *, 
+       integer *), orfac2_(integer *, integer *, doublereal *, 
+       doublereal *), bacsub_(integer *, integer *, doublereal *, 
+       doublereal *);
     doublereal r_best__;
     integer iterin;
     doublereal gnstep;
     extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
     doublereal prjres;
     extern /* Subroutine */ int postpr_(integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, integer *);
+       integer *, integer *, integer *, integer *, integer *, integer *, 
+       integer *, doublereal *, doublereal *, integer *, doublereal *, 
+       doublereal *, doublereal *, doublereal *, doublereal *, 
+       doublereal *, integer *);
     real prj_tol__;
 
 /*     ============================================================== */
@@ -433,12 +433,12 @@ static integer c__2 = 2;
     modit = *iprint;
     rnew = 0.;
     if (*iprint <= 0) {
-	modit = *itmax + 2;
+   modit = *itmax + 2;
     }
     nu = (float)0.;
 /*              IF GAUSS-NEWTON IS DESIRED REMOVE THE NEXT STATEMENT. */
     if (*gn == 1) {
-	goto L5;
+   goto L5;
     }
     nu = (float)1.;
 
@@ -449,23 +449,23 @@ static integer c__2 = 2;
 
 L5:
     dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &y[
-	    y_offset], &w[1], &alf[1], (S_fp)ada, ierr, iprint, &a[a_offset], 
-	    &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 + 1], r__, gc, 
-	    thread, sstore);
+       y_offset], &w[1], &alf[1], (S_fp)ada, ierr, iprint, &a[a_offset], 
+       &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 + 1], r__, gc, 
+       thread, sstore);
     gnstep = (float)1.;
     iterin = 0;
     if (iter > 0) {
-	goto L10;
+   goto L10;
     }
     if (*nl == 0) {
-	goto L90;
+   goto L90;
     }
     if (*ierr != 1) {
-	goto L99;
+   goto L99;
     }
 
     if (*iprint <= 0) {
-	goto L10;
+   goto L10;
     }
 /*        WRITE (OUTPUT, 207) ITERIN, R */
 /*        WRITE (OUTPUT, 200) NU */
@@ -474,11 +474,11 @@ L10:
     last_prjres__ = (integer) prjres;
     orfac1_(s, &nlp1, ndim, n, l, iprint, &b[b_offset], &prjres, ierr);
     if (*ierr < 0) {
-	goto L99;
+   goto L99;
     }
     *ierr = 2;
     if (nu == (float)0.) {
-	goto L30;
+   goto L30;
     }
 
 /*              BEGIN INNER ITERATION LOOP FOR GENERATING NEW ALF AND */
@@ -496,7 +496,7 @@ L30:
     i__1 = *nl;
     for (k = 1; k <= i__1; ++k) {
 /* L35: */
-	b[k + b_dim1] = alf[k] + b[k + (*nl + 1) * b_dim1];
+   b[k + b_dim1] = alf[k] + b[k + (*nl + 1) * b_dim1];
     }
 /*           NEW ALF(K) = ALF(K) + DELTA ALF(K) */
 
@@ -505,11 +505,11 @@ L30:
 
 L40:
     dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &y[
-	    y_offset], &w[1], &b[b_offset], (S_fp)ada, ierr, iprint, &a[
-	    a_offset], &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 + 1],
-	     &rnew, gc, thread, sstore);
+       y_offset], &w[1], &b[b_offset], (S_fp)ada, ierr, iprint, &a[
+       a_offset], &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 + 1],
+        &rnew, gc, thread, sstore);
     if (*ierr != 2) {
-	goto L99;
+   goto L99;
     }
     ++iter;
     ++iterin;
@@ -522,7 +522,7 @@ L40:
     d__1 = rnew / sqrt(r__1);
     updatestatus_(gc, thread, &iter, &d__1, &terminate);
     if (terminate == 0) {
-	goto L45;
+   goto L45;
     }
     *ierr = -9;
     varerr_(iprint, ierr, &c__1);
@@ -530,30 +530,30 @@ L40:
 
 L45:
     if (iter < *itmax) {
-	goto L50;
+   goto L50;
     }
     *ierr = -1;
     varerr_(iprint, ierr, &c__1);
     goto L95;
 L50:
     if (rnew - *r__ < eps1 * (*r__ + 1.)) {
-	goto L75;
+   goto L75;
     }
 
 /*              RETRACT THE STEP JUST TAKEN */
 
     if (nu != (float)0.) {
-	goto L60;
+   goto L60;
     }
 /*                                             GAUSS-NEWTON OPTION ONLY */
     gnstep *= (float).5;
     if (gnstep < eps1) {
-	goto L95;
+   goto L95;
     }
     i__1 = *nl;
     for (k = 1; k <= i__1; ++k) {
 /* L55: */
-	b[k + b_dim1] = alf[k] + gnstep * b[k + (*nl + 1) * b_dim1];
+   b[k + b_dim1] = alf[k] + gnstep * b[k + (*nl + 1) * b_dim1];
     }
     goto L40;
 /*                                        ENLARGE THE MARQUARDT PARAMETER */
@@ -561,7 +561,7 @@ L60:
     nu *= (float)1.5;
 /*           IF (.NOT. SKIP) WRITE (OUTPUT, 206) NU */
     if (nu <= (float)100.) {
-	goto L65;
+   goto L65;
     }
     *ierr = -2;
     varerr_(iprint, ierr, &c__1);
@@ -571,14 +571,14 @@ L60:
 L65:
     i__1 = *nl;
     for (k = 1; k <= i__1; ++k) {
-	ksub = *lps + k;
-	i__2 = nlp1;
-	for (j = k; j <= i__2; ++j) {
-	    jsub = *lps + j;
-	    isub = nlp1 + j;
+   ksub = *lps + k;
+   i__2 = nlp1;
+   for (j = k; j <= i__2; ++j) {
+       jsub = *lps + j;
+       isub = nlp1 + j;
 /* L70: */
-	    b[k + j * b_dim1] = b[isub + k * b_dim1];
-	}
+       b[k + j * b_dim1] = b[isub + k * b_dim1];
+   }
     }
     goto L25;
 /*                                        END OF INNER ITERATION LOOP */
@@ -589,32 +589,32 @@ L75:
     i__2 = *nl;
     for (k = 1; k <= i__2; ++k) {
 /* L80: */
-	alf[k] = b[k + b_dim1];
+   alf[k] = b[k + b_dim1];
     }
 
     if (rnew >= r_best__) {
-	goto L82;
+   goto L82;
     }
     r_best__ = rnew;
     i__2 = *nl;
     for (k = 1; k <= i__2; ++k) {
 /* L81: */
-	alfbest[k] = alf[k];
+   alfbest[k] = alf[k];
     }
 
 /*                                        CALC. NORM(DELTA ALF)/NORM(ALF) */
 L82:
     acum = gnstep * xnorm_(nl, &b[(*nl + 1) * b_dim1 + 1]) / xnorm_(nl, &alf[
-	    1]);
+       1]);
 
 /*           IF ITERIN IS GREATER THAN 1, A STEP WAS RETRACTED DURING */
 /*           THIS OUTER ITERATION. */
 
     if (iterin == 1) {
-	nu *= (float).5;
+   nu *= (float).5;
     }
     if (skip) {
-	goto L85;
+   goto L85;
     }
 /*        WRITE (OUTPUT, 200) NU */
 /*        WRITE (OUTPUT, 208) ACUM */
@@ -623,7 +623,7 @@ L85:
     dta = (prjres - last_prjres__) / last_prjres__;
 /*      IF (PRJRES .GT. EPS1*(R + 1.D0) .AND. DTA .GT. PRJ_TOL) GO TO 5 */
     if (prjres > eps1 * (*r__ + 1.)) {
-	goto L5;
+   goto L5;
     }
 /*           END OF OUTER ITERATION LOOP */
 
@@ -633,17 +633,17 @@ L90:
     *ierr = iter;
 L95:
     if (*nl > 0) {
-	dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset],
-		 &y[y_offset], &w[1], &alf[1], (S_fp)ada, &c__3, iprint, &a[
-		a_offset], &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 
-		+ 1], r__, gc, thread, sstore);
+   dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset],
+       &y[y_offset], &w[1], &alf[1], (S_fp)ada, &c__3, iprint, &a[
+      a_offset], &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 
+      + 1], r__, gc, thread, sstore);
     }
     postpr_(s, l, lmax, nl, n, nmax, ndim, &lnls1, lps, pp2, &eps1, r__, 
-	    iprint, &alf[1], &w[1], &a[a_offset], &b[b_offset], &a[lp1 * 
-	    a_dim1 + 1], &beta[beta_offset], ierr);
+       iprint, &alf[1], &w[1], &a[a_offset], &b[b_offset], &a[lp1 * 
+       a_dim1 + 1], &beta[beta_offset], ierr);
 
     (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-	    b_offset], &inc, &t[t_offset], &alf[1], &c__2, gc, thread);
+       b_offset], &inc, &t[t_offset], &alf[1], &c__2, gc, thread);
 L99:
     return 0;
 
@@ -658,25 +658,25 @@ L99:
 
 /*     ============================================================== */
 /* Subroutine */ int orfac1_(integer *s, integer *nlp1, integer *ndim, 
-	integer *n, integer *l, integer *iprint, doublereal *b, doublereal *
-	prjres, integer *ierr)
+   integer *n, integer *l, integer *iprint, doublereal *b, doublereal *
+   prjres, integer *ierr)
 {
-    /* System generated locals */
-    integer b_dim1, b_offset, i__1, i__2, i__3;
-    doublereal d__1;
+   /* System generated locals */
+   integer b_dim1, b_offset, i__1, i__2, i__3;
+   doublereal d__1;
 
-    /* Builtin functions */
-    double d_sign(doublereal *, doublereal *);
+   /* Builtin functions */
+   double d_sign(doublereal *, doublereal *);
 
-    /* Local variables */
-    integer i__, j, k;
-    doublereal u;
-    integer nl, kp1, lp1, nl23, lpk;
-    doublereal beta, acum;
-    integer jsub, nsls1;
-    doublereal alpha;
-    extern doublereal xnorm_(integer *, doublereal *);
-    extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
+   /* Local variables */
+   integer i__, j, k;
+   doublereal u;
+   integer nl, kp1, lp1, nl23, lpk;
+   doublereal beta, acum;
+   integer jsub, nsls1;
+   doublereal alpha;
+   extern doublereal xnorm_(integer *, doublereal *);
+   extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
 
 /*     ============================================================== */
 
@@ -700,56 +700,45 @@ L99:
 /*     .................................................................. */
 
 
-    /* Parameter adjustments */
-    b_dim1 = *ndim;
-    b_offset = 1 + b_dim1;
-    b -= b_offset;
+   /* Parameter adjustments */
+   b_dim1 = *ndim;
+   b_offset = 1 + b_dim1;
+   b -= b_offset;
+   /* Function Body */
+   nl = *nlp1 - 1;
+   nsls1 = *n * *s - *l * (*s - 1);
+   nl23 = (nl << 1) + 3;
+   lp1 = *l + 1;
 
-    /* Function Body */
-    nl = *nlp1 - 1;
-    nsls1 = *n * *s - *l * (*s - 1);
-    nl23 = (nl << 1) + 3;
-    lp1 = *l + 1;
+   for (k = 1; k <= nl; ++k) 
+   {
+      lpk = *l + k;
+      i__2 = nsls1 + 1 - lpk;
+      d__1 = xnorm_(&i__2, &b[lpk + k * b_dim1]);
+      alpha = d_sign(&d__1, &b[lpk + k * b_dim1]);
+      u = b[lpk + k * b_dim1] + alpha;
+      b[lpk + k * b_dim1] = u;
+      beta = alpha * u;
+      
+      if (alpha == (float)0.)
+      {
+         *ierr = -8;
+         i__2 = lp1 + k;
+         varerr_(iprint, ierr, &i__2);
+         goto L99;
+      }
 
-    i__1 = nl;
-    for (k = 1; k <= i__1; ++k) 
-    {
-	   lpk = *l + k;
-	   i__2 = nsls1 + 1 - lpk;
-	   d__1 = xnorm_(&i__2, &b[lpk + k * b_dim1]);
-	   alpha = d_sign(&d__1, &b[lpk + k * b_dim1]);
-	   u = b[lpk + k * b_dim1] + alpha;
-	   b[lpk + k * b_dim1] = u;
-	   beta = alpha * u;
-	   if (alpha != (float)0.) {
-	       goto L13;
-	   }
-   /*                                                   COLUMN WAS ZERO */
-	   *ierr = -8;
-	   i__2 = lp1 + k;
-	   varerr_(iprint, ierr, &i__2);
-	   goto L99;
-   /*                                APPLY REFLECTIONS TO REMAINING COLUMNS */
-   /*                                OF B AND TO RESIDUAL VECTOR. */
-   L13:
-	   kp1 = k + 1;
-	   i__2 = *nlp1;
-	   for (j = kp1; j <= i__2; ++j) {
-	       acum = (float)0.;
-	       i__3 = nsls1;
-	       for (i__ = lpk; i__ <= i__3; ++i__) {
-   /* L20: */
-		   acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
-	       }
-	       acum /= beta;
-	       i__3 = nsls1;
-	       for (i__ = lpk; i__ <= i__3; ++i__) {
-   /* L25: */
-		   b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
-	       }
-	   }
-   /* L30: */
-	   b[lpk + k * b_dim1] = -alpha;
+      kp1 = k + 1;
+      for (j = kp1; j <= *nlp1; ++j) 
+      {
+         acum = 0.0;
+         for (i__ = lpk; i__ <= nsls1; ++i__) 
+            acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
+         acum /= beta;
+         for (i__ = lpk; i__ <= nsls1; ++i__)
+            b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
+      }
+      b[lpk + k * b_dim1] = -alpha;
    }
 
     *prjres = xnorm_(&nl, &b[lp1 + *nlp1 * b_dim1]);
@@ -757,22 +746,20 @@ L99:
 /*           SAVE UPPER TRIANGULAR FORM AND TRANSFORMED RESIDUAL, FOR USE */
 /*           IN CASE A STEP IS RETRACTED.  ALSO COMPUTE COLUMN LENGTHS. */
 
-    if (*ierr == 4) {
-	goto L99;
-    }
-    i__1 = nl;
-    for (k = 1; k <= i__1; ++k) {
-	lpk = *l + k;
-	i__3 = *nlp1;
-	for (j = k; j <= i__3; ++j) {
-	    jsub = *nlp1 + j;
-	    b[k + j * b_dim1] = b[lpk + j * b_dim1];
-/* L40: */
-	    b[jsub + k * b_dim1] = b[lpk + j * b_dim1];
-	}
-/* L50: */
-	b[nl23 + k * b_dim1] = xnorm_(&k, &b[lp1 + k * b_dim1]);
-    }
+   if (*ierr == 4)
+      goto L99;
+
+   for (k = 1; k <= nl; ++k) 
+   {
+      lpk = *l + k;
+      for (j = k; j <= *nlp1; ++j) 
+      {
+         jsub = *nlp1 + j;
+         b[k + j * b_dim1] = b[lpk + j * b_dim1];
+         b[jsub + k * b_dim1] = b[lpk + j * b_dim1];
+      }
+      b[nl23 + k * b_dim1] = xnorm_(&k, &b[lp1 + k * b_dim1]);
+   }
 
 L99:
     return 0;
@@ -781,7 +768,7 @@ L99:
 
 /*     ============================================================== */
 /* Subroutine */ int orfac2_(integer *nlp1, integer *ndim, doublereal *nu, 
-	doublereal *b)
+   doublereal *b)
 {
     /* System generated locals */
     integer b_dim1, b_offset, i__1, i__2, i__3;
@@ -830,60 +817,55 @@ L99:
     nl = *nlp1 - 1;
     nl2 = nl << 1;
     nl23 = nl2 + 3;
-    i__1 = nl;
-    for (k = 1; k <= i__1; ++k) {
-	kp1 = k + 1;
-	nlpk = nl + k;
-	nlpkm1 = nlpk - 1;
-	b[nlpk + k * b_dim1] = *nu * b[nl23 + k * b_dim1];
-	b[nl + k * b_dim1] = b[k + k * b_dim1];
-	i__2 = k + 1;
-	d__1 = xnorm_(&i__2, &b[nl + k * b_dim1]);
-	alpha = d_sign(&d__1, &b[k + k * b_dim1]);
-	u = b[k + k * b_dim1] + alpha;
-	beta = alpha * u;
-	b[k + k * b_dim1] = -alpha;
+    for (k = 1; k <= nl; ++k) 
+    {
+       kp1 = k + 1;
+       nlpk = nl + k;
+       nlpkm1 = nlpk - 1;
+       b[nlpk + k * b_dim1] = *nu * b[nl23 + k * b_dim1];
+       b[nl + k * b_dim1] = b[k + k * b_dim1];
+       i__2 = k + 1;
+       d__1 = xnorm_(&i__2, &b[nl + k * b_dim1]);
+       alpha = d_sign(&d__1, &b[k + k * b_dim1]);
+       u = b[k + k * b_dim1] + alpha;
+       beta = alpha * u;
+       b[k + k * b_dim1] = -alpha;
 /*                        THE K-TH REFLECTION MODIFIES ONLY ROWS K, */
 /*                        NL+1, NL+2, ..., NL+K, AND COLUMNS K TO NL+1. */
-	i__2 = *nlp1;
-	for (j = kp1; j <= i__2; ++j) {
-	    b[nlpk + j * b_dim1] = (float)0.;
-	    acum = u * b[k + j * b_dim1];
-	    i__3 = nlpkm1;
-	    for (i__ = *nlp1; i__ <= i__3; ++i__) {
-/* L20: */
-		acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
-	    }
-	    acum /= beta;
-	    b[k + j * b_dim1] -= u * acum;
-	    i__3 = nlpk;
-	    for (i__ = *nlp1; i__ <= i__3; ++i__) {
-/* L30: */
-		b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
-	    }
-	}
-    }
 
-    return 0;
+       for (j = kp1; j <= *nlp1; ++j) 
+       {
+          b[nlpk + j * b_dim1] = (float)0.;
+          acum = u * b[k + j * b_dim1];
+          for (i__ = *nlp1; i__ <= nlpkm1; ++i__)
+             acum += b[i__ + k * b_dim1] * b[i__ + j * b_dim1];
+          acum /= beta;
+          b[k + j * b_dim1] -= u * acum;
+          for (i__ = *nlp1; i__ <= nlpk; ++i__)
+             b[i__ + j * b_dim1] -= b[i__ + k * b_dim1] * acum;
+      }
+   }
+
+   return 0;
 } /* orfac2_ */
 
 
 /*     ============================================================== */
 /* Subroutine */ int init_(integer *s, integer *l, integer *lmax, integer *nl,
-	 integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
-	lps, integer *pp2, integer *iv, doublereal *t, doublereal *w, 
-	doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
-	*a, doublereal *b, integer *inc, integer *ncon, integer *nconp1, 
-	logical *philp1, logical *nowate, integer *gc, integer *thread)
+    integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
+   lps, integer *pp2, integer *iv, doublereal *t, doublereal *w, 
+   doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
+   *a, doublereal *b, integer *inc, integer *ncon, integer *nconp1, 
+   logical *philp1, logical *nowate, integer *gc, integer *thread)
 {
     /* System generated locals */
-    integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__1, i__2;
+    integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__2;
 
     /* Builtin functions */
     double sqrt(doublereal);
 
     /* Local variables */
-    integer ncon_buf__, i__, j, k, p, nconp1_buf__, lp1, lnls1, inckj;
+    integer ncon_buf__, i__, j, k, p, nconp1_buf__, lp1, lnls1, inckj, philp1_buf__;
     extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
 
 /*     ============================================================== */
@@ -911,12 +893,20 @@ L99:
     lp1 = *l + 1;
     lnls1 = *l + *s + *nl + 1;
     nconp1_buf__ = 0;
+
+/*     NOWATE = .TRUE. */
+    *nowate = FALSE_;
+   nconp1_buf__ = lp1;
+   ncon_buf__ = *l;
+   philp1_buf__ = *l == 0;
+
+
 /*                                          CHECK FOR VALID INPUT */
     if (*l >= 0 && *nl >= 0 && *s * *l + *nl < *s * *n && lnls1 <= *lpps1 && (
-	    *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim && *iv > 0 &&
-	     ! (*nl == 0 && *l == 0) && *s * *n - (*s - 1) * *l <= *ndim && *
-	    s > 0 && *l <= *lmax) {
-	goto L3;
+       *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim && *iv > 0 &&
+        ! (*nl == 0 && *l == 0) && *s * *n - (*s - 1) * *l <= *ndim && *
+       s > 0 && *l <= *lmax) {
+   goto L3;
     }
     *isel = -4;
     varerr_(iprint, isel, &c__1);
@@ -929,27 +919,20 @@ L99:
 
 L3:
     (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-	    b_offset], &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
+       b_offset], &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
 
-/*     NOWATE = .TRUE. */
-    *nowate = FALSE_;
-    i__1 = *n;
-    for (i__ = 1; i__ <= i__1; ++i__) {
-/*        NOWATE = NOWATE .AND. (W(I) .EQ. 1.0) */
-	if (w[i__] >= (float)0.) {
-	    goto L9;
-	}
-/*                                                ERROR IN WEIGHTS */
-	*isel = -6;
-	varerr_(iprint, isel, &i__);
-	goto L99;
-L9:
-	w[i__] = sqrt(w[i__]);
+   for (i__ = 1; i__ <= *n; ++i__)
+   {
+      if (w[i__] < (float)0.) 
+      {
+         /*                                                ERROR IN WEIGHTS */
+         *isel = -6;
+         varerr_(iprint, isel, &i__);
+         goto L99;
+      }
+      w[i__] = sqrt(w[i__]);
    }
 
-   nconp1_buf__ = lp1;
-   ncon_buf__ = *l;
-   *philp1 = *l == 0;
 /*     PHILP1 = .TRUE. */
    if (*l == 0 || *nl == 0) 
    {
@@ -975,7 +958,7 @@ L9:
 
 /*     IF (IPRINT .GE. 0) WRITE (OUTPUT, 210) NCON */
     if (*l + p + *s + 1 == *lpps1) {
-	goto L20;
+   goto L20;
     }
 /*                                              INPUT ERROR IN INC MATRIX */
 L15:
@@ -987,22 +970,23 @@ L20:
     i__2 = *nl;
     for (k = 1; k <= i__2; ++k) {
 /* L25: */
-	if (inc[k + lp1 * 12] == 1) {
-	    *philp1 = TRUE_;
-	}
+   if (inc[k + lp1 * 12] == 1) {
+       philp1_buf__ = TRUE_;
+   }
     }
 
 L99:
     ncon_buf__ = nconp1_buf__ - 1;
     *ncon = ncon_buf__;
     *nconp1 = nconp1_buf__;
+    *philp1 = philp1_buf__;
     return 0;
 /* L210: */
 } /* init_ */
 
 /*     ============================================================== */
 /* Subroutine */ int bacsub_(integer *ndim, integer *n, doublereal *a, 
-	doublereal *x)
+   doublereal *x)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
@@ -1027,22 +1011,22 @@ L99:
     /* Function Body */
     x[*n] /= a[*n + *n * a_dim1];
     if (*n == 1) {
-	goto L30;
+   goto L30;
     }
     np1 = *n + 1;
     i__1 = *n;
     for (iback = 2; iback <= i__1; ++iback) {
-	i__ = np1 - iback;
+   i__ = np1 - iback;
 /*           I = N-1, N-2, ..., 2, 1 */
-	ip1 = i__ + 1;
-	acum = x[i__];
-	i__2 = *n;
-	for (j = ip1; j <= i__2; ++j) {
+   ip1 = i__ + 1;
+   acum = x[i__];
+   i__2 = *n;
+   for (j = ip1; j <= i__2; ++j) {
 /* L10: */
-	    acum -= a[i__ + j * a_dim1] * x[j];
-	}
+       acum -= a[i__ + j * a_dim1] * x[j];
+   }
 /* L20: */
-	x[i__] = acum / a[i__ + i__ * a_dim1];
+   x[i__] = acum / a[i__ + i__ * a_dim1];
     }
 
 L30:
@@ -1051,14 +1035,14 @@ L30:
 
 /*     ============================================================== */
 /* Subroutine */ int postpr_(integer *s, integer *l, integer *lmax, integer *
-	nl, integer *n, integer *nmax, integer *ndim, integer *lnls1, integer 
-	*lps, integer *pp2, doublereal *eps, doublereal *rnorm, integer *
-	iprint, doublereal *alf, doublereal *w, doublereal *a, doublereal *b, 
-	doublereal *r__, doublereal *u, integer *ierr)
+   nl, integer *n, integer *nmax, integer *ndim, integer *lnls1, integer 
+   *lps, integer *pp2, doublereal *eps, doublereal *rnorm, integer *
+   iprint, doublereal *alf, doublereal *w, doublereal *a, doublereal *b, 
+   doublereal *r__, doublereal *u, integer *ierr)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, r_dim1, r_offset, u_dim1, 
-	    u_offset, i__1, i__2, i__3;
+       u_offset, i__1, i__2, i__3;
     doublereal d__1;
 
     /* Local variables */
@@ -1098,44 +1082,44 @@ L30:
     for (i__ = 1; i__ <= i__1; ++i__) {
 /* L10: */
 /* Computing 2nd power */
-	d__1 = w[i__];
-	w[i__] = d__1 * d__1;
+   d__1 = w[i__];
+   w[i__] = d__1 * d__1;
     }
 
 /*              UNWIND HOUSEHOLDER TRANSFORMATIONS TO GET RESIDUALS, */
 /*              AND MOVE THE LINEAR PARAMETERS FROM R TO U. */
 
     if (*l == 0) {
-	goto L30;
+   goto L30;
     }
     usave = (float)2.;
     i__1 = *l;
     for (i__ = 1; i__ <= i__1; ++i__) {
 /* L19: */
-	b[i__ + (integer) usave * b_dim1] = u[i__ + u_dim1];
+   b[i__ + (integer) usave * b_dim1] = u[i__ + u_dim1];
     }
     i__1 = *s;
     for (is = 1; is <= i__1; ++is) {
-	i__2 = *l;
-	for (kback = 1; kback <= i__2; ++kback) {
-	    k = lp1 - kback;
-	    kp1 = k + 1;
-	    acum = (float)0.;
-	    i__3 = *n;
-	    for (i__ = kp1; i__ <= i__3; ++i__) {
+   i__2 = *l;
+   for (kback = 1; kback <= i__2; ++kback) {
+       k = lp1 - kback;
+       kp1 = k + 1;
+       acum = (float)0.;
+       i__3 = *n;
+       for (i__ = kp1; i__ <= i__3; ++i__) {
 /* L20: */
-		acum += a[i__ + k * a_dim1] * r__[i__ + is * r_dim1];
-	    }
-	    u[k + is * u_dim1] = r__[k + is * r_dim1];
-	    r__[k + is * r_dim1] = acum / a[k + k * a_dim1];
-	    acum = -acum / (a[k + (integer) usave * a_dim1] * a[k + k * 
-		    a_dim1]);
-	    i__3 = *n;
-	    for (i__ = kp1; i__ <= i__3; ++i__) {
+      acum += a[i__ + k * a_dim1] * r__[i__ + is * r_dim1];
+       }
+       u[k + is * u_dim1] = r__[k + is * r_dim1];
+       r__[k + is * r_dim1] = acum / a[k + k * a_dim1];
+       acum = -acum / (a[k + (integer) usave * a_dim1] * a[k + k * 
+          a_dim1]);
+       i__3 = *n;
+       for (i__ = kp1; i__ <= i__3; ++i__) {
 /* L25: */
-		r__[i__ + is * r_dim1] -= a[i__ + k * a_dim1] * acum;
-	    }
-	}
+      r__[i__ + is * r_dim1] -= a[i__ + k * a_dim1] * acum;
+       }
+   }
     }
 
 L30:
@@ -1145,7 +1129,7 @@ L30:
 /*        WRITE(OUTPUT,210) */
 /*        DO 40 I=1,L */
 /*  40      WRITE(OUTPUT,212) (U(I,J), J=1,S) */
-/*  40	   CONTINUE */
+/*  40      CONTINUE */
 /*  50 IF (NL .GT. 0) WRITE (OUTPUT, 211) (ALF(K), K = 1, NL) */
 /*     WRITE(OUTPUT,214) RNORM */
 /*     WRITE (OUTPUT, 209) */
@@ -1199,5 +1183,5 @@ L30:
 } /* varerr_ */
 
 #ifdef __cplusplus
-	}
+   }
 #endif

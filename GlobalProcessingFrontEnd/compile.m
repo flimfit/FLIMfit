@@ -1,5 +1,7 @@
 function compile(v)
 
+    addpath_global_analysis();
+
     distrib_folder = 'X:\Group\Software\Global Analysis\';
 
     fid = fopen('GeneratedFiles\version.txt','w');

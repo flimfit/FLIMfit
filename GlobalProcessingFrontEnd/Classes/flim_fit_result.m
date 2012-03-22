@@ -127,22 +127,40 @@ classdef flim_fit_result < handle
             end
             if nargin == 6 && ~isempty(default_lims)
                 obj.set_default_lims(name,default_lims);
-            end
+            end                
             s = size(im);
             if length(r) == 1
                 obj.write(r,name,im,mask);
             elseif iscell(im)
-                for i=1:length(r)
-                    obj.write(r(i),name,im{i},mask(:,:,i));
+                if ~isempty(mask)
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},mask(:,:,i));
+                    end
+                else
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},[]);
+                    end
                 end
             elseif s(end) == length(r)
                 im = num2cell(im,1:(length(s)-1));
-                for i=1:length(r)
-                    obj.write(r(i),name,im{i},mask(:,:,i));
+                if ~isempty(mask)
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},mask(:,:,i));
+                    end
+                else
+                    for i=1:length(r)
+                        obj.write(r(i),name,im{i},[]);
+                    end
                 end
             else
-                for i=1:length(r)
-                    obj.write(r(i),name,im,mask(:,:,i));
+                if ~isempty(mask)
+                    for i=1:length(r)
+                        obj.write(r(i),name,im,mask(:,:,i));
+                    end
+                else
+                    for i=1:length(r)
+                        obj.write(r(i),name,im,[]);
+                    end
                 end
             end 
         end
@@ -175,12 +193,13 @@ classdef flim_fit_result < handle
         
         function img = get_image(obj,dataset,param)
            
+            img = nan;
+            
             if dataset > length(obj.names) || dataset < 1
-                img = nan;
                 return;
             end
             
-            if ~obj.use_memory_mapping
+            if ~obj.use_memory_mapping && isfield(obj.images{dataset},param)
                 img = obj.images{dataset}.(param);
             else
                
@@ -189,10 +208,10 @@ classdef flim_fit_result < handle
                     try 
                         img = h5read(obj.file,path);
                     catch e %#ok
-                        img = [];
+                        img = nan;
                     end
                 else
-                    img = [];
+                    img = nan;
                 end
             end
             
@@ -200,23 +219,41 @@ classdef flim_fit_result < handle
         
         function write(obj,dataset,param,img,mask)
            
-            n_regions = max(mask(:));
-            obj.n_regions(dataset) = n_regions;
+            if ~isempty(mask)
+                n_regions = max(mask(:));
+                obj.n_regions(dataset) = n_regions;
+
+                sel = mask>0 & ~isnan(img);
+                timg = img(sel);
+                tmask = mask(sel);
+            else
+                n_regions = 1;
+                obj.n_regions(dataset) = 1;
+                
+                sel = ~isnan(img);
+                timg = img(sel);
+                tmask = ones(size(timg));
+            end
             
-            img_mean = trimmean(img(mask>0 & ~isnan(img)),1);
-            img_std = trimstd(img(mask>0 & ~isnan(img)),1);
-            img_n = nansum(mask(:)>0);
+            img_mean = trimmean(timg,1);
+            img_std = trimstd(double(timg),1);
+            img_n = sum(tmask);
                         
             region_mean = zeros(1,n_regions);
             region_std = zeros(1,n_regions);
             region_n = zeros(1,n_regions);
-            if strcmp(param,'beta_2')
-                img = img;
-            end
+
             for i=1:n_regions
-                region_mean(i) = trimmean(img(mask==i & ~isnan(img)),1);
-                region_std(i) = trimstd(img(mask>0 & ~isnan(img)),1);
-                region_n(i) = nansum(mask(:)==i);
+                if isempty(timg)
+                    region_mean(i) = nan;
+                    region_std(i) = nan;
+                    region_n(i) = nan;
+                else
+                    td = timg(tmask==i);
+                    region_mean(i) = trimmean(td,1);
+                    region_std(i) = trimstd(double(td),1);
+                    region_n(i) = length(td);
+                end
             end
             
             stats = struct('mean',img_mean,'std',img_std,'n',img_n);
@@ -234,22 +271,22 @@ classdef flim_fit_result < handle
                 
             else
                 path = ['/' obj.names{dataset} '/' param];
-                if exist(obj.file,'file')
-                    try 
-                        info = h5info(obj.file,path);
-                        create = false;
-                    catch e %#ok
-                        create = true;
-                    end
-                else
-                    create = true;
-                end
-                if create
-                    h5create(obj.file,path,size(img),'ChunkSize',size(img),'Deflate',2);
-                end
+                %if exist(obj.file,'file')
+                %    try 
+                %        info = h5info(obj.file,path);
+                %        create = false;
+                %    catch e %#ok
+                %        create = true;
+                %    end
+                %else
+                %    create = true;
+                %end
+                %if create
+                h5create_direct(obj.file,path,size(img),'ChunkSize',size(img),'Deflate',0);
+                %end
                 h5write(obj.file,path,img);
-                h5writeatt(obj.file,path,'mean',img_mean);
-                h5writeatt(obj.file,path,'std',img_std);
+                %h5writeatt_direct(obj.file,path,'mean',img_mean);
+                %h5writeatt_direct(obj.file,path,'std',img_std);
             end
             
         end

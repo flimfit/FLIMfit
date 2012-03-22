@@ -57,6 +57,9 @@ classdef flim_fit_corr_controller < flim_fit_observer
                 params = [{'-'} params];
                 set(obj.corr_param_x_popupmenu,'String',params);
                 set(obj.corr_param_y_popupmenu,'String',params);
+                set(obj.corr_param_x_popupmenu,'Value',1);
+                set(obj.corr_param_y_popupmenu,'Value',1);
+
                 obj.param_updated()
             end
         end
@@ -110,6 +113,8 @@ classdef flim_fit_corr_controller < flim_fit_observer
                 end
                 %}
                 scatter(obj.corr_axes,param_data_x,param_data_y);
+                xlabel(obj.corr_axes,obj.param_x);
+                ylabel(obj.corr_axes,obj.param_y);
             else
                 cla(obj.corr_axes);
             end

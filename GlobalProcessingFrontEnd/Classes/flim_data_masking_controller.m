@@ -8,7 +8,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
         binning_popupmenu;
         downsampling_popupmenu;
         thresh_min_edit;
-        thresh_max_edit;
+        gate_max_edit;
         t_min_edit;
         t_max_edit;
         t_irf_min_edit;
@@ -48,7 +48,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
             set(obj.binning_popupmenu,'Callback',@obj.masking_callback);
             set(obj.downsampling_popupmenu,'Callback',@obj.masking_callback);
             set(obj.thresh_min_edit,'Callback',@obj.masking_callback);
-            set(obj.thresh_max_edit,'Callback',@obj.masking_callback);
+            set(obj.gate_max_edit,'Callback',@obj.masking_callback);
             set(obj.t_min_edit,'Callback',@obj.masking_callback);
             set(obj.t_max_edit,'Callback',@obj.masking_callback);
             set(obj.t_irf_min_edit,'Callback',@obj.masking_callback);
@@ -79,7 +79,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
             obj.lh{end+1} = addlistener(obj.data_series,'binning','PostSet',@obj.controls_updated);
             obj.lh{end+1} = addlistener(obj.data_series,'downsampling','PostSet',@obj.controls_updated);
             obj.lh{end+1} = addlistener(obj.data_series,'thresh_min','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'thresh_max','PostSet',@obj.controls_updated);
+            obj.lh{end+1} = addlistener(obj.data_series,'gate_max','PostSet',@obj.controls_updated);
             obj.lh{end+1} = addlistener(obj.data_series,'t_min','PostSet',@obj.controls_updated);
             obj.lh{end+1} = addlistener(obj.data_series,'t_max','PostSet',@obj.controls_updated);
             obj.lh{end+1} = addlistener(obj.data_series,'t_irf_min','PostSet',@obj.controls_updated);
@@ -105,13 +105,13 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
                   case obj.t_irf_max_edit
                     obj.data_series.t_irf_max = str2double(get(obj.t_irf_max_edit,'String'));
                 case obj.binning_popupmenu
-                    obj.data_series.binning = 2^( get(obj.binning_popupmenu,'Value') - 1 );
+                    obj.data_series.binning = get(obj.binning_popupmenu,'Value') - 1;
                 case obj.downsampling_popupmenu
                     obj.data_series.downsampling = 2^( get(obj.downsampling_popupmenu,'Value') - 1 );
                 case obj.thresh_min_edit
                     obj.data_series.thresh_min = str2double(get(obj.thresh_min_edit,'String'));
-                case obj.thresh_max_edit
-                    obj.data_series.thresh_max = str2double(get(obj.thresh_max_edit,'String'));
+                case obj.gate_max_edit
+                    obj.data_series.gate_max = str2double(get(obj.gate_max_edit,'String'));
                 case obj.irf_background_edit
                     obj.data_series.irf_background = str2num(get(obj.irf_background_edit,'String'));
                 case obj.background_value_edit
@@ -212,7 +212,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
             if ~isempty(obj.binning_popupmenu)
                 
                 value = obj.data_series.binning;
-                value = log2(value) + 1;
+                value = value + 1;
                 set(obj.binning_popupmenu,'Value', value );
                 
                 value = obj.data_series.downsampling;
@@ -222,8 +222,8 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
                 str = num2str(obj.data_series.thresh_min,'%2.4g');
                 set(obj.thresh_min_edit,'String',str);
 
-                str = num2str(obj.data_series.thresh_max,'%2.4g');
-                set(obj.thresh_max_edit,'String',str);
+                str = num2str(obj.data_series.gate_max,'%2.4g');
+                set(obj.gate_max_edit,'String',str);
 
                 str = num2str(obj.data_series.t_min,'%2.4g');
                 set(obj.t_min_edit,'String',str);

@@ -7,7 +7,7 @@ classdef global_processing_ui
     
     methods
       
-        function obj = global_processing_ui(OMERO_active,wait)
+        function obj = global_processing_ui(OMERO_active,wait,require_auth)
             
             
             if nargin < 1 
@@ -17,9 +17,12 @@ classdef global_processing_ui
             if nargin < 2
                 wait = false;
             end
+
+			if nargin < 3
+                require_auth = false;
+            end
             
-            
-            
+                        
             if ~isdeployed
                 addpath_global_analysis()
             else
@@ -42,8 +45,41 @@ classdef global_processing_ui
             end
             
             
+                        
+            try
+                v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
+            catch
+                v = '[unknown version]';
+            end
             
-                % Open a window and add some menus
+            disp(['Welcome to GlobalProcessing v' v{1}]);
+            
+            if require_auth
+                auth_text = urlread('https://global-analysis.googlecode.com/hg/GlobalAnalysisAuth.txt');
+                auth_success = false;
+                
+                if strfind(auth_text,'external_auth=false')
+                    auth_success = true;
+                end
+                
+                min_ver = regexp(auth_text,'min_version=([[0-9]\.]+)','tokens');
+                if ~isempty(min_ver)
+                    min_ver = split_ver(min_ver{1}{1});
+                else
+                    min_ver = 0;
+                end
+                
+                if min_ver == 0 || split_ver(v{1}) < min_ver
+                    auth_success = false;
+                end
+                
+                if ~auth_success 
+                    disp('Sorry, error occured while authenticating.');
+                    return
+                end
+            end
+            
+			% Open a window and add some menus
             obj.window = figure( ...
                 'Name', 'GlobalProcessing', ...
                 'NumberTitle', 'off', ...
@@ -61,12 +97,12 @@ classdef global_processing_ui
             if isempty(session)
                 obj.setup_menu();
             else
-               obj.setup_alt_menu();
+               obj.setup_alt_menu(client, session);
             end
             
             obj.setup_toolbar();
 
-            handles = guidata(obj.window); 
+            handles = guidata(obj.window);
 
             handles.window = obj.window;
             handles.use_popup = true;
@@ -85,24 +121,15 @@ classdef global_processing_ui
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);
             
-            handles.OMERO_session = session;
-            handles.OMERO_client = client;
-
+           
             handles.menu_controller = front_end_menu_controller(handles);
-
+            
+        
+          
             set(obj.window,'Visible','on');
-            %set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
-            
-            set(obj.window,'Closerequestfcn', {@obj.close_request_fcn, handles}) 
-            
-            try
-                v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
-            catch
-                v = '[unknown version]';
-            end
-            
-            disp(['Welcome to GlobalProcessing v' v{1}]);
-            
+
+            set(obj.window,'Closerequestfcn', @obj.close_request_fcn) 
+
             if wait
                 waitfor(obj.window);
             end
@@ -111,43 +138,47 @@ classdef global_processing_ui
             
         end
         
-        function close_request_fcn(obj,src,evt, handles)
+        function close_request_fcn(obj,src,evt)
+
+			global f_temp
+			if isempty(f_temp)
+				close(f_temp)
+			end
+
          
             
-            disp('Closing GlobalProcessing on request');
-            
-            session = handles.OMERO_session;
-            client = handles.OMERO_client;
-            
-            
-         
-            global f_temp
-            if isempty(f_temp)
-                close(f_temp)
+            handles = guidata(obj.window);
+            names = fieldnames(handles);
+
+			session = handles.OMERO_session;
+			client = handles.OMERO_client;
+
+
+			if ~isempty(session)
+
+				%Close the OMERO session
+				disp('Closing OMERO session');
+
+				client.closeSession();
+				%clear client;
+				%clear session;
+				%unloadOmero();
+				%clear java;
+			end
+
+
+			% Make sure we clean up all the left over classes
+			for i=1:length(names)
+                if ishandle(handles.(names{i}))
+                    clear handles.(names{i});
+                end
             end
-            
-            clear handles;
-            
-            
-            delete(obj.window);
+ 
+			delete(obj.window);
             
             clear obj;
-            
-            if ~isempty(session)
-                
-                %Close the OMERO session
-                disp('Closing OMERO session');
-                
-                
-                
-                client.closeSession();
-                %clear client;
-                %clear session;
-                %unloadOmero();
-                %clear java;
-            end
-            
-            
+			clear handles;
+
         end
         
     end

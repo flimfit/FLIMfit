@@ -8,15 +8,17 @@ function get_return_data(obj)
     
     if obj.bin
         datasets = 1;
-        mask = 1;
+        mask = [];
     else
         datasets = obj.datasets;
-        for i=1:length(datasets)
-            datasets(i) = sum(obj.data_series.use(1:datasets(i)));
+        %for i=1:length(datasets)
+        %    datasets(i) = sum(obj.data_series.use(1:datasets(i)));
+        %end
+        mask = obj.data_series.seg_mask;
+        if ~isempty(mask)
+            flt = obj.data_series.use(obj.data_series.loaded);
+            mask = mask(:,:,flt);
         end
-        mask = double(obj.data_series.mask);
-        flt = obj.data_series.use(obj.data_series.loaded);
-        mask = mask(:,:,flt);
     end
     
     
@@ -40,29 +42,35 @@ function get_return_data(obj)
         clear obj.p_tau_err tau_err;
     end
 
-    if ~isempty(obj.p_beta)
-        beta = reshape(obj.p_beta.Value,obj.tau_size);
-        clear obj.p_beta;
-        f.set_image_split('beta',beta,mask,datasets,[0 1]);
-    end
-    
-    if ~isempty(obj.p_beta_err)
-        beta_err = reshape(obj.p_beta_err.Value,obj.tau_size);
-        if ~all(isnan(beta_err(:)))
-            f.set_image_split('beta_err',beta_err,mask,datasets,[0 1]);
+    if obj.fit_params.n_exp > 1
+        
+        if ~isempty(obj.p_beta)
+            beta = reshape(obj.p_beta.Value,obj.tau_size);
+            clear obj.p_beta;
+            f.set_image_split('beta',beta,mask,datasets,[0 1]);
         end
-        clear obj.p_beta_err beta_err;
+
+        if ~isempty(obj.p_beta_err)
+            beta_err = reshape(obj.p_beta_err.Value,obj.tau_size);
+            if ~all(isnan(beta_err(:)))
+                f.set_image_split('beta_err',beta_err,mask,datasets,[0 1]);
+            end
+            clear obj.p_beta_err beta_err;
+        end
+
+        if ~isempty(obj.p_tau) && ~isempty(obj.p_beta)
+            tau_sqr = tau.*tau;
+            mean_tau = sum(tau.*beta,1);
+            w_mean_tau = sum(tau_sqr.*beta,1)./mean_tau;
+            w_mean_tau = reshape(w_mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
+            mean_tau = reshape(mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
+            f.set_image('mean_tau',mean_tau,mask,datasets,[0 4000]);
+            f.set_image('w_mean_tau',w_mean_tau,mask,datasets,[0 4000]);
+        end
+    
+        clear w_mean_tau mean_tau beta tau tau_sqr;
     end
     
-    if ~isempty(obj.p_tau) && ~isempty(obj.p_beta)
-        tau_sqr = tau.*tau;
-        mean_tau = nansum(tau_sqr.*beta,1)./nansum(tau.*beta,1);
-        mean_tau = reshape(mean_tau,[size(tau,2) size(tau,3) size(tau,4)]);
-        f.set_image('mean_tau',mean_tau,mask,datasets,[0 4000]);
-    end
-    
-    clear mean_tau beta tau tau_sqr;
-      
     I0 = reshape(obj.p_I0.Value,obj.I0_size);
     f.set_image('I0',I0,mask,datasets,[0 ceil(nanmax(I0(:)))]);
     clear obj.p_I0 I0;
@@ -119,7 +127,7 @@ function get_return_data(obj)
         if ~obj.bin
             steady_state = obj.data_series.steady_state_anisotropy();
             steady_state(mask == 0) = NaN;
-            f.set_image('r_ss',steady_state,mask,datasets,[0 0.4])
+            f.set_image('r_s',steady_state,mask,datasets,[0 0.4])
         end
     end
     
@@ -223,8 +231,9 @@ function get_return_data(obj)
         clear obj.p_ref_lifetime_err ref_lifetime_err;
     end
     
-    f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
-   
+    %if ~isempty(mask)   
+    %    f.set_image('mask',mask,mask,datasets,[0 nanmax(mask(:))]);
+    %end
     
     if obj.fit_params.global_fitting == 0
         ierr = reshape(obj.p_ierr.Value,obj.I0_size);
@@ -242,25 +251,39 @@ function get_return_data(obj)
     clear obj.p_ierr
     
     for i=1:length(datasets)
-       if p.global_fitting == 0
-           ierrd = ierr(:,:,i);
-       elseif p.global_fitting == 1
-           ierrd = ierr(i);
+       if p.global_fitting < 2
+           r_start = 1+sum(obj.n_regions(1:i-1));
+           r_end = r_start + obj.n_regions(i)-1;
        else
-           ierrd = ierr;
+           r_start = 1;
+           r_end = obj.n_regions(1);
        end
-       
-       ierrs = double(ierrd(ierrd<0));
-       if isempty(ierrs)
-           ierrs = 0;
+           
+       if r_end < r_start
+           f.ierr(datasets(i)) = 0;
+           f.iter(datasets(i)) = 0;
+           f.success(datasets(i)) = 100;
        else
-           ierrs = mode(ierrs);
+           if p.global_fitting == 0
+               ierrd = ierr(:,:,r_start:r_end);
+           elseif p.global_fitting == 1
+               ierrd = ierr(r_start:r_end);
+           else
+               ierrd = ierr;
+           end
+
+           ierrs = double(ierrd(ierrd<0));
+           if isempty(ierrs)
+               ierrs = 0;
+           else
+               ierrs = mode(ierrs);
+           end
+
+           f.ierr(datasets(i)) = ierrs;
+           f.iter(datasets(i)) = sum(ierrd(ierrd>=0));
+           f.success(datasets(i)) = sum(ierrd(:)>=0)/length(ierrd(:)) * 100;
+           
        end
-       
-       f.ierr(datasets(i)) = ierrs;
-       f.iter(datasets(i)) = sum(ierrd(ierrd>=0));
-       f.success(datasets(i)) = sum(ierrd(:)>=0)/length(ierrd(:)) * 100;
-       
 
     end
     clear ierr       

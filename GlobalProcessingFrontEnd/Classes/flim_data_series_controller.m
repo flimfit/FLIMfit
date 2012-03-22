@@ -102,7 +102,11 @@ classdef flim_data_series_controller < handle
                 % if setting file was specified use that
                 obj.data_series.load_data_settings(setting_file_name);
             end
-                        
+                       
+            if ~isempty(obj.window)
+                set(obj.window,'Name',file);
+            end
+            
             notify(obj,'new_dataset');
         end
         
@@ -136,6 +140,10 @@ classdef flim_data_series_controller < handle
                 obj.data_series.load_data_settings(setting_file_name);
             end
             %}
+            
+            if ~isempty(obj.window)
+                set(obj.window,'Name',file);
+            end
                         
             notify(obj,'new_dataset');
         end

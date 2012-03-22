@@ -46,7 +46,7 @@ function load_irf(obj,file)
     obj.t_irf_min = min(obj.t_irf);
     obj.t_irf_max = max(obj.t_irf);
     
-    %obj.irf_background = min(obj.irf(:));
+    obj.estimate_irf_background();
     
     obj.compute_tr_irf();
     obj.compute_tr_data();

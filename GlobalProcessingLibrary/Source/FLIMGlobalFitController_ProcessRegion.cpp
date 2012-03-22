@@ -1,10 +1,11 @@
-#include <boost/interprocess/mapped_region.hpp>
+
 #include <boost/math/distributions/fisher_f.hpp>
 #include <boost/math/tools/minima.hpp>
 #include <boost/bind.hpp>
 #include <limits>
 
 #include "FLIMGlobalFitController.h"
+#include "FLIMData.h"
 #include "IRFConvolution.h"
 
 
@@ -19,69 +20,63 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    using namespace boost::math::tools;
    using namespace boost::interprocess;
 
-   int i, j, i_thresh, s_thresh, lin_idx, nlin_idx, lpps1_, guess_idx, itmax;
+
+   int n_px = data->n_px;
+
+   int i, j, i_thresh, s_thresh, lin_idx, nlin_idx, lpps1_, guess_idx, itmax, lps_;
    bool swapped;
    double swap_buf;
    int swap_idx_buf;
-   double c2;
+   double c2, ref;
 
-   double *data; 
    mapped_region data_map_view;
 
    locked_param[thread] = -1;
 
-   int r_idx = r_start[g] + (region-1);
 
-   std::size_t map_offset, aligned_offset, correcting_offset, buf_size;
+   int r_idx = data->GetRegionIndex(g,region);
 
-   try
+   /*
+   if (use_FMM)
    {
-      if (data_mode == DATA_MAPPED)
-      {
-         buf_size = n_px * n_meas * sizeof(double);
-         map_offset = g * n_px * n_meas * sizeof(double);
-         aligned_offset = (map_offset / 65536) * 65536;       // memmap must be aligned to 64k chucks
-         buf_size += (map_offset - aligned_offset);
-         correcting_offset = (map_offset - aligned_offset) / sizeof(double);
-
-         data_map_view = mapped_region(data_map_file, read_only, aligned_offset, buf_size);
-         data = (double*) data_map_view.get_address();
-
-         data += correcting_offset;
-
-      }
-      else
-      {
-         data = this->data + g*n_px*n_meas;
-      }
+      aux_controller->ProcessRegion(g,region,thread);
+      aux_tau[thread] = aux_fit_tau[g*n_px];
    }
-   catch(std::exception& e)
+   */
+
+   /*
+   if (global_mode == MODE_GLOBAL_BINNING)
    {
-      ierr[r_idx] = ERR_COULD_NOT_OPEN_MAPPED_FILE;
-      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
+      int rt=0;
+      for(int i=0; i<g; i++)
+         rt+=n_regions[i];
+      aux_controller->ProcessRegion(rt+region,1,thread);
+      aux_tau[thread] = aux_fit_tau[g*n_px];
    }
+   */
 
-   int        *mask_buf = this->mask_buf + g*n_px;
-   doublereal *a = this->a + thread * n_meas * lps;
-   doublereal *b = this->b + thread * ndim * pp2;
-   doublereal *y = this->y + thread * s * n_meas;
-   doublereal *lin_params = this->lin_params + r_idx * n_px * l;
-   doublereal *alf = this->alf + r_idx * nl;
-   doublereal *alf_best = this->alf_best + r_idx * nl;
-   doublereal *w = this->w + thread * n_meas;
-   doublereal *sort_buf = this->sort_buf + thread * n_exp;
+
+   int        *mask         = data->mask + g*n_px;
+   doublereal *a            = this->a + thread * n * lps;
+   doublereal *b            = this->b + thread * ndim * pp2;
+   doublereal *y            = this->y + thread * (s+1) * n;
+   doublereal *lin_params   = this->lin_params + r_idx * n_px * l;
+   doublereal *alf          = this->alf + r_idx * nl;
+   doublereal *alf_best     = this->alf_best + r_idx * nl;
+   doublereal *w            = this->w + thread * n;
+   doublereal *sort_buf     = this->sort_buf + thread * n_exp;
    int        *sort_idx_buf = this->sort_idx_buf + thread * n_exp;
-   doublereal *grid = this->grid + thread * grid_positions;
-   doublereal *var_min = this->var_min + thread * nl;
-   doublereal *var_max = this->var_max + thread * nl;
-   doublereal *var_buf = this->var_buf + thread * nl; 
-   doublereal *beta_buf = this->beta_buf + thread * n_exp;
-   doublereal *theta_buf = this->theta_buf + thread * n_theta;
-   doublereal *fit_buf = this->fit_buf + thread * n_meas;
-   doublereal *count_buf = this->count_buf + thread * n_meas;
-   doublereal *adjust_buf = this->adjust_buf + thread * n_meas;
-   doublereal *conf_lim = this->conf_lim + thread * nl;
-   doublereal *alf_err = this->alf_err + thread * nl;
+   doublereal *grid         = this->grid + thread * grid_positions;
+   doublereal *var_min      = this->var_min + thread * nl;
+   doublereal *var_max      = this->var_max + thread * nl;
+   doublereal *var_buf      = this->var_buf + thread * nl; 
+   doublereal *beta_buf     = this->beta_buf + thread * n_exp;
+   doublereal *theta_buf    = this->theta_buf + thread * n_theta;
+   doublereal *fit_buf      = this->fit_buf + thread * n_meas;
+   doublereal *count_buf    = this->count_buf + thread * n_meas;
+   doublereal *adjust_buf   = this->adjust_buf + thread * n_meas;
+   doublereal *conf_lim     = this->conf_lim + thread * nl;
+   doublereal *alf_err      = this->alf_err + thread * nl;
 
    int idx = 0;
 
@@ -114,18 +109,33 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    i=0;
 
-   for(j=0; j<n_v; j++)
-      alf[i++] = tau2alf(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]); //tau_guess[i+n_fix];
+   /*
+   if (global_mode == MODE_GLOBAL_BINNING)
+   {
+      for(j=0; j<n_exp; j++)
+         tau_guess[j] = aux_tau[j];
+   }
+   */
    
-   for(j=0; j<n_beta; j++)
-      alf[i++] = fixed_beta[j]; //]tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
+   if (use_FMM)
+   {
+//      alf[0] = 1.05*aux_tau[thread]; //tau_guess[0];
+//      alf[1] = 0.8;
+   }
+   else
+   {
+      for(j=0; j<n_v; j++)
+         alf[i++] = tau2alf(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]); //tau_guess[i+n_fix];
+   
+      for(j=0; j<n_beta; j++)
+         alf[i++] = fixed_beta[j]; //]tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
 
-   for(j=0; j<n_fret_v; j++)
-      alf[i++] = E_guess[j+n_fret_fix];
+      for(j=0; j<n_fret_v; j++)
+         alf[i++] = E_guess[j+n_fret_fix];
 
-   for(j=0; j<n_theta_v; j++)
-      alf[i++] =  tau2alf(theta_guess[j+n_theta_fix],0,1000000);
-
+      for(j=0; j<n_theta_v; j++)
+         alf[i++] =  tau2alf(theta_guess[j+n_theta_fix],0,1000000);
+   }
 
    if(fit_t0)
       alf[i++] = t0_guess;
@@ -142,144 +152,135 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if(ref_reconvolution == FIT_GLOBALLY)
       alf[i++] = ref_lifetime_guess;
 
+   int n_meas_res = data->GetResampleNumMeas(thread);
 
-   for(j=0; j<n_meas; j++)
+   for(j=0; j<n_meas_res; j++)
       w[j] = 0;
 
-   for(i=0; i<n_meas; i++)
-   {
+   for(i=0; i<n_meas_res; i++)
       count_buf[i] = 0;
-   }
 
-   SetupAdjust(adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
-                           (fit_offset == FIX)  ? offset_guess  : 0, 
-                           (fit_tvb == FIX)     ? tvb_guess     : 0);
+   SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
+                                   (fit_offset == FIX)  ? offset_guess  : 0, 
+                                   (fit_tvb == FIX)     ? tvb_guess     : 0);
 
-   // Store masked values
-   s_thresh = 0;
-   for(i=0; i<n_px; i++)
+   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y+n_meas, y);
+
+   if (s_thresh == 0)
+      goto skip_processing;
+      
+   for(j=0; j<n_meas_res; j++)
    {
-      if (mask_buf[i] == region)
-      {
-         for(j=0; j<n_meas; j++)
-         {
-            if (data[i*n_meas + j] != data[i*n_meas + j]) //check for nan
-            {
-               y[s_thresh*n_meas+j] = 0;
-            }
-            else
-            {
-               w[j] += abs(data[i*n_meas + j]);
-               y[s_thresh*n_meas+j] = data[i*n_meas + j] - adjust_buf[j];
-               count_buf[j]++;
-            }
-
-            
-         }
-         s_thresh++;
-      }
+      if (s_thresh == 0 || y[j] == 0)
+         w[j] = 1;   // If we have a zero data point set to 1
+      else
+         w[j] = 1 / abs(y[j]); // we're averaging over the s_thresh points
    }
 
    if (anscombe_tranform)
-      for(i=0; i<s_thresh*n_meas; i++)
+      for(i=0; i<s_thresh*n_meas_res; i++)
          y[i] = anscombe(y[i]);
 
    // Check we have pixels left to process
-   if (s_thresh == 0)
-      goto skip_processing;
 
-   // Compute weights
-   if (anscombe_tranform)
-   {
-      for(j=0; j<n_meas; j++)
-      {
-            w[j] = 1;
-      }
-   }
-   else
-   {
-      for(j=0; j<n_meas; j++)
-      {
-         if (count_buf[j] == 0 || w[j] == 0)
-            w[j] = count_buf[j];   // If we have a zero data point set to 1
-         else
-            w[j] = count_buf[j] / w[j]; // we're averaging over the s_thresh points
-      }
-   }
 
    // Check for termination request
    if (status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;
 
-   // Update lpps1 which depends on s
-   lpps1_ = l + p + s_thresh + 1;
-   
+   // Update lpps1 which depends on s   
    itmax = 200;
-     
+
+   int ierr_local_binning = 0;
+   int ierr_local = 0;
+   
+   int s1 = 1;
+
+
+
+   if (s_thresh > 1)
+   {
+      lpps1_ = l + p + 1 + 1;
+      lps_ = l + 1;
+      
+      varp2_( &s1, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+               t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
+               alf, lin_params, &ierr_local_binning, &c2, &algorithm, alf_best );
+   }
+
+   if (global_algorithm == MODE_GLOBAL_BINNING && s_thresh > 1)
+      itmax = 0;
+
    if (grid_search)
    {
-      varp2_grid( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps, &pp2, &iv, 
-               t, y, w, (U_fp)ada, a, b, &iprint, (int*) this, (int*) &thread, alf, lin_params, 
-               ierr+r_idx, (doublereal*)chi2+r_idx, (int*)&algorithm,
+      varp2_grid( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+               t, y+n_meas, w, (U_fp)ada, a, b, &iprint, (int*) this, (int*) &thread, alf, lin_params, 
+               &ierr_local, (doublereal*)chi2+r_idx, (int*)&algorithm,
                var_min, var_max, grid, grid_size, grid_factor, var_buf, grid_iter );
    }
    else
    {
-      varp2_( &s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps, &pp2, &iv, 
-               t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
-               alf, lin_params, ierr+r_idx, &c2, &algorithm, alf_best );
+      lpps1_ = l + p + s_thresh + 1;
+      lps_ = l + s_thresh;
+      varp2_( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+               t, y+n_meas, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
+               alf, lin_params, &ierr_local, &c2, &algorithm, alf_best );
    }
 
-  
-
+   if (global_algorithm == MODE_GLOBAL_BINNING && s_thresh > 1)
+      ierr[r_idx] = ierr_local_binning;
+   else
+      ierr[r_idx] = ierr_local;
 
    if (ierr[r_idx] >= -1 || ierr[r_idx] == -9) // if successful (or failed due to too many iterations) return fit results
    {
 
-      c2 = CalculateChi2(region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask_buf, chi2+g*n_px);
-
-      // calculate errors
-      if (calculate_errs)
+      if (chi2 != NULL)
       {
-         ErrMinParams pr;
-		 pr.gc = this;
-         pr.s_thresh = s_thresh;
-         pr.r_idx = r_idx;
-         pr.region = region;
-         pr.group = g;
-         pr.chi2 = c2;
-         pr.thread = thread;
-         std::pair<double , double> ans;
+         c2 = CalculateChi2(thread, region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask, chi2+g*n_px);
 
-         for(i=0; i<nl; i++)
+         // calculate errors
+         if (calculate_errs)
          {
-            locked_param[thread] = i;
-            pr.param_value = alf[i];
+            ErrMinParams pr;
+            pr.gc = this;
+            pr.s_thresh = s_thresh;
+            pr.r_idx = r_idx;
+            pr.region = region;
+            pr.group = g;
+            pr.chi2 = c2;
+            pr.thread = thread;
+            std::pair<double , double> ans;
 
-            double f[3] = {0.1, 0.5, 1.0};
-
-            for(int k=0; k<3; k++)
+            for(i=0; i<nl; i++)
             {
-               for(j=0; j<nl; j++)
-                  alf_err[j] = alf[j];
+               locked_param[thread] = i;
+               pr.param_value = alf[i];
 
-               ans = brent_find_minima(boost::bind(&FLIMGlobalFitController::ErrMinFcn,this,_1,pr), 
-                                              0.0, f[k]*pr.param_value, 9);
+               double f[3] = {0.1, 0.5, 1.0};
+
+               for(int k=0; k<3; k++)
+               {
+                  for(j=0; j<nl; j++)
+                     alf_err[j] = alf[j];
+
+                  ans = brent_find_minima(boost::bind(&FLIMGlobalFitController::ErrMinFcn,this,_1,pr), 
+                                                 0.0, f[k]*pr.param_value, 9);
                
-               if (ans.second < 1)
-                  break;   
+                  if (ans.second < 1)
+                     break;   
+               }
+
+               if (ans.second > 1)
+                  ans.first = 0;
+            
+               conf_lim[i] = pr.param_value + ans.first;
             }
 
-            if (ans.second > 1)
-               ans.first = 0;
-            
-            conf_lim[i] = pr.param_value + ans.first;
+            locked_param[thread] = -1;
+
          }
-
-         locked_param[thread] = -1;
-
       }
-
 
       // Determine order of variable tau's
       //----------------------------
@@ -319,35 +320,43 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       for(i=0; i<n_px; i++)
       {
  
-         if(mask_buf[i] == region)
+         if(mask[i] == region)
          {
 
             lin_idx = 0;
             nlin_idx = n_v;
 
-
             if (tau != NULL)
             {
-               for(j=0; j<n_fix; j++)
-                  tau[ (g*n_px+i)*n_exp + j ] = tau_guess[j];
-               for(j=0; j<n_v; j++)
-                  tau[ (g*n_px+i)*n_exp + j + n_fix ] = alf2tau(alf[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]);
-
-               if (calculate_errs && tau_err != NULL)
+               if (use_FMM)
+               {
+                  tau[ (g*n_px+i)*n_exp + j + 0 ] = tau_buf[0];
+                  tau[ (g*n_px+i)*n_exp + j + 1 ] = tau_buf[1];
+               }
+               else
+               {
+                  for(j=0; j<n_fix; j++)
+                     tau[ (g*n_px+i)*n_exp + j ] = tau_guess[j];
                   for(j=0; j<n_v; j++)
-                     tau_err[ (g*n_px+i)*n_exp + j + n_fix ] = abs(alf2tau(conf_lim[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]) - tau[ (g*n_px+i)*n_exp + j + n_fix ]);
+                     tau[ (g*n_px+i)*n_exp + j + n_fix ] = alf2tau(alf[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]);
 
+                  if (calculate_errs && tau_err != NULL)
+                     for(j=0; j<n_v; j++)
+                        tau_err[ (g*n_px+i)*n_exp + j + n_fix ] = abs(alf2tau(conf_lim[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]) - tau[ (g*n_px+i)*n_exp + j + n_fix ]);
+               }
             }
+
             if (theta != NULL)
             {
+               for(j=0; j<n_theta_fix; j++)
+                  theta[ (g*n_px+i)*n_theta + j ] =  theta_guess[ j ];
                for(j=0; j<n_theta_v; j++)
-                  theta[ (g*n_px+i)*n_theta + j ] =  alf2tau(alf[alf_theta_idx + j], 0, 1000000);
+                  theta[ (g*n_px+i)*n_theta + j + n_theta_fix ] =  alf2tau(alf[alf_theta_idx + j], 0, 1000000);
                if (calculate_errs && theta_err != NULL)
                   for(j=0; j<n_theta_v; j++)
                      theta_err[ (g*n_px+i)*n_theta + j ] =  abs(alf2tau(conf_lim[alf_theta_idx + j], 0, 1000000) - theta[ (g*n_px+i)*n_theta + j ]);
-               for(j=0; j<n_theta_fix; j++)
-                  theta[ (g*n_px+i)*n_theta + j + n_theta_v ] =  theta_guess[ j ];
             }
+
             if (E != NULL)
             {
                for(j=0; j<n_fret_fix; j++)
@@ -358,22 +367,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   for(j=0; j<n_fret_v; j++)
                      E_err[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ] = abs(conf_lim[alf_E_idx+j] - E[ g*n_px*n_fret + i*n_fret + j + n_fret_fix ]);
             }
-
-            /*
-            if (t0 != NULL)
-            {
-               switch(fit_t0)
-               {
-               case FIX:
-                  t0[ g*n_px + i ] = t0_guess;
-                  break;
-               default:
-                  //t0[ g*n_px + i ] = alf[nlin_idx];
-                  //nlin_idx++;
-                  break;
-               }
-            }
-            */
 
             if (offset != NULL)
             {
@@ -440,91 +433,116 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
             {
                if (ref_reconvolution == FIT_GLOBALLY)
                {
-                  ref_lifetime[ g*n_px + i ] = alf[alf_ref_idx];
+                  ref = alf[alf_ref_idx];
+                  ref_lifetime[ g*n_px + i ] = ref;
                   if (calculate_errs && ref_lifetime_err != NULL)
                      ref_lifetime_err[ g*n_px + i ] = abs(conf_lim[alf_ref_idx] - ref_lifetime[ g*n_px + i ]);
                }
                else if (ref_reconvolution)
-                  ref_lifetime[ g*n_px + i ] = ref_lifetime_guess;
+               {
+                  ref = ref_lifetime_guess;
+                  ref_lifetime[ g*n_px + i ] = ref;
+               }
                else
                   ref_lifetime[ g*n_px + i ] = 0;
             }
-
-            if (polarisation_resolved)
-            {
-               I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
-               
-               for(j=0; j<n_r; j++)
-                  r[ g*n_px*n_r + i*n_r + j ] = lin_params[ i_thresh*l + j + lin_idx + 1 ] / I0[ g*n_px + i ];
-
-               double norm = 0;
-               for(j=0; j<n_exp; j++)
-                  norm += beta_buf[j];
-
-               for(j=0; j<n_v; j++)
-                  beta[ g*n_px*n_exp + i*n_exp + j ] = beta_buf[sort_idx_buf[j]+n_fix] / norm;
-               for(j=0; j<n_fix; j++)
-                  beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = beta_buf[j] / norm;
-                 
-            }
             else
             {
-               if (fit_fret)
-               {
-                  I0[ g*n_px + i ] = 0;
-                  for(j=0; j<n_decay_group; j++)
-                     I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
+               if (ref_reconvolution == FIT_GLOBALLY)
+                  ref = alf[alf_ref_idx];
+               else if (ref_reconvolution)
+                  ref = ref_lifetime_guess;
+            }
 
-                  for (j=0; j<n_decay_group; j++)
-                     gamma[ g*n_px*n_decay_group + i*n_decay_group + j] = lin_params[ i_thresh*l + lin_idx + j] / I0[ g*n_px + i ];
-               }
-
-               if (beta_global)
+            if (I0 != NULL)
+            {
+               if (polarisation_resolved)
                {
+                  I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
+               
+                  for(j=0; j<n_r; j++)
+                     r[ g*n_px*n_r + i*n_r + j ] = lin_params[ i_thresh*l + j + lin_idx + 1 ] / I0[ g*n_px + i ];
+
                   double norm = 0;
                   for(j=0; j<n_exp; j++)
                      norm += beta_buf[j];
                   
-                  I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
-
-                  if (beta != NULL)
+                  if ( beta != NULL )
                   {
                      for(j=0; j<n_v; j++)
                         beta[ g*n_px*n_exp + i*n_exp + j ] = beta_buf[sort_idx_buf[j]+n_fix] / norm;
-
-                     if (calculate_errs && beta_err != NULL)
-                     {
-                        beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] = 0;
-                        for(j=0; j<n_beta; j++)
-                        {
-                           beta_err[ g*n_px*n_exp + i*n_exp + j ] = conf_lim[alf_beta_idx+sort_idx_buf[j]] / norm - beta[ g*n_px*n_exp + i*n_exp + j ];
-                           beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] += beta_err[ g*n_px*n_exp + i*n_exp + j ];
-                        }
-                     
-                     }
-
                      for(j=0; j<n_fix; j++)
                         beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = beta_buf[j] / norm;
                   }
-
                }
                else
                {
-                  I0[ g*n_px + i ] = 0;
-                  for(j=0; j<n_exp; j++)
-                  {               
-                     I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
+                  if (fit_fret)
+                  {
+                     I0[ g*n_px + i ] = 0;
+                     for(j=0; j<n_decay_group; j++)
+                        I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
+
+                     if (gamma != NULL)
+                     {
+                        for (j=0; j<n_decay_group; j++)
+                           gamma[ g*n_px*n_decay_group + i*n_decay_group + j] = lin_params[ i_thresh*l + lin_idx + j] / I0[ g*n_px + i ];
+                     }
                   }
 
-                  for(j=0; j<n_v; j++)
-                     beta[ g*n_px*n_exp + i*n_exp + j + n_fix ] = lin_params[ i_thresh*l + sort_idx_buf[j] + n_fix + lin_idx] / I0[ g*n_px + i ];
-                  for(j=0; j<n_fix; j++)
-                     beta[ g*n_px*n_exp + i*n_exp + j ] = lin_params[ i_thresh*l + j + lin_idx] / I0[ g*n_px + i ];
+                  if (beta_global)
+                  {
+                     double norm = 0;
+                     for(j=0; j<n_exp; j++)
+                        norm += beta_buf[j];
+                  
+                     I0[ g*n_px + i ] = lin_params[ i_thresh*l + lin_idx ];
+
+                     if (beta != NULL)
+                     {
+                        for(j=0; j<n_v; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j ] = beta_buf[sort_idx_buf[j]+n_fix] / norm;
+
+                        if (calculate_errs && beta_err != NULL)
+                        {
+                           beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] = 0;
+                           for(j=0; j<n_beta; j++)
+                           {
+                              beta_err[ g*n_px*n_exp + i*n_exp + j ] = conf_lim[alf_beta_idx+sort_idx_buf[j]] / norm - beta[ g*n_px*n_exp + i*n_exp + j ];
+                              beta_err[ g*n_px*n_exp + i*n_exp + n_beta ] += beta_err[ g*n_px*n_exp + i*n_exp + j ];
+                           }
+                     
+                        }
+
+                        for(j=0; j<n_fix; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j + n_v ] = beta_buf[j] / norm;
+                     }
+
+                  }
+                  else
+                  {
+                     I0[ g*n_px + i ] = 0;
+                     for(j=0; j<n_exp; j++)
+                     {               
+                        I0[ g*n_px + i ] += lin_params[ i_thresh*l + j + lin_idx ];
+                     }
+
+                     if (beta != NULL)
+                     {
+                        for(j=0; j<n_v; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j + n_fix ] = lin_params[ i_thresh*l + sort_idx_buf[j] + n_fix + lin_idx] / I0[ g*n_px + i ];
+                        for(j=0; j<n_fix; j++)
+                           beta[ g*n_px*n_exp + i*n_exp + j ] = lin_params[ i_thresh*l + j + lin_idx] / I0[ g*n_px + i ];
+                     }
+                  }
+
                }
 
+               // While this deviates from the definition of I0 in the model, it is closer to the intuitive 'I0', i.e. the peak of the decay
+               I0[ g*n_px + i ] *= t_g;  
+               if (ref_reconvolution)
+                  I0[ g*n_px + i ] /= ref;   // accounts for the amplitude of the reference in the model, since we've normalised the IRF to 1
             }
-
-            I0[ g*n_px + i ] *= t_g;
 
             i_thresh++;
          }

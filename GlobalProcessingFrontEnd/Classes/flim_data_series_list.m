@@ -45,8 +45,8 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         
         function use_callback(obj,~,~)
            
-            %data = get(obj.handle,'Data');
-            %obj.data_series.use = cell2mat(data(:,1))';
+            data = get(obj.handle,'Data');
+            obj.data_series.use = cell2mat(data(:,1));
             
         end
         
@@ -79,7 +79,7 @@ classdef flim_data_series_list < handle & flim_data_series_observer
                     set(obj.handle,'ColumnFormat',fmt);
                     
                     
-                    edit = [false false(1,n_field)];
+                    edit = [true false(1,n_field)];
                     set(obj.handle,'ColumnEditable',edit);
                     
                     w = [24 ones(1,n_field)*40];

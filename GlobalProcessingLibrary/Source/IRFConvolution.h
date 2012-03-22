@@ -21,16 +21,7 @@ void conv_irf_ref(FLIMGlobalFitController *gc, int n_t, double t[], double exp_b
 void conv_irf_diff_ref(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int dim, double b[], int inc_tau = 1);
 
 
-int flim_model(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int total_n_exp, double tau[], double beta[], int n_theta, double theta[], double ref_lifetime, int dim, double a[], int add_components = 0, int inc_beta_fact = 0, int inc_ref_deriv_fact = 0);
-int flim_model_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int n_theta, double theta[], double ref_lifetime, int dim, double b[], int inc_tau = 1, double* donor_tau = 0);
-int flim_fret_model_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], double tau[], double beta[], double ref_lifetime, int dim, double b[]);
-
-int anisotropy_model(FLIMGlobalFitController *gc, int n_t, double t[], double decay_buf[], int n_theta, double theta[], double ref_lifetime, int dim, double a[]);
-int anisotropy_model_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int n_theta, double theta[], double ref_lifetime, int dim, double b[]);
-
-int ref_lifetime_deriv(FLIMGlobalFitController *gc, int n_t, double t[], double exp_buf[], int total_n_exp, double tau[], double beta[], int n_theta, double theta[], double ref_lifetime, int dim, double b[]);
-
-void sample_irf(FLIMGlobalFitController *gc, double a[], int pol_group = 0, double* scale_fact = 0);
+void sample_irf(int thread, FLIMGlobalFitController *gc, double a[], int pol_group = 0, double* scale_fact = 0);
 
 void alf2beta(int n, double alf[], double beta[]);
 double beta_derv(int n_beta, int alf_idx, int beta_idx, double alf[]);

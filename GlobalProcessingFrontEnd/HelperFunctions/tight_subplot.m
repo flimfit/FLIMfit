@@ -63,7 +63,7 @@ if print
     
     ph = (axh + gap(1)) * Nh - gap(1) + sum(marg_h);
     pw = (axw + gap(2) + cbarw) * Nw - gap(2) + sum(marg_w);
-    
+        
     psize = [psize(1:2) pw ph];
     set(parent,'Position',psize);
 else

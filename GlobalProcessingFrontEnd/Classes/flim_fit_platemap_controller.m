@@ -7,7 +7,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
     methods
         function obj = flim_fit_platemap_controller(handles)
                        
-            obj = obj@abstract_plot_controller(handles,handles.plate_axes,handles.plate_param_popupmenu);            
+            obj = obj@abstract_plot_controller(handles,handles.plate_axes,handles.plate_param_popupmenu,true);            
             assign_handles(obj,handles);
 
             obj.update_display();
@@ -17,6 +17,9 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
             n_col = 12;
             n_row = 8;
+            
+            row_headers = {'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'};
+
 
             if obj.fit_controller.has_fit
 
@@ -51,7 +54,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                             end
                         end
 
-                        plate(row_idx,col) = mean(y);
+                        plate(row_idx,col) = nanmean(y);
 
                     end
                 end
@@ -83,11 +86,15 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     line([0.5 n_col+.5],[i+.5 i+.5],'Parent',ax,'Color','k');
                 end
 
-                set(im,'uicontextmenu',obj.contextmenu);
-
+                if ( ax == obj.plot_handle )
+                    set(im,'uicontextmenu',obj.contextmenu);
+                end
+                
+                obj.raw_data = [row_headers num2cell(plate)];
+                obj.raw_data = [{param} num2cell(1:n_col); obj.raw_data];
             else
                 im=image(zeros([n_row n_col]),'Parent',ax);
-                set(ax,'YTickLabel',{'A' 'B' 'C' 'D' 'E' 'F' 'G' 'H'});
+                set(ax,'YTickLabel',row_headers);
                 set(ax,'XTick',0:1:n_col);
                 set(ax,'TickLength',[0 0]);
                 daspect(ax,[1 1 1]);
@@ -95,10 +102,14 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
             end
             
+            
+            
             set(ax,'YTick',1:1:n_row);
-            set(ax,'YTickLabel',{'A' 'B' 'C' 'D' 'E' 'F' 'G' 'H'});
+            set(ax,'YTickLabel',row_headers);
             set(ax,'XTick',1:n_col);
             set(ax,'TickLength',[0 0]);
+            
+
             
         end
 

@@ -4,6 +4,12 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
         gallery_cols_edit;
         gallery_overlay_popupmenu;
         gallery_unit_edit; 
+        gallery_merge_popupmenu;
+        
+        axes_handles;
+        colorbar_handles;
+        cols = 0;
+        rows = 0;
     end
     
     methods
@@ -17,6 +23,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             set(obj.gallery_cols_edit,'Callback',@obj.gallery_params_update);
             set(obj.gallery_overlay_popupmenu,'Callback',@obj.gallery_params_update);
             set(obj.gallery_unit_edit,'Callback',@obj.gallery_params_update);
+            set(obj.gallery_merge_popupmenu,'Callback',@obj.gallery_params_update);
             
             obj.update_display();
         end
@@ -37,8 +44,15 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
         end
         
         function draw_plot(obj,f,param)
-          
+            %return
             save = (f ~= obj.plot_handle);
+            
+            if ~obj.fit_controller.has_fit || isempty(param) 
+                return
+            end
+            
+            merge = get(obj.gallery_merge_popupmenu,'Value');
+            merge = merge - 1;
             
             overlay = get(obj.gallery_overlay_popupmenu,'Value');
             if overlay == 1
@@ -53,14 +67,19 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
 
             d = obj.fit_controller.data_series;
             n_im = d.n_datasets;
-
+            
             rows = ceil(n_im/cols);
 
-            if n_im>0
-                [ha,hc] = tight_subplot(f,n_im,rows,cols,save,[d.width d.height],5,5);
-            end
-
             if ~strcmp(param,'-')
+                
+                if save || (n_im>0 && (cols ~= obj.cols || rows ~= obj.rows))
+                    [ax_h,cb_h] = tight_subplot(f,n_im,rows,cols,save,[d.width d.height],5,5);
+                    obj.cols = cols;
+                    obj.rows = rows;
+                else
+                    ax_h = obj.axes_handles;
+                    cb_h = obj.colorbar_handles;
+                end
 
                 if isempty(overlay);
                     meta = [];
@@ -82,7 +101,12 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                         text = '';
                     end
 
-                    obj.plot_figure(ha(i),hc(i),i,param,false,text);
+                    obj.plot_figure(ax_h(i),cb_h(i),i,param,merge,text);
+                    
+                    if ~save
+                        obj.axes_handles = ax_h;
+                        obj.colorbar_handles = cb_h;
+                    end
                 end
 
             end

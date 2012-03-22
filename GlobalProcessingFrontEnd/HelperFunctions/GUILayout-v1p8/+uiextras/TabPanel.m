@@ -26,7 +26,7 @@ classdef TabPanel < uiextras.CardPanel & uiextras.DecoratedPanel
     %   $Date: 2010-11-01 10:07:13 +0000 (Mon, 01 Nov 2010) $
     
     properties
-        TabSize = 50
+        TabSize = 75
         TabPosition = 'top' % which side of the contents to put the tabs [top|bottom]
     end % public properties
     

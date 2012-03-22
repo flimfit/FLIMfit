@@ -19,7 +19,6 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         n_ret_group = 1;
         mask = 1;
     else
-
         switch (p.global_fitting)
             case 0 % global_mode.pixel
                 n_ret_group = n_x*n_y;
@@ -50,7 +49,7 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         
         decay = p_fit.Value;
         decay = reshape(decay,[n_t n_chan n_fit]);
-        decay = nansum(decay,3);
+        decay = nanmean(decay,3);
        
         
         %decay = zeros(n_t,1);
@@ -60,7 +59,7 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         decay = zeros(n_t,1);
         
     end
-        
+            
     clear p_fit;
     
 

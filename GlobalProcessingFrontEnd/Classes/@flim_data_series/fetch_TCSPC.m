@@ -18,13 +18,13 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
       
     
         
-   if length(channel) > 1
+	if length(channel) > 1
         obj.load_multiple_channels = true;
-   else
+	else
         obj.load_multiple_channels = false;
-   end
+	end
     
-    if size(delays) > 0
+	if size(delays) > 0
         
         obj.mode = 'TCSPC';
     
