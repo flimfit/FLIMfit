@@ -1,6 +1,4 @@
-function setup_layout(obj)
-
-    handles = guihandles(obj.window);
+function handles = setup_layout(obj, handles)
 
     % Start layout
     %---------------------------------------
@@ -87,8 +85,8 @@ function setup_layout(obj)
 
     fit_button_layout = uiextras.HBox( 'Parent', left_layout, 'Spacing', 3 );
     
-    handles.binned_fit_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Binned Fit', 'Parent', fit_button_layout );
-    handles.fit_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Fit', 'Parent', fit_button_layout );
+    handles.binned_fit_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Fit Selected Decay', 'Parent', fit_button_layout );
+    handles.fit_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Fit Dataset', 'Parent', fit_button_layout );
 
     set(fit_button_layout,'Sizes',[-1,-2]);
     
@@ -98,7 +96,5 @@ function setup_layout(obj)
     set(top_layout,'Sizes',[550,-1]);
 
     dragzoom([handles.highlight_axes handles.residuals_axes])
-   
-    guidata(obj.window, handles);
-    
+       
 end

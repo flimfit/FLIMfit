@@ -7,7 +7,7 @@ classdef global_processing_ui
     
     methods
       
-        function obj = global_processing_ui(wait,OMERO_active,require_auth)
+        function obj = global_processing_ui(wait,OMERO_active,external,require_auth)
         
             
             if nargin < 1
@@ -17,6 +17,9 @@ classdef global_processing_ui
                 OMERO_active = false;
             end
             if nargin < 3
+                external = false;
+            end
+            if nargin < 4
                 require_auth = false;
             end
             
@@ -36,9 +39,7 @@ classdef global_processing_ui
                 catch
                     OMERO_active = false;
                     client = [];
-                    session = client.createSession(logon{2},logon{3});
-                catch  err
-                    errordlg('error while creating OMERO session');
+                    errordlg('Error creating OMERO session');
                 end
             else
                 client = [];
@@ -88,19 +89,15 @@ classdef global_processing_ui
                 'OuterPosition',[0 0.03 1 0.97]);
             
            
-                
-            obj.setup_layout();
-            
-            if ~OMERO_active
-                obj.setup_menu();
-            else
-               obj.setup_alt_menu();
-            end
-            
-            obj.setup_toolbar();
-
             handles = guidata(obj.window); 
+            
+            handles.external = external;
+                
+            handles = obj.setup_layout(handles);
+            handles = obj.setup_menu(handles);
+            handles = obj.setup_toolbar(handles);
 
+            
             handles.window = obj.window;
             handles.use_popup = true;
             handles.data_series_controller = flim_data_series_controller(handles);
