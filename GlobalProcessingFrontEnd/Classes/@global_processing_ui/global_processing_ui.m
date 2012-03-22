@@ -9,15 +9,6 @@ classdef global_processing_ui
       
         function obj = global_processing_ui(wait,OMERO_active,require_auth)
         
-            function vx = split_ver(ver)
-                tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
-                if ~isempty(tk{1})
-                    tk = tk{1};
-                    vx = str2double(tk{1})*1e6 + str2double(tk{2})*1e3 + str2double(tk{3});
-                else 
-                    vx = 0;
-                end
-            end
             
             if nargin < 1
                 wait = false;
@@ -35,9 +26,6 @@ classdef global_processing_ui
                 wait = true;
             end
             
-            client = [];
-            session = [];       %default value
-            
             if OMERO_active
             
                 logon = OMERO_logon;
@@ -45,16 +33,23 @@ classdef global_processing_ui
                 client = loadOmero(logon{1});
                 try 
                     session = client.createSession(logon{2},logon{3});
+                catch
+                    OMERO_active = false;
+                    client = [];
                 end
+            else
+                client = [];
+                session = [];
             end
             
+            % Try and read in version number
             try
                 v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
             catch
                 v = '[unknown version]';
             end
             
-            
+            % Get authentication if needed
             if require_auth
                 auth_text = urlread('https://global-analysis.googlecode.com/hg/GlobalAnalysisAuth.txt');
                 auth_success = false;
@@ -65,11 +60,11 @@ classdef global_processing_ui
                 
                 min_ver = regexp(auth_text,'min_version=([[0-9]\.]+)','tokens');
                 if ~isempty(min_ver)
-                    min_ver = split_ver(min_ver{1}{1});
+                    min_ver = obj.split_ver(min_ver{1}{1});
                 else
                     min_ver = 0;
                 end
-                if min_ver == 0 || split_ver(v{1}) < min_ver
+                if min_ver == 0 || obj.split_ver(v{1}) < min_ver
                     auth_success = false;
                 end
                 if ~auth_success 
@@ -78,7 +73,7 @@ classdef global_processing_ui
                 end
             end
             
-                % Open a window and add some menus
+            % Open a window and add some menus
             obj.window = figure( ...
                 'Name', 'GlobalProcessing', ...
                 'NumberTitle', 'off', ...
@@ -93,7 +88,7 @@ classdef global_processing_ui
                 
             obj.setup_layout();
             
-            if isempty(session)
+            if ~OMERO_active
                 obj.setup_menu();
             else
                obj.setup_alt_menu();
@@ -125,6 +120,8 @@ classdef global_processing_ui
 
             handles.menu_controller = front_end_menu_controller(handles);
 
+            guidata(obj.window,handles);
+            
             set(obj.window,'Visible','on');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                         
@@ -136,28 +133,36 @@ classdef global_processing_ui
             
         end
         
-        function close_request_fcn(obj,src,evt)
-         
-            
-            disp('closing om fcn call');
+        function vx = split_ver(ver)
+            % Convert version string into a number
+            tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
+            if ~isempty(tk{1})
+                tk = tk{1};
+                vx = str2double(tk{1})*1e6 + str2double(tk{2})*1e3 + str2double(tk{3});
+            else 
+                vx = 0;
+            end
+        end
+
+        
+        function close_request_fcn(obj,~,~)
             
             handles = guidata(obj.window);
+
             session = handles.OMERO_session;
             client = handles.OMERO_client;
-                  
+
             if ~isempty(session)
-                
+
                 %Close the OMERO session
                 disp('Closing OMERO session');
-            
-                
+
                 client.closeSession();
                 %clear client;
                 %clear session;
                 %unloadOmero();
                 %clear java;
             end
-
             
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
@@ -169,8 +174,7 @@ classdef global_processing_ui
             
             clear handles;
             delete(obj.window);
-            clear obj;
-                        
+            clear obj;                 
             
         end
         
