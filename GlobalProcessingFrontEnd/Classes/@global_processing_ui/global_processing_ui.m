@@ -26,7 +26,7 @@ classdef global_processing_ui
                 wait = true;
             end
             
-            if OMERO_active
+            if OMERO_active == true
             
                 logon = OMERO_logon;
                 
@@ -36,6 +36,9 @@ classdef global_processing_ui
                 catch
                     OMERO_active = false;
                     client = [];
+                    session = client.createSession(logon{2},logon{3});
+                catch  err
+                    errordlg('error while creating OMERO session');
                 end
             else
                 client = [];

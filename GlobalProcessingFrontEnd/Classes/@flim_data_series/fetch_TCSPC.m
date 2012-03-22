@@ -16,7 +16,6 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
          rethrow(err);
     end
       
-    size(data_cube)
     
         
    if length(channel) > 1
@@ -52,7 +51,7 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
         if obj.load_multiple_channels
             obj.num_datasets = size(data_cube,5);
         else
-            obj.num_datasets = 1
+            obj.num_datasets = 1;
     
         obj.loaded = ones([1 obj.num_datasets]);
     
