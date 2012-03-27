@@ -396,6 +396,7 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
          masked_data[idx] += tr_data[p*n_meas + k*n_t + i] - adjust[k*n_t+i];
          idx += resample_idx[i];
       }
+      idx++;
    }
    
    return 1;
