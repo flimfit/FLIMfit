@@ -112,8 +112,9 @@ classdef flim_fit_hist_controller < flim_fit_observer
                 
                 cla(obj.hist_axes);
                 hist(obj.hist_axes,param_data,x);
-                xlabel(obj.param);
-                ylabel('Frequency');
+                set(obj.hist_axes,'XLim',[obj.hist_min obj.hist_max])
+                xlabel(obj.hist_axes,obj.param);
+                ylabel(obj.hist_axes,'Frequency');
             end
         end
         

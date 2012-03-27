@@ -404,9 +404,10 @@ void FLIMGlobalFitController::Init()
 
    // Set up FRET parameters
    //---------------------------------------
-   fit_fret = n_fret > 0;
+   fit_fret = (n_fret > 0) & (fit_beta != FIT_LOCALLY);
    if (!fit_fret)
    {
+      n_fret = 0;
       n_fret_fix = 0;
       inc_donor = true;
    }
@@ -757,6 +758,7 @@ void FLIMGlobalFitController::Init()
    SetNaN(gamma,   n_group*n_px*n_decay_group);
 
    SetNaN(ref_lifetime, n_group*n_px);
+   SetNaN(chi2, n_group*n_px);
 
    
    SetNaN(offset_err,  n_group*n_px);
@@ -918,8 +920,8 @@ double FLIMGlobalFitController::CalculateChi2(int thread, int region, int s_thre
 
             ft += a[n_meas_res*l+j];
 
-            fit_buf[j] = ft - y[i_thresh*n_meas_res + j];
-            fit_buf[j] *= fit_buf[j] * w[j];
+            fit_buf[j] = (ft - y[i_thresh*n_meas_res + j] ); //* (2*data->smoothing_factor+1);
+            fit_buf[j] *= fit_buf[j] * w[j] * (2*data->smoothing_factor+1) ;
 
             if (j>0)
                fit_buf[j] += fit_buf[j-1];

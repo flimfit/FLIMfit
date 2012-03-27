@@ -157,8 +157,8 @@ void sample_irf(int thread, FLIMGlobalFitController *gc, double a[],int pol_grou
       scale = (scale_fact == NULL) ? 1 : scale_fact[i];
       for(int j=0; j<gc->n_t; j++)
       {
-         a[idx] += (gc->resampled_irf[k]) * gc->chan_fact[pol_group*gc->n_chan+i] * scale;
-         idx += resample_idx[k];
+         a[idx] += (gc->resampled_irf[j]) * gc->chan_fact[pol_group*gc->n_chan+i] * scale;
+         idx += resample_idx[j];
       }
       idx++;
    }
