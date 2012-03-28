@@ -48,13 +48,18 @@ function init_memory_mapping(obj, data_size, num_datasets, mapfile_name)
         else
             if obj.raw
                 repeat = obj.num_datasets;
-                format = 'uint16';
             else
                 repeat = num_datasets;
-                format = 'double';
             end
         end
 
+        if obj.raw
+            format = 'uint16';
+        else
+            format = 'double';
+        end
+
+        
         obj.memmap = memmapfile(obj.mapfile_name,'Writable',true,'Repeat',repeat,'Format',{format, data_size', 'data_series' },'Offset',obj.mapfile_offset);
 
         obj.cur_data = obj.memmap.Data(1).data_series;
