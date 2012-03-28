@@ -39,6 +39,7 @@ classdef global_processing_ui
                 catch
                     OMERO_active = false;
                     client = [];
+                    session = [];
                     errordlg('Error creating OMERO session');
                 end
             else
@@ -88,10 +89,17 @@ classdef global_processing_ui
                 'Units','normalized', ...
                 'OuterPosition',[0 0.03 1 0.97]);
             
+             %position only in main monitor
+            coords = get(0,'MonitorPositions'); 
+            set(obj.window,'units','pixels','position',coords(1,:));
+            
            
             handles = guidata(obj.window); 
             
             handles.external = external;
+            
+            handles.OMERO_session = session;
+            handles.OMERO_client = client;
                 
             handles = obj.setup_layout(handles);
             handles = obj.setup_menu(handles);
@@ -115,8 +123,7 @@ classdef global_processing_ui
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);
             
-            handles.OMERO_session = session;
-            handles.OMERO_client = client;
+           
 
             handles.menu_controller = front_end_menu_controller(handles);
 

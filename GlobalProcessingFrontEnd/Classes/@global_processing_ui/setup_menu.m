@@ -2,6 +2,20 @@
 function handles = setup_menu(obj,handles)
 
     external = handles.external;
+    session = handles.OMERO_session
+    
+    if  session ~= []
+      external = true;
+        
+      menu_OMERO      = uimenu(obj.window,'Label','OMERO');
+   
+      handles.menu_OMERO_fetch_TCSPC = uimenu(menu_OMERO,'Label','Fetch single TCSPC image from OMERO','Accelerator','O');
+      handles.menu_OMERO_irf_TCSPC = uimenu(menu_OMERO,'Label','Fetch TCSPC irf from OMERO','Accelerator','O');
+      handles.menu_OMERO_store_fit_result = uimenu(menu_OMERO,'Label','Store fit result into OMERO','Accelerator','O');
+        
+    end
+    
+    
 
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
@@ -10,7 +24,11 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','W');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
     
+    
+    
+    
     if ~external
+      
         menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
         handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
         handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
