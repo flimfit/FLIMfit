@@ -165,11 +165,8 @@ classdef abstract_plot_controller < flim_fit_observer
                 return
             end       
             
-            if ispref('GlobalAnalysisFrontEnd','LastFigureExportFolder')
-                default_path = getpref('GlobalAnalysisFrontEnd','LastFigureExportFolder');
-            else
-                default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
-            end
+            
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
             
             [filename, pathname, ~] = uiputfile( ...
                         {'*.csv', 'Comma Separated  Values (*.csv)'},...

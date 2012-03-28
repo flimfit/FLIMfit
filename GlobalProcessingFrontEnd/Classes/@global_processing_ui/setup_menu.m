@@ -69,11 +69,11 @@ function handles = setup_menu(obj,handles)
         menu_segmentation = uimenu(obj.window,'Label','Segmentation');
         handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager');
 
-        menu_batch = uimenu(obj.window,'Label','Batch Fitting');
-        handles.menu_batch_batch_fitting = uimenu(menu_batch,'Label','Batch Fit...');
+        %menu_batch = uimenu(obj.window,'Label','Batch Fitting');
+        %handles.menu_batch_batch_fitting = uimenu(menu_batch,'Label','Batch Fit...');
 
-        menu_view = uimenu(obj.window,'Label','View');
-        handles.menu_view_chi2_display = uimenu(menu_view,'Label','Chi2 Viewer');
+        %menu_view = uimenu(obj.window,'Label','View');
+        %handles.menu_view_chi2_display = uimenu(menu_view,'Label','Chi2 Viewer');
 
         menu_test = uimenu(obj.window,'Label','Test');
         handles.menu_test_test1 = uimenu(menu_test,'Label','Test Fcn 1','Accelerator','X');

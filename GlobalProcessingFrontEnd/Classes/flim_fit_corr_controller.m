@@ -106,13 +106,19 @@ classdef flim_fit_corr_controller < flim_fit_observer
                 param_data_x = param_data_x( sel );
                 param_data_y = param_data_y( sel );
                 
-
+                xlims = obj.fit_controller.fit_result.default_lims.(obj.param_x);
+                ylims = obj.fit_controller.fit_result.default_lims.(obj.param_y);
+                
                 %{
                 if ~isempty(param_data_x) && ~isempty(param_data_y)
                     createContour([param_data_x param_data_y]);
                 end
                 %}
                 scatter(obj.corr_axes,param_data_x,param_data_y);
+
+                set(obj.corr_axes,'XLim',xlims);
+                set(obj.corr_axes,'YLim',ylims);
+
                 xlabel(obj.corr_axes,obj.param_x);
                 ylabel(obj.corr_axes,obj.param_y);
             else

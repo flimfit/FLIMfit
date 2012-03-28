@@ -91,7 +91,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
         int *lpp2, int *pp1, int *iv, double *a, double *b, int *inc, 
         double *t, double *alf, int *isel, int *gc_int, int *thread)
 {   
-   
+   FILE* fx;
+
    FLIMGlobalFitController *gc = (FLIMGlobalFitController*) gc_int;
 
    if (gc == NULL)

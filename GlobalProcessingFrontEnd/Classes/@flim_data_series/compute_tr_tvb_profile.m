@@ -33,7 +33,7 @@ function compute_tr_tvb_profile(obj)
         % Scale the background based on the size of the smoothing kernel.
         % If we move away from square binning then this will need to be
         % changed. 
-        obj.tr_tvb_profile = obj.tr_tvb_profile * obj.binning^2;
+        %obj.tr_tvb_profile = obj.tr_tvb_profile * obj.binning^2;
 
             
     end
