@@ -20,7 +20,7 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 {
    has_data = false;
 
-   
+   n_masked_px = 0;
 
    if (mask == NULL)
    {
@@ -115,7 +115,8 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    if (n_x < dim_required || n_y < dim_required)
       this->smoothing_factor = 0;
 
-     
+   smoothing_area = (2*this->smoothing_factor+1)*(2*this->smoothing_factor+1);
+
    resample_idx = new int[n_t * n_thread];
    n_meas_res = new int[n_thread];
 
@@ -249,7 +250,7 @@ void FLIMData::DetermineAutoSampling(int thread, double decay[])
 
    int* resample_idx = this->resample_idx + n_t * thread;
 
-   double min_bin = 20.0 / ((smoothing_factor+1)*(smoothing_factor+1));
+   double min_bin = 20.0 / smoothing_area;
    int max_w = 50;
 
    resample_idx[n_t-1] = 0;

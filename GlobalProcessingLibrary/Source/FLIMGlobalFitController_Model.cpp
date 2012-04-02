@@ -330,7 +330,7 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
          {
             memset(b+idx, 0, n_meas_res*sizeof(double));
 
-            fact  = 1 / (tau[j] * tau[j]) * d_tau_d_alf(tau[j],tau_min[j],tau_max[j]);
+            fact  = 1 / (tau[j] * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
             fact *= beta_global ? beta[j] : 1;
 
             add_derivative(thread, j, p, 0, tau, theta, fact, ref_lifetime, b+idx);
@@ -346,7 +346,7 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
          
             memset(b+idx, 0, n_meas_res*sizeof(double));
       
-            fact = beta[j] / (fret_tau * tau[j]) * d_tau_d_alf(tau[j],tau_min[j],tau_max[j]);
+            fact = beta[j] / (fret_tau * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
          
             add_derivative(thread, j, 0, g, tau, theta, fact, ref_lifetime, b+idx);
 
@@ -408,7 +408,7 @@ int FLIMGlobalFitController::theta_derivatives(int thread, double tau[], double 
 
       for(int j=0; j<n_exp; j++)
       {      
-         fact  = beta[j] / theta[p] / theta[p] * d_tau_d_alf(theta[p],0,1000000);
+         fact  = beta[j] / theta[p] / theta[p] * TransformRangeDerivative(theta[p],0,1000000);
          add_derivative(thread, j, p+1, 0, tau, theta, fact, ref_lifetime, b+idx);
       }
 

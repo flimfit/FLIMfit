@@ -80,12 +80,14 @@ public:
    int use_autosampling;
 
    int* mask;
+   int n_masked_px;
 
    int* region_start;
 
    int global_mode;
 
    int smoothing_factor;
+   double smoothing_area;
 
    int* t_skip;
 
@@ -120,7 +122,7 @@ private:
    int supplied_mask;
 
    int background_type;
-   int background_value;
+   double background_value;
    double* background_image;
 
    int n_thread;
@@ -149,6 +151,8 @@ private:
 
    int* use_im;
    int n_im_used;
+
+
 };
 
 
@@ -245,6 +249,8 @@ int FLIMData::CalculateRegions()
                average_data[j] += data_ptr[p*n_meas_full+j];
             average_count++;
          }
+
+         n_masked_px += (mask[i*n_ipx+p] > 0);
        }
    }
 

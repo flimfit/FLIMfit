@@ -6,9 +6,12 @@ function update_display(obj)
         
         
         cim = obj.data_series_controller.selected_intensity(selected,false);
-        mx = max(cim(:));
-        mn = min(cim(:));
-        cim = (cim-mn) / (mx-mn) * m;
+        lims = quantile(cim(:),[0.01 0.99]);
+        mn = lims(1); mx = lims(2);
+        cim = (cim-mn) / (mx-mn);
+        cim(cim < 0) = 0;
+        cim(cim > 1) = 1;
+        cim = cim * m;
 
         mask = double(obj.mask(:,:,selected));
         cmask = (1 + mask/max(mask(:))) * m;

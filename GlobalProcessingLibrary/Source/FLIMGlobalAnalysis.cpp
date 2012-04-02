@@ -152,6 +152,9 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm,
    if (!use_callback)
       callback = NULL;
 
+   for(int i=0; i<n_irf; i++)
+      t_irf[i] = t_irf[i]/T_FACTOR;
+
    int     n_theta         = 0;
    int     n_theta_fix     = 0;
    int     inc_rinf        = 0;
@@ -215,6 +218,9 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
    int inc_donor = 0;
    double* E_guess = NULL;
 
+  for(int i=0; i<n_irf; i++)
+      t_irf[i] = t_irf[i]/T_FACTOR;
+
    controller[c_idx] = 
          new FLIMGlobalFitController( global_algorithm, n_irf, t_irf, irf, pulse_pileup,
                                       n_exp, n_fix, tau_min, tau_max, 
@@ -267,6 +273,9 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 //   int valid = ValidControllerIdx(c_idx);
 //   if (!valid)
 //      return -1;
+
+   for(int i=0; i<n_t_full; i++)
+      t[i] = t[i]/T_FACTOR;
 
    int n_thread = controller[c_idx]->n_thread;
 
@@ -377,6 +386,9 @@ FITDLL_API int FLIMGlobalGetFit(int c_idx, int ret_group_start, int n_ret_groups
 
    int valid = ValidControllerIdx(c_idx);
    if (!valid) return ERR_NO_FIT;
+
+   for(int i=0; i<n_t; i++)
+      t[i] = t[i]/T_FACTOR;
 
    int error = controller[c_idx]->GetFit(ret_group_start,n_ret_groups,n_fit,fit_mask,n_t,t,fit); 
    return error;

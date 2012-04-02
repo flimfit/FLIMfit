@@ -115,6 +115,10 @@ function err = call_fitting_lib(obj,roi_mask,selected)
                             obj.p_chi2, obj.p_ierr, p.n_thread, true, false, 0);
     end
 
+    if err ~= 0
+        return;
+    end
+    
     if obj.bin
         n_datasets = 1;
         height = 1;
@@ -149,6 +153,10 @@ function err = call_fitting_lib(obj,roi_mask,selected)
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, t_skip, length(d.tr_t),...
             p.data_type, obj.p_use, obj.p_mask, d.thresh_min, d.gate_max, p.global_fitting, d.binning, p.use_autosampling);
  
+    if err ~= 0
+        return;
+    end
+        
     if ~obj.bin
         if d.background_type == 1
             calllib(obj.lib_name,'SetBackgroundValue',obj.dll_id,d.background_value);
@@ -157,6 +165,10 @@ function err = call_fitting_lib(obj,roi_mask,selected)
             calllib(obj.lib_name,'SetBackgroundImage',obj.dll_id,obj.p_background);
         end
     end
+    
+    if err ~= 0
+        return;
+    end    
     
     if d.use_memory_mapping && ~obj.bin
         if d.raw

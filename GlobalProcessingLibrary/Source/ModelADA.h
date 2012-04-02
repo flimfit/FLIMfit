@@ -16,6 +16,8 @@
 
 #include "FlagDefinitions.h"
 
+#define T_FACTOR  1
+
 class FLIMGlobalFitController;
 
 typedef void (* conv_func)(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double& c);
@@ -65,10 +67,15 @@ void varp2_grid(int *s, int *l, int *lmax, int *
    int *ierr, double *r__, int *gn,
    double var_min[], double var_max[], double grid[], int grid_size, int grid_factor, double buf[], int n_iter );
 
-
+/*
 double tau2alf(double tau, double tau_min, double tau_max);
 double alf2tau(double alf, double tau_min, double tau_max);
 double d_tau_d_alf(double tau, double tau_min, double tau_max);
+*/
+
+double TransformRange(double v, double v_min, double v_max);
+double InverseTransformRange(double t, double v_min, double v_max);
+double TransformRangeDerivative(double v, double v_min, double v_max);
 
 double beta2alf(double beta);
 double alf2beta(double alf);

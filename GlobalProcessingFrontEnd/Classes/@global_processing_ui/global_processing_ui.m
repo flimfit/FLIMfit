@@ -179,6 +179,8 @@ classdef global_processing_ui
                 end
             end
             
+            guidata(obj.window,handles);
+            
             clear handles;
             delete(obj.window);
             clear obj;                 

@@ -715,7 +715,11 @@ classdef flim_data_series < handle
                     para = squeeze(in(1,1,:,:));
                     perp = squeeze(in(1,2,:,:));
                     
-                    anis(:,:,i) = (para-g*perp)./(para+2*g*perp);
+                    an = (para-g*perp)./(para+2*g*perp);
+                    an(obj.mask==0) = NaN;
+                    
+                    anis(:,:,i) = an;
+
                 end
                 
             else

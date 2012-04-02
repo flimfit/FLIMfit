@@ -19,6 +19,10 @@
 
 #include "FlagDefinitions.h"
 
+
+#define USE_GLOBAL_BINNING_AS_ESTIMATE    false
+
+
 #define _CRTDBG_MAPALLOC
 
 

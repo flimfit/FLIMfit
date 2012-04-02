@@ -5,8 +5,6 @@ classdef front_end_menu_controller < handle
         menu_OMERO_fetch_TCSPC;
         menu_OMERO_irf_TCSPC;
         menu_OMERO_store_fit_result;
-        
-       
 
         menu_file_new_window;
         
@@ -26,7 +24,8 @@ classdef front_end_menu_controller < handle
         menu_file_export_decay_series;
         
         menu_file_set_default_path;
-        menu_file_load_test;
+        menu_file_recent_default
+        
         menu_file_load_raw;
         
         menu_file_open_fit;
@@ -49,6 +48,7 @@ classdef front_end_menu_controller < handle
         menu_irf_set_delta;
         menu_irf_set_rectangular;
         menu_irf_set_gaussian;
+        menu_irf_recent;
         
         menu_background_background_load;
         menu_background_background_load_series;
@@ -62,6 +62,7 @@ classdef front_end_menu_controller < handle
         menu_view_chi2_display;
         
         menu_test_test1;
+        menu_test_unload_dll;
         
         menu_batch_batch_fitting;
         
@@ -72,13 +73,17 @@ classdef front_end_menu_controller < handle
         plot_controller;
         hist_controller;
         
+        recent_irf;
+        recent_default_path;
+
+        default_path;
+
         session;    % OMERO session ID
     end
     
     properties(SetObservable = true)
-        default_path;
+
         recent_data;
-        recent_irf;
     end
     
     
@@ -88,7 +93,7 @@ classdef front_end_menu_controller < handle
             set_callbacks(obj);
             try
                 obj.default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
-            catch %#ok
+            catch e
                 addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
                 obj.default_path = 'C:\';
             end
@@ -96,16 +101,26 @@ classdef front_end_menu_controller < handle
             try
                 obj.recent_data = getpref('GlobalAnalysisFrontEnd','RecentData');
             catch %#ok
-                addpref('GlobalAnalysisFrontEnd','RecentData',[])
+                addpref('GlobalAnalysisFrontEnd','RecentData',{})
                 obj.recent_data = [];
             end
             
             try
                 obj.recent_irf = getpref('GlobalAnalysisFrontEnd','RecentIRF');
-            catch %#ok
-                addpref('GlobalAnalysisFrontEnd','RecentIRF',[])
-                obj.recent_irf = [];
+            catch e
+                addpref('GlobalAnalysisFrontEnd','RecentIRF',{})
+                obj.recent_irf = {};
             end
+            
+            try
+                obj.recent_default_path = getpref('GlobalAnalysisFrontEnd','RecentDefaultPath');
+            catch e
+                addpref('GlobalAnalysisFrontEnd','RecentDefaultPath',{})
+                obj.recent_default_path = {};
+            end
+            
+            obj.update_recent_irf_list();
+            obj.update_recent_default_list();
             
             obj.session = handles.OMERO_session;      % OMERO session ID
         end
@@ -129,29 +144,54 @@ classdef front_end_menu_controller < handle
              
         end
         
-        
-        function set.default_path(obj,default_path)
-            obj.default_path = default_path;
-            setpref('GlobalAnalysisFrontEnd','DefaultFolder',default_path);
-        end
-        
+                       
         function set.recent_data(obj,recent_data)
             obj.recent_data = recent_data;
             setpref('GlobalAnalysisFrontEnd','RecentData',recent_data);
         end
         
-        function set.recent_irf(obj,recent_irf)
-            obj.recent_irf = recent_irf;
-            setpref('GlobalAnalysisFrontEnd','RecentIRF',recent_irf);
-        end
-        
         function add_recent_data(obj,type,path)
-            obj.recent_data = [obj.recent_data; [type, path]];
+            obj.recent_data = {obj.recent_data; [type, path]};
         end
 
         function add_recent_irf(obj,path)
-            obj.recent_irf = [obj.recent_irf; path];
+            if ~any(strcmp(path,obj.recent_irf))
+                obj.recent_irf = [obj.recent_irf; path];
+            end
+            if length(obj.recent_irf) > 20
+                obj.recent_irf = obj.recent_irf(1:20);
+            end
+            setpref('GlobalAnalysisFrontEnd','RecentIRF',obj.recent_irf);
+            obj.update_recent_irf_list();
         end
+        
+        function update_recent_irf_list(obj)
+            
+            function menu_call(file)
+                 obj.data_series_controller.data_series.load_irf(file);
+            end
+            
+            if ~isempty(obj.recent_irf)
+                names = create_relative_path(obj.default_path,obj.recent_irf);
+
+                delete(get(obj.menu_irf_recent,'Children'));
+                add_menu_items(obj.menu_irf_recent,names,@menu_call,obj.recent_irf)
+            end
+        end
+        
+        function update_recent_default_list(obj)
+            function menu_call(path)
+                 obj.default_path = path;
+            end
+            
+            if ~isempty(obj.recent_default_path)
+                names = obj.recent_default_path;
+
+                delete(get(obj.menu_file_recent_default,'Children'));
+                add_menu_items(obj.menu_file_recent_default,names,@menu_call,obj.recent_default_path)
+            end
+        end
+        
         
         %------------------------------------------------------------------
         % Default Path
@@ -167,6 +207,18 @@ classdef front_end_menu_controller < handle
             path = uigetdir(obj.default_path,'Select default path');
             if path ~= 0
                 obj.default_path = path; 
+                
+                if ~any(strcmp(path,obj.recent_default_path))
+                    obj.recent_default_path = [path; obj.recent_default_path];
+                end
+                if length(obj.recent_default_path) > 20
+                    obj.recent_default_path = obj.recent_default_path(1:20);
+                end
+                setpref('GlobalAnalysisFrontEnd','RecentDefaultPath',obj.recent_default_path);
+                
+                setpref('GlobalAnalysisFrontEnd','DefaultFolder',path);
+                obj.update_recent_default_list();
+                obj.update_recent_irf_list();
             end
         end
         
@@ -284,29 +336,7 @@ classdef front_end_menu_controller < handle
         function menu_file_reload_data_callback(obj,~,~)
             obj.data_series_controller.data_series.reload_data;
         end
-        
-        function menu_file_load_test_callback(obj,~,~)
-            
-            data_folder = 'C:\users\scw09\documents\Local FLIM Data\01_TestDataFolder\Data';
-            obj.data_series_controller.load_data_series(data_folder,'widefield'); 
-            %obj.data_series_controller.load_single('C:\Documents and Settings\scw09\My Documents\100X objective\Cotransfected CV2\TC1\Time course 00_00000s\fr000del000000.tif');
-            %obj.data_series_controller.load_data_series('C:\Documents and Settings\scw09\My Documents\100X objective\Cotransfected CV2\TC1','widefield');
-            
-            %obj.data_series_controller.load_single('C:\Documents and Settings\scw09\My Documents\RefReconvTest\data\fr000del000333.tif');
-            %obj.data_series_controller.load_single('X:\Imperial\2010-07-29 SP5 MEF Libra\03 MEF WT libra PDGF\2010-07-29 03 t=0.sdt');
-            %obj.data_series_controller.load_data_series('X:\Imperial\2010-07-29 SP5 MEF Libra\03 MEF WT libra PDGF\','TCSPC'); 
-            %obj.data_series_controller.load_data_series('sim\tau=3000+2800\','widefield'); 
-            %obj.data_series_controller.load_single('sim\fret_data\fr000del001000.tif'); 
-            
-            irf_file = 'C:\users\scw09\documents\Local FLIM Data\01_TestDataFolder\irf\fr000del000000.tif';
-            %irf_file = 'C:\Documents and Settings\scw09\My Documents\100X objective\IRFs\IRF 1514\fr000del000000.tif';
-            %irf_file = 'C:\Documents and Settings\scw09\My Documents\RefReconvTestIRF2\data\fr000del000020.tif';
-            %irf_file = 'X:\Imperial\2010-07-29 SP5 MEF Libra\Data Trace of 2010-07-29-irf-daspi-au=3.irf';
-            %irf_file = 'sim\irf7.irf';
-            
-            obj.data_series_controller.data_series.load_irf(irf_file);
-        end
-        
+                
         %------------------------------------------------------------------
         % Export Data
         %------------------------------------------------------------------
@@ -398,7 +428,8 @@ classdef front_end_menu_controller < handle
         function menu_irf_load_callback(obj,~,~)
             [file,path] = uigetfile('*.*','Select a file from the irf',obj.default_path);
             if file ~= 0
-                obj.data_series_controller.data_series.load_irf([path file]);    
+                obj.data_series_controller.data_series.load_irf([path file]);
+                obj.add_recent_irf([path file]);
             end
         end
         
@@ -473,6 +504,14 @@ classdef front_end_menu_controller < handle
         function menu_test_test1_callback(obj,~,~)
             regression_testing(obj);
             %polarisation_testing(obj.data_series_controller.data_series,obj.default_path);
+        end
+        
+        function menu_test_unload_dll_callback(obj,~,~)
+            if is64
+                unloadlibrary('FLIMGlobalAnalysis_64');
+            else
+                unloadlibrary('FLIMGlobalAnalysis_32');
+            end
         end
         
         function menu_file_export_plots_callback(obj, ~, ~)

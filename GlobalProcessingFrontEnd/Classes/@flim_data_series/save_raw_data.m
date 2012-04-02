@@ -33,6 +33,10 @@ function save_raw_data(obj,mapfile_name)
 
         c1=fwrite(mapfile,data,'uint16');
         
+        if isempty(data) || size(data,1) ~= obj.n_t
+            data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
+        end
+        
         if obj.use_popup
             waitbar(j/obj.n_datasets,wait_handle)
         end

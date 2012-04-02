@@ -41,7 +41,7 @@ function handles = setup_menu(obj,handles)
     end
     
     handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
-    
+    handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');
     handles.menu_file_export_decay = uimenu(menu_file,'Label','Export Decay...','Separator','on');
     handles.menu_file_export_decay_series = uimenu(menu_file,'Label','Export Series Decay...');
     
@@ -57,9 +57,11 @@ function handles = setup_menu(obj,handles)
     
     menu_irf       = uimenu(obj.window,'Label','IRF');
     handles.menu_irf_load = uimenu(menu_irf,'Label','Load IRF...');
-    handles.menu_irf_set_delta = uimenu(menu_irf,'Label','Set Delta Function IRF','Separator','on');
-    handles.menu_irf_set_rectangular = uimenu(menu_irf,'Label','Set Rectangular IRF...');
-    handles.menu_irf_set_gaussian = uimenu(menu_irf,'Label','Set Gaussian IRF...');
+    handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');
+    
+    %handles.menu_irf_set_delta = uimenu(menu_irf,'Label','Set Delta Function IRF','Separator','on');
+    %handles.menu_irf_set_rectangular = uimenu(menu_irf,'Label','Set Rectangular IRF...');
+    %handles.menu_irf_set_gaussian = uimenu(menu_irf,'Label','Set Gaussian IRF...');
     
     menu_background = uimenu(obj.window,'Label','Background');
     handles.menu_background_background_load = uimenu(menu_background,'Label','Load background image...');
@@ -77,6 +79,7 @@ function handles = setup_menu(obj,handles)
 
         menu_test = uimenu(obj.window,'Label','Test');
         handles.menu_test_test1 = uimenu(menu_test,'Label','Test Fcn 1','Accelerator','X');
+        handles.menu_test_unload_dll = uimenu(menu_test,'Label','Unload DLL','Accelerator','U');
     end
     
 end

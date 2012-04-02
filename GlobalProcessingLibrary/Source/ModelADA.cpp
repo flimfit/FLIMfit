@@ -7,7 +7,34 @@
 #define halfPI    1.570796327
 #define invPI     0.318309886
 
+double TransformRange(double v, double v_min, double v_max)
+{
+   return v;
+//   return log(v);
 
+   double diff = v_max - v_min;
+   return tan( PI*(v-v_min)/diff - halfPI );
+}
+
+double InverseTransformRange(double t, double v_min, double v_max)
+{
+   return t;
+//   return exp(t);
+
+   double diff = v_max - v_min;
+   return invPI*diff*( atan(t) + halfPI ) + v_min;
+}
+
+double TransformRangeDerivative(double v, double v_min, double v_max)
+{
+   return 1;
+//   return v;
+
+   double t = TransformRange(v,v_min,v_max);
+   double diff = v_max - v_min;
+   return invPI*diff/(t*t+1);
+}
+/*
 double tau2alf(double tau, double tau_min, double tau_max)
 {
    return tau;
@@ -32,7 +59,7 @@ double d_tau_d_alf(double tau, double tau_min, double tau_max)
    double diff = tau_max - tau_min;
    return invPI*diff/(alf*alf+1);
 }
-
+*/
 double beta2alf(double beta)
 {
    return beta; //log(beta);
@@ -122,6 +149,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    double *beta_buf = gc->beta_buf + *thread * gc->n_exp;
    double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
    double *a_cpy = gc->a_cpy + *thread * n_meas * (gc->l+1);
+   double *w = gc->w + *thread * N;
+   double *y = gc->y + *thread * N * (S+1);
 
    int locked_param = -1;//gc->locked_param[*thread];
    double locked_value = 0;//gc->locked_value[*thread];
@@ -351,13 +380,13 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             for(j=0; j<gc->n_fix; j++)
                tau_buf[j] = gc->tau_guess[j];
             for(j=0; j<gc->n_v; j++)
-               tau_buf[j+gc->n_fix] = alf2tau(alf[j],gc->tau_min[j+gc->n_fix],gc->tau_max[j+gc->n_fix]);
+               tau_buf[j+gc->n_fix] = InverseTransformRange(alf[j],gc->tau_min[j+gc->n_fix],gc->tau_max[j+gc->n_fix]);
 
             // Set theta's
             for(j=0; j<gc->n_theta_fix; j++)
                theta_buf[j] = gc->theta_guess[j];
             for(j=0; j<gc->n_theta_v; j++)
-               theta_buf[j+gc->n_theta_fix] = alf2tau(alf[gc->alf_theta_idx+j],0,1000000);
+               theta_buf[j+gc->n_theta_fix] = InverseTransformRange(alf[gc->alf_theta_idx+j],0,1000000);
 
 
             // Set beta's
@@ -474,8 +503,27 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             fclose(fx);
          }
          */
-         
-         
+         /*
+         if (gc->l==1 && gc->y != NULL)
+         {
+            double wt = 0;
+            double yt = 0;
+            double at = 0;
+            for(i=0; i<N; i++)
+            {
+               at += a[i];
+               w[i] = 1/a[i];
+               yt += y[i];
+               wt += w[i];
+            }
+            for(i=0; i<N; i++)
+            {
+               w[i] *= ((at/yt) / 10000);
+            }
+
+         }
+         */
+
 
          if (gc->anscombe_tranform)
          {

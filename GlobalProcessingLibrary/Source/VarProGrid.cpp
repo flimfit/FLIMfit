@@ -142,7 +142,7 @@ void GetVarsAtGridIdx(int idx, int nl, int grid_size, double var_min[], double v
       int var_idx = cur_idx % grid_size;
       cur_idx = cur_idx / grid_size;
       var[i] = var_min[i] + var_step[i] * var_idx;
-      var[i] = tau2alf(var[i],var_min[i],var_max);
+      var[i] = TransformRange(var[i],var_min[i],var_max);
    }
 }
 

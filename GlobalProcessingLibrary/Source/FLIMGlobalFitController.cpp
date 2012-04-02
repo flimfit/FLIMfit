@@ -475,8 +475,10 @@ void FLIMGlobalFitController::Init()
    }
    grid_factor = 2;
 
-   status->SetNumRegion(data->n_regions_total);
-
+   if (data->global_mode == MODE_PIXELWISE)
+      status->SetNumRegion(data->n_masked_px);
+   else
+      status->SetNumRegion(data->n_regions_total);
 
    if (data->n_regions_total == 0)
    {
@@ -914,14 +916,20 @@ double FLIMGlobalFitController::CalculateChi2(int thread, int region, int s_thre
 
          for(j=0; j<n_meas_res; j++)
          {
+            double wj;
             ft = 0;
             for(int k=0; k<l; k++)
                ft += a[n_meas_res*k+j] * lin_params[ i_thresh*l + k ];
 
             ft += a[n_meas_res*l+j];
 
-            fit_buf[j] = (ft - y[i_thresh*n_meas_res + j] ); //* (2*data->smoothing_factor+1);
-            fit_buf[j] *= fit_buf[j] * w[j] * (2*data->smoothing_factor+1) ;
+            if ( y[i_thresh*n_meas_res + j] == 0)
+               wj = 1;
+            else
+               wj = 1/y[i_thresh*n_meas_res + j];
+
+            fit_buf[j] = (ft - y[i_thresh*n_meas_res + j] ) ;
+            fit_buf[j] *= fit_buf[j] * data->smoothing_area * wj;  // account for averaging while smoothing
 
             if (j>0)
                fit_buf[j] += fit_buf[j-1];

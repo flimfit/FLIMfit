@@ -1,4 +1,4 @@
-function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata)
+function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf)
     
     [path name ext] = fileparts(file);
 
@@ -25,6 +25,11 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata)
     dinfo.num_datasets = n_datasets;
     dinfo.mode = 'TCSPC';
 
+    if nargin > 6
+        dinfo.irf = irf;
+        dinfo.t_irf = t_irf;
+    end
+    
     fname = [tempname '.mat'];
     save(fname,'dinfo');
     fid = fopen(fname,'r');

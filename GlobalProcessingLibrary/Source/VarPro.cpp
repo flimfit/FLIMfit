@@ -53,8 +53,8 @@ static integer c__2 = 2;
        doublereal *, S_fp, integer *, integer *, doublereal *, 
        doublereal *, doublereal *, doublereal *, doublereal *, integer *,
         integer *, real *);
-    doublereal dta;
-    integer inc, nlp1, last_prjres__;
+    doublereal dta, last_prjres__;
+    integer inc, nlp1;
     doublereal acum;
     integer iter, ksub;
     logical skip;
@@ -420,7 +420,7 @@ static integer c__2 = 2;
 /*           SET SMALLER THAN 10 TIMES THE UNIT ROUND-OFF OF THE MACHINE. */
 /* ----------------------------------------------------------------- */
     eps1 = 1e-6;
-    prj_tol__ = (float).001;
+    prj_tol__ = 1e-3;
     r_best__ = 1e10;
     prjres = 0.;
     *ierr = 1;
@@ -471,7 +471,7 @@ L5:
 /*        WRITE (OUTPUT, 200) NU */
 /*                              BEGIN TWO-STAGE ORTHOGONAL FACTORIZATION */
 L10:
-    last_prjres__ = (integer) prjres;
+    last_prjres__ = prjres;
     orfac1_(s, &nlp1, ndim, n, l, iprint, &b[b_offset], &prjres, ierr);
     if (*ierr < 0) {
    goto L99;
@@ -620,9 +620,9 @@ L82:
 /*        WRITE (OUTPUT, 208) ACUM */
 L85:
     *ierr = 3;
-    dta = (prjres - last_prjres__) / last_prjres__;
+    dta = (last_prjres__ - prjres) / last_prjres__;
 /*      IF (PRJRES .GT. EPS1*(R + 1.D0) .AND. DTA .GT. PRJ_TOL) GO TO 5 */
-    if (prjres > eps1 * (*r__ + 1.)) {
+    if (prjres > eps1 * (*r__ + 1.) && (dta > prj_tol__ || last_prjres__ == 0)) { 
    goto L5;
     }
 /*           END OF OUTER ITERATION LOOP */
@@ -642,6 +642,7 @@ L95:
        iprint, &alf[1], &w[1], &a[a_offset], &b[b_offset], &a[lp1 * 
        a_dim1 + 1], &beta[beta_offset], ierr);
 
+    c__2 = 1;
     (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
        b_offset], &inc, &t[t_offset], &alf[1], &c__2, gc, thread);
 L99:

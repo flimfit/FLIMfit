@@ -30,7 +30,7 @@ classdef flim_fitting_params < handle
         tau_guess = [2000];
         
         tau_min = [0];
-        tau_max = [5000];
+        tau_max = [100000];
         
         use_phase_plane_estimation = false;
         
@@ -72,7 +72,7 @@ classdef flim_fitting_params < handle
         
         function set.fit_beta(obj,fit_beta)
             if obj.polarisation_resolved && fit_beta == 1
-                fit_beta = 0;
+                fit_beta = 2;
             end
             obj.fit_beta = fit_beta;
             if fit_beta ~= 1
@@ -91,7 +91,7 @@ classdef flim_fitting_params < handle
             if length(obj.tau_guess) < n_exp
                 
                 padding = ones(n_exp,1) * 2000;
-                padding_max = ones(n_exp,1) * 5000;
+                padding_max = ones(n_exp,1) * 100000;
                 padding(1:length(obj.tau_guess)) = obj.tau_guess;
                 obj.tau_guess = padding;
                 obj.tau_max = padding_max;

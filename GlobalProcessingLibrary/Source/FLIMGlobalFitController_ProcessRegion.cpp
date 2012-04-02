@@ -132,16 +132,16 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    else
    {
       for(j=0; j<n_v; j++)
-         alf[i++] = tau2alf(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]); //tau_guess[i+n_fix];
+         alf[i++] = TransformRange(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]);
    
       for(j=0; j<n_beta; j++)
-         alf[i++] = fixed_beta[j]; //]tau2alf(fixed_beta[j]/fixed_beta[n_beta],0,10); //tau2alf(0.5,0.0,1.0);// tau2alf(1,0,10000);
+         alf[i++] = fixed_beta[j];
 
       for(j=0; j<n_fret_v; j++)
          alf[i++] = E_guess[j+n_fret_fix];
 
       for(j=0; j<n_theta_v; j++)
-         alf[i++] =  tau2alf(theta_guess[j+n_theta_fix],0,1000000);
+         alf[i++] =  TransformRange(theta_guess[j+n_theta_fix],0,1000000);
    }
 
    if(fit_t0)
@@ -177,13 +177,38 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (s_thresh == 0)
       goto skip_processing;
       
+
+   double smoothing_correction = 1/(2*data->smoothing_factor+1);
+   smoothing_correction *= smoothing_correction;
+
+   smoothing_correction = 1;
+
    for(j=0; j<n_meas_res; j++)
    {
       if (s_thresh == 0 || y[j] == 0)
-         w[j] = 1;   // If we have a zero data point set to 1
+         w[j] = smoothing_correction;   // If we have a zero data point set to 1
       else
-         w[j] = 1 / abs(y[j]); // we're averaging over the s_thresh points
+         w[j] = smoothing_correction/abs(y[j]); //smoothing_correction / abs(y[j]);
    }
+   /*
+   idx = 0;
+   int* resample_idx = data->GetResampleIdx(thread);
+   for(j=0; j<n_t; j++)
+   {
+      w[idx] += data->im_average[n_t*thread + j];
+      if (resample_idx[j])
+      {
+         if (w[j] > 0)
+            w[j] = 1 / w[j];
+         else
+            w[j] = 0;
+         idx++;
+      }
+   }
+   */
+
+
+
 
    if (anscombe_tranform)
       for(i=0; i<s_thresh*n_meas_res; i++)
@@ -200,7 +225,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    itmax = 200;
 
 
-   if (s_thresh > 1)
+   if (USE_GLOBAL_BINNING_AS_ESTIMATE && s_thresh > 1)
    {
       lpps1_ = l + p + 1 + 1;
       lps_ = l + 1;
@@ -239,6 +264,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
       if (chi2 != NULL)
       {
+         int lp1 = l+1;
+         int lpp2 = l+p+2;
+         int
          c2 = CalculateChi2(thread, region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask, chi2+g*n_px);
 
          // calculate errors
@@ -340,11 +368,11 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   for(j=0; j<n_fix; j++)
                      tau[ (g*n_px+i)*n_exp + j ] = tau_guess[j];
                   for(j=0; j<n_v; j++)
-                     tau[ (g*n_px+i)*n_exp + j + n_fix ] = alf2tau(alf[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]);
+                     tau[ (g*n_px+i)*n_exp + j + n_fix ] = InverseTransformRange(alf[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]);
 
                   if (calculate_errs && tau_err != NULL)
                      for(j=0; j<n_v; j++)
-                        tau_err[ (g*n_px+i)*n_exp + j + n_fix ] = abs(alf2tau(conf_lim[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]) - tau[ (g*n_px+i)*n_exp + j + n_fix ]);
+                        tau_err[ (g*n_px+i)*n_exp + j + n_fix ] = abs(InverseTransformRange(conf_lim[sort_idx_buf[j]],tau_min[sort_idx_buf[j]+n_fix],tau_max[sort_idx_buf[j]+n_fix]) - tau[ (g*n_px+i)*n_exp + j + n_fix ]);
                }
             }
 
@@ -353,10 +381,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                for(j=0; j<n_theta_fix; j++)
                   theta[ (g*n_px+i)*n_theta + j ] =  theta_guess[ j ];
                for(j=0; j<n_theta_v; j++)
-                  theta[ (g*n_px+i)*n_theta + j + n_theta_fix ] =  alf2tau(alf[alf_theta_idx + j], 0, 1000000);
+                  theta[ (g*n_px+i)*n_theta + j + n_theta_fix ] = InverseTransformRange(alf[alf_theta_idx + j], 0, 1000000);
                if (calculate_errs && theta_err != NULL)
                   for(j=0; j<n_theta_v; j++)
-                     theta_err[ (g*n_px+i)*n_theta + j ] =  abs(alf2tau(conf_lim[alf_theta_idx + j], 0, 1000000) - theta[ (g*n_px+i)*n_theta + j ]);
+                     theta_err[ (g*n_px+i)*n_theta + j ] =  abs(InverseTransformRange(conf_lim[alf_theta_idx + j], 0, 1000000) - theta[ (g*n_px+i)*n_theta + j ]);
             }
 
             if (E != NULL)
