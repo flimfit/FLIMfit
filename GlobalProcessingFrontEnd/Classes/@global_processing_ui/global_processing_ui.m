@@ -91,8 +91,15 @@ classdef global_processing_ui
             
              %position only in main monitor
             coords = get(0,'MonitorPositions'); 
-            set(obj.window,'units','pixels','position',coords(1,:));
+            coords = coords(1,:);
             
+            % Allow for taskbar if we're on windows
+            comp = computer;
+            if strcmp(comp(1:2),'PC')
+                coords(4) = coords(4) - 30;
+                coords(2) = coords(2) + 30;
+            end
+            set(obj.window,'Units','Pixels','OuterPosition',coords);
            
             handles = guidata(obj.window); 
             
