@@ -2,7 +2,7 @@
 function handles = setup_menu(obj,handles)
 
     external = handles.external;
-    session = handles.OMERO_session
+    session = handles.OMERO_session;
     
     if  session ~= []
       external = true;

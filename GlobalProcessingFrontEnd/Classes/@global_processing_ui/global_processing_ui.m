@@ -91,7 +91,10 @@ classdef global_processing_ui
             
              %position only in main monitor
             coords = get(0,'MonitorPositions'); 
+            coords(1,3:4) = floor(coords(1,3:4) .* 0.97);
+            coords(1,1:2) = coords(1,1:2) + 8;
             set(obj.window,'units','pixels','position',coords(1,:));
+            
             
            
             handles = guidata(obj.window); 
