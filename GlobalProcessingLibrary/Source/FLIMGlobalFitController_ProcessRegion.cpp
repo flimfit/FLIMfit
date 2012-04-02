@@ -173,12 +173,14 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    for(i=0; i<n_meas_res; i++)
 	   count_buf[i] = 0;
+   
+   double smoothing_correction = 1/(2*data->smoothing_factor+1);
 	
    if (s_thresh == 0)
       goto skip_processing;
       
 
-   double smoothing_correction = 1/(2*data->smoothing_factor+1);
+   
    smoothing_correction *= smoothing_correction;
 
    smoothing_correction = 1;
