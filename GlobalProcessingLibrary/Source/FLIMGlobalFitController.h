@@ -64,7 +64,7 @@ public:
    int n_irf; double *t_irf; double *irf; double pulse_pileup;
    int n_exp; int n_fix; 
    double *tau_min; double *tau_max;
-   int single_guess; double *tau_guess;
+   int estimate_initial_tau; int single_guess; double *tau_guess;
    int fit_beta; double *fixed_beta;
    int fit_t0; double t0_guess; 
    int fit_offset; double offset_guess; 
@@ -122,7 +122,7 @@ public:
 
    integer s; integer lmax; integer l; integer nl; integer n; integer nmax; integer ndim; 
    integer lpps1; integer lps; integer pp2; integer iv; integer p; integer iprint; integer lnls1; integer n_v;
-   double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *lin_params; 
+   double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *lin_params;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
    double *a_cpy;
@@ -165,7 +165,7 @@ public:
    FLIMGlobalFitController(int global_algorithm, int n_irf, double t_irf[], double irf[], double pulse_pileup,
                            int n_exp, int n_fix, 
                            double tau_min[], double tau_max[], 
-                           int single_guess, double tau_guess[],
+                           int estimate_initial_tau, int single_guess, double tau_guess[],
                            int fit_beta, double fixed_beta[],
                            int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[],
                            int fit_t0, double t0_guess, 
@@ -239,6 +239,12 @@ private:
    void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
    double CalculateChi2(int thread, int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[]);
+
+   void DetermineMAStartPosition();
+   double CalculateMeanArrivalTime(double decay[]);
+   int ma_start;
+   double* ma_decay;
+   double g_factor;
 
    boost::interprocess::file_mapping   b_map_file;
    boost::interprocess::mapped_region* b_map_view;

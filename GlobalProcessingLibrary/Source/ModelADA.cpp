@@ -405,15 +405,24 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
 
          // Check we don't have two tau's (exactly) the same
+         /*
          for(j=0; j<gc->n_v; j++)
             for(k=j+1; k<gc->n_exp; k++)
-               if (tau_buf[j]==tau_buf[k])
+               if (abs(tau_buf[j]-tau_buf[k])<50 && false)
                {
-                  tau_buf[j] += 20;
-                  j=0;
-                  break;
+                  if (tau_buf[j]<tau_buf[k])
+                  {
+                     tau_buf[j] -= 25;
+                     tau_buf[k] += 25;
+                  }
+                  else
+                  {
+                     tau_buf[j] += 25;
+                     tau_buf[k] -= 25;
+                  }
                }
-          
+          */
+
          // Set tau's for FRET
          idx = gc->n_exp;
          for(i=0; i<gc->n_fret; i++)

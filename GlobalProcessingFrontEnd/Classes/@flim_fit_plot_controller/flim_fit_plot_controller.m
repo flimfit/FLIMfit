@@ -105,9 +105,13 @@
                 for i=1:length(names)
                     if obj.auto_lim.(names{i})
                         im_data = r.get_image(1,names{i});
-                        mn = floor(nanmin(im_data(:)));
-                        mx = ceil(nanmax(im_data(:)));
-                        obj.plot_lims.(names{i}) = [mn mx];
+                        
+                        lim = prctile(im_data(:),[0.1 99.9]);
+                        
+                        lim= num2str(lim,2);
+                        lim= str2num(lim);
+                        
+                        obj.plot_lims.(names{i}) = lim;
                     end
                     
                     table{i,1} = names{i};

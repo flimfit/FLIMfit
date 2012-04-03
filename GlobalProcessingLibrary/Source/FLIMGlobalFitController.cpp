@@ -46,7 +46,7 @@ void SetNaN(double* var, int n)
 FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf, double t_irf[], double irf[], double pulse_pileup,
                                                  int n_exp, int n_fix, 
                                                  double tau_min[], double tau_max[], 
-                                                 int single_guess, double tau_guess[],
+                                                 int estimate_initial_tau, int single_guess, double tau_guess[],
                                                  int fit_beta, double fixed_beta[],
                                                  int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[],
                                                  int fit_t0, double t0_guess, 
@@ -66,7 +66,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf
    global_algorithm(global_algorithm), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
    n_exp(n_exp), n_fix(n_fix), 
    tau_min(tau_min), tau_max(tau_max),
-   single_guess(single_guess), tau_guess(tau_guess),
+   estimate_initial_tau(estimate_initial_tau), single_guess(single_guess), tau_guess(tau_guess),
    fit_beta(fit_beta), fixed_beta(fixed_beta),
    n_theta(n_theta), n_theta_fix(n_theta_fix), inc_rinf(inc_rinf), theta_guess(theta_guess),
    fit_t0(fit_t0), t0_guess(t0_guess), 
@@ -126,11 +126,9 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf
       tvb_profile_buf = NULL;
       chan_fact       = NULL;
 
+      ma_decay = NULL;
 
-   data = NULL;
-
-   //aux_n_regions = NULL;
-   //aux_data = NULL;
+      data = NULL;
 }
 
 int FLIMGlobalFitController::RunWorkers()
@@ -252,6 +250,71 @@ void FLIMGlobalFitController::SetPolarisationMode(int mode)
       this->polarisation_resolved = true;
 }
 
+void FLIMGlobalFitController::DetermineMAStartPosition()
+{
+   double irf_95, c, p;
+   double* t = data->GetT();
+
+   ma_start = 0;
+
+   c = 0;
+   for(int i=0; i<n_irf; i++)
+      c += irf[i];
+
+   if (polarisation_resolved)
+   {
+      p = 0;
+      for(int i=0; i<n_irf; i++)
+         p += irf[i+n_irf];
+
+         g_factor = c/p;
+   }
+
+
+
+   irf_95 = c * 0.95;
+   
+   c = 0;
+   for(int i=0; i<n_irf; i++)
+   {
+      c += irf[i];
+      if (c >= irf_95)
+      {
+         for (int j=0; j<data->n_t; j++)
+            if (t[j] > t_irf[i])
+            {
+               ma_start = j;
+               break;
+            }
+         break;
+      }   
+   }
+}
+
+double FLIMGlobalFitController::CalculateMeanArrivalTime(double decay[])
+{
+   double* t   = data->GetT();
+   double  tau = 0;
+   double  n   = 0;
+   
+   for(int i=ma_start; i<n_t; i++)
+   {
+      tau += decay[i] * (t[i] - t[ma_start]);
+      n   += decay[i];
+   }
+   
+   if (polarisation_resolved)
+   {
+      decay += n_t;
+      for(int i=ma_start; i<n_t; i++)
+      {
+         tau += 2 * g_factor * decay[i] * (t[i] - t[ma_start]);
+         n   += 2 * g_factor * decay[i];
+      }
+   }
+
+   return tau / n;
+}
 
 
 int FLIMGlobalFitController::SetupBinnedFitController()
@@ -496,26 +559,12 @@ void FLIMGlobalFitController::Init()
    // to get the fitted decays even if the user has removed the memory. These will 
    // be cleared when Cleanup() is called
    //----------------------------------------------------
-   //mask        = new int[ n_group * n_px ]; //free ok
    irf_buf         = new double[ n_irf * n_chan ]; //free ok
    t_irf_buf       = new double[ n_irf ]; //free ok 
-   //n_regions_buf   = new int[ n_group ]; //free ok 
    tvb_profile_buf = new double[ n_meas ]; //free ok 
 
    thread_handle = new tthread::thread*[ n_thread ];
 
-   /*
-   if (mask != NULL)
-   {
-      for(int i=0; i<n_group*n_px; i++)
-         mask[i] = mask[i];
-   }
-   else
-   {
-      for(int i=0; i<n_group*n_px; i++)
-         mask[i] = 1;
-   }
-   */
    if (tvb_profile != NULL)
    {
       for(int i=0; i<n_meas; i++)
@@ -627,7 +676,7 @@ void FLIMGlobalFitController::Init()
    lpps1  = l + p + s + 1; 
    lps    = l + s;
    pp2    = max(p,nl + 1);
-   pp2    = p+2; //max(pp2, 2);
+   pp2    = p + 2; //max(pp2, 2);
    iprint = -1;
    lnls1  = l + nl + s + 1;
    lmax   = l;
@@ -648,7 +697,8 @@ void FLIMGlobalFitController::Init()
 
       b            = new double[ n_thread * ndim * pp2 ]; //free ok
 
-      y            = new double[ n_thread * (s+1) * n_meas ]; //free ok 
+      y            = new double[ n_thread * s * n_meas ]; //free ok 
+      ma_decay     = new double[ n_thread * n_meas ];
       lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
 
       w            = new double[ n_thread * n ]; //free ok
@@ -692,6 +742,7 @@ void FLIMGlobalFitController::Init()
 
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
+   DetermineMAStartPosition();
 
    // Select correct convolution function for data type
    //-------------------------------------------------
@@ -916,17 +967,22 @@ double FLIMGlobalFitController::CalculateChi2(int thread, int region, int s_thre
 
          for(j=0; j<n_meas_res; j++)
          {
-            double wj;
+            double wj, yj;
             ft = 0;
             for(int k=0; k<l; k++)
                ft += a[n_meas_res*k+j] * lin_params[ i_thresh*l + k ];
 
             ft += a[n_meas_res*l+j];
 
-            if ( y[i_thresh*n_meas_res + j] == 0)
+            yj = y[i_thresh*n_meas_res + j] + adjust_buf[j];
+
+            if ( yj == 0 )
                wj = 1;
             else
-               wj = 1/y[i_thresh*n_meas_res + j];
+               wj = 1/abs(yj);
+
+               if (yj < 0)
+               wj = wj;
 
             fit_buf[j] = (ft - y[i_thresh*n_meas_res + j] ) ;
             fit_buf[j] *= fit_buf[j] * data->smoothing_area * wj;  // account for averaging while smoothing
@@ -938,6 +994,8 @@ double FLIMGlobalFitController::CalculateChi2(int thread, int region, int s_thre
          if (chi2 != NULL)
          {
             chi2[i] = fit_buf[n_meas_res-1] / (n_meas_res - nl/s_thresh - l);
+            if (chi2[i] < 0)
+               chi2[i] = chi2[i];
             if (chi2[i] == std::numeric_limits<double>::infinity( ))
                chi2[i] = 0;
          }
@@ -1204,12 +1262,10 @@ void FLIMGlobalFitController::CleanupTempVars()
       ClearVariable(conf_lim);
       ClearVariable(lin_params_err);
       ClearVariable(alf_err);
+      ClearVariable(ma_decay);
 
       if (data != NULL)
          data->ClearMapping();
-
-//      ClearVariable(aux_data);
-//      ClearVariable(aux_n_regions);
 
       if (grid_search)
       {

@@ -36,8 +36,8 @@ public:
    template <typename T>
    int CalculateRegions();
 
-   int GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data);
-   int GetPixelData(int thread, int im, int p, double* adjust, double* masked_data);
+   int GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data, double* ma_decay);
+   int GetPixelData(int thread, int im, int p, double* adjust, double* masked_data, double* ma_decay);
    
    
    int GetMaxRegion(int group);
@@ -92,6 +92,7 @@ public:
    int* t_skip;
 
    double* t;
+   double* t_int;
 
 private:
 
@@ -181,7 +182,7 @@ T* FLIMData::GetDataPointer(int thread, int im)
          data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
          data_ptr = (T*) data_map_view[thread].get_address();
       }
-      else
+      else 
       {
          data_ptr = ((T*)data) + im * im_size;
       }

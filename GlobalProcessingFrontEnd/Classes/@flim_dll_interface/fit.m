@@ -1,5 +1,6 @@
 function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
+
     obj.load_global_library();
     
     if nargin < 4
@@ -45,6 +46,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
     p = obj.fit_params;
     d = obj.data_series;
+    
     
     if p.global_fitting < 2
         if d.lazy_loading && p.split_fit
@@ -184,7 +186,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
                 end
 
 
-
             case 1 %global_mode.image
                 obj.n_group = n_im;
                 
@@ -244,8 +245,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     end
     
     obj.single_guess = ~p.use_phase_plane_estimation;
-    
-    
+        
     obj.n_regions = double(obj.n_regions);
 
     if obj.bin

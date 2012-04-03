@@ -303,7 +303,7 @@ int FLIMData::GetMinRegion(int group)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data)
+int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data, double* ma_decay)
 {
    int s = 0;
    
@@ -322,7 +322,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       if (im != cur_transformed[thread])
          transform_fcn(im);
 
-      s = GetPixelData(thread, im, p, adjust, region_data);
+      s = GetPixelData(thread, im, p, adjust, region_data, ma_decay);
    }
    else if ( global_mode == MODE_IMAGEWISE )
    {
@@ -349,13 +349,18 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       
       for(int j=0; j<n_meas; j++)
          mean_region_data[j] /= s;
+
+      if (global_mode != MODE_PIXELWISE)
+         for(int j=0; j<n_meas; j++)
+            ma_decay[j] = mean_region_data[j];
+
    }
 
    return s;
 }
 
 
-int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* masked_data)
+int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* masked_data, double* ma_decay)
 {
    double* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = this->resample_idx + thread * n_t; 
@@ -371,20 +376,20 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
    int s = 0;
    int idx = 0;
    for(int j=0; j<n_meas; j++)
-      masked_data[j] = 0;
+      ma_decay[j] = 0;
 
    for(int k=0; k<n_chan; k++)
    {
       for(int i=0; i<n_t; i++)
       {
-         masked_data[idx] += tr_data[p*n_meas + k*n_t + i] - adjust[k*n_t+i];
+         ma_decay[idx] += tr_data[p*n_meas + k*n_t + i] - adjust[k*n_t+i];
          idx ++;
       }
    }
    s = 1;  
 
 
-   DetermineAutoSampling(thread,masked_data);
+   DetermineAutoSampling(thread,ma_decay);
 
    idx = 0;
    for(int j=0; j<n_meas_res[thread]; j++)
@@ -444,6 +449,8 @@ void FLIMData::ClearMapping()
    for(int i=0; i<n_thread; i++)
       data_map_view[i] = boost::interprocess::mapped_region();
 }
+
+
 
 FLIMData::~FLIMData()
 {

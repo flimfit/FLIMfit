@@ -18,8 +18,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
-   using namespace boost::interprocess;
-
 
    int n_px = data->n_px;
 
@@ -27,16 +25,15 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    bool swapped;
    double swap_buf;
    int swap_idx_buf;
+   
    double c2;
    double ref = 0;
+   double tau_ma;
 
    int ierr_local_binning = 0;
    int ierr_local = 0;
 	
    int s1 = 1;
-	
-	
-   mapped_region data_map_view;
 
    locked_param[thread] = -1;
 
@@ -64,28 +61,67 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
 
    int        *mask         = data->mask + g*n_px;
-   doublereal *a            = this->a + thread * n * lps;
-   doublereal *b            = this->b + thread * ndim * pp2;
-   doublereal *y            = this->y + thread * (s+1) * n_meas;
-   doublereal *lin_params   = this->lin_params + r_idx * n_px * l;
-   doublereal *alf          = this->alf + r_idx * nl;
-   doublereal *alf_best     = this->alf_best + r_idx * nl;
-   doublereal *w            = this->w + thread * n;
-   doublereal *sort_buf     = this->sort_buf + thread * n_exp;
+   double *a            = this->a + thread * n * lps;
+   double *b            = this->b + thread * ndim * pp2;
+   double *y            = this->y + thread * s * n_meas;
+   double *ma_decay     = this->ma_decay + thread * n_meas;
+   double *lin_params   = this->lin_params + r_idx * n_px * l;
+   double *alf          = this->alf + r_idx * nl;
+   double *alf_best     = this->alf_best + r_idx * nl;
+   double *w            = this->w + thread * n;
+   double *sort_buf     = this->sort_buf + thread * n_exp;
    int        *sort_idx_buf = this->sort_idx_buf + thread * n_exp;
-   doublereal *grid         = this->grid + thread * grid_positions;
-   doublereal *var_min      = this->var_min + thread * nl;
-   doublereal *var_max      = this->var_max + thread * nl;
-   doublereal *var_buf      = this->var_buf + thread * nl; 
-   doublereal *beta_buf     = this->beta_buf + thread * n_exp;
-   doublereal *theta_buf    = this->theta_buf + thread * n_theta;
-   doublereal *fit_buf      = this->fit_buf + thread * n_meas;
-   doublereal *count_buf    = this->count_buf + thread * n_meas;
-   doublereal *adjust_buf   = this->adjust_buf + thread * n_meas;
-   doublereal *conf_lim     = this->conf_lim + thread * nl;
-   doublereal *alf_err      = this->alf_err + thread * nl;
+   double *grid         = this->grid + thread * grid_positions;
+   double *var_min      = this->var_min + thread * nl;
+   double *var_max      = this->var_max + thread * nl;
+   double *var_buf      = this->var_buf + thread * nl; 
+   double *beta_buf     = this->beta_buf + thread * n_exp;
+   double *theta_buf    = this->theta_buf + thread * n_theta;
+   double *fit_buf      = this->fit_buf + thread * n_meas;
+   double *count_buf    = this->count_buf + thread * n_meas;
+   double *adjust_buf   = this->adjust_buf + thread * n_meas;
+   double *conf_lim     = this->conf_lim + thread * nl;
+   double *alf_err      = this->alf_err + thread * nl;
 
    int idx = 0;
+
+   SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
+                                   (fit_offset == FIX)  ? offset_guess  : 0, 
+                                   (fit_tvb == FIX)     ? tvb_guess     : 0);
+
+   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y, w, ma_decay);
+
+   if (s_thresh == 0)
+      goto skip_processing;
+
+   int n_meas_res = data->GetResampleNumMeas(thread);
+	
+
+   double smoothing_correction = 1/data->smoothing_area;
+   smoothing_correction = 1;
+
+
+   tau_ma = CalculateMeanArrivalTime(ma_decay);
+
+
+   for(j=0; j<n_meas_res; j++)
+   {
+      w[j] += adjust_buf[j];
+      if (s_thresh == 0 || w[j] == 0)
+         w[j] = smoothing_correction;   // If we have a zero data point set to 1
+      else
+         w[j] = smoothing_correction/abs(w[j]); //smoothing_correction / abs(y[j]);
+   }
+
+   if (anscombe_tranform)
+      for(i=0; i<s_thresh*n_meas_res; i++)
+         y[i] = anscombe(y[i]);
+
+
+   // Check for termination request
+   if (status->UpdateStatus(thread, g, 0, 0)==1)
+      return 0;
+
 
    if (grid_search)
    {
@@ -114,6 +150,28 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    else
       guess_idx = g * n_v;
 
+   if (estimate_initial_tau)
+   {
+      if (n_v == 1)
+      {
+         alf[0] = tau_ma;
+      }
+      else if (n_v > 1)
+      {
+         double min_tau  = 0.5*tau_ma;
+         double max_tau  = 1.5*tau_ma;
+         double tau_step = (max_tau - min_tau)/(n_v-1);
+
+         for(int i=0; i<n_v; i++)
+            alf[i] = i*tau_step+min_tau;
+      }
+   }
+   else
+   {
+      for(int i=0; i<n_v; i++)
+         alf[i] = tau_guess[guess_idx+n_fix+i];
+   }
+
    i=0;
 
    /*
@@ -132,7 +190,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    else
    {
       for(j=0; j<n_v; j++)
-         alf[i++] = TransformRange(tau_guess[guess_idx+j+n_fix],tau_min[j+n_fix],tau_max[j+n_fix]);
+         alf[i++] = TransformRange(alf[j],tau_min[j+n_fix],tau_max[j+n_fix]);
    
       for(j=0; j<n_beta; j++)
          alf[i++] = fixed_beta[j];
@@ -160,69 +218,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       alf[i++] = ref_lifetime_guess;
 
 
-   SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
-                                   (fit_offset == FIX)  ? offset_guess  : 0, 
-                                   (fit_tvb == FIX)     ? tvb_guess     : 0);
-
-   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y+n_meas, y);
-
-   int n_meas_res = data->GetResampleNumMeas(thread);
-
-   for(j=0; j<n_meas_res; j++)
-      w[j] = 0;
-
-   for(i=0; i<n_meas_res; i++)
-	   count_buf[i] = 0;
-	
-   if (s_thresh == 0)
-      goto skip_processing;
-      
-
-   double smoothing_correction = 1/(2*data->smoothing_factor+1);
-   smoothing_correction *= smoothing_correction;
-
-   smoothing_correction = 1;
-
-   for(j=0; j<n_meas_res; j++)
-   {
-      if (s_thresh == 0 || y[j] == 0)
-         w[j] = smoothing_correction;   // If we have a zero data point set to 1
-      else
-         w[j] = smoothing_correction/abs(y[j]); //smoothing_correction / abs(y[j]);
-   }
-   /*
-   idx = 0;
-   int* resample_idx = data->GetResampleIdx(thread);
-   for(j=0; j<n_t; j++)
-   {
-      w[idx] += data->im_average[n_t*thread + j];
-      if (resample_idx[j])
-      {
-         if (w[j] > 0)
-            w[j] = 1 / w[j];
-         else
-            w[j] = 0;
-         idx++;
-      }
-   }
-   */
-
-
-
-
-   if (anscombe_tranform)
-      for(i=0; i<s_thresh*n_meas_res; i++)
-         y[i] = anscombe(y[i]);
-
-   // Check we have pixels left to process
-
-
-   // Check for termination request
-   if (status->UpdateStatus(thread, g, 0, 0)==1)
-      return 0;
 
    // Update lpps1 which depends on s   
-   itmax = 200;
+   itmax = 100;
 
 
    if (USE_GLOBAL_BINNING_AS_ESTIMATE && s_thresh > 1)
@@ -241,8 +239,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (grid_search)
    {
       varp2_grid( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
-               t, y+n_meas, w, (U_fp)ada, a, b, &iprint, (int*) this, (int*) &thread, alf, lin_params, 
-               &ierr_local, (doublereal*)chi2+r_idx, (int*)&algorithm,
+               t, y, w, (U_fp)ada, a, b, &iprint, (int*) this, (int*) &thread, alf, lin_params, 
+               &ierr_local, (double*)chi2+r_idx, (int*)&algorithm,
                var_min, var_max, grid, grid_size, grid_factor, var_buf, grid_iter );
    }
    else
@@ -250,7 +248,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       lpps1_ = l + p + s_thresh + 1;
       lps_ = l + s_thresh;
       varp2_( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
-               t, y+n_meas, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
+               t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
                alf, lin_params, &ierr_local, &c2, &algorithm, alf_best );
    }
 
@@ -258,6 +256,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       ierr[r_idx] = ierr_local_binning;
    else
       ierr[r_idx] = ierr_local;
+
+   if (ierr[r_idx] < 0)
+      ierr[r_idx] += 0;
 
    if (ierr[r_idx] >= -1 || ierr[r_idx] == -9) // if successful (or failed due to too many iterations) return fit results
    {

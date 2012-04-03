@@ -112,7 +112,7 @@ function get_return_data(obj)
         %}
 
         r = reshape(obj.p_r.Value,obj.r_size);
-        r0 = nansum(r,1);
+        r0 = sum(r,1);
         sz = size(r0);
         sz = sz(2:end);
         if length(sz) == 1

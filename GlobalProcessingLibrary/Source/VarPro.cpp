@@ -420,7 +420,7 @@ static integer c__2 = 2;
 /*           SET SMALLER THAN 10 TIMES THE UNIT ROUND-OFF OF THE MACHINE. */
 /* ----------------------------------------------------------------- */
     eps1 = 1e-6;
-    prj_tol__ = 1e-3;
+    prj_tol__ = 1e-2;
     r_best__ = 1e10;
     prjres = 0.;
     *ierr = 1;
