@@ -84,6 +84,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    double *alf_err      = this->alf_err + thread * nl;
 
    int idx = 0;
+   
+   
+   double smoothing_correction = 1/data->smoothing_area;
+   smoothing_correction = 1;
 
    SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
                                    (fit_offset == FIX)  ? offset_guess  : 0, 
@@ -97,8 +101,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int n_meas_res = data->GetResampleNumMeas(thread);
 	
 
-   double smoothing_correction = 1/data->smoothing_area;
-   smoothing_correction = 1;
+
 
 
    tau_ma = CalculateMeanArrivalTime(ma_decay);
