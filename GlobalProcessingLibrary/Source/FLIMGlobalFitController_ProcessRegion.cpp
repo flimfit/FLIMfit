@@ -94,15 +94,13 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                                    (fit_tvb == FIX)     ? tvb_guess     : 0);
 
    s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y, w, ma_decay);
+   
+   int n_meas_res = data->GetResampleNumMeas(thread);
 
    if (s_thresh == 0)
       goto skip_processing;
 
-   int n_meas_res = data->GetResampleNumMeas(thread);
-	
-
-
-
+   
 
    tau_ma = CalculateMeanArrivalTime(ma_decay);
 
