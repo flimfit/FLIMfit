@@ -68,15 +68,19 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 
                 parent = get(ax,'Parent');
                 if isempty(obj.colorbar_axes) || ax ~= obj.plot_handle
-                	obj.colorbar_axes = axes('Units','pixels','Position',bar_pos,'YTick',[],'XTick',[],'Box','on','Parent',parent);
+                	ca = axes('Units','pixels','Position',bar_pos,'YTick',[],'XTick',[],'Box','on','Parent',parent);
+                    if isempty(obj.colorbar_axes)
+                        obj.colorbar_axes = ca;
+                    end
                 else
-                    set(obj.colorbar_axes,'Units','pixels','Position',bar_pos);
+                    ca = obj.colorbar_axes;
                 end
                
                 
-                im = colorbar_flush(ax,obj.colorbar_axes,plate,[],lims,cscale);
+                im = colorbar_flush(ax,ca,plate,[],lims,cscale);
                 daspect(ax,[ 1 1 1 ])
-                %imagesc(mapped_plate,'Parent',ax);
+               
+                
                 
                 for i=1:n_col
                     line([i+.5 i+.5],[0.5 n_row+.5],'Parent',ax,'Color','k');

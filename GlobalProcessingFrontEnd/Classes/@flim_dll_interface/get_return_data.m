@@ -2,6 +2,7 @@ function get_return_data(obj)
 
     f = obj.fit_result;
     p = obj.fit_params;
+    d = obj.data_series;
     
     f.t_exec = toc(obj.start_time);    
     disp(['DLL execution time: ' num2str(f.t_exec)]);
@@ -14,10 +15,12 @@ function get_return_data(obj)
         %for i=1:length(datasets)
         %    datasets(i) = sum(obj.data_series.use(1:datasets(i)));
         %end
-        mask = obj.data_series.seg_mask;
+        mask = d.seg_mask;
+        flt = obj.use;
         if ~isempty(mask)
-            flt = obj.data_series.use(obj.data_series.loaded);
             mask = mask(:,:,flt);
+        else
+            mask = ones(d.height,d.width,sum(flt));
         end
     end
     
@@ -26,6 +29,9 @@ function get_return_data(obj)
     
     if ~isempty(obj.p_chi2)
         chi2 = reshape(obj.p_chi2.Value,obj.I0_size);
+        if ~obj.bin
+            mask(isnan(chi2)) = 0;
+        end
         clear obj.p_chi2;
         f.set_image('chi2',chi2,mask,datasets,[0 5]);
     end
@@ -76,9 +82,9 @@ function get_return_data(obj)
     clear obj.p_I0 I0;
     
     if ~obj.bin
-        I = obj.data_series.integrated_intensity();
+        I = obj.data_series.integrated_intensity(datasets);
         I(mask == 0) = NaN;
-        f.set_image('I',I,mask,datasets,[0 ceil(nanmax(I(:)))])
+        f.set_image('I',I,mask,datasets,[0 ceil(max(I(:)))])
         clear I;
     end
     
@@ -133,7 +139,7 @@ function get_return_data(obj)
         %}
         
         if ~obj.bin
-            steady_state = obj.data_series.steady_state_anisotropy();
+            steady_state = obj.data_series.steady_state_anisotropy(datasets);
             steady_state(mask == 0) = NaN;
             f.set_image('r_s',steady_state,mask,datasets,[0 0.4])
         end

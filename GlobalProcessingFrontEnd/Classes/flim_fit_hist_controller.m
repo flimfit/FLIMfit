@@ -3,6 +3,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
     properties
         hist_axes;
         hist_param_popupmenu;
+        hist_weighting_popupmenu;
         hist_prop_table;
         
         hist_min = 0;
@@ -23,6 +24,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
             
             set(obj.hist_prop_table,'CellEditCallback',@obj.table_updated);
             set(obj.hist_param_popupmenu,'Callback',@obj.param_updated);
+            set(obj.hist_weighting_popupmenu,'Callback',@(~,~) obj.update_histogram);
             
             addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
             
@@ -93,25 +95,32 @@ classdef flim_fit_hist_controller < flim_fit_observer
         
         function update_histogram(obj)
             if obj.fit_controller.has_fit && ~isempty(obj.param)
+                
+                weighting = get(obj.hist_weighting_popupmenu,'Value');
+                
                 param_data =  obj.fit_controller.fit_result.get_image(obj.selected,obj.param);
-                %intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I0');
+                
                 
                 filt = param_data >= obj.hist_min & param_data <= obj.hist_max & ~isnan(param_data);
                 
-                %intensity = intensity( filt );
                 param_data = param_data( filt );
                 
                 diff = (obj.hist_max - obj.hist_min) / obj.hist_classes;
                 x = obj.hist_min:diff:obj.hist_max;
                 
-                
-                %if ~isempty(param_data)
-                %    f = ksdensity(param_data,x,'weight',intensity(:));
-                %    plot(obj.hist_axes,x,f)
-                %end
-                
                 cla(obj.hist_axes);
-                hist(obj.hist_axes,param_data,x);
+
+                if weighting == 2
+                    intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I');
+                    intensity = intensity( filt );
+
+                    weightedhist(obj.hist_axes,param_data,intensity,x);
+                    %f = ksdensity(param_data,x','weight',intensity);
+                    %bar(obj.hist_axes,x,f)
+                else
+                    hist(obj.hist_axes,param_data,x);
+                end
+                
                 set(obj.hist_axes,'XLim',[obj.hist_min obj.hist_max])
                 xlabel(obj.hist_axes,obj.param);
                 ylabel(obj.hist_axes,'Frequency');
@@ -122,6 +131,14 @@ classdef flim_fit_hist_controller < flim_fit_observer
             
             if nargin < 3
                 mode = 'single';
+            end
+            
+            weighting = get(obj.hist_weighting_popupmenu,'Value');
+            
+            if weighting == 2
+                weighting_string = '(Intensity Weighted)';
+            else
+                weighting_string = '(Unweighted)';
             end
             
             r = obj.fit_controller.fit_result;
@@ -140,18 +157,28 @@ classdef flim_fit_hist_controller < flim_fit_observer
             for i=1:r.n_results
                
                 param_data =  obj.fit_controller.fit_result.get_image(i,obj.param);
-                %intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I0');
                 
+                if ~isempty(param_data)
                 filt = param_data >= obj.hist_min & param_data <= obj.hist_max & ~isnan(param_data);
                 
-                %intensity = intensity( filt );
                 param_data = param_data( filt );
                 
                 diff = (obj.hist_max - obj.hist_min) / obj.hist_classes;
                 x = obj.hist_min:diff:obj.hist_max;
        
-                %count(:,i) = ksdensity(param_data,x,'weight',intensity(:));               
-                count(:,i) = hist(param_data,x)';
+                if ~isempty(param_data)
+                    
+                    if weighting == 2
+                        intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I');
+                        intensity = intensity( filt );
+
+                        count(:,i) = weightedhist(obj.hist_axes,param_data,intensity,x)';
+                    else
+                        count(:,i) = hist(param_data,x)';
+                    end
+                else
+                    param_data = NaN;
+                end
                 
                 hist_min_v(i) = nanmin(param_data);
                 hist_max_v(i) = nanmax(param_data);
@@ -164,7 +191,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
                     filename = [path filesep name ' ' hist_type ' histogram - ' r.names{i} ext];
                     f = fopen(filename,'w');
 
-                    fprintf(f,'%s\r\n',r.names{i});
+                    fprintf(f,'%s %s\r\n',r.names{i},weighting_string);
                     fprintf(f,'%s\r\n',hist_type);
                     fprintf(f,'Minimal value\t%f\r\n',hist_min_v(i));
                     fprintf(f,'Maximal value\t%f\r\n',hist_max_v(i));
@@ -181,6 +208,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
 
                     fclose(f);
                 end
+                end
                 
             end
             
@@ -188,7 +216,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
                 filename = [path filesep name ' ' obj.param ' histogram' ext];
                     f = fopen(filename,'w');
 
-                    fprintf(f,'%s\r\n',obj.param);
+                    fprintf(f,'%s %s\r\n',obj.param,weighting_string);
                     for i=1:r.n_results
                         fprintf(f,'\t%s',r.names{i});
                     end

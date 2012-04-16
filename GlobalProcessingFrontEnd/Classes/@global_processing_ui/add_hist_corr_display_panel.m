@@ -5,17 +5,24 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     handles.hist_axes = axes('Parent',hist_layout);
     
     param_layout = uiextras.HBox( 'Parent', hist_layout, 'Spacing', 3 );
-    uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', param_layout, ...
+    opt_layout = uiextras.Grid( 'Parent', param_layout, 'Spacing', 3 );
+    uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', opt_layout, ...
+               'HorizontalAlignment', 'right' );
+    uicontrol( 'Style', 'text', 'String', 'Weighting  ', 'Parent', opt_layout, ...
                'HorizontalAlignment', 'right' );
     handles.hist_param_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', param_layout );
-    
+            'String', {''}, 'Parent', opt_layout );
+    handles.hist_weighting_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'None' 'Intensity Weighted'}, 'Parent', opt_layout );
+        
     handles.hist_prop_table = uitable('RowName', {'Min', 'Max', 'Classes'}, 'ColumnName', {}, ...
                                       'Data', [0;1;100], 'ColumnEditable', true,... 
                                       'Parent', param_layout);
     
     set( hist_layout, 'Sizes', [-1,70] );
-    set( param_layout, 'Sizes', [100,200,170] );
+    set( opt_layout, 'ColumnSizes', [100 200]);
+    set( opt_layout, 'RowSizes', [22 22]);
+    set( param_layout, 'Sizes', [300,170] );
 
     
     

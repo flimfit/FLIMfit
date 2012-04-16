@@ -221,7 +221,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       alf[i++] = ref_lifetime_guess;
 
 
-
    // Update lpps1 which depends on s   
    itmax = 100;
 

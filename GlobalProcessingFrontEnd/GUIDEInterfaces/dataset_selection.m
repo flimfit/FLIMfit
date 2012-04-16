@@ -61,7 +61,15 @@ if size(data,2) > size(data,1)
     data = data';
 end
 
-data = [num2cell(true(size(data))), data];
+exclude_strings = {'irf' 'background' 'phc' 'mask' 'scatter'};
+
+use = true(size(data));
+
+for i=1:length(exclude_strings)
+    use = use & cellfun(@isempty,strfind(lower(data),exclude_strings{i}));
+end
+    
+data = [num2cell(use), data];
 set(handles.dataset_table,'Data',data);
 
 % Update handles structure

@@ -30,13 +30,13 @@ function save_raw_data(obj,mapfile_name)
 
         file = obj.file_names{j};
         [~,data] = load_flim_file(file,obj.channels);
-
-        c1=fwrite(mapfile,data,'uint16');
         
         if isempty(data) || size(data,1) ~= obj.n_t
             data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
         end
         
+        c1=fwrite(mapfile,data,'uint16');
+      
         if obj.use_popup
             waitbar(j/obj.n_datasets,wait_handle)
         end

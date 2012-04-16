@@ -184,6 +184,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
             if (gc->first_call)
             {
+
+
                // Set up incidence matrix
                //----------------------------------------------------------------------
 
@@ -193,7 +195,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                // Set incidence matrix zero
                for(i=0; i<96; i++)
                   inc[i] = 0;
-      
+
       
                // Set inc for local offset if required
                // Independent of all variables
@@ -329,6 +331,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // set constant phi value for scatterer
          if( gc->fit_scatter == FIT_LOCALLY )
          {
+            for(i=0; i<N; i++)
+               a[N*a_col+i]=0;
             sample_irf(*thread, gc, a+N*a_col,gc->n_r,scale_fact);
             a_col++;
          }
@@ -566,6 +570,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+
 
          if (gc->anscombe_tranform)
             for(j=0; j<col; j++)

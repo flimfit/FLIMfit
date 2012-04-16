@@ -57,6 +57,7 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
         end
         
         data = data + 4;
+        cbar = cbar + 4;
 
         cmap = cscale(m);
         cmap = [ [0,0,0]; [1,1,1]; [0.33,0.33,0.33]; [0.66,0.66,0.66]; cmap];
@@ -72,6 +73,8 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
     set(h,'XTick',[],'YTick',[]);
     set(hc,'XTick',[],'YTick',[]);
  
+    daspect(h,[1 1 1]);
+    
     set(h,'Units','pixels');
     pos=plotboxpos(h);
     
@@ -83,13 +86,16 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
          'FontUnits','points','FontSize',10,...
          'HorizontalAlignment','right','VerticalAlignment','bottom');
 
-    ht2=text(pos(3), pos(4), num2str(lim(2)), 'Units','pixels','Parent',h,...
+    ht2=text(pos(3), pos(4)+1, num2str(lim(2)), 'Units','pixels','Parent',h,...
          'Color','w','BackgroundColor','k','Margin',1,...
          'FontUnits','points','FontSize',10,...
          'HorizontalAlignment','right','VerticalAlignment','top');
 
     set(ht1,'Units','normalized');
     set(ht2,'Units','normalized');
+    
+    bar_pos = [pos(1)+pos(3) pos(2) 20 pos(4)];
+    set(hc,'Units','pixels','Position',bar_pos);
     
     if ~strcmp(t,'')
         ht3=text(3, pos(4), t, 'Units','pixels','Parent',h,...

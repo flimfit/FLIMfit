@@ -104,6 +104,8 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    min_region = new int[n_im_used];
    max_region = new int[n_im_used];
 
+   mean_image = new double[ n_thread * n_meas ];
+
    cur_transformed = new int[n_thread];
 
    average_data = new double[n_meas_full];
@@ -251,33 +253,41 @@ void FLIMData::DetermineAutoSampling(int thread, double decay[])
    int* resample_idx = this->resample_idx + n_t * thread;
 
    double min_bin = 20.0 / smoothing_area;
-   int max_w = 50;
+   int n_bin_max = n_t;
+
+   int total_count = 0;
+   for(int i=0; i<n_t; i++)
+   {
+      resample_idx[i] = 0;
+      total_count += decay[i];
+   }
+      
+   if (total_count < 4*min_bin)
+   {
+      n_bin_max = 3;
+      min_bin = total_count / 3;
+   }
 
    resample_idx[n_t-1] = 0;
    double c = decay[n_t-1];
-   int w = 1;
+   int n_bin = 1;
    for (int i=n_t-2; i>=0; i--)
    {
-      if ( c < min_bin && w < max_w )
+      if ( c < min_bin )
       {
          c += decay[i];
-         resample_idx[i] = 0;
-         w++;
       }
       else
       {
-         w = 1;
          c = decay[i];
          resample_idx[i] = 1;
+         n_bin++;
+         if (n_bin >= n_bin_max)
+            break;
       }
    }
-   
-   int n_t_res = 1;
 
-   for(int i=0; i<n_t; i++)
-      n_t_res += resample_idx[i];
-
-   n_meas_res[thread] = n_t_res * n_chan;
+   n_meas_res[thread] = n_bin * n_chan;
 
 }
 
@@ -353,8 +363,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       if (global_mode != MODE_PIXELWISE)
          for(int j=0; j<n_meas; j++)
             ma_decay[j] = mean_region_data[j];
-
-   }
+    }
 
    return s;
 }
@@ -364,9 +373,6 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
 {
    double* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = this->resample_idx + thread * n_t; 
-
-   if (use_im != NULL)
-      im = use_im[im];
 
    if (mask[im*n_x*n_y+p]==0)
    {
@@ -410,9 +416,6 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
 
 int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data)
 {
-
-   if (use_im != NULL)
-      im = use_im[im];
 
    int* im_mask = mask + im*n_x*n_y;
    double* tr_data = this->tr_data + thread * n_p;
@@ -468,6 +471,7 @@ FLIMData::~FLIMData()
    delete[] max_region;
    delete[] min_region;
    delete[] t_skip;
+   delete[] mean_image;
 }
 
 

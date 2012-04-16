@@ -219,20 +219,21 @@ classdef flim_fit_result < handle
         
         function write(obj,dataset,param,img,mask)
            
-            if ~isempty(mask)
-                n_regions = max(mask(:));
-                obj.n_regions(dataset) = n_regions;
-
-                sel = mask>0 & ~isnan(img);
-                timg = img(sel);
-                tmask = mask(sel);
-            else
+            if isempty(mask) || sum(mask(:)) > 0
+              
                 n_regions = 1;
                 obj.n_regions(dataset) = 1;
                 
                 sel = ~isnan(img);
                 timg = img(sel);
                 tmask = ones(size(timg));
+            else
+                n_regions = max(mask(:));
+                obj.n_regions(dataset) = n_regions;
+
+                sel = mask>0 & ~isnan(img);
+                timg = img(sel);
+                tmask = mask(sel);
             end
             
             img_mean = trimmean(timg,1);

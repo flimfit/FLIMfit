@@ -71,6 +71,10 @@ function handles = setup_menu(obj,handles)
         menu_segmentation = uimenu(obj.window,'Label','Segmentation');
         handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager');
 
+        menu_tools = uimenu(obj.window,'Label','Tools');
+        handles.menu_tools_photon_stats = uimenu(menu_tools,'Label','Determine Photon Statistics');
+        handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
+        
         %menu_batch = uimenu(obj.window,'Label','Batch Fitting');
         %handles.menu_batch_batch_fitting = uimenu(menu_batch,'Label','Batch Fit...');
 

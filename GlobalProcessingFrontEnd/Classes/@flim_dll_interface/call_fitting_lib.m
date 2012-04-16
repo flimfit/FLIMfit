@@ -133,7 +133,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         obj.p_mask = libpointer('int32Ptr',1);
 
     else
-        n_datasets = d.n_datasets;
+        n_datasets = sum(d.loaded);
         width = d.width;
         height = d.height;
         

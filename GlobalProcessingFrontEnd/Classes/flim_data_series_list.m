@@ -85,7 +85,7 @@ classdef flim_data_series_list < handle & flim_data_series_observer
                     w = [24 ones(1,n_field)*40];
                     set(obj.handle,'ColumnWidth',num2cell(w));
                     
-                    if isempty(obj.selected) || obj.selected >= obj.data_series.num_datasets  || obj.selected == 0
+                    if isempty(obj.selected) || obj.selected > obj.data_series.num_datasets  || obj.selected == 0
                         obj.selected = 1;
                         obj.notify('selection_updated');
                     end

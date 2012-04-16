@@ -7,12 +7,19 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         decay = [];
         return
     end
+    
+    if ~d.use(selected)
+        return
+    end
+        
         
 
     
-    n_group = d.n_datasets;
+    n_group = sum(d.use);
     n_x = size(im_mask,1);
     n_y = size(im_mask,2);
+    
+    use_sel = sum(d.use(1:selected));
     
     if obj.bin
         group = 0;
@@ -22,17 +29,17 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         switch (p.global_fitting)
             case 0 % global_mode.pixel
                 n_ret_group = n_x*n_y;
-                group = (selected-1)*n_x*n_y;
+                group = (use_sel-1)*n_x*n_y;
                 mask = im_mask;
             case 1 %global_mode.image
                 n_ret_group = 1;
-                group = selected-1;
+                group = use_sel-1;
                 mask = im_mask;
             case 2 %global_mode.dataset
                 n_ret_group = 1;
                 group = 0;
                 mask = zeros([size(im_mask) n_group]);
-                mask(:,:,selected) = im_mask;
+                mask(:,:,use_sel) = im_mask;
         end     
         
     end

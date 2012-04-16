@@ -56,6 +56,9 @@ classdef front_end_menu_controller < handle
         menu_segmentation_manual;
         menu_segmentation_yuriy;
         
+        menu_tools_photon_stats;
+        menu_tools_estimate_irf;
+        
         menu_view_data
         menu_view_plots;
         menu_view_hist_corr;
@@ -492,6 +495,21 @@ classdef front_end_menu_controller < handle
             end
             
         end
+        
+        
+        function menu_tools_photon_stats_callback(obj,~,~)
+            d = obj.data_series_controller.data_series;
+            data = d.cur_tr_data;
+            seg = d.mask > 0;
+            [N,Z] = determine_photon_stats(data(:,:,seg));
+            disp(['N= ' num2str(N) ', Z = ' num2str(Z)]);
+        end
+        
+        function menu_tools_estimate_irf_callback(obj,~,~)
+            d = obj.data_series_controller.data_series;
+            estimate_irf(d.tr_t_irf,d.tr_irf);
+        end
+        
         
         %------------------------------------------------------------------
         % Views

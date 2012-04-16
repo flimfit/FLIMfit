@@ -149,8 +149,8 @@ classdef abstract_plot_controller < flim_fit_observer
             end
             
             obj.draw_plot(ref,obj.cur_param);
-            if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
-                saveppt2('current','figure',f,'stretch',false,'driver','meta','scale',false);
+            if length(get(f,'children')) <= 2 % if only one axis use pptfigure, gives better plots
+                saveppt2('current','figure',f,'stretch',false,'driver','bitmap','scale',false);
             else
                 saveppt2('current','figure',f,'stretch',false);
             end
@@ -261,7 +261,7 @@ classdef abstract_plot_controller < flim_fit_observer
             d = obj.fit_controller.data_series;
             r = obj.fit_controller.fit_result;
 
-            intensity = r.get_image(dataset,'I0');
+            intensity = r.get_image(dataset,'I');
             im_data = r.get_image(dataset,im);
 
             cscale = obj.colourscale(im);
@@ -269,7 +269,7 @@ classdef abstract_plot_controller < flim_fit_observer
             if ~merge
                 im=colorbar_flush(h,hc,im_data,isnan(intensity),r.default_lims.(im),cscale,text);
             else
-                im=colorbar_flush(h,hc,im_data,[],r.default_lims.(im),cscale,text,intensity,r.default_lims.I0);
+                im=colorbar_flush(h,hc,im_data,[],r.default_lims.(im),cscale,text,intensity,r.default_lims.I);
             end
             
 

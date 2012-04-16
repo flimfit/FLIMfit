@@ -7,6 +7,8 @@ classdef flim_data_series < handle
         irf = [0; 1; 0];
         irf_name;
                
+        counts_per_photon;
+        
         tvb_profile = 0;
           
         subtract_background = false;
@@ -252,13 +254,18 @@ classdef flim_data_series < handle
             data = data(rep_mask);
             data = reshape(data,[n_tr_t obj.n_chan n_mask]);
             
+            %data = data;
+            
+            %d = reshape(data,[size(data,1) size(data,3)]); 
+            %[mul off] = determine_photon_stats(d);
+            %disp([mul off]);
         end
         
         
         function data = define_tvb_profile(obj,roi_mask,dataset)
             % Get data
             obj.switch_active_dataset(dataset);
-            data = obj.cur_data - obj.background;
+            data = double(obj.cur_data) - obj.background;
             
             % Reshape mask to apply to flim data
             n_mask = sum(roi_mask(:));
@@ -419,7 +426,7 @@ classdef flim_data_series < handle
                 case 0
                     bg = 0;
                 case 1
-                    bg = obj.background_value * ones([obj.n_t obj.n_chan obj.height obj.width]);
+                    bg = obj.background_value;
                 case 2
                     % Check if we have a background image of the correct size
                     s = size(obj.background_image);
@@ -638,7 +645,7 @@ classdef flim_data_series < handle
             %> Compute mask based on thresholds and segmentation mask
             
             if obj.init
-                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeeze(max(max(obj.cur_data,[],1),[],2)) <= obj.gate_max;
+                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeeze(max(max(obj.cur_data,[],1),[],2)) < obj.gate_max;
                 obj.mask = obj.thresh_mask;
 
                 v = obj.intensity(obj.mask);
@@ -657,58 +664,31 @@ classdef flim_data_series < handle
 
         
         function compute_intensity(obj)
-            %> Calcuate intensity by summing over time
-
-            loaded_idx = 1:obj.num_datasets;
-            loaded_idx = loaded_idx(logical(obj.loaded));
-
-            num_loaded = length(loaded_idx);
-            
-            obj.intensity = zeros([obj.height obj.width num_loaded]);
-            bg = obj.background;
-            
-            in = (double(obj.cur_data)-bg)/obj.downsampling;
-            in = nansum(in,1);
-            if obj.polarisation_resolved
-                in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
-            end
-            obj.intensity = reshape(in,obj.data_size(3:4)');
-
-                       
             obj.compute_mask();
         end
         
         
-        function inten = integrated_intensity(obj)
+        function inten = integrated_intensity(obj,sel)
             
-            loaded_idx = 1:obj.num_datasets;
-            loaded_idx = loaded_idx(logical(obj.loaded));
+            inten = zeros([obj.height obj.width length(sel)]);
 
-            num_loaded = length(loaded_idx);
-
-            inten = zeros([obj.height obj.width num_loaded]);
-
-            for i = 1:num_loaded
-                obj.switch_active_dataset(loaded_idx(i));
+            for i = 1:length(sel)
+                obj.switch_active_dataset(sel(i));
                 inten(:,:,i) = obj.intensity;
             end
 
         end
         
-        function anis = steady_state_anisotropy(obj)
+        function anis = steady_state_anisotropy(obj,sel)
             
             if obj.polarisation_resolved
-                loaded_idx = 1:obj.num_datasets;
-                loaded_idx = loaded_idx(logical(obj.loaded));
 
-                num_loaded = length(loaded_idx);
-
-                anis = zeros([obj.height obj.width num_loaded]);
+                anis = zeros([obj.height obj.width length(sel)]);
                 
                 g = obj.g_factor;
                 
-                for i = 1:num_loaded
-                    obj.switch_active_dataset(loaded_idx(i));
+                for i = 1:length(sel)
+                    obj.switch_active_dataset(sel(i));
                     in = obj.cur_tr_data;
                     in = nansum(in,1);
                     

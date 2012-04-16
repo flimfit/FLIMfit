@@ -610,6 +610,7 @@ void FLIMGlobalFitController::Init()
       l   = n_exp_phi * n_decay_group * n_pol_group;          // (varp) Number of linear parameters
    }
 
+
    s   = s_max;                              // (varp) Number of pixels (right hand sides)
    iv  = 1;                                  // (varp) Number of observations -> might change this if we have (say) polarisation resolved measuremnts
 
@@ -674,7 +675,7 @@ void FLIMGlobalFitController::Init()
    ndim   = max( ndim, s*n - (s-1)*l );
    nmax   = n;
    lpps1  = l + p + s + 1; 
-   lps    = l + s;
+   lps    = l + s + 1;
    pp2    = max(p,nl + 1);
    pp2    = p + 2; //max(pp2, 2);
    iprint = -1;
@@ -727,7 +728,7 @@ void FLIMGlobalFitController::Init()
 
       init = true;
    }
-   catch(...)
+   catch(std::exception e)
    {
       error = ERR_OUT_OF_MEMORY;
       CleanupTempVars();
@@ -1084,9 +1085,13 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
       return ERR_FIT_IN_PROGRESS;
    
    int n_t_buf = this->n_t;
+   double* t_buf = this->t;
+   
    this->n_t = n_t;
    this->n_meas = n_t*n_chan;
+   this->n = n_meas;
    this->nmax = this->n_meas;
+   this->t = t;
 
    int n_group = data->n_group;
    int n_px = data->n_px;
@@ -1122,7 +1127,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
    int s = 1;
    int lp1 = l+p+1;
    int lpp2 = l+p+2;
-   int lps = l+s; 
+   int lps = l+s+1; 
    int inc[96];
    int isel = 1;
    int thread = 0;
@@ -1220,7 +1225,8 @@ max_reached:
    this->n_t = n_t_buf;
    this->n_meas = this->n_t * n_chan;
    this->nmax = n_meas;
-
+   this->t = t_buf;
+   this->n = this->n_meas;
    
    return 0;
 

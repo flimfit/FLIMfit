@@ -24,7 +24,7 @@ classdef segmentation_controller < flim_data_series_observer
         copy_to_all_button;
         
         thresh_min_edit;
-        gate_max_edit;
+        thresh_max_edit;
         thresh_apply_button;
         
         
@@ -169,9 +169,11 @@ classdef segmentation_controller < flim_data_series_observer
 
             multiple_regions = get(obj.seg_use_multiple_regions,'Value');
             
-            obj.mask = zeros(size(obj.data_series.mask),'uint8');
+            d = obj.data_series;
+            
+            obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
             h = waitbar(0,'Segmenting Images...');
-            for i=1:obj.data_series.n_datasets
+            for i=1:d.n_datasets
                 obj.mask(:,:,i) = call_arb_segmentation_function(func,obj.data_series.selected_intensity(i,false),params);
                 if ~multiple_regions
                     obj.mask(:,:,i) = obj.mask(:,:,i) > 0;
@@ -201,17 +203,22 @@ classdef segmentation_controller < flim_data_series_observer
         end
         
         function thresh_apply_pressed(obj,~,~)
-            sel = obj.data_series_list.selected;
-            intensity = obj.data_series.intensity(:,:,sel);
             thresh_min = str2double(get(obj.thresh_min_edit,'String'));
             thresh_max = str2double(get(obj.thresh_max_edit,'String'));
+                        
+            d = obj.data_series;
             
-            thresh = intensity >= thresh_min & intensity <= thresh_max;
-            
-            m = zeros(size(thresh));
-            m(thresh) = 1;
-            
-            obj.mask(:,:,sel) = m;
+            obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
+            h = waitbar(0,'Segmenting Images...');
+            for i=1:d.n_datasets
+                
+                intensity = obj.data_series.selected_intensity(i,false);
+                thresh = uint8(intensity >= thresh_min & intensity <= thresh_max);
+                obj.mask(:,:,i) = thresh;
+                
+                waitbar(i/obj.data_series.n_datasets,h);
+            end
+            close(h);
             
             obj.update_display();
         end

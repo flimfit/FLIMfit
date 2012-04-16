@@ -104,9 +104,9 @@
                 table = cell(length(names),6);
                 for i=1:length(names)
                     if obj.auto_lim.(names{i})
-                        im_data = r.get_image(1,names{i});
+                        im_data = r.get_image(obj.dataset_selected,names{i});
                         
-                        lim = prctile(im_data(:),[0.1 99.9]);
+                        lim = prctile(im_data(:),[1 99]);
                         
                         lim= num2str(lim,2);
                         lim= str2num(lim);

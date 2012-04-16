@@ -9,9 +9,15 @@ function estimate_irf_background(obj)
 
     for i=1:size(obj.irf,2)
 
-        gauss_fit = gmdistribution.fit(double(obj.irf(:,i)),2,'Replicates',10);
-        bg(i) = min(gauss_fit.mu); %#ok
-
+        ir = double(obj.irf(:,i));
+        
+        if length(ir==0) > 0.5 * length(ir)
+            bg(i) = 0;
+        else
+            gauss_fit = gmdistribution.fit(ir,2,'Replicates',10);
+            bg(i) = min(gauss_fit.mu); %#ok
+        end
+        
     end
 
     obj.irf_background = max(bg);

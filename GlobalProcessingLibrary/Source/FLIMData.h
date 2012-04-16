@@ -153,6 +153,8 @@ private:
    int* use_im;
    int n_im_used;
 
+   double* mean_image;
+
 
 };
 
@@ -228,7 +230,7 @@ int FLIMData::CalculateRegions()
          double intensity = 0;
          for(int j=0; j<n_meas_full; j++)
          {
-            if (*ptr > limit)
+            if (*ptr >= limit)
             {
                mask[i*n_ipx+p] = 0;
                break;
@@ -364,6 +366,7 @@ void FLIMData::TransformImage(int thread, int im)
 
    double* tr_data = this->tr_data + thread * n_p;
    double* tr_buf  = this->tr_buf  + thread * n_x;
+   double* mean_image = this->mean_image + thread * n_meas;
 
    if ( smoothing_factor == 0 )
    {
@@ -474,7 +477,20 @@ void FLIMData::TransformImage(int thread, int im)
          for(int i=0; i<n_meas; i++)
             tr_data[p*n_meas+i] -= background_image[p];
    }
+   /*
+   int n_px = n_x * n_y;
+   for(int i=0; i<n_meas; i++)
+      mean_image[i] = 0;
 
+   for(int p=0; p<n_px; p++)
+   {
+      for(int i=0; i<n_meas; i++)
+         mean_image[i] += tr_data[p*n_meas+i];
+   }
+
+   for(int i=0; i<n_meas; i++)
+      mean_image[i] /= n_px;
+   */ 
    cur_transformed[thread] = im;
 
 }

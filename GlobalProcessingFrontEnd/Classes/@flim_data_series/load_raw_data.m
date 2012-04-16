@@ -11,6 +11,8 @@ function load_raw_data(obj,file)
     load(fname);
     fclose(fid);
     delete(fname);
+    
+    fclose(mapfile);
         
     obj.suspend_transformation = true;
     

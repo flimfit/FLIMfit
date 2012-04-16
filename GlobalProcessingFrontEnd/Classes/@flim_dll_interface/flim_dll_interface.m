@@ -14,7 +14,7 @@ classdef flim_dll_interface < handle
         fit_in_progress = false;
         
         datasets;
-        loaded_datasets;
+        
         
         fit_round = 1;
         n_rounds = 0;
@@ -93,8 +93,10 @@ classdef flim_dll_interface < handle
         
         n_group;
         n_px;
+        n_im;
         
         single_guess;
+        use;
         
         dll_id;
     end
