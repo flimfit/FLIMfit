@@ -30,6 +30,8 @@ classdef global_processing_ui
             end
             
             if OMERO_active == true
+               
+               external = true;
             
                 logon = OMERO_logon;
                 

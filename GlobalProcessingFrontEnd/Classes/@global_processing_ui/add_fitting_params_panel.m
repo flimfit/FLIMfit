@@ -17,10 +17,14 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     fit_params_main_col3_layout = uiextras.HBox( 'Parent', fit_params_main_extra_layout, 'Spacing', 3 );
     fit_params_main_col3_label_layout = uiextras.VBox( 'Parent', fit_params_main_col3_layout, 'Spacing', 1 );
     fit_params_main_col3_opt_layout = uiextras.VBox( 'Parent', fit_params_main_col3_layout, 'Spacing', 1 );
+    
+  
        
     add_fitting_param_control('main','global_fitting','popupmenu','Global Fitting', {'Pixel-wise', 'Image-wise', 'Global'})
     add_fitting_param_control('main','global_variable','popupmenu','Global Variable', {'-'})
     add_fitting_param_control('main','global_algorithm','popupmenu','Global Mode', {'Global Analysis', 'Global Binning'})
+  
+    
     add_fitting_param_control('main','n_exp','popupmenu','No. Exp', {'1', '2', '3', '4', '5'});
     add_fitting_param_control('main','n_fix','popupmenu','No. Fixed', {'0', '1', '2', '3', '4', '5'});
     add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally'});

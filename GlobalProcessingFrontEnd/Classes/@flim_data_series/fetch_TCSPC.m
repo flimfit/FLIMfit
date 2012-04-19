@@ -33,6 +33,8 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
         obj.channels = 1;
         
         obj.names{1} = name;
+        
+        obj.OMERO_id = image_descriptor{2};
    
         obj.metadata = extract_metadata(obj.names);
     

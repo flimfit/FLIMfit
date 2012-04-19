@@ -10,7 +10,7 @@ function fetchirf_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
 
     
     try
-        [t_irf, irf_image_data] = OMERO_fetch(image_descriptor, channel, name);
+        [t_irf, irf_image_data, name] = OMERO_fetch(image_descriptor, channel);
     catch err
         
          rethrow(err);
