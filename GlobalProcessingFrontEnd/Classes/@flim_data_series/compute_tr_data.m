@@ -80,7 +80,7 @@ function calculated = compute_tr_data(obj,notify_update)
             obj.cur_tr_data = obj.cur_tr_data - double(bg);
         end
         
-        if strcmp(obj.mode,'TCSPC') || obj.n_t == 1
+        if true || strcmp(obj.mode,'TCSPC') || obj.n_t == 1
             in = sum(obj.cur_tr_data,1);
         else
             in = trapz(obj.t,obj.cur_tr_data,1)/1000;
@@ -90,7 +90,7 @@ function calculated = compute_tr_data(obj,notify_update)
             in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
         end
         obj.intensity = squeeze(in);
-        
+
         % Shift the perpendicular channel
         tmp = obj.cur_tr_data(t_inc,1,:,:);
         if obj.polarisation_resolved
@@ -99,7 +99,7 @@ function calculated = compute_tr_data(obj,notify_update)
         obj.cur_tr_data = tmp;
 
 
-        % Bin data
+        % Smooth data
         if obj.binning > 0
             obj.cur_tr_data = obj.smooth_flim_data(obj.cur_tr_data,obj.binning);
         end

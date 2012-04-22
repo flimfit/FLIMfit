@@ -219,7 +219,7 @@ classdef flim_fit_result < handle
         
         function write(obj,dataset,param,img,mask)
            
-            if isempty(mask) || sum(mask(:)) > 0
+            if isempty(mask) || sum(mask(:)) == 0
               
                 n_regions = 1;
                 obj.n_regions(dataset) = 1;

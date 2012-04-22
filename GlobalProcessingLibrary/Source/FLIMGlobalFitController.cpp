@@ -730,7 +730,7 @@ void FLIMGlobalFitController::Init()
    }
    catch(std::exception e)
    {
-      error = ERR_OUT_OF_MEMORY;
+      error =  ERR_OUT_OF_MEMORY;
       CleanupTempVars();
       CleanupResults();
       return;

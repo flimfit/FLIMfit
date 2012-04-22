@@ -155,7 +155,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                         if obj.fit_controller.has_fit %&& decay_mode == 1                
 
                             %Plot fit
-                            if false && strcmp(d.mode,'TCSPC')
+                            if true && strcmp(d.mode,'TCSPC')
                                 t = d.tr_t;
                             else
                                 dt = d.t_irf(2)-d.t_irf(1);

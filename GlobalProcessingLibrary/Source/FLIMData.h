@@ -228,15 +228,19 @@ int FLIMData::CalculateRegions()
       {
          T* ptr = data_ptr + p*n_meas_full;
          double intensity = 0;
-         for(int j=0; j<n_meas_full; j++)
+         for(int k=0; k<n_chan; k++)
          {
-            if (*ptr >= limit)
+            ptr += t_skip[k];
+            for(int j=0; j<n_t; j++)
             {
-               mask[i*n_ipx+p] = 0;
-               break;
+               if (*ptr >= limit)
+               {
+                  mask[i*n_ipx+p] = 0;
+                  break;
+               }
+               intensity += *ptr;
+               ptr++;
             }
-            intensity += *ptr;
-            ptr++;
          }
          if (background_type == BG_VALUE)
             intensity -= background_value * n_meas_full;

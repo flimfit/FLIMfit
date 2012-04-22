@@ -60,13 +60,11 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    {
       n_group = n_im_used;
       n_px = n_x * n_y;
-      n_thread = (n_thread > n_im_used) ? n_im_used : n_thread;
    }
    else
    {
       n_group = 1;
       n_px = n_im_used * n_x * n_y;
-      n_thread = (n_thread > n_im_used) ? n_im_used : n_thread;
    }
 
    this->n_thread = n_thread;

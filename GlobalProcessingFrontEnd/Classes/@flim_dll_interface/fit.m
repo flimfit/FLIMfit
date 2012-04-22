@@ -48,7 +48,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     d = obj.data_series;
     
     
-    if p.global_fitting < 2
+    if p.global_fitting < 2 || p.global_variable == 0
         if d.lazy_loading && p.split_fit
             obj.n_rounds = ceil(d.num_datasets/p.n_thread);
 
