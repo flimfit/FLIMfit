@@ -158,7 +158,6 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm,
    int     n_theta         = 0;
    int     n_theta_fix     = 0;
    int     inc_rinf        = 0;
-   double* theta_guess     = NULL;
 
    controller[c_idx] = 
          new FLIMGlobalFitController( global_algorithm, n_irf, t_irf, irf, pulse_pileup,
