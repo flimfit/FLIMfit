@@ -148,7 +148,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    double *tau_buf = gc->tau_buf + *thread * gc->n_exp * (gc->n_fret + 1);
    double *beta_buf = gc->beta_buf + *thread * gc->n_exp;
    double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
-   double *a_cpy = gc->a_cpy + *thread * n_meas * (gc->l+1);
    double *w = gc->w + *thread * N;
    double *y = gc->y + *thread * N * (S+1);
 
@@ -446,6 +445,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          a_col += gc->flim_model(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
 
+
          // Set L+1 phi value (without associated beta), to include global offset/scatter
          //----------------------------------------------
          
@@ -537,14 +537,14 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          }
          */
 
-
+/*
          if (gc->anscombe_tranform)
          {
             memcpy(a_cpy,a,n_meas*(gc->l+1)*sizeof(double));
             for(i=0; i<N; i++)
                a[i] = anscombe(a[i]);
          }
-
+*/
          
          if (*isel==2 || gc->getting_fit)
             break;
@@ -571,12 +571,12 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
 
-
+            /*
          if (gc->anscombe_tranform)
             for(j=0; j<col; j++)
                for(i=0; i<N; i++)
                   b[i+j*Ndim] *= anscombe_diff(a_cpy[i]);
-                  
+              */    
                   
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");

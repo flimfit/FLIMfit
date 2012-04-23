@@ -29,7 +29,7 @@ static integer c__3 = 3;
     integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, r_dim1, 
     r_offset, y_dim1, y_offset, i__1, i__2;
     doublereal d__1;
-    double rn, wx;
+    double rn;
 
     /* Builtin functions */
     double d_sign(doublereal *, doublereal *), sqrt(doublereal);
@@ -118,6 +118,8 @@ static integer c__3 = 3;
     b_dim1 = *ndim;
     b_offset = 1 + b_dim1;
     b -= b_offset;
+
+
     t_dim1 = *nmax;
     t_offset = 1 + t_dim1;
     t -= t_offset;
@@ -371,14 +373,8 @@ L85:
                   acum += b[i + m * b_dim1];
                }
 
-               /*
-               if (y[i + is * y_dim1] > 0)
-                  wx = 1/y[i + is * y_dim1];
-               else
-                  wx = 1;
-                  */
-
                b[isub + k * b_dim1] = acum;// * wx;
+
             }
          }
          b[isub + (*nl + 1) * b_dim1] = r__[i + is * r_dim1]; // include factor for weighting by pixel intensity here?

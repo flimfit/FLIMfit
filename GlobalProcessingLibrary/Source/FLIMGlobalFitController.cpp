@@ -89,46 +89,48 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf
    status = new FitStatus(this,n_thread,NULL);
    use_FMM = false;
 
-      alf          = NULL;
-      alf_best     = NULL; 
-      a            = NULL;
-      a_cpy        = NULL;
-      b            = NULL;
+   alf          = NULL;
+   alf_best     = NULL; 
+   a            = NULL;
+   b            = NULL;
+   c            = NULL;
 
-      y            = NULL;
-      lin_params   = NULL;
+   y            = NULL;
+   lin_params   = NULL;
 
-      w            = NULL;
+   w            = NULL;
 
-      sort_buf     = NULL;
-      sort_idx_buf = NULL;
-      exp_buf      = NULL;
-      tau_buf      = NULL;
-      beta_buf     = NULL;
-      theta_buf    = NULL;
-      fit_buf      = NULL;
-      count_buf    = NULL;
-      adjust_buf   = NULL;
+   sort_buf     = NULL;
+   sort_idx_buf = NULL;
+   exp_buf      = NULL;
+   tau_buf      = NULL;
+   beta_buf     = NULL;
+   theta_buf    = NULL;
+   fit_buf      = NULL;
+   count_buf    = NULL;
+   adjust_buf   = NULL;
 
-      irf_max      = NULL;
-      resampled_irf= NULL;
+   irf_max      = NULL;
+   resampled_irf= NULL;
 
-      conf_lim     = NULL;
+   conf_lim     = NULL;
 
-      locked_param = NULL;
-      locked_value = NULL;
+   locked_param = NULL;
+   locked_value = NULL;
 
-      lin_params_err = NULL;
-      alf_err        = NULL;
+   lin_params_err = NULL;
+   alf_err        = NULL;
 
-      irf_buf         = NULL;
-      t_irf_buf       = NULL;
-      tvb_profile_buf = NULL;
-      chan_fact       = NULL;
+   irf_buf         = NULL;
+   t_irf_buf       = NULL;
+   tvb_profile_buf = NULL;
+   chan_fact       = NULL;
 
-      ma_decay = NULL;
+   ma_decay = NULL;
 
-      data = NULL;
+   data = NULL;
+
+   lm_algorithm = 1;
 }
 
 int FLIMGlobalFitController::RunWorkers()
@@ -436,7 +438,7 @@ void FLIMGlobalFitController::Init()
    int n_group = data->n_group;
    int n_px    = data->n_px;
 
-   int s_max, bdim;
+   int s_max;
 
    getting_fit = false;
 
@@ -671,8 +673,15 @@ void FLIMGlobalFitController::Init()
    else
       n = n_meas;
 
-   ndim   = max( n, 2*nl+3 );
-   ndim   = max( ndim, s*n - (s-1)*l );
+   if (lm_algorithm == 0)
+   {
+      ndim   = max( n, 2*nl+3 );
+      ndim   = max( ndim, s*n - (s-1)*l );
+   }
+   else
+   {
+      ndim = max( n, 2*nl+3 );
+   }
    nmax   = n;
    lpps1  = l + p + s + 1; 
    lps    = l + s + 1;
@@ -681,6 +690,9 @@ void FLIMGlobalFitController::Init()
    iprint = -1;
    lnls1  = l + nl + s + 1;
    lmax   = l;
+   
+   csize = max(1,nl);
+   csize = csize * (csize * 7);
 
    if (nl == 0)
       lpps1  = l + s + 1;
@@ -694,9 +706,9 @@ void FLIMGlobalFitController::Init()
       alf          = new double[ data->n_regions_total * nl ]; //free ok
       alf_best     = new double[ data->n_regions_total * nl ]; //free ok
       a            = new double[ n_thread * n * lps ]; //free ok
-      a_cpy        = new double[ n_thread * n * (l+1) ];
-
+      
       b            = new double[ n_thread * ndim * pp2 ]; //free ok
+      c            = new double[ n_thread * csize ]; // free ok
 
       y            = new double[ n_thread * s * n_meas ]; //free ok 
       ma_decay     = new double[ n_thread * n_meas ];
@@ -1255,6 +1267,7 @@ void FLIMGlobalFitController::CleanupTempVars()
 
       ClearVariable(a);
       ClearVariable(b);
+      ClearVariable(c);
       ClearVariable(y);
       ClearVariable(w);
       ClearVariable(sort_buf);
@@ -1289,7 +1302,6 @@ void FLIMGlobalFitController::CleanupResults()
 
       init = false;
       ClearVariable(lin_params);
-      ClearVariable(a_cpy);
       ClearVariable(alf);
       ClearVariable(alf_best);
       ClearVariable(tau_buf);

@@ -663,7 +663,7 @@ L99:
    prjres, integer *ierr)
 {
    /* System generated locals */
-   integer b_dim1, b_offset, i__1, i__2, i__3;
+   integer b_dim1, b_offset, i__2;
    doublereal d__1;
 
    /* Builtin functions */
@@ -772,7 +772,7 @@ L99:
    doublereal *b)
 {
     /* System generated locals */
-    integer b_dim1, b_offset, i__1, i__2, i__3;
+    integer b_dim1, b_offset, i__2;
     doublereal d__1;
 
     /* Builtin functions */
@@ -905,7 +905,7 @@ L99:
 /*                                          CHECK FOR VALID INPUT */
     if (*l >= 0 && *nl >= 0 && *s * *l + *nl < *s * *n && lnls1 <= *lpps1 && (
        *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim && *iv > 0 &&
-        ! (*nl == 0 && *l == 0) && *s * *n - (*s - 1) * *l <= *ndim && *
+        ! (*nl == 0 && *l == 0) && * // && *s * *n - (*s - 1) * *l <= *ndim
        s > 0 && *l <= *lmax) {
    goto L3;
     }

@@ -58,8 +58,6 @@ class FLIMGlobalFitController
 {
 public:
 
-   //int n_group; int n_px; int *n_regions; int global_mode;
-   //int data_type; double *data; int *mask; 
    int n_t; double *t;
    int n_irf; double *t_irf; double *irf; double pulse_pileup;
    int n_exp; int n_fix; 
@@ -121,11 +119,9 @@ public:
    bool use_kappa;
 
    integer s; integer lmax; integer l; integer nl; integer n; integer nmax; integer ndim; 
-   integer lpps1; integer lps; integer pp2; integer iv; integer p; integer iprint; integer lnls1; integer n_v;
-   double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *lin_params;
+   integer lpps1; integer lps; integer pp2; integer iv; integer p; integer iprint; integer lnls1; integer n_v; integer csize;
+   double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *c; double *lin_params;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
-
-   double *a_cpy;
 
    bool beta_global;
    int n_beta;
@@ -245,6 +241,8 @@ private:
    int ma_start;
    double* ma_decay;
    double g_factor;
+
+   int lm_algorithm;
 
    boost::interprocess::file_mapping   b_map_file;
    boost::interprocess::mapped_region* b_map_view;

@@ -11,6 +11,7 @@ data_settings.xml
 FLIMGlobalAnalysisProto_*
 .DS_Store
 GlobalProcessingLibrary/Boost/*
+GlobalProcessingLibrary/Minpack/*
 TestDatasets/*
 GlobalProcessingLibrary/GeneratedProjects/*
 GlobalProcessingLibrary/Libraries/*

@@ -8,14 +8,14 @@
 #define F2C_INCLUDE
 
 //typedef unsigned char bool;
-
+/*
 #ifndef false
 #define false (0)
 #endif
 #ifndef true 
 #define true (1)
 #endif
-
+*/
 
 #define integer int
 #define doublereal double

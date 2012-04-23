@@ -39,7 +39,12 @@ set(SOURCE
    VarPro.cpp
    VarPro_dpa.cpp
    VarProGrid.cpp
+   VariableProjection.cpp
+   lmvarp.cpp
    tinythread.cpp
+   lmstr.c
+   lmstx.c
+   cminpack_support.c
 )
 
 set(HEADERS
@@ -51,8 +56,10 @@ set(HEADERS
    FLIMGlobalFitController.h
    FLIMData.h
    ModelADA.h
+   VariableProjection.h
    tinythread.h
    FlagDefinitions.h
+   cminpack.h
 )
 
 # Add _32/_64 appendix to library
@@ -103,6 +110,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 # Make library
 #===================================================
 add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} )
+
 
 # Make sure we don't have 'lib' prefix on UNIX
 #===================================================

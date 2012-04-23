@@ -39,6 +39,14 @@ extern "C"
 double xnorm_(int *n, double *x);
 
 extern "C"
+int init_(integer *s, integer *l, integer *lmax, integer *nl,
+    integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
+   lps, integer *pp2, integer *iv, doublereal *t, doublereal *w, 
+   const doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
+   *a, doublereal *b, integer *inc, integer *ncon, integer *nconp1, 
+   logical *philp1, logical *nowate, integer *gc, integer *thread);
+
+extern "C"
 int varp2_(int *s, int *l, int *lmax, int *
    nl, int *n, int *nmax, int *ndim, int *lpps1, int 
    *lps, int *pp2, int *iv, double *t, double *y, 

@@ -8,6 +8,7 @@
 #include "FLIMData.h"
 #include "IRFConvolution.h"
 
+#include "VariableProjection.h"
 
 
 /*===============================================
@@ -60,9 +61,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    */
 
 
-   int        *mask         = data->mask + g*n_px;
+   int    *mask         = data->mask + g*n_px;
    double *a            = this->a + thread * n * lps;
    double *b            = this->b + thread * ndim * pp2;
+   double *c            = this->c + thread * csize;
    double *y            = this->y + thread * s * n_meas;
    double *ma_decay     = this->ma_decay + thread * n_meas;
    double *lin_params   = this->lin_params + r_idx * n_px * l;
@@ -113,6 +115,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       else
          w[j] = smoothing_correction/abs(w[j]); //smoothing_correction / abs(y[j]);
    }
+
 
    if (anscombe_tranform)
       for(i=0; i<s_thresh*n_meas_res; i++)
@@ -247,9 +250,19 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    {
       lpps1_ = l + p + s_thresh + 1;
       lps_ = l + s_thresh;
-      varp2_( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
-               t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
-               alf, lin_params, &ierr_local, &c2, &algorithm, alf_best );
+      
+      if (lm_algorithm == 0)
+      {
+         varp2_( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+                  t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
+                  alf, lin_params, &ierr_local, &c2, &algorithm, alf_best );
+      }
+      else
+      {
+         lmvarp( &s_thresh, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, &iv, 
+                  t, y, w, (U_fp)ada, a, b, c, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
+                  alf, lin_params, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
+      }
    }
 
    if (global_algorithm == MODE_GLOBAL_BINNING && s_thresh > 1)
@@ -257,8 +270,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    else
       ierr[r_idx] = ierr_local;
 
-   if (ierr[r_idx] < 0)
-      ierr[r_idx] += 0;
 
    if (ierr[r_idx] >= -1 || ierr[r_idx] == -9) // if successful (or failed due to too many iterations) return fit results
    {
