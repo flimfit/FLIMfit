@@ -98,21 +98,18 @@ classdef flim_fit_result < handle
                 err = [];
             end
             s = size(im);
-            im = num2cell(im,2:length(s));
-            if ~isempty(err)
-                err = num2cell(err,2:length(s));
-            end
+            n = s(1);
             if length(s) > 2
                 s = s(2:end);
             else
                 s = [1 1];
             end
-            for i=1:length(im)
-                ix = im{i};
+            for i=1:n
+                ix = im(n,:,:,:);
                 ix = reshape(ix,s);
                 obj.set_image([name '_' num2str(i)],ix,mask,r,default_lims);
                 if ~isempty(err)
-                    ex = err{i};
+                    ex = err(n,:,:,:);
                     ex = reshape(ex,s);
                     if ~all(isnan(ex(:)))
                         obj.set_image([name '_' num2str(i) '_err'],ex,mask,r,default_lims);

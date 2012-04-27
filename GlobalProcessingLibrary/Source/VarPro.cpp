@@ -644,7 +644,7 @@ L95:
 
     c__2 = 1;
     (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-       b_offset], &inc, &t[t_offset], &alf[1], &c__2, gc, thread);
+       b_offset], 0, &inc, &t[t_offset], &alf[1], &c__2, gc, thread);
 L99:
     return 0;
 
@@ -856,7 +856,7 @@ L99:
     integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
    lps, integer *pp2, integer *iv, doublereal *t, doublereal *w, 
    doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
-   *a, doublereal *b, integer *inc, integer *ncon, integer *nconp1, 
+   *a, doublereal *b, doublereal *kap, integer *inc, integer *ncon, integer *nconp1, 
    logical *philp1, logical *nowate, integer *gc, integer *thread)
 {
     /* System generated locals */
@@ -920,7 +920,7 @@ L99:
 
 L3:
     (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-       b_offset], &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
+       b_offset], kap, &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
 
    for (i__ = 1; i__ <= *n; ++i__)
    {

@@ -23,7 +23,7 @@ static integer c__3 = 3;
 // r__ -> &a[lp1 * a_dim1 + 1]
 
 void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int ncon, 
-              int nconp1, int* inc, double* b, double* r__, int d_idx, double* res, double* derv);
+              int nconp1, int* inc, double* b, double *kap, double* r__, int d_idx, double* res, double* derv);
 
 
 
@@ -54,6 +54,8 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    double *b   = vp->b;
    double *u   = vp->beta;
    double *r__ = a + *l * *n;
+
+   double *kap = b + *ndim * (*pp2-1);
 
    if (*vp->terminate)
       return -9;
@@ -162,7 +164,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    {
       d_idx = *isel - 3;
       
-      jacb_row(s, l, n, ndim, nl, lps, lp1, ncon, nconp1, inc, b, r__, d_idx, rnorm, fjrow);
+      jacb_row(s, l, n, ndim, nl, lps, lp1, ncon, nconp1, inc, b, kap, r__, d_idx, rnorm, fjrow);
       return iflag;
    }
 
@@ -177,16 +179,14 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       lastcb = p;
       firstr = lp1;
       init_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &
-          w[1], &alf[1], (S_fp)ada, isel, iprint, &a[a_offset], &b[b_offset],
+          w[1], &alf[1], (S_fp)ada, isel, iprint, &a[a_offset], &b[b_offset], kap, 
           inc, &ncon, &nconp1, &philp1, &nowate, gc, thread);
-      if (*isel != 1)
-         goto L99;
    }
    else
    {
       i__1 = min(*isel,3);
       (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-          b_offset], inc, &t[t_offset], &alf[1], &i__1, gc, thread);
+          b_offset], kap, inc, &t[t_offset], &alf[1], &i__1, gc, thread);
 
       if (*isel > 2)
       {
@@ -237,7 +237,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
          #pragma omp parallel for
          for (j = firstca; j <= lastca; ++j)
             for (int i = 1; i <= *n; ++i)
-               a[i + j * a_dim1] *= w[i];    //Profiling: 12.1%
+               a[i + j * a_dim1] *= w[i];
       }
       if (firstcb != 0)
       {
@@ -265,7 +265,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       for (k = 1; k <= *l; ++k) 
       {
          kp1 = k + 1;
-         if (!(*isel >= 3 || *isel == 2 && k < nconp1))
+         if (*isel <= 2 && !(*isel == 2 && k<nconp1)) // (!(*isel >= 3 || *isel == 2 && k < nconp1))
          {
             i__2 = *n + 1 - k;
             d__1 = xnorm_(&i__2, &a[k + k * a_dim1]);
@@ -280,8 +280,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
                goto L99;
             }
          }
-   /*                                        APPLY REFLECTIONS TO COLUMNS */
-   /*                                        FIRSTC TO LASTC. */
+
          beta = -a[k + k * a_dim1] * u[k];
 
          if (firstca != 0)
@@ -291,9 +290,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
                acum = u[k] * a[k + j * a_dim1];
 
                for (int i = kp1; i <= *n; ++i) 
-               {
                   acum += a[i + k * a_dim1] * a[i + j * a_dim1];
-               }
                acum /= beta;
 
                a[k + j * a_dim1] -= u[k] * acum;
@@ -334,6 +331,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
          d__1 = xnorm_(&i__2, &r__[lp1 + j * r_dim1]);
          rn += d__1 * d__1;
       }
+      rn += kap[0] * kap[0];
       *rnorm = sqrt(rn);
    
    }
@@ -364,7 +362,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
       /*           L+NL+S+1. */
 
-      jacb_row(s, l, n, ndim, nl, lps, lp1, ncon, nconp1, inc, b, r__, 0, rnorm, fjrow);
+      jacb_row(s, l, n, ndim, nl, lps, lp1, ncon, nconp1, inc, b, kap, r__, 0, rnorm, fjrow);
 
       
    }
@@ -376,7 +374,7 @@ L99:
 } /* dpa_ */
 
 void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int ncon, 
-              int nconp1, int* inc, double* b, double* r__, int d_idx, double* res, double* derv)
+              int nconp1, int* inc, double* b, double *kap, double* r__, int d_idx, double* res, double* derv)
 {
    int m, k, j, ksub, b_dim1, r_dim1;
    double acum;
@@ -384,14 +382,26 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int
    b_dim1 = *ndim;
    r_dim1 = *n;
 
+   
+   if (d_idx == 0)
+   {
+      *res = kap[0];
+
+      for(j=0; j<*nl; j++)
+         derv[j] = kap[j+1];
+      return;
+   }
+
+   d_idx--;
+   
+
    //for (int i = *l + 1; i <= *n; ++i)
    //{
    //   for (isback = 1; isback <= *s; ++isback) 
    //   {
    int i = d_idx % (*n-*l) + 1 + *l;
    int isback = d_idx / (*n-*l) + 1;
-   //int i = d_idx / *s + 1 + *l;
-   //int isback = d_idx / *s + 1;
+
 
    int is = *s - isback + 1;
    int isub = (*n - *l) * (is - 1) + i;
@@ -407,7 +417,7 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int
             if (inc[k + j * 12 - 13] != 0) 
             {
                ++m;
-               acum += b[i + m * b_dim1] * r__[j + is * r_dim1];     // Profiling: 11.8%
+               acum += b[i + m * b_dim1] * r__[j + is * r_dim1];
             }
          }
          ksub = *lps + k;
@@ -418,11 +428,9 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int
          }
 
          derv[k-1] = -acum;
-         //b[isub + k * b_dim1] = acum;// * wx;
 
       }
    }
-   //b[isub + (*nl + 1) * b_dim1] = r__[i + is * r_dim1]; // include factor for weighting by pixel intensity here?
    *res = r__[i+is*r_dim1];
    //   }
    //}

@@ -25,7 +25,7 @@ typedef void (* conv_deriv_func)(FLIMGlobalFitController *gc, double t, double r
 
 typedef int (*Tada)(int *s, int *lp1, int *nl, int *n, 
    int *nmax, int *ndim, int *lpp2, int *pp2, int *iv, 
-   double *a, double *b, int *inc, double *t, double *alf, int *isel, int *gidx);
+   double *a, double *b, double *kap, int *inc, double *t, double *alf, int *isel, int *gidx);
 
 extern "C"
 int dpa_(int *s, int *l, int *lmax, int *nl, 
@@ -43,7 +43,7 @@ int init_(integer *s, integer *l, integer *lmax, integer *nl,
     integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
    lps, integer *pp2, integer *iv, doublereal *t, doublereal *w, 
    const doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
-   *a, doublereal *b, integer *inc, integer *ncon, integer *nconp1, 
+   *a, doublereal *b, doublereal *kap, integer *inc, integer *ncon, integer *nconp1, 
    logical *philp1, logical *nowate, integer *gc, integer *thread);
 
 extern "C"
@@ -57,7 +57,7 @@ int varp2_(int *s, int *l, int *lmax, int *
 extern "C"
 int ada(int *s, int *lp1, int *nl, int *n, 
    int *nmax, int *ndim, int *lpp2, int *pp2, int *iv, double *a, double *b, 
-   int *inc, double *t, double *alf, int *isel, int *gc, int *thread);
+   double *kap, int *inc, double *t, double *alf, int *isel, int *gc, int *thread);
 
 extern "C"
 int postpr_(int *s, int *l, int *lmax, int *

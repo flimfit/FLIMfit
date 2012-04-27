@@ -11,7 +11,7 @@ function estimate_irf_background(obj)
 
         ir = double(obj.irf(:,i));
         
-        if length(ir==0) > 0.5 * length(ir)
+        if sum(ir==0) > 0.5 * length(ir)
             bg(i) = 0;
         else
             gauss_fit = gmdistribution.fit(ir,2,'Replicates',10);

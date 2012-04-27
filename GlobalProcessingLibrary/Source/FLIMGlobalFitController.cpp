@@ -442,7 +442,7 @@ void FLIMGlobalFitController::Init()
 
    getting_fit = false;
 
-   use_kappa = false;
+   use_kappa = true;
 
    // Validate input
    //---------------------------------------
@@ -607,8 +607,8 @@ void FLIMGlobalFitController::Init()
    {
       nl  = n_v + n_fret_v + n_beta + n_theta_v;                                // (varp) Number of non-linear parameters to fit
       p   = (n_v + n_beta)*n_decay_group*n_pol_group + n_exp_phi * n_fret_v + n_theta_v;    // (varp) Number of elements in INC matrix 
-      if (use_kappa)
-         p  += (n_v > 1) ? n_v-1 : 0; // for kappa derivates
+      //if (use_kappa)
+      //   p  += (n_v > 1) ? n_v-1 : 0; // for kappa derivates
       l   = n_exp_phi * n_decay_group * n_pol_group;          // (varp) Number of linear parameters
    }
 
@@ -685,14 +685,13 @@ void FLIMGlobalFitController::Init()
    nmax   = n;
    lpps1  = l + p + s + 1; 
    lps    = l + s + 1;
-   pp2    = max(p,nl + 1);
-   pp2    = p + 2; //max(pp2, 2);
+   pp2    = p + 3;
    iprint = -1;
    lnls1  = l + nl + s + 1;
    lmax   = l;
    
    csize = max(1,nl);
-   csize = csize * (csize * 7);
+   csize = csize * (csize + 7);
 
    if (nl == 0)
       lpps1  = l + s + 1;
@@ -1144,7 +1143,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
    int isel = 1;
    int thread = 0;
 
-   double *at = 0, *bt = 0;
+   double *at = 0, *bt = 0, *kap;
 
    int ndim;
    ndim   = max( n_meas, 2*nl+3 );
@@ -1162,6 +1161,8 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
       delete[] at;
       return ERR_OUT_OF_MEMORY;
    }
+
+   kap = bt + ndim * (pp2-1);
 
    for(i=0; i<n_fit*n_meas; i++)
       fit[i] = nan;
@@ -1185,7 +1186,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
          {
 
             r_idx = data->GetRegionIndex(group,r);
-            ada(&s,&lp1,&nl,(int*)&n_meas,&nmax,(int*)&n_meas,&lpp2,&pp2,&iv,at,bt,inc,t,alf+r_idx*nl,&isel,(int*)this, &thread);
+            ada(&s,&lp1,&nl,(int*)&n_meas,&nmax,(int*)&n_meas,&lpp2,&pp2,&iv,at,bt,NULL,inc,t,alf+r_idx*nl,&isel,(int*)this, &thread);
 
             px_thresh = 0;
             for(int p=0; p<n_px; p++)

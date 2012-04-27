@@ -60,7 +60,7 @@ int lmvarp(integer *s, integer *l, integer *lmax, integer *
    dspace_idx += cdim;
 
    double *wa1 = dspace + dspace_idx;
-   dspace_idx += *nl;
+   dspace_idx += cdim;
 
    double *wa2 = dspace + dspace_idx;
    dspace_idx += cdim;
@@ -113,7 +113,7 @@ int lmvarp(integer *s, integer *l, integer *lmax, integer *
       iprint, alf, w, a, b, &a[*l * *n], beta, ierr);
 
     c__2 = 1;
-    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, a, b, inc, t, alf, &c__2, gc, thread);
+    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, a, b, 0, inc, t, alf, &c__2, gc, thread);
 
   
    if (info < 0)

@@ -46,7 +46,9 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         function use_callback(obj,~,~)
            
             data = get(obj.handle,'Data');
-            obj.data_series.use = cell2mat(data(:,1));
+            use = data(:,1);
+            use = cell2mat(use);
+            obj.data_series.use = use;
             
         end
         

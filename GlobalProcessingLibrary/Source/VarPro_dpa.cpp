@@ -153,7 +153,7 @@ static integer c__3 = 3;
 L3:
    i__1 = min(*isel,3);
    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-       b_offset], inc, &t[t_offset], &alf[1], &i__1, gc, thread);
+       b_offset], NULL, inc, &t[t_offset], &alf[1], &i__1, gc, thread);
 
    if (*isel == 2)
       goto L6;
