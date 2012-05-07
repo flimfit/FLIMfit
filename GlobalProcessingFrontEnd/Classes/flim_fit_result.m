@@ -88,9 +88,6 @@ classdef flim_fit_result < handle
        
  
         function set_image_split(obj,name,im,mask,r,default_lims,err)
-            if nargin < 5 || isempty(r)
-                r = 1:obj.n_results;
-            end
             if nargin < 6
                 default_lims = [];
             end
@@ -98,21 +95,17 @@ classdef flim_fit_result < handle
                 err = [];
             end
             s = size(im);
-            im = num2cell(im,2:length(s));
-            if ~isempty(err)
-                err = num2cell(err,2:length(s));
-            end
+            n = size(im,3);
             if length(s) > 2
-                s = s(2:end);
+                s = s(1:end-1);
             else
                 s = [1 1];
             end
-            for i=1:length(im)
-                ix = im{i};
-                ix = reshape(ix,s);
+            for i=1:n
+                ix = im(:,:,i);
                 obj.set_image([name '_' num2str(i)],ix,mask,r,default_lims);
                 if ~isempty(err)
-                    ex = err{i};
+                    ex = err(:,:,i);
                     ex = reshape(ex,s);
                     if ~all(isnan(ex(:)))
                         obj.set_image([name '_' num2str(i) '_err'],ex,mask,r,default_lims);
@@ -122,47 +115,12 @@ classdef flim_fit_result < handle
         end
                 
         function set_image(obj,name,im,mask,r,default_lims)
-            if nargin < 5 || isempty(r)
-                r = 1:obj.n_results;
-            end
             if nargin == 6 && ~isempty(default_lims)
                 obj.set_default_lims(name,default_lims);
             end                
-            s = size(im);
-            if length(r) == 1
-                obj.write(r,name,im,mask);
-            elseif iscell(im)
-                if ~isempty(mask)
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},mask(:,:,i));
-                    end
-                else
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},[]);
-                    end
-                end
-            elseif s(end) == length(r)
-                im = num2cell(im,1:(length(s)-1));
-                if ~isempty(mask)
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},mask(:,:,i));
-                    end
-                else
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},[]);
-                    end
-                end
-            else
-                if ~isempty(mask)
-                    for i=1:length(r)
-                        obj.write(r(i),name,im,mask(:,:,i));
-                    end
-                else
-                    for i=1:length(r)
-                        obj.write(r(i),name,im,[]);
-                    end
-                end
-            end 
+            
+            obj.write(r,name,im,mask);
+             
         end
         
         function set_default_lims(obj,name,lims)
@@ -218,7 +176,7 @@ classdef flim_fit_result < handle
         end
         
         function write(obj,dataset,param,img,mask)
-           
+            
             if isempty(mask) || sum(mask(:)) == 0
               
                 n_regions = 1;
@@ -268,26 +226,12 @@ classdef flim_fit_result < handle
             end
             
             if ~obj.use_memory_mapping
-                obj.images{dataset}.(param) = img;
+                obj.images{dataset}.(param) = single(img);
                 
             else
                 path = ['/' obj.names{dataset} '/' param];
-                %if exist(obj.file,'file')
-                %    try 
-                %        info = h5info(obj.file,path);
-                %        create = false;
-                %    catch e %#ok
-                %        create = true;
-                %    end
-                %else
-                %    create = true;
-                %end
-                %if create
                 h5create_direct(obj.file,path,size(img),'ChunkSize',size(img),'Deflate',0);
-                %end
                 h5write(obj.file,path,img);
-                %h5writeatt_direct(obj.file,path,'mean',img_mean);
-                %h5writeatt_direct(obj.file,path,'std',img_std);
             end
             
         end

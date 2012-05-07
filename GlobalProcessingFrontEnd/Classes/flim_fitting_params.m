@@ -139,7 +139,7 @@ classdef flim_fitting_params < handle
             if length(obj.fret_guess) > n_fret
                 obj.fret_guess = obj.fret_guess(1:n_fret);
             elseif length(obj.fret_guess) < n_fret
-                padding = ones(n_fret-length(obj.fret_guess),1);
+                padding = 0.5*ones(n_fret-length(obj.fret_guess),1);
                 obj.fret_guess = [obj.fret_guess ; padding];
             end      
             

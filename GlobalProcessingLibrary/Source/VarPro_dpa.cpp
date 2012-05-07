@@ -20,7 +20,7 @@ static integer c__3 = 3;
 /*     ============================================================== */
 /* Subroutine */ int dpa_(integer *s, integer *l, integer *lmax, integer *nl, 
    integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
-   lps, integer *pp2, integer *iv, doublereal *t, doublereal *y, doublereal 
+   lps, integer *pp2, doublereal *t, doublereal *y, doublereal 
    *w, doublereal *alf, S_fp ada, integer *isel, integer *iprint, 
    doublereal *a, doublereal *b, doublereal *u, doublereal *r__, 
    doublereal *rnorm, integer *gc, integer *thread, integer *static_store)
@@ -59,12 +59,6 @@ static integer c__3 = 3;
     doublereal beta, acum;
     doublereal save;
     integer isub;
-    extern /* Subroutine */ int init_(integer *s, integer *l, integer *lmax, integer *nl,
-    integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
-   lps, integer *pp2, integer *iv, doublereal *t, doublereal *w, 
-   doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
-   *a, doublereal *b, integer *inc, integer *ncon, integer *nconp1, 
-   logical *philp1, logical *nowate, integer *gc, integer *thread);
     integer ksub, lnls, lpps, lnls1;
     doublereal alpha;
     extern doublereal xnorm_(integer *, doublereal *);
@@ -142,7 +136,7 @@ static integer c__3 = 3;
    firstcb = 1;
    lastcb = p;
    firstr = lp1;
-   init_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &
+   init_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, &t[t_offset], &
        w[1], &alf[1], (S_fp)ada, isel, iprint, &a[a_offset], &b[b_offset],
        inc, &ncon, &nconp1, &philp1, &nowate, gc, thread);
    if (*isel != 1)
@@ -152,8 +146,8 @@ static integer c__3 = 3;
 
 L3:
    i__1 = min(*isel,3);
-   (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-       b_offset], inc, &t[t_offset], &alf[1], &i__1, gc, thread);
+   (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, &a[a_offset], &b[
+       b_offset], NULL, inc, &t[t_offset], &alf[1], &i__1, gc, thread);
 
    if (*isel == 2)
       goto L6;

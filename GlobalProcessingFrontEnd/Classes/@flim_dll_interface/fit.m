@@ -141,20 +141,30 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         
         mask = d.seg_mask; 
         
+        if ~isempty(mask)
+            obj.n_regions = reshape(mask,[size(mask,1)*size(mask,2) size(mask,3)]);
+            obj.n_regions = squeeze(max(obj.n_regions,[],1));
+        else
+            obj.n_regions = ones([1 obj.n_im]);
+        end
+        obj.n_regions_total = sum(obj.n_regions);
+
+        
         switch p.global_fitting
             case 0
                 obj.n_group = width * height * obj.n_im;            
-                
+                %{
                 if ~isempty(mask)
                     obj.n_regions = mask;
                     obj.n_regions_total = max(mask(:));
                 else
-                    obj.n_regions = ones([width height obj.n_im]);
-                    obj.n_regions_total = obj.n_group;
+                    obj.n_regions = ones([1 obj.n_im]);
+                   obj.n_regions_total = obj.n_im;
                 end
-                
+                %}
+                obj.n_regions_total = obj.n_im;
                 obj.n_px = 1;
-                obj.globals_size = [width height obj.n_im];
+                obj.globals_size = [height width obj.n_im];
                 
                 if p.use_phase_plane_estimation         
                     est_decay = d.data_series;
@@ -163,17 +173,10 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
             case 1 %global_mode.image
                 obj.n_group = n_im;
-                
-                if ~isempty(mask)
-                    obj.n_regions = reshape(mask,[size(mask,1)*size(mask,2) size(mask,3)]);
-                    obj.n_regions = squeeze(max(obj.n_regions,[],1));
-                else
-                    obj.n_regions = ones([1 obj.n_im]);
-                end
-                obj.n_regions_total = sum(obj.n_regions);
+               
+                obj.globals_size = [1 obj.n_regions_total];
 
                 obj.n_px = width * height;
-                obj.globals_size = [1 obj.n_regions_total];
                 
                 if p.use_phase_plane_estimation         
                     est_decay = zeros(d.n_tr_t,obj.n_im);
@@ -189,14 +192,14 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
             case 2 %global_mode.dataset
                 obj.n_group = 1;
-                
+                %{
                 if ~isempty(mask)
                     obj.n_regions = max(mask(:));
                 else
                     obj.n_regions = 1;
                 end
                 obj.n_regions_total = obj.n_regions;
-
+                %}
                 obj.n_px = width * height * obj.n_im;
                 obj.globals_size = [1 obj.n_regions_total];
                 
@@ -212,33 +215,17 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
                 end
         end
         
+
+        
     end
     
     % Phase plane estimation
     if p.use_phase_plane_estimation
         p.tau_guess = obj.generate_phase_plane_estimates(d,est_decay,p.n_exp,p.tau_min,p.tau_max);
     end
-    
-    obj.single_guess = ~p.use_phase_plane_estimation;
-        
+       
     obj.n_regions = double(obj.n_regions);
-
-    if obj.bin
-        sz = [1 1];
-    else
-        sz = [height width obj.n_im];
-    end
-    
-    obj.I0_size = sz;
-    obj.tau_size = [p.n_exp sz];
-    
-    obj.theta_size = [p.n_theta sz];
-    obj.r_size = [p.n_theta sz];
-    
-    n_decay_group = p.n_fret + p.inc_donor;
-    obj.gamma_size = [n_decay_group sz];
-    obj.E_size = [p.n_fret sz];
-    
+   
     obj.p_use = libpointer('int32Ptr',use);
     
     obj.p_tau_guess = libpointer('doublePtr',p.tau_guess);
@@ -246,112 +233,18 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.p_tau_max = libpointer('doublePtr',p.tau_max);
     obj.p_irf  = libpointer('doublePtr', d.tr_irf);
     obj.p_t_irf = libpointer('doublePtr', d.tr_t_irf);
-    obj.p_n_regions = libpointer('int32Ptr', int32(obj.n_regions));
     obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta / sum(p.fixed_beta));
     obj.p_E_guess = libpointer('doublePtr',p.fret_guess);
     obj.p_theta_guess = libpointer('doublePtr',p.theta_guess);
 
     obj.p_tvb_profile = libpointer('doublePtr',d.tr_tvb_profile);
 
-    if p.polarisation_resolved
-        obj.p_r = libpointer('doublePtr',zeros(obj.r_size));
-        obj.p_theta = libpointer('doublePtr',zeros(obj.theta_size));
-
-        obj.p_E = [];
-        obj.p_gamma = [];
-    else
-        obj.p_E = libpointer('doublePtr',zeros(obj.E_size));
-        obj.p_gamma = libpointer('doublePtr',zeros(obj.gamma_size));
-
-        obj.p_r = [];
-        obj.p_theta = [];
-    end
-
     if ~d.use_memory_mapping
         obj.p_data = libpointer('doublePtr', d.data_series_mem);
     end
 
-    obj.p_tau = libpointer('doublePtr', zeros(obj.tau_size));
-    obj.p_beta = libpointer('doublePtr', zeros(obj.tau_size));
 
-    obj.p_I0 = libpointer('doublePtr', zeros(obj.I0_size));
-
-    if false
-        obj.p_t0 = libpointer('doublePtr', zeros(obj.I0_size));
-    end
-    %else
-    %    obj.p_t0 = 0;
-    %end
-
-    if p.fit_offset > 0
-        obj.p_offset = libpointer('doublePtr',zeros(obj.I0_size));
-    else
-          obj.p_offset = [];
-    end
-
-    if p.fit_scatter > 0
-        obj.p_scatter = libpointer('doublePtr',zeros(obj.I0_size));
-    else
-          obj.p_scatter = [];
-    end
-
-    if p.fit_tvb > 0
-        obj.p_tvb = libpointer('doublePtr',zeros(obj.I0_size));
-    else
-          obj.p_tvb = [];
-    end
-
-    if p.ref_reconvolution == 2
-        obj.p_ref_lifetime = libpointer('doublePtr',zeros(obj.I0_size));
-    else
-          obj.p_ref_lifetime = [];
-    end
-
-    obj.p_tau_err = [];
-    obj.p_beta_err = [];
-    obj.p_theta_err = [];
-    obj.p_E_err = [];
-    obj.p_offset_err = [];
-    obj.p_scatter_err = [];
-    obj.p_tvb_err = [];
-    obj.p_ref_lifetime_err = [];
-
-    if p.calculate_errs && ~obj.bin
-        obj.p_tau_err = libpointer('doublePtr', zeros(obj.tau_size));
-
-        if p.fit_beta == 2
-            obj.p_beta_err = libpointer('doublePtr',zeros(obj.tau_size));
-        end
-
-        if p.polarisation_resolved
-            obj.p_theta_err = libpointer('doublePtr',zeros(obj.theta_size));
-        else
-            obj.p_E_err = libpointer('doublePtr',zeros(obj.E_size));
-        end
-
-        if p.fit_offset == 2
-            obj.p_offset_err = libpointer('doublePtr',zeros(obj.I0_size));
-        end
-        if p.fit_scatter == 2
-            obj.p_scatter_err = libpointer('doublePtr',zeros(obj.I0_size));
-        end
-        if p.fit_tvb == 2
-            obj.p_tvb_err = libpointer('doublePtr',zeros(obj.I0_size));
-        end
-        if p.ref_reconvolution == 2
-            obj.p_ref_lifetime_err = libpointer('doublePtr', zeros(obj.I0_size));
-        end
-    end
-
-
-
-    obj.p_chi2 = libpointer('doublePtr', zeros(obj.I0_size));
     obj.p_ierr = libpointer('int32Ptr', zeros(obj.globals_size));
-    %catch e %#ok
-    %    obj.clear_temp_vars();
-    %    err = -1005;
-    %    return;
-    %end
     
     obj.start_time = tic;
    

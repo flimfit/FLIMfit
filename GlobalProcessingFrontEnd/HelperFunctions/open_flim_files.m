@@ -190,6 +190,8 @@ switch ext
                  end                 
              end
              
+             fclose(fid);
+             
              
              ir = dlmread(FileName,'\t',header_lines,0);
              

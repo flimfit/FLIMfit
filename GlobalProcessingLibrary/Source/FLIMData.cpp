@@ -214,6 +214,16 @@ int FLIMData::GetRegionIndex(int group, int region)
       return region_start[group]+region-1;
 }
 
+int FLIMData::GetImLoc(int im)
+{
+   for(int i=0; i<n_im_used; i++)
+   {
+      if (use_im[i] == im)
+         return i;
+   }
+   return 0;
+}
+
 double* FLIMData::GetT()
 {
    return t + t_skip[0];
@@ -245,7 +255,7 @@ int FLIMData::GetResampleNumMeas(int thread)
 
 void FLIMData::DetermineAutoSampling(int thread, double decay[])
 {
-   if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling)
+   if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
       return;
 
    int* resample_idx = this->resample_idx + n_t * thread;
@@ -310,8 +320,7 @@ int FLIMData::GetMinRegion(int group)
       return min_region[group];
 }
 
-
-int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data, double* ma_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* weight, double* ma_decay)
 {
    int s = 0;
    
@@ -327,8 +336,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       int im = group / (n_x*n_y);
       int p = group - im*n_x*n_y;
 
-      if (im != cur_transformed[thread])
-         transform_fcn(im);
+      transform_fcn(im);
 
       s = GetPixelData(thread, im, p, adjust, region_data, ma_decay);
    }
@@ -343,25 +351,66 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       for(int i=0; i<n_im_used; i++)
       {
          transform_fcn(i);
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas_res[thread]);
+         s += GetMaskedData(thread, i, region, adjust, region_data + s*GetResampleNumMeas(thread));
       }
    }
    
-   if ( mean_region_data != NULL )
-   {
-      memset(mean_region_data,0, n_meas * sizeof(double));
+   memset(weight,0, n_meas * sizeof(double));
 
-      for(int i=0; i<s; i++)
-         for(int j=0; j<n_meas; j++)
-            mean_region_data[j] += region_data[i*n_meas + j];
-      
+   for(int i=0; i<s; i++)
       for(int j=0; j<n_meas; j++)
-         mean_region_data[j] /= s;
+         weight[j] += region_data[i*n_meas + j];
+      
+   for(int j=0; j<n_meas; j++)
+      weight[j] /= s;
 
-      if (global_mode != MODE_PIXELWISE)
-         for(int j=0; j<n_meas; j++)
-            ma_decay[j] = mean_region_data[j];
-    }
+   if (global_mode != MODE_PIXELWISE)
+      for(int j=0; j<n_meas; j++)
+         ma_decay[j] = weight[j];
+
+   for(int j=0; j<n_meas; j++)
+   {
+      weight[j] += adjust[j];
+      if (weight[j] == 0)
+         weight[j] = 1;   // If we have a zero data point set to 1
+      else
+         weight[j] = 1/abs(weight[j]);
+   }
+
+   return s;
+}
+
+
+int FLIMData::GetImageData(int thread, int im, int region, double* adjust, double* region_data, double* weight)
+{
+   int s;
+   int n_meas_res = GetResampleNumMeas(thread);
+   boost::function<void(int)> transform_fcn;
+   
+   if (data_class == DATA_DOUBLE)
+      transform_fcn = boost::bind(&FLIMData::TransformImage<double>, this, thread, _1);
+   else
+      transform_fcn = boost::bind(&FLIMData::TransformImage<uint16_t>, this, thread, _1);
+  
+   transform_fcn(im);
+   
+   s = GetMaskedData(thread, im, region, adjust, region_data);
+
+   memset(weight,0, n_meas_res * sizeof(double));
+
+   for(int i=0; i<s; i++)
+      for(int j=0; j<n_meas_res; j++)
+         weight[j] += region_data[i*n_meas_res + j];
+      
+   for(int j=0; j<n_meas_res; j++)
+   {
+      weight[j] /= s;
+      weight[j] += adjust[j];
+      if (weight[j] == 0)
+         weight[j] = 1;   // If we have a zero data point set to 1
+      else
+         weight[j] = 1/abs(weight[j]);
+   }
 
    return s;
 }
@@ -370,8 +419,8 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
 int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* masked_data, double* ma_decay)
 {
    double* tr_data = this->tr_data + thread * n_p;
-   int*    resample_idx = this->resample_idx + thread * n_t; 
-
+   int*    resample_idx = GetResampleIdx(thread);
+   
    if (mask[im*n_x*n_y+p]==0)
    {
       return 0;
@@ -395,8 +444,9 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
 
    DetermineAutoSampling(thread,ma_decay);
 
+   int jmax = GetResampleNumMeas(thread);
    idx = 0;
-   for(int j=0; j<n_meas_res[thread]; j++)
+   for(int j=0; j<jmax; j++)
       masked_data[j] = 0;
 
    for(int k=0; k<n_chan; k++)
@@ -414,18 +464,19 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
 
 int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data)
 {
-
    int* im_mask = mask + im*n_x*n_y;
    double* tr_data = this->tr_data + thread * n_p;
+   int*    resample_idx = GetResampleIdx(thread);
+
    int idx = 0;
 
    // Store masked values
    int s = 0;
    for(int p=0; p<n_x*n_y; p++)
    {
-      if (im_mask[p] == region)
+      if (region < 0 || im_mask[p] == region)
       {
-         memset(masked_data+idx,0,n_meas_res[thread]*sizeof(double));
+         memset(masked_data+idx,0,sizeof(double)*GetResampleNumMeas(thread));
          for(int k=0; k<n_chan; k++)
          {
             for(int i=0; i<n_t; i++)
@@ -442,6 +493,59 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
    return s;
 }
 
+int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, double* adjust, double* y, double *w)
+{
+   int* mask = this->mask + im*n_x*n_y;
+   int* resample_idx = GetResampleIdx(thread);
+
+   int idx = 0;
+   int s = 0;
+   int i;
+
+   if (data_class == DATA_DOUBLE)
+      TransformImage<double>(thread, im);
+   else
+      TransformImage<uint16_t>(thread, im);
+     
+   for(int p=0; p<n; p++)
+   {
+      i = loc[p];
+      if (mask[i] == region)
+      {
+         memset(y+idx,0,sizeof(double)*GetResampleNumMeas(thread));
+         for(int k=0; k<n_chan; k++)
+         {
+            for(int j=0; j<n_t; j++)
+            {
+               y[idx] += tr_data[i*n_meas + k*n_t + j] - adjust[k*n_t+j];
+               idx += resample_idx[j];
+            }
+            idx++;
+         }
+         s++;
+      }
+   }
+
+   memset(w,0, n_meas * sizeof(double));
+
+   for(int i=0; i<s; i++)
+      for(int j=0; j<n_meas; j++)
+         w[j] += y[i*n_meas + j];
+      
+   for(int j=0; j<n_meas; j++)
+   {
+      w[j] /= s;
+      w[j] += adjust[j];
+      if (w[j] == 0)
+         w[j] = 1;   // If we have a zero data point set to 1
+      else
+         w[j] = 1/abs(w[j]);
+   }
+
+
+   return s;
+
+}
 
 void FLIMData::ClearMapping()
 {
@@ -455,6 +559,8 @@ void FLIMData::ClearMapping()
 
 FLIMData::~FLIMData()
 {
+   ClearMapping();
+
    delete[] tr_data;
    delete[] tr_buf;
    delete[] cur_transformed;

@@ -22,7 +22,7 @@ function varargout = yuiry_segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 23-Jan-2012 14:47:57
+% Last Modified by GUIDE v2.5 04-May-2012 10:33:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -387,3 +387,19 @@ function seg_use_multiple_regions_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of seg_use_multiple_regions
+
+
+% --- Executes on button press in trim_outliers_checkbox.
+function trim_outliers_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to trim_outliers_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of trim_outliers_checkbox
+
+
+% --- Executes on button press in yuiry_segment_selected_button.
+function yuiry_segment_selected_button_Callback(hObject, eventdata, handles)
+% hObject    handle to yuiry_segment_selected_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

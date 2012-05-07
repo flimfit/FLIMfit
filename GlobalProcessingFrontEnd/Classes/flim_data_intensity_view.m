@@ -46,16 +46,20 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                 selected = obj.data_series_list.selected;
                 intensity = obj.data_series.selected_intensity(selected);
               
+                flt = intensity(intensity>0 & ~isnan(intensity));
+
+                
                 try
-                    lim(1) = nanmin(intensity(intensity>0))-1;
+                    lim(1) = min(flt)-1;
                 catch
                     lim(1) = 0;
                 end
                 
-                lim(2) = nanmax(intensity(:))+1;
+                lim(2) = prctile(flt,99.5);
                 
                 intensity = (intensity - lim(1))/(lim(2)-lim(1));
-                mask = intensity < 0 | intensity > 1;
+                mask = intensity < 0;
+                intensity(intensity > 1) = 1;
                 intensity = uint32(intensity * m);
                 intensity = intensity + 1;
                 intensity(mask) = 0;

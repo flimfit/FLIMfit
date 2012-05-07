@@ -61,21 +61,11 @@ function calculated = compute_tr_data(obj,notify_update)
         % Apply all the masking above
         obj.tr_t = obj.tr_t(t_inc);
               
-        bg = obj.background;
             
-           
-        % Downsample the data
-        if obj.downsampling > 1
-            sz = size(obj.cur_data);
-            sz(1) = sz(1) / obj.downsampling;
-            obj.cur_tr_data = reshape(double(obj.cur_data),[obj.downsampling sz]);
-            obj.cur_tr_data = nansum(obj.cur_tr_data,1);
-            obj.cur_tr_data = reshape(obj.cur_tr_data,sz);
-        else
-            obj.cur_tr_data = double(obj.cur_data);
-        end
+        obj.cur_tr_data = double(obj.cur_data);
         
         % Subtract background and crop
+        bg = obj.background;
         if length(bg) == 1 || all(size(bg)==size(obj.cur_tr_data))
             obj.cur_tr_data = obj.cur_tr_data - double(bg);
         end
@@ -89,6 +79,7 @@ function calculated = compute_tr_data(obj,notify_update)
         if obj.polarisation_resolved
             in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
         end
+        
         obj.intensity = squeeze(in);
 
         % Shift the perpendicular channel

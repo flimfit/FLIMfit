@@ -22,11 +22,11 @@ static integer c__3 = 3;
 static integer c__2 = 2;
 
 /*     ============================================================== */
-/* Subroutine */ int varp2_(integer *s, integer *l, integer *lmax, integer *
+/* Subroutine */ int varp2_(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer *lpps1, integer 
-   *lps, integer *pp2, integer *iv, doublereal *t, doublereal *y, 
-   doublereal *w, S_fp ada, doublereal *a, doublereal *b, integer *
-   iprint, integer *itmax, integer *gc, integer *thread, real *sstore, 
+   *lps, integer *pp2, doublereal *t, doublereal *y, 
+   doublereal *w, S_fp ada, doublereal *a, doublereal *b,
+   integer *itmax, integer *gc, integer *thread, real *sstore, 
    doublereal *alf, doublereal *beta, integer *ierr, doublereal *r__, 
    integer *gn, doublereal *alfbest)
 {
@@ -47,12 +47,13 @@ static integer c__2 = 2;
     integer j, k, b1, terminate;
     doublereal nu;
     integer lp1;
-    extern /* Subroutine */ int dpa_(integer *, integer *, integer *, integer 
-       *, integer *, integer *, integer *, integer *, integer *, integer 
-       *, integer *, doublereal *, doublereal *, doublereal *, 
-       doublereal *, S_fp, integer *, integer *, doublereal *, 
-       doublereal *, doublereal *, doublereal *, doublereal *, integer *,
-        integer *, real *);
+extern
+int dpa_(int *s, int *l, int *nl, 
+   int *n, int *nmax, int *ndim, int *lpps1, int *
+   lps, int *pp2, double *t, double *y, double 
+   *w, double *alf, S_fp ada, int *isel,
+   double *a, double *b, double *u, double *r__, 
+   double *rnorm, int *gc, int *thread, int *static_store);
     doublereal dta, last_prjres__;
     integer inc, nlp1;
     doublereal acum;
@@ -390,7 +391,7 @@ static integer c__2 = 2;
 /*     .................................................................. */
 
     /* Parameter adjustments */
-    beta_dim1 = *lmax;
+    beta_dim1 = *l;
     beta_offset = 1 + beta_dim1;
     beta -= beta_offset;
     --alfbest;
@@ -448,7 +449,7 @@ static integer c__2 = 2;
 /*              DERIVATIVE IN SUBSEQUENT ITERATIONS. */
 
 L5:
-    dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &y[
+    dpa_(s, l, nl, n, nmax, ndim, lpps1, lps, pp2, &t[t_offset], &y[
        y_offset], &w[1], &alf[1], (S_fp)ada, ierr, iprint, &a[a_offset], 
        &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 + 1], r__, gc, 
        thread, sstore);
@@ -504,7 +505,7 @@ L30:
 /*              NORM OF RESIDUAL.  NEW ALF IS STORED IN COLUMN B1 OF A. */
 
 L40:
-    dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &y[
+    dpa_(s, l, nl, n, nmax, ndim, lpps1, lps, pp2, &t[t_offset], &y[
        y_offset], &w[1], &b[b_offset], (S_fp)ada, ierr, iprint, &a[
        a_offset], &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 + 1],
         &rnew, gc, thread, sstore);
@@ -633,7 +634,7 @@ L90:
     *ierr = iter;
 L95:
     if (*nl > 0) {
-   dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset],
+   dpa_(s, l, nl, n, nmax, ndim, lpps1, lps, pp2, &t[t_offset],
        &y[y_offset], &w[1], &alf[1], (S_fp)ada, &c__3, iprint, &a[
       a_offset], &b[b_offset], &beta[beta_offset], &a[lp1 * a_dim1 
       + 1], r__, gc, thread, sstore);
@@ -643,8 +644,8 @@ L95:
        a_dim1 + 1], &beta[beta_offset], ierr);
 
     c__2 = 1;
-    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-       b_offset], &inc, &t[t_offset], &alf[1], &c__2, gc, thread);
+    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, &a[a_offset], &b[
+       b_offset], 0, &inc, &t[t_offset], &alf[1], &c__2, gc, thread);
 L99:
     return 0;
 
@@ -852,11 +853,11 @@ L99:
 
 
 /*     ============================================================== */
-/* Subroutine */ int init_(integer *s, integer *l, integer *lmax, integer *nl,
+/* Subroutine */ int init_(integer *s, integer *l, integer *nl,
     integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
-   lps, integer *pp2, integer *iv, doublereal *t, doublereal *w, 
-   doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
-   *a, doublereal *b, integer *inc, integer *ncon, integer *nconp1, 
+   lps, integer *pp2, doublereal *t, doublereal *w, 
+   const doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
+   *a, doublereal *b, doublereal *kap, integer *inc, integer *ncon, integer *nconp1, 
    logical *philp1, logical *nowate, integer *gc, integer *thread)
 {
     /* System generated locals */
@@ -904,7 +905,7 @@ L99:
 
 /*                                          CHECK FOR VALID INPUT */
     if (*l >= 0 && *nl >= 0 && *s * *l + *nl < *s * *n && lnls1 <= *lpps1 && (
-       *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim && *iv > 0 &&
+       *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim &&
         ! (*nl == 0 && *l == 0) && * // && *s * *n - (*s - 1) * *l <= *ndim
        s > 0 && *l <= *lmax) {
    goto L3;
@@ -919,8 +920,8 @@ L99:
 /*    2          INC(K, J) = 0 */
 
 L3:
-    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
-       b_offset], &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
+    (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, &a[a_offset], &b[
+       b_offset], kap, &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
 
    for (i__ = 1; i__ <= *n; ++i__)
    {
@@ -1035,7 +1036,7 @@ L30:
 } /* bacsub_ */
 
 /*     ============================================================== */
-/* Subroutine */ int postpr_(integer *s, integer *l, integer *lmax, integer *
+/* Subroutine */ int postpr_(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer *lnls1, integer 
    *lps, integer *pp2, doublereal *eps, doublereal *rnorm, integer *
    iprint, doublereal *alf, doublereal *w, doublereal *a, doublereal *b, 

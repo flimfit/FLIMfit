@@ -184,16 +184,13 @@ classdef global_processing_ui
             names = fieldnames(handles);
             for i=1:length(names)
                 if ishandle(handles.(names{i}))
-                    clear handles.(names{i});
+                    delete(handles.(names{i}));
                 end
             end
             
-            guidata(obj.window,handles);
             
-            clear handles;
-            delete(obj.window);
-            clear obj;                 
-            
+            %guidata(obj.window,handles);
+                        
         end
         
     end

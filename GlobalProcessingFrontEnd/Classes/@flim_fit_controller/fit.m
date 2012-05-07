@@ -28,6 +28,8 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
         obj.refit_after_return = true;
         
     else
+        
+        delete(obj.fit_result);
             
         obj.fit_in_progress = true;
         obj.has_fit = false;

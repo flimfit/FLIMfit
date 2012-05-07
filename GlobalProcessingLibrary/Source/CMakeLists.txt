@@ -34,17 +34,16 @@ set(SOURCE
    FLIMGlobalAnalysis.cpp
    FLIMGlobalFitController.cpp
    FLIMGlobalFitController_ProcessRegion.cpp
+   FLIMGlobalFitController_GetImageResults.cpp
    FLIMGlobalFitController_Model.cpp
    FLIMData.cpp
-   VarPro.cpp
-   VarPro_dpa.cpp
-   VarProGrid.cpp
    VariableProjection.cpp
    lmvarp.cpp
    tinythread.cpp
    lmstr.c
    lmstx.c
    cminpack_support.c
+   util.cpp
 )
 
 set(HEADERS
@@ -60,6 +59,7 @@ set(HEADERS
    tinythread.h
    FlagDefinitions.h
    cminpack.h
+   util.h
 )
 
 # Add _32/_64 appendix to library
@@ -77,8 +77,10 @@ set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
 
 # Copy header to output directory

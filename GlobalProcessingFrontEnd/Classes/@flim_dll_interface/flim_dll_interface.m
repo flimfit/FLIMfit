@@ -30,33 +30,37 @@ classdef flim_dll_interface < handle
         
     properties(Access='protected')
         p_t;
-        p_n_regions;
-    	p_data;
+        p_data;
         p_mask;
         p_tau_guess;
         p_tau_min;
         p_tau_max;
         p_irf;
         p_t_irf;
-        p_tau;
         p_E_guess;
+        p_theta_guess;
+        p_ierr;
+        
+        p_use;
+        p_background;
+
+        p_tvb_profile;
+        p_fixed_beta;
+        
+        %{
+        p_n_regions;
+        p_tau;
         p_I0;
         p_beta;
         p_E;
         p_chi2;
-        p_ierr;
         p_t0;
         p_offset;
         p_scatter;
         p_ref_lifetime;
         p_tvb;
-        p_tvb_profile;
-        p_fixed_beta;
         p_grid;
         p_gamma;
-        p_use;
-        
-        p_background;
         p_tau_err;
         p_beta_err;
         p_E_err;
@@ -65,10 +69,8 @@ classdef flim_dll_interface < handle
         p_scatter_err;
         p_tvb_err;
         p_ref_lifetime_err;
+       
         
-        
-        p_magic_decay;
-        p_theta_guess;
         p_theta;
         p_r;
         
@@ -77,11 +79,13 @@ classdef flim_dll_interface < handle
         gamma_size;
         E_size;
         tau_size;
+        theta_size;
+        r_size;
+        %}
+        
         globals_size;
         n_regions;
         n_regions_total;
-        theta_size;
-        r_size;
         
         bin;
         grid;
@@ -152,8 +156,31 @@ classdef flim_dll_interface < handle
         
         function delete(obj)
             if libisloaded(obj.lib_name)
+                calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
                 calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
             end
+        end
+        
+        function im = fill_image(obj,var,mask,min_region)
+
+            if (isempty(mask) || ndims(var)==3 || all(size(var)==size(mask)))
+                im = var;
+                return
+            end
+
+            n = size(var,1);
+            nv = size(var,2);
+
+
+
+            im = NaN([length(mask(:)) n]);
+            for i=1:n
+                for j=1:nv
+                    im(mask==(j+min_region-1),i) = var(i,j);
+                end
+            end
+            im = reshape(im,[size(mask) n]);
+            
         end
         
     end

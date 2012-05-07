@@ -11,38 +11,21 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     if ~d.use(selected)
         return
     end
-        
-        
-
     
-    n_group = sum(d.use);
-    n_x = size(im_mask,1);
-    n_y = size(im_mask,2);
-    
-    use_sel = sum(d.use(1:selected));
+    im = find(obj.datasets==selected)-1;
     
     if obj.bin
-        group = 0;
-        n_ret_group = 1;
         mask = 1;
+        im = 0;
     else
-        switch (p.global_fitting)
-            case 0 % global_mode.pixel
-                n_ret_group = n_x*n_y;
-                group = (use_sel-1)*n_x*n_y;
-                mask = im_mask;
-            case 1 %global_mode.image
-                n_ret_group = 1;
-                group = use_sel-1;
-                mask = im_mask;
-            case 2 %global_mode.dataset
-                n_ret_group = 1;
-                group = 0;
-                mask = zeros([size(im_mask) n_group]);
-                mask(:,:,use_sel) = im_mask;
-        end     
-        
+        mask = im_mask;
     end
+    
+    %mask = mask';
+    mask = mask(:);
+    loc = 0:(length(mask)-1);
+    loc = loc(mask);
+    
     
     n_fit = sum(mask(:));
     n_t = length(t);
@@ -50,9 +33,9 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     
     p_fit = libpointer('doublePtr',zeros([n_t n_chan n_fit]));
     
-    try
+    %try
         
-        calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, group, n_ret_group, n_fit, mask, n_t, t, p_fit);
+        calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, im, n_t, t, n_fit, loc, p_fit);
         
         decay = p_fit.Value;
         decay = reshape(decay,[n_t n_chan n_fit]);
@@ -61,11 +44,11 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         
         %decay = zeros(n_t,1);
         
-    catch error
+    %catch error
         
-        decay = zeros(n_t,1);
-        
-    end
+    %    decay = zeros(n_t,1);
+    %     disp('Warning: could not get fit');
+    %end
             
     clear p_fit;
     

@@ -204,7 +204,6 @@ classdef flim_fit_controller < flim_data_series_observer
         function display_fit_end(obj)
             
             if ishandle(obj.fit_pushbutton)
-                %set(obj.fit_pushbutton,'BackgroundColor',[0.6 0.6 1]);
                 set(obj.fit_pushbutton,'String','Fit Dataset');  
             end
             
