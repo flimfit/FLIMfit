@@ -9,7 +9,7 @@ void GetVarsAtGridIdx(int idx, int nl, int grid_size, double var_min[], double v
 
 void varp2_grid(integer *s, integer *l, integer *lmax, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer *lpps1, integer 
-   *lps, integer *pp2, integer *iv, doublereal *t, doublereal *y, 
+   *lps, integer *pp2, doublereal *t, doublereal *y, 
    doublereal *w, U_fp ada, doublereal *a, doublereal *b,
     integer *iprint, integer *gc, integer *thread, doublereal *alf, doublereal *beta, 
    integer *ierr, doublereal *r__, integer *gn,
@@ -68,7 +68,7 @@ void varp2_grid(integer *s, integer *l, integer *lmax, integer *
          if (alf[0] > alf[1])
          {
             // Evaulate grid position
-            dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, t, y, 
+            dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, t, y, 
                  w, alf, (U_fp)ada, err, iprint, a, b, beta, a + (*l)*(*n),
                  grid+idx, gc, thread, static_store);
               
@@ -119,7 +119,7 @@ void varp2_grid(integer *s, integer *l, integer *lmax, integer *
 
    // Calculate final quantities
    //-----------------------------
-   dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, t, y,
+   dpa_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, t, y,
        w, alf, (U_fp)ada, err, iprint, a, b, beta, a + (*l)*(*n),
        r__, gc, thread, static_store);
      postpr_(s, l, lmax, nl, n, nmax, ndim, &lnls1, lps, pp2,

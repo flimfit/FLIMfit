@@ -11,14 +11,6 @@
 
 #define MAX_REGION 255
 
-#define MODE_PIXELWISE 0
-#define MODE_IMAGEWISE 1
-#define MODE_GLOBAL    2
-
-#define BG_NONE 0
-#define BG_VALUE 1
-#define BG_IMAGE 2
-
 using namespace boost;
 
 class FLIMData
@@ -38,8 +30,10 @@ public:
 
    int GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data, double* ma_decay);
    int GetPixelData(int thread, int im, int p, double* adjust, double* masked_data, double* ma_decay);
-   
-   
+   int GetImageData(int thread, int im, int region, double* adjust, double* region_data);
+   int GetSelectedPixels(int thread, int im, int region, int n, int* loc, double* adjust, double* y);
+
+    
    int GetMaxRegion(int group);
    int GetMinRegion(int group);
    
@@ -365,6 +359,9 @@ template <typename T>
 void FLIMData::TransformImage(int thread, int im)
 {
    int idx, tr_idx;
+
+   if (im == cur_transformed[thread])
+      return;
 
    T* data_ptr = GetDataPointer<T>(thread, im);
 

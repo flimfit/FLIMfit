@@ -1,11 +1,11 @@
 #include "ModelADA.h"
+#include "VariableProjection.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "f2c.h"
-#include "VariableProjection.h"
 
 #ifndef NO_OMP   
 #include <omp.h>
@@ -22,7 +22,7 @@ static integer c__3 = 3;
 // u   -> beta
 // r__ -> &a[lp1 * a_dim1 + 1]
 
-void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int ncon, 
+void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon, 
               int nconp1, int* inc, double* b, double *kap, double* r__, int d_idx, double* res, double* derv);
 
 
@@ -33,15 +33,10 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    varp_param* vp = (varp_param*) pa;
    int *s      = (vp->s);
    int *l      = (vp->l);
-   int *lmax   = (vp->lmax);
    int *n      = (vp->n);
    int *nmax   = (vp->nmax);
    int *ndim   = (vp->ndim);
-   int *lpps1  = (vp->lpps1);
-   int *lps    = (vp->lps);
-   int *pp2    = (vp->pp2);
-   int *iv     = (vp->iv);
-   int *iprint = (vp->iprint);
+   int *p      = (vp->p);
    int *nl     = &nls;
 
    int *thread = (vp->thread);
@@ -55,9 +50,10 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    double *u   = vp->beta;
    double *r__ = a + *l * *n;
 
-   double *kap = b + *ndim * (*pp2-1);
+   double *kap = b + *ndim * (*p+2);
 
-   if (*vp->terminate)
+
+   if (vp->terminate != NULL && *vp->terminate)
       return -9;
 
    int *gc = vp->gc;
@@ -89,16 +85,15 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
 
 
     /* Local variables */
-    integer j, k, p;
+    integer j, k;
     integer kp1;
     integer lsp1;
     doublereal beta, acum;
-    integer lnls, lpps, lnls1;
+    integer lnls, lnls1;
     doublereal alpha;
     extern /* Subroutine */ int bacsub_(integer *, integer *, doublereal *, 
        doublereal *);
     integer lastca, lastcb;
-    extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
     integer firstr, firstca, firstcb;
 
 /*     ============================================================== */
@@ -155,8 +150,8 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    lnls = *l + *nl + *s;
    lnls1 = lnls + 1;
    lsp1 = *l + *s + 1;
-   lpps = *lpps1 - 1;
-   p = lpps - *l - *s;
+
+   int lps = *l+*s;
 
 
    *isel = iflag + 1;
@@ -164,7 +159,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    {
       d_idx = *isel - 3;
       
-      jacb_row(s, l, n, ndim, nl, lps, lp1, ncon, nconp1, inc, b, kap, r__, d_idx, rnorm, fjrow);
+      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, r__, d_idx, rnorm, fjrow);
       return iflag;
    }
 
@@ -174,25 +169,25 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    {
       lp1 = *l + 1;
       firstca = 1;
-      lastca = *lps;
+      lastca = lps;
       firstcb = 1;
-      lastcb = p;
+      lastcb = *p;
       firstr = lp1;
-      init_(s, l, lmax, nl, n, nmax, ndim, lpps1, lps, pp2, iv, &t[t_offset], &
-          w[1], &alf[1], (S_fp)ada, isel, iprint, &a[a_offset], &b[b_offset], kap, 
+      init_(s, l, nl, n, nmax, ndim, p, &t[t_offset], &
+          w[1], &alf[1], (S_fp)ada, isel, &a[a_offset], &b[b_offset], kap, 
           inc, &ncon, &nconp1, &philp1, &nowate, gc, thread);
    }
    else
    {
       i__1 = min(*isel,3);
-      (*ada)(s, &lp1, nl, n, nmax, ndim, lpps1, pp2, iv, &a[a_offset], &b[
+      (*ada)(s, &lp1, nl, n, nmax, ndim, p, &a[a_offset], &b[
           b_offset], kap, inc, &t[t_offset], &alf[1], &i__1, gc, thread);
 
       if (*isel > 2)
       {
    /*                                                 ISEL = 3 OR 4 */
          firstcb = 1;
-         lastcb = p;
+         lastcb = *p;
          firstca = 0;
          firstr = (4 - *isel) * *l + 1;
       }
@@ -200,7 +195,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       {
       /*                                                 ISEL = 2 */
          firstca = nconp1;
-         lastca = *lps;
+         lastca = lps;
          firstcb = 0;
       }
    }
@@ -276,7 +271,6 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
             if (alpha == (float)0.)
             {
                *isel = -8;
-               varerr_(iprint, isel, &k);
                goto L99;
             }
          }
@@ -362,7 +356,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
       /*           L+NL+S+1. */
 
-      jacb_row(s, l, n, ndim, nl, lps, lp1, ncon, nconp1, inc, b, kap, r__, 0, rnorm, fjrow);
+      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, r__, 0, rnorm, fjrow);
 
       
    }
@@ -373,7 +367,7 @@ L99:
     return iflag;
 } /* dpa_ */
 
-void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int ncon, 
+void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon, 
               int nconp1, int* inc, double* b, double *kap, double* r__, int d_idx, double* res, double* derv)
 {
    int m, k, j, ksub, b_dim1, r_dim1;
@@ -382,6 +376,7 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int
    b_dim1 = *ndim;
    r_dim1 = *n;
 
+   int lps = *l+*s;
    
    if (d_idx == 0)
    {
@@ -420,7 +415,7 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int
                acum += b[i + m * b_dim1] * r__[j + is * r_dim1];
             }
          }
-         ksub = *lps + k;
+         ksub = lps + k;
          if (inc[k + lp1 * 12 - 13] != 0)
          {   
             ++m;
@@ -435,6 +430,346 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int *lps, int lp1, int
    //   }
    //}
 }
+
+
+/*     ============================================================== */
+doublereal xnorm_(integer *n, doublereal *x)
+{
+    /* System generated locals */
+    doublereal ret_val, d__1;
+
+    /* Builtin functions */
+    double sqrt(doublereal);
+
+    /* Local variables */
+    //integer i__;
+    doublereal sum, rmax, term;
+
+/*     ============================================================== */
+
+/*        COMPUTE THE L2 (EUCLIDEAN) NORM OF A VECTOR, MAKING SURE TO */
+/*        AVOID UNNECESSARY UNDERFLOWS.  NO ATTEMPT IS MADE TO SUPPRESS */
+/*        OVERFLOWS. */
+
+
+/*           FIND LARGEST (IN ABSOLUTE VALUE) ELEMENT */
+    /* Parameter adjustments */
+   --x;
+
+    /* Function Body */
+   rmax = 0.0;
+   //#pragma omp parallel for private(d__1)
+   for (int i = 1; i <= *n; ++i)
+   {
+      d__1 = fabs(x[i]);
+      //#pragma omp critical
+      {
+      if (d__1  > rmax) 
+         rmax = d__1;
+      }
+   }
+
+   sum = 0.0;
+   if (rmax != 0.0) 
+   {
+      //#pragma omp parallel for reduction(+:sum) private(term)
+      for (int i = 1; i <= *n; ++i) 
+      {
+         term = 0.0;
+         if (rmax + (d__1 = x[i], fabs(d__1)) != rmax) 
+            term = x[i] / rmax;
+         sum += term * term;
+      }
+   }
+
+    ret_val = rmax * sqrt(sum);
+    return ret_val;
+} /* xnorm_ */
+
+
+
+/*     ============================================================== */
+/* Subroutine */ int init_(integer *s, integer *l, integer *nl,
+    integer *n, integer *nmax, integer *ndim, integer *
+   p, doublereal *t, doublereal *w, 
+   const doublereal *alf, S_fp ada, integer *isel, doublereal 
+   *a, doublereal *b, doublereal *kap, integer *inc, integer *ncon, integer *nconp1, 
+   logical *philp1, logical *nowate, integer *gc, integer *thread)
+{
+    /* System generated locals */
+    integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__2;
+
+    /* Builtin functions */
+    double sqrt(doublereal);
+
+    /* Local variables */
+    integer ncon_buf__, i__, j, k, nconp1_buf__, lp1, lnls1, inckj, philp1_buf__;
+
+/*     ============================================================== */
+
+/*        CHECK VALIDITY OF INPUT PARAMETERS, AND DETERMINE NUMBER OF */
+/*        CONSTANT FUNCTIONS. */
+/*     .................................................................. */
+
+
+    /* Parameter adjustments */
+    --alf;
+    --w;
+    a_dim1 = *n;
+    a_offset = 1 + a_dim1;
+    a -= a_offset;
+    b_dim1 = *ndim;
+    b_offset = 1 + b_dim1;
+    b -= b_offset;
+    t_dim1 = *nmax;
+    t_offset = 1 + t_dim1;
+    t -= t_offset;
+    inc -= 13;
+
+    /* Function Body */
+    lp1 = *l + 1;
+    lnls1 = *l + *s + *nl + 1;
+    nconp1_buf__ = 0;
+
+/*     NOWATE = .TRUE. */
+    *nowate = FALSE_;
+   nconp1_buf__ = lp1;
+   ncon_buf__ = *l;
+   philp1_buf__ = *l == 0;
+
+
+/*                                          CHECK FOR VALID INPUT */
+    if (*l >= 0 && *nl >= 0 && *s * *l + *nl < *s * *n && (
+       *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim &&
+        ! (*nl == 0 && *l == 0) && * // && *s * *n - (*s - 1) * *l <= *ndim
+       s > 0) {
+   goto L3;
+    }
+    *isel = -4;
+    goto L99;
+
+/*    1 IF (L .EQ. 0 .OR. NL .EQ. 0) GO TO 3 */
+/*         DO 2 J = 1, LP1 */
+/*            DO 2 K = 1, NL */
+/*    2          INC(K, J) = 0 */
+
+
+L3:
+    (*ada)(s, &lp1, nl, n, nmax, ndim, p, &a[a_offset], &b[
+       b_offset], kap, &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
+
+   for (i__ = 1; i__ <= *n; ++i__)
+   {
+      if (w[i__] < (float)0.) 
+      {
+         /*                                                ERROR IN WEIGHTS */
+         *isel = -6;
+         goto L99;
+      }
+      w[i__] = sqrt(w[i__]);
+   }
+
+/*     PHILP1 = .TRUE. */
+   if (*l == 0 || *nl == 0) 
+   {
+      goto L99;
+   }
+/*                                   CHECK INC MATRIX FOR VALID INPUT AND */
+/*                                   DETERMINE NUMBER OF CONSTANT FCNS. */
+   p = 0;
+   for (j = 1; j <= lp1; ++j) 
+   {
+      if (p == 0) 
+         nconp1_buf__ = j;
+      i__2 = *nl;
+      for (k = 1; k <= i__2; ++k) 
+      {
+         inckj = inc[k + j * 12];
+         if (inckj != 0 && inckj != 1)
+            goto L20;
+         if (inckj == 1)
+            ++p;
+      }
+   }
+
+/*                                 DETERMINE IF PHI(L+1) IS IN THE MODEL. */
+L20:
+    i__2 = *nl;
+    for (k = 1; k <= i__2; ++k) {
+/* L25: */
+   if (inc[k + lp1 * 12] == 1) {
+       philp1_buf__ = TRUE_;
+   }
+    }
+
+L99:
+    ncon_buf__ = nconp1_buf__ - 1;
+    *ncon = ncon_buf__;
+    *nconp1 = nconp1_buf__;
+    *philp1 = philp1_buf__;
+    return 0;
+/* L210: */
+} /* init_ */
+
+/*     ============================================================== */
+/* Subroutine */ int bacsub_(integer *ndim, integer *n, doublereal *a, 
+   doublereal *x)
+{
+    /* System generated locals */
+    integer a_dim1, a_offset, i__1, i__2;
+
+    /* Local variables */
+    integer i__, j, ip1, np1;
+    doublereal acum;
+    integer iback;
+
+/*     ============================================================== */
+
+/*        BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*X = B. */
+/*        THE SOLUTION X OVERWRITES THE RIGHT SIDE B. */
+
+
+    /* Parameter adjustments */
+    --x;
+    a_dim1 = *ndim;
+    a_offset = 1 + a_dim1;
+    a -= a_offset;
+
+    /* Function Body */
+    x[*n] /= a[*n + *n * a_dim1];
+    if (*n == 1) {
+   goto L30;
+    }
+    np1 = *n + 1;
+    i__1 = *n;
+    for (iback = 2; iback <= i__1; ++iback) {
+   i__ = np1 - iback;
+/*           I = N-1, N-2, ..., 2, 1 */
+   ip1 = i__ + 1;
+   acum = x[i__];
+   i__2 = *n;
+   for (j = ip1; j <= i__2; ++j) {
+/* L10: */
+       acum -= a[i__ + j * a_dim1] * x[j];
+   }
+/* L20: */
+   x[i__] = acum / a[i__ + i__ * a_dim1];
+    }
+
+L30:
+    return 0;
+} /* bacsub_ */
+
+/*     ============================================================== */
+/* Subroutine */ int postpr_(integer *s, integer *l, integer *
+   nl, integer *n, integer *nmax, integer *ndim, integer *lnls1, integer 
+   *p, doublereal *eps, doublereal *rnorm, doublereal *alf, doublereal *w, 
+   doublereal *a, doublereal *b, 
+   doublereal *r__, doublereal *u, integer *ierr)
+{
+    /* System generated locals */
+    integer a_dim1, a_offset, b_dim1, b_offset, r_dim1, r_offset, u_dim1, 
+       u_offset, i__1, i__2, i__3;
+    doublereal d__1;
+
+    /* Local variables */
+    integer i__, k, is, kp1, lp1, lnl1;
+    doublereal acum;
+    integer lpnl, kback;
+    real usave;
+
+/*     ============================================================== */
+
+/*        CALCULATE RESIDUALS. */
+/*        ON INPUT, U CONTAINS INFORMATION ABOUT HOUSEHOLDER REFLECTIONS */
+/*        FROM DPA.  ON OUTPUT, IT CONTAINS THE LINEAR PARAMETERS. */
+
+
+    /* Parameter adjustments */
+    u_dim1 = *l;
+    u_offset = 1 + u_dim1;
+    u -= u_offset;
+    --alf;
+    r_dim1 = *n;
+    r_offset = 1 + r_dim1;
+    r__ -= r_offset;
+    --w;
+    a_dim1 = *n;
+    a_offset = 1 + a_dim1;
+    a -= a_offset;
+    b_dim1 = *ndim;
+    b_offset = 1 + b_dim1;
+    b -= b_offset;
+
+    /* Function Body */
+    lp1 = *l + 1;
+    lpnl = *lnls1 - 2;
+    lnl1 = lpnl + 1;
+    i__1 = *n;
+    for (i__ = 1; i__ <= i__1; ++i__) {
+/* L10: */
+/* Computing 2nd power */
+   d__1 = w[i__];
+   w[i__] = d__1 * d__1;
+    }
+
+/*              UNWIND HOUSEHOLDER TRANSFORMATIONS TO GET RESIDUALS, */
+/*              AND MOVE THE LINEAR PARAMETERS FROM R TO U. */
+
+    if (*l == 0) {
+   goto L30;
+    }
+    usave = (float)2.;
+    i__1 = *l;
+    for (i__ = 1; i__ <= i__1; ++i__) {
+/* L19: */
+   b[i__ + (integer) usave * b_dim1] = u[i__ + u_dim1];
+    }
+    i__1 = *s;
+    for (is = 1; is <= i__1; ++is) {
+   i__2 = *l;
+   for (kback = 1; kback <= i__2; ++kback) {
+       k = lp1 - kback;
+       kp1 = k + 1;
+       acum = (float)0.;
+       i__3 = *n;
+       for (i__ = kp1; i__ <= i__3; ++i__) {
+/* L20: */
+      acum += a[i__ + k * a_dim1] * r__[i__ + is * r_dim1];
+       }
+       u[k + is * u_dim1] = r__[k + is * r_dim1];
+       r__[k + is * r_dim1] = acum / a[k + k * a_dim1];
+       acum = -acum / (a[k + (integer) usave * a_dim1] * a[k + k * 
+          a_dim1]);
+       i__3 = *n;
+       for (i__ = kp1; i__ <= i__3; ++i__) {
+/* L25: */
+      r__[i__ + is * r_dim1] -= a[i__ + k * a_dim1] * acum;
+       }
+   }
+    }
+
+L30:
+/*  30 IF (IPRINT .LT. 0) GO TO 99 */
+/*     WRITE (OUTPUT, 209) */
+/*     IF (L .EQ. 0) GO TO 50 */
+/*        WRITE(OUTPUT,210) */
+/*        DO 40 I=1,L */
+/*  40      WRITE(OUTPUT,212) (U(I,J), J=1,S) */
+/*  40      CONTINUE */
+/*  50 IF (NL .GT. 0) WRITE (OUTPUT, 211) (ALF(K), K = 1, NL) */
+/*     WRITE(OUTPUT,214) RNORM */
+/*     WRITE (OUTPUT, 209) */
+/* L99: */
+    return 0;
+
+/* L209: */
+/* L210: */
+/* L211: */
+/* L212: */
+/* L214: */
+} /* postpr_ */
+
 
 #ifdef __cplusplus
    }

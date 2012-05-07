@@ -77,7 +77,7 @@ double d_beta_d_alf(double beta)
 
 
 
-double kappa_spacer(double tau1, double tau2)
+double kappa_spacer(double tau2, double tau1)
 {
    double diff_max = 40;
    double spacer = 400;
@@ -124,7 +124,7 @@ void updatestatus_(int* gc_int, int* thread, int* iter, double* chi2, int* termi
 
 /* ============================================================== */
 int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim, 
-        int *lpp2, int *pp1, int *iv, double *a, double *b, double *kap, int *inc, 
+        int *pp2, double *a, double *b, double *kap, int *inc, 
         double *t, double *alf, int *isel, int *gc_int, int *thread)
 {   
    FILE* fx;
@@ -218,38 +218,28 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                if( gc->fit_tvb == FIT_LOCALLY )
                   inc_col++;
             
-               if(gc->use_FMM)
+               // Set diagonal elements of incidence matrix for variable tau's   
+               n_exp_col = gc->beta_global ? 1 : gc->n_exp;
+               for(i=gc->n_fix; i<gc->n_exp; i++)
                {
-                  inc[inc_row + inc_col] = 1;
-                  inc_row++;
-                  inc[inc_row + inc_col] = 1;
+                  cur_col = gc->beta_global ? 0 : i;
+                  for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
+                     inc[inc_row + (inc_col+j*gc->n_exp_phi+cur_col)*12] = 1;
+                                
+                  //kappa derivative
+                  //if (i>0 && gc->use_kappa)
+                  //   inc[inc_row + gc->l * 12] = 1;
+
                   inc_row++;
                }
-               else
+
+               // Set diagonal elements of incidence matrix for variable beta's   
+               for(i=0; i<gc->n_beta; i++)
                {
-                  // Set diagonal elements of incidence matrix for variable tau's   
-                  n_exp_col = gc->beta_global ? 1 : gc->n_exp;
-                  for(i=gc->n_fix; i<gc->n_exp; i++)
-                  {
-                     cur_col = gc->beta_global ? 0 : i;
-                     for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
-                        inc[inc_row + (inc_col+j*gc->n_exp_phi+cur_col)*12] = 1;
+                  for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
+                     inc[inc_row + (inc_col+j*gc->n_exp_phi)*12] = 1;
                                 
-                     //kappa derivative
-                     //if (i>0 && gc->use_kappa)
-                     //   inc[inc_row + gc->l * 12] = 1;
-
-                     inc_row++;
-                  }
-
-                  // Set diagonal elements of incidence matrix for variable beta's   
-                  for(i=0; i<gc->n_beta; i++)
-                  {
-                     for(j=0; j<(gc->n_pol_group*gc->n_decay_group); j++)
-                        inc[inc_row + (inc_col+j*gc->n_exp_phi)*12] = 1;
-                                
-                     inc_row++;
-                  }
+                  inc_row++;
                }
 
                for(i=0; i<gc->n_theta_v; i++)
@@ -355,7 +345,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             {
                for(i=0; i<gc->n_t; i++)
                {
-                  a[idx+N*a_col] += gc->tvb_profile_buf[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
+                  a[idx+N*a_col] += gc->tvb_profile[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
                   idx += resample_idx[i];
                }
                idx++;
@@ -437,7 +427,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             {
                for(i=0; i<gc->n_t; i++)
                {
-                  a[idx+N*a_col] += gc->tvb_profile_buf[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
+                  a[idx+N*a_col] += gc->tvb_profile[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
                   idx += resample_idx[i];
                }
                idx++;
@@ -521,20 +511,13 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
       
          int col = 0;
          
-         if (gc->use_FMM)
-         {
-            col += gc->FMM_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
-         }
-         else
-         {
-            col += gc->tau_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         col += gc->tau_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
          
-            if (gc->fit_beta == FIT_GLOBALLY)
-               col += gc->beta_derivatives(*thread, tau_buf, alf+gc->alf_beta_idx, theta_buf, ref_lifetime, b+col*Ndim);
+         if (gc->fit_beta == FIT_GLOBALLY)
+            col += gc->beta_derivatives(*thread, tau_buf, alf+gc->alf_beta_idx, theta_buf, ref_lifetime, b+col*Ndim);
          
-            col += gc->E_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
-            col += gc->theta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
-         }
+         col += gc->E_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         col += gc->theta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
 
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
@@ -602,7 +585,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             {
                for(i=0; i<gc->n_t; i++)
                {
-                  b[ d_offset + idx ] += gc->tvb_profile_buf[k*gc->n_t+i];
+                  b[ d_offset + idx ] += gc->tvb_profile[k*gc->n_t+i];
                   idx += resample_idx[i];
                }
                idx++;
@@ -617,9 +600,9 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             {
                kap[ i + 1 ] = -kappa_lim(tau_buf[gc->n_fix+i]);
                if (i<gc->n_v-1)
-                  kap[ i + 1 ] -= kappa_spacer(tau_buf[gc->n_fix+i+1],tau_buf[gc->n_fix+i]);
+                  kap[ i + 1 ] += kappa_spacer(tau_buf[gc->n_fix+i+1],tau_buf[gc->n_fix+i]);
                if (i>0)
-                  kap[ i + 1 ] += kappa_spacer(tau_buf[gc->n_fix+i],tau_buf[gc->n_fix+i-1]);
+                  kap[ i + 1 ] -= kappa_spacer(tau_buf[gc->n_fix+i],tau_buf[gc->n_fix+i-1]);
             }
             for(i=i; i<*nl; i++)
             {

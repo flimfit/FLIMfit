@@ -88,9 +88,6 @@ classdef flim_fit_result < handle
        
  
         function set_image_split(obj,name,im,mask,r,default_lims,err)
-            if nargin < 5 || isempty(r)
-                r = 1:obj.n_results;
-            end
             if nargin < 6
                 default_lims = [];
             end
@@ -98,18 +95,17 @@ classdef flim_fit_result < handle
                 err = [];
             end
             s = size(im);
-            n = s(1);
+            n = size(im,3);
             if length(s) > 2
-                s = s(2:end);
+                s = s(1:end-1);
             else
                 s = [1 1];
             end
             for i=1:n
-                ix = im(n,:,:,:);
-                ix = reshape(ix,s);
+                ix = im(:,:,i);
                 obj.set_image([name '_' num2str(i)],ix,mask,r,default_lims);
                 if ~isempty(err)
-                    ex = err(n,:,:,:);
+                    ex = err(:,:,i);
                     ex = reshape(ex,s);
                     if ~all(isnan(ex(:)))
                         obj.set_image([name '_' num2str(i) '_err'],ex,mask,r,default_lims);
@@ -119,47 +115,12 @@ classdef flim_fit_result < handle
         end
                 
         function set_image(obj,name,im,mask,r,default_lims)
-            if nargin < 5 || isempty(r)
-                r = 1:obj.n_results;
-            end
             if nargin == 6 && ~isempty(default_lims)
                 obj.set_default_lims(name,default_lims);
             end                
-            s = size(im);
-            if length(r) == 1
-                obj.write(r,name,im,mask);
-            elseif iscell(im)
-                if ~isempty(mask)
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},mask(:,:,i));
-                    end
-                else
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},[]);
-                    end
-                end
-            elseif s(end) == length(r)
-                im = num2cell(im,1:(length(s)-1));
-                if ~isempty(mask)
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},mask(:,:,i));
-                    end
-                else
-                    for i=1:length(r)
-                        obj.write(r(i),name,im{i},[]);
-                    end
-                end
-            else
-                if ~isempty(mask)
-                    for i=1:length(r)
-                        obj.write(r(i),name,im,mask(:,:,i));
-                    end
-                else
-                    for i=1:length(r)
-                        obj.write(r(i),name,im,[]);
-                    end
-                end
-            end 
+            
+            obj.write(r,name,im,mask);
+             
         end
         
         function set_default_lims(obj,name,lims)

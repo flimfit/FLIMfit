@@ -4,10 +4,18 @@ function update_display(obj)
 
         selected = obj.data_series_list.selected;
         
+        trim_outliers = get(obj.trim_outliers_checkbox,'Value');
         
         cim = obj.data_series_controller.selected_intensity(selected,false);
-        lims = quantile(cim(:),[0.01 0.99]);
-        mn = lims(1); mx = lims(2);
+        
+        if trim_outliers
+            lims = quantile(cim(:),[0.01 0.99]);
+            mn = lims(1); mx = lims(2);
+        else
+            mn = min(cim(:));
+            mx = max(cim(:));
+        end
+            
         cim = (cim-mn) / (mx-mn);
         cim(cim < 0) = 0;
         cim(cim > 1) = 1;

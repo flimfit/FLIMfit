@@ -62,7 +62,7 @@ public:
    int n_irf; double *t_irf; double *irf; double pulse_pileup;
    int n_exp; int n_fix; 
    double *tau_min; double *tau_max;
-   int estimate_initial_tau; int single_guess; double *tau_guess;
+   int estimate_initial_tau; double *tau_guess;
    int fit_beta; double *fixed_beta;
    int fit_t0; double t0_guess; 
    int fit_offset; double offset_guess; 
@@ -71,11 +71,7 @@ public:
    int fit_fret; int inc_donor; double *E_guess; int n_fret; int n_fret_fix; int n_fret_v;
    int pulsetrain_correction; double t_rep;
    int ref_reconvolution; double ref_lifetime_guess;
-   double *tau; double *tau_err; double *I0; double *beta; double *beta_err; 
-   double *E; double *E_err; double *gamma; double *t0; 
-   double *offset; double *offset_err; double *scatter; double *scatter_err ;
-   double *tvb;  double *tvb_err; double *ref_lifetime; double *ref_lifetime_err;
-   double *chi2; int *ierr; int algorithm;
+   int *ierr; int algorithm;
    int n_thread; int (*callback)();
    int error;
 
@@ -83,21 +79,14 @@ public:
 
    tthread::thread **thread_handle;
 
-   float *irf_f, *t_irf_f;
-
+   
    bool polarisation_resolved;
    int n_chan, n_meas, n_pol_group;
    int n_theta, n_theta_fix, n_theta_v, n_r, inc_rinf;
    double *theta_guess;
    double *theta, *theta_err, *r;
    double *chan_fact;
-  
-   double *t_irf_buf;
-   double *irf_buf;
-   double *tvb_profile_buf;
 
-   int *sort_idx_buf;
-   double *sort_buf;
    double *exp_buf;
    double *tau_buf;
    double *beta_buf;
@@ -109,35 +98,24 @@ public:
    int *irf_max;
    double *resampled_irf;
 
-   
-   //int* resample_idx;
-
    int max_dim, exp_dim;
 
    integer static_store[1000];
    
    bool use_kappa;
 
-   integer s; integer lmax; integer l; integer nl; integer n; integer nmax; integer ndim; 
-   integer lpps1; integer lps; integer pp2; integer iv; integer p; integer iprint; integer lnls1; integer n_v; integer csize;
-   double *y; double *w; double *alf; double *alf_best; double *a; double *b; double *c; double *lin_params;
+   integer s; integer l; integer nl; integer n; integer nmax; integer ndim; 
+   integer p; integer lnls1; integer n_v; integer csize;
+   double *y; double *w; double *alf; double *a; double *b; double *c; double *lin_params;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
    bool beta_global;
    int n_beta;
 
-   int grid_search, grid_size, grid_factor, grid_positions, grid_iter, chi2_map_mode;
-   double *var_min, *var_max, *grid, *var_buf;
-
-   tthread::recursive_mutex cleanup_mutex;
-   tthread::recursive_mutex mutex;
-
    int first_call;
    int runAsync;
    int init;
    bool has_fit;
-
-   bool use_FMM;
 
    FitStatus *status;
    WorkerParams* params;
@@ -161,7 +139,7 @@ public:
    FLIMGlobalFitController(int global_algorithm, int n_irf, double t_irf[], double irf[], double pulse_pileup,
                            int n_exp, int n_fix, 
                            double tau_min[], double tau_max[], 
-                           int estimate_initial_tau, int single_guess, double tau_guess[],
+                           int estimate_initial_tau, double tau_guess[],
                            int fit_beta, double fixed_beta[],
                            int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[],
                            int fit_t0, double t0_guess, 
@@ -171,13 +149,7 @@ public:
                            int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                            int pulsetrain_correction, double t_rep,
                            int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                           double tau[], double I0[], double beta[], double E[], double gamma[],
-                           double theta[], double r[],
-                           double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[],
-                           int calculate_errs, double tau_err[], double beta_err[], double E_err[], double theta_err[],
-                           double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[],
-                           double chi2[], int ierr[],
-                           int n_thread, int runAsync, int callback());
+                           int ierr[], int n_thread, int runAsync, int callback());
 
 
    void SetData(double data[], int data_type);
@@ -185,10 +157,11 @@ public:
 
    void SetData(FLIMData* data);
 
-   void SetChi2MapMode(int grid_size, double grid[]);
    void SetPolarisationMode(int mode);
 
    int RunWorkers();
+
+   void CleanupTempVars();
 
    ~FLIMGlobalFitController();
 
@@ -199,20 +172,13 @@ public:
    int  GetErrorCode();
    void SetGlobalVariables();
    int  ProcessRegion(int g, int r, int thread);
-   void SetupAdjust(int thread, double adjust[], double scatter_adj, double offset_adj, double tvb_adj);
 
-   int GetFit(int ret_group_start, int n_ret_groups, int n_fit, int fit_mask[], int n_t, double t[], double fit[]);
-
-   int SimulateData(double I0[], double beta[], double data[]);
+   int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[]);
+   
+   int GetImageResults(int idx, double chi2[], double tau[], double I0[], double beta[], double E[], 
+           double gamma[], double theta[], double r[], double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[]);
 
    double ErrMinFcn(double x, ErrMinParams& params);
-
-   int SetupMeanFitController();
-   int SetupBinnedFitController();
-
-   double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
-
-   void CleanupTempVars();
 
    void calculate_exponentials(int thread, double tau[], double theta[]);
 
@@ -230,11 +196,27 @@ public:
 
    int global_algorithm;
 
+   tthread::recursive_mutex cleanup_mutex;
+   tthread::recursive_mutex mutex;
+
+
 private:
    void CalculateIRFMax(int n_t, double t[]);
    void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
-   double CalculateChi2(int thread, int region, int s_thresh, double y[], double w[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], int mask[], double chi2[]);
+   
+   double CalculateChi2(int s, int loc[], int n_meas_res, double y[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], double chi2[]);
+
+   int ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], double tau[], double beta[], double E[], double theta[], double offset[], double scatter[], double tvb[], double ref_lifetime[]);
+   int ProcessLinearParams(int n, int n_px, int loc[], double lin_params[], double I0[], double beta[], double gamma[], double r[], double offset[], double scatter[], double tvb[]);
+
+   double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
+
+   void SetupAdjust(int thread, double adjust[], double scatter_adj, double offset_adj, double tvb_adj);
+   
+   int GetPixelFit(double a[], double lin_params[], double adjust[], double fit[]);
+
+
 
    void DetermineMAStartPosition();
    double CalculateMeanArrivalTime(double decay[]);

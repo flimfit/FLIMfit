@@ -10,9 +10,10 @@ function regression_testing(handles)
     % Get Tests
     %----------------------------------------------------
     contents = dir(test_folder);
+    contents = contents(3:end);
     tests = {};
     
-    for i=3:6% %length(contents)
+    for i=1:1% %length(contents)
         if isdir([test_folder contents(i).name])
             tests{end+1} = contents(i).name;
         end

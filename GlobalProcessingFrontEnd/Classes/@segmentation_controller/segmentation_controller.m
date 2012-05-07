@@ -17,6 +17,7 @@ classdef segmentation_controller < flim_data_series_observer
         parameter_table;
         segmentation_axes;
         yuiry_segment_button;
+        yuiry_segment_selected_button;
         seg_results_table;
         seg_use_multiple_regions;
         
@@ -26,6 +27,8 @@ classdef segmentation_controller < flim_data_series_observer
         thresh_min_edit;
         thresh_max_edit;
         thresh_apply_button;
+        
+        trim_outliers_checkbox;
         
         
         data_series_list;
@@ -56,6 +59,7 @@ classdef segmentation_controller < flim_data_series_observer
 
             set(obj.algorithm_popup,'Callback',@obj.algorithm_updated);
             set(obj.yuiry_segment_button,'Callback',@obj.yuiry_segment_pressed);
+            set(obj.yuiry_segment_selected_button,'Callback',@obj.yuiry_segment_selected_pressed);
             set(obj.thresh_apply_button,'Callback',@obj.thresh_apply_pressed);
             set(obj.seg_results_table,'CellEdit',@obj.seg_results_delete);
             
@@ -73,6 +77,8 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.tool_roi_rect_toggle,'OnCallback',@obj.on_callback);
             set(obj.tool_roi_poly_toggle,'OnCallback',@obj.on_callback);
             set(obj.tool_roi_circle_toggle,'OnCallback',@obj.on_callback);
+            
+            set(obj.trim_outliers_checkbox,'Callback',@(~,~) obj.update_display)
             
                         
             if ~isdeployed
@@ -139,7 +145,11 @@ classdef segmentation_controller < flim_data_series_observer
         end
         
         function yuiry_segment_pressed(obj,~,~)
-            obj.yuiry_segment();
+            obj.yuiry_segment(1:d.n_datasets);
+        end
+        
+        function yuiry_segment_selected_pressed(obj,~,~)
+            obj.yuiry_segment(obj.data_series_list.selected);
         end
         
         function delete_all_pressed(obj,~,~)
@@ -161,7 +171,7 @@ classdef segmentation_controller < flim_data_series_observer
             end
         end
                 
-        function yuiry_segment(obj)
+        function yuiry_segment(obj,sel)
             func_idx = get(obj.algorithm_popup,'Value');
             func = obj.funcs{func_idx};
             params = get(obj.parameter_table,'Data');
@@ -171,14 +181,13 @@ classdef segmentation_controller < flim_data_series_observer
             
             d = obj.data_series;
             
-            obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
             h = waitbar(0,'Segmenting Images...');
-            for i=1:d.n_datasets
+            for i=sel
                 obj.mask(:,:,i) = call_arb_segmentation_function(func,obj.data_series.selected_intensity(i,false),params);
                 if ~multiple_regions
                     obj.mask(:,:,i) = obj.mask(:,:,i) > 0;
                 end
-                waitbar(i/obj.data_series.n_datasets,h);
+                waitbar(i/length(sel),h);
             end
             close(h);
             

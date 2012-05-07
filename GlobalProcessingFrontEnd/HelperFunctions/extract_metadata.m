@@ -18,7 +18,7 @@ function metadata = extract_metadata(strings)
         s = strings{i};
         
         % Look for FOV indicator
-        [match,tokens] = regexp(s,'([A-Z])-(\d)+ - FOV(\d{1,6})','match','tokens','once');
+        [match,tokens] = regexp(s,'([A-Z])-(\d)+ - FOV=?(\d{1,6})','match','tokens','once');
         if ~isempty(match)
             add_class('Well');
             add_class('FOV');
