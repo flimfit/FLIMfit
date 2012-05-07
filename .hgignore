@@ -1,7 +1,7 @@
 
 syntax: glob
-*.dll
-*.so
+*.ilk
+*.pdb
 *.exp
 *.lib
 *.obj

@@ -219,6 +219,8 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
 
    int s0 = 0;
 
+   im = data->GetImLoc(im);
+      
    int group;
    int n_px = data->n_x * data->n_y;
    int r_idx, r_min, r_max, ri;
@@ -364,6 +366,10 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    if (!status->HasFit())
       return ERR_FIT_IN_PROGRESS;
 
+
+   im = data->GetImLoc(im);
+   
+
    int thread = 0;
 
    int s0 = 0;
@@ -375,7 +381,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int n_meas_res;
 
    int *loc = new int[n_px];
-   int *mask = data->mask + im*n_px;
+   int* mask = data->mask + im*n_px;
    double *alf_group;
 
 

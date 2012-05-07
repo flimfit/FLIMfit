@@ -84,8 +84,13 @@ function get_return_data(obj)
 
 
     p_tau = libpointer('doublePtr', zeros(tau_size));
-    p_beta = libpointer('doublePtr', zeros(beta_size));
-
+    
+    if p.n_exp > 1
+        p_beta = libpointer('doublePtr', zeros(beta_size));
+    else
+        p_beta = [];
+    end
+    
     p_I0 = libpointer('doublePtr', zeros(I0_size));
 
     if false
@@ -184,13 +189,13 @@ function get_return_data(obj)
             dmask = mask(:,:,i);
             min_region = min(dmask(dmask>0)) ;
 
-
             if ~isempty(p_chi2)
                 chi2 = reshape(p_chi2.Value,I0_size);
                 if ~obj.bin
                     dmask(isnan(chi2)) = 0;
                 end
                 f.set_image('chi2',chi2,dmask,im,[0 5]);
+                clear chi2;
             end
 
             if ~isempty(p_tau)
@@ -232,14 +237,17 @@ function get_return_data(obj)
                 end
             end
 
+            clear tau beta mean_tau w_mean_tau
+            
             I0 = reshape(p_I0.Value,I0_size);
             f.set_image('I0',I0,dmask,im,[0 ceil(nanmax(I0(:)))]);
-
+            clear I0;
 
             if ~obj.bin
                 I = obj.data_series.integrated_intensity(datasets(i));
                 I(dmask == 0) = NaN;
                 f.set_image('I',I,dmask,im,[0 ceil(max(I(:)))])
+                clear I;
             end
 
 
@@ -392,8 +400,10 @@ function get_return_data(obj)
             if obj.fit_params.global_fitting == 0
                 f.set_image('ierr',double(ierr(:,:,i)),dmask,im,[-10 200]);
             end
+            
+            
         end
-        
+     
         waitbar(i/length(datasets),wh);
         
     end

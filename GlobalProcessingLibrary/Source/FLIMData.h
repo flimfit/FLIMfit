@@ -39,6 +39,8 @@ public:
    
    int GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data);
    int GetRegionIndex(int group, int region);
+   
+   int GetImLoc(int im);
 
    void SetExternalResampleIdx(int ext_n_meas_res, int* ext_resample_idx);
    int* GetResampleIdx(int thread);
@@ -224,8 +226,8 @@ int FLIMData::CalculateRegions()
          double intensity = 0;
          for(int k=0; k<n_chan; k++)
          {
-            ptr += t_skip[k];
-            for(int j=0; j<n_t; j++)
+            //ptr += t_skip[k];
+            for(int j=0; j<n_t_full; j++)
             {
                if (*ptr >= limit)
                {

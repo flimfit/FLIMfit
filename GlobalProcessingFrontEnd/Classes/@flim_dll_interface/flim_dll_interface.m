@@ -156,6 +156,7 @@ classdef flim_dll_interface < handle
         
         function delete(obj)
             if libisloaded(obj.lib_name)
+                calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
                 calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
             end
         end

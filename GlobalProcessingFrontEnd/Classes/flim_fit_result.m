@@ -176,7 +176,7 @@ classdef flim_fit_result < handle
         end
         
         function write(obj,dataset,param,img,mask)
-           
+            
             if isempty(mask) || sum(mask(:)) == 0
               
                 n_regions = 1;
@@ -226,26 +226,12 @@ classdef flim_fit_result < handle
             end
             
             if ~obj.use_memory_mapping
-                obj.images{dataset}.(param) = img;
+                obj.images{dataset}.(param) = single(img);
                 
             else
                 path = ['/' obj.names{dataset} '/' param];
-                %if exist(obj.file,'file')
-                %    try 
-                %        info = h5info(obj.file,path);
-                %        create = false;
-                %    catch e %#ok
-                %        create = true;
-                %    end
-                %else
-                %    create = true;
-                %end
-                %if create
                 h5create_direct(obj.file,path,size(img),'ChunkSize',size(img),'Deflate',0);
-                %end
                 h5write(obj.file,path,img);
-                %h5writeatt_direct(obj.file,path,'mean',img_mean);
-                %h5writeatt_direct(obj.file,path,'std',img_std);
             end
             
         end

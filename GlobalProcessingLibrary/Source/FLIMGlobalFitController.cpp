@@ -733,7 +733,10 @@ void FLIMGlobalFitController::CleanupTempVars()
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
       ClearVariable(a);
+      a = a;
+      a = a;
       ClearVariable(y);
+      y = y;
 
 }
 
@@ -762,9 +765,6 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(lin_params_err);
       ClearVariable(alf_err);
       ClearVariable(ma_decay);
-
-      if (data != NULL)
-         data->ClearMapping();
 
       ClearVariable(b);
       ClearVariable(y);

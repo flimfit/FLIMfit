@@ -328,14 +328,20 @@ FITDLL_API int FLIMGlobalClearFit(int c_idx)
    {
       int valid = ValidControllerIdx(c_idx);
       if (valid)
+      {
          delete controller[c_idx];
+         controller[c_idx] = NULL;
+      }
    }
    else
    {
       for(int i=1; i<MAX_CONTROLLER_IDX; i++)
       {
          if (controller[i] != NULL)
+         {
             delete controller[i];
+            controller[i] = NULL;
+         }
       }
    }
 

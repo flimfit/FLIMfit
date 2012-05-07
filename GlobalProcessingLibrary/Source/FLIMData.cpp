@@ -214,6 +214,16 @@ int FLIMData::GetRegionIndex(int group, int region)
       return region_start[group]+region-1;
 }
 
+int FLIMData::GetImLoc(int im)
+{
+   for(int i=0; i<n_im_used; i++)
+   {
+      if (use_im[i] == im)
+         return i;
+   }
+   return 0;
+}
+
 double* FLIMData::GetT()
 {
    return t + t_skip[0];
@@ -438,9 +448,9 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
    {
       if (region < 0 || im_mask[p] == region)
       {
+         memset(masked_data+idx,0,sizeof(double)*n_meas_res[thread]);
          for(int k=0; k<n_chan; k++)
          {
-            memset(masked_data+idx,0,sizeof(double)*n_meas_res[thread]);
             for(int i=0; i<n_t; i++)
             {
                masked_data[idx] += tr_data[p*n_meas + k*n_t + i] - adjust[k*n_t+i];
@@ -472,9 +482,9 @@ int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc,
       i = loc[p];
       if (mask[i] == region)
       {
+         memset(y+idx,0,sizeof(double)*n_meas_res[thread]);
          for(int k=0; k<n_chan; k++)
          {
-            memset(y+idx,0,sizeof(double)*n_meas_res[thread]);
             for(int j=0; j<n_t; j++)
             {
                y[idx] += tr_data[i*n_meas + k*n_t + j] - adjust[k*n_t+j];
@@ -503,6 +513,8 @@ void FLIMData::ClearMapping()
 
 FLIMData::~FLIMData()
 {
+   ClearMapping();
+
    delete[] tr_data;
    delete[] tr_buf;
    delete[] cur_transformed;

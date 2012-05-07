@@ -22,6 +22,7 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         mask = im_mask;
     end
     
+    %mask = mask';
     mask = mask(:);
     loc = 0:(length(mask)-1);
     loc = loc(mask);
