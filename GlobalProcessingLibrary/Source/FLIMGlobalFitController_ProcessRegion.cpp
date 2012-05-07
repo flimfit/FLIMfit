@@ -24,7 +24,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    double ref = 0;
    double tau_ma;
-   double smoothing_correction;
+//   double smoothing_correction;
 
    int ierr_local_binning = 0;
    int ierr_local = 0;
@@ -71,7 +71,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    //-------------------------------
    if (s_thresh == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;
-
+/*
    // Calculate Weights
    //-------------------------------
    smoothing_correction = 1/data->smoothing_area;
@@ -85,7 +85,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       else
          w[j] = smoothing_correction/abs(w[j]); //smoothing_correction / abs(y[j]);
    }
-
+*/
 
    // Estimate lifetime from mean arrival time if requested
    //------------------------------

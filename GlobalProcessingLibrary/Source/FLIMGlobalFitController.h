@@ -214,7 +214,7 @@ private:
 
    void SetupAdjust(int thread, double adjust[], double scatter_adj, double offset_adj, double tvb_adj);
    
-   int GetPixelFit(double a[], double lin_params[], double adjust[], double fit[]);
+   int GetPixelFit(double a[], double lin_params[], double adjust[], int n, double fit[]);
 
 
 

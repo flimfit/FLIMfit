@@ -255,7 +255,7 @@ int FLIMData::GetResampleNumMeas(int thread)
 
 void FLIMData::DetermineAutoSampling(int thread, double decay[])
 {
-   if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling)
+   if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
       return;
 
    int* resample_idx = this->resample_idx + n_t * thread;
@@ -320,8 +320,7 @@ int FLIMData::GetMinRegion(int group)
       return min_region[group];
 }
 
-
-int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* mean_region_data, double* ma_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* weight, double* ma_decay)
 {
    int s = 0;
    
@@ -352,32 +351,40 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       for(int i=0; i<n_im_used; i++)
       {
          transform_fcn(i);
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas_res[thread]);
+         s += GetMaskedData(thread, i, region, adjust, region_data + s*GetResampleNumMeas(thread));
       }
    }
    
-   if ( mean_region_data != NULL )
-   {
-      memset(mean_region_data,0, n_meas * sizeof(double));
+   memset(weight,0, n_meas * sizeof(double));
 
-      for(int i=0; i<s; i++)
-         for(int j=0; j<n_meas; j++)
-            mean_region_data[j] += region_data[i*n_meas + j];
-      
+   for(int i=0; i<s; i++)
       for(int j=0; j<n_meas; j++)
-         mean_region_data[j] /= s;
+         weight[j] += region_data[i*n_meas + j];
+      
+   for(int j=0; j<n_meas; j++)
+      weight[j] /= s;
 
-      if (global_mode != MODE_PIXELWISE)
-         for(int j=0; j<n_meas; j++)
-            ma_decay[j] = mean_region_data[j];
-    }
+   if (global_mode != MODE_PIXELWISE)
+      for(int j=0; j<n_meas; j++)
+         ma_decay[j] = weight[j];
+
+   for(int j=0; j<n_meas; j++)
+   {
+      weight[j] += adjust[j];
+      if (weight[j] == 0)
+         weight[j] = 1;   // If we have a zero data point set to 1
+      else
+         weight[j] = 1/abs(weight[j]);
+   }
 
    return s;
 }
 
 
-int FLIMData::GetImageData(int thread, int im, int region, double* adjust, double* region_data)
+int FLIMData::GetImageData(int thread, int im, int region, double* adjust, double* region_data, double* weight)
 {
+   int s;
+   int n_meas_res = GetResampleNumMeas(thread);
    boost::function<void(int)> transform_fcn;
    
    if (data_class == DATA_DOUBLE)
@@ -387,15 +394,33 @@ int FLIMData::GetImageData(int thread, int im, int region, double* adjust, doubl
   
    transform_fcn(im);
    
-  return GetMaskedData(thread, im, region, adjust, region_data);
+   s = GetMaskedData(thread, im, region, adjust, region_data);
+
+   memset(weight,0, n_meas_res * sizeof(double));
+
+   for(int i=0; i<s; i++)
+      for(int j=0; j<n_meas_res; j++)
+         weight[j] += region_data[i*n_meas_res + j];
+      
+   for(int j=0; j<n_meas_res; j++)
+   {
+      weight[j] /= s;
+      weight[j] += adjust[j];
+      if (weight[j] == 0)
+         weight[j] = 1;   // If we have a zero data point set to 1
+      else
+         weight[j] = 1/abs(weight[j]);
+   }
+
+   return s;
 }
 
 
 int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* masked_data, double* ma_decay)
 {
    double* tr_data = this->tr_data + thread * n_p;
-   int*    resample_idx = this->resample_idx + thread * n_t; 
-
+   int*    resample_idx = GetResampleIdx(thread);
+   
    if (mask[im*n_x*n_y+p]==0)
    {
       return 0;
@@ -419,8 +444,9 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
 
    DetermineAutoSampling(thread,ma_decay);
 
+   int jmax = GetResampleNumMeas(thread);
    idx = 0;
-   for(int j=0; j<n_meas_res[thread]; j++)
+   for(int j=0; j<jmax; j++)
       masked_data[j] = 0;
 
    for(int k=0; k<n_chan; k++)
@@ -440,6 +466,8 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
 {
    int* im_mask = mask + im*n_x*n_y;
    double* tr_data = this->tr_data + thread * n_p;
+   int*    resample_idx = GetResampleIdx(thread);
+
    int idx = 0;
 
    // Store masked values
@@ -448,7 +476,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
    {
       if (region < 0 || im_mask[p] == region)
       {
-         memset(masked_data+idx,0,sizeof(double)*n_meas_res[thread]);
+         memset(masked_data+idx,0,sizeof(double)*GetResampleNumMeas(thread));
          for(int k=0; k<n_chan; k++)
          {
             for(int i=0; i<n_t; i++)
@@ -465,11 +493,13 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
    return s;
 }
 
-int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, double* adjust, double* y)
+int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, double* adjust, double* y, double *w)
 {
-   int* im_mask = mask + im*n_x*n_y;
+   int* mask = this->mask + im*n_x*n_y;
+   int* resample_idx = GetResampleIdx(thread);
+
    int idx = 0;
-   int n_inc = 0;
+   int s = 0;
    int i;
 
    if (data_class == DATA_DOUBLE)
@@ -482,7 +512,7 @@ int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc,
       i = loc[p];
       if (mask[i] == region)
       {
-         memset(y+idx,0,sizeof(double)*n_meas_res[thread]);
+         memset(y+idx,0,sizeof(double)*GetResampleNumMeas(thread));
          for(int k=0; k<n_chan; k++)
          {
             for(int j=0; j<n_t; j++)
@@ -492,12 +522,28 @@ int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc,
             }
             idx++;
          }
-         n_inc++;
-
+         s++;
       }
    }
 
-   return n_inc;
+   memset(w,0, n_meas * sizeof(double));
+
+   for(int i=0; i<s; i++)
+      for(int j=0; j<n_meas; j++)
+         w[j] += y[i*n_meas + j];
+      
+   for(int j=0; j<n_meas; j++)
+   {
+      w[j] /= s;
+      w[j] += adjust[j];
+      if (w[j] == 0)
+         w[j] = 1;   // If we have a zero data point set to 1
+      else
+         w[j] = 1/abs(w[j]);
+   }
+
+
+   return s;
 
 }
 

@@ -27,12 +27,15 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          e0 = exp( (t_irf[0] + t0_guess) * rate ) * t_g;
          de = exp( + t_g * rate );
          ej = e0;
-
-         for(j=0; j<n_irf*n_chan; j++)
+         
+         for(j=0; j<n_irf; j++)
          {
-            local_exp_buf[j+row*exp_dim] = ej * irf[j];
+            for(k=0; k<n_chan; k++)
+            {
+               local_exp_buf[j+k*n_irf+row*exp_dim] = ej * irf[j+k*n_irf];
+            }
             ej *= de;
-         }
+          }
 
          row--;
 
@@ -107,7 +110,9 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
    double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
    double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
             
-   double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
+   int fret_tau_idx = tau_idx + decay_group_idx*n_exp;
+
+   double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
    int* resample_idx = data->GetResampleIdx(thread);
 
@@ -140,8 +145,10 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
    
    int* resample_idx = data->GetResampleIdx(thread);
-            
-   double rate = 1/tau[tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
+   
+  int fret_tau_idx = tau_idx + decay_group_idx*n_exp;
+           
+   double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
    double ref_fact = ref_reconvolution ? (1/ref_lifetime - rate) : 1;
 
@@ -319,9 +326,9 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
    int idx = 0;
 
    // d(donor)/d(tau)
-   if (inc_donor)
+   for(int j=n_fix; j<n_exp; j++)
    {
-      for(int j=n_fix; j<n_exp; j++)
+      if (inc_donor)
       {
          for(int p=0; p<n_pol_group; p++)
          {
@@ -335,22 +342,21 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
             col++;
             idx += ndim;
          }
+      }
 
-         for(int i=0; i<n_fret; i++)
-         {
-            int g = i + (inc_donor ? 1 : 0);
-            double fret_tau = tau[j + n_exp * (1 + i)];
+      for(int i=0; i<n_fret; i++)
+      {
+         int g = i + (inc_donor ? 1 : 0);
+         double fret_tau = tau[j + n_exp * (1 + i)];
          
-            memset(b+idx, 0, n_meas_res*sizeof(double));
+         memset(b+idx, 0, n_meas_res*sizeof(double));
       
-            fact = beta[j] / (fret_tau * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
+         fact = beta[j] / (fret_tau * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
          
-            add_derivative(thread, j, 0, g, tau, theta, fact, ref_lifetime, b+idx);
+         add_derivative(thread, j, 0, g, tau, theta, fact, ref_lifetime, b+idx);
 
-            col++;
-            idx += ndim;
-         }
-
+         col++;
+         idx += ndim;
       }
    }
 

@@ -309,7 +309,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          a_col = 0;
          
          // set constant phi value for offset
-         if( gc->fit_offset == FIT_LOCALLY  )
+         if( gc->fit_offset == FIT_LOCALLY )
          {
             for(i=0; i<N; i++)
                a[N*a_col+i]=0;

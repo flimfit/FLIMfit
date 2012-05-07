@@ -142,6 +142,9 @@ function[delays,im_data,tcspc,path,channel] = load_flim_file(file,channel)
                          textl = [];
                      end                 
                  end
+                
+                 fclose(fid);
+
              
                  ir = dlmread(file,'\t',header_lines,0);
              

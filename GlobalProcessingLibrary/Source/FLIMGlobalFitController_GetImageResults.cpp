@@ -190,14 +190,9 @@ double FLIMGlobalFitController::CalculateChi2(int s, int loc[], int n_meas_res, 
       if (chi2 != NULL)
       {
          chi2[loc[i]] = fit_buf[n_meas_res-1] / (n_meas_res - nl/s - l);
-         //if (chi2[i] == std::numeric_limits<double>::infinity( ))
-         //   chi2[i] = 0;
       }
 
-//      if (fit_buf[n_meas_res-1] < 1e5)
-         chi2_tot += fit_buf[n_meas_res-1];
-//      else
-//         chi2_tot = chi2_tot;
+      chi2_tot += fit_buf[n_meas_res-1];
 
    }
 
@@ -219,15 +214,16 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
 
    int s0 = 0;
 
-   im = data->GetImLoc(im);
+   int n_px = data->n_x * data->n_y;
+
+   int iml = im;
+   int *mask = data->mask + iml*n_px;
       
    int group;
-   int n_px = data->n_x * data->n_y;
    int r_idx, r_min, r_max, ri;
    int s, n_meas_res;
 
    int *loc = new int[n_px];
-   int *mask = data->mask + im*n_px;
    double *alf_group;
    
    int lps = l + n_px;
@@ -280,8 +276,11 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
       {
          if (mask[i] > 0)
          {
-            s = data->GetRegionData(thread, n_px*im+i, 1, adjust_buf, y, w, ma_decay);
+            s = data->GetRegionData(thread, n_px*iml+i, 1, adjust_buf, y, w, ma_decay);
             n_meas_res = data->GetResampleNumMeas(thread);
+
+            int smoothing_correction = 1/data->smoothing_area;
+            smoothing_correction = 1;
 
             lmvarp_getlin(&s, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + i*nl, lin_params + i*l);
             CalculateChi2(1, &s0, n_meas_res, y, a, lin_params + i*l, adjust_buf, fit_buf, chi2 + i);
@@ -294,7 +293,7 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
    else
    {
       if (data->global_mode == MODE_IMAGEWISE)
-         group = im;
+         group = iml;
       else
          group = 0;
 
@@ -313,7 +312,7 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
          s = ii;
 
 
-         s = data->GetImageData(0, im, rg, adjust_buf, y);
+         s = data->GetImageData(0, iml, rg, adjust_buf, y, w);
          n_meas_res = data->GetResampleNumMeas(0);
 
          alf_group = alf + nl * r_idx;
@@ -341,15 +340,15 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
 
 
 
-int FLIMGlobalFitController::GetPixelFit(double a[], double lin_params[], double adjust[], double fit[])
+int FLIMGlobalFitController::GetPixelFit(double a[], double lin_params[], double adjust[], int n, double fit[])
 {
-   for(int i=0; i<n_meas; i++)
+   for(int i=0; i<n; i++)
    {
       fit[i] = adjust[i];
       for(int j=0; j<l; j++)
-         fit[i] += a[n_meas*j+i] * lin_params[j];
+         fit[i] += a[n*j+i] * lin_params[j];
 
-      fit[i] += a[n_meas*l+i];
+      fit[i] += a[n*l+i];
    }
 
    return 0;
@@ -367,7 +366,10 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       return ERR_FIT_IN_PROGRESS;
 
 
-   im = data->GetImLoc(im);
+   int n_px = data->n_x * data->n_y;
+
+   int iml = im; ///data->GetImLoc(im);
+   int* mask = data->mask + iml*n_px;
    
 
    int thread = 0;
@@ -376,12 +378,9 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int s1 = 1;
 
    int group;
-   int n_px = data->n_x * data->n_y;
    int r_idx, r_min, r_max;
-   int n_meas_res;
 
    int *loc = new int[n_px];
-   int* mask = data->mask + im*n_px;
    double *alf_group;
 
 
@@ -440,19 +439,18 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    if (data->global_mode == MODE_PIXELWISE)
    {
-      alf_group = alf + nl * n_px * im;
+      alf_group = alf + nl * n_px * iml;
 
       for(int i=0; i<n_fit; i++)
       {
          idx = fit_loc[i];
          if (mask[idx] > 0)
          {
-            data->GetRegionData(thread, n_px*im+idx, 1, adjust_buf, y, w, ma_decay);
-            n_meas_res = data->GetResampleNumMeas(thread);
+            data->GetRegionData(thread, n_px*iml+idx, 1, adjust_buf, y, w, ma_decay);
 
-            lmvarp_getlin(&s1, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + idx*nl, lin_params);
-            
-            GetPixelFit(a,lin_params,adjust,fit+n_meas*i);
+            lmvarp_getlin(&s1, &l, &nl, &n_meas, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + idx*nl, lin_params);
+
+            GetPixelFit(a,lin_params,adjust,n_meas,fit+n_meas*i);
          }
       }
 
@@ -460,7 +458,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    else
    {
       if (data->global_mode == MODE_IMAGEWISE)
-         group = im;
+         group = iml;
       else
          group = 0;
 
@@ -472,13 +470,13 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       {
          r_idx = data->GetRegionIndex(group, rg);
          alf_group = alf + nl * r_idx;
-         int sr = data->GetSelectedPixels(0, im, rg, n_fit, fit_loc, adjust_buf, y);
+         int sr = data->GetSelectedPixels(0, iml, rg, n_fit, fit_loc, adjust_buf, y, w);
 
          lmvarp_getlin(&sr, &l, &nl, &n, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group, lin_params);
-         
+
          #pragma omp parallel for
          for(int i=0; i<sr; i++)
-            GetPixelFit(a,lin_params+i*l,adjust,fit+n_meas*(idx+i));
+            GetPixelFit(a,lin_params+i*l,adjust,n_meas,fit+n_meas*(idx+i));
 
          idx += sr;
 

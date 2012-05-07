@@ -44,7 +44,12 @@ function get_return_data(obj)
         E_size = [p.n_fret max_n_regions];
     end
     
-    beta_size = [sz p.n_exp];
+    if p.fit_beta == 1 || p.global_fitting == 0
+        beta_size = [sz p.n_exp];
+    else
+        beta_size = [p.n_exp max_n_regions];
+    end
+    
     n_decay_group = p.n_fret + p.inc_donor;
     gamma_size = [sz n_decay_group];
     r_size = [sz p.n_theta];
@@ -214,6 +219,7 @@ function get_return_data(obj)
 
                 if ~isempty(p_beta)
                     beta = reshape(p_beta.Value,beta_size);
+                    beta = obj.fill_image(beta,dmask,min_region);
                     f.set_image_split('beta',beta,dmask,im,[0 1]);
                 end
 

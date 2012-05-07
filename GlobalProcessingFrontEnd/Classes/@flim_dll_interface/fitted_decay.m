@@ -11,13 +11,12 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     if ~d.use(selected)
         return
     end
-        
-    n_group = sum(d.use);
-    n_x = size(im_mask,1);
-    n_y = size(im_mask,2);
-
+    
+    im = find(obj.datasets==selected)-1;
+    
     if obj.bin
         mask = 1;
+        im = 0;
     else
         mask = im_mask;
     end
@@ -36,7 +35,7 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     
     %try
         
-        calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, selected-1, n_t, t, n_fit, loc, p_fit);
+        calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, im, n_t, t, n_fit, loc, p_fit);
         
         decay = p_fit.Value;
         decay = reshape(decay,[n_t n_chan n_fit]);
