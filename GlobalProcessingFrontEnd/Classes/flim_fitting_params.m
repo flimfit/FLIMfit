@@ -7,7 +7,7 @@ classdef flim_fitting_params < handle
         data_type = 0;
         global_fitting = 0;
         global_variable = 0;
-        global_algorithm = 0;
+        global_algorithm = 1;
         fit_t0 = false;
         fit_offset = 0;
         fit_scatter = 0;

@@ -24,7 +24,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    double ref = 0;
    double tau_ma;
-//   double smoothing_correction;
 
    int ierr_local_binning = 0;
    int ierr_local = 0;
@@ -45,7 +44,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    double *c            = this->c + thread * csize;
    double *y            = this->y + thread * s * n_meas;
    double *ma_decay     = this->ma_decay + thread * n_meas;
-//   double *lin_params   = this->lin_params + thread * l;
    double *lin_params   = this->lin_params + r_idx * n_px * l;
    double *alf          = this->alf + r_idx * nl;
    double *w            = this->w + thread * n;
@@ -71,21 +69,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    //-------------------------------
    if (s_thresh == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;
-/*
-   // Calculate Weights
-   //-------------------------------
-   smoothing_correction = 1/data->smoothing_area;
-   smoothing_correction = 1;
-
-   for(j=0; j<n_meas_res; j++)
-   {
-      w[j] += adjust_buf[j];
-      if (s_thresh == 0 || w[j] == 0)
-         w[j] = smoothing_correction;   // If we have a zero data point set to 1
-      else
-         w[j] = smoothing_correction/abs(w[j]); //smoothing_correction / abs(y[j]);
-   }
-*/
 
    // Estimate lifetime from mean arrival time if requested
    //------------------------------
@@ -150,6 +133,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (use_global_binning)
    {
+      lmvarp( &s1, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
+            t, ma_decay, w, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+            alf, lin_params, &ierr_local_binning, status->iter+thread, status->chi2+thread, &(status->terminate) );
+
 /*      varp2_( &s1, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, 
                t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
                alf, lin_params, &ierr_local_binning, &c2, &algorithm, alf_best );*/

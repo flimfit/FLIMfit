@@ -22,7 +22,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
        
     add_fitting_param_control('main','global_fitting','popupmenu','Global Fitting', {'Pixel-wise', 'Image-wise', 'Global'})
     add_fitting_param_control('main','global_variable','popupmenu','Global Variable', {'-'})
-    add_fitting_param_control('main','global_algorithm','popupmenu','Global Mode', {'Global Analysis', 'Global Binning'})
+    add_fitting_param_control('main','global_algorithm','popupmenu','Global Mode', {'Global Binning', 'Global Analysis'})
   
     
     add_fitting_param_control('main','n_exp','popupmenu','No. Exp', {'1', '2', '3', '4', '5'});

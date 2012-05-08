@@ -9,8 +9,9 @@
 #define MODE_POLARISATION 1
 
 //----------------------------------------------
-#define MODE_GLOBAL_ANALYSIS 0
-#define MODE_GLOBAL_BINNING  1
+#define MODE_GLOBAL_BINNING  0
+#define MODE_GLOBAL_ANALYSIS 1
+
 
 //----------------------------------------------
 #define DATA_DOUBLE 0
