@@ -3,7 +3,7 @@ function regression_testing(handles)
 
     test_folder = ['..' filesep 'TestDatasets' filesep];
     
-    if ~exist(test_folder,'dir')
+    if ~exist(test_folder,'dir') || length(dir(test_folder)) < 4
        test_folder = '\\icfs17.cc.ic.ac.uk\fogim\Group\Software\Global Analysis\TestDatasets\'; 
     end
     
