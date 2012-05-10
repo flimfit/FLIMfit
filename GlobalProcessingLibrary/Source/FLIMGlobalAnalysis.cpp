@@ -122,7 +122,7 @@ int CheckControllerIdx(int c_idx)
 
 
 
-FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm,
+FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, doublereal t_irf[], doublereal irf[], doublereal pulse_pileup,
                               int n_exp, int n_fix,  doublereal tau_min[], doublereal tau_max[], 
                               int estimate_initial_tau, doublereal tau_guess[],
@@ -154,7 +154,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm,
    double* theta_guess     = NULL;
 
    controller[c_idx] = 
-         new FLIMGlobalFitController( global_algorithm, n_irf, t_irf, irf, pulse_pileup,
+         new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup,
                                       n_exp, n_fix, tau_min, tau_max, 
                                       estimate_initial_tau, tau_guess,
                                       fit_beta, fixed_beta,
@@ -173,7 +173,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm,
 }
 
 
-FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
+FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int image_irf,
                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
                              int n_exp, int n_fix, 
                              double tau_min[], double tau_max[], 
@@ -205,7 +205,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
       t_irf[i] = t_irf[i]/T_FACTOR;
 
    controller[c_idx] = 
-         new FLIMGlobalFitController( global_algorithm, n_irf, t_irf, irf, pulse_pileup,
+         new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup,
                                       n_exp, n_fix, tau_min, tau_max, 
                                       estimate_initial_tau, tau_guess,
                                       fit_beta, fixed_beta,
@@ -244,7 +244,7 @@ FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_
 }
 
 
-FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type,
+FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
                              int use_im[], int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling)
 {
 
@@ -257,7 +257,7 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 
    int n_thread = controller[c_idx]->n_thread;
 
-   FLIMData* d = new FLIMData(n_im, n_x, n_y, n_chan, n_t_full, t, t_skip, n_t, data_type, use_im,  
+   FLIMData* d = new FLIMData(n_im, n_x, n_y, n_chan, n_t_full, t, t_int, t_skip, n_t, data_type, use_im,  
                               mask, threshold, limit, global_mode, smoothing_factor, use_autosampling, n_thread);
    
    controller[c_idx]->SetData(d);

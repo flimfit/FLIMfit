@@ -57,10 +57,14 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    double *alf_err      = this->alf_err + thread * nl;
    
    
+   int pi = g % (data->n_x*data->n_y);
+   local_irf[thread] = irf + pi * n_irf * n_chan;
+
+
    SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
                                    (fit_offset == FIX)  ? offset_guess  : 0, 
                                    (fit_tvb == FIX)     ? tvb_guess     : 0);
-
+                                    
    s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y, w, ma_decay);
    
    int n_meas_res = data->GetResampleNumMeas(thread);
@@ -72,7 +76,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    // Estimate lifetime from mean arrival time if requested
    //------------------------------
-   if (estimate_initial_tau)
+   if (false && estimate_initial_tau)
    {
       tau_ma = CalculateMeanArrivalTime(ma_decay);
 

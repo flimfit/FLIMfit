@@ -1,11 +1,13 @@
 
-function[delays,im_data,tcspc,path,channel] = load_flim_file(file,channel)
+function[delays,im_data,t_int,tcspc] = load_flim_file(file,channel)
 
 %Opens a set if .tiffs, .pngs or a .sdt file into 
 %into a 3d image of dimensions [num_time_points,height,width]
 
     tcspc = 0;              % default is 'not tcspc'
 
+    t_int = [];
+    
     if (nargin < 2)
         channel = -1;
     end
@@ -56,9 +58,19 @@ function[delays,im_data,tcspc,path,channel] = load_flim_file(file,channel)
                 for f = 1:noOfFiles
                     filename = [path filesep dirStruct(f).name];
                     [~,name] = fileparts(filename);
-                    name = name(end-4:end);      %last 6 chars contains delay 
-                    tmp = str2double(name);
-                    delays(f) = tmp;
+                    tokens = regexp(name,'INT\_(\d+)','tokens');
+                    if ~isempty(tokens)
+                        t_int(f) = str2double(tokens{1});
+                    end
+                    
+                    tokens = regexp(name,'(?:^|\s)T\_(\d+)','tokens');
+                    if ~isempty(tokens)
+                        delays(f) = str2double(tokens{1});
+                    else
+                        name = name(end-4:end);      %last 6 chars contains delay 
+                        delays(f) = str2double(name);                       
+                    end
+
                     try
                         im_data(f,:,:) = imread(filename,'tif');
                     catch error
@@ -178,6 +190,10 @@ function[delays,im_data,tcspc,path,channel] = load_flim_file(file,channel)
     s = size(im_data);
     if length(s) == 3
         im_data = reshape(im_data,[s(1) 1 s(2) s(3)]);
+    end
+    
+    if length(t_int) ~= length(delays)
+        t_int = ones(size(delays));
     end
 
 end

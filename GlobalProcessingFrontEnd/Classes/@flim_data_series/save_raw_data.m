@@ -6,6 +6,7 @@ function save_raw_data(obj,mapfile_name)
     
     dinfo = struct();
     dinfo.t = obj.t;
+    dinfo.t_int = obj.t_int;
     dinfo.names = obj.names;
     dinfo.metadata = obj.metadata;
     dinfo.channels = obj.channels;

@@ -32,7 +32,7 @@ FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
 
 
-FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, 
+FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, double t_irf[], double irf[], double pulse_pileup,
                               int n_exp, int n_fix,  double tau_min[], double tau_max[], 
                               int estimate_initial_tau, double tau_guess[],
@@ -46,7 +46,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm,
                               int ref_reconvolution, double ref_lifetime_guess, int algorithm,
                               int ierr[], int n_thread, int runAsync, int use_callback, int (*callback)());
 
-FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
+FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int image_irf,
                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
                              int n_exp, int n_fix, 
                              double tau_min[], double tau_max[], 
@@ -61,7 +61,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm,
                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
                              int ierr[], int n_thread, int runAsync, int use_callback, int (*callback)());
 
-FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t,
+FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t,
                              int data_type, int* use_im, int *mask, int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling);
 
 FITDLL_API int SetDataDouble(int c_idx, double* data);

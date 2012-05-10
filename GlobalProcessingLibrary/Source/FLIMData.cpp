@@ -1,6 +1,6 @@
 #include "FLIMData.h"
 
-FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type, 
+FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
                    int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
    n_im(n_im), 
    n_x(n_x),
@@ -8,6 +8,7 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    n_chan(n_chan),
    n_t_full(n_t_full),
    t(t),
+   t_int(t_int),
    n_t(n_t),
    data_type(data_type),
    use_im(use_im),

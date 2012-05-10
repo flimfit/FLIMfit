@@ -19,6 +19,7 @@
 
 #include "FlagDefinitions.h"
 
+typedef double* DoublePtr;  
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 
@@ -75,10 +76,13 @@ public:
    int n_thread; int (*callback)();
    int error;
 
+   int image_irf;
+
    FLIMData* data;
 
    tthread::thread **thread_handle;
 
+   double** local_irf;
    
    bool polarisation_resolved;
    int n_chan, n_meas, n_pol_group;
@@ -136,7 +140,8 @@ public:
    conv_func Convolve;
    conv_deriv_func ConvolveDerivative;
 
-   FLIMGlobalFitController(int global_algorithm, int n_irf, double t_irf[], double irf[], double pulse_pileup,
+   FLIMGlobalFitController(int global_algorithm, int image_irf,
+                           int n_irf, double t_irf[], double irf[], double pulse_pileup,
                            int n_exp, int n_fix, 
                            double tau_min[], double tau_max[], 
                            int estimate_initial_tau, double tau_guess[],

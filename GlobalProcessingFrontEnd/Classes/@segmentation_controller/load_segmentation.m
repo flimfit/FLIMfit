@@ -11,7 +11,7 @@ function load_segmentation(obj,folder)
         matching_files = dir([folder '*' d.names{i} '*.tif*']);
         
         if ~isempty(matching_files)
-            obj.mask(:,:,i) = uint8(imread([folder filesep matching_files(1).name]));
+            obj.mask(:,:,i) = uint8(imread([folder matching_files(1).name]));
         end
                 
     end

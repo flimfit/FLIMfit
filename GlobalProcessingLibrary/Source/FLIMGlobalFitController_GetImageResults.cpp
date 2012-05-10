@@ -276,6 +276,8 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
       {
          if (mask[i] > 0)
          {
+            local_irf[thread] = irf + i * n_irf * n_chan;
+
             s = data->GetRegionData(thread, n_px*iml+i, 1, adjust_buf, y, w, ma_decay);
             n_meas_res = data->GetResampleNumMeas(thread);
 
@@ -446,6 +448,8 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          idx = fit_loc[i];
          if (mask[idx] > 0)
          {
+            local_irf[thread] = irf + idx * n_irf * n_chan;
+
             data->GetRegionData(thread, n_px*iml+idx, 1, adjust_buf, y, w, ma_decay);
 
             lmvarp_getlin(&s1, &l, &nl, &n_meas, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + idx*nl, lin_params);

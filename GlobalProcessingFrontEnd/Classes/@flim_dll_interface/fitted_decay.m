@@ -3,7 +3,7 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     d = obj.data_series;
     p = obj.fit_params;
 
-    if p.split_fit || p.global_variable > 0 || ~obj.bin
+    if (p.split_fit || p.global_variable > 0) && ~obj.bin
         decay = [];
         return
     end

@@ -17,7 +17,8 @@ using namespace boost::interprocess;
 using namespace std;
 
 
-FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf, double t_irf[], double irf[], double pulse_pileup,
+FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf,
+                                                 int n_irf, double t_irf[], double irf[], double pulse_pileup,
                                                  int n_exp, int n_fix, 
                                                  double tau_min[], double tau_max[], 
                                                  int estimate_initial_tau, double tau_guess[],
@@ -31,7 +32,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf
                                                  int pulsetrain_correction, double t_rep,
                                                  int ref_reconvolution, double ref_lifetime_guess, int algorithm,
                                                  int ierr[], int n_thread, int runAsync, int (*callback)()) :
-   global_algorithm(global_algorithm), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
+   global_algorithm(global_algorithm), image_irf(image_irf), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
    n_exp(n_exp), n_fix(n_fix), 
    tau_min(tau_min), tau_max(tau_max),
    estimate_initial_tau(estimate_initial_tau), tau_guess(tau_guess),
@@ -50,7 +51,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int n_irf
 {
    params = new WorkerParams[n_thread]; //free ok
    status = new FitStatus(this,n_thread,NULL);
- 
+
    alf          = NULL;
    a            = NULL;
    b            = NULL;
@@ -300,7 +301,8 @@ void FLIMGlobalFitController::Init()
       omp_set_num_threads(1); 
    #endif
 
-  
+   if (data->global_mode != MODE_PIXELWISE)
+      image_irf = false;
 
    // Set up FRET parameters
    //---------------------------------------
@@ -499,6 +501,7 @@ void FLIMGlobalFitController::Init()
       lin_params_err = new double[ n_thread * n_px * l ]; //free ok
       alf_err        = new double[ n_thread * nl ]; //free ok
 
+      local_irf    = new DoublePtr[n_thread];
 
       init = true;
    }
@@ -769,6 +772,7 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(b);
       ClearVariable(y);
       ClearVariable(w);
+      //ClearVariable(local_irf);
 
 
       if (data != NULL)

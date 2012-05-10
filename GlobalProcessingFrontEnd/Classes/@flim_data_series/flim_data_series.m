@@ -6,7 +6,7 @@ classdef flim_data_series < handle
         t_irf = [-1; 0; 1];
         irf = [0; 1; 0];
         irf_name;
-               
+                      
         counts_per_photon;
         
         tvb_profile = 0;
@@ -36,7 +36,8 @@ classdef flim_data_series < handle
         irf_downsampling = 1;
         g_factor = 1;
         afterpulsing_correction = false;
-
+        has_image_irf = 0;
+        
         background_type = 0;
         background_value = 0;
         
@@ -67,6 +68,9 @@ classdef flim_data_series < handle
     properties(Transient)
         raw = false;
         
+        image_irf;
+
+        
         use_memory_mapping = true;
         load_multiple_channels = false;
         
@@ -87,9 +91,12 @@ classdef flim_data_series < handle
         thresh_mask = [];
                 
         t;   
+        t_int;
         
         tr_t_irf;
+        tr_t_int;
         tr_irf;
+        tr_image_irf;
         
         t_skip;
         

@@ -29,7 +29,10 @@ classdef flim_dll_interface < handle
     end
         
     properties(Access='protected')
+        use_image_irf;
+        
         p_t;
+        p_t_int;
         p_data;
         p_mask;
         p_tau_guess;

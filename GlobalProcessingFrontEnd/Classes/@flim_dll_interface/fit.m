@@ -231,7 +231,16 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.p_tau_guess = libpointer('doublePtr',p.tau_guess);
     obj.p_tau_min = libpointer('doublePtr',p.tau_min);
     obj.p_tau_max = libpointer('doublePtr',p.tau_max);
-    obj.p_irf  = libpointer('doublePtr', d.tr_irf);
+    
+    obj.use_image_irf = false && d.has_image_irf && p.global_fitting == 0;
+    
+    if obj.use_image_irf
+        obj.p_irf = libpointer('doublePtr', d.tr_image_irf);
+    else
+        obj.p_irf = libpointer('doublePtr', d.tr_irf);
+    end
+    
+    obj.p_t_int = libpointer('doublePtr',d.tr_t_int);
     obj.p_t_irf = libpointer('doublePtr', d.tr_t_irf);
     obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta / sum(p.fixed_beta));
     obj.p_E_guess = libpointer('doublePtr',p.fret_guess);

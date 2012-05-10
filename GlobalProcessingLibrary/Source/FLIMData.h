@@ -18,7 +18,7 @@ class FLIMData
 
 public:
 
-   FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], int t_skip[], int n_t, int data_type,
+   FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
             int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
 
    void SetData(double data[]);

@@ -12,18 +12,13 @@ function calculated = compute_tr_data(obj,notify_update)
 
         calculated = true;
 
-        % Select points to use if downsampling 
-        sel = 0:(length(obj.t)-1);
-        sel = mod(sel,obj.downsampling) == 0;
-        obj.tr_t = obj.t(sel);
-
         % Crop timegates
-        t_inc = obj.tr_t >= obj.t_min & obj.tr_t <= obj.t_max;
+        t_inc = obj.t >= obj.t_min & obj.t <= obj.t_max;
         
 
         % If there is a IRF ensure that we don't have data points before the IRF
         if ~isempty(obj.tr_t_irf)
-            t_inc = t_inc & obj.tr_t >= min(obj.tr_t_irf);
+            t_inc = t_inc & obj.t >= min(obj.tr_t_irf);
         end
         
         % For polarisation resolved data, attempt to line up the two
@@ -59,8 +54,9 @@ function calculated = compute_tr_data(obj,notify_update)
         obj.t_skip = [find(t_inc,1,'first') find(t_inc_perp,1,'first')]-1;
         
         % Apply all the masking above
-        obj.tr_t = obj.tr_t(t_inc);
-              
+        obj.tr_t = obj.t(t_inc);
+        obj.tr_t_int = obj.t_int(t_inc);
+
             
         obj.cur_tr_data = double(obj.cur_data);
         

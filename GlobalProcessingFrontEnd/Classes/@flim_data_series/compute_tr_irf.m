@@ -40,16 +40,7 @@ function compute_tr_irf(obj)
         t_irf_inc = true(size(obj.t_irf));
         %t_irf_inc = obj.t_irf >= obj.t_irf_min & obj.t_irf <= obj.t_irf_max;
 
-
-        % downsample
-        if obj.irf_downsampling > 1
-            sel = (1:length(t_irf_inc))';
-            sel = mod(sel,obj.irf_downsampling) == 0;
-            t_irf_inc = t_irf_inc & sel;
-
-            obj.tr_irf = convn(obj.tr_irf,ones(factor,1),'same');
-        end
-
+        obj.tr_image_irf = obj.image_irf;
         obj.tr_irf = obj.irf(t_irf_inc,:);
         obj.tr_t_irf = obj.t_irf(t_irf_inc);
 
@@ -71,7 +62,7 @@ function compute_tr_irf(obj)
             bg = reshape(obj.irf_background,[1,2]);
             bg = repmat(bg,[length(obj.tr_t_irf),1]);
         else
-            bg = repmat(obj.irf_background,[length(obj.tr_t_irf),size(obj.tr_irf,2)]);
+            bg = obj.irf_background; %repmat(obj.irf_background,[length(obj.tr_t_irf),size(obj.tr_irf,2)]);
         end
 
         if ~obj.afterpulsing_correction
@@ -79,16 +70,16 @@ function compute_tr_irf(obj)
             obj.tr_irf = obj.tr_irf - bg;
             obj.tr_irf(obj.tr_irf<0) = 0;
             obj.tr_irf(clamp,:) = 0;
+            
+            obj.tr_image_irf = obj.tr_image_irf - bg;
+            obj.tr_image_irf(obj.tr_image_irf<0) = 0;
+            obj.tr_image_irf(clamp,:) = 0;
         else
             new_bg = bg;
             z = (obj.tr_irf < bg);
             obj.tr_irf(z) = new_bg(z);
             obj.tr_irf(clamp,:) = new_bg(clamp,:); 
         end
-
-
-
-
 
         % Resample IRF 
         if obj.resample_irf && length(obj.tr_t_irf) > 2
@@ -139,10 +130,23 @@ function compute_tr_irf(obj)
                 end
             end
         end
-
+        
+        sz = size(obj.tr_image_irf);
+        obj.tr_image_irf = reshape(obj.tr_image_irf,[sz(1) prod(sz(2:end))]);
+        for i=1:size(obj.tr_image_irf,2)
+            sm = sum(obj.tr_image_irf(:,i));
+            if sm > 0
+                obj.tr_image_irf(:,i) = obj.tr_image_irf(:,i) / sm;
+            end
+        end
+        
         if obj.polarisation_resolved
             obj.tr_irf(:,1) = obj.tr_irf(:,1) * obj.g_factor;
         end
+        
+        %sz = size(obj.tr_image_irf);
+        %obj.tr_image_irf = repmat(obj.tr_irf,[1 1 sz(3) sz(4)]);
+
 
 
     end

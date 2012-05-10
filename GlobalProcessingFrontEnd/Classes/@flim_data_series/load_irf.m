@@ -11,7 +11,7 @@ function load_irf(obj,file)
     %    [t_irf,irf_image_data,~,name] = load_flim_file('Select a file from the IRF data set',[],channel);
     %else
     
-    [t_irf,irf_image_data,~,name] = load_flim_file(file,channel);
+    [t_irf,irf_image_data] = load_flim_file(file,channel);
     %end
         
     % Sum over pixels
@@ -39,9 +39,15 @@ function load_irf(obj,file)
      
     irf = double(irf);
     
+    irf_image_data = double(irf_image_data);
+    irf_image_data = obj.smooth_flim_data(irf_image_data,7);
+    
+    obj.image_irf = irf_image_data;
+    obj.has_image_irf = true;
+    
     obj.t_irf = t_irf(:);
     obj.irf = irf;
-    obj.irf_name = name;
+    obj.irf_name = 'irf';
 
     obj.t_irf_min = min(obj.t_irf);
     obj.t_irf_max = max(obj.t_irf);

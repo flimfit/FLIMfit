@@ -33,6 +33,12 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
                 im_row = md.Row;
                 im_col = md.Column;
+                
+                for i=1:length(im_col)
+                    if ~ischar(im_col{i})
+                        im_col{i} = 'X';
+                    end
+                end
 
                 plate = zeros(n_row,n_col) * NaN;
 
