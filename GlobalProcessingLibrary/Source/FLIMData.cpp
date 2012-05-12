@@ -93,8 +93,9 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
          this->t_skip[i] = t_skip[i];
    }
 
-   tr_data = new double[ n_thread * n_p ]; 
-   tr_buf  = new double[ n_thread * n_x ];
+   tr_data    = new double[ n_thread * n_p ]; 
+   tr_buf     = new double[ n_thread * n_p ];
+   tr_row_buf = new double[ n_thread * (n_x+n_y) ];
 
    region_start = new int[ n_group ];
 
@@ -564,6 +565,7 @@ FLIMData::~FLIMData()
 
    delete[] tr_data;
    delete[] tr_buf;
+   delete[] tr_row_buf;
    delete[] cur_transformed;
    delete[] resample_idx;
    delete[] data_map_view;

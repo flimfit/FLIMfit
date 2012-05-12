@@ -100,7 +100,13 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             
             addlistener(obj.data_series_controller,'new_dataset',@obj.data_update_evt);
             
+            if handles.external
+                obj.fit_params.global_algorithm = 1;
+            end
+            
             obj.update_controls();
+            
+            
             
         end
         

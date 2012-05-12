@@ -3,6 +3,10 @@
 #include "VariableProjection.h"
 #include "util.h"
 
+#ifndef NO_OMP   
+#include <omp.h>
+#endif
+
 int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], double tau[], double beta[], double E[], double theta[], double offset[], double scatter[], double tvb[], double ref_lifetime[])
 {
 
@@ -10,12 +14,13 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
    for(int i=0; i<n; i++)
    {
       int j;
+      double* alfl = alf + i*nl;
       if (tau != NULL)
       {
          for(j=0; j<n_fix; j++)
             tau[ j*n_px + loc[i] ] = tau_guess[j];
          for(j=0; j<n_v; j++)
-            tau[ (j+n_fix)*n_px + loc[i] ] = alf[j];
+            tau[ (j+n_fix)*n_px + loc[i] ] = alfl[j];
       }
 
       if (beta != NULL && beta_global)
@@ -27,7 +32,7 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
          }
          else
          {
-            alf2beta(n_exp,alf+alf_beta_idx,beta_buf);
+            alf2beta(n_exp,alfl+alf_beta_idx,beta_buf);
 
             double norm = 0;
             for(j=0; j<n_exp; j++)
@@ -43,7 +48,7 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
          for(j=0; j<n_theta_fix; j++)
             theta[ j*n_px + loc[i] ] =  theta_guess[ j ];
          for(j=0; j<n_theta_v; j++)
-            theta[ (j + n_theta_fix)*n_px + loc[i] ] = alf[alf_theta_idx + j];
+            theta[ (j + n_theta_fix)*n_px + loc[i] ] = alfl[alf_theta_idx + j];
       }
 
       if (E != NULL)
@@ -51,22 +56,22 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
          for(j=0; j<n_fret_fix; j++)
             E[ j*n_px + loc[i] ] = E_guess[j];
          for(j=0; j<n_fret_v; j++)
-            E[ (j + n_fret_fix)*n_px + loc[i] ] = alf[alf_E_idx+j];
+            E[ (j + n_fret_fix)*n_px + loc[i] ] = alfl[alf_E_idx+j];
       }
 
       if (offset != NULL && fit_offset == FIT_GLOBALLY)
-         offset[ loc[i] ] = alf[alf_offset_idx];
+         offset[ loc[i] ] = alfl[alf_offset_idx];
 
       if (scatter != NULL && fit_scatter == FIT_GLOBALLY)
-         scatter[ loc[i] ] = alf[alf_scatter_idx];
+         scatter[ loc[i] ] = alfl[alf_scatter_idx];
 
       if (tvb != NULL && fit_scatter == FIT_GLOBALLY)
-         tvb[ loc[i] ] = alf[alf_tvb_idx];
+         tvb[ loc[i] ] = alfl[alf_tvb_idx];
 
       if (ref_lifetime != NULL && ref_reconvolution == FIT_GLOBALLY)
-         ref_lifetime[ loc[i] ] = alf[alf_ref_idx];
+         ref_lifetime[ loc[i] ] = alfl[alf_ref_idx];
    
-      alf += nl;
+      //alf += nl;
    }
 
    return 0;
@@ -224,14 +229,24 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
    int s, n_meas_res;
 
    int *loc = new int[n_px];
-   double *alf_group;
+   double *alf_group, *lin_group;
    
    int lps = l + n_px;
 
-   double *lin_params = new double[ n_px*l ];
+   double *lin_params;
+
+   if (delay_lin_calc)
+      lin_params = new double[ n_px*l ];
+   else
+      lin_params = this->lin_params;
+
    double *a          = new double[ n*lps ]; //free ok
    double *y          = new double[ n_px*n_meas ];
    
+   #ifndef NO_OMP
+   omp_set_num_threads(n_thread);
+   #endif
+
    SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
                                    (fit_offset == FIX)  ? offset_guess  : 0, 
                                    (fit_tvb == FIX)     ? tvb_guess     : 0);
@@ -265,31 +280,47 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
 
    if (data->global_mode == MODE_PIXELWISE)
    {
-      SetNaN(lin_params, n_px*l);
+      if (delay_lin_calc)
+         SetNaN(lin_params, n_px*l);
 
       for(int i=0; i<n_px; i++)
          loc[i] = i;
 
       alf_group = alf + nl * n_px * im;
+      lin_group = lin_params + ((delay_lin_calc) ? 0 : l * n_px * im);
+
 
       for(int i=0; i<n_px; i++)
       {
-         if (mask[i] > 0)
+         if (mask[i] > 0 && ierr[i] > 0)
          {
             local_irf[thread] = irf + i * n_irf * n_chan;
 
-            s = data->GetRegionData(thread, n_px*iml+i, 1, adjust_buf, y, w, ma_decay);
-            n_meas_res = data->GetResampleNumMeas(thread);
+            if (delay_lin_calc)
+            {
+               s = data->GetRegionData(thread, n_px*iml+i, 1, adjust_buf, y, w, ma_decay);
+               n_meas_res = data->GetResampleNumMeas(thread);
+            }
+            else
+            {
+               n_meas_res = n_meas;
+            }
+            
+            #ifdef USE_W
+            ws[0] = 0;
+            #endif
 
             int smoothing_correction = 1/data->smoothing_area;
             smoothing_correction = 1;
 
-            lmvarp_getlin(&s, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + i*nl, lin_params + i*l);
-            CalculateChi2(1, &s0, n_meas_res, y, a, lin_params + i*l, adjust_buf, fit_buf, chi2 + i);
+            if (delay_lin_calc)
+               lmvarp_getlin(&s, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, 
+                            (int*) this, &thread, static_store, alf_group + i*nl, lin_group + i*l);
+            CalculateChi2(1, &s0, n_meas_res, y, a, lin_group + i*l, adjust_buf, fit_buf, chi2 + i);
          }
       }
 
-      ProcessLinearParams(n_px, n_px, loc, lin_params, I0, beta, gamma, r, offset, scatter, tvb);
+      ProcessLinearParams(n_px, n_px, loc, lin_group, I0, beta, gamma, r, offset, scatter, tvb);
       ProcessNonLinearParams(n_px, n_px, loc, alf_group, tau, beta, E, theta, offset, scatter, tvb, ref_lifetime);
    }
    else
@@ -317,9 +348,21 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
          s = data->GetImageData(0, iml, rg, adjust_buf, y, w);
          n_meas_res = data->GetResampleNumMeas(0);
 
+         #ifdef USE_W
+         #pragma omp parallel for
+         for(int i=0; i<s; i++)
+         {
+            ws[i] = 0;
+            for(int j=0; j<n_meas_res; j++)
+               ws[i] += y[i*n_meas_res + j];
+            ws[i] = sqrt(1 / ws[i]);
+         }
+         #endif
+
+
          alf_group = alf + nl * r_idx;
 
-         lmvarp_getlin(&s, &l, &nl, &n, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, 
+         lmvarp_getlin(&s, &l, &nl, &n, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, 
          alf_group, lin_params);
 
          CalculateChi2(s, loc, n_meas_res, y, a, lin_params, adjust_buf, fit_buf, chi2);
@@ -331,9 +374,12 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
    }
 
    delete[] a;
-   delete[] lin_params;
    delete[] loc;
    delete[] y;
+
+   if (delay_lin_calc)
+      delete[] lin_params;
+   
 
 
    return 0;
@@ -451,8 +497,12 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             local_irf[thread] = irf + idx * n_irf * n_chan;
 
             data->GetRegionData(thread, n_px*iml+idx, 1, adjust_buf, y, w, ma_decay);
+            
+            #ifdef USE_W
+            ws[0] = 1;
+            #endif
 
-            lmvarp_getlin(&s1, &l, &nl, &n_meas, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + idx*nl, lin_params);
+            lmvarp_getlin(&s1, &l, &nl, &n_meas, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + idx*nl, lin_params);
 
             GetPixelFit(a,lin_params,adjust,n_meas,fit+n_meas*i);
          }
@@ -476,7 +526,20 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          alf_group = alf + nl * r_idx;
          int sr = data->GetSelectedPixels(0, iml, rg, n_fit, fit_loc, adjust_buf, y, w);
 
-         lmvarp_getlin(&sr, &l, &nl, &n, &nmax, &ndim, &p, t, y, w, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group, lin_params);
+         
+         #ifdef USE_W
+         #pragma omp parallel for
+         for(int i=0; i<sr; i++)
+         {
+            ws[i] = 0;
+            for(int j=0; j<n_meas; j++)
+               ws[i] += y[i*n_meas + j];
+            ws[i] = sqrt(1 / ws[i]);
+         }
+         #endif
+
+
+         lmvarp_getlin(&sr, &l, &nl, &n, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group, lin_params);
 
          #pragma omp parallel for
          for(int i=0; i<sr; i++)

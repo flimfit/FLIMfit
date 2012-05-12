@@ -45,6 +45,7 @@ classdef front_end_menu_controller < handle
         
         
         menu_irf_load;
+        menu_irf_image_load;
         menu_irf_set_delta;
         menu_irf_set_rectangular;
         menu_irf_set_gaussian;
@@ -159,7 +160,7 @@ classdef front_end_menu_controller < handle
 
         function add_recent_irf(obj,path)
             if ~any(strcmp(path,obj.recent_irf))
-                obj.recent_irf = [obj.recent_irf; path];
+                obj.recent_irf = [path; obj.recent_irf];
             end
             if length(obj.recent_irf) > 20
                 obj.recent_irf = obj.recent_irf(1:20);
@@ -433,6 +434,13 @@ classdef front_end_menu_controller < handle
             if file ~= 0
                 obj.data_series_controller.data_series.load_irf([path file]);
                 obj.add_recent_irf([path file]);
+            end
+        end
+        
+        function menu_irf_image_load_callback(obj,~,~)
+            [file,path] = uigetfile('*.*','Select a file from the irf',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.load_irf([path file],true);
             end
         end
         

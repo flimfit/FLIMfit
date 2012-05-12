@@ -10,14 +10,14 @@ int varproj(void *pa, int nls, int nsls1, const double *alf, double *rnorm, doub
 int lmvarp(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer 
    *p, doublereal *t, doublereal *y, 
-   doublereal *w, S_fp ada, doublereal *a, doublereal *b, doublereal *c,
+   doublereal *w, doublereal *ws, S_fp ada, doublereal *a, doublereal *b, doublereal *c,
    integer *itmax, integer *gc, integer *thread, integer *static_store, 
    doublereal *alf, doublereal *beta, integer *ierr, integer *niter, doublereal *c2, integer *terminate);
 
 int lmvarp_getlin(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer 
    *p, doublereal *t, doublereal *y, 
-   doublereal *w, S_fp ada, doublereal *a, doublereal *b, doublereal *c,
+   doublereal *w, doublereal *ws, S_fp ada, doublereal *a, doublereal *b, doublereal *c,
    integer *gc, integer *thread, integer *static_store, 
    doublereal *alf, doublereal *beta);
 
@@ -53,6 +53,7 @@ typedef struct {
    double *t;
    double *y;
    double *w;
+   double *ws;
    S_fp ada;
    double *a;
    double *b;

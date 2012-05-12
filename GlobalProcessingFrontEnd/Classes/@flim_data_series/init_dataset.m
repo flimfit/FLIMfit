@@ -68,6 +68,9 @@ function init_dataset(obj,setting_file_name)
     
     obj.init = true;
     
+    if isempty(obj.t_int)
+        obj.t_int = ones(size(obj.t));
+    end
     obj.compute_tr_data();
 
 end

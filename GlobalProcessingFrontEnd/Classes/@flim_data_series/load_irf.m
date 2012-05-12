@@ -1,4 +1,4 @@
-function load_irf(obj,file)
+function load_irf(obj,file,load_as_image)
 
     if strcmp(obj.mode,'TCSPC')
         channel = obj.request_channels(obj.polarisation_resolved);
@@ -6,14 +6,13 @@ function load_irf(obj,file)
         channel = 1;
     end
 
-    % Get IRF data
-    %if nargin < 2
-    %    [t_irf,irf_image_data,~,name] = load_flim_file('Select a file from the IRF data set',[],channel);
-    %else
-    
-    [t_irf,irf_image_data] = load_flim_file(file,channel);
-    %end
+    if nargin < 3
+        load_as_image = false;
+    end
         
+    [t_irf,irf_image_data] = load_flim_file(file,channel);    
+    irf_image_data = double(irf_image_data);
+    
     % Sum over pixels
     s = size(irf_image_data);
     if length(s) == 3
@@ -30,20 +29,15 @@ function load_irf(obj,file)
     if max(t_irf) < 300
        t_irf = t_irf * 1000; 
     end
-     
-    % Pick out peak section of IRF (section of IRF within 20dB of peak)   
-    %[t_irf,irf,~] = pickOutIRF(t_irf,irf);
     
-    %Remove 'background', set to minimum value of IRF
-    %irf = double(irf - min(irf));
-     
-    irf = double(irf);
+    if load_as_image
+        irf_image_data = obj.smooth_flim_data(irf_image_data,7);
+        obj.image_irf = irf_image_data;
+        obj.has_image_irf = true;
+    else
+        obj.has_image_irf = false;
+    end
     
-    irf_image_data = double(irf_image_data);
-    irf_image_data = obj.smooth_flim_data(irf_image_data,7);
-    
-    obj.image_irf = irf_image_data;
-    obj.has_image_irf = true;
     
     obj.t_irf = t_irf(:);
     obj.irf = irf;

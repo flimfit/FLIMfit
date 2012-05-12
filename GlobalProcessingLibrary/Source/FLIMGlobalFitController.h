@@ -113,6 +113,8 @@ public:
    double *y; double *w; double *alf; double *a; double *b; double *c; double *lin_params;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
+   double *ws;
+
    bool beta_global;
    int n_beta;
 
@@ -223,13 +225,14 @@ private:
 
 
 
-   void DetermineMAStartPosition();
-   double CalculateMeanArrivalTime(double decay[]);
+   int DetermineMAStartPosition(int p);
+   double CalculateMeanArrivalTime(double decay[], int p);
    int ma_start;
    double* ma_decay;
    double g_factor;
 
    int lm_algorithm;
+   int delay_lin_calc;
 
    boost::interprocess::file_mapping   b_map_file;
    boost::interprocess::mapped_region* b_map_view;

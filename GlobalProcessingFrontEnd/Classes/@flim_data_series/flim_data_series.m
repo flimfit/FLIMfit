@@ -36,7 +36,6 @@ classdef flim_data_series < handle
         irf_downsampling = 1;
         g_factor = 1;
         afterpulsing_correction = false;
-        has_image_irf = 0;
         
         background_type = 0;
         background_value = 0;
@@ -69,7 +68,8 @@ classdef flim_data_series < handle
         raw = false;
         
         image_irf;
-
+        has_image_irf = 0;
+        
         
         use_memory_mapping = true;
         load_multiple_channels = false;
@@ -257,13 +257,13 @@ classdef flim_data_series < handle
             
             % Reshape mask to apply to flim data
             n_mask = sum(roi_mask(:));
-            rep_mask = reshape(roi_mask,[1 1 size(roi_mask,1) size(roi_mask,2)]);
-            rep_mask = repmat(rep_mask,[n_tr_t obj.n_chan 1 1]);
+            %rep_mask = reshape(roi_mask,[1 1 size(roi_mask,1) size(roi_mask,2)]);
+            %rep_mask = repmat(rep_mask,[n_tr_t obj.n_chan 1 1]);
             
             % Recover selected data
-            data = data(rep_mask);
-            data = reshape(data,[n_tr_t obj.n_chan n_mask]);
-            
+            %data = data(rep_mask);
+            %data = reshape(data,[n_tr_t obj.n_chan n_mask]);
+            data = data(:,:,roi_mask);
             %data = data;
             
             %d = reshape(data,[size(data,1) size(data,3)]); 
@@ -683,7 +683,7 @@ classdef flim_data_series < handle
             inten = zeros([obj.height obj.width length(sel)]);
 
             for i = 1:length(sel)
-                obj.switch_active_dataset(sel(i));
+                obj.switch_active_dataset(sel(i),true);
                 inten(:,:,i) = obj.intensity;
             end
 
@@ -698,7 +698,7 @@ classdef flim_data_series < handle
                 g = obj.g_factor;
                 
                 for i = 1:length(sel)
-                    obj.switch_active_dataset(sel(i));
+                    obj.switch_active_dataset(sel(i),true);
                     in = obj.cur_tr_data;
                     in = nansum(in,1);
                     

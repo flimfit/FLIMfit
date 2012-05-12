@@ -170,11 +170,19 @@ function get_return_data(obj)
     ierr = reshape(obj.p_ierr.Value,obj.globals_size);
     clear obj.p_ierr
     
-    wh = waitbar(0, 'Processing fit results...');
+    stop = false;
+    wh = waitbar(0, 'Processing fit results...','CreateCancelBtn','setappdata(gcbf,''canceling'',1);');
+    
+    setappdata(wh,'canceling',0);
     
     % Get results for each image
     for i = 1:length(datasets)
     
+        if getappdata(wh,'canceling');
+            break;
+            datasets = datasets(1:(i-1));
+        end
+        
         im = datasets(i);
         
         if p.global_fitting < 2
@@ -410,12 +418,15 @@ function get_return_data(obj)
             
         end
      
-        waitbar(i/length(datasets),wh);
-        
+        if mod(i,10)
+            waitbar(i/length(datasets),wh);
+        end
+    end
+            
+    if ishandle(wh)
+        delete(wh);
     end
     
-    close(wh);
-        
     clear p_chi2;
     clear p_tau p_tau_err p_beta p_beta_err;
     clear p_ref_lifetime;

@@ -33,7 +33,18 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          e0 = exp( (t_irf[0] + t0_guess) * rate ) * t_g;
          de = exp( + t_g * rate );
          ej = e0;
-         
+         /*
+         for(k=0; k<n_chan; k++)
+         {
+            ej = e0;
+            for(j=0; j<n_irf; j++)
+            {
+               local_exp_buf[j+k*n_irf+row*exp_dim] = ej * lirf[j+k*n_irf];
+               ej *= de;
+            }
+         }*/
+          
+
          for(j=0; j<n_irf; j++)
          {
             for(k=0; k<n_chan; k++)
@@ -42,7 +53,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
             }
             ej *= de;
           }
-
+          
          row--;
 
          // Cumulative IRF expontial

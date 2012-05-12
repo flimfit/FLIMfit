@@ -61,6 +61,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    lin_params   = NULL;
 
    w            = NULL;
+   ws           = NULL;
 
    exp_buf      = NULL;
    tau_buf      = NULL;
@@ -88,6 +89,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    data = NULL;
 
    lm_algorithm = 1;
+
+   delay_lin_calc = true;
 }
 
 int FLIMGlobalFitController::RunWorkers()
@@ -98,6 +101,14 @@ int FLIMGlobalFitController::RunWorkers()
 
    if (!init)
       return ERR_COULD_NOT_START_FIT;
+
+   #ifndef NO_OMP
+   if (data->n_group == 1)
+      omp_set_num_threads(n_thread);
+   else
+      omp_set_num_threads(1); 
+   #endif
+
 
    if (n_thread == 1 && !runAsync)
    {
@@ -201,12 +212,14 @@ void FLIMGlobalFitController::SetPolarisationMode(int mode)
       this->polarisation_resolved = true;
 }
 
-void FLIMGlobalFitController::DetermineMAStartPosition()
+int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
 {
    double irf_95, c, p;
    double* t = data->GetT();
 
-   ma_start = 0;
+   int start = 0;
+
+   double *irf = this->irf + idx * n_irf * n_chan;
 
    c = 0;
    for(int i=0; i<n_irf; i++)
@@ -221,8 +234,6 @@ void FLIMGlobalFitController::DetermineMAStartPosition()
          g_factor = c/p;
    }
 
-
-
    irf_95 = c * 0.95;
    
    c = 0;
@@ -234,32 +245,40 @@ void FLIMGlobalFitController::DetermineMAStartPosition()
          for (int j=0; j<data->n_t; j++)
             if (t[j] > t_irf[i])
             {
-               ma_start = j;
+               start = j;
                break;
             }
          break;
       }   
    }
+
+   return start;
 }
 
-double FLIMGlobalFitController::CalculateMeanArrivalTime(double decay[])
+double FLIMGlobalFitController::CalculateMeanArrivalTime(double decay[], int p)
 {
    double* t   = data->GetT();
    double  tau = 0;
    double  n   = 0;
+   int     start;
    
-   for(int i=ma_start; i<n_t; i++)
+   if (image_irf)
+      start = DetermineMAStartPosition(p);
+   else
+      start = ma_start;
+
+   for(int i=start; i<n_t; i++)
    {
-      tau += decay[i] * (t[i] - t[ma_start]);
+      tau += decay[i] * (t[i] - t[start]);
       n   += decay[i];
    }
    
    if (polarisation_resolved)
    {
       decay += n_t;
-      for(int i=ma_start; i<n_t; i++)
+      for(int i=start; i<n_t; i++)
       {
-         tau += 2 * g_factor * decay[i] * (t[i] - t[ma_start]);
+         tau += 2 * g_factor * decay[i] * (t[i] - t[start]);
          n   += 2 * g_factor * decay[i];
       }
    }
@@ -295,10 +314,7 @@ void FLIMGlobalFitController::Init()
       n_thread = 1;
    
    #ifndef NO_OMP
-   if (n_group == 1)
       omp_set_num_threads(n_thread);
-   else
-      omp_set_num_threads(1); 
    #endif
 
    if (data->global_mode != MODE_PIXELWISE)
@@ -477,10 +493,13 @@ void FLIMGlobalFitController::Init()
 
       y            = new double[ n_thread * s * n_meas ]; //free ok 
       ma_decay     = new double[ n_thread * n_meas ];
-      lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
-      //lin_params   = new double[ n_thread * l ];
-
+      //lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
+      lin_params   = new double[ n_thread * l ];
       w            = new double[ n_thread * n ]; //free ok
+      
+      #ifdef USE_W
+      ws           = new double[ n_thread * s ];
+      #endif
 
       exp_buf      = new double[ n_thread * n_decay_group * exp_buf_size ]; //free ok
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -522,7 +541,7 @@ void FLIMGlobalFitController::Init()
 
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
-   DetermineMAStartPosition();
+   ma_start = DetermineMAStartPosition(0);
 
    // Select correct convolution function for data type
    //-------------------------------------------------
@@ -772,8 +791,14 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(b);
       ClearVariable(y);
       ClearVariable(w);
-      //ClearVariable(local_irf);
-
+      ClearVariable(ws);
+      
+      
+      if (local_irf != NULL)
+      {
+         delete[] local_irf;
+         local_irf = NULL;
+      }
 
       if (data != NULL)
       {

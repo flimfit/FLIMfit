@@ -48,8 +48,10 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     d = obj.data_series;
     
     
+    obj.use_image_irf = d.has_image_irf && p.global_fitting == 0 && ~obj.bin;
+    
     if p.global_fitting < 2 || p.global_variable == 0
-        if d.lazy_loading && p.split_fit
+        if false && d.lazy_loading && p.split_fit
             obj.n_rounds = ceil(d.num_datasets/p.n_thread);
 
             idx = 1:d.num_datasets;
@@ -231,8 +233,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.p_tau_guess = libpointer('doublePtr',p.tau_guess);
     obj.p_tau_min = libpointer('doublePtr',p.tau_min);
     obj.p_tau_max = libpointer('doublePtr',p.tau_max);
-    
-    obj.use_image_irf = false && d.has_image_irf && p.global_fitting == 0;
     
     if obj.use_image_irf
         obj.p_irf = libpointer('doublePtr', d.tr_image_irf);

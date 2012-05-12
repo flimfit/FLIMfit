@@ -117,11 +117,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                         else
                             n_sum = 1;
                         end
-%{                        
-                        if decay_mode == 1
-                            data = data(:) / obj.data_series.tr_t_int(:);
-                        end
-%}                        
+                     
                         cla(obj.highlight_axes);
 
                         if ~isempty(data)

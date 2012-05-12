@@ -38,7 +38,6 @@ function compute_tr_irf(obj)
 
         % Select time points based on threshold
         t_irf_inc = true(size(obj.t_irf));
-        %t_irf_inc = obj.t_irf >= obj.t_irf_min & obj.t_irf <= obj.t_irf_max;
 
         obj.tr_image_irf = obj.image_irf;
         obj.tr_irf = obj.irf(t_irf_inc,:);
@@ -66,14 +65,15 @@ function compute_tr_irf(obj)
         end
 
         if ~obj.afterpulsing_correction
-            new_bg = bg;
             obj.tr_irf = obj.tr_irf - bg;
             obj.tr_irf(obj.tr_irf<0) = 0;
             obj.tr_irf(clamp,:) = 0;
             
-            obj.tr_image_irf = obj.tr_image_irf - bg;
-            obj.tr_image_irf(obj.tr_image_irf<0) = 0;
-            obj.tr_image_irf(clamp,:) = 0;
+            if obj.has_image_irf
+                obj.tr_image_irf = obj.tr_image_irf - bg;
+                obj.tr_image_irf(obj.tr_image_irf<0) = 0;
+                obj.tr_image_irf(clamp,:) = 0;
+            end
         else
             new_bg = bg;
             z = (obj.tr_irf < bg);
@@ -87,8 +87,8 @@ function compute_tr_irf(obj)
 
             if irf_spacing > 75
 
-                interp_min = min(obj.tr_t_irf); %#ok
-                interp_max = max(obj.tr_t_irf); %#ok
+                interp_min = min(obj.tr_t_irf);
+                interp_max = max(obj.tr_t_irf);
 
                 interp_t_irf = interp_min:25:interp_max;
 
@@ -131,13 +131,21 @@ function compute_tr_irf(obj)
             end
         end
         
-        sz = size(obj.tr_image_irf);
-        obj.tr_image_irf = reshape(obj.tr_image_irf,[sz(1) prod(sz(2:end))]);
-        for i=1:size(obj.tr_image_irf,2)
-            sm = sum(obj.tr_image_irf(:,i));
-            if sm > 0
-                obj.tr_image_irf(:,i) = obj.tr_image_irf(:,i) / sm;
+        if obj.has_image_irf
+            sz = size(obj.tr_image_irf);
+            obj.tr_image_irf = reshape(obj.tr_image_irf,[sz(1) prod(sz(2:end))]);
+
+            sm = sum(obj.tr_image_irf,1);  
+            sm(sm==0) = 1;
+            obj.tr_image_irf = obj.tr_image_irf ./ sm;
+            %{
+            for i=1:size(obj.tr_image_irf,2) 
+                sm = sum(obj.tr_image_irf(:,i));
+                if sm > 0;
+                    obj.tr_image_irf(:,i) = obj.tr_image_irf(:,i) / sm;
+                end
             end
+            %}
         end
         
         if obj.polarisation_resolved

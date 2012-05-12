@@ -64,6 +64,7 @@ classdef flim_fitting_params < handle
             import java.lang.*;
             r=Runtime.getRuntime;
             obj.n_thread = r.availableProcessors;
+                        
         end
         
         function save_fitting_params(obj,file)

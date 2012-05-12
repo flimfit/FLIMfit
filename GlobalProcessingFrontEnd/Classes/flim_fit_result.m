@@ -177,6 +177,8 @@ classdef flim_fit_result < handle
         
         function write(obj,dataset,param,img,mask)
             
+            img = single(img);
+            
             if isempty(mask) || sum(mask(:)) == 0
               
                 n_regions = 1;
@@ -195,7 +197,7 @@ classdef flim_fit_result < handle
             end
             
             img_mean = trimmean(timg,1);
-            img_std = trimstd(double(timg),1);
+            img_std = trimstd(timg,1);
             img_n = sum(tmask);
                         
             region_mean = zeros(1,n_regions);

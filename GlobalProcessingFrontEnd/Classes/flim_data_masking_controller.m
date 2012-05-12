@@ -132,16 +132,6 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
         end
         
         function t0_guess_callback(obj,~,~)
-            %{
-            mask = obj.roi_controller.roi_mask;
-            dataset = obj.data_series_list.selected;
-            t = obj.data_series.tr_t;
-            
-            data = obj.data_series.get_roi(mask,dataset); 
-            fitted = obj.fit_controller.fitted_decay(t,mask,dataset);
-            %}
-
-
             
             function chi2=f(t0)
                 
@@ -165,7 +155,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
                 
             end
             
-            opt = optimset('PlotFcns',{@optimplotfval});
+            opt = optimset('PlotFcns',{@optimplotfval}); %,'TolX',0.05);
             t0_min = fminsearch(@f,obj.data_series.t0,opt);
             
             obj.data_series.t0 = t0_min;

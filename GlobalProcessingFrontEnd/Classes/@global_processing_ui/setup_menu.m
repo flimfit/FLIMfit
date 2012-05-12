@@ -4,7 +4,7 @@ function handles = setup_menu(obj,handles)
     external = handles.external;
     session = handles.OMERO_session;
     
-    if  session ~= []
+    if ~isempty(session)
       external = true;
         
       menu_OMERO      = uimenu(obj.window,'Label','OMERO');
@@ -28,7 +28,6 @@ function handles = setup_menu(obj,handles)
     
     
     if ~external
-      
         menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
         handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
         handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
@@ -57,6 +56,9 @@ function handles = setup_menu(obj,handles)
     
     menu_irf       = uimenu(obj.window,'Label','IRF');
     handles.menu_irf_load = uimenu(menu_irf,'Label','Load IRF...');
+    if ~external
+        handles.menu_irf_image_load = uimenu(menu_irf,'Label','Load Spatially Varying IRF...');
+    end
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');
     
     %handles.menu_irf_set_delta = uimenu(menu_irf,'Label','Set Delta Function IRF','Separator','on');

@@ -47,6 +47,8 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             %return
             save = (f ~= obj.plot_handle);
             
+            r = obj.fit_controller.fit_result;
+            
             if save
                 pa = f;%get(f,'Parent');
                 pos = get(pa,'Position');
@@ -93,8 +95,23 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 else
                     meta = d.metadata.(overlay);
                 end
-
+                
+                %{
+                gw = d.width * cols; gh = d.height * rows;
+                gallery_data = zeros([gh gw]);
+                %}
+                
                 for i=1:n_im
+                    %{
+                    im_data = r.get_image(i,param);
+                    
+                    ri = mod(i-1,cols) * d.width + 1;
+                    ci = floor((i-1)/cols) * d.height + 1;
+                    
+                    gallery_data(ci:ci+d.height-1,ri:ri+d.width-1) = im_data;
+                    %}
+                    
+                    
                     if ~isempty(meta)
                         text = meta{i};
                         if strcmp(overlay,'s') && strcmp(unit,'min')
@@ -114,7 +131,16 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                         obj.axes_handles = ax_h;
                         obj.colorbar_handles = cb_h;
                     end
+                    
                 end
+                
+                %{
+                gallery_data = imresize(gallery_data,1/4);
+                ax = axes('Parent',f);
+                im=imagesc(gallery_data,'Parent',ax);    
+                daspect(ax,[1 1 1])
+                %}
+                
 
             end
             

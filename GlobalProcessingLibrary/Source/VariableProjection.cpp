@@ -1,6 +1,7 @@
 #include "ModelADA.h"
 #include "VariableProjection.h"
 
+//#define USE_W
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +24,7 @@ static integer c__3 = 3;
 // r__ -> &a[lp1 * a_dim1 + 1]
 
 void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon, 
-              int nconp1, int* inc, double* b, double *kap, double* r__, int d_idx, double* res, double* derv);
+              int nconp1, int* inc, double* b, double *kap, double *ws, double* r__, int d_idx, double* res, double* derv);
 
 
 
@@ -44,6 +45,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    double *t = vp->t;
    double *y = vp->y;
    double *w = vp->w;
+   double *ws = vp->ws;
 
    double *a   = vp->a;
    double *b   = vp->b;
@@ -159,7 +161,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    {
       d_idx = *isel - 3;
       
-      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, r__, d_idx, rnorm, fjrow);
+      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, ws, r__, d_idx, rnorm, fjrow);
       return iflag;
    }
 
@@ -323,6 +325,11 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
          i__2 = *n - *l;
          /* Computing 2nd power */
          d__1 = xnorm_(&i__2, &r__[lp1 + j * r_dim1]);
+         
+         #ifdef USE_W
+         d__1 *= ws[j-1];
+         #endif
+         
          rn += d__1 * d__1;
       }
       rn += kap[0] * kap[0];
@@ -356,7 +363,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
       /*           L+NL+S+1. */
 
-      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, r__, 0, rnorm, fjrow);
+      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, ws, r__, 0, rnorm, fjrow);
 
       
    }
@@ -368,7 +375,7 @@ L99:
 } /* dpa_ */
 
 void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon, 
-              int nconp1, int* inc, double* b, double *kap, double* r__, int d_idx, double* res, double* derv)
+              int nconp1, int* inc, double* b, double *kap, double *ws, double* r__, int d_idx, double* res, double* derv)
 {
    int m, k, j, ksub, b_dim1, r_dim1;
    double acum;
@@ -389,11 +396,6 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon,
 
    d_idx--;
    
-
-   //for (int i = *l + 1; i <= *n; ++i)
-   //{
-   //   for (isback = 1; isback <= *s; ++isback) 
-   //   {
    int i = d_idx % (*n-*l) + 1 + *l;
    int isback = d_idx / (*n-*l) + 1;
 
@@ -422,13 +424,19 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon,
             acum += b[i + m * b_dim1];
          }
 
+         #ifdef USE_W
+         derv[k-1] = -acum * ws[is];
+         #else
          derv[k-1] = -acum;
+         #endif
 
       }
    }
+   #ifdef USE_W
+   *res = r__[i+is*r_dim1] * ws[is];
+   #else
    *res = r__[i+is*r_dim1];
-   //   }
-   //}
+   #endif
 }
 
 

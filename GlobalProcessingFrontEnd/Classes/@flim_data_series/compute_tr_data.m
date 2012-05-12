@@ -1,8 +1,12 @@
-function calculated = compute_tr_data(obj,notify_update)
+function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     %> Transform data based on settings
     
     if nargin < 2
         notify_update = true;
+    end
+    
+    if nargin < 3
+        no_smoothing = false;
     end
    
     
@@ -56,6 +60,8 @@ function calculated = compute_tr_data(obj,notify_update)
         % Apply all the masking above
         obj.tr_t = obj.t(t_inc);
         obj.tr_t_int = obj.t_int(t_inc);
+        
+        obj.tr_t_int = obj.tr_t_int / min(obj.tr_t_int);
 
             
         obj.cur_tr_data = double(obj.cur_data);
@@ -87,7 +93,7 @@ function calculated = compute_tr_data(obj,notify_update)
 
 
         % Smooth data
-        if obj.binning > 0
+        if obj.binning > 0 && ~no_smoothing
             obj.cur_tr_data = obj.smooth_flim_data(obj.cur_tr_data,obj.binning);
         end
 

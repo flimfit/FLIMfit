@@ -13,6 +13,9 @@ function addpath_global_analysis()
                 [thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p8' filesep 'layoutHelp'],...
                 [thisdir filesep '..' filesep 'GlobalProcessingLibrary' filesep 'Libraries'],...
                 [thisdir filesep 'OMEROMatlab'] );
+            
+            %makegenops;
+            genops(1);
     end
 
 end

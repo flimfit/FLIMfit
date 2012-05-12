@@ -8,7 +8,7 @@
 
 int lmvarp_getlin(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer *p, doublereal *t, doublereal *y, 
-   doublereal *w, S_fp ada, doublereal *a, doublereal *b, doublereal *c,
+   doublereal *w, doublereal *ws, S_fp ada, doublereal *a, doublereal *b, doublereal *c,
    integer *gc, integer *thread, integer *static_store, 
    doublereal *alf, doublereal *beta)
 {
@@ -25,6 +25,7 @@ int lmvarp_getlin(integer *s, integer *l, integer *
    vp.t = t;
    vp.y = y;
    vp.w = w;
+   vp.ws = ws;
    vp.ada = ada;
    vp.a = a;
    vp.b = b;
@@ -76,7 +77,7 @@ int lmvarp_getlin(integer *s, integer *l, integer *
 int lmvarp(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer 
    *p, doublereal *t, doublereal *y, 
-   doublereal *w, S_fp ada, doublereal *a, doublereal *b, doublereal *c, 
+   doublereal *w, doublereal *ws, S_fp ada, doublereal *a, doublereal *b, doublereal *c, 
    integer *itmax, integer *gc, integer *thread, integer *static_store, 
    doublereal *alf, doublereal *beta, integer *ierr, integer *niter, doublereal *c2, integer *terminate)
 {
@@ -93,6 +94,7 @@ int lmvarp(integer *s, integer *l, integer *
    vp.t = t;
    vp.y = y;
    vp.w = w;
+   vp.ws = ws;
    vp.ada = ada;
    vp.a = a;
    vp.b = b;

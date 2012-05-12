@@ -2,6 +2,13 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
     external = handles.external;
 
+    if ~external
+        global_modes = {'Global Binning', 'Global Analysis'};
+    else
+        global_modes = {'Global Binning'};
+    end
+
+    
     % Fit Params Panel
     %---------------------------------------
     fit_params_panel = uiextras.TabPanel( 'Parent', parent );
@@ -22,9 +29,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
        
     add_fitting_param_control('main','global_fitting','popupmenu','Global Fitting', {'Pixel-wise', 'Image-wise', 'Global'})
     add_fitting_param_control('main','global_variable','popupmenu','Global Variable', {'-'})
-    add_fitting_param_control('main','global_algorithm','popupmenu','Global Mode', {'Global Binning', 'Global Analysis'})
-  
-    
+    add_fitting_param_control('main','global_algorithm','popupmenu','Global Mode', global_modes);
     add_fitting_param_control('main','n_exp','popupmenu','No. Exp', {'1', '2', '3', '4', '5'});
     add_fitting_param_control('main','n_fix','popupmenu','No. Fixed', {'0', '1', '2', '3', '4', '5'});
     add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally'});

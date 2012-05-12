@@ -1,6 +1,10 @@
 function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     %> Load a single FLIM dataset
     
+    if is64
+        obj.use_memory_mapping = false;
+    end
+    
     if nargin < 3
         polarisation_resolved = false;
     end

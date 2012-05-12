@@ -44,9 +44,11 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    double *c            = this->c + thread * csize;
    double *y            = this->y + thread * s * n_meas;
    double *ma_decay     = this->ma_decay + thread * n_meas;
-   double *lin_params   = this->lin_params + r_idx * n_px * l;
+   //double *lin_params   = this->lin_params + r_idx * n_px * l;
+   double *lin_params   = this->lin_params + thread * l;
    double *alf          = this->alf + r_idx * nl;
    double *w            = this->w + thread * n;
+   double *ws           = this->ws + thread * s;
    double *adjust_buf   = this->adjust_buf + thread * n_meas;
    
    double *beta_buf     = this->beta_buf + thread * n_exp;
@@ -69,6 +71,17 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    
    int n_meas_res = data->GetResampleNumMeas(thread);
 
+   #ifdef USE_W
+   for(int i=0; i<s_thresh; i++)
+   {
+      ws[i] = 0;
+      for(int j=0; j<n_meas_res; j++)
+         ws[i] += y[i*n_meas_res + j];
+      ws[i] = sqrt(1 / ws[i]);
+   }
+   #endif
+
+
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------
    if (s_thresh == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
@@ -76,9 +89,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    // Estimate lifetime from mean arrival time if requested
    //------------------------------
-   if (false && estimate_initial_tau)
+   if (estimate_initial_tau)
    {
-      tau_ma = CalculateMeanArrivalTime(ma_decay);
+      tau_ma = CalculateMeanArrivalTime(ma_decay, pi);
 
       if (n_v == 1)
       {
@@ -138,20 +151,19 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (use_global_binning)
    {
       lmvarp( &s1, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
-            t, ma_decay, w, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+            t, ma_decay, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
             alf, lin_params, &ierr_local_binning, status->iter+thread, status->chi2+thread, &(status->terminate) );
-
-/*      varp2_( &s1, &l, &lmax, &nl, &n_meas_res, &nmax, &ndim, &lpps1_, &lps_, &pp2, 
-               t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*) this, (int*) &thread, static_store, 
-               alf, lin_params, &ierr_local_binning, &c2, &algorithm, alf_best );*/
-
-        itmax = 0;
+   }
+   else
+   {
+      lmvarp( &s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
+               t, y, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+               alf, lin_params, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
    }
 
-   lmvarp( &s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
-            t, y, w, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
-            alf, lin_params, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
-
+   if (!delay_lin_calc)
+       lmvarp_getlin(&s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, 
+                            (int*) this, &thread, static_store, alf, lin_params);
 
    if (use_global_binning)
       ierr[r_idx] = ierr_local_binning;
