@@ -336,9 +336,9 @@ function get_return_data(obj)
                 gamma = reshape(p_gamma.Value,gamma_size);
 
                 if obj.fit_params.inc_donor
-                    for i=1:size(gamma,3)
-                        g = gamma(:,:,i);
-                        f.set_image(['gamma_' num2str(i-1)],g,dmask,im,[0 1]);
+                    for j=1:size(gamma,3)
+                        g = gamma(:,:,j);
+                        f.set_image(['gamma_' num2str(j-1)],g,dmask,im,[0 1]);
                     end
                 else
                     f.set_image_split('gamma',gamma,dmask,im,[0 1]);

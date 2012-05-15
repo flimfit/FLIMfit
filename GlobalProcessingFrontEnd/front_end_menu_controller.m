@@ -186,6 +186,7 @@ classdef front_end_menu_controller < handle
         function update_recent_default_list(obj)
             function menu_call(path)
                  obj.default_path = path;
+                 setpref('GlobalAnalysisFrontEnd','DefaultFolder',path);
             end
             
             if ~isempty(obj.recent_default_path)

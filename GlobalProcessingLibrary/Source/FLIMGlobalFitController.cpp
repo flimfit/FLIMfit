@@ -84,6 +84,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
 
    chan_fact       = NULL;
 
+   result_map_filename = NULL;
+
    ma_decay = NULL;
 
    data = NULL;
@@ -338,9 +340,6 @@ void FLIMGlobalFitController::Init()
 
    beta_global = (fit_beta != FIT_LOCALLY);
 
-   //if (global_mode == MODE_GLOBAL_BINNING)
-   //   n_fix = n_exp;
-
    // Set up polarisation resolved measurements
    //---------------------------------------
    if (polarisation_resolved)
@@ -494,9 +493,11 @@ void FLIMGlobalFitController::Init()
       y            = new double[ n_thread * s * n_meas ]; //free ok 
       ma_decay     = new double[ n_thread * n_meas ];
       //lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
-      lin_params   = new double[ n_thread * l ];
+      //lin_params   = new double[ n_thread * l ];
       w            = new double[ n_thread * n ]; //free ok
-      
+
+      cur_alf      = new double[ n_thread * nl ];
+
       #ifdef USE_W
       ws           = new double[ n_thread * s ];
       #endif
@@ -517,8 +518,8 @@ void FLIMGlobalFitController::Init()
       locked_param = new int[n_thread];
       locked_value = new double[n_thread];
 
-      lin_params_err = new double[ n_thread * n_px * l ]; //free ok
-      alf_err        = new double[ n_thread * nl ]; //free ok
+      //lin_params_err = new double[ n_thread * n_px * l ]; //free ok
+      //alf_err        = new double[ n_thread * nl ]; //free ok
 
       local_irf    = new DoublePtr[n_thread];
 
@@ -532,7 +533,43 @@ void FLIMGlobalFitController::Init()
       return;
    }
 
+   try
+   {
+      
+      std::size_t sz = data->n_regions_total * n_px * sizeof(double);
+      std::size_t total_sz = sz * (l+1);
+      char z;
+
+      // Create an empty file (logically, doesn't actually write the whole file)
+      result_map_filename = _tempnam( "c:\\tmp", "GPTEMP" );
+      if (result_map_filename == NULL)
+         throw -1010;
+
+      FILE* f = fopen(result_map_filename,"w+");
+      if (f == NULL)
+         throw -1010;
+
+      fseek(f,total_sz,0);
+      fwrite(&z,1,1,f);
+      fclose(f);
+
+      result_map_file = file_mapping(result_map_filename,read_write);
+
+      result_map_view = mapped_region(result_map_file, read_write, 0, total_sz);
+      chi2 = (double*) result_map_view.get_address();
+      lin_params = chi2 + data->n_regions_total * n_px;
+   }
+   catch(std::exception& e)
+   {
+      error = ERR_COULD_NOT_OPEN_MAPPED_FILE;
+      CleanupTempVars();
+      CleanupResults();
+      return;
+   }
+
+
    SetNaN(alf, data->n_regions_total * nl);
+   SetNaN(chi2, data->n_regions_total * n_px );
 
    if (n_irf > 2)
       t_g = t_irf[1] - t_irf[0];
@@ -755,10 +792,7 @@ void FLIMGlobalFitController::CleanupTempVars()
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
       ClearVariable(a);
-      a = a;
-      a = a;
       ClearVariable(y);
-      y = y;
 
 }
 
@@ -767,7 +801,7 @@ void FLIMGlobalFitController::CleanupResults()
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
 
       init = false;
-      ClearVariable(lin_params);
+//      ClearVariable(lin_params);
       ClearVariable(alf);
       ClearVariable(tau_buf);
       ClearVariable(beta_buf);
@@ -775,6 +809,7 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(chan_fact);
       ClearVariable(locked_param);
       ClearVariable(locked_value);
+      ClearVariable(cur_alf);
 
       ClearVariable(c);
       ClearVariable(exp_buf);
@@ -784,8 +819,8 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(count_buf);
       ClearVariable(adjust_buf);
       ClearVariable(conf_lim);
-      ClearVariable(lin_params_err);
-      ClearVariable(alf_err);
+      //ClearVariable(lin_params_err);
+      //ClearVariable(alf_err);
       ClearVariable(ma_decay);
 
       ClearVariable(b);
@@ -793,7 +828,12 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(w);
       ClearVariable(ws);
       
+
+      result_map_view = mapped_region();
       
+      if (result_map_filename != NULL)
+         remove(result_map_filename);
+         free(result_map_filename);
       if (local_irf != NULL)
       {
          delete[] local_irf;

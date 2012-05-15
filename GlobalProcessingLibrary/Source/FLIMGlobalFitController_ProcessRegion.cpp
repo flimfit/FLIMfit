@@ -7,9 +7,8 @@
 #include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "IRFConvolution.h"
-
 #include "VariableProjection.h"
-
+#include "util.h"
 
 /*===============================================
   ProcessRegion
@@ -44,8 +43,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    double *c            = this->c + thread * csize;
    double *y            = this->y + thread * s * n_meas;
    double *ma_decay     = this->ma_decay + thread * n_meas;
-   //double *lin_params   = this->lin_params + r_idx * n_px * l;
-   double *lin_params   = this->lin_params + thread * l;
+   double *lin_params   = this->lin_params + r_idx * n_px * l;
+   double *chi2         = this->chi2 + r_idx * n_px;
+//   double *lin_params   = this->lin_params + thread * l;
    double *alf          = this->alf + r_idx * nl;
    double *w            = this->w + thread * n;
    double *ws           = this->ws + thread * s;
@@ -161,9 +161,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                alf, lin_params, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
    }
 
-   if (!delay_lin_calc)
-       lmvarp_getlin(&s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, 
+   lmvarp_getlin(&s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, 
                             (int*) this, &thread, static_store, alf, lin_params);
+   CalculateChi2(s_thresh, n_meas_res, y, a, lin_params, adjust_buf, fit_buf, chi2);
 
    if (use_global_binning)
       ierr[r_idx] = ierr_local_binning;

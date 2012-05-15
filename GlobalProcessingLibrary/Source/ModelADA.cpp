@@ -400,7 +400,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          }
 
          // Precalculate exponentials
-         gc->calculate_exponentials(*thread, tau_buf, theta_buf);
+         if (gc->check_alf_mod(*thread, alf))
+            gc->calculate_exponentials(*thread, tau_buf, theta_buf);
 
          a_col += gc->flim_model(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
 

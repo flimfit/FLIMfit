@@ -110,7 +110,7 @@ public:
 
    integer s; integer l; integer nl; integer n; integer nmax; integer ndim; 
    integer p; integer lnls1; integer n_v; integer csize;
-   double *y; double *w; double *alf; double *a; double *b; double *c; double *lin_params;
+   double *y; double *w; double *alf; double *a; double *b; double *c; double *lin_params; double *chi2;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
    double *ws;
@@ -188,6 +188,7 @@ public:
    double ErrMinFcn(double x, ErrMinParams& params);
 
    void calculate_exponentials(int thread, double tau[], double theta[]);
+   int  check_alf_mod(int thread, double* new_alf);
 
    void add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    void add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
@@ -212,10 +213,11 @@ private:
    void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
    
-   double CalculateChi2(int s, int loc[], int n_meas_res, double y[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], double chi2[]);
+   double CalculateChi2(int s, int n_meas_res, double y[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], double chi2[]);
 
    int ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], double tau[], double beta[], double E[], double theta[], double offset[], double scatter[], double tvb[], double ref_lifetime[]);
-   int ProcessLinearParams(int n, int n_px, int loc[], double lin_params[], double I0[], double beta[], double gamma[], double r[], double offset[], double scatter[], double tvb[]);
+   int ProcessLinearParams(int s, int n_px, int loc[], double lin_params[], double chi2_group[], double I0[], double beta[], double gamma[], double r[], double offset[], double scatter[], double tvb[], double chi2[]);
+
 
    double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
 
@@ -234,8 +236,12 @@ private:
    int lm_algorithm;
    int delay_lin_calc;
 
-   boost::interprocess::file_mapping   b_map_file;
-   boost::interprocess::mapped_region* b_map_view;
+   boost::interprocess::file_mapping   result_map_file;
+   boost::interprocess::mapped_region  result_map_view;
+
+   char* result_map_filename;
+
+   double* cur_alf;
 
 };
 

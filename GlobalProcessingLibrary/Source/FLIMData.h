@@ -178,9 +178,6 @@ T* FLIMData::GetDataPointer(int thread, int im)
          buf_size = im_size * data_size;
          offset   = im * im_size * data_size + data_skip;
 
-         if (im > 345)
-            im = im;
-
          data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
          data_ptr = (T*) data_map_view[thread].get_address();
       }
@@ -269,6 +266,9 @@ int FLIMData::CalculateRegions()
 
    region_start[0] = 0;
 
+
+   // Determine how many regions we have in each group
+   //--------------------------------------------------------
    if (global_mode == MODE_PIXELWISE)
    {
       max_region_size = 1;

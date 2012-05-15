@@ -1,7 +1,20 @@
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
 
+int FLIMGlobalFitController::check_alf_mod(int thread, double* new_alf)
+{
+   double *cur_alf = this->cur_alf + thread * nl;
 
+   int changed = false;
+
+   for(int i=0; i<nl; i++)
+   {
+      changed = changed | (cur_alf[i] != new_alf[i]);
+      cur_alf[i] = new_alf[i];
+   }
+
+   return changed;
+}
 
 void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], double theta[])
 {
