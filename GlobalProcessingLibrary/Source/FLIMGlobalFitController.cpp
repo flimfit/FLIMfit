@@ -322,6 +322,8 @@ void FLIMGlobalFitController::Init()
    if (data->global_mode != MODE_PIXELWISE)
       image_irf = false;
 
+
+
    // Set up FRET parameters
    //---------------------------------------
    fit_fret = (n_fret > 0) & (fit_beta != FIT_LOCALLY);
@@ -377,6 +379,24 @@ void FLIMGlobalFitController::Init()
    n_theta_v = n_theta - n_theta_fix;
 
    n_meas = n_t * n_chan;
+
+
+
+   int a_n_irf = (n_irf / 4) * 4;
+
+   int irf_size = n_irf * n_chan;
+   irf_buf   = (float*) _aligned_malloc(irf_size*sizeof(float), 16);
+   t_irf_buf = (float*) _aligned_malloc(n_irf*sizeof(float), 16);
+
+   for(int i=0; i<a_n_irf; i++)
+   {
+      t_irf_buf[i] = irf_buf[i];
+      for(int k=0; k<n_chan; k++)
+         irf_buf[k*a_n_irf+i] = irf[k*n_irf+i];
+   }
+
+   n_irf = a_n_irf;
+
    
    if (data->global_mode == MODE_PIXELWISE)
       status->SetNumRegion(data->n_masked_px);
@@ -502,7 +522,9 @@ void FLIMGlobalFitController::Init()
       ws           = new double[ n_thread * s ];
       #endif
 
-      exp_buf      = new double[ n_thread * n_decay_group * exp_buf_size ]; //free ok
+      //exp_buf      = new double[ n_thread * n_decay_group * exp_buf_size ]; //free ok
+      exp_buf      = (float*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(float), 16 );
+      
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
       beta_buf     = new double[ n_thread * n_exp ]; //free ok
       theta_buf    = new double[ n_thread * n_theta ]; //free ok 
@@ -579,6 +601,8 @@ void FLIMGlobalFitController::Init()
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
    ma_start = DetermineMAStartPosition(0);
+
+
 
    // Select correct convolution function for data type
    //-------------------------------------------------
@@ -811,8 +835,12 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(locked_value);
       ClearVariable(cur_alf);
 
+//      ClearVariable(exp_buf);
+      _aligned_free(exp_buf);
+      _aligned_free(irf_buf);
+      _aligned_free(t_irf_buf);
+
       ClearVariable(c);
-      ClearVariable(exp_buf);
       ClearVariable(irf_max);
       ClearVariable(resampled_irf);
       ClearVariable(fit_buf);

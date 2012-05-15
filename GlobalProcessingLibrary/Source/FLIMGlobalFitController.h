@@ -91,7 +91,7 @@ public:
    double *theta, *theta_err, *r;
    double *chan_fact;
 
-   double *exp_buf;
+   float *exp_buf;
    double *tau_buf;
    double *beta_buf;
    double *theta_buf;
@@ -242,7 +242,8 @@ private:
    char* result_map_filename;
 
    double* cur_alf;
-
+   float* irf_buf;
+   float* t_irf_buf;
 };
 
 class ErrMinParams

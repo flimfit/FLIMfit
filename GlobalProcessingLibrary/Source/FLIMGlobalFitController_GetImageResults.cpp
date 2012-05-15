@@ -368,12 +368,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    this->t = t;
 
    getting_fit = true;
-   /*
-   exp_dim = max(n_irf*n_chan,n_meas);
-   exp_buf_size = n_exp * exp_dim * n_pol_group * N_EXP_BUF_ROWS;
-
-   exp_buf       = new double[ n_decay_group * exp_buf_size ];
-   */
+   
    irf_max       = new int[ n_meas ];
    resampled_irf = new double[ n_meas ];
 

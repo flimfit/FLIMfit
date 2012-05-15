@@ -153,7 +153,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
    int n_meas = N;
                                
-   double *exp_buf = gc->exp_buf + *thread * gc->n_decay_group * gc->exp_buf_size;
+   float *exp_buf = gc->exp_buf + *thread * gc->n_decay_group * gc->exp_buf_size;
    double *tau_buf = gc->tau_buf + *thread * gc->n_exp * (gc->n_fret + 1);
    double *beta_buf = gc->beta_buf + *thread * gc->n_exp;
    double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
