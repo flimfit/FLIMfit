@@ -380,7 +380,10 @@ void FLIMGlobalFitController::Init()
 
    n_meas = n_t * n_chan;
 
-
+   int i=n_irf-1;
+   while(irf[i]==0) 
+      i--;
+   n_irf = i+1;
 
    int a_n_irf = (n_irf / 4) * 4;
 
@@ -390,7 +393,7 @@ void FLIMGlobalFitController::Init()
 
    for(int i=0; i<a_n_irf; i++)
    {
-      t_irf_buf[i] = irf_buf[i];
+      t_irf_buf[i] = t_irf[i];
       for(int k=0; k<n_chan; k++)
          irf_buf[k*a_n_irf+i] = irf[k*n_irf+i];
    }
@@ -713,7 +716,7 @@ void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
             // Interpolate between points
             weight = (td-t_irf[j]) / ( t_irf[j+1]-t_irf[j] );
             for(c=0; c<n_chan; c++)
-               resampled_irf[c*n_t+i] = irf[c*n_irf+j]*(1-weight) + irf[c*n_irf+j+1]*weight;
+               resampled_irf[c*n_t+i] = irf_buf[c*n_irf+j]*(1-weight) + irf_buf[c*n_irf+j+1]*weight;
             last_j = j;
             break;
          }

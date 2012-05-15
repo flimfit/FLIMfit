@@ -20,12 +20,9 @@ int FLIMGlobalFitController::check_alf_mod(int thread, double* new_alf)
 void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], double theta[])
 {
 
-   double cum, tcspc_fact, inv_theta, rate;
-   float e0, de;
-//   double ej, e0, de;
+   double e0, de, de2, ej, cum, tcspc_fact, inv_theta, rate;
    int i, j, k, m, idx, next_idx;
    __m128 *dest_, *src_, *irf_, *t_irf_;
-
 
    float* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
    int row = n_pol_group*n_decay_group*n_exp*N_EXP_BUF_ROWS;
@@ -53,9 +50,9 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          // IRF exponential factor
          e0 = exp( (t_irf[0] + t0_guess) * rate ) * t_g;
          de = exp( + t_g * rate );
-         
-         __m128  ej_ = _mm_setr_ps(e0, e0*de, e0*de*de, e0*de*de*de);
-         __m128  de_ = _mm_set_ps1(de);
+         de2 = de*de;
+         __m128  ej_ = _mm_setr_ps(e0, e0*de, e0*de2, e0*de2*de);
+         __m128  de_ = _mm_set_ps1(de2*de2);
 
          dest_ = (__m128*) (local_exp_buf + row*exp_dim);
          irf_  = (__m128*) lirf;
@@ -65,11 +62,17 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          for(j=0; j<n_loop; j++)
          {
             for(k=0; k<n_chan; k++)
-               dest_[k*n_irf] = _mm_mul_ps(irf_[k*n_irf],de_);
+               dest_[k*n_irf/4] = _mm_mul_ps(irf_[k*n_irf/4],ej_);
+            ej_ = _mm_mul_ps(ej_,de_);
             irf_++;
             dest_++;
          }
-/*
+
+         /*
+         
+         ej = e0;
+          
+
          for(j=0; j<n_irf; j++)
          {
             for(k=0; k<n_chan; k++)
@@ -78,22 +81,20 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
             }
             ej *= de;
           }
-*/
+          */
           
          row--;
 
          // Cumulative IRF expontial
          for(k=0; k<n_chan; k++)
          {
-            dest_ = (__m128*) (local_exp_buf + row*exp_dim + k*n_irf);
-            src_  = (__m128*) (local_exp_buf + (row+1)*exp_dim + k*n_irf);
-
-            __m128 cum = _mm_setzero_ps();
-
-            for(j=0; j<n_loop; j++)
+            next_idx = row*exp_dim + k*n_irf;
+            idx = next_idx + exp_dim;
+            cum = local_exp_buf[idx++];
+            for(j=0; j<n_irf; j++)
             {
-               cum = _mm_add_ps(*(src_++),cum);
-               *(dest_++) = cum;
+               local_exp_buf[next_idx++] = cum;
+               cum += local_exp_buf[idx++];
             }
          }
 
@@ -102,6 +103,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          __m128 t0_ = _mm_set_ps1(t0_guess);
 
          // IRF exponential factor * t_irf
+         
          for(k=0; k<n_chan; k++)
          {
             dest_  = (__m128*) (local_exp_buf + row*exp_dim + k*n_irf);
@@ -113,30 +115,34 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
                __m128 t_ = _mm_add_ps(*(t_irf_++), t0_);
                *(dest_++) = _mm_mul_ps(*(src_++),t_);
             }
-/*
+         }
+         
+         /*
+         // IRF exponential factor * t_irf
+         for(k=0; k<n_chan; k++)
+         {
             next_idx = row*exp_dim + k*n_irf;
             idx = next_idx + 2*exp_dim;
             for(j=0; j<n_irf; j++)
             {
                local_exp_buf[next_idx+j] = local_exp_buf[idx+j] * (t_irf[j] + t0_guess);
             }
-            */
          }
+         */
 
          row--;
 
          // Cumulative IRF expontial * t_irf
+         
          for(k=0; k<n_chan; k++)
          {
-            dest_ = (__m128*) (local_exp_buf + row*exp_dim + k*n_irf);
-            src_  = (__m128*) (local_exp_buf + (row+1)*exp_dim + k*n_irf);
-
-            __m128 cum = _mm_setzero_ps();
-
-            for(j=0; j<n_loop; j++)
+            next_idx = row*exp_dim + k*n_irf;
+            idx = next_idx + exp_dim;
+            cum = local_exp_buf[idx++];
+            for(j=0; j<n_irf; j++)
             {
-               cum = _mm_add_ps(*(src_++),cum);
-               *(dest_++) = cum;
+               local_exp_buf[next_idx++] = cum;
+               cum += local_exp_buf[idx++];
             }
          }
 
@@ -157,7 +163,6 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
       }
    }
 }
-
 
 
 void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[])
