@@ -63,6 +63,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    w            = NULL;
    ws           = NULL;
 
+   irf_buf      = NULL;
+   t_irf_buf    = NULL;
    exp_buf      = NULL;
    tau_buf      = NULL;
    beta_buf     = NULL;
@@ -379,14 +381,16 @@ void FLIMGlobalFitController::Init()
    n_theta_v = n_theta - n_theta_fix;
 
    n_meas = n_t * n_chan;
-
+   /*
    int i=n_irf-1;
    while(irf[i]==0) 
       i--;
-   n_irf = i+1;
-
+   int a_n_irf = i+5;
+   a_n_irf = min(a_n_irf,n_irf);
+   
+   a_n_irf = (a_n_irf / 4) * 4;
+   */
    int a_n_irf = (n_irf / 4) * 4;
-
    int irf_size = n_irf * n_chan;
    irf_buf   = (float*) _aligned_malloc(irf_size*sizeof(float), 16);
    t_irf_buf = (float*) _aligned_malloc(n_irf*sizeof(float), 16);
@@ -561,8 +565,8 @@ void FLIMGlobalFitController::Init()
    try
    {
       
-      std::size_t sz = data->n_regions_total * n_px * sizeof(double);
-      std::size_t total_sz = sz * (l+1);
+      unsigned long long int sz = ((unsigned long long int) data->n_regions_total) * n_px * sizeof(double);
+      unsigned long long int total_sz = sz * (l+1);
       char z;
 
       // Create an empty file (logically, doesn't actually write the whole file)
@@ -574,13 +578,13 @@ void FLIMGlobalFitController::Init()
       if (f == NULL)
          throw -1010;
 
-      fseek(f,total_sz,0);
+      _fseeki64(f,total_sz,0);
       fwrite(&z,1,1,f);
       fclose(f);
 
       result_map_file = file_mapping(result_map_filename,read_write);
 
-      result_map_view = mapped_region(result_map_file, read_write, 0, total_sz);
+      result_map_view = mapped_region(result_map_file, read_write, 0, 0);
       chi2 = (double*) result_map_view.get_address();
       lin_params = chi2 + data->n_regions_total * n_px;
    }
@@ -839,9 +843,12 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(cur_alf);
 
 //      ClearVariable(exp_buf);
-      _aligned_free(exp_buf);
-      _aligned_free(irf_buf);
-      _aligned_free(t_irf_buf);
+      if (exp_buf != NULL)
+         _aligned_free(exp_buf);
+      if (irf_buf != NULL)
+         _aligned_free(irf_buf);
+      if (t_irf_buf != NULL)
+         _aligned_free(t_irf_buf);
 
       ClearVariable(c);
       ClearVariable(irf_max);
