@@ -39,7 +39,8 @@ classdef flim_data_series < handle
         
         background_type = 0;
         background_value = 0;
-        
+        background_image = 0;
+
         t0 = 0;
     end
     
@@ -118,9 +119,7 @@ classdef flim_data_series < handle
         init = false;
 
         seg_mask = [];
-        
-        background_image = 0;
-        
+                
         use_popup = true;  
         lazy_loading = false;
         
@@ -439,6 +438,7 @@ classdef flim_data_series < handle
                     bg = obj.background_value;
                 case 2
                     % Check if we have a background image of the correct size
+                    obj.background_image = squeeze(obj.background_image);
                     s = size(obj.background_image);
                     if ~isempty(obj.background_image) && s(1) == obj.height && s(2) == obj.width
                         bg = obj.background_image;

@@ -18,6 +18,15 @@ void ClearVariable(int*& var)
    }
 }
 
+void ClearVariable(float*& var)
+{
+   if (var!=NULL)
+   {
+      delete[] var;
+      var = NULL;
+   }
+}
+
 void SetNaN(double* var, int n)
 {
    unsigned long nan_l[2]={0xffffffff, 0x7fffffff};

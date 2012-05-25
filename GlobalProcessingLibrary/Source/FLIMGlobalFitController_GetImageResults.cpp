@@ -167,7 +167,7 @@ int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], dou
 }
 
 
-double FLIMGlobalFitController::CalculateChi2(int s, int n_meas_res, double y[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], double chi2[])
+double FLIMGlobalFitController::CalculateChi2(int s, int n_meas_res, float y[], double a[], double lin_params[], float adjust_buf[], double fit_buf[], double chi2[])
 {
    double chi2_tot = 0;
 
@@ -230,8 +230,8 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
    int n_px = data->n_x * data->n_y;
 
    int iml = im;
-   int *mask = data->mask + iml*n_px;
-      
+   uint8_t *im_mask = data->mask + iml*n_px;
+   uint8_t *mask = data->mask;
    int group;
    int r_idx, r_min, r_max, ri;
    int s;
@@ -290,15 +290,23 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
          ri = rg-r_min;
          r_idx = data->GetRegionIndex(group, rg);
 
+         int lin_start = 0;
+
+         if (data->global_mode == MODE_GLOBAL)
+         {
+            for(int i=0; i<n_px*iml; i++)
+               lin_start += mask[i] == rg;
+         }
+
          int ii = 0;
          for(int i=0; i<n_px; i++)
-            if(mask[i] == rg)
+            if(im_mask[i] == rg)
                loc[ii++] = i;
          s = ii;
 
          alf_group = alf + nl * r_idx;
-         lin_group = lin_params + n_px * l * r_idx;
-         chi2_group = this->chi2 + n_px * r_idx;
+         lin_group = lin_params + l * (data->n_px * r_idx + lin_start);
+         chi2_group = this->chi2 + data->n_px * r_idx + lin_start;
 
          ProcessLinearParams(s, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
          ProcessNonLinearParams(1, 1, &s0, alf_group, tau+ri*n_exp, beta+ri*n_exp, E+ri*n_fret, theta+ri*n_theta, offset+ri, scatter+ri, tvb+ri, ref_lifetime+ri);
@@ -314,7 +322,7 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
 
 
 
-int FLIMGlobalFitController::GetPixelFit(double a[], double lin_params[], double adjust[], int n, double fit[])
+int FLIMGlobalFitController::GetPixelFit(double a[], double lin_params[], float adjust[], int n, double fit[])
 {
    for(int i=0; i<n; i++)
    {
@@ -343,7 +351,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int n_px = data->n_x * data->n_y;
 
    int iml = im; ///data->GetImLoc(im);
-   int* mask = data->mask + iml*n_px;
+   uint8_t* mask = data->mask + iml*n_px;
    
 
    int thread = 0;
@@ -388,7 +396,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
 
-   double *adjust = new double[n_meas];
+   float *adjust = new float[n_meas];
    SetupAdjust(0, adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
                           (fit_offset == FIX)  ? offset_guess  : 0, 
                           (fit_tvb == FIX )    ? tvb_guess     : 0);
@@ -405,7 +413,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    a = new double[ n_meas * lps ];
    lin_params = new double[ n_px*l ];
-   y = new double[ n_meas * n_px ];
+   y = new float[ n_meas * n_px ];
 
    SetNaN(fit,n_fit*n_meas);
 

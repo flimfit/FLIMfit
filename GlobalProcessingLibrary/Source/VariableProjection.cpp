@@ -43,8 +43,8 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    int *thread = (vp->thread);
 
    double *t = vp->t;
-   double *y = vp->y;
-   double *w = vp->w;
+   float *y = vp->y;
+   float *w = vp->w;
    double *ws = vp->ws;
 
    double *a   = vp->a;
@@ -70,11 +70,11 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, r_dim1, 
     r_offset, y_dim1, y_offset, i__1, i__2;
-    doublereal d__1;
+    double d__1;
     double rn;
 
     /* Builtin functions */
-    double d_sign(doublereal *, doublereal *), sqrt(doublereal);
+    double d_sign(double *, double *), sqrt(double);
 
     integer& lp1    = static_store[0];
     integer& ncon   = static_store[1];
@@ -90,11 +90,11 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
     integer j, k;
     integer kp1;
     integer lsp1;
-    doublereal beta, acum;
+    double beta, acum;
     integer lnls, lnls1;
-    doublereal alpha;
-    extern /* Subroutine */ int bacsub_(integer *, integer *, doublereal *, 
-       doublereal *);
+    double alpha;
+    extern /* Subroutine */ int bacsub_(integer *, integer *, double *, 
+       double *);
     integer lastca, lastcb;
     integer firstr, firstca, firstcb;
 
@@ -441,17 +441,17 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon,
 
 
 /*     ============================================================== */
-doublereal xnorm_(integer *n, doublereal *x)
+double xnorm_(integer *n, double *x)
 {
     /* System generated locals */
-    doublereal ret_val, d__1;
+    double ret_val, d__1;
 
     /* Builtin functions */
-    double sqrt(doublereal);
+    double sqrt(double);
 
     /* Local variables */
     //integer i__;
-    doublereal sum, rmax, term;
+    double sum, rmax, term;
 
 /*     ============================================================== */
 
@@ -499,16 +499,16 @@ doublereal xnorm_(integer *n, doublereal *x)
 /*     ============================================================== */
 /* Subroutine */ int init_(integer *s, integer *l, integer *nl,
     integer *n, integer *nmax, integer *ndim, integer *
-   p, doublereal *t, doublereal *w, 
-   const doublereal *alf, S_fp ada, integer *isel, doublereal 
-   *a, doublereal *b, doublereal *kap, integer *inc, integer *ncon, integer *nconp1, 
+   p, double *t, float *w, 
+   const double *alf, S_fp ada, integer *isel, double 
+   *a, double *b, double *kap, integer *inc, integer *ncon, integer *nconp1, 
    logical *philp1, logical *nowate, integer *gc, integer *thread)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__2;
 
     /* Builtin functions */
-    double sqrt(doublereal);
+    double sqrt(double);
 
     /* Local variables */
     integer ncon_buf__, i__, j, k, nconp1_buf__, lp1, lnls1, inckj, philp1_buf__;
@@ -620,15 +620,15 @@ L99:
 } /* init_ */
 
 /*     ============================================================== */
-/* Subroutine */ int bacsub_(integer *ndim, integer *n, doublereal *a, 
-   doublereal *x)
+/* Subroutine */ int bacsub_(integer *ndim, integer *n, double *a, 
+   double *x)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
 
     /* Local variables */
     integer i__, j, ip1, np1;
-    doublereal acum;
+    double acum;
     integer iback;
 
 /*     ============================================================== */
@@ -671,18 +671,18 @@ L30:
 /*     ============================================================== */
 /* Subroutine */ int postpr_(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer *lnls1, integer 
-   *p, doublereal *eps, doublereal *rnorm, doublereal *alf, doublereal *w, 
-   doublereal *a, doublereal *b, 
-   doublereal *r__, doublereal *u, integer *ierr)
+   *p, double *eps, double *rnorm, double *alf, float *w, 
+   double *a, double *b, 
+   double *r__, double *u, integer *ierr)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, r_dim1, r_offset, u_dim1, 
        u_offset, i__1, i__2, i__3;
-    doublereal d__1;
+    double d__1;
 
     /* Local variables */
     integer i__, k, is, kp1, lp1, lnl1;
-    doublereal acum;
+    double acum;
     integer lpnl, kback;
     real usave;
 

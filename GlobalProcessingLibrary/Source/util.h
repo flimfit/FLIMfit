@@ -5,6 +5,7 @@
 
 void ClearVariable(double*& var);
 void ClearVariable(int*& var);
+void ClearVariable(float*& var);
 void SetNaN(double* var, int n);
 
 #endif 

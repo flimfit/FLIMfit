@@ -116,8 +116,12 @@ classdef flim_fit_corr_controller < flim_fit_observer
                 %}
                 scatter(obj.corr_axes,param_data_x,param_data_y);
 
-                set(obj.corr_axes,'XLim',xlims);
-                set(obj.corr_axes,'YLim',ylims);
+                if all(isnan(xlims) && xlims(2)>xlims(1))
+                    set(obj.corr_axes,'XLim',xlims);
+                end
+                if all(isnan(ylims) && ylims(2)>ylims(1))   
+                    set(obj.corr_axes,'YLim',ylims);
+                end
 
                 xlabel(obj.corr_axes,obj.param_x);
                 ylabel(obj.corr_axes,obj.param_y);

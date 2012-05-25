@@ -87,7 +87,7 @@ classdef flim_fit_result < handle
         end
        
  
-        function set_image_split(obj,name,im,mask,r,default_lims,err)
+        function set_image_split(obj,name,im,mask,intensity,r,default_lims,err)
             if nargin < 6
                 default_lims = [];
             end
@@ -103,23 +103,23 @@ classdef flim_fit_result < handle
             end
             for i=1:n
                 ix = im(:,:,i);
-                obj.set_image([name '_' num2str(i)],ix,mask,r,default_lims);
+                obj.set_image([name '_' num2str(i)],ix,mask,intensity,r,default_lims);
                 if ~isempty(err)
                     ex = err(:,:,i);
                     ex = reshape(ex,s);
                     if ~all(isnan(ex(:)))
-                        obj.set_image([name '_' num2str(i) '_err'],ex,mask,r,default_lims);
+                        obj.set_image([name '_' num2str(i) '_err'],ex,mask,intensity,r,default_lims);
                     end
                 end
             end
         end
                 
-        function set_image(obj,name,im,mask,r,default_lims)
+        function set_image(obj,name,im,mask,intensity,r,default_lims)
             if nargin == 6 && ~isempty(default_lims)
                 obj.set_default_lims(name,default_lims);
             end                
             
-            obj.write(r,name,im,mask);
+            obj.write(r,name,im,mask,intensity);
              
         end
         
@@ -175,7 +175,7 @@ classdef flim_fit_result < handle
             
         end
         
-        function write(obj,dataset,param,img,mask)
+        function write(obj,dataset,param,img,mask,intensity)
             
             img = single(img);
             
@@ -195,6 +195,12 @@ classdef flim_fit_result < handle
                 timg = img(sel);
                 tmask = mask(sel);
             end
+            
+            
+            tintensity = intensity(sel);
+            wtimg = timg .* tintensity / mean(tintensity);
+            
+            % Calculate image means
             
             img_mean = trimmean(timg,1);
             img_std = trimstd(timg,1);
@@ -217,10 +223,33 @@ classdef flim_fit_result < handle
                 end
             end
             
-            stats = struct('mean',img_mean,'std',img_std,'n',img_n);
+            % Calculate weighted means
+            
+            w_img_mean = trimmean(timg,1);
+            w_img_std = trimstd(timg,1);
+            w_img_n = sum(tmask);
+                        
+            w_region_mean = zeros(1,n_regions);
+            w_region_std = zeros(1,n_regions);
+            w_region_n = zeros(1,n_regions);
+
+            for i=1:n_regions
+                if isempty(wtimg)
+                    w_region_mean(i) = nan;
+                    w_region_std(i) = nan;
+                    w_region_n(i) = nan;
+                else
+                    td = wtimg(tmask==i);
+                    w_region_mean(i) = trimmean(td,1);
+                    w_region_std(i) = trimstd(double(td),1);
+                    w_region_n(i) = length(td);
+                end
+            end
+            
+            stats = struct('mean',img_mean,'std',img_std,'w_mean',w_img_mean,'w_std',w_img_std,'n',img_n);
             obj.image_stats{dataset}.(param) = stats;
             
-            stats = struct('mean',region_mean,'std',region_std,'n',region_n);
+            stats = struct('mean',region_mean,'std',region_std,'w_mean',region_mean,'w_std',region_std,'n',region_n);
             obj.region_stats{dataset}.(param) = stats;
             
             if ~any(strcmp(obj.params,param))

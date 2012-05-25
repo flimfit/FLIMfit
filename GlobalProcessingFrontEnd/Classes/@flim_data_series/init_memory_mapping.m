@@ -23,12 +23,12 @@ function init_memory_mapping(obj, data_size, num_datasets, mapfile_name)
             if length(zs) < 2
                 zs = [zs 1];
             end
-            zd = zeros(zs,'double');
+            zd = zeros(zs,'single');
             n_4 = data_size(end);
             for i=1:num_datasets
                 for j=1:n_4
                     if ~data_preloaded
-                        fwrite(mapfile,zd,'double');
+                        fwrite(mapfile,zd,'single');
                     end
                 end
                 if obj.use_popup
@@ -56,7 +56,7 @@ function init_memory_mapping(obj, data_size, num_datasets, mapfile_name)
         if obj.raw
             format = 'uint16';
         else
-            format = 'double';
+            format = 'single';
         end
 
         

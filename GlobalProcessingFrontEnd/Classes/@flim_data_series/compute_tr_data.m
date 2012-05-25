@@ -64,12 +64,12 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         obj.tr_t_int = obj.tr_t_int / min(obj.tr_t_int);
 
             
-        obj.cur_tr_data = double(obj.cur_data);
+        obj.cur_tr_data = single(obj.cur_data);
         
         % Subtract background and crop
         bg = obj.background;
         if length(bg) == 1 || all(size(bg)==size(obj.cur_tr_data))
-            obj.cur_tr_data = obj.cur_tr_data - double(bg);
+            obj.cur_tr_data = obj.cur_tr_data - single(bg);
         end
         
         if true || strcmp(obj.mode,'TCSPC') || obj.n_t == 1
@@ -77,13 +77,30 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         else
             in = trapz(obj.t,obj.cur_tr_data,1)/1000;
         end
-
+        
         if obj.polarisation_resolved
             in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
         end
         
         obj.intensity = squeeze(in);
 
+        sz = size(obj.cur_tr_data);
+        
+        
+        in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
+        
+        s = sum(in,2);
+        
+        sel = s > 0.5 * max(s);
+        
+        in = obj.cur_tr_data(sel,1,:,:);
+        in = sum(in,1);
+        in = sum(in,2);
+        in = squeeze(in);
+        
+        %obj.intensity = in;
+        
+        
         % Shift the perpendicular channel
         tmp = obj.cur_tr_data(t_inc,1,:,:);
         if obj.polarisation_resolved

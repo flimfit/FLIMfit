@@ -123,17 +123,17 @@ int CheckControllerIdx(int c_idx)
 
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
-                              int n_irf, doublereal t_irf[], doublereal irf[], doublereal pulse_pileup,
-                              int n_exp, int n_fix,  doublereal tau_min[], doublereal tau_max[], 
-                              int estimate_initial_tau, doublereal tau_guess[],
+                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                              int n_exp, int n_fix,  double tau_min[], double tau_max[], 
+                              int estimate_initial_tau, double tau_guess[],
                               int fit_beta, double fixed_beta[],
-                              int fit_t0, doublereal t0_guess, 
-                              int fit_offset, doublereal offset_guess, 
-                              int fit_scatter, doublereal scatter_guess,
+                              int fit_t0, double t0_guess, 
+                              int fit_offset, double offset_guess, 
+                              int fit_scatter, double scatter_guess,
                               int fit_tvb, double tvb_guess, double tvb_profile[],
                               int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
-                              int pulsetrain_correction, doublereal t_rep,
-                              int ref_reconvolution, doublereal ref_lifetime_guess, int algorithm,
+                              int pulsetrain_correction, double t_rep,
+                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
                               int ierr[], int n_thread, int runAsync, int use_callback, int (*callback)())
 {
    int error;
@@ -226,7 +226,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
 }
 
 
-FITDLL_API int SetDataDouble(int c_idx, double* data)
+FITDLL_API int SetDataFloat(int c_idx, float* data)
 {
    controller[c_idx]->data->SetData(data);   
    return 0;
@@ -245,7 +245,7 @@ FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_
 
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-                             int use_im[], int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling)
+                             int use_im[], uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling)
 {
 
 //   int valid = ValidControllerIdx(c_idx);
@@ -267,14 +267,14 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 }
 
 
-FITDLL_API int SetBackgroundImage(int c_idx, double* background_image)
+FITDLL_API int SetBackgroundImage(int c_idx, float* background_image)
 {
    controller[c_idx]->data->SetBackground(background_image);
    return 0;
 }
 
 
-FITDLL_API int SetBackgroundValue(int c_idx, double background_value)
+FITDLL_API int SetBackgroundValue(int c_idx, float background_value)
 {
    controller[c_idx]->data->SetBackground(background_value);
    return 0;

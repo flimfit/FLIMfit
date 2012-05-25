@@ -18,7 +18,7 @@
 */
 
 #define integer int
-#define doublereal double
+//#define double double
 
 
 //typedef long int integer;
@@ -26,9 +26,9 @@ typedef unsigned int uinteger;
 typedef char *address;
 typedef short int shortint;
 typedef float real;
-//typedef double doublereal;
+//typedef double double;
 typedef struct { real r, i; } complex;
-typedef struct { doublereal r, i; } doublecomplex;
+typedef struct { double r, i; } doublecomplex;
 typedef int logical;
 typedef short int shortlogical;
 typedef char logical1;
@@ -145,7 +145,7 @@ union Multitype {   /* for multiple entry points */
    integer i;
    /* longint j; */
    real r;
-   doublereal d;
+   double d;
    complex c;
    doublecomplex z;
    };
@@ -178,9 +178,9 @@ inline int max(int a, int b) {return a >= b ? a : b;}
 #endif
 
 //#define abs(x) ((x) >= 0 ? (x) : -(x))
-#define dabs(x) (doublereal)abs((double)x)
-#define dmin(a,b) (doublereal)min(a,b)
-#define dmax(a,b) (doublereal)max(a,b)
+#define dabs(x) (double)abs((double)x)
+#define dmin(a,b) (double)min(a,b)
+#define dmax(a,b) (double)max(a,b)
 #define bit_test(a,b)   ((a) >> (b) & 1)
 #define bit_clear(a,b)   ((a) & ~((uinteger)1 << (b)))
 #define bit_set(a,b)   ((a) |  ((uinteger)1 << (b)))
@@ -197,7 +197,7 @@ typedef int /* Unknown procedure type */ (*U_fp)(...);
 typedef shortint (*J_fp)(...);
 typedef integer (*I_fp)(...);
 typedef real (*R_fp)(...);
-typedef doublereal (*D_fp)(...), (*E_fp)(...);
+typedef double (*D_fp)(...), (*E_fp)(...);
 typedef /* Complex */ VOID (*C_fp)(...);
 typedef /* Double Complex */ VOID (*Z_fp)(...);
 typedef logical (*L_fp)(...);
@@ -209,7 +209,7 @@ typedef int /* Unknown procedure type */ (*U_fp)();
 typedef shortint (*J_fp)();
 typedef integer (*I_fp)();
 typedef real (*R_fp)();
-typedef doublereal (*D_fp)(), (*E_fp)();
+typedef double (*D_fp)(), (*E_fp)();
 typedef /* Complex */ VOID (*C_fp)();
 typedef /* Double Complex */ VOID (*Z_fp)();
 typedef logical (*L_fp)();
@@ -221,7 +221,7 @@ typedef /* Subroutine */ int (*S_fp)();
 typedef VOID C_f;   /* complex function */
 typedef VOID H_f;   /* character function */
 typedef VOID Z_f;   /* double complex function */
-typedef doublereal E_f;   /* real function with -R not specified */
+typedef double E_f;   /* real function with -R not specified */
 
 /* undef any lower-case symbols that your C compiler predefines, e.g.: */
 

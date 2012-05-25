@@ -3,10 +3,14 @@ classdef segmentation_controller < flim_data_series_observer
     properties
         funcs;
         param_list;
+        default_list;
+        desc_list;
+        summary_list;
         
         tool_roi_rect_toggle;
         tool_roi_poly_toggle;
         tool_roi_circle_toggle;
+        tool_roi_erase_toggle;
         
         replicate_mask_checkbox;
         
@@ -87,9 +91,9 @@ classdef segmentation_controller < flim_data_series_observer
                 addpath(folder);
                 addpath([folder '\Support']);
 
-                [funcs, param_list] = parse_function_folder(folder);
+                [funcs, param_list, default_list, desc_list summary_list] = parse_function_folder(folder);
 
-                save('segmentation_funcs.mat', 'funcs', 'param_list');
+                save('segmentation_funcs.mat', 'funcs', 'param_list', 'default_list', 'desc_list', 'summary_list');
                 
             else
                 
@@ -98,14 +102,21 @@ classdef segmentation_controller < flim_data_series_observer
                 catch %ok
                     funcs = [];
                     param_list = [];
+                    default_list = [];
+                    desc_list = [];
+                    summary_list = [];
                 end
                 
             end
             
             obj.funcs = funcs;
             obj.param_list = param_list;
+            obj.default_list = default_list;
+            obj.desc_list = desc_list;
+            obj.summary_list = summary_list;
             
             set(obj.algorithm_popup,'String',obj.funcs);
+            obj.algorithm_updated([],[]);
             
             if ~isempty(obj.data_series.seg_mask)
                 obj.mask = obj.data_series.seg_mask;
@@ -145,7 +156,7 @@ classdef segmentation_controller < flim_data_series_observer
         end
         
         function yuiry_segment_pressed(obj,~,~)
-            obj.yuiry_segment(1:d.n_datasets);
+            obj.yuiry_segment(1:obj.data_series.n_datasets);
         end
         
         function yuiry_segment_selected_pressed(obj,~,~)
@@ -175,7 +186,7 @@ classdef segmentation_controller < flim_data_series_observer
             func_idx = get(obj.algorithm_popup,'Value');
             func = obj.funcs{func_idx};
             params = get(obj.parameter_table,'Data');
-            params = num2cell(params);
+            %params = num2cell(params);
 
             multiple_regions = get(obj.seg_use_multiple_regions,'Value');
             
@@ -183,7 +194,7 @@ classdef segmentation_controller < flim_data_series_observer
             
             h = waitbar(0,'Segmenting Images...');
             for i=sel
-                obj.mask(:,:,i) = call_arb_segmentation_function(func,obj.data_series.selected_intensity(i,false),params);
+                obj.mask(:,:,i) = call_arb_segmentation_function(func,obj.data_series.integrated_intensity(i),params);
                 if ~multiple_regions
                     obj.mask(:,:,i) = obj.mask(:,:,i) > 0;
                 end
@@ -235,7 +246,21 @@ classdef segmentation_controller < flim_data_series_observer
         function algorithm_updated(obj,~,~)
             idx = get(obj.algorithm_popup,'Value');
             params = obj.param_list{idx};
-            default_values = zeros(size(params));
+            default_values = obj.default_list{idx};
+            desc = obj.desc_list{idx};
+            summary = obj.summary_list{idx};
+            
+            tooltip = ['<html><font color="blue"><b>' summary '</b></font><br>'];
+            for i=1:length(params)
+                if ~strcmp(desc{i},'')
+                    tooltip = [tooltip '<b>' params{i} '</b>: ' desc{i}];
+                    tooltip = [tooltip '<br/>'];
+                end
+            end
+            tooltip = [tooltip '</html>'];
+            
+            set(obj.parameter_table, 'tooltipString', tooltip);
+            
             
             set(obj.parameter_table,'Data',default_values);
             set(obj.parameter_table,'RowName',params);

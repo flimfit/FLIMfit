@@ -7,10 +7,10 @@
 #include "util.h"
 
 int lmvarp_getlin(integer *s, integer *l, integer *
-   nl, integer *n, integer *nmax, integer *ndim, integer *p, doublereal *t, doublereal *y, 
-   doublereal *w, doublereal *ws, S_fp ada, doublereal *a, doublereal *b, doublereal *c,
+   nl, integer *n, integer *nmax, integer *ndim, integer *p, double *t, float *y, 
+   float *w, double *ws, S_fp ada, double *a, double *b, double *c,
    integer *gc, integer *thread, integer *static_store, 
-   doublereal *alf, doublereal *beta)
+   double *alf, double *beta)
 {
    varp_param vp;
 
@@ -40,7 +40,7 @@ int lmvarp_getlin(integer *s, integer *l, integer *
    int lnls1 = *l + *s + *nl + 1;
    int lp1 = *l + 1;
    int nsls1 = *n * *s - *l * (*s - 1);
-   static doublereal eps1 = 1e-6;
+   static double eps1 = 1e-6;
    int* inc = static_store + 5;
    int cdim = max(1,*nl);
    
@@ -76,10 +76,10 @@ int lmvarp_getlin(integer *s, integer *l, integer *
 
 int lmvarp(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer 
-   *p, doublereal *t, doublereal *y, 
-   doublereal *w, doublereal *ws, S_fp ada, doublereal *a, doublereal *b, doublereal *c, 
+   *p, double *t, float *y, 
+   float *w, double *ws, S_fp ada, double *a, double *b, double *c, 
    integer *itmax, integer *gc, integer *thread, integer *static_store, 
-   doublereal *alf, doublereal *beta, integer *ierr, integer *niter, doublereal *c2, integer *terminate)
+   double *alf, double *beta, integer *ierr, integer *niter, double *c2, integer *terminate)
 {
    varp_param vp;
 
@@ -107,7 +107,7 @@ int lmvarp(integer *s, integer *l, integer *
    int lnls1 = *l + *s + *nl + 1;
    int lp1 = *l + 1;
    int nsls1 = *n * *s - *l * (*s - 1);
-   static doublereal eps1 = 1e-6;
+   static double eps1 = 1e-6;
    int* inc = static_store + 5;
    int cdim = max(1,*nl);
 

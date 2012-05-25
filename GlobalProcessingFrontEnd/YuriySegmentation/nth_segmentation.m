@@ -1,21 +1,33 @@
-function z = nth_segmentation(U,S,K,t,smooth_scale,min_size)
-% U - an original grayscale image
-% S - chatracteristic scale
-% t - sensitivity threshold
+function z = nth_segmentation(U,scale,rel_bg_scale,threshold,smoothing,min_area) 
+%Object segmentation based on local thresholding
+%scale=100,rel_bg_scale=2,threshold=0.1,smoothing=5,min_area=200
+%scale,Object width (pixels)
+%rel_bg_scale,Background size used to calculate threshold/Object width (>1)
+%threshold,Threshold (0-1)
+%smoothing,Radius of smoothing kernel (pixels)
+%min_area,Minimium object area (pixels^2)
 
-se = strel('disk',max(1,round(abs(smooth_scale))));
+S = scale;
+K = rel_bg_scale;
+t = threshold;
+se = strel('disk',max(1,round(abs(smoothing))));
+
+if t > 1
+    t = 1;
+end
+
+if K<1
+    K=1;
+end
 
 % nonlinear tophat + otsu thersholded
 nth = nonlinear_tophat(U,S,K)-1;
-%nth = (nth+abs(nth))/2;
 b1 = im2bw(nth,t);
 b2 = imerode(b1,se); b1 = imdilate(b2,se);
 
-%z = b1;
-
 L = bwlabel(b1);
 stats = regionprops(L,'Area');
-idx = find([stats.Area] > min_size);
+idx = find([stats.Area] > min_area);
 z = ismember(L,idx);
 z = bwlabel(z);
 

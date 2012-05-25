@@ -53,7 +53,7 @@ function load_selected_files(obj,selected)
                     data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
 
-                c1=fwrite(mapfile,data,'double');
+                c1=fwrite(mapfile,data,'single');
 
                 if using_popup
                     waitbar(j/num_sel,wait_handle)
@@ -76,7 +76,7 @@ function load_selected_files(obj,selected)
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
-                obj.data_series_mem(:,:,:,:,j) = double(data);
+                obj.data_series_mem(:,:,:,:,j) = single(data);
                 
 
                 if using_popup

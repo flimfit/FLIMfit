@@ -56,6 +56,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    a            = NULL;
    b            = NULL;
    c            = NULL;
+   cur_alf      = NULL;
 
    y            = NULL;
    lin_params   = NULL;
@@ -83,12 +84,13 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    alf_err        = NULL;
 
    chan_fact       = NULL;
-
+   local_irf = NULL;
    result_map_filename = NULL;
-
    ma_decay = NULL;
-
    data = NULL;
+
+   alf_local = NULL;
+   lin_local = NULL;
 
    lm_algorithm = 1;
 
@@ -257,7 +259,7 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
    return start;
 }
 
-double FLIMGlobalFitController::CalculateMeanArrivalTime(double decay[], int p)
+double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
 {
    double* t   = data->GetT();
    double  tau = 0;
@@ -484,17 +486,17 @@ void FLIMGlobalFitController::Init()
 
    try
    {
-      alf          = new double[ data->n_regions_total * nl ]; //free ok
+      alf_local    = new double[ n_thread * nl ]; //free ok
       a            = new double[ n_thread * n * lps ]; //free ok
       
       b            = new double[ n_thread * ndim * pp3 ]; //free ok
       c            = new double[ n_thread * csize ]; // free ok
 
-      y            = new double[ n_thread * s * n_meas ]; //free ok 
-      ma_decay     = new double[ n_thread * n_meas ];
+      y            = new float[ n_thread * s * n_meas ]; //free ok 
+      ma_decay     = new float[ n_thread * n_meas ];
       //lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
-      //lin_params   = new double[ n_thread * l ];
-      w            = new double[ n_thread * n ]; //free ok
+      lin_local    = new double[ n_thread * l ];
+      w            = new float[ n_thread * n ]; //free ok
 
       cur_alf      = new double[ n_thread * nl ];
 
@@ -508,7 +510,7 @@ void FLIMGlobalFitController::Init()
       theta_buf    = new double[ n_thread * n_theta ]; //free ok 
       fit_buf      = new double[ n_thread * n_meas ]; // free ok 
       count_buf    = new double[ n_thread * n_meas ]; // free ok 
-      adjust_buf   = new double[ n_thread * n_meas ]; // free ok 
+      adjust_buf   = new float[ n_thread * n_meas ]; // free ok 
 
       irf_max      = new int[n_meas]; //free ok
       resampled_irf= new double[n_meas]; //free ok 
@@ -536,8 +538,7 @@ void FLIMGlobalFitController::Init()
    try
    {
       
-      std::size_t sz = data->n_regions_total * n_px * sizeof(double);
-      std::size_t total_sz = sz * (l+1);
+      std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
       char z;
 
       // Create an empty file (logically, doesn't actually write the whole file)
@@ -549,7 +550,7 @@ void FLIMGlobalFitController::Init()
       if (f == NULL)
          throw -1010;
 
-      fseek(f,total_sz,0);
+      _fseeki64(f,total_sz,0);
       fwrite(&z,1,1,f);
       fclose(f);
 
@@ -557,7 +558,8 @@ void FLIMGlobalFitController::Init()
 
       result_map_view = mapped_region(result_map_file, read_write, 0, total_sz);
       chi2 = (double*) result_map_view.get_address();
-      lin_params = chi2 + data->n_regions_total * n_px;
+      alf = chi2 + data->n_regions_total * n_px;
+      lin_params = alf + data->n_regions_total * nl;
    }
    catch(std::exception& e)
    {
@@ -648,6 +650,46 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
 
 }
 
+/*
+int FLIMGlobalFitController::CreateResultsMapFile(int im)
+{
+   int n_px    = data->n_px;
+
+   try
+   {
+      
+      std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
+      char z;
+
+      // Create an empty file (logically, doesn't actually write the whole file)
+      result_map_filename = _tempnam( "c:\\tmp", "GPTEMP" );
+      if (result_map_filename == NULL)
+         throw -1010;
+
+      FILE* f = fopen(result_map_filename,"w+");
+      if (f == NULL)
+         throw -1010;
+
+      _fseeki64(f,total_sz,0);
+      fwrite(&z,1,1,f);
+      fclose(f);
+
+      result_map_file = file_mapping(result_map_filename,read_write);
+
+      result_map_view = mapped_region(result_map_file, read_write, 0, total_sz);
+      chi2 = (double*) result_map_view.get_address();
+      alf = chi2 + data->n_regions_total * n_px;
+      lin_params = alf + data->n_regions_total * nl;
+   }
+   catch(std::exception& e)
+   {
+      CleanupTempVars();
+      CleanupResults();
+      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
+   }
+}
+*/
+
 void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
 {
    // Calculate IRF values to include in convolution for each time point
@@ -712,7 +754,7 @@ int FLIMGlobalFitController::GetErrorCode()
    return error;
 }
 
-void FLIMGlobalFitController::SetupAdjust(int thread, double adjust[], double scatter_adj, double offset_adj, double tvb_adj)
+void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj)
 {
    double scale_fact[2];
    scale_fact[0] = 1;
@@ -791,8 +833,11 @@ void FLIMGlobalFitController::CleanupTempVars()
 {
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
-      ClearVariable(a);
-      ClearVariable(y);
+   ClearVariable(a);
+   ClearVariable(y);
+
+   //result_map_view = mapped_region();
+
 
 }
 
@@ -801,8 +846,8 @@ void FLIMGlobalFitController::CleanupResults()
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
 
       init = false;
-//      ClearVariable(lin_params);
-      ClearVariable(alf);
+      ClearVariable(lin_local);
+      ClearVariable(alf_local);
       ClearVariable(tau_buf);
       ClearVariable(beta_buf);
       ClearVariable(theta_buf);
@@ -828,12 +873,14 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(w);
       ClearVariable(ws);
       
-
-      result_map_view = mapped_region();
       
       if (result_map_filename != NULL)
+      {
          remove(result_map_filename);
          free(result_map_filename);
+         result_map_filename = NULL;
+      }
+
       if (local_irf != NULL)
       {
          delete[] local_irf;

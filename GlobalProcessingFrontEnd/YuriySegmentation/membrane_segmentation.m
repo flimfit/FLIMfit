@@ -1,44 +1,38 @@
-function zl = membrane_segmentation(U, edge_sensitivity, membrane_width, area_thresh, solidity_thresh)
+function zl = membrane_segmentation(U, edge_sensitivity, membrane_width, min_size)
+%Segment cell membrane by edge detection and dilation
+%edge_sensitivity=0.5,membrane_width=4,min_size=1000
+%edge_sensitivity,Sensitivity to edges (0-1)
+%membrane_width,Width of membrane (pixels)
+%min_size,Minimium object area (pixel^2)
 
-%U=imadjust(U, [min(U(:)),max(U(:))], [0,1]);
-%figure, imshow(I), title('original image');
 
-[junk threshold] = edge(U, 'sobel');
+[~, threshold] = edge(U, 'sobel');
 BWs = edge(U,'sobel', threshold * edge_sensitivity);
-%figure, imshow(BWs), title('binary gradient mask');
 
 se90 = strel('line', 3, 90);
 se0 = strel('line', 3, 0);
 BWsdil = imdilate(BWs, [se90 se0]);
-%imshow(BWsdil), title('dilated gradient mask');
 
 BWdfill = imfill(BWsdil, 'holes');
-%imshow(BWdfill), title('binary image with filled holes');
 
 BWnobord = imclearborder(BWdfill, 8);
-%imshow(BWnobord), title('cleared border image');
 
 seD = strel('diamond',1);
 BWfinal = imerode(BWnobord,seD);
 BWfinal = imerode(BWfinal,seD);
-%imshow(BWfinal), title('segmented image');
 
 BWerode=bwmorph(BWfinal, 'erode', membrane_width);
-%imshow(BWerode), title('erode');
-
 
 z = BWfinal - BWerode;
 
 zl = bwlabel(z,4);
 
 if max(z(:)) > 0
-stats = regionprops(zl,{'Area','Solidity'});
+stats = regionprops(zl,{'Area'});
 s = cell2mat(struct2cell(stats));
 
 area = s(1,:);
-solidity = s(2,:);
-
-filt = area > area_thresh & solidity < solidity_thresh;
+filt = area > min_size;
 
 for i=1:length(area)
     if ~filt(i)
@@ -50,20 +44,3 @@ zl = bwlabel(z,4);
 else
     zl = z;
 end
-
-%z=im2uint16(z);%Change?
-
-%{
-BWoutline = bwperim(z);
-Segout = U;
-Segout(BWoutline) = 32768;
-%}
-
-
-%z=z-65534; %Change??
-
-%imagesc(zl)
-%max(zl)
-
-%Segmentedimage=immultiply(BWdiff,U);
-%figure, imshow(Segmentedimage), title('Membarne');

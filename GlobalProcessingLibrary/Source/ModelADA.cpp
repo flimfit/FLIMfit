@@ -157,8 +157,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    double *tau_buf = gc->tau_buf + *thread * gc->n_exp * (gc->n_fret + 1);
    double *beta_buf = gc->beta_buf + *thread * gc->n_exp;
    double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
-   double *w = gc->w + *thread * N;
-   double *y = gc->y + *thread * N * (S+1);
+   float  *w = gc->w + *thread * N;
+   float  *y = gc->y + *thread * N * (S+1);
 
    int locked_param = -1;//gc->locked_param[*thread];
    double locked_value = 0;//gc->locked_value[*thread];

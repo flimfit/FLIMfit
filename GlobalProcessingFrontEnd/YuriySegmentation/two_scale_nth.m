@@ -1,20 +1,28 @@
-function z = two_scale_nth(U,S1,K1,S2,K2,t,smooth_scale,min_size)
+function z = two_scale_nth(U,scale1,rel_bg_scale1,scale2,rel_bg_scale2,threshold,smoothing,min_size)
+%Two scale object segmentation for ovoid or long objects based on local thresholding
+%scale1=100,rel_bg_scale1=2,scale2=200,rel_bg_scale2=4,threshold=0.01,smoothing=5,min_area=200
+%scale1,Object width (pixels)
+%rel_bg_scale1,Background size used to calculate threshold/Object width
+%scale2,Object height (pixels)
+%rel_bg_scale2,Background size used to calculate threshold/Object width
+%threshold,Threshold (0-1)
+%smoothing,Radius of smoothing kernel (pixels)
+%min_area,Minimium object area
 
-se = strel('disk',max(1,round(abs(smooth_scale))));
+S1 = scale1;
+K1 = rel_bg_scale1;
+S2 = scale2;
+K2 = rel_bg_scale2;
+t = threshold;
+
+if t > 1
+    t = 1;
+end
+
+se = strel('disk',max(1,round(abs(smoothing))));
 
 nth1 = nonlinear_tophat(U,S1,K1)-1;
 nth2 = nonlinear_tophat(U,S2,K2)-1;
-
-%correction?
-%c_1_2 = sqrt(S1/S2);
-%if (c_1_2>1) 
-%    nlth1 = nlth1*c_1_2;
-%else
-%    nlth2 = nlth2/c_1_2;
-%end;
-
-%nlth1 = nlth1/sqrt(S1);
-%nlth2 = nlth2/sqrt(S2);
 
 nth = pixelwise_max(nth1,nth2);
 nth = (nth+abs(nth))/2;

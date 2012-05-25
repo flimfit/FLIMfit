@@ -249,7 +249,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.p_tvb_profile = libpointer('doublePtr',d.tr_tvb_profile);
 
     if ~d.use_memory_mapping
-        obj.p_data = libpointer('doublePtr', d.data_series_mem);
+        obj.p_data = libpointer('singlePtr', d.data_series_mem);
     end
 
 

@@ -55,11 +55,11 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         
         decay = obj.data_series.get_roi(roi_mask,selected);
         decay = squeeze(nanmean(decay,3));
-        obj.p_data = libpointer('doublePtr', decay);
+        obj.p_data = libpointer('singlePtr', decay);
         t_skip = [];
         n_t = length(d.tr_t);
         obj.p_t = libpointer('doublePtr',d.tr_t);
-        obj.p_mask = libpointer('int32Ptr',1);
+        obj.p_mask = libpointer('uint8Ptr',uint8(1));
 
     else
         n_datasets = sum(d.loaded);
@@ -71,7 +71,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         obj.p_t = libpointer('doublePtr',d.t);
         
         if ~isempty(d.seg_mask)        
-            obj.p_mask = libpointer('int32Ptr', int32(d.seg_mask));
+            obj.p_mask = libpointer('uint8Ptr', uint8(d.seg_mask));
         else
             obj.p_mask = [];
         end
@@ -91,7 +91,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         if d.background_type == 1
             calllib(obj.lib_name,'SetBackgroundValue',obj.dll_id,d.background_value);
         elseif d.background_type == 2
-            obj.p_background = libpointer('doublePtr', d.background_image);
+            obj.p_background = libpointer('singlePtr', d.background_image);
             calllib(obj.lib_name,'SetBackgroundImage',obj.dll_id,obj.p_background);
         end
     end
@@ -108,7 +108,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         end
         err = calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name,data_class,d.mapfile_offset);
     else
-        err = calllib(obj.lib_name,'SetDataDouble',obj.dll_id,obj.p_data);
+        err = calllib(obj.lib_name,'SetDataFloat',obj.dll_id,obj.p_data);
     end
     
     if err ~= 0

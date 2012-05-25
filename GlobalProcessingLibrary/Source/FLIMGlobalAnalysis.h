@@ -14,7 +14,7 @@
 #define _CRTDBG_MAPALLOC  
 
 #include "FlagDefinitions.h"
-
+#include <stdint.h>
 
 #ifdef _WINDOWS
 #define FITDLL_API __declspec(dllexport)
@@ -62,14 +62,14 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int ierr[], int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t,
-                             int data_type, int* use_im, int *mask, int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling);
+                             int data_type, int* use_im, uint8_t *mask, int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling);
 
-FITDLL_API int SetDataDouble(int c_idx, double* data);
+FITDLL_API int SetDataFloat(int c_idx, float* data);
 FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);
 FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_skip);
 
-FITDLL_API int SetBackgroundImage(int c_idx, double* background_image);
-FITDLL_API int SetBackgroundValue(int c_idx, double background_value);
+FITDLL_API int SetBackgroundImage(int c_idx, float* background_image);
+FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
 
 FITDLL_API int StartFit(int c_idx);
 

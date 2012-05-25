@@ -14,15 +14,9 @@ function data = smooth_flim_data(data,extent,mode)
     
     extent = extent*2+1;
         
-    if strcmp(mode,'gaussian')
-        kernel = fspecial('gaussian', [extent, extent]*2, extent);
-    elseif strcmp(mode,'rectangular')
-        kernel = ones([extent extent]);
-    end
-    
-    % Normalise kernel
-    kernel = kernel / sum(kernel(:));
-        
+    kernel1 = ones([extent 1]) / extent;
+    kernel2 = ones([1 extent]) / extent;
+            
     for i = 1:n_t
         for j = 1:n_chan
             plane = squeeze(data(i,j,:,:));
@@ -34,7 +28,8 @@ function data = smooth_flim_data(data,extent,mode)
                 plane(isnan(plane)) = 0;
                 filtered = wiener2(plane,[extent,extent],noise);
             else
-                filtered = conv2nan(plane,kernel);                
+                filtered = conv2nan(plane,kernel1);                
+                filtered = conv2nan(filtered,kernel2);                
             end
             filtered(isnan(filtered)) = 0;
             data(i,j,:,:) = filtered;

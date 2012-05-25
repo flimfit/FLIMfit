@@ -3,7 +3,7 @@
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/cstdint.hpp>
+#include <stdint.h>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
@@ -19,25 +19,25 @@ class FLIMData
 public:
 
    FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-            int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
+            int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
 
-   void SetData(double data[]);
+   void SetData(float data[]);
    void SetData(uint16_t data[]);
    int  SetData(char* data_file, int data_class, int data_skip);
 
    template <typename T>
    int CalculateRegions();
 
-   int GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* weight, double* ma_decay);
-   int GetPixelData(int thread, int im, int p, double* adjust, double* masked_data, double* ma_decay);
-   int GetImageData(int thread, int im, int region, double* adjust, double* region_data, double* weight);
-   int GetSelectedPixels(int thread, int im, int region, int n, int* loc, double* adjust, double* y, double *w);
+   int GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, float* ma_decay);
+   int GetPixelData(int thread, int im, int p, float* adjust, float* masked_data, float* ma_decay);
+   int GetImageData(int thread, int im, int region, float* adjust, float* region_data, float* weight);
+   int GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w);
 
     
    int GetMaxRegion(int group);
    int GetMinRegion(int group);
    
-   int GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data);
+   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data);
    int GetRegionIndex(int group, int region);
    
    int GetImLoc(int im);
@@ -48,8 +48,8 @@ public:
 
    double* GetT();  
 
-   void SetBackground(double* background_image);
-   void SetBackground(double background);
+   void SetBackground(float* background_image);
+   void SetBackground(float background);
 
    void ClearMapping();
 
@@ -76,7 +76,7 @@ public:
 
    int use_autosampling;
 
-   int* mask;
+   uint8_t* mask;
    int n_masked_px;
 
    int* region_start;
@@ -93,7 +93,7 @@ public:
 
 private:
 
-   void DetermineAutoSampling(int thread, double decay[]);
+   void DetermineAutoSampling(int thread, float decay[]);
 
    template <typename T>
    T* GetDataPointer(int thread, int im);
@@ -103,9 +103,9 @@ private:
 
    void* data;
 
-   double* tr_data;
-   double* tr_buf;
-   double* tr_row_buf;
+   float* tr_data;
+   float* tr_buf;
+   float* tr_row_buf;
 
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;
@@ -121,8 +121,8 @@ private:
    int supplied_mask;
 
    int background_type;
-   double background_value;
-   double* background_image;
+   float background_value;
+   float* background_image;
 
    int n_thread;
 
@@ -136,7 +136,7 @@ private:
 
    int* cur_transformed;
 
-   double* average_data;
+   float* average_data;
 
    int data_class;
 
@@ -150,7 +150,7 @@ private:
    int* use_im;
    int n_im_used;
 
-   double* mean_image;
+   float* mean_image;
 
 
 };
@@ -371,14 +371,14 @@ void FLIMData::TransformImage(int thread, int im)
 
    T* data_ptr = GetDataPointer<T>(thread, im);
 
-   double* tr_data    = this->tr_data + thread * n_p;
-   double* tr_buf     = this->tr_buf  + thread * n_p;
-   double* tr_row_buf = this->tr_row_buf + thread * (n_x + n_y);
-   double* mean_image = this->mean_image + thread * n_meas;
+   float* tr_data    = this->tr_data + thread * n_p;
+   float* tr_buf     = this->tr_buf  + thread * n_p;
+   float* tr_row_buf = this->tr_row_buf + thread * (n_x + n_y);
+   float* mean_image = this->mean_image + thread * n_meas;
 
    if ( smoothing_factor == 0 )
    {
-      double* tr_ptr = tr_data;
+      float* tr_ptr = tr_data;
 
       // Copy data from source to tr_data, skipping cropped time points
       for(int y=0; y<n_y; y++)

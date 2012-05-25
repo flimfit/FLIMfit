@@ -121,7 +121,9 @@ classdef flim_fit_hist_controller < flim_fit_observer
                     hist(obj.hist_axes,param_data,x);
                 end
                 
-                set(obj.hist_axes,'XLim',[obj.hist_min obj.hist_max])
+                if ~isnan(obj.hist_min) && ~isnan(obj.hist_max)
+                    set(obj.hist_axes,'XLim',[obj.hist_min obj.hist_max])
+                end
                 xlabel(obj.hist_axes,obj.param);
                 ylabel(obj.hist_axes,'Frequency');
             end
@@ -169,7 +171,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
                 if ~isempty(param_data)
                     
                     if weighting == 2
-                        intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I');
+                        intensity = obj.fit_controller.fit_result.get_image(i,'I');
                         intensity = intensity( filt );
 
                         count(:,i) = weightedhist(obj.hist_axes,param_data,intensity,x)';
@@ -180,10 +182,16 @@ classdef flim_fit_hist_controller < flim_fit_observer
                     param_data = NaN;
                 end
                 
-                hist_min_v(i) = nanmin(param_data);
-                hist_max_v(i) = nanmax(param_data);
-                hist_mean(i) = nanmean(param_data);
-                hist_std(i) = nanstd(param_data);
+                if weighting == 2
+                    w_param_data = param_data.*intensity / mean(intensity(:));
+                else
+                    w_param_data = param_data;
+                end
+                
+                hist_min_v(i) = nanmin(w_param_data);
+                hist_max_v(i) = nanmax(w_param_data);
+                hist_mean(i) = nanmean(w_param_data);
+                hist_std(i) = nanstd(w_param_data);
                 hist_area(i) = sum(~isnan(param_data));
                 hist_se(i) = hist_std(i)/sqrt(hist_area(i));
                 

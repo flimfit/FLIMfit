@@ -24,28 +24,28 @@ static integer c__2 = 2;
 /*     ============================================================== */
 /* Subroutine */ int varp2_(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer *lpps1, integer 
-   *lps, integer *pp2, doublereal *t, doublereal *y, 
-   doublereal *w, S_fp ada, doublereal *a, doublereal *b,
+   *lps, integer *pp2, double *t, double *y, 
+   double *w, S_fp ada, double *a, double *b,
    integer *itmax, integer *gc, integer *thread, real *sstore, 
-   doublereal *alf, doublereal *beta, integer *ierr, doublereal *r__, 
-   integer *gn, doublereal *alfbest)
+   double *alf, double *beta, integer *ierr, double *r__, 
+   integer *gn, double *alfbest)
 {
     /* Initialized data */
 
-    static doublereal eps1 = 1e-6;
+    static double eps1 = 1e-6;
 
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, beta_dim1, beta_offset, 
        y_dim1, y_offset, t_dim1, t_offset, i__1, i__2;
     real r__1;
-    doublereal d__1;
+    double d__1;
 
     /* Builtin functions */
-    double sqrt(doublereal);
+    double sqrt(double);
 
     /* Local variables */
     integer j, k, b1, terminate;
-    doublereal nu;
+    double nu;
     integer lp1;
 extern
 int dpa_(int *s, int *l, int *nl, 
@@ -54,33 +54,33 @@ int dpa_(int *s, int *l, int *nl,
    *w, double *alf, S_fp ada, int *isel,
    double *a, double *b, double *u, double *r__, 
    double *rnorm, int *gc, int *thread, int *static_store);
-    doublereal dta, last_prjres__;
+    double dta, last_prjres__;
     integer inc, nlp1;
-    doublereal acum;
+    double acum;
     integer iter, ksub;
     logical skip;
     integer jsub, isub;
-    doublereal rnew;
+    double rnew;
     integer lnls1;
     extern /* Subroutine */ int updatestatus_(integer *, integer *, integer *,
-        doublereal *, integer *);
+        double *, integer *);
     integer modit;
-    extern doublereal xnorm_(integer *, doublereal *);
+    extern double xnorm_(integer *, double *);
     extern /* Subroutine */ int orfac1_(integer *, integer *, integer *, 
-       integer *, integer *, integer *, doublereal *, doublereal *, 
-       integer *), orfac2_(integer *, integer *, doublereal *, 
-       doublereal *), bacsub_(integer *, integer *, doublereal *, 
-       doublereal *);
-    doublereal r_best__;
+       integer *, integer *, integer *, double *, double *, 
+       integer *), orfac2_(integer *, integer *, double *, 
+       double *), bacsub_(integer *, integer *, double *, 
+       double *);
+    double r_best__;
     integer iterin;
-    doublereal gnstep;
+    double gnstep;
     extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
-    doublereal prjres;
+    double prjres;
     extern /* Subroutine */ int postpr_(integer *, integer *, integer *, 
        integer *, integer *, integer *, integer *, integer *, integer *, 
-       integer *, doublereal *, doublereal *, integer *, doublereal *, 
-       doublereal *, doublereal *, doublereal *, doublereal *, 
-       doublereal *, integer *);
+       integer *, double *, double *, integer *, double *, 
+       double *, double *, double *, double *, 
+       double *, integer *);
     real prj_tol__;
 
 /*     ============================================================== */
@@ -660,24 +660,24 @@ L99:
 
 /*     ============================================================== */
 /* Subroutine */ int orfac1_(integer *s, integer *nlp1, integer *ndim, 
-   integer *n, integer *l, integer *iprint, doublereal *b, doublereal *
+   integer *n, integer *l, integer *iprint, double *b, double *
    prjres, integer *ierr)
 {
    /* System generated locals */
    integer b_dim1, b_offset, i__2;
-   doublereal d__1;
+   double d__1;
 
    /* Builtin functions */
-   double d_sign(doublereal *, doublereal *);
+   double d_sign(double *, double *);
 
    /* Local variables */
    integer i__, j, k;
-   doublereal u;
+   double u;
    integer nl, kp1, lp1, nl23, lpk;
-   doublereal beta, acum;
+   double beta, acum;
    integer jsub, nsls1;
-   doublereal alpha;
-   extern doublereal xnorm_(integer *, doublereal *);
+   double alpha;
+   extern double xnorm_(integer *, double *);
    extern /* Subroutine */ int varerr_(integer *, integer *, integer *);
 
 /*     ============================================================== */
@@ -769,24 +769,24 @@ L99:
 
 
 /*     ============================================================== */
-/* Subroutine */ int orfac2_(integer *nlp1, integer *ndim, doublereal *nu, 
-   doublereal *b)
+/* Subroutine */ int orfac2_(integer *nlp1, integer *ndim, double *nu, 
+   double *b)
 {
     /* System generated locals */
     integer b_dim1, b_offset, i__2;
-    doublereal d__1;
+    double d__1;
 
     /* Builtin functions */
-    double d_sign(doublereal *, doublereal *);
+    double d_sign(double *, double *);
 
     /* Local variables */
     integer i__, j, k;
-    doublereal u;
+    double u;
     integer nl, nl2, kp1, nl23;
-    doublereal beta, acum;
+    double beta, acum;
     integer nlpk;
-    doublereal alpha;
-    extern doublereal xnorm_(integer *, doublereal *);
+    double alpha;
+    extern double xnorm_(integer *, double *);
     integer nlpkm1;
 
 /*     ============================================================== */
@@ -855,16 +855,16 @@ L99:
 /*     ============================================================== */
 /* Subroutine */ int init_(integer *s, integer *l, integer *nl,
     integer *n, integer *nmax, integer *ndim, integer *lpps1, integer *
-   lps, integer *pp2, doublereal *t, doublereal *w, 
-   const doublereal *alf, S_fp ada, integer *isel, integer *iprint, doublereal 
-   *a, doublereal *b, doublereal *kap, integer *inc, integer *ncon, integer *nconp1, 
+   lps, integer *pp2, double *t, double *w, 
+   const double *alf, S_fp ada, integer *isel, integer *iprint, double 
+   *a, double *b, double *kap, integer *inc, integer *ncon, integer *nconp1, 
    logical *philp1, logical *nowate, integer *gc, integer *thread)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__2;
 
     /* Builtin functions */
-    double sqrt(doublereal);
+    double sqrt(double);
 
     /* Local variables */
     integer ncon_buf__, i__, j, k, p, nconp1_buf__, lp1, lnls1, inckj, philp1_buf__;
@@ -987,15 +987,15 @@ L99:
 } /* init_ */
 
 /*     ============================================================== */
-/* Subroutine */ int bacsub_(integer *ndim, integer *n, doublereal *a, 
-   doublereal *x)
+/* Subroutine */ int bacsub_(integer *ndim, integer *n, double *a, 
+   double *x)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
 
     /* Local variables */
     integer i__, j, ip1, np1;
-    doublereal acum;
+    double acum;
     integer iback;
 
 /*     ============================================================== */
@@ -1038,18 +1038,18 @@ L30:
 /*     ============================================================== */
 /* Subroutine */ int postpr_(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer *lnls1, integer 
-   *lps, integer *pp2, doublereal *eps, doublereal *rnorm, integer *
-   iprint, doublereal *alf, doublereal *w, doublereal *a, doublereal *b, 
-   doublereal *r__, doublereal *u, integer *ierr)
+   *lps, integer *pp2, double *eps, double *rnorm, integer *
+   iprint, double *alf, double *w, double *a, double *b, 
+   double *r__, double *u, integer *ierr)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, r_dim1, r_offset, u_dim1, 
        u_offset, i__1, i__2, i__3;
-    doublereal d__1;
+    double d__1;
 
     /* Local variables */
     integer i__, k, is, kp1, lp1, lnl1;
-    doublereal acum;
+    double acum;
     integer lpnl, kback;
     real usave;
 

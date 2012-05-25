@@ -30,5 +30,9 @@ function load_raw_data(obj,file)
         
     obj.load_selected_files(1:obj.n_datasets);
     
+    if isempty(obj.root_path)
+        obj.root_path = ensure_trailing_slash(fileparts(file));
+    end
+    
     obj.init_dataset([]);
 end

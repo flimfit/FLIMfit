@@ -144,7 +144,7 @@ void conv_irf_deriv_ref_timegate(FLIMGlobalFitController *gc, double t, double r
 
 
 
-void sample_irf(int thread, FLIMGlobalFitController *gc, double a[],int pol_group, double* scale_fact)
+void sample_irf(int thread, FLIMGlobalFitController *gc, float a[], int pol_group, double* scale_fact)
 {
    int k=0;
    double scale;
@@ -164,6 +164,26 @@ void sample_irf(int thread, FLIMGlobalFitController *gc, double a[],int pol_grou
    }
 }
 
+
+void sample_irf(int thread, FLIMGlobalFitController *gc, double a[], int pol_group, double* scale_fact)
+{
+   int k=0;
+   double scale;
+   int idx = 0;
+
+   int* resample_idx = gc->data->GetResampleIdx(thread);
+
+   for(int i=0; i<gc->n_chan; i++)
+   {
+      scale = (scale_fact == NULL) ? 1 : scale_fact[i];
+      for(int j=0; j<gc->n_t; j++)
+      {
+         a[idx] += (gc->resampled_irf[j]) * gc->chan_fact[pol_group*gc->n_chan+i] * scale;
+         idx += resample_idx[j];
+      }
+      idx++;
+   }
+}
 
 
 

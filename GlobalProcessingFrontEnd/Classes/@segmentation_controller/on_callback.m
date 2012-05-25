@@ -44,6 +44,9 @@ function on_callback(obj,src,evtData)
         if ~failed
             obj.n_regions = obj.n_regions + 1;
 
+            modifier = get(gcbf,'currentmodifier');
+            erase_toggle = get(obj.tool_roi_erase_toggle,'State');
+            
             roi_mask = roi_handle.createMask(obj.segmentation_im);
 
             d = obj.data_series;
@@ -54,8 +57,12 @@ function on_callback(obj,src,evtData)
                 m(:,:,obj.data_series_list.selected) = roi_mask;
             end
 
-            obj.mask(m) = obj.n_regions;
-
+            if strcmp(erase_toggle,'on') || ~isempty(modifier)
+                obj.mask(m) = 0;
+            else
+                obj.mask(m) = obj.n_regions;
+            end
+                
             delete(roi_handle);
 
             obj.update_display();

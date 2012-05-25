@@ -47,8 +47,8 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
     
         obj.use_memory_mapping = false;
     
-        obj.data_series_mem = double(data_cube);
-        obj.tr_data_series_mem = double(data_cube);
+        obj.data_series_mem = single(data_cube);
+        obj.tr_data_series_mem = single(data_cube);
         
         if obj.load_multiple_channels
             obj.num_datasets = size(data_cube,5);

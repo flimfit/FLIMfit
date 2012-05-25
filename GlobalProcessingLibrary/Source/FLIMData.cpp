@@ -1,7 +1,7 @@
 #include "FLIMData.h"
 
 FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
-                   int* use_im, int mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
+                   int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
@@ -25,7 +25,7 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 
    if (mask == NULL)
    {
-      this->mask = new int[n_im * n_x * n_y];
+      this->mask = new uint8_t[n_im * n_x * n_y];
       supplied_mask = false;
       for(int i=0; i<n_im * n_x * n_y; i++)
          this->mask[i] = 1;
@@ -93,9 +93,9 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
          this->t_skip[i] = t_skip[i];
    }
 
-   tr_data    = new double[ n_thread * n_p ]; 
-   tr_buf     = new double[ n_thread * n_p ];
-   tr_row_buf = new double[ n_thread * (n_x+n_y) ];
+   tr_data    = new float[ n_thread * n_p ]; 
+   tr_buf     = new float[ n_thread * n_p ];
+   tr_row_buf = new float[ n_thread * (n_x+n_y) ];
 
    region_start = new int[ n_group ];
 
@@ -104,11 +104,11 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    min_region = new int[n_im_used];
    max_region = new int[n_im_used];
 
-   mean_image = new double[ n_thread * n_meas ];
+   mean_image = new float[ n_thread * n_meas ];
 
    cur_transformed = new int[n_thread];
 
-   average_data = new double[n_meas_full];
+   average_data = new float[n_meas_full];
 
    for (int i=0; i<n_thread; i++)
       cur_transformed[i] = -1;
@@ -164,8 +164,8 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
    has_data = true;
 
    int err = 0;
-   if (data_class == DATA_DOUBLE)
-      err = CalculateRegions<double>();
+   if (data_class == DATA_FLOAT)
+      err = CalculateRegions<float>();
    else
       err = CalculateRegions<uint16_t>();
 
@@ -173,13 +173,13 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
 
 }
 
-void FLIMData::SetData(double* data)
+void FLIMData::SetData(float* data)
 {
    this->data = (void*) data;
    data_mode = DATA_DIRECT;
-   data_class = DATA_DOUBLE;
+   data_class = DATA_FLOAT;
    
-   CalculateRegions<double>();
+   CalculateRegions<float>();
    
    has_data = true;
 }
@@ -196,13 +196,13 @@ void FLIMData::SetData(uint16_t* data)
 }
 
 
-void FLIMData::SetBackground(double* background_image)
+void FLIMData::SetBackground(float* background_image)
 {
    this->background_image = background_image;
    this->background_type = BG_IMAGE;
 }
 
-void FLIMData::SetBackground(double background)
+void FLIMData::SetBackground(float background)
 {
    this->background_value = background;
    this->background_type = BG_VALUE;
@@ -255,14 +255,14 @@ int FLIMData::GetResampleNumMeas(int thread)
       return n_meas_res[thread];
 }
 
-void FLIMData::DetermineAutoSampling(int thread, double decay[])
+void FLIMData::DetermineAutoSampling(int thread, float decay[])
 {
    if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
       return;
 
    int* resample_idx = this->resample_idx + n_t * thread;
 
-   double min_bin = 20.0 / smoothing_area;
+   float min_bin = 20.0 / smoothing_area;
    int n_bin_max = n_t;
 
    int total_count = 0;
@@ -279,7 +279,7 @@ void FLIMData::DetermineAutoSampling(int thread, double decay[])
    }
 
    resample_idx[n_t-1] = 0;
-   double c = decay[n_t-1];
+   float c = decay[n_t-1];
    int n_bin = 1;
    for (int i=n_t-2; i>=0; i--)
    {
@@ -322,14 +322,14 @@ int FLIMData::GetMinRegion(int group)
       return min_region[group];
 }
 
-int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, double* region_data, double* weight, double* ma_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, float* ma_decay)
 {
    int s = 0;
    
    boost::function<void(int)> transform_fcn;
    
-   if (data_class == DATA_DOUBLE)
-      transform_fcn = boost::bind(&FLIMData::TransformImage<double>, this, thread, _1);
+   if (data_class == DATA_FLOAT)
+      transform_fcn = boost::bind(&FLIMData::TransformImage<float>, this, thread, _1);
    else
       transform_fcn = boost::bind(&FLIMData::TransformImage<uint16_t>, this, thread, _1);
    
@@ -357,7 +357,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
       }
    }
    
-   memset(weight,0, n_meas * sizeof(double));
+   memset(weight,0, n_meas * sizeof(*weight));
 
    for(int i=0; i<s; i++)
       for(int j=0; j<n_meas; j++)
@@ -383,14 +383,14 @@ int FLIMData::GetRegionData(int thread, int group, int region, double* adjust, d
 }
 
 
-int FLIMData::GetImageData(int thread, int im, int region, double* adjust, double* region_data, double* weight)
+int FLIMData::GetImageData(int thread, int im, int region, float* adjust, float* region_data, float* weight)
 {
    int s;
    int n_meas_res = GetResampleNumMeas(thread);
    boost::function<void(int)> transform_fcn;
    
-   if (data_class == DATA_DOUBLE)
-      transform_fcn = boost::bind(&FLIMData::TransformImage<double>, this, thread, _1);
+   if (data_class == DATA_FLOAT)
+      transform_fcn = boost::bind(&FLIMData::TransformImage<float>, this, thread, _1);
    else
       transform_fcn = boost::bind(&FLIMData::TransformImage<uint16_t>, this, thread, _1);
   
@@ -398,7 +398,7 @@ int FLIMData::GetImageData(int thread, int im, int region, double* adjust, doubl
    
    s = GetMaskedData(thread, im, region, adjust, region_data);
 
-   memset(weight,0, n_meas_res * sizeof(double));
+   memset(weight,0, n_meas_res * sizeof(*weight));
 
    for(int i=0; i<s; i++)
       for(int j=0; j<n_meas_res; j++)
@@ -418,9 +418,9 @@ int FLIMData::GetImageData(int thread, int im, int region, double* adjust, doubl
 }
 
 
-int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* masked_data, double* ma_decay)
+int FLIMData::GetPixelData(int thread, int im, int p, float* adjust, float* masked_data, float* ma_decay)
 {
-   double* tr_data = this->tr_data + thread * n_p;
+   float* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = GetResampleIdx(thread);
    
    if (mask[im*n_x*n_y+p]==0)
@@ -464,10 +464,10 @@ int FLIMData::GetPixelData(int thread, int im, int p, double* adjust, double* ma
    return 1;
 }
 
-int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, double* masked_data)
+int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data)
 {
-   int* im_mask = mask + im*n_x*n_y;
-   double* tr_data = this->tr_data + thread * n_p;
+   uint8_t* im_mask = mask + im*n_x*n_y;
+   float* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = GetResampleIdx(thread);
 
    int idx = 0;
@@ -478,7 +478,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
    {
       if (region < 0 || im_mask[p] == region)
       {
-         memset(masked_data+idx,0,sizeof(double)*GetResampleNumMeas(thread));
+         memset(masked_data+idx,0,sizeof(*masked_data)*GetResampleNumMeas(thread));
          for(int k=0; k<n_chan; k++)
          {
             for(int i=0; i<n_t; i++)
@@ -495,17 +495,17 @@ int FLIMData::GetMaskedData(int thread, int im, int region, double* adjust, doub
    return s;
 }
 
-int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, double* adjust, double* y, double *w)
+int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w)
 {
-   int* mask = this->mask + im*n_x*n_y;
+   uint8_t* mask = this->mask + im*n_x*n_y;
    int* resample_idx = GetResampleIdx(thread);
 
    int idx = 0;
    int s = 0;
    int i;
 
-   if (data_class == DATA_DOUBLE)
-      TransformImage<double>(thread, im);
+   if (data_class == DATA_FLOAT)
+      TransformImage<float>(thread, im);
    else
       TransformImage<uint16_t>(thread, im);
      
@@ -514,7 +514,7 @@ int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc,
       i = loc[p];
       if (mask[i] == region)
       {
-         memset(y+idx,0,sizeof(double)*GetResampleNumMeas(thread));
+         memset(y+idx,0,sizeof(*y)*GetResampleNumMeas(thread));
          for(int k=0; k<n_chan; k++)
          {
             for(int j=0; j<n_t; j++)
@@ -528,7 +528,7 @@ int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc,
       }
    }
 
-   memset(w,0, n_meas * sizeof(double));
+   memset(w,0, n_meas * sizeof(*w));
 
    for(int i=0; i<s; i++)
       for(int j=0; j<n_meas; j++)

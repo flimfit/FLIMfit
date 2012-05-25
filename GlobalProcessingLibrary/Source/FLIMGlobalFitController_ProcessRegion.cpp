@@ -37,27 +37,30 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int lps = l+s;
    int pp3 = p+3;
 
-   int    *mask         = data->mask + g*n_px;
-   double *a            = this->a + thread * n * lps;
-   double *b            = this->b + thread * ndim * pp3;
-   double *c            = this->c + thread * csize;
-   double *y            = this->y + thread * s * n_meas;
-   double *ma_decay     = this->ma_decay + thread * n_meas;
-   double *lin_params   = this->lin_params + r_idx * n_px * l;
-   double *chi2         = this->chi2 + r_idx * n_px;
+   uint8_t *mask         = data->mask + g*n_px;
+   double  *a            = this->a + thread * n * lps;
+   double  *b            = this->b + thread * ndim * pp3;
+   double  *c            = this->c + thread * csize;
+   float   *y            = this->y + thread * s * n_meas;
+   float   *ma_decay     = this->ma_decay + thread * n_meas;
+   double  *lin_params   = this->lin_params + r_idx * n_px * l;
+   double  *chi2         = this->chi2 + r_idx * n_px;
 //   double *lin_params   = this->lin_params + thread * l;
-   double *alf          = this->alf + r_idx * nl;
-   double *w            = this->w + thread * n;
-   double *ws           = this->ws + thread * s;
-   double *adjust_buf   = this->adjust_buf + thread * n_meas;
+   double  *alf          = this->alf + r_idx * nl;
+   float   *w            = this->w + thread * n;
+   double  *ws           = this->ws + thread * s;
+   float   *adjust_buf   = this->adjust_buf + thread * n_meas;
    
-   double *beta_buf     = this->beta_buf + thread * n_exp;
-   double *theta_buf    = this->theta_buf + thread * n_theta;
-   double *fit_buf      = this->fit_buf + thread * n_meas;
-   double *count_buf    = this->count_buf + thread * n_meas;
-   double *conf_lim     = this->conf_lim + thread * nl;
-   double *alf_err      = this->alf_err + thread * nl;
+   double  *beta_buf     = this->beta_buf + thread * n_exp;
+   double  *theta_buf    = this->theta_buf + thread * n_theta;
+   double  *fit_buf      = this->fit_buf + thread * n_meas;
+   double  *count_buf    = this->count_buf + thread * n_meas;
+   double  *conf_lim     = this->conf_lim + thread * nl;
+   double  *alf_err      = this->alf_err + thread * nl;
    
+   double *alf_local     = this->alf_local + thread * nl;
+   double *lin_local     = this->lin_local + thread * l;
+
    
    int pi = g % (data->n_x*data->n_y);
    local_irf[thread] = irf + pi * n_irf * n_chan;
@@ -95,7 +98,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
       if (n_v == 1)
       {
-         alf[0] = tau_ma;
+         alf_local[0] = tau_ma;
       }
       else if (n_v > 1)
       {
@@ -104,44 +107,44 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
          double tau_step = (max_tau - min_tau)/(n_v-1);
 
          for(int i=0; i<n_v; i++)
-            alf[i] = max_tau-i*tau_step;
+            alf_local[i] = max_tau-i*tau_step;
       }
    }
    else
    {
       for(int i=0; i<n_v; i++)
-         alf[i] = tau_guess[n_fix+i];
+         alf_local[i] = tau_guess[n_fix+i];
    }
 
    // Assign initial guesses to nonlinear variables
    //------------------------------
    i=0;
    for(j=0; j<n_v; j++)
-      alf[i++] = TransformRange(alf[j],tau_min[j+n_fix],tau_max[j+n_fix]);
+      alf_local[i++] = TransformRange(alf_local[j],tau_min[j+n_fix],tau_max[j+n_fix]);
    
    for(j=0; j<n_beta; j++)
-      alf[i++] = fixed_beta[j];
+      alf_local[i++] = fixed_beta[j];
 
    for(j=0; j<n_fret_v; j++)
-      alf[i++] = E_guess[j+n_fret_fix];
+      alf_local[i++] = E_guess[j+n_fret_fix];
 
    for(j=0; j<n_theta_v; j++)
-      alf[i++] =  TransformRange(theta_guess[j+n_theta_fix],0,1000000);
+      alf_local[i++] =  TransformRange(theta_guess[j+n_theta_fix],0,1000000);
 
    if(fit_t0)
-      alf[i++] = t0_guess;
+      alf_local[i++] = t0_guess;
 
    if(fit_offset == FIT_GLOBALLY)
-      alf[i++] = offset_guess;
+      alf_local[i++] = offset_guess;
 
    if(fit_scatter == FIT_GLOBALLY)
-      alf[i++] = scatter_guess;
+      alf_local[i++] = scatter_guess;
 
    if(fit_tvb == FIT_GLOBALLY) 
-      alf[i++] = tvb_guess;
+      alf_local[i++] = tvb_guess;
 
    if(ref_reconvolution == FIT_GLOBALLY)
-      alf[i++] = ref_lifetime_guess;
+      alf_local[i++] = ref_lifetime_guess;
 
 
    itmax = 100;
@@ -152,18 +155,21 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    {
       lmvarp( &s1, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
             t, ma_decay, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
-            alf, lin_params, &ierr_local_binning, status->iter+thread, status->chi2+thread, &(status->terminate) );
+            alf_local, lin_local, &ierr_local_binning, status->iter+thread, status->chi2+thread, &(status->terminate) );
    }
    else
    {
       lmvarp( &s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
                t, y, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
-               alf, lin_params, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
+               alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
    }
 
    lmvarp_getlin(&s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, 
-                            (int*) this, &thread, static_store, alf, lin_params);
+                            (int*) this, &thread, static_store, alf_local, lin_params);
    CalculateChi2(s_thresh, n_meas_res, y, a, lin_params, adjust_buf, fit_buf, chi2);
+
+   for(int i=0; i<nl; i++)
+      alf[i] = alf_local[i];
 
    if (use_global_binning)
       ierr[r_idx] = ierr_local_binning;

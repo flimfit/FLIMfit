@@ -96,7 +96,7 @@ public:
    double *beta_buf;
    double *theta_buf;
    double *fit_buf;
-   double *adjust_buf;
+   float  *adjust_buf;
    double *count_buf;
 
    int *irf_max;
@@ -110,7 +110,7 @@ public:
 
    integer s; integer l; integer nl; integer n; integer nmax; integer ndim; 
    integer p; integer lnls1; integer n_v; integer csize;
-   double *y; double *w; double *alf; double *a; double *b; double *c; double *lin_params; double *chi2;
+   float *y; float *w; double *alf; double *a; double *b; double *c; double *lin_params; double *chi2;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
    double *ws;
@@ -159,8 +159,8 @@ public:
                            int ierr[], int n_thread, int runAsync, int callback());
 
 
-   void SetData(double data[], int data_type);
-   int SetData(char* data_file, int data_type);
+//   void SetData(double data[], int data_type);
+//   int SetData(char* data_file, int data_type);
 
    void SetData(FLIMData* data);
 
@@ -213,7 +213,7 @@ private:
    void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
    
-   double CalculateChi2(int s, int n_meas_res, double y[], double a[], double lin_params[], double adjust_buf[], double fit_buf[], double chi2[]);
+   double CalculateChi2(int s, int n_meas_res, float y[], double a[], double lin_params[], float adjust_buf[], double fit_buf[], double chi2[]);
 
    int ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], double tau[], double beta[], double E[], double theta[], double offset[], double scatter[], double tvb[], double ref_lifetime[]);
    int ProcessLinearParams(int s, int n_px, int loc[], double lin_params[], double chi2_group[], double I0[], double beta[], double gamma[], double r[], double offset[], double scatter[], double tvb[], double chi2[]);
@@ -221,16 +221,20 @@ private:
 
    double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
 
-   void SetupAdjust(int thread, double adjust[], double scatter_adj, double offset_adj, double tvb_adj);
+   void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
    
-   int GetPixelFit(double a[], double lin_params[], double adjust[], int n, double fit[]);
+   int GetPixelFit(double a[], double lin_params[], float adjust[], int n, double fit[]);
 
 
 
    int DetermineMAStartPosition(int p);
-   double CalculateMeanArrivalTime(double decay[], int p);
+   double CalculateMeanArrivalTime(float decay[], int p);
+
+  // int SetResultsMapping(int im);
+
+
    int ma_start;
-   double* ma_decay;
+   float* ma_decay;
    double g_factor;
 
    int lm_algorithm;
@@ -238,10 +242,15 @@ private:
 
    boost::interprocess::file_mapping   result_map_file;
    boost::interprocess::mapped_region  result_map_view;
+   boost::interprocess::mapped_region  alf_map_view;
+   boost::interprocess::mapped_region  lin_map_view;
+   boost::interprocess::mapped_region  chi2_map_view;
 
    char* result_map_filename;
 
    double* cur_alf;
+   double* alf_local;
+   double* lin_local;
 
 };
 

@@ -14,7 +14,8 @@ function save_raw_data(obj,mapfile_name)
     dinfo.polarisation_resolved = obj.polarisation_resolved;
     dinfo.num_datasets = obj.num_datasets;
     dinfo.mode = obj.mode;
-        
+    dinfo.root_path = obj.root_path;
+    
     fname = [tempname '.mat'];
     save(fname,'dinfo');
     fid = fopen(fname,'r');
