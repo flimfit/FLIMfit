@@ -20,8 +20,8 @@
 
 class FLIMGlobalFitController;
 
-typedef void (* conv_func)(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double& c);
-typedef void (* conv_deriv_func)(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double ref_fact, double& c);
+typedef void (* conv_func)(FLIMGlobalFitController *gc, double rate, float exp_irf_buf[], float exp_irf_cum_buf[], int k, int i, double& c);
+typedef void (* conv_deriv_func)(FLIMGlobalFitController *gc, double t, double rate, float exp_irf_buf[], float exp_irf_cum_buf[], float exp_irf_tirf_buf[], float exp_irf_tirf_cum_buf[], int k, int i, double ref_fact, double& c);
 
 typedef int (*Tada)(int *s, int *lp1, int *nl, int *n, 
    int *nmax, int *ndim, int *pp2,

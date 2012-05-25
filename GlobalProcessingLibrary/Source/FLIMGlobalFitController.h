@@ -91,7 +91,7 @@ public:
    double *theta, *theta_err, *r;
    double *chan_fact;
 
-   double *exp_buf;
+   float *exp_buf;
    double *tau_buf;
    double *beta_buf;
    double *theta_buf;
@@ -182,8 +182,8 @@ public:
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[]);
    
-   int GetImageResults(int idx, double chi2[], double tau[], double I0[], double beta[], double E[], 
-           double gamma[], double theta[], double r[], double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[]);
+   int GetImageResults(int idx, uint8_t mask[], float chi2[], float tau[], float I0[], float beta[], float E[], 
+           float gamma[], float theta[], float r[], float t0[], float offset[], float scatter[], float tvb[], float ref_lifetime[]);
 
    double ErrMinFcn(double x, ErrMinParams& params);
 
@@ -215,8 +215,8 @@ private:
    
    double CalculateChi2(int s, int n_meas_res, float y[], double a[], double lin_params[], float adjust_buf[], double fit_buf[], double chi2[]);
 
-   int ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], double tau[], double beta[], double E[], double theta[], double offset[], double scatter[], double tvb[], double ref_lifetime[]);
-   int ProcessLinearParams(int s, int n_px, int loc[], double lin_params[], double chi2_group[], double I0[], double beta[], double gamma[], double r[], double offset[], double scatter[], double tvb[], double chi2[]);
+   int ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], float tau[], float beta[], float E[], float theta[], float offset[], float scatter[], float tvb[], float ref_lifetime[]);
+   int ProcessLinearParams(int s, int n_px, int loc[], double lin_params[], double chi2_group[], float I0[], float beta[], float gamma[], float r[], float offset[], float scatter[], float tvb[], float chi2[]);
 
 
    double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
@@ -251,7 +251,8 @@ private:
    double* cur_alf;
    double* alf_local;
    double* lin_local;
-
+   float* irf_buf;
+   float* t_irf_buf;
 };
 
 class ErrMinParams

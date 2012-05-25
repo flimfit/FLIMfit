@@ -64,6 +64,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    w            = NULL;
    ws           = NULL;
 
+   irf_buf      = NULL;
+   t_irf_buf    = NULL;
    exp_buf      = NULL;
    tau_buf      = NULL;
    beta_buf     = NULL;
@@ -324,6 +326,8 @@ void FLIMGlobalFitController::Init()
    if (data->global_mode != MODE_PIXELWISE)
       image_irf = false;
 
+
+
    // Set up FRET parameters
    //---------------------------------------
    fit_fret = (n_fret > 0) & (fit_beta != FIT_LOCALLY);
@@ -379,6 +383,29 @@ void FLIMGlobalFitController::Init()
    n_theta_v = n_theta - n_theta_fix;
 
    n_meas = n_t * n_chan;
+   /*
+   int i=n_irf-1;
+   while(irf[i]==0) 
+      i--;
+   int a_n_irf = i+5;
+   a_n_irf = min(a_n_irf,n_irf);
+   
+   a_n_irf = (a_n_irf / 4) * 4;
+   */
+   int a_n_irf = (n_irf / 4) * 4;
+   int irf_size = n_irf * n_chan;
+   irf_buf   = (float*) _aligned_malloc(irf_size*sizeof(float), 16);
+   t_irf_buf = (float*) _aligned_malloc(n_irf*sizeof(float), 16);
+
+   for(int i=0; i<a_n_irf; i++)
+   {
+      t_irf_buf[i] = t_irf[i];
+      for(int k=0; k<n_chan; k++)
+         irf_buf[k*a_n_irf+i] = irf[k*n_irf+i];
+   }
+
+   n_irf = a_n_irf;
+
    
    if (data->global_mode == MODE_PIXELWISE)
       status->SetNumRegion(data->n_masked_px);
@@ -504,7 +531,9 @@ void FLIMGlobalFitController::Init()
       ws           = new double[ n_thread * s ];
       #endif
 
-      exp_buf      = new double[ n_thread * n_decay_group * exp_buf_size ]; //free ok
+      //exp_buf      = new double[ n_thread * n_decay_group * exp_buf_size ]; //free ok
+      exp_buf      = (float*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(float), 16 );
+      
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
       beta_buf     = new double[ n_thread * n_exp ]; //free ok
       theta_buf    = new double[ n_thread * n_theta ]; //free ok 
@@ -555,11 +584,12 @@ void FLIMGlobalFitController::Init()
       fclose(f);
 
       result_map_file = file_mapping(result_map_filename,read_write);
-
-      result_map_view = mapped_region(result_map_file, read_write, 0, total_sz);
+/*
+      result_map_view = mapped_region(result_map_file, read_write, 0, 0);
       chi2 = (double*) result_map_view.get_address();
       alf = chi2 + data->n_regions_total * n_px;
       lin_params = alf + data->n_regions_total * nl;
+      */
    }
    catch(std::exception& e)
    {
@@ -569,9 +599,7 @@ void FLIMGlobalFitController::Init()
       return;
    }
 
-
-   SetNaN(alf, data->n_regions_total * nl);
-   SetNaN(chi2, data->n_regions_total * n_px );
+   //SetNaN(chi2, data->n_regions_total * n_px );
 
    if (n_irf > 2)
       t_g = t_irf[1] - t_irf[0];
@@ -581,6 +609,8 @@ void FLIMGlobalFitController::Init()
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
    ma_start = DetermineMAStartPosition(0);
+
+
 
    // Select correct convolution function for data type
    //-------------------------------------------------
@@ -731,7 +761,7 @@ void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
             // Interpolate between points
             weight = (td-t_irf[j]) / ( t_irf[j+1]-t_irf[j] );
             for(c=0; c<n_chan; c++)
-               resampled_irf[c*n_t+i] = irf[c*n_irf+j]*(1-weight) + irf[c*n_irf+j+1]*weight;
+               resampled_irf[c*n_t+i] = irf_buf[c*n_irf+j]*(1-weight) + irf_buf[c*n_irf+j+1]*weight;
             last_j = j;
             break;
          }
@@ -856,8 +886,15 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(locked_value);
       ClearVariable(cur_alf);
 
+//      ClearVariable(exp_buf);
+      if (exp_buf != NULL)
+         _aligned_free(exp_buf);
+      if (irf_buf != NULL)
+         _aligned_free(irf_buf);
+      if (t_irf_buf != NULL)
+         _aligned_free(t_irf_buf);
+
       ClearVariable(c);
-      ClearVariable(exp_buf);
       ClearVariable(irf_max);
       ClearVariable(resampled_irf);
       ClearVariable(fit_buf);

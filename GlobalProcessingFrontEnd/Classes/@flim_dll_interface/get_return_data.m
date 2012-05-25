@@ -74,56 +74,57 @@ function get_return_data(obj)
     
     
     if p.polarisation_resolved
-        p_r = libpointer('doublePtr',zeros(r_size));
-        p_theta = libpointer('doublePtr',zeros(theta_size));
+        p_r = libpointer('singlePtr',zeros(r_size));
+        p_theta = libpointer('singlePtr',zeros(theta_size));
 
         p_E = [];
         p_gamma = [];
     else
-        p_E = libpointer('doublePtr',zeros(E_size));
-        p_gamma = libpointer('doublePtr',zeros(gamma_size));
+        p_E = libpointer('singlePtr',zeros(E_size));
+        p_gamma = libpointer('singlePtr',zeros(gamma_size));
 
         p_r = [];
         p_theta = [];
     end
 
-
-    p_tau = libpointer('doublePtr', zeros(tau_size));
+    p_mask = libpointer('uint8Ptr', zeros(I0_size));
+    
+    p_tau = libpointer('singlePtr', zeros(tau_size));
     
     if p.n_exp > 1
-        p_beta = libpointer('doublePtr', zeros(beta_size));
+        p_beta = libpointer('singlePtr', zeros(beta_size));
     else
         p_beta = [];
     end
     
-    p_I0 = libpointer('doublePtr', zeros(I0_size));
+    p_I0 = libpointer('singlePtr', zeros(I0_size));
 
     if false
-        p_t0 = libpointer('doublePtr', zeros(I0_size));
+        p_t0 = libpointer('singlePtr', zeros(I0_size));
     else
         p_t0 = [];
     end
 
     if p.fit_offset > 0
-        p_offset = libpointer('doublePtr',zeros(offset_size));
+        p_offset = libpointer('singlePtr',zeros(offset_size));
     else
         p_offset = [];
     end
 
     if p.fit_scatter > 0
-        p_scatter = libpointer('doublePtr',zeros(scatter_size));
+        p_scatter = libpointer('singlePtr',zeros(scatter_size));
     else
         p_scatter = [];
     end
 
     if p.fit_tvb > 0
-        p_tvb = libpointer('doublePtr',zeros(tvb_size));
+        p_tvb = libpointer('singlePtr',zeros(tvb_size));
     else
           p_tvb = [];
     end
 
     if p.ref_reconvolution == 2
-        p_ref_lifetime = libpointer('doublePtr',zeros(I0_size));
+        p_ref_lifetime = libpointer('singlePtr',zeros(I0_size));
     else
         p_ref_lifetime = [];
     end
@@ -138,33 +139,33 @@ function get_return_data(obj)
     p_ref_lifetime_err = [];
 
     if p.calculate_errs && ~obj.bin
-        p_tau_err = libpointer('doublePtr', zeros(tau_size));
+        p_tau_err = libpointer('singlePtr', zeros(tau_size));
 
         if p.fit_beta == 2
-            p_beta_err = libpointer('doublePtr',zeros(tau_size));
+            p_beta_err = libpointer('singlePtr',zeros(tau_size));
         end
 
         if p.polarisation_resolved
-            p_theta_err = libpointer('doublePtr',zeros(theta_size));
+            p_theta_err = libpointer('singlePtr',zeros(theta_size));
         else
-            p_E_err = libpointer('doublePtr',zeros(E_size));
+            p_E_err = libpointer('singlePtr',zeros(E_size));
         end
 
         if p.fit_offset == 2
-            p_offset_err = libpointer('doublePtr',zeros(I0_size));
+            p_offset_err = libpointer('singlePtr',zeros(I0_size));
         end
         if p.fit_scatter == 2
-            p_scatter_err = libpointer('doublePtr',zeros(I0_size));
+            p_scatter_err = libpointer('singlePtr',zeros(I0_size));
         end
         if p.fit_tvb == 2
-            p_tvb_err = libpointer('doublePtr',zeros(I0_size));
+            p_tvb_err = libpointer('singlePtr',zeros(I0_size));
         end
         if p.ref_reconvolution == 2
-           p_ref_lifetime_err = libpointer('doublePtr', zeros(I0_size));
+           p_ref_lifetime_err = libpointer('singlePtr', zeros(I0_size));
         end
     end
 
-    p_chi2 = libpointer('doublePtr', zeros(I0_size));
+    p_chi2 = libpointer('singlePtr', zeros(I0_size));
 
     
     ierr = reshape(obj.p_ierr.Value,obj.globals_size);
@@ -197,10 +198,10 @@ function get_return_data(obj)
         if (obj.n_regions(i) > 0)
             % Retrieve results
             err = calllib(obj.lib_name,'GetResults', ...
-                          obj.dll_id, i-1, p_chi2, p_tau, p_I0, p_beta, p_E, p_gamma, ...
+                          obj.dll_id, i-1, p_mask, p_chi2, p_tau, p_I0, p_beta, p_E, p_gamma, ...
                           p_theta, p_r, p_t0, p_offset, p_scatter, p_tvb, p_ref_lifetime);
 
-            dmask = mask(:,:,i);
+            dmask = p_mask.Value;
             min_region = min(dmask(dmask>0)) ;
 
             if ~obj.bin
@@ -312,7 +313,7 @@ function get_return_data(obj)
                      sz = [sz 1];
                 end
                 r0 = reshape(r0,sz);
-                f.set_image('r_0',r0,dmask,im,[0 0.4]);
+                f.set_image('r_0',r0,dmask,I,im,[0 0.4]);
                 if size(r,1) > 0
                     f.set_image_split('r',r,dmask,I,im,[0 0.4]);
                 end
@@ -329,7 +330,7 @@ function get_return_data(obj)
             if obj.fit_params.n_fret > 0
                 if ~isempty(p_E)
                     E = reshape(p_E.Value,E_size);
-                    E = obj.fill_image(E,dmask,I,min_region);
+                    E = obj.fill_image(E,dmask,min_region);
 
                     if ~isempty(p_E_err)
                         E_err = reshape(p_E_err.Value,E_size);

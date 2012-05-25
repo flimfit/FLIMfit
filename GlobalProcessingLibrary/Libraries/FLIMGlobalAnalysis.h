@@ -73,9 +73,9 @@ FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
 
 FITDLL_API int StartFit(int c_idx);
 
-FITDLL_API int GetResults(int c_idx, int im, double chi2[], double tau[], double I0[], double beta[], double E[], 
-                          double gamma[], double theta[], double r[], double t0[], double offset[], double scatter[], 
-                          double tvb[], double ref_lifetime[]);
+FITDLL_API int GetResults(int c_idx, int im, uint8_t mask[], float chi2[], float tau[], float I0[], float beta[], float E[], 
+                          float gamma[], float theta[], float r[], float t0[], float offset[], float scatter[], 
+                          float tvb[], float ref_lifetime[]);
 
 
 

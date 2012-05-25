@@ -12,9 +12,6 @@ K = rel_bg_scale;
 t = threshold;
 se = strel('disk',max(1,round(abs(smoothing))));
 
-if t > 1
-    t = 1;
-end
 
 if K<1
     K=1;
@@ -22,6 +19,12 @@ end
 
 % nonlinear tophat + otsu thersholded
 nth = nonlinear_tophat(U,S,K)-1;
+
+norm = max(nth(:));
+norm = min(norm,10000);
+nth = nth / norm;
+t = t / norm;
+
 b1 = im2bw(nth,t);
 b2 = imerode(b1,se); b1 = imdilate(b2,se);
 

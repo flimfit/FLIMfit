@@ -7,7 +7,9 @@
 #include <omp.h>
 #endif
 
-int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], double tau[], double beta[], double E[], double theta[], double offset[], double scatter[], double tvb[], double ref_lifetime[])
+using namespace boost::interprocess;
+
+int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], float tau[], float beta[], float E[], float theta[], float offset[], float scatter[], float tvb[], float ref_lifetime[])
 {
 
    #pragma omp parallel for
@@ -78,7 +80,7 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
 }
 
 int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], double lin_params[], double chi2_group[], 
-            double I0[], double beta[], double gamma[], double r[], double offset[], double scatter[], double tvb[], double chi2[])
+            float I0[], float beta[], float gamma[], float r[], float offset[], float scatter[], float tvb[], float chi2[])
 {
 
    int lin_idx = 0;
@@ -220,14 +222,17 @@ int calculate_errs, double tau_err[], double beta_err[], double E_err[], double 
                      double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[]
                      */
 
-int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[], double I0[], double beta[], double E[], 
-           double gamma[], double theta[], double r[], double t0[], double offset[], double scatter[], double tvb[], double ref_lifetime[])
+int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float chi2[], float tau[], float I0[], float beta[], float E[], 
+           float gamma[], float theta[], float r[], float t0[], float offset[], float scatter[], float tvb[], float ref_lifetime[])
 {
+
    int thread = 0;
 
    int s0 = 0;
 
    int n_px = data->n_x * data->n_y;
+
+   int n_p = data->n_px;
 
    int iml = im;
    uint8_t *im_mask = data->mask + iml*n_px;
@@ -245,6 +250,8 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
    omp_set_num_threads(n_thread);
    #endif
    
+   for(int i=0; i<n_px; i++)
+      ret_mask[i] = im_mask[i];
 
    // Set default values for regions lying outside of mask
    //------------------------------------------------------
@@ -272,6 +279,23 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
       ierr_group = ierr + n_px * im;
       chi2_group = this->chi2 + n_px * im;
       
+
+      int nr = data->n_regions_total;
+      std::size_t chi2_offset = (im * n_px                      ) * sizeof(double);
+      std::size_t alf_offset  = (nr * n_p + nl * n_px * im      ) * sizeof(double);
+      std::size_t lin_offset  = (nr * (n_p + nl) + l * n_px * im) * sizeof(double);
+
+      mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
+      mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * n_px * sizeof(double));
+      mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
+
+      chi2_group = (double*) chi2_map_view.get_address();
+      alf_group  = (double*) alf_map_view.get_address();
+      lin_group  = (double*) lin_map_view.get_address();
+
+
+
+
       ProcessLinearParams(n_px, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
       ProcessNonLinearParams(n_px, n_px, loc, alf_group, tau, beta, E, theta, offset, scatter, tvb, ref_lifetime);
    }
@@ -304,9 +328,26 @@ int FLIMGlobalFitController::GetImageResults(int im, double chi2[], double tau[]
                loc[ii++] = i;
          s = ii;
 
+         int n_p = data->n_px;
+
          alf_group = alf + nl * r_idx;
          lin_group = lin_params + l * (data->n_px * r_idx + lin_start);
          chi2_group = this->chi2 + data->n_px * r_idx + lin_start;
+
+
+         int nr = data->n_regions_total; 
+         std::size_t chi2_offset = (r_idx * n_p + lin_start          ) * sizeof(double);
+         std::size_t alf_offset  = (nr * n_p + r_idx * nl            ) * sizeof(double);
+         std::size_t lin_offset  = (nr * (n_p + nl) + r_idx * l * n_p + l * lin_start) * sizeof(double);
+
+         mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
+         mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
+         mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
+
+         chi2_group = (double*) chi2_map_view.get_address();
+         alf_group  = (double*) alf_map_view.get_address();
+         lin_group  = (double*) lin_map_view.get_address();
+
 
          ProcessLinearParams(s, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
          ProcessNonLinearParams(1, 1, &s0, alf_group, tau+ri*n_exp, beta+ri*n_exp, E+ri*n_fret, theta+ri*n_theta, offset+ri, scatter+ri, tvb+ri, ref_lifetime+ri);
@@ -376,12 +417,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    this->t = t;
 
    getting_fit = true;
-   /*
-   exp_dim = max(n_irf*n_chan,n_meas);
-   exp_buf_size = n_exp * exp_dim * n_pol_group * N_EXP_BUF_ROWS;
-
-   exp_buf       = new double[ n_decay_group * exp_buf_size ];
-   */
+   
    irf_max       = new int[ n_meas ];
    resampled_irf = new double[ n_meas ];
 
@@ -424,6 +460,12 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    {
       alf_group = alf + nl * n_px * iml;
 
+      int n_p = data->n_px;
+      int nr = data->n_regions_total; 
+      std::size_t alf_offset  = (nr * n_p + nl * n_px * im) * sizeof(double);
+      mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * n_px * sizeof(double));
+      alf_group  = (double*) alf_map_view.get_address();
+
       for(int i=0; i<n_fit; i++)
       {
          idx = fit_loc[i];
@@ -457,10 +499,19 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       int idx = 0;
       for(int rg=r_min; rg<=r_max; rg++)
       {
+
+
          r_idx = data->GetRegionIndex(group, rg);
          alf_group = alf + nl * r_idx;
          int sr = data->GetSelectedPixels(0, iml, rg, n_fit, fit_loc, adjust_buf, y, w);
 
+
+         int n_p = data->n_px;
+         int nr = data->n_regions_total; 
+         std::size_t alf_offset  = (nr * n_p + r_idx * nl            ) * sizeof(double);
+         
+         mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
+         alf_group  = (double*) alf_map_view.get_address();
          
          #ifdef USE_W
          #pragma omp parallel for

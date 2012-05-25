@@ -88,10 +88,10 @@ classdef flim_fit_result < handle
        
  
         function set_image_split(obj,name,im,mask,intensity,r,default_lims,err)
-            if nargin < 6
+            if nargin < 7
                 default_lims = [];
             end
-            if nargin < 7
+            if nargin < 8
                 err = [];
             end
             s = size(im);
@@ -115,7 +115,7 @@ classdef flim_fit_result < handle
         end
                 
         function set_image(obj,name,im,mask,intensity,r,default_lims)
-            if nargin == 6 && ~isempty(default_lims)
+            if nargin == 7 && ~isempty(default_lims)
                 obj.set_default_lims(name,default_lims);
             end                
             

@@ -10,6 +10,8 @@
 #include "VariableProjection.h"
 #include "util.h"
 
+using namespace boost::interprocess;
+
 /*===============================================
   ProcessRegion
   ===============================================*/
@@ -65,6 +67,20 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int pi = g % (data->n_x*data->n_y);
    local_irf[thread] = irf + pi * n_irf * n_chan;
 
+   int nr = data->n_regions_total;  // * (n_px * (l+1) + nl) * sizeof(double);
+   std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(double);
+   std::size_t alf_offset  = (nr * n_px + r_idx * nl             ) * sizeof(double);
+   std::size_t lin_offset  = (nr * (n_px + nl) + r_idx * l * n_px) * sizeof(double);
+
+   mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
+   mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
+   mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
+
+   chi2       = (double*) chi2_map_view.get_address();
+   alf        = (double*) alf_map_view.get_address();
+   lin_params = (double*) lin_map_view.get_address();
+
+
 
    SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
                                    (fit_offset == FIX)  ? offset_guess  : 0, 
@@ -84,11 +100,17 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    }
    #endif
 
+   SetNaN(alf, nl);
+   SetNaN(lin_params, n_px*l);
+   SetNaN(chi2, n_px );
 
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------
    if (s_thresh == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;
+
+
+
 
    // Estimate lifetime from mean arrival time if requested
    //------------------------------

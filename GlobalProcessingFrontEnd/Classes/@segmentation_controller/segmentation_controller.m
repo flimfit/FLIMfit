@@ -194,7 +194,9 @@ classdef segmentation_controller < flim_data_series_observer
             
             h = waitbar(0,'Segmenting Images...');
             for i=sel
-                obj.mask(:,:,i) = call_arb_segmentation_function(func,obj.data_series.integrated_intensity(i),params);
+                intensity = obj.data_series.integrated_intensity(i);
+                intensity(intensity<0) = 0;
+                obj.mask(:,:,i) = call_arb_segmentation_function(func,intensity,params);
                 if ~multiple_regions
                     obj.mask(:,:,i) = obj.mask(:,:,i) > 0;
                 end

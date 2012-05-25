@@ -8,6 +8,8 @@ function update_display(obj)
         
         cim = obj.data_series_controller.selected_intensity(selected,false);
         
+        cim(cim<0) = 0;
+        
         if trim_outliers
             lims = quantile(cim(:),[0.01 0.99]);
             mn = lims(1); mx = lims(2);
