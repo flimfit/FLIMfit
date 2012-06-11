@@ -57,16 +57,23 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                         idx = 1:length(im_row);
                         sel = idx(sel);
 
-                        y=[];
+                        y = 0;
+                        yn = 0;
 
                         for i=1:length(sel)
 
                             if isfield(r.image_stats{sel(i)},param)
-                                y(end+1) = r.image_stats{sel(i)}.(param).mean;
+                                
+                                n = r.image_stats{sel(i)}.(param).n;
+                                if n > 0
+                                    y = y + r.image_stats{sel(i)}.(param).mean * n; 
+                                    yn = yn + r.image_stats{sel(i)}.(param).n;
+                                end
+                                
                             end
                         end
-
-                        plate(row_idx,col) = nanmean(y);
+                        
+                        plate(row_idx,col) = y/yn;
 
                     end
                 end

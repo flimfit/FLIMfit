@@ -28,13 +28,11 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
    int row = n_pol_group*n_decay_group*n_exp*N_EXP_BUF_ROWS;
    
    float *lirf;
-   /*
+   
    if (image_irf)
       lirf = local_irf[thread];
    else
-      lirf = irf;
-      */
-   lirf = irf_buf;
+      lirf = irf_buf;
 
    for(m=n_pol_group-1; m>=0; m--)
    {

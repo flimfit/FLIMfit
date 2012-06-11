@@ -82,7 +82,7 @@ public:
 
    tthread::thread **thread_handle;
 
-   double** local_irf;
+   float** local_irf;
    
    bool polarisation_resolved;
    int n_chan, n_meas, n_pol_group;

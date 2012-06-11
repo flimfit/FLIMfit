@@ -471,8 +471,8 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          idx = fit_loc[i];
          if (mask[idx] > 0)
          {
-            local_irf[thread] = irf + idx * n_irf * n_chan;
-
+            local_irf[thread] = irf_buf + idx * n_irf * n_chan;
+          
             data->GetRegionData(thread, n_px*iml+idx, 1, adjust_buf, y, w, ma_decay);
             
             #ifdef USE_W
@@ -488,6 +488,8 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    }
    else
    {
+      local_irf[thread] = irf_buf;
+
       if (data->global_mode == MODE_IMAGEWISE)
          group = iml;
       else
@@ -499,7 +501,6 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       int idx = 0;
       for(int rg=r_min; rg<=r_max; rg++)
       {
-
 
          r_idx = data->GetRegionIndex(group, rg);
          alf_group = alf + nl * r_idx;

@@ -166,7 +166,7 @@ classdef flim_dll_interface < handle
         
         function im = fill_image(obj,var,mask,min_region)
 
-            if (isempty(mask) || ndims(var)==3 || all(size(var)==size(mask)))
+            if (isempty(mask) || ndims(var)==3 || all(size(var)==size(mask)) || isempty(min_region) )
                 im = var;
                 return
             end

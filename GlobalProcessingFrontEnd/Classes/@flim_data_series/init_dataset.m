@@ -10,7 +10,7 @@ function init_dataset(obj,setting_file_name)
         obj.background_type = 0;
     end
     
-    obj.background_image = ones([obj.n_chan obj.height obj.width]) * obj.background_value;
+    obj.background_image = ones([obj.height obj.width]) * obj.background_value;
     
     obj.mask = ones([obj.height obj.width obj.n_datasets],'uint8');
     obj.seg_mask = [];

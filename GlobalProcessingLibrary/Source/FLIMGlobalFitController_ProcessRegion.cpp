@@ -65,7 +65,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    
    int pi = g % (data->n_x*data->n_y);
-   local_irf[thread] = irf + pi * n_irf * n_chan;
+   local_irf[thread] = irf_buf + pi * n_irf * n_chan;
 
    int nr = data->n_regions_total;  // * (n_px * (l+1) + nl) * sizeof(double);
    std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(double);

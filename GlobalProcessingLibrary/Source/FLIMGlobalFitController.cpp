@@ -225,7 +225,7 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
 
    int start = 0;
 
-   double *irf = this->irf + idx * n_irf * n_chan;
+   float *irf = this->irf_buf + idx * n_irf * n_chan;
 
    c = 0;
    for(int i=0; i<n_irf; i++)
@@ -392,16 +392,28 @@ void FLIMGlobalFitController::Init()
    
    a_n_irf = (a_n_irf / 4) * 4;
    */
-   int a_n_irf = (n_irf / 4) * 4;
-   int irf_size = n_irf * n_chan;
+   int n_irf_rep = image_irf? (data->n_x*data->n_y) : 1;
+
+   int a_n_irf = ceil(n_irf / 4.0) * 4;
+   int irf_size = a_n_irf * n_chan * n_irf_rep;
    irf_buf   = (float*) _aligned_malloc(irf_size*sizeof(float), 16);
    t_irf_buf = (float*) _aligned_malloc(n_irf*sizeof(float), 16);
 
-   for(int i=0; i<a_n_irf; i++)
+   for(int j=0; j<n_irf_rep; j++)
    {
-      t_irf_buf[i] = t_irf[i];
-      for(int k=0; k<n_chan; k++)
-         irf_buf[k*a_n_irf+i] = irf[k*n_irf+i];
+      int i;
+      for(i=0; i<n_irf; i++)
+      {
+         t_irf_buf[i] = t_irf[i];
+         for(int k=0; k<n_chan; k++)
+            irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf[j*n_irf*n_chan+k*n_irf+i];
+      }
+      for(i=i; i<a_n_irf; i++)
+      {
+         t_irf_buf[i] = t_irf_buf[i-1] + 1;
+         for(int k=0; k<n_chan; k++)
+            irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = 0;
+      }
    }
 
    n_irf = a_n_irf;
@@ -446,6 +458,9 @@ void FLIMGlobalFitController::Init()
    s   = s_max;                              // (varp) Number of pixels (right hand sides)
 
    max_dim = max(n_irf,n_t);
+   max_dim = ceil(max_dim/4.0) * 4;
+
+
    exp_dim = max_dim * n_chan;
    
 
@@ -552,7 +567,7 @@ void FLIMGlobalFitController::Init()
       //lin_params_err = new double[ n_thread * n_px * l ]; //free ok
       //alf_err        = new double[ n_thread * nl ]; //free ok
 
-      local_irf    = new DoublePtr[n_thread];
+      local_irf    = new float*[n_thread];
 
       init = true;
    }
