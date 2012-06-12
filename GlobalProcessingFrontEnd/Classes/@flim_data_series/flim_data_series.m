@@ -179,7 +179,7 @@ classdef flim_data_series < handle
 
         function obj = flim_data_series()
             
-            del_files = dir([tempdir 'GPTEMP_*']);
+            del_files = dir([tempdir 'GPTEMP*']);
             
             warning('off','MATLAB:DELETE:Permission');
             

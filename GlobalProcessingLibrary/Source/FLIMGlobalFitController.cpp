@@ -586,7 +586,7 @@ void FLIMGlobalFitController::Init()
       char z;
 
       // Create an empty file (logically, doesn't actually write the whole file)
-      result_map_filename = _tempnam( "c:\\tmp", "GPTEMP" );
+      result_map_filename = _tempnam( "c:\\tmp", "GPTEMP_" );
       if (result_map_filename == NULL)
          throw -1010;
 
