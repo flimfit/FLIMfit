@@ -96,7 +96,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
 
    lm_algorithm = 1;
 
-   delay_lin_calc = true;
+   memory_map_results = false;
+
 }
 
 int FLIMGlobalFitController::RunWorkers()
@@ -515,11 +516,11 @@ void FLIMGlobalFitController::Init()
    else
       n = n_meas;
 
-   ndim = max( n, 2*nl+3 );
-   nmax   = n;
+   ndim       = max( n, 2*nl+3 );
+   nmax       = n;
    int lps    = l + s + 1;
    int pp3    = p + 3;
-   lnls1  = l + nl + s + 1;
+   lnls1      = l + nl + s + 1;
    
    csize = max(1,nl);
    csize = csize * (csize + 7);
@@ -528,15 +529,20 @@ void FLIMGlobalFitController::Init()
 
    try
    {
+      if (!memory_map_results)
+      {
+         lin_params   = new double[ data->n_regions_total * n_px * l ];
+         chi2         = new double[ data->n_regions_total * n_px ];
+         alf          = new double[ data->n_regions_total * nl ];
+      }
+
       alf_local    = new double[ n_thread * nl ]; //free ok
       a            = new double[ n_thread * n * lps ]; //free ok
-      
       b            = new double[ n_thread * ndim * pp3 ]; //free ok
       c            = new double[ n_thread * csize ]; // free ok
 
       y            = new float[ n_thread * s * n_meas ]; //free ok 
       ma_decay     = new float[ n_thread * n_meas ];
-      //lin_params   = new double[ data->n_regions_total * n_px * l ]; //free ok
       lin_local    = new double[ n_thread * l ];
       w            = new float[ n_thread * n ]; //free ok
 
@@ -546,7 +552,6 @@ void FLIMGlobalFitController::Init()
       ws           = new double[ n_thread * s ];
       #endif
 
-      //exp_buf      = new double[ n_thread * n_decay_group * exp_buf_size ]; //free ok
       exp_buf      = (float*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(float), 16 );
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -579,42 +584,37 @@ void FLIMGlobalFitController::Init()
       return;
    }
 
-   try
+   if (memory_map_results)
    {
+      try
+      {
       
-      std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
-      char z;
+         std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
+         char z;
 
-      // Create an empty file (logically, doesn't actually write the whole file)
-      result_map_filename = _tempnam( "c:\\tmp", "GPTEMP_" );
-      if (result_map_filename == NULL)
-         throw -1010;
+         // Create an empty file (logically, doesn't actually write the whole file)
+         result_map_filename = _tempnam( "c:\\tmp", "GPTEMP_" );
+         if (result_map_filename == NULL)
+            throw -1010;
 
-      FILE* f = fopen(result_map_filename,"w+");
-      if (f == NULL)
-         throw -1010;
+         FILE* f = fopen(result_map_filename,"w+");
+         if (f == NULL)
+            throw -1010;
 
-      _fseeki64(f,total_sz,0);
-      fwrite(&z,1,1,f);
-      fclose(f);
+         _fseeki64(f,total_sz,0);
+         fwrite(&z,1,1,f);
+         fclose(f);
 
-      result_map_file = file_mapping(result_map_filename,read_write);
-/*
-      result_map_view = mapped_region(result_map_file, read_write, 0, 0);
-      chi2 = (double*) result_map_view.get_address();
-      alf = chi2 + data->n_regions_total * n_px;
-      lin_params = alf + data->n_regions_total * nl;
-      */
+         result_map_file = file_mapping(result_map_filename,read_write);
+      }
+      catch(std::exception& e)
+      {
+         error = ERR_COULD_NOT_OPEN_MAPPED_FILE;
+         CleanupTempVars();
+         CleanupResults();
+         return;
+      }
    }
-   catch(std::exception& e)
-   {
-      error = ERR_COULD_NOT_OPEN_MAPPED_FILE;
-      CleanupTempVars();
-      CleanupResults();
-      return;
-   }
-
-   //SetNaN(chi2, data->n_regions_total * n_px );
 
    if (n_irf > 2)
       t_g = t_irf[1] - t_irf[0];
@@ -901,7 +901,10 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(locked_value);
       ClearVariable(cur_alf);
 
-//      ClearVariable(exp_buf);
+      ClearVariable(chi2);
+      ClearVariable(alf);
+      ClearVariable(lin_params);
+
       if (exp_buf != NULL)
          _aligned_free(exp_buf);
       if (irf_buf != NULL)

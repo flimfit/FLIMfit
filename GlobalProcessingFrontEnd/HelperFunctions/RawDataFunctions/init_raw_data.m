@@ -1,4 +1,4 @@
-function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf)
+function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,mode)
     
     [path name ext] = fileparts(file);
 
@@ -13,6 +13,10 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf)
         metadata = struct();
     end
     
+    if nargin < 8
+        mode = 'TCSPC';
+    end
+    
     dinfo.metadata = metadata;
 
     if ~isfield(dinfo.metadata,'FileName');
@@ -23,7 +27,7 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf)
     dinfo.data_size = [data_size(1) 1 data_size(2) data_size(3)];
     dinfo.polarisation_resolved = false;
     dinfo.num_datasets = n_datasets;
-    dinfo.mode = 'TCSPC';
+    dinfo.mode = mode;
 
     if nargin > 6
         dinfo.irf = irf;

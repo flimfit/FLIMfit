@@ -238,7 +238,6 @@ private:
    double g_factor;
 
    int lm_algorithm;
-   int delay_lin_calc;
 
    boost::interprocess::file_mapping   result_map_file;
    boost::interprocess::mapped_region  result_map_view;
@@ -253,6 +252,8 @@ private:
    double* lin_local;
    float* irf_buf;
    float* t_irf_buf;
+
+   int memory_map_results;
 };
 
 class ErrMinParams

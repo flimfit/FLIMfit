@@ -6,6 +6,9 @@ int FLIMGlobalFitController::check_alf_mod(int thread, double* new_alf)
 {
    double *cur_alf = this->cur_alf + thread * nl;
 
+   if (nl == 0)
+      return true;
+
    int changed = false;
 
    for(int i=0; i<nl; i++)
@@ -145,10 +148,12 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          }
 
          row--;
-      
+        
+         double tg = t[1] - t[0];
+
          // Actual decay
-         //if (data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
-         //   tcspc_fact = ( 1 - exp( - (t[1] - t[0]) * rate ) ) / rate;
+         //if (data->data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
+         //   tcspc_fact = ( 1 - exp( - tg * rate ) ) / rate;
          //else
          tcspc_fact = 1;
       
@@ -201,7 +206,7 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    float* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+decay_group_idx)*n_exp);
 
-   float* exp_model_buf         = local_exp_buf +  row   *exp_dim;
+   float* exp_model_buf         = local_exp_buf + (row+0)*exp_dim;
    float* exp_irf_tirf_cum_buf  = local_exp_buf + (row+1)*exp_dim;
    float* exp_irf_tirf_buf      = local_exp_buf + (row+2)*exp_dim;
    float* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;

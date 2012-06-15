@@ -47,7 +47,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    float   *ma_decay     = this->ma_decay + thread * n_meas;
    double  *lin_params   = this->lin_params + r_idx * n_px * l;
    double  *chi2         = this->chi2 + r_idx * n_px;
-//   double *lin_params   = this->lin_params + thread * l;
    double  *alf          = this->alf + r_idx * nl;
    float   *w            = this->w + thread * n;
    double  *ws           = this->ws + thread * s;
@@ -67,19 +66,21 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int pi = g % (data->n_x*data->n_y);
    local_irf[thread] = irf_buf + pi * n_irf * n_chan;
 
-   int nr = data->n_regions_total;  // * (n_px * (l+1) + nl) * sizeof(double);
-   std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(double);
-   std::size_t alf_offset  = (nr * n_px + r_idx * nl             ) * sizeof(double);
-   std::size_t lin_offset  = (nr * (n_px + nl) + r_idx * l * n_px) * sizeof(double);
+   if (memory_map_results)
+   {
+      int nr = data->n_regions_total;  // * (n_px * (l+1) + nl) * sizeof(double);
+      std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(double);
+      std::size_t alf_offset  = (nr * n_px + r_idx * nl             ) * sizeof(double);
+      std::size_t lin_offset  = (nr * (n_px + nl) + r_idx * l * n_px) * sizeof(double);
 
-   mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
-   mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
-   mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
+      mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
+      mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
+      mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
 
-   chi2       = (double*) chi2_map_view.get_address();
-   alf        = (double*) alf_map_view.get_address();
-   lin_params = (double*) lin_map_view.get_address();
-
+      chi2       = (double*) chi2_map_view.get_address();
+      alf        = (double*) alf_map_view.get_address();
+      lin_params = (double*) lin_map_view.get_address();
+   }
 
 
    SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 

@@ -35,7 +35,7 @@ function get_return_data(obj)
     if p.global_fitting == 0
         g_size = sz;
         tau_size = [sz p.n_exp];
-        theta_size = [p.n_theta max_n_regions];
+        theta_size = [sz p.n_theta];
         E_size = [sz p.n_fret];
     else
         g_size = [1 max_n_regions];
@@ -377,7 +377,7 @@ function get_return_data(obj)
 
                 if ~isempty(p_scatter)
                     scatter = reshape(p_scatter.Value,obj.scatter_size);
-                    scatter = obj.fill_image(scatter,dmask,min_region)
+                    scatter = obj.fill_image(scatter,dmask,min_region);
                     f.set_image('scatter',scatter,dmask,I,im,[0 ceil(nanmax(scatter(:)))])
                 end
 

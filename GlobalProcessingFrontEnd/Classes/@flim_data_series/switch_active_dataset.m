@@ -1,12 +1,12 @@
 function switch_active_dataset(obj, dataset, no_smoothing)
     %> Switch which dataset in the memory mapped file we're pointing at
-    
-    if dataset == obj.active || dataset <= 0 || dataset > obj.n_datasets
-        return
-    end
-    
+
     if nargin < 3
         no_smoothing = false;
+    end
+    
+    if (dataset == obj.active && no_smoothing) || dataset <= 0 || dataset > obj.n_datasets
+        return
     end
     
     if obj.use_memory_mapping

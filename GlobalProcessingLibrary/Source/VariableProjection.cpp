@@ -547,9 +547,9 @@ double xnorm_(integer *n, double *x)
 
 
 /*                                          CHECK FOR VALID INPUT */
-    if (*l >= 0 && *nl >= 0 && *s * *l + *nl < *s * *n && (
+    if (*l >= 0 && *nl >= 0 && (
        *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim &&
-        ! (*nl == 0 && *l == 0) && * // && *s * *n - (*s - 1) * *l <= *ndim
+        ! (*nl == 0 && *l == 0) && * // && *s * *n - (*s - 1) * *l <= *ndim // *s * *l + *nl < *s * *n &&
        s > 0) {
    goto L3;
     }
