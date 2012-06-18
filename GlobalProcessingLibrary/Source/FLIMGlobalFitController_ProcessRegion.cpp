@@ -139,6 +139,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
          alf_local[i] = tau_guess[n_fix+i];
    }
 
+
+
    // Assign initial guesses to nonlinear variables
    //------------------------------
    i=0;

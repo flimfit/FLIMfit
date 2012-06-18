@@ -3,6 +3,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
     properties
         graph_independent_popupmenu;
         ind_param;
+        error_type_popupmenu;
+        error_calc_popupmenu;
     end
     
     methods
@@ -12,6 +14,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             assign_handles(obj,handles);
 
             set(obj.graph_independent_popupmenu,'Callback',@obj.ind_param_select_update);
+            
+            set(obj.error_type_popupmenu,'Callback',@(~,~,~) obj.update_display);
+            set(obj.error_calc_popupmenu,'Callback',@(~,~,~) obj.update_display);
             
             obj.update_display();
         end
@@ -39,6 +44,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         
         
         function draw_plot(obj,ax,param)
+            
+            error_type = get(obj.error_type_popupmenu,'Value');
+            error_calc = get(obj.error_calc_popupmenu,'Value');
 
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param) && ~isempty(obj.cur_param)
 
@@ -68,8 +76,11 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     x_data = sort(x_data);
                 end
 
+                y_scatter = [];
+                x_scatter = [];
+                
                 for i=1:length(x_data)
-                    y = 0; yv = 0; yn = 0; e = 0; 
+                    y = 0; yv = 0; yn = 0; e = 0; ym = [];
                     for j=1:n_im
                         if ~empty(j) ... 
                             && ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) ...
@@ -77,6 +88,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
   
                             n = r.image_stats{j}.(param).n;
                             if n > 0
+                                ym(end+1) = r.image_stats{j}.(param).mean;
                                 y = y + r.image_stats{j}.(param).mean * n; 
                                 yv = yv + (r.image_stats{j}.(param).std)^2*n;
                                 yn = yn + r.image_stats{j}.(param).n;
@@ -88,9 +100,13 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                         end
                     end
+                    y_scatter = [y_scatter ym];
+                    x_scatter = [x_scatter ones(size(ym))*i];
                     y_data(i) = y/yn;
                     y_err(i) = 2 * sqrt(yv/yn) / sqrt(yn); % 95% conf interval ~2*standard error 
                     y_std(i) = sqrt(yv/yn);
+                    y_well_std(i) = std(ym);
+                    y_well_err(i) = 2 * y_well_std(i) / sqrt(length(ym));
                     y_n(i) = yn;
                     err(i) = e/yn;
 
@@ -102,16 +118,37 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     y_err = err;
                 end
 
+                if error_type == 1 % std
+                    if error_calc == 1 % pixel
+                        err = y_std;
+                    else
+                        err = y_well_std;
+                    end
+                else % 95% conf
+                    if error_calc == 1 % pixel
+                        err = y_err;
+                    else
+                        err = y_well_err; 
+                    end
+                end
+                    
+                
                 if var_is_numeric
-                    errorbar(ax,x_data,y_data,y_err,'o-');
+                    errorbar(ax,x_data,y_data,err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                    hold(ax,'on');
+                    plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
                     cell_x_data = num2cell(x_data);
                 else
-                    errorbar(ax,y_data,y_err,'o-');
+                    errorbar(ax,y_data,err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                    hold(ax,'on')
+                    plot(ax,x_scatter,y_scatter,'x','MarkerSize',5);
                     set(ax,'XTick',1:length(y_data));
                     set(ax,'XTickLabel',x_data);
                     cell_x_data = x_data;
                 end
 
+                hold(ax,'off');
+                
                 if isfield(r.default_lims,param)
                     lims = r.default_lims.(param);
 
@@ -145,3 +182,4 @@ classdef flim_fit_graph_controller < abstract_plot_controller
     
     
 end
+
