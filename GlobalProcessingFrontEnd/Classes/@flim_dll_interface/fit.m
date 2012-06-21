@@ -141,14 +141,18 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         
     else
         
-        mask = d.seg_mask; 
         
-        if ~isempty(mask)
+        if ~isempty(d.seg_mask)
+            
+            mask = d.seg_mask;
+            
             obj.n_regions = reshape(mask,[size(mask,1)*size(mask,2) size(mask,3)]);
             obj.n_regions = squeeze(max(obj.n_regions,[],1));
         else
+            mask = [];
             obj.n_regions = ones([1 obj.n_im]);
         end
+        
         obj.n_regions_total = sum(obj.n_regions);
 
         

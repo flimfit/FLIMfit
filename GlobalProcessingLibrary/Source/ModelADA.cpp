@@ -79,7 +79,7 @@ double d_beta_d_alf(double beta)
 
 double kappa_spacer(double tau2, double tau1)
 {
-   double diff_max = 40;
+   double diff_max = 30;
    double spacer = 400;
 
    double diff = tau2 - tau1 + spacer;
@@ -91,7 +91,7 @@ double kappa_spacer(double tau2, double tau1)
 
 double kappa_lim(double tau)
 {
-   double diff_max = 40;
+   double diff_max = 30;
    double tau_min = 50;
 
    double diff = - tau + tau_min;
@@ -103,14 +103,12 @@ double kappa_lim(double tau)
 
 double d_kappa_d_tau(double tau2, double tau1)
 {
-   double kappa_diff_max = 40;
+   double kappa_diff_max = 30;
    double kappa_fact = 2;
 
    double diff = (tau2 - (tau1 + 200)) * kappa_fact;
    diff = diff > kappa_diff_max ? kappa_diff_max : diff;
    double d = kappa_fact * exp(diff); 
-   if (d > 100)
-      d = d;
    return d;
 }
 
@@ -153,7 +151,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
    int n_meas = N;
                                
-   float *exp_buf = gc->exp_buf + *thread * gc->n_decay_group * gc->exp_buf_size;
+   double *exp_buf = gc->exp_buf + *thread * gc->n_decay_group * gc->exp_buf_size;
    double *tau_buf = gc->tau_buf + *thread * gc->n_exp * (gc->n_fret + 1);
    double *beta_buf = gc->beta_buf + *thread * gc->n_exp;
    double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
@@ -179,6 +177,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
    int* resample_idx = gc->data->GetResampleIdx(*thread);
       
+
    switch(*isel)
    {
       case 1:
@@ -242,6 +241,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
                   inc_row++;
                }
 
+               // Variable Thetas
                for(i=0; i<gc->n_theta_v; i++)
                {
                   inc[inc_row+(inc_col+i+1+gc->n_theta_fix)*12] = 1;
@@ -365,13 +365,18 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          for(j=0; j<gc->n_fix; j++)
             tau_buf[j] = gc->tau_guess[j];
          for(j=0; j<gc->n_v; j++)
+         {
             tau_buf[j+gc->n_fix] = InverseTransformRange(alf[j],gc->tau_min[j+gc->n_fix],gc->tau_max[j+gc->n_fix]);
-
+            tau_buf[j+gc->n_fix] = max(tau_buf[j+gc->n_fix],60);
+         }
          // Set theta's
          for(j=0; j<gc->n_theta_fix; j++)
             theta_buf[j] = gc->theta_guess[j];
          for(j=0; j<gc->n_theta_v; j++)
+         {
             theta_buf[j+gc->n_theta_fix] = InverseTransformRange(alf[gc->alf_theta_idx+j],0,1000000);
+            theta_buf[j+gc->n_theta_fix] = max(theta_buf[j+gc->n_theta_fix],60);
+         }
 
 
          // Set beta's
@@ -439,9 +444,11 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          {
             kap[0] = 0;
             for(i=1; i<gc->n_v; i++)
-               kap[0] += kappa_spacer(tau_buf[gc->n_fix+i],tau_buf[gc->n_fix+i-1]);
+               kap[0] += kappa_spacer(alf[i],alf[i-1]);
             for(i=0; i<gc->n_v; i++)
-               kap[0] += kappa_lim(tau_buf[gc->n_fix+i]);
+               kap[0] += kappa_lim(alf[i]);
+            for(i=0; i<gc->n_theta_v; i++)
+               kap[0] += kappa_lim(alf[gc->alf_theta_idx+i]);
          }
 
          // Add offset
@@ -596,19 +603,24 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          if (gc->use_kappa && kap != NULL)
          {
-            
+            double *kap_derv = kap+1;
+
+            for(i=0; i<*nl; i++)
+               kap_derv[i] = 0;
+
             for(i=0; i<gc->n_v; i++)
             {
-               kap[ i + 1 ] = -kappa_lim(tau_buf[gc->n_fix+i]);
+               kap_derv[i] = -kappa_lim(tau_buf[gc->n_fix+i]);
                if (i<gc->n_v-1)
-                  kap[ i + 1 ] += kappa_spacer(tau_buf[gc->n_fix+i+1],tau_buf[gc->n_fix+i]);
+                  kap_derv[i] += kappa_spacer(tau_buf[gc->n_fix+i+1],tau_buf[gc->n_fix+i]);
                if (i>0)
-                  kap[ i + 1 ] -= kappa_spacer(tau_buf[gc->n_fix+i],tau_buf[gc->n_fix+i-1]);
+                  kap_derv[i] -= kappa_spacer(tau_buf[gc->n_fix+i],tau_buf[gc->n_fix+i-1]);
             }
-            for(i=i; i<*nl; i++)
+            for(i=0; i<gc->n_theta_v; i++)
             {
-               kap[i+1] = 0;
+               kap_derv[gc->alf_theta_idx+i] =  -kappa_lim(theta_buf[gc->n_theta_fix+i]);
             }
+
             
          }
 

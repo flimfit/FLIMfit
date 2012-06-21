@@ -54,6 +54,9 @@ classdef front_end_menu_controller < handle
         menu_background_background_load;
         menu_background_background_load_series;
         
+        menu_background_tvb_load;
+        menu_background_tvb_use_selected;
+        
         menu_segmentation_manual;
         menu_segmentation_yuriy;
         
@@ -76,6 +79,7 @@ classdef front_end_menu_controller < handle
         fitting_params_controller;
         plot_controller;
         hist_controller;
+        data_masking_controller;
         
         recent_irf;
         recent_default_path;
@@ -471,15 +475,24 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        %------------------------------------------------------------------
-        % Background
-        %------------------------------------------------------------------
         function menu_background_background_load_series_callback(obj,~,~)
             [path] = uigetdir(obj.default_path,'Select a folder of background images');
             if path ~= 0
                 obj.data_series_controller.data_series.load_background(path);    
             end
         end
+        
+        function menu_background_tvb_load_callback(obj,~,~)
+            [file,path] = uigetfile('*.*','Select a TVB file',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.load_tvb([path file]);    
+            end
+        end
+        
+        function menu_background_tvb_use_selected_callback(obj,~,~)
+           obj.data_masking_controller.tvb_define_callback();    
+        end
+        
         
         %------------------------------------------------------------------
         % Segmentation

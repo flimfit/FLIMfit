@@ -1,9 +1,9 @@
-function write_raw_data(file,t,data,irf,ref)
+function write_raw_data(file,t,data,t_irf,irf,ref)
 
-    if nargin < 5
+    if nargin < 6
         ref = [];
     end
-    if nargin < 4
+    if nargin < 5
         irf = [];
     end
     
@@ -41,9 +41,9 @@ function write_raw_data(file,t,data,irf,ref)
     fclose(mapfile);
     
     if ~isempty(irf)
-        dlmwrite([path filesep 'irf.irf'],[t' irf'],'\t');
+        dlmwrite([path filesep 'irf.irf'],[t_irf' irf'],'\t');
     end
     if ~isempty(ref)
-        dlmwrite([path filesep 'ref150.irf'],[t' ref'],'\t');
+        dlmwrite([path filesep 'ref150.irf'],[t_irf' ref'],'\t');
     end
 end

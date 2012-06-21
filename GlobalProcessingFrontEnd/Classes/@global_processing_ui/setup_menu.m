@@ -69,6 +69,10 @@ function handles = setup_menu(obj,handles)
     handles.menu_background_background_load = uimenu(menu_background,'Label','Load background image...');
     handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load series of background image to smooth...');
     
+    handles.menu_background_tvb_load = uimenu(menu_background,'Label','Load Time Varying Background...','Separator','on');
+    handles.menu_background_tvb_use_selected = uimenu(menu_background,'Label','Use Selected Region as Time Varying Background');
+    
+    
     if ~external
         menu_segmentation = uimenu(obj.window,'Label','Segmentation');
         handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager');

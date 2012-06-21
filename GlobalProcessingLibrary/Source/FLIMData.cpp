@@ -21,11 +21,13 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 {
    has_data = false;
 
+   data_file = NULL;
+
    n_masked_px = 0;
 
    if (mask == NULL)
    {
-      this->mask = new uint8_t[n_im * n_x * n_y];
+      this->mask = new uint8_t[n_im * n_x * n_y]; //ok
       supplied_mask = false;
       for(int i=0; i<n_im * n_x * n_y; i++)
          this->mask[i] = 1;
@@ -81,7 +83,7 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 
    n_p = n_x * n_y * n_meas;
 
-   this->t_skip = new int[n_chan];
+   this->t_skip = new int[n_chan]; //ok
    if (t_skip == NULL)
    {
       for(int i=0; i<n_chan; i++)
@@ -93,22 +95,22 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
          this->t_skip[i] = t_skip[i];
    }
 
-   tr_data    = new float[ n_thread * n_p ]; 
-   tr_buf     = new float[ n_thread * n_p ];
-   tr_row_buf = new float[ n_thread * (n_x+n_y) ];
+   tr_data    = new float[ n_thread * n_p ]; //ok
+   tr_buf     = new float[ n_thread * n_p ]; //ok
+   tr_row_buf = new float[ n_thread * (n_x+n_y) ]; //ok
 
    region_start = new int[ n_group ];
 
-   data_map_view = new boost::interprocess::mapped_region[n_thread];
+   data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
 
-   min_region = new int[n_im_used];
-   max_region = new int[n_im_used];
+   min_region = new int[n_im_used]; //ok
+   max_region = new int[n_im_used]; //ok
 
-   mean_image = new float[ n_thread * n_meas ];
+   mean_image = new float[ n_thread * n_meas ]; //ok
 
-   cur_transformed = new int[n_thread];
+   cur_transformed = new int[n_thread]; //ok 
 
-   average_data = new float[n_meas_full];
+   //average_data = new float[n_meas_full];
 
    for (int i=0; i<n_thread; i++)
       cur_transformed[i] = -1;
@@ -119,8 +121,8 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 
    smoothing_area = (2*this->smoothing_factor+1)*(2*this->smoothing_factor+1);
 
-   resample_idx = new int[n_t * n_thread];
-   n_meas_res = new int[n_thread];
+   resample_idx = new int[n_t * n_thread]; //ok
+   n_meas_res = new int[n_thread]; //ok
 
    use_ext_resample_idx = 0;
    ext_resample_idx = NULL;
@@ -148,7 +150,7 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
 
    data_mode = DATA_MAPPED;
    
-   this->data_file = new char[ strlen(data_file) + 1 ];
+   this->data_file = new char[ strlen(data_file) + 1 ]; //ok
    strcpy(this->data_file,data_file);
 
    try
@@ -223,7 +225,7 @@ int FLIMData::GetImLoc(int im)
       if (use_im[i] == im)
          return i;
    }
-   return 0;
+   return -1;
 }
 
 double* FLIMData::GetT()
@@ -306,20 +308,40 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[])
 int FLIMData::GetMaxRegion(int group)
 {
    if (global_mode == MODE_PIXELWISE)
-      return mask[group];
+   {
+      int im = group / (n_x*n_y);
+      int px = group % (n_x*n_y);
+
+      if (use_im != NULL)
+         im = use_im[im];
+
+      if (mask[im*n_x*n_y+px]==0)
+         return mask[im*n_x*n_y+px];
+   }
    else
+   {
       return max_region[group];
+   }
 }
 
 int FLIMData::GetMinRegion(int group)
 {
    if (global_mode == MODE_PIXELWISE)
-      if (mask[group] == 0)
-         return 1;
-      else
-         return mask[group];
+   {
+      int im = group / (n_x*n_y);
+      int px = group % (n_x*n_y);
+
+      if (use_im != NULL)
+         im = use_im[im];
+
+      int m = mask[im*n_x*n_y+px];
+            
+      return (m==0) ? 1 : m;
+   }
    else
+   {
       return min_region[group];
+   }
 }
 
 int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, float* ma_decay)
@@ -423,7 +445,11 @@ int FLIMData::GetPixelData(int thread, int im, int p, float* adjust, float* mask
    float* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = GetResampleIdx(thread);
    
-   if (mask[im*n_x*n_y+p]==0)
+   int iml = im;
+   if (use_im != NULL)
+      iml = use_im[im];
+
+   if (mask[iml*n_x*n_y+p]==0)
    {
       return 0;
    }
@@ -466,7 +492,12 @@ int FLIMData::GetPixelData(int thread, int im, int p, float* adjust, float* mask
 
 int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data)
 {
-   uint8_t* im_mask = mask + im*n_x*n_y;
+   
+   int iml = im;
+   if (use_im != NULL)
+      iml = use_im[im];
+
+   uint8_t* im_mask = mask + iml*n_x*n_y;
    float* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = GetResampleIdx(thread);
 
@@ -497,7 +528,11 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
 
 int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w)
 {
-   uint8_t* mask = this->mask + im*n_x*n_y;
+   int iml = im;
+   if (use_im != NULL)
+      iml = use_im[im];
+
+   uint8_t* mask = this->mask + iml*n_x*n_y;
    int* resample_idx = GetResampleIdx(thread);
 
    int idx = 0;
@@ -569,7 +604,7 @@ FLIMData::~FLIMData()
    delete[] cur_transformed;
    delete[] resample_idx;
    delete[] data_map_view;
-   delete[] average_data;
+   //delete[] average_data;
    delete[] n_meas_res;
  
    if (!supplied_mask) 
@@ -579,6 +614,10 @@ FLIMData::~FLIMData()
    delete[] min_region;
    delete[] t_skip;
    delete[] mean_image;
+   delete[] region_start;
+
+   if (data_file != NULL)
+      delete[] data_file;
 }
 
 

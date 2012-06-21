@@ -201,18 +201,22 @@ template <typename T>
 int FLIMData::CalculateRegions()
 {
 
-   int* r_count = new int[MAX_REGION];
+   int* r_count = new int[MAX_REGION]; //ok
    int average_count = 0;
    int n_ipx = n_x*n_y;
 
    n_regions_total = 0;
 
-   for(int j=0; j<n_meas_full; j++)
-      average_data[j] = 0;
+   //for(int j=0; j<n_meas_full; j++)
+   //   average_data[j] = 0;
 
    for(int i=0; i<n_im_used; i++)
    {
       T* data_ptr = GetDataPointer<T>(0, i);
+
+      int im = i;
+      if (use_im != NULL)
+            im = use_im[im];
 
       if (data_ptr == NULL)
       {
@@ -235,7 +239,7 @@ int FLIMData::CalculateRegions()
             {
                if (*ptr >= limit)
                {
-                  mask[i*n_ipx+p] = 0;
+                  mask[im*n_ipx+p] = 0;
                   break;
                }
                intensity += *ptr;
@@ -248,21 +252,25 @@ int FLIMData::CalculateRegions()
             intensity -= background_image[p] * n_meas_full;
 
          if (intensity < threshold)
-            mask[i*n_ipx+p] = 0;
+            mask[im*n_ipx+p] = 0;
 
-         if (mask[i*n_ipx+p])
+         /*
+         if (mask[im*n_ipx+p])
          {
             for(int j=0; j<n_meas_full; j++)
                average_data[j] += data_ptr[p*n_meas_full+j];
             average_count++;
          }
+         */
 
-         n_masked_px += (mask[i*n_ipx+p] > 0);
+         n_masked_px += (mask[im*n_ipx+p] > 0);
        }
    }
 
+   /*
    for(int j=0; j<n_meas_full; j++)
       average_data[j] /= average_count;
+   */
 
    region_start[0] = 0;
 

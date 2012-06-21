@@ -49,8 +49,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    error(0), init(false), polarisation_resolved(false), has_fit(false), 
    anscombe_tranform(false), thread_handle(NULL)
 {
-   params = new WorkerParams[n_thread]; //free ok
-   status = new FitStatus(this,n_thread,NULL);
+   params = new WorkerParams[n_thread]; //ok
+   status = new FitStatus(this,n_thread,NULL); //ok
 
    alf          = NULL;
    a            = NULL;
@@ -131,7 +131,7 @@ int FLIMGlobalFitController::RunWorkers()
          params[thread].controller = this;
          params[thread].thread = thread;
       
-         thread_handle[thread] = new tthread::thread(WorkerThread,(void*)(params+thread));
+         thread_handle[thread] = new tthread::thread(WorkerThread,(void*)(params+thread)); // ok
       }
 
       if (!runAsync)
@@ -226,7 +226,7 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
 
    int start = 0;
 
-   float *irf = this->irf_buf + idx * n_irf * n_chan;
+   double *irf = this->irf_buf + idx * n_irf * n_chan;
 
    c = 0;
    for(int i=0; i<n_irf; i++)
@@ -384,21 +384,13 @@ void FLIMGlobalFitController::Init()
    n_theta_v = n_theta - n_theta_fix;
 
    n_meas = n_t * n_chan;
-   /*
-   int i=n_irf-1;
-   while(irf[i]==0) 
-      i--;
-   int a_n_irf = i+5;
-   a_n_irf = min(a_n_irf,n_irf);
-   
-   a_n_irf = (a_n_irf / 4) * 4;
-   */
-   int n_irf_rep = image_irf? (data->n_x*data->n_y) : 1;
 
-   int a_n_irf = ceil(n_irf / 4.0) * 4;
+   int n_irf_rep = image_irf ? (data->n_x*data->n_y) : 1;
+
+   int a_n_irf = ceil(n_irf / 2.0) * 2;
    int irf_size = a_n_irf * n_chan * n_irf_rep;
-   irf_buf   = (float*) _aligned_malloc(irf_size*sizeof(float), 16);
-   t_irf_buf = (float*) _aligned_malloc(n_irf*sizeof(float), 16);
+   irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
+   t_irf_buf = (double*) _aligned_malloc(a_n_irf*sizeof(double), 16);
 
    for(int j=0; j<n_irf_rep; j++)
    {
@@ -437,7 +429,8 @@ void FLIMGlobalFitController::Init()
    n_thread = min(n_thread,data->n_regions_total);
   
    thread_handle = new tthread::thread*[ n_thread ];
-
+   for(int i=0; i<n_thread; i++)
+      thread_handle[i] = NULL;
 
    // Supplied t_rep in seconds, convert to ps
    this->t_rep = t_rep * 1e12;
@@ -531,9 +524,9 @@ void FLIMGlobalFitController::Init()
    {
       if (!memory_map_results)
       {
-         lin_params   = new double[ data->n_regions_total * n_px * l ];
-         chi2         = new double[ data->n_regions_total * n_px ];
-         alf          = new double[ data->n_regions_total * nl ];
+         lin_params   = new double[ data->n_regions_total * n_px * l ]; //ok
+         chi2         = new double[ data->n_regions_total * n_px ]; //ok
+         alf          = new double[ data->n_regions_total * nl ]; //ok
       }
 
       alf_local    = new double[ n_thread * nl ]; //free ok
@@ -542,17 +535,17 @@ void FLIMGlobalFitController::Init()
       c            = new double[ n_thread * csize ]; // free ok
 
       y            = new float[ n_thread * s * n_meas ]; //free ok 
-      ma_decay     = new float[ n_thread * n_meas ];
-      lin_local    = new double[ n_thread * l ];
+      ma_decay     = new float[ n_thread * n_meas ]; //ok
+      lin_local    = new double[ n_thread * l ]; //ok
       w            = new float[ n_thread * n ]; //free ok
 
-      cur_alf      = new double[ n_thread * nl ];
+      cur_alf      = new double[ n_thread * nl ]; //ok
 
       #ifdef USE_W
       ws           = new double[ n_thread * s ];
       #endif
 
-      exp_buf      = (float*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(float), 16 );
+      exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
       beta_buf     = new double[ n_thread * n_exp ]; //free ok
@@ -566,13 +559,13 @@ void FLIMGlobalFitController::Init()
 
       conf_lim     = new double[ n_thread * nl ]; //free ok
 
-      locked_param = new int[n_thread];
-      locked_value = new double[n_thread];
+      locked_param = new int[n_thread]; //ok
+      locked_value = new double[n_thread]; //ok
 
       //lin_params_err = new double[ n_thread * n_px * l ]; //free ok
       //alf_err        = new double[ n_thread * nl ]; //free ok
 
-      local_irf    = new float*[n_thread];
+      local_irf    = new double*[n_thread]; //ok
 
       init = true;
    }
@@ -629,7 +622,7 @@ void FLIMGlobalFitController::Init()
 
    // Select correct convolution function for data type
    //-------------------------------------------------
-   if (data->data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
+   if (data->data_type == DATA_TYPE_TCSPC)
    {
       Convolve = conv_irf_tcspc;
       ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
@@ -906,11 +899,20 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(lin_params);
 
       if (exp_buf != NULL)
+      {
          _aligned_free(exp_buf);
+         exp_buf = NULL;
+      }
       if (irf_buf != NULL)
+      {
          _aligned_free(irf_buf);
+         irf_buf = NULL;
+      }
       if (t_irf_buf != NULL)
+      {
          _aligned_free(t_irf_buf);
+         t_irf_buf = NULL;
+      }
 
       ClearVariable(c);
       ClearVariable(irf_max);
@@ -950,6 +952,11 @@ void FLIMGlobalFitController::CleanupResults()
 
    if (thread_handle != NULL)
    {
+      for(int i=0; i<n_thread; i++)
+      {
+         if (thread_handle[i] != NULL)
+            delete thread_handle[i];
+      }
       delete[] thread_handle;
       thread_handle = NULL;
    }

@@ -234,14 +234,25 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
    int n_p = data->n_px;
 
-   int iml = im;
-   uint8_t *im_mask = data->mask + iml*n_px;
+   uint8_t *im_mask = data->mask + im*n_px;  
+   
+   for(int i=0; i<n_px; i++)
+      ret_mask[i] = im_mask[i];
+
+
+   int iml = data->GetImLoc(im);
+   im = iml;
+   if (iml == -1)
+      return 0;
+
+
+
    uint8_t *mask = data->mask;
    int group;
    int r_idx, r_min, r_max, ri;
    int s;
 
-   int *loc = new int[n_px];
+   int *loc = new int[n_px]; //ok
    double *alf_group, *lin_group, *chi2_group;
    int *ierr_group; 
    
@@ -250,8 +261,7 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
    omp_set_num_threads(n_thread);
    #endif
    
-   for(int i=0; i<n_px; i++)
-      ret_mask[i] = im_mask[i];
+
 
    // Set default values for regions lying outside of mask
    //------------------------------------------------------
@@ -398,8 +408,12 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    int n_px = data->n_x * data->n_y;
 
-   int iml = im; ///data->GetImLoc(im);
-   uint8_t* mask = data->mask + iml*n_px;
+   uint8_t* mask = data->mask + im*n_px;
+
+   int iml = data->GetImLoc(im);
+   im = iml;
+   if (iml == -1)
+      return 0;
    
 
    int thread = 0;
@@ -410,9 +424,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int group;
    int r_idx, r_min, r_max;
 
-   int *loc = new int[n_px];
    double *alf_group;
-
 
    int n_t_buf = this->n_t;
    double* t_buf = this->t;
@@ -425,10 +437,9 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    getting_fit = true;
    
-   irf_max       = new int[ n_meas ];
-   resampled_irf = new double[ n_meas ];
-
-   int* resample_idx = new int[ n_t ];
+   irf_max       = new int[ n_meas ]; //ok
+   resampled_irf = new double[ n_meas ]; //ok
+   int* resample_idx = new int[ n_t ]; //ok
 
    for(int i=0; i<n_t-1; i++)
       resample_idx[i] = 1;
@@ -439,7 +450,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
 
-   float *adjust = new float[n_meas];
+   float *adjust = new float[n_meas]; //ok
    SetupAdjust(0, adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
                           (fit_offset == FIX)  ? offset_guess  : 0, 
                           (fit_tvb == FIX )    ? tvb_guess     : 0);
@@ -454,9 +465,9 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    double *a, *lin_params;
 
-   a = new double[ n_meas * lps ];
-   lin_params = new double[ n_px*l ];
-   y = new float[ n_meas * n_px ];
+   a = new double[ n_meas * lps ]; //ok
+   lin_params = new double[ n_px*l ]; //ok
+   y = new float[ n_meas * n_px ]; //ok
 
    SetNaN(fit,n_fit*n_meas);
 
@@ -563,7 +574,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    ClearVariable(resampled_irf);
    ClearVariable(resample_idx);
 
-   delete[] adjust;
+   ClearVariable(adjust);
 
    this->n_t = n_t_buf;
    this->n_meas = this->n_t * n_chan;

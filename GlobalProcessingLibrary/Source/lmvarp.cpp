@@ -143,11 +143,12 @@ int lmvarp(integer *s, integer *l, integer *
       diag[i] = 1;
 
 
-   double ftol, xtol, gtol;
+   double ftol, xtol, gtol, factor;
 
    ftol = sqrt(dpmpar(1));
    xtol = sqrt(dpmpar(1));
    gtol = 0.;
+   factor = 1;
 
    int    maxfev = 100;
 
@@ -157,7 +158,7 @@ int lmvarp(integer *s, integer *l, integer *
 
 
    info = lmstx( varproj, vvp, nsls1, *nl, alf, fjac, *nl,
-   ftol, xtol, gtol, *itmax, diag, 1, 0.1, -1,
+   ftol, xtol, gtol, *itmax, diag, 1, factor, -1,
    &nfev, niter, c2, ipvt, qtf, wa1, wa2, wa3, wa4 );
 
   

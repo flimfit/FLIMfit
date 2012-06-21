@@ -82,7 +82,7 @@ public:
 
    tthread::thread **thread_handle;
 
-   float** local_irf;
+   double** local_irf;
    
    bool polarisation_resolved;
    int n_chan, n_meas, n_pol_group;
@@ -91,7 +91,7 @@ public:
    double *theta, *theta_err, *r;
    double *chan_fact;
 
-   float *exp_buf;
+   double *exp_buf;
    double *tau_buf;
    double *beta_buf;
    double *theta_buf;
@@ -250,8 +250,8 @@ private:
    double* cur_alf;
    double* alf_local;
    double* lin_local;
-   float* irf_buf;
-   float* t_irf_buf;
+   double* irf_buf;
+   double* t_irf_buf;
 
    int memory_map_results;
 };

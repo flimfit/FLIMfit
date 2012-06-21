@@ -23,14 +23,14 @@ int FLIMGlobalFitController::check_alf_mod(int thread, double* new_alf)
 void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], double theta[])
 {
 
-   double e0, de, de2, ej, cum, tcspc_fact, inv_theta, rate;
+   double e0, de, ej, cum, fact, inv_theta, rate;
    int i, j, k, m, idx, next_idx;
-   __m128 *dest_, *src_, *irf_, *t_irf_;
+   __m128d *dest_, *src_, *irf_, *t_irf_;
 
-   float* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
+   double* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
    int row = n_pol_group*n_decay_group*n_exp*N_EXP_BUF_ROWS;
    
-   float *lirf;
+   double *lirf;
    
    if (image_irf)
       lirf = local_irf[thread];
@@ -47,30 +47,31 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
          row--;
 
          rate = 1/tau[i] + inv_theta;
-
+         
          // IRF exponential factor
-         e0 = exp( (t_irf[0] + t0_guess) * rate ) * t_g;
+         e0 = exp( (t_irf[0] + t0_guess) * rate ); // * t_g;
          de = exp( + t_g * rate );
-         de2 = de*de;
-         __m128  ej_ = _mm_setr_ps(e0, e0*de, e0*de2, e0*de2*de);
-         __m128  de_ = _mm_set_ps1(de2*de2);
 
-         dest_ = (__m128*) (local_exp_buf + row*exp_dim);
-         irf_  = (__m128*) lirf;
+         
+         __m128d  ej_ = _mm_setr_pd(e0, e0*de);
+         __m128d  de_ = _mm_set1_pd(de*de);
 
-         int n_loop = n_irf/4;
+         dest_ = (__m128d*) (local_exp_buf + row*exp_dim);
+         irf_  = (__m128d*) lirf;
+
+         int n_loop = n_irf/2;
 
          for(j=0; j<n_loop; j++)
          {
             for(k=0; k<n_chan; k++)
-               dest_[k*n_irf/4] = _mm_mul_ps(irf_[k*n_irf/4],ej_);
-            ej_ = _mm_mul_ps(ej_,de_);
+               dest_[k*n_irf/2] = _mm_mul_pd(irf_[k*n_irf/2],ej_);
+            ej_ = _mm_mul_pd(ej_,de_);
             irf_++;
             dest_++;
          }
-
-         /*
          
+         
+         /*
          ej = e0;
           
 
@@ -101,20 +102,20 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
 
          row--;
 
-         __m128 t0_ = _mm_set_ps1(t0_guess);
+         __m128d t0_ = _mm_set1_pd(t0_guess);
 
          // IRF exponential factor * t_irf
          
          for(k=0; k<n_chan; k++)
          {
-            dest_  = (__m128*) (local_exp_buf + row*exp_dim + k*n_irf);
-            src_   = (__m128*) (local_exp_buf + (row+2)*exp_dim + k*n_irf);
-            t_irf_ = (__m128*) t_irf_buf;
+            dest_  = (__m128d*) (local_exp_buf + row*exp_dim + k*n_irf);
+            src_   = (__m128d*) (local_exp_buf + (row+2)*exp_dim + k*n_irf);
+            t_irf_ = (__m128d*) t_irf_buf;
 
             for(j=0; j<n_loop; j++)
             {
-               __m128 t_ = _mm_add_ps(*(t_irf_++), t0_);
-               *(dest_++) = _mm_mul_ps(*(src_++),t_);
+               __m128d t_ = _mm_add_pd(*(t_irf_++), t0_);
+               *(dest_++) = _mm_mul_pd(*(src_++),t_);
             }
          }
          
@@ -153,14 +154,19 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
 
          // Actual decay
          //if (data->data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
-         //   tcspc_fact = ( 1 - exp( - tg * rate ) ) / rate;
+         //   fact = ( 1 - exp( - tg * rate ) ) / rate;
          //else
-         tcspc_fact = 1;
+              fact = 1;
       
+         if (ref_reconvolution)
+            fact *= t_g;
+         else
+            fact *= 1;
+
          for(k=0; k<n_chan; k++)
          {
             for(j=0; j<n_t; j++)
-               local_exp_buf[j+k*n_t+row*exp_dim] = tcspc_fact * exp( - t[j] * rate ) * chan_fact[m*n_chan+k] * data->t_int[j];
+               local_exp_buf[j+k*n_t+row*exp_dim] = fact * exp( - t[j] * rate ) * chan_fact[m*n_chan+k] * data->t_int[j];
          }
 
       }
@@ -171,12 +177,12 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
 void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[])
 {   
    double c;
-   float* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
+   double* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+decay_group_idx)*n_exp);
    
-   float* exp_model_buf         = local_exp_buf +  row   *exp_dim;
-   float* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
-   float* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
+   double* exp_model_buf         = local_exp_buf +  row   *exp_dim;
+   double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
+   double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
             
    int fret_tau_idx = tau_idx + decay_group_idx*n_exp;
 
@@ -184,7 +190,16 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
 
    int* resample_idx = data->GetResampleIdx(thread);
 
-   fact *= ref_reconvolution && ref_lifetime > 0 ? 1/ref_lifetime - rate : 1;
+   fact *= (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
+
+   double pulse_fact;
+   
+   const double x_max = -log(DBL_EPSILON);
+   if (t_rep * rate > x_max)
+      pulse_fact = 0;
+   else
+      pulse_fact = exp( t_rep * rate ) - 1; 
+
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
@@ -192,7 +207,7 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
       for(int i=0; i<n_t; i++)
       {
          
-         Convolve(this, rate, exp_irf_buf, exp_irf_cum_buf, k, i, c);
+         Convolve(this, rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, c);
          a[idx] += exp_model_buf[k*n_t+i] * c * fact;
          idx += resample_idx[i];
       }
@@ -203,14 +218,14 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
 void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double b[])
 {   
    double c;
-   float* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
+   double* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+decay_group_idx)*n_exp);
 
-   float* exp_model_buf         = local_exp_buf + (row+0)*exp_dim;
-   float* exp_irf_tirf_cum_buf  = local_exp_buf + (row+1)*exp_dim;
-   float* exp_irf_tirf_buf      = local_exp_buf + (row+2)*exp_dim;
-   float* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
-   float* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
+   double* exp_model_buf         = local_exp_buf + (row+0)*exp_dim;
+   double* exp_irf_tirf_cum_buf  = local_exp_buf + (row+1)*exp_dim;
+   double* exp_irf_tirf_buf      = local_exp_buf + (row+2)*exp_dim;
+   double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
+   double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
    
    int* resample_idx = data->GetResampleIdx(thread);
    
@@ -218,15 +233,15 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
            
    double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
-   double ref_fact = ref_reconvolution ? (1/ref_lifetime - rate) : 1;
-
+   double ref_fact = (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
+   double pulse_fact = exp( t_rep * rate ) - 1; 
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
    {
       for(int i=0; i<n_t; i++)
       {
-         ConvolveDerivative(this, t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, ref_fact, c);
+         ConvolveDerivative(this, t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, pulse_fact, ref_fact, c);
          b[idx] += exp_model_buf[k*n_t+i] * c * fact;
          idx += resample_idx[i];
       }

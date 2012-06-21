@@ -184,7 +184,7 @@ function get_return_data(obj)
             datasets = datasets(1:(i-1));
         end
         
-        im = datasets(i);
+        im = i;%datasets(i);
         
         if p.global_fitting < 2
            r_start = 1+sum(obj.n_regions(1:i-1));
@@ -195,7 +195,7 @@ function get_return_data(obj)
         end
         
         
-        if (obj.n_regions(i) > 0)
+        if (obj.n_regions(i) > 0 && obj.use(i))
             % Retrieve results
             err = calllib(obj.lib_name,'GetResults', ...
                           obj.dll_id, i-1, p_mask, p_chi2, p_tau, p_I0, p_beta, p_E, p_gamma, ...
