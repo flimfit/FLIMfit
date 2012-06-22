@@ -67,13 +67,12 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
       if (scatter != NULL && fit_scatter == FIT_GLOBALLY)
          scatter[ loc[i] ] = alfl[alf_scatter_idx];
 
-      if (tvb != NULL && fit_scatter == FIT_GLOBALLY)
+      if (tvb != NULL && fit_tvb == FIT_GLOBALLY)
          tvb[ loc[i] ] = alfl[alf_tvb_idx];
 
       if (ref_lifetime != NULL && ref_reconvolution == FIT_GLOBALLY)
          ref_lifetime[ loc[i] ] = alfl[alf_ref_idx];
    
-      //alf += nl;
    }
 
    return 0;
@@ -191,9 +190,6 @@ double FLIMGlobalFitController::CalculateChi2(int s, int n_meas_res, float y[], 
             wj = 1;
          else
             wj = 1/abs(yj);
-
-            if (yj < 0)
-            wj = wj;
 
          fit_buf[j] = (ft - y[i*n_meas_res + j] ) ;
          fit_buf[j] *= fit_buf[j] * data->smoothing_area * wj;  // account for averaging while smoothing

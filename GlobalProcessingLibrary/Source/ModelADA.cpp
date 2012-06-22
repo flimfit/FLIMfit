@@ -345,7 +345,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             {
                for(i=0; i<gc->n_t; i++)
                {
-                  a[idx+N*a_col] += gc->tvb_profile[k*gc->n_t+i] * alf[gc->alf_tvb_idx];
+                  a[idx+N*a_col] += gc->tvb_profile[k*gc->n_t+i];
                   idx += resample_idx[i];
                }
                idx++;

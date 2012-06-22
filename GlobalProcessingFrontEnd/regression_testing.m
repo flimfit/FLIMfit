@@ -25,6 +25,10 @@ function regression_testing(handles)
     overall_tests_passed = 0;
     overall_tests_failed = 0;
     
+    m=memory; 
+    m_start = m.MemUsedMATLAB;
+    
+    for kk=1:4
     for i=1:length(tests)
         
         tests_passed = 0;
@@ -97,11 +101,17 @@ function regression_testing(handles)
         
          
     end
+        m=memory; 
+        mem_dif(kk) = m.MemUsedMATLAB - m_start;
+    
+    end
     
     disp('============================================');
     disp(['OVERALL: PASSED ' num2str(overall_tests_passed) '/' num2str(overall_tests_passed+overall_tests_failed)]);
     disp('============================================');
     
+    figure;
+    plot(mem_dif);
     
     function st = file2struct(file)
        

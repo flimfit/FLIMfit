@@ -368,7 +368,7 @@ function get_return_data(obj)
                 end
 
                 if ~isempty(p_offset_err)
-                    offset_err = reshape(p_offset_err.Value,I0_size);
+                    offset_err = reshape(p_offset_err.Value,offset_size);
                     if ~all(isnan(offset_err(:))) 
                         f.set_image('offset_err',offset_err,dmask,I,im,[0 ceil(nanmax(offset_err(:)))]);
                     end
@@ -376,13 +376,13 @@ function get_return_data(obj)
                 end
 
                 if ~isempty(p_scatter)
-                    scatter = reshape(p_scatter.Value,obj.scatter_size);
+                    scatter = reshape(p_scatter.Value,scatter_size);
                     scatter = obj.fill_image(scatter,dmask,min_region);
                     f.set_image('scatter',scatter,dmask,I,im,[0 ceil(nanmax(scatter(:)))])
                 end
 
                 if ~isempty(p_scatter_err)
-                    scatter_err = reshape(p_scatter_err.Value,I0_size);
+                    scatter_err = reshape(p_scatter_err.Value,scatter_size);
                     if ~all(isnan(scatter_err(:))) 
                         f.set_image('scatter_err',scatter_err,dmask,I,im,[0 ceil(nanmax(scatter_err(:)))])
                     end
@@ -390,7 +390,7 @@ function get_return_data(obj)
                 end
 
                 if ~isempty(p_tvb)
-                    tvb = reshape(p_tvb.Value,I0_size);
+                    tvb = reshape(p_tvb.Value,tvb_size);
                     tvb = obj.fill_image(tvb,dmask,min_region);
                     f.set_image('tvb',tvb,dmask,I,im,[0 ceil(nanmax(tvb(:)))])
 
