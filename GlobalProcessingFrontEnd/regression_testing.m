@@ -13,7 +13,7 @@ function regression_testing(handles)
     contents = contents(3:end);
     tests = {};
     
-    for i=1:4%length(contents)
+    for i=1:1%length(contents)
         if isdir([test_folder contents(i).name])
             tests{end+1} = contents(i).name;
         end
@@ -28,7 +28,7 @@ function regression_testing(handles)
     m=memory; 
     m_start = m.MemUsedMATLAB;
     
-    for kk=1:4
+    for kk=1:1
     for i=1:length(tests)
         
         tests_passed = 0;

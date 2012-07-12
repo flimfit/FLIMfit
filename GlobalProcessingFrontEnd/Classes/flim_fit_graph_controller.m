@@ -105,8 +105,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     y_data(i) = y/yn;
                     y_err(i) = 2 * sqrt(yv/yn) / sqrt(yn); % 95% conf interval ~2*standard error 
                     y_std(i) = sqrt(yv/yn);
-                    y_well_std(i) = std(ym);
-                    y_well_err(i) = 2 * y_well_std(i) / sqrt(length(ym));
+                    y_img_std(i) = std(ym);
+                    y_img_err(i) = 2 * y_img_std(i) / sqrt(length(ym));
                     y_n(i) = yn;
                     err(i) = e/yn;
 
@@ -122,13 +122,13 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     if error_calc == 1 % pixel
                         err = y_std;
                     else
-                        err = y_well_std;
+                        err = y_img_std;
                     end
                 else % 95% conf
                     if error_calc == 1 % pixel
                         err = y_err;
                     else
-                        err = y_well_err; 
+                        err = y_img_err; 
                     end
                 end
                     
@@ -147,6 +147,17 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     cell_x_data = x_data;
                 end
 
+                %{
+                fig = obj.window;
+                
+                data = struct('graph_axes',ax,'x_data',x_data,'y_data',y_data);
+                
+                datacursormode(fig,'on');
+                dcm_obj = datacursormode(fig);
+                set(dcm_obj,'UpdateFcn',@(p1,p2) data_cursor(data,p1,p2))
+                datacursormode(fig,'on');
+                %}
+                
                 hold(ax,'off');
                 
                 if isfield(r.default_lims,param)
@@ -161,9 +172,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     set(ax,'YLim',lims);
                 end
                 
-                obj.raw_data = [cell_x_data; num2cell(y_data); num2cell(y_std); num2cell(y_err); num2cell(y_n)]';
+                obj.raw_data = [cell_x_data; num2cell(y_data); num2cell(y_std); num2cell(y_err); num2cell(y_img_std); num2cell(y_img_err); num2cell(y_n)]';
                 
-                obj.raw_data = [{obj.ind_param param 'std' '95% conf' 'count'}; obj.raw_data]; 
+                obj.raw_data = [{obj.ind_param param 'pixel std' 'pixel 95% conf' 'image std' 'image 95% conf' 'count'}; obj.raw_data]; 
                 
                 latex_param = param;
                 latex_param = strrep(latex_param,'mean_tau','mean tau');

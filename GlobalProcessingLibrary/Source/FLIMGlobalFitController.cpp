@@ -456,7 +456,6 @@ void FLIMGlobalFitController::Init()
 
 
    exp_dim = max_dim * n_chan;
-   
 
    if (ref_reconvolution == FIT_GLOBALLY) // fitting reference lifetime
    {
@@ -504,6 +503,12 @@ void FLIMGlobalFitController::Init()
       l++;
    }
 
+   // If using MLE, need an extra non-linear scaling factor
+   if (algorithm == ALG_ML)
+   {
+      nl += l;
+   }
+
    if (data->global_mode == MODE_GLOBAL)
       n = data->GetResampleNumMeas(0);
    else
@@ -515,8 +520,16 @@ void FLIMGlobalFitController::Init()
    int pp3    = p + 3;
    lnls1      = l + nl + s + 1;
    
-   csize = max(1,nl);
-   csize = csize * (csize + 7);
+   if (algorithm == ALG_ML)
+   {
+      int nfunc = n+1;
+      csize = nl * (6 + nfunc) + nfunc * 2;
+   }
+   else
+   {
+      csize = max(1,nl);
+      csize = csize * (csize + 7);
+   }
 
    exp_buf_size = n_exp * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
 
@@ -607,6 +620,11 @@ void FLIMGlobalFitController::Init()
          CleanupResults();
          return;
       }
+   }
+   else
+   {
+      SetNaN(alf, data->n_regions_total * nl );
+      SetNaN(chi2, data->n_regions_total * n_px );
    }
 
    if (n_irf > 2)
@@ -764,10 +782,10 @@ void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
       last_j = 0;
       for(int j=last_j; j<n_irf-2; j++)
       {
-         if(td>t_irf[j] && td<=t_irf[j+1])
+         if(td>t_irf_buf[j] && td<=t_irf_buf[j+1])
          {
             // Interpolate between points
-            weight = (td-t_irf[j]) / ( t_irf[j+1]-t_irf[j] );
+            weight = (td-t_irf_buf[j]) / ( t_irf_buf[j+1]-t_irf_buf[j] );
             for(c=0; c<n_chan; c++)
                resampled_irf[c*n_t+i] = irf_buf[c*n_irf+j]*(1-weight) + irf_buf[c*n_irf+j+1]*weight;
             last_j = j;
@@ -794,9 +812,12 @@ int FLIMGlobalFitController::GetErrorCode()
 
 void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj)
 {
+   int idx;
    double scale_fact[2];
    scale_fact[0] = 1;
    scale_fact[1] = 0;
+
+   int* resample_idx = data->GetResampleIdx(thread);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
@@ -805,6 +826,19 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + tvb_profile[i] * tvb_adj + offset_adj;
+
+/*
+   idx = 0;
+   for(int k=0; k<n_chan; k++)
+   {
+      for(int i=0; i<n_t; i++)
+      {
+         adjust[idx] += adjust[idx] * scatter_adj + tvb_profile[k*n_t+i] * tvb_adj + offset_adj;
+         idx += resample_idx[i];
+      }
+      idx++;
+   }
+   */
 
 }
 

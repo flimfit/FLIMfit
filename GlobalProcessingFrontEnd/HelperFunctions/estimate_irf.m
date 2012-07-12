@@ -30,6 +30,8 @@ tau1   = 400;
 tau2   = 2000;
 a1     = 0.9;
 
+width = 150;
+
 edge95 = find(cum_decay >= 0.90,1,'first');
 tail_decay = decay(edge95:end);
 tail_decay = tail_decay / tail_decay(1);
@@ -59,19 +61,24 @@ end
 nt = length(t);
 
 
-x0 = [centre width round tau1 tau2 a1 slope];
+%x0 = [centre width round tau1 tau2 a1 slope];
+x0 = [centre width tau1 tau2 a1];
 %x0 = [1540 2100 150 80 2700 0.99];
 
 opt = optimset('MaxFunEvals',10000);
 x = fminsearch(@(x)objt(x,false), x0,opt);
 
-disp(x(1));
-disp(x(2));
-disp(x(3));
-disp(x(4:5));
-disp(x(6));
+disp(['Centre = ' num2str(x(1)) ]);
+disp(['Width = ' num2str(x(2)) ]);
+%disp(x(3));
+disp(['Tau = ' num2str(x(3:4))]);
+disp(['A = ' num2str(x(5))]);
 
 [r irf] = objt(x,true);
+
+folder = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+
+dlmwrite([folder '\est_irf.txt'],[t irf],'\t');
 
 
 function [rn irf] = objt(x,disp)
@@ -79,13 +86,16 @@ function [rn irf] = objt(x,disp)
     centre = x(1);
     width = x(2);
     
-    round = x(3);
-    tau1 = x(4);   %x(4);
-    tau2 = x(5); %x(5);
-    a1 = x(6); %x(6);
+    %round = x(3);
+    tau1 = x(3);   %x(4);
+    tau2 = x(4); %x(5);
+    a1 = x(5); %x(6);
     
-    slope = x(7);
+%    slope = x(7);
     
+    round = 0;
+    slope = 0;
+
     irf = make_irf(centre,width,round,slope);
        
     d1 = a1 * cv(tau1,irf) + (1-a1) * cv(tau2,irf);
@@ -106,12 +116,12 @@ function [rn irf] = objt(x,disp)
     if disp
     subplot(1,3,1)
     plot(t,[d1 decayn irf]);
-    ylim([0 0.02]);
+    %ylim([0 0.02]);
     xlabel('t (ps)');
     title('Linear Scale')
     subplot(1,3,2)
     semilogy(t,[d1 decayn irf]);
-    ylim([1e-4 0.06]);
+    %ylim([1e-4 0.06]);
     title('Log Scale')
     xlabel('t (ps)');
     legend({'Estimated Decay' 'Measured Decay' 'Computed IRF'})
@@ -124,6 +134,7 @@ end
 
 function irf = make_irf(centre,width,round,slope)
 
+    %{
 irf = zeros(size(t));
 irf(t>centre-width/2 & t<centre+width/2) = 1;
 
@@ -135,7 +146,10 @@ irf_spacing = t(2) - t(1);
 tk = -(round*5):irf_spacing:(round*5);
 kern = normpdf(tk,0,round);
 irf = conv(irf,kern,'same');
-
+%}
+   
+irf = normpdf(t,centre,width);
+    
 irf = irf/sum(irf);
 
 end

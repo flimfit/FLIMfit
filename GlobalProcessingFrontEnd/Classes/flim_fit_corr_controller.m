@@ -57,9 +57,8 @@ classdef flim_fit_corr_controller < flim_fit_observer
                 params = [{'-'} params];
                 set(obj.corr_param_x_popupmenu,'String',params);
                 set(obj.corr_param_y_popupmenu,'String',params);
-                set(obj.corr_param_x_popupmenu,'Value',1);
-                set(obj.corr_param_y_popupmenu,'Value',1);
-
+                
+                
                 obj.param_updated()
             end
         end
@@ -109,17 +108,33 @@ classdef flim_fit_corr_controller < flim_fit_observer
                 xlims = obj.fit_controller.fit_result.default_lims.(obj.param_x);
                 ylims = obj.fit_controller.fit_result.default_lims.(obj.param_y);
                 
-                %{
-                if ~isempty(param_data_x) && ~isempty(param_data_y)
-                    createContour([param_data_x param_data_y]);
-                end
-                %}
-                scatter(obj.corr_axes,param_data_x,param_data_y);
+                x_edge = linspace(obj.corr_x_lim(1),obj.corr_x_lim(2),128);
+                y_edge = linspace(obj.corr_y_lim(1),obj.corr_y_lim(2),128);
 
-                if all(isnan(xlims) && xlims(2)>xlims(1))
+                c = histcn([param_data_y param_data_x],y_edge,x_edge);
+                
+                m=256;
+                
+                mn = min(c(:));
+                mx = max(c(:));
+                c = (c - mn)/(mx-mn);
+                c = uint32(c * m);
+                
+                cmap = jet(m);
+                c = ind2rgb(c,cmap);
+                
+                image(x_edge,y_edge,c,'Parent',obj.corr_axes);
+                set(obj.corr_axes,'YDir','normal')
+                
+                %createContour([param_data_x param_data_y],);
+                %scatter(obj.corr_axes,param_data_x,param_data_y);
+
+                
+                
+                if all(isnan(xlims)) && xlims(2)>xlims(1)
                     set(obj.corr_axes,'XLim',xlims);
                 end
-                if all(isnan(ylims) && ylims(2)>ylims(1))   
+                if all(isnan(ylims)) && ylims(2)>ylims(1) 
                     set(obj.corr_axes,'YLim',ylims);
                 end
 

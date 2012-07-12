@@ -25,6 +25,11 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 
    n_masked_px = 0;
 
+   // Make sure we exclude very dim pixels which 
+   // can break the autosampling (we might end up with only one bin!)
+   if (threshold < 3)
+      threshold = 3;
+
    if (mask == NULL)
    {
       this->mask = new uint8_t[n_im * n_x * n_y]; //ok
@@ -264,7 +269,7 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[])
 
    int* resample_idx = this->resample_idx + n_t * thread;
 
-   float min_bin = 20.0 / smoothing_area;
+   float min_bin = 10.0 / smoothing_area;
    int n_bin_max = n_t;
 
    int total_count = 0;
@@ -274,10 +279,10 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[])
       total_count += decay[i];
    }
       
-   if (total_count < 4*min_bin)
+   if (total_count < 5*min_bin)
    {
-      n_bin_max = 3;
-      min_bin = total_count / 3;
+      n_bin_max = 5;
+      min_bin = total_count / 5;
    }
 
    resample_idx[n_t-1] = 0;
@@ -315,8 +320,8 @@ int FLIMData::GetMaxRegion(int group)
       if (use_im != NULL)
          im = use_im[im];
 
-      if (mask[im*n_x*n_y+px]==0)
-         return mask[im*n_x*n_y+px];
+      //if (mask[im*n_x*n_y+px]==0)
+      return mask[im*n_x*n_y+px];
    }
    else
    {
@@ -572,7 +577,7 @@ int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc,
    for(int j=0; j<n_meas; j++)
    {
       w[j] /= s;
-      w[j] += adjust[j];
+      //w[j] += adjust[j];
       if (w[j] == 0)
          w[j] = 1;   // If we have a zero data point set to 1
       else

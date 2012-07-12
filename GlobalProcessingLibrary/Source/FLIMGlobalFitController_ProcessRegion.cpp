@@ -118,6 +118,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (estimate_initial_tau)
    {
       tau_ma = CalculateMeanArrivalTime(ma_decay, pi);
+      
+      //tau_ma = 2000;
 
       if (n_v == 1)
       {
@@ -171,6 +173,16 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if(ref_reconvolution == FIT_GLOBALLY)
       alf_local[i++] = ref_lifetime_guess;
 
+   double mx = 0;
+   for(int i=0; i<n; i++)
+   {
+      if (y[i]>mx)
+         mx = y[i]; 
+   }
+
+   if(algorithm == ALG_ML)
+      for(int j=0; j<l; j++)
+         alf_local[i++] = mx/l;
 
    itmax = 100;
 
@@ -184,9 +196,15 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    }
    else
    {
-      lmvarp( &s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
-               t, y, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
-               alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
+      if (algorithm == ALG_ML)
+         lmmle( &nl, &l, &n_meas_res, &nmax, &ndim, &p, 
+                  t, y, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
+      else
+         lmvarp( &s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
+                  t, y, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
+      
    }
 
    lmvarp_getlin(&s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, 

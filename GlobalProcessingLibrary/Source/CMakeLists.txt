@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 project(FLIMGlobalAnalysis)
 
@@ -23,6 +23,8 @@ else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
 endif()
 
 
+include_directories( ${LEVMAR_INCLUDE_DIRS} )
+
 
 # Set the source and header files
 #===================================================
@@ -38,7 +40,9 @@ set(SOURCE
    FLIMGlobalFitController_Model.cpp
    FLIMData.cpp
    VariableProjection.cpp
+   MaximumLikelihood.cpp
    lmvarp.cpp
+   lmmle.cpp
    tinythread.cpp
    lmstr.c
    lmstx.c
@@ -85,8 +89,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
 # Copy header to output directory
 #===================================================
-file(COPY  ${CMAKE_SOURCE_DIR}/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
-file(COPY  ${CMAKE_SOURCE_DIR}/FlagDefinitions.h DESTINATION ${OUT_DIR})
+file(COPY  ${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
+file(COPY  ${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h DESTINATION ${OUT_DIR})
 
 # Include optimisation flags in Visual Studio
 #===================================================
@@ -113,6 +117,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 #===================================================
 add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} )
 
+target_link_libraries(${LIB_NAME} levmar)
 
 # Make sure we don't have 'lib' prefix on UNIX
 #===================================================

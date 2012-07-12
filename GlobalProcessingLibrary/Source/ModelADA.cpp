@@ -482,35 +482,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
             fclose(fx);
          }
          */
-         /*
-         if (gc->l==1 && gc->y != NULL)
-         {
-            double wt = 0;
-            double yt = 0;
-            double at = 0;
-            for(i=0; i<N; i++)
-            {
-               at += a[i];
-               w[i] = 1/a[i];
-               yt += y[i];
-               wt += w[i];
-            }
-            for(i=0; i<N; i++)
-            {
-               w[i] *= ((at/yt) / 10000);
-            }
-
-         }
-         */
-
-/*
-         if (gc->anscombe_tranform)
-         {
-            memcpy(a_cpy,a,n_meas*(gc->l+1)*sizeof(double));
-            for(i=0; i<N; i++)
-               a[i] = anscombe(a[i]);
-         }
-*/
          
          if (*isel==2 || gc->getting_fit)
             break;
@@ -529,13 +500,6 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
          if (gc->ref_reconvolution == FIT_GLOBALLY)
             col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
-
-            /*
-         if (gc->anscombe_tranform)
-            for(j=0; j<col; j++)
-               for(i=0; i<N; i++)
-                  b[i+j*Ndim] *= anscombe_diff(a_cpy[i]);
-              */    
                   
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");

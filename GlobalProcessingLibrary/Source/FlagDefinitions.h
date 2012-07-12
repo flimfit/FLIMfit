@@ -31,6 +31,11 @@
 #define APPLY_ANSCOME_TRANSFORM  0
 
 //----------------------------------------------
+#define ALG_LM 0
+#define ALG_GN 1
+#define ALG_ML 2
+
+//----------------------------------------------
 #define FIX            0
 #define FIT_LOCALLY    1
 #define FIT_GLOBALLY   2

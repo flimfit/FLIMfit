@@ -161,7 +161,10 @@ int lmvarp(integer *s, integer *l, integer *
    ftol, xtol, gtol, *itmax, diag, 1, factor, -1,
    &nfev, niter, c2, ipvt, qtf, wa1, wa2, wa3, wa4 );
 
-  
+   if (alf[0]==3000)
+      alf[0] = alf[0];
+
+
    if (info < 0)
       *ierr = info;
    else

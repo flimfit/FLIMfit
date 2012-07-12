@@ -7,10 +7,26 @@
 extern "C"
 int varproj(void *pa, int nls, int nsls1, const double *alf, double *rnorm, double *fjrow, int iflag);
 
+extern "C"
+int mle(void *pa, int nfunc, int nl, const double *alf, double *fvec, double *fjac, int ldfjac, int iflag);
+
+extern "C"
+void mle_funcs(double *alf, double *fvec, int nl, int nfunc, void *pa);
+
+extern "C"
+void mle_jacb(double *alf, double *fjac, int nl, int nfunc, void *pa);
+
+
 int lmvarp(integer *s, integer *l, integer *
    nl, integer *n, integer *nmax, integer *ndim, integer 
    *p, double *t, float *y, 
    float *w, double *ws, S_fp ada, double *a, double *b, double *c,
+   integer *itmax, integer *gc, integer *thread, integer *static_store, 
+   double *alf, double *beta, integer *ierr, integer *niter, double *c2, integer *terminate);
+
+int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, integer 
+   *p, double *t, float *y, 
+   float *w, double *ws, S_fp ada, double *a, double *b, double *c, 
    integer *itmax, integer *gc, integer *thread, integer *static_store, 
    double *alf, double *beta, integer *ierr, integer *niter, double *c2, integer *terminate);
 
