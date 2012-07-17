@@ -93,12 +93,14 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         sel = s > 0.5 * max(s);
         
+        %{
         in = obj.cur_tr_data(sel,1,:,:);
         in = sum(in,1);
         in = sum(in,2);
         in = squeeze(in);
         
         %obj.intensity = in;
+        %}
         
         
         % Shift the perpendicular channel
@@ -114,10 +116,11 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             obj.cur_tr_data = obj.smooth_flim_data(obj.cur_tr_data,obj.binning);
         end
 
+        obj.cur_smoothed = ~no_smoothing;
+        
         obj.compute_tr_irf();
         obj.compute_intensity();
-        obj.compute_tr_tvb_profile();
-        
+        obj.compute_tr_tvb_profile();        
         if notify_update
             notify(obj,'data_updated');
         end

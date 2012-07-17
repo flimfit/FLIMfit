@@ -39,7 +39,7 @@ function update_plots(obj,file_root)
 
         subplot_idx = 1;
 
-        if obj.n_plots > 0
+        if obj.n_plots > 0 && d.use(cur_im)
 
             for plot_idx = 1:length(obj.plot_names)
             

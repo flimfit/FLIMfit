@@ -5,7 +5,8 @@ function switch_active_dataset(obj, dataset, no_smoothing)
         no_smoothing = false;
     end
     
-    if (dataset == obj.active && no_smoothing) || dataset <= 0 || dataset > obj.n_datasets
+    if (dataset == obj.active && (no_smoothing || obj.cur_smoothed)) ...
+            || dataset <= 0 || dataset > obj.n_datasets
         return
     end
     

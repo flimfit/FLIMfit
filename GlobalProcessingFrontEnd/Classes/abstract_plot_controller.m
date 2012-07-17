@@ -23,6 +23,7 @@ classdef abstract_plot_controller < flim_fit_observer
     end
     
     methods
+
         
         function obj = abstract_plot_controller(handles,plot_handle,param_popupmenu,exports_data)
                        
@@ -157,8 +158,6 @@ classdef abstract_plot_controller < flim_fit_observer
             close(f);
         end
             
-        function plot_fit_update(obj)
-        end
         
         function export_data(obj)
             if isempty(obj.raw_data)
@@ -179,25 +178,35 @@ classdef abstract_plot_controller < flim_fit_observer
             end
         end
         
-        function update_param_menu(obj)
+        function plot_fit_update(obj) 
+        end
+        
+        function update_param_menu(obj,~,~)
             if obj.fit_controller.has_fit
                 obj.param_list = obj.fit_controller.fit_result.fit_param_list();
                 
                 if ~isempty(obj.param_popupmenu)    
-                    set(obj.param_popupmenu,'String',['-',obj.param_list]);
-                end
-                
-                if get(obj.param_popupmenu,'Value') > length(obj.param_list)
-                    set(obj.param_popupmenu,'Value',1);
-                end
-            
-                obj.param_select_update();    
+                    old_list = get(obj.param_popupmenu,'String')';
+                    new_list = ['-',obj.param_list];
+                    
+                    changed = length(old_list)~=length(new_list) || ...
+                        any(~cellfun(@strcmp,old_list,new_list));
+                    
+                    if changed
+                        set(obj.param_popupmenu,'String',new_list);
+
+                        if get(obj.param_popupmenu,'Value') > length(obj.param_list)
+                            set(obj.param_popupmenu,'Value',1);
+                        end
+                        
+                        obj.param_select_update();    
+                    end
+                end            
             end
-            
             
         end
         
-        function param_select_update(obj,~,~)
+        function param_select_update(obj,src,evt)
             idx = get(obj.param_popupmenu,'Value')-1;
             if idx == 0;
                 obj.cur_param = [];
@@ -213,6 +222,10 @@ classdef abstract_plot_controller < flim_fit_observer
             obj.update_param_menu();
             
             obj.ap_lh = addlistener(obj.fit_controller.fit_result,'default_lims','PostSet',@obj.param_select_update);
+        end
+        
+        function fit_display_update(obj)
+            obj.update_display();
         end
         
         function update_display(obj)

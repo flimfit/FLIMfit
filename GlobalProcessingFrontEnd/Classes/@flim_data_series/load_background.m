@@ -3,6 +3,7 @@ function load_background(obj, background_file)
     %> Load a background image from a file
 
     if isdir(background_file)
+    % load a series of images
     
         files = dir([background_file filesep '*.tif']);
         
@@ -18,13 +19,23 @@ function load_background(obj, background_file)
         im = imread(background_file);      
         im = double(im);
     
-    end
+    end    
+    
     
     % correct for labview broken tiffs
     if all(im > 2^15)
         im = im - 2^15;
     end
-        
+    
+    
+    extent = 3;
+    kernel1 = ones([extent 1]) / extent;
+    kernel2 = ones([1 extent]) / extent;
+    
+    filtered = conv2(im,kernel1,'same');                
+    im = conv2(filtered,kernel2,'same'); 
+
+    
     if any(size(im) ~= [obj.height obj.width])
         throw(MException('GlobalAnalysis:BackgroundIncorrectShape','Error loading background, file has different dimensions to the data'));
     else

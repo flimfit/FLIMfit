@@ -75,7 +75,8 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         
     else % widefield
-        
+
+        %{
         contents = dir(root_path);
 
         % Get children of root path which are directories
@@ -86,12 +87,15 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             end
         end
         
-        num_datasets = length(folders);
-        
-        folder_names = cell(1,num_datasets);
+                folder_names = cell(1,num_datasets);
         for i=1:num_datasets
             folder_names{i} = folders(i).name;
         end
+
+        %}
+        
+        folder_names = get_folders_recursive(root_path);
+                
         
         folder_names = sort_nat(folder_names);    
         

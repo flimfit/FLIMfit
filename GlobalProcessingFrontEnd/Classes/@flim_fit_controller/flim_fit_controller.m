@@ -14,6 +14,8 @@ classdef flim_fit_controller < flim_data_series_observer
         results_table;
         progress_table;
     
+        filter_table;
+        
         dll_interface;
         
         param_table;
@@ -34,6 +36,8 @@ classdef flim_fit_controller < flim_data_series_observer
         cur_fit;
         start_time;
         
+        selected;
+        
         live_update = false;
         refit_after_return = false;
         
@@ -46,6 +50,7 @@ classdef flim_fit_controller < flim_data_series_observer
     events
         progress_update;
         fit_updated;
+        fit_display_updated;
         fit_completed;
     end
         
@@ -93,7 +98,7 @@ classdef flim_fit_controller < flim_data_series_observer
             end
             
             if ~isempty(obj.roi_controller)
-                addlistener(obj.roi_controller,'roi_mask','PostSet',@obj.roi_mask_updated);
+                addlistener(obj.roi_controller,'roi_updated',@obj.roi_mask_updated);
             end
             
             if ~isempty(obj.live_update_checkbox)
@@ -224,6 +229,28 @@ classdef flim_fit_controller < flim_data_series_observer
             end
             
         end
+        
+        function update_filter_table(obj)
+           
+            md = obj.fit_result.metadata;
+            
+            data = get(obj.filter_table,'Data');
+            
+            if isempty(data)            
+                empty_data = repmat({'','',''},[10 1]);
+                
+                set(obj.filter_table,'ColumnName',{'Param','Type','Value'})
+                set(obj.filter_table,'Data',empty_data)
+                set(obj.filter_table,'ColumnEditable',true(1,3));
+                set(obj.filter_table,'CellEditCallback',@obj.filter_table_updated);
+                set(obj.filter_table,'RowName',[]);
+            end
+            
+            set(obj.filter_table,'ColumnFormat',{[{'-'} fieldnames(md)'],{'=','!=','<','>'},'char'})
+
+            
+        end
+        
         
     end
     

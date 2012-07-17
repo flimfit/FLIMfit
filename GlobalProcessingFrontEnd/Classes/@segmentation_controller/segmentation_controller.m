@@ -116,7 +116,18 @@ classdef segmentation_controller < flim_data_series_observer
             obj.summary_list = summary_list;
             
             set(obj.algorithm_popup,'String',obj.funcs);
-            obj.algorithm_updated([],[]);
+            
+            if ispref('GlobalAnalysisFrontEnd','LastSegmentationParams')
+                last_segmentation = getpref('GlobalAnalysisFrontEnd','LastSegmentationParams');
+                set(obj.algorithm_popup,'Value',last_segmentation.func_idx);
+                obj.algorithm_updated([],[]);
+                set(obj.parameter_table,'Data',last_segmentation.params);
+            else
+                obj.algorithm_updated([],[]);
+            end
+
+
+            
             
             if ~isempty(obj.data_series.seg_mask)
                 obj.mask = obj.data_series.seg_mask;
@@ -135,14 +146,25 @@ classdef segmentation_controller < flim_data_series_observer
             
             obj.data_series.seg_mask = obj.mask;
             
-            
+            obj.save_segmentation_params();
             fh = ancestor(src,'figure');
             delete(fh);
         end
         
         function cancel_pressed(obj,src,~)
+            obj.save_segmentation_params();
             fh = ancestor(src,'figure');         
             delete(fh);
+        end
+        
+        function save_segmentation_params(obj)
+            func_idx = get(obj.algorithm_popup,'Value');
+            params = get(obj.parameter_table,'Data');
+
+            last_segmentation = struct();
+            last_segmentation.func_idx = func_idx;
+            last_segmentation.params = params;
+            setpref('GlobalAnalysisFrontEnd','LastSegmentationParams',last_segmentation);
         end
         
         function selection_updated(obj,src,~) 
@@ -186,8 +208,7 @@ classdef segmentation_controller < flim_data_series_observer
             func_idx = get(obj.algorithm_popup,'Value');
             func = obj.funcs{func_idx};
             params = get(obj.parameter_table,'Data');
-            %params = num2cell(params);
-
+            
             multiple_regions = get(obj.seg_use_multiple_regions,'Value');
             
             d = obj.data_series;

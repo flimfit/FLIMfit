@@ -15,8 +15,12 @@ classdef roi_controller < flim_data_series_observer
         roi_callback_id;
     end
     
-    properties(SetObservable = true)
+    properties(GetObservable = true)
         roi_mask;
+    end
+    
+    events
+        roi_updated;
     end
     
     methods
@@ -46,18 +50,29 @@ classdef roi_controller < flim_data_series_observer
             
         end
         
+        function roi_mask = get.roi_mask(obj)
+            
+            d = obj.data_series_controller.data_series;
+            if isempty(obj.roi_mask) || size(obj.roi_mask,1) ~= d.height ...
+                                    || size(obj.roi_mask,2) ~= d.width
+                obj.roi_mask = [];
+            end
+           
+            roi_mask = obj.roi_mask;
+            
+        end
+        
         function data_update(obj)
            obj.update_mask();
            d = obj.data_series_controller.data_series;
+          
+           
            if d.width == 1 && d.height == 1
                 obj.roi_mask = 1;
            end
            
-           %if obj.roi_handle == []
-           %     obj.roi_handle = impoint(obj.data_intensity_view.ax,0,0);
-           %     addNewPositionCallback(obj.roi_handle,@obj.roi_change_callback);                    
-           %     obj.update_mask();
-           %end
+           notify(obj,'roi_updated');
+         
         end
         
         function on_callback(obj,src,evtData)
@@ -101,6 +116,8 @@ classdef roi_controller < flim_data_series_observer
                 obj.roi_callback_id = addNewPositionCallback(obj.roi_handle,@obj.roi_change_callback);        
                 
                 obj.update_mask();
+                
+                notify(obj,'roi_updated');
 
                 obj.point_mode = true;
                 
@@ -123,6 +140,7 @@ classdef roi_controller < flim_data_series_observer
         
         function roi_change_callback(obj,src,evt)
             obj.update_mask();
+            notify(obj,'roi_updated');
         end
 
         function click_callback(obj,src,evtData)
@@ -141,6 +159,7 @@ classdef roi_controller < flim_data_series_observer
                 addlistener(obj.roi_handle,'ObjectBeingDestroyed',@obj.roi_being_destroyed);
                 
                 obj.update_mask();
+                notify(obj,'roi_updated');
             end
         end
         

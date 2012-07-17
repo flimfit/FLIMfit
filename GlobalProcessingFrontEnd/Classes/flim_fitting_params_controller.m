@@ -1,47 +1,17 @@
-classdef flim_fitting_params_controller < handle & flim_data_series_observer
+classdef flim_fitting_params_controller < control_binder & flim_data_series_observer
    
     properties
-    
-        n_exp_popupmenu;
-        n_fix_popupmenu;
-        global_fitting_popupmenu;
-        data_type_popupmenu;
-        fit_beta_popupmenu;
-        fit_offset_popupmenu;
-        fit_scatter_popupmenu;
-        fit_tvb_popupmenu;
-        tau_guess_table;
-        t0_edit;
-        offset_edit;
-        scatter_edit;
-        tvb_edit;
-        pulsetrain_correction_popupmenu;
-        rep_rate_edit;
-        ref_reconvolution_popupmenu;
-        ref_lifetime_edit;
-        n_thread_edit;
-        fitting_algorithm_popupmenu;
-        n_fret_popupmenu;
-        n_fret_fix_popupmenu;
-        inc_donor_popupmenu;
-        fret_guess_table;
-        global_variable_popupmenu;
-        global_algorithm_popupmenu;
-        use_phase_plane_estimation_popupmenu;
-        calculate_errs_checkbox;
-        split_fit_checkbox;
-        use_memory_mapping_checkbox;
-        use_autosampling_checkbox;
+        bound_all_controls = false;
         
-        n_theta_popupmenu;
-        n_theta_fix_popupmenu;
+        tau_guess_table;
+        fret_guess_table;
         theta_guess_table;
+        
         
         fit_controller;
         
         fit_params;
         
-        flh = {};
     end
     
     events
@@ -52,49 +22,47 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
              
        
         function obj = flim_fitting_params_controller(handles)
-        
+
             obj = obj@flim_data_series_observer(handles.data_series_controller);
-             
+            obj = obj@control_binder(flim_fitting_params());
+            
             assign_handles(obj,handles);
+
+            obj.fit_params = obj.bound_data_source;
+        
             
             set(obj.tau_guess_table,'CellEditCallback',@obj.table_changed);
             set(obj.fret_guess_table,'CellEditCallback',@obj.table_changed);
             set(obj.theta_guess_table,'CellEditCallback',@obj.table_changed);
             
-            obj.fit_params = flim_fitting_params();
+            obj.bind_control(handles,'n_exp','popupmenu');
+            obj.bind_control(handles,'n_fix','popupmenu');
+            obj.bind_control(handles,'global_fitting','popupmenu');
+            obj.bind_control(handles,'global_variable','popupmenu');
+            obj.bind_control(handles,'global_algorithm','popupmenu');
+            obj.bind_control(handles,'fit_beta','popupmenu');
+            obj.bind_control(handles,'fit_offset','popupmenu');
+            obj.bind_control(handles,'fit_scatter','popupmenu');
+            obj.bind_control(handles,'fit_tvb','popupmenu');
+            obj.bind_control(handles,'t0','edit');
+            obj.bind_control(handles,'offset','edit');
+            obj.bind_control(handles,'scatter','edit');
+            obj.bind_control(handles,'tvb','edit');
+            obj.bind_control(handles,'pulsetrain_correction','popupmenu');
+            obj.bind_control(handles,'fit_reference','popupmenu');
+            obj.bind_control(handles,'n_thread','edit');
+            obj.bind_control(handles,'fitting_algorithm','popupmenu');
+            obj.bind_control(handles,'n_fret','popupmenu');
+            obj.bind_control(handles,'n_fret_fix','popupmenu');
+            obj.bind_control(handles,'inc_donor','popupmenu');
             
-            obj.bind_control(obj.n_exp_popupmenu,'popupmenu','n_exp');
-            obj.bind_control(obj.n_fix_popupmenu,'popupmenu','n_fix');
-            obj.bind_control(obj.global_fitting_popupmenu,'popupmenu','global_fitting');
-            obj.bind_control(obj.global_variable_popupmenu,'popupmenu','global_variable');
-            obj.bind_control(obj.global_algorithm_popupmenu,'popupmenu','global_algorithm');
-            obj.bind_control(obj.use_phase_plane_estimation_popupmenu,'popupmenu','use_phase_plane_estimation');
-            obj.bind_control(obj.data_type_popupmenu,'popupmenu','data_type');
-            obj.bind_control(obj.fit_beta_popupmenu,'popupmenu','fit_beta');
-            obj.bind_control(obj.fit_offset_popupmenu,'popupmenu','fit_offset');
-            obj.bind_control(obj.fit_scatter_popupmenu,'popupmenu','fit_scatter');
-            obj.bind_control(obj.fit_tvb_popupmenu,'popupmenu','fit_tvb');
-            obj.bind_control(obj.t0_edit,'edit','t0');
-            obj.bind_control(obj.offset_edit,'edit','offset');
-            obj.bind_control(obj.scatter_edit,'edit','scatter');
-            obj.bind_control(obj.tvb_edit,'edit','tvb');
-            obj.bind_control(obj.pulsetrain_correction_popupmenu,'popupmenu','pulsetrain_correction');
-            obj.bind_control(obj.rep_rate_edit,'edit','rep_rate');
-            obj.bind_control(obj.ref_reconvolution_popupmenu,'popupmenu','ref_reconvolution');
-            obj.bind_control(obj.ref_lifetime_edit,'edit','ref_lifetime');
-            obj.bind_control(obj.n_thread_edit,'edit','n_thread');
-            obj.bind_control(obj.fitting_algorithm_popupmenu,'popupmenu','fitting_algorithm');
-            obj.bind_control(obj.n_fret_popupmenu,'popupmenu','n_fret');
-            obj.bind_control(obj.n_fret_fix_popupmenu,'popupmenu','n_fret_fix');
-            obj.bind_control(obj.inc_donor_popupmenu,'popupmenu','inc_donor');
+            obj.bind_control(handles,'n_theta','popupmenu');
+            obj.bind_control(handles,'n_theta_fix','popupmenu');
             
-            obj.bind_control(obj.n_theta_popupmenu,'popupmenu','n_theta');
-            obj.bind_control(obj.n_theta_fix_popupmenu,'popupmenu','n_theta_fix');
+            obj.bind_control(handles,'use_memory_mapping','checkbox');
+            obj.bind_control(handles,'use_autosampling','checkbox');
             
-            obj.bind_control(obj.calculate_errs_checkbox,'checkbox','calculate_errs');
-            obj.bind_control(obj.split_fit_checkbox,'checkbox','split_fit');
-            obj.bind_control(obj.use_memory_mapping_checkbox,'checkbox','use_memory_mapping');
-            obj.bind_control(obj.use_autosampling_checkbox,'checkbox','use_autosampling');
+            obj.bound_all_controls = true;
             
             obj.set_polarisation_mode(false);
             
@@ -121,7 +89,7 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
                 var_list = fieldnames(obj.data_series.metadata);
                 var_list = ['-'; var_list];
 
-                set(obj.global_variable_popupmenu,'String',var_list);
+                set(obj.controls.global_variable_popupmenu,'String',var_list);
             end
             
         end
@@ -149,78 +117,15 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
                 pol_enable_group = 'off';
             end
                 
-            set(obj.n_fret_popupmenu,'Enable',pol_disable_group);
-            set(obj.n_fret_fix_popupmenu,'Enable',pol_disable_group);
+            set(obj.controls.n_fret_popupmenu,'Enable',pol_disable_group);
+            set(obj.controls.n_fret_fix_popupmenu,'Enable',pol_disable_group);
             
             
-            set(obj.n_theta_popupmenu,'Enable',pol_enable_group);
-            set(obj.n_theta_fix_popupmenu,'Enable',pol_enable_group);
+            set(obj.controls.n_theta_popupmenu,'Enable',pol_enable_group);
+            set(obj.controls.n_theta_fix_popupmenu,'Enable',pol_enable_group);
 
         end
         
-        function bind_control(obj,control,control_type,parameter)
-            control_callback = @(src,evt) control_updated(obj,src,evt,control_type,parameter);
-            set(control,'Callback',control_callback);
-            
-            variable_callback =  @(src,evt) variable_updated(obj,src,evt,control,control_type,parameter);
-            obj.flh{end+1} = addlistener(obj.fit_params,parameter,'PostSet',variable_callback);
-            
-            variable_updated(obj,[],[],control,control_type,parameter);
-        end
-        
-        function variable_updated(obj,~,~,control,control_type,parameter)
-            
-            value = obj.fit_params.(parameter);
-            
-            switch control_type
-                case 'edit'
-                    set(control,'String',num2str(value,'%11.4g'));
-                case 'popupmenu'
-                    str = get(control,'String');
-                    items = str2double(str);
-                    
-                    if all(isnan(items)) % we have a popup menu of strings
-                        idx = value + 1;
-                    else
-                        idx = find(items==value,1,'first');
-                    end
-                    
-                    if ~isempty(idx)
-                        set(control,'Value',idx)
-                    else
-                        set(control,'Value',1);
-                    end
-                case 'checkbox'
-                    set(control,'Value',value);
-            end
-            
-            obj.update_controls();
-            
-            notify(obj,'fit_params_update');
-        end
-        
-        function control_updated(obj,src,~,control_type,parameter)
-        
-            value = [];
-            
-            switch control_type
-                case 'edit'
-                    value = str2double(get(src,'String'));
-                case 'popupmenu'
-                    idx = get(src,'Value');
-                    str = get(src,'String');
-                    value = str2double(str{idx});
-                    
-                    if isnan(value) % string value
-                        value = idx - 1;
-                    end
-                case 'checkbox'
-                    value = get(src,'Value');
-            end
-            
-            obj.fit_params.(parameter) = value;
-        
-        end
         
         function table_changed(obj,~,~)
             flim_table_data = get(obj.tau_guess_table,'Data');
@@ -243,8 +148,11 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
                 
         function update_controls(obj)
             
+            if ~obj.bound_all_controls
+                return
+            end
+            
             table_header = {'Initial Tau'}; % 'Min' 'Max'};
-            %table_data = [obj.fit_params.tau_guess obj.fit_params.tau_min obj.fit_params.tau_max];
             table_data = obj.fit_params.tau_guess;
             
             if obj.fit_params.fit_beta ~= 1
@@ -271,35 +179,39 @@ classdef flim_fitting_params_controller < handle & flim_data_series_observer
             
             
             if obj.fit_params.global_fitting == 0
-                set(obj.global_algorithm_popupmenu,'Enable','off')
+                set(obj.controls.global_algorithm_popupmenu,'Enable','off')
             else
-                set(obj.global_algorithm_popupmenu,'Enable','on');
+                set(obj.controls.global_algorithm_popupmenu,'Enable','on');
             end
             
             if obj.fit_params.global_fitting < 2
-                set(obj.global_variable_popupmenu,'Enable','off');
+                set(obj.controls.global_variable_popupmenu,'Enable','off');
             else
-                set(obj.global_variable_popupmenu,'Enable','on');
+                set(obj.controls.global_variable_popupmenu,'Enable','on');
             end
-            
+
+            %{
             if obj.fit_params.ref_reconvolution == 0
                 set(obj.ref_lifetime_edit,'Enable','off');
             else
                 set(obj.ref_lifetime_edit,'Enable','on');
             end
+            %}
             
             if obj.fit_params.fit_beta ~= 1
-                set(obj.n_fret_popupmenu,'Enable','on');
-                set(obj.n_fret_fix_popupmenu,'Enable','on');
-                set(obj.inc_donor_popupmenu,'Enable','on');
+                set(obj.controls.n_fret_popupmenu,'Enable','on');
+                set(obj.controls.n_fret_fix_popupmenu,'Enable','on');
+                set(obj.controls.inc_donor_popupmenu,'Enable','on');
             else
-                set(obj.n_fret_popupmenu,'Value',1);
                 set(obj.fret_guess_table,'Data',[]);
-                set(obj.n_fret_popupmenu,'Enable','off');
-                set(obj.n_fret_fix_popupmenu,'Enable','off');
-                set(obj.inc_donor_popupmenu,'Enable','off');
+                
+                set(obj.controls.n_fret_popupmenu,'Value',1);
+                set(obj.controls.n_fret_popupmenu,'Enable','off');
+                set(obj.controls.n_fret_fix_popupmenu,'Enable','off');
+                set(obj.controls.inc_donor_popupmenu,'Enable','off');
             end
             
+            notify(obj,'fit_params_update');
             
         end
         

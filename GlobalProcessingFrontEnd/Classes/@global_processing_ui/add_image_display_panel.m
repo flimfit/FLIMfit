@@ -1,26 +1,19 @@
 function handles = add_image_display_panel(obj,handles,parent)
 
     % Plot display
-
-    %image_layout = uiextras.HBox( 'Parent', parent, 'Spacing', 3 );
-    
-    %left_layout = uiextras.VBox( 'Parent', image_layout, 'Spacing', 3 );
-    %{
-    col_names = {'Plot','Display','Merge','Min','Max','Auto'};
-    col_width = {60 30 30 50 50 30};
-    handles.plot_select_table = uitable( 'ColumnName', col_names, 'ColumnWidth', col_width, 'RowName', [], 'Parent', left_layout );
-    %}   
     handles.plot_panel = uipanel( 'Parent', parent );
-    
-    %set(image_layout,'Sizes',[253,-1]);
     
     
     % Gallery display
     
     gallery_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+
+    gallery_layout_top = uiextras.HBox( 'Parent', gallery_layout, 'Spacing', 0 );
     
-    handles.gallery_panel = uipanel( 'Parent', gallery_layout );
+    handles.gallery_panel = uipanel( 'Parent', gallery_layout_top, 'BorderType', 'none' );
+    handles.gallery_slider = uicontrol( 'Parent', gallery_layout_top, 'Style', 'slider' );
     
+    set( gallery_layout_top, 'Sizes', [-1 22] );
     
     bottom_layout = uiextras.Grid( 'Parent', gallery_layout, 'Spacing', 3 );
     

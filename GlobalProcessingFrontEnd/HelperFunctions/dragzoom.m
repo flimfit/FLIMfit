@@ -2349,7 +2349,7 @@ Initialize(varargin{:})
             set(hAxes(i), 'XLim', xLim);
         end
         
-        if all(isnan(yLim)) && yLim(2) > yLim(1)
+        if all(~isnan(yLim)) && yLim(2) > yLim(1)
             set(hAx, 'YLim', yLim);
         end
     end

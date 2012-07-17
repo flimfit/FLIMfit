@@ -41,6 +41,9 @@ function handles = setup_menu(obj,handles)
     
     handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
     handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');
+    
+    handles.menu_file_import_plate_metadata = uimenu(menu_file,'Label','Import Plate Metadata...','Separator','on');
+    
     handles.menu_file_export_decay = uimenu(menu_file,'Label','Export Decay...','Separator','on');
     handles.menu_file_export_decay_series = uimenu(menu_file,'Label','Export Series Decay...');
     
@@ -51,7 +54,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
     
     handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...','Separator','on');
-    handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Plots...');
+    handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
     
     menu_irf       = uimenu(obj.window,'Label','IRF');
@@ -61,7 +64,13 @@ function handles = setup_menu(obj,handles)
     end
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');
     
-    %handles.menu_irf_set_delta = uimenu(menu_irf,'Label','Set Delta Function IRF','Separator','on');
+    handles.menu_irf_set_delta = uimenu(menu_irf,'Label','Set Delta Function IRF','Separator','on');
+    
+    handles.menu_irf_estimate_background = uimenu(menu_irf,'Label','Estimate IRF Background','Separator','on');
+    handles.menu_irf_estimate_t0 = uimenu(menu_irf,'Label','Estimate IRF Shift','Separator','on');
+    handles.menu_irf_estimate_g_factor = uimenu(menu_irf,'Label','Estimate G Factor');
+    
+    
     %handles.menu_irf_set_rectangular = uimenu(menu_irf,'Label','Set Rectangular IRF...');
     %handles.menu_irf_set_gaussian = uimenu(menu_irf,'Label','Set Gaussian IRF...');
     

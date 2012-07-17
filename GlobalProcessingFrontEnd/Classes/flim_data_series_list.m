@@ -3,6 +3,8 @@ classdef flim_data_series_list < handle & flim_data_series_observer
     properties
         handle;
         data_series_table;
+        data_series_sel_all;
+        data_series_sel_none;
         selected;
         lh;
     end
@@ -24,7 +26,16 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             set(obj.handle,'CellSelectionCallback',@obj.list_callback);
             set(obj.handle,'CellEditCallback',@obj.use_callback);
             
-            obj.selected = 1; %obj.data_series.selected;
+            if ~isempty(obj.data_series_sel_all)
+                set(obj.data_series_sel_all,'Callback',@obj.sel_all_callback);
+            end
+
+            if ~isempty(obj.data_series_sel_none)
+                set(obj.data_series_sel_none,'Callback',@obj.sel_none_callback);
+            end
+
+            
+            obj.selected = 1;
             obj.data_update();
             
         end
@@ -52,6 +63,37 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             
         end
         
+        function sel_all_callback(obj,~,~)
+        
+            data = get(obj.handle,'Data');
+            use = data(:,1);
+            use = cell2mat(use);
+            use = true(size(use));
+            
+            obj.data_series.use = use;
+            
+            use = num2cell(use);
+            data(:,1) = use;
+            set(obj.handle,'Data',data);
+            
+        end
+        
+        function sel_none_callback(obj,~,~)
+           
+            data = get(obj.handle,'Data');
+            use = data(:,1);
+            use = cell2mat(use);
+            use = false(size(use));
+            
+            obj.data_series.use = use;
+            
+            use = num2cell(use);
+            data(:,1) = use;
+            set(obj.handle,'Data',data);
+            
+            
+        end
+        
         function data_set(obj)
             obj.lh = addlistener(obj.data_series,'use','PostSet',@obj.data_update);
         end
@@ -59,7 +101,7 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         function data_update(obj,~,~)
             if ishandle(obj.handle)
                 if ~isempty(obj.data_series) && obj.data_series.init 
-                    %obj.selected = obj.data_series.selected;
+         
                     headers = fieldnames(obj.data_series.metadata);
 
                     fields = struct2cell(obj.data_series.metadata);

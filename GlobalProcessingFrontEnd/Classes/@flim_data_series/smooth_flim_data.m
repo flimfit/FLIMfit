@@ -16,6 +16,7 @@ function data = smooth_flim_data(data,extent,mode)
         
     kernel1 = ones([extent 1]) / extent;
     kernel2 = ones([1 extent]) / extent;
+    
             
     for i = 1:n_t
         for j = 1:n_chan
@@ -31,7 +32,6 @@ function data = smooth_flim_data(data,extent,mode)
                 filtered = conv2nan(plane,kernel1);                
                 filtered = conv2nan(filtered,kernel2);                
             end
-            filtered(isnan(filtered)) = 0;
             data(i,j,:,:) = filtered;
         end
     end

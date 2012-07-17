@@ -3,16 +3,25 @@ function serialise_object(obj,file)
     mc = metaclass(obj);
     mp = mc.Properties;
 
-    try
+    
+try
         % Create a sample XML document.
         docNode = com.mathworks.xml.XMLUtils.createDocument(mc.Name);
         docRootNode = docNode.getDocumentElement;
         for i=1:length(mp)
             if mp{i}.Transient == false && mp{i}.Dependent == false && mp{i}.Constant == false
                 val = obj.(mp{i}.Name);
-                str = mat2str(val);
-
+                
                 thisElement = docNode.createElement(mp{i}.Name); 
+                
+                if all(size(val)>1) % check for a multidimensional matrix
+                    str = serialize(val);
+                    str = base64encode(str,'java',true);
+                    thisElement.setAttribute('encoded','true');
+                else
+                    str = mat2str(val);
+                end
+
                 thisElement.appendChild(docNode.createTextNode(str));
                 docRootNode.appendChild(thisElement);
             end

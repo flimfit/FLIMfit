@@ -1,5 +1,6 @@
 function metadata = extract_metadata(strings)
 
+    strrep(strings,pathsep,' ');
     metadata = struct();
 
     if nargin < 1

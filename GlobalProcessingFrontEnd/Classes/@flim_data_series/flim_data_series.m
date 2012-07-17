@@ -32,16 +32,24 @@ classdef flim_data_series < handle
         gate_max = 2^16-1;
         t_irf_min = 0;
         t_irf_max = 0;
+        
+        irf_type = 0;
         irf_background = 0;
-        irf_downsampling = 1;
-        g_factor = 1;
         afterpulsing_correction = false;
+        irf_downsampling = 1;
+        ref_lifetime = 80;
+        
+        g_factor = 1;
         
         background_type = 0;
         background_value = 0;
-        background_image = 0;
-
+        
+        rep_rate = 80;
+ 
         t0 = 0;
+        
+        background_image = 0;
+        
     end
     
     properties(Dependent)
@@ -68,10 +76,6 @@ classdef flim_data_series < handle
     properties(Transient)
         raw = false;
         
-        image_irf;
-        has_image_irf = 0;
-        
-        
         use_memory_mapping = true;
         load_multiple_channels = false;
         
@@ -84,6 +88,8 @@ classdef flim_data_series < handle
                 
         cur_data;
         cur_tr_data;
+        
+        cur_smoothed = 0;
                 
         root_path;
         
@@ -130,6 +136,10 @@ classdef flim_data_series < handle
         load_time = [];
         
         active = 0;
+        
+        has_image_irf = 0;
+        image_irf;
+
     end
     
     events
@@ -431,23 +441,23 @@ classdef flim_data_series < handle
         function bg = get.background(obj)
             %> Retrieve background in same shape as flim data
             
+            % Check that the background size is correct if we have an image
+            s = size(obj.background_image);
+            if obj.background_type == 2 && ...
+                      ~(~isempty(obj.background_image) && s(1) == obj.height && s(2) == obj.width)
+                obj.background_type = 0;
+            end
+            
             switch obj.background_type
                 case 0
                     bg = 0;
                 case 1
                     bg = obj.background_value;
                 case 2
-                    % Check if we have a background image of the correct size
                     obj.background_image = squeeze(obj.background_image);
-                    s = size(obj.background_image);
-                    if ~isempty(obj.background_image) && s(1) == obj.height && s(2) == obj.width
-                        bg = obj.background_image;
-                        bg = reshape(bg,[1 1 s]);
-                        bg = repmat(bg,[obj.n_t obj.n_chan 1 1]);
-                    else
-                        warning('GlobalAnalysis:IncompatibleBackground','Background image is not the same size as the data');
-                        bg = 0;
-                    end
+                    bg = obj.background_image;
+                    bg = reshape(bg,[1 1 s]);
+                    bg = repmat(bg,[obj.n_t obj.n_chan 1 1]);
                 otherwise
                     bg = 0;
             end
@@ -615,7 +625,7 @@ classdef flim_data_series < handle
         %===============================================================
         
         function set_delta_irf(obj)
-           obj.t_irf = [-0.1; 0; 0.1];
+           obj.t_irf = [-1; 0; 1];
            obj.irf = [0; 1; 0];
            
            obj.compute_tr_irf();

@@ -1,6 +1,6 @@
 function obj = marshal_object(file,type,obj)
 
-    try 
+   try 
         doc_node = xmlread(file);
 
         obj_node = doc_node.getFirstChild();
@@ -27,9 +27,31 @@ function obj = marshal_object(file,type,obj)
          for i = 1:n_nodes
              child = child_nodes.item(i-1);
              child_name = char(child.getNodeName);
+             
+                               
+             encoded = false;
+             if child.hasAttributes
+                 attr = child.getAttributes;
+                 for j=1:attr.getLength();
+                     if strcmp(attr.item(j-1),'encoded="true"')
+                         encoded = true;
+                     end
+                 end
+             end
+             
              if child.hasChildNodes && ~isempty(findprop(obj,child_name))
-                child_value = char(child.getFirstChild.getData);
-                obj.(child_name) = eval(child_value);
+                 val = child.getFirstChild;
+                 child_value = char(val.getData);
+                 
+                 if encoded
+                     child_value = base64decode(child_value);
+                     child_value = deserialize(child_value);
+                     
+                 else
+                     child_value = eval(child_value);
+                 end
+                 
+                 obj.(child_name) = child_value;
              end
          end
     catch

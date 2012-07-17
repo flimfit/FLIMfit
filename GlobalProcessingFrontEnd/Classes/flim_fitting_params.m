@@ -19,11 +19,11 @@ classdef flim_fitting_params < handle
         scatter = 0;
         tvb = 0;
         
-        rep_rate = 80;
-        ref_lifetime = 80;
+        %rep_rate = 80;
+        %ref_lifetime = 80;
         
         pulsetrain_correction = true;
-        ref_reconvolution = false;
+        fit_reference = false;
         
         fitting_algorithm = 0;
         

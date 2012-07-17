@@ -110,8 +110,8 @@ function regression_testing(handles)
     disp(['OVERALL: PASSED ' num2str(overall_tests_passed) '/' num2str(overall_tests_passed+overall_tests_failed)]);
     disp('============================================');
     
-    figure;
-    plot(mem_dif);
+    %figure;
+    %plot(mem_dif);
     
     function st = file2struct(file)
        

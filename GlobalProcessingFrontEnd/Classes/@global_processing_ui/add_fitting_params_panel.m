@@ -21,9 +21,9 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
     handles.tau_guess_table = uitable('Parent', fit_params_main_extra_layout);
     
-    fit_params_main_col3_layout = uiextras.HBox( 'Parent', fit_params_main_extra_layout, 'Spacing', 3 );
-    fit_params_main_col3_label_layout = uiextras.VBox( 'Parent', fit_params_main_col3_layout, 'Spacing', 1 );
-    fit_params_main_col3_opt_layout = uiextras.VBox( 'Parent', fit_params_main_col3_layout, 'Spacing', 1 );
+    %fit_params_main_col3_layout = uiextras.HBox( 'Parent', fit_params_main_extra_layout, 'Spacing', 3 );
+    %fit_params_main_col3_label_layout = uiextras.VBox( 'Parent', fit_params_main_col3_layout, 'Spacing', 1 );
+    %fit_params_main_col3_opt_layout = uiextras.VBox( 'Parent', fit_params_main_col3_layout, 'Spacing', 1 );
     
   
        
@@ -33,13 +33,13 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('main','n_exp','popupmenu','No. Exp', {'1', '2', '3', '4', '5'});
     add_fitting_param_control('main','n_fix','popupmenu','No. Fixed', {'0', '1', '2', '3', '4', '5'});
     add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally'});
-    add_fitting_param_control('main','ref_reconvolution','popupmenu','IRF Type', {'Scatter','Fixed Reference','Fitted Reference'});
+    add_fitting_param_control('main','fit_reference','popupmenu','Fit Reference', {'Fixed','Fitted'});
     
-    add_fitting_param_control('main_col3','ref_lifetime','edit','Ref. Lifetime', '100');
+    %add_fitting_param_control('main_col3','ref_lifetime','edit','Ref. Lifetime', '100');
 
     set(fit_params_main_layout,'Sizes',[120 120 300])
-    set(fit_params_main_col3_layout,'Sizes',[120 120])
-    set(fit_params_main_extra_layout,'Sizes',[137, -1])
+    %set(fit_params_main_col3_layout,'Sizes',[120 120])
+    %set(fit_params_main_extra_layout,'Sizes',[137, -1])
 
     
     % Stray light tab
@@ -101,9 +101,9 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Marquardt' 'Gauss-Newton' 'Grid Search'});
         add_fitting_param_control('adv','pulsetrain_correction','popupmenu','Pulse train correction', {'No','Yes'});
         add_fitting_param_control('adv','live_update','checkbox','Live Fit', '');
-        add_fitting_param_control('adv','split_fit','checkbox','Split Fit', '');
+        %add_fitting_param_control('adv','split_fit','checkbox','Split Fit', '');
         add_fitting_param_control('adv','use_memory_mapping','checkbox','Memory Map Results', '');
-        add_fitting_param_control('adv','calculate_errs','checkbox','Calculate Errors', '');
+        %add_fitting_param_control('adv','calculate_errs','checkbox','Calculate Errors', '');
         add_fitting_param_control('adv','use_autosampling','checkbox','Use Autosampling', '');
         set(fit_params_adv_layout,'Sizes',[160 120])
     end %external

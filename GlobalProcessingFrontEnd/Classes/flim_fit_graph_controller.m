@@ -38,7 +38,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 
                 set(obj.graph_independent_popupmenu,'String',ind_vars);
                 
-                obj.ind_param_select_update();  
+                obj.ind_param_select_update([],[]);  
             end
         end
         
@@ -51,28 +51,43 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param) && ~isempty(obj.cur_param)
 
                 r = obj.fit_controller.fit_result;     
-
+                sel = obj.fit_controller.selected;
+                
                 err_name = [param '_err'];
 
                 if ~any(strcmp(obj.param_list,err_name))
                     err_name = [];
                 end
 
-                n_im = length(r.images);
-
-
+                
+                
+                % Reject images with no associated data (i.e. empty images)
+                isparam = cellfun(@(x)isfield(x,param),r.image_stats);
+                isparam = isparam(sel);
+                sel = sel(isparam);
+                
+                
+                % Get values for the selected parameter
                 md = r.metadata.(obj.ind_param);
 
-                empty = cellfun(@isempty,md);
+                % Reject images which don't have metadata for this parameter
+                empty = cellfun(@isempty,md(sel));
+                sel = sel(~empty);
                 
-                var_is_numeric = all(cellfun(@isnumeric,md(~empty)));
+                
+                md = md(sel);
+                   
+                % Determine if we've got a numeric parameter
+                var_is_numeric = all(cellfun(@isnumeric,md));
 
+                % Determine unique parameters
                 if var_is_numeric
-                    x_data = cell2mat(md(~empty));
+                    md = cell2mat(md);
+                    x_data = md;
                     x_data = unique(x_data);
                     x_data = sort(x_data);
                 else
-                    x_data = unique(md(~empty));
+                    x_data = unique(md);
                     x_data = sort(x_data);
                 end
 
@@ -81,24 +96,34 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 
                 for i=1:length(x_data)
                     y = 0; yv = 0; yn = 0; e = 0; ym = [];
-                    for j=1:n_im
-                        if ~empty(j) ... 
-                            && ((var_is_numeric && md{j} == x_data(i)) || (~var_is_numeric && strcmp(md{j},x_data{i}))) ...
-                            && isfield(r.image_stats{j},param)
-  
-                            n = r.image_stats{j}.(param).n;
-                            if n > 0
-                                ym(end+1) = r.image_stats{j}.(param).mean;
-                                y = y + r.image_stats{j}.(param).mean * n; 
-                                yv = yv + (r.image_stats{j}.(param).std)^2*n;
-                                yn = yn + r.image_stats{j}.(param).n;
-                            end
-                            
-                            if ~isempty(err_name)
-                                e = e + r.image_stats{j}.(err_name).mean * n;
-                            end
+                    
+                    % Determine which images to include
+                    if var_is_numeric   
+                        x_sel = md == x_data(i);
+                    else
+                        x_sel = strcmp(md,x_data{i});
+                    end
+                    
+                    x_sel = sel(x_sel);
+                    
+                    ym = [];%zeros(size(x_sel));
+                    
+                    for j=x_sel
 
+                        n = r.image_stats{j}.(param).n;
+                        if n > 0
+
+                            ym(end+1) = r.image_stats{j}.(param).mean;
+                            y = y + r.image_stats{j}.(param).mean * n; 
+
+                            yv = yv + (r.image_stats{j}.(param).std)^2*n;
+                            yn = yn + r.image_stats{j}.(param).n;
                         end
+
+                        if ~isempty(err_name)
+                            e = e + r.image_stats{j}.(err_name).mean * n;
+                        end
+
                     end
                     y_scatter = [y_scatter ym];
                     x_scatter = [x_scatter ones(size(ym))*i];

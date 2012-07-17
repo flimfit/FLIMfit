@@ -1,10 +1,11 @@
-classdef flim_data_masking_controller < handle & flim_data_series_observer
+classdef flim_data_masking_controller < control_binder & flim_data_series_observer
     
     properties
         roi_controller;
         data_series_list;
         fit_controller
        
+        %{
         binning_popupmenu;
         downsampling_popupmenu;
         thresh_min_edit;
@@ -15,7 +16,11 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
         t_irf_max_edit;
         irf_background_edit;
         g_factor_edit;
-        afterpulsing_correction_checkbox;
+        afterpulsing_correction_popupmenu;
+        
+        irf_type_popupmenu;
+        ref_lifetime_edit;
+        rep_rate_edit;
         
         background_type_popupmenu;
         background_value_edit;
@@ -31,6 +36,7 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
         t0_guess_pushbutton;
         
         t0_edit;
+        %}
         
         irf_lower_ann = [];
         irf_upper_ann = [];
@@ -42,90 +48,46 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
         function obj = flim_data_masking_controller(handles)
         
             obj = obj@flim_data_series_observer(handles.data_series_controller);
-        
+            obj = obj@control_binder(handles.data_series_controller.data_series);
+            
             assign_handles(obj,handles);
             
-            set(obj.binning_popupmenu,'Callback',@obj.masking_callback);
-            set(obj.downsampling_popupmenu,'Callback',@obj.masking_callback);
-            set(obj.thresh_min_edit,'Callback',@obj.masking_callback);
-            set(obj.gate_max_edit,'Callback',@obj.masking_callback);
-            set(obj.t_min_edit,'Callback',@obj.masking_callback);
-            set(obj.t_max_edit,'Callback',@obj.masking_callback);
-            set(obj.t_irf_min_edit,'Callback',@obj.masking_callback);
-            set(obj.t_irf_max_edit,'Callback',@obj.masking_callback);
-            set(obj.irf_background_edit,'Callback',@obj.masking_callback);
-            set(obj.g_factor_edit,'Callback',@obj.masking_callback);
-            set(obj.afterpulsing_correction_checkbox,'Callback',@obj.masking_callback);
-            set(obj.background_value_edit,'Callback',@obj.masking_callback);
-            set(obj.background_type_popupmenu,'Callback',@obj.masking_callback);
-            set(obj.t0_edit,'Callback',@obj.masking_callback);
-            
-            set(obj.irf_display_axes,'ButtonDownFcn',@obj.irf_plot_clicked);
-            
+            obj.bind_control(handles,'binning','popupmenu');
+            obj.bind_control(handles,'thresh_min','edit');
+            obj.bind_control(handles,'gate_max','edit');
+            obj.bind_control(handles,'t_min','edit');
+            obj.bind_control(handles,'t_max','edit');
+            obj.bind_control(handles,'t_irf_min','edit');
+            obj.bind_control(handles,'t_irf_max','edit');
+            obj.bind_control(handles,'irf_background','edit');
+            obj.bind_control(handles,'g_factor','edit');
+            obj.bind_control(handles,'afterpulsing_correction','popupmenu');
+            obj.bind_control(handles,'background_value','edit');
+            obj.bind_control(handles,'background_type','popupmenu');
+            obj.bind_control(handles,'ref_lifetime','edit');
+            obj.bind_control(handles,'rep_rate','edit');
+            obj.bind_control(handles,'irf_type','popupmenu');
+            obj.bind_control(handles,'t0','edit');
+           
+            %{
             set(obj.irf_background_guess_pushbutton,'Callback',@obj.irf_background_guess_callback);
             set(obj.g_factor_guess_pushbutton,'Callback',@obj.g_factor_guess_callback);
             set(obj.tvb_define_pushbutton,'Callback',@obj.tvb_define_callback);
             set(obj.t0_guess_pushbutton,'Callback',@obj.t0_guess_callback)
+            %}
             
             obj.update_controls();
             
+        end
+        
+        function data_set(obj)
+            obj.set_bound_data_source(obj.data_series);
         end
         
         function data_update(obj)
-            for i=1:length(obj.lh)
-                delete(obj.lh{i});
-            end
-            obj.lh = {};
-            obj.lh{end+1} = addlistener(obj.data_series,'binning','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'downsampling','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'thresh_min','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'gate_max','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'t_min','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'t_max','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'t_irf_min','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'t_irf_max','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'irf_background','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'background_type','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'background_value','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'g_factor','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'afterpulsing_correction','PostSet',@obj.controls_updated);
-            obj.lh{end+1} = addlistener(obj.data_series,'t0','PostSet',@obj.controls_updated);
-                      
-            obj.update_controls();
         end
         
-        function masking_callback(obj,src,~)
-            switch src
-                case obj.t_min_edit
-                    obj.data_series.t_min = str2double(get(obj.t_min_edit,'String'));
-                case obj.t_max_edit
-                    obj.data_series.t_max = str2double(get(obj.t_max_edit,'String'));
-                case obj.t_irf_min_edit
-                    obj.data_series.t_irf_min = str2double(get(obj.t_irf_min_edit,'String'));
-                  case obj.t_irf_max_edit
-                    obj.data_series.t_irf_max = str2double(get(obj.t_irf_max_edit,'String'));
-                case obj.binning_popupmenu
-                    obj.data_series.binning = get(obj.binning_popupmenu,'Value') - 1;
-                case obj.downsampling_popupmenu
-                    obj.data_series.downsampling = 2^( get(obj.downsampling_popupmenu,'Value') - 1 );
-                case obj.thresh_min_edit
-                    obj.data_series.thresh_min = str2double(get(obj.thresh_min_edit,'String'));
-                case obj.gate_max_edit
-                    obj.data_series.gate_max = str2double(get(obj.gate_max_edit,'String'));
-                case obj.irf_background_edit
-                    obj.data_series.irf_background = str2num(get(obj.irf_background_edit,'String'));
-                case obj.background_value_edit
-                    obj.data_series.background_value = str2double(get(obj.background_value_edit,'String'));
-                case obj.background_type_popupmenu
-                    obj.data_series.background_type = get(obj.background_type_popupmenu,'Value') - 1;    
-                case obj.g_factor_edit
-                    obj.data_series.g_factor = str2double(get(obj.g_factor_edit,'String'));
-                case obj.afterpulsing_correction_checkbox
-                    obj.data_series.afterpulsing_correction = get(obj.afterpulsing_correction_checkbox,'Value');
-                case obj.t0_edit 
-                    obj.data_series.t0 = str2double(get(obj.t0_edit,'String'));
-            end
-        end
+        
         
         function irf_background_guess_callback(obj,~,~)
             obj.data_series.estimate_irf_background();
@@ -202,60 +164,21 @@ classdef flim_data_masking_controller < handle & flim_data_series_observer
         
         
         function update_controls(obj)
-
-            if ~isempty(obj.binning_popupmenu)
-                
-                value = obj.data_series.binning;
-                value = value + 1;
-                set(obj.binning_popupmenu,'Value', value );
-                
-                value = obj.data_series.downsampling;
-                value = log2(value) + 1;
-                set(obj.downsampling_popupmenu,'Value', value );
-
-                str = num2str(obj.data_series.thresh_min,'%2.4g');
-                set(obj.thresh_min_edit,'String',str);
-
-                str = num2str(obj.data_series.gate_max,'%2.4g');
-                set(obj.gate_max_edit,'String',str);
-
-                str = num2str(obj.data_series.t_min,'%2.4g');
-                set(obj.t_min_edit,'String',str);
-
-                str = num2str(obj.data_series.t_max,'%2.4g');
-                set(obj.t_max_edit,'String',str);
-
-                str = num2str(obj.data_series.t_irf_min,'%2.4g');
-                set(obj.t_irf_min_edit,'String',str);
-
-                str = num2str(obj.data_series.t_irf_max,'%2.4g');
-                set(obj.t_irf_max_edit,'String',str);
-                
-                str = num2str(obj.data_series.irf_background,'%2.4g ');
-                set(obj.irf_background_edit,'String',str);
-                
-                str = num2str(obj.data_series.g_factor,'%2.4g');
-                set(obj.g_factor_edit,'String',str);
-                
-                value = obj.data_series.afterpulsing_correction;
-                set(obj.afterpulsing_correction_checkbox,'Value',value);
-
-                value = obj.data_series.background_type + 1;
-                set(obj.background_type_popupmenu,'Value', value );
-                
-                str = num2str(obj.data_series.background_value,'%2.4g');
-                set(obj.background_value_edit,'String',str);
-
+            
+            if isfield(obj.controls,'background_value_edit')
                 if obj.data_series.background_type == 1
-                    set(obj.background_value_edit,'Enable','on');
+                    set(obj.controls.background_value_edit,'Enable','on');
                 else
-                    set(obj.background_value_edit,'Enable','off');
+                    set(obj.controls.background_value_edit,'Enable','off');
                 end
-                
-                str = num2str(obj.data_series.t0,'%2.4g');
-                set(obj.t0_edit,'String',str);
-                
-                obj.update_background_plot();
+            end
+            
+            if isfield(obj.controls,'ref_lifetime_edit')
+                if obj.data_series.irf_type == 0
+                    set(obj.controls.ref_lifetime_edit,'Enable','off');
+                else
+                   set(obj.controls.ref_lifetime_edit,'Enable','on');
+                end
             end
             
         end

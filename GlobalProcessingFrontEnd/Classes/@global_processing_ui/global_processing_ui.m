@@ -123,6 +123,7 @@ classdef global_processing_ui
             handles.data_intensity_view = flim_data_intensity_view(handles);
             handles.roi_controller = roi_controller(handles);                                                   
             handles.fit_controller = flim_fit_controller(handles);    
+            %handles.fit_display_controller = flim_fit_display_controller(handles);
             handles.data_decay_view = flim_data_decay_view(handles);
             handles.data_masking_controller = flim_data_masking_controller(handles);
             handles.plot_controller = flim_fit_plot_controller(handles);

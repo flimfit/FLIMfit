@@ -18,12 +18,17 @@ function fit_complete(obj,~,~)
     t_exec = toc(obj.start_time);    
     disp(['Total execution time: ' num2str(t_exec)]);
     
+    obj.selected = 1:obj.fit_result.n_results;
+    
+    obj.update_filter_table();
+    
     try
     notify(obj,'fit_updated');    
     catch ME
         getReport(ME)
     end
     notify(obj,'fit_completed');    
+    
     
     
     if obj.refit_after_return

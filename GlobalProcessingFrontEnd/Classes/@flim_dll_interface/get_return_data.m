@@ -123,7 +123,7 @@ function get_return_data(obj)
           p_tvb = [];
     end
 
-    if p.ref_reconvolution == 2
+    if p.fit_reference == 1
         p_ref_lifetime = libpointer('singlePtr',zeros(I0_size));
     else
         p_ref_lifetime = [];
@@ -160,7 +160,7 @@ function get_return_data(obj)
         if p.fit_tvb == 2
             p_tvb_err = libpointer('singlePtr',zeros(I0_size));
         end
-        if p.ref_reconvolution == 2
+        if p.fit_reference == 1
            p_ref_lifetime_err = libpointer('singlePtr', zeros(I0_size));
         end
     end

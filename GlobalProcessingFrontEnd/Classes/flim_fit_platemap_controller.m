@@ -23,6 +23,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             if obj.fit_controller.has_fit && ~isempty(param)
 
                 r = obj.fit_controller.fit_result;     
+                sel = obj.fit_controller.selected;
 
                 md = r.metadata;
 
@@ -31,8 +32,8 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     return
                 end
 
-                im_row = md.Row;
-                im_col = md.Column;
+                im_row = md.Row(sel);
+                im_col = md.Column(sel);
                 
                 for i=1:length(im_col)
                     if isempty(im_col{i})
@@ -53,21 +54,20 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     row = char(row_idx+64);
                     for col = 1:n_col
 
-                        sel = strcmp(im_row,row) & cell2mat(im_col)==col;
-                        idx = 1:length(im_row);
-                        sel = idx(sel);
+                        sel_well = strcmp(im_row,row) & cell2mat(im_col)==col;
+                        sel_well = sel(sel_well);
 
                         y = 0;
                         yn = 0;
 
-                        for i=1:length(sel)
+                        for i=sel_well
 
-                            if isfield(r.image_stats{sel(i)},param)
+                            if isfield(r.image_stats{i},param)
                                 
-                                n = r.image_stats{sel(i)}.(param).n;
+                                n = r.image_stats{i}.(param).n;
                                 if n > 0
-                                    y = y + r.image_stats{sel(i)}.(param).mean * n; 
-                                    yn = yn + r.image_stats{sel(i)}.(param).n;
+                                    y = y + r.image_stats{i}.(param).mean * n; 
+                                    yn = yn + r.image_stats{i}.(param).n;
                                 end
                                 
                             end

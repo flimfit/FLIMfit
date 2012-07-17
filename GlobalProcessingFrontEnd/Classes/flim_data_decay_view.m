@@ -24,7 +24,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
             assign_handles(obj,handles)
 
             addlistener(obj.data_series_list,'selection_updated',@obj.data_update_evt);
-            addlistener(obj.roi_controller,'roi_mask','PostSet',@obj.roi_update);
+            addlistener(obj.roi_controller,'roi_updated',@obj.roi_update);
             set(obj.highlight_display_mode_popupmenu,'Callback',@obj.display_mode_update);
             set(obj.highlight_decay_mode_popupmenu,'Callback',@obj.display_mode_update);
             
@@ -45,7 +45,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
         end
         
         function data_update(obj)
-           obj.update_display(); 
+           %obj.update_display(); 
         end
         
         function fit_update(obj)

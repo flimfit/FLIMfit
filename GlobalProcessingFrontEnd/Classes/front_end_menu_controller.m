@@ -35,6 +35,8 @@ classdef front_end_menu_controller < handle
         menu_file_export_gallery;
         menu_file_export_hist_data;
         
+        menu_file_import_plate_metadata;
+        
         menu_file_export_fit_table;
         
         menu_file_import_fit_params;
@@ -47,8 +49,12 @@ classdef front_end_menu_controller < handle
         menu_irf_load;
         menu_irf_image_load;
         menu_irf_set_delta;
-        menu_irf_set_rectangular;
-        menu_irf_set_gaussian;
+        
+        menu_irf_estimate_t0;
+        menu_irf_estimate_g_factor;
+        menu_irf_estimate_background;
+        %menu_irf_set_rectangular;
+        %menu_irf_set_gaussian;
         menu_irf_recent;
         
         menu_background_background_load;
@@ -139,6 +145,8 @@ classdef front_end_menu_controller < handle
              obj_prop = mc.Properties;
              obj_method = mc.Methods;
              
+             
+             % Search for properties with corresponding callbacks
              for i=1:length(obj_prop)
                 prop = obj_prop{i}.Name;
                 if strncmp(prop,'menu_',5)
@@ -431,6 +439,15 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        
+        function menu_file_import_plate_metadata_callback(obj,~,~)
+            [file,path] = uigetfile({'*.xls;*.xlsx','Excel Files'},'Select the metadata file',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.import_plate_metadata([path file]);
+            end
+        end
+        
+        
         %------------------------------------------------------------------
         % IRF
         %------------------------------------------------------------------
@@ -464,6 +481,19 @@ classdef front_end_menu_controller < handle
             width = str2double(width);
             obj.data_series_controller.data_series.set_gaussian_irf(width);
         end
+        
+        function menu_irf_estimate_background_callback(obj,~,~)
+            obj.data_series_controller.data_series.estimate_irf_background();
+        end
+        
+        function menu_irf_estimate_t0_callback(obj,~,~)
+            obj.data_masking_controller.t0_guess_callback();    
+        end
+        
+        function menu_irf_estimate_g_factor_callback(obj,~,~)
+            obj.data_masking_controller.g_factor_guess_callback();    
+        end
+        
         
         %------------------------------------------------------------------
         % Background
