@@ -35,7 +35,7 @@ classdef flim_fit_corr_controller < flim_fit_observer
         end
         
         function selection_updated(obj,~,~)
-            obj.selected = obj.data_series_list.selected;
+            obj.selected = obj.data_series_list.use_selected;
             obj.update_correlation();
         end
         
@@ -89,7 +89,8 @@ classdef flim_fit_corr_controller < flim_fit_observer
         
                 
         function update_correlation(obj)
-            if obj.fit_controller.has_fit && ~isempty(obj.param_x) && ~isempty(obj.param_y)
+            cla(obj.corr_axes)
+            if obj.fit_controller.has_fit && ~isempty(obj.param_x) && ~isempty(obj.param_y) && obj.selected > 0
                 
                 r = obj.fit_controller.fit_result;
                 

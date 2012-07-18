@@ -104,7 +104,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 if isempty(overlay);
                     meta = [];
                 else
-                    meta = d.metadata.(overlay);
+                    meta = r.metadata.(overlay);
                 end
                 
                 cbar_size = 20;

@@ -41,7 +41,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
         end
         
         function selection_updated(obj,~,~)
-            obj.selected = obj.data_series_list.selected;
+            obj.selected = obj.data_series_list.use_selected;
             obj.update_histogram();
         end
         
@@ -94,7 +94,8 @@ classdef flim_fit_hist_controller < flim_fit_observer
         end
         
         function update_histogram(obj)
-            if obj.fit_controller.has_fit && ~isempty(obj.param)
+            cla(obj.hist_axes);
+            if obj.fit_controller.has_fit && ~isempty(obj.param) && obj.selected > 0
                 
                 weighting = get(obj.hist_weighting_popupmenu,'Value');
                 

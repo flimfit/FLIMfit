@@ -55,16 +55,17 @@ function [data, column_headers] = get_param_list(obj)
         data = row;
     else
         idx = 1;
-        for g=1:n_group
-            for r=1:f.n_regions(g)
+        for g_idx=1:length(datasets)
+            g = datasets(g_idx);
+            for r=1:f.n_regions(g_idx)
                 if p.global_fitting == 0
                     row = [g r f.success(g) f.iter(g)];
                 else
                     row = [g r f.ierr(g) f.iter(g)];
                 end
                 for i=1:length(im_names)
-                    if isfield(f.region_stats{g}.(im_names{i}),'mean')
-                        im = f.region_stats{g}.(im_names{i}).mean;
+                    if isfield(f.region_stats{g_idx}.(im_names{i}),'mean')
+                        im = f.region_stats{g_idx}.(im_names{i}).mean;
                         im = im(r);
                     else
                         im = 0;

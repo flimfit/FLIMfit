@@ -1,10 +1,18 @@
 function update_plots(obj,file_root)
 
+    children = get(obj.plot_panel,'Children');
+    if ~isempty(children)
+        for i=1:length(children)
+            delete(children(i))
+        end
+    end
+    
     if ~obj.fit_controller.has_fit || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
         return
     end
-
+    
     d = obj.fit_controller.data_series;
+    r = obj.fit_controller.fit_result;
     
     if nargin == 2
         f_save = figure('visible','on');        
@@ -16,22 +24,26 @@ function update_plots(obj,file_root)
         save = false;
     end
 
+    if ~save && obj.dataset_selected == 0;
+        return
+    end;
+    
     n = ceil(sqrt(obj.n_plots));   
     m = ceil(obj.n_plots/n);
 
+
+    
     if obj.n_plots>0 && ~save
         [ha,hc] = tight_subplot(obj.plot_panel,obj.n_plots,m,n,save,[d.width d.height],5,5,5);
     end
     
     if ~save
-        im_start = obj.dataset_selected;
-        im_end = obj.dataset_selected;
+        ims = obj.dataset_selected;
     else
-        im_start = 1;
-        im_end = d.n_datasets;
+        ims = 1:r.n_results;
     end
     
-    for cur_im = im_start:im_end
+    for cur_im = ims
 
         if save
             name_root = [root ' ' d.names{cur_im}];
@@ -39,7 +51,7 @@ function update_plots(obj,file_root)
 
         subplot_idx = 1;
 
-        if obj.n_plots > 0 && d.use(cur_im)
+        if obj.n_plots > 0
 
             for plot_idx = 1:length(obj.plot_names)
             

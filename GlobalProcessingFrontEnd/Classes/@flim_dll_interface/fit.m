@@ -36,7 +36,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         if obj.bin
             obj.fit_result.init(1);
         else
-            n_im = sum(obj.data_series.n_datasets);
+            n_im = sum(obj.data_series.use);
             obj.fit_result.init(n_im,obj.fit_params.use_memory_mapping);
         end
         obj.fit_result.binned = obj.bin;
@@ -106,8 +106,16 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     end    
 
     
-    obj.fit_result.metadata = obj.data_series.metadata;
-        
+    md = obj.data_series.metadata;
+    
+    fields = fieldnames(md);
+    for i=1:length(fields)
+        f = md.(fields{i});
+        md.(fields{i}) = f(d.use);
+    end
+    
+    obj.fit_result.metadata = md;
+     
     obj.datasets = sel;
 
     if obj.bin

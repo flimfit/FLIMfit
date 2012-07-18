@@ -13,7 +13,7 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         return
     end
     
-    im = find(obj.datasets==selected)-1;
+    im = selected-1;
     
     if obj.bin
         mask = 1;

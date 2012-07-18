@@ -184,7 +184,7 @@ function get_return_data(obj)
             datasets = datasets(1:(i-1));
         end
         
-        im = i;%datasets(i);
+        im = datasets(i);
         
         if p.global_fitting < 2
            r_start = 1+sum(obj.n_regions(1:i-1));
@@ -195,10 +195,10 @@ function get_return_data(obj)
         end
         
         
-        if (obj.n_regions(i) > 0 && obj.use(i))
+        if (obj.n_regions(im) > 0) % && obj.use(i))
             % Retrieve results
             err = calllib(obj.lib_name,'GetResults', ...
-                          obj.dll_id, i-1, p_mask, p_chi2, p_tau, p_I0, p_beta, p_E, p_gamma, ...
+                          obj.dll_id, im-1, p_mask, p_chi2, p_tau, p_I0, p_beta, p_E, p_gamma, ...
                           p_theta, p_r, p_t0, p_offset, p_scatter, p_tvb, p_ref_lifetime);
 
             dmask = p_mask.Value;
@@ -208,7 +208,7 @@ function get_return_data(obj)
                 
 
                 if ~obj.bin
-                    I = obj.data_series.integrated_intensity(datasets(i));
+                    I = obj.data_series.integrated_intensity(im);
                     I(dmask == 0) = NaN;
                 else
                     I = 1;
@@ -221,7 +221,7 @@ function get_return_data(obj)
                     if ~obj.bin
                         dmask(isnan(chi2)) = 0;
                     end
-                    f.set_image('chi2',chi2,dmask,I,im,[0 5]);
+                    f.set_image('chi2',chi2,dmask,I,i,[0 5]);
                     clear chi2;
                 end
 
@@ -233,7 +233,7 @@ function get_return_data(obj)
                     else
                         tau_err = [];
                     end
-                    f.set_image_split('tau',tau,dmask,I,im,[0 4000],tau_err);
+                    f.set_image_split('tau',tau,dmask,I,i,[0 4000],tau_err);
 
                 end
 
@@ -242,13 +242,13 @@ function get_return_data(obj)
                     if ~isempty(p_beta)
                         beta = reshape(p_beta.Value,beta_size);
                         beta = obj.fill_image(beta,dmask,min_region);
-                        f.set_image_split('beta',beta,dmask,I,im,[0 1]);
+                        f.set_image_split('beta',beta,dmask,I,i,[0 1]);
                     end
 
                     if ~isempty(p_beta_err)
                         beta_err = reshape(p_beta_err.Value,beta_size);
                         if ~all(isnan(beta_err(:)))
-                            f.set_image_split('beta_err',beta_err,dmask,I,im,[0 1]);
+                            f.set_image_split('beta_err',beta_err,dmask,I,i,[0 1]);
                         end
 
                     end
@@ -260,21 +260,21 @@ function get_return_data(obj)
                         w_mean_tau = sum(tau_sqr.*beta,ds)./mean_tau;
                         w_mean_tau = reshape(w_mean_tau,[size(tau,1) size(tau,2)]);
                         mean_tau = reshape(mean_tau,[size(tau,1) size(tau,2)]);
-                        f.set_image('mean_tau',mean_tau,dmask,I,im,[0 4000]);
-                        f.set_image('w_mean_tau',w_mean_tau,dmask,I,im,[0 4000]);
+                        f.set_image('mean_tau',mean_tau,dmask,I,i,[0 4000]);
+                        f.set_image('w_mean_tau',w_mean_tau,dmask,I,i,[0 4000]);
                     end
                 end
 
                 clear tau beta mean_tau w_mean_tau
 
                 I0 = reshape(p_I0.Value,I0_size);
-                f.set_image('I0',I0,dmask,I,im,[0 ceil(nanmax(I0(:)))]);
+                f.set_image('I0',I0,dmask,I,i,[0 ceil(nanmax(I0(:)))]);
                 clear I0;
 
                 if ~obj.bin
     %                I = obj.data_series.integrated_intensity(datasets(i));
     %                I(dmask == 0) = NaN;
-                    f.set_image('I',I,dmask,I,im,[0 ceil(max(I(:)))])
+                    f.set_image('I',I,dmask,I,i,[0 ceil(max(I(:)))])
     %                clear I;
                 end
 
@@ -289,7 +289,7 @@ function get_return_data(obj)
                         else
                             theta_err = [];
                         end
-                        f.set_image_split('theta',theta,dmask,I,im,[0 4000],theta_err);
+                        f.set_image_split('theta',theta,dmask,I,i,[0 4000],theta_err);
 
                     end
                    %{ 
@@ -316,16 +316,16 @@ function get_return_data(obj)
                          sz = [sz 1];
                     end
                     r0 = reshape(r0,sz);
-                    f.set_image('r_0',r0,dmask,I,im,[0 0.4]);
+                    f.set_image('r_0',r0,dmask,I,i,[0 0.4]);
                     if size(r,1) > 0
-                        f.set_image_split('r',r,dmask,I,im,[0 0.4]);
+                        f.set_image_split('r',r,dmask,I,i,[0 0.4]);
                     end
 
 
                     if ~obj.bin
                         steady_state = obj.data_series.steady_state_anisotropy(datasets(i));
                         steady_state(dmask == 0) = NaN;
-                        f.set_image('r_s',steady_state,dmask,I,im,[0 0.4])
+                        f.set_image('r_s',steady_state,dmask,I,i,[0 0.4])
                     end
                 end
 
@@ -342,7 +342,7 @@ function get_return_data(obj)
                             E_err = [];
                         end
 
-                        f.set_image_split('E',E,dmask,I,im,[0 1],E_err);
+                        f.set_image_split('E',E,dmask,I,i,[0 1],E_err);
 
                     end
 
@@ -352,10 +352,10 @@ function get_return_data(obj)
                     if obj.fit_params.inc_donor
                         for j=1:size(gamma,3)
                             g = gamma(:,:,j);
-                            f.set_image(['gamma_' num2str(j-1)],g,dmask,I,im,[0 1]);
+                            f.set_image(['gamma_' num2str(j-1)],g,dmask,I,i,[0 1]);
                         end
                     else
-                        f.set_image_split('gamma',gamma,dmask,I,im,[0 1]);
+                        f.set_image_split('gamma',gamma,dmask,I,i,[0 1]);
                     end
 
                 end
@@ -363,14 +363,14 @@ function get_return_data(obj)
                 if ~isempty(p_offset)
                     offset = reshape(p_offset.Value,offset_size);
                     offset = obj.fill_image(offset,dmask,min_region);
-                    f.set_image('offset',offset,dmask,I,im,[0 ceil(nanmax(offset(:)))]);
+                    f.set_image('offset',offset,dmask,I,i,[0 ceil(nanmax(offset(:)))]);
 
                 end
 
                 if ~isempty(p_offset_err)
                     offset_err = reshape(p_offset_err.Value,offset_size);
                     if ~all(isnan(offset_err(:))) 
-                        f.set_image('offset_err',offset_err,dmask,I,im,[0 ceil(nanmax(offset_err(:)))]);
+                        f.set_image('offset_err',offset_err,dmask,I,i,[0 ceil(nanmax(offset_err(:)))]);
                     end
 
                 end
@@ -378,13 +378,13 @@ function get_return_data(obj)
                 if ~isempty(p_scatter)
                     scatter = reshape(p_scatter.Value,scatter_size);
                     scatter = obj.fill_image(scatter,dmask,min_region);
-                    f.set_image('scatter',scatter,dmask,I,im,[0 ceil(nanmax(scatter(:)))])
+                    f.set_image('scatter',scatter,dmask,I,i,[0 ceil(nanmax(scatter(:)))])
                 end
 
                 if ~isempty(p_scatter_err)
                     scatter_err = reshape(p_scatter_err.Value,scatter_size);
                     if ~all(isnan(scatter_err(:))) 
-                        f.set_image('scatter_err',scatter_err,dmask,I,im,[0 ceil(nanmax(scatter_err(:)))])
+                        f.set_image('scatter_err',scatter_err,dmask,I,i,[0 ceil(nanmax(scatter_err(:)))])
                     end
 
                 end
@@ -392,14 +392,14 @@ function get_return_data(obj)
                 if ~isempty(p_tvb)
                     tvb = reshape(p_tvb.Value,tvb_size);
                     tvb = obj.fill_image(tvb,dmask,min_region);
-                    f.set_image('tvb',tvb,dmask,I,im,[0 ceil(nanmax(tvb(:)))])
+                    f.set_image('tvb',tvb,dmask,I,i,[0 ceil(nanmax(tvb(:)))])
 
                 end
 
                 if ~isempty(p_tvb_err)
                     tvb_err = reshape(p_tvb_err.Value,tvb_size);
                     if ~all(isnan(tvb_err(:))) 
-                        f.set_image('tvb_err',tvb_err,dmask,I,im,[0 ceil(nanmax(tvb_err(:)))])
+                        f.set_image('tvb_err',tvb_err,dmask,I,i,[0 ceil(nanmax(tvb_err(:)))])
                     end
 
                 end
@@ -414,19 +414,19 @@ function get_return_data(obj)
 
                 if ~isempty(p_ref_lifetime)
                     ref_lifetime = reshape(p_ref_lifetime.Value,I0_size);
-                    f.set_image('ref_lifetime',ref_lifetime,dmask,I,im,[0 1000]);
+                    f.set_image('ref_lifetime',ref_lifetime,dmask,I,i,[0 1000]);
 
                 end
 
                 if ~isempty(p_ref_lifetime_err)
                     ref_lifetime_err = reshape(p_ref_lifetime_err.Value,I0_size);
                     if ~all(isnan(ref_lifetime_err(:))) 
-                        f.set_image('ref_lifetime_err',ref_lifetime_err,dmask,I,im,[0 100]);
+                        f.set_image('ref_lifetime_err',ref_lifetime_err,dmask,I,i,[0 100]);
                     end
                 end
 
                 if obj.fit_params.global_fitting == 0
-                    f.set_image('ierr',double(ierr(:,:,i)),dmask,I,im,[-10 200]);
+                    f.set_image('ierr',double(ierr(:,:,i)),dmask,I,i,[-10 200]);
                 end
 
             end
