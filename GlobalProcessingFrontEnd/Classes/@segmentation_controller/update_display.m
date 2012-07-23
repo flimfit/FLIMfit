@@ -36,9 +36,9 @@ function update_display(obj)
         obj.mask_im = image(cmask,'Parent',obj.segmentation_axes, 'AlphaData',alpha);
         hold(obj.segmentation_axes,'off');
         
-        set(obj.segmentation_axes,'XTick',[]);
-        set(obj.segmentation_axes,'YTick',[]);
-
+        set(obj.segmentation_axes,'XTick',[],'YTick',[]);
+        daspect(obj.segmentation_axes,[1 1 1]);
+    
         obj.n_regions = max(mask(:));
         
         % find centroids for labels

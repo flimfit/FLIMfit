@@ -158,7 +158,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
             obj.n_regions = squeeze(max(obj.n_regions,[],1));
         else
             mask = [];
-            obj.n_regions = ones([1 obj.n_im]);
+            obj.n_regions = ones([1 d.n_datasets]);
         end
         
         obj.n_regions_total = sum(obj.n_regions);

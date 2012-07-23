@@ -11,6 +11,11 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
        highlight_decay_mode_popupmenu;
        fit;
        
+       ylim_highlight;
+       ylim_residual;
+       xlim_highlight;
+       xlim_residual;
+       
        lh;
     end
 
@@ -52,7 +57,24 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
            obj.update_display(); 
         end
         
+        function lims = get_axis_lims(obj,idx)
+            
+            lims = cell(2,1);
+            if idx == 1
+                lims{1} = obj.xlim_highlight;
+                lims{2} = obj.ylim_highlight;
+            else
+                lims{1} = obj.xlim_residual;
+                lims{2} = obj.ylim_residual;
+            end
+                
+            return;
+        end
+        
         function update_display(obj,file,export_all)
+            
+            first_call = isempty(obj.ylim_highlight);
+                
             
             if obj.data_series.init
                 
@@ -64,6 +86,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                 end
 
                 data = [];
+                residual = [];
 
                 d = obj.data_series;                        
                 mask = obj.roi_controller.roi_mask;
@@ -232,43 +255,55 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                 % Set X limits
                 try
                     xmax = max([max(obj.data_series.tr_t) max(obj.data_series.tr_t_irf)]);
-                    xlim(obj.highlight_axes,[0 xmax]);
-                    xlim(obj.residuals_axes,[0 xmax]);
+                    obj.xlim_highlight = [0 xmax];
+                    obj.xlim_residual = [0 xmax];
                 catch %#ok
-                    xlim(obj.highlight_axes,[0 12.5e3]);
-                    xlim(obj.residuals_axes,[0 12.5e3]);
+                    obj.xlim_highlight = [0 12.5e3];
+                    obj.xlim_residual = [0 12.5e3];
                 end
 
                 % Set Y limits
                 if decay_mode == 1
-                if ~all(data==1)
-                   if display_mode == 1
-                       low = 0;
-                   else
-                       low = 0.9*min(data(:));
-                   end
-                   high = max(data(:))*1.1;
+                    if ~all(data==1)
+                       if display_mode == 1
+                           low = 0;
+                       else
+                           low = 0.9*min(data(:));
+                       end
+                       high = max(data(:))*1.1;
 
-                   if (isempty(low) || low == high )
-                       low = 0;
-                   end
+                       if (isempty(low) || low == high )
+                           low = 0;
+                       end
 
-                   if (isempty(high) || high == 0)
-                       high = 1;
-                   end
+                       if (isempty(high) || high == 0)
+                           high = 1;
+                       end
 
-                   try %#ok
-                       ylim(obj.highlight_axes,[low high+1])
-                   end
-                else
-                    try %#ok
-                       ylim(obj.highlight_axes,[max(d.tr_irf(:))/100 max(d.tr_irf(:))])
+                       obj.ylim_highlight = [low high];
+
+                    else
+                        obj.ylim_highlight = [max(d.tr_irf(:))/100 max(d.tr_irf(:))];
+
                     end
-                end
+                    
+                    obj.ylim_residual = [nanmin(residual),nanmax(residual)];
+                    
                 end
                 
-                dragzoom([obj.highlight_axes obj.residuals_axes])
-
+                
+                try                    
+                    xlim(obj.highlight_axes,obj.xlim_highlight);
+                    xlim(obj.residuals_axes,obj.xlim_residual);
+                end
+                try                    
+                    ylim(obj.highlight_axes,obj.ylim_highlight);
+                    ylim(obj.residuals_axes,obj.ylim_residual);
+                end
+                
+                if first_call
+                    dragzoom([obj.highlight_axes obj.residuals_axes],'on',@obj.get_axis_lims)
+                end
 
                 hold(obj.highlight_axes,'off');
             end

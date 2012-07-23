@@ -26,7 +26,7 @@ function handles = add_plotter_display_panel(obj,handles,parent)
             'String', {'By Pixel' 'By Image'}, 'Parent', param_layout );
         
     set( param_layout, 'RowSizes', [22,22] );
-    set( param_layout, 'ColumnSizes', [100,200,100,200] );
+    set( param_layout, 'ColumnSizes', [90,90,90,90] );
     
     set( layout, 'Sizes', [-1 70])
     

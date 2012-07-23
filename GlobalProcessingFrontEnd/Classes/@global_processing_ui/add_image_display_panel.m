@@ -34,7 +34,7 @@ function handles = add_image_display_panel(obj,handles,parent)
     
     handles.gallery_merge_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No', 'Yes'}, 'Parent', bottom_layout);
         
-    set( bottom_layout, 'ColumnSizes',[90 120 90 120 90 120], 'RowSizes', [22 22] );
+    set( bottom_layout, 'ColumnSizes',[90 90 90 90 90 90], 'RowSizes', [22 22] );
     
     
     set(gallery_layout,'Sizes',[-1,60]);

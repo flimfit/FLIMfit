@@ -15,14 +15,21 @@ S2 = scale2;
 K2 = rel_bg_scale2;
 t = threshold;
 
-if t > 1
-    t = 1;
-end
-
 se = strel('disk',max(1,round(abs(smoothing))));
 
 nth1 = nonlinear_tophat(U,S1,K1)-1;
 nth2 = nonlinear_tophat(U,S2,K2)-1;
+
+norm1 = max(nth1(:));
+norm2 = max(nth2(:));
+norm1 = max(norm1,norm2);
+norm1 = min(norm1,10000);
+
+nth1 = nth1 / norm1;
+nth2 = nth2 / norm1;
+t = t / norm1;
+
+
 
 nth = pixelwise_max(nth1,nth2);
 nth = (nth+abs(nth))/2;

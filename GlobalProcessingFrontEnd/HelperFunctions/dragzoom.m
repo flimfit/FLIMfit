@@ -166,7 +166,7 @@ function dragzoom(varargin)
 %TODO: Show Pixel Info (Pixel Value(s)) for Images
 %TODO: "Sticking to Data" PointerCross
 
-error(nargchk(0, 2, nargin));
+error(nargchk(0, 3, nargin));
 
 
 % handles
@@ -232,6 +232,8 @@ mMgSizeStep = [];
 mMgZoomStep = [];
 mMgDirection = [];
 mLinkOpt = 'xy';
+
+getAxisLimsCallback = [];
 
 % flags
 fIsEnabled = false;
@@ -2247,6 +2249,14 @@ Initialize(varargin{:})
 %==========================================================================
     function ResetAxesToOrigView()
         %ResetAxesToOrigView reset axes to original limits
+       
+        axi = GetCurrentAxesIndex();
+        
+        if ~isempty(getAxisLimsCallback)
+            val = getAxisLimsCallback(axi);
+            mDefaultXLim = val{1};
+            mDefaultYLim = val{2};
+        end
         
         SetAxesLimits(mDefaultXLim, mDefaultYLim);
         PointerCrossUpdate();
@@ -2761,6 +2771,15 @@ Initialize(varargin{:})
                 status = varargin{2};
                 ih = 1;
                 is = 2;
+            case 3
+                isWithStatus = true;
+                hObj = varargin{1};
+                status = varargin{2};
+                ih = 1;
+                is = 2;
+                getAxisLimsCallback = varargin{3};
+                
+                
         end
         
         switch lower(status)

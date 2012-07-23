@@ -5,8 +5,8 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         data_series_table;
         data_series_sel_all;
         data_series_sel_none;
-        selected;
-        use_selected;
+        selected = 0;
+        use_selected = 0;
         lh;
     end
     
@@ -139,12 +139,23 @@ classdef flim_data_series_list < handle & flim_data_series_observer
                     set(obj.handle,'ColumnWidth',num2cell(w));
                     
                     if isempty(obj.selected) || obj.selected > obj.data_series.num_datasets  || obj.selected == 0
-                        obj.selected = 1;
+                        
+                        sel = 1;
+                        obj.selected = sel;
+                        use = obj.data_series.use;
+                        if use(sel)
+                            use_to_sel = obj.data_series.use(1:sel);
+                            obj.use_selected = sum(use_to_sel);
+                        else
+                            obj.use_selected = 0;
+                        end
+                        
                         obj.notify('selection_updated');
                     end
 
                 else
                     obj.selected = 0;
+                    obj.use_selected = 0;
                     obj.notify('selection_updated');
                 end
             end

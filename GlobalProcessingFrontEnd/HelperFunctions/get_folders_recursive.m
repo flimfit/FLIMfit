@@ -31,7 +31,7 @@ function new_folders = get_folders_recursive(root_path)
                 folders = [folders subfolder_name'];
             end
         end
-            if length(folders)>2
+            if length(folders)>1
                 folders = folders(2:end);
             else
                 folders = [];
