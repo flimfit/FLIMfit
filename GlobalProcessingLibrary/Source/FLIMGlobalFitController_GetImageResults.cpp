@@ -470,6 +470,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int idx = 0;
    int ii = 0;
 
+
    if (data->global_mode == MODE_PIXELWISE)
    {
       if (memory_map_results)

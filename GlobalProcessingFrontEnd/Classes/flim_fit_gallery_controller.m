@@ -127,6 +127,13 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 gallery_data = NaN([gh gw]);
                 gallery_I_data = NaN([gh gw]);
                 
+                if save
+                    fh = pos(3)*gh/gw;
+                    pos(4) = fh;
+                    fig_size(2) = fh;
+                    set(f,'Position',pos)
+                end
+                
                 scroll_pos = max(total_rows - max_rows,0);
                 
                 warning('off','MATLAB:hg:uicontrol:ParameterValuesMustBeValid')
