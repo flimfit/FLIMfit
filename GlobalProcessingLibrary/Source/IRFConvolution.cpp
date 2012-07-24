@@ -1,7 +1,7 @@
 #include "IRFConvolution.h"
 #include "ModelADA.h"
 
-void alf2beta(int n, double alf[], double beta[])
+void alf2beta(int n, const double* alf, double beta[])
 {
 
    for(int i=0; i<n; i++)
@@ -16,7 +16,7 @@ void alf2beta(int n, double alf[], double beta[])
 
 }
 
-double beta_derv(int n_beta, int alf_idx, int beta_idx, double alf[])
+double beta_derv(int n_beta, int alf_idx, int beta_idx, const double alf[])
 {
    double d;
 

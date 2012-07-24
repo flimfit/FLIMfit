@@ -4,6 +4,10 @@
 
 #include "f2c.h"
 
+typedef int (*Tada)(int s, int lp1, int nl, int n, int nmax, int ndim, 
+        int pp2, double *a, double *b, double *kap, int *inc, 
+        double *t, const double *alf, int *isel, int *gc_int, int thread);
+
 extern "C"
 int varproj(void *pa, int nls, int nsls1, const double *alf, double *rnorm, double *fjrow, int iflag);
 
@@ -17,63 +21,55 @@ extern "C"
 void mle_jacb(double *alf, double *fjac, int nl, int nfunc, void *pa);
 
 
-int lmvarp(integer *s, integer *l, integer *
-   nl, integer *n, integer *nmax, integer *ndim, integer 
-   *p, double *t, float *y, 
-   float *w, double *ws, S_fp ada, double *a, double *b, double *c,
-   integer *itmax, integer *gc, integer *thread, integer *static_store, 
-   double *alf, double *beta, integer *ierr, integer *niter, double *c2, integer *terminate);
+int lmvarp(int s, int l, int nl, int n, int nmax, int ndim, int p, double *t, float *y, 
+   float *w, double *ws, Tada ada, double *a, double *b, double *c,
+   int itmax, int *gc, int thread, int *static_store, 
+   double *alf, double *beta, int *ierr, int *niter, double *c2, int *terminate);
 
-int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, integer 
-   *p, double *t, float *y, 
-   float *w, double *ws, S_fp ada, double *a, double *b, double *c, 
-   integer *itmax, integer *gc, integer *thread, integer *static_store, 
-   double *alf, double *beta, integer *ierr, integer *niter, double *c2, integer *terminate);
+int lmmle(int nl, int l, int n, int nmax, int ndim, int p, double *t, float *y, 
+   float *w, double *ws, Tada ada, double *a, double *b, double *c, 
+   int itmax, int *gc, int thread, int *static_store, 
+   double *alf, double *beta, int *ierr, int *niter, double *c2, int *terminate);
 
-int lmvarp_getlin(integer *s, integer *l, integer *
-   nl, integer *n, integer *nmax, integer *ndim, integer 
-   *p, double *t, float *y, 
-   float *w, double *ws, S_fp ada, double *a, double *b, double *c,
-   integer *gc, integer *thread, integer *static_store, 
-   double *alf, double *beta);
+int lmvarp_getlin(int s, int l, int nl, int n, int nmax, int ndim, int p, double *t, float *y, 
+   float *w, double *ws, Tada ada, double *a, double *b, double *c,
+   int *gc, int thread, int *static_store, double *alf, double *beta);
 
 
 extern "C"
-int postpr_(int *s, int *l, int *
-   nl, int *n, int *nmax, int *ndim, int *lnls1, int 
-   *p, double *eps, double *rnorm,
-   double *alf, float *w, double *a, double *b, 
-   double *r__, double *u, int *ierr);
+int postpr_(int s, int l, int nl, int n, int nmax, int ndim, int lnls1, int p,
+   const double *alf, float *w, double *a, double *b, double *r__, double *u, int *ierr);
+
 
 
 extern "C"
-double xnorm_(int *n, double *x);
+int init_(int s, int l, int nl,
+    int n, int nmax, int ndim, int p, double *t, float *w, 
+   const double *alf, Tada ada, int *isel, double 
+   *a, double *b, double *kap, int *inc, int *ncon, int *nconp1, 
+   logical *philp1, logical *nowate, int *gc, int thread);
 
 extern "C"
-int init_(integer *s, integer *l, integer *nl,
-    integer *n, integer *nmax, integer *ndim, integer *
-   p, double *t, float *w, 
-   const double *alf, S_fp ada, integer *isel, double 
-   *a, double *b, double *kap, integer *inc, integer *ncon, integer *nconp1, 
-   logical *philp1, logical *nowate, integer *gc, integer *thread);
+int bacsub_(int ndim, int n, double *a, double *x);
+
 
 typedef struct {
    int* gc;
-   int* s;
-   int* l;
-   int* nl;
-   int* n;
-   int* nmax;
-   int* ndim;
-   int* p;
+   int s;
+   int l;
+   int nl;
+   int n;
+   int nmax;
+   int ndim;
+   int p;
    double *t;
    float *y;
    float *w;
    double *ws;
-   S_fp ada;
+   Tada ada;
    double *a;
    double *b;
-   int* thread;
+   int thread;
    double *alf; 
    double *beta;
    int *static_store;

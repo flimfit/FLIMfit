@@ -2,7 +2,7 @@
 #include "IRFConvolution.h"
 #include <xmmintrin.h>
 
-int FLIMGlobalFitController::check_alf_mod(int thread, double* new_alf)
+int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf)
 {
    double *cur_alf = this->cur_alf + thread * nl;
 
@@ -398,7 +398,7 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
 
 }
 
-int FLIMGlobalFitController::beta_derivatives(int thread, double tau[], double alf[], double theta[], double ref_lifetime, double b[])
+int FLIMGlobalFitController::beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[])
 {
    int n_meas_res = data->GetResampleNumMeas(thread);
    

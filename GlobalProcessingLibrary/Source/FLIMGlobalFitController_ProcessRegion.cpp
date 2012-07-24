@@ -68,7 +68,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (memory_map_results)
    {
-      int nr = data->n_regions_total;  // * (n_px * (l+1) + nl) * sizeof(double);
+      int nr = data->n_regions_total; 
       std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(double);
       std::size_t alf_offset  = (nr * n_px + r_idx * nl             ) * sizeof(double);
       std::size_t lin_offset  = (nr * (n_px + nl) + r_idx * l * n_px) * sizeof(double);
@@ -190,25 +190,25 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (use_global_binning)
    {
-      lmvarp( &s1, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
-            t, ma_decay, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+      lmvarp( s1, l, nl, n_meas_res, nmax, ndim, p, 
+            t, ma_decay, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
             alf_local, lin_local, &ierr_local_binning, status->iter+thread, status->chi2+thread, &(status->terminate) );
    }
    else
    {
       if (algorithm == ALG_ML)
-         lmmle( &nl, &l, &n_meas_res, &nmax, &ndim, &p, 
-                  t, y, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+         lmmle( nl, l, n_meas_res, nmax, ndim, p, 
+                  t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
                   alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
       else
-         lmvarp( &s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, 
-                  t, y, w, ws, (U_fp)ada, a, b, c, &itmax, (int*) this, (int*) &thread, static_store, 
+         lmvarp( s_thresh, l, nl, n_meas_res, nmax, ndim, p, 
+                  t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
                   alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
       
    }
 
-   lmvarp_getlin(&s_thresh, &l, &nl, &n_meas_res, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, 
-                            (int*) this, &thread, static_store, alf_local, lin_params);
+   lmvarp_getlin(s_thresh, l, nl, n_meas_res, nmax, ndim, p, t, y, w, ws, ada, a, b, c, 
+                            (int*) this, thread, static_store, alf_local, lin_params);
    CalculateChi2(s_thresh, n_meas_res, y, a, lin_params, adjust_buf, fit_buf, chi2);
 
    for(int i=0; i<nl; i++)

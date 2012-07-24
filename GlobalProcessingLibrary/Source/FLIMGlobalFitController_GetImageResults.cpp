@@ -498,7 +498,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             ws[0] = 1;
             #endif
 
-            lmvarp_getlin(&s1, &l, &nl, &n_meas, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group + idx*nl, lin_params);
+            lmvarp_getlin(s1, l, nl, n_meas, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group + idx*nl, lin_params);
 
             GetPixelFit(a,lin_params,adjust,n_meas,fit+n_meas*i);
          }
@@ -550,7 +550,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          #endif
 
 
-         lmvarp_getlin(&sr, &l, &nl, &n, &nmax, &ndim, &p, t, y, w, ws, (S_fp) ada, a, b, c, (int*) this, &thread, static_store, alf_group, lin_params);
+         lmvarp_getlin(sr, l, nl, n, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group, lin_params);
 
          #pragma omp parallel for
          for(int i=0; i<sr; i++)
@@ -635,7 +635,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
    int pp3 = p+3;
     
    int inc[96];
-   int isel = 1;
+   int *isel = 1;
    int thread = 0;
 
    double *a = 0, *b = 0, *kap;
@@ -672,7 +672,7 @@ int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n
          {
 
             r_idx = data->GetRegionIndex(group,r);
-            ada(&s,&lp1,&nl,(int*)&n_meas,&nmax,(int*)&n_meas,&p,at,bt,NULL,inc,t,alf+r_idx*nl,&isel,(int*)this, &thread);
+            ada(&s,&lp1,&nl,(int*)&n_meas,&nmax,(int*)&n_meas,&p,at,bt,NULL,inc,t,alf+r_idx*nl,&*isel,(int*)this, &thread);
 
             px_thresh = 0;
             for(int k=0; k<n_px; k++)

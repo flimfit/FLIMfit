@@ -48,7 +48,7 @@
 
 /* 
  * This function seeks the parameter vector p that best describes the measurements vector x.
- * More precisely, given a vector function  func : R^m --> R^n with n>=m,
+ * More prec*isely, given a vector function  func : R^m --> R^n with n>=m,
  * it finds p s.t. func(p) ~= x, i.e. the squared second order (i.e. L2) norm of
  * e=x-func(p) is minimized.
  *

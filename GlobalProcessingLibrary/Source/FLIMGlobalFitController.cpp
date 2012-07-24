@@ -812,7 +812,6 @@ int FLIMGlobalFitController::GetErrorCode()
 
 void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj)
 {
-   int idx;
    double scale_fact[2];
    scale_fact[0] = 1;
    scale_fact[1] = 0;

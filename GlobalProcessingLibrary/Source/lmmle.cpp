@@ -6,12 +6,10 @@
 #include <math.h>
 #include "util.h"
 
-
-int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, integer 
-   *p, double *t, float *y, 
-   float *w, double *ws, S_fp ada, double *a, double *b, double *c, 
-   integer *itmax, integer *gc, integer *thread, integer *static_store, 
-   double *alf, double *beta, integer *ierr, integer *niter, double *c2, integer *terminate)
+int lmmle(int nl, int l, int n, int nmax, int ndim, int p, double *t, float *y, 
+   float *w, double *ws, Tada ada, double *a, double *b, double *c, 
+   int itmax, int *gc, int thread, int *static_store, 
+   double *alf, double *beta, int *ierr, int *niter, double *c2, int *terminate)
 {
    varp_param vp;
 
@@ -19,7 +17,7 @@ int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, in
    int i0 = 0;
 
    vp.gc = gc;
-   vp.s = &i1;
+   vp.s = i1;
    vp.l = l;
    vp.nl = nl;
    vp.n = n;
@@ -46,10 +44,10 @@ int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, in
    int* inc = static_store + 5;
    
 
-   int nfunc = *n + 1; // +1 for kappa
-   int nvar = *nl;
+   int nfunc = n + 1; // +1 for kappa
+   int nvar = nl;
   
-   int csize = *nl * (6 + nfunc) + nfunc;
+   int csize = nl * (6 + nfunc) + nfunc;
       //fvec -> [nl]
    //fjac -> [nl * nfunc]
    //ipvt -> [nl]
@@ -91,7 +89,7 @@ int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, in
 
    int *ipvt = (int*) (dspace + dspace_idx);
 
-   for(int i=0; i<*nl; i++)
+   for(int i=0; i<nl; i++)
       diag[i] = 1;
 
 
@@ -112,11 +110,11 @@ int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, in
 
    double* dy = new double[nfunc];
    
-   for(int i=0; i<*n; i++)
+   for(int i=0; i<n; i++)
    {
       dy[i] = y[i];
    }
-   dy[*n] = 1;
+   dy[n] = 1;
    
    
     double* err = new double[nfunc];
@@ -125,7 +123,7 @@ int lmmle(integer * nl, integer *l, integer *n, integer *nmax, integer *ndim, in
     delete[] err;
    
     
-   dlevmar_der(mle_funcs, mle_jacb, alf, dy, nvar, nfunc, *itmax, NULL, info, NULL, NULL, vvp);
+   dlevmar_der(mle_funcs, mle_jacb, alf, dy, nvar, nfunc, itmax, NULL, info, NULL, NULL, vvp);
 
    delete[] dy;
 

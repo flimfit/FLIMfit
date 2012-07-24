@@ -59,7 +59,7 @@ double d_tau_d_alf(double tau, double tau_min, double tau_max)
    double diff = tau_max - tau_min;
    return invPI*diff/(alf*alf+1);
 }
-*/
+
 double beta2alf(double beta)
 {
    return beta; //log(beta);
@@ -74,7 +74,7 @@ double d_beta_d_alf(double beta)
 {
    return 1; //beta;
 }
-
+*/
 
 
 double kappa_spacer(double tau2, double tau1)
@@ -121,9 +121,9 @@ void updatestatus_(int* gc_int, int* thread, int* iter, double* chi2, int* termi
 
 
 /* ============================================================== */
-int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim, 
-        int *pp2, double *a, double *b, double *kap, int *inc, 
-        double *t, double *alf, int *isel, int *gc_int, int *thread)
+int ada(int s, int lp1, int nl, int n, int nmax, int ndim, 
+        int pp2, double *a, double *b, double *kap, int *inc, 
+        double *t, const double *alf, int *isel, int *gc_int, int thread)
 {   
    FILE* fx;
 
@@ -137,9 +137,9 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    
    double ref_lifetime;
 
-   int S    = *s;
-   int N    = *n;
-   int Ndim = *ndim;
+   int S    = s;
+   int N    = n;
+   int Ndim = ndim;
 
    
    double scale_fact[2];
@@ -151,12 +151,12 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
    int n_meas = N;
                                
-   double *exp_buf = gc->exp_buf + *thread * gc->n_decay_group * gc->exp_buf_size;
-   double *tau_buf = gc->tau_buf + *thread * gc->n_exp * (gc->n_fret + 1);
-   double *beta_buf = gc->beta_buf + *thread * gc->n_exp;
-   double *theta_buf = gc->theta_buf + *thread * gc->n_theta;
-   float  *w = gc->w + *thread * N;
-   float  *y = gc->y + *thread * N * (S+1);
+   double *exp_buf = gc->exp_buf + thread * gc->n_decay_group * gc->exp_buf_size;
+   double *tau_buf = gc->tau_buf + thread * gc->n_exp * (gc->n_fret + 1);
+   double *beta_buf = gc->beta_buf + thread * gc->n_exp;
+   double *theta_buf = gc->theta_buf + thread * gc->n_theta;
+   float  *w = gc->w + thread * N;
+   float  *y = gc->y + thread * N * (S+1);
 
    int locked_param = -1;//gc->locked_param[*thread];
    double locked_value = 0;//gc->locked_value[*thread];
@@ -175,7 +175,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
    total_n_exp = gc->n_exp * gc->n_decay_group;
         
 
-   int* resample_idx = gc->data->GetResampleIdx(*thread);
+   int* resample_idx = gc->data->GetResampleIdx(thread);
       
 
    switch(*isel)
@@ -331,7 +331,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          {
             for(i=0; i<N; i++)
                a[N*a_col+i]=0;
-            sample_irf(*thread, gc, a+N*a_col,gc->n_r,scale_fact);
+            sample_irf(thread, gc, a+N*a_col,gc->n_r,scale_fact);
             a_col++;
          }
 
@@ -355,8 +355,8 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
 
       case 2:
 
-         if (locked_param >= 0)
-            alf[locked_param] = locked_value;
+//         if (locked_param >= 0)
+//            alf[locked_param] = locked_value;
 
          a_col = (gc->fit_offset == FIT_LOCALLY) + (gc->fit_scatter == FIT_LOCALLY) + (gc->fit_tvb == FIT_LOCALLY);
          
@@ -405,10 +405,10 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          }
 
          // Precalculate exponentials
-         if (gc->check_alf_mod(*thread, alf))
-            gc->calculate_exponentials(*thread, tau_buf, theta_buf);
+         if (gc->check_alf_mod(thread, alf))
+            gc->calculate_exponentials(thread, tau_buf, theta_buf);
 
-         a_col += gc->flim_model(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
+         a_col += gc->flim_model(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, *isel == 1, a+a_col*N);
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
@@ -420,7 +420,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          // Add scatter
          if (gc->fit_scatter == FIT_GLOBALLY)
          {
-            sample_irf(*thread, gc, a+N*a_col,gc->n_r,scale_fact);
+            sample_irf(thread, gc, a+N*a_col,gc->n_r,scale_fact);
             for(i=0; i<N; i++)
                a[ i + N*a_col ] = a[ i + N*a_col ] * alf[gc->alf_scatter_idx];
          }
@@ -490,16 +490,16 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
       
          int col = 0;
          
-         col += gc->tau_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         col += gc->tau_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
          
          if (gc->fit_beta == FIT_GLOBALLY)
-            col += gc->beta_derivatives(*thread, tau_buf, alf+gc->alf_beta_idx, theta_buf, ref_lifetime, b+col*Ndim);
+            col += gc->beta_derivatives(thread, tau_buf, alf+gc->alf_beta_idx, theta_buf, ref_lifetime, b+col*Ndim);
          
-         col += gc->E_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
-         col += gc->theta_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         col += gc->E_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+         col += gc->theta_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
 
          if (gc->ref_reconvolution == FIT_GLOBALLY)
-            col += gc->ref_lifetime_derivatives(*thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
+            col += gc->ref_lifetime_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*Ndim);
                   
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
@@ -543,7 +543,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          {
             for(i=0; i<N; i++)
                b[d_offset+i]=0;
-            sample_irf(*thread, gc, b+d_offset,gc->n_r,scale_fact);
+            sample_irf(thread, gc, b+d_offset,gc->n_r,scale_fact);
             d_offset += Ndim;
          }
 
@@ -569,7 +569,7 @@ int ada(int *s, int *lp1, int *nl, int *n, int *nmax, int *ndim,
          {
             double *kap_derv = kap+1;
 
-            for(i=0; i<*nl; i++)
+            for(i=0; i<nl; i++)
                kap_derv[i] = 0;
 
             for(i=0; i<gc->n_v; i++)
