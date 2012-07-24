@@ -55,7 +55,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     lim(1) = 0;
                 end
                 
-                lim(2) = prctile(flt,99.5);
+                lim(2) = round(prctile(flt,99.5));
                 
                 intensity = (intensity - lim(1))/(lim(2)-lim(1));
                 mask = intensity < 0;
@@ -84,12 +84,9 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
 
                 bar_pos = [pos(1)+pos(3) pos(2) 7 pos(4)];
 
-                
                 cmap = gray(256);
                 a = (256:-1:1)';
                 a = ind2rgb(a,cmap);
-                
-                
                 
                 parent = get(ax,'Parent');
                 if isempty(obj.colorbar_axes)

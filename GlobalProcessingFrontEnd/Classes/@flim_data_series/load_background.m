@@ -32,8 +32,8 @@ function load_background(obj, background_file)
     kernel1 = ones([extent 1]) / extent;
     kernel2 = ones([1 extent]) / extent;
     
-    filtered = conv2(im,kernel1,'same');                
-    im = conv2(filtered,kernel2,'same'); 
+    filtered = conv2nan(im,kernel1,'same');                
+    im = conv2nan(filtered,kernel2,'same'); 
 
     
     if any(size(im) ~= [obj.height obj.width])

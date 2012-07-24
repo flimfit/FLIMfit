@@ -30,12 +30,15 @@ function new_folders = get_folders_recursive(root_path)
                 subfolder_name = strcat([folders{1} filesep], subfolder_name);
                 folders = [folders subfolder_name'];
             end
+        else
+            new_folders{end+1} = folders{1};
         end
-            if length(folders)>1
-                folders = folders(2:end);
-            else
-                folders = [];
-            end
+        
+        if length(folders)>1
+            folders = folders(2:end);
+        else
+            folders = [];
+        end
 
     end
 end
