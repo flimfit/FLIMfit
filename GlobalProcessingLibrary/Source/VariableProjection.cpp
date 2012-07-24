@@ -1,5 +1,6 @@
 #include "ModelADA.h"
 #include "VariableProjection.h"
+#include "cminpack.h"
 
 //#define USE_W
 
@@ -68,8 +69,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
 
 
     /* System generated locals */
-    integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, r_dim1, 
-    r_offset, y_dim1, y_offset, i__1, i__2;
+    integer a_dim1, b_dim1, t_dim1, r_dim1, y_dim1, i__1, i__2;
     double d__1;
     double rn;
 
@@ -84,17 +84,13 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
 
     integer* inc = static_store + 5;
 
-
-
     /* Local variables */
     integer j, k;
     integer kp1;
-    integer lsp1;
     double beta, acum;
-    integer lnls, lnls1;
+    integer lnls;
     double alpha;
-    extern /* Subroutine */ int bacsub_(integer *, integer *, double *, 
-       double *);
+
     integer lastca, lastcb;
     integer firstr, firstca, firstcb;
 
@@ -126,32 +122,12 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
 
 
     /* Parameter adjustments */
-   --u;
-   --alf;
    r_dim1 = *n;
-   r_offset = 1 + r_dim1;
-   r__ -= r_offset;
-   --w;
    y_dim1 = *nmax;
-   y_offset = 1 + y_dim1;
-   y -= y_offset;
    a_dim1 = *n;
-   a_offset = 1 + a_dim1;
-   a -= a_offset;
    b_dim1 = *ndim;
-   b_offset = 1 + b_dim1;
-   b -= b_offset;
-
-
    t_dim1 = *nmax;
-   t_offset = 1 + t_dim1;
-   t -= t_offset;
-
-
-
    lnls = *l + *nl + *s;
-   lnls1 = lnls + 1;
-   lsp1 = *l + *s + 1;
 
    int lps = *l+*s;
 
@@ -170,76 +146,75 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    if (*isel == 1)
    {
       lp1 = *l + 1;
-      firstca = 1;
+      firstca = 0;
       lastca = lps;
-      firstcb = 1;
-      lastcb = *p;
-      firstr = lp1;
-      init_(s, l, nl, n, nmax, ndim, p, &t[t_offset], &
-          w[1], &alf[1], (S_fp)ada, isel, &a[a_offset], &b[b_offset], kap, 
+      firstcb = 0;
+      firstr = *l;
+      init_(s, l, nl, n, nmax, ndim, p, t,
+          w, alf, (S_fp)ada, isel, a, b, kap, 
           inc, &ncon, &nconp1, &philp1, &nowate, gc, thread);
    }
    else
    {
       i__1 = min(*isel,3);
-      (*ada)(s, &lp1, nl, n, nmax, ndim, p, &a[a_offset], &b[
-          b_offset], kap, inc, &t[t_offset], &alf[1], &i__1, gc, thread);
+      (*ada)(s, &lp1, nl, n, nmax, ndim, p, a, b,
+           kap, inc, t, alf, &i__1, gc, thread);
 
       if (*isel > 2)
       {
-   /*                                                 ISEL = 3 OR 4 */
-         firstcb = 1;
-         lastcb = *p;
-         firstca = 0;
-         firstr = (4 - *isel) * *l + 1;
+         // isel = 3 or 4
+         firstcb = 0;
+         firstca = -1;
+         firstr = (4 - *isel) * *l;
       }
       else
       {
-      /*                                                 ISEL = 2 */
-         firstca = nconp1;
-         lastca = lps;
-         firstcb = 0;
+         // isel = 2
+         firstca = ncon;
+         firstcb = -1;
       }
    }
 
    if (*isel < 3)
    {
-   /*                                                  ISEL = 1 OR 2 */
+      // isel = 1 or 2
       if (!philp1)
       {
+         // Store the data in r__
          #pragma omp parallel for
-         for (j = 1; j <= *s; ++j)
-            for (int i = 1; i <= *n; ++i)
+         for (j = 0; j < *s; ++j)
+            for (int i = 0; i < *n; ++i)
                r__[i + j * r_dim1] = y[i + j * y_dim1];
       }
       else
       {
+         // Store the data in r__, subtracting the column l+1 which does not
+         // have a linear parameter
          #pragma omp parallel for
-         for(j=*s; j > 1; --j)
-            for(int i=1; i <= *n; ++i)
+         for(j=*s-1; j > 0; --j)
+            for(int i=0; i < *n; ++i)
                r__[i + j * r_dim1] = y[i + j * y_dim1] - r__[i + r_dim1];
         
-         for(int i=1; i <= *n; ++i)
+         for(int i=0; i < *n; ++i)
             r__[i + r_dim1] = y[i + y_dim1] - r__[i + r_dim1];
       }
    }
     
-/*                                             WEIGHT APPROPRIATE COLUMNS */
-   
+   // Weight columns
    if (!nowate)
    { 
    
-      if (firstca != 0)
+      if (firstca >= 0)
       {
          #pragma omp parallel for
-         for (j = firstca; j <= lastca; ++j)
-            for (int i = 1; i <= *n; ++i)
+         for (j = firstca; j < lps; ++j)
+            for (int i = 0; i < *n; ++i)
                a[i + j * a_dim1] *= w[i];
       }
-      if (firstcb != 0)
+      if (firstcb >= 0)
       {
-         for (j = firstcb; j <= lastcb; ++j)
-            for (int i = 1; i<= *n; ++i)
+         for (j = firstcb; j < *p; ++j)
+            for (int i = 0; i< *n; ++i)
                b[i + j * b_dim1] *= w[i];
       }
    }
@@ -259,13 +234,16 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    if (*l > 0)
    {
    
-      for (k = 1; k <= *l; ++k) 
+      // Compute orthogonal factorisations by householder reflection (phi)
+      for (k = 0; k < *l; ++k) 
       {
          kp1 = k + 1;
-         if (*isel <= 2 && !(*isel == 2 && k<nconp1)) // (!(*isel >= 3 || *isel == 2 && k < nconp1))
+
+         // If isel=1 or 2 reduce phi (first l columns of a) to upper triangular form
+         if (*isel <= 2 && !(*isel == 2 && k<ncon))
          {
-            i__2 = *n + 1 - k;
-            d__1 = xnorm_(&i__2, &a[k + k * a_dim1]);
+            i__2 = *n - k;
+            d__1 = enorm(i__2, &a[k + k * a_dim1]);
             alpha = d_sign(&d__1, &a[k + k * a_dim1]);
             u[k] = a[k + k * a_dim1] + alpha;
             a[k + k * a_dim1] = -alpha;
@@ -279,33 +257,60 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
 
          beta = -a[k + k * a_dim1] * u[k];
 
-         if (firstca != 0)
+         // Compute householder reflection of phi
+         if (firstca >= 0)
          {
-            for (j = firstca; j <= lastca; ++j)
+            for (j = firstca; j < *l; ++j)
             {
                acum = u[k] * a[k + j * a_dim1];
 
-               for (int i = kp1; i <= *n; ++i) 
+               for (int i = kp1; i < *n; ++i) 
                   acum += a[i + k * a_dim1] * a[i + j * a_dim1];
                acum /= beta;
 
                a[k + j * a_dim1] -= u[k] * acum;
-               for (int i = kp1; i <= *n; ++i) 
+               for (int i = kp1; i < *n; ++i) 
                   a[i + j * a_dim1] -= a[i + k * a_dim1] * acum;
             }
          }
 
-         if (firstcb != 0) 
+      }
+
+      for (k = 0; k < *l; ++k) 
+      {
+         kp1 = k + 1;
+
+         beta = -a[k + k * a_dim1] * u[k];
+
+         // Transform Y, getting Q*Y=R 
+         if (firstca >= 0)
          {
-            for (j = firstcb; j <= lastcb; ++j)
+            for (j = *l; j < lps; ++j)
+            {
+               acum = u[k] * a[k + j * a_dim1];
+
+               for (int i = kp1; i < *n; ++i) 
+                  acum += a[i + k * a_dim1] * a[i + j * a_dim1];
+               acum /= beta;
+
+               a[k + j * a_dim1] -= u[k] * acum;
+               for (int i = kp1; i < *n; ++i) 
+                  a[i + j * a_dim1] -= a[i + k * a_dim1] * acum;
+            }
+         }
+
+         // Transform J=D(phi)
+         if (firstcb >= 0) 
+         {
+            for (j = firstcb; j < *p; ++j)
             {
                acum = u[k] * b[k + j * b_dim1];
-               for (int i = kp1; i <= *n; ++i) 
+               for (int i = k; i < *n; ++i) 
                   acum += a[i + k * a_dim1] * b[i + j * b_dim1];
                acum /= beta;
 
                b[k + j * b_dim1] -= u[k] * acum;
-               for (int i = kp1; i <= *n; ++i) 
+               for (int i = k; i < *n; ++i) 
                   b[i + j * b_dim1] -= a[i + k * a_dim1] * acum;
             }
          }
@@ -320,16 +325,12 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       rn = 0;
 
       #pragma omp parallel for reduction(+: rn) private(d__1,i__2)  
-      for (j = 1; j <= *s; ++j) 
+      for (j = 0; j < *s; ++j) 
       {
          i__2 = *n - *l;
          /* Computing 2nd power */
-         d__1 = xnorm_(&i__2, &r__[lp1 + j * r_dim1]);
-         
-         #ifdef USE_W
-         d__1 *= ws[j-1];
-         #endif
-         
+         d__1 = enorm(i__2, &r__[*l + j * r_dim1]);
+                  
          rn += d__1 * d__1;
       }
       rn += kap[0] * kap[0];
@@ -346,8 +347,8 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
       if (*l != 0)
       {   
          #pragma omp parallel for
-         for (j = 1; j <= *s; ++j) 
-            bacsub_(n, l, &a[a_offset], &r__[j * r_dim1 + 1]);
+         for (j = 0; j < *s; ++j) 
+            bacsub_(n, l, a, &r__[j * r_dim1]);
       }
 
       /*           MAJOR PART OF KAUFMAN'S SIMPLIFICATION OCCURS HERE.  COMPUTE */
@@ -374,6 +375,11 @@ L99:
     return iflag;
 } /* dpa_ */
 
+
+
+
+
+
 void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon, 
               int nconp1, int* inc, double* b, double *kap, double *ws, double* r__, int d_idx, double* res, double* derv)
 {
@@ -396,38 +402,38 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon,
 
    d_idx--;
    
-   int i = d_idx % (*n-*l) + 1 + *l;
-   int isback = d_idx / (*n-*l) + 1;
+   int i = d_idx % (*n-*l) + *l; //+ 1;
+   int isback = d_idx / (*n-*l); // + 1;
 
 
-   int is = *s - isback + 1;
-   int isub = (*n - *l) * (is - 1) + i;
+   int is = *s - isback - 1;
+   //int isub = (*n - *l) * is + i;
    
    if (*l != ncon) 
    {
       m = 0;
-      for (k = 1; k <= *nl; ++k)
+      for (k = 0; k < *nl; ++k)
       {
          acum = (float)0.;
-         for (j = nconp1; j <= *l; ++j) 
+         for (j = ncon; j < *l; ++j) 
          {
-            if (inc[k + j * 12 - 13] != 0) 
+            if (inc[k + j * 12] != 0) 
             {
-               ++m;
                acum += b[i + m * b_dim1] * r__[j + is * r_dim1];
+               ++m;
             }
          }
          ksub = lps + k;
-         if (inc[k + lp1 * 12 - 13] != 0)
+         if (inc[k + *l * 12] != 0)
          {   
-            ++m;
             acum += b[i + m * b_dim1];
+            ++m;
          }
 
          #ifdef USE_W
-         derv[k-1] = -acum * ws[is];
+         derv[k] = -acum * ws[is];
          #else
-         derv[k-1] = -acum;
+          derv[k] = -acum;
          #endif
 
       }
@@ -441,62 +447,6 @@ void jacb_row(int *s, int *l, int *n, int *ndim, int *nl, int lp1, int ncon,
 
 
 /*     ============================================================== */
-double xnorm_(integer *n, double *x)
-{
-    /* System generated locals */
-    double ret_val, d__1;
-
-    /* Builtin functions */
-    double sqrt(double);
-
-    /* Local variables */
-    //integer i__;
-    double sum, rmax, term;
-
-/*     ============================================================== */
-
-/*        COMPUTE THE L2 (EUCLIDEAN) NORM OF A VECTOR, MAKING SURE TO */
-/*        AVOID UNNECESSARY UNDERFLOWS.  NO ATTEMPT IS MADE TO SUPPRESS */
-/*        OVERFLOWS. */
-
-
-/*           FIND LARGEST (IN ABSOLUTE VALUE) ELEMENT */
-    /* Parameter adjustments */
-   --x;
-
-    /* Function Body */
-   rmax = 0.0;
-   //#pragma omp parallel for private(d__1)
-   for (int i = 1; i <= *n; ++i)
-   {
-      d__1 = fabs(x[i]);
-      //#pragma omp critical
-      {
-      if (d__1  > rmax) 
-         rmax = d__1;
-      }
-   }
-
-   sum = 0.0;
-   if (rmax != 0.0) 
-   {
-      //#pragma omp parallel for reduction(+:sum) private(term)
-      for (int i = 1; i <= *n; ++i) 
-      {
-         term = 0.0;
-         if (rmax + (d__1 = x[i], fabs(d__1)) != rmax) 
-            term = x[i] / rmax;
-         sum += term * term;
-      }
-   }
-
-    ret_val = rmax * sqrt(sum);
-    return ret_val;
-} /* xnorm_ */
-
-
-
-/*     ============================================================== */
 /* Subroutine */ int init_(integer *s, integer *l, integer *nl,
     integer *n, integer *nmax, integer *ndim, integer *
    p, double *t, float *w, 
@@ -504,14 +454,14 @@ double xnorm_(integer *n, double *x)
    *a, double *b, double *kap, integer *inc, integer *ncon, integer *nconp1, 
    logical *philp1, logical *nowate, integer *gc, integer *thread)
 {
-    /* System generated locals */
-    integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__2;
+   /* System generated locals */
+   integer a_dim1, a_offset, b_dim1, b_offset, t_dim1, t_offset, i__2;
 
-    /* Builtin functions */
-    double sqrt(double);
+   /* Builtin functions */
+   double sqrt(double);
 
-    /* Local variables */
-    integer ncon_buf__, i__, j, k, nconp1_buf__, lp1, lnls1, inckj, philp1_buf__;
+   /* Local variables */
+   integer ncon_buf__, i__, j, k, nconp1_buf__, lp1, lnls1, inckj, philp1_buf__;
 
 /*     ============================================================== */
 
@@ -520,49 +470,41 @@ double xnorm_(integer *n, double *x)
 /*     .................................................................. */
 
 
-    /* Parameter adjustments */
-    --alf;
-    --w;
-    a_dim1 = *n;
-    a_offset = 1 + a_dim1;
-    a -= a_offset;
-    b_dim1 = *ndim;
-    b_offset = 1 + b_dim1;
-    b -= b_offset;
-    t_dim1 = *nmax;
-    t_offset = 1 + t_dim1;
-    t -= t_offset;
-    inc -= 13;
+   /* Parameter adjustments */
+   --alf;
+   --w;
+   a_dim1 = *n;
+   a_offset = 1 + a_dim1;
+   a -= a_offset;
+   b_dim1 = *ndim;
+   b_offset = 1 + b_dim1;
+   b -= b_offset;
+   t_dim1 = *nmax;
+   t_offset = 1 + t_dim1;
+   t -= t_offset;
+   inc -= 13;
 
-    /* Function Body */
-    lp1 = *l + 1;
-    lnls1 = *l + *s + *nl + 1;
-    nconp1_buf__ = 0;
+   /* Function Body */
+   lp1 = *l + 1;
+   lnls1 = *l + *s + *nl + 1;
+   nconp1_buf__ = 0;
 
 /*     NOWATE = .TRUE. */
-    *nowate = FALSE_;
-   nconp1_buf__ = lp1;
-   ncon_buf__ = *l;
-   philp1_buf__ = *l == 0;
+   *nowate = FALSE_;
+  nconp1_buf__ = lp1;
+  ncon_buf__ = *l;
+  philp1_buf__ = *l == 0;
 
 
 /*                                          CHECK FOR VALID INPUT */
-    if (*l >= 0 && *nl >= 0 && (
-       *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim &&
-        ! (*nl == 0 && *l == 0) && * // && *s * *n - (*s - 1) * *l <= *ndim // *s * *l + *nl < *s * *n &&
-       s > 0) {
-   goto L3;
-    }
-    *isel = -4;
-    goto L99;
+   if (!(*l >= 0 && *nl >= 0 && (
+      *nl << 1) + 3 <= *ndim && *n <= *nmax && *n <= *ndim &&
+       ! (*nl == 0 && *l == 0) && *s > 0)) 
+   {
+      *isel = -4;
+      goto L99;
+   }
 
-/*    1 IF (L .EQ. 0 .OR. NL .EQ. 0) GO TO 3 */
-/*         DO 2 J = 1, LP1 */
-/*            DO 2 K = 1, NL */
-/*    2          INC(K, J) = 0 */
-
-
-L3:
     (*ada)(s, &lp1, nl, n, nmax, ndim, p, &a[a_offset], &b[
        b_offset], kap, &inc[13], &t[t_offset], &alf[1], isel, gc, thread);
 
@@ -570,18 +512,17 @@ L3:
    {
       if (w[i__] < (float)0.) 
       {
-         /*                                                ERROR IN WEIGHTS */
          *isel = -6;
          goto L99;
       }
       w[i__] = sqrt(w[i__]);
    }
 
-/*     PHILP1 = .TRUE. */
    if (*l == 0 || *nl == 0) 
    {
       goto L99;
    }
+
 /*                                   CHECK INC MATRIX FOR VALID INPUT AND */
 /*                                   DETERMINE NUMBER OF CONSTANT FCNS. */
    p = 0;
@@ -602,20 +543,21 @@ L3:
 
 /*                                 DETERMINE IF PHI(L+1) IS IN THE MODEL. */
 L20:
-    i__2 = *nl;
-    for (k = 1; k <= i__2; ++k) {
-/* L25: */
-   if (inc[k + lp1 * 12] == 1) {
-       philp1_buf__ = TRUE_;
+   i__2 = *nl;
+   for (k = 1; k <= *nl; ++k) 
+   {
+      if (inc[k + lp1 * 12] == 1) 
+      {
+         philp1_buf__ = TRUE_;
+      }
    }
-    }
 
 L99:
-    ncon_buf__ = nconp1_buf__ - 1;
-    *ncon = ncon_buf__;
-    *nconp1 = nconp1_buf__;
-    *philp1 = philp1_buf__;
-    return 0;
+   ncon_buf__ = nconp1_buf__ - 1;
+   *ncon = ncon_buf__;
+   *nconp1 = nconp1_buf__;
+   *philp1 = philp1_buf__;
+   return 0;
 /* L210: */
 } /* init_ */
 
