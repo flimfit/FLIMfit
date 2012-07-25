@@ -389,8 +389,14 @@ void FLIMGlobalFitController::Init()
 
    int a_n_irf = ceil(n_irf / 2.0) * 2;
    int irf_size = a_n_irf * n_chan * n_irf_rep;
-   irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
-   t_irf_buf = (double*) _aligned_malloc(a_n_irf*sizeof(double), 16);
+   #ifdef _WINDOWS
+      irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
+      t_irf_buf = (double*) _aligned_malloc(a_n_irf*sizeof(double), 16);
+   #else
+      irf_buf  = new double[irf_size]; 
+      t_irf_buf  = new double[a_n_irf]; 
+   #endif
+      
 
    for(int j=0; j<n_irf_rep; j++)
    {
@@ -558,7 +564,11 @@ void FLIMGlobalFitController::Init()
       ws           = new double[ n_thread * s ];
       #endif
 
-      exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
+      #ifdef _WINDOWS
+         exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
+       #else
+         exp_buf      =  new double[n_thread * n_decay_group ];
+       #endif
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
       beta_buf     = new double[ n_thread * n_exp ]; //free ok
@@ -599,7 +609,13 @@ void FLIMGlobalFitController::Init()
          char z;
 
          // Create an empty file (logically, doesn't actually write the whole file)
+         
+   #ifdef _WINDOWS
          result_map_filename = _tempnam( "c:\\tmp", "GPTEMP_" );
+   #else
+         result_map_filename = tempnam( "c:\\tmp", "GPTEMP_" );
+   #endif
+         
          if (result_map_filename == NULL)
             throw -1010;
 
@@ -607,7 +623,13 @@ void FLIMGlobalFitController::Init()
          if (f == NULL)
             throw -1010;
 
+           
+   #ifdef _WINDOWS
          _fseeki64(f,total_sz,0);
+   #else
+         fseek(f,total_sz,0);
+   #endif
+         
          fwrite(&z,1,1,f);
          fclose(f);
 
@@ -931,6 +953,8 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(alf);
       ClearVariable(lin_params);
 
+   #ifdef _WINDOWS
+   
       if (exp_buf != NULL)
       {
          _aligned_free(exp_buf);
@@ -946,6 +970,26 @@ void FLIMGlobalFitController::CleanupResults()
          _aligned_free(t_irf_buf);
          t_irf_buf = NULL;
       }
+   
+   #else
+   
+      if (exp_buf != NULL)
+      {
+         delete []exp_buf;
+         exp_buf = NULL;
+      }
+      if (irf_buf != NULL)
+      {
+         delete []irf_buf;
+         irf_buf = NULL;
+      }
+      if (t_irf_buf != NULL)
+      {
+         delete []t_irf_buf;
+         t_irf_buf = NULL;
+      }
+   
+   #endif
 
       ClearVariable(c);
       ClearVariable(irf_max);

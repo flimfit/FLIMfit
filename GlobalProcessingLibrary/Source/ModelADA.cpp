@@ -131,6 +131,9 @@ int ada(int s, int lp1, int nl, int n, int nmax, int ndim,
 
    if (gc == NULL)
       return -1;
+   
+   if (kap == (double*) 0x100000000)
+      kap = NULL;
 
    int i,j,k, d_offset, total_n_exp, idx;
    int a_col, inc_row, inc_col, n_exp_col, cur_col;
