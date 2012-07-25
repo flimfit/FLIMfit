@@ -12,6 +12,11 @@ extern "C"
 int varproj(void *pa, int nls, int nsls1, const double *alf, double *rnorm, double *fjrow, int iflag);
 
 extern "C"
+void jacb_row(int s, int l, int n, int ndim, int nl, int lp1, int ncon, 
+              int nconp1, int* inc, double* b, double *kap, double *ws, double* r__, int d_idx, double* res, double* derv);
+
+
+extern "C"
 int mle(void *pa, int nfunc, int nl, const double *alf, double *fvec, double *fjac, int ldfjac, int iflag);
 
 extern "C"
@@ -34,6 +39,7 @@ int lmmle(int nl, int l, int n, int nmax, int ndim, int p, double *t, float *y,
 int lmvarp_getlin(int s, int l, int nl, int n, int nmax, int ndim, int p, double *t, float *y, 
    float *w, double *ws, Tada ada, double *a, double *b, double *c,
    int *gc, int thread, int *static_store, double *alf, double *beta);
+   
 
 
 extern "C"
