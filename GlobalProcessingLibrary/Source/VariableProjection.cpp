@@ -24,10 +24,6 @@ static integer c__3 = 3;
 // u   -> beta
 // r__ -> &a[lp1 * a_dim1 + 1]
 
-void jacb_row(int s, int l, int n, int ndim, int nl, int lp1, int ncon, 
-              int nconp1, int* inc, double* b, double *kap, double *ws, double* r__, int d_idx, double* res, double* derv);
-
-
 
 int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag)
 {
@@ -63,7 +59,8 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    int *static_store = vp->static_store;
    Tada ada = vp->ada;
 
-   int *isel;
+   int isels;
+   int* isel = &isels;
    int d_idx = -1;
 
 
@@ -231,7 +228,6 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
 
    if (l > 0)
    {
-   
       // Compute orthogonal factorisations by householder reflection (phi)
       for (k = 0; k < l; ++k) 
       {
@@ -368,7 +364,7 @@ int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, doub
    }
 
 L99:
-   if (*isel < 0)
+   if (isel < 0)
       iflag = *isel;
     return iflag;
 } /* dpa_ */
@@ -487,7 +483,7 @@ void jacb_row(int s, int l, int n, int ndim, int nl, int lp1, int ncon,
    nconp1_buf__ = 0;
 
 /*     NOWATE = .TRUE. */
-   nowate = FALSE_;
+   *nowate = FALSE_;
    nconp1_buf__ = lp1;
    ncon_buf__ = l;
    philp1_buf__ = l == 0;
