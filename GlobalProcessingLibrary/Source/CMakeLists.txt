@@ -40,6 +40,7 @@ set(SOURCE
    FLIMGlobalFitController_Model.cpp
    FLIMData.cpp
    VariableProjection.cpp
+   VariableProjector.cpp
    MaximumLikelihood.cpp
    lmvarp.cpp
    lmmle.cpp
@@ -59,6 +60,7 @@ set(HEADERS
    FLIMGlobalFitController.h
    FLIMData.h
    ModelADA.h
+   VariableProjector.h
    VariableProjection.h
    tinythread.h
    FlagDefinitions.h

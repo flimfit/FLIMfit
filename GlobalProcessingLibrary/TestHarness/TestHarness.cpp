@@ -1,6 +1,8 @@
 #include <iostream>
-#include "FLIMGlobalAnalysis.h"
+#include <string>
 #include "Windows.h"
+
+#include "FLIMGlobalAnalysis.h"
 
 using namespace std;
 
@@ -22,19 +24,33 @@ int main()
    int id = FLIMGlobalGetUniqueID();
 
    double tau_guess = 2000;
+   float tau_est = 0;
    int ierr;
 
    int e;
+   char buf[1000];
    
-   OutputDebugString("===================================================\n");
-   OutputDebugString("[*] Setting Fit Parameters\n");
-   e=SetupGlobalFit(id, 0, 0, 3, t_irf, irf, 0, 1, 0, &tau_min, &tau_max, 1, &tau_guess, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0, 1e-6/80.0, 0, 0, 0, &ierr, 1, 0, 0, NULL);
-   OutputDebugString("[*] Setting Data Parameters\n");
-   e=SetDataParams(id, 1, 1, 1, 1, 11, t, t_int, &t_skip, 11, 0, &use_im, NULL, 0, 1000, 0, 0, 0);
-   OutputDebugString("[*] Setting Data\n");
-   e=SetDataFloat(id, y);
-   OutputDebugString("[*] Starting Fit\n");
-   e=StartFit(id);
+   for(int i=0; i<2; i++)
+   {
+
+      OutputDebugString("===================================================\n");
+      OutputDebugString("[*] Setting Fit Parameters\n");
+      e=SetupGlobalFit(id, 0, 0, 3, t_irf, irf, 0, 1, 0, &tau_min, &tau_max, 1, &tau_guess, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0, 1e-6/80.0, 0, 0, 0, &ierr, 1, 0, 0, NULL);
+      OutputDebugString("[*] Setting Data Parameters\n");
+      e=SetDataParams(id, 1, 1, 1, 1, 11, t, t_int, &t_skip, 11, 0, &use_im, NULL, 0, 1000, 0, 0, 0);
+      OutputDebugString("[*] Setting Data\n");
+      e=SetDataFloat(id, y);
+      OutputDebugString("[*] Starting Fit\n");
+      e=StartFit(id);
+      OutputDebugString("[*] Getting Results\n");
+      e=GetResults(id, 0, NULL, NULL, &tau_est, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+   
+      sprintf(buf,"    |  Tau: %f\n    | ierr: %d\n",tau_est,ierr);
+   
+      OutputDebugString(buf);
+      
+   }
+
    OutputDebugString("===================================================\n");
    return 0;
 

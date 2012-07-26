@@ -15,15 +15,17 @@
 #include <stdio.h>
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
+
+#include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+
+#include "VariableProjector.h"
 
 #include "FlagDefinitions.h"
 
 typedef double* DoublePtr;  
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
-
-
 #define _CRTDBG_MAPALLOC
 
 
@@ -254,6 +256,8 @@ private:
    double* t_irf_buf;
 
    int memory_map_results;
+
+   boost::ptr_vector<VariableProjector> projectors;
 };
 
 class ErrMinParams

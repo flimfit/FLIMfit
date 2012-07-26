@@ -428,6 +428,7 @@ void FLIMGlobalFitController::Init()
    //---------------------------------------
    n_thread = min(n_thread,data->n_regions_total);
   
+
    thread_handle = new tthread::thread*[ n_thread ];
    for(int i=0; i<n_thread; i++)
       thread_handle[i] = NULL;
@@ -635,6 +636,18 @@ void FLIMGlobalFitController::Init()
    CalculateIRFMax(n_t,t);
    CalculateResampledIRF(n_t,t);
    ma_start = DetermineMAStartPosition(0);
+
+   int terminate;
+
+   // Create fitting objects
+   //projectors.reserve(n_thread);
+   /*
+   for(int i=0; i<n_thread; i++)
+   {
+      projectors.push_back(
+         new VariableProjector(&ada,(int*)this,s_max,l,nl,nmax,ndim,p,t) );
+   }
+   */
 
 
 
@@ -966,7 +979,6 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(y);
       ClearVariable(w);
       ClearVariable(ws);
-      
       
       if (result_map_filename != NULL)
       {

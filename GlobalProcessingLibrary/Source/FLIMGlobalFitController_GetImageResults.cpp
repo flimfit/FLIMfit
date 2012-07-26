@@ -232,8 +232,9 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
    uint8_t *im_mask = data->mask + im*n_px;  
    
-   for(int i=0; i<n_px; i++)
-      ret_mask[i] = im_mask[i];
+   if (ret_mask)
+      for(int i=0; i<n_px; i++)
+         ret_mask[i] = im_mask[i];
 
 
    int iml = data->GetImLoc(im);
