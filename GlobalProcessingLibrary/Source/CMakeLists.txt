@@ -123,5 +123,7 @@ target_link_libraries(${LIB_NAME} levmar)
 #===================================================
 set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
 
-
+set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
+set( FGP_LIB ${LIB_NAME} CACHE STRING "Include dir for GlobalProcessing." FORCE )
+set( FGP_LIB_DIR ${OUT_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
 

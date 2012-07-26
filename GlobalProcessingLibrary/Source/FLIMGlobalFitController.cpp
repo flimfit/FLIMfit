@@ -824,7 +824,11 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    sample_irf(thread, this, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
-      adjust[i] = adjust[i] * scatter_adj + tvb_profile[i] * tvb_adj + offset_adj;
+      adjust[i] = adjust[i] * scatter_adj + offset_adj;
+
+   if (tvb_profile != NULL)
+      for(int i=0; i<n_meas; i++)
+         adjust[i] += tvb_profile[i] * tvb_adj;
 
 /*
    idx = 0;
