@@ -1,10 +1,18 @@
 #include <iostream>
 #include <string>
-#include "Windows.h"
-
-#include "FLIMGlobalAnalysis.h"
 
 using namespace std;
+
+#ifdef _WINDOWS
+   #include "Windows.h"
+#else
+   void OutputDebugString(string s)
+   {
+      std::cout << s;
+   }
+#endif
+#include "FLIMGlobalAnalysis.h"
+
 
 int main()
 {
