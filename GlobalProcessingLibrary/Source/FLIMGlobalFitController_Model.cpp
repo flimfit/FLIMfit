@@ -1,6 +1,7 @@
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
 #include <xmmintrin.h>
+#include <cfloat>
 
 int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf)
 {

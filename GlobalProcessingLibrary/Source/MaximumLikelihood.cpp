@@ -1,6 +1,8 @@
 #include "ModelADA.h"
 #include "VariableProjection.h"
 
+#include <string.h>
+
 #ifndef NO_OMP   
 #include <omp.h>
 #endif

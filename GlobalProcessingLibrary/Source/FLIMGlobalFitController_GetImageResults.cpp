@@ -188,8 +188,10 @@ double FLIMGlobalFitController::CalculateChi2(int s, int n_meas_res, float y[], 
 
          if ( yj == 0 )
             wj = 1;
-         else
+         else  {
+            double debug = fabs(yj);
             wj = 1/abs(yj);
+         }
 
          fit_buf[j] = (ft - y[i*n_meas_res + j] ) ;
          fit_buf[j] *= fit_buf[j] * data->smoothing_area * wj;  // account for averaging while smoothing
