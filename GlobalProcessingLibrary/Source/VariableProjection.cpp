@@ -380,6 +380,19 @@ void jacb_row(int s, int l, int n, int ndim, int nl, int lp1, int ncon,
    int m, k, j, ksub, b_dim1, r_dim1;
    double acum;
 
+      /*           MAJOR PART OF KAUFMAN'S SIMPLIFICATION OCCURS HERE.  COMPUTE */
+      /*           THE DERIVATIVE OF ETA WITH RESPECT TO THE NONLINEAR */
+      /*           PARAMETERS */
+
+      /*   T   D ETA        T    L          D PHI(J)    D PHI(L+1) */
+      /*  Q * --------  =  Q * (SUM BETA(J) --------  + ----------)  =  F2*BETA */
+      /*      D ALF(K)          J=1         D ALF(K)     D ALF(K) */
+
+      /*           AND STORE THE RESULT IN COLUMNS L+S+1 TO L+NL+S.  THE */
+      /*           FIRST L ROWS ARE OMITTED.  THIS IS -D(Q2)*Y.  THE RESIDUAL */
+      /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
+      /*           L+NL+S+1. */
+
    b_dim1 = ndim;
    r_dim1 = n;
 
@@ -396,12 +409,11 @@ void jacb_row(int s, int l, int n, int ndim, int nl, int lp1, int ncon,
 
    d_idx--;
    
-   int i = d_idx % (n-l) + l; //+ 1;
-   int isback = d_idx / (n-l); // + 1;
+   int i = d_idx % (n-l) + l;
+   int isback = d_idx / (n-l); 
 
 
    int is = s - isback - 1;
-   //int isub = (n - l) * is + i;
    
    if (l != ncon) 
    {

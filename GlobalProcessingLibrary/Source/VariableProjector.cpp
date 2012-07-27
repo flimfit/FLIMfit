@@ -14,8 +14,8 @@
 
 
 
-VariableProjector::VariableProjector(Tada ada, int* gc, int smax, int l, int nl, int nmax, int ndim, int p, double *t) : 
-   ada(ada), gc(gc), smax(smax), l(l), nl(nl), nmax(nmax), p(p), t(t)
+VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t) : 
+    model(model), smax(smax), l(l), nl(nl), nmax(nmax), ndim(ndim), p(p), t(t)
 {
 
    // Set up buffers for levmar algorithm
@@ -44,6 +44,10 @@ VariableProjector::VariableProjector(Tada ada, int* gc, int smax, int l, int nl,
    kap = new double[ nl + 1 ];
 
    lp1 = l+1;
+
+   r__ = a + l * n;
+
+   Init();
    
 }
 
@@ -68,7 +72,7 @@ VariableProjector::~VariableProjector()
 
 int VariableProjector::Init()
 {
-   int j, k, inckj;
+   int j, k, inckj, p_inc;
 
    // Check for valid input
    //----------------------------------
@@ -78,7 +82,6 @@ int VariableProjector::Init()
           && (nl<<1) + 3 <= ndim
           &&           n <  nmax
           &&           n <  ndim
-          &&           s >  0
           && !(nl == 0 && l == 0)))
    {
       return INVALID_INPUT;
@@ -94,45 +97,58 @@ int VariableProjector::Init()
 
    if ( l > 0 && nl > 0 )
    {
-      //model->GetIncMatrix(inc);
+      model->SetupIncMatrix(inc);
 
-      p = 0;
+      p_inc = 0;
       for (j = 0; j < lp1; ++j) 
       {
-         if (p == 0) 
-            nconp1 = j;
-         for (k = 1; k <= nl; ++k) 
+         if (p_inc == 0) 
+            nconp1 = j + 1;
+         for (k = 0; k < nl; ++k) 
          {
             inckj = inc[k + j * 12];
             if (inckj != 0 && inckj != 1)
                break;
             if (inckj == 1)
-               p++;
+               p_inc++;
          }
       }
 
       // Determine if column L+1 is in the model
       //---------------------------------------------
       philp1 = false;
-      for (k = 1; k <= nl; ++k) 
+      for (k = 0; k < nl; ++k) 
          philp1 = philp1 | (inc[k + lp1 * 12] == 1); 
    }
+
+   if (p_inc != p)
+      return INVALID_INPUT;
 
    ncon = nconp1 - 1;
 
    return 0;
 }
 
-
-int VariableProjector::Fit(int s, int n, float* y, float *w, double *alf, double *lin_params, int thread, int itmax, int& niter, int &ierr, double& c2)
+int callback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag)
 {
+   VariableProjector *vp = (VariableProjector*) p;
+   return vp->varproj(m, n, x, fnorm, fjrow, iflag);
+}
+
+
+int VariableProjector::Fit(int s, int n, float* y, float *w, double *alf, double *lin_params, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
+{
+
+   this->n = n;
+   this->s = s;
+   this->y = y;
+   this->w = w;
+   this->chi2_factor = chi2_factor;
 
    int lnls1 = l + s + nl + 1;
    int lp1   = l + 1;
    int nsls1 = n * s - l * (s - 1);
    
-   this->y = y;
-   this->w = w;
 
    this->thread = thread;
 
@@ -145,12 +161,7 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, double *alf, double
 
    int nfev, info;
 
-   // Bind the member variable 
-   boost::function<int(void*, int, int, const double*, double*, double*, int)> varproj_ref;
-   varproj_ref = boost::bind(&VariableProjector::varproj, this, _1, _2, _3, _4, _5, _6, _7);
-   minpack_funcderstx_mn target = *varproj_ref.target<minpack_funcderstx_mn>();
-
-   info = lmstx(target, NULL, nsls1, nl, alf, fjac, nl,
+   info = lmstx(callback, (void*) this, nsls1, nl, alf, fjac, nl,
                  ftol, xtol, gtol, itmax, diag, 1, factor, -1,
                  &nfev, &niter, &c2, ipvt, qtf, wa1, wa2, wa3, wa4 );
 
@@ -170,7 +181,7 @@ double VariableProjector::d_sign(double *a, double *b)
    return( *b >= 0 ? x : -x);
 }
 
-int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag)
+int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag)
 {
    int j, k, kp1, i__1, i__2;
    int lastca, firstca, firstcb, firstr;
@@ -183,8 +194,8 @@ int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, 
 
    double *r__  = a + l * n;
 
-   if (terminate)
-      return -9;
+//   if (terminate)
+//      return -9;
 
    // Matrix dimensions
    int r_dim1 = n;
@@ -231,7 +242,8 @@ int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, 
    {
       d_idx = isel - 3;
       
-      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, NULL, r__, d_idx, rnorm, fjrow);
+      jacb_row(s, kap, r__, d_idx, rnorm, fjrow);
+//      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, NULL, r__, d_idx, rnorm, fjrow);
       return iflag;
    }
 
@@ -243,16 +255,13 @@ int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, 
       firstcb = 0;
       firstr = l;
       i__1 = 1;
-      (*ada)(s, lp1, nl, n, nmax, ndim, p, a, b, kap, inc, t, alf, &i__1, gc, thread);
-/*
-      init_(s, l, nl, n, nmax, ndim, p, t,
-          w, alf, ada, isel, a, b, kap, 
-          inc, &ncon, &nconp1, &philp1, &nowate, gc, thread); */
+            
+      model->ada(a, b, kap, alf, 1, thread);
    }
    else
    {
       i__1 = min(isel,3);
-      (*ada)(s, lp1, nl, n, nmax, ndim, p, a, b, kap, inc, t, alf, &i__1, gc, thread);
+      model->ada(a, b, kap, alf, i__1, thread);
 
       if (isel > 2)
       {
@@ -416,13 +425,11 @@ int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, 
       *rnorm = 0.0;
       rn = 0;
 
-      #pragma omp parallel for reduction(+: rn) private(d__1,i__2)  
+      int nml = n-l;
+      #pragma omp parallel for reduction(+: rn) private(d__1)  
       for (j = 0; j < s; ++j) 
       {
-         i__2 = n - l;
-         /* Computing 2nd power */
-         d__1 = enorm(i__2, &r__[l + j * r_dim1]);
-                  
+         d__1 = enorm(nml, &r__[l + j * r_dim1]);
          rn += d__1 * d__1;
       }
       rn += kap[0] * kap[0];
@@ -443,6 +450,23 @@ int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, 
             bacsub_(n, l, a, &r__[j * r_dim1]);
       }
 
+      jacb_row(s, kap, r__, 0, rnorm, fjrow);
+      
+   }
+
+L99:
+   if (isel < 0)
+      iflag = isel;
+    return iflag;
+}
+
+
+
+void VariableProjector::jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv)
+{
+   int m, k, j, ksub, b_dim1, r_dim1;
+   double acum;
+
       /*           MAJOR PART OF KAUFMAN'S SIMPLIFICATION OCCURS HERE.  COMPUTE */
       /*           THE DERIVATIVE OF ETA WITH RESPECT TO THE NONLINEAR */
       /*           PARAMETERS */
@@ -456,42 +480,126 @@ int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, 
       /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
       /*           L+NL+S+1. */
 
-      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, NULL, r__, 0, rnorm, fjrow);
+   b_dim1 = ndim;
+   r_dim1 = n;
 
-      
+   int lps = l+s;
+   int nml = n-l;
+   
+   if (d_idx == 0)
+   {
+      *res = kap[0];
+
+      for(j=0; j<nl; j++)
+         derv[j] = kap[j+1];
+      return;
    }
 
-L99:
-   if (isel < 0)
-      iflag = isel;
-    return iflag;
+   d_idx--;
+   
+   int i = d_idx % nml + l;
+   int isback = d_idx / nml; 
+   int is = s - isback - 1;
+   
+   if (l != ncon) 
+   {
+      m = 0;
+      for (k = 0; k < nl; ++k)
+      {
+         acum = (float)0.;
+         for (j = ncon; j < l; ++j) 
+         {
+            if (inc[k + j * 12] != 0) 
+            {
+               acum += b[i + m * b_dim1] * r__[j + is * r_dim1];
+               ++m;
+            }
+         }
+
+         ksub = lps + k;
+         
+         if (inc[k + l * 12] != 0)
+         {   
+            acum += b[i + m * b_dim1];
+            ++m;
+         }
+
+         derv[k] = -acum;
+
+      }
+   }
+   *res = r__[i+is*r_dim1];
 }
 
 
-/*
-int lmvarp_getlin(int s, int l, int nl, int n, int nmax, int ndim, int p, double *t, float *y, 
-   float *w, double *ws, Tada ada, double *a, double *b, double *c,
-   integer *gc, int thread, integer *static_store, 
-   double *alf, double *beta)
-*/
-int VariableProjector::GetLinearParams(int s, double* alf, double* beta, int thread)
+
+
+int VariableProjector::GetLinearParams(int s, float* y, double* alf, double* beta, double* chi2)
 {
    int lnls1 = l + s + nl + 1;
-   int lp1 = l + 1;
    int nsls1 = n * s - l * (s - 1);
+
+   double *r__  = a + l * n;
 
    this->y = y;
    this->thread = thread;
 
-   varproj(NULL, nsls1, nl, alf, wa1, wa2, 0);
-   varproj(NULL, nsls1, nl, alf, wa1, wa2, 2);
-       
-   int ierr = 0;
-   postpr_(s, l, nl, n, nmax, ndim, lnls1, p, alf, w, a, b, &a[l * n], beta, &ierr);
+   varproj(nsls1, nl, alf, wa1, wa2, 0);
+   varproj(nsls1, nl, alf, wa1, wa2, 2);
+   
+   double chi2_norm = chi2_factor / (n - ((double)nl)/s - l);
 
-   int c__2 = 1;
-   (*ada)(s, lp1, nl, n, nmax, ndim, p, a, b, 0, inc, t, alf, &c__2, gc, thread);
+   int nml = n-l;
+   #pragma omp parallel for  
+   for (int j = 0; j < s; ++j)
+   { 
+      chi2[j] = enorm(nml, &r__[l + j * n]); 
+      chi2[j] *= chi2[j] * chi2_factor;
+   }
+
+   int ierr = 0;
+   postpr_(s, l, nl, n, nmax, ndim, lnls1, p, alf, w, a, b, r__, beta, &ierr);
 
    return 0;
+}
+
+
+
+
+int VariableProjector::GetFit(int s, float* y, double* alf, float* adjust, double* fit)
+{
+   int lnls1 = l + s + nl + 1;
+   int nsls1 = n * s - l * (s - 1);
+
+   this->y = y;
+   
+   double *r__  = a + l * n;
+
+   double* lin_params = new double[ s * l ];
+
+
+   varproj(nsls1, nl, alf, wa1, wa2, 0);
+   varproj(nsls1, nl, alf, wa1, wa2, 2);
+
+   int ierr = 0;
+   postpr_(s, l, nl, n, nmax, ndim, lnls1, p, alf, w, a, b, r__, lin_params, &ierr);
+
+   int idx = 0;
+   for(int j=0; j<s; j++)
+   {
+      for(int i=0; i<n; i++)
+      {
+         fit[idx] = adjust[i];
+         for(int j=0; j<l; j++)
+            fit[idx] += a[n*j+i] * lin_params[j];
+
+         fit[idx++] += a[n*l+i];
+      }
+   }
+
+   delete[] lin_params;
+
+   return 0;
+
 }
 

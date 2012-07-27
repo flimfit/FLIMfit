@@ -38,6 +38,7 @@ set(SOURCE
    FLIMGlobalFitController_ProcessRegion.cpp
    FLIMGlobalFitController_GetImageResults.cpp
    FLIMGlobalFitController_Model.cpp
+   FLIMGlobalFitController_ADA.cpp
    FLIMData.cpp
    VariableProjection.cpp
    VariableProjector.cpp

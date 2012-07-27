@@ -498,13 +498,10 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
           
             data->GetRegionData(thread, n_px*iml+idx, 1, adjust_buf, y, w, ma_decay);
             
-            #ifdef USE_W
-            ws[0] = 1;
-            #endif
+            projectors[0].GetFit(1, y, alf_group + idx*nl, adjust_buf, fit+n_meas*i);
 
-            lmvarp_getlin(s1, l, nl, n_meas, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group + idx*nl, lin_params);
-
-            GetPixelFit(a,lin_params,adjust,n_meas,fit+n_meas*i);
+//            lmvarp_getlin(s1, l, nl, n_meas, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group + idx*nl, lin_params);
+//            GetPixelFit(a,lin_params,adjust,n_meas,fit+n_meas*i);
          }
       }
 
@@ -554,7 +551,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          #endif
 
 
-         lmvarp_getlin(sr, l, nl, n, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group, lin_params);
+//         lmvarp_getlin(sr, l, nl, n, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group, lin_params);
 
          #pragma omp parallel for
          for(int i=0; i<sr; i++)

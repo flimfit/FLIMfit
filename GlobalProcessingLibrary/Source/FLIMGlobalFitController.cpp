@@ -53,16 +53,16 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    status = new FitStatus(this,n_thread,NULL); //ok
 
    alf          = NULL;
-   a            = NULL;
-   b            = NULL;
-   c            = NULL;
+   //a            = NULL;
+   //b            = NULL;
+   //c            = NULL;
    cur_alf      = NULL;
 
    y            = NULL;
    lin_params   = NULL;
 
    w            = NULL;
-   ws           = NULL;
+   //ws           = NULL;
 
    irf_buf      = NULL;
    t_irf_buf    = NULL;
@@ -550,9 +550,9 @@ void FLIMGlobalFitController::Init()
       }
 
       alf_local    = new double[ n_thread * nl ]; //free ok
-      a            = new double[ n_thread * n * lps ]; //free ok
-      b            = new double[ n_thread * ndim * pp3 ]; //free ok
-      c            = new double[ n_thread * csize ]; // free ok
+//      a            = new double[ n_thread * n * lps ]; //free ok
+//      b            = new double[ n_thread * ndim * pp3 ]; //free ok
+//      c            = new double[ n_thread * csize ]; // free ok
 
       y            = new float[ n_thread * s * n_meas ]; //free ok 
       ma_decay     = new float[ n_thread * n_meas ]; //ok
@@ -662,14 +662,13 @@ void FLIMGlobalFitController::Init()
    int terminate;
 
    // Create fitting objects
-   //projectors.reserve(n_thread);
-   /*
+   projectors.reserve(n_thread);
+   
    for(int i=0; i<n_thread; i++)
    {
       projectors.push_back(
-         new VariableProjector(&ada,(int*)this,s_max,l,nl,nmax,ndim,p,t) );
+         new VariableProjector(this,s_max,l,nl,nmax,ndim,p,t) );
    }
-   */
 
 
 
@@ -856,7 +855,7 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
 
-   sample_irf(thread, this, adjust, n_r, scale_fact);
+   sample_irf(thread, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + offset_adj;
@@ -943,7 +942,7 @@ void FLIMGlobalFitController::CleanupTempVars()
 {
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
-   ClearVariable(a);
+//   ClearVariable(a);
    ClearVariable(y);
 
    //result_map_view = mapped_region();
@@ -1008,7 +1007,7 @@ void FLIMGlobalFitController::CleanupResults()
    
    #endif
 
-      ClearVariable(c);
+//      ClearVariable(c);
       ClearVariable(irf_max);
       ClearVariable(resampled_irf);
       ClearVariable(fit_buf);
@@ -1019,10 +1018,10 @@ void FLIMGlobalFitController::CleanupResults()
       //ClearVariable(alf_err);
       ClearVariable(ma_decay);
 
-      ClearVariable(b);
+//      ClearVariable(b);
       ClearVariable(y);
       ClearVariable(w);
-      ClearVariable(ws);
+//      ClearVariable(ws);
       
       if (result_map_filename != NULL)
       {

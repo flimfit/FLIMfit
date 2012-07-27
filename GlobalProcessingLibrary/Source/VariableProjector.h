@@ -3,27 +3,36 @@
 
 #include "VariableProjection.h"
 
+class FitModel
+{
+   public: 
+      virtual void SetupIncMatrix(int* inc) = 0;
+      virtual int ada(double *a, double *b, double *kap, const double *alf, int isel, int thread) = 0;
+};
+
+
 class VariableProjector
 {
 
 public:
-   VariableProjector(Tada ada, int* gc, int smax, int l, int nl, int nmax, int ndim, int p, double *t);
+   VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t);
    ~VariableProjector();
 
-   int Fit(int s, int n, float* y, float *w, double *alf, double *lin_params, int thread, int itmax, int& niter, int &ierr, double& c2);
-
+   int Fit(int s, int n, float* y, float *w, double *alf, double *lin_params, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   
+   int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);
+   int GetLinearParams(int s, float* y, double* alf, double* beta, double* chi2);
+   int GetFit(int s, float* y, double* alf, float* adjust, double* fit);
 
 private:
 
    int Init();
    
-   int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);
-   int GetLinearParams(int s, double* alf, double* beta, int thread);
+   void jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv);
 
    double d_sign(double *a, double *b);
 
-   Tada ada;
-   int* gc;
+   FitModel* model;
 
    // Buffers used by levmar algorithm
    double *fjac;
@@ -42,6 +51,7 @@ private:
    double *b;
    double *u;
    double *kap;
+   double *r__;
 
    int     n;
    int     s;
@@ -60,6 +70,7 @@ private:
    double *t;
 
    int thread;
+   double chi2_factor;
 
 };
 

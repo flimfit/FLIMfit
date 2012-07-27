@@ -76,7 +76,6 @@ double d_beta_d_alf(double beta)
 }
 */
 
-
 double kappa_spacer(double tau2, double tau1)
 {
    double diff_max = 30;

@@ -40,9 +40,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int pp3 = p+3;
 
    uint8_t *mask         = data->mask + g*n_px;
-   double  *a            = this->a + thread * n * lps;
-   double  *b            = this->b + thread * ndim * pp3;
-   double  *c            = this->c + thread * csize;
+//   double  *a            = this->a + thread * n * lps;
+//   double  *b            = this->b + thread * ndim * pp3;
+//   double  *c            = this->c + thread * csize;
    float   *y            = this->y + thread * s * n_meas;
    float   *ma_decay     = this->ma_decay + thread * n_meas;
    double  *lin_params   = this->lin_params + r_idx * n_px * l;
@@ -101,6 +101,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    }
    #endif
 
+   for(i=0; i<n_meas; i++)
+      w[i] = sqrt(w[i]);
+
+
    SetNaN(alf, nl);
    SetNaN(lin_params, n_px*l);
    SetNaN(chi2, n_px );
@@ -119,7 +123,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    {
       tau_ma = CalculateMeanArrivalTime(ma_decay, pi);
       
-      //tau_ma = 2000;
+      //tau_ma = 4000;
 
       if (n_v == 1)
       {
@@ -190,27 +194,35 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (use_global_binning)
    {
+      projectors[thread].Fit(s1, n, ma_decay, w, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+/*
       lmvarp( s1, l, nl, n_meas_res, nmax, ndim, p, 
             t, ma_decay, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
             alf_local, lin_local, &ierr_local_binning, status->iter+thread, status->chi2+thread, &(status->terminate) );
+            */
    }
    else
    {
       if (algorithm == ALG_ML)
-         lmmle( nl, l, n_meas_res, nmax, ndim, p, 
+         l = l;
+/*         lmmle( nl, l, n_meas_res, nmax, ndim, p, 
                   t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
-                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
+                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );*/
       else
-         lmvarp( s_thresh, l, nl, n_meas_res, nmax, ndim, p, 
+         /*lmvarp( s_thresh, l, nl, n_meas_res, nmax, ndim, p, 
                   t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
-                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );
+                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );*/
+                  projectors[thread].Fit(s, n, y, w, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
       
    }
-
+   /*
    lmvarp_getlin(s_thresh, l, nl, n_meas_res, nmax, ndim, p, t, y, w, ws, ada, a, b, c, 
                             (int*) this, thread, static_store, alf_local, lin_params);
-   CalculateChi2(s_thresh, n_meas_res, y, a, lin_params, adjust_buf, fit_buf, chi2);
+*/
+   projectors[thread].GetLinearParams(s, y, alf_local, lin_params, chi2);
 
+   //CalculateChi2(s_thresh, n_meas_res, y, a, lin_params, adjust_buf, fit_buf, chi2);
+   
    for(int i=0; i<nl; i++)
       alf[i] = alf_local[i];
 

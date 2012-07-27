@@ -31,7 +31,7 @@ typedef double* DoublePtr;
 
 class ErrMinParams;
 
-class WorkerParams
+class WorkerParams 
 {
 public:
    WorkerParams(FLIMGlobalFitController* controller, int thread) : 
@@ -57,7 +57,7 @@ public:
 
 class FLIMGlobalFitController;
 
-class FLIMGlobalFitController
+class FLIMGlobalFitController : public FitModel
 {
 public:
 
@@ -106,14 +106,16 @@ public:
 
    int max_dim, exp_dim;
 
-   integer static_store[1000];
+   //integer static_store[1000];
    
    bool use_kappa;
 
    integer s; integer l; integer nl; integer n; integer nmax; integer ndim; 
    integer p; integer lnls1; integer n_v; integer csize;
-   float *y; float *w; double *alf; double *a; double *b; double *c; double *lin_params; double *chi2;
+   float *y; float *w; double *alf; double *lin_params; double *chi2;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
+
+   //double *a; double *b; double *c;
 
    double *ws;
 
@@ -204,10 +206,19 @@ public:
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
+   void sample_irf(int thread, float a[], int pol_group = 0, double* scale_fact = 0);
+   void sample_irf(int thread, double a[], int pol_group = 0, double* scale_fact = 0);
+
+
    int global_algorithm;
 
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;
+
+
+   void SetupIncMatrix(int* inc);
+   int ada(double *a, double *b, double *kap, const double *alf, int isel, int thread);
+
 
 
 private:

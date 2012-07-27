@@ -237,7 +237,7 @@ int FLIMData::CalculateRegions()
          {
             for(int j=0; j<n_t_full; j++)
             {
-               if (*ptr >= limit)
+               if (limit > 0 && *ptr >= limit)
                {
                   mask[im*n_ipx+p] = 0;
                   break;
