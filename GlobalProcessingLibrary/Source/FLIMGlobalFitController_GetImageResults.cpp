@@ -379,22 +379,6 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
 
 
-int FLIMGlobalFitController::GetPixelFit(double a[], double lin_params[], float adjust[], int n, double fit[])
-{
-   for(int i=0; i<n; i++)
-   {
-      fit[i] = adjust[i];
-      for(int j=0; j<l; j++)
-         fit[i] += a[n*j+i] * lin_params[j];
-
-      fit[i] += a[n*l+i];
-   }
-
-   return 0;
-}
-
-
-
 /*===============================================
   GetFit
   ===============================================*/
@@ -403,7 +387,6 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 {
    if (!status->HasFit())
       return ERR_FIT_IN_PROGRESS;
-
 
    int n_px = data->n_x * data->n_y;
 
@@ -414,11 +397,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    if (iml == -1)
       return 0;
    
-
    int thread = 0;
-
-   int s0 = 0;
-   int s1 = 1;
 
    int group;
    int r_idx, r_min, r_max;
@@ -454,18 +433,6 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
                           (fit_offset == FIX)  ? offset_guess  : 0, 
                           (fit_tvb == FIX )    ? tvb_guess     : 0);
 
-   
-   int s = n_px;
-   int lp1 = l+p+1;
-   int lps = l+s+1;
-   int pp3 = p+3;
-    
-   int isel = 1;
-
-   double *a, *lin_params;
-
-   a = new double[ n_meas * lps ]; //ok
-   lin_params = new double[ n_px*l ]; //ok
    y = new float[ n_meas * n_px ]; //ok
 
    SetNaN(fit,n_fit*n_meas);
@@ -500,8 +467,6 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             
             projectors[0].GetFit(1, y, alf_group + idx*nl, adjust_buf, fit+n_meas*i);
 
-//            lmvarp_getlin(s1, l, nl, n_meas, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group + idx*nl, lin_params);
-//            GetPixelFit(a,lin_params,adjust,n_meas,fit+n_meas*i);
          }
       }
 
@@ -538,24 +503,9 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          {
             alf_group = alf + nl * r_idx;
          }
-                  
-         #ifdef USE_W
-         #pragma omp parallel for
-         for(int i=0; i<sr; i++)
-         {
-            ws[i] = 0;
-            for(int j=0; j<n_meas; j++)
-               ws[i] += y[i*n_meas + j];
-            ws[i] = sqrt(1 / ws[i]);
-         }
-         #endif
 
+         projectors[0].GetFit(sr, y, alf_group + idx*nl, adjust_buf, fit+n_meas*idx);
 
-//         lmvarp_getlin(sr, l, nl, n, nmax, ndim, p, t, y, w, ws, (Tada) ada, a, b, c, (int*) this, thread, static_store, alf_group, lin_params);
-
-         #pragma omp parallel for
-         for(int i=0; i<sr; i++)
-            GetPixelFit(a,lin_params+i*l,adjust,n_meas,fit+n_meas*(idx+i));
 
          idx += sr;
 
@@ -564,9 +514,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    getting_fit = false;
 
-   ClearVariable(lin_params);
    ClearVariable(y);
-   ClearVariable(a);
    ClearVariable(irf_max);
    ClearVariable(resampled_irf);
    ClearVariable(resample_idx);
@@ -582,153 +530,3 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    return 0;
 
 }
-/*
-int FLIMGlobalFitController::GetFit(int ret_group_start, int n_ret_groups, int n_fit, int fit_mask[], int n_t, double t[], double fit[])
-{
-   int px_thresh, idx, r_idx, group, process_group;
-
-   if (!status->HasFit())
-      return ERR_FIT_IN_PROGRESS;
-   
-   return 0;
-
-   int n_t_buf = this->n_t;
-   double* t_buf = this->t;
-   
-   this->n_t = n_t;
-   this->n_meas = n_t*n_chan;
-   this->n = n_meas;
-   this->nmax = this->n_meas;
-   this->t = t;
-
-   int n_group = data->n_group;
-   int n_px = data->n_px;
-
-   getting_fit = true;
-
-   exp_dim = max(n_irf*n_chan,n_meas);
-   exp_buf_size = n_exp * exp_dim * n_pol_group * N_EXP_BUF_ROWS;
-
-   exp_buf       = new double[ n_decay_group * exp_buf_size ];
-   irf_max       = new int[ n_meas ];
-   resampled_irf = new double[ n_meas ];
-
-   int* resample_idx = new int[ n_t ];
-
-   for(int i=0; i<n_t-1; i++)
-      resample_idx[i] = 1;
-   resample_idx[n_t-1] = 0;
-
-   data->SetExternalResampleIdx(n_meas, resample_idx);
-
-   CalculateIRFMax(n_t,t);
-   CalculateResampledIRF(n_t,t);
-
-   double *adjust = new double[n_meas];
-   SetupAdjust(0, adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
-                          (fit_offset == FIX)  ? offset_guess  : 0, 
-                          (fit_tvb == FIX )    ? tvb_guess     : 0);
-
-   
-   int s = 1;
-   int lp1 = l+p+1;
-   int lps = l+s+1;
-   int pp3 = p+3;
-    
-   int inc[96];
-   int *isel = 1;
-   int thread = 0;
-
-   double *a = 0, *b = 0, *kap;
-
-   int ndim;
-   ndim   = max( n_meas, 2*nl+3 );
-   ndim   = max( ndim, s*n_meas - (s-1)*l );
-
-   double* at = new double[ n_meas * lps ];
-   double* bt = new double[ ndim * pp3 ];
-
-   kap = bt + ndim * (pp3-1);
-
-   SetNaN(fit,n_fit*n_meas);
-
-   idx = 0;
-
-   for (int g=0; g<n_ret_groups; g++)
-   {
-      group = ret_group_start + g;
-      for(int r=data->GetMinRegion(group); r<=data->GetMaxRegion(group); r++)
-      {
-         process_group = false;
-         for(int i=0; i<n_px; i++)
-         {
-            if (fit_mask[n_px*g+i] && data->mask[group*n_px+i] == r)
-            {
-               process_group = true;
-               break;
-            }
-         }
-
-         if (process_group)
-         {
-
-            r_idx = data->GetRegionIndex(group,r);
-            ada(&s,&lp1,&nl,(int*)&n_meas,&nmax,(int*)&n_meas,&p,at,bt,NULL,inc,t,alf+r_idx*nl,&*isel,(int*)this, &thread);
-
-            px_thresh = 0;
-            for(int k=0; k<n_px; k++)
-            {
-               if (fit_mask[n_px*g+k])
-               {
-         
-                  if (data->mask[group*n_px+k] == r)
-                  {
-                     for(int i=0; i<n_meas; i++)
-                     {
-                        fit[idx*n_meas + i] = adjust[i];
-                        for(int j=0; j<l; j++)
-                           fit[idx*n_meas + i] += at[n_meas*j+i] * lin_params[r_idx*n_px*l + l*px_thresh +j];
-
-                        fit[idx*n_meas + i] += at[n_meas*l+i];
-
-                        if (anscombe_tranform)
-                           fit[idx*n_meas + i] = inv_anscombe(fit[idx*n_meas + i]);
-                     }
-                     idx++;
-                     if (idx == n_fit)
-                        goto max_reached;
-                  }
-            
-               }
-
-               if (data->mask[group*n_px+k] == r)
-                  px_thresh++;
-
-            }
-         }
-      }
-   }
-
-max_reached:   
-
-   getting_fit = false;
-
-   ClearVariable(at);
-   ClearVariable(bt);
-   ClearVariable(exp_buf);
-   ClearVariable(irf_max);
-   ClearVariable(resampled_irf);
-   ClearVariable(resample_idx);
-
-   delete[] adjust;
-
-   this->n_t = n_t_buf;
-   this->n_meas = this->n_t * n_chan;
-   this->nmax = n_meas;
-   this->t = t_buf;
-   this->n = this->n_meas;
-   
-   return 0;
-
-}
-*/

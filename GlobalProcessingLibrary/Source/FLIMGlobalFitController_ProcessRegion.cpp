@@ -40,16 +40,12 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int pp3 = p+3;
 
    uint8_t *mask         = data->mask + g*n_px;
-//   double  *a            = this->a + thread * n * lps;
-//   double  *b            = this->b + thread * ndim * pp3;
-//   double  *c            = this->c + thread * csize;
    float   *y            = this->y + thread * s * n_meas;
    float   *ma_decay     = this->ma_decay + thread * n_meas;
    double  *lin_params   = this->lin_params + r_idx * n_px * l;
    double  *chi2         = this->chi2 + r_idx * n_px;
    double  *alf          = this->alf + r_idx * nl;
    float   *w            = this->w + thread * n;
-   double  *ws           = this->ws + thread * s;
    float   *adjust_buf   = this->adjust_buf + thread * n_meas;
    
    double  *beta_buf     = this->beta_buf + thread * n_exp;
@@ -91,19 +87,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    
    int n_meas_res = data->GetResampleNumMeas(thread);
 
-   #ifdef USE_W
-   for(int i=0; i<s_thresh; i++)
-   {
-      ws[i] = 0;
-      for(int j=0; j<n_meas_res; j++)
-         ws[i] += y[i*n_meas_res + j];
-      ws[i] = sqrt(1 / ws[i]);
-   }
-   #endif
-
    for(i=0; i<n_meas; i++)
       w[i] = sqrt(w[i]);
-
 
    SetNaN(alf, nl);
    SetNaN(lin_params, n_px*l);
@@ -215,13 +200,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   projectors[thread].Fit(s, n, y, w, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
       
    }
-   /*
-   lmvarp_getlin(s_thresh, l, nl, n_meas_res, nmax, ndim, p, t, y, w, ws, ada, a, b, c, 
-                            (int*) this, thread, static_store, alf_local, lin_params);
-*/
    projectors[thread].GetLinearParams(s, y, alf_local, lin_params, chi2);
-
-   //CalculateChi2(s_thresh, n_meas_res, y, a, lin_params, adjust_buf, fit_buf, chi2);
    
    for(int i=0; i<nl; i++)
       alf[i] = alf_local[i];

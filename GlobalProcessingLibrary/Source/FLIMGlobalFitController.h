@@ -106,23 +106,16 @@ public:
 
    int max_dim, exp_dim;
 
-   //integer static_store[1000];
-   
    bool use_kappa;
 
-   integer s; integer l; integer nl; integer n; integer nmax; integer ndim; 
-   integer p; integer lnls1; integer n_v; integer csize;
+   int s; int l; int nl; int n; int nmax; int ndim; 
+   int p; int n_v;
    float *y; float *w; double *alf; double *lin_params; double *chi2;
    integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
-
-   //double *a; double *b; double *c;
-
-   double *ws;
 
    bool beta_global;
    int n_beta;
 
-   int first_call;
    int runAsync;
    int init;
    bool has_fit;
@@ -161,10 +154,6 @@ public:
                            int pulsetrain_correction, double t_rep,
                            int ref_reconvolution, double ref_lifetime_guess, int algorithm,
                            int ierr[], int n_thread, int runAsync, int callback());
-
-
-//   void SetData(double data[], int data_type);
-//   int SetData(char* data_file, int data_type);
 
    void SetData(FLIMData* data);
 
@@ -236,14 +225,9 @@ private:
 
    void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
    
-   int GetPixelFit(double a[], double lin_params[], float adjust[], int n, double fit[]);
-
-
 
    int DetermineMAStartPosition(int p);
    double CalculateMeanArrivalTime(float decay[], int p);
-
-  // int SetResultsMapping(int im);
 
 
    int ma_start;

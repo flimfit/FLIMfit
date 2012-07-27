@@ -53,16 +53,12 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    status = new FitStatus(this,n_thread,NULL); //ok
 
    alf          = NULL;
-   //a            = NULL;
-   //b            = NULL;
-   //c            = NULL;
    cur_alf      = NULL;
 
    y            = NULL;
    lin_params   = NULL;
 
    w            = NULL;
-   //ws           = NULL;
 
    irf_buf      = NULL;
    t_irf_buf    = NULL;
@@ -524,18 +520,11 @@ void FLIMGlobalFitController::Init()
    ndim       = max( n, 2*nl+3 );
    nmax       = n;
    int lps    = l + s + 1;
-   int pp3    = p + 3;
-   lnls1      = l + nl + s + 1;
    
    if (algorithm == ALG_ML)
    {
       int nfunc = n+1;
-      csize = nl * (6 + nfunc) + nfunc * 2;
-   }
-   else
-   {
-      csize = max(1,nl);
-      csize = csize * (csize + 7);
+      //csize = nl * (6 + nfunc) + nfunc * 2;
    }
 
    exp_buf_size = n_exp * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
@@ -550,20 +539,12 @@ void FLIMGlobalFitController::Init()
       }
 
       alf_local    = new double[ n_thread * nl ]; //free ok
-//      a            = new double[ n_thread * n * lps ]; //free ok
-//      b            = new double[ n_thread * ndim * pp3 ]; //free ok
-//      c            = new double[ n_thread * csize ]; // free ok
-
       y            = new float[ n_thread * s * n_meas ]; //free ok 
       ma_decay     = new float[ n_thread * n_meas ]; //ok
       lin_local    = new double[ n_thread * l ]; //ok
       w            = new float[ n_thread * n ]; //free ok
 
       cur_alf      = new double[ n_thread * nl ]; //ok
-
-      #ifdef USE_W
-      ws           = new double[ n_thread * s ];
-      #endif
 
       #ifdef _WINDOWS
          exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
@@ -740,45 +721,6 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
 
 }
 
-/*
-int FLIMGlobalFitController::CreateResultsMapFile(int im)
-{
-   int n_px    = data->n_px;
-
-   try
-   {
-      
-      std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
-      char z;
-
-      // Create an empty file (logically, doesn't actually write the whole file)
-      result_map_filename = _tempnam( "c:\\tmp", "GPTEMP" );
-      if (result_map_filename == NULL)
-         throw -1010;
-
-      FILE* f = fopen(result_map_filename,"w+");
-      if (f == NULL)
-         throw -1010;
-
-      _fseeki64(f,total_sz,0);
-      fwrite(&z,1,1,f);
-      fclose(f);
-
-      result_map_file = file_mapping(result_map_filename,read_write);
-
-      result_map_view = mapped_region(result_map_file, read_write, 0, total_sz);
-      chi2 = (double*) result_map_view.get_address();
-      alf = chi2 + data->n_regions_total * n_px;
-      lin_params = alf + data->n_regions_total * nl;
-   }
-   catch(std::exception& e)
-   {
-      CleanupTempVars();
-      CleanupResults();
-      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
-   }
-}
-*/
 
 void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
 {
@@ -863,20 +805,6 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    if (tvb_profile != NULL)
       for(int i=0; i<n_meas; i++)
          adjust[i] += tvb_profile[i] * tvb_adj;
-
-/*
-   idx = 0;
-   for(int k=0; k<n_chan; k++)
-   {
-      for(int i=0; i<n_t; i++)
-      {
-         adjust[idx] += adjust[idx] * scatter_adj + tvb_profile[k*n_t+i] * tvb_adj + offset_adj;
-         idx += resample_idx[i];
-      }
-      idx++;
-   }
-   */
-
 }
 
 
@@ -942,11 +870,7 @@ void FLIMGlobalFitController::CleanupTempVars()
 {
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
-//   ClearVariable(a);
    ClearVariable(y);
-
-   //result_map_view = mapped_region();
-
 
 }
 
@@ -1007,7 +931,6 @@ void FLIMGlobalFitController::CleanupResults()
    
    #endif
 
-//      ClearVariable(c);
       ClearVariable(irf_max);
       ClearVariable(resampled_irf);
       ClearVariable(fit_buf);
@@ -1018,10 +941,8 @@ void FLIMGlobalFitController::CleanupResults()
       //ClearVariable(alf_err);
       ClearVariable(ma_decay);
 
-//      ClearVariable(b);
       ClearVariable(y);
       ClearVariable(w);
-//      ClearVariable(ws);
       
       if (result_map_filename != NULL)
       {

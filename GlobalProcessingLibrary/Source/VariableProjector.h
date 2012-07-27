@@ -20,14 +20,14 @@ public:
 
    int Fit(int s, int n, float* y, float *w, double *alf, double *lin_params, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
    
-   int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);
    int GetLinearParams(int s, float* y, double* alf, double* beta, double* chi2);
    int GetFit(int s, float* y, double* alf, float* adjust, double* fit);
 
 private:
 
    int Init();
-   
+
+   int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
    void jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv);
 
    double d_sign(double *a, double *b);
@@ -71,7 +71,10 @@ private:
 
    int thread;
    double chi2_factor;
+   double* cur_chi2;
 
+   friend int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag);
 };
+
 
 #endif

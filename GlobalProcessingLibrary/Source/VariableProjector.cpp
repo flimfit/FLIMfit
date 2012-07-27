@@ -70,6 +70,14 @@ VariableProjector::~VariableProjector()
    
 }
 
+
+int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag)
+{
+   VariableProjector *vp = (VariableProjector*) p;
+   return vp->varproj(m, n, x, fnorm, fjrow, iflag);
+}
+
+
 int VariableProjector::Init()
 {
    int j, k, inckj, p_inc;
@@ -129,12 +137,6 @@ int VariableProjector::Init()
    return 0;
 }
 
-int callback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag)
-{
-   VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, x, fnorm, fjrow, iflag);
-}
-
 
 int VariableProjector::Fit(int s, int n, float* y, float *w, double *alf, double *lin_params, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
 {
@@ -143,7 +145,8 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, double *alf, double
    this->s = s;
    this->y = y;
    this->w = w;
-   this->chi2_factor = chi2_factor;
+   this->cur_chi2 = &c2;
+   this->chi2_factor = chi2_factor / (n - ((double)nl)/s - l);
 
    int lnls1 = l + s + nl + 1;
    int lp1   = l + 1;
@@ -160,10 +163,11 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, double *alf, double
    int    maxfev = 100;
 
    int nfev, info;
+   double rnorm; 
 
-   info = lmstx(callback, (void*) this, nsls1, nl, alf, fjac, nl,
+   info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, alf, fjac, nl,
                  ftol, xtol, gtol, itmax, diag, 1, factor, -1,
-                 &nfev, &niter, &c2, ipvt, qtf, wa1, wa2, wa3, wa4 );
+                 &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
 
    if (info < 0)
       ierr = info;
@@ -243,7 +247,6 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       d_idx = isel - 3;
       
       jacb_row(s, kap, r__, d_idx, rnorm, fjrow);
-//      jacb_row(s, l, n, ndim, nl, lp1, ncon, nconp1, inc, b, kap, NULL, r__, d_idx, rnorm, fjrow);
       return iflag;
    }
 
@@ -432,6 +435,9 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
          d__1 = enorm(nml, &r__[l + j * r_dim1]);
          rn += d__1 * d__1;
       }
+
+      *cur_chi2 = rn * chi2_factor / s;
+
       rn += kap[0] * kap[0];
       *rnorm = sqrt(rn);
    
@@ -547,8 +553,6 @@ int VariableProjector::GetLinearParams(int s, float* y, double* alf, double* bet
    varproj(nsls1, nl, alf, wa1, wa2, 0);
    varproj(nsls1, nl, alf, wa1, wa2, 2);
    
-   double chi2_norm = chi2_factor / (n - ((double)nl)/s - l);
-
    int nml = n-l;
    #pragma omp parallel for  
    for (int j = 0; j < s; ++j)
@@ -577,21 +581,21 @@ int VariableProjector::GetFit(int s, float* y, double* alf, float* adjust, doubl
 
    double* lin_params = new double[ s * l ];
 
-
-   varproj(nsls1, nl, alf, wa1, wa2, 0);
    varproj(nsls1, nl, alf, wa1, wa2, 2);
 
    int ierr = 0;
    postpr_(s, l, nl, n, nmax, ndim, lnls1, p, alf, w, a, b, r__, lin_params, &ierr);
 
+   model->ada(a, b, kap, alf, 1, 0);
+
    int idx = 0;
-   for(int j=0; j<s; j++)
+   for(int k=0; k<s; k++)
    {
       for(int i=0; i<n; i++)
       {
          fit[idx] = adjust[i];
          for(int j=0; j<l; j++)
-            fit[idx] += a[n*j+i] * lin_params[j];
+            fit[idx] += a[n*j+i] * lin_params[j+k*l];
 
          fit[idx++] += a[n*l+i];
       }
