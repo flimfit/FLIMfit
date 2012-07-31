@@ -43,10 +43,8 @@ double alf2beta(double alf);
 double d_beta_d_alf(double beta);
 */
 
-
 double kappa_spacer(double tau2, double tau1);
 double kappa_lim(double tau);
-
 
 double kappa(double tau2, double tau1);
 double d_kappa_d_tau(double tau2, double tau1);

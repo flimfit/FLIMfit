@@ -116,14 +116,17 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
                 pol_disable_group = 'on';
                 pol_enable_group = 'off';
             end
-                
-            set(obj.controls.n_fret_popupmenu,'Enable',pol_disable_group);
-            set(obj.controls.n_fret_fix_popupmenu,'Enable',pol_disable_group);
             
+            if isfield(obj.controls,'n_fret_popupmenu')
+                set(obj.controls.n_fret_popupmenu,'Enable',pol_disable_group);
+                set(obj.controls.n_fret_fix_popupmenu,'Enable',pol_disable_group);
+            end
             
-            set(obj.controls.n_theta_popupmenu,'Enable',pol_enable_group);
-            set(obj.controls.n_theta_fix_popupmenu,'Enable',pol_enable_group);
-
+            if isfield(obj.controls,'n_theta_popupmenu')
+                set(obj.controls.n_theta_popupmenu,'Enable',pol_enable_group);
+                set(obj.controls.n_theta_fix_popupmenu,'Enable',pol_enable_group);
+            end
+            
         end
         
         
@@ -198,19 +201,21 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             end
             %}
             
-            if obj.fit_params.fit_beta ~= 1
-                set(obj.controls.n_fret_popupmenu,'Enable','on');
-                set(obj.controls.n_fret_fix_popupmenu,'Enable','on');
-                set(obj.controls.inc_donor_popupmenu,'Enable','on');
-            else
-                set(obj.fret_guess_table,'Data',[]);
-                
-                set(obj.controls.n_fret_popupmenu,'Value',1);
-                set(obj.controls.n_fret_popupmenu,'Enable','off');
-                set(obj.controls.n_fret_fix_popupmenu,'Enable','off');
-                set(obj.controls.inc_donor_popupmenu,'Enable','off');
+            if isfield(obj.controls,'n_fret_popupmenu')
+                if obj.fit_params.fit_beta ~= 1
+                    set(obj.controls.n_fret_popupmenu,'Enable','on');
+                    set(obj.controls.n_fret_fix_popupmenu,'Enable','on');
+                    set(obj.controls.inc_donor_popupmenu,'Enable','on');
+                else
+                    set(obj.fret_guess_table,'Data',[]);
+
+
+                    set(obj.controls.n_fret_popupmenu,'Value',1);
+                    set(obj.controls.n_fret_popupmenu,'Enable','off');
+                    set(obj.controls.n_fret_fix_popupmenu,'Enable','off');
+                    set(obj.controls.inc_donor_popupmenu,'Enable','off');
+                end
             end
-            
             notify(obj,'fit_params_update');
             
         end

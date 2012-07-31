@@ -284,7 +284,7 @@
             }
         }
         iflag = 2;
-        for (i = 0; i < m+1; ++i) { // need to get kappa as well (used as fudge to enforce constraints)
+        for (i = 0; i < m+1; ++i) {
             if ((*fcn)(p, m, n, x, &temp, wa3, iflag) < 0) {
                 goto TERMINATE;
             }

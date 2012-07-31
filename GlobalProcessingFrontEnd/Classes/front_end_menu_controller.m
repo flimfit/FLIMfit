@@ -77,6 +77,9 @@ classdef front_end_menu_controller < handle
         menu_test_test1;
         menu_test_unload_dll;
         
+        menu_help_bugs;
+        menu_help_tracker;
+        
         menu_batch_batch_fitting;
         
         data_series_controller;
@@ -625,6 +628,14 @@ classdef front_end_menu_controller < handle
             if filename ~= 0
                 obj.hist_controller.export_histogram_data([pathname filename]);
             end
+        end
+
+        function menu_help_tracker_callback(obj, ~, ~)
+            web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
+        end
+
+        function menu_help_bugs_callback(obj, ~, ~)
+            web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
         end
 
 

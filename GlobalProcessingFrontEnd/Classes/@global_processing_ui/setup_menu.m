@@ -101,4 +101,8 @@ function handles = setup_menu(obj,handles)
         handles.menu_test_unload_dll = uimenu(menu_test,'Label','Unload DLL','Accelerator','U');
     end
     
+    menu_help = uimenu(obj.window,'Label','Help');
+    handles.menu_help_tracker = uimenu(menu_help,'Label','Open Issue Tracker...');
+    handles.menu_help_bugs = uimenu(menu_help,'Label','File Bug Report...');
+    
 end

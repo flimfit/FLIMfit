@@ -106,7 +106,7 @@ typedef int (*minpack_funcderstx_mn)(void *p, int m, int n, const double *x, dou
 
 
 
-                                      
+
 
 /* MINPACK functions: */
 /* the info parameter was removed from most functions: the return */
