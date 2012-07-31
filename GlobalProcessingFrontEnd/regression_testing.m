@@ -28,8 +28,7 @@ function regression_testing(handles)
     overall_tests_passed = 0;
     overall_tests_failed = 0;
     
-    if computer('arch') ~= 'maci64'
-    
+    if ~strcmp(computer('arch'), 'maci64')
       m=memory; 
       m_start = m.MemUsedMATLAB;
     end
@@ -111,7 +110,7 @@ function regression_testing(handles)
     end
     
      
-      if computer('arch') ~= 'maci64'
+      if ~strcmp(computer('arch'), 'maci64')
          m=memory; 
          mem_dif(kk) = m.MemUsedMATLAB - m_start;
       end
