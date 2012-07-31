@@ -183,8 +183,8 @@ int VariableProjector::varproj(void *pa, int nsls1, int nls, const double *alf, 
 
    double *r__  = a + l * n;
 
-   if (terminate)
-      return -9;
+   //if (terminate)
+    //  return -9;
 
    // Matrix dimensions
    int r_dim1 = n;
