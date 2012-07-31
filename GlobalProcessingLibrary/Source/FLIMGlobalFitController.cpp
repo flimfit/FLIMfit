@@ -53,6 +53,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    status = new FitStatus(this,n_thread,NULL); //ok
 
    alf          = NULL;
+   chi2         = NULL;
    cur_alf      = NULL;
 
    y            = NULL;
@@ -722,8 +723,6 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
    delete status;
    delete[] params;
 
-   status = 0;
-
 }
 
 
@@ -920,6 +919,7 @@ void FLIMGlobalFitController::CleanupResults()
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
 
       init = false;
+
       ClearVariable(lin_local);
       ClearVariable(alf_local);
       ClearVariable(tau_buf);

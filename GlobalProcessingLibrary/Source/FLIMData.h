@@ -21,8 +21,8 @@ public:
    FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
             int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
 
-   void SetData(float data[]);
-   void SetData(uint16_t data[]);
+   int  SetData(float data[]);
+   int  SetData(uint16_t data[]);
    int  SetData(char* data_file, int data_class, int data_skip);
 
    template <typename T>

@@ -415,26 +415,29 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    getting_fit = true;
    
-   irf_max       = new int[ n_meas ]; //ok
+//   irf_max       = new int[ n_meas ]; //ok
+//   int* resample_idx = new int[ n_t ]; //ok
+
    //resampled_irf = new double[ n_meas ]; //ok
-   int* resample_idx = new int[ n_t ]; //ok
 
-   for(int i=0; i<n_t-1; i++)
-      resample_idx[i] = 1;
-   resample_idx[n_t-1] = 0;
+//   for(int i=0; i<n_t-1; i++)
+//      resample_idx[i] = 1;
+//  resample_idx[n_t-1] = 0;
 
-   data->SetExternalResampleIdx(n_meas, resample_idx);
+//   data->SetExternalResampleIdx(n_meas, resample_idx);
 
-   CalculateIRFMax(n_t,t);
+//   CalculateIRFMax(n_t,t);
    //CalculateResampledIRF(n_t,t);
+
+   float* y      = new float[ n_meas * n_px ]; //ok
+   int*   irf_idx = new int[ n_px ];
+
 
    float *adjust = new float[n_meas]; //ok
    SetupAdjust(0, adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
                           (fit_offset == FIX)  ? offset_guess  : 0, 
                           (fit_tvb == FIX )    ? tvb_guess     : 0);
 
-   y = new float[ n_meas * n_px ]; //ok
-   irf_idx = new int[ n_px ];
 
    SetNaN(fit,n_fit*n_meas);
 
@@ -517,11 +520,11 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    ClearVariable(irf_idx);
    ClearVariable(y);
-   ClearVariable(irf_max);
-   //ClearVariable(resampled_irf);
-   ClearVariable(resample_idx);
-
    ClearVariable(adjust);
+
+   //ClearVariable(irf_max);
+   //ClearVariable(resample_idx);
+   //ClearVariable(resampled_irf);
 
    this->n_t = n_t_buf;
    this->n_meas = this->n_t * n_chan;

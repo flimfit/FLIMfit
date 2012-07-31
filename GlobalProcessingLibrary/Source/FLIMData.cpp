@@ -180,26 +180,30 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
 
 }
 
-void FLIMData::SetData(float* data)
+int FLIMData::SetData(float* data)
 {
    this->data = (void*) data;
    data_mode = DATA_DIRECT;
    data_class = DATA_FLOAT;
    
-   CalculateRegions<float>();
+   int err = CalculateRegions<float>();
    
    has_data = true;
+
+   return err;
 }
 
-void FLIMData::SetData(uint16_t* data)
+int FLIMData::SetData(uint16_t* data)
 {
    this->data = (void*) data;
    data_mode = DATA_DIRECT;
    data_class = DATA_UINT16;
 
-   CalculateRegions<uint16_t>();
+   int err = CalculateRegions<uint16_t>();
    
    has_data = true;
+
+   return err;
 }
 
 

@@ -34,17 +34,18 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 # Make sure we output directly into binary folder
 #===================================================
-#set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
+set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
-#add_custom_command(TestHarness POST_BUILD "$(TargetDir)\$(TargetName).exe" --result_code=no --report_level=no)
+#get_target_property(EXE_LOCATION TestHarness LOCATION)
+#add_custom_command(TARGET TestHarness POST_BUILD COMMAND $<TARGET_FILE:TestHarness> ARGS --result_code=no --report_level=no --catch_system_errors=no)
 
 target_link_libraries(TestHarness ${FGP_LIB})
 
