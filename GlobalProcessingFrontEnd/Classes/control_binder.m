@@ -34,8 +34,9 @@ classdef control_binder < handle
         end
             
         function bind_control(obj,source,parameter,control_type)
-            if ~isempty(obj)
-                control_name = [parameter '_' control_type];
+            control_name = [parameter '_' control_type];
+            
+            if ~isempty(obj) && isfield(source, control_name)
                 control = source.(control_name);
                 obj.controls.(control_name) = control;
                 control_callback = @(src,~) control_updated(obj,src,control_type,parameter);

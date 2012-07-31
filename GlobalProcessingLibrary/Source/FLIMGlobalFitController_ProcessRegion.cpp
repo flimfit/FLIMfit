@@ -119,7 +119,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    {
       tau_ma = CalculateMeanArrivalTime(ma_decay, pi);
       
-      //tau_ma = 2000;
+      //tau_ma = 4000;
 
       if (n_v == 1)
       {
