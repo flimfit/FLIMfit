@@ -39,11 +39,14 @@ function compile(v)
         lib_ext = 'so';
     end
     
+    %copyfile(['DeployFiles\GlobalProcessing_' sys '.ctf'],deploy_folder);
     copyfile(['DeployFiles\Start_GlobalProcessing_' sys '.exe'],deploy_folder);
     copyfile(['..\GlobalProcessingLibrary\Libraries\FLIMGlobalAnalysis_' sys '.' lib_ext],deploy_folder);
-
+    
     mkdir([distrib_folder 'GlobalProcessing_' v]);
-    copyfile(deploy_folder,[distrib_folder 'GlobalProcessing_' v filesep 'GlobalProcessing_' v '_' computer filesep]);
+    
+    new_distrib_folder = [distrib_folder 'GlobalProcessing_' v filesep 'GlobalProcessing_' v '_' computer filesep];
+    copyfile(deploy_folder,new_distrib_folder);
     
     
     chlog_file = [distrib_folder 'Changelog.txt'];

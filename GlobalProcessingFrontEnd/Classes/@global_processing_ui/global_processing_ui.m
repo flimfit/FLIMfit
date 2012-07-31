@@ -52,9 +52,12 @@ classdef global_processing_ui
             % Try and read in version number
             try
                 v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
+                v = v{1};
             catch
                 v = '[unknown version]';
             end
+            
+
             
             % Get authentication if needed
             if require_auth
@@ -82,7 +85,7 @@ classdef global_processing_ui
             
             % Open a window and add some menus
             obj.window = figure( ...
-                'Name', 'GlobalProcessing', ...
+                'Name', ['GlobalProcessing ' v], ...
                 'NumberTitle', 'off', ...
                 'MenuBar', 'none', ...
                 'Toolbar', 'none', ...
@@ -114,7 +117,7 @@ classdef global_processing_ui
             handles = obj.setup_menu(handles);
             handles = obj.setup_toolbar(handles);
 
-            
+            handles.version = v;
             handles.window = obj.window;
             handles.use_popup = true;
             handles.data_series_controller = flim_data_series_controller(handles);

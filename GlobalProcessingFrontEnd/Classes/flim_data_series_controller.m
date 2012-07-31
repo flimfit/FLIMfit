@@ -4,6 +4,7 @@ classdef flim_data_series_controller < handle
         data_series;
         fitting_params_controller;
         window;
+        version;
         
         data_settings_filename = {'data_settings.xml', 'polarisation_data_settings.xml'};
     end
@@ -80,7 +81,7 @@ classdef flim_data_series_controller < handle
 %            obj.fitting_params_controller.set_polarisation_mode(polarisation_resolved);
             
             if ~isempty(obj.window)
-                set(obj.window,'Name',root_path);
+                set(obj.window,'Name',[root_path ' (' obj.version ')']);
             end
 
             notify(obj,'new_dataset');
@@ -104,7 +105,7 @@ classdef flim_data_series_controller < handle
             end
                        
             if ~isempty(obj.window)
-                set(obj.window,'Name',file);
+                set(obj.window,'Name',[file ' (' obj.version ')']);
             end
             
             notify(obj,'new_dataset');
@@ -142,7 +143,7 @@ classdef flim_data_series_controller < handle
             %}
             
             if ~isempty(obj.window)
-                set(obj.window,'Name',file);
+                set(obj.window,'Name',[file ' (' obj.version ')']);
             end
                         
             notify(obj,'new_dataset');

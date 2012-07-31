@@ -8,7 +8,9 @@
     <param.output>${PROJECT_ROOT}\DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.tbx_on_path>
-      <item>all</item>
+      <item>images</item>
+      <item>optim</item>
+      <item>stats</item>
     </param.tbx_on_path>
     <param.warnings>
       <warning.fullpath>on</warning.fullpath>
@@ -37,7 +39,6 @@
       <param.target.type />
       <param.intermediate />
       <param.embed.ctf />
-      <param.tbx_on_path />
       <param.warnings />
       <param.version />
       <param.user.only.registration />
@@ -93,6 +94,7 @@
         <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\layoutHelp</directory>
         <directory>${PROJECT_ROOT}\..\GlobalProcessingLibrary\Libraries</directory>
         <directory>${PROJECT_ROOT}\OMEROMatlab</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
         <directory>${PROJECT_ROOT}\YuriySegmentation\Support</directory>
         <directory>${PROJECT_ROOT}\YuriySegmentation</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\demos</directory>
