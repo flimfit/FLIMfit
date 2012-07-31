@@ -416,7 +416,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    getting_fit = true;
    
    irf_max       = new int[ n_meas ]; //ok
-   resampled_irf = new double[ n_meas ]; //ok
+   //resampled_irf = new double[ n_meas ]; //ok
    int* resample_idx = new int[ n_t ]; //ok
 
    for(int i=0; i<n_t-1; i++)
@@ -426,7 +426,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    data->SetExternalResampleIdx(n_meas, resample_idx);
 
    CalculateIRFMax(n_t,t);
-   CalculateResampledIRF(n_t,t);
+   //CalculateResampledIRF(n_t,t);
 
    float *adjust = new float[n_meas]; //ok
    SetupAdjust(0, adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
@@ -434,6 +434,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
                           (fit_tvb == FIX )    ? tvb_guess     : 0);
 
    y = new float[ n_meas * n_px ]; //ok
+   irf_idx = new int[ n_px ];
 
    SetNaN(fit,n_fit*n_meas);
 
@@ -463,9 +464,9 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          {
             local_irf[thread] = irf_buf + idx * n_irf * n_chan;
           
-            data->GetRegionData(thread, n_px*iml+idx, 1, adjust_buf, y, w, ma_decay);
+            data->GetRegionData(thread, n_px*iml+idx, 1, adjust_buf, y, w, irf_idx, ma_decay);
             
-            projectors[0].GetFit(1, y, alf_group + idx*nl, adjust_buf, fit+n_meas*i);
+            projectors[0].GetFit(1, y, irf_idx, alf_group + idx*nl, adjust_buf, fit+n_meas*i);
 
          }
       }
@@ -488,7 +489,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       {
 
          r_idx = data->GetRegionIndex(group, rg);
-         int sr = data->GetSelectedPixels(0, iml, rg, n_fit, fit_loc, adjust_buf, y, w);
+         int sr = data->GetSelectedPixels(0, iml, rg, n_fit, fit_loc, adjust_buf, y, w, irf_idx);
 
          if (memory_map_results)
          {
@@ -504,7 +505,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             alf_group = alf + nl * r_idx;
          }
 
-         projectors[0].GetFit(sr, y, alf_group + idx*nl, adjust_buf, fit+n_meas*idx);
+         projectors[0].GetFit(sr, y, irf_idx, alf_group + idx*nl, adjust_buf, fit+n_meas*idx);
 
 
          idx += sr;
@@ -514,9 +515,10 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    getting_fit = false;
 
+   ClearVariable(irf_idx);
    ClearVariable(y);
    ClearVariable(irf_max);
-   ClearVariable(resampled_irf);
+   //ClearVariable(resampled_irf);
    ClearVariable(resample_idx);
 
    ClearVariable(adjust);

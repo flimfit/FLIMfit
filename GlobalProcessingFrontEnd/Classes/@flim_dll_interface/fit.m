@@ -48,7 +48,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     d = obj.data_series;
     
     
-    obj.use_image_irf = d.has_image_irf && p.global_fitting == 0 && ~obj.bin;
+    obj.use_image_irf = d.has_image_irf && ~obj.bin; %&& p.global_fitting == 0
     
     if p.global_fitting < 2 || p.global_variable == 0
         if false && d.lazy_loading && p.split_fit

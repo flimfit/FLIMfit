@@ -85,6 +85,7 @@ public:
    tthread::thread **thread_handle;
 
    double** local_irf;
+   int* irf_idx;
    
    bool polarisation_resolved;
    int n_chan, n_meas, n_pol_group;
@@ -180,14 +181,14 @@ public:
 
    double ErrMinFcn(double x, ErrMinParams& params);
 
-   void calculate_exponentials(int thread, double tau[], double theta[]);
+   void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[]);
    int  check_alf_mod(int thread, const double* new_alf);
 
    void add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    void add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
-   void add_irf(int thread, double a[],int pol_group, double* scale_fact = NULL);
+   void add_irf(int thread, int irf_idx, double a[],int pol_group, double* scale_fact = NULL);
 
-   int flim_model(int thread, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
+   int flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
    int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[]);
@@ -195,8 +196,8 @@ public:
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
-   void sample_irf(int thread, float a[], int pol_group = 0, double* scale_fact = 0);
-   void sample_irf(int thread, double a[], int pol_group = 0, double* scale_fact = 0);
+   void sample_irf(int thread, int irf_idx, float a[], int pol_group = 0, double* scale_fact = 0);
+   void sample_irf(int thread, int irf_idx, double a[], int pol_group = 0, double* scale_fact = 0);
 
 
    int global_algorithm;
@@ -206,7 +207,7 @@ public:
 
 
    void SetupIncMatrix(int* inc);
-   int ada(double *a, double *b, double *kap, const double *alf, int isel, int thread);
+   int ada(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread);
 
 
 

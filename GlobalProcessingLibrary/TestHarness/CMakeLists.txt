@@ -5,6 +5,14 @@ project(TestHarness)
 
 include_directories( ${FGP_INCLUDE_DIRS} )
 
+# Include the BOOST header files
+#===================================================
+FIND_PACKAGE(Boost)
+if(Boost_FOUND)
+    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+endif()
+include_directories( "../Boost" )
+
 
 # Set the source and header files
 #===================================================
@@ -26,20 +34,17 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 # Make sure we output directly into binary folder
 #===================================================
-set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
+#set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
-
-# Copy header to output directory
-#===================================================
-#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
-#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h DESTINATION ${OUT_DIR})
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
+
+#add_custom_command(TestHarness POST_BUILD "$(TargetDir)\$(TargetName).exe" --result_code=no --report_level=no)
 
 target_link_libraries(TestHarness ${FGP_LIB})
 

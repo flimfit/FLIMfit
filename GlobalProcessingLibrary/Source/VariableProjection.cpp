@@ -570,46 +570,45 @@ L99:
 /* Subroutine */ int bacsub_(integer ndim, integer n, double *a, 
    double *x)
 {
-    /* System generated locals */
-    integer a_dim1, a_offset, i__1, i__2;
+   /* System generated locals */
+   integer a_dim1, a_offset, i__1, i__2;
 
-    /* Local variables */
-    integer i__, j, ip1, np1;
-    double acum;
-    integer iback;
+   /* Local variables */
+   integer i__, j, ip1, np1;
+   double acum;
+   integer iback;
 
 /*     ============================================================== */
 
 /*        BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*X = B. */
 /*        THE SOLUTION X OVERWRITES THE RIGHT SIDE B. */
 
+   /* Parameter adjustments */
+   --x;
+   a_dim1 = ndim;
+   a_offset = 1 + a_dim1;
+   a -= a_offset;
 
-    /* Parameter adjustments */
-    --x;
-    a_dim1 = ndim;
-    a_offset = 1 + a_dim1;
-    a -= a_offset;
-
-    /* Function Body */
-    x[n] /= a[n + n * a_dim1];
-    if (n == 1) {
-   goto L30;
-    }
-    np1 = n + 1;
-    i__1 = n;
-    for (iback = 2; iback <= i__1; ++iback) {
-   i__ = np1 - iback;
-/*           I = N-1, N-2, ..., 2, 1 */
-   ip1 = i__ + 1;
-   acum = x[i__];
-   i__2 = n;
-   for (j = ip1; j <= i__2; ++j) {
-/* L10: */
-       acum -= a[i__ + j * a_dim1] * x[j];
+   x[n] /= a[n + n * a_dim1];
+   if (n == 1) {
+      goto L30;
    }
-/* L20: */
-   x[i__] = acum / a[i__ + i__ * a_dim1];
-    }
+
+   np1 = n + 1;
+   i__1 = n;
+   for (iback = 2; iback <= i__1; ++iback) 
+   {
+   /*           I = N-1, N-2, ..., 2, 1 */
+      i__ = np1 - iback;
+      ip1 = i__ + 1;
+      acum = x[i__];
+      i__2 = n;
+      for (j = ip1; j <= i__2; ++j) 
+      {
+         acum -= a[i__ + j * a_dim1] * x[j];
+      }
+      x[i__] = acum / a[i__ + i__ * a_dim1];
+   }
 
 L30:
     return 0;
@@ -660,68 +659,54 @@ L30:
     lpnl = lnls1 - 2;
     lnl1 = lpnl + 1;
     i__1 = n;
+/*
     for (i__ = 1; i__ <= i__1; ++i__) {
-/* L10: */
-/* Computing 2nd power */
    d__1 = w[i__];
    w[i__] = d__1 * d__1;
     }
-
+*/
 /*              UNWIND HOUSEHOLDER TRANSFORMATIONS TO GET RESIDUALS, */
 /*              AND MOVE THE LINEAR PARAMETERS FROM R TO U. */
 
-    if (l == 0) {
-   goto L30;
-    }
-    usave = (float)2.;
-    i__1 = l;
-    for (i__ = 1; i__ <= i__1; ++i__) {
-/* L19: */
-   b[i__ + (integer) usave * b_dim1] = u[i__ + u_dim1];
-    }
-    i__1 = s;
-    for (is = 1; is <= i__1; ++is) {
-   i__2 = l;
-   for (kback = 1; kback <= i__2; ++kback) {
-       k = lp1 - kback;
-       kp1 = k + 1;
-       acum = (float)0.;
-       i__3 = n;
-       for (i__ = kp1; i__ <= i__3; ++i__) {
-/* L20: */
-      acum += a[i__ + k * a_dim1] * r__[i__ + is * r_dim1];
-       }
-       u[k + is * u_dim1] = r__[k + is * r_dim1];
-       r__[k + is * r_dim1] = acum / a[k + k * a_dim1];
-       acum = -acum / (a[k + (integer) usave * a_dim1] * a[k + k * 
-          a_dim1]);
-       i__3 = n;
-       for (i__ = kp1; i__ <= i__3; ++i__) {
-/* L25: */
-      r__[i__ + is * r_dim1] -= a[i__ + k * a_dim1] * acum;
-       }
+   if (l == 0) 
+   {
+      goto L30;
    }
-    }
+   usave = (float)2.;
+
+   for (i__ = 1; i__ <= l; ++i__) 
+   {
+      b[i__ + (integer) usave * b_dim1] = u[i__ + u_dim1];
+   }
+
+   for (is = 1; is <= s; ++is) 
+   {
+
+      for (kback = 1; kback <= l; ++kback) 
+      {
+         k = lp1 - kback;
+         kp1 = k + 1;
+         acum = (float)0.;
+
+         for (i__ = kp1; i__ <= n; ++i__) 
+         {
+            acum += a[i__ + k * a_dim1] * r__[i__ + is * r_dim1];
+         }
+         u[k + is * u_dim1] = r__[k + is * r_dim1];
+         r__[k + is * r_dim1] = acum / a[k + k * a_dim1];
+         acum = -acum / (a[k + (integer) usave * a_dim1] * a[k + k * a_dim1]);
+
+         for (i__ = kp1; i__ <= n; ++i__) 
+         {
+            r__[i__ + is * r_dim1] -= a[i__ + k * a_dim1] * acum;
+         }
+      }
+   }
 
 L30:
-/*  30 IF (IPRINT .LT. 0) GO TO 99 */
-/*     WRITE (OUTPUT, 209) */
-/*     IF (L .EQ. 0) GO TO 50 */
-/*        WRITE(OUTPUT,210) */
-/*        DO 40 I=1,L */
-/*  40      WRITE(OUTPUT,212) (U(I,J), J=1,S) */
-/*  40      CONTINUE */
-/*  50 IF (NL .GT. 0) WRITE (OUTPUT, 211) (ALF(K), K = 1, NL) */
-/*     WRITE(OUTPUT,214) RNORM */
-/*     WRITE (OUTPUT, 209) */
-/* L99: */
+
     return 0;
 
-/* L209: */
-/* L210: */
-/* L211: */
-/* L212: */
-/* L214: */
 } /* postpr_ */
 
 

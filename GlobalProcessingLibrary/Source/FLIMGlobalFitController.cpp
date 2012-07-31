@@ -81,8 +81,10 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    lin_params_err = NULL;
    alf_err        = NULL;
 
-   chan_fact       = NULL;
-   local_irf = NULL;
+   chan_fact      = NULL;
+   local_irf      = NULL;
+   irf_idx        = NULL;
+
    result_map_filename = NULL;
    ma_decay = NULL;
    data = NULL;
@@ -320,8 +322,8 @@ void FLIMGlobalFitController::Init()
       omp_set_num_threads(n_thread);
    #endif
 
-   if (data->global_mode != MODE_PIXELWISE)
-      image_irf = false;
+   //if (data->global_mode != MODE_PIXELWISE)
+   //   image_irf = false;
 
 
 
@@ -560,7 +562,11 @@ void FLIMGlobalFitController::Init()
       adjust_buf   = new float[ n_thread * n_meas ]; // free ok 
 
       irf_max      = new int[n_meas]; //free ok
-      resampled_irf= new double[n_meas]; //free ok 
+      
+      if (image_irf)
+         resampled_irf= new double[n_meas * n_irf_rep ]; //free ok 
+      else
+         resampled_irf= new double[ n_meas ];
 
       conf_lim     = new double[ n_thread * nl ]; //free ok
 
@@ -571,6 +577,7 @@ void FLIMGlobalFitController::Init()
       //alf_err        = new double[ n_thread * nl ]; //free ok
 
       local_irf    = new double*[n_thread]; //ok
+      irf_idx      = new int[ n_thread * n_px ];
 
       init = true;
    }
@@ -701,8 +708,6 @@ void FLIMGlobalFitController::Init()
   if (ref_reconvolution == FIT_GLOBALLY)
      alf_ref_idx = idx++;
 
-   first_call = true;
-
 }
 
 FLIMGlobalFitController::~FLIMGlobalFitController()
@@ -744,6 +749,41 @@ void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
 
 void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
 {
+   double td;
+   int j, last_j, k, c, ni;
+
+   if (image_irf)
+      ni = data->n_x * data->n_y;
+   else
+      ni = 1;
+
+   memset(resampled_irf,0,n_meas*ni*sizeof(double));
+
+   last_j = 0;
+   for(int i=0; i<n_t; i++)
+   {
+      td = t[i]-t0_guess;
+
+      for(j=last_j; j<n_irf; j++)
+      {
+         if(td-t_irf_buf[j] < 1)
+         {
+            for(k=0; k<ni; k++)
+            {
+               for(c=0; c<n_chan; c++)
+                  resampled_irf[n_meas*k+c*n_t+i] = irf_buf[n_chan*n_irf*k+c*n_irf+j];
+            }
+            last_j = j;
+            break;
+         }
+      }
+   }   
+}
+
+
+/*
+void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
+{
    double td, weight;
    int last_j, c;
 
@@ -756,7 +796,7 @@ void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
       
       resampled_irf[i] = 0;
       last_j = 0;
-      for(int j=last_j; j<n_irf-2; j++)
+      for(int j=last_j; j<n_irf; j++)
       {
          if(td>t_irf_buf[j] && td<=t_irf_buf[j+1])
          {
@@ -770,6 +810,7 @@ void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
       }
    }   
 }
+*/
 
 void FLIMGlobalFitController::SetGlobalVariables()
 {       
@@ -797,7 +838,7 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
 
-   sample_irf(thread, adjust, n_r, scale_fact);
+   sample_irf(thread, 0, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + offset_adj;
@@ -940,6 +981,8 @@ void FLIMGlobalFitController::CleanupResults()
       //ClearVariable(lin_params_err);
       //ClearVariable(alf_err);
       ClearVariable(ma_decay);
+
+      ClearVariable(irf_idx);
 
       ClearVariable(y);
       ClearVariable(w);

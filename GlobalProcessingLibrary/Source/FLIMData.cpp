@@ -349,10 +349,11 @@ int FLIMData::GetMinRegion(int group)
    }
 }
 
-int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, float* ma_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay)
 {
    int s = 0;
-   
+   int n_p = n_x*n_y;
+
    boost::function<void(int)> transform_fcn;
    
    if (data_class == DATA_FLOAT)
@@ -362,17 +363,18 @@ int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, fl
    
    if ( global_mode == MODE_PIXELWISE )
    {
-      int im = group / (n_x*n_y);
-      int p = group - im*n_x*n_y;
+      int im = group / n_p;
+      int p = group % n_p;;
 
       transform_fcn(im);
 
       s = GetPixelData(thread, im, p, adjust, region_data, ma_decay);
+      *irf_idx = p;
    }
    else if ( global_mode == MODE_IMAGEWISE )
    {
       transform_fcn(group);
-      s = GetMaskedData(thread, group, region, adjust, region_data);
+      s = GetMaskedData(thread, group, region, adjust, region_data, irf_idx);
    }
    else
    {
@@ -380,7 +382,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, fl
       for(int i=0; i<n_im_used; i++)
       {
          transform_fcn(i);
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*GetResampleNumMeas(thread));
+         s += GetMaskedData(thread, i, region, adjust, region_data + s*GetResampleNumMeas(thread), irf_idx + s);
       }
    }
    
@@ -399,41 +401,6 @@ int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, fl
 
    for(int j=0; j<n_meas; j++)
    {
-      weight[j] += adjust[j];
-      if (weight[j] == 0)
-         weight[j] = 1;   // If we have a zero data point set to 1
-      else
-         weight[j] = 1/abs(weight[j]);
-   }
-
-   return s;
-}
-
-
-int FLIMData::GetImageData(int thread, int im, int region, float* adjust, float* region_data, float* weight)
-{
-   int s;
-   int n_meas_res = GetResampleNumMeas(thread);
-   boost::function<void(int)> transform_fcn;
-   
-   if (data_class == DATA_FLOAT)
-      transform_fcn = boost::bind(&FLIMData::TransformImage<float>, this, thread, _1);
-   else
-      transform_fcn = boost::bind(&FLIMData::TransformImage<uint16_t>, this, thread, _1);
-  
-   transform_fcn(im);
-   
-   s = GetMaskedData(thread, im, region, adjust, region_data);
-
-   memset(weight,0, n_meas_res * sizeof(*weight));
-
-   for(int i=0; i<s; i++)
-      for(int j=0; j<n_meas_res; j++)
-         weight[j] += region_data[i*n_meas_res + j];
-      
-   for(int j=0; j<n_meas_res; j++)
-   {
-      weight[j] /= s;
       weight[j] += adjust[j];
       if (weight[j] == 0)
          weight[j] = 1;   // If we have a zero data point set to 1
@@ -495,7 +462,7 @@ int FLIMData::GetPixelData(int thread, int im, int p, float* adjust, float* mask
    return 1;
 }
 
-int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data)
+int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, int* irf_idx)
 {
    
    int iml = im;
@@ -524,6 +491,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
             }
             idx++;
          }
+         irf_idx[s] = p;
          s++;
       }
    }
@@ -531,7 +499,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
    return s;
 }
 
-int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w)
+int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w, int *irf_idx)
 {
    int iml = im;
    if (use_im != NULL)
@@ -564,6 +532,7 @@ int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc,
             }
             idx++;
          }
+         irf_idx[s] = p; 
          s++;
       }
    }

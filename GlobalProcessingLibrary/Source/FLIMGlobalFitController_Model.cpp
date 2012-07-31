@@ -21,7 +21,7 @@ int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf)
    return changed;
 }
 
-void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], double theta[])
+void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, double tau[], double theta[])
 {
 
    double e0, de, ej, cum, fact, inv_theta, rate;
@@ -31,13 +31,17 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, double tau[], d
    double* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
    int row = n_pol_group*n_decay_group*n_exp*N_EXP_BUF_ROWS;
    
-   double *lirf;
+   double *lirf = irf_buf; 
    
+   if (image_irf)
+      lirf += irf_idx * n_irf * n_chan;
+   
+/*   
    if (image_irf)
       lirf = local_irf[thread];
    else
       lirf = irf_buf;
-
+*/
    for(m=n_pol_group-1; m>=0; m--)
    {
 
@@ -250,9 +254,14 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    }
 }
 
-void FLIMGlobalFitController::add_irf(int thread, double a[],int pol_group, double* scale_fact)
+void FLIMGlobalFitController::add_irf(int thread, int irf_idx, double a[], int pol_group, double* scale_fact)
 {
    int* resample_idx = data->GetResampleIdx(thread);
+
+   double* resampled_irf = this->resampled_irf;
+   
+   if (image_irf)
+      resampled_irf += irf_idx * n_meas; 
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
@@ -267,7 +276,7 @@ void FLIMGlobalFitController::add_irf(int thread, double a[],int pol_group, doub
    }
 }
 
-int FLIMGlobalFitController::flim_model(int thread, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[])
+int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[])
 {
    int n_meas_res = data->GetResampleNumMeas(thread);
 
@@ -301,7 +310,7 @@ int FLIMGlobalFitController::flim_model(int thread, double tau[], double beta[],
                memset(a+idx, 0, n_meas_res*sizeof(*a)); 
 
             if (ref_reconvolution && (!beta_global || j==0))
-               add_irf(thread, a+idx, p);
+               add_irf(thread, irf_idx, a+idx, p);
 
             fact = beta_global       ? beta[j]    : 1;
 

@@ -32,7 +32,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    int n_px = data->n_px;
    int s1 = 1;
 
-   locked_param[thread] = -1;
+   //locked_param[thread] = -1;
 
    int r_idx = data->GetRegionIndex(g,region);
 
@@ -57,6 +57,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    
    double *alf_local     = this->alf_local + thread * nl;
    double *lin_local     = this->lin_local + thread * l;
+
+   int    *irf_idx       = this->irf_idx + thread * n_px;
 
    
    int pi = g % (data->n_x*data->n_y);
@@ -83,7 +85,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                                    (fit_offset == FIX)  ? offset_guess  : 0, 
                                    (fit_tvb == FIX)     ? tvb_guess     : 0);
                                     
-   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y, w, ma_decay);
+   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y, w, irf_idx, ma_decay);
    
    int n_meas_res = data->GetResampleNumMeas(thread);
 
@@ -179,7 +181,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (use_global_binning)
    {
-      projectors[thread].Fit(s1, n, ma_decay, w, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+      projectors[thread].Fit(s1, n, ma_decay, w, NULL, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
 /*
       lmvarp( s1, l, nl, n_meas_res, nmax, ndim, p, 
             t, ma_decay, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
@@ -197,10 +199,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
          /*lmvarp( s_thresh, l, nl, n_meas_res, nmax, ndim, p, 
                   t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
                   alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );*/
-                  projectors[thread].Fit(s, n, y, w, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+                  projectors[thread].Fit(s, n, y, w, irf_idx, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
       
    }
-   projectors[thread].GetLinearParams(s, y, alf_local, lin_params, chi2);
+   projectors[thread].GetLinearParams(s, y, irf_idx, alf_local, lin_params, chi2);
    
    for(int i=0; i<nl; i++)
       alf[i] = alf_local[i];

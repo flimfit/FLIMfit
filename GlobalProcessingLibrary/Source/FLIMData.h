@@ -28,16 +28,15 @@ public:
    template <typename T>
    int CalculateRegions();
 
-   int GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, float* ma_decay);
+   int GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay);
    int GetPixelData(int thread, int im, int p, float* adjust, float* masked_data, float* ma_decay);
-   int GetImageData(int thread, int im, int region, float* adjust, float* region_data, float* weight);
-   int GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w);
+   int GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w, int* irf_idx);
 
     
    int GetMaxRegion(int group);
    int GetMinRegion(int group);
    
-   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data);
+   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, int* irf_idx);
    int GetRegionIndex(int group, int region);
    
    int GetImLoc(int im);
@@ -67,6 +66,7 @@ public:
 
    int n_group; 
    int n_px; 
+   int n_p;
 
    int n_regions_total;
    int max_region_size;
@@ -126,7 +126,6 @@ private:
 
    int n_thread;
 
-   int n_p;
    int n_meas_full;
 
    int n_t_full;

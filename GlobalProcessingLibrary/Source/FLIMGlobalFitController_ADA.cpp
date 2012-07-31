@@ -117,7 +117,7 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
 
 
 /* ============================================================== */
-int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double *alf, int isel, int thread)
+int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread)
 {
 
    int i,j,k, d_offset, total_n_exp, idx;
@@ -192,7 +192,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          {
             for(i=0; i<N; i++)
                a[N*a_col+i]=0;
-            sample_irf(thread, a+N*a_col,n_r,scale_fact);
+            sample_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
             a_col++;
          }
 
@@ -266,10 +266,10 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          }
 
          // Precalculate exponentials
-         if (check_alf_mod(thread, alf))
-            calculate_exponentials(thread, tau_buf, theta_buf);
+         //if (check_alf_mod(thread, alf))
+            calculate_exponentials(thread, irf_idx, tau_buf, theta_buf);
 
-         a_col += flim_model(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, isel == 1, a+a_col*N);
+         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, isel == 1, a+a_col*N);
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
@@ -281,7 +281,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          // Add scatter
          if (fit_scatter == FIT_GLOBALLY)
          {
-            sample_irf(thread, a+N*a_col,n_r,scale_fact);
+            sample_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
             for(i=0; i<N; i++)
                a[ i + N*a_col ] = a[ i + N*a_col ] * alf[alf_scatter_idx];
          }
@@ -404,7 +404,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          {
             for(i=0; i<N; i++)
                b[d_offset+i]=0;
-            sample_irf(thread, b+d_offset,n_r,scale_fact);
+            sample_irf(thread, irf_idx, b+d_offset,n_r,scale_fact);
             d_offset += ndim;
          }
 
@@ -475,11 +475,16 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
 }
 
 
-void FLIMGlobalFitController::sample_irf(int thread, float a[], int pol_group, double* scale_fact)
+void FLIMGlobalFitController::sample_irf(int thread, int irf_idx, float a[], int pol_group, double* scale_fact)
 {
    int k=0;
    double scale;
    int idx = 0;
+
+   double* resampled_irf = this->resampled_irf;
+   
+   if (image_irf)
+      resampled_irf += irf_idx * n_meas; 
 
    int* resample_idx = data->GetResampleIdx(thread);
 
@@ -496,11 +501,17 @@ void FLIMGlobalFitController::sample_irf(int thread, float a[], int pol_group, d
 }
 
 
-void FLIMGlobalFitController::sample_irf(int thread, double a[], int pol_group, double* scale_fact)
+void FLIMGlobalFitController::sample_irf(int thread, int irf_idx, double a[], int pol_group, double* scale_fact)
 {
    int k=0;
    double scale;
    int idx = 0;
+
+   double* resampled_irf = this->resampled_irf;
+   
+   if (image_irf)
+      resampled_irf += irf_idx * n_meas; 
+
 
    int* resample_idx = data->GetResampleIdx(thread);
 
