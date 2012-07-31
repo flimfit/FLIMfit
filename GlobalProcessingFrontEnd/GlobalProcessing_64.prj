@@ -8,7 +8,9 @@
     <param.output>${PROJECT_ROOT}\DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.tbx_on_path>
-      <item>all</item>
+      <item>images</item>
+      <item>optim</item>
+      <item>stats</item>
     </param.tbx_on_path>
     <param.warnings>
       <warning.fullpath>on</warning.fullpath>
@@ -38,7 +40,6 @@
       <param.appname />
       <param.intermediate />
       <param.embed.ctf />
-      <param.tbx_on_path />
       <param.warnings />
       <param.version />
       <param.user.only.registration />
@@ -86,7 +87,20 @@
     <matlab>
       <root>C:\Program Files\MATLAB\R2011b</root>
       <path>
-        <directory>\\icfs16.cc.ic.ac.uk\scw09\MATLAB</directory>
+        <directory>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingLocal\GlobalProcessingFrontEnd</directory>
+        <directory>${PROJECT_ROOT}\Classes</directory>
+        <directory>${PROJECT_ROOT}\GUIDEInterfaces</directory>
+        <directory>${PROJECT_ROOT}\GeneratedFiles</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\RawDataFunctions</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\layoutHelp</directory>
+        <directory>${PROJECT_ROOT}\..\GlobalProcessingLibrary\Libraries</directory>
+        <directory>${PROJECT_ROOT}\OMEROMatlab</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
+        <directory>${PROJECT_ROOT}\YuriySegmentation\Support</directory>
+        <directory>${PROJECT_ROOT}\YuriySegmentation</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\demos</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\graph2d</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\graph3d</directory>
@@ -116,13 +130,13 @@
         <directory>${MATLAB_ROOT}\toolbox\matlab\codetools</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\helptools</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\winfun</directory>
-        <directory>${MATLAB_ROOT}\toolbox\matlab\winfun\NET</directory>
+        <directory>${MATLAB_ROOT}\toolbox\matlab\winfun\net</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\hds</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\guide</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\datamanager</directory>
         <directory>${MATLAB_ROOT}\toolbox\shared\simulink</directory>
         <directory>${MATLAB_ROOT}\toolbox\shared\instrument</directory>
-        <directory>${MATLAB_ROOT}\toolbox\rtw\targets\AUTOSAR\AUTOSAR</directory>
+        <directory>${MATLAB_ROOT}\toolbox\rtw\targets\autosar\autosar</directory>
         <directory>${MATLAB_ROOT}\toolbox\rtw\accel</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulink\blocks\library</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulink\blocks\obsolete</directory>
@@ -133,7 +147,7 @@
         <directory>${MATLAB_ROOT}\toolbox\simulink\fixedandfloat</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulink\fixedandfloat\obsolete</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulink\dee</directory>
-        <directory>${MATLAB_ROOT}\toolbox\simulink\simulink\MPlayIO</directory>
+        <directory>${MATLAB_ROOT}\toolbox\simulink\simulink\mplayio</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulink\simulink\dataobjectwizard</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulink\simdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulink\simdemos\aerospace</directory>
@@ -284,7 +298,7 @@
         <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\ticcs\tfl</directory>
         <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\ticcs\util</directory>
         <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\ticcs\rtw</directory>
-        <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\ticcs\envChecker</directory>
+        <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\ticcs\envchecker</directory>
         <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\wrworkbench</directory>
         <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\wrworkbench\mdlinfo</directory>
         <directory>${MATLAB_ROOT}\toolbox\idelink\extensions\wrworkbench\registry</directory>
@@ -406,10 +420,10 @@
         <directory>${MATLAB_ROOT}\toolbox\physmod\pm_sli\pm_sli</directory>
         <directory>${MATLAB_ROOT}\toolbox\physmod\pm_visimpl\pm_visimpl</directory>
         <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\powersys</directory>
-        <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\DR\DR</directory>
+        <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\dr\dr</directory>
         <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\drives\drives</directory>
         <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\facts\facts</directory>
-        <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\DR\DRdemo</directory>
+        <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\dr\drdemo</directory>
         <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\drives\drivesdemo</directory>
         <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\facts\factsdemo</directory>
         <directory>${MATLAB_ROOT}\toolbox\physmod\powersys\powerdemo</directory>
@@ -444,10 +458,10 @@
         <directory>${MATLAB_ROOT}\toolbox\rtw\targets\common\tgtcommon</directory>
         <directory>${MATLAB_ROOT}\toolbox\rtw\targets\connectivity</directory>
         <directory>${MATLAB_ROOT}\toolbox\rtw\targets\pil</directory>
-        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\datadiff\GUI</directory>
-        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\datadiff\GUI\Icons</directory>
-        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\datadiff\API</directory>
-        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\cgv\API</directory>
+        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\datadiff\gui</directory>
+        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\datadiff\gui\icons</directory>
+        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\datadiff\api</directory>
+        <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\cgv\api</directory>
         <directory>${MATLAB_ROOT}\toolbox\rtw\rtw\misra</directory>
         <directory>${MATLAB_ROOT}\toolbox\simulinkcoder</directory>
         <directory>${MATLAB_ROOT}\toolbox\rtw\rtwdemos</directory>

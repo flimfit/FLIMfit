@@ -2,10 +2,13 @@ function regression_testing(handles)
 
 
     test_folder = ['..' filesep 'TestDatasets' filesep];
+   
     
     if ~exist(test_folder,'dir') || length(dir(test_folder)) < 4
        test_folder = '\\icfs17.cc.ic.ac.uk\fogim\Group\Software\Global Analysis\TestDatasets\'; 
     end
+    
+   
     
     % Get Tests
     %----------------------------------------------------
@@ -13,7 +16,7 @@ function regression_testing(handles)
     contents = contents(3:end);
     tests = {};
     
-    for i=1:1%length(contents)
+    for i=1:length(contents)
         if isdir([test_folder contents(i).name])
             tests{end+1} = contents(i).name;
         end
@@ -25,8 +28,12 @@ function regression_testing(handles)
     overall_tests_passed = 0;
     overall_tests_failed = 0;
     
-    m=memory; 
-    m_start = m.MemUsedMATLAB;
+    if ~strcmp(computer('arch'), 'maci64')
+      m=memory; 
+      m_start = m.MemUsedMATLAB;
+    end
+    
+   
     
     for kk=1:1
     for i=1:length(tests)
@@ -101,8 +108,12 @@ function regression_testing(handles)
         
          
     end
-        m=memory; 
-        mem_dif(kk) = m.MemUsedMATLAB - m_start;
+    
+     
+      if ~strcmp(computer('arch'), 'maci64')
+         m=memory; 
+         mem_dif(kk) = m.MemUsedMATLAB - m_start;
+      end
     
     end
     
