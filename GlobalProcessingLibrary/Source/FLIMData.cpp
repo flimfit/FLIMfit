@@ -503,64 +503,30 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
    return s;
 }
 
-int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w, int *irf_idx)
+/*
+int FLIMData::GetSelectedPixels(int thread, int im, int region, int n, int* loc, int *irf_idx)
 {
    int iml = im;
    if (use_im != NULL)
       iml = use_im[im];
 
    uint8_t* mask = this->mask + iml*n_x*n_y;
-   int* resample_idx = GetResampleIdx(thread);
 
-   int idx = 0;
    int s = 0;
-   int i;
-
-   if (data_class == DATA_FLOAT)
-      TransformImage<float>(thread, im);
-   else
-      TransformImage<uint16_t>(thread, im);
      
    for(int p=0; p<n; p++)
    {
-      i = loc[p];
-      if (mask[i] == region)
+      if (mask[loc[p]] == region)
       {
-         memset(y+idx,0,sizeof(*y)*GetResampleNumMeas(thread));
-         for(int k=0; k<n_chan; k++)
-         {
-            for(int j=0; j<n_t; j++)
-            {
-               y[idx] += tr_data[i*n_meas + k*n_t + j] - adjust[k*n_t+j];
-               idx += resample_idx[j];
-            }
-            idx++;
-         }
          irf_idx[s] = p; 
          s++;
       }
    }
 
-   memset(w,0, n_meas * sizeof(*w));
-
-   for(int i=0; i<s; i++)
-      for(int j=0; j<n_meas; j++)
-         w[j] += y[i*n_meas + j];
-      
-   for(int j=0; j<n_meas; j++)
-   {
-      w[j] /= s;
-      //w[j] += adjust[j];
-      if (w[j] == 0)
-         w[j] = 1;   // If we have a zero data point set to 1
-      else
-         w[j] = 1/abs(w[j]);
-   }
-
-
    return s;
 
 }
+*/
 
 void FLIMData::ClearMapping()
 {

@@ -266,7 +266,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          }
 
          // Precalculate exponentials
-         //if (check_alf_mod(thread, alf))
+         if (check_alf_mod(thread, alf, irf_idx))
             calculate_exponentials(thread, irf_idx, tau_buf, theta_buf);
 
          a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, isel == 1, a+a_col*N);

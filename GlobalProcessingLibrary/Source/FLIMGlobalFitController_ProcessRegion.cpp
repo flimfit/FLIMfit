@@ -181,12 +181,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (use_global_binning)
    {
-      projectors[thread].Fit(s1, n, ma_decay, w, NULL, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
-/*
-      lmvarp( s1, l, nl, n_meas_res, nmax, ndim, p, 
-            t, ma_decay, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
-            alf_local, lin_local, &ierr_local_binning, status->iter+thread, status->chi2+thread, &(status->terminate) );
-            */
+      projectors[thread].Fit(s1, n, ma_decay, w, NULL, alf_local, lin_local, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
    }
    else
    {
@@ -196,14 +191,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                   t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
                   alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );*/
       else
-         /*lmvarp( s_thresh, l, nl, n_meas_res, nmax, ndim, p, 
-                  t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
-                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );*/
-                  projectors[thread].Fit(s, n, y, w, irf_idx, alf_local, lin_local, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+         projectors[thread].Fit(s_thresh, n, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
       
    }
-   projectors[thread].GetLinearParams(s, y, irf_idx, alf_local, lin_params, chi2);
-   
+
    for(int i=0; i<nl; i++)
       alf[i] = alf_local[i];
 

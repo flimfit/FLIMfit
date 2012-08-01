@@ -40,10 +40,8 @@ set(SOURCE
    FLIMGlobalFitController_Model.cpp
    FLIMGlobalFitController_ADA.cpp
    FLIMData.cpp
-   VariableProjection.cpp
    VariableProjector.cpp
    MaximumLikelihood.cpp
-   lmvarp.cpp
    lmmle.cpp
    tinythread.cpp
    lmstr.c

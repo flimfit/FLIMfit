@@ -15,28 +15,29 @@ class VariableProjector
 {
 
 public:
-   VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t);
+   VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int* terminate);
    ~VariableProjector();
 
-   int Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   int Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
 
-   int GetLinearParams(int s, float* y, int* irf_idx, double* alf, double* beta, double* chi2);
-   int GetFit(int s, float* y, int* irf_idx, double* alf, float* adjust, double* fit);
+   int GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit);
 
 private:
 
    int Init();
 
    int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
-   int varproj_local(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
    void jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv);
    
-   int postpr(int s, double *beta);
-   int bacsub(double *x);
+   void get_linear_params(int idx);
+   int bacsub(int idx);
 
    double d_sign(double *a, double *b);
 
    FitModel* model;
+
+   int* terminate;
+   int variable_phi;
 
    // Buffers used by levmar algorithm
    double *fjac;
@@ -70,6 +71,8 @@ private:
 
    float  *y;
    float  *w;
+   double *lin_params;
+   double *chi2;
    double *t;
    int    *irf_idx;
    int thread;

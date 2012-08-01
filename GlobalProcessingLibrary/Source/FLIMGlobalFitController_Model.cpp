@@ -3,18 +3,24 @@
 #include <xmmintrin.h>
 #include <cfloat>
 
-int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf)
+int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf, int irf_idx)
 {
    double *cur_alf = this->cur_alf + thread * nl;
+   int cur_irf_idx = this->cur_irf_idx[thread];
 
    if (nl == 0)
       return true;
 
-   int changed = false;
+   if (image_irf && irf_idx != cur_irf_idx)
+   {
+      cur_irf_idx = irf_idx;
+      return true;
+   }
 
+   int changed = false;
    for(int i=0; i<nl; i++)
    {
-      changed = changed | (cur_alf[i] != new_alf[i]);
+      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN);
       cur_alf[i] = new_alf[i];
    }
 
@@ -36,12 +42,6 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
    if (image_irf)
       lirf += irf_idx * n_irf * n_chan;
    
-/*   
-   if (image_irf)
-      lirf = local_irf[thread];
-   else
-      lirf = irf_buf;
-*/
    for(m=n_pol_group-1; m>=0; m--)
    {
 

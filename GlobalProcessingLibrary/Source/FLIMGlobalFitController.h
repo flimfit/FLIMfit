@@ -182,7 +182,7 @@ public:
    double ErrMinFcn(double x, ErrMinParams& params);
 
    void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[]);
-   int  check_alf_mod(int thread, const double* new_alf);
+   int check_alf_mod(int thread, const double* new_alf, int irf_idx);
 
    void add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    void add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
@@ -246,6 +246,7 @@ private:
    char* result_map_filename;
 
    double* cur_alf;
+   int*    cur_irf_idx;
    double* alf_local;
    double* lin_local;
    double* irf_buf;

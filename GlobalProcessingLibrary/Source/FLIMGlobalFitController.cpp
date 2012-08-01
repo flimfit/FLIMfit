@@ -55,6 +55,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    alf          = NULL;
    chi2         = NULL;
    cur_alf      = NULL;
+   cur_irf_idx  = NULL;
 
    y            = NULL;
    lin_params   = NULL;
@@ -548,6 +549,7 @@ void FLIMGlobalFitController::Init()
       w            = new float[ n_thread * n ]; //free ok
 
       cur_alf      = new double[ n_thread * nl ]; //ok
+      cur_irf_idx  = new int[ n_thread ];
 
       #ifdef _WINDOWS
          exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
@@ -648,15 +650,12 @@ void FLIMGlobalFitController::Init()
    CalculateResampledIRF(n_t,t);
    ma_start = DetermineMAStartPosition(0);
 
-   int terminate;
-
    // Create fitting objects
    projectors.reserve(n_thread);
    
    for(int i=0; i<n_thread; i++)
    {
-      projectors.push_back(
-         new VariableProjector(this,s_max,l,nl,nmax,ndim,p,t) );
+      projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf, &(status->terminate)) );
    }
 
 
@@ -929,6 +928,7 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(locked_param);
       ClearVariable(locked_value);
       ClearVariable(cur_alf);
+      ClearVariable(cur_irf_idx);
 
       ClearVariable(chi2);
       ClearVariable(alf);

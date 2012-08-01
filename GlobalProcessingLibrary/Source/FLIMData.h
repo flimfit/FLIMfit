@@ -30,7 +30,7 @@ public:
 
    int GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay);
    int GetPixelData(int thread, int im, int p, float* adjust, float* masked_data, float* ma_decay);
-   int GetSelectedPixels(int thread, int im, int region, int n, int* loc, float* adjust, float* y, float *w, int* irf_idx);
+   //int GetSelectedPixels(int thread, int im, int region, int n, int* loc, int *irf_idx);
 
     
    int GetMaxRegion(int group);
