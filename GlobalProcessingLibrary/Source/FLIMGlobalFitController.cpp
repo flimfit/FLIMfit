@@ -7,6 +7,8 @@
 
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
+#include "VariableProjector.h"
+#include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
 #ifndef NO_OMP   
@@ -418,6 +420,9 @@ void FLIMGlobalFitController::Init()
    n_irf = a_n_irf;
 
    
+   if (data->global_mode != MODE_PIXELWISE)
+      algorithm = ALG_LM;
+
    if (data->global_mode == MODE_PIXELWISE)
       status->SetNumRegion(data->n_masked_px);
    else
@@ -528,7 +533,6 @@ void FLIMGlobalFitController::Init()
    if (algorithm == ALG_ML)
    {
       int nfunc = n+1;
-      //csize = nl * (6 + nfunc) + nfunc * 2;
    }
 
    exp_buf_size = n_exp * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
@@ -655,7 +659,10 @@ void FLIMGlobalFitController::Init()
    
    for(int i=0; i<n_thread; i++)
    {
-      projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf, &(status->terminate)) );
+      if (algorithm == ALG_ML)
+         projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, nmax, ndim, p, t, &(status->terminate)) );
+      else
+         projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf, &(status->terminate)) );
    }
 
 

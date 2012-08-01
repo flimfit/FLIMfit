@@ -32,8 +32,7 @@
 
 //----------------------------------------------
 #define ALG_LM 0
-#define ALG_GN 1
-#define ALG_ML 2
+#define ALG_ML 1
 
 //----------------------------------------------
 #define FIX            0
@@ -59,5 +58,6 @@
 #define ERR_COULD_NOT_START_FIT        -1007
 #define ERR_FOUND_NO_REGIONS           -1008
 #define ERR_FAILED_TO_MAP_DATA         -1009
+#define ERR_INVALID_INPUT              -1010
 
 #endif

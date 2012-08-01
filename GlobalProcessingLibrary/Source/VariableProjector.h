@@ -1,17 +1,11 @@
 #ifndef _VARIABLEPROJECTOR_H
 #define _VARIABLEPROJECTOR_H
 
+#include "AbstractFitter.h"
 #include "VariableProjection.h"
 
-class FitModel
-{
-   public: 
-      virtual void SetupIncMatrix(int* inc) = 0;
-      virtual int ada(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
-};
 
-
-class VariableProjector
+class VariableProjector : public AbstractFitter
 {
 
 public:
@@ -24,7 +18,7 @@ public:
 
 private:
 
-   int Init();
+   void Cleanup();
 
    int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
    void jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv);
@@ -34,18 +28,13 @@ private:
 
    double d_sign(double *a, double *b);
 
-   FitModel* model;
-
-   int* terminate;
-   int variable_phi;
-
    // Buffers used by levmar algorithm
    double *fjac;
    double *diag;
    double *qtf;
    double *wa1, *wa2, *wa3, *wa4;
    int    *ipvt;
-
+/*
    // Used by variable projection
    int     inc[96];
    int     ncon;
@@ -78,7 +67,7 @@ private:
    int thread;
    double chi2_factor;
    double* cur_chi2;
-
+   */
    friend int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag);
 };
 

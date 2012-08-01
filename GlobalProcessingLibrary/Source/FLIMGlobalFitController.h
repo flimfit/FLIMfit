@@ -19,7 +19,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-#include "VariableProjector.h"
+#include "AbstractFitter.h"
 
 #include "FlagDefinitions.h"
 
@@ -254,7 +254,7 @@ private:
 
    int memory_map_results;
 
-   boost::ptr_vector<VariableProjector> projectors;
+   boost::ptr_vector<AbstractFitter> projectors;
 };
 
 class ErrMinParams

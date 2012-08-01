@@ -15,7 +15,7 @@
 
 
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int* terminate) : 
-    model(model), smax(smax), l(l), nl(nl), nmax(nmax), ndim(ndim), p(p), t(t), variable_phi(variable_phi), terminate(terminate)
+    AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, terminate)
 {
 
    // Set up buffers for levmar algorithm
@@ -34,20 +34,6 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    for(int i=0; i<nl; i++)
       diag[i] = 1;
 
-
-   // Set up buffers for variable projection
-   //--------------------------------------------------
-
-   a   = new double[ nmax * ( l + smax ) ]; //free ok
-   b   = new double[ ndim * ( p + 3 ) ]; //free ok
-   u   = new double[ l ];
-   kap = new double[ nl + 1 ];
-
-   lp1 = l+1;
-
-
-   Init();
-   
 }
 
 VariableProjector::~VariableProjector()
@@ -61,11 +47,6 @@ VariableProjector::~VariableProjector()
    delete[] wa3;
    delete[] wa4;
    delete[] ipvt;
-
-   delete[] a;
-   delete[] b;
-   delete[] u;
-   delete[] kap;
    
 }
 
@@ -74,67 +55,6 @@ int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fn
 {
    VariableProjector *vp = (VariableProjector*) p;
    return vp->varproj(m, n, x, fnorm, fjrow, iflag);
-}
-
-
-int VariableProjector::Init()
-{
-   int j, k, inckj, p_inc;
-
-   // Check for valid input
-   //----------------------------------
-
-   if  (!(             l >= 0
-          &&          nl >= 0
-          && (nl<<1) + 3 <= ndim
-          &&           n <  nmax
-          &&           n <  ndim
-          && !(nl == 0 && l == 0)))
-   {
-      return INVALID_INPUT;
-   }
-
-
-   // Get inc matrix and check for valid input
-   // Determine number of constant functions
-   //------------------------------------------
-
-   nconp1 = l+1;
-   philp1 = l == 0;
-   p_inc = 0;
-
-   if ( l > 0 && nl > 0 )
-   {
-      model->SetupIncMatrix(inc);
-
-      p_inc = 0;
-      for (j = 0; j < lp1; ++j) 
-      {
-         if (p_inc == 0) 
-            nconp1 = j + 1;
-         for (k = 0; k < nl; ++k) 
-         {
-            inckj = inc[k + j * 12];
-            if (inckj != 0 && inckj != 1)
-               break;
-            if (inckj == 1)
-               p_inc++;
-         }
-      }
-
-      // Determine if column L+1 is in the model
-      //---------------------------------------------
-      philp1 = false;
-      for (k = 0; k < nl; ++k) 
-         philp1 = philp1 | (inc[k + lp1 * 12] == 1); 
-   }
-
-   if (p_inc != p)
-      return INVALID_INPUT;
-
-   ncon = nconp1 - 1;
-
-   return 0;
 }
 
 
@@ -150,13 +70,14 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, int* irf_idx, doubl
    this->chi2 = chi2;
    this->cur_chi2 = &c2;
    this->chi2_factor = chi2_factor / (n - ((double)nl)/s - l);
+   this->thread = thread;
 
    int lnls1 = l + s + nl + 1;
    int lp1   = l + 1;
    int nsls1 = n * s - l * (s - 1);
    
 
-   this->thread = thread;
+
 
    double ftol = sqrt(dpmpar(1));
    double xtol = sqrt(dpmpar(1));
@@ -172,7 +93,7 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, int* irf_idx, doubl
                  ftol, xtol, gtol, itmax, diag, 1, factor, -1,
                  &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
 
-   varproj_local(nsls1, nl, alf, &rnorm, fjac, -1);
+   varproj(nsls1, nl, alf, &rnorm, fjac, -1);
 
    if (info < 0)
       ierr = info;

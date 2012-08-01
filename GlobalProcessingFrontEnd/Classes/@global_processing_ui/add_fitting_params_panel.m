@@ -98,7 +98,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         fit_params_adv_opt_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
 
         add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
-        add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Marquardt' 'Gauss-Newton' 'Grid Search'});
+        add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Variable Projection' 'Maximum Likelihood'});
         add_fitting_param_control('adv','pulsetrain_correction','popupmenu','Pulse train correction', {'No','Yes'});
         add_fitting_param_control('adv','live_update','checkbox','Live Fit', '');
         %add_fitting_param_control('adv','split_fit','checkbox','Split Fit', '');

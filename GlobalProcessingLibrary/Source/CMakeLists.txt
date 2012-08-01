@@ -41,8 +41,8 @@ set(SOURCE
    FLIMGlobalFitController_ADA.cpp
    FLIMData.cpp
    VariableProjector.cpp
-   MaximumLikelihood.cpp
-   lmmle.cpp
+   MaximumLikelihoodFitter.cpp
+   AbstractFitter.cpp
    tinythread.cpp
    lmstr.c
    lmstx.c
@@ -61,6 +61,8 @@ set(HEADERS
    ModelADA.h
    VariableProjector.h
    VariableProjection.h
+   AbstractFitter.h
+   MaximumLikelihoodFitter.h
    tinythread.h
    FlagDefinitions.h
    cminpack.h

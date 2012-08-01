@@ -164,16 +164,19 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if(ref_reconvolution == FIT_GLOBALLY)
       alf_local[i++] = ref_lifetime_guess;
 
-   double mx = 0;
-   for(int i=0; i<n; i++)
-   {
-      if (y[i]>mx)
-         mx = y[i]; 
-   }
-
    if(algorithm == ALG_ML)
+   {
+
+      double mx = 0;
+      for(int j=0; j<n; j++)
+      {
+         if (y[j]>mx)
+            mx = y[i]; 
+      }
+
       for(int j=0; j<l; j++)
          alf_local[i++] = mx/l;
+   }
 
    itmax = 100;
 
@@ -185,12 +188,12 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    }
    else
    {
-      if (algorithm == ALG_ML)
-         l = l;
+      //if (algorithm == ALG_ML)
+      //   l = l;
 /*         lmmle( nl, l, n_meas_res, nmax, ndim, p, 
                   t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
                   alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );*/
-      else
+      //else
          projectors[thread].Fit(s_thresh, n, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
       
    }
