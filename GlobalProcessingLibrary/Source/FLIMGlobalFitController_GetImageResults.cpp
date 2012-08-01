@@ -462,6 +462,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int isel = 1;
 
    double *a, *lin_params;
+   float *y;
 
    a = new double[ n_meas * lps ]; //ok
    lin_params = new double[ n_px*l ]; //ok
