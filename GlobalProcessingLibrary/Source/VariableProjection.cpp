@@ -681,7 +681,7 @@ L30:
        }
        u[k + is * u_dim1] = r__[k + is * r_dim1];
        r__[k + is * r_dim1] = acum / a[k + k * a_dim1];
-       acum = -acum / (a[k + (integer) usave * a_dim1] * a[k + k * 
+       acum = -acum / (b[k + (integer) usave * b_dim1] * a[k + k * 
           a_dim1]);
        i__3 = n;
        for (i__ = kp1; i__ <= i__3; ++i__) {

@@ -420,33 +420,65 @@ void FLIMData::TransformImage(int thread, int im)
                for(int x=0; x<n_x; x++)
                   tr_buf[y*n_x+x] = data_ptr[yp*dy+x*dx+idx];
                   */
-
+               
+              
             //Smooth in y axis
             for(int x=0; x<n_x; x++)
             {
-               for(int y=0; y<s; y++)
+               if (background_type == BG_IMAGE)
                {
-                  tr_row_buf[y] = 0;
-                  for(int yp=0; yp<y+s; yp++)
-                     tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] /= y+s;
-               }
+                  for(int y=0; y<s; y++)
+                  {
+                     tr_row_buf[y] = 0;
+                     for(int yp=0; yp<y+s; yp++)
+                        tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx] - background_image[yp*n_x+x];
+                     tr_row_buf[y] /= y+s;
+                  }
 
-               //#pragma omp parallel for
-               for(int y=s; y<n_y-s; y++ )
-               {
-                  tr_row_buf[y] = 0;
-                  for(int yp=y-s; yp<=y+s; yp++)
-                     tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] /= 2*s+1;
-               }
+                  //#pragma omp parallel for
+                  for(int y=s; y<n_y-s; y++ )
+                  {
+                     tr_row_buf[y] = 0;
+                     for(int yp=y-s; yp<=y+s; yp++)
+                        tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx] - background_image[yp*n_x+x];
+                     tr_row_buf[y] /= 2*s+1;
+                  }
 
-               for(int y=n_y-s; y<n_y; y++ )
+                  for(int y=n_y-s; y<n_y; y++ )
+                  {
+                     tr_row_buf[y] = 0;
+                     for(int yp=y-s; yp<n_y; yp++)
+                        tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx] - background_image[yp*n_x+x];
+                     tr_row_buf[y] /= n_y-(y-s);
+                  }
+               }
+               else
                {
-                  tr_row_buf[y] = 0;
-                  for(int yp=y-s; yp<n_y; yp++)
-                     tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] /= n_y-(y-s);
+
+                  for(int y=0; y<s; y++)
+                  {
+                     tr_row_buf[y] = 0;
+                     for(int yp=0; yp<y+s; yp++)
+                        tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
+                     tr_row_buf[y] /= y+s;
+                  }
+
+                  //#pragma omp parallel for
+                  for(int y=s; y<n_y-s; y++ )
+                  {
+                     tr_row_buf[y] = 0;
+                     for(int yp=y-s; yp<=y+s; yp++)
+                        tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
+                     tr_row_buf[y] /= 2*s+1;
+                  }
+
+                  for(int y=n_y-s; y<n_y; y++ )
+                  {
+                     tr_row_buf[y] = 0;
+                     for(int yp=y-s; yp<n_y; yp++)
+                        tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
+                     tr_row_buf[y] /= n_y-(y-s);
+                  }
                }
 
                for(int y=0; y<n_y; y++)
@@ -523,6 +555,7 @@ void FLIMData::TransformImage(int thread, int im)
       for(int i=0; i<n_tot; i++)
          tr_data[i] -= background_value;
    }
+/*
    else if (background_type == BG_IMAGE)
    {
       int n_px = n_x * n_y;
@@ -531,7 +564,7 @@ void FLIMData::TransformImage(int thread, int im)
          for(int i=0; i<n_meas; i++)
             tr_data[p*n_meas+i] -= background_image[p];
    }
-
+   */
    cur_transformed[thread] = im;
 
 }
