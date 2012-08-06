@@ -558,7 +558,7 @@ void FLIMGlobalFitController::Init()
       #ifdef _WINDOWS
          exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
        #else
-         exp_buf      =  new double[n_thread * n_decay_group ];
+         exp_buf      =  new double[n_thread * n_decay_group * exp_buf_size];
        #endif
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -568,6 +568,7 @@ void FLIMGlobalFitController::Init()
       count_buf    = new double[ n_thread * n_meas ]; // free ok 
       adjust_buf   = new float[ n_thread * n_meas ]; // free ok 
 
+    
       irf_max      = new int[n_meas]; //free ok
       
       if (image_irf)

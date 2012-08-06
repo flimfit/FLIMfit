@@ -165,6 +165,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
    switch(isel)
    {
       case 1:
+
          // Set constant phi values
          //----------------------------
          a_col = 0;

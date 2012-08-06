@@ -1,4 +1,5 @@
 #include "FLIMData.h"
+#include <math.h>
 
 FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
                    int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
@@ -409,7 +410,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, fl
       if (weight[j] == 0)
          weight[j] = 1;   // If we have a zero data point set to 1
       else
-         weight[j] = 1/abs(weight[j]);
+         weight[j] = 1/fabs(weight[j]);
    }
 
    return s;

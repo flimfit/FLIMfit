@@ -223,13 +223,13 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
          if (firstcb >= 0)
             for (m = firstcb; m < p; ++m)
-               for (int i = 0; i< n; ++i)
+               for (int i = 0; i < n; ++i)
                   b[i + m * b_dim1] *= w[i];
 
       }
 
       // Get the data we're about to transform
-      if (isel < 3)
+      if (isel < 3) 
       {
          if (!philp1)
          {
@@ -241,7 +241,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
             // Store the data in r__, subtracting the column l+1 which does not
             // have a linear parameter
             for(int i=0; i < n; ++i)
-               rj[i] = y[i + j * y_dim1] - r__[i + r_dim1];
+               rj[i] = y[i + j * y_dim1] - r__[i];
          }
 
          for (int i = 0; i < n; ++i)
@@ -319,8 +319,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
                kp1 = k + 1;
                beta = -a[k + k * a_dim1] * u[k];
 
-               int jpl = j+l;
-               acum = u[k] * a[k + jpl * a_dim1];
+               acum = u[k] * rj[k];
 
                for (int i = kp1; i < n; ++i) 
                   acum += a[i + k * a_dim1] * rj[i];
@@ -404,7 +403,7 @@ void VariableProjector::get_linear_params(int idx)
       r__[k] = acum / a[k + k * a_dim1];
       acum = -acum / (u[k] * a[k + k * a_dim1]);
 
-      for (i = k; i < n; ++i) 
+      for (i = k+1; i < n; ++i) 
       {
          r__[i] -= a[i + k * a_dim1] * acum;
       }
@@ -444,33 +443,28 @@ void VariableProjector::jacb_row(int s, double *kap, double* r__, int d_idx, dou
    int isback = d_idx / nml; 
    int is = s - isback - 1;
    
-   if (l != ncon) 
+   m = 0;
+   for (k = 0; k < nl; ++k)
    {
-      m = 0;
-      for (k = 0; k < nl; ++k)
+      acum = (float)0.;
+      for (j = ncon; j < l; ++j) 
       {
-         acum = (float)0.;
-         for (j = ncon; j < l; ++j) 
+         if (inc[k + j * 12] != 0) 
          {
-            if (inc[k + j * 12] != 0) 
-            {
-               acum += b[i + m * b_dim1] * r__[j + is * r_dim1];
-               ++m;
-            }
-         }
-
-         ksub = lps + k;
-         
-         if (inc[k + l * 12] != 0)
-         {   
-            acum += b[i + m * b_dim1];
+            acum += b[i + m * b_dim1] * r__[j + is * r_dim1];
             ++m;
          }
-
-         derv[k] = -acum;
-
       }
+
+      if (inc[k + l * 12] != 0)
+      {   
+         acum += b[i + m * b_dim1];
+         ++m;
+      }
+
+      derv[k] = -acum;
    }
+
    *res = r__[i+is*r_dim1];
 }
 
@@ -497,7 +491,7 @@ int VariableProjector::bacsub(int idx)
       /*           I = N-1, N-2, ..., 2, 1 */
          i = l - iback - 1;
          acum = x[i];
-         for (j = i; j < l; ++j) 
+         for (j = i+1; j < l; ++j) 
             acum -= a[i + j * a_dim1] * x[j];
          
          x[i] = acum / a[i + i * a_dim1];

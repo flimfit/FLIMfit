@@ -179,10 +179,10 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
 }
 
 
-void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[])
+void FLIMGlobalFitController::add_decay(int threadi, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[])
 {   
    double c;
-   double* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
+   double* local_exp_buf = exp_buf + threadi * n_decay_group * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+decay_group_idx)*n_exp);
    
    double* exp_model_buf         = local_exp_buf +  row   *exp_dim;
@@ -193,7 +193,9 @@ void FLIMGlobalFitController::add_decay(int thread, int tau_idx, int theta_idx, 
 
    double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
-   int* resample_idx = data->GetResampleIdx(thread);
+   int* resample_idx = data->GetResampleIdx(threadi);
+   
+   
 
    fact *= (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
 

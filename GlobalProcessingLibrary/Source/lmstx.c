@@ -228,6 +228,15 @@
     *nfev = 0;
     *njev = 0;
 
+/*     evaluate the function at the starting point */
+/*     and calculate its norm. */
+
+    iflag = (*fcn)(p, m, n, x, fnorm, wa3, 0);
+    *nfev = 1;
+    if (iflag < 0) {
+	goto TERMINATE;
+    }
+
 /*     check the input parameters for errors. */
 
     if (n <= 0 || m < n || ldfjac < n || ftol < 0. || xtol < 0. || 
@@ -240,15 +249,6 @@
                 goto TERMINATE;
             }
         }
-    }
-
-/*     evaluate the function at the starting point */
-/*     and calculate its norm. */
-
-    iflag = (*fcn)(p, m, n, x, fnorm, wa3, 0);
-    *nfev = 1;
-    if (iflag < 0) {
-	goto TERMINATE;
     }
 
 /*     initialize levenberg-marquardt parameter and iteration counter. */

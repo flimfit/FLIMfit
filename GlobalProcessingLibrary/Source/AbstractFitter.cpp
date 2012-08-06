@@ -63,14 +63,14 @@ int AbstractFitter::Init()
       //---------------------------------------------
       philp1 = false;
       for (k = 0; k < nl; ++k) 
-         philp1 = philp1 | (inc[k + lp1 * 12] == 1); 
+         philp1 = philp1 | (inc[k + l * 12] == 1); 
    }
 
    if (p_inc != p)
       return ERR_INVALID_INPUT;
 
    ncon = nconp1 - 1;
-
+   
    return 0;
 }
 

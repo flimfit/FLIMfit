@@ -79,8 +79,8 @@ classdef flim_data_series < handle
         use_memory_mapping = true;
         load_multiple_channels = false;
         
-        tr_data_series_mem;
-        data_series_mem;
+        tr_data_series_mem = single([]);
+        data_series_mem = single([]);
         
         mapfile_name;
         memmap;
