@@ -420,6 +420,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
                           (fit_tvb == FIX )    ? tvb_guess     : 0);
 
 
+   float *y;
    SetNaN(fit,n_fit*n_meas);
 
 
