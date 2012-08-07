@@ -74,7 +74,7 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, int* irf_idx, doubl
 
    int lnls1 = l + s + nl + 1;
    int lp1   = l + 1;
-   int nsls1 = n * s - l * (s - 1);
+   int nsls1 = n * s - l * s;
    
 
 
