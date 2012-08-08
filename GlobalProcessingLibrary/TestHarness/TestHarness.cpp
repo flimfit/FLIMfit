@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
    {
       int use_im = 1;
       
-      e=SetupGlobalFit(id, 1, 1, n_irf, t_irf, irf, 0, 2, 0, tau_min, tau_max, 1, tau_guess, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0, 1e-6/80.0, 0, 0, 0, ierr, 1, 0, 0, NULL);
+      e=SetupGlobalFit(id, 1, 1, n_irf, t_irf, irf, 0, NULL, 2, 0, tau_min, tau_max, 1, tau_guess, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0, 1e-6/80.0, 0, 0, 0, ierr, 1, 0, 0, NULL);
       BOOST_CHECK_EQUAL( e, 0 );
       
       e=SetDataParams(id, 1, n_x, n_y, 1, n_t, t, t_int, &t_skip, n_t, 0, &use_im, NULL, 0, 0, 1, 0, 0);

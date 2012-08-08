@@ -132,7 +132,7 @@ int CheckControllerIdx(int c_idx)
 
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
-                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                              int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
                               int n_exp, int n_fix,  double tau_min[], double tau_max[], 
                               int estimate_initial_tau, double tau_guess[],
                               int fit_beta, double fixed_beta[],
@@ -163,7 +163,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
    double* theta_guess     = NULL;
    
    controller[c_idx] = 
-         new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup,
+         new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup, t0_image,
                                       n_exp, n_fix, tau_min, tau_max, 
                                       estimate_initial_tau, tau_guess,
                                       fit_beta, fixed_beta,
@@ -183,7 +183,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
 
 
 FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int image_irf,
-                             int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                             int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
                              int n_exp, int n_fix, 
                              double tau_min[], double tau_max[], 
                              int estimate_initial_tau, double tau_guess[],
@@ -214,7 +214,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
       t_irf[i] = t_irf[i]/T_FACTOR;
 
    controller[c_idx] = 
-         new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup,
+         new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup, t0_image,
                                       n_exp, n_fix, tau_min, tau_max, 
                                       estimate_initial_tau, tau_guess,
                                       fit_beta, fixed_beta,

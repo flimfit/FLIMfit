@@ -41,7 +41,13 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
    
    if (image_irf)
       lirf += irf_idx * n_irf * n_chan;
-   
+   else if (t0_image)
+   {
+      lirf += (thread + 1) * n_irf * n_chan;
+      ShiftIRF(t0_image[irf_idx], lirf);
+   }
+
+
    for(m=n_pol_group-1; m>=0; m--)
    {
 
@@ -498,5 +504,48 @@ int FLIMGlobalFitController::E_derivatives(int thread, double tau[], double beta
    
 
    return col;
+
+}
+
+
+// http://paulbourke.net/miscellaneous/interpolation/
+double CubicInterpolate(double  y[], double mu)
+{
+   // mu - distance between y1 and y2
+   float a0,a1,a2,a3,mu2;
+
+   mu2 = mu*mu;
+   a0 = -0.5*y[0] + 1.5*y[1] - 1.5*y[2] + 0.5*y[3];
+   a1 = y[0] - 2.5*y[1] + 2*y[2] - 0.5*y[3];
+   a2 = -0.5*y[0] + 0.5*y[2];
+   a3 = y[1];
+
+   return(a0*mu*mu2+a1*mu2+a2*mu+a3);
+}
+
+
+void FLIMGlobalFitController::ShiftIRF(double shift, double s_irf[])
+{
+   int i;
+
+   //shift = -shift;
+
+
+   double dt = t_irf[1] - t_irf[0];
+
+   int c_shift = floor(shift/dt); 
+   double f_shift = shift/dt-c_shift;
+
+   int start = max(0,-c_shift)+1;
+   int end   = min(n_irf-1,n_irf-c_shift)-1;
+
+   for(i=0; i<start; i++)
+      s_irf[i] = irf_buf[0];
+
+   for(i=start; i<n_irf; i++)
+      s_irf[i] = CubicInterpolate(irf_buf+i+c_shift-1,f_shift);
+
+   for(i=end; i<n_irf; i++)
+      s_irf[i] = irf_buf[n_irf-1];
 
 }

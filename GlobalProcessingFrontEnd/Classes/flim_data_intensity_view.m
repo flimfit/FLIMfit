@@ -42,8 +42,12 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
             m = 2^8;
             
             if (obj.data_series.init)
-                            
-                selected = obj.data_series_list.selected;
+                
+                if ~isempty(obj.data_series_list)       
+                    selected = obj.data_series_list.selected;
+                else
+                    selected = 1;
+                end
                 intensity = obj.data_series.selected_intensity(selected);
               
                 flt = intensity(intensity>0 & ~isnan(intensity));

@@ -79,6 +79,7 @@ public:
    int error;
 
    int image_irf;
+   double* t0_image;
 
    FLIMData* data;
 
@@ -141,7 +142,7 @@ public:
    conv_deriv_func ConvolveDerivative;
 
    FLIMGlobalFitController(int global_algorithm, int image_irf,
-                           int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                           int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
                            int n_exp, int n_fix, 
                            double tau_min[], double tau_max[], 
                            int estimate_initial_tau, double tau_guess[],
@@ -230,6 +231,7 @@ private:
    int DetermineMAStartPosition(int p);
    double CalculateMeanArrivalTime(float decay[], int p);
 
+   void ShiftIRF(double shift, double s_irf[]);
 
    int ma_start;
    float* ma_decay;

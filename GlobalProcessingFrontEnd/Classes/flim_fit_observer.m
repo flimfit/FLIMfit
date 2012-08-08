@@ -9,8 +9,10 @@ classdef flim_fit_observer < handle
         function obj = flim_fit_observer(fit_controller)
            obj.fit_controller = fit_controller; 
            
-           obj.flim_fit_lh = addlistener(fit_controller,'fit_updated',@obj.fit_update_evt);
-           obj.flim_fit_lh = addlistener(fit_controller,'fit_display_updated',@obj.fit_display_update_evt);
+           if ~isempty(fit_controller)
+               obj.flim_fit_lh = addlistener(fit_controller,'fit_updated',@obj.fit_update_evt);
+               obj.flim_fit_lh = addlistener(fit_controller,'fit_display_updated',@obj.fit_display_update_evt);
+           end
         end
         
         

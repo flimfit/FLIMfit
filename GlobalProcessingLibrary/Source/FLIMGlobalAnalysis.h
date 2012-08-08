@@ -33,7 +33,7 @@ FITDLL_API void FLIMGlobalRelinquishID(int id);
 
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
-                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                              int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
                               int n_exp, int n_fix,  double tau_min[], double tau_max[], 
                               int estimate_initial_tau, double tau_guess[],
                               int fit_beta, double fixed_beta[],
@@ -47,7 +47,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int ierr[], int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int image_irf,
-                             int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                             int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
                              int n_exp, int n_fix, 
                              double tau_min[], double tau_max[], 
                              int estimate_initial_tau, double tau_guess[],

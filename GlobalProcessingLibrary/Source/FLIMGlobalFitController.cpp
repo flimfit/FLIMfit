@@ -19,8 +19,9 @@ using namespace boost::interprocess;
 using namespace std;
 
 
-FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf,
+FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf, 
                                                  int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                                                 double t0_image[],
                                                  int n_exp, int n_fix, 
                                                  double tau_min[], double tau_max[], 
                                                  int estimate_initial_tau, double tau_guess[],
@@ -35,7 +36,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
                                                  int ref_reconvolution, double ref_lifetime_guess, int algorithm,
                                                  int ierr[], int n_thread, int runAsync, int (*callback)()) :
    global_algorithm(global_algorithm), image_irf(image_irf), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
-   n_exp(n_exp), n_fix(n_fix), 
+   t0_image(t0_image), n_exp(n_exp), n_fix(n_fix), 
    tau_min(tau_min), tau_max(tau_max),
    estimate_initial_tau(estimate_initial_tau), tau_guess(tau_guess),
    fit_beta(fit_beta), fixed_beta(fixed_beta),
@@ -326,9 +327,6 @@ void FLIMGlobalFitController::Init()
       omp_set_num_threads(n_thread);
    #endif
 
-   //if (data->global_mode != MODE_PIXELWISE)
-   //   image_irf = false;
-
 
 
    // Set up FRET parameters
@@ -387,7 +385,14 @@ void FLIMGlobalFitController::Init()
 
    n_meas = n_t * n_chan;
 
-   int n_irf_rep = image_irf ? (data->n_x*data->n_y) : 1;
+   int n_irf_rep;
+   
+   if (image_irf) 
+      n_irf_rep = data->n_x*data->n_y;
+   else if (t0_image)
+      n_irf_rep = 1 + n_thread;
+   else 
+      n_irf_rep = 1;
 
    int a_n_irf = ceil(n_irf / 2.0) * 2;
    int irf_size = a_n_irf * n_chan * n_irf_rep;

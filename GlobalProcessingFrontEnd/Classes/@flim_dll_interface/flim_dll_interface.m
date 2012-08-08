@@ -43,6 +43,7 @@ classdef flim_dll_interface < handle
         p_E_guess;
         p_theta_guess;
         p_ierr;
+        p_t0_image;
         
         p_use;
         p_background;

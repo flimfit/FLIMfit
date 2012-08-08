@@ -75,6 +75,8 @@ classdef front_end_menu_controller < handle
         menu_view_chi2_display;
         
         menu_test_test1;
+        menu_test_test2;
+        menu_test_test3;
         menu_test_unload_dll;
         
         menu_help_bugs;
@@ -577,6 +579,27 @@ classdef front_end_menu_controller < handle
         function menu_test_test1_callback(obj,~,~)
             regression_testing(obj);
             %polarisation_testing(obj.data_series_controller.data_series,obj.default_path);
+        end
+        
+        function menu_test_test2_callback(obj,~,~)
+            mask=obj.data_masking_controller.roi_controller.roi_mask;
+            irf_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
+            
+            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            if filename ~= 0
+
+                serialise_object(irf_data,[pathname filename],'flim_data_series');
+            end
+            
+        end
+        
+        function menu_test_test3_callback(obj,~,~)
+            
+            [file,path] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select a file',obj.default_path);
+            if file ~= 0
+                marshal_object([path file],'flim_data_series',obj.data_series_controller.data_series);
+            end
+            
         end
         
         function menu_test_unload_dll_callback(obj,~,~)

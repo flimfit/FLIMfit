@@ -253,6 +253,12 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.p_irf = libpointer('doublePtr', d.tr_irf);
     end
     
+    if ~isempty(d.t0_image) 
+        obj.p_t0_image = libpointer('doublePtr', d.t0_image);
+    else
+        obj.p_t0_image = [];
+    end
+    
     obj.p_t_int = libpointer('doublePtr',d.tr_t_int);
     obj.p_t_irf = libpointer('doublePtr', d.tr_t_irf);
     obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta / sum(p.fixed_beta));

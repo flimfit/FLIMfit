@@ -6,6 +6,7 @@ classdef flim_data_series < handle
         t_irf = [-1; 0; 1];
         irf = [0; 1; 0];
         irf_name;
+        t0_image;
                       
         counts_per_photon;
         
@@ -627,6 +628,11 @@ classdef flim_data_series < handle
         function set_delta_irf(obj)
            obj.t_irf = [-1; 0; 1];
            obj.irf = [0; 1; 0];
+           
+           obj.t_irf_min = -1;
+           obj.t_irf_max = 1;
+           obj.t0 = 0;
+           
            
            obj.compute_tr_irf();
            notify(obj,'data_updated');
