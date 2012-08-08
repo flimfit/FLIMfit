@@ -55,12 +55,12 @@ function data_cube = get_Channels( session, imgId, n_blocks, block )
             errordlg('no Z-planes, no timepoints expected - can not continue');
         end;
     %
-    sizeX = pixels.getSizeX().getValue()
-    sizeY = pixels.getSizeY().getValue()
-    sizeC = pixels.getSizeC().getValue()
+    sizeX = pixels.getSizeX().getValue();
+    sizeY = pixels.getSizeY().getValue();
+    sizeC = pixels.getSizeC().getValue();
     %
     pixelsId = pixels.getId().getValue();
-    image.getName().getValue()
+
         store = session.createRawPixelsStore(); 
         store.setPixelsId(pixelsId, false);    
     %    
@@ -77,7 +77,6 @@ function data_cube = get_Channels( session, imgId, n_blocks, block )
     data_cube = zeros(c_end - c_begin + 1, sizeX, sizeY);            
     %
     for c = c_begin:c_end,
-        c - 1
         rawPlane = store.getPlane(0, c - 1, 0);        
             plane = toMatrix(rawPlane, pixels);    
                 data_cube(c - c_begin + 1,:,:) = plane;

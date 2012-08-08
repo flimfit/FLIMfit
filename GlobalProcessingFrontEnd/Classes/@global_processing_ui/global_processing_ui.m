@@ -178,6 +178,9 @@ classdef global_processing_ui
                 disp('Closing OMERO session');
 
                 client.closeSession();
+                
+                handles.OMERO_session = [];
+                handles.OMERO_client = [];
                 %clear client;
                 %clear session;
                 %unloadOmero();
@@ -186,6 +189,8 @@ classdef global_processing_ui
             
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
+           
+            
             for i=1:length(names)
                 if ishandle(handles.(names{i}))
                     delete(handles.(names{i}));
