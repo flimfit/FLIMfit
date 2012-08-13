@@ -106,9 +106,10 @@
                 for i=1:length(names)
                     if obj.auto_lim.(names{i})
                         im_data = r.get_image(obj.dataset_selected,names{i});
+                        finite_im_data = im_data(isfinite(im_data)); 
                         
-                        lim = prctile(im_data(:),[1 99]);
-                        
+                        lim = prctile(finite_im_data,[1 99]);
+                                                
                         lim= num2str(lim,2);
                         lim= str2num(lim);
                         

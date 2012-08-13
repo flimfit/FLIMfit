@@ -199,7 +199,7 @@ if numel(varargin)>0
     % Set up valid parameters list
     validParameters={ ...
         {'figure','fig','f'}, ... % Figure & driver settings
-        {'init','i'},'close','save','ppt','current','visible','template', ... % Power Point Control.
+        {'init','i'},'close','save','ppt','current','visible','template','currentslide' ... % Power Point Control.
         {'notes','n'},{'text','textbox'}, {'comments','comment'}, ... % Notes, textbox & comments settings
         {'stretch','st'},{'scale','s','sc'},{'title','t'}, ... % Stretch, Scale & Title settings
         {'driver','drivers','d'},{'resolution','res'},{'render','r'},... % Title, Resolution and Render Calls
@@ -523,6 +523,14 @@ if isfield(addlParms,'title')
     end
     % Set the text in the title to the specified title
     set(new_slide.Shapes.Title.TextFrame.TextRange,'Text',addlParms.title);
+elseif isfield(addlParms,'currentslide') && get(op.Slides,'Count') > 0
+    n_slides = get(op.Slides,'Count');
+    new_slide = invoke(op.Slides,'Item',n_slides);
+    if isfield(addlParms,'padding')
+        top=addlParms.padding(3);
+    else
+        top=0;
+    end
 else
     % Slide with No Title
     new_slide = invoke(op.Slides,'Add',slide_count,12);

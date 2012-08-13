@@ -628,6 +628,10 @@ classdef flim_data_series < handle
            obj.t_irf = [-1; 0; 1];
            obj.irf = [0; 1; 0];
            
+           obj.t_irf_min = -1;
+           obj.t_irf_max = 1;
+           obj.irf_background = 0;
+           
            obj.compute_tr_irf();
            notify(obj,'data_updated');
         end
