@@ -1,9 +1,4 @@
 classdef flim_fit_corr_controller < abstract_plot_controller
-   
-    properties
-        param_x;
-        param_y;
-    end
     
     methods
         function obj = flim_fit_corr_controller(handles)
@@ -21,7 +16,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             selected = obj.data_series_list.selected;
             
             cla(ax)
-            if obj.fit_controller.has_fit && ~isempty(param{1}) && ~isempty(param{2})
+            if obj.fit_controller.has_fit && length(param)==2
                 
                 r = obj.fit_controller.fit_result;
                 

@@ -4,13 +4,15 @@ classdef abstract_plot_controller < flim_fit_observer
         plot_handle;
         handle_is_axes;
         param_popupmenu;
+        data_series_list;
         invert_colormap_popupmenu;
         contextmenu;
         window;
         param_list;
+        
+        selected;
         cur_param;
 
-        data_series_list;
         
         ap_lh;
         
@@ -19,7 +21,8 @@ classdef abstract_plot_controller < flim_fit_observer
     
     methods(Abstract = true)
         
-        draw_plot(obj,ax,param);
+        draw_plot(obj,ax,param,evt);
+        
     end
     
     methods
@@ -42,10 +45,13 @@ classdef abstract_plot_controller < flim_fit_observer
             if nargin < 4
                 exports_data = false;
             end
-            
+                        
             assign_handles(obj,handles);
 
             add_callback(obj.invert_colormap_popupmenu,@(~,~,~) obj.update_display);
+            addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
+            
+            obj.selected = obj.data_series_list.selected;
 
             obj.contextmenu = uicontextmenu('Parent',obj.window);
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
@@ -180,6 +186,12 @@ classdef abstract_plot_controller < flim_fit_observer
         
         function plot_fit_update(obj) 
         end
+        
+        function selection_updated(obj,~,~)
+            obj.selected = obj.data_series_list.use_selected;
+            obj.update_display();
+        end
+        
         
         function update_param_menu(obj,~,~)
             if obj.fit_controller.has_fit
