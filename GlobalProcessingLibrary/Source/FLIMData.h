@@ -19,7 +19,7 @@ class FLIMData
 public:
 
    FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-            int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
+            int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
 
    int  SetData(float data[]);
    int  SetData(uint16_t data[]);
@@ -30,9 +30,7 @@ public:
 
    int GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay);
    int GetPixelData(int thread, int im, int p, float* adjust, float* masked_data, float* ma_decay);
-   //int GetSelectedPixels(int thread, int im, int region, int n, int* loc, int *irf_idx);
 
-    
    int GetMaxRegion(int group);
    int GetMinRegion(int group);
    
@@ -90,6 +88,8 @@ public:
 
    double* t;
    double* t_int;
+
+   double counts_per_photon;
 
 private:
 
@@ -383,6 +383,8 @@ void FLIMData::TransformImage(int thread, int im)
    float* tr_row_buf = this->tr_row_buf + thread * (n_x + n_y);
    float* mean_image = this->mean_image + thread * n_meas;
 
+   double photons_per_count = 1/counts_per_photon;
+
    if ( smoothing_factor == 0 )
    {
       float* tr_ptr = tr_data;
@@ -520,7 +522,10 @@ void FLIMData::TransformImage(int thread, int im)
    {
       int n_tot = n_x * n_y * n_chan * n_t;
       for(int i=0; i<n_tot; i++)
+      {
          tr_data[i] -= background_value;
+         tr_data[i] *= photons_per_count;
+      }
    }
    else if (background_type == BG_IMAGE)
    {
@@ -528,7 +533,18 @@ void FLIMData::TransformImage(int thread, int im)
       //#pragma omp parallel for
       for(int p=0; p<n_px; p++)
          for(int i=0; i<n_meas; i++)
+         {
             tr_data[p*n_meas+i] -= background_image[p];
+            tr_data[p*n_meas+i] *= photons_per_count;
+         }
+   } 
+   else
+   {
+      int n_tot = n_x * n_y * n_chan * n_t;
+      for(int i=0; i<n_tot; i++)
+      {
+         tr_data[i] *= photons_per_count;
+      }
    }
 
    cur_transformed[thread] = im;

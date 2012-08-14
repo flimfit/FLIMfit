@@ -420,7 +420,6 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
                           (fit_tvb == FIX )    ? tvb_guess     : 0);
 
 
-   float *y;
    SetNaN(fit,n_fit*n_meas);
 
 
@@ -444,7 +443,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       {
          idx = fit_loc[i];
          if (mask[idx] > 0)
-            projectors[0].GetFit(idx, alf_group + idx*nl, lin_params + idx*l, adjust_buf, fit+n_meas*i);
+            projectors[0].GetFit(idx, alf_group + idx*nl, lin_params + idx*l, adjust_buf, data->counts_per_photon, fit+n_meas*i);
       }
 
    }
@@ -490,7 +489,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             {
                for(int j=last_idx; j<idx; j++)
                   lin_idx += (mask[j] == rg);
-               projectors[0].GetFit(idx, alf_group, lin_params + lin_idx*l, adjust_buf, fit+n_meas*i);
+               projectors[0].GetFit(idx, alf_group, lin_params + lin_idx*l, adjust_buf, data->counts_per_photon, fit+n_meas*i);
             }
             last_idx = idx;
          }

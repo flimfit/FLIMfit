@@ -74,7 +74,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit)
+int AbstractFitter::GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double counts_per_photon, double* fit)
 {
    model->ada(a, b, kap, alf, 0, 1, 0);
 
@@ -87,7 +87,8 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, double* lin_params, float* 
       for(int j=0; j<l; j++)
          fit[idx] += a[n*j+i] * lin_params[j];
 
-      fit[idx++] += a[n*l+i];
+      fit[idx] += a[n*l+i];
+      fit[idx++] *= counts_per_photon;
    }
 
    return 0;

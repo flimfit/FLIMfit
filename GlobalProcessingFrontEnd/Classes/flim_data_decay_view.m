@@ -126,8 +126,8 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                         % Plot decay data
                         switch decay_mode
                             case 1
-                                data = obj.data_series.get_roi(mask,dataset);
-                                irf = obj.data_series.tr_irf;
+                                [data, irf] = obj.data_series.get_roi(mask,dataset);
+                                %irf = obj.data_series.tr_irf;
                             case 2
                                 data = obj.data_series.irf;
                                 t_decay = d.t_irf;

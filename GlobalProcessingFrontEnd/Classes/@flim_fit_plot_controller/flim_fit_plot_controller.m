@@ -110,7 +110,7 @@
                         
                         lim = prctile(finite_im_data,[1 99]);
                         
-                        lim= num2str(lim,2);
+                        lim= num2str(lim,3);
                         lim= str2num(lim);
                         
                         obj.plot_lims.(names{i}) = lim;

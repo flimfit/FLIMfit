@@ -89,7 +89,7 @@ function handles = setup_menu(obj,handles)
         menu_tools = uimenu(obj.window,'Label','Tools');
         handles.menu_tools_photon_stats = uimenu(menu_tools,'Label','Determine Photon Statistics');
         handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
-        
+        handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map');
         %menu_batch = uimenu(obj.window,'Label','Batch Fitting');
         %handles.menu_batch_batch_fitting = uimenu(menu_batch,'Label','Batch Fit...');
 

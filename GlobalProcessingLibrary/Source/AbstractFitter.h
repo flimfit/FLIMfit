@@ -18,7 +18,7 @@ public:
    virtual ~AbstractFitter();
 
    virtual int Fit(int n, int s, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2) = 0;
-   int GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit);
+   int GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double counts_per_photon, double* fit);
 
 protected:
 

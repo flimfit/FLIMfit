@@ -104,7 +104,7 @@ public:
    double *count_buf;
 
    int *irf_max;
-   double *resampled_irf;
+   //double *resampled_irf;
 
    int max_dim, exp_dim;
 
@@ -187,7 +187,9 @@ public:
 
    void add_decay(int thread, int tau_idx, int theta_idx, int decay_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    void add_derivative(int thread, int tau_idx, int theta_idx, int decay_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
-   void add_irf(int thread, int irf_idx, double a[],int pol_group, double* scale_fact = NULL);
+   
+   template <typename T>
+   void add_irf(int thread, int irf_idx, T a[],int pol_group, double* scale_fact = NULL);
 
    int flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
    int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
@@ -197,8 +199,8 @@ public:
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
-   void sample_irf(int thread, int irf_idx, float a[], int pol_group = 0, double* scale_fact = 0);
-   void sample_irf(int thread, int irf_idx, double a[], int pol_group = 0, double* scale_fact = 0);
+//   void sample_irf(int thread, int irf_idx, float a[], int pol_group = 0, double* scale_fact = 0);
+//   void sample_irf(int thread, int irf_idx, double a[], int pol_group = 0, double* scale_fact = 0);
 
 
    int global_algorithm;
@@ -214,7 +216,7 @@ public:
 
 private:
    void CalculateIRFMax(int n_t, double t[]);
-   void CalculateResampledIRF(int n_t, double t[]);
+   //void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
    
    double CalculateChi2(int s, int n_meas_res, float y[], double a[], double lin_params[], float adjust_buf[], double fit_buf[], double chi2[]);
@@ -276,6 +278,37 @@ public:
       return gc->ErrMinFcn(x,*this);
    }
 };
+
+
+
+template <typename T>
+void FLIMGlobalFitController::add_irf(int thread, int irf_idx, T a[], int pol_group, double* scale_fact)
+{
+   int* resample_idx = data->GetResampleIdx(thread);
+
+   double* irf_buf = this->irf_buf;
+   
+   if (image_irf)
+      irf_buf += irf_idx * n_irf * n_chan; 
+   else if (t0_image)
+      irf_buf += (thread + 1) * n_irf * n_chan;
+
+   int idx = 0;
+   int ii;
+   for(int k=0; k<n_chan; k++)
+   {
+      double scale = (scale_fact == NULL) ? 1 : scale_fact[k];
+      for(int i=0; i<n_t; i++)
+      {
+         ii = floor((t[i]-t_irf[0])/t_g);
+
+         if (ii>=0 && ii<n_irf)
+            a[idx] += irf_buf[k*n_t+ii] * chan_fact[pol_group*n_chan+k] * scale;
+         idx += resample_idx[i];
+      }
+      idx++;
+   }
+}
 
 
 void WorkerThread(void* wparams);

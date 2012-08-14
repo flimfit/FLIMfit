@@ -73,9 +73,24 @@ function handles = setup_layout(obj, handles)
 
     set( dataset_layout_left, 'Sizes', [-1,22] );
     
-    handles.intensity_container = uicontainer( 'Parent', dataset_layout ); 
-    handles.intensity_axes = axes( 'Parent', handles.intensity_container );
+    % Intensity View
+    %---------------------------------------
     
+    intensity_layout = uiextras.VBox( 'Parent', dataset_layout, 'Spacing', 3 );
+    
+    intensity_opts_layout = uiextras.HBox( 'Parent', intensity_layout, 'Spacing', 3 );
+    uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', intensity_opts_layout, ...
+               'HorizontalAlignment', 'right' );
+    handles.intensity_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Integrated Intensity','Background','SV IRF','IRF Shift Map'}, 'Parent', intensity_opts_layout );
+    
+    set( intensity_opts_layout, 'Sizes', [-1,200] );
+    
+    
+    intensity_container = uicontainer( 'Parent', intensity_layout ); 
+    handles.intensity_axes = axes( 'Parent', intensity_container );
+    
+    set( intensity_layout, 'Sizes', [22,-1] );
     set( dataset_layout, 'Sizes', [150,-1] );
 
     

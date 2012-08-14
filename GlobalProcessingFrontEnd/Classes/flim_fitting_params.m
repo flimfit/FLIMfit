@@ -18,9 +18,7 @@ classdef flim_fitting_params < handle
         offset = 0;
         scatter = 0;
         tvb = 0;
-        
-        %rep_rate = 80;
-        %ref_lifetime = 80;
+       
         
         pulsetrain_correction = true;
         fit_reference = false;
@@ -54,6 +52,8 @@ classdef flim_fitting_params < handle
         use_memory_mapping = false;
         
         use_autosampling = true;
+        
+        image_irf_mode = 0;
         
         n_thread = 8;
     end

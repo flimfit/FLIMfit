@@ -69,7 +69,7 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, int* irf_idx, doubl
    this->irf_idx = irf_idx;
    this->chi2 = chi2;
    this->cur_chi2 = &c2;
-   this->chi2_factor = chi2_factor / (n - ((double)nl)/s - l);
+   this->chi2_factor = sqrt(chi2_factor) / (n - ((double)nl)/s - l);
    this->thread = thread;
 
    int lnls1 = l + s + nl + 1;

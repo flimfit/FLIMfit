@@ -35,6 +35,10 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl,
 int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
 {
 
+   double smoothing = chi2_factor;
+
+   chi2_factor = sqrt(chi2_factor)/(n-nl);
+
    this->n = n;
    this->s = s;
    this->y = y;
@@ -43,20 +47,21 @@ int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx,
    this->irf_idx = irf_idx;
    this->chi2 = chi2;
    this->cur_chi2 = &c2;
-   this->chi2_factor = chi2_factor / (n - nl);
+   this->chi2_factor = chi2_factor;
    this->thread = thread;
 
+
    for(int i=0; i<n; i++)
-      dy[i] = y[i] * chi2_factor;
+      dy[i] = y[i] * smoothing;
    dy[n] = 1;
    
    
-    
+    /*
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
-    
+    */
     
 
    int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, nvar, n+1, itmax, NULL, info, NULL, NULL, this);
@@ -77,7 +82,7 @@ int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx,
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
    for(int i=0; i<l; i++)
-      lin_params[i] = alf[nl-l+i] / chi2_factor;
+      lin_params[i] = alf[nl-l+i] / smoothing;
 
    chi2[0] = info[1] * chi2_factor;
 

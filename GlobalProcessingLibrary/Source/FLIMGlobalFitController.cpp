@@ -76,7 +76,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    adjust_buf   = NULL;
 
    irf_max      = NULL;
-   resampled_irf= NULL;
+   //resampled_irf= NULL;
 
    conf_lim     = NULL;
 
@@ -576,10 +576,12 @@ void FLIMGlobalFitController::Init()
     
       irf_max      = new int[n_meas]; //free ok
       
+      /*
       if (image_irf)
          resampled_irf= new double[n_meas * n_irf_rep ]; //free ok 
       else
          resampled_irf= new double[ n_meas ];
+         */
 
       conf_lim     = new double[ n_thread * nl ]; //free ok
 
@@ -657,7 +659,7 @@ void FLIMGlobalFitController::Init()
       t_g = 1;
 
    CalculateIRFMax(n_t,t);
-   CalculateResampledIRF(n_t,t);
+//   CalculateResampledIRF(n_t,t);
    ma_start = DetermineMAStartPosition(0);
 
    // Create fitting objects
@@ -668,7 +670,7 @@ void FLIMGlobalFitController::Init()
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, nmax, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), &(status->terminate)) );
    }
 
 
@@ -758,6 +760,24 @@ void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
 
 }
 
+/*
+void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
+{
+   double td;
+   int i,c,idx;
+
+   memset(resampled_irf,0,n_meas*sizeof(double));
+
+   for(int i=0; i<n_t; i++)
+   {
+      idx = floor((t[i]-t_irf[0])/t_g);
+
+      for(c=0; c<n_chan; c++)
+         resampled_irf[c*n_t+i] = irf_buf[c*n_irf+idx ];
+   }   
+}
+
+
 void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
 {
    double td;
@@ -790,7 +810,7 @@ void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
       }
    }   
 }
-
+*/
 
 /*
 void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
@@ -849,7 +869,7 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
 
-   sample_irf(thread, 0, adjust, n_r, scale_fact);
+   add_irf(thread, 0, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + offset_adj;
@@ -986,7 +1006,7 @@ void FLIMGlobalFitController::CleanupResults()
    #endif
 
       ClearVariable(irf_max);
-      ClearVariable(resampled_irf);
+      //ClearVariable(resampled_irf);
       ClearVariable(fit_buf);
       ClearVariable(count_buf);
       ClearVariable(adjust_buf);

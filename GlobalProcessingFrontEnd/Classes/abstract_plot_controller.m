@@ -184,35 +184,45 @@ classdef abstract_plot_controller < flim_fit_observer
         function update_param_menu(obj,~,~)
             if obj.fit_controller.has_fit
                 obj.param_list = obj.fit_controller.fit_result.fit_param_list();
-                
-                if ~isempty(obj.param_popupmenu)    
-                    old_list = get(obj.param_popupmenu,'String')';
-                    new_list = ['-',obj.param_list];
+                new_list = ['-',obj.param_list];
+                for i=1:length(obj.param_popupmenu) 
+                    old_list = get(obj.param_popupmenu(i),'String')';
                     
                     changed = length(old_list)~=length(new_list) || ...
                         any(~cellfun(@strcmp,old_list,new_list));
-                    
-                    if changed
-                        set(obj.param_popupmenu,'String',new_list);
 
-                        if get(obj.param_popupmenu,'Value') > length(obj.param_list)
-                            set(obj.param_popupmenu,'Value',1);
+                    if changed
+                        set(obj.param_popupmenu(i),'String',new_list);
+
+                        if get(obj.param_popupmenu(i),'Value') > length(obj.param_list)
+                            set(obj.param_popupmenu(i),'Value',1);
                         end
-                        
+
                         obj.param_select_update();    
-                    end
-                end            
+                    end          
+                end
             end
             
         end
         
         function param_select_update(obj,src,evt)
-            idx = get(obj.param_popupmenu,'Value')-1;
-            if idx == 0;
-                obj.cur_param = [];
-            else
-                obj.cur_param = obj.param_list{idx};
+            val = get(obj.param_popupmenu,'Value');
+            if iscell(val)
+                val = cell2mat(val);
             end
+            idx = val-1;
+            if length(idx) > 1
+                obj.cur_param = cell(size(idx));
+                obj.cur_param(idx>0) = obj.param_list(idx(idx>0));
+                obj.cur_param(idx==0) = [];
+            else
+                if idx == 0 
+                    obj.cur_param = [];
+                else
+                    obj.cur_param = obj.param_list{idx};
+                end
+            end
+            
             
             obj.update_display();
         end

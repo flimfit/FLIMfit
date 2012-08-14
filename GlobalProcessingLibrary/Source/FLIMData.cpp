@@ -2,7 +2,7 @@
 #include <math.h>
 
 FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
-                   int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
+                   int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
@@ -16,6 +16,7 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    mask(mask),
    threshold(threshold),
    limit(limit),
+   counts_per_photon(counts_per_photon),
    global_mode(global_mode),
    smoothing_factor(smoothing_factor),
    use_autosampling(use_autosampling)

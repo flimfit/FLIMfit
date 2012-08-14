@@ -68,6 +68,7 @@ classdef front_end_menu_controller < handle
         
         menu_tools_photon_stats;
         menu_tools_estimate_irf;
+        menu_tools_create_irf_shift_map;
         
         menu_view_data
         menu_view_plots;
@@ -84,6 +85,7 @@ classdef front_end_menu_controller < handle
         
         menu_batch_batch_fitting;
         
+        data_series_list;
         data_series_controller;
         data_decay_view;
         fit_controller;
@@ -555,11 +557,20 @@ classdef front_end_menu_controller < handle
         
         
         function menu_tools_photon_stats_callback(obj,~,~)
+            
             d = obj.data_series_controller.data_series;
             data = d.cur_tr_data;
-            seg = d.mask > 0;
-            [N,Z] = determine_photon_stats(data(:,:,seg));
-            disp(['N= ' num2str(N) ', Z = ' num2str(Z)]);
+            %{
+            mask=obj.data_masking_controller.roi_controller.roi_mask;
+            sel = obj.data_series_list.selected;
+            data = d.get_roi(mask,sel);
+            %}
+            [N,Z] = determine_photon_stats(data);
+            
+            d.counts_per_photon = N;
+            d.background_value = d.background_value + Z;
+            
+            %disp(['N= ' num2str(N) ', Z = ' num2str(Z)]);
         end
         
         function menu_tools_estimate_irf_callback(obj,~,~)
@@ -581,7 +592,7 @@ classdef front_end_menu_controller < handle
             %polarisation_testing(obj.data_series_controller.data_series,obj.default_path);
         end
         
-        function menu_test_test2_callback(obj,~,~)
+        function menu_tools_create_irf_shift_map_callback(obj,~,~)
             mask=obj.data_masking_controller.roi_controller.roi_mask;
             irf_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
             

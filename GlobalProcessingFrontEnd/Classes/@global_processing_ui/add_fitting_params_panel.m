@@ -105,6 +105,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         add_fitting_param_control('adv','use_memory_mapping','checkbox','Memory Map Results', '');
         %add_fitting_param_control('adv','calculate_errs','checkbox','Calculate Errors', '');
         add_fitting_param_control('adv','use_autosampling','checkbox','Use Autosampling', '');
+        add_fitting_param_control('adv','image_irf_mode','popupmenu','IRF',{'Single Point', 'Use SV IRF', 'Use IRF Shift Map'});
         set(fit_params_adv_layout,'Sizes',[160 120])
     end %external
     

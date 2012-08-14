@@ -63,7 +63,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         height = 1;
         width = 1;
         
-        decay = obj.data_series.get_roi(roi_mask,selected);
+        [decay,irf] = obj.data_series.get_roi(roi_mask,selected);
         decay = squeeze(nanmean(decay,3));
         obj.p_data = libpointer('singlePtr', decay);
         t_skip = [];
@@ -71,6 +71,8 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         obj.p_t = libpointer('doublePtr',d.tr_t);
         obj.p_mask = libpointer('uint8Ptr',uint8(1));
 
+        obj.p_irf = libpointer('doublePtr', irf);
+        
     else
         n_datasets = sum(d.loaded);
         width = d.width;
@@ -79,6 +81,12 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         t_skip = d.t_skip;
         n_t = length(d.t);
         obj.p_t = libpointer('doublePtr',d.t);
+        
+        if obj.use_image_irf
+            obj.p_irf = libpointer('doublePtr', d.tr_image_irf);
+        else
+            obj.p_irf = libpointer('doublePtr', d.tr_irf);
+        end
         
         if ~isempty(d.seg_mask)        
             obj.p_mask = libpointer('uint8Ptr', uint8(d.seg_mask));
@@ -98,7 +106,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, obj.p_t_int, t_skip, length(d.tr_t),...
-            data_type, obj.p_use, obj.p_mask, thresh_min, d.gate_max, p.global_fitting, d.binning, p.use_autosampling);
+            data_type, obj.p_use, obj.p_mask, thresh_min, d.gate_max, d.counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
  
     if err ~= 0
         return;

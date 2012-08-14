@@ -11,7 +11,7 @@ int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf, in
    if (nl == 0)
       return true;
 
-   if (image_irf && irf_idx != cur_irf_idx)
+   if ((image_irf || t0_image != NULL) && irf_idx != cur_irf_idx)
    {
       cur_irf_idx = irf_idx;
       return true;
@@ -262,27 +262,6 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    }
 }
 
-void FLIMGlobalFitController::add_irf(int thread, int irf_idx, double a[], int pol_group, double* scale_fact)
-{
-   int* resample_idx = data->GetResampleIdx(thread);
-
-   double* resampled_irf = this->resampled_irf;
-   
-   if (image_irf)
-      resampled_irf += irf_idx * n_meas; 
-
-   int idx = 0;
-   for(int k=0; k<n_chan; k++)
-   {
-      double scale = (scale_fact == NULL) ? 1 : scale_fact[k];
-      for(int i=0; i<n_t; i++)
-      {
-         a[idx] += resampled_irf[k*n_t+i] * chan_fact[pol_group*n_chan+k] * scale;
-         idx += resample_idx[i];
-      }
-      idx++;
-   }
-}
 
 int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[])
 {
@@ -528,13 +507,10 @@ void FLIMGlobalFitController::ShiftIRF(double shift, double s_irf[])
 {
    int i;
 
-   //shift = -shift;
+   shift /= t_g;
 
-
-   double dt = t_irf[1] - t_irf[0];
-
-   int c_shift = floor(shift/dt); 
-   double f_shift = shift/dt-c_shift;
+   int c_shift = floor(shift); 
+   double f_shift = shift-c_shift;
 
    int start = max(0,-c_shift)+1;
    int end   = min(n_irf-1,n_irf-c_shift)-1;

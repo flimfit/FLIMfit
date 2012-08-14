@@ -71,6 +71,10 @@ function init_dataset(obj,setting_file_name)
     if isempty(obj.t_int)
         obj.t_int = ones(size(obj.t));
     end
+    if isempty(obj.counts_per_photon)
+        obj.counts_per_photon = 1;
+    end
+    
     obj.compute_tr_data();
 
 end

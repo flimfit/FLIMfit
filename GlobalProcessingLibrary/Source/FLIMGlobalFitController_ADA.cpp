@@ -193,7 +193,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          {
             for(i=0; i<N; i++)
                a[N*a_col+i]=0;
-            sample_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
+            add_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
             a_col++;
          }
 
@@ -282,7 +282,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          // Add scatter
          if (fit_scatter == FIT_GLOBALLY)
          {
-            sample_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
+            add_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
             for(i=0; i<N; i++)
                a[ i + N*a_col ] = a[ i + N*a_col ] * alf[alf_scatter_idx];
          }
@@ -405,7 +405,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          {
             for(i=0; i<N; i++)
                b[d_offset+i]=0;
-            sample_irf(thread, irf_idx, b+d_offset,n_r,scale_fact);
+            add_irf(thread, irf_idx, b+d_offset,n_r,scale_fact);
             d_offset += ndim;
          }
 
@@ -475,7 +475,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
    return 0;
 }
 
-
+/*
 void FLIMGlobalFitController::sample_irf(int thread, int irf_idx, float a[], int pol_group, double* scale_fact)
 {
    int k=0;
@@ -527,3 +527,4 @@ void FLIMGlobalFitController::sample_irf(int thread, int irf_idx, double a[], in
       idx++;
    }
 }
+*/
