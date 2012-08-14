@@ -630,7 +630,6 @@ classdef flim_data_series < handle
            
            obj.t_irf_min = -1;
            obj.t_irf_max = 1;
-           obj.t0 = 0;
            
            
            obj.compute_tr_irf();

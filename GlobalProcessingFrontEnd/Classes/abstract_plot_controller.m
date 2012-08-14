@@ -157,7 +157,7 @@ classdef abstract_plot_controller < flim_fit_observer
             
             obj.draw_plot(ref,obj.cur_param);
             if length(get(f,'children')) <= 2 % if only one axis use pptfigure, gives better plots
-                saveppt2('current','figure',f,'stretch',false,'driver','bitmap','scale',false);
+                saveppt2('current','currentslide','figure',f,'stretch',false,'driver','bitmap','scale',false);
             else
                 saveppt2('current','figure',f,'stretch',false);
             end

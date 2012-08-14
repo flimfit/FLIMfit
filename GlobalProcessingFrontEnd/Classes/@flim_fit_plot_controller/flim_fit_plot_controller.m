@@ -109,7 +109,7 @@
                         finite_im_data = im_data(isfinite(im_data)); 
                         
                         lim = prctile(finite_im_data,[1 99]);
-                        
+                                                
                         lim= num2str(lim,3);
                         lim= str2num(lim);
                         
