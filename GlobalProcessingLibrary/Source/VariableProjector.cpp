@@ -1,9 +1,9 @@
 
-#define CMINPACK_NO_DLL
-
 #define INVALID_INPUT -1
 
 #include "VariableProjector.h"
+
+#define CMINPACK_NO_DLL
 
 #include "cminpack.h"
 #include <math.h>
@@ -69,7 +69,7 @@ int VariableProjector::Fit(int s, int n, float* y, float *w, int* irf_idx, doubl
    this->irf_idx = irf_idx;
    this->chi2 = chi2;
    this->cur_chi2 = &c2;
-   this->chi2_factor = sqrt(chi2_factor) / (n - ((double)nl)/s - l);
+   this->chi2_factor = (chi2_factor) / (n - ((double)nl)/s - l);
    this->thread = thread;
 
    int lnls1 = l + s + nl + 1;
@@ -417,7 +417,7 @@ void VariableProjector::get_linear_params(int idx)
 
 void VariableProjector::jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv)
 {
-   int m, k, j, ksub, b_dim1, r_dim1;
+   int m, k, j, b_dim1, r_dim1;
    double acum;
 
       /*           MAJOR PART OF KAUFMAN'S SIMPLIFICATION OCCURS HERE.  COMPUTE */
@@ -472,7 +472,7 @@ void VariableProjector::jacb_row(int s, double *kap, double* r__, int d_idx, dou
 int VariableProjector::bacsub(int idx)
 {
    int a_dim1;
-   integer i, j, iback;
+   int i, j, iback;
    double acum;
 
    double* x = a + ( l + idx ) * n;

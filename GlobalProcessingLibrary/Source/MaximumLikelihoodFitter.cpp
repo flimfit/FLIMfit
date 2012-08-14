@@ -37,7 +37,7 @@ int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx,
 
    double smoothing = chi2_factor;
 
-   chi2_factor = sqrt(chi2_factor)/(n-nl);
+   chi2_factor = chi2_factor/(n-nl);
 
    this->n = n;
    this->s = s;

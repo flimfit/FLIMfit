@@ -559,18 +559,18 @@ classdef front_end_menu_controller < handle
         function menu_tools_photon_stats_callback(obj,~,~)
             
             d = obj.data_series_controller.data_series;
+            
+            % get data without smoothing
+            d.compute_tr_data(false,true);
+            
             data = d.cur_tr_data;
-            %{
-            mask=obj.data_masking_controller.roi_controller.roi_mask;
-            sel = obj.data_series_list.selected;
-            data = d.get_roi(mask,sel);
-            %}
             [N,Z] = determine_photon_stats(data);
             
             d.counts_per_photon = N;
             d.background_value = d.background_value + Z;
             
-            %disp(['N= ' num2str(N) ', Z = ' num2str(Z)]);
+            d.compute_tr_data(true,true);
+            
         end
         
         function menu_tools_estimate_irf_callback(obj,~,~)

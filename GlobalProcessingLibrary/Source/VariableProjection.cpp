@@ -1,7 +1,7 @@
 #include "ModelADA.h"
 #include "VariableProjection.h"
 #include "cminpack.h"
-
+#include "util.h"
 //#define USE_W
 
 #ifdef __cplusplus

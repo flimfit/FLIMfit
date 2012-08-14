@@ -7,7 +7,7 @@
 #include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "IRFConvolution.h"
-#include "VariableProjection.h"
+//#include "VariableProjection.h"
 #include "util.h"
 
 using namespace boost::interprocess;

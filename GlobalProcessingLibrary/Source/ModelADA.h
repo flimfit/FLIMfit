@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "f2c.h"
+//#include "f2c.h"
 
 #include "FlagDefinitions.h"
 

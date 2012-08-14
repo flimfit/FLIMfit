@@ -1,6 +1,6 @@
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
-#include "VariableProjection.h"
+//#include "VariableProjection.h"
 #include "util.h"
 
 #ifndef NO_OMP   

@@ -2,7 +2,7 @@
 #define _VARIABLEPROJECTOR_H
 
 #include "AbstractFitter.h"
-#include "VariableProjection.h"
+//#include "VariableProjection.h"
 
 
 class VariableProjector : public AbstractFitter

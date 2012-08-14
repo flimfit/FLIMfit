@@ -50,8 +50,7 @@ set(SOURCE
    util.cpp
 )
 
-set(HEADERS
-   f2c.h   
+set(HEADERS   
    FitStatus.h
    IRFConvolution.h
    ModelADA.h
@@ -60,7 +59,6 @@ set(HEADERS
    FLIMData.h
    ModelADA.h
    VariableProjector.h
-   VariableProjection.h
    AbstractFitter.h
    MaximumLikelihoodFitter.h
    tinythread.h

@@ -113,7 +113,7 @@ public:
    int s; int l; int nl; int n; int nmax; int ndim; 
    int p; int n_v;
    float *y; float *w; double *alf; double *lin_params; double *chi2;
-   integer n_exp_phi, n_decay_group, exp_buf_size, tau_start;
+   int n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
    bool beta_global;
    int n_beta;
