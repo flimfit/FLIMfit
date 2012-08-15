@@ -35,6 +35,8 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             set(obj.fret_guess_table,'CellEditCallback',@obj.table_changed);
             set(obj.theta_guess_table,'CellEditCallback',@obj.table_changed);
             
+            obj.bind_control(handles,'auto_estimate_tau','checkbox');
+            
             obj.bind_control(handles,'n_exp','popupmenu');
             obj.bind_control(handles,'n_fix','popupmenu');
             obj.bind_control(handles,'global_fitting','popupmenu');
@@ -205,6 +207,11 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
                 set(obj.ref_lifetime_edit,'Enable','on');
             end
             %}
+            if obj.fit_params.auto_estimate_tau
+                set(obj.tau_guess_table,'Enable','off');
+            else
+                set(obj.tau_guess_table,'Enable','on');
+            end
             
             if isfield(obj.controls,'n_fret_popupmenu')
                 if obj.fit_params.fit_beta ~= 1

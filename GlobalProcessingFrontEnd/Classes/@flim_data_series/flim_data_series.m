@@ -268,7 +268,7 @@ classdef flim_data_series < handle
             data = data(:,:,roi_mask);
 
             if obj.has_image_irf
-                irf = obj.image_irf(:,:,roi_mask);
+                irf = obj.tr_image_irf(:,:,roi_mask);
                 irf = mean(irf,3);
             elseif ~isempty(obj.t0_image)
                 offset = mean(obj.t0_image(roi_mask));

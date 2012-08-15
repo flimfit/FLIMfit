@@ -31,6 +31,7 @@ classdef flim_fitting_params < handle
         tau_max = [100000];
         
         use_phase_plane_estimation = false;
+        auto_estimate_tau = true;
         
         fixed_beta = 1;
         

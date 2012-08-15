@@ -604,13 +604,25 @@ classdef front_end_menu_controller < handle
             
         end
         
+        function menu_test_test2_callback(obj,~,~)
+            
+        end
+        
         function menu_test_test3_callback(obj,~,~)
+            global fg fh;
+            r = obj.fit_controller.fit_result;
             
-            [file,path] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select a file',obj.default_path);
-            if file ~= 0
-                marshal_object([path file],'flim_data_series',obj.data_series_controller.data_series);
-            end
-            
+            im = r.get_image(1,'tau_1');
+            I = r.get_image(1,'I');
+            dim = 2;
+            color = {'b', 'r', 'm', 'g', 'k'};
+            s = nanstd(im,0,dim);
+            m = nanmean(im,dim);
+            I = nanmean(I,dim);
+            figure(fg);
+            hold on;
+            fh(end+1) = plot(s,color{length(fh)+1});
+            ylim([0 500]);
         end
         
         function menu_test_unload_dll_callback(obj,~,~)

@@ -118,6 +118,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 new_height = floor(d.height*ratio);
                 
                 max_rows = floor(fig_size(2)/new_height);
+                max_rows = max(max_rows,1);
                 
                 rows = min(max_rows,total_rows);
                 

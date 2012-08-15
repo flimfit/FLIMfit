@@ -19,6 +19,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     fit_params_main_opt_layout = uiextras.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );
     fit_params_main_extra_layout = uiextras.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );    
     
+    handles.auto_estimate_tau_checkbox = uicontrol( 'Style', 'checkbox', 'String', 'Automatically Estimate Lifetimes', 'Parent', fit_params_main_extra_layout);
     handles.tau_guess_table = uitable('Parent', fit_params_main_extra_layout);
     
     %fit_params_main_col3_layout = uiextras.HBox( 'Parent', fit_params_main_extra_layout, 'Spacing', 3 );
@@ -38,6 +39,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     %add_fitting_param_control('main_col3','ref_lifetime','edit','Ref. Lifetime', '100');
 
     set(fit_params_main_layout,'Sizes',[120 120 300])
+    set(fit_params_main_extra_layout,'Sizes',[22, -1])
     %set(fit_params_main_col3_layout,'Sizes',[120 120])
     %set(fit_params_main_extra_layout,'Sizes',[137, -1])
 

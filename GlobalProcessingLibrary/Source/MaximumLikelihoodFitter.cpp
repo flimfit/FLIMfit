@@ -1,5 +1,6 @@
 #include "MaximumLikelihoodFitter.h"
 
+#include <cfloat>
 #include <math.h>
 #include <string.h>
 
@@ -62,9 +63,14 @@ int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx,
     err[0] = err[0];
     delete[] err;
     */
-    
-
-   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, nvar, n+1, itmax, NULL, info, NULL, NULL, this);
+/*    
+   double opt[4];
+   opt[0] = DBL_EPSILON;
+   opt[1] = DBL_EPSILON;
+   opt[2] = DBL_EPSILON;
+   opt[3] = DBL_EPSILON;
+   */
+   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, nvar, n+1, itmax, NULL, info, work, NULL, this);
 
    					           /* O: information regarding the minimization. Set to NULL if don't care
                       * info[0]= ||e||_2 at initial p.
@@ -114,6 +120,11 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
       for(j=0; j<l; j++)
       fvec[i] += A[j]*a[i+n*j];
 
+   if (philp1)
+      for (i=0; i<n; i++)
+         fvec[i] += a[i+n*l];
+      
+
    fvec[n] = kap[0]+1;
 }
 
@@ -143,6 +154,13 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
             fjac[nl*i+k] = kap[k+1];
             m++;
          }
+      }
+      if (inc[k + l * 12] != 0)
+      {
+         for (i=0; i<n; i++)
+            fjac[nl*i+k] += b[ndim*m+i];
+         fjac[nl*i+k] = kap[k+1];
+         m++;
       }
    }
    // Set derv's for I

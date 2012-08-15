@@ -1,6 +1,13 @@
 function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     %> Load a single FLIM dataset
     
+    [path,name,ext] = fileparts(file);
+
+    if strcmp(ext,'.raw')
+        obj.load_raw_data(file);
+        return;
+    end
+    
     if is64
         obj.use_memory_mapping = false;
     end
@@ -15,7 +22,6 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
         channel = [];
     end
     
-    [path,name,ext] = fileparts(file);
     obj.root_path = ensure_trailing_slash(path);    
     
     % Determine which channels we need to load 

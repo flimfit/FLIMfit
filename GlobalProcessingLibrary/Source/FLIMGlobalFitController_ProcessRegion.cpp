@@ -109,8 +109,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (estimate_initial_tau)
    {
       tau_ma = CalculateMeanArrivalTime(ma_decay, pi);
-      
-      //tau_ma = 4000;
 
       if (n_v == 1)
       {
@@ -171,7 +169,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       for(int j=0; j<n; j++)
       {
          if (y[j]>mx)
-            mx = y[i]; 
+            mx = y[j]; 
       }
 
       for(int j=0; j<l; j++)
@@ -184,17 +182,11 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    if (use_global_binning)
    {
-      projectors[thread].Fit(s1, n, ma_decay, w, NULL, alf_local, lin_local, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+      projectors[thread].Fit(s1, n_meas_res, ma_decay, w, NULL, alf_local, lin_local, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
    }
    else
    {
-      //if (algorithm == ALG_ML)
-      //   l = l;
-/*         lmmle( nl, l, n_meas_res, nmax, ndim, p, 
-                  t, y, w, ws, &ada, a, b, c, itmax, (int*) this, thread, static_store, 
-                  alf_local, lin_local, &ierr_local, status->iter+thread, status->chi2+thread, &(status->terminate) );*/
-      //else
-         projectors[thread].Fit(s_thresh, n, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+         projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
       
    }
 

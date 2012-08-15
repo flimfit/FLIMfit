@@ -138,6 +138,8 @@ function compute_tr_irf(obj)
             sm = sum(obj.tr_image_irf,1);  
             sm(sm==0) = 1;
             obj.tr_image_irf = obj.tr_image_irf ./ sm;
+            
+            obj.tr_image_irf = reshape(obj.tr_image_irf,sz);
             %{
             for i=1:size(obj.tr_image_irf,2) 
                 sm = sum(obj.tr_image_irf(:,i));

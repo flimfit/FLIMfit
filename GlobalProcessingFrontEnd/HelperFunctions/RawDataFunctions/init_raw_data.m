@@ -1,4 +1,4 @@
-function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,mode,pol)
+function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,mode,pol,t_int)
     
     [path name ext] = fileparts(file);
 
@@ -20,12 +20,17 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,
     if nargin < 9
         pol = false;
     end
-        
+    
+    if nargin < 10
+        t_int = ones(size(t));
+    end
+    
     if pol
         n_chan = 2;
     else
         n_chan = 1;
     end
+    
     
     dinfo.metadata = metadata;
 
@@ -38,6 +43,7 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,
     dinfo.polarisation_resolved = pol;
     dinfo.num_datasets = n_datasets;
     dinfo.mode = mode;
+    dinfo.t_int = t_int;
 
     if nargin > 6
         dinfo.irf = irf;

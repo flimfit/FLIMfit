@@ -108,7 +108,7 @@
                         im_data = r.get_image(obj.dataset_selected,names{i});
                         finite_im_data = im_data(isfinite(im_data)); 
                         
-                        lim = prctile(finite_im_data,[1 99]);
+                        lim = prctile(finite_im_data,[0.1 99.9]);
                                                 
                         lim= num2str(lim,3);
                         lim= str2num(lim);
