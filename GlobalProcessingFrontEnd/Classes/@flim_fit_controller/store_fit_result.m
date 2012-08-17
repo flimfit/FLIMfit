@@ -7,14 +7,16 @@ function store_fit_result(obj, session)
          
          ID = obj.data_series_list.data_series.OMERO_id;
         
-        
          % to create a new file on the OMERO server
          imageId = java.lang.Long(ID);
    
          proxy = session.getContainerService();
 
          % check original image ID is valid
-         list = proxy.getImages(omero.model.Image.class, java.util.Arrays.asList(imageId), omero.sys.ParametersI());
+         ids = java.util.ArrayList();
+         ids.add(imageId); %add the id of the image.
+         list = proxy.getImages('omero.model.Image', ids, omero.sys.ParametersI());
+
          if (list.size == 0)
             exception = MException('OMERO:ImageID', 'Image Id not valid');
             throw(exception);
@@ -24,45 +26,7 @@ function store_fit_result(obj, session)
          image = list.get(0);
          
          name = char(image.getName.getValue()); % char converts to matlab
-    
          
-         store = session.createRawPixelsStore(); 
-         proxy = session.getPixelsService();
-
-         % Create the new image
-         description = char(['Source Image ID:' num2str(ID) ]);
-         name = char(['Results from FLIM fitting of ' name ]);
-
-         typeNew = omero.model.PixelsTypeI;
-         typeNew.setValue(omero.rtypes.rstring(char('float')));
-         
-         % get first parameter image just to get the size
-         params = res.fit_param_list();
-         n_params = length(params);
-         par = params{1};
-         param_array(:,:) = single(res.get_image(1, par));
-         sizeY = size(param_array,1);
-         sizeX = size(param_array,2);
-         sizeZ = 1;
-         sizeT = 1;
-         
-
-         idNew = proxy.createImage(sizeX, sizeY, sizeZ, sizeT, toJavaList([uint32(0:(n_params - 1))]) , typeNew, name, description);
-
-
-         proxy = session.getContainerService();
-
-         % load the new image
-         list = proxy.getImages(omero.model.Image.class, java.util.Arrays.asList(java.lang.Long(idNew.getValue())), omero.sys.ParametersI());
-         if (list.size == 0)
-            exception = MException('OMERO:ImageID', 'Image Id not valid');
-            throw(exception);
-         return;
-         end
-
-         imageNew = list.get(0);
-
-
          % get the dataset that contains the raw data image
          ids = java.util.ArrayList();
          ids.add(imageId); %add the id of the image.
@@ -70,74 +34,60 @@ function store_fit_result(obj, session)
          param = omero.sys.ParametersI;
          param.addIds(ids);
          service = session.getQueryService();
-         list = service.findAllByQuery(['select l from DatasetImageLink as l where l.child.id = ', num2str(ID)], []);
+         list = service.findAllByQuery('select l from DatasetImageLink as l left outer join fetch l.parent where l.child.id =:ids ', param);
+
          dataset = list.get(0).getParent();
-
-
-         %link the new image to the same  dataset.
-         link = omero.model.DatasetImageLinkI;
-
-         link.setChild(omero.model.ImageI(imageNew.getId().getValue(), false));
-         link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
-
-         session.getUpdateService().saveAndReturnObject(link);
-
-
-   
-         %Copy the data.
-         pixelsNewList = imageNew.copyPixels();
-
-         pixelsNew = pixelsNewList.get(0);
-
-         service = session.getPixelsService();
-
-         % retrieve information about the pixels.
-         pixelsDesc = service.retrievePixDescription(pixelsNew.getId().getValue());
-         channels = pixelsDesc.copyChannels();
-
-
-         pixelsNewId = pixelsNew.getId().getValue();
-         store = session.createRawPixelsStore();
-         store.setPixelsId(pixelsNewId, false);
-
          
-         % write the first  parameter (already loaded to get size) to the zeroth channel in the OMERO file
-         c = channels.get(0);
-         c.getLogicalChannel().setName(omero.rtypes.rstring(par));
-         session.getUpdateService().saveAndReturnObject(c.getLogicalChannel());  % better to update all channels at once somehow?
+         datasetId = dataset.getId().getValue();
          
-         param_vec = reshape(param_array, sizeY * sizeX, 1);
-         param_vec = swapbytes(param_vec);
-         vec_as_int8 = typecast(param_vec,'int8');
-         store.setPlane(vec_as_int8, 0, 0, 0); % copy the raw data
-         
-         % assume only 1 fitted  dataset for now 
-         dataset = 1;
-         % for dataset = 1:n_results
-            for p = 2:n_params
-                par = params{p};
-                param_array(:,:) = single(res.get_image(dataset, par));
-                
-                % write this parameter to a channel in the OMERO file
-                c = channels.get(p - 1);
-                c.getLogicalChannel().setName(omero.rtypes.rstring(par));
-                session.getUpdateService().saveAndReturnObject(c.getLogicalChannel());  % better to update all channels at once somehow?
-                
-                param_vec = reshape(param_array, sizeY * sizeX, 1);
-                param_vec = swapbytes(param_vec);
-                vec_as_int8 = typecast(param_vec,'int8');
-                store.setPlane(vec_as_int8, 0, p - 1, 0); % copy the raw data
-                
-            end
-         % end
+         list = service.findAllByQuery(['select l from ProjectDatasetLink as l where l.child.id = ',num2str(datasetId)], []);
+         project = list.get(0).getParent();
         
+         
+        current_dataset_name = char(dataset.getName().getValue());
+       
+         new_dataset_name = [current_dataset_name ' analysis ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
+         description  = ['analysis of the ' current_dataset_name ' at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
+         newdataset = create_new_Dataset(session,project,new_dataset_name,description);                                                                                                   
+                 
+         if isempty(newdataset)
+            errordlg('Can not create new dataset');
+            return;
+         end
+         
+         
+    
+         % get first parameter image just to get the size
+         params = res.fit_param_list();
+         n_params = length(params);
+         param_array(:,:) = single(res.get_image(1, params{1}));
+         sizeY = size(param_array,1);
+         sizeX = size(param_array,2);
+                 %
+         % assume only 1 fitted  data_set for now 
+         data_set = 1;                 
+                 
+        data = zeros(n_params,sizeX,sizeY);
+        for p = 1:n_params,
+            data(p,:,:) = res.get_image(data_set, params{p})';
+        end
         
+        % WARNING!!
+        % bodge to limit the largest number Rendering in mat2omeroImage_Channels
+        % Seems to have a problem with big numbers
+        data(data > 10000) = 10000; % 
+                                 
+        new_image_description = char(['Source Image ID:' num2str(image.getId().getValue())]);
+        new_image_name = char(['Results from FLIM fitting of ' char(java.lang.String(image.getName().getValue()))]);
+        imageId = mat2omeroImage_Channels(session, data, 'float', new_image_name, new_image_description, res.fit_param_list());
+        link = omero.model.DatasetImageLinkI;
+        link.setChild(omero.model.ImageI(imageId, false));
+        link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
+        session.getUpdateService().saveAndReturnObject(link);
+        
+         
 
-         %save the data
-         store.save();
-
-
-         store.close()
+       
 
                 
     end
