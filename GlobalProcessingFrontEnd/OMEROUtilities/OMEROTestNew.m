@@ -20,8 +20,24 @@ image_descriptor = {session ID}
 
 channel =  [1];
 
-
+try
+    
 [delays, data_cube, name] = OMERO_fetch(image_descriptor, channel);
+
+
+
+
+catch err
+    
+    getReport(err)
+    
+end
+
+
+delays
+    
+    
+
 
 size(data_cube)
 

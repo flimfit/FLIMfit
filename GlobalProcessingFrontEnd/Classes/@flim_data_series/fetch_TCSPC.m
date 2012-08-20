@@ -7,15 +7,16 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
     if nargin < 4
         channel = [];
     end
-
+    
+    delays = [];
     
     try
+        
         [delays, data_cube, name] = OMERO_fetch(image_descriptor, channel);
+        
     catch err
         
-         rethrow(err);
     end
-      
     
         
    if length(channel) > 1
