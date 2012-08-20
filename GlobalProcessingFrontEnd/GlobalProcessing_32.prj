@@ -10,6 +10,7 @@
     <param.tbx_on_path>
       <item>images</item>
       <item>optim</item>
+      <item>signal</item>
       <item>stats</item>
     </param.tbx_on_path>
     <param.warnings>
@@ -95,6 +96,7 @@
         <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\layoutHelp</directory>
         <directory>${PROJECT_ROOT}\..\GlobalProcessingLibrary\Libraries</directory>
         <directory>${PROJECT_ROOT}\OMEROMatlab</directory>
+        <directory>${PROJECT_ROOT}\OMEROUtilities</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
         <directory>${PROJECT_ROOT}\YuriySegmentation\Support</directory>
         <directory>${PROJECT_ROOT}\YuriySegmentation</directory>
