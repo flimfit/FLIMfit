@@ -84,14 +84,10 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
          
          /*
          ej = e0;
-          
-
          for(j=0; j<n_irf; j++)
          {
             for(k=0; k<n_chan; k++)
-            {
                local_exp_buf[j+k*n_irf+row*exp_dim] = ej * lirf[j+k*n_irf];
-            }
             ej *= de;
           }
           */

@@ -76,8 +76,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    adjust_buf   = NULL;
 
    irf_max      = NULL;
-   //resampled_irf= NULL;
-
+   
    conf_lim     = NULL;
 
    locked_param = NULL;
@@ -308,6 +307,7 @@ void FLIMGlobalFitController::Init()
    getting_fit = false;
 
    use_kappa = true;
+   calculate_errs = false;
 
    // Validate input
    //---------------------------------------
@@ -575,21 +575,12 @@ void FLIMGlobalFitController::Init()
 
     
       irf_max      = new int[n_meas]; //free ok
-      
-      /*
-      if (image_irf)
-         resampled_irf= new double[n_meas * n_irf_rep ]; //free ok 
-      else
-         resampled_irf= new double[ n_meas ];
-         */
 
-      conf_lim     = new double[ n_thread * nl ]; //free ok
+      if (calculate_errs) 
+         conf_lim     = new double[ n_thread * nl ]; //free ok
 
       locked_param = new int[n_thread]; //ok
       locked_value = new double[n_thread]; //ok
-
-      //lin_params_err = new double[ n_thread * n_px * l ]; //free ok
-      //alf_err        = new double[ n_thread * nl ]; //free ok
 
       local_irf    = new double*[n_thread]; //ok
       irf_idx      = new int[ n_thread * n_px ];
@@ -659,7 +650,6 @@ void FLIMGlobalFitController::Init()
       t_g = 1;
 
    CalculateIRFMax(n_t,t);
-//   CalculateResampledIRF(n_t,t);
    ma_start = DetermineMAStartPosition(0);
 
    // Create fitting objects
@@ -1006,13 +996,10 @@ void FLIMGlobalFitController::CleanupResults()
    #endif
 
       ClearVariable(irf_max);
-      //ClearVariable(resampled_irf);
       ClearVariable(fit_buf);
       ClearVariable(count_buf);
       ClearVariable(adjust_buf);
       ClearVariable(conf_lim);
-      //ClearVariable(lin_params_err);
-      //ClearVariable(alf_err);
       ClearVariable(ma_decay);
 
       ClearVariable(irf_idx);

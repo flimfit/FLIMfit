@@ -1,6 +1,5 @@
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
-//#include "VariableProjection.h"
 #include "util.h"
 
 #ifndef NO_OMP   
@@ -306,8 +305,6 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
          lin_group = lin_params + l * n_px * im;
       }
 
-
-
       ProcessLinearParams(n_px, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
       ProcessNonLinearParams(n_px, n_px, loc, alf_group, tau, beta, E, theta, offset, scatter, tvb, ref_lifetime);
    }
@@ -493,27 +490,12 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             }
             last_idx = idx;
          }
-
-         /*
-         for(int i=0; i<sr; i++)
-         {
-            idx = fit_loc[i];
-            if (mask[idx] > 0)
-            {            
-               projectors[0].GetFit(1, &irf_idx[i], alf_group, lin_params + i*l, adjust_buf, fit+n_meas*idx);
-            }
-         }
-         */
      }
    }
 
    getting_fit = false;
 
    ClearVariable(adjust);
-
-   //ClearVariable(irf_max);
-   //ClearVariable(resample_idx);
-   //ClearVariable(resampled_irf);
 
    this->n_t = n_t_buf;
    this->n_meas = this->n_t * n_chan;

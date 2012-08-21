@@ -261,23 +261,6 @@ private:
    boost::ptr_vector<AbstractFitter> projectors;
 };
 
-class ErrMinParams
-{
-public:
-   int s_thresh;
-   int r_idx;
-   double chi2;
-   int thread;
-   double param_value;
-   int region;
-   int group;
-   FLIMGlobalFitController* gc;
-
-   double f(double x)
-   {
-      return gc->ErrMinFcn(x,*this);
-   }
-};
 
 
 

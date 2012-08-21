@@ -12,7 +12,8 @@ public:
    VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int* terminate);
    ~VariableProjector();
 
-   int Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   //int Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2);
 
    int GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit);
 
@@ -21,7 +22,7 @@ private:
    void Cleanup();
 
    int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
-   void jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv);
+   void jacb_row(int s, int nls, double *kap, double* r__, int d_idx, double* res, double* derv);
    
    void get_linear_params(int idx);
    int bacsub(int idx);

@@ -33,30 +33,20 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl,
 
 
 
-int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
+//int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
+int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
 {
 
    double smoothing = chi2_factor;
 
-   chi2_factor = chi2_factor/(n-nl);
-
-   this->n = n;
-   this->s = s;
-   this->y = y;
-   this->w = w;
-   this->lin_params = lin_params;
-   this->irf_idx = irf_idx;
-   this->chi2 = chi2;
-   this->cur_chi2 = &c2;
-   this->chi2_factor = chi2_factor;
-   this->thread = thread;
-
+   //chi2_factor = chi2_factor/(n-nl);
 
    for(int i=0; i<n; i++)
       dy[i] = y[i] * smoothing;
    dy[n] = 1;
    
-   
+   //CallADA(a, b, kap, alf, 0, 1);
+
     /*
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
@@ -95,9 +85,9 @@ int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx,
 
 
    if (ret < 0)
-      ierr = info[6]; // reason for terminating
+      *ierr = info[6]; // reason for terminating
    else
-      ierr = info[5]; // number of interations
+      *ierr = info[5]; // number of interations
    return 0;
 
 }
@@ -109,7 +99,9 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
 {
    int i,j;
 
-   model->ada(a, b, kap, alf, 0, 1, thread);
+   //GetParams(nl, alf);
+   //model->ada(a, b, kap, params, 0, 1, thread);
+   CallADA(alf, 0, 1);
    
    int gnl = nl-l;
    double* A = alf+gnl;
@@ -135,7 +127,9 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
 
    int iflag = 1;
 
-   model->ada(a, b, kap, alf, 0, 1, thread);
+   //GetParams(nl, alf);
+   //model->ada(a, b, kap, params, 0, 1, thread);
+   CallADA(alf, 0, 1);
 
    int gnl = nl-l;
    double* A = alf+gnl;
@@ -166,9 +160,9 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    // Set derv's for I
    for(j=0; j<l; j++)
    {
-      for (i=0; i<n; i++)
-         fjac[nl*i+j+gnl] = a[i+n*j];
-      fjac[nl*i+j+gnl] = 0; // kappa derv. for I
+         for (i=0; i<n; i++)
+            fjac[nl*i+j+gnl] = a[i+n*j];
+         fjac[nl*i+j+gnl] = 0; // kappa derv. for I
    }
 }
 

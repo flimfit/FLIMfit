@@ -10,7 +10,8 @@ public:
    MaximumLikelihoodFitter(FitModel* model, int l, int nl, int nmax, int ndim, int p, double *t, int* terminate);
    ~MaximumLikelihoodFitter();
 
-   int Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   //int Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2);
 
    int GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit);
 

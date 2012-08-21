@@ -106,7 +106,7 @@ classdef flim_fit_result < handle
                 obj.set_image([name '_' num2str(i)],ix,mask,intensity,r,default_lims);
                 if ~isempty(err)
                     ex = err(:,:,i);
-                    ex = reshape(ex,s);
+                    %ex = reshape(ex,s);
                     if ~all(isnan(ex(:)))
                         obj.set_image([name '_' num2str(i) '_err'],ex,mask,intensity,r,default_lims);
                     end

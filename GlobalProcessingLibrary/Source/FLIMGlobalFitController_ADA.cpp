@@ -77,16 +77,6 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
       inc_row++;
    }
 
-   /*
-   // Set inc elements for t0 if required
-   if( fit_t0 )
-   {
-      for(i=0; i<n_exp; i++)
-            inc[inc_row+(inc_col+i)*12] = 1;
-      inc_row++;
-   }
-   */
-
    inc_col += n_pol_group * n_decay_group * n_exp_phi;
               
    // Both global offset and scatter are in col L+1
@@ -141,10 +131,6 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
    double *theta_buf = this->theta_buf + thread * n_theta;
    float  *w         = this->w + thread * n;
    float  *y         = this->y + thread * n * (s+1);
-
-   int locked_param = -1;//locked_param[*thread];
-   double locked_value = 0;//locked_value[*thread];
-
    
    if ( fit_t0 )
       t0 = alf[alf_t0_idx];
@@ -216,9 +202,6 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
          }
 
       case 2:
-
-//         if (locked_param >= 0)
-//            alf[locked_param] = locked_value;
 
          a_col = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
          
@@ -449,82 +432,7 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
 
             
          }
-/*
-         if (locked_param >= 0)
-         {
-            idx = 0; 
-            int count = 0;
-            for(i=0; i<locked_param; i++)
-               for(j=0; j<12; j++)
-                  count += inc[idx++];
-
-            int i_inc = 0;
-            for(i=0; i<12; i++)
-            {
-               if(inc[i+12*locked_param])
-               {
-                  for(j=0; j<N; j++)
-                     b[ (count+i_inc)*ndim + j ] *= 1e-10;
-                  i_inc++;
-               }
-            }
-         }
-         */
    }
 
    return 0;
 }
-
-/*
-void FLIMGlobalFitController::sample_irf(int thread, int irf_idx, float a[], int pol_group, double* scale_fact)
-{
-   int k=0;
-   double scale;
-   int idx = 0;
-
-   double* resampled_irf = this->resampled_irf;
-   
-   if (image_irf)
-      resampled_irf += irf_idx * n_meas; 
-
-   int* resample_idx = data->GetResampleIdx(thread);
-
-   for(int i=0; i<n_chan; i++)
-   {
-      scale = (scale_fact == NULL) ? 1 : scale_fact[i];
-      for(int j=0; j<n_t; j++)
-      {
-         a[idx] += (resampled_irf[j]) * chan_fact[pol_group*n_chan+i] * scale;
-         idx += resample_idx[j];
-      }
-      idx++;
-   }
-}
-
-
-void FLIMGlobalFitController::sample_irf(int thread, int irf_idx, double a[], int pol_group, double* scale_fact)
-{
-   int k=0;
-   double scale;
-   int idx = 0;
-
-   double* resampled_irf = this->resampled_irf;
-   
-   if (image_irf)
-      resampled_irf += irf_idx * n_meas; 
-
-
-   int* resample_idx = data->GetResampleIdx(thread);
-
-   for(int i=0; i<n_chan; i++)
-   {
-      scale = (scale_fact == NULL) ? 1 : scale_fact[i];
-      for(int j=0; j<n_t; j++)
-      {
-         a[idx] += (resampled_irf[j]) * chan_fact[pol_group*n_chan+i] * scale;
-         idx += resample_idx[j];
-      }
-      idx++;
-   }
-}
-*/

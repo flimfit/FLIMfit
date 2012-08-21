@@ -58,47 +58,31 @@ int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fn
 }
 
 
-int VariableProjector::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
+int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
 {
-
-   this->n = n;
-   this->s = s;
-   this->y = y;
-   this->w = w;
-   this->lin_params = lin_params;
-   this->irf_idx = irf_idx;
-   this->chi2 = chi2;
-   this->cur_chi2 = &c2;
-   this->chi2_factor = (chi2_factor) / (n - ((double)nl)/s - l);
-   this->thread = thread;
-
-   int lnls1 = l + s + nl + 1;
-   int lp1   = l + 1;
-   int nsls1 = n * s - l * s;
-   
-
-
-
+   int nsls1 = (n-l) * s;
+ 
    double ftol = sqrt(dpmpar(1));
    double xtol = sqrt(dpmpar(1));
    double gtol = 0.;
    double factor = 1;
 
-   int    maxfev = 100;
+   int    maxfev = itmax;
 
    int nfev, info;
    double rnorm; 
 
    info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, alf, fjac, nl,
                  ftol, xtol, gtol, itmax, diag, 1, factor, -1,
-                 &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
+                 &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
 
-   varproj(nsls1, nl, alf, &rnorm, fjac, -1);
+   if (!getting_errs)
+      varproj(nsls1, nl, alf, &rnorm, fjac, -1);
 
    if (info < 0)
-      ierr = info;
+      *ierr = info;
    else
-      ierr = niter;
+      *ierr = *niter;
    return 0;
 
 }
@@ -123,7 +107,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
    int isel;
 
-   int     lnls = l + nl + s;
+   int     lnls = l + nls + s;
    int     lps  = l + s;
 
    double *r__  = a + l * n;
@@ -186,7 +170,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    // If isel > 3 then get the derivate for the isel-4 dataset
    if (isel > 3)
    {
-      jacb_row(s, kap, r__, isel - 4, rnorm, fjrow);
+      jacb_row(s, nls, kap, r__, isel - 4, rnorm, fjrow);
       return iflag;
    }
 
@@ -204,7 +188,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
          firstcb = 0;
          break;
       case 2:
-         firstca = ncon;
+         firstca = 0;
          firstcb = -1;
          break;
       case 3:
@@ -214,7 +198,9 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
       if (process_phi)
       {
-         model->ada(a, b, kap, alf, irf_idx[j], isel, thread);
+         //GetParams(nl, alf);
+         //model->ada(a, b, kap, params, irf_idx[j], isel, thread);
+         CallADA(alf, irf_idx[j], isel);
 
          if (firstca >= 0)
             for (m = firstca; m < l; ++m)
@@ -259,7 +245,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
                kp1 = k + 1;
 
                // If *isel=1 or 2 reduce phi (first l columns of a) to upper triangular form
-               if (isel <= 2 && !(isel == 2 && k<ncon))
+               if (isel <= 2) // && !(isel == 2 && k<ncon))
                {
                   d__1 = enorm(n-k, &a[k + k * a_dim1]);
                   alpha = d_sign(&d__1, &a[k + k * a_dim1]);
@@ -353,7 +339,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    // Compute the norm of the residual matrix
    if (isel < 3)
    {
-      *cur_chi2 = r_sq * chi2_factor / s;
+      *cur_chi2 = r_sq * smoothing * chi2_factor / s;
 
       r_sq += kap[0] * kap[0];
       *rnorm = sqrt(r_sq);
@@ -363,7 +349,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    if (isel == 3)
    {
       *rnorm = kap[0];
-      for(k=0; k<nl; k++)
+      for(k=0; k<nls; k++)
          fjrow[k] = kap[k+1];
    }
 
@@ -387,7 +373,7 @@ void VariableProjector::get_linear_params(int idx)
    double* r__ = a + ( l + idx ) * n;
 
    chi2[idx] = enorm(n-l, r__+l); 
-   chi2[idx] *= chi2[idx] * chi2_factor;
+   chi2[idx] *= chi2[idx] * chi2_factor * smoothing;
 
    bacsub(idx);
    for (kback = 0; kback < l; ++kback) 
@@ -415,7 +401,7 @@ void VariableProjector::get_linear_params(int idx)
 
 
 
-void VariableProjector::jacb_row(int s, double *kap, double* r__, int d_idx, double* res, double* derv)
+void VariableProjector::jacb_row(int s, int nls, double *kap, double* r__, int d_idx, double* res, double* derv)
 {
    int m, k, j, b_dim1, r_dim1;
    double acum;
@@ -444,10 +430,10 @@ void VariableProjector::jacb_row(int s, double *kap, double* r__, int d_idx, dou
    int is = s - isback - 1;
    
    m = 0;
-   for (k = 0; k < nl; ++k)
+   for (k = 0; k < nls; ++k)
    {
       acum = (float)0.;
-      for (j = ncon; j < l; ++j) 
+      for (j = 0; j < l; ++j) 
       {
          if (inc[k + j * 12] != 0) 
          {
@@ -504,7 +490,7 @@ int VariableProjector::bacsub(int idx)
 
 int VariableProjector::GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit)
 {
-   model->ada(a, b, kap, alf, 0, 1, 0);
+   //model->ada(a, b, kap, alf, 0, 1, 0);
 
    int idx = 0;
    model->ada(a, b, kap, alf, irf_idx, 1, 0);

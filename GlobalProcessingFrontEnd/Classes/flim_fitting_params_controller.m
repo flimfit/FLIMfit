@@ -61,8 +61,9 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'n_theta','popupmenu');
             obj.bind_control(handles,'n_theta_fix','popupmenu');
             
+            obj.bind_control(handles,'calculate_errs','checkbox');
             obj.bind_control(handles,'use_memory_mapping','checkbox');
-            obj.bind_control(handles,'use_autosampling','checkbox');
+            obj.bind_control(handles,'use_autosampling','popupmenu');
             obj.bind_control(handles,'image_irf_mode','popupmenu');
             
             obj.bound_all_controls = true;
