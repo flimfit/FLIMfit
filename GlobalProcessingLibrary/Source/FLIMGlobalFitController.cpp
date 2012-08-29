@@ -112,14 +112,11 @@ int FLIMGlobalFitController::RunWorkers()
       return ERR_COULD_NOT_START_FIT;
 
    #ifndef NO_OMP
-   if (data->n_group == 1)
-      omp_set_num_threads(n_thread);
-   else
-      omp_set_num_threads(1); 
+      omp_set_num_threads(n_omp_thread);
    #endif
 
 
-   if (n_thread == 1 && !runAsync)
+   if (n_fitters == 1 && !runAsync)
    {
       params[0].controller = this;
       params[0].thread = 0;
@@ -128,7 +125,7 @@ int FLIMGlobalFitController::RunWorkers()
    }
    else
    {
-      for(int thread = 0; thread < n_thread; thread++)
+      for(int thread = 0; thread < n_fitters; thread++)
       {
          params[thread].controller = this;
          params[thread].thread = thread;
@@ -138,7 +135,7 @@ int FLIMGlobalFitController::RunWorkers()
 
       if (!runAsync)
       {
-         for(int thread = 0; thread < n_thread; thread++)
+         for(int thread = 0; thread < n_fitters; thread++)
             thread_handle[thread]->join();
 
          CleanupTempVars();
@@ -322,11 +319,6 @@ void FLIMGlobalFitController::Init()
 
    if (n_thread < 1)
       n_thread = 1;
-   
-   #ifndef NO_OMP
-      omp_set_num_threads(n_thread);
-   #endif
-
 
 
    // Set up FRET parameters
@@ -443,10 +435,14 @@ void FLIMGlobalFitController::Init()
    // fewer regions than maximum allowed number of thread
    //---------------------------------------
    n_fitters = min(n_thread,data->n_regions_total);
-  
+   
+   if (n_fitters == 1)
+      n_omp_thread = n_thread;
+   else
+      n_omp_thread = 1;
 
-   thread_handle = new tthread::thread*[ n_thread ];
-   for(int i=0; i<n_thread; i++)
+   thread_handle = new tthread::thread*[ n_fitters ];
+   for(int i=0; i<n_fitters; i++)
       thread_handle[i] = NULL;
 
    // Supplied t_rep in seconds, convert to ps
@@ -669,14 +665,14 @@ void FLIMGlobalFitController::Init()
    ma_start = DetermineMAStartPosition(0);
 
    // Create fitting objects
-   projectors.reserve(n_thread);
+   projectors.reserve(n_fitters);
 
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, nmax, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), n_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), n_omp_thread, &(status->terminate)) );
    }
 
 
@@ -1044,7 +1040,7 @@ void FLIMGlobalFitController::CleanupResults()
 
    if (thread_handle != NULL)
    {
-      for(int i=0; i<n_thread; i++)
+      for(int i=0; i<n_fitters; i++)
       {
          if (thread_handle[i] != NULL)
             delete thread_handle[i];

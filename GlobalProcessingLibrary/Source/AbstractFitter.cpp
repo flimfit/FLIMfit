@@ -229,7 +229,7 @@ void AbstractFitter::GetParams(int nl, const double* alf)
    }
 }
 
-void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel, int thread)
+void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel, int local_thread)
 {
    int valid_cols  = 0;
    int ignore_cols = 0;
@@ -246,8 +246,8 @@ void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel, int threa
    double *a, *b;
    if (variable_phi)
    {
-      a = this->a + thread * nmax * (l+1);
-      b = this->b + thread * ndim * ( p_full + 3 );
+      a = this->a + local_thread * nmax * (l+1);
+      b = this->b + local_thread * ndim * ( p_full + 3 );
    }
    else
    {
@@ -255,7 +255,7 @@ void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel, int threa
       b = this->b;
    }
 
-   model->ada(a, b, kap, params, irf_idx, isel, thread);
+   model->ada(a, b, kap, params, irf_idx, isel, thread * n_thread + local_thread);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)

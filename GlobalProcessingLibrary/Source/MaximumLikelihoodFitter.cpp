@@ -37,16 +37,12 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl,
 int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
 {
 
-   double smoothing = chi2_factor;
-
    //chi2_factor = chi2_factor/(n-nl);
 
    for(int i=0; i<n; i++)
       dy[i] = y[i] * smoothing;
    dy[n] = 1;
    
-   //CallADA(a, b, kap, alf, 0, 1);
-
     /*
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);

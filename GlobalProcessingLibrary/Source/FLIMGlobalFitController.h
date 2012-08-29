@@ -79,6 +79,7 @@ public:
    int error;
 
    int n_fitters;
+   int n_omp_thread;
 
    int image_irf;
    double* t0_image;
