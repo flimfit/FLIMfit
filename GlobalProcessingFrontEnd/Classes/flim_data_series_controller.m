@@ -153,7 +153,7 @@ classdef flim_data_series_controller < handle
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % OMERO functions
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        function fetch_TCSPC(obj, imageDescriptor)
+        function channel = fetch_TCSPC(obj, imageDescriptor)
             
             
             polarisation_resolved = false;

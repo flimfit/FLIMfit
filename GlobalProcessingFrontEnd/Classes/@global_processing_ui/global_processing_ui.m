@@ -33,7 +33,10 @@ classdef global_processing_ui
                
                external = true;
             
-                logon = OMERO_logon;
+                %logon = OMERO_logon;
+                logon{1} = 'cell.bioinformatics.ic.ac.uk';
+                logon{2} = 'yalexand';
+                logon{3} = 'London1010';
                 
                 client = loadOmero(logon{1});
                 try 
@@ -48,6 +51,7 @@ classdef global_processing_ui
                 client = [];
                 session = [];
             end
+
             
             % Try and read in version number
             try

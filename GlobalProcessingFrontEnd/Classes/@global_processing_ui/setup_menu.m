@@ -2,20 +2,42 @@
 function handles = setup_menu(obj,handles)
 
     external = handles.external;
-    session = handles.OMERO_session;
-    
-    if ~isempty(session)
+
+    if ~isempty(handles.OMERO_session)
       external = true;
         
       menu_OMERO      = uimenu(obj.window,'Label','OMERO');
    
-      handles.menu_OMERO_fetch_TCSPC = uimenu(menu_OMERO,'Label','Fetch single TCSPC image from OMERO','Accelerator','O');
-      handles.menu_OMERO_irf_TCSPC = uimenu(menu_OMERO,'Label','Fetch TCSPC irf from OMERO','Accelerator','O');
-      handles.menu_OMERO_store_fit_result = uimenu(menu_OMERO,'Label','Store fit result into OMERO','Accelerator','O');
-        
+% %       handles.menu_OMERO_fetch_TCSPC = uimenu(menu_OMERO,'Label','Fetch single TCSPC image from OMERO','Accelerator','O');
+% %       handles.menu_OMERO_irf_TCSPC = uimenu(menu_OMERO,'Label','Fetch TCSPC irf from OMERO','Accelerator','O');
+% %       handles.menu_OMERO_store_fit_result = uimenu(menu_OMERO,'Label','Store fit result into OMERO','Accelerator','O');
+
+        handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO,'Label','Set Working Dataset');
+        %
+% %         menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM Data','Separator','on');
+% %             handles.menu_OMERO_Load_FLIM_Data_Widefield = uimenu(menu_OMERO_Load_FLIM_Data,'Label','Widefield','Separator','on');
+% %             handles.menu_OMERO_Load_FLIM_Data_TCSPC = uimenu(menu_OMERO_Load_FLIM_Data,'Label','TCSPC','Separator','on');
+% %         menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM Dataset');
+% %             handles.menu_OMERO_Load_FLIM_Dataset_Widefield = uimenu(menu_OMERO_Load_FLIM_Dataset,'Label','Widefield','Separator','on');
+% %             handles.menu_OMERO_Load_FLIM_Dataset_TCSPC = uimenu(menu_OMERO_Load_FLIM_Dataset,'Label','TCSPC','Separator','on');        
+
+        handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM: Single FOV','Separator','on');
+        handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM: Multiple FOVs');
+%        handles.menu_OMERO_Load_FLIM_Screen = uimenu(menu_OMERO,'Label','Load FLIM: OME Screen');
+        %
+        handles.menu_OMERO_Load_IRF_image = uimenu(menu_OMERO,'Label','Load IRF (Image)','Separator','on');
+        handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)');
+        %    
+        handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background','Separator','on');    
+%        handles.menu_OMERO_Load_Time_Varying_Background = uimenu(menu_OMERO,'Label','Load Time Varying Background');    
+        %
+        handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results as new Dataset','Separator','on');    
+        handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings');    
+        %
+        handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings','Separator','on');    
+
     end
-    
-    
+        
 
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
