@@ -20,6 +20,8 @@ classdef flim_fit_result < handle
         use_memory_mapping = true;
         file = [];
         
+        smoothing = 1;
+        
         params = {};
     end
     

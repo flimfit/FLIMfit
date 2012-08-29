@@ -78,6 +78,8 @@ public:
    int n_thread; int (*callback)();
    int error;
 
+   int n_fitters;
+
    int image_irf;
    double* t0_image;
 
@@ -137,6 +139,7 @@ public:
    double* alf_err;
 
    bool anscombe_tranform;
+   int eq_spaced_data;
 
    conv_func Convolve;
    conv_deriv_func ConvolveDerivative;

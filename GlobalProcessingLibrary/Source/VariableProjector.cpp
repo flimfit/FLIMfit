@@ -12,10 +12,13 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
+#ifndef NO_OMP   
+#include <omp.h>
+#endif
 
 
-VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int* terminate) : 
-    AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, terminate)
+VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate) : 
+    AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
 
    // Set up buffers for levmar algorithm
@@ -100,8 +103,9 @@ double VariableProjector::d_sign(double *a, double *b)
 
 int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag)
 {
-   int k, m, kp1, process_phi;
    int firstca, firstcb;
+
+   int process_phi;
 
    int get_lin;
 
@@ -109,9 +113,6 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
    int     lnls = l + nls + s;
    int     lps  = l + s;
-
-   double *r__  = a + l * n;
-   double *rj;
 
    // Matrix dimensions
    int r_dim1 = n;
@@ -121,10 +122,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    int t_dim1 = nmax;
    int u_dim1 = l;
 
-   double r_sq, rj_norm, d__1;
-
-   double beta, acum;
-   double alpha;
+   double r_sq, rj_norm;
 
 /*     ============================================================== */
 
@@ -170,49 +168,57 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    // If isel > 3 then get the derivate for the isel-4 dataset
    if (isel > 3)
    {
-      jacb_row(s, nls, kap, r__, isel - 4, rnorm, fjrow);
+      jacb_row(s, nls, kap, r, isel - 4, rnorm, fjrow);
       return iflag;
    }
 
    process_phi = true;
    r_sq = 0;
 
-   for (int j=s-1; j>=0; j--)
+   switch (isel)
    {
-      rj = r__ + j * r_dim1;
+   case 1:
+      firstca = 0;
+      firstcb = 0;
+      break;
+   case 2:
+      firstca = 0;
+      firstcb = -1;
+      break;
+   case 3:
+      firstca = -1;
+      firstcb = 0;
+   }  
 
-      switch (isel)
+   if (!variable_phi)
+      transform_ab(alf, irf_idx[0], isel, 0, firstca, firstcb, a, b, u);
+
+
+   #pragma omp parallel for reduction(+:r_sq)
+   for (int j=0; j<s; j++)
+   {
+      int thread = omp_get_thread_num();
+      
+      double* rj = r + j * r_dim1;
+      int k, kp1;
+      double beta, acum;
+    
+      double *a, *b, *u;
+      if (variable_phi)
       {
-      case 1:
-         firstca = 0;
-         firstcb = 0;
-         break;
-      case 2:
-         firstca = 0;
-         firstcb = -1;
-         break;
-      case 3:
-         firstca = -1;
-         firstcb = 0;
-      }            
-
-      if (process_phi)
-      {
-         //GetParams(nl, alf);
-         //model->ada(a, b, kap, params, irf_idx[j], isel, thread);
-         CallADA(alf, irf_idx[j], isel);
-
-         if (firstca >= 0)
-            for (m = firstca; m < l; ++m)
-               for (int i = 0; i < n; ++i)
-                  a[i + m * a_dim1] *= w[i];
-
-         if (firstcb >= 0)
-            for (m = firstcb; m < p; ++m)
-               for (int i = 0; i < n; ++i)
-                  b[i + m * b_dim1] *= w[i];
-
+         a = this->a + thread * nmax * (l+1);
+         b = this->b + thread * ndim * ( p_full + 3 );
+         u = this->u + thread * l;
       }
+      else
+      {
+         a = this->a;
+         b = this->b;
+         u = this->u;         
+      }
+
+      if (variable_phi)
+         transform_ab(alf, irf_idx[j], isel, thread, firstca, firstcb, a, b, u);
 
       // Get the data we're about to transform
       if (isel < 3) 
@@ -227,76 +233,15 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
             // Store the data in r__, subtracting the column l+1 which does not
             // have a linear parameter
             for(int i=0; i < n; ++i)
-               rj[i] = y[i + j * y_dim1] - r__[i];
+               rj[i] = y[i + j * y_dim1] - a[i + l * a_dim1];
          }
 
          for (int i = 0; i < n; ++i)
             rj[i] *= w[i];
       }
 
-   
       if (l > 0)
       {
-         // Compute orthogonal factorisations by householder reflection (phi)
-         if (process_phi)
-         {
-            for (k = 0; k < l; ++k) 
-            {
-               kp1 = k + 1;
-
-               // If *isel=1 or 2 reduce phi (first l columns of a) to upper triangular form
-               if (isel <= 2) // && !(isel == 2 && k<ncon))
-               {
-                  d__1 = enorm(n-k, &a[k + k * a_dim1]);
-                  alpha = d_sign(&d__1, &a[k + k * a_dim1]);
-                  u[k] = a[k + k * a_dim1] + alpha;
-                  a[k + k * a_dim1] = -alpha;
-                  firstca = kp1;
-                  if (alpha == (float)0.)
-                  {
-                     isel = -8;
-                     goto L99;
-                  }
-               }
-
-               beta = -a[k + k * a_dim1] * u[k];
-
-               // Compute householder reflection of phi
-               if (firstca >= 0)
-               {
-                  for (m = firstca; m < l; ++m)
-                  {
-                     acum = u[k] * a[k + m * a_dim1];
-
-                     for (int i = kp1; i < n; ++i) 
-                        acum += a[i + k * a_dim1] * a[i + m * a_dim1];
-                     acum /= beta;
-
-                     a[k + m * a_dim1] -= u[k] * acum;
-                     for (int i = kp1; i < n; ++i) 
-                        a[i + m * a_dim1] -= a[i + k * a_dim1] * acum;
-                  }
-               }
-
-               // Transform J=D(phi)
-               if (firstcb >= 0) 
-               {
-                  for (m = 0; m < p; ++m)
-                  {
-                     acum = u[k] * b[k + m * b_dim1];
-                     for (int i = k; i < n; ++i) 
-                        acum += a[i + k * a_dim1] * b[i + m * b_dim1];
-                     acum /= beta;
-
-                     b[k + m * b_dim1] -= u[k] * acum;
-                     for (int i = k; i < n; ++i) 
-                        b[i + m * b_dim1] -= a[i + k * a_dim1] * acum;
-                  }
-               }
-
-            } // first k loop
-         }
-
          // Transform Y, getting Q*Y=R 
          if (firstca >= 0)
          {
@@ -322,16 +267,12 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
          }
 
          if (get_lin)
-            get_linear_params(j);
+            get_linear_params(j, a, u);
          
          if (isel == 3)
-            bacsub(j);
+            bacsub(j, a);
 
       }
-
-      // only get phi for next loop if we have
-      // a variable phi (i.e. spatial IRF)
-      process_phi = variable_phi;
 
    } // loop over pixels
 
@@ -349,11 +290,10 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    if (isel == 3)
    {
       *rnorm = kap[0];
-      for(k=0; k<nls; k++)
+      for(int k=0; k<nls; k++)
          fjrow[k] = kap[k+1];
    }
 
-L99:
    if (isel < 0)
       iflag = isel;
    return iflag;
@@ -361,7 +301,95 @@ L99:
 
 
 
-void VariableProjector::get_linear_params(int idx)
+void VariableProjector::transform_ab(const double *alf, int irf_idx, int& isel, int thread, int firstca, int firstcb, double* a, double* b, double *u)
+{
+   int a_dim1 = n;
+   int b_dim1 = ndim;
+   int u_dim1 = l;
+   
+   double beta, acum;
+   double alpha, d__1;
+
+   int i, m, k, kp1;
+
+   CallADA(alf, irf_idx, isel, thread);
+
+   if (firstca >= 0)
+      for (m = firstca; m < l; ++m)
+         for (int i = 0; i < n; ++i)
+            a[i + m * a_dim1] *= w[i];
+
+   if (firstcb >= 0)
+      for (m = firstcb; m < p; ++m)
+         for (int i = 0; i < n; ++i)
+            b[i + m * b_dim1] *= w[i];
+
+   if (l > 0)
+   {
+   // Compute orthogonal factorisations by householder reflection (phi)
+      for (k = 0; k < l; ++k) 
+      {
+         kp1 = k + 1;
+
+         // If *isel=1 or 2 reduce phi (first l columns of a) to upper triangular form
+         if (isel <= 2) // && !(isel == 2 && k<ncon))
+         {
+            d__1 = enorm(n-k, &a[k + k * a_dim1]);
+            alpha = d_sign(&d__1, &a[k + k * a_dim1]);
+            u[k] = a[k + k * a_dim1] + alpha;
+            a[k + k * a_dim1] = -alpha;
+            firstca = kp1;
+            if (alpha == (float)0.)
+            {
+               isel = -8;
+               //goto L99;
+            }
+         }
+
+         beta = -a[k + k * a_dim1] * u[k];
+
+         // Compute householder reflection of phi
+         if (firstca >= 0)
+         {
+            for (m = firstca; m < l; ++m)
+            {
+               acum = u[k] * a[k + m * a_dim1];
+
+               for (i = kp1; i < n; ++i) 
+                  acum += a[i + k * a_dim1] * a[i + m * a_dim1];
+               acum /= beta;
+
+               a[k + m * a_dim1] -= u[k] * acum;
+               for (i = kp1; i < n; ++i) 
+                  a[i + m * a_dim1] -= a[i + k * a_dim1] * acum;
+            }
+         }
+
+         // Transform J=D(phi)
+         if (firstcb >= 0) 
+         {
+            for (m = 0; m < p; ++m)
+            {
+               acum = u[k] * b[k + m * b_dim1];
+               for (i = k; i < n; ++i) 
+                  acum += a[i + k * a_dim1] * b[i + m * b_dim1];
+               acum /= beta;
+
+               b[k + m * b_dim1] -= u[k] * acum;
+               for (i = k; i < n; ++i) 
+                  b[i + m * b_dim1] -= a[i + k * a_dim1] * acum;
+            }
+         }
+
+      } // first k loop
+   }
+}
+
+
+
+
+
+void VariableProjector::get_linear_params(int idx, double* a, double* u)
 {
    int i, k, kback;
    double acum;
@@ -370,12 +398,13 @@ void VariableProjector::get_linear_params(int idx)
    int r_dim1 = n;
    int u_dim1 = l;
    
-   double* r__ = a + ( l + idx ) * n;
+//   double* r__ = a + ( l + idx ) * n;
+   double* r__ = r + idx * n;
 
-   chi2[idx] = enorm(n-l, r__+l); 
+   chi2[idx] = enorm(n-l, r+l); 
    chi2[idx] *= chi2[idx] * chi2_factor * smoothing;
 
-   bacsub(idx);
+   bacsub(idx, a);
    for (kback = 0; kback < l; ++kback) 
    {
       k = l - kback - 1;
@@ -455,13 +484,13 @@ void VariableProjector::jacb_row(int s, int nls, double *kap, double* r__, int d
 }
 
 
-int VariableProjector::bacsub(int idx)
+int VariableProjector::bacsub(int idx, double *a)
 {
    int a_dim1;
    int i, j, iback;
    double acum;
 
-   double* x = a + ( l + idx ) * n;
+   double* x = r + idx * n;
 
 /*        BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*X = B. */
 /*        THE SOLUTION X OVERWRITES THE RIGHT SIDE B. */

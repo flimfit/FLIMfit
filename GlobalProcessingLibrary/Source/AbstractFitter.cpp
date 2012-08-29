@@ -9,12 +9,13 @@
 
 using namespace std;
 
-AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p_full, double *t, int variable_phi, int* terminate) : 
-    model(model), smax(smax), l(l), nl(nl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), terminate(terminate)
+AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p_full, double *t, int variable_phi, int n_thread, int* terminate) : 
+    model(model), smax(smax), l(l), nl(nl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
 {
-   a   = new double[ nmax * ( l + smax ) ]; //free ok
-   b   = new double[ ndim * ( p_full + 3 ) ]; //free ok
-   u   = new double[ l ];
+   a   = new double[ nmax * (l+1) * n_thread ]; //free ok
+   r   = new double[ nmax * smax ];
+   b   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
+   u   = new double[ l * n_thread ];
    kap = new double[ nl + 1 ];
 
    params = new double[ nl ];
@@ -228,7 +229,7 @@ void AbstractFitter::GetParams(int nl, const double* alf)
    }
 }
 
-void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel)
+void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel, int thread)
 {
    int valid_cols  = 0;
    int ignore_cols = 0;
@@ -240,6 +241,18 @@ void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel)
          params[i] = fixed_value_cur; 
       else
          params[i] = alf[idx++];
+   }
+
+   double *a, *b;
+   if (variable_phi)
+   {
+      a = this->a + thread * nmax * (l+1);
+      b = this->b + thread * ndim * ( p_full + 3 );
+   }
+   else
+   {
+      a = this->a;
+      b = this->b;
    }
 
    model->ada(a, b, kap, params, irf_idx, isel, thread);
@@ -292,6 +305,7 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, double* lin_params, float* 
 AbstractFitter::~AbstractFitter()
 {
    delete[] a;
+   delete[] r;
    delete[] b;
    delete[] u;
    delete[] kap;

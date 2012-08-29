@@ -16,7 +16,7 @@ class AbstractFitter
 {
 public:
 
-   AbstractFitter(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int* terminate);
+   AbstractFitter(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate);
    virtual ~AbstractFitter();
    virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2) = 0;
 
@@ -27,7 +27,7 @@ public:
    int CalculateErrors(double* alf, double* err);
 
    void GetParams(int nl, const double* alf);
-   void CallADA(const double* alf, int irf_idx, int isel);
+   void CallADA(const double* alf, int irf_idx, int isel, int thread);
 
 protected:
 
@@ -44,6 +44,7 @@ protected:
    int     philp1;
 
    double *a;
+   double *r;
    double *b;
    double *u;
    double *kap;
@@ -74,6 +75,7 @@ protected:
    double smoothing;
    double* cur_chi2;
 
+   int n_thread;
    int variable_phi;
 
    int thread;

@@ -125,6 +125,7 @@ int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], dou
             if (r != NULL)
                for(int j=0; j<n_r; j++)
                   r[ j*n_px + loc[i] ] = lin_params[ i*l + j + lin_idx + 1 ] / I0[ loc[i] ];
+
          }
       }
       else if (fit_fret)
@@ -139,6 +140,7 @@ int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], dou
             if (gamma != NULL)
                for (int j=0; j<n_decay_group; j++)
                   gamma[ j*n_px + loc[i] ] = lin_params[ i*l + lin_idx + j] / I0[ loc[i] ];
+
          }
       }
       else
@@ -153,13 +155,16 @@ int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], dou
             if (beta != NULL)
                for(int j=0; j<n_exp; j++)
                   beta[ j*n_px + loc[i] ] = lin_params[ i*l + j + lin_idx] / I0[ loc[i] ];
+
          }
       }
 
       // While this deviates from the definition of I0 in the model, it is closer to the intuitive 'I0', i.e. the peak of the decay
+/*
       #pragma omp parallel for
       for(int i=0; i<s; i++)
          I0[ loc[i] ] *= t_g;  
+         */
 //      if (ref_reconvolution)
 //         I0[ g*n_px + i ] /= ref;   // accounts for the amplitude of the reference in the model, since we've normalised the IRF to 1
    }

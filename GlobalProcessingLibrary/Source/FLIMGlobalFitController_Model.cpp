@@ -170,12 +170,28 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
          else
             fact *= 1;
 
-         for(k=0; k<n_chan; k++)
+         if (eq_spaced_data)
          {
-            for(j=0; j<n_t; j++)
-               local_exp_buf[j+k*n_t+row*exp_dim] = fact * exp( - t[j] * rate ) * chan_fact[m*n_chan+k] * data->t_int[j];
+            e0 = exp( -t[0] * rate );
+            de = exp( (t[0]-t[1]) * rate );
+            for(k=0; k<n_chan; k++)
+            {
+               ej = e0;
+               for(j=0; j<n_t; j++)
+               {
+                  local_exp_buf[j+k*n_t+row*exp_dim] = fact * ej * chan_fact[m*n_chan+k] * data->t_int[j];
+                  ej *= de;
+               }
+            }
          }
-
+         else
+         {
+            for(k=0; k<n_chan; k++)
+            {
+               for(j=0; j<n_t; j++)
+                  local_exp_buf[j+k*n_t+row*exp_dim] = fact * exp( - t[j] * rate ) * chan_fact[m*n_chan+k] * data->t_int[j];
+            }
+         }
       }
    }
 }

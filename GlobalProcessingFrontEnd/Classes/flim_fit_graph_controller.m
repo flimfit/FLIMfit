@@ -128,7 +128,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     y_scatter = [y_scatter ym];
                     x_scatter = [x_scatter ones(size(ym))*i];
                     y_data(i) = y/yn;
-                    y_err(i) = 2 * sqrt(yv/yn) / sqrt(yn); % 95% conf interval ~2*standard error 
+                    y_err(i) = 2 * sqrt(yv/yn) / sqrt(yn/r.smoothing); % 95% conf interval ~2*standard error 
                     y_std(i) = sqrt(yv/yn);
                     y_img_std(i) = std(ym);
                     y_img_err(i) = 2 * y_img_std(i) / sqrt(length(ym));
@@ -196,6 +196,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     end
                     set(ax,'YLim',lims);
                 end
+                
+                %set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
                 
                 obj.raw_data = [cell_x_data; num2cell(y_data); num2cell(y_std); num2cell(y_err); num2cell(y_img_std); num2cell(y_img_err); num2cell(y_n)]';
                 

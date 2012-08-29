@@ -22,7 +22,7 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 
 
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl, int nmax, int ndim, int p, double *t, int* terminate) : 
-    AbstractFitter(model, 1, l, nl, nmax, ndim, p, t, false, terminate)
+    AbstractFitter(model, 1, l, nl, nmax, ndim, p, t, false, 1, terminate)
 {
    nfunc = nmax + 1; // +1 for kappa
    nvar = nl;
@@ -85,9 +85,9 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
 
 
    if (ret < 0)
-      *ierr = info[6]; // reason for terminating
+      *ierr = (int) info[6]; // reason for terminating
    else
-      *ierr = info[5]; // number of interations
+      *ierr = (int) info[5]; // number of interations
    return 0;
 
 }
@@ -101,7 +101,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
 
    //GetParams(nl, alf);
    //model->ada(a, b, kap, params, 0, 1, thread);
-   CallADA(alf, 0, 1);
+   CallADA(alf, 0, 1, 0);
    
    int gnl = nl-l;
    double* A = alf+gnl;
@@ -129,7 +129,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
 
    //GetParams(nl, alf);
    //model->ada(a, b, kap, params, 0, 1, thread);
-   CallADA(alf, 0, 1);
+   CallADA(alf, 0, 1, 0);
 
    int gnl = nl-l;
    double* A = alf+gnl;

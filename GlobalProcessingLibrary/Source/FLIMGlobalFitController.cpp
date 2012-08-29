@@ -412,7 +412,7 @@ void FLIMGlobalFitController::Init()
       {
          t_irf_buf[i] = t_irf[i];
          for(int k=0; k<n_chan; k++)
-            irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf[j*n_irf*n_chan+k*n_irf+i];
+             irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf[j*n_irf*n_chan+k*n_irf+i];
       }
       for(i=i; i<a_n_irf; i++)
       {
@@ -442,7 +442,7 @@ void FLIMGlobalFitController::Init()
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
    //---------------------------------------
-   n_thread = min(n_thread,data->n_regions_total);
+   n_fitters = min(n_thread,data->n_regions_total);
   
 
    thread_handle = new tthread::thread*[ n_thread ];
@@ -649,18 +649,34 @@ void FLIMGlobalFitController::Init()
    else
       t_g = 1;
 
+
+   // Check to see if gates are equally spaced
+   //---------------------------------------------
+   eq_spaced_data = true;
+   double dt0 = t[1]-t[0];
+   for(int i=2; i<n_t; i++)
+   {
+      double dt = t[i] - t[i-1];
+      if ((dt - dt0) > 1)
+      {
+         eq_spaced_data = false;
+         break;
+      }
+         
+   }
+
    CalculateIRFMax(n_t,t);
    ma_start = DetermineMAStartPosition(0);
 
    // Create fitting objects
    projectors.reserve(n_thread);
-   
-   for(int i=0; i<n_thread; i++)
+
+   for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, nmax, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), &(status->terminate)) );
+         projectors.push_back( new VariableProjector(this, s_max, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), n_thread, &(status->terminate)) );
    }
 
 

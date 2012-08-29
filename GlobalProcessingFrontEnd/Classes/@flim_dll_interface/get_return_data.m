@@ -450,6 +450,7 @@ function get_return_data(obj)
     clear p_theta p_theta_err p_r p_E p_E_err p_gamma p_scatter p_scatter_err clear p_offset_err p_offset
     clear p_I0 p_E_err;
 
+    f.smoothing = (2*d.binning+1)^2;
     
     for i=1:length(datasets)
        if p.global_fitting < 2
