@@ -114,9 +114,10 @@ classdef global_processing_ui
             
             handles.external = external;
             
-            handles.OMERO_session = session;
-            handles.OMERO_client = client;
-                
+            handles.data_series_controller = flim_data_series_controller(handles);
+            handles.data_series_controller.client = client;            
+            handles.data_series_controller.session = session;
+                        
             handles = obj.setup_layout(handles);
             handles = obj.setup_menu(handles);
             handles = obj.setup_toolbar(handles);
@@ -124,7 +125,7 @@ classdef global_processing_ui
             handles.version = v;
             handles.window = obj.window;
             handles.use_popup = true;
-            handles.data_series_controller = flim_data_series_controller(handles);
+            %handles.data_series_controller = flim_data_series_controller(handles);
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);
             handles.data_intensity_view = flim_data_intensity_view(handles);
@@ -138,10 +139,9 @@ classdef global_processing_ui
             handles.hist_controller = flim_fit_hist_controller(handles);
             handles.corr_controller = flim_fit_corr_controller(handles);
             handles.graph_controller = flim_fit_graph_controller(handles);
-            handles.platemap_controller = flim_fit_platemap_controller(handles);
+            handles.platemap_controller = flim_fit_platemap_controller(handles);            
+            %
             
-           
-
             handles.menu_controller = front_end_menu_controller(handles);
 
             guidata(obj.window,handles);
@@ -173,8 +173,8 @@ classdef global_processing_ui
             
             handles = guidata(obj.window);
 
-            session = handles.OMERO_session;
-            client = handles.OMERO_client;
+            session = handles.data_series_controller.session;
+            client = handles.data_series_controller.client;
 
             if ~isempty(session)
 
@@ -183,8 +183,8 @@ classdef global_processing_ui
 
                 client.closeSession();
                 
-                handles.OMERO_session = [];
-                handles.OMERO_client = [];
+                handles.data_series_controller.session = [];
+                handles.data_series_controller.client = [];
                 %clear client;
                 %clear session;
                 %unloadOmero();

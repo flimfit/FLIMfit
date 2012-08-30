@@ -3,24 +3,13 @@ function handles = setup_menu(obj,handles)
 
     external = handles.external;
 
-    if ~isempty(handles.OMERO_session)
+    if ~isempty(handles.data_series_controller.session)
       external = true;
         
       menu_OMERO      = uimenu(obj.window,'Label','OMERO');
    
-% %       handles.menu_OMERO_fetch_TCSPC = uimenu(menu_OMERO,'Label','Fetch single TCSPC image from OMERO','Accelerator','O');
-% %       handles.menu_OMERO_irf_TCSPC = uimenu(menu_OMERO,'Label','Fetch TCSPC irf from OMERO','Accelerator','O');
-% %       handles.menu_OMERO_store_fit_result = uimenu(menu_OMERO,'Label','Store fit result into OMERO','Accelerator','O');
-
         handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO,'Label','Set Working Dataset');
         %
-% %         menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM Data','Separator','on');
-% %             handles.menu_OMERO_Load_FLIM_Data_Widefield = uimenu(menu_OMERO_Load_FLIM_Data,'Label','Widefield','Separator','on');
-% %             handles.menu_OMERO_Load_FLIM_Data_TCSPC = uimenu(menu_OMERO_Load_FLIM_Data,'Label','TCSPC','Separator','on');
-% %         menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM Dataset');
-% %             handles.menu_OMERO_Load_FLIM_Dataset_Widefield = uimenu(menu_OMERO_Load_FLIM_Dataset,'Label','Widefield','Separator','on');
-% %             handles.menu_OMERO_Load_FLIM_Dataset_TCSPC = uimenu(menu_OMERO_Load_FLIM_Dataset,'Label','TCSPC','Separator','on');        
-
         handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM: Single FOV','Separator','on');
         handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM: Multiple FOVs');
 %        handles.menu_OMERO_Load_FLIM_Screen = uimenu(menu_OMERO,'Label','Load FLIM: OME Screen');
