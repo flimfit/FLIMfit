@@ -25,6 +25,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
    aw   = new double[ nmax * (l+1) * n_thread ]; //free ok
    bw   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
+   wp   = new double[ nmax * n_thread ];
 
 
    // Set up buffers for levmar algorithm
@@ -50,6 +51,7 @@ VariableProjector::~VariableProjector()
    delete[] work;
    delete[] aw;
    delete[] bw;
+   delete[] wp;
 
    delete[] fjac;
    delete[] diag;
@@ -83,10 +85,15 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    int nfev, info;
    double rnorm; 
 
+   n_call = 0;
+   varproj(nsls1, nl, alf, &rnorm, fjac, 0);
+   n_call = 1;
+
    info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, alf, fjac, nl,
                  ftol, xtol, gtol, itmax, diag, 1, factor, -1,
                  &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
 
+   // Get linear parameters
    if (!getting_errs)
       varproj(nsls1, nl, alf, &rnorm, fjac, -1);
 
@@ -212,7 +219,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
       if (d_idx % nml == 0)
       {
-         transform_ab(isel, 0, firstca, firstcb);
+         transform_ab(isel, is, 0, firstca, firstcb);
          bacsub(is, aw, rs);
       }
 
@@ -258,27 +265,28 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
     
       double *aw, *u, *work;
       aw = this->aw + thread * nmax * (l+1);
-      u = this->u + thread * l;
+      wp = this->wp + thread * nmax;
+      u  = this->u + thread * l;
 
       work = this->work + thread * nmax;
 
       if (variable_phi)
          CallADA(alf, irf_idx[j], isel, thread);
 
-      transform_ab(isel, thread, firstca, firstcb);
+      transform_ab(isel, j, thread, firstca, firstcb);
 
       // Get the data we're about to transform
       if (!philp1)
       {
          for (int i=0; i < n; ++i)
-            rj[i] = y[i + j * y_dim1] * w[i];
+            rj[i] = y[i + j * y_dim1] * wp[i];
       }
       else
       {
          // Store the data in rj, subtracting the column l+1 which does not
          // have a linear parameter
          for(int i=0; i < n; ++i)
-            rj[i] = y[i + j * y_dim1] * w[i] - aw[i + l * a_dim1];
+            rj[i] = y[i + j * y_dim1] * wp[i] - aw[i + l * a_dim1];
       }
 
       // Transform Y, getting Q*Y=R 
@@ -301,7 +309,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       rj_norm = enorm(n-l, rj+l);
       r_sq += rj_norm * rj_norm;
 
-      if (get_lin)
+      //if (get_lin)
          get_linear_params(j, aw, u, work);
 
    } // loop over pixels
@@ -313,14 +321,56 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    r_sq += kap[0] * kap[0];
    *rnorm = sqrt(r_sq);
 
+   n_call++;
+
    if (isel < 0)
       iflag = isel;
    return iflag;
 }
 
 
+void VariableProjector::calculate_weights(int px, int thread)
+{
+   float*  y = this->y + px * nmax;
+   double* wp = this->wp + thread * nmax;
 
-void VariableProjector::transform_ab(int& isel, int thread, int firstca, int firstcb)
+   if (n_call == 0)
+   {
+      for (int i=0; i<n; i++)
+      {
+         if (y[i] == 0)
+            wp[i] = 1e-4;
+         else
+            wp[i] = sqrt(1/y[i]);
+   
+         //wp[i] = w[i];
+      }
+   }
+   else
+   {
+      double *a;
+      if (variable_phi)
+         a  = this->a + thread * nmax * lp1;
+      else
+         a = this->a;
+      
+      for(int i=0; i<n; i++)
+      {
+         wp[i] = 0;
+         for(int j=0; j<l; j++)
+            wp[i] += a[n*j+i] * lin_params[px*l + j];
+         wp[i] += a[n*l+i];
+
+         if (wp[i] == 0)
+            wp[i] = 1e-4;
+         else
+            wp[i] = sqrt(1/wp[i]);
+      }
+   }
+}
+
+
+void VariableProjector::transform_ab(int& isel, int px, int thread, int firstca, int firstcb)
 {
    int a_dim1 = n;
    int b_dim1 = ndim;
@@ -331,10 +381,13 @@ void VariableProjector::transform_ab(int& isel, int thread, int firstca, int fir
 
    int i, m, k, kp1;
 
-   double *a, *b, *u, *aw, *bw;
+   double *a, *b, *u, *aw, *bw, *wp;
    aw = this->aw + thread * nmax * lp1;
    bw = this->bw + thread * ndim * ( p_full + 3 );
-   u  = this->u + thread * l;
+   u  = this->u  + thread * l;
+   wp = this->wp + thread * nmax;
+   
+   calculate_weights(px, thread); 
    
    if (variable_phi)
    {
@@ -350,12 +403,12 @@ void VariableProjector::transform_ab(int& isel, int thread, int firstca, int fir
    if (firstca >= 0)
       for (m = firstca; m < lp1; ++m)
          for (int i = 0; i < n; ++i)
-            aw[i + m * a_dim1] = a[i + m * a_dim1] * w[i];
+            aw[i + m * a_dim1] = a[i + m * a_dim1] * wp[i];
 
    if (firstcb >= 0)
       for (m = firstcb; m < p; ++m)
          for (int i = 0; i < n; ++i)
-            bw[i + m * b_dim1] = b[i + m * b_dim1] * w[i];
+            bw[i + m * b_dim1] = b[i + m * b_dim1] * wp[i];
 
    // Compute orthogonal factorisations by householder reflection (phi)
    for (k = 0; k < l; ++k) 
@@ -424,7 +477,6 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    // Get linear parameters
    // Overwrite rj unless x is specified (length n)
 
-
    int i, k, kback;
    double acum;
 
@@ -455,63 +507,6 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
       for (i = k+1; i < n; ++i) 
          x[i] -= a[i + k * a_dim1] * acum;
    }
-}
-
-
-
-
-
-
-void VariableProjector::jacb_row(int s, int nls, double *kap, double* r__, int d_idx, double* res, double* derv)
-{
-   int m, k, j, b_dim1, r_dim1;
-   double acum;
-
-      /*           MAJOR PART OF KAUFMAN'S SIMPLIFICATION OCCURS HERE.  COMPUTE */
-      /*           THE DERIVATIVE OF ETA WITH RESPECT TO THE NONLINEAR */
-      /*           PARAMETERS */
-
-      /*   T   D ETA        T    L          D PHI(J)    D PHI(L+1) */
-      /*  Q * --------  =  Q * (SUM BETA(J) --------  + ----------)  =  F2*BETA */
-      /*      D ALF(K)          J=1         D ALF(K)     D ALF(K) */
-
-      /*           AND STORE THE RESULT IN COLUMNS L+S+1 TO L+NL+S.  THE */
-      /*           FIRST L ROWS ARE OMITTED.  THIS IS -D(Q2)*Y.  THE RESIDUAL */
-      /*           R2 = Q2*Y (IN COLUMNS L+1 TO L+S) IS COPIED TO COLUMN */
-      /*           L+NL+S+1. */
-
-   b_dim1 = ndim;
-   r_dim1 = n;
-
-   int lps = l+s;
-   int nml = n-l;
-      
-   int i = d_idx % nml + l;
-   int is = d_idx / nml;
-
-   m = 0;
-   for (k = 0; k < nls; ++k)
-   {
-      acum = (float)0.;
-      for (j = 0; j < l; ++j) 
-      {
-         if (inc[k + j * 12] != 0) 
-         {
-            acum += b[i + m * b_dim1] * r__[j + is * r_dim1];
-            ++m;
-         }
-      }
-
-      if (inc[k + l * 12] != 0)
-      {   
-         acum += b[i + m * b_dim1];
-         ++m;
-      }
-
-      derv[k] = -acum;
-   }
-
-   *res = r__[i+is*r_dim1];
 }
 
 

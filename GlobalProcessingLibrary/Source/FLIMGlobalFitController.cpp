@@ -220,7 +220,7 @@ void FLIMGlobalFitController::SetPolarisationMode(int mode)
 
 int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
 {
-   double irf_95, c, p;
+   double irf_95, c, p, j_last;
    double* t = data->GetT();
 
    int start = 0;
@@ -228,6 +228,7 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
    double *irf = this->irf_buf + idx * n_irf * n_chan;
 
    c = 0;
+   j_last = 0;
    for(int i=0; i<n_irf; i++)
       c += irf[i];
 
@@ -240,23 +241,46 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
          g_factor = c/p;
    }
 
-   irf_95 = c * 0.95;
-   
-   c = 0;
-   for(int i=0; i<n_irf; i++)
+   if (!ref_reconvolution)
    {
-      c += irf[i];
-      if (c >= irf_95)
+      // Start after 95% of IRF
+      irf_95 = c * 0.95;
+   
+      c = 0;
+      for(int i=0; i<n_irf; i++)
       {
-         for (int j=0; j<data->n_t; j++)
-            if (t[j] > t_irf[i])
-            {
-               start = j;
-               break;
-            }
-         break;
-      }   
+         c += irf[i];
+         if (c >= irf_95)
+         {
+            for (int j=0; j<data->n_t; j++)
+               if (t[j] > t_irf[i])
+               {
+                  start = j;
+                  break;
+               }
+            break;
+         }   
+      }
    }
+   else
+   {
+      // Look for maximum point of reference
+      c = 0;
+      for(int i=0; i<n_irf; i++)
+      {
+         if (irf[i] > c)
+         {
+            c = irf[i];
+            for (int j=j_last; j<data->n_t; j++)
+               if (t[j] > t_irf[i])
+               {
+                  start = j;
+                  j_last = j;
+               }
+         }
+      }
+   }
+
 
    return start;
 }

@@ -2,7 +2,6 @@
 #define _VARIABLEPROJECTOR_H
 
 #include "AbstractFitter.h"
-//#include "VariableProjection.h"
 
 
 class VariableProjector : public AbstractFitter
@@ -21,10 +20,10 @@ private:
    void Cleanup();
 
    int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
-   void jacb_row(int s, int nls, double *kap, double* r__, int d_idx, double* res, double* derv);
    
-   void transform_ab(int& isel, int thread, int firstca, int firstcb);
+   void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
 
+   void calculate_weights(int px, int thread);
 
    void get_linear_params(int idx, double* a, double* u, double* x = 0);
    int bacsub(int idx, double* a, double* x);
@@ -32,7 +31,7 @@ private:
    double d_sign(double *a, double *b);
 
    double *work; 
-   double *aw, *bw;
+   double *aw, *bw, *wp;
 
    // Buffers used by levmar algorithm
    double *fjac;
@@ -40,6 +39,8 @@ private:
    double *qtf;
    double *wa1, *wa2, *wa3, *wa4;
    int    *ipvt;
+
+   int n_call;
 
    friend int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag);
 };
