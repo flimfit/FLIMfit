@@ -21,6 +21,8 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
 
+   work = new double[nmax * n_thread];
+
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
    int buf_dim = max(1,nl);
@@ -41,6 +43,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
 VariableProjector::~VariableProjector()
 {
+   delete[] work;
 
    delete[] fjac;
    delete[] diag;
@@ -50,7 +53,6 @@ VariableProjector::~VariableProjector()
    delete[] wa3;
    delete[] wa4;
    delete[] ipvt;
-   
 }
 
 
@@ -203,7 +205,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       int k, kp1;
       double beta, acum;
     
-      double *a, *b, *u;
+      double *a, *b, *u, *work;
       if (variable_phi)
       {
          a = this->a + thread * nmax * (l+1);
@@ -214,8 +216,10 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       {
          a = this->a;
          b = this->b;
-         u = this->u;         
+         u = this->u;
       }
+
+      work = this->work + thread * nmax;
 
       if (variable_phi)
          transform_ab(alf, irf_idx[j], isel, thread, firstca, firstcb, a, b, u);
@@ -266,11 +270,11 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
          }
 
-         if (get_lin)
-            get_linear_params(j, a, u);
+         //if (get_lin)
+            get_linear_params(j, a, u, work);
          
          if (isel == 3)
-            bacsub(j, a);
+            bacsub(j, a, rj);
 
       }
 
@@ -389,8 +393,12 @@ void VariableProjector::transform_ab(const double *alf, int irf_idx, int& isel, 
 
 
 
-void VariableProjector::get_linear_params(int idx, double* a, double* u)
+void VariableProjector::get_linear_params(int idx, double* a, double* u, double* x)
 {
+   // Get linear parameters
+   // Overwrite rj unless x is specified (length n)
+
+
    int i, k, kback;
    double acum;
 
@@ -398,29 +406,28 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u)
    int r_dim1 = n;
    int u_dim1 = l;
    
-   double* r__ = r + idx * n;
+   double* rj = r + idx * n;
 
-   chi2[idx] = enorm(n-l, r__+l); 
+   chi2[idx] = enorm(n-l, rj+l); 
    chi2[idx] *= chi2[idx] * chi2_factor * smoothing;
 
-   bacsub(idx, a);
+   bacsub(idx, a, x);
+   
    for (kback = 0; kback < l; ++kback) 
    {
       k = l - kback - 1;
-      acum = 0.;
+      acum = 0;
 
       for (i = k; i < n; ++i) 
-      {
-         acum += a[i + k * a_dim1] * r__[i];   
-      }
-      lin_params[k + idx * u_dim1] = r__[k];
-      r__[k] = acum / a[k + k * a_dim1];
+         acum += a[i + k * a_dim1] * x[i];   
+
+      lin_params[k + idx * u_dim1] = x[k];
+
+      x[k] = acum / a[k + k * a_dim1];
       acum = -acum / (u[k] * a[k + k * a_dim1]);
 
       for (i = k+1; i < n; ++i) 
-      {
-         r__[i] -= a[i + k * a_dim1] * acum;
-      }
+         x[i] -= a[i + k * a_dim1] * acum;
    }
 }
 
@@ -483,28 +490,28 @@ void VariableProjector::jacb_row(int s, int nls, double *kap, double* r__, int d
 }
 
 
-int VariableProjector::bacsub(int idx, double *a)
+int VariableProjector::bacsub(int idx, double *a, double *x)
 {
    int a_dim1;
    int i, j, iback;
    double acum;
 
-   double* x = r + idx * n;
+   double* rj = r + idx * n;
 
-/*        BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*X = B. */
-/*        THE SOLUTION X OVERWRITES THE RIGHT SIDE B. */
+   // BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*RJ = B. 
+   // THE SOLUTION IS STORED IN X (X MAY OVERWRITE RJ IF SPECIFIED)
 
    a_dim1 = n;
 
-   x[l-1] /= a[l-1 + (l-1) * a_dim1];
+   x[l-1] = rj[l-1] / a[l-1 + (l-1) * a_dim1];
    if (l > 1) 
    {
 
       for (iback = 1; iback < l; ++iback) 
       {
-      /*           I = N-1, N-2, ..., 2, 1 */
+         // i = N-1, N-2, ..., 2, 1
          i = l - iback - 1;
-         acum = x[i];
+         acum = rj[i];
          for (j = i+1; j < l; ++j) 
             acum -= a[i + j * a_dim1] * x[j];
          

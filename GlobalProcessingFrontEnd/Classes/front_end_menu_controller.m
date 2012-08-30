@@ -606,6 +606,25 @@ classdef front_end_menu_controller < handle
         
         function menu_test_test2_callback(obj,~,~)
             
+            mask=obj.data_masking_controller.roi_controller.roi_mask;
+            
+            d = obj.data_series_controller.data_series; 
+                        
+            f = d.get_roi(mask,1);
+            f = sum(f,3);
+            f = double(f);
+            
+            tau = d.ref_lifetime;
+            
+            df = gradient(f);
+            g = f + tau * df;
+
+            figure
+            
+            plot(g)
+
+            
+            
         end
         
         function menu_test_test3_callback(obj,~,~)

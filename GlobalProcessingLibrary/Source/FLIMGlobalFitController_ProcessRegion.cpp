@@ -174,10 +174,34 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    int use_global_binning = global_algorithm == MODE_GLOBAL_BINNING && s_thresh > 1;
 
+
+   projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+   /*
+   double F0 = 0;
+   for(i=0; i<l; i++)
+      F0 = lin_params[i];
+
+   
+   for(i=0; i<n; i++)
+   {
+      w[i] *= w[i];
+      w[i] = 1/w[i];
+   }
+   add_irf(thread, irf_idx[0], w, n_r, &F0);
+   for(i=0; i<n; i++)
+   {
+      w[i] = sqrt(1/w[i]);
+   }
+
+   projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+   *?
+
+   /*
    if (use_global_binning)
       projectors[thread].Fit(1, n_meas_res, ma_decay, w, NULL, alf_local, lin_local, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
    else
       projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+      */
 
    if (calculate_errs)
       projectors[thread].CalculateErrors(alf_local,conf_lim);

@@ -106,21 +106,12 @@ function compute_tr_irf(obj)
         end
 
         % Shift by t0
-        
-        if obj.afterpulsing_correction
-            bg = obj.irf_background;
-        else
-            bg = 0;
-        end
-            
-        
         for i=1:size(obj.tr_irf,2)
             obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0,'cubic',bg);
         end
-
         obj.tr_irf(isnan(obj.tr_irf)) = 0;
 
-
+        
         % Normalise irf so it sums to unity
         if true && size(obj.tr_irf,1) > 0 %obj.normalise_irf
             for i=1:size(obj.tr_irf,2) 

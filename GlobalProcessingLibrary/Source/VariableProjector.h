@@ -26,11 +26,12 @@ private:
    void transform_ab(const double *alf, int irf_idx, int& isel, int thread, int firstca, int firstcb, double* a, double* b, double *u);
 
 
-   void get_linear_params(int idx, double* a, double* u);
-   int bacsub(int idx, double* a);
+   void get_linear_params(int idx, double* a, double* u, double* x = 0);
+   int bacsub(int idx, double* a, double* x);
 
    double d_sign(double *a, double *b);
 
+   double *work; 
    // Buffers used by levmar algorithm
    double *fjac;
    double *diag;
