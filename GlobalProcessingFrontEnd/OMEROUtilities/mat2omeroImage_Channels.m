@@ -80,24 +80,27 @@ re.lookupPixels(pixelsId)
     end
 %
 if RENDER
-    % start the rendering engine
-    re.load();
-    % optional setting of rendering 'window' (levels)
-    %renderingEngine.setChannelWindow(cIndex, float(minValue), float(maxValue))
-    %
-    alpha = 255;
-    switch sizeC % likely RGB
-        case 3
-            re.setRGBA(0, 255, 0, 0, alpha);
-            re.setRGBA(1, 0, 255, 0, alpha);
-            re.setRGBA(2, 0, 0, 255, alpha);
-        otherwise
-            for c = 1:sizeC,
-                re.setRGBA(c - 1, 255, 255, 255, alpha);
-            end
+    try
+        % start the rendering engine
+        re.load();
+        % optional setting of rendering 'window' (levels)
+        %renderingEngine.setChannelWindow(cIndex, float(minValue), float(maxValue))
+        %
+        alpha = 255;
+        switch sizeC % likely RGB
+            case 3
+                re.setRGBA(0, 255, 0, 0, alpha);
+                re.setRGBA(1, 0, 255, 0, alpha);
+                re.setRGBA(2, 0, 0, 255, alpha);
+            otherwise
+                for c = 1:sizeC,
+                    re.setRGBA(c - 1, 255, 255, 255, alpha);
+                end
+        end
+        %
+        re.saveCurrentSettings();
+    catch
     end
-    %
-    re.saveCurrentSettings();
 end;
 
 re.close();

@@ -296,8 +296,8 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_image_callback(obj,~,~)
             % to be implemented...
+            ic_importer();
         end            
-
        %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                        
