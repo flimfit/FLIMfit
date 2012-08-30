@@ -23,7 +23,7 @@ private:
    int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
    void jacb_row(int s, int nls, double *kap, double* r__, int d_idx, double* res, double* derv);
    
-   void transform_ab(const double *alf, int irf_idx, int& isel, int thread, int firstca, int firstcb, double* a, double* b, double *u);
+   void transform_ab(int& isel, int thread, int firstca, int firstcb);
 
 
    void get_linear_params(int idx, double* a, double* u, double* x = 0);
@@ -32,6 +32,8 @@ private:
    double d_sign(double *a, double *b);
 
    double *work; 
+   double *aw, *bw;
+
    // Buffers used by levmar algorithm
    double *fjac;
    double *diag;

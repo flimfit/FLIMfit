@@ -243,17 +243,8 @@ void AbstractFitter::CallADA(const double* alf, int irf_idx, int isel, int local
          params[i] = alf[idx++];
    }
 
-   double *a, *b;
-   if (variable_phi)
-   {
-      a = this->a + local_thread * nmax * (l+1);
-      b = this->b + local_thread * ndim * ( p_full + 3 );
-   }
-   else
-   {
-      a = this->a;
-      b = this->b;
-   }
+   a = this->a + local_thread * nmax * (l+1);
+   b = this->b + local_thread * ndim * ( p_full + 3 );
 
    model->ada(a, b, kap, params, irf_idx, isel, thread * n_thread + local_thread);
 
