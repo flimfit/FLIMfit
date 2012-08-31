@@ -200,7 +200,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
    if (isel == 3)
    {
-      CallADA(alf, irf_idx[0], isel, 0);
+      GetModel(alf, irf_idx[0], isel, 0);
 
       // Set kappa derivatives
       *rnorm = kap[0];
@@ -211,6 +211,8 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    } 
    else if (isel > 3)
    {
+      int omp_thread = 0;
+
       d_idx = isel - 4;
       i = d_idx % nml + l;
       is = d_idx / nml;
@@ -219,7 +221,8 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
       if (d_idx % nml == 0)
       {
-         transform_ab(isel, is, 0, firstca, firstcb);
+         calculate_weights(is, alf, omp_thread); 
+         transform_ab(isel, is, omp_thread, firstca, firstcb);
          bacsub(is, aw, rs);
       }
 
@@ -252,28 +255,29 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       
 
    if (!variable_phi)
-      CallADA(alf, irf_idx[0], isel, 0);
+      GetModel(alf, irf_idx[0], isel, 0);
 
    #pragma omp parallel for reduction(+:r_sq)
    for (int j=0; j<s; j++)
    {
-      int thread = omp_get_thread_num();
+      int omp_thread = omp_get_thread_num();
       
       double* rj = r + j * r_dim1;
       int k, kp1;
       double beta, acum;
     
-      double *aw, *u, *work;
-      aw = this->aw + thread * nmax * (l+1);
-      wp = this->wp + thread * nmax;
-      u  = this->u + thread * l;
+      double *aw, *u, *work, *wp;
+      aw = this->aw + omp_thread * nmax * (l+1);
+      wp = this->wp + omp_thread * nmax;
+      u  = this->u + omp_thread * l;
 
-      work = this->work + thread * nmax;
+      work = this->work + omp_thread * nmax;
 
       if (variable_phi)
-         CallADA(alf, irf_idx[j], isel, thread);
+         GetModel(alf, irf_idx[j], isel, omp_thread);
 
-      transform_ab(isel, j, thread, firstca, firstcb);
+      calculate_weights(j, alf, omp_thread); 
+      transform_ab(isel, j, omp_thread, firstca, firstcb);
 
       // Get the data we're about to transform
       if (!philp1)
@@ -329,28 +333,35 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 }
 
 
-void VariableProjector::calculate_weights(int px, int thread)
+void VariableProjector::calculate_weights(int px, const double* alf, int omp_thread)
 {
    float*  y = this->y + px * nmax;
-   double* wp = this->wp + thread * nmax;
+   double* wp = this->wp + omp_thread * nmax;
 
+   double *a;
+   if (variable_phi)
+      a  = this->a + omp_thread * nmax * lp1;
+   else
+      a = this->a;
+
+   double *lin_params;
    if (n_call == 0)
+      lin_params = NULL;
+   else
+      lin_params = this->lin_params + px*l;
+
+   bool data_weighting = false;
+
+   if (~data_weighting || n_call == 0)
    {
       for (int i=0; i<n; i++)
-      {
-         if (y[i] == 0)
-            wp[i] = 1e-4;
-         else
-            wp[i] = sqrt(1/y[i]);
-   
-         //wp[i] = w[i];
-      }
+            wp[i] = y[i];
    }
    else
    {
       double *a;
       if (variable_phi)
-         a  = this->a + thread * nmax * lp1;
+         a  = this->a + omp_thread * nmax * lp1;
       else
          a = this->a;
       
@@ -358,19 +369,18 @@ void VariableProjector::calculate_weights(int px, int thread)
       {
          wp[i] = 0;
          for(int j=0; j<l; j++)
-            wp[i] += a[n*j+i] * lin_params[px*l + j];
+            wp[i] += a[n*j+i] * lin_params[j];
          wp[i] += a[n*l+i];
-
-         if (wp[i] == 0)
-            wp[i] = 1e-4;
-         else
-            wp[i] = sqrt(1/wp[i]);
       }
    }
+
+   model->GetWeights(y, a, alf, lin_params, wp, irf_idx[px], thread);
+
+
 }
 
 
-void VariableProjector::transform_ab(int& isel, int px, int thread, int firstca, int firstcb)
+void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firstca, int firstcb)
 {
    int a_dim1 = n;
    int b_dim1 = ndim;
@@ -382,17 +392,15 @@ void VariableProjector::transform_ab(int& isel, int px, int thread, int firstca,
    int i, m, k, kp1;
 
    double *a, *b, *u, *aw, *bw, *wp;
-   aw = this->aw + thread * nmax * lp1;
-   bw = this->bw + thread * ndim * ( p_full + 3 );
-   u  = this->u  + thread * l;
-   wp = this->wp + thread * nmax;
-   
-   calculate_weights(px, thread); 
-   
+   aw = this->aw + omp_thread * nmax * lp1;
+   bw = this->bw + omp_thread * ndim * ( p_full + 3 );
+   u  = this->u  + omp_thread * l;
+   wp = this->wp + omp_thread * nmax;
+      
    if (variable_phi)
    {
-      a  = this->a + thread * nmax * lp1;
-      b  = this->b + thread * ndim * ( p_full + 3 );
+      a  = this->a + omp_thread * nmax * lp1;
+      b  = this->b + omp_thread * ndim * ( p_full + 3 );
    }
    else
    {
@@ -541,25 +549,3 @@ int VariableProjector::bacsub(int idx, double *a, double *x)
 
    return 0;
 }
-
-
-int VariableProjector::GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit)
-{
-   //model->ada(a, b, kap, alf, 0, 1, 0);
-
-   int idx = 0;
-   model->ada(a, b, kap, alf, irf_idx, 1, 0);
-
-   for(int i=0; i<n; i++)
-   {
-      fit[idx] = adjust[i];
-      for(int j=0; j<l; j++)
-         fit[idx] += a[n*j+i] * lin_params[j];
-
-      fit[idx++] += a[n*l+i];
-   }
-
-   return 0;
-
-}
-

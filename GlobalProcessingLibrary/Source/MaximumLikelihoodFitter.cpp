@@ -95,9 +95,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
 {
    int i,j;
 
-   //GetParams(nl, alf);
-   //model->ada(a, b, kap, params, 0, 1, thread);
-   CallADA(alf, 0, 1, 0);
+   GetModel(alf, 0, 1, 0);
    
    int gnl = nl-l;
    double* A = alf+gnl;
@@ -123,9 +121,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
 
    int iflag = 1;
 
-   //GetParams(nl, alf);
-   //model->ada(a, b, kap, params, 0, 1, thread);
-   CallADA(alf, 0, 1, 0);
+   GetModel(alf, 0, 1, 0);
 
    int gnl = nl-l;
    double* A = alf+gnl;

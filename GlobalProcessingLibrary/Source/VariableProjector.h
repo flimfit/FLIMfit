@@ -23,7 +23,7 @@ private:
    
    void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
 
-   void calculate_weights(int px, int thread);
+   void calculate_weights(int px, const double* alf, int thread);
 
    void get_linear_params(int idx, double* a, double* u, double* x = 0);
    int bacsub(int idx, double* a, double* x);

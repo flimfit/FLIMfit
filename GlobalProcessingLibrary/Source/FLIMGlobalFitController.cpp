@@ -276,6 +276,7 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
                {
                   start = j;
                   j_last = j;
+                  break;
                }
          }
       }
@@ -571,14 +572,16 @@ void FLIMGlobalFitController::Init()
          alf          = new double[ data->n_regions_total * nl ]; //ok
       }
 
-      alf_local    = new double[ n_thread * nl ]; //free ok
-      y            = new float[ n_thread * s * n_meas ]; //free ok 
-      ma_decay     = new float[ n_thread * n_meas ]; //ok
-      lin_local    = new double[ n_thread * l ]; //ok
-      w            = new float[ n_thread * n ]; //free ok
+      alf_local    = new double[ n_fitters * nl ]; //free ok
+      y            = new float[ n_fitters * s * n_meas ]; //free ok 
+      irf_idx      = new int[ n_fitters * s ];
 
-      cur_alf      = new double[ n_thread * nl ]; //ok
-      cur_irf_idx  = new int[ n_thread ];
+      ma_decay     = new float[ n_fitters * n_meas ]; //ok
+      lin_local    = new double[ n_fitters * l ]; //ok
+      w            = new float[ n_fitters * n ]; //free ok
+
+      cur_alf      = new double[ n_fitters * nl ]; //ok
+      cur_irf_idx  = new int[ n_fitters ];
 
       #ifdef _WINDOWS
          exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
@@ -603,7 +606,6 @@ void FLIMGlobalFitController::Init()
       locked_value = new double[n_thread]; //ok
 
       local_irf    = new double*[n_thread]; //ok
-      irf_idx      = new int[ n_thread * n_px ];
 
       init = true;
    }

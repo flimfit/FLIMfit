@@ -203,9 +203,6 @@ public:
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
 
-//   void sample_irf(int thread, int irf_idx, float a[], int pol_group = 0, double* scale_fact = 0);
-//   void sample_irf(int thread, int irf_idx, double a[], int pol_group = 0, double* scale_fact = 0);
-
 
    int global_algorithm;
 
@@ -214,13 +211,12 @@ public:
 
 
    void SetupIncMatrix(int* inc);
-   int ada(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread);
-
+   int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread);
+   void GetWeights(float* y, double* a, const double* alf, double* lin_params, double* w, int irf_idx, int thread);
 
 
 private:
    void CalculateIRFMax(int n_t, double t[]);
-   //void CalculateResampledIRF(int n_t, double t[]);
    void CleanupResults();
    
    double CalculateChi2(int s, int n_meas_res, float y[], double a[], double lin_params[], float adjust_buf[], double fit_buf[], double chi2[]);

@@ -7,10 +7,9 @@ class FitModel
 {
    public: 
       virtual void SetupIncMatrix(int* inc) = 0;
-      virtual int ada(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
+      virtual int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
+      virtual void GetWeights(float* y, double* a, const double* alf, double* lin_params, double* w, int irf_idx, int thread) = 0;
 };
-
-class AbstractFitter;
 
 class AbstractFitter
 {
@@ -27,7 +26,7 @@ public:
    int CalculateErrors(double* alf, double* err);
 
    void GetParams(int nl, const double* alf);
-   void CallADA(const double* alf, int irf_idx, int isel, int thread);
+   void GetModel(const double* alf, int irf_idx, int isel, int thread);
 
 protected:
 

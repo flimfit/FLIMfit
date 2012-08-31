@@ -20,6 +20,44 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         end
     end
     
+    if obj.bin
+        n_datasets = 1;
+        height = 1;
+        width = 1;
+        
+        [decay,irf] = obj.data_series.get_roi(roi_mask,selected);
+        decay = squeeze(nanmean(decay,3));
+        obj.p_data = libpointer('singlePtr', decay);
+        t_skip = [];
+        n_t = length(d.tr_t);
+        obj.p_t = libpointer('doublePtr',d.tr_t);
+        obj.p_mask = libpointer('uint8Ptr',uint8(1));
+
+        obj.p_irf = libpointer('doublePtr', irf);
+        
+    else
+        n_datasets = sum(d.loaded);
+        width = d.width;
+        height = d.height;
+        
+        t_skip = d.t_skip;
+        n_t = length(d.t);
+        obj.p_t = libpointer('doublePtr',d.t);
+        
+        if obj.use_image_irf
+            obj.p_irf = libpointer('doublePtr', d.tr_image_irf);
+        else
+            obj.p_irf = libpointer('doublePtr', d.tr_irf);
+        end
+        
+        if ~isempty(d.seg_mask)        
+            obj.p_mask = libpointer('uint8Ptr', uint8(d.seg_mask));
+        else
+            obj.p_mask = [];
+        end
+    end
+    
+    
     if p.polarisation_resolved
         
         err = calllib(obj.lib_name,'SetupGlobalPolarisationFit', ...
@@ -58,42 +96,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         return;
     end
     
-    if obj.bin
-        n_datasets = 1;
-        height = 1;
-        width = 1;
-        
-        [decay,irf] = obj.data_series.get_roi(roi_mask,selected);
-        decay = squeeze(nanmean(decay,3));
-        obj.p_data = libpointer('singlePtr', decay);
-        t_skip = [];
-        n_t = length(d.tr_t);
-        obj.p_t = libpointer('doublePtr',d.tr_t);
-        obj.p_mask = libpointer('uint8Ptr',uint8(1));
-
-        obj.p_irf = libpointer('doublePtr', irf);
-        
-    else
-        n_datasets = sum(d.loaded);
-        width = d.width;
-        height = d.height;
-        
-        t_skip = d.t_skip;
-        n_t = length(d.t);
-        obj.p_t = libpointer('doublePtr',d.t);
-        
-        if obj.use_image_irf
-            obj.p_irf = libpointer('doublePtr', d.tr_image_irf);
-        else
-            obj.p_irf = libpointer('doublePtr', d.tr_irf);
-        end
-        
-        if ~isempty(d.seg_mask)        
-            obj.p_mask = libpointer('uint8Ptr', uint8(d.seg_mask));
-        else
-            obj.p_mask = [];
-        end
-    end
+    
     
     data_type = ~strcmp(d.mode,'TCSPC');
     

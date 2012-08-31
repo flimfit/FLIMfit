@@ -107,7 +107,7 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
 
 
 /* ============================================================== */
-int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread)
+int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread)
 {
 
    int i,j,k, d_offset, total_n_exp, idx;
@@ -435,4 +435,49 @@ int FLIMGlobalFitController::ada(double *a, double *b, double *kap, const double
    }
 
    return 0;
+}
+
+
+void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf, double* lin_params, double* w, int irf_idx, int thread)
+{
+   int i, l_start;
+   double F0, ref_lifetime;
+
+   //for(i=0; i<n; i++)
+   //   w[i] = y[i];
+
+   if (ref_reconvolution && lin_params != NULL)
+   {
+      if (ref_reconvolution == FIT_GLOBALLY)
+         ref_lifetime = alf[alf_ref_idx];
+      else
+         ref_lifetime = ref_lifetime_guess;
+
+
+      // Don't include stray light in weighting
+      l_start = (fit_offset  == FIT_LOCALLY) + 
+                (fit_scatter == FIT_LOCALLY) + 
+                (fit_tvb     == FIT_LOCALLY);
+
+      F0 = 0;
+      for(i=l_start; i<l; i++)
+         F0 = lin_params[i];
+      
+      for(i=0; i<n; i++)
+         w[i] /= ref_lifetime;
+
+      add_irf(thread, irf_idx, w, n_r, &F0);
+     
+      // Variance = (D + F0 * D_r);
+
+   }
+
+   for(i=0; i<n; i++)
+   {
+      if (w[i] <= 0)
+         w[i] = 1e-4;
+      else
+         w[i] = sqrt(1/w[i]);
+   }
+
 }
