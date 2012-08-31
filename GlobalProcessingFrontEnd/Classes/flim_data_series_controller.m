@@ -1,18 +1,22 @@
 %> @ingroup UserInterfaceControllers
 classdef flim_data_series_controller < handle 
+    
     properties(SetObservable = true)
+        
         data_series;
         fitting_params_controller;
         window;
         version;
         
         % OMERO
-        client;     %
-        session;    %
-        dataset;    % current OMERO dataset
-        project;    % current OMERO project
+        omero_logon_filename = 'omero_logon.xml';        
+        logon;
+        client;     
+        session;    
+        dataset;    
+        project;    
         %
-        selected_channel; % need to keep this for results loading to Omero...
+        selected_channel; % need to keep this for results uploading to Omero...
         % OMERO        
         
         data_settings_filename = {'data_settings.xml', 'polarisation_data_settings.xml'};
@@ -158,13 +162,47 @@ classdef flim_data_series_controller < handle
             notify(obj,'new_dataset');
         end
 
+        function intensity = selected_intensity(obj,selected,apply_mask)
+           
+            if nargin == 2
+                apply_mask = true;
+            end
+            
+            if obj.data_series.init && selected > 0 && selected <= obj.data_series.n_datasets
+                
+                intensity = obj.data_series.selected_intensity(selected,apply_mask);
+                
+                
+            else
+                intensity = [];
+            end
+            
+        end
         
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % OMERO functions
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        function mask = selected_mask(obj,selected)
+           
+            if obj.data_series.init && selected > 0 && selected <= obj.data_series.n_datasets
+                
+                mask = obj.data_series.mask(:,:,selected);
+                if ~isempty(obj.data_series.seg_mask)
+                    seg_mask = obj.data_series.seg_mask(:,:,selected);
+                    mask = mask & seg_mask;
+                end
+                                
+            else
+                mask = [];
+            end
+            
+        end
+                
+        function delete(obj)
+        end
+        
+        %------------------------------------------------------------------
+        % OMERO
+        %------------------------------------------------------------------
         function channel = fetch_TCSPC(obj, imageDescriptor)
-            
-            
+                        
             polarisation_resolved = false;
             
             % load new dataset
@@ -172,13 +210,6 @@ classdef flim_data_series_controller < handle
             
             % currently only allow one channel to be loaded
             channel = obj.data_series.request_channels(polarisation_resolved);
-            
-            %for i=1:4           %assume 4 channel TCSPC data for now
-            %        chan_info{i} = ['sdt channel ' num2str(i)];
-            %end
-            % [obj.data_series.names,channel] = dataset_selection(chan_info);
-           
-           
             
             try
                 obj.data_series.fetch_TCSPC(imageDescriptor, polarisation_resolved, channel);
@@ -189,9 +220,7 @@ classdef flim_data_series_controller < handle
             
         end
                         
-        %------------------------------------------------------------------
-        % OMERO
-        %------------------------------------------------------------------
+        %------------------------------------------------------------------                
         function OMERO_Set_Dataset(obj,~,~)
             %
             [ Dataset Project ] = select_Dataset(obj.session,'Select a Dataset:'); 
@@ -236,15 +265,15 @@ classdef flim_data_series_controller < handle
                 return;
             end;                                    
             %        
-             z = 0;       
-             str = char(512,256); % ?????
-             for k = 0:imageList.size()-1,                       
-                     z = z + 1;                                                       
-                     iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
-                     A = split('.',iName);
-                     if true % strcmp(extension,A(length(A))) 
-                        str(z,1:length(iName)) = iName;
-                     end;
+            z = 0;       
+            str = char(512,256); % ?????
+            for k = 0:imageList.size()-1,                       
+                z = z + 1;                                                       
+                iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
+                A = split('.',iName);
+                if true % strcmp(extension,A(length(A))) 
+                    str(z,1:length(iName)) = iName;
+                end;
              end 
             %
             folder_names = sort_nat(cellstr(str));               
@@ -270,7 +299,8 @@ classdef flim_data_series_controller < handle
             % load new dataset
             obj.data_series = flim_data_series();            
             % currently only allow one channel to be loaded
-            obj.selected_channel = obj.data_series.request_channels(polarisation_resolved);
+            obj.selected_channel = obj.data_series.request_channels(polarisation_resolved);            
+            if 0==numel(image_ids), return, end;
             %
             image_descriptor{1} = obj.session;
             image_descriptor{2} = image_ids(1);                        
@@ -297,11 +327,11 @@ classdef flim_data_series_controller < handle
                 obj.data_series.names{j} = string;
             end
             %        
-            if size(delays) > 0 % we work with FLIM, right?
-                if size(delays) > 32 % ????!!!!!! (despicable)
+            if numel(delays) > 0 % ??
+                if numel(delays) > 32 % ????!!!!!! 
                     obj.data_series.mode = 'TCSPC'; 
                 else
-                    obj.data_series.mode = 'Widefield';
+                    obj.data_series.mode = 'widefield';
                 end
                 %
                 obj.data_series.file_names = {'file'};
@@ -402,62 +432,62 @@ classdef flim_data_series_controller < handle
                  errordlg('There are no analysis results - nothing to Export');
                  return;
             end
-                 %
-                 obj.set_dataset_if_not_selected; 
-                 %
-                 res = fit_controller.fit_result;
-                 %
-                 dName = char(java.lang.String(obj.dataset.getName().getValue()));
-                    pName = char(java.lang.String(obj.project.getName().getValue()));
-                        name = [ pName ' : ' dName ];
-                 %
-                 choice = questdlg(['Do you want to Export current results on ' name ' to OMERO? It might take some time.'], ...
-                  'Export current analysis' , ...
-                  'Export','Cancel','Cancel');
-                 %  
-                 switch choice
-                     case 'Cancel'
-                         return;
-                 end            
-                 %
-                 current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
-                    new_dataset_name = [current_dataset_name ' FLIM fitting channel ' num2str(obj.selected_channel) ' '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
-                        description  = ['analysis of the ' current_dataset_name ' at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
-                            newdataset = create_new_Dataset(obj.session,obj.project,new_dataset_name,description);                                                                                                    
-                 %
-                 if isempty(newdataset)
-                     errordlg('Can not create new Dataset');
-                     return;
-                 end
-                 %
-                 % get first parameter image just to get the size
-                 params = res.fit_param_list();
-                 n_params = length(params);
-                 param_array(:,:) = single(res.get_image(1, params{1}));
-                    sizeY = size(param_array,1);
-                    sizeX = size(param_array,2);
-                 %      
-                 hw = waitbar(0, 'Exporting fitting results to Omero, please wait');                 
-                 for dataset_index = 1:obj.data_series.num_datasets
-                     %
-                     data = zeros(n_params,sizeX,sizeY);
-                         for p = 1:n_params,
-                            data(p,:,:) = res.get_image(dataset_index, params{p})';
-                         end
-                     %                  
-                     new_image_description = ' ';
-                     new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ' ' obj.data_series.names{dataset_index}]);
-                     imageId = mat2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());
-                         link = omero.model.DatasetImageLinkI;
-                             link.setChild(omero.model.ImageI(imageId, false));
-                                 link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
-                                     obj.session.getUpdateService().saveAndReturnObject(link); 
-                     %   
-                     waitbar(dataset_index/obj.data_series.num_datasets, hw);
-                     drawnow;                                                                 
-                 end;
-                 delete(hw);
-                 drawnow;                                          
+            %
+            obj.set_dataset_if_not_selected; 
+            %
+            res = fit_controller.fit_result;
+            %
+            dName = char(java.lang.String(obj.dataset.getName().getValue()));
+            pName = char(java.lang.String(obj.project.getName().getValue()));
+            name = [ pName ' : ' dName ];
+            %
+            choice = questdlg(['Do you want to Export current results on ' name ' to OMERO? It might take some time.'], ...
+                                    'Export current analysis' , ...
+                                    'Export','Cancel','Cancel');
+            %  
+            switch choice
+                case 'Cancel'
+                    return;
+            end            
+            %
+            current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
+            new_dataset_name = [current_dataset_name ' FLIM fitting channel ' num2str(obj.selected_channel) ' '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
+            description  = ['analysis of the ' current_dataset_name ' at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
+            newdataset = create_new_Dataset(obj.session,obj.project,new_dataset_name,description);                                                                                                    
+            %
+            if isempty(newdataset)
+                errordlg('Can not create new Dataset');
+                return;
+            end
+            %
+            % get first parameter image just to get the size
+            params = res.fit_param_list();
+            n_params = length(params);
+            param_array(:,:) = single(res.get_image(1, params{1}));
+                sizeY = size(param_array,1);
+                sizeX = size(param_array,2);
+            %      
+            hw = waitbar(0, 'Exporting fitting results to Omero, please wait');                 
+            for dataset_index = 1:obj.data_series.num_datasets
+                %
+                data = zeros(n_params,sizeX,sizeY);
+                    for p = 1:n_params,
+                        data(p,:,:) = res.get_image(dataset_index, params{p})';
+                    end
+                    %                  
+                new_image_description = ' ';
+                new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ' ' obj.data_series.names{dataset_index}]);
+                imageId = mat2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());
+                link = omero.model.DatasetImageLinkI;
+                link.setChild(omero.model.ImageI(imageId, false));
+                link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
+                obj.session.getUpdateService().saveAndReturnObject(link); 
+                %   
+                waitbar(dataset_index/obj.data_series.num_datasets, hw);
+                drawnow;                                                                 
+            end;
+            delete(hw);
+            drawnow;                                          
             %
             % attach fitting options to results - including irf etc. ?
             %
@@ -531,45 +561,29 @@ classdef flim_data_series_controller < handle
                 end;
             end;            
         end
+        
+        %------------------------------------------------------------------                
+        function Omero_logon(obj,~)        
+            %
+            if exist(obj.omero_logon_filename,'file') 
+                [settings settings_name] = xml_read (obj.omero_logon_filename);    
+                obj.logon = settings.logon;
+            else
+                obj.logon = OMERO_logon();
+            end
+            %
+            obj.client = loadOmero(obj.logon{1});
+            try 
+                obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+            catch
+                obj.client = [];
+                obj.session = [];
+                errordlg('Error creating OMERO session');
+            end                        
+        end
        %------------------------------------------------------------------
        % OMERO
-       %------------------------------------------------------------------                        
-        
-        function intensity = selected_intensity(obj,selected,apply_mask)
-           
-            if nargin == 2
-                apply_mask = true;
-            end
-            
-            if obj.data_series.init && selected > 0 && selected <= obj.data_series.n_datasets
-                
-                intensity = obj.data_series.selected_intensity(selected,apply_mask);
-                
-                
-            else
-                intensity = [];
-            end
-            
-        end
-        
-        function mask = selected_mask(obj,selected)
-           
-            if obj.data_series.init && selected > 0 && selected <= obj.data_series.n_datasets
-                
-                mask = obj.data_series.mask(:,:,selected);
-                if ~isempty(obj.data_series.seg_mask)
-                    seg_mask = obj.data_series.seg_mask(:,:,selected);
-                    mask = mask & seg_mask;
-                end
-                                
-            else
-                mask = [];
-            end
-            
-        end
-                
-        function delete(obj)
-        end
+       %------------------------------------------------------------------                                        
         
     end
 end

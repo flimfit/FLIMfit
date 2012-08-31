@@ -249,59 +249,48 @@ classdef front_end_menu_controller < handle
                 obj.update_recent_irf_list();
             end
         end
-        
-        
+                
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------
         function menu_OMERO_Set_Dataset_callback(obj,~,~)
             obj.data_series_controller.OMERO_Set_Dataset();
-        end                
-        
+        end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
             obj.data_series_controller.OMERO_Load_FLIM_Data();
-        end                          
-        
+        end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
             obj.data_series_controller.OMERO_Load_FLIM_Dataset();
-        end            
-        
+        end                    
         %------------------------------------------------------------------        
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
             obj.data_series_controller.OMERO_Load_IRF_annot();
-        end            
-        
+        end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~) 
             obj.data_series_controller.OMERO_Load_Background();
-        end            
-                
+        end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
             obj.data_series_controller.OMERO_Export_Fitting_Results(obj.fit_controller);
-        end            
-        
+        end                    
         %------------------------------------------------------------------        
         function menu_OMERO_Export_Fitting_Settings_callback(obj,~,~)
             obj.data_series_controller.OMERO_Export_Fitting_Settings();
-        end            
-        
+        end                    
         %------------------------------------------------------------------
         function menu_OMERO_Import_Fitting_Settings_callback(obj,~,~)
             obj.data_series_controller.OMERO_Import_Fitting_Settings();
-        end            
-        
+        end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_image_callback(obj,~,~)
             % to be implemented...
-            ic_importer();
         end            
        %------------------------------------------------------------------
         % OMERO
-        %------------------------------------------------------------------                        
-        
+        %------------------------------------------------------------------                                
                                                         
         %------------------------------------------------------------------
         % Load Data
