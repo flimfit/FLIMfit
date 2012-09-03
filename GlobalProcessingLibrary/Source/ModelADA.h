@@ -50,7 +50,7 @@ double kappa(double tau2, double tau1);
 double d_kappa_d_tau(double tau2, double tau1);
 
 extern "C"
-void updatestatus_(int* gc, int* thread, int* iter, double* chi2, int* terminate);
+void updatestatus_(int* gc, int* thread, int* iter, float* chi2, int* terminate);
 
 
 #endif

@@ -166,7 +166,7 @@ FITDLL_API int GetResults(int c_idx, int im, uint8_t mask[], float chi2[], float
  * callback     If running asyncronously will be called periodically with current group, iteration and chi2
  *              Fitting will stop if zero returned. Not called if NULL, progress may be monitored by calling FLIMGlobalGetFitStatus
  *              Expected function prototype is int callback(int n_group, int n_thread, int *group, 
- *                                                          int *n_completed, int *iter, double *chi2, double progress)
+ *                                                          int *n_completed, int *iter, float *chi2, double progress)
  *              All arrays are of size n_thread.
  *        
  *

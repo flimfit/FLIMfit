@@ -36,8 +36,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    uint8_t *mask         = data->mask + g*n_px;
    float   *y            = this->y + thread * s * n_meas;
    float   *ma_decay     = this->ma_decay + thread * n_meas;
-   double  *lin_params   = this->lin_params + r_idx * n_px * l;
-   double  *chi2         = this->chi2 + r_idx * n_px;
+   float   *lin_params   = this->lin_params + r_idx * s * l;
+   float   *chi2         = this->chi2 + r_idx * s;
    double  *alf          = this->alf + r_idx * nl;
    float   *w            = this->w + thread * n;
    float   *adjust_buf   = this->adjust_buf + thread * n_meas;
@@ -50,7 +50,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    double  *alf_err      = this->alf_err + thread * nl;
    
    double *alf_local     = this->alf_local + thread * nl;
-   double *lin_local     = this->lin_local + thread * l;
+   float  *lin_local     = this->lin_local + thread * l;
 
    int    *irf_idx       = this->irf_idx + thread * n_px;
 
@@ -61,17 +61,17 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    if (memory_map_results)
    {
       int nr = data->n_regions_total; 
-      std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(double);
+      std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(float);
       std::size_t alf_offset  = (nr * n_px + r_idx * nl             ) * sizeof(double);
-      std::size_t lin_offset  = (nr * (n_px + nl) + r_idx * l * n_px) * sizeof(double);
+      std::size_t lin_offset  = (nr * (n_px + nl) + r_idx * l * n_px) * sizeof(float);
 
-      mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
+      mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(float));
       mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
-      mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
+      mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(float));
 
-      chi2       = (double*) chi2_map_view.get_address();
+      chi2       = (float*) chi2_map_view.get_address();
       alf        = (double*) alf_map_view.get_address();
-      lin_params = (double*) lin_map_view.get_address();
+      lin_params = (float*) lin_map_view.get_address();
    }
 
 
@@ -88,8 +88,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    //   w[i] = sqrt(w[i]);
    
    SetNaN(alf, nl);
-   SetNaN(lin_params, n_px*l);
-   SetNaN(chi2, n_px );
+   SetNaN(lin_params, s*l);
+
 
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------

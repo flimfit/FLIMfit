@@ -115,7 +115,7 @@ public:
 
    int s; int l; int nl; int n; int nmax; int ndim; 
    int p; int n_v;
-   float *y; float *w; double *alf; double *lin_params; double *chi2;
+   float *y; float *w; double *alf; float *lin_params; float *chi2;
    int n_exp_phi, n_decay_group, exp_buf_size, tau_start;
 
    bool beta_global;
@@ -136,7 +136,7 @@ public:
    bool getting_fit;
    double* conf_lim;
    int calculate_errs;
-   double* lin_params_err;
+   float* lin_params_err;
    double* alf_err;
 
    bool anscombe_tranform;
@@ -212,17 +212,17 @@ public:
 
    void SetupIncMatrix(int* inc);
    int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread);
-   void GetWeights(float* y, double* a, const double* alf, double* lin_params, double* w, int irf_idx, int thread);
+   void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
 
 
 private:
    void CalculateIRFMax(int n_t, double t[]);
    void CleanupResults();
    
-   double CalculateChi2(int s, int n_meas_res, float y[], double a[], double lin_params[], float adjust_buf[], double fit_buf[], double chi2[]);
+   double CalculateChi2(int s, int n_meas_res, float y[], double a[], float lin_params[], float adjust_buf[], double fit_buf[], float chi2[]);
 
    int ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], float tau[], float beta[], float E[], float theta[], float offset[], float scatter[], float tvb[], float ref_lifetime[]);
-   int ProcessLinearParams(int s, int n_px, int loc[], double lin_params[], double chi2_group[], float I0[], float beta[], float gamma[], float r[], float offset[], float scatter[], float tvb[], float chi2[]);
+   int ProcessLinearParams(int s, int n_px, int loc[], float lin_params[], float chi2_group[], float I0[], float beta[], float gamma[], float r[], float offset[], float scatter[], float tvb[], float chi2[]);
 
 
    double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
@@ -252,7 +252,7 @@ private:
    double* cur_alf;
    int*    cur_irf_idx;
    double* alf_local;
-   double* lin_local;
+   float* lin_local;
    double* irf_buf;
    double* t_irf_buf;
 

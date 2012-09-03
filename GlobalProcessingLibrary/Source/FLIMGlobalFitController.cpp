@@ -567,8 +567,8 @@ void FLIMGlobalFitController::Init()
    {
       if (!memory_map_results)
       {
-         lin_params   = new double[ data->n_regions_total * n_px * l ]; //ok
-         chi2         = new double[ data->n_regions_total * n_px ]; //ok
+         lin_params   = new float[ data->n_regions_total * s * l ]; //ok
+         chi2         = new float[ data->n_regions_total * s ]; //ok
          alf          = new double[ data->n_regions_total * nl ]; //ok
       }
 
@@ -577,7 +577,7 @@ void FLIMGlobalFitController::Init()
       irf_idx      = new int[ n_fitters * s ];
 
       ma_decay     = new float[ n_fitters * n_meas ]; //ok
-      lin_local    = new double[ n_fitters * l ]; //ok
+      lin_local    = new float[ n_fitters * l ]; //ok
       w            = new float[ n_fitters * n ]; //free ok
 
       cur_alf      = new double[ n_fitters * nl ]; //ok
@@ -663,7 +663,7 @@ void FLIMGlobalFitController::Init()
    else
    {
       SetNaN(alf, data->n_regions_total * nl );
-      SetNaN(chi2, data->n_regions_total * n_px );
+      SetNaN(chi2, data->n_regions_total * s );
    }
 
    if (n_irf > 2)
@@ -934,7 +934,7 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
    double *alf = this->alf + r_idx * nl;
    double *w = this->w + params.thread * n_meas;
    double *adjust_buf = this->adjust_buf + params.thread * n_meas;
-   double *lin_params_err = this->lin_params_err + params.thread * l * n_px;
+   float *lin_params_err = this->lin_params_err + params.thread * l * n_px;
    double *alf_err = this->alf_err + params.thread * nl;
    double *fit_buf = this->fit_buf + params.thread * n_meas;
 

@@ -438,7 +438,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
 }
 
 
-void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf, double* lin_params, double* w, int irf_idx, int thread)
+void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx, int thread)
 {
    int i, l_start;
    double F0, ref_lifetime;

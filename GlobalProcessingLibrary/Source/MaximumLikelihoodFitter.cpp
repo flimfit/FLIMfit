@@ -33,7 +33,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl,
 
 
 
-//int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
+//int MaximumLikelihoodFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2)
 int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
 {
 

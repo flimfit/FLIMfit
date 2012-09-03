@@ -344,7 +344,7 @@ void VariableProjector::calculate_weights(int px, const double* alf, int omp_thr
    else
       a = this->a;
 
-   double *lin_params;
+   float *lin_params;
    if (n_call == 0)
       lin_params = NULL;
    else

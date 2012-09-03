@@ -13,7 +13,7 @@ public:
 
    int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2);
 
-   int GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double* fit);
+   int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
 
 private:
 

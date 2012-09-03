@@ -8,7 +8,7 @@ class FitModel
    public: 
       virtual void SetupIncMatrix(int* inc) = 0;
       virtual int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
-      virtual void GetWeights(float* y, double* a, const double* alf, double* lin_params, double* w, int irf_idx, int thread) = 0;
+      virtual void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread) = 0;
 };
 
 class AbstractFitter
@@ -19,8 +19,8 @@ public:
    virtual ~AbstractFitter();
    virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2) = 0;
 
-   int Fit(int n, int s, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
-   int GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double counts_per_photon, double* fit);
+   int Fit(int n, int s, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit);
 
    double ErrMinFcn(double x);
    int CalculateErrors(double* alf, double* err);
@@ -65,8 +65,8 @@ protected:
 
    float  *y;
    float  *w;
-   double *lin_params;
-   double *chi2;
+   float *lin_params;
+   float *chi2;
    double *t;
    int    *irf_idx;
 

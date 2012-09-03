@@ -110,7 +110,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, double *lin_params, double *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2)
 {
 
    if (err != 0)
@@ -270,7 +270,7 @@ void AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_
 }
 
 
-int AbstractFitter::GetFit(int irf_idx, double* alf, double* lin_params, float* adjust, double counts_per_photon, double* fit)
+int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit)
 {
    if (err != 0)
       return err;
