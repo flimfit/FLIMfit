@@ -446,7 +446,7 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
    //for(i=0; i<n; i++)
    //   w[i] = y[i];
 
-   if (ref_reconvolution && lin_params != NULL)
+   if (false && ref_reconvolution && lin_params != NULL)
    {
       if (ref_reconvolution == FIT_GLOBALLY)
          ref_lifetime = alf[alf_ref_idx];
@@ -470,14 +470,6 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
      
       // Variance = (D + F0 * D_r);
 
-   }
-
-   for(i=0; i<n; i++)
-   {
-      if (w[i] <= 0)
-         w[i] = 1e-4;
-      else
-         w[i] = sqrt(1/w[i]);
    }
 
 }

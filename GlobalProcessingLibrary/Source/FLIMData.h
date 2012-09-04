@@ -91,6 +91,9 @@ public:
 
    double counts_per_photon;
 
+      int* use_im;
+   int n_im_used;
+
 private:
 
    void DetermineAutoSampling(int thread, float decay[]);
@@ -146,8 +149,7 @@ private:
    int* ext_resample_idx;
    int ext_n_meas_res;
 
-   int* use_im;
-   int n_im_used;
+
 
    float* mean_image;
 
@@ -209,9 +211,12 @@ int FLIMData::CalculateRegions()
    //for(int j=0; j<n_meas_full; j++)
    //   average_data[j] = 0;
 
+   T* cur_data = new T[ n_ipx * n_meas_full ];
+
    for(int i=0; i<n_im_used; i++)
    {
       T* data_ptr = GetDataPointer<T>(0, i);
+
 
       int im = i;
       if (use_im != NULL)
@@ -222,6 +227,8 @@ int FLIMData::CalculateRegions()
          delete[] r_count;
          return ERR_FAILED_TO_MAP_DATA;
       }
+
+      memcpy(cur_data,data_ptr, n_ipx * n_meas_full * sizeof(T));
       
       // We already have segmentation mask, now calculate integrated intensity
       // and apply min intensity and max bin mask
@@ -230,7 +237,8 @@ int FLIMData::CalculateRegions()
       //#pragma omp parallel for
       for(int p=0; p<n_ipx; p++)
       {
-         T* ptr = data_ptr + p*n_meas_full;
+         //T* ptr = data_ptr + p*n_meas_full;
+         T* ptr = cur_data + p*n_meas_full;
          double intensity = 0;
          for(int k=0; k<n_chan; k++)
          {
@@ -362,6 +370,7 @@ int FLIMData::CalculateRegions()
    }
 
    delete[] r_count;
+   delete[] cur_data;
 
    return 0;
 

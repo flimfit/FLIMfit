@@ -333,8 +333,12 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
          if (data->global_mode == MODE_GLOBAL)
          {
-            for(int i=0; i<n_px*iml; i++)
-               lin_start += mask[i] == rg;
+            for(int j=0; j<iml; j++)
+            {
+               uint8_t* lmask = mask + n_px * data->use_im[j]; 
+               for(int i=0; i<n_px; i++)
+                  lin_start += lmask[i] == rg;
+            }
          }
 
          int ii = 0;

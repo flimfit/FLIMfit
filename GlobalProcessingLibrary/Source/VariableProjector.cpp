@@ -20,6 +20,9 @@
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate) : 
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
+   weighting = AVERAGE_WEIGHTING;
+
+   iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
 
    work = new double[nmax * n_thread];
 
@@ -221,8 +224,11 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
       if (d_idx % nml == 0)
       {
-         calculate_weights(is, alf, omp_thread); 
-         transform_ab(isel, is, omp_thread, firstca, firstcb);
+         if (iterative_weighting)
+         {
+            CalculateWeights(is, alf, omp_thread); 
+            transform_ab(isel, is, omp_thread, firstca, firstcb);
+         }
          bacsub(is, aw, rs);
       }
 
@@ -256,10 +262,17 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 
    if (!variable_phi)
       GetModel(alf, irf_idx[0], isel, 0);
+   if (!iterative_weighting)
+      CalculateWeights(0, alf, 0);
+
+   if (!variable_phi && !iterative_weighting)
+      transform_ab(isel, 0, 0, firstca, firstcb);
+
 
    #pragma omp parallel for reduction(+:r_sq)
    for (int j=0; j<s; j++)
    {
+      int idx;
       int omp_thread = omp_get_thread_num();
       
       double* rj = r + j * r_dim1;
@@ -267,17 +280,24 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       double beta, acum;
     
       double *aw, *u, *work, *wp;
-      aw = this->aw + omp_thread * nmax * (l+1);
-      wp = this->wp + omp_thread * nmax;
-      u  = this->u + omp_thread * l;
+      if (iterative_weighting)
+         idx = omp_thread;
+      else
+         idx = 0;
+
+      aw = this->aw + idx * nmax * (l+1);
+      wp = this->wp + idx * nmax;
+      u  = this->u + idx * l;
 
       work = this->work + omp_thread * nmax;
 
       if (variable_phi)
          GetModel(alf, irf_idx[j], isel, omp_thread);
-
-      calculate_weights(j, alf, omp_thread); 
-      transform_ab(isel, j, omp_thread, firstca, firstcb);
+      if (iterative_weighting)
+         CalculateWeights(j, alf, omp_thread); 
+      
+      if (variable_phi | iterative_weighting)
+         transform_ab(isel, j, omp_thread, firstca, firstcb);
 
       // Get the data we're about to transform
       if (!philp1)
@@ -314,6 +334,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       r_sq += rj_norm * rj_norm;
 
       //if (get_lin)
+      if (get_lin | (weighting == MODEL_WEIGHTING))
          get_linear_params(j, aw, u, work);
 
    } // loop over pixels
@@ -333,50 +354,69 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
 }
 
 
-void VariableProjector::calculate_weights(int px, const double* alf, int omp_thread)
+void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
    float*  y = this->y + px * nmax;
    double* wp = this->wp + omp_thread * nmax;
 
-   double *a;
-   if (variable_phi)
-      a  = this->a + omp_thread * nmax * lp1;
-   else
-      a = this->a;
-
-   float *lin_params;
-   if (n_call == 0)
-      lin_params = NULL;
-   else
-      lin_params = this->lin_params + px*l;
-
-   bool data_weighting = false;
-
-   if (~data_weighting || n_call == 0)
+   if (weighting == AVERAGE_WEIGHTING)
    {
       for (int i=0; i<n; i++)
-            wp[i] = y[i];
+         wp[i] = w[i];
+      return;
    }
-   else
+   else if (weighting == PIXEL_WEIGHTING)
+   {
+      for (int i=0; i<n; i++)
+         wp[i] = y[i];
+   }
+   else // MODEL_WEIGHTING
    {
       double *a;
       if (variable_phi)
          a  = this->a + omp_thread * nmax * lp1;
       else
          a = this->a;
-      
-      for(int i=0; i<n; i++)
+
+      float *lin_params;
+      if (n_call == 0)
+         lin_params = NULL;
+      else
+         lin_params = this->lin_params + px*l;
+
+
+      if (n_call == 0)
       {
-         wp[i] = 0;
-         for(int j=0; j<l; j++)
-            wp[i] += a[n*j+i] * lin_params[j];
-         wp[i] += a[n*l+i];
+         for (int i=0; i<n; i++)
+               wp[i] = y[i];
+      }
+      else
+      {
+         double *a;
+         if (variable_phi)
+            a  = this->a + omp_thread * nmax * lp1;
+         else
+            a = this->a;
+      
+         for(int i=0; i<n; i++)
+         {
+            wp[i] = 0;
+            for(int j=0; j<l; j++)
+               wp[i] += a[n*j+i] * lin_params[j];
+            wp[i] += a[n*l+i];
+         }
       }
    }
 
    model->GetWeights(y, a, alf, lin_params, wp, irf_idx[px], thread);
 
-
+   for(int i=0; i<n; i++)
+   {
+      if (wp[i] <= 0)
+         wp[i] = 1e-4;
+      else
+         wp[i] = sqrt(1/wp[i]);
+   }
 }
 
 
