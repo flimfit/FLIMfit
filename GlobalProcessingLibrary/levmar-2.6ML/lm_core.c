@@ -173,17 +173,19 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
   for(i=0, p_eL2=0.0; i<n; ++i){
    //e[i]=tmp=x[i]-hx[i];
    //p_eL2+=tmp*tmp;
-  
+   
    tmp=hx[i]-x[i];
-   if (x[i]>0)
+   if (x[i]>LM_CNST(EPSILON) && hx[i]>LM_CNST(EPSILON))
       tmp-=x[i]*log(hx[i]/x[i]);
+   tmp=fabs(tmp);
    e[i]=tmp;
    p_eL2+=2*tmp;
    
   }
 #endif
   init_p_eL2=p_eL2;
-  if(!LM_FINITE(p_eL2)) stop=7;
+  if(!LM_FINITE(p_eL2)) 
+   stop=7;
 
   for(k=0; k<itmax && !stop; ++k){
     /* Note that p and e have been updated at a previous iteration */
@@ -363,8 +365,9 @@ if(!(k%100)){
         for(i=0, pDp_eL2=0.0; i<n; ++i){
           
           tmp=hx[i]-x[i];
-          if (x[i]>0)
+          if (x[i]>LM_CNST(EPSILON) && hx[i]>LM_CNST(EPSILON))
             tmp-=x[i]*log(hx[i]/x[i]);
+          tmp=fabs(tmp);
           e[i]=tmp;
           pDp_eL2+=2*tmp;
           
