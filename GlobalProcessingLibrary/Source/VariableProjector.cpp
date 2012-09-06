@@ -20,7 +20,7 @@
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate) : 
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
-   weighting = AVERAGE_WEIGHTING;
+   weighting = PIXEL_WEIGHTING;
    use_numerical_derv = false;
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
@@ -94,6 +94,33 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 }
 
 
+
+/*         info = 0  improper input parameters. */
+
+/*         info = 1  both actual and predicted relative reductions */
+/*                   in the sum of squares are at most ftol. */
+
+/*         info = 2  relative error between two consecutive iterates */
+/*                   is at most xtol. */
+
+/*         info = 3  conditions for info = 1 and info = 2 both hold. */
+
+/*         info = 4  the cosine of the angle between fvec and any */
+/*                   column of the jacobian is at most gtol in */
+/*                   absolute value. */
+
+/*         info = 5  number of calls to fcn with iflag = 1 has */
+/*                   reached maxfev. */
+
+/*         info = 6  ftol is too small. no further reduction in */
+/*                   the sum of squares is possible. */
+
+/*         info = 7  xtol is too small. no further improvement in */
+/*                   the approximate solution x is possible. */
+
+/*         info = 8  gtol is too small. fvec is orthogonal to the */
+/*                   columns of the jacobian to machine precision. */
+
 int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
 {
    int nsls1 = (n-l) * s;
@@ -133,7 +160,12 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
       *ierr = info;
    else
       *ierr = nfev;
+   
+   *ierr = info;
+   
    return 0;
+
+
 
 }
 
@@ -436,7 +468,7 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    for(int i=0; i<n; i++)
    {
       if (wp[i] <= 0)
-         wp[i] = 1e-4;
+         wp[i] = 1;
       else
          wp[i] = sqrt(1/wp[i]);
    }

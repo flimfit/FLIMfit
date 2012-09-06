@@ -119,11 +119,11 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    scale_fact[0] = 1;
    scale_fact[1] = 0;
 
-   int N = n;
 
    double t0;
 
    int n_meas = data->GetResampleNumMeas(thread);
+   int N = n_meas;
                                
    double *exp_buf   = this->exp_buf + thread * n_decay_group * exp_buf_size;
    double *tau_buf   = this->tau_buf + thread * n_exp * (n_fret + 1);

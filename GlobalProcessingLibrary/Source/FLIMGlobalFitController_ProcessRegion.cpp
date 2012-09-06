@@ -82,9 +82,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    s_thresh = data->GetRegionData(thread, g, region, nl+1, adjust_buf, y, w, irf_idx, ma_decay);
    
    int n_meas_res = data->GetResampleNumMeas(thread);
-
-   for(i=0; i<n_meas; i++)
-      w[i] = sqrt(w[i]);
    
    SetNaN(alf, nl);
    SetNaN(lin_params, s*l);

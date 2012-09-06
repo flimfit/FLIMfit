@@ -268,47 +268,53 @@ int FLIMData::GetResampleNumMeas(int thread)
       return n_meas_res[thread];
 }
 
-void FLIMData::DetermineAutoSampling(int thread, float decay[], int min_n_bins)
+void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 {
    if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
       return;
 
    int* resample_idx = this->resample_idx + n_t * thread;
 
-   float min_bin = 10.0 / smoothing_area;
-   int n_bin_max = n_t;
-
+   int   max_w = n_t / 5;
+   float min_c = 20.0 / smoothing_area;
+   
    int total_count = 0;
+   
+   int last = -1;
    for(int i=0; i<n_t; i++)
    {
       resample_idx[i] = 0;
       total_count += decay[i];
    }
       
-   if (total_count < min_n_bins*min_bin)
+   if (total_count < n_bin_min*min_c)
    {
-      n_bin_max = min_n_bins;
-      min_bin = total_count / min_n_bins;
+      min_c = total_count / n_bin_min;
    }
 
    resample_idx[n_t-1] = 0;
    float c = decay[n_t-1];
+   int w = 0;
    int n_bin = 1;
    for (int i=n_t-2; i>=0; i--)
    {
-      if ( c < min_bin )
+      if ( c < min_c && w < max_w )
       {
          c += decay[i];
+         w++;
       }
       else
       {
          c = decay[i];
          resample_idx[i] = 1;
+         last = i;
+         w = 1;
          n_bin++;
-         if (n_bin >= n_bin_max)
-            break;
       }
    }
+
+   if (c < min_c & n_bin > n_bin_min)
+      resample_idx[last] = 0;
 
    n_meas_res[thread] = n_bin * n_chan;
 
@@ -408,7 +414,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int n_min_bin, fl
    for(int j=0; j<n_meas; j++)
    {
       weight[j] += adjust[j];
-      if (weight[j] == 0)
+      if (weight[j] <= 0)
          weight[j] = 1;   // If we have a zero data point set to 1
       else
          weight[j] = 1/fabs(weight[j]);
