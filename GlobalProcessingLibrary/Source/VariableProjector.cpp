@@ -21,6 +21,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
    weighting = AVERAGE_WEIGHTING;
+   use_numerical_derv = false;
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
 
@@ -35,7 +36,6 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    //---------------------------------------------------
    int buf_dim = max(1,nl);
    
-   fjac = new double[buf_dim * buf_dim];
    diag = new double[buf_dim];
    qtf  = new double[buf_dim];
    wa1  = new double[buf_dim];
@@ -43,6 +43,19 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    wa3  = new double[buf_dim];
    wa4  = new double[buf_dim];
    ipvt = new int[buf_dim];
+
+   if (use_numerical_derv)
+   {
+      fjac = new double[nmax * smax * nl];
+      wa4  = new double[nmax * smax]; 
+      fvec = new double[nmax * smax];
+   }
+   else
+   {
+      fjac = new double[buf_dim * buf_dim];
+      wa4 = new double[buf_dim];
+      fvec = new double[1];
+   }
 
    for(int i=0; i<nl; i++)
       diag[i] = 1;
@@ -64,6 +77,7 @@ VariableProjector::~VariableProjector()
    delete[] wa3;
    delete[] wa4;
    delete[] ipvt;
+   delete[] fvec;
 }
 
 
@@ -73,6 +87,12 @@ int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fn
    return vp->varproj(m, n, x, fnorm, fjrow, iflag);
 }
 
+int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fvec, int iflag)
+{
+   VariableProjector *vp = (VariableProjector*) p;
+   return vp->varproj(m, n, x, fvec, NULL, iflag);
+}
+
 
 int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
 {
@@ -80,6 +100,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
  
    double ftol = sqrt(dpmpar(1));
    double xtol = sqrt(dpmpar(1));
+   double epsfcn = sqrt(dpmpar(1));
    double gtol = 0.;
    double factor = 1;
 
@@ -89,21 +110,29 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    double rnorm; 
 
    n_call = 0;
-   varproj(nsls1, nl, alf, &rnorm, fjac, 0);
+   varproj(nsls1, nl, alf, fvec, fjac, 0);
    n_call = 1;
 
-   info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, alf, fjac, nl,
-                 ftol, xtol, gtol, itmax, diag, 1, factor, -1,
-                 &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
+   if (use_numerical_derv)
+      info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf, fvec,
+                  ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
+                  &nfev, fjac, nmax*smax, ipvt, qtf, wa1, wa2, wa3, wa4 );
+   else
+   {
+   
+      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, alf, fjac, nl,
+                    ftol, xtol, gtol, itmax, diag, 1, factor, -1,
+                    &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
+   }
 
    // Get linear parameters
    if (!getting_errs)
-      varproj(nsls1, nl, alf, &rnorm, fjac, -1);
+      varproj(nsls1, nl, alf, fvec, fjac, -1);
 
    if (info < 0)
       *ierr = info;
    else
-      *ierr = *niter;
+      *ierr = nfev;
    return 0;
 
 }
@@ -177,7 +206,10 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    }
    else
    {
-      isel = iflag + 1;
+      if (use_numerical_derv)
+         isel = 2;
+      else
+         isel = iflag + 1;
 
       if (*terminate)
          return -9;
@@ -330,10 +362,17 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
             rj[i] -= aw[i + k * a_dim1] * acum;
       }
 
+      // Calcuate the norm of the jth column and add to residual
       rj_norm = enorm(n-l, rj+l);
       r_sq += rj_norm * rj_norm;
 
-      //if (get_lin)
+      if (use_numerical_derv)
+         memcpy(rnorm+j*(n-l),rj+l,(n-l)*sizeof(double));
+
+
+      // If we're model weighting we need the linear parameters
+      // every time so we can calculate the model function, otherwise
+      // just calculate them at the end when requested
       if (get_lin | (weighting == MODEL_WEIGHTING))
          get_linear_params(j, aw, u, work);
 
@@ -343,8 +382,11 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    // Compute the norm of the residual matrix
    *cur_chi2 = r_sq * smoothing * chi2_factor / s;
 
-   r_sq += kap[0] * kap[0];
-   *rnorm = sqrt(r_sq);
+   if (!use_numerical_derv)
+   {
+      r_sq += kap[0] * kap[0];
+      *rnorm = sqrt(r_sq);
+   }
 
    n_call++;
 
@@ -365,7 +407,7 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
          wp[i] = w[i];
       return;
    }
-   else if (weighting == PIXEL_WEIGHTING)
+   else if (weighting == PIXEL_WEIGHTING || n_call == 0)
    {
       for (int i=0; i<n; i++)
          wp[i] = y[i];
@@ -378,33 +420,14 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
       else
          a = this->a;
 
-      float *lin_params;
-      if (n_call == 0)
-         lin_params = NULL;
-      else
-         lin_params = this->lin_params + px*l;
+      float *lin_params = this->lin_params + px*l;
 
-
-      if (n_call == 0)
+      for(int i=0; i<n; i++)
       {
-         for (int i=0; i<n; i++)
-               wp[i] = y[i];
-      }
-      else
-      {
-         double *a;
-         if (variable_phi)
-            a  = this->a + omp_thread * nmax * lp1;
-         else
-            a = this->a;
-      
-         for(int i=0; i<n; i++)
-         {
-            wp[i] = 0;
-            for(int j=0; j<l; j++)
-               wp[i] += a[n*j+i] * lin_params[j];
-            wp[i] += a[n*l+i];
-         }
+         wp[i] = 0;
+         for(int j=0; j<l; j++)
+            wp[i] += a[n*j+i] * lin_params[j];
+         wp[i] += a[n*l+i];
       }
    }
 

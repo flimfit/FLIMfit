@@ -7,6 +7,9 @@
 #define PIXEL_WEIGHTING 1
 #define MODEL_WEIGHTING 2
 
+#define ANALYTICAL_DERV 0
+#define NUMERICAL_DERV  1
+
 class VariableProjector : public AbstractFitter
 {
 
@@ -38,6 +41,7 @@ private:
 
    // Buffers used by levmar algorithm
    double *fjac;
+   double *fvec;
    double *diag;
    double *qtf;
    double *wa1, *wa2, *wa3, *wa4;
@@ -48,6 +52,9 @@ private:
    int weighting;
    int iterative_weighting;
 
+   int use_numerical_derv;
+
+   friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag);
 };
 

@@ -46,6 +46,8 @@ set(SOURCE
    tinythread.cpp
    lmstr.c
    lmstx.c
+   lmdif.c
+   fdjac2.c
    cminpack_support.c
    util.cpp
 )

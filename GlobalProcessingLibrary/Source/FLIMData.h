@@ -28,8 +28,8 @@ public:
    template <typename T>
    int CalculateRegions();
 
-   int GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay);
-   int GetPixelData(int thread, int im, int p, float* adjust, float* masked_data, float* ma_decay);
+   int GetRegionData(int thread, int group, int region, int n_min_bin, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay);
+   int GetPixelData(int thread, int im, int p, int n_min_bin, float* adjust, float* masked_data, float* ma_decay);
 
    int GetMaxRegion(int group);
    int GetMinRegion(int group);
@@ -91,12 +91,12 @@ public:
 
    double counts_per_photon;
 
-      int* use_im;
+   int* use_im;
    int n_im_used;
 
 private:
 
-   void DetermineAutoSampling(int thread, float decay[]);
+   void DetermineAutoSampling(int thread, float decay[], int n_min_bin);
 
    template <typename T>
    T* GetDataPointer(int thread, int im);
@@ -225,6 +225,7 @@ int FLIMData::CalculateRegions()
       if (data_ptr == NULL)
       {
          delete[] r_count;
+         delete[] cur_data;
          return ERR_FAILED_TO_MAP_DATA;
       }
 

@@ -107,7 +107,7 @@ function compute_tr_irf(obj)
 
         % Shift by t0
         for i=1:size(obj.tr_irf,2)
-            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0,'cubic',bg);
+            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0,'cubic',0);
         end
         obj.tr_irf(isnan(obj.tr_irf)) = 0;
 

@@ -79,7 +79,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
                                    (fit_offset == FIX)  ? offset_guess  : 0, 
                                    (fit_tvb == FIX)     ? tvb_guess     : 0);
                                     
-   s_thresh = data->GetRegionData(thread, g, region, adjust_buf, y, w, irf_idx, ma_decay);
+   s_thresh = data->GetRegionData(thread, g, region, nl+1, adjust_buf, y, w, irf_idx, ma_decay);
    
    int n_meas_res = data->GetResampleNumMeas(thread);
 

@@ -268,7 +268,7 @@ int FLIMData::GetResampleNumMeas(int thread)
       return n_meas_res[thread];
 }
 
-void FLIMData::DetermineAutoSampling(int thread, float decay[])
+void FLIMData::DetermineAutoSampling(int thread, float decay[], int min_n_bins)
 {
    if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
       return;
@@ -285,10 +285,10 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[])
       total_count += decay[i];
    }
       
-   if (total_count < 5*min_bin)
+   if (total_count < min_n_bins*min_bin)
    {
-      n_bin_max = 5;
-      min_bin = total_count / 5;
+      n_bin_max = min_n_bins;
+      min_bin = total_count / min_n_bins;
    }
 
    resample_idx[n_t-1] = 0;
@@ -355,7 +355,7 @@ int FLIMData::GetMinRegion(int group)
    }
 }
 
-int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, int n_min_bin, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay)
 {
    int s = 0;
    int n_p = n_x*n_y;
@@ -374,7 +374,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, fl
 
       transform_fcn(im);
 
-      s = GetPixelData(thread, im, p, adjust, region_data, ma_decay);
+      s = GetPixelData(thread, im, p, n_min_bin, adjust, region_data, ma_decay);
       *irf_idx = p;
    }
    else if ( global_mode == MODE_IMAGEWISE )
@@ -418,7 +418,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, float* adjust, fl
 }
 
 
-int FLIMData::GetPixelData(int thread, int im, int p, float* adjust, float* masked_data, float* ma_decay)
+int FLIMData::GetPixelData(int thread, int im, int p, int n_min_bin, float* adjust, float* masked_data, float* ma_decay)
 {
    float* tr_data = this->tr_data + thread * n_p;
    int*    resample_idx = GetResampleIdx(thread);
@@ -448,7 +448,7 @@ int FLIMData::GetPixelData(int thread, int im, int p, float* adjust, float* mask
    s = 1;  
 
 
-   DetermineAutoSampling(thread,ma_decay);
+   DetermineAutoSampling(thread,ma_decay, n_min_bin);
 
    int jmax = GetResampleNumMeas(thread);
    idx = 0;
