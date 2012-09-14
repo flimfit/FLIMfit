@@ -1,4 +1,4 @@
-function load_selected_files_Omero(obj,session,image_ids,selected,channel) % 
+function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT) % 
 
     if nargin < 2
         selected = 1:obj.num_datasets;
@@ -44,7 +44,7 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel) %
                     image_descriptor{1} = session;
                     image_descriptor{2} = image_ids(selected(j));                        
                     try
-                        [~,data,~] = OMERO_fetch(image_descriptor,channel);
+                        [~,data,~] = OMERO_fetch(image_descriptor,channel,ZCT);
                     catch err
                         rethrow(err);
                     end                    
@@ -72,7 +72,7 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel) %
                     image_descriptor{1} = session;
                     image_descriptor{2} = image_ids(selected(j));                        
                     try
-                        [~,data,~] = OMERO_fetch(image_descriptor,channel);
+                        [~,data,~] = OMERO_fetch(image_descriptor,channel,ZCT);
                     catch err
                         rethrow(err);
                     end                                        

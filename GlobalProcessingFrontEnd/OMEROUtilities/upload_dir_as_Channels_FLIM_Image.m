@@ -1,4 +1,4 @@
-        function new_imageId = upload_dir_as_single_channel_FLIM_Image(session,Dataset,folder,extension,image_description,pixeltype)
+        function new_imageId = upload_dir_as_Channels_FLIM_Image(session,Dataset,folder,extension,image_description)
             %
             new_imageId = [];
             %            
@@ -18,6 +18,10 @@
                     end
                     file_names = sort_nat(file_names);
                     %
+                    % pixeltype...
+                    U = imread([folder filesep file_names{1}],extension);                    
+                    pixeltype = get_num_type(U);
+                    %                                                            
                     Z = [];
                     %
                     channels_names = cell(1,num_files);
@@ -55,13 +59,50 @@
                         link.setParent(omero.model.DatasetI(Dataset.getId().getValue(), false));
                         session.getUpdateService().saveAndReturnObject(link);                                                     
                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    gateway = session.createGateway();
+                    gateway = session.createGateway();                    
                     image = gateway.getImage(new_imageId); 
-                    add_Annotation_XML(session, image, ... 
-                        'IC_PHOT_MULTICHANNEL_IMAGE_METADATA.xml', ... 
-                        'IC_PHOT_MULTICHANNEL_IMAGE_METADATA_image_annotation', ... 
-                        '_',...
-                        'number_of_channels', cellstr(num2str(1)), 'delays', channels_names);                                                                                
+                    %
+                    % OME ANNOTATION
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.BigEndian = 'true';
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.DimensionOrder = 'XYCTZ'; % does not matter
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.ID = '?????';
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.PixelType = pixeltype;
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeX = h; % :)
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeY = w;
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = 1;
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = 1;
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = 1;
+                    %
+                    flimXMLmetadata.Image.ContentsType = 'sample';
+                    flimXMLmetadata.Image.FLIMType = 'Gated';
+                    %
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.ATTRIBUTE.ID = 'Annotation:3'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.ATTRIBUTE.Namespace = 'openmicroscopy.org/omero/dimension/modulo'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ATTRIBUTE.namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type = 'lifetime'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels = 1; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit = 'ps'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.Label = channels_names; 
+                    %
+                    xmlFileName = [tempdir 'metadata.xml'];
+                    xml_write(xmlFileName,flimXMLmetadata);
+                    %
+                    namespace = 'IC_PHOTONICS';
+                    description = ' ';
+                    %
+                    sha1 = char('pending');
+                    file_mime_type = char('application/octet-stream');
+                    %
+                    add_Annotation(session, ...
+                                    image, ...
+                                    sha1, ...
+                                    file_mime_type, ...
+                                    xmlFileName, ...
+                                    description, ...
+                                    namespace);    
+                    %
+                    delete(xmlFileName);
+
                     gateway.close();
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

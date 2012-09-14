@@ -17,6 +17,7 @@ classdef flim_data_series_controller < handle
         project;    
         %
         selected_channel; % need to keep this for results uploading to Omero...
+        ZCT; % cell array containing missing OME dimensions Z,C,T (in that order)
         % OMERO        
         
         data_settings_filename = {'data_settings.xml', 'polarisation_data_settings.xml'};
@@ -206,14 +207,28 @@ classdef flim_data_series_controller < handle
             polarisation_resolved = false;
             
             % load new dataset
-            obj.data_series = flim_data_series();
-            
-            % currently only allow one channel to be loaded
-            channel = obj.data_series.request_channels(polarisation_resolved);
-            
+            obj.data_series = flim_data_series();            
+            %
+            image = get_Object_by_Id(obj.session,java.lang.Long(imageDescriptor{2}));
+            [ FLIM_type , ~ , modulo, n_channels ] = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
+            if isempty(n_channels) || 1 ~= n_channels
+                channel = obj.data_series.request_channels(polarisation_resolved);
+            else
+                channel = 1;
+            end;
+            %
+            if     strcmp(FLIM_type,'TCSPC')
+                obj.data_series.mode = 'TCSPC'; 
+            elseif strcmp(FLIM_type,'Gated')
+                obj.data_series.mode = 'widefield';
+            else
+                obj.data_series.mode = 'TCSPC'; % not annotated sdt
+            end
+            %
+            obj.ZCT = get_ZCT(image,modulo);
+            %
             try
-                obj.data_series.fetch_TCSPC(imageDescriptor, polarisation_resolved, channel);
-            
+                obj.data_series.fetch_TCSPC(imageDescriptor, polarisation_resolved, channel, obj.ZCT);            
             catch err 
                 errordlg(err.message,'Error');   
             end
@@ -245,7 +260,7 @@ classdef flim_data_series_controller < handle
                 try
                     obj.selected_channel = obj.fetch_TCSPC({obj.session, image.getId().getValue()});                                                                                    
                 catch ME
-                    errorglg('Error when loading an image')
+                    errordlg('Error when loading an image')
                     display(ME);
                 end;
             end;
@@ -298,21 +313,40 @@ classdef flim_data_series_controller < handle
             polarisation_resolved = false;            
             % load new dataset
             obj.data_series = flim_data_series();            
-            % currently only allow one channel to be loaded
-            obj.selected_channel = obj.data_series.request_channels(polarisation_resolved);            
-            if 0==numel(image_ids), return, end;
             %
+            if 0==numel(image_ids), return, end;
+            %                       
             image_descriptor{1} = obj.session;
             image_descriptor{2} = image_ids(1);                        
+            image = get_Object_by_Id(obj.session,java.lang.Long(image_descriptor{2}));
+            [ FLIM_type , ~ , modulo, n_channels ] = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
+            %
+            obj.ZCT = get_ZCT(image, modulo);
+            %
+            if isempty(n_channels) || 1 ~= n_channels            
+                obj.selected_channel = obj.data_series.request_channels(polarisation_resolved);            
+            else
+                obj.selected_channel = 1;
+            end;
+            %
+            if     strcmp(FLIM_type,'TCSPC')
+                obj.data_series.mode = 'TCSPC'; 
+            elseif strcmp(FLIM_type,'Gated')
+                obj.data_series.mode = 'widefield';
+            else
+                obj.data_series.mode = 'TCSPC'; % not annotated sdt..
+            end
+            %
             try
-                [delays, data_cube, name] = OMERO_fetch(image_descriptor, obj.selected_channel);
+                [delays, data_cube, name] = OMERO_fetch(image_descriptor, obj.selected_channel,obj.ZCT);
             catch err
                  rethrow(err);
             end      
             data_size = size(data_cube);
+            %
             % if only one channel reshape to include singleton dimension
             if length(data_size) == 3
-                data_size = [data_size(1) 1 data_size(2:3)];
+                data_size = [data_size(1) 1 data_size(2:3)];    
             end
             clear('data_cube');
             %
@@ -328,11 +362,6 @@ classdef flim_data_series_controller < handle
             end
             %        
             if numel(delays) > 0 % ??
-                if numel(delays) > 32 % ????!!!!!! 
-                    obj.data_series.mode = 'TCSPC'; 
-                else
-                    obj.data_series.mode = 'widefield';
-                end
                 %
                 obj.data_series.file_names = {'file'};
                 obj.data_series.channels = 1;
@@ -343,9 +372,9 @@ classdef flim_data_series_controller < handle
                 obj.data_series.load_multiple_channels = false; % YA
                 %
                 if obj.data_series.lazy_loading        
-                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1,obj.selected_channel);
+                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1,obj.selected_channel,obj.ZCT);
                 else
-                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1:obj.data_series.num_datasets,obj.selected_channel);        
+                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1:obj.data_series.num_datasets,obj.selected_channel,obj.ZCT);        
                 end    
                 % ?
                 obj.data_series.switch_active_dataset(1);    
@@ -404,7 +433,7 @@ classdef flim_data_series_controller < handle
                 return;                                
             end
             %
-            data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1 );            
+            data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC' );            
             bckg_data = squeeze(data_cube);
             if 2 ~= numel(size(bckg_data))
                 errordlg('single plane image is expected - can not complete Background image loading');
@@ -443,15 +472,19 @@ classdef flim_data_series_controller < handle
             %
             choice = questdlg(['Do you want to Export current results on ' name ' to OMERO? It might take some time.'], ...
                                     'Export current analysis' , ...
-                                    'Export','Cancel','Cancel');
-            %  
+                                    'Export','Cancel','Cancel');              
             switch choice
-                case 'Cancel'
-                    return;
+                case 'Cancel', return;
             end            
             %
             current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
-            new_dataset_name = [current_dataset_name ' FLIM fitting channel ' num2str(obj.selected_channel) ' '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
+            
+            new_dataset_name = [current_dataset_name ' FLIM fitting channel ' num2str(obj.selected_channel) ...
+                    ' Z ' num2str(obj.ZCT(1)) ...
+                                        ' C ' num2str(obj.ZCT(2)) ...
+                                                            ' T ' num2str(obj.ZCT(3)) ' ' ...
+            datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
+            
             description  = ['analysis of the ' current_dataset_name ' at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
             newdataset = create_new_Dataset(obj.session,obj.project,new_dataset_name,description);                                                                                                    
             %
@@ -476,7 +509,13 @@ classdef flim_data_series_controller < handle
                     end
                     %                  
                 new_image_description = ' ';
-                new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ' ' obj.data_series.names{dataset_index}]);
+                
+                new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
+                    ' Z ' num2str(obj.ZCT(1)) ...
+                                        ' C ' num2str(obj.ZCT(2)) ...
+                                                            ' T ' num2str(obj.ZCT(3)) ' ' ...
+                obj.data_series.names{dataset_index}]);
+                
                 imageId = mat2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());
                 link = omero.model.DatasetImageLinkI;
                 link.setChild(omero.model.ImageI(imageId, false));

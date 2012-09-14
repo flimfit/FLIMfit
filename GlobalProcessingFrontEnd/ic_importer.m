@@ -342,13 +342,15 @@ data = createData();
             %
             for k=1:numel(data.dirlist)
                 image_description = ' '; % no description
-                new_image_id = upload_dir_as_single_channel_FLIM_Image(data.session,new_dataset,data.dirlist{k},data.extension,image_description,'double');
+                new_image_id = upload_dir_as_Channels_FLIM_Image(data.session,new_dataset,data.dirlist{k},data.extension,image_description);
              end
         elseif strcmp(data.LoadMode,'single file')
 
                         if ~strcmp('sdt',data.extension)
                             U = imread(data.Directory,data.extension);
                             %
+                            pixeltype = get_num_type(U);
+                            %                                                        
                             str = split(filesep,data.Directory);
                             file_name = str(length(str));
                             %
@@ -365,17 +367,42 @@ data = createData();
                             link.setParent(omero.model.DatasetI(data.project.getId().getValue(), false)); % in this case, "project" is Dataset
                             data.session.getUpdateService().saveAndReturnObject(link); 
                             %
-                            add_Annotation_XML(data.session, get_Object_by_Id(data.session,imageId), ... 
-                            'IC_PHOT_MULTICHANNEL_IMAGE_METADATA.xml', ... 
-                            'IC_PHOT_MULTICHANNEL_image_annotation', ... 
-                            '_',...
-                            'image_type', cellstr(data.SingleFileMeaningLabel),[],[],[],[]);
+                            % OME ANNOTATION
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.BigEndian = 'true';
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.DimensionOrder = 'XYCTZ'; % does not matter
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.ID = '?????';
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.PixelType = pixeltype;
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeX = h; % :)
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeY = w;
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = 1;
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = Nch;
+                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = 1;
+                            %
+                            flimXMLmetadata.Image.ContentsType = cellstr(data.SingleFileMeaningLabel);
+                            %
+                            xmlFileName = [tempdir 'metadata.xml'];
+                            xml_write(xmlFileName,flimXMLmetadata);
+                            %
+                            namespace = 'IC_PHOTONICS';
+                            description = ' ';
+                            %
+                            sha1 = char('pending');
+                            file_mime_type = char('application/octet-stream');
+                            %
+                            add_Annotation(data.session, ...
+                                            get_Object_by_Id(data.session,imageId), ...
+                                            sha1, ...
+                                            file_mime_type, ...
+                                            xmlFileName, ...
+                                            description, ...
+                                            namespace);    
+                            %
+                            delete(xmlFileName);
                             %                            
-                        else
+                        else % strcmp('sdt',data.extension)
                             upload_Image_BH(data.session, data.project, data.Directory, 'double', data.SingleFileMeaningLabel);    
-                        end            
-            %
-        end
+                        end                        
+        end % strcmp(data.LoadMode,'single file')
         %      
         if data.load_dataset_annotations
             for k=1:numel(data.dataset_annotations)

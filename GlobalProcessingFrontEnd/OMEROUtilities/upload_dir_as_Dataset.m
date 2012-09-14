@@ -24,22 +24,26 @@
                     hw = waitbar(0, 'Loading files to Omero, please wait');
                     for i = 1 : num_files   
                         if ~strcmp('sdt',extension)
-                            U = imread([folder filesep file_names{i}],extension);
-                            % rearrange planes
-                            [w,h,Nch] = size(U);
-                            Z = zeros(Nch,h,w);
-                            for c = 1:Nch,
-                                Z(c,:,:) = squeeze(U(:,:,c))';
-                            end;
-                            img_description = ' ';
-                            imageId = mat2omeroImage_Channels(session, Z, pixeltype, file_names{i},  img_description, []);
-                            link = omero.model.DatasetImageLinkI;
-                            link.setChild(omero.model.ImageI(imageId, false));
-                            link.setParent(omero.model.DatasetI(new_dataset.getId().getValue(), false));
-                            session.getUpdateService().saveAndReturnObject(link); 
-                            %                            
-                        else
-                            upload_Image_BH(session, new_dataset,[folder filesep file_names{i}], pixeltype);    
+                            full_file_name = [folder filesep file_names{i}];
+                            if strcmp('tif',extension) && is_OME_tif(full_file_name)
+                                upload_Image_OME_tif(session, new_dataset,full_file_name,' ');  
+                            else % try to load as channels anyway
+                                U = imread(full_file_name,extension);
+                                % rearrange planes
+                                [w,h,Nch] = size(U);
+                                Z = zeros(Nch,h,w);
+                                for c = 1:Nch,
+                                    Z(c,:,:) = squeeze(U(:,:,c))';
+                                end;
+                                img_description = ' ';
+                                imageId = mat2omeroImage_Channels(session, Z, pixeltype, file_names{i},  img_description, []);
+                                link = omero.model.DatasetImageLinkI;
+                                link.setChild(omero.model.ImageI(imageId, false));
+                                link.setParent(omero.model.DatasetI(new_dataset.getId().getValue(), false));
+                                session.getUpdateService().saveAndReturnObject(link); 
+                            end % if strcmp('tif',extension) && is_OME_tif(full_file_name)                           
+                        else % strcmp('sdt',extension)
+                            upload_Image_BH(session, new_dataset,full_file_name,'sample');    
                         end
                         %
                         waitbar(i/num_files, hw);
