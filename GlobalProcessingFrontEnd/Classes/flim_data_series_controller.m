@@ -17,7 +17,7 @@ classdef flim_data_series_controller < handle
         project;    
         %
         selected_channel; % need to keep this for results uploading to Omero...
-        ZCT; % cell array containing missing OME dimensions Z,C,T (in that order)
+        ZCT; % array containing missing OME dimensions Z,C,T (in that order)
         % OMERO        
         
         data_settings_filename = {'data_settings.xml', 'polarisation_data_settings.xml'};
@@ -392,19 +392,19 @@ classdef flim_data_series_controller < handle
             %
             [str fname] = select_Annotation(obj.session, obj.dataset,'Please choose IRF file');
             %
-            % can't do better for now..
-            if strcmp('sdt',fname(numel(fname)-2:numel(fname)))
-                errordlg('Loading native sdt IRFs not supported');
-                return;
-            end
-            %
             if isempty(str)
                 return;
-            end;
+            end;            
             %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
+            %
+            if strcmp('sdt',fname(numel(fname)-2:numel(fname)))
+                fwrite(fid,typecast(str,'double'),'double');
+            else                
                 fwrite(fid,str,'*uint8');
+            end
+            %
             fclose(fid);
             %
             try
@@ -414,7 +414,7 @@ classdef flim_data_series_controller < handle
                 dislpay(e);
             end
             %
-            delete(full_temp_file_name);
+            %delete(full_temp_file_name); %??
         end            
         
         %------------------------------------------------------------------
