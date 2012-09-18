@@ -243,10 +243,16 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
             if (i<n_fret_fix)
                E = E_guess[i];
             else
+            {
                E = alf[alf_E_idx+i-n_fret_fix]; //alf[alf_E_idx+i-n_fret_fix];
-
+            }
             for(j=0; j<n_exp; j++)
-               tau_buf[idx++] = tau_buf[j] * (1-E);
+            {
+               double Ej = tau_buf[j]/tau_buf[0]*E;
+               Ej = Ej / (1-E+Ej);
+
+               tau_buf[idx++] = tau_buf[j] * (1-Ej);
+            }
          }
 
          // Precalculate exponentials

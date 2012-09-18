@@ -27,10 +27,18 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 
                 r = obj.fit_controller.fit_result;
                 
+                sel = obj.data_series_list.selected;
+                %sel = obj.fit_controller.selected;
+                
                 weighting = get(obj.hist_weighting_popupmenu,'Value');
                 hist_classes = str2double(get(obj.hist_classes_edit,'String'));
                 
-                param_data =  obj.fit_controller.fit_result.get_image(obj.selected,param);
+                param_data = [];
+                for i=1:length(sel)
+                    new_data = obj.fit_controller.fit_result.get_image(sel(i),param);
+                    new_data = new_data(isfinite(new_data));
+                    param_data = [param_data; new_data];
+                end
                 
                 lims = r.default_lims.(param);
                 

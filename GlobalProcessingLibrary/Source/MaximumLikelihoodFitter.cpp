@@ -74,7 +74,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
    for(int i=0; i<l; i++)
-      lin_params[i] = alf[nl-l+i] / smoothing;
+      lin_params[i] = exp(alf[nl-l+i]) / smoothing;
 
    chi2[0] = info[1] * chi2_factor;
 
@@ -104,7 +104,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
 
    for (i=0; i<n; i++)
       for(j=0; j<l; j++)
-      fvec[i] += A[j]*a[i+n*j];
+      fvec[i] += exp(A[j])*a[i+n*j];
 
    if (philp1)
       for (i=0; i<n; i++)
@@ -136,7 +136,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
          if (inc[k + j * 12] != 0)
          {
             for (i=0; i<n; i++)
-               fjac[nl*i+k] += A[j] * b[ndim*m+i];
+               fjac[nl*i+k] += exp(A[j]) * b[ndim*m+i];
             fjac[nl*i+k] = kap[k+1];
             m++;
          }
@@ -153,7 +153,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    for(j=0; j<l; j++)
    {
          for (i=0; i<n; i++)
-            fjac[nl*i+j+gnl] = a[i+n*j];
+            fjac[nl*i+j+gnl] = exp(A[j]) * a[i+n*j];
          fjac[nl*i+j+gnl] = 0; // kappa derv. for I
    }
 }

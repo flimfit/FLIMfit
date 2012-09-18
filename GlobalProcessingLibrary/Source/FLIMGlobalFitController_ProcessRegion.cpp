@@ -164,7 +164,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       }
 
       for(int j=0; j<l; j++)
-         alf_local[i++] = mx/l;
+         alf_local[i++] = log(mx/l);
    }
 
    itmax = 100;

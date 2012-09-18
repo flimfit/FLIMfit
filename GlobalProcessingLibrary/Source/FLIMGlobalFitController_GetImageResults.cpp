@@ -306,9 +306,9 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
       }
       else
       {
-         chi2_group = this->chi2 + s * im;
-         alf_group = alf + nl * s * im;
-         lin_group = lin_params + l * s * im;
+         chi2_group = this->chi2 + n_px * im;
+         alf_group = alf + nl * n_px * im;
+         lin_group = lin_params + l * n_px * im;
       }
 
       ProcessLinearParams(n_px, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
@@ -333,11 +333,15 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
          if (data->global_mode == MODE_GLOBAL)
          {
+            lin_start = 0;
             for(int j=0; j<iml; j++)
             {
+               lin_start += data->region_count[j*MAX_REGION+rg];
+               /*
                uint8_t* lmask = mask + n_px * data->use_im[j]; 
                for(int i=0; i<n_px; i++)
                   lin_start += lmask[i] == rg;
+               */
             }
          }
 
@@ -471,6 +475,21 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       for(int rg=r_min; rg<=r_max; rg++)
       {
 
+        int lin_start = 0;
+   
+         if (data->global_mode == MODE_GLOBAL)
+         {
+            for(int j=0; j<iml; j++)
+            {
+               lin_start += data->region_count[j*MAX_REGION+rg];
+               /*
+               uint8_t* lmask = mask + n_px * data->use_im[j]; 
+               for(int i=0; i<n_px; i++)
+                  lin_start += lmask[i] == rg;
+               */
+            }
+         }
+
          r_idx = data->GetRegionIndex(group, rg);
 
          if (memory_map_results)
@@ -485,7 +504,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          else
          {
             alf_group = alf + nl * r_idx;
-            lin_group = lin_params + l * s * r_idx;
+            lin_group = lin_params + l * (s * r_idx + lin_start);
          }
 
          last_idx = 0;
@@ -497,7 +516,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             {
                for(int j=last_idx; j<idx; j++)
                   lin_idx += (mask[j] == rg);
-               projectors[0].GetFit(idx, alf_group, lin_params + lin_idx*l, adjust_buf, data->counts_per_photon, fit+n_meas*i);
+               projectors[0].GetFit(idx, alf_group, lin_group + lin_idx*l, adjust_buf, data->counts_per_photon, fit+n_meas*i);
             }
             last_idx = idx;
          }

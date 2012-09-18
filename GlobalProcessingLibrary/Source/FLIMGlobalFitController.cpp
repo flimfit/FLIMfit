@@ -297,6 +297,44 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
       start = DetermineMAStartPosition(p);
    else
       start = ma_start;
+      /*
+   int mid = (n_t - start)/2 + start;
+
+   double D0 = 0;
+   double D1 = 0;
+   
+   n = 0;
+   for(int i=start; i<n_t; i++)
+      n += decay[i];
+   int n2 = 0.75 * n;
+
+   n = 0;
+   for(int i=start; i<mid; i++)
+   {
+      n   += decay[i];
+      if (n>=n2)
+      {
+         mid = i;
+         break;
+      }
+   }
+   
+   int last = 2*mid - start;
+   
+   double dt = t[mid]-t[start];
+
+   for(int i=start; i<mid; i++)
+      D0 += decay[i];
+   for(int i=mid; i<last; i++)
+      D1 += decay[i];
+
+   tau = -dt/log(D1/D0);
+
+   if (tau<100)
+      tau = 100;
+
+   return tau;
+   */
 
    for(int i=start; i<n_t; i++)
    {
@@ -314,7 +352,16 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
       }
    }
 
-   return tau / n;
+   tau = tau / n;
+
+   double T = t[n_t-1]-t[start];
+
+   double tau1 = tau;
+   for(int i=0; i<10; i++)  
+   {
+      tau1 = tau + T / (exp(T/tau1)-1);
+   }
+   return tau1;
 }
 
 
@@ -623,7 +670,7 @@ void FLIMGlobalFitController::Init()
       {
       
          std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
-         char z;
+         char z = 1;
 
          // Create an empty file (logically, doesn't actually write the whole file)
          

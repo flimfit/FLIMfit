@@ -87,7 +87,6 @@ classdef flim_fit_result < handle
                 delete(obj.file)
             end
         end
-       
  
         function set_image_split(obj,name,im,mask,intensity,r,default_lims,err)
             if nargin < 7
@@ -96,24 +95,33 @@ classdef flim_fit_result < handle
             if nargin < 8
                 err = [];
             end
-            s = size(im);
-            n = size(im,3);
-            if length(s) > 2
-                s = s(1:end-1);
-            else
-                s = [1 1];
-            end
-            for i=1:n
-                ix = im(:,:,i);
-                obj.set_image([name '_' num2str(i)],ix,mask,intensity,r,default_lims);
-                if ~isempty(err)
-                    ex = err(:,:,i);
-                    %ex = reshape(ex,s);
-                    if ~all(isnan(ex(:)))
-                        obj.set_image([name '_' num2str(i) '_err'],ex,mask,intensity,r,default_lims);
+            %if ndim(im) == 3
+                n = size(im,3);
+                for i=1:n
+                    ix = im(:,:,i);
+                    obj.set_image([name '_' num2str(i)],ix,mask,intensity,r,default_lims);
+                    if ~isempty(err)
+                        ex = err(:,:,i);
+                        if ~all(isnan(ex(:)))
+                            obj.set_image([name '_' num2str(i) '_err'],ex,mask,intensity,r,default_lims);
+                        end
                     end
                 end
+             %{   
+             else
+                n = size(im,1);
+                for i=1:n
+                    ix = im(i,:);
+                    obj.set_image([name '_' num2str(i)],ix,mask,intensity,r,default_lims);
+                    if ~isempty(err)
+                        ex = err(:,:,i);
+                        if ~all(isnan(ex(:)))
+                            obj.set_image([name '_' num2str(i) '_err'],ex,mask,intensity,r,default_lims);
+                        end
+                    end
+                end  
             end
+            %}
         end
                 
         function set_image(obj,name,im,mask,intensity,r,default_lims)
@@ -218,15 +226,20 @@ classdef flim_fit_result < handle
                     region_std(i) = nan;
                     region_n(i) = nan;
                 else
+                    region_mean(i) = img_mean;
+                    region_std(i) = img_std;
+                    region_n(i) = img_n;    
+                    %{
                     td = timg(tmask==i);
                     region_mean(i) = trimmean(td,1);
                     region_std(i) = trimstd(double(td),1);
                     region_n(i) = length(td);
+                    %}
                 end
             end
             
             % Calculate weighted means
-            
+            %{
             w_img_mean = trimmean(timg,1);
             w_img_std = trimstd(timg,1);
             w_img_n = sum(tmask);
@@ -247,6 +260,9 @@ classdef flim_fit_result < handle
                     w_region_n(i) = length(td);
                 end
             end
+            %}
+            w_img_mean = img_mean;
+            w_img_std = img_std;
             
             stats = struct('mean',img_mean,'std',img_std,'w_mean',w_img_mean,'w_std',w_img_std,'n',img_n);
             obj.image_stats{dataset}.(param) = stats;

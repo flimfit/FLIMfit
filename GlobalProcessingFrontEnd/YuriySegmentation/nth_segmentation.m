@@ -29,8 +29,8 @@ b1 = im2bw(nth,t);
 b2 = imerode(b1,se); b1 = imdilate(b2,se);
 
 L = bwlabel(b1);
-stats = regionprops(L,'Area');
-idx = find([stats.Area] > min_area);
+stats = regionprops(L,'Area','Eccentricity');
+idx = find([stats.Area] > min_area & [stats.Eccentricity] < 1);
 z = ismember(L,idx);
 z = bwlabel(z);
 

@@ -31,6 +31,7 @@ function load_segmentation(obj,folder)
         
         if ~isempty(matching_files)
             mask = uint8(imread([folder matching_files(1).name]));
+            mask(mask>254) = 1;
         else
             mask = ones([d.height d.width],'uint8');
         end

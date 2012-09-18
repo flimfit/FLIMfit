@@ -20,7 +20,7 @@
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate) : 
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
-   weighting = PIXEL_WEIGHTING;
+   weighting = AVERAGE_WEIGHTING;
    use_numerical_derv = false;
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
@@ -161,7 +161,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    else
       *ierr = nfev;
    
-   *ierr = info;
+   //*ierr = info;
    
    return 0;
 

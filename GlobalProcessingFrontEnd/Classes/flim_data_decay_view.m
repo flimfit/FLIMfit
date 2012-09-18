@@ -167,6 +167,16 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                             plot_fcn(obj.highlight_axes,t_irf,irf*scale,'--');
                         end
 
+                       if ~isempty(file)
+                            [path name ext] = fileparts(file);
+                            if export_all
+                                wfile = [path filesep d.names{dataset} '_' name ext];
+                            else
+                                wfile = [path filesep name ext];
+                            end
+                            dlmwrite(wfile,[t_decay' data],'\t');
+                        end
+
 
                         if ~isempty(obj.fit_controller) && obj.fit_controller.has_fit %&& decay_mode == 1                
 

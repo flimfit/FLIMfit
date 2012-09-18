@@ -108,6 +108,8 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 
    region_start = new int[ n_group ];
 
+   region_count = new int[ n_im_used * MAX_REGION ];
+
    data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
 
    min_region = new int[n_im_used]; //ok
@@ -313,7 +315,7 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
       }
    }
 
-   if (c < min_c & n_bin > n_bin_min)
+   if ((c < min_c) && (n_bin > n_bin_min))
       resample_idx[last] = 0;
 
    n_meas_res[thread] = n_bin * n_chan;
@@ -417,7 +419,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int n_min_bin, fl
       if (weight[j] <= 0)
          weight[j] = 1;   // If we have a zero data point set to 1
       else
-         weight[j] = 1/fabs(weight[j]);
+         weight[j] = 1/sqrt(weight[j]);
    }
 
    return s;
@@ -434,10 +436,8 @@ int FLIMData::GetPixelData(int thread, int im, int p, int n_min_bin, float* adju
       iml = use_im[im];
 
    if (mask[iml*n_x*n_y+p]==0)
-   {
       return 0;
-   }
-
+   
    int s = 0;
    int idx = 0;
    for(int j=0; j<n_meas; j++)
@@ -567,6 +567,7 @@ FLIMData::~FLIMData()
    delete[] t_skip;
    delete[] mean_image;
    delete[] region_start;
+   delete[] region_count;
 
    if (data_file != NULL)
       delete[] data_file;

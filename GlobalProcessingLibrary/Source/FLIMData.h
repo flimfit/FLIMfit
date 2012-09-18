@@ -94,6 +94,8 @@ public:
    int* use_im;
    int n_im_used;
 
+   int* region_count;
+
 private:
 
    void DetermineAutoSampling(int thread, float decay[], int n_min_bin);
@@ -336,14 +338,20 @@ int FLIMData::CalculateRegions()
       memset(r_count, 0, MAX_REGION*sizeof(int));
       max_region_size = 0;
       
-      for(int i=0; i<n_im; i++)
+      for(int i=0; i<n_im_used; i++)
       {
          int im = i;
          if (use_im != NULL)
             im = use_im[im];
          
+         memset(region_count + i * MAX_REGION, 0, MAX_REGION*sizeof(int));
+
          for(int p=0; p<n_ipx; p++)
-            r_count[mask[im*n_ipx+p]]++;
+         {
+            int idx = mask[im*n_ipx+p];
+            r_count[idx]++;
+            region_count[idx + i * MAX_REGION]++;
+         }
       }
 
       max_region[0] = 0;

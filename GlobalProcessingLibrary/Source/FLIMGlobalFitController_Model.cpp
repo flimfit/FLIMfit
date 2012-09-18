@@ -31,7 +31,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
 {
 
    double e0, de, ej, cum, fact, inv_theta, rate;
-   int i, j, k, m, idx, next_idx;
+   int i, j, k, m, idx, next_idx, tau_idx;
    __m128d *dest_, *src_, *irf_, *t_irf_;
 
    double* local_exp_buf = exp_buf + thread * n_decay_group * exp_buf_size;
@@ -57,7 +57,8 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
       {
          row--;
 
-         rate = 1/tau[i] + inv_theta;
+         tau_idx = i + (inc_donor ? 0 : n_exp); 
+         rate = 1/tau[tau_idx] + inv_theta;
          
          // IRF exponential factor
          e0 = exp( (t_irf[0] + t0_guess) * rate ); // * t_g;
@@ -207,7 +208,7 @@ void FLIMGlobalFitController::add_decay(int threadi, int tau_idx, int theta_idx,
    double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
    double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
             
-   int fret_tau_idx = tau_idx + decay_group_idx*n_exp;
+   int fret_tau_idx = tau_idx + decay_group_idx*n_exp + (inc_donor? 0 : n_exp);
 
    double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
@@ -254,7 +255,7 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    
    int* resample_idx = data->GetResampleIdx(thread);
    
-  int fret_tau_idx = tau_idx + decay_group_idx*n_exp;
+  int fret_tau_idx = tau_idx + decay_group_idx*n_exp + (inc_donor? 0 : n_exp);
            
    double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
@@ -280,38 +281,26 @@ int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], d
    int n_meas_res = data->GetResampleNumMeas(thread);
 
    double fact;
-  
-   int j_start = (include_fixed || beta_global) ? 0 : n_fix;
 
-   int g_start = 0;
-   if (fit_fret && !include_fixed && n_fix == n_exp && fit_beta!=FIT_GLOBALLY)
-      g_start = n_fret_fix + (inc_donor ? 1 : 0);
-
-   int p_start = 0;
-   if (polarisation_resolved && !include_fixed && n_fix == n_exp && fit_beta!=FIT_GLOBALLY)
-      p_start = 1 + n_theta_fix;
+   include_fixed = true;
 
    int n_col = n_decay_group * n_pol_group * (beta_global ? 1 : n_exp);
 
-   int idx = p_start * n_meas_res;
+   int idx = 0;
 
-   for(int p=p_start; p<n_pol_group; p++)
+   for(int p=0; p<n_pol_group; p++)
    {
-      idx += g_start * n_meas_res;
-
-      for(int g=g_start; g<n_decay_group; g++)
+      for(int g=0; g<n_decay_group; g++)
       {
-         idx += j_start * n_meas_res;
-
-         for(int j=j_start; j<n_exp ; j++)
+         for(int j=0; j<n_exp ; j++)
          {
-            if (j==j_start || !beta_global)
+            if (j==0 || !beta_global)
                memset(a+idx, 0, n_meas_res*sizeof(*a)); 
 
             if (ref_reconvolution && (!beta_global || j==0))
                add_irf(thread, irf_idx, a+idx, p);
 
-            fact = beta_global       ? beta[j]    : 1;
+            fact = beta_global ? beta[j] : 1;
 
             add_decay(thread, j, p, g, tau, theta, fact, ref_lifetime, a+idx);
 
@@ -368,9 +357,10 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
    int col = 0;
    int idx = 0;
 
-   // d(donor)/d(tau)
+   
    for(int j=n_fix; j<n_exp; j++)
    {
+      // d(donor)/d(tau)
       if (inc_donor)
       {
          for(int p=0; p<n_pol_group; p++)
@@ -387,10 +377,11 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
          }
       }
 
+      // d(fret)/d(tau)
       for(int i=0; i<n_fret; i++)
       {
          int g = i + (inc_donor ? 1 : 0);
-         double fret_tau = tau[j + n_exp * (1 + i)];
+         double fret_tau = tau[j + n_exp * (i+1)];
          
          memset(b+idx, 0, n_meas_res*sizeof(*b));
       
@@ -470,7 +461,7 @@ int FLIMGlobalFitController::E_derivatives(int thread, double tau[], double beta
 {
    int n_meas_res = data->GetResampleNumMeas(thread);
    
-   double fact;
+   double fact, E, Ej, dE;
    
    int col = 0;
    int idx = 0;
@@ -480,11 +471,19 @@ int FLIMGlobalFitController::E_derivatives(int thread, double tau[], double beta
       int g = i + n_fret_fix + (inc_donor ? 1 : 0);
 
       memset(b+idx, 0, n_meas_res*sizeof(*b));
-      double* fret_tau = tau + n_exp * (1 + i + n_fret_fix);
+      double* fret_tau = tau + n_exp * (i+ n_fret_fix+1);
       
       for(int j=0; j<n_exp; j++)
       {
-         fact  = - beta[j] * tau[j] / (fret_tau[j] * fret_tau[j]);
+         E  = 1-fret_tau[0]/tau[0];
+         Ej = 1-fret_tau[j]/tau[j];
+        
+         dE = Ej/E;
+         dE *= dE;
+         dE *= tau[0]/tau[j];
+                 
+          
+         fact  = - beta[j] * tau[j] / (fret_tau[j] * fret_tau[j]) * dE;
          add_derivative(thread, j, 0, g, tau, theta, fact, ref_lifetime, b+idx);
       }
 

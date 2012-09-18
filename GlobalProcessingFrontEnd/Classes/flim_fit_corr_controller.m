@@ -13,16 +13,30 @@ classdef flim_fit_corr_controller < abstract_plot_controller
 
         function draw_plot(obj,ax,param)
             
-            selected = obj.data_series_list.selected;
+            sel = obj.data_series_list.selected;
+            
+            %sel = obj.fit_controller.selected;
             
             cla(ax)
             if obj.fit_controller.has_fit && length(param)==2
                 
                 r = obj.fit_controller.fit_result;
                 
-                param_data_x = r.get_image(selected,param{1});
-                param_data_y = r.get_image(selected,param{2});
-
+                param_data_x = [];
+                param_data_y = [];
+                for i=1:length(sel)
+                    new_x = r.get_image(sel(i),param{1});
+                    new_y = r.get_image(sel(i),param{2});
+                    
+                    filt = isfinite( new_x ) & isfinite( new_y );
+                     
+                    new_x = new_x(filt);
+                    new_y = new_y(filt);
+                    
+                    param_data_x = [param_data_x; new_x];
+                    param_data_y = [param_data_y; new_y];
+                    
+                end
                 x_lim = r.default_lims.(param{1});
                 y_lim = r.default_lims.(param{2});
                 

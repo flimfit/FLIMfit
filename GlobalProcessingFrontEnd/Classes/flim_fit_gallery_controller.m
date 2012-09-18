@@ -56,6 +56,13 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             r = obj.fit_controller.fit_result;
             sel = obj.fit_controller.selected;
             
+            %{
+            sort_param = cell2mat(r.metadata.Column);
+            sort_param = sort_param(sel);
+            [~,idx] = sort(sort_param);
+            sel = sel(idx);
+            %}
+            
             if save
                 pa = f;%get(f,'Parent');
                 pos = get(pa,'Position');
@@ -240,9 +247,9 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 for i=1:rows
                    for j=1:cols
                        if idx <= length(label)
-                           y = (rows-i+1)*new_height-1;
-                           x = (j-1)*new_width+2;
-                           text(x, y, label{idx},'Parent',ax,'Units','pixels',...
+                           y = (i-1)*d.height/scale+2;
+                           x = (j-1)*d.width/scale+2;
+                           text(x, y, label{idx},'Parent',ax,...
                              'Color','w','BackgroundColor','k','Margin',1,...
                              'FontUnits','points','FontSize',10,...
                              'HorizontalAlignment','left','VerticalAlignment','top');

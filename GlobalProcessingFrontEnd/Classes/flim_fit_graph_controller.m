@@ -93,7 +93,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                 y_scatter = [];
                 x_scatter = [];
-                
+                err = [];
                 for i=1:length(x_data)
                     y = 0; yv = 0; yn = 0; e = 0; ym = [];
                     
@@ -112,12 +112,20 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                         n = r.image_stats{j}.(param).n;
                         if n > 0
+                            
+                            if error_calc == 1 % pixel
+                                ym(end+1) = r.image_stats{j}.(param).mean;
+                                y = y + r.image_stats{j}.(param).mean * n; 
 
-                            ym(end+1) = r.image_stats{j}.(param).mean;
-                            y = y + r.image_stats{j}.(param).mean * n; 
+                                yv = yv + (r.image_stats{j}.(param).std)^2*n;
+                                yn = yn + r.image_stats{j}.(param).n;
+                            else
+                                ym(end+1) = r.image_stats{j}.(param).mean;
+                                y = y + r.image_stats{j}.(param).mean; 
 
-                            yv = yv + (r.image_stats{j}.(param).std)^2*n;
-                            yn = yn + r.image_stats{j}.(param).n;
+                                yv = yv + (r.image_stats{j}.(param).std)^2*n;
+                                yn = yn + 1; %yn + r.image_stats{j}.(param).n;
+                            end
                         end
 
                         if ~isempty(err_name)
@@ -128,10 +136,10 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     y_scatter = [y_scatter ym];
                     x_scatter = [x_scatter ones(size(ym))*i];
                     y_data(i) = y/yn;
-                    y_err(i) = 2 * sqrt(yv/yn) / sqrt(yn/r.smoothing); % 95% conf interval ~2*standard error 
+                    y_err(i) = sqrt(yv/yn) / sqrt(yn/r.smoothing); % 95% conf interval ~2*standard error 
                     y_std(i) = sqrt(yv/yn);
                     y_img_std(i) = std(ym);
-                    y_img_err(i) = 2 * y_img_std(i) / sqrt(length(ym));
+                    y_img_err(i) = y_img_std(i) / sqrt(length(ym));
                     y_n(i) = yn;
                     err(i) = e/yn;
 
