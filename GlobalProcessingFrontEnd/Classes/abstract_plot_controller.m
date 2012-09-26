@@ -218,23 +218,13 @@ classdef abstract_plot_controller < flim_fit_observer
         end
         
         function param_select_update(obj,src,evt)
+            % Get parameters from potentially multiple popupmenus
             val = get(obj.param_popupmenu,'Value');
             if iscell(val)
                 val = cell2mat(val);
             end
             idx = val-1;
-            if length(idx) > 1
-                obj.cur_param = cell(size(idx));
-                obj.cur_param(idx>0) = obj.param_list(idx(idx>0));
-                obj.cur_param(idx==0) = [];
-            else
-                if idx == 0 
-                    obj.cur_param = [];
-                else
-                    obj.cur_param = obj.param_list{idx};
-                end
-            end
-            
+            obj.cur_param = idx;
             
             obj.update_display();
         end
@@ -287,24 +277,23 @@ classdef abstract_plot_controller < flim_fit_observer
             
         end
         
-        function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
+        function im_data = plot_figure(obj,h,hc,dataset,param,merge,text)
 
             if ~obj.fit_controller.has_fit || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
                 return
             end
-
-            d = obj.fit_controller.data_series;
+            
             r = obj.fit_controller.fit_result;
 
-            intensity = r.get_image(dataset,'I');
-            im_data = r.get_image(dataset,im);
+            intensity = obj.fit_controller.get_image(dataset,'I');
+            im_data = obj.fit_controller.get_image(dataset,param);
 
-            cscale = obj.colourscale(im);
+            cscale = obj.colourscale(param);
 
             if ~merge
-                im=colorbar_flush(h,hc,im_data,isnan(intensity),r.default_lims.(im),cscale,text);
+                im=colorbar_flush(h,hc,im_data,isnan(intensity),r.default_lims{param},cscale,text);
             else
-                im=colorbar_flush(h,hc,im_data,[],r.default_lims.(im),cscale,text,intensity,r.default_lims.I);
+                im=colorbar_flush(h,hc,im_data,[],r.default_lims{param},cscale,text,intensity,r.default_lims.I);
             end
             
 

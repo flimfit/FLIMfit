@@ -19,7 +19,7 @@ public:
    virtual ~AbstractFitter();
    virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2) = 0;
 
-   int Fit(int n, int s, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
+   int Fit(int n, int s, int lmax, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
    int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit);
 
    double ErrMinFcn(double x);
@@ -27,6 +27,7 @@ public:
 
    void GetParams(int nl, const double* alf);
    void GetModel(const double* alf, int irf_idx, int isel, int thread);
+   void ReleaseResidualMemory();
 
 protected:
 
@@ -53,6 +54,7 @@ protected:
    int     n;
    int     s;
    int     l;
+   int     lmax;
    int     nl;
    int     p;
    int     p_full;

@@ -34,21 +34,27 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
             
    // Set diagonal elements of incidence matrix for variable tau's   
    n_exp_col = beta_global ? 1 : n_exp;
+   cur_col = beta_global ? 0 : n_fix;
    for(i=n_fix; i<n_exp; i++)
    {
-      cur_col = beta_global ? 0 : i;
-      for(j=0; j<(n_pol_group*n_decay_group); j++)
+      if (decay_group_buf[i] > cur_col)
+         cur_col++;
+      for(j=0; j<(n_pol_group*n_fret_group); j++)
          inc[inc_row + (inc_col+j*n_exp_phi+cur_col)*12] = 1;
-
+      if (!beta_global)
+         cur_col++;
       inc_row++;
    }
 
    // Set diagonal elements of incidence matrix for variable beta's   
+   cur_col = 0;
    for(i=0; i<n_beta; i++)
    {
-      for(j=0; j<(n_pol_group*n_decay_group); j++)
-         inc[inc_row + (inc_col+j*n_exp_phi)*12] = 1;
-                                
+      if (decay_group_buf[i+1+cur_col] > cur_col)
+         cur_col++;    
+      for(j=0; j<(n_pol_group*n_fret_group); j++)
+         inc[inc_row + (inc_col+j*n_exp_phi+cur_col)*12] = 1;
+                        
       inc_row++;
    }
 
@@ -70,14 +76,14 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
    if (ref_reconvolution == FIT_GLOBALLY)
    {
       // Set elements of inc for ref lifetime derivatives
-      for(i=0; i<( n_pol_group* n_decay_group * n_exp_phi ); i++)
+      for(i=0; i<( n_pol_group* n_fret_group * n_exp_phi ); i++)
       {
          inc[inc_row+(inc_col+i)*12] = 1;
       }
       inc_row++;
    }
 
-   inc_col += n_pol_group * n_decay_group * n_exp_phi;
+   inc_col += n_pol_group * n_fret_group * n_exp_phi;
               
    // Both global offset and scatter are in col L+1
 
@@ -125,7 +131,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    int n_meas = data->GetResampleNumMeas(thread);
    int N = n_meas;
                                
-   double *exp_buf   = this->exp_buf + thread * n_decay_group * exp_buf_size;
+   double *exp_buf   = this->exp_buf + thread * n_fret_group * exp_buf_size;
    double *tau_buf   = this->tau_buf + thread * n_exp * (n_fret + 1);
    double *beta_buf  = this->beta_buf + thread * n_exp;
    double *theta_buf = this->theta_buf + thread * n_theta;
@@ -142,7 +148,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    else
       ref_lifetime = ref_lifetime_guess;
 
-   total_n_exp = n_exp * n_decay_group;
+   total_n_exp = n_exp * n_fret_group;
         
 
    int* resample_idx = data->GetResampleIdx(thread);
@@ -151,6 +157,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    switch(isel)
    {
       case 1:
+      case 2:
 
          // Set constant phi values
          //----------------------------
@@ -201,11 +208,6 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
             a_col++;
          }
 
-      case 2:
-
-         a_col = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
-         
-
          // Set tau's
          for(j=0; j<n_fix; j++)
             tau_buf[j] = tau_guess[j];
@@ -227,7 +229,26 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          // Set beta's
          if (fit_beta == FIT_GLOBALLY)
          {
-            alf2beta(n_exp,alf+alf_beta_idx,beta_buf);
+
+            int group_start = 0;
+            int group_end = 0;
+            int d_idx = 0;
+
+            for(int d=0; d<n_decay_group; d++)
+            {
+               int n_group = 0;
+               while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+               {
+                  d_idx++;
+                  n_group++;
+                  group_end++;
+               }
+               alf2beta(n_group,alf+alf_beta_idx+group_start-d,beta_buf+group_start);
+               
+               group_start = group_end;
+
+            }
+
          }
          else if (fit_beta == FIX) 
          {

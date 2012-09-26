@@ -28,7 +28,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('main','global_algorithm','popupmenu','Global Mode', global_modes);
     add_fitting_param_control('main','n_exp','popupmenu','No. Exp', {'1', '2', '3', '4', '5'});
     add_fitting_param_control('main','n_fix','popupmenu','No. Fixed', {'0', '1', '2', '3', '4', '5'});
-    add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally'});
+    add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally' 'Fitted Globally (Grouped)'});
     add_fitting_param_control('main','fit_reference','popupmenu','Fit Reference', {'Fixed','Fitted'});
     
     set(fit_params_main_layout,'Sizes',[120 120 300])

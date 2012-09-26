@@ -31,10 +31,9 @@ typedef unsigned short uint16_t;
 FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
 
-
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
-                              int n_exp, int n_fix,  double tau_min[], double tau_max[], 
+                              int n_exp, int n_fix, int n_decay_group, int decay_group[], double tau_min[], double tau_max[], 
                               int estimate_initial_tau, double tau_guess[],
                               int fit_beta, double fixed_beta[],
                               int fit_t0, double t0_guess, 
@@ -73,12 +72,15 @@ FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
 
 FITDLL_API int StartFit(int c_idx);
 
+FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params);
+
 FITDLL_API int GetResults(int c_idx, int im, uint8_t mask[], float chi2[], float tau[], float I0[], float beta[], float E[], 
                           float gamma[], float theta[], float r[], float t0[], float offset[], float scatter[], 
                           float tvb[], float ref_lifetime[]);
 
+FITDLL_API int GetAverageResults(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* params_mean, float* params_std);
 
-
+FITDLL_API int GetImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[]);
 
 
 

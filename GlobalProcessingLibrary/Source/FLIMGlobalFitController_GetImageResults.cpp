@@ -8,6 +8,18 @@
 
 using namespace boost::interprocess;
 
+#include "TrimmedMean.h"
+
+void CalculateRegionStats(int n, int s, float data[], float region_mean[], float region_std[])
+{
+   for(int i=0; i<n; i++)
+   {
+      int K = 0.01 * s;
+      TrimmedMean(data+i, n, s, K, region_mean[i], region_std[i]);
+   }
+}
+
+
 int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], float tau[], float beta[], float E[], float theta[], float offset[], float scatter[], float tvb[], float ref_lifetime[])
 {
 
@@ -33,14 +45,32 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
          }
          else
          {
-            alf2beta(n_exp,alfl+alf_beta_idx,beta_buf);
+
+            int group_start = 0;
+            int group_end = 0;
+            int d_idx = 0;
+
+            for(int d=0; d<n_decay_group; d++)
+            {
+               int n_group = 0;
+               while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+               {
+                  d_idx++;
+                  n_group++;
+                  group_end++;
+               }
+               alf2beta(n_group,alfl+alf_beta_idx+group_start-d,beta_buf+group_start);
+               
+               group_start = group_end;
+
+            }
 
             double norm = 0;
             for(j=0; j<n_exp; j++)
                norm += beta_buf[j];
 
             for(j=0; j<n_exp; j++)
-               beta[ j*n_px + loc[i] ] = beta_buf[j] / norm;
+               beta[ j*n_px + loc[i] ] = beta_buf[j];// / norm;
          }
       }
 
@@ -76,6 +106,154 @@ int FLIMGlobalFitController::ProcessNonLinearParams(int n, int n_px, int loc[], 
 
    return 0;
 }
+
+#define GET_PARAM(param,n,p)  if (p < n) return (param)[p]; else (p-=n)
+
+float FLIMGlobalFitController::GetNonLinearParam(int param, float alf[])
+{
+   int p = param;
+
+   GET_PARAM(tau_guess,n_fix,p);
+   GET_PARAM(alf,n_v,p);
+
+   if (beta_global)
+   {
+      if (fit_beta == FIX)
+      {
+         GET_PARAM(fixed_beta,n_exp,p);
+      }
+      else
+      {
+
+         int group_start = 0;
+         int group_end = 0;
+         int d_idx = 0;
+
+         for(int d=0; d<n_decay_group; d++)
+         {
+            int n_group = 0;
+            while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+            {
+               d_idx++;
+               n_group++;
+               group_end++;
+            }
+            alf2beta(n_group,alf+alf_beta_idx+group_start-d,beta_buf+group_start);
+               
+            group_start = group_end;
+
+         }
+
+         double norm = 0;
+         for(int j=0; j<n_exp; j++)
+            norm += beta_buf[j];
+
+         GET_PARAM(beta_buf,n_exp,p);
+      }
+   }
+
+   GET_PARAM(theta_guess,n_theta_fix,p);
+   GET_PARAM(alf+alf_theta_idx,n_theta_v,p);
+
+   GET_PARAM(E_guess,n_fret_fix,p);
+   GET_PARAM(alf+alf_E_idx,n_fret_v,p);
+
+   if (fit_offset == FIT_GLOBALLY)
+      GET_PARAM(alf+alf_offset_idx,1,p);
+   
+   if (fit_scatter == FIT_GLOBALLY)
+      GET_PARAM(alf+alf_scatter_idx,1,p);
+      
+   if (fit_tvb == FIT_GLOBALLY)
+      GET_PARAM(alf+alf_tvb_idx,1,p);
+   
+   if (ref_reconvolution == FIT_GLOBALLY)
+      GET_PARAM(alf+alf_ref_idx,1,p);
+
+   float nan;
+   SetNaN(&nan,1);
+   return nan;
+}
+
+
+int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float output[])
+{
+   int idx = 0;
+
+   int j;
+
+   for(j=0; j<n_fix; j++)
+      output[idx++] = tau_guess[j];
+   for(j=0; j<n_v; j++)
+      output[idx++] = alf[j];
+
+   if (beta_global)
+   {
+      if (fit_beta == FIX)
+      {
+         for(j=0; j<n_exp; j++)
+            output[idx++] = fixed_beta[j];
+      }
+      else
+      {
+
+         int group_start = 0;
+         int group_end = 0;
+         int d_idx = 0;
+
+         for(int d=0; d<n_decay_group; d++)
+         {
+            int n_group = 0;
+            while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+            {
+               d_idx++;
+               n_group++;
+               group_end++;
+            }
+            alf2beta(n_group,alf+alf_beta_idx+group_start-d,beta_buf+group_start);
+               
+            group_start = group_end;
+
+         }
+
+         double norm = 0;
+         for(j=0; j<n_exp; j++)
+            norm += beta_buf[j];
+
+         for(j=0; j<n_exp; j++)
+            output[idx++] = beta_buf[j];// / norm;
+      }
+   }
+
+
+   for(j=0; j<n_theta_fix; j++)
+      output[idx++] =  theta_guess[ j ];
+   for(j=0; j<n_theta_v; j++)
+      output[idx++] = alf[alf_theta_idx + j];
+
+   for(j=0; j<n_fret_fix; j++)
+      output[idx++] = E_guess[j];
+   for(j=0; j<n_fret_v; j++)
+      output[idx++] = alf[alf_E_idx+j];
+
+
+   if (fit_offset == FIT_GLOBALLY)
+      output[idx++] = alf[alf_offset_idx];
+
+   if (fit_scatter == FIT_GLOBALLY)
+      output[idx++] = alf[alf_scatter_idx];
+
+   if (fit_tvb == FIT_GLOBALLY)
+      output[idx++] = alf[alf_tvb_idx];
+
+   if (ref_reconvolution == FIT_GLOBALLY)
+      output[idx++] = alf[alf_ref_idx];
+
+   return idx;
+}
+
+
+
 
 int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], float lin_params[], float chi2_group[], 
             float I0[], float beta[], float gamma[], float r[], float offset[], float scatter[], float tvb[], float chi2[])
@@ -134,12 +312,27 @@ int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], flo
          for(int i=0; i<s; i++)
          {
             I0[ loc[i] ] = 0;
-            for(int j=0; j<n_decay_group; j++)
+            for(int j=0; j<n_fret_group; j++)
                I0[ loc[i] ] += lin_params[ i*l + j + lin_idx ];
 
             if (gamma != NULL)
-               for (int j=0; j<n_decay_group; j++)
+               for (int j=0; j<n_fret_group; j++)
                   gamma[ j*n_px + loc[i] ] = lin_params[ i*l + lin_idx + j] / I0[ loc[i] ];
+
+         }
+      }
+      else if (!beta_global)
+      {
+         #pragma omp parallel for
+         for(int i=0; i<s; i++)
+         {
+            I0[ loc[i] ] = 0;
+            for(int j=0; j<n_exp_phi; j++)
+               I0[ loc[i] ] += lin_params[ i*l + j + lin_idx ];
+
+            if (beta != NULL)
+               for(int j=0; j<n_exp_phi; j++)
+                  beta[ j*n_px + loc[i] ] = lin_params[ i*l + j + lin_idx] / I0[ loc[i] ];
 
          }
       }
@@ -149,13 +342,12 @@ int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], flo
          for(int i=0; i<s; i++)
          {
             I0[ loc[i] ] = 0;
-            for(int j=0; j<n_exp; j++)
+            for(int j=0; j<n_exp_phi; j++)
                I0[ loc[i] ] += lin_params[ i*l + j + lin_idx ];
 
-            if (beta != NULL)
-               for(int j=0; j<n_exp; j++)
-                  beta[ j*n_px + loc[i] ] = lin_params[ i*l + j + lin_idx] / I0[ loc[i] ];
-
+            if (gamma != NULL)
+               for(int j=0; j<n_exp_phi; j++)
+                  gamma[ j*n_px + loc[i] ] = lin_params[ i*l + j + lin_idx] / I0[ loc[i] ];
          }
       }
 
@@ -171,7 +363,7 @@ int FLIMGlobalFitController::ProcessLinearParams(int s, int n_px, int loc[], flo
    return 0;
 }
 
-
+/*
 double FLIMGlobalFitController::CalculateChi2(int s, int n_meas_res, float y[], double a[], float lin_params[], float adjust_buf[], double fit_buf[], float chi2[])
 {
    double chi2_tot = 0;
@@ -215,7 +407,7 @@ double FLIMGlobalFitController::CalculateChi2(int s, int n_meas_res, float y[], 
    return chi2_tot;
 
 }
-
+*/
 
 // calculate errors: 
 /*
@@ -223,15 +415,209 @@ int calculate_errs, double tau_err[], double beta_err[], double E_err[], double 
                      double offset_err[], double scatter_err[], double tvb_err[], double ref_lifetime_err[]
                      */
 
+
+int FLIMGlobalFitController::GetAverageImageResults(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float params_mean[], float params_std[])
+{
+   int start, s_local;
+   int r_idx;
+
+   int n_px = data->n_px;
+
+   int thread = 0;
+
+   // Get mask
+   uint8_t *im_mask = data->mask + im*n_px;  
+   
+   if (ret_mask)
+      memcpy(ret_mask, im_mask, n_px * sizeof(uint8_t));
+
+   int iml = data->GetImLoc(im);
+   im = iml;
+   if (iml == -1)
+      return 0;
+
+   float* nl_output;
+   if (data->global_mode == MODE_PIXELWISE)
+      nl_output = new float[ n_nl_output_params * n_px ];
+   else
+      nl_output = NULL;
+
+   float *alf_group, *lin_group, *chi2_group, *I_group;
+   int *ierr_group; 
+   
+   
+   #ifndef NO_OMP
+   omp_set_num_threads(n_thread);
+   #endif
+   
+   int idx = 0;
+   for(int rg=1; rg<MAX_REGION; rg++)
+   {
+      r_idx = data->GetRegionIndex(im, rg);
+
+      if (r_idx > -1)
+      {
+         start = data->GetRegionPos(im,rg);
+         s_local   = data->GetRegionCount(im,rg);
+
+         regions[idx] = rg;
+         region_size[idx] = s_local;
+         
+         int n_output = 0;
+
+         if (data->global_mode == MODE_PIXELWISE)
+         {
+            alf_group = alf + start * nl; 
+
+            for(int i=0; i<s_local; i++)
+               ProcessNonLinearParams(alf_group + i*nl, nl_output + i*n_nl_output_params);
+
+            CalculateRegionStats(n_nl_output_params, s_local, nl_output, params_mean, params_std);
+         }
+         else
+         {
+            alf_group = alf + nl * r_idx;
+            ProcessNonLinearParams(alf_group,params_mean);
+         }
+
+         params_mean += n_nl_output_params;
+         params_std  += n_nl_output_params; 
+
+         lin_group    = lin_params + start * lmax;
+         chi2_group   = chi2       + start;
+         I_group      = I          + start;
+
+         CalculateRegionStats(lmax, s_local, lin_group, params_mean, params_std);
+
+         params_mean += lmax;
+         params_std  += lmax; 
+
+         CalculateRegionStats(1, s_local, I_group, params_mean, params_std);
+
+         params_mean += 1;
+         params_std  += 1; 
+
+         CalculateRegionStats(1, s_local, chi2_group, params_mean, params_std);
+
+         params_mean += 1;
+         params_std  += 1;
+         
+         idx++;
+      }
+   }
+
+   n_regions = idx;
+
+   ClearVariable(nl_output);
+
+   return 0;
+
+}
+
+
+int FLIMGlobalFitController::GetImage(int im, int param, uint8_t ret_mask[], float image_data[])
+{
+   int start, s_local;
+   int r_idx;
+
+   int n_px =  data->n_px;
+
+   float* param_data;
+   int span;
+
+   int thread = 0;
+
+   if (param >= n_output_params || param < 0)
+      return -1;
+
+   // Get mask
+   uint8_t *im_mask = data->mask + im*n_px;  
+   
+   if (ret_mask)
+      memcpy(ret_mask, im_mask, n_px * sizeof(uint8_t));
+
+   int iml = data->GetImLoc(im);
+   im = iml;
+   if (iml == -1)
+      return 0;
+
+   SetNaN(image_data, n_px);
+
+   int idx = 0;
+   for(int rg=1; rg<MAX_REGION; rg++)
+   {
+      r_idx = data->GetRegionIndex(im, rg);
+
+      if (r_idx > -1)
+      {         
+         start = data->GetRegionPos(im,rg);
+         s_local   = data->GetRegionCount(im,rg);
+
+         if (param < n_nl_output_params)
+         {
+            if (data->global_mode == MODE_PIXELWISE)
+            {
+               param_data = alf + start * nl;
+               
+               int j = 0;
+               for(int i=0; i<n_px; i++)
+                  if(im_mask[i] == rg)
+                     image_data[i] = GetNonLinearParam(param, param_data + i*nl) ;
+
+            }
+            else
+            {
+               param_data = alf + r_idx * nl;
+               float p = GetNonLinearParam(param, param_data);
+               
+               int j = 0;
+               for(int i=0; i<n_px; i++)
+                  if(im_mask[i] == rg)
+                     image_data[i] = p;
+
+            }
+         }
+         else
+         {
+            if (param == n_output_params -1) // chi2
+            {
+               param_data = chi2 + start;
+               span = 1;
+            }
+            if (param == n_output_params -2) // I0
+            {
+               param_data = I + start;
+               span = 1;
+            }
+            else
+            {
+               param_data = lin_params + start * lmax + param - n_nl_output_params;
+               span = lmax;
+            }
+         
+            int j = 0;
+            for(int i=0; i<n_px; i++)
+               if(im_mask[i] == rg)
+                  image_data[i] = param_data[span*(j++)];
+          }
+
+      }
+   }
+
+   return 0;
+}
+
+
 int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float chi2[], float tau[], float I0[], float beta[], float E[], 
            float gamma[], float theta[], float r[], float t0[], float offset[], float scatter[], float tvb[], float ref_lifetime[])
 {
-
+return 0;
+/*
    int thread = 0;
 
    int s0 = 0;
 
-   int n_px = data->n_x * data->n_y;
+   int n_px = data->n_px;;
 
    int n_p = data->n_px;
 
@@ -255,7 +641,7 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
    //int s;
 
    int *loc = new int[n_px]; //ok
-   double *alf_group;
+   float *alf_group;
    float *lin_group, *chi2_group;
    int *ierr_group; 
    
@@ -279,7 +665,7 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
    SetNaN(I0,      n_px);
    SetNaN(r,       n_px*n_r);
-   SetNaN(gamma,   n_px*n_decay_group);
+   SetNaN(gamma,   n_px*n_fret_group);
    SetNaN(chi2,    n_px);
 
    if (data->global_mode == MODE_PIXELWISE)
@@ -288,31 +674,12 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
          loc[i] = i;
 
       ierr_group = ierr + n_px * im;
-      
-      if (memory_map_results)
-      {
-         int nr = data->n_regions_total;
-         std::size_t chi2_offset = (im * n_px                      ) * sizeof(double);
-         std::size_t alf_offset  = (nr * n_p + nl * n_px * im      ) * sizeof(double);
-         std::size_t lin_offset  = (nr * (n_p + nl) + l * n_px * im) * sizeof(double);
+      chi2_group = this->chi2 + n_px * im;
+      alf_group = alf + nl * n_px * im;
+      lin_group = lin_params + l * n_px * im;
 
-         mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
-         mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * n_px * sizeof(double));
-         mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
-
-         chi2_group = (float*) chi2_map_view.get_address();
-         alf_group  = (double*) alf_map_view.get_address();
-         lin_group  = (float*) lin_map_view.get_address();
-      }
-      else
-      {
-         chi2_group = this->chi2 + n_px * im;
-         alf_group = alf + nl * n_px * im;
-         lin_group = lin_params + l * n_px * im;
-      }
-
-      ProcessLinearParams(n_px, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
       ProcessNonLinearParams(n_px, n_px, loc, alf_group, tau, beta, E, theta, offset, scatter, tvb, ref_lifetime);
+      ProcessLinearParams(n_px, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
    }
    else
    {
@@ -335,14 +702,7 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
          {
             lin_start = 0;
             for(int j=0; j<iml; j++)
-            {
                lin_start += data->region_count[j*MAX_REGION+rg];
-               /*
-               uint8_t* lmask = mask + n_px * data->use_im[j]; 
-               for(int i=0; i<n_px; i++)
-                  lin_start += lmask[i] == rg;
-               */
-            }
          }
 
          int ii = 0;
@@ -353,30 +713,12 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
          int n_p = data->n_px;
 
-         if (memory_map_results)
-         {
-            int nr = data->n_regions_total; 
-            std::size_t chi2_offset = (r_idx * n_p + lin_start          ) * sizeof(double);
-            std::size_t alf_offset  = (nr * n_p + r_idx * nl            ) * sizeof(double);
-            std::size_t lin_offset  = (nr * (n_p + nl) + r_idx * l * n_p + l * lin_start) * sizeof(double);
+         alf_group  = alf + nl * r_idx;
+         lin_group  = lin_params + l * (s * r_idx + lin_start);
+         chi2_group = chi2 + s * r_idx + lin_start;
 
-            mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(double));
-            mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
-            mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(double));
-
-            chi2_group = (float*) chi2_map_view.get_address();
-            alf_group  = (double*) alf_map_view.get_address();
-            lin_group  = (float*) lin_map_view.get_address();
-         }
-         else
-         {
-            alf_group = alf + nl * r_idx;
-            lin_group = lin_params + l * (s * r_idx + lin_start);
-            chi2_group = this->chi2 + s * r_idx + lin_start;
-         }
-
-         ProcessLinearParams(s_local, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
          ProcessNonLinearParams(1, 1, &s0, alf_group, tau+ri*n_exp, beta+ri*n_exp, E+ri*n_fret, theta+ri*n_theta, offset+ri, scatter+ri, tvb+ri, ref_lifetime+ri);
+         ProcessLinearParams(s_local, n_px, loc, lin_group, chi2_group, I0, beta, gamma, r, offset, scatter, tvb, chi2);
 
       }
    }
@@ -384,7 +726,7 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
    delete[] loc;
 
    return 0;
-
+   */
 }
 
 
@@ -395,10 +737,12 @@ int FLIMGlobalFitController::GetImageResults(int im, uint8_t ret_mask[], float c
 
 int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int fit_loc[], double fit[])
 {
+return 0;
+/*
    if (!status->HasFit())
       return ERR_FIT_IN_PROGRESS;
 
-   int n_px = data->n_x * data->n_y;
+   int n_px = data->n_px;;
 
    uint8_t* mask = data->mask + im*n_px;
 
@@ -412,7 +756,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int group, lin_idx, idx, last_idx;
    int r_idx, r_min, r_max;
 
-   double *alf_group;
+   float *alf_group;
    float *lin_group;
 
    int n_t_buf = this->n_t;
@@ -426,30 +770,14 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    getting_fit = true;
 
-   float *adjust = new float[n_meas]; //ok
-   SetupAdjust(0, adjust, (fit_scatter == FIX) ? scatter_guess : 0, 
-                          (fit_offset == FIX)  ? offset_guess  : 0, 
-                          (fit_tvb == FIX )    ? tvb_guess     : 0);
-
 
    SetNaN(fit,n_fit*n_meas);
 
 
    if (data->global_mode == MODE_PIXELWISE)
    {
-      if (memory_map_results)
-      {
-         int n_p = data->n_px;
-         int nr = data->n_regions_total; 
-         std::size_t alf_offset  = (nr * n_p + nl * n_px * im) * sizeof(double);
-         mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * n_px * sizeof(double));
-         alf_group  = (double*) alf_map_view.get_address();
-      }
-      else
-      {
-         alf_group = alf + nl * s * iml;
-         lin_group = lin_params + l * s * iml;
-      }
+      alf_group = alf + nl * s * iml;
+      lin_group = lin_params + l * s * iml;
 
       for(int i=0; i<n_fit; i++)
       {
@@ -461,7 +789,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    }
    else
    {
-      local_irf[thread] = irf_buf;
+      //local_irf[thread] = irf_buf;
 
       if (data->global_mode == MODE_IMAGEWISE)
          group = iml;
@@ -480,32 +808,13 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
          if (data->global_mode == MODE_GLOBAL)
          {
             for(int j=0; j<iml; j++)
-            {
                lin_start += data->region_count[j*MAX_REGION+rg];
-               /*
-               uint8_t* lmask = mask + n_px * data->use_im[j]; 
-               for(int i=0; i<n_px; i++)
-                  lin_start += lmask[i] == rg;
-               */
-            }
          }
 
          r_idx = data->GetRegionIndex(group, rg);
 
-         if (memory_map_results)
-         {
-            int n_p = data->n_px;
-            int nr = data->n_regions_total; 
-            std::size_t alf_offset  = (nr * n_p + r_idx * nl            ) * sizeof(double);
-         
-            mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
-            alf_group  = (double*) alf_map_view.get_address();
-         }
-         else
-         {
-            alf_group = alf + nl * r_idx;
-            lin_group = lin_params + l * (s * r_idx + lin_start);
-         }
+         alf_group = alf + nl * r_idx;
+         lin_group = lin_params + l * (s * r_idx + lin_start);
 
          last_idx = 0;
          lin_idx = 0;
@@ -525,7 +834,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    getting_fit = false;
 
-   ClearVariable(adjust);
+   //ClearVariable(adjust);
 
    this->n_t = n_t_buf;
    this->n_meas = this->n_t * n_chan;
@@ -534,5 +843,5 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    this->n = this->n_meas;
    
    return 0;
-
+   */
 }

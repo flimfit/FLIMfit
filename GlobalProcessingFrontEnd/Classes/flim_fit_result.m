@@ -1,6 +1,15 @@
 classdef flim_fit_result < handle
    
     properties
+        
+        regions;
+        region_size;
+        image_size;
+        image_mean;
+        image_std;
+        region_mean;
+        region_std;
+        
         images;
         image_stats;
         region_stats;
@@ -16,6 +25,8 @@ classdef flim_fit_result < handle
         metadata;
         
         n_results;
+        
+        intensity_idx;
         
         use_memory_mapping = true;
         file = [];
@@ -52,10 +63,12 @@ classdef flim_fit_result < handle
             
             obj.n_results = n_results;
             
+            %{
             obj.images = cell(1,n_results);
             obj.image_stats = cell(1,n_results);
             obj.region_stats = cell(1,n_results);
             obj.metadata = cell(1,n_results);
+            
             
             for i = 1:n_results
                 obj.images{i} = struct();
@@ -63,8 +76,9 @@ classdef flim_fit_result < handle
                 obj.region_stats{i} = struct();
                 obj.metadata = struct();
             end
+            %}
             
-            obj.default_lims = struct();
+            obj.default_lims = {};
             
             obj.n_regions = zeros(1, n_results);
             
@@ -88,6 +102,26 @@ classdef flim_fit_result < handle
             end
         end
  
+        function set_param_names(obj,params)
+            obj.params = params;
+            obj.intensity_idx = find(strcmp(params,'I'));
+        end
+        
+        function set_results(obj,im,regions,region_size,param_mean,param_std)
+            
+            [M,S,N] = combine_stats(double(param_mean),double(param_std),double(region_size));
+            
+            obj.image_mean{im} = M; 
+            obj.image_size{im} = N; 
+            obj.image_std{im} = S;
+            
+            obj.regions{im} = regions;
+            obj.region_size{im} = region_size;
+            obj.region_mean{im} = param_mean;
+            obj.region_std{im} = param_std;
+            
+        end
+        %{
         function set_image_split(obj,name,im,mask,intensity,r,default_lims,err)
             if nargin < 7
                 default_lims = [];
@@ -133,9 +167,11 @@ classdef flim_fit_result < handle
              
         end
         
+        
         function set_default_lims(obj,name,lims)
-            obj.default_lims.(name) = lims;
+        %    obj.default_lims.(name) = lims;
         end
+        %}
         
         function set_metadata(obj,name,r,data)
             if length(r) == 1
@@ -184,7 +220,7 @@ classdef flim_fit_result < handle
             end
             
         end
-        
+        %{
         function write(obj,dataset,param,img,mask,intensity)
             
             img = single(img);
@@ -284,7 +320,8 @@ classdef flim_fit_result < handle
             end
             
         end
- 
+        %}
+        
         function save(obj,file)
            
             if exist(file,'file')

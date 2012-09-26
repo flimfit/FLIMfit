@@ -15,76 +15,66 @@ using namespace boost::interprocess;
   ProcessRegion
   ===============================================*/
 
-int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
+int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
 
    int i, j, s_thresh, itmax;
+   int lin_idx;
+   float I0;
 
    double ref = 0;
    double tau_ma;
 
-   int ierr_local_binning = 0;
    int ierr_local = 0;
 
-   int n_px = data->n_px;
-   int s1 = 1;
+//   int n_px = data->n_px;
 
    int r_idx = data->GetRegionIndex(g,region);
 
-   uint8_t *mask         = data->mask + g*n_px;
-   float   *y            = this->y + thread * s * n_meas;
-   float   *ma_decay     = this->ma_decay + thread * n_meas;
-   float   *lin_params   = this->lin_params + r_idx * s * l;
-   float   *chi2         = this->chi2 + r_idx * s;
-   double  *alf          = this->alf + r_idx * nl;
+//   uint8_t *mask         = data->mask + g*n_px;
+   float   *local_decay  = this->local_decay + thread * n_meas;
    float   *w            = this->w + thread * n;
-   float   *adjust_buf   = this->adjust_buf + thread * n_meas;
-   
-   double  *beta_buf     = this->beta_buf + thread * n_exp;
-   double  *theta_buf    = this->theta_buf + thread * n_theta;
-   double  *fit_buf      = this->fit_buf + thread * n_meas;
-   double  *count_buf    = this->count_buf + thread * n_meas;
-   double  *conf_lim     = this->conf_lim + thread * nl;
-   double  *alf_err      = this->alf_err + thread * nl;
-   
+
    double *alf_local     = this->alf_local + thread * nl;
    float  *lin_local     = this->lin_local + thread * l;
 
-   int    *irf_idx       = this->irf_idx + thread * s;
+   int start = data->GetRegionPos(g,region) + px;
+         
+   float *y, *lin_params, *chi2, *alf, *I;
+   int   *irf_idx;
 
-   
-   int pi = g % (data->n_x*data->n_y);
-   local_irf[thread] = irf_buf + pi * n_irf * n_chan;
+   lin_params = this->lin_params + start * lmax;
+   chi2       = this->chi2       + start;
+   I          = this->I          + start;
 
-   if (memory_map_results)
+   if (data->global_mode == MODE_PIXELWISE)
    {
-      int nr = data->n_regions_total; 
-      std::size_t chi2_offset = (r_idx * n_px                       ) * sizeof(float);
-      std::size_t alf_offset  = (nr * n_px + r_idx * nl             ) * sizeof(double);
-      std::size_t lin_offset  = (nr * (n_px + nl) + r_idx * l * n_px) * sizeof(float);
+      y       = this->y;
+      irf_idx = this->irf_idx;
 
-      mapped_region chi2_map_view = mapped_region(result_map_file, read_write, chi2_offset, n_px * sizeof(float));
-      mapped_region alf_map_view  = mapped_region(result_map_file, read_write, alf_offset,  nl * sizeof(double));
-      mapped_region lin_map_view  = mapped_region(result_map_file, read_write, lin_offset,  n_px * l * sizeof(float));
+      alf = this->alf + start * nl; 
 
-      chi2       = (float*) chi2_map_view.get_address();
-      alf        = (double*) alf_map_view.get_address();
-      lin_params = (float*) lin_map_view.get_address();
+      s_thresh = data->GetRegionData(thread, g, region, px, adjust_buf, y, NULL, w, irf_idx, local_decay);
+      data->DetermineAutoSampling(thread, local_decay, nl+1);
+   }
+   else
+   {
+      y       = this->y       + thread * s * n_meas;
+      irf_idx = this->irf_idx + thread * s;
+
+      alf     = this->alf        + nl * r_idx;
+   
+      s_thresh = data->GetRegionData(thread, g, region, 0, adjust_buf, y, I, w, irf_idx, local_decay);
    }
 
 
-   SetupAdjust(thread, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
-                                   (fit_offset == FIX)  ? offset_guess  : 0, 
-                                   (fit_tvb == FIX)     ? tvb_guess     : 0);
-                                    
-   s_thresh = data->GetRegionData(thread, g, region, nl+1, adjust_buf, y, w, irf_idx, ma_decay);
-   
+
    int n_meas_res = data->GetResampleNumMeas(thread);
    
    SetNaN(alf, nl);
-   SetNaN(lin_params, s*l);
+   SetNaN(lin_params, s_thresh*l);
 
 
    // Check for termination requestion and that we have at least one px to fit
@@ -96,7 +86,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    //------------------------------
    if (estimate_initial_tau)
    {
-      tau_ma = CalculateMeanArrivalTime(ma_decay, pi);
+      tau_ma = CalculateMeanArrivalTime(local_decay, 0);
 
       if (n_v == 1)
       {
@@ -133,7 +123,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
       alf_local[i++] = E_guess[j+n_fret_fix];
 
    for(j=0; j<n_theta_v; j++)
-      alf_local[i++] =  TransformRange(theta_guess[j+n_theta_fix],0,1000000);
+      alf_local[i++] = TransformRange(theta_guess[j+n_theta_fix],0,1000000);
 
    if(fit_t0)
       alf_local[i++] = t0_guess;
@@ -155,7 +145,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    // to sum to maximum intensity, evenly distributed
    if(algorithm == ALG_ML)
    {
-
       double mx = 0;
       for(int j=0; j<n; j++)
       {
@@ -168,8 +157,79 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
    }
 
    itmax = 100;
+   
+   if ((global_algorithm == MODE_GLOBAL_BINNING) && (s_thresh > 1)) // use global binning
+   {
+      s_thresh = 1;
+      y = local_decay;
+      irf_idx = NULL;
+   }
 
-   int use_global_binning = global_algorithm == MODE_GLOBAL_BINNING && s_thresh > 1;
+   if (data->global_mode == MODE_PIXELWISE)
+   {
+      y = local_decay;
+   }
+
+   projectors[thread].Fit(s_thresh, n_meas_res, lmax, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
+                          data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+
+   if (calculate_errs)
+      projectors[thread].CalculateErrors(alf_local,conf_lim);
+
+   for(int i=0; i<nl; i++)
+      alf[i] = alf_local[i];
+
+   // Normalise to get beta/gamma/r and I0
+   //--------------------------------------
+
+   lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+   lin_params += lin_idx;
+
+   if (polarisation_resolved)
+   {
+      for(int i=0; i<s_thresh; i++)
+      {
+         I0 = lin_params[0];
+
+         for(int j=1; j<n_r+1; j++)
+            lin_params[j-1] = lin_params[j] / I0;
+
+         lin_params[n_r] = I0;
+
+         lin_params += lmax;
+      }
+   }
+   else
+   {
+      int n_j = fit_fret ? n_fret_group : n_exp_phi;
+
+      for(int i=0; i<s_thresh; i++)
+      {
+         I0 = 0;
+         for(int j=0; j<n_j; j++)
+            I0 += lin_params[j];
+
+         if (n_j > 1)
+         {
+            for (int j=0; j<n_j; j++)
+               lin_params[j] = lin_params[j] / I0;
+            lin_params[n_j] = I0;
+         }
+
+
+
+         lin_params += lmax;
+      }
+   }
+
+   ierr[r_idx] = ierr_local;
+
+   status->FinishedRegion(thread);
+
+   return 0;
+}
+
+
 
    /* WEIGHTING FOR REFERENCE FITTNG
    projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
@@ -192,85 +252,3 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int thread)
 
    projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
    */
-
-   
-   if (use_global_binning)
-      projectors[thread].Fit(1, n_meas_res, ma_decay, w, NULL, alf_local, lin_local, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
-   else
-      projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
-   
-
-   if (calculate_errs)
-      projectors[thread].CalculateErrors(alf_local,conf_lim);
-
-   for(int i=0; i<nl; i++)
-      alf[i] = alf_local[i];
-
-   ierr[r_idx] = ierr_local;
-
-/*
-   if (ierr[r_idx] >= -1 || ierr[r_idx] == -9) // if successful (or failed due to too many iterations) return fit results
-   {
-
-      if (chi2 != NULL)
-      {
-         int lp1 = l+1;
-         c2 = CalculateChi2(thread, region, s_thresh, y, w, a, lin_params, adjust_buf, fit_buf, mask, chi2+g*n_px);
-
-         // calculate errors
-         if (calculate_errs)
-         {
-            ErrMinParams pr;
-            pr.gc = this;
-            pr.s_thresh = s_thresh;
-            pr.r_idx = r_idx;
-            pr.region = region;
-            pr.group = g;
-            pr.chi2 = c2;
-            pr.thread = thread;
-            std::pair<double , double> ans;
-
-            for(i=0; i<nl; i++)
-            {
-               locked_param[thread] = i;
-               pr.param_value = alf[i];
-
-               double f[3] = {0.1, 0.5, 1.0};
-
-               for(int k=0; k<3; k++)
-               {
-                  for(j=0; j<nl; j++)
-                     alf_err[j] = alf[j];
-
-                  ans = brent_find_minima(boost::bind(&FLIMGlobalFitController::ErrMinFcn,this,_1,pr), 
-                                                 0.0, f[k]*pr.param_value, 9);
-               
-                  if (ans.second < 1)
-                     break;   
-               }
-
-               if (ans.second > 1)
-                  ans.first = 0;
-            
-               conf_lim[i] = pr.param_value + ans.first;
-            }
-
-            locked_param[thread] = -1;
-
-         }
-      }
-
-               // While this deviates from the definition of I0 in the model, it is closer to the intuitive 'I0', i.e. the peak of the decay
-               I0[ g*n_px + i ] *= t_g;  
-               if (ref_reconvolution)
-                  I0[ g*n_px + i ] /= ref;   // accounts for the amplitude of the reference in the model, since we've normalised the IRF to 1
-            }
-
-            i_thresh++;
-         }
-
-      }
-   }
-   */
-   return 0;
-}

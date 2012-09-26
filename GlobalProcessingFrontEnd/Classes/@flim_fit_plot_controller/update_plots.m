@@ -64,7 +64,7 @@ function update_plots(obj,file_root)
                         [h,c] = tight_subplot(f_save,1,1,1,save,[d.width d.height]);
                     end
                     
-                    im_data = obj.plot_figure(h,c,cur_im,obj.plot_names{plot_idx},false,'');
+                    im_data = obj.plot_figure(h,c,cur_im,plot_idx,false,'');
                     
                     subplot_idx = subplot_idx + 1;
                     if save
@@ -82,7 +82,7 @@ function update_plots(obj,file_root)
                         [h,c] = tight_subplot(f_save,1,1,1,save,[d.width d.height]);
                     end
                     
-                    obj.plot_figure(h,c,cur_im,obj.plot_names{plot_idx},true,'');
+                    obj.plot_figure(h,c,cur_im,plot_idx,true,'');
                   
                     subplot_idx = subplot_idx + 1;
                     if save

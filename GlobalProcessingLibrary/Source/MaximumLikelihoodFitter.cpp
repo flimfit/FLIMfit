@@ -43,12 +43,12 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
       dy[i] = y[i] * smoothing;
    dy[n] = 1;
    
-    /*
+    
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
-    */
+    
 /*    
    double opt[4];
    opt[0] = DBL_EPSILON;

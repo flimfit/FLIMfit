@@ -60,7 +60,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
                 
                 obj.data_series.t0 = t0;
                                 
-                obj.fit_controller.fit(false);
+                obj.fit_controller.fit(true);
                 while obj.fit_controller.has_fit == 0
                     pause(0.001);
                 end

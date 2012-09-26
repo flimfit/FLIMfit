@@ -133,7 +133,7 @@ int CheckControllerIdx(int c_idx)
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
-                              int n_exp, int n_fix,  double tau_min[], double tau_max[], 
+                              int n_exp, int n_fix, int n_decay_group, int decay_group[], double tau_min[], double tau_max[], 
                               int estimate_initial_tau, double tau_guess[],
                               int fit_beta, double fixed_beta[],
                               int fit_t0, double t0_guess, 
@@ -161,10 +161,10 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
    int     n_theta_fix     = 0;
    int     inc_rinf        = 0;
    double* theta_guess     = NULL;
-   
+
    controller[c_idx] = 
          new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup, t0_image,
-                                      n_exp, n_fix, tau_min, tau_max, 
+                                      n_exp, n_fix, n_decay_group, decay_group, tau_min, tau_max, 
                                       estimate_initial_tau, tau_guess,
                                       fit_beta, fixed_beta,
                                       n_theta, n_theta_fix, inc_rinf, theta_guess,
@@ -211,11 +211,15 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
    double* E_guess = NULL;
 
   for(int i=0; i<n_irf; i++)
-      t_irf[i] = t_irf[i]/T_FACTOR;
+      t_irf[i] = t_irf[i]/T_FACTOR;   
+
+
+   int n_decay_group = 1;
+   int* decay_group = NULL;
 
    controller[c_idx] = 
          new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup, t0_image,
-                                      n_exp, n_fix, tau_min, tau_max, 
+                                      n_exp, n_fix, n_decay_group, decay_group, tau_min, tau_max, 
                                       estimate_initial_tau, tau_guess,
                                       fit_beta, fixed_beta,
                                       n_theta, n_theta_fix, inc_rinf, theta_guess,
@@ -227,7 +231,6 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                                       pulsetrain_correction, t_rep,
                                       ref_reconvolution, ref_lifetime_guess, algorithm,
                                       ierr, n_thread, runAsync, callback );
-   
    controller[c_idx]->SetPolarisationMode(MODE_POLARISATION);
 
    return controller[c_idx]->GetErrorCode();
@@ -310,6 +313,38 @@ FITDLL_API int GetResults(int c_idx, int im, uint8_t mask[], float chi2[], float
    if (!valid) return ERR_NO_FIT;
 
    int error = controller[c_idx]->GetImageResults(im, mask, chi2, tau, I0, beta, E, gamma, theta, r, t0, offset, scatter, tvb, ref_lifetime);
+
+   return error;
+
+}
+
+FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params)
+{
+   int valid = InitControllerIdx(c_idx);
+   if (!valid) return NULL;
+
+   *n_output_params = controller[c_idx]->n_output_params;
+   return controller[c_idx]->param_names_ptr;
+}
+
+FITDLL_API int GetAverageResults(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* params_mean, float* params_std)
+{
+   int valid = InitControllerIdx(c_idx);
+   if (!valid) return ERR_NO_FIT;
+
+   int error = controller[c_idx]->GetAverageImageResults(im, ret_mask, *n_regions, regions, region_size, params_mean, params_std);
+
+   return error;
+
+}
+
+
+FITDLL_API int GetImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[])
+{
+   int valid = InitControllerIdx(c_idx);
+   if (!valid) return ERR_NO_FIT;
+
+   int error = controller[c_idx]->GetImage(im, param, ret_mask, image_data);
 
    return error;
 

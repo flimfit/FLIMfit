@@ -606,6 +606,9 @@ classdef front_end_menu_controller < handle
         
         function menu_test_test2_callback(obj,~,~)
             
+            flim_data_selector(obj.data_series_controller);
+            
+            %{
             mask=obj.data_masking_controller.roi_controller.roi_mask;
             
             d = obj.data_series_controller.data_series; 
@@ -622,7 +625,7 @@ classdef front_end_menu_controller < handle
             figure
             
             plot(g)
-
+            %}
             
             
         end

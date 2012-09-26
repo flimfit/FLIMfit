@@ -141,12 +141,71 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
         function table_changed(obj,~,~)
             flim_table_data = get(obj.tau_guess_table,'Data');
             
+            p = obj.fit_params;
+            
+            has_global_beta_group = p.fit_beta == 3;
+            beta_global = p.fit_beta ~= 1;
+                        
+            new_groups = zeros(p.n_exp,1);
+            if (has_global_beta_group)
+                groups = flim_table_data(:,3);
+                groups = groups - min(groups);
+                cur_group = 0;
+                for i=1:p.n_exp
+                    if groups(i) > cur_group
+                        cur_group = cur_group + 1;
+                    end
+                    new_groups(i) = cur_group;
+                end
+            else
+                new_groups = zeros(p.n_exp,1);
+            end
+            
+            if (beta_global)
+                
+                old_fixed_beta = p.fixed_beta;
+                fixed_beta = flim_table_data(:,2);
+                
+                for i=0:max(groups)
+                   
+                    beta_g = fixed_beta(new_groups == i);
+                    old_beta_g = old_fixed_beta(new_groups == i);
+                    
+                    changed = beta_g ~= old_beta_g;
+                    if ~any(changed)
+                        beta_g = beta_g / sum(beta_g);
+                    else
+                        ch = beta_g(changed);
+                        ch(ch>1) = 1;
+                        ch(ch<0) = 0;
+                        beta_g(changed) = ch;
+                        
+                        mod_beta_g = beta_g(~changed);
+                        if sum(mod_beta_g) == 0
+                            mod_beta_g = (1-sum(beta_g(changed))) / length(mod_beta_g);
+                        else
+                            mod_beta_g = mod_beta_g / sum(mod_beta_g) * (1-sum(beta_g(changed)));
+                        end
+                        beta_g(~changed) = mod_beta_g;
+                    end
+                    
+                    beta_g(isnan(beta_g)) = 0;
+                    
+                    fixed_beta(new_groups == i) = beta_g;
+                   
+                end
+
+            end
+                
             if ~isempty(flim_table_data)
-                obj.fit_params.tau_guess = flim_table_data(:,1);
+                p.tau_guess = flim_table_data(:,1);
                 %obj.fit_params.tau_min = flim_table_data(:,2);
                 %obj.fit_params.tau_max = flim_table_data(:,3);
-                if obj.fit_params.fit_beta ~= 1
-                    obj.fit_params.fixed_beta = flim_table_data(:,2);
+                if beta_global
+                    p.fixed_beta = fixed_beta;
+                end
+                if has_global_beta_group
+                    p.global_beta_group = new_groups;
                 end
             end
             
@@ -155,6 +214,8 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             
             phi_table_data = get(obj.theta_guess_table,'Data');
             obj.fit_params.theta_guess = phi_table_data;
+            
+            obj.update_controls();
         end
                 
         function update_controls(obj)
@@ -169,6 +230,11 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             if obj.fit_params.fit_beta ~= 1
                 table_header = [table_header 'Beta'];
                 table_data = [table_data obj.fit_params.fixed_beta];
+            end
+            
+            if obj.fit_params.fit_beta == 3
+                table_header = [table_header 'Group'];
+                table_data = [table_data obj.fit_params.global_beta_group];
             end
                         
             table_width = ones(size(table_header)) * 80;

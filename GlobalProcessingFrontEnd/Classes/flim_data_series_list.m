@@ -63,7 +63,7 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             end
         end
         
-        function use_callback(obj,~,~)
+        function use_callback(obj,src,evtData)
            
             data = get(obj.handle,'Data');
             use = data(:,1);

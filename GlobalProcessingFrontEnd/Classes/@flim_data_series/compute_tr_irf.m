@@ -82,7 +82,7 @@ function compute_tr_irf(obj)
         end
 
         % Resample IRF 
-        if obj.resample_irf && length(obj.tr_t_irf) > 2
+        if length(obj.tr_t_irf) > 2 && obj.resample_irf
             irf_spacing = obj.tr_t_irf(2) - obj.tr_t_irf(1);
 
             if irf_spacing > 75

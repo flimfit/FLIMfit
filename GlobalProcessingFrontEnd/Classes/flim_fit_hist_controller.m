@@ -23,7 +23,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
 
             
             
-            if obj.fit_controller.has_fit && ~isempty(param) && obj.selected > 0
+            if obj.fit_controller.has_fit && param > 0 && obj.selected > 0
                 
                 r = obj.fit_controller.fit_result;
                 
@@ -35,12 +35,12 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 
                 param_data = [];
                 for i=1:length(sel)
-                    new_data = obj.fit_controller.fit_result.get_image(sel(i),param);
+                    new_data = obj.fit_controller.get_image(sel(i),param);
                     new_data = new_data(isfinite(new_data));
                     param_data = [param_data; new_data];
                 end
                 
-                lims = r.default_lims.(param);
+                lims = r.default_lims{param};
                 
                 filt = param_data >= lims(1) & param_data <= lims(2) & isfinite(param_data);
                 

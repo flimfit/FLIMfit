@@ -67,6 +67,7 @@ set(HEADERS
    FlagDefinitions.h
    cminpack.h
    util.h
+   TrimmedMean.h
 )
 
 # Add _32/_64 appendix to library

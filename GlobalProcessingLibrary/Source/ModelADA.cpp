@@ -78,6 +78,8 @@ double d_beta_d_alf(double beta)
 
 double kappa_spacer(double tau2, double tau1)
 {
+//   return 0; 
+
    double diff_max = 30;
    double spacer = 400;
 
@@ -90,6 +92,7 @@ double kappa_spacer(double tau2, double tau1)
 
 double kappa_lim(double tau)
 {
+//   return 0;
    double diff_max = 30;
    double tau_min = 50;
 
@@ -102,6 +105,8 @@ double kappa_lim(double tau)
 
 double d_kappa_d_tau(double tau2, double tau1)
 {
+//   return 0;
+
    double kappa_diff_max = 30;
    double kappa_fact = 2;
 

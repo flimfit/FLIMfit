@@ -5,7 +5,7 @@
             
             old_names = obj.plot_names;
             obj.plot_names = r.fit_param_list();
-            obj.default_lims = r.default_lims();
+            obj.default_lims = r.default_lims;
             
             names = obj.plot_names;
             n_items = length(names);
@@ -15,7 +15,7 @@
                     obj.display_normal.(names{i}) = false;
                     obj.display_merged.(names{i}) = false;
                     obj.auto_lim.(names{i}) = false;
-                    obj.plot_lims.(names{i}) = obj.default_lims.(names{i});
+                    obj.plot_lims.(names{i}) = obj.default_lims{i};
                 end
             end
             

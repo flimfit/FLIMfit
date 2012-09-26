@@ -110,7 +110,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2)
 {
 
    if (err != 0)
@@ -121,16 +121,17 @@ int AbstractFitter::Fit(int s, int n, float* y, float *w, int* irf_idx, double *
 
    Init();
 
-   this->n = n;
-   this->s = s;
-   this->y = y;
-   this->w = w;
+   this->n          = n;
+   this->s          = s;
+   this->lmax       = lmax;
+   this->y          = y;
+   this->w          = w;
    this->lin_params = lin_params;
-   this->irf_idx = irf_idx;
-   this->chi2 = chi2;
-   this->cur_chi2 = &c2;
-   this->smoothing = smoothing;
-   this->thread = thread;
+   this->irf_idx    = irf_idx;
+   this->chi2       = chi2;
+   this->cur_chi2   = &c2;
+   this->smoothing  = smoothing;
+   this->thread     = thread;
 
    chi2_factor = 1 / (n - ((double)nl)/s - l);
 
@@ -194,7 +195,6 @@ double AbstractFitter::ErrMinFcn(double x)
    using namespace boost::math;
    
    double alpha,c2,F,F_crit;
-   int nierr;
    int itmax = 10;
 
    int niter, ierr;
@@ -291,10 +291,19 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, float* a
    return 0;
 }
 
+void AbstractFitter::ReleaseResidualMemory()
+{
+   if (r != NULL)
+      delete[] r;
+   r = NULL;
+}
+
 AbstractFitter::~AbstractFitter()
 {
+   if (r != NULL)
+      delete[] r;
+
    delete[] a;
-   delete[] r;
    delete[] b;
    delete[] u;
    delete[] kap;

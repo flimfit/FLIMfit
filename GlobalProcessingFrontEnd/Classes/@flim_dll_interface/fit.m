@@ -128,6 +128,8 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     
     width = d.width;
     height = d.height;
+    
+    obj.im_size = [d.height d.width];
 
     if obj.bin == true
         
@@ -201,7 +203,8 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta / sum(p.fixed_beta));
     obj.p_E_guess = libpointer('doublePtr',p.fret_guess);
     obj.p_theta_guess = libpointer('doublePtr',p.theta_guess);
-
+    obj.p_global_beta_group = libpointer('int32Ptr',p.global_beta_group);
+    
     obj.p_tvb_profile = libpointer('doublePtr',d.tr_tvb_profile);
 
     if ~d.use_memory_mapping

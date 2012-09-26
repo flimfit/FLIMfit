@@ -28,14 +28,19 @@ public:
    template <typename T>
    int CalculateRegions();
 
-   int GetRegionData(int thread, int group, int region, int n_min_bin, float* adjust, float* region_data, float* weight, int* irf_idx, float* ma_decay);
-   int GetPixelData(int thread, int im, int p, int n_min_bin, float* adjust, float* masked_data, float* ma_decay);
+   int GetRegionData(int thread, int group, int region, int px, float* adjust, float* region_data, float* intensity_data, float* weight, int* irf_idx, float* local_decay);
+   void DetermineAutoSampling(int thread, float decay[], int n_min_bin);
 
-   int GetMaxRegion(int group);
-   int GetMinRegion(int group);
-   
-   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, int* irf_idx);
-   int GetRegionIndex(int group, int region);
+//   int GetPixelData(int thread, int im, int p, int n_min_bin, float* adjust, float* masked_data, float* local_decay);
+
+//   int GetMaxRegion(int group);
+//   int GetMinRegion(int group);
+
+   int GetRegionIndex(int im, int region);
+   int GetRegionPos(int im, int region);
+   int GetRegionCount(int im, int region);
+
+   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, int* irf_idx);
    
    int GetImLoc(int im);
 
@@ -62,8 +67,7 @@ public:
    int n_chan;
    int n_meas;
 
-   int n_group; 
-   int n_px; 
+   int n_px;
    int n_p;
 
    int n_regions_total;
@@ -77,7 +81,6 @@ public:
    uint8_t* mask;
    int n_masked_px;
 
-   int* region_start;
 
    int global_mode;
 
@@ -94,11 +97,9 @@ public:
    int* use_im;
    int n_im_used;
 
-   int* region_count;
 
 private:
 
-   void DetermineAutoSampling(int thread, float decay[], int n_min_bin);
 
    template <typename T>
    T* GetDataPointer(int thread, int im);
@@ -111,9 +112,15 @@ private:
    float* tr_data;
    float* tr_buf;
    float* tr_row_buf;
+   float* intensity;
 
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;
+
+   int* region_idx;
+   int* region_count;
+   int* region_pos;
+
 
    char *data_file; 
 
@@ -203,22 +210,19 @@ T* FLIMData::GetDataPointer(int thread, int im)
 template <typename T>
 int FLIMData::CalculateRegions()
 {
-
-   int* r_count = new int[MAX_REGION]; //ok
+   int cur_pos;
    int average_count = 0;
    int n_ipx = n_x*n_y;
 
    n_regions_total = 0;
 
-   //for(int j=0; j<n_meas_full; j++)
-   //   average_data[j] = 0;
-
+   int r_count, r_idx; 
+   
    T* cur_data = new T[ n_ipx * n_meas_full ];
 
    for(int i=0; i<n_im_used; i++)
    {
       T* data_ptr = GetDataPointer<T>(0, i);
-
 
       int im = i;
       if (use_im != NULL)
@@ -226,7 +230,6 @@ int FLIMData::CalculateRegions()
 
       if (data_ptr == NULL)
       {
-         delete[] r_count;
          delete[] cur_data;
          return ERR_FAILED_TO_MAP_DATA;
       }
@@ -264,29 +267,68 @@ int FLIMData::CalculateRegions()
          if (intensity < threshold)
             mask[im*n_ipx+p] = 0;
 
-         /*
-         if (mask[im*n_ipx+p])
-         {
-            for(int j=0; j<n_meas_full; j++)
-               average_data[j] += data_ptr[p*n_meas_full+j];
-            average_count++;
-         }
-         */
-
          n_masked_px += (mask[im*n_ipx+p] > 0);
        }
    }
 
-   /*
-   for(int j=0; j<n_meas_full; j++)
-      average_data[j] /= average_count;
-   */
-
-   region_start[0] = 0;
-
-
-   // Determine how many regions we have in each group
+   // Determine how many regions we have in each image
    //--------------------------------------------------------
+   for(int i=0; i<n_im_used; i++)
+   {
+      int im = i;
+      if (use_im != NULL)
+         im = use_im[im];
+         
+      memset(region_count + i * MAX_REGION, 0, MAX_REGION*sizeof(int));
+
+      for(int p=0; p<n_ipx; p++)
+      {
+         int idx = mask[im*n_ipx+p];
+         region_count[idx + i * MAX_REGION]++;
+      }
+   }
+
+
+   if (global_mode == MODE_PIXELWISE || global_mode == MODE_IMAGEWISE)
+   {
+      r_idx = 0;
+      cur_pos = 0;
+
+      for(int i=0; i<n_im_used; i++)
+      {
+         for(int j=1; j<MAX_REGION; j++)
+         {
+            region_pos[ i* MAX_REGION + j ] = cur_pos;
+            cur_pos += region_count[ i* MAX_REGION + j ];
+            if (region_count[ i* MAX_REGION + j ] > 0)
+               region_idx[ i* MAX_REGION + j ] = r_idx++;
+         }
+      }
+   }
+   else
+   {
+      cur_pos = 0;
+      r_idx = 0;
+
+      for(int j=1; j<MAX_REGION; j++)
+      {
+         r_count = 0;
+         for(int i=0; i<n_im_used; i++)
+         {
+            region_pos[ j + i* MAX_REGION ] = cur_pos;
+            cur_pos += region_count[ j + i * MAX_REGION ];
+            r_count += region_count[ j + i * MAX_REGION ];
+         }
+
+         if (r_count > 0)
+            for(int i=0; i<n_im_used; i++)
+               region_idx[ j + i * MAX_REGION ] = r_idx++;
+      }
+   }
+   
+   n_regions_total = r_idx;
+
+   /*
    if (global_mode == MODE_PIXELWISE)
    {
       max_region_size = 1;
@@ -335,25 +377,6 @@ int FLIMData::CalculateRegions()
    }
    else
    {
-      memset(r_count, 0, MAX_REGION*sizeof(int));
-      max_region_size = 0;
-      
-      for(int i=0; i<n_im_used; i++)
-      {
-         int im = i;
-         if (use_im != NULL)
-            im = use_im[im];
-         
-         memset(region_count + i * MAX_REGION, 0, MAX_REGION*sizeof(int));
-
-         for(int p=0; p<n_ipx; p++)
-         {
-            int idx = mask[im*n_ipx+p];
-            r_count[idx]++;
-            region_count[idx + i * MAX_REGION]++;
-         }
-      }
-
       max_region[0] = 0;
       min_region[0] = 1;
 
@@ -377,8 +400,9 @@ int FLIMData::CalculateRegions()
       n_regions_total += max_region[0] - min_region[0] + 1;
  
    }
+   */
 
-   delete[] r_count;
+//   delete[] r_count;
    delete[] cur_data;
 
    return 0;
@@ -394,27 +418,30 @@ void FLIMData::TransformImage(int thread, int im)
    if (im == cur_transformed[thread])
       return;
 
-   T* data_ptr = GetDataPointer<T>(thread, im);
-
    float* tr_data    = this->tr_data + thread * n_p;
    float* tr_buf     = this->tr_buf  + thread * n_p;
+   float* intensity  = this->intensity + thread * n_px;
    float* tr_row_buf = this->tr_row_buf + thread * (n_x + n_y);
    float* mean_image = this->mean_image + thread * n_meas;
+
+   T* data_ptr = GetDataPointer<T>(thread, im);
+   memcpy(tr_buf, data_ptr, n_p * sizeof(T));
+
 
    double photons_per_count = 1/counts_per_photon;
 
    if ( smoothing_factor == 0 )
    {
       float* tr_ptr = tr_data;
-
+      float* cur_data_ptr = tr_buf;
       // Copy data from source to tr_data, skipping cropped time points
       for(int y=0; y<n_y; y++)
          for(int x=0; x<n_x; x++)
             for(int c=0; c<n_chan; c++)
             {
                for(int i=0; i<n_t; i++)
-                  tr_ptr[i] = data_ptr[t_skip[c]+i];
-               data_ptr += n_t_full;
+                  tr_ptr[i] = cur_data_ptr[t_skip[c]+i];
+               cur_data_ptr += n_t_full;
                tr_ptr += n_t;
             }
    }
@@ -447,7 +474,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[y] = 0;
                   for(int yp=0; yp<y+s; yp++)
-                     tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
+                     tr_row_buf[y] += tr_buf[yp*dy+x*dx+idx];
                   tr_row_buf[y] /= y+s;
                }
 
@@ -456,7 +483,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[y] = 0;
                   for(int yp=y-s; yp<=y+s; yp++)
-                     tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
+                     tr_row_buf[y] += tr_buf[yp*dy+x*dx+idx];
                   tr_row_buf[y] /= 2*s+1;
                }
 
@@ -464,38 +491,12 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[y] = 0;
                   for(int yp=y-s; yp<n_y; yp++)
-                     tr_row_buf[y] += data_ptr[yp*dy+x*dx+idx];
+                     tr_row_buf[y] += tr_buf[yp*dy+x*dx+idx];
                   tr_row_buf[y] /= n_y-(y-s);
                }
 
                for(int y=0; y<n_y; y++)
-                  tr_buf[y*n_x+x] = tr_row_buf[y];
-            /*
-               for(int y=0; y<s; y++)
-               {
-                  tr_data[y*dyt+x*dxt+tr_idx] = 0;
-                  for(int yp=0; yp<y+s; yp++)
-                     tr_data[y*dyt+x*dxt+tr_idx] += data_ptr[yp*dy+x*dx+idx];
-                  tr_data[y*dyt+x*dxt+tr_idx] /= y+s;
-               }
-
-               #pragma omp parallel for
-               for(int y=s; y<n_y-s; y++ )
-               {
-                  tr_data[y*dyt+x*dxt+tr_idx] = 0;
-                  for(int yp=y-s; yp<=y+s; yp++)
-                     tr_data[y*dyt+x*dxt+tr_idx] += data_ptr[yp*dy+x*dx+idx];
-                  tr_data[y*dyt+x*dxt+tr_idx] /= 2*s+1;
-               }
-
-               for(int y=n_y-s; y<n_y; y++ )
-               {
-                  tr_data[y*dyt+x*dxt+tr_idx] = 0;
-                  for(int yp=y-s; yp<n_y; yp++)
-                     tr_data[y*dyt+x*dxt+tr_idx] += data_ptr[yp*dy+x*dx+idx];
-                  tr_data[y*dyt+x*dxt+tr_idx] /= n_y-(y-s);
-               }
-            */
+                  intensity[y*n_x+x] = tr_row_buf[y];
             }
 
             //Smooth in x axis
@@ -505,7 +506,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[x] = 0;
                   for(int xp=0; xp<x+s; xp++)
-                     tr_row_buf[x] += tr_buf[y*n_x+xp];
+                     tr_row_buf[x] += intensity[y*n_x+xp];
                   tr_row_buf[x] /= x+s;
                }
 
@@ -513,7 +514,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[x] = 0;
                   for(int xp=x-s; xp<=x+s; xp++)
-                     tr_row_buf[x] += tr_buf[y*n_x+xp];
+                     tr_row_buf[x] += intensity[y*n_x+xp];
                   tr_row_buf[x] /= 2*s+1;
                }
 
@@ -522,7 +523,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[x] = 0;
                   for(int xp=x-s; xp<n_x; xp++)
-                     tr_row_buf[x] += tr_buf[y*n_x+xp];
+                     tr_row_buf[x] += intensity[y*n_x+xp];
                   tr_row_buf[x] /= n_x-(x-s);
                }
 
@@ -533,6 +534,24 @@ void FLIMData::TransformImage(int thread, int im)
 
          }
    }
+
+
+   // Calculate intensity
+   float* intensity_ptr = intensity;
+   float* cur_data_ptr = tr_buf;
+   for(int y=0; y<n_y; y++)
+      for(int x=0; x<n_x; x++)
+      {
+         *intensity_ptr = 0;
+         for(int i=0; i<n_t_full; i++)
+         {
+            *intensity_ptr += cur_data_ptr[i];
+         }
+         cur_data_ptr += n_t_full;
+         intensity_ptr++;
+      }
+
+
 
 
    // Subtract background

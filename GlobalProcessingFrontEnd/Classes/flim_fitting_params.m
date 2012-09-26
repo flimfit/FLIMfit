@@ -34,7 +34,8 @@ classdef flim_fitting_params < handle
         auto_estimate_tau = true;
         
         fixed_beta = 1;
-        
+        global_beta_group = [1];
+
         n_fret = 0;
         n_fret_fix = 0;
         inc_donor = 0;
@@ -55,6 +56,7 @@ classdef flim_fitting_params < handle
         use_autosampling = true;
         
         image_irf_mode = 0;
+        
         
         n_thread = 8;
     end
@@ -95,15 +97,18 @@ classdef flim_fitting_params < handle
                 padding = ones(n_exp,1) * 2000;
                 padding_max = ones(n_exp,1) * 100000;
                 padding(1:length(obj.tau_guess)) = obj.tau_guess;
+                
                 obj.tau_guess = padding;
                 obj.tau_max = padding_max;
                 obj.tau_min = zeros(size(padding));
+                obj.global_beta_group = zeros(n_exp,1);
                 
             elseif size(obj.tau_guess,1) > n_exp
                 
                 obj.tau_guess = obj.tau_guess(1:n_exp);
                 obj.tau_min = obj.tau_min(1:n_exp);
                 obj.tau_max = obj.tau_max(1:n_exp);
+                obj.global_beta_group = zeros(n_exp,1);
                 
             end
             

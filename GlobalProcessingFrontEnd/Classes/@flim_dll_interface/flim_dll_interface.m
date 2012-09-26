@@ -15,7 +15,6 @@ classdef flim_dll_interface < handle
         
         datasets;
         
-        
         fit_round = 1;
         n_rounds = 0;
         
@@ -44,6 +43,7 @@ classdef flim_dll_interface < handle
         p_theta_guess;
         p_ierr;
         p_t0_image;
+        p_global_beta_group;
         
         p_use;
         p_background;
@@ -102,6 +102,8 @@ classdef flim_dll_interface < handle
         n_group;
         n_px;
         n_im;
+        
+        im_size;
         
         single_guess;
         use;

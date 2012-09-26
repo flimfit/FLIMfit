@@ -11,7 +11,7 @@
         display_merged = struct();
         plot_names = {};
         plot_data;
-        default_lims = struct();
+        default_lims = {};
         plot_lims = struct();
         auto_lim = struct();
         
@@ -105,7 +105,7 @@
                 table = cell(length(names),6);
                 for i=1:length(names)
                     if obj.auto_lim.(names{i})
-                        im_data = r.get_image(obj.dataset_selected,names{i});
+                        im_data = obj.fit_controller.get_image(obj.dataset_selected,i);
                         finite_im_data = im_data(isfinite(im_data)); 
                         
                         lim = prctile(finite_im_data,[0.1 99.9]);
@@ -123,7 +123,9 @@
                     table{i,6} = obj.auto_lim.(names{i});
                 end
                 
-                r.default_lims = obj.plot_lims;
+                for i=1:length(names) 
+                    r.default_lims{i} = obj.plot_lims.(names{i});
+                end
                 
                 set(obj.plot_select_table,'Data',table);
                 set(obj.plot_select_table,'ColumnEditable',logical([0 1 1 1 1 1]));

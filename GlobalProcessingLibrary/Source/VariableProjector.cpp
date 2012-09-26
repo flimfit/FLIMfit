@@ -199,8 +199,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    int a_dim1 = n;
    int b_dim1 = ndim;
    int t_dim1 = nmax;
-   int u_dim1 = l;
-
+   
    double r_sq, rj_norm, acum;
 
 /*     ============================================================== */
@@ -479,7 +478,6 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 {
    int a_dim1 = n;
    int b_dim1 = ndim;
-   int u_dim1 = l;
    
    double beta, acum;
    double alpha, d__1;
@@ -585,7 +583,6 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
 
    int a_dim1 = n;
    int r_dim1 = n;
-   int u_dim1 = l;
    
    double* rj = r + idx * n;
 
@@ -602,7 +599,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
       for (i = k; i < n; ++i) 
          acum += a[i + k * a_dim1] * x[i];   
 
-      lin_params[k + idx * u_dim1] = x[k];
+      lin_params[k + idx * lmax] = x[k];
 
       x[k] = acum / a[k + k * a_dim1];
       acum = -acum / (u[k] * a[k + k * a_dim1]);
