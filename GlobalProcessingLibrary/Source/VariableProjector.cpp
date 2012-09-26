@@ -268,6 +268,12 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
    {
       GetModel(alf, irf_idx[0], isel, 0);
 
+      if (!iterative_weighting)
+      {
+         CalculateWeights(0, alf, 0);
+         transform_ab(isel, 0, 0, firstca, firstcb);
+      }
+
       // Set kappa derivatives
       *rnorm = kap[0];
       for(int k=0; k<nl; k++)
