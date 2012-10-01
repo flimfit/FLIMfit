@@ -166,7 +166,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
                 old_fixed_beta = p.fixed_beta;
                 fixed_beta = flim_table_data(:,2);
                 
-                for i=0:max(groups)
+                for i=0:max(new_groups)
                    
                     beta_g = fixed_beta(new_groups == i);
                     old_beta_g = old_fixed_beta(new_groups == i);

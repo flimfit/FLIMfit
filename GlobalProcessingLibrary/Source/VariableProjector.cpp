@@ -592,8 +592,8 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    
    double* rj = r + idx * n;
 
-   chi2[idx] = enorm(n-l, rj+l); 
-   chi2[idx] *= chi2[idx] * chi2_factor * smoothing;
+   chi2[idx] = (float) enorm(n-l, rj+l); 
+   chi2[idx] *= chi2[idx] * (float) (chi2_factor * smoothing);
 
    bacsub(idx, a, x);
    
@@ -605,7 +605,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
       for (i = k; i < n; ++i) 
          acum += a[i + k * a_dim1] * x[i];   
 
-      lin_params[k + idx * lmax] = x[k];
+      lin_params[k + idx * lmax] = (float) x[k];
 
       x[k] = acum / a[k + k * a_dim1];
       acum = -acum / (u[k] * a[k + k * a_dim1]);

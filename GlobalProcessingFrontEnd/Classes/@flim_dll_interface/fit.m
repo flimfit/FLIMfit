@@ -1,6 +1,5 @@
 function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
-
     obj.load_global_library();
     
     if nargin < 4
@@ -114,71 +113,20 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     end
     
     obj.fit_result.metadata = md;
-     
-    obj.datasets = sel;
+    obj.fit_result.smoothing = (2*d.binning+1)^2;
+    
 
     if obj.bin
+        obj.datasets = 1;
         use = 1;
     else
+        obj.datasets = sel;
         use = datasets(d.loaded);
     end
     
-    obj.n_im = sum(use);
     obj.use = use;
-    
-    width = d.width;
-    height = d.height;
-    
+        
     obj.im_size = [d.height d.width];
-
-    if obj.bin == true
-        
-        obj.n_group = 1;
-        obj.n_regions = 1;
-        obj.n_regions_total = 1;
-        
-        obj.n_px = 1;
-        
-        obj.globals_size = [1 1];
-        
-    else
-        
-        if ~isempty(d.seg_mask)
-            
-            mask = d.seg_mask;
-            
-            obj.n_regions = reshape(mask,[size(mask,1)*size(mask,2) size(mask,3)]);
-            obj.n_regions = squeeze(max(obj.n_regions,[],1));
-        else
-            obj.n_regions = ones([1 d.n_datasets]);
-        end
-        
-        obj.n_regions_total = sum(obj.n_regions);
-
-        
-        switch p.global_fitting
-            case 0
-                obj.n_group = width * height * obj.n_im;            
-                obj.n_regions_total = obj.n_im;
-                obj.n_px = 1;
-                obj.globals_size = [height width obj.n_im];
- 
-            case 1 %global_mode.image
-                obj.n_group = n_im;
-               
-                obj.globals_size = [1 obj.n_regions_total];
-
-                obj.n_px = width * height;
-                
-            case 2 %global_mode.dataset
-                obj.n_group = 1;
-                obj.n_px = width * height * obj.n_im;
-                obj.globals_size = [1 obj.n_regions_total];         
-        end
-             
-    end
-       
-    obj.n_regions = double(obj.n_regions);
    
     obj.p_use = libpointer('int32Ptr',use);
     
@@ -211,8 +159,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.p_data = libpointer('singlePtr', d.data_series_mem);
     end
 
-
-    obj.p_ierr = libpointer('int32Ptr', zeros(obj.globals_size));
     
     obj.start_time = tic;
    

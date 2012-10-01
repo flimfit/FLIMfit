@@ -3,7 +3,6 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
     if isempty(obj.fit_controller.fit_result) || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
         return
     end
-
     intensity = obj.fit_controller.get_intensity(dataset);
     im_data = obj.fit_controller.get_image(dataset,im);
     

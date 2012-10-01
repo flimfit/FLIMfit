@@ -50,47 +50,7 @@ classdef flim_dll_interface < handle
 
         p_tvb_profile;
         p_fixed_beta;
-        
-        %{
-        p_n_regions;
-        p_tau;
-        p_I0;
-        p_beta;
-        p_E;
-        p_chi2;
-        p_t0;
-        p_offset;
-        p_scatter;
-        p_ref_lifetime;
-        p_tvb;
-        p_grid;
-        p_gamma;
-        p_tau_err;
-        p_beta_err;
-        p_E_err;
-        p_theta_err;
-        p_offset_err;
-        p_scatter_err;
-        p_tvb_err;
-        p_ref_lifetime_err;
-       
-        
-        p_theta;
-        p_r;
-        
-        I0_size;
-        beta_size;
-        gamma_size;
-        E_size;
-        tau_size;
-        theta_size;
-        r_size;
-        %}
-        
-        globals_size;
-        n_regions;
-        n_regions_total;
-        
+                
         bin;
         grid;
         grid_dims;
@@ -98,10 +58,6 @@ classdef flim_dll_interface < handle
         fit_timer;
         wait_handle;
         start_time;
-        
-        n_group;
-        n_px;
-        n_im;
         
         im_size;
         

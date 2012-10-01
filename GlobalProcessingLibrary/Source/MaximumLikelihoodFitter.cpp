@@ -74,9 +74,9 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
    for(int i=0; i<l; i++)
-      lin_params[i] = exp(alf[nl-l+i]) / smoothing;
+      lin_params[i] = (float) (exp(alf[nl-l+i]) / smoothing);
 
-   chi2[0] = info[1] * chi2_factor;
+   chi2[0] = (float) (info[1] * chi2_factor);
 
 
 

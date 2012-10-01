@@ -53,7 +53,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         if ~isempty(d.seg_mask)        
             obj.p_mask = libpointer('uint8Ptr', uint8(d.seg_mask));
         else
-            obj.p_mask = [];
+            obj.p_mask = libpointer('uint8Ptr', uint8(1));
         end
     end
     
@@ -72,7 +72,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
                             p.fit_tvb, p.tvb, obj.p_tvb_profile, ...
                             p.pulsetrain_correction, 1e-6/d.rep_rate, ...
                             ref_recov, d.ref_lifetime, p.fitting_algorithm, ...
-                            obj.p_ierr, p.n_thread, true, false, 0);
+                            p.n_thread, true, false, 0);
     else
        
         n_decay_group = max(p.global_beta_group)+1;
@@ -91,7 +91,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
                             p.n_fret, p.n_fret_fix, p.inc_donor, obj.p_E_guess, ...
                             p.pulsetrain_correction, 1e-6/d.rep_rate, ...
                             ref_recov, d.ref_lifetime, p.fitting_algorithm, ...
-                            obj.p_ierr, p.n_thread, true, false, 0);
+                            p.n_thread, true, false, 0);
     end
 
     if err ~= 0

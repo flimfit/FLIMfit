@@ -105,8 +105,8 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
 
    data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
 
-   min_region = new int[n_im_used]; //ok
-   max_region = new int[n_im_used]; //ok
+   //min_region = new int[n_im_used]; //ok
+   //max_region = new int[n_im_used]; //ok
 
    mean_image = new float[ n_thread * n_meas ]; //ok
 
@@ -280,9 +280,9 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
    int* resample_idx = this->resample_idx + n_t * thread;
 
    int   max_w = n_t / 5;
-   float min_c = 20.0 / smoothing_area;
+   double min_c = 20.0 / smoothing_area;
    
-   int total_count = 0;
+   double total_count = 0;
    
    int last = -1;
    for(int i=0; i<n_t; i++)
@@ -403,7 +403,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* ad
       }
    }
    
-   memset(weight,0, n_meas * sizeof(*weight));
+   memset(weight,0, n_meas * sizeof(float));
 
    for(int i=0; i<s; i++)
       for(int j=0; j<n_meas; j++)
@@ -465,7 +465,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
             idx++;
          }
          int_idx++;
-         irf_idx[s] = p;
+         //irf_idx[s] = p;
          s++;
       }
    }
@@ -501,8 +501,8 @@ FLIMData::~FLIMData()
    if (!supplied_mask) 
       delete[] mask;
 
-   delete[] max_region;
-   delete[] min_region;
+   //delete[] max_region;
+   //delete[] min_region;
    delete[] t_skip;
    delete[] mean_image;
    delete[] region_count;

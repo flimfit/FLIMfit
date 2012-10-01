@@ -34,7 +34,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
                                                  int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                                                  int pulsetrain_correction, double t_rep,
                                                  int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                                                 int ierr[], int n_thread, int runAsync, int (*callback)()) :
+                                                 int n_thread, int runAsync, int (*callback)()) :
    global_algorithm(global_algorithm), image_irf(image_irf), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
    t0_image(t0_image), n_exp(n_exp), n_fix(n_fix), n_decay_group(n_decay_group), decay_group(decay_group),
    tau_min(tau_min), tau_max(tau_max),
@@ -48,7 +48,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    n_fret(n_fret), n_fret_fix(n_fret_fix), inc_donor(inc_donor), E_guess(E_guess),
    pulsetrain_correction(pulsetrain_correction), t_rep(t_rep),
    ref_reconvolution(ref_reconvolution), ref_lifetime_guess(ref_lifetime_guess),
-   ierr(ierr), n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
+   n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
    error(0), init(false), polarisation_resolved(false), has_fit(false), 
    anscombe_tranform(false), thread_handle(NULL)
 {
@@ -58,8 +58,13 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    alf          = NULL;
    chi2         = NULL;
    I            = NULL;
+   w_mean_tau   = NULL;
+   mean_tau     = NULL;
    cur_alf      = NULL;
    cur_irf_idx  = NULL;
+
+   ierr         = NULL;
+   success      = NULL;
 
    y            = NULL;
    lin_params   = NULL;
@@ -88,7 +93,6 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    alf_err        = NULL;
 
    chan_fact      = NULL;
-   //local_irf      = NULL;
    irf_idx        = NULL;
 
    param_names_ptr = NULL;
@@ -285,8 +289,9 @@ void FLIMGlobalFitController::SetPolarisationMode(int mode)
 
 int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
 {
-   double irf_95, c, p, j_last;
+   double irf_95, c, p;
    double* t = data->GetT();
+   int j_last; 
 
    int start = 0;
 
@@ -559,7 +564,7 @@ void FLIMGlobalFitController::Init()
    else 
       n_irf_rep = 1;
 
-   int a_n_irf = ceil(n_irf / 2.0) * 2;
+   int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
    int irf_size = a_n_irf * n_chan * n_irf_rep;
    #ifdef _WINDOWS
       irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
@@ -644,7 +649,7 @@ void FLIMGlobalFitController::Init()
       s = data->n_px;
 
    max_dim = max(n_irf,n_t);
-   max_dim = ceil(max_dim/4.0) * 4;
+   max_dim = int (ceil(max_dim/4.0) * 4);
 
 
    exp_dim = max_dim * n_chan;
@@ -711,6 +716,8 @@ void FLIMGlobalFitController::Init()
    int lps    = l + s + 1;
    
 
+   calculate_mean_lifetimes = !beta_global && n_exp > 1;
+
    int n_j = fit_fret ? n_fret_group : n_exp_phi;
 
    if (polarisation_resolved || (n_j == 1))
@@ -727,11 +734,16 @@ void FLIMGlobalFitController::Init()
       lin_params   = new float[ data->n_masked_px * lmax ]; //ok
       chi2         = new float[ data->n_masked_px ]; //ok
       I            = new float[ data->n_masked_px ];
-
-      if (data->global_mode == MODE_PIXELWISE)
-         alf          = new float[ alf_size * nl ]; //ok
-      else
-         alf          = new float[ alf_size * nl ]; //ok
+      ierr         = new int[ data->n_regions_total ];
+      success      = new float[ data->n_regions_total ];
+      alf          = new float[ alf_size * nl ]; //ok
+      
+      if (calculate_mean_lifetimes)
+      {
+         w_mean_tau   = new float[ data->n_masked_px ];  
+         mean_tau     = new float[ data->n_masked_px ];  
+      }
+      
 
       alf_local    = new double[ n_fitters * nl ]; //free ok
       y            = new float[ n_fitters * s * n_meas ]; //free ok 
@@ -778,8 +790,19 @@ void FLIMGlobalFitController::Init()
       return;
    }
 
-      SetNaN(alf, alf_size * nl );
-      SetNaN(chi2, data->n_masked_px );
+
+
+   SetNaN(alf, alf_size * nl );
+   SetNaN(chi2, data->n_masked_px );
+   SetNaN(I, data->n_masked_px );
+   SetNaN(lin_params, data->n_masked_px * lmax);
+
+   for(int i=0; i<data->n_regions_total; i++)
+   {
+      success[i] = 0;
+      ierr[i] = 0;
+   }
+
 
    if (n_irf > 2)
       t_g = t_irf[1] - t_irf[0];
@@ -816,6 +839,11 @@ void FLIMGlobalFitController::Init()
          projectors.push_back( new VariableProjector(this, s, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), n_omp_thread, &(status->terminate)) );
    }
 
+   for(int i=0; i<n_fitters; i++)
+   {
+      if (projectors[i].err != 0)
+         error = projectors[i].err;
+   }
 
 
    // Select correct convolution function for data type
@@ -832,9 +860,9 @@ void FLIMGlobalFitController::Init()
    }
 
    // Setup adjust buffer which will be subtracted from the data
-   SetupAdjust(0, adjust_buf, (fit_scatter == FIX) ? scatter_guess : 0, 
-                              (fit_offset == FIX)  ? offset_guess  : 0, 
-                              (fit_tvb == FIX)     ? tvb_guess     : 0);
+   SetupAdjust(0, adjust_buf, (fit_scatter == FIX) ? (float) scatter_guess : 0, 
+                              (fit_offset == FIX)  ? (float) offset_guess  : 0, 
+                              (fit_tvb == FIX)     ? (float) tvb_guess     : 0);
 
    // Set alf indices
    //-----------------------------
@@ -879,6 +907,8 @@ void FLIMGlobalFitController::SetOutputParamNames()
 {
    char buf[1024];
 
+   // Parameters associated with non-linear parameters (or fixed)
+
    for(int i=0; i<n_exp; i++)
    {
       sprintf(buf,"tau_%i",i+1);
@@ -918,6 +948,17 @@ void FLIMGlobalFitController::SetOutputParamNames()
 
    n_nl_output_params = param_names.size();
 
+   if (fit_offset == FIT_LOCALLY)
+      param_names.push_back("offset");
+
+   if (fit_scatter == FIT_LOCALLY)
+      param_names.push_back("scatter");
+
+   if (fit_tvb == FIT_LOCALLY)
+      param_names.push_back("tvb");
+
+   // Now that parameters that are derived from the linear parameters
+
    if (fit_beta == FIT_LOCALLY && n_exp > 1)
       for(int i=0; i<n_exp; i++)
       {
@@ -952,7 +993,16 @@ void FLIMGlobalFitController::SetOutputParamNames()
 
    param_names.push_back("I0");
    
+   // Parameters we manually calculate at the end
+   
    param_names.push_back("I");
+
+   if (calculate_mean_lifetimes)
+   {
+      param_names.push_back("mean_tau");
+      param_names.push_back("w_mean_tau");
+   }
+
    param_names.push_back("chi2");
 
    n_output_params = param_names.size();
@@ -1028,7 +1078,7 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
 
    if (tvb_profile != NULL)
       for(int i=0; i<n_meas; i++)
-         adjust[i] += tvb_profile[i] * tvb_adj;
+         adjust[i] += (float) (tvb_profile[i] * tvb_adj);
 }
 
 
@@ -1092,6 +1142,7 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
 
 void FLIMGlobalFitController::CleanupTempVars()
 {
+
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
    ClearVariable(y);
@@ -1107,25 +1158,30 @@ void FLIMGlobalFitController::CleanupTempVars()
 
 void FLIMGlobalFitController::CleanupResults()
 {
+
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
 
-      init = false;
+   init = false;
+      
+   ClearVariable(lin_local);
+   ClearVariable(alf_local);
+   ClearVariable(tau_buf);
+   ClearVariable(beta_buf);
+   ClearVariable(theta_buf);
+   ClearVariable(chan_fact);
+   ClearVariable(locked_param);
+   ClearVariable(locked_value);
+   ClearVariable(cur_alf);
+   ClearVariable(cur_irf_idx);
 
-      ClearVariable(lin_local);
-      ClearVariable(alf_local);
-      ClearVariable(tau_buf);
-      ClearVariable(beta_buf);
-      ClearVariable(theta_buf);
-      ClearVariable(chan_fact);
-      ClearVariable(locked_param);
-      ClearVariable(locked_value);
-      ClearVariable(cur_alf);
-      ClearVariable(cur_irf_idx);
-
-      ClearVariable(I);
-      ClearVariable(chi2);
-      ClearVariable(alf);
-      ClearVariable(lin_params);
+   ClearVariable(I);
+   ClearVariable(chi2);
+   ClearVariable(alf);
+   ClearVariable(lin_params);
+   ClearVariable(ierr);
+   ClearVariable(success);
+   ClearVariable(w_mean_tau);
+   ClearVariable(mean_tau);
 
    #ifdef _WINDOWS
    
@@ -1147,21 +1203,9 @@ void FLIMGlobalFitController::CleanupResults()
    
    #else
    
-      if (exp_buf != NULL)
-      {
-         delete []exp_buf;
-         exp_buf = NULL;
-      }
-      if (irf_buf != NULL)
-      {
-         delete []irf_buf;
-         irf_buf = NULL;
-      }
-      if (t_irf_buf != NULL)
-      {
-         delete []t_irf_buf;
-         t_irf_buf = NULL;
-      }
+      ClearVariable(exp_buf);
+      ClearVariable(irf_buf);
+      ClearVariable(t_irf_buf);
    
    #endif
 
@@ -1187,12 +1231,6 @@ void FLIMGlobalFitController::CleanupResults()
          result_map_filename = NULL;
       }
 
-//      if (local_irf != NULL)
-//      {
-//         delete[] local_irf;
-//         local_irf = NULL;
-//      }
-
       if (data != NULL)
       {
          delete data;
@@ -1209,5 +1247,4 @@ void FLIMGlobalFitController::CleanupResults()
       delete[] thread_handle;
       thread_handle = NULL;
    }
-
 }

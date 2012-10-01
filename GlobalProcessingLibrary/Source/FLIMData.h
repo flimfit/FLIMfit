@@ -9,6 +9,12 @@
 
 #include "FlagDefinitions.h"
 
+#ifndef NO_OMP   
+#include <omp.h>
+#endif
+
+
+
 #define MAX_REGION 255
 
 using namespace boost;
@@ -124,8 +130,8 @@ private:
 
    char *data_file; 
 
-   int *min_region;
-   int *max_region;
+   //int *min_region;
+   //int *max_region;
 
    int data_mode;
    
@@ -210,19 +216,26 @@ T* FLIMData::GetDataPointer(int thread, int im)
 template <typename T>
 int FLIMData::CalculateRegions()
 {
+   int err = 0;
+
    int cur_pos;
    int average_count = 0;
-   int n_ipx = n_x*n_y;
-
+   
    n_regions_total = 0;
 
    int r_count, r_idx; 
    
-   T* cur_data = new T[ n_ipx * n_meas_full ];
+   omp_set_num_threads(n_thread);
 
+   T* cur_data = new T[ n_p * n_thread ];
+   
+   //#pragma omp parallel for
    for(int i=0; i<n_im_used; i++)
    {
-      T* data_ptr = GetDataPointer<T>(0, i);
+      int thread = 0; //omp_get_thread_num();
+
+      T* data_ptr = GetDataPointer<T>(thread, i);
+      T* cur_data_ptr = cur_data + n_p * thread;
 
       int im = i;
       if (use_im != NULL)
@@ -230,62 +243,64 @@ int FLIMData::CalculateRegions()
 
       if (data_ptr == NULL)
       {
-         delete[] cur_data;
-         return ERR_FAILED_TO_MAP_DATA;
+         err = ERR_FAILED_TO_MAP_DATA;
       }
-
-      memcpy(cur_data,data_ptr, n_ipx * n_meas_full * sizeof(T));
-      
-      // We already have segmentation mask, now calculate integrated intensity
-      // and apply min intensity and max bin mask
-      //----------------------------------------------------
-
-      //#pragma omp parallel for
-      for(int p=0; p<n_ipx; p++)
+      else
       {
-         //T* ptr = data_ptr + p*n_meas_full;
-         T* ptr = cur_data + p*n_meas_full;
-         double intensity = 0;
-         for(int k=0; k<n_chan; k++)
+
+         memcpy(cur_data_ptr, data_ptr, n_p * sizeof(T));
+      
+         // We already have segmentation mask, now calculate integrated intensity
+         // and apply min intensity and max bin mask
+         //----------------------------------------------------
+
+         for(int p=0; p<n_px; p++)
          {
-            for(int j=0; j<n_t_full; j++)
+            T* ptr = cur_data_ptr + p*n_meas_full;
+            uint8_t* mask_ptr = mask + im*n_px;
+            double intensity = 0;
+            for(int k=0; k<n_chan; k++)
             {
-               if (limit > 0 && *ptr >= limit)
+               for(int j=0; j<n_t_full; j++)
                {
-                  mask[im*n_ipx+p] = 0;
-                  break;
+                  if (limit > 0 && *ptr >= limit)
+                  {
+                     *mask_ptr = 0;
+                     break;
+                  }
+                  intensity += *ptr;
+                  ptr++;
                }
-               intensity += *ptr;
-               ptr++;
             }
-         }
-         if (background_type == BG_VALUE)
-            intensity -= background_value * n_meas_full;
-         if (background_type == BG_IMAGE)
-            intensity -= background_image[p] * n_meas_full;
+            if (background_type == BG_VALUE)
+               intensity -= background_value * n_meas_full;
+            if (background_type == BG_IMAGE)
+               intensity -= background_image[p] * n_meas_full;
 
-         if (intensity < threshold)
-            mask[im*n_ipx+p] = 0;
+            if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
+               *mask_ptr = 0;
 
-         n_masked_px += (mask[im*n_ipx+p] > 0);
+            mask_ptr++;
+          }
        }
    }
 
    // Determine how many regions we have in each image
    //--------------------------------------------------------
+   #pragma omp parallel for
    for(int i=0; i<n_im_used; i++)
    {
       int im = i;
       if (use_im != NULL)
          im = use_im[im];
          
-      memset(region_count + i * MAX_REGION, 0, MAX_REGION*sizeof(int));
+      int*     region_count_ptr = region_count + i * MAX_REGION;
+      uint8_t* mask_ptr         = mask + im*n_px;
 
-      for(int p=0; p<n_ipx; p++)
-      {
-         int idx = mask[im*n_ipx+p];
-         region_count[idx + i * MAX_REGION]++;
-      }
+      memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
+
+      for(int p=0; p<n_px; p++)
+         region_count_ptr[*(mask_ptr++)]++;
    }
 
 
@@ -321,11 +336,16 @@ int FLIMData::CalculateRegions()
          }
 
          if (r_count > 0)
+         {
             for(int i=0; i<n_im_used; i++)
-               region_idx[ j + i * MAX_REGION ] = r_idx++;
+               region_idx[ j + i * MAX_REGION ] = r_idx;
+            r_idx++;
+         }
+
       }
    }
    
+   n_masked_px = cur_pos;
    n_regions_total = r_idx;
 
    /*
@@ -405,7 +425,7 @@ int FLIMData::CalculateRegions()
 //   delete[] r_count;
    delete[] cur_data;
 
-   return 0;
+   return err;
 
 }
 
@@ -427,13 +447,14 @@ void FLIMData::TransformImage(int thread, int im)
    T* data_ptr = GetDataPointer<T>(thread, im);
    memcpy(tr_buf, data_ptr, n_p * sizeof(T));
 
+   T* cur_data_ptr = (T*) tr_buf;
+      
 
-   double photons_per_count = 1/counts_per_photon;
-
+   float photons_per_count = (float) (1/counts_per_photon);
+   
    if ( smoothing_factor == 0 )
    {
       float* tr_ptr = tr_data;
-      float* cur_data_ptr = tr_buf;
       // Copy data from source to tr_data, skipping cropped time points
       for(int y=0; y<n_y; y++)
          for(int x=0; x<n_x; x++)
@@ -455,17 +476,13 @@ void FLIMData::TransformImage(int thread, int im)
       int dx = n_t_full * n_chan;
       int dy = n_x * dx; 
 
+      float* y_smoothed_buf = intensity; // use intensity as a buffer
+
       for(int c=0; c<n_chan; c++)
          for(int i=0; i<n_t; i++)
          {
             tr_idx = c*n_t + i;
             idx = c*n_t_full + t_skip[c] + i;
-
-            /*
-            for(int y=0; y<n_y; y++)
-               for(int x=0; x<n_x; x++)
-                  tr_buf[y*n_x+x] = data_ptr[yp*dy+x*dx+idx];
-                  */
 
             //Smooth in y axis
             for(int x=0; x<n_x; x++)
@@ -474,7 +491,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[y] = 0;
                   for(int yp=0; yp<y+s; yp++)
-                     tr_row_buf[y] += tr_buf[yp*dy+x*dx+idx];
+                     tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
                   tr_row_buf[y] /= y+s;
                }
 
@@ -483,7 +500,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[y] = 0;
                   for(int yp=y-s; yp<=y+s; yp++)
-                     tr_row_buf[y] += tr_buf[yp*dy+x*dx+idx];
+                     tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
                   tr_row_buf[y] /= 2*s+1;
                }
 
@@ -491,12 +508,12 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[y] = 0;
                   for(int yp=y-s; yp<n_y; yp++)
-                     tr_row_buf[y] += tr_buf[yp*dy+x*dx+idx];
+                     tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
                   tr_row_buf[y] /= n_y-(y-s);
                }
 
                for(int y=0; y<n_y; y++)
-                  intensity[y*n_x+x] = tr_row_buf[y];
+                  y_smoothed_buf[y*n_x+x] = tr_row_buf[y];
             }
 
             //Smooth in x axis
@@ -506,7 +523,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[x] = 0;
                   for(int xp=0; xp<x+s; xp++)
-                     tr_row_buf[x] += intensity[y*n_x+xp];
+                     tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
                   tr_row_buf[x] /= x+s;
                }
 
@@ -514,7 +531,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[x] = 0;
                   for(int xp=x-s; xp<=x+s; xp++)
-                     tr_row_buf[x] += intensity[y*n_x+xp];
+                     tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
                   tr_row_buf[x] /= 2*s+1;
                }
 
@@ -523,7 +540,7 @@ void FLIMData::TransformImage(int thread, int im)
                {
                   tr_row_buf[x] = 0;
                   for(int xp=x-s; xp<n_x; xp++)
-                     tr_row_buf[x] += intensity[y*n_x+xp];
+                     tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
                   tr_row_buf[x] /= n_x-(x-s);
                }
 
@@ -534,11 +551,11 @@ void FLIMData::TransformImage(int thread, int im)
 
          }
    }
-
+   
 
    // Calculate intensity
    float* intensity_ptr = intensity;
-   float* cur_data_ptr = tr_buf;
+   cur_data_ptr = (T*) tr_buf;
    for(int y=0; y<n_y; y++)
       for(int x=0; x<n_x; x++)
       {
@@ -583,6 +600,7 @@ void FLIMData::TransformImage(int thread, int im)
          tr_data[i] *= photons_per_count;
       }
    }
+
 
    cur_transformed[thread] = im;
 

@@ -29,6 +29,9 @@ public:
    void GetModel(const double* alf, int irf_idx, int isel, int thread);
    void ReleaseResidualMemory();
 
+   int err;
+
+
 protected:
 
    int Init();
@@ -85,8 +88,6 @@ protected:
    double fixed_value_initial;
    double fixed_value_cur;
    double chi2_final;
-
-   int err;
 
    bool getting_errs;
 

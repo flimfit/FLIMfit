@@ -41,7 +41,7 @@
 #define FIT            1
 
 //----------------------------------------------
-#define DATA_TYPE_TCSPC 0
+#define DATA_TYPE_TCSPC     0
 #define DATA_TYPE_TIMEGATED 1
 
 //----------------------------------------------

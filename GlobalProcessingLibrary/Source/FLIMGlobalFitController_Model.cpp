@@ -76,7 +76,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
          for(j=0; j<n_loop; j++)
          {
             for(k=0; k<n_chan; k++)
-               dest_[k*n_irf/2] = _mm_mul_pd(irf_[k*n_irf/2],ej_);
+               dest_[k*n_loop] = _mm_mul_pd(irf_[k*n_loop],ej_);
             ej_ = _mm_mul_pd(ej_,de_);
             irf_++;
             dest_++;
@@ -529,7 +529,7 @@ int FLIMGlobalFitController::E_derivatives(int thread, double tau[], double beta
 double CubicInterpolate(double  y[], double mu)
 {
    // mu - distance between y1 and y2
-   float a0,a1,a2,a3,mu2;
+   double a0,a1,a2,a3,mu2;
 
    mu2 = mu*mu;
    a0 = -0.5*y[0] + 1.5*y[1] - 1.5*y[2] + 0.5*y[3];
@@ -547,7 +547,7 @@ void FLIMGlobalFitController::ShiftIRF(double shift, double s_irf[])
 
    shift /= t_g;
 
-   int c_shift = floor(shift); 
+   int c_shift = (int) floor(shift); 
    double f_shift = shift-c_shift;
 
    int start = max(0,-c_shift)+1;

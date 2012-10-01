@@ -18,7 +18,7 @@ classdef flim_fit_result < handle
         
         chi2;
         ierr;
-        iter;
+        iterations;
         success;
         
         names;
@@ -63,22 +63,7 @@ classdef flim_fit_result < handle
             
             obj.n_results = n_results;
             
-            %{
-            obj.images = cell(1,n_results);
-            obj.image_stats = cell(1,n_results);
-            obj.region_stats = cell(1,n_results);
-            obj.metadata = cell(1,n_results);
-            
-            
-            for i = 1:n_results
-                obj.images{i} = struct();
-                obj.image_stats{i} = struct();
-                obj.region_stats{i} = struct();
-                obj.metadata = struct();
-            end
-            %}
-            
-            obj.default_lims = {};
+            obj.default_lims = [];
             
             obj.n_regions = zeros(1, n_results);
             
@@ -105,21 +90,37 @@ classdef flim_fit_result < handle
         function set_param_names(obj,params)
             obj.params = params;
             obj.intensity_idx = find(strcmp(params,'I'));
+            
+            obj.default_lims = NaN(length(params),2);
+            
         end
         
-        function set_results(obj,im,regions,region_size,param_mean,param_std)
+        function set_results(obj,idx,regions,region_size,success,iterations,param_mean,param_std,param_01,param_99)
             
             [M,S,N] = combine_stats(double(param_mean),double(param_std),double(region_size));
             
-            obj.image_mean{im} = M; 
-            obj.image_size{im} = N; 
-            obj.image_std{im} = S;
+            obj.image_mean{idx} = M; 
+            obj.image_size{idx} = N; 
+            obj.image_std{idx} = S;
             
-            obj.regions{im} = regions;
-            obj.region_size{im} = region_size;
-            obj.region_mean{im} = param_mean;
-            obj.region_std{im} = param_std;
+            obj.regions{idx} = regions;
+            obj.region_size{idx} = region_size;
+            obj.region_mean{idx} = param_mean;
+            obj.region_std{idx} = param_std;
             
+            obj.success{idx} = double(success) * 100;
+            obj.iterations{idx} = double(iterations);
+            
+            lims(:,1) = nanmin(obj.default_lims(:,1),param_01);
+            lims(:,2) = nanmax(obj.default_lims(:,2),param_99);
+            obj.default_lims = lims;  
+            
+        end
+        
+        function lims = get_default_lims(obj,param)
+            lims = obj.default_lims(param,:);
+            lims(1) = sd_round(lims(1),3,3); % round down to 3sf
+            lims(2) = sd_round(lims(2),3,2); % round up to 3sf
         end
         %{
         function set_image_split(obj,name,im,mask,intensity,r,default_lims,err)

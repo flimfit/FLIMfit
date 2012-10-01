@@ -1,15 +1,7 @@
-
-#include <boost/math/distributions/fisher_f.hpp>
-#include <boost/math/tools/minima.hpp>
-#include <boost/bind.hpp>
-#include <limits>
-
 #include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "IRFConvolution.h"
 #include "util.h"
-
-using namespace boost::interprocess;
 
 /*===============================================
   ProcessRegion
@@ -17,44 +9,37 @@ using namespace boost::interprocess;
 
 int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread)
 {
-   using namespace boost::math;
-   using namespace boost::math::tools;
-
    int i, j, s_thresh, itmax;
-   int lin_idx;
-   float I0;
-
    double ref = 0;
    double tau_ma;
 
    int ierr_local = 0;
 
-//   int n_px = data->n_px;
-
    int r_idx = data->GetRegionIndex(g,region);
+   int region_size = data->GetRegionCount(g,region);
 
-//   uint8_t *mask         = data->mask + g*n_px;
-   float   *local_decay  = this->local_decay + thread * n_meas;
-   float   *w            = this->w + thread * n;
+   float  *local_decay   = this->local_decay + thread * n_meas;
+   float  *w             = this->w + thread * n;
 
    double *alf_local     = this->alf_local + thread * nl;
    float  *lin_local     = this->lin_local + thread * l;
 
    int start = data->GetRegionPos(g,region) + px;
          
-   float *y, *lin_params, *chi2, *alf, *I;
+   float *y, *lin_params, *chi2, *alf, *I, *w_mean_tau, *mean_tau;
    int   *irf_idx;
 
    lin_params = this->lin_params + start * lmax;
    chi2       = this->chi2       + start;
    I          = this->I          + start;
+   w_mean_tau = this->w_mean_tau + start;
+   mean_tau   = this->mean_tau   + start;
 
    if (data->global_mode == MODE_PIXELWISE)
    {
       y       = this->y;
       irf_idx = this->irf_idx;
-
-      alf = this->alf + start * nl; 
+      alf     = this->alf + start * nl; 
 
       s_thresh = data->GetRegionData(thread, g, region, px, adjust_buf, y, NULL, w, irf_idx, local_decay);
       data->DetermineAutoSampling(thread, local_decay, nl+1);
@@ -63,19 +48,13 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    {
       y       = this->y       + thread * s * n_meas;
       irf_idx = this->irf_idx + thread * s;
-
-      alf     = this->alf        + nl * r_idx;
+      alf     = this->alf     + nl * r_idx;
    
       s_thresh = data->GetRegionData(thread, g, region, 0, adjust_buf, y, I, w, irf_idx, local_decay);
    }
 
 
-
    int n_meas_res = data->GetResampleNumMeas(thread);
-   
-   SetNaN(alf, nl);
-   SetNaN(lin_params, s_thresh*l);
-
 
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------
@@ -162,7 +141,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    {
       s_thresh = 1;
       y = local_decay;
-      irf_idx = NULL;
+      irf_idx[0] = 0;
    }
 
    if (data->global_mode == MODE_PIXELWISE)
@@ -177,52 +156,27 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       projectors[thread].CalculateErrors(alf_local,conf_lim);
 
    for(int i=0; i<nl; i++)
-      alf[i] = alf_local[i];
+      alf[i] = (float) alf_local[i];
 
    // Normalise to get beta/gamma/r and I0
    //--------------------------------------
+   NormaliseLinearParams(s_thresh,lin_params,lin_params);
+  
+   CalculateMeanLifetime(s_thresh, lin_params, alf, mean_tau, w_mean_tau);
 
-   lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
-   lin_params += lin_idx;
-
-   if (polarisation_resolved)
+   if (data->global_mode == MODE_PIXELWISE)
    {
-      for(int i=0; i<s_thresh; i++)
+      if (ierr_local >= 0)
       {
-         I0 = lin_params[0];
-
-         for(int j=1; j<n_r+1; j++)
-            lin_params[j-1] = lin_params[j] / I0;
-
-         lin_params[n_r] = I0;
-
-         lin_params += lmax;
+         success[r_idx] += 1;
+         ierr[r_idx] += ierr_local;
       }
    }
    else
    {
-      int n_j = fit_fret ? n_fret_group : n_exp_phi;
-
-      for(int i=0; i<s_thresh; i++)
-      {
-         I0 = 0;
-         for(int j=0; j<n_j; j++)
-            I0 += lin_params[j];
-
-         if (n_j > 1)
-         {
-            for (int j=0; j<n_j; j++)
-               lin_params[j] = lin_params[j] / I0;
-            lin_params[n_j] = I0;
-         }
-
-
-
-         lin_params += lmax;
-      }
+      ierr[r_idx] = ierr_local;
+      success[r_idx] = (float) min(0, ierr_local);
    }
-
-   ierr[r_idx] = ierr_local;
 
    status->FinishedRegion(thread);
 
@@ -231,24 +185,131 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
 
 
-   /* WEIGHTING FOR REFERENCE FITTNG
-   projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
-   
-   double F0 = 0;
-   for(i=0; i<l; i++)
-      F0 = lin_params[i];
+void FLIMGlobalFitController::CalculateMeanLifetime(int s, float lin_params[], float alf[], float mean_tau[], float w_mean_tau[])
+{
+   int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+   lin_params += lin_idx;
 
-   
-   for(i=0; i<n; i++)
+   if (calculate_mean_lifetimes)
    {
-      w[i] *= w[i];
-      w[i] = 1/w[i];
-   }
-   add_irf(thread, irf_idx[0], w, n_r, &F0);
-   for(i=0; i<n; i++)
-   {
-      w[i] = sqrt(1/w[i]);
-   }
+      for (int j=0; j<s; j++)
+      {
+         w_mean_tau[j] = 0;
+         mean_tau[j]   = 0;
+      }
 
-   projectors[thread].Fit(s_thresh, n_meas_res, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
-   */
+      for (int i=0; i<n_fix; i++)
+         for (int j=0; j<s; j++)
+         {
+            w_mean_tau[j] += (float) (tau_guess[i] * tau_guess[i] * lin_params[i+lmax*j]);
+            mean_tau[j]   += (float) (               tau_guess[i] * lin_params[i+lmax*j]); 
+         }
+
+      for (int i=0; i<n_v; i++)
+         for (int j=0; j<s; j++)
+         {
+            w_mean_tau[j] += (float) (alf[i] * alf[i] * lin_params[i+n_fix+lmax*j]);
+            mean_tau[j]   += (float) (         alf[i] * lin_params[i+n_fix+lmax*j]); 
+         }
+     
+      for (int j=0; j<s; j++)
+         w_mean_tau[j] /= mean_tau[j];
+
+   }
+}
+
+
+
+void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[])
+{
+   float I0;
+
+   int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+   lin_params += lin_idx;
+   norm_params += lin_idx;
+
+   if (polarisation_resolved)
+   {
+      for(int i=0; i<s; i++)
+      {
+         I0 = lin_params[0];
+
+         for(int j=1; j<n_r+1; j++)
+            norm_params[j-1] = lin_params[j] / I0;
+
+         norm_params[n_r] = I0;
+
+         norm_params += lmax;
+         lin_params += lmax;
+      }
+   }
+   else
+   {
+      int n_j = fit_fret ? n_fret_group : n_exp_phi;
+
+      for(int i=0; i<s; i++)
+      {
+         I0 = 0;
+         for(int j=0; j<n_j; j++)
+            I0 += lin_params[j];
+
+         if (n_j > 1)
+         {
+            for (int j=0; j<n_j; j++)
+               norm_params[j] = lin_params[j] / I0;
+            norm_params[n_j] = I0;
+         }
+
+         lin_params += lmax;
+         norm_params += lmax;
+      }
+   }
+}
+
+void FLIMGlobalFitController::DenormaliseLinearParams(int s, volatile float norm_params[], volatile float lin_params[])
+{
+   float I0;
+
+   int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+   
+   for(int i=0; i<lin_idx; i++)
+      lin_params[i] = norm_params[i];
+
+   lin_params += lin_idx;
+   norm_params += lin_idx;
+
+   if (polarisation_resolved)
+   {
+      for(int i=0; i<s; i++)
+      {
+         I0 = norm_params[n_r];
+
+         for(int j=1; j<n_r+1; j++)
+            lin_params[j] = norm_params[j-1] * I0;
+
+         lin_params[0] = I0;
+
+         norm_params += lmax;
+         lin_params += lmax;
+      }
+   }
+   else
+   {
+      int n_j = fit_fret ? n_fret_group : n_exp_phi;
+
+      for(int i=0; i<s; i++)
+      {
+         I0 = norm_params[n_j];
+
+         if (n_j > 1)
+            for (int j=0; j<n_j; j++)
+               lin_params[j] = norm_params[j] * I0;
+         else
+            lin_params[0] = norm_params[0];
+             
+         lin_params += lmax;
+         norm_params += lmax;
+      }
+   }
+}
+

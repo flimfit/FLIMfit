@@ -1,5 +1,6 @@
 #include "AbstractFitter.h"
 #include "FlagDefinitions.h"
+#include "util.h"
 
 #include "boost/math/distributions/fisher_f.hpp"
 #include "boost/math/tools/minima.hpp"
@@ -12,6 +13,28 @@ using namespace std;
 AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p_full, double *t, int variable_phi, int n_thread, int* terminate) : 
     model(model), smax(smax), l(l), nl(nl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
 {
+   err = 0;
+
+   a   = NULL;
+   r   = NULL;
+   b   = NULL;
+   u   = NULL;
+   kap = NULL;
+
+   params = NULL;
+   alf_err = NULL;
+   
+   // Check for valid input
+   //----------------------------------
+   if  (!(             l >= 0
+          &&          nl >= 0
+          && (nl<<1) + 3 <= ndim
+          && !(nl == 0 && l == 0)))
+   {
+      err = ERR_INVALID_INPUT;
+      return;
+   }
+
    a   = new double[ nmax * (l+1) * n_thread ]; //free ok
    r   = new double[ nmax * smax ];
    b   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
@@ -26,18 +49,6 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int nma
    getting_errs = false;
 
    lp1 = l+1;
-
-   err = 0;
-
-   // Check for valid input
-   //----------------------------------
-   if  (!(             l >= 0
-          &&          nl >= 0
-          && (nl<<1) + 3 <= ndim
-          &&           n <  nmax
-          &&           n <  ndim
-          && !(nl == 0 && l == 0)))
-      err = ERR_INVALID_INPUT;
 
    Init();
 
@@ -293,19 +304,17 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, float* a
 
 void AbstractFitter::ReleaseResidualMemory()
 {
-   if (r != NULL)
-      delete[] r;
-   r = NULL;
+   ClearVariable(r);
 }
 
 AbstractFitter::~AbstractFitter()
 {
-   if (r != NULL)
-      delete[] r;
+   ClearVariable(r);
+   ClearVariable(a);
+   ClearVariable(b);
+   ClearVariable(u);
+   ClearVariable(kap);
 
-   delete[] a;
-   delete[] b;
-   delete[] u;
-   delete[] kap;
-   delete[] params;
+   ClearVariable(params);
+   ClearVariable(alf_err);
 }

@@ -176,8 +176,8 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
    
    tmp=hx[i]-x[i];
    if (x[i]>LM_CNST(EPSILON) && hx[i]>LM_CNST(EPSILON))
-      tmp-=x[i]*log(hx[i]/x[i]);
-   tmp=fabs(tmp);
+	   tmp -= (LM_REAL) (x[i]*log(hx[i]/x[i]));
+   tmp= (LM_REAL) fabs(tmp);
    e[i]=tmp;
    p_eL2+=2*tmp;
    
@@ -235,15 +235,15 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
 
       for(l=n; l-->0; )
       {
-        double alf_fact = x[l]/(hx[l]*hx[l]);
-        double beta_fact = -(1-x[l]/hx[l]);
+        LM_REAL alf_fact = x[l]/(hx[l]*hx[l]);
+        LM_REAL beta_fact = -(1-x[l]/hx[l]);
         jaclm=jac+l*m;
         for(i=m; i-->0; )
         {
           jacTjacim=jacTjac+i*m;
           alpha=jaclm[i]; //jac[l*m+i];
           for(j=i+1; j-->0; ) /* j<=i computes lower triangular part only */
-            jacTjacim[j]+=jaclm[j]*alpha*alf_fact; //jacTjac[i*m+j]+=jac[l*m+j]*alpha
+            jacTjacim[j]+= jaclm[j]*alpha*alf_fact; //jacTjac[i*m+j]+=jac[l*m+j]*alpha
             //jacTjacim[j]+=jaclm[j]*alpha;
 
           /* J^T e */
@@ -366,8 +366,8 @@ if(!(k%100)){
           
           tmp=hx[i]-x[i];
           if (x[i]>LM_CNST(EPSILON) && hx[i]>LM_CNST(EPSILON))
-            tmp-=x[i]*log(hx[i]/x[i]);
-          tmp=fabs(tmp);
+            tmp-= (LM_REAL) (x[i]*log(hx[i]/x[i]));
+          tmp= (LM_REAL) fabs(tmp);
           e[i]=tmp;
           pDp_eL2+=2*tmp;
           
@@ -580,7 +580,7 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
   for(i=0, p_eL2=0.0; i<n; ++i){
     tmp=hx[i]-x[i];
     if (x[i]>0)
-      tmp-=x[i]*log(hx[i]/x[i]);
+      tmp-= (LM_REAL) (x[i]*log(hx[i]/x[i]));
     p_eL2+=2*tmp;
     //e[i]=tmp=x[i]-hx[i];
     //p_eL2+=tmp*tmp;
@@ -772,7 +772,7 @@ if(!(k%100)){
       for(i=0, pDp_eL2=0.0; i<n; ++i){
         tmp=wrk[i]-x[i];
         if (x[i]>0)
-          tmp-=x[i]*log(wrk[i]/x[i]);
+          tmp-= (LM_REAL) (x[i]*log(wrk[i]/x[i]));
         pDp_eL2+=2*tmp;
         //wrk2[i]=tmp=x[i]-wrk[i];
         //pDp_eL2+=tmp*tmp;

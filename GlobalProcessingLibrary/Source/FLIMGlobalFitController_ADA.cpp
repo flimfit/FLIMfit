@@ -182,7 +182,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          }
 
          // set constant phi value for scatterer
-         if( fit_scatter == FIT_LOCALLY )
+         if( fit_scatter == FIT_LOCALLY  )
          {
             for(i=0; i<N; i++)
                a[N*a_col+i]=0;
@@ -470,8 +470,6 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
    int i, l_start;
    double F0, ref_lifetime;
 
-   //for(i=0; i<n; i++)
-   //   w[i] = y[i];
 
    if (false && ref_reconvolution && lin_params != NULL)
    {

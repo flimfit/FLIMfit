@@ -129,6 +129,12 @@ classdef flim_fit_controller < flim_data_series_observer
         end
         
         function [param_data mask] = get_image(obj,im,param)
+            
+            if ischar(param)
+                param_idx = strcmp(obj.fit_result.params,param);
+                param = find(param_idx);
+            end
+            
             [param_data mask] = obj.dll_interface.get_image(im,param);
         end
         

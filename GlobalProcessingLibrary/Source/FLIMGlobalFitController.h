@@ -74,7 +74,7 @@ public:
    int fit_fret; int inc_donor; double *E_guess; int n_fret; int n_fret_fix; int n_fret_v;
    int pulsetrain_correction; double t_rep;
    int ref_reconvolution; double ref_lifetime_guess;
-   int *ierr; int algorithm;
+   int *ierr; float *success; int algorithm;
    int n_thread; int (*callback)();
    int error;
 
@@ -107,7 +107,6 @@ public:
    double *count_buf;
 
    int *irf_max;
-   //double *resampled_irf;
 
    int max_dim, exp_dim;
 
@@ -116,6 +115,7 @@ public:
    int s; int l; int nl; int n; int nmax; int ndim; 
    int lmax; int p; int n_v;
    float *y; float *w; float *alf; float *lin_params; float *chi2; float *I;
+   float *w_mean_tau, *mean_tau;
    int n_exp_phi, n_fret_group, exp_buf_size, tau_start;
 
    bool beta_global;
@@ -159,7 +159,7 @@ public:
                            int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                            int pulsetrain_correction, double t_rep,
                            int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                           int ierr[], int n_thread, int runAsync, int callback());
+                           int n_thread, int runAsync, int callback());
 
    void SetData(FLIMData* data);
 
@@ -182,13 +182,9 @@ public:
    int  ProcessRegion(int g, int r, int px, int thread);
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[]);
-   
-   int GetImageResults(int idx, uint8_t mask[], float chi2[], float tau[], float I0[], float beta[], float E[], 
-           float gamma[], float theta[], float r[], float t0[], float offset[], float scatter[], float tvb[], float ref_lifetime[]);
+   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params_mean[], float params_std[], float params_01[], float params_99[]);
 
-   int GetAverageImageResults(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float params_mean[], float params_std[]);
-   
-   int GetImage(int im, int param, uint8_t ret_mask[], float image_data[]);
+   int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
 
    double ErrMinFcn(double x, ErrMinParams& params);
@@ -231,16 +227,18 @@ private:
    void CalculateIRFMax(int n_t, double t[]);
    void CleanupResults();
    
-//   double CalculateChi2(int s, int n_meas_res, float y[], double a[], float lin_params[], float adjust_buf[], double fit_buf[], float chi2[]);
-
-   int ProcessNonLinearParams(int n, int n_px, int loc[], double alf[], float tau[], float beta[], float E[], float theta[], float offset[], float scatter[], float tvb[], float ref_lifetime[]);
-   int ProcessLinearParams(int s, int n_px, int loc[], float lin_params[], float chi2_group[], float I0[], float beta[], float gamma[], float r[], float offset[], float scatter[], float tvb[], float chi2[]);
 
    int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);
    
+   void NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[]);
+
+   void DenormaliseLinearParams(int s, volatile float norm_params[], volatile float lin_params[]);
+
    int ProcessNonLinearParams(float alf[], float output[]);
    float GetNonLinearParam(int param, float alf[]);
    
+   void CalculateMeanLifetime(int s, float lin_params[], float alf[], float mean_tau[], float w_mean_tau[]);
+
    double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
 
    void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
@@ -256,13 +254,7 @@ private:
    double g_factor;
 
    int lm_algorithm;
-
-   boost::interprocess::file_mapping   result_map_file;
-   boost::interprocess::mapped_region  result_map_view;
-   boost::interprocess::mapped_region  alf_map_view;
-   boost::interprocess::mapped_region  lin_map_view;
-   boost::interprocess::mapped_region  chi2_map_view;
-
+   
    char* result_map_filename;
 
    double* cur_alf;
@@ -275,6 +267,9 @@ private:
    int n_decay_group;
    int* decay_group;
    int* decay_group_buf;
+
+   int calculate_mean_lifetimes;
+
 
    std::vector<std::string> param_names;
 
@@ -312,10 +307,10 @@ void FLIMGlobalFitController::add_irf(int thread, int irf_idx, T a[], int pol_gr
       double scale = (scale_fact == NULL) ? 1 : scale_fact[k];
       for(int i=0; i<n_t; i++)
       {
-         ii = floor((t[i]-t_irf[0])/t_g);
+         ii = (int) floor((t[i]-t_irf[0])/t_g);
 
          if (ii>=0 && ii<n_irf)
-            a[idx] += irf_buf[k*n_t+ii] * chan_fact[pol_group*n_chan+k] * scale;
+            a[idx] += (T) (irf_buf[k*n_t+ii] * chan_fact[pol_group*n_chan+k] * scale);
          idx += resample_idx[i];
       }
       idx++;
@@ -324,26 +319,6 @@ void FLIMGlobalFitController::add_irf(int thread, int irf_idx, T a[], int pol_gr
 
 
 void StartWorkerThread(void* wparams);
-
-/*
-// http://paulbourke.net/miscellaneous/interpolation/
-double CubicInterpolate(
-   double y0,double y1,
-   double y2,double y3,
-   double mu)
-{
-   // mu - distance between y1 and y2
-   double a0,a1,a2,a3,mu2;
-
-   mu2 = mu*mu;
-   a0 = -0.5*y0 + 1.5*y1 - 1.5*y2 + 0.5*y3;
-   a1 = y0 - 2.5*y1 + 2*y2 - 0.5*y3;
-   a2 = -0.5*y0 + 0.5*y2;
-   a3 = y1;
-
-   return(a0*mu*mu2+a1*mu2+a2*mu+a3);
-}
-*/
 
 
 #endif
