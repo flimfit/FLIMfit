@@ -326,7 +326,10 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
                int j = 0;
                for(int i=0; i<n_px; i++)
                   if(im_mask[i] == rg)
-                     image_data[i] = GetNonLinearParam(param, param_data + i*nl) ;
+                  {
+                     image_data[i] = GetNonLinearParam(param, param_data + j*nl);
+                     j++;
+                  }
 
             }
             else

@@ -94,9 +94,11 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    i=0;
    for(j=0; j<n_v; j++)
       alf_local[i++] = TransformRange(alf_local[j],tau_min[j+n_fix],tau_max[j+n_fix]);
-   
-   for(j=0; j<n_beta; j++)
-      alf_local[i++] = fixed_beta[j];
+
+   if(fit_beta == FIT_GLOBALLY)
+      for(int j=0; j<n_exp-1; j++)
+         if (decay_group_buf[j+1] == decay_group_buf[j])
+            alf_local[i++] = fixed_beta[j];
 
    for(j=0; j<n_fret_v; j++)
       alf_local[i++] = E_guess[j+n_fret_fix];

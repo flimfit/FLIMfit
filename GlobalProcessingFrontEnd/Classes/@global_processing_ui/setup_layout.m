@@ -67,10 +67,8 @@ function handles = setup_layout(obj, handles)
     dataset_layout_left = uiextras.VBox( 'Parent', dataset_layout, 'Padding', 3 );
     handles.data_series_table = uitable( 'Parent', dataset_layout_left );
     
-    dataset_layout_button = uiextras.HBox( 'Parent', dataset_layout_left, 'Padding', 3 );
-    handles.data_series_sel_all = uicontrol( 'Style', 'pushbutton', 'String', 'Sel All', 'Parent', dataset_layout_button );
-    handles.data_series_sel_none = uicontrol( 'Style', 'pushbutton', 'String', 'Sel None', 'Parent', dataset_layout_button );
-
+    handles.data_series_sel_all = uicontrol( 'Style', 'pushbutton', 'String', 'Select Multiple...', 'Parent', dataset_layout_left );
+    
     set( dataset_layout_left, 'Sizes', [-1,22] );
     
     % Intensity View

@@ -184,8 +184,8 @@ classdef flim_fit_controller < flim_data_series_observer
                 set(obj.results_table,'RowName',obj.param_table_headers);
                 set(obj.results_table,'Data',obj.param_table);
                 
-                set(obj.progress_table,'RowName',obj.param_table_headers(1:5));
-                set(obj.progress_table,'Data',obj.param_table(1:5,:));
+                set(obj.progress_table,'RowName',obj.param_table_headers(1:4));
+                set(obj.progress_table,'Data',obj.param_table(1:4,:));
             end
         end
         

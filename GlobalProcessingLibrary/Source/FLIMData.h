@@ -254,10 +254,11 @@ int FLIMData::CalculateRegions()
          // and apply min intensity and max bin mask
          //----------------------------------------------------
 
+         uint8_t* mask_ptr = mask + im*n_px;
+            
          for(int p=0; p<n_px; p++)
          {
             T* ptr = cur_data_ptr + p*n_meas_full;
-            uint8_t* mask_ptr = mask + im*n_px;
             double intensity = 0;
             for(int k=0; k<n_chan; k++)
             {
@@ -348,81 +349,6 @@ int FLIMData::CalculateRegions()
    n_masked_px = cur_pos;
    n_regions_total = r_idx;
 
-   /*
-   if (global_mode == MODE_PIXELWISE)
-   {
-      max_region_size = 1;
-      n_regions_total = n_im_used*n_x*n_y;
-   }
-   else if (global_mode == MODE_IMAGEWISE)
-   {
-      max_region_size = 0;
-      for(int i=0; i<n_im_used; i++)
-      {
-         int im = i;
-         if (use_im != NULL)
-            im = use_im[im];
-
-         if (i>0)
-            region_start[i] = region_start[i-1] + max_region[i-1] - min_region[i-1] + 1;
-
-         memset(r_count, 0, MAX_REGION*sizeof(int));
-
-         for(int p=0; p<n_ipx; p++)
-            r_count[mask[im*n_ipx+p]]++;
-
-         max_region[i] = 0;
-         min_region[i] = 1;
-
-         int j;
-         for(j=1; j<MAX_REGION; j++)
-         {
-            if (r_count[j]>0)
-            {
-               min_region[i] = j;
-               break;
-            }
-         }
-         for(j=j; j<MAX_REGION; j++)
-         {
-            if (r_count[j]>0)
-               max_region[i] = j;
-            if (r_count[j]>max_region_size)
-               max_region_size = r_count[j];
-         }
-
-         n_regions_total += max_region[i] - min_region[i] + 1;
-            
-      }
-   }
-   else
-   {
-      max_region[0] = 0;
-      min_region[0] = 1;
-
-      int j;
-      for(j=1; j<=MAX_REGION; j++)
-      {
-         if (r_count[j]>0)
-         {
-            min_region[0] = j;
-            break;
-         }
-      }
-      for(j=j; j<=MAX_REGION; j++)
-      {
-         if (r_count[j]>0)
-            max_region[0] = j;
-         if (r_count[j]>max_region_size)
-            max_region_size = r_count[j];
-      }
-
-      n_regions_total += max_region[0] - min_region[0] + 1;
- 
-   }
-   */
-
-//   delete[] r_count;
    delete[] cur_data;
 
    return err;

@@ -233,7 +233,7 @@ classdef abstract_plot_controller < flim_fit_observer
             obj.update_param_menu();
             obj.plot_fit_update();
             
-            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'default_lims','PostSet',@obj.param_select_update);
+            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'cur_lims','PostSet',@obj.param_select_update);
         end
         
         function fit_display_update(obj)
@@ -290,10 +290,12 @@ classdef abstract_plot_controller < flim_fit_observer
 
             cscale = obj.colourscale(param);
 
+            lims = r.get_cur_lims(param);
+            I_lims = r.get_cur_lims('I');
             if ~merge
-                im=colorbar_flush(h,hc,im_data,isnan(intensity),r.default_lims{param},cscale,text);
+                im=colorbar_flush(h,hc,im_data,isnan(intensity),lims,cscale,text);
             else
-                im=colorbar_flush(h,hc,im_data,[],r.default_lims{param},cscale,text,intensity,r.default_lims.I);
+                im=colorbar_flush(h,hc,im_data,[],lims,cscale,text,intensity,I_lims);
             end
             
 

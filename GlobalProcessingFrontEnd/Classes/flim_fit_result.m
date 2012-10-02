@@ -34,10 +34,13 @@ classdef flim_fit_result < handle
         smoothing = 1;
         
         params = {};
+        
+        default_lims; 
     end
     
     properties(SetObservable = true)
-        default_lims; 
+        
+        cur_lims;
     end
     
     properties(Transient = true)
@@ -122,6 +125,18 @@ classdef flim_fit_result < handle
             lims(1) = sd_round(lims(1),3,3); % round down to 3sf
             lims(2) = sd_round(lims(2),3,2); % round up to 3sf
         end
+        
+        function lims = get_cur_lims(obj,param)
+            lims = obj.cur_lims(param,:);
+            lims(1) = sd_round(lims(1),3,3); % round down to 3sf
+            lims(2) = sd_round(lims(2),3,2); % round up to 3sf
+        end
+        
+        function lims = set_cur_lims(obj,param,lims);
+            obj.cur_lims(param,:) = lims;
+        end
+
+        
         %{
         function set_image_split(obj,name,im,mask,intensity,r,default_lims,err)
             if nargin < 7

@@ -94,7 +94,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     end
                 end
 
-                lims = r.default_lims{param};
+                lims = r.get_cur_lims(param);
                 cscale = obj.colourscale(param);
                 
 

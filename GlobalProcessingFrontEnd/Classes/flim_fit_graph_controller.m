@@ -79,7 +79,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                    
                 % Determine if we've got a numeric parameter
                 var_is_numeric = all(cellfun(@isnumeric,md));
-
+                
                 % Determine unique parameters
                 if var_is_numeric
                     md = cell2mat(md);
@@ -87,6 +87,10 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     x_data = unique(x_data);
                     x_data = sort(x_data);
                 else
+                    numeric = cellfun(@isnumeric,md);
+                    
+                    md(numeric) = cellfun(@num2str,md(numeric),'UniformOutput',false);
+                    
                     x_data = unique(md);
                     x_data = sort_nat(x_data);
                 end
@@ -190,7 +194,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 
                 hold(ax,'off');
 
-                lims = r.default_lims{param};
+                lims = r.get_cur_lims(param);
 
                 if isnan(lims(1)) || lims(1) > min(y_data);
                     lims(1) = 0.9*min(y_data);
@@ -213,6 +217,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 ylabel(ax,latex_param);
                 xlabel(ax,obj.ind_param);
   
+            else
+                cla(ax);
             end
             
         end

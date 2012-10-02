@@ -221,11 +221,12 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 cbar = axes('Parent',f);
                 
                 cscale = obj.colourscale(param);
+                lims = r.get_cur_lims(param);
                 
                 if ~merge
-                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),r.default_lims{param},cscale,[]);
+                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[]);
                 else
-                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),r.default_lims{param},cscale,[],gallery_I_data,r.default_lims.I);
+                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[],gallery_I_data,r.default_lims.I);
                 end
                 
                 %im=imagesc(gallery_data,'Parent',ax);    

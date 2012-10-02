@@ -148,7 +148,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     
     obj.p_t_int = libpointer('doublePtr',d.tr_t_int);
     obj.p_t_irf = libpointer('doublePtr', d.tr_t_irf);
-    obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta / sum(p.fixed_beta));
+    obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta);
     obj.p_E_guess = libpointer('doublePtr',p.fret_guess);
     obj.p_theta_guess = libpointer('doublePtr',p.theta_guess);
     obj.p_global_beta_group = libpointer('int32Ptr',p.global_beta_group);

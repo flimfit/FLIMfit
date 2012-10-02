@@ -121,9 +121,9 @@
                     table{i,6} = obj.auto_lim.(names{i});
                 end
                 
-                %for i=1:length(names) 
-                %    r.default_lims{i} = obj.plot_lims.(names{i});
-                %end
+                for i=1:length(names) 
+                    r.set_cur_lims(i, obj.plot_lims.(names{i}));
+                end
                 
                 set(obj.plot_select_table,'Data',table);
                 set(obj.plot_select_table,'ColumnEditable',logical([0 1 1 1 1 1]));

@@ -40,7 +40,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     param_data = [param_data; new_data];
                 end
                 
-                lims = r.default_lims{param};
+                lims = r.get_cur_lims(param);
                 
                 filt = param_data >= lims(1) & param_data <= lims(2) & isfinite(param_data);
                 
@@ -64,6 +64,8 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 end
                 xlabel(ax,param);
                 ylabel(ax,'Frequency');
+            else
+                cla(ax);
             end
         end
         

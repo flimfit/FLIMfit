@@ -1,6 +1,8 @@
 #include <math.h>
 #include "cminpack.h"
 
+#include "omp.h"
+
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 #define min(a,b) ((a) <= (b) ? (a) : (b))
 #define max(a,b) ((a) >= (b) ? (a) : (b))
@@ -226,8 +228,7 @@
     int r_dim1, r_offset;
 
     /* Local variables */
-    int i, j, jm1;
-    double tan, temp, rowj, cotan;
+
 
 /*     ********** */
 
@@ -291,6 +292,8 @@
 
 /*     ********** */
     /* Parameter adjustments */
+   int j;
+  
    --sin;
    --cos;
    --b;
@@ -301,14 +304,17 @@
 
     /* Function Body */
 
+   //#pragma omp parallel for  
    for (j = 1; j <= n; ++j) 
    {
+      int jm1, i;
+      double tan, temp, rowj, cotan;
       rowj = w[j];
       jm1 = j - 1;
 
-/*    apply the previous transformations to */
-/*    r(i,j), i=1,2,...,j-1, and to w(j). */
-
+//   apply the previous transformations to 
+//    r(i,j), i=1,2,...,j-1, and to w(j). 
+      
       if (jm1 >= 1) 
       {
          for (i = 1; i <= jm1; ++i) 
@@ -318,8 +324,8 @@
             r[i + j * r_dim1] = temp;
          }
       }
-
-/*    determine a givens rotation which eliminates w(j). */
+      
+//    determine a givens rotation which eliminates w(j). */
 
       cos[j] = 1.;
       sin[j] = 0.;

@@ -1,4 +1,4 @@
-function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,mode,pol,t_int)
+function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,mode,pol,t_int,format)
     
     [path name ext] = fileparts(file);
 
@@ -9,7 +9,7 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,
         dinfo.names{i} = ['Data ' num2str(i)];
     end
     
-    if nargin < 5
+    if nargin < 5 || isempty(metadata)
         metadata = struct();
     end
     
@@ -21,8 +21,12 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,
         pol = false;
     end
     
-    if nargin < 10
+    if nargin < 10 || isempty(t_int)
         t_int = ones(size(t));
+    end
+    
+    if nargin < 11
+        format = 'uint16';
     end
     
     if pol
@@ -44,6 +48,7 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,
     dinfo.num_datasets = n_datasets;
     dinfo.mode = mode;
     dinfo.t_int = t_int;
+    dinfo.format = format;
 
     if nargin > 6
         dinfo.irf = irf;

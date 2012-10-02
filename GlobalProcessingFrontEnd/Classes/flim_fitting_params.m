@@ -33,8 +33,8 @@ classdef flim_fitting_params < handle
         use_phase_plane_estimation = false;
         auto_estimate_tau = true;
         
-        fixed_beta = 1;
-        global_beta_group = [1];
+        fixed_beta = false;
+        global_beta_group = [0];
 
         n_fret = 0;
         n_fret_fix = 0;

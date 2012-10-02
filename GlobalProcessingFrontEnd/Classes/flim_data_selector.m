@@ -1,6 +1,6 @@
 function flim_data_selector(data_series_controller)
 
-    fig = figure('Toolbar','none');
+    fig = figure('Toolbar','none','Name','Select Data');
     
     handles = struct('data_series_controller',data_series_controller);
     

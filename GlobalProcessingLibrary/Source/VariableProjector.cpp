@@ -159,7 +159,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    if (info < 0)
       *ierr = info;
    else
-      *ierr = nfev;
+      *ierr = *niter;
    
    //*ierr = info;
    

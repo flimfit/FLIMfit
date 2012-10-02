@@ -522,23 +522,32 @@ void FLIMGlobalFitController::Init()
 
    decay_group_buf = new int[n_exp];
 
-   // Check to make sure that decay groups increase
-   // contiguously from zero
-   int cur_group = 0;
-   if (decay_group != NULL)
+   if (beta_global)
    {
-      for(int i=0; i<n_exp; i++)
+
+      // Check to make sure that decay groups increase
+      // contiguously from zero
+      int cur_group = 0;
+      if (decay_group != NULL)
       {
-         if (decay_group[i] == (cur_group + 1))
+         for(int i=0; i<n_exp; i++)
          {
-            cur_group++;
-         }
-         else if (decay_group[i] != cur_group)
-         {
-            decay_group = NULL;
-            break;
+            if (decay_group[i] == (cur_group + 1))
+            {
+               cur_group++;
+            }
+            else if (decay_group[i] != cur_group)
+            {
+               decay_group = NULL;
+               break;
+            }
          }
       }
+   }
+   else
+   {
+      decay_group = NULL;
+      n_decay_group = 1;
    }
 
    if (decay_group == NULL)
@@ -600,9 +609,15 @@ void FLIMGlobalFitController::Init()
 
    
    if (data->global_mode == MODE_PIXELWISE)
+   {
       status->SetNumRegion(data->n_masked_px);
+   }
    else
+   {
       status->SetNumRegion(data->n_regions_total);
+   }
+
+   n_fitters = min(data->n_masked_px,n_thread);
 
    if (data->n_regions_total == 0)
    {
@@ -613,7 +628,7 @@ void FLIMGlobalFitController::Init()
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
    //---------------------------------------
-   n_fitters = min(n_thread,data->n_regions_total);
+
    
    if (n_fitters == 1)
       n_omp_thread = n_thread;
@@ -979,11 +994,12 @@ void FLIMGlobalFitController::SetOutputParamNames()
       param_names.push_back(buf);
    }
 
-   for(int i=0; i<n_fret; i++)
-   {
-      sprintf(buf,"gamma_%i",i+1);
-      param_names.push_back(buf);
-   }
+   if (n_fret_group > 1)
+      for(int i=0; i<n_fret; i++)
+      {
+         sprintf(buf,"gamma_%i",i+1);
+         param_names.push_back(buf);
+      }
 
    for(int i=0; i<n_theta; i++)
    {

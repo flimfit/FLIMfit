@@ -13,7 +13,8 @@ classdef flim_data_series < handle
         subtract_background = false;
 
         min = 0;
-        max = 0;        
+        max = 0; 
+        
     end
     
     properties(Constant)

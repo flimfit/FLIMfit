@@ -37,8 +37,8 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                     param_data_y = [param_data_y; new_y];
                     
                 end
-                x_lim = r.default_lims{param(1)};
-                y_lim = r.default_lims{param(2)};
+                x_lim = r.get_cur_lims(param(1));
+                y_lim = r.get_cur_lims(param(2));
                 
                 sel = param_data_x >= x_lim(1) & param_data_x <= x_lim(2) ...
                     & param_data_y >= y_lim(1) & param_data_y <= y_lim(2);      
