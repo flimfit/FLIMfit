@@ -1,4 +1,4 @@
-classdef global_processing_ui
+    classdef global_processing_ui
    
     properties
         window
@@ -28,26 +28,7 @@ classdef global_processing_ui
             else
                 wait = true;
             end
-            
-            if OMERO_active == true
-               
-               external = true;
-            
-                logon = OMERO_logon;
-                
-                client = loadOmero(logon{1});
-                try 
-                    session = client.createSession(logon{2},logon{3});
-                catch
-                    OMERO_active = false;
-                    client = [];
-                    session = [];
-                    errordlg('Error creating OMERO session');
-                end
-            else
-                client = [];
-                session = [];
-            end
+
             
             % Try and read in version number
             try
@@ -57,7 +38,6 @@ classdef global_processing_ui
                 v = '[unknown version]';
             end
             
-
             
             % Get authentication if needed
             if require_auth
@@ -118,20 +98,17 @@ classdef global_processing_ui
             set(obj.window,'Units','Pixels','OuterPosition',coords);
            
             handles = guidata(obj.window); 
-            
+                                                
             handles.external = external;
-            
-            handles.OMERO_session = session;
-            handles.OMERO_client = client;
-                
-            handles = obj.setup_layout(handles);
-            handles = obj.setup_menu(handles);
+                                                           
+            handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
+            handles.data_series_controller = flim_data_series_controller(handles);                        
+            
             handles.version = v;
             handles.window = obj.window;
             handles.use_popup = true;
-            handles.data_series_controller = flim_data_series_controller(handles);
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);
             handles.data_intensity_view = flim_data_intensity_view(handles);
@@ -144,10 +121,14 @@ classdef global_processing_ui
             handles.hist_controller = flim_fit_hist_controller(handles);
             handles.corr_controller = flim_fit_corr_controller(handles);
             handles.graph_controller = flim_fit_graph_controller(handles);
-            handles.platemap_controller = flim_fit_platemap_controller(handles);
+            handles.platemap_controller = flim_fit_platemap_controller(handles);            
+                        
+            if OMERO_active == true               
+               handles.data_series_controller.Omero_logon();
+            end
             
-           
-
+            handles = obj.setup_menu(handles);            
+            
             handles.menu_controller = front_end_menu_controller(handles);
 
             guidata(obj.window,handles);
@@ -159,7 +140,6 @@ classdef global_processing_ui
                 waitfor(obj.window);
             end
             
-
             
         end
         
@@ -179,40 +159,34 @@ classdef global_processing_ui
             
             handles = guidata(obj.window);
 
-            session = handles.OMERO_session;
-            client = handles.OMERO_client;
-
-            if ~isempty(session)
-
-                %Close the OMERO session
+            client = handles.data_series_controller.client;
+            
+            if ~isempty(client)                
+                % save logon anyway                
+                logon = handles.data_series_controller.logon;
+                logon_filename = handles.data_series_controller.omero_logon_filename;                
+                omero_logon = [];
+                omero_logon.logon = logon;
+                xml_write(logon_filename,omero_logon);                                
+                %
                 disp('Closing OMERO session');
-
                 client.closeSession();
-                
-                handles.OMERO_session = [];
-                handles.OMERO_client = [];
-                %clear client;
-                %clear session;
-                %unloadOmero();
-                %clear java;
+                %
+                handles.data_series_controller.session = [];
+                handles.data_series_controller.client = [];
             end
             
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
-           
-            
+                       
             for i=1:length(names)
                 if ishandle(handles.(names{i}))
                     delete(handles.(names{i}));
                 end
             end
-            
-            
-            %guidata(obj.window,handles);
                         
         end
         
     end
     
 end
-

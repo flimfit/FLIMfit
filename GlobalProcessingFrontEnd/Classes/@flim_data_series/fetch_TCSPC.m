@@ -1,4 +1,4 @@
-function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
+function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel, ZCT)
     %> Load a single FLIM dataset
     
     if nargin < 3
@@ -7,15 +7,16 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
     if nargin < 4
         channel = [];
     end
-
+    
+    delays = [];
     
     try
-        [delays, data_cube, name] = OMERO_fetch(image_descriptor, channel);
+        
+        [delays, data_cube, name] = OMERO_fetch(image_descriptor, channel, ZCT);
+        
     catch err
         
-         rethrow(err);
     end
-      
     
         
    if length(channel) > 1
@@ -25,10 +26,7 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel)
    end
     
     if size(delays) > 0
-        
-        obj.mode = 'TCSPC';
-    
-    
+               
         obj.file_names = {'file'};
         obj.channels = 1;
         

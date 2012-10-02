@@ -2,10 +2,19 @@ classdef front_end_menu_controller < handle
     
     properties
         
-        menu_OMERO_fetch_TCSPC;
-        menu_OMERO_irf_TCSPC;
-        menu_OMERO_store_fit_result;
-
+        %%%%%%%%%%%%%%%%%%%%%%% OMERO                
+        menu_OMERO_Set_Dataset;        
+        menu_OMERO_Load_FLIM_Data;
+        menu_OMERO_Load_FLIM_Dataset;  
+        %menu_OMERO_Load_FLIM_Screen;                
+        menu_OMERO_Load_IRF_image;
+        menu_OMERO_Load_IRF_annot;            
+        menu_OMERO_Load_Background;            
+        menu_OMERO_Export_Fitting_Results;    
+        menu_OMERO_Export_Fitting_Settings;            
+        menu_OMERO_Import_Fitting_Settings;    
+        %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
+                        
         menu_file_new_window;
         
         menu_file_load_single;
@@ -99,7 +108,6 @@ classdef front_end_menu_controller < handle
 
         default_path;
 
-        session;    % OMERO session ID
     end
     
     properties(SetObservable = true)
@@ -140,10 +148,10 @@ classdef front_end_menu_controller < handle
                 obj.recent_default_path = {};
             end
             
-            obj.update_recent_irf_list();
+            % obj.update_recent_irf_list(); % YA ????? !!!!!!
+            
             obj.update_recent_default_list();
             
-            obj.session = handles.OMERO_session;      % OMERO session ID
         end
         
         function set_callbacks(obj)
@@ -245,65 +253,49 @@ classdef front_end_menu_controller < handle
                 obj.update_recent_irf_list();
             end
         end
-        
-        
-        
+                
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------
-        function menu_OMERO_fetch_TCSPC_callback(obj,~,~)
-      
-            dlgTitle = 'Enter Image ID';
-            prompt = {'ID '};
-            defaultvalues = {'0'};
-            imageID = 0;
-            numLines = 1;
-           
-            while (imageID < 1) 
-                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                imageID = uint32(str2num(inputdata{1}));
-            end
-
-            session = obj.session; 
-           
-            obj.data_series_controller.fetch_TCSPC({session, imageID}); 
-          
-        end
-        
-        
-        function menu_OMERO_irf_TCSPC_callback(obj,~,~)
-      
-            dlgTitle = 'Enter Image ID';
-            prompt = {'ID '};
-            defaultvalues = {'0'};
-            imageID = 0;
-            numLines = 1;
-           
-            while (imageID < 1) 
-                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                imageID = uint32(str2num(inputdata{1}));
-            end
-            
-            session = obj.session;
-            
-            polarisation_resolved = false;
-            
-           
-            % allow one channel to be loaded as an irf
-            channel = obj.data_series_controller.data_series.request_channels(polarisation_resolved);
-           
-            obj.data_series_controller.data_series.fetchirf_TCSPC({session, imageID}, polarisation_resolved, channel); 
-          
-        end
-        
-        
-        function menu_OMERO_store_fit_result_callback(obj,~,~)
-            
-            session = obj.session
-            obj.fit_controller.store_fit_result(session);         
-           
-        end
-        
+        function menu_OMERO_Set_Dataset_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Set_Dataset();
+        end                        
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Load_FLIM_Data();
+        end                                  
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Load_FLIM_Dataset();
+        end                    
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Load_IRF_annot();
+        end                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Load_Background_callback(obj,~,~) 
+            obj.data_series_controller.OMERO_Load_Background();
+        end                            
+        %------------------------------------------------------------------
+        function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Export_Fitting_Results(obj.fit_controller);
+        end                    
+        %------------------------------------------------------------------        
+        function menu_OMERO_Export_Fitting_Settings_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Export_Fitting_Settings();
+        end                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Import_Fitting_Settings_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Import_Fitting_Settings();
+        end                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Load_IRF_image_callback(obj,~,~)
+            % to be implemented...
+        end            
+       %------------------------------------------------------------------
+        % OMERO
+        %------------------------------------------------------------------                                
+                                                        
         %------------------------------------------------------------------
         % Load Data
         %------------------------------------------------------------------
@@ -462,7 +454,7 @@ classdef front_end_menu_controller < handle
             [file,path] = uigetfile('*.*','Select a file from the irf',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_irf([path file]);
-                obj.add_recent_irf([path file]);
+                % obj.add_recent_irf([path file]); % ?!!
             end
         end
         
@@ -546,7 +538,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 settings_file = tempname;
                 fit_params = obj.fitting_params_controller.fit_params;
-                obj.data_series_controller.data_series.save_data_settings(settings_file);
+                obj.data_series_controller.data_series.save_dataset_indextings(settings_file);
                 batch_fit(folder,'widefield',settings_file,fit_params);
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;

@@ -2,20 +2,32 @@
 function handles = setup_menu(obj,handles)
 
     external = handles.external;
-    session = handles.OMERO_session;
+
+    if ~isempty(handles.data_series_controller.session)
     
-    if ~isempty(session)
       external = true;
         
-      menu_OMERO      = uimenu(obj.window,'Label','OMERO');
+      menu_OMERO = uimenu(obj.window,'Label','OMERO');
    
-      handles.menu_OMERO_fetch_TCSPC = uimenu(menu_OMERO,'Label','Fetch single TCSPC image from OMERO','Accelerator','O');
-      handles.menu_OMERO_irf_TCSPC = uimenu(menu_OMERO,'Label','Fetch TCSPC irf from OMERO','Accelerator','O');
-      handles.menu_OMERO_store_fit_result = uimenu(menu_OMERO,'Label','Store fit result into OMERO','Accelerator','O');
-        
+        handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO,'Label','Set Working Dataset');
+        %
+        handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM: Single FOV','Separator','on');
+        handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM: Multiple FOVs');
+%        handles.menu_OMERO_Load_FLIM_Screen = uimenu(menu_OMERO,'Label','Load FLIM: OME Screen');
+        %
+        %handles.menu_OMERO_Load_IRF_image = uimenu(menu_OMERO,'Label','Load IRF (Image)','Separator','on');
+        handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)');
+        %    
+        handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background','Separator','on');    
+%        handles.menu_OMERO_Load_Time_Varying_Background = uimenu(menu_OMERO,'Label','Load Time Varying Background');    
+        %
+        handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results as new Dataset','Separator','on');    
+        handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings');    
+        %
+        handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings','Separator','on');    
+
     end
-    
-    
+        
 
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
@@ -24,9 +36,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','W');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
     
-    
-    
-    
+            
     if ~external
         menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
         handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
