@@ -171,10 +171,13 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                             [path name ext] = fileparts(file);
                             if export_all
                                 wfile = [path filesep d.names{dataset} '_' name ext];
+                                wifile = [path filesep d.names{dataset} '_' name '_irf' ext];
                             else
                                 wfile = [path filesep name ext];
+                                wifile = [path filesep name '_irf' ext];
                             end
                             dlmwrite(wfile,[t_decay' data],'\t');
+                            dlmwrite(wifile,[t_irf(:) irf(:)],'\t');
                         end
 
 
@@ -275,7 +278,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                        if display_mode == 1
                            low = 0;
                        else
-                           low = 0.9*min(data(:));
+                           low = 1e-3;%0.9*min(data(:));
                        end
                        high = max(data(:))*1.1;
 

@@ -53,10 +53,11 @@ classdef flim_fitting_params < handle
         split_fit = false;
         use_memory_mapping = false;
         
-        use_autosampling = true;
+        use_autosampling = false;
         
         image_irf_mode = 0;
         
+        weighting_mode = 0;
         
         n_thread = 8;
     end

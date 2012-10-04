@@ -470,8 +470,9 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
    int i, l_start;
    double F0, ref_lifetime;
 
+   n_meas = data->GetResampleNumMeas(thread);
 
-   if (false && ref_reconvolution && lin_params != NULL)
+   if ( ref_reconvolution && lin_params != NULL)
    {
       if (ref_reconvolution == FIT_GLOBALLY)
          ref_lifetime = alf[alf_ref_idx];
@@ -488,7 +489,7 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
       for(i=l_start; i<l; i++)
          F0 = lin_params[i];
       
-      for(i=0; i<n; i++)
+      for(i=0; i<n_meas; i++)
          w[i] /= ref_lifetime;
 
       add_irf(thread, irf_idx, w, n_r, &F0);

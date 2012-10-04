@@ -49,29 +49,31 @@ function get_return_data(obj)
 
         n_regions = p_n_regions.Value;
         
-        regions = p_regions.Value;
-        regions = regions(1:n_regions);
-        region_size = p_region_size.Value;
-        region_size = region_size(1:n_regions);
+        if n_regions > 0
+            regions = p_regions.Value;
+            regions = regions(1:n_regions);
+            region_size = p_region_size.Value;
+            region_size = region_size(1:n_regions);
 
-        iterations = p_iterations.Value;
-        iterations = iterations(1:n_regions);
+            iterations = p_iterations.Value;
+            iterations = iterations(1:n_regions);
 
-        success = p_success.Value;
-        success = success(1:n_regions);
+            success = p_success.Value;
+            success = success(1:n_regions);
+
+            param_mean = reshape(p_mean.Value,[n_output,255]);
+            param_std = reshape(p_std.Value,[n_output,255]);
+            param_mean = param_mean(:,1:n_regions);
+            param_std = param_std(:,1:n_regions);
+
+            param_pct_01 = reshape(p_pct_01.Value,[n_output,255]);
+            param_pct_99 = reshape(p_pct_99.Value,[n_output,255]);
+            param_pct_01 = param_pct_01(:,1:n_regions);
+            param_pct_99 = param_pct_99(:,1:n_regions);
+
+            f.set_results(i,regions,region_size,success,iterations,param_mean,param_std,param_pct_01,param_pct_99);
+        end
         
-        param_mean = reshape(p_mean.Value,[n_output,255]);
-        param_std = reshape(p_std.Value,[n_output,255]);
-        param_mean = param_mean(:,1:n_regions);
-        param_std = param_std(:,1:n_regions);
-        
-        param_pct_01 = reshape(p_pct_01.Value,[n_output,255]);
-        param_pct_99 = reshape(p_pct_99.Value,[n_output,255]);
-        param_pct_01 = param_pct_01(:,1:n_regions);
-        param_pct_99 = param_pct_99(:,1:n_regions);
-
-        f.set_results(i,regions,region_size,success,iterations,param_mean,param_std,param_pct_01,param_pct_99);
-            
     end
             
 

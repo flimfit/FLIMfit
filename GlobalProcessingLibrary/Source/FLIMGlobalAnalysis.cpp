@@ -143,7 +143,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                               int pulsetrain_correction, double t_rep,
                               int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                              int n_thread, int runAsync, int use_callback, int (*callback)())
+                              int weighting, int n_thread, int runAsync, int use_callback, int (*callback)())
 {
    int error;
 
@@ -175,7 +175,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                                       n_fret, n_fret_fix, inc_donor, E_guess, 
                                       pulsetrain_correction, t_rep,
                                       ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      n_thread, runAsync, callback );
+                                      weighting, n_thread, runAsync, callback );
                                       
    return controller[c_idx]->GetErrorCode();
    
@@ -195,7 +195,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int fit_tvb, double tvb_guess, double tvb_profile[],
                              int pulsetrain_correction, double t_rep,
                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                             int n_thread, int runAsync, int use_callback, int (*callback)())
+                             int weighting, int n_thread, int runAsync, int use_callback, int (*callback)())
 {
 
    int error = CheckControllerIdx(c_idx);
@@ -230,7 +230,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                                       n_fret, n_fret_fix, inc_donor, E_guess, 
                                       pulsetrain_correction, t_rep,
                                       ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      n_thread, runAsync, callback );
+                                      weighting, n_thread, runAsync, callback );
    controller[c_idx]->SetPolarisationMode(MODE_POLARISATION);
 
    return controller[c_idx]->GetErrorCode();

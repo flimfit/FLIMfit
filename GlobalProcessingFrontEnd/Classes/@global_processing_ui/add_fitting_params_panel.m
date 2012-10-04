@@ -97,13 +97,14 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         
         add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
         add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Variable Projection' 'Maximum Likelihood'});
+        add_fitting_param_control('adv','weighting_mode','popupmenu','Weighting Mode', {'Average Data','Pixelwise Data','Model'});
         add_fitting_param_control('adv','pulsetrain_correction','popupmenu','Pulse train correction', {'No','Yes'});
         add_fitting_param_control('adv','use_autosampling','popupmenu','Use Autosampling', {'No','Yes'});
         add_fitting_param_control('adv','image_irf_mode','popupmenu','IRF',{'Single Point', 'Use SV IRF', 'Use IRF Shift Map'});
         
         add_fitting_param_control('adv_col2','live_update','checkbox','', 'Live Fit');
         %add_fitting_param_control('adv_col2','split_fit','checkbox','', 'Split Fit');
-        add_fitting_param_control('adv_col2','use_memory_mapping','checkbox','', 'Memory Map Results');
+        %add_fitting_param_control('adv_col2','use_memory_mapping','checkbox','', 'Memory Map Results');
         add_fitting_param_control('adv_col2','calculate_errs','checkbox','', 'Calculate Errors');
         
         set(fit_params_adv_layout,'Sizes',[120 120 300])

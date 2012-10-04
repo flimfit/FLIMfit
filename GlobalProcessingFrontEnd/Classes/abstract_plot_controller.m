@@ -229,11 +229,15 @@ classdef abstract_plot_controller < flim_fit_observer
             obj.update_display();
         end
         
+        function lims_update(obj,src,evt)
+            obj.update_display();
+        end
+        
         function fit_update(obj)
             obj.update_param_menu();
             obj.plot_fit_update();
             
-            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'cur_lims','PostSet',@obj.param_select_update);
+            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'cur_lims','PostSet',@obj.lims_update);
         end
         
         function fit_display_update(obj)

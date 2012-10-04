@@ -274,7 +274,8 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
    float buf;
    int idx;
 
-   if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
+   if (n_chan > 1 || !use_autosampling || use_ext_resample_idx)
+   //if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
       return;
 
    int* resample_idx = this->resample_idx + n_t * thread;
@@ -442,6 +443,8 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
    int idx = 0;
    int int_idx = 0;
 
+   int n_meas = GetResampleNumMeas(thread);
+
    if (data_class == DATA_FLOAT)
       TransformImage<float>(thread, im);
    else
@@ -454,7 +457,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
       if (region < 0 || im_mask[p] == region)
       {
          masked_intensity[int_idx] = intensity[p];
-         memset(masked_data+idx,0,sizeof(*masked_data)*GetResampleNumMeas(thread));
+         memset(masked_data+idx,0,sizeof(float)*n_meas);
          for(int k=0; k<n_chan; k++)
          {
             for(int i=0; i<n_t; i++)
@@ -465,7 +468,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
             idx++;
          }
          int_idx++;
-         //irf_idx[s] = p;
+         irf_idx[s] = p;
          s++;
       }
    }

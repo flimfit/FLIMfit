@@ -39,7 +39,6 @@ classdef flim_fit_result < handle
     end
     
     properties(SetObservable = true)
-        
         cur_lims;
     end
     
@@ -127,67 +126,21 @@ classdef flim_fit_result < handle
         end
         
         function lims = get_cur_lims(obj,param)
+            
+            if ischar(param)
+                param_idx = strcmp(obj.params,param);
+                param = find(param_idx);
+            end
+            
             lims = obj.cur_lims(param,:);
             lims(1) = sd_round(lims(1),3,3); % round down to 3sf
             lims(2) = sd_round(lims(2),3,2); % round up to 3sf
         end
         
-        function lims = set_cur_lims(obj,param,lims);
+        function lims = set_cur_lims(obj,param,lims)
             obj.cur_lims(param,:) = lims;
         end
 
-        
-        %{
-        function set_image_split(obj,name,im,mask,intensity,r,default_lims,err)
-            if nargin < 7
-                default_lims = [];
-            end
-            if nargin < 8
-                err = [];
-            end
-            %if ndim(im) == 3
-                n = size(im,3);
-                for i=1:n
-                    ix = im(:,:,i);
-                    obj.set_image([name '_' num2str(i)],ix,mask,intensity,r,default_lims);
-                    if ~isempty(err)
-                        ex = err(:,:,i);
-                        if ~all(isnan(ex(:)))
-                            obj.set_image([name '_' num2str(i) '_err'],ex,mask,intensity,r,default_lims);
-                        end
-                    end
-                end
-             %{   
-             else
-                n = size(im,1);
-                for i=1:n
-                    ix = im(i,:);
-                    obj.set_image([name '_' num2str(i)],ix,mask,intensity,r,default_lims);
-                    if ~isempty(err)
-                        ex = err(:,:,i);
-                        if ~all(isnan(ex(:)))
-                            obj.set_image([name '_' num2str(i) '_err'],ex,mask,intensity,r,default_lims);
-                        end
-                    end
-                end  
-            end
-            %}
-        end
-                
-        function set_image(obj,name,im,mask,intensity,r,default_lims)
-            if nargin == 7 && ~isempty(default_lims)
-                obj.set_default_lims(name,default_lims);
-            end                
-            
-            obj.write(r,name,im,mask,intensity);
-             
-        end
-        
-        
-        function set_default_lims(obj,name,lims)
-        %    obj.default_lims.(name) = lims;
-        end
-        %}
         
         function set_metadata(obj,name,r,data)
             if length(r) == 1
@@ -236,107 +189,7 @@ classdef flim_fit_result < handle
             end
             
         end
-        %{
-        function write(obj,dataset,param,img,mask,intensity)
-            
-            img = single(img);
-            
-            if isempty(mask) || sum(mask(:)) == 0
-              
-                n_regions = 1;
-                obj.n_regions(dataset) = 1;
-                
-                sel = ~isnan(img);
-                timg = img(sel);
-                tmask = ones(size(timg));
-            else
-                n_regions = max(mask(:));
-                obj.n_regions(dataset) = n_regions;
-
-                sel = mask>0 & ~isnan(img);
-                timg = img(sel);
-                tmask = mask(sel);
-            end
-            
-            
-            tintensity = intensity(sel);
-            wtimg = timg .* tintensity / mean(tintensity);
-            
-            % Calculate image means
-            
-            img_mean = trimmean(timg,1);
-            img_std = trimstd(timg,1);
-            img_n = sum(tmask);
-                        
-            region_mean = zeros(1,n_regions);
-            region_std = zeros(1,n_regions);
-            region_n = zeros(1,n_regions);
-
-            for i=1:n_regions
-                if isempty(timg)
-                    region_mean(i) = nan;
-                    region_std(i) = nan;
-                    region_n(i) = nan;
-                else
-                    region_mean(i) = img_mean;
-                    region_std(i) = img_std;
-                    region_n(i) = img_n;    
-                    %{
-                    td = timg(tmask==i);
-                    region_mean(i) = trimmean(td,1);
-                    region_std(i) = trimstd(double(td),1);
-                    region_n(i) = length(td);
-                    %}
-                end
-            end
-            
-            % Calculate weighted means
-            %{
-            w_img_mean = trimmean(timg,1);
-            w_img_std = trimstd(timg,1);
-            w_img_n = sum(tmask);
-                        
-            w_region_mean = zeros(1,n_regions);
-            w_region_std = zeros(1,n_regions);
-            w_region_n = zeros(1,n_regions);
-
-            for i=1:n_regions
-                if isempty(wtimg)
-                    w_region_mean(i) = nan;
-                    w_region_std(i) = nan;
-                    w_region_n(i) = nan;
-                else
-                    td = wtimg(tmask==i);
-                    w_region_mean(i) = trimmean(td,1);
-                    w_region_std(i) = trimstd(double(td),1);
-                    w_region_n(i) = length(td);
-                end
-            end
-            %}
-            w_img_mean = img_mean;
-            w_img_std = img_std;
-            
-            stats = struct('mean',img_mean,'std',img_std,'w_mean',w_img_mean,'w_std',w_img_std,'n',img_n);
-            obj.image_stats{dataset}.(param) = stats;
-            
-            stats = struct('mean',region_mean,'std',region_std,'w_mean',region_mean,'w_std',region_std,'n',region_n);
-            obj.region_stats{dataset}.(param) = stats;
-            
-            if ~any(strcmp(obj.params,param))
-                obj.params = [obj.params param];
-            end
-            
-            if ~obj.use_memory_mapping
-                obj.images{dataset}.(param) = single(img);
-                
-            else
-                path = ['/' obj.names{dataset} '/' param];
-                h5create_direct(obj.file,path,size(img),'ChunkSize',size(img),'Deflate',0);
-                h5write(obj.file,path,img);
-            end
-            
-        end
-        %}
+        
         
         function save(obj,file)
            

@@ -55,6 +55,13 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             end
         end
         
+        if obj.data_subsampling > 1
+            subs = 1:length(t_inc);
+            subs = mod(subs,obj.data_subsampling) == 1;
+
+            t_inc = t_inc & subs;
+        end
+        
         obj.t_skip = [find(t_inc,1,'first') find(t_inc_perp,1,'first')]-1;
         
         % Apply all the masking above

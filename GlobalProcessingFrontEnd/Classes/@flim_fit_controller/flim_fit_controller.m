@@ -58,7 +58,6 @@ classdef flim_fit_controller < flim_data_series_observer
     methods
         
         function delete(obj,src)
-            a = 1;
         end
         
         function obj = flim_fit_controller(varargin)

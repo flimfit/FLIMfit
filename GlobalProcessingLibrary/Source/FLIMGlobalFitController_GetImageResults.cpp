@@ -426,6 +426,16 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    this->nmax = this->n_meas;
    this->t = t;
 
+   int* resample_idx  = new int[ n_t ]; //ok
+
+   for(int i=0; i<n_t-1; i++)
+      resample_idx[i] = 1;
+   resample_idx[n_t-1] = 0;
+
+   data->SetExternalResampleIdx(n_meas, resample_idx);
+
+   CalculateIRFMax(n_t,t);
+   
    getting_fit = true;
 
 
@@ -465,7 +475,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
                DenormaliseLinearParams(1, lin_group + lin_idx*lmax, lin_local);
 
-               projectors[0].GetFit(idx, alf_local, lin_local, adjust_buf, data->counts_per_photon, fit+n_meas*i);
+               projectors[0].GetFit(n_meas, idx, alf_local, lin_local, adjust_buf, data->counts_per_photon, fit+n_meas*i);
             }
             last_idx = idx;
          }
@@ -483,5 +493,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    this->t = t_buf;
    this->n = this->n_meas;
    
+   delete[] resample_idx;
+
    return 0;
 }

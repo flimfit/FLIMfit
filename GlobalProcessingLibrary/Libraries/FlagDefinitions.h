@@ -1,6 +1,12 @@
 #ifndef _FLAGDEFINITIONS_H
 #define _FLAGDEFINITIONS_H
 
+/*
+enum DataMappingMode { DATA_DIRECT, DATA_MAPPED };
+enum PolarisastionMode { MODE_STANDARD, MODE_POLARISATION };
+enum GlobalMode { MODE_GLOBAL_ANALYSIS, MODE_GLOBAL_BINNING };
+*/
+
 #define DATA_DIRECT 0
 #define DATA_MAPPED 1
 
@@ -43,6 +49,11 @@
 //----------------------------------------------
 #define DATA_TYPE_TCSPC     0
 #define DATA_TYPE_TIMEGATED 1
+
+//----------------------------------------------
+#define AVERAGE_WEIGHTING 0
+#define PIXEL_WEIGHTING 1
+#define MODEL_WEIGHTING 2
 
 //----------------------------------------------
 #define MAX_CONTROLLER_IDX 255

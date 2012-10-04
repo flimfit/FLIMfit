@@ -34,7 +34,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
                                                  int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                                                  int pulsetrain_correction, double t_rep,
                                                  int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                                                 int n_thread, int runAsync, int (*callback)()) :
+                                                 int weighting, int n_thread, int runAsync, int (*callback)()) :
    global_algorithm(global_algorithm), image_irf(image_irf), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
    t0_image(t0_image), n_exp(n_exp), n_fix(n_fix), n_decay_group(n_decay_group), decay_group(decay_group),
    tau_min(tau_min), tau_max(tau_max),
@@ -49,8 +49,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    pulsetrain_correction(pulsetrain_correction), t_rep(t_rep),
    ref_reconvolution(ref_reconvolution), ref_lifetime_guess(ref_lifetime_guess),
    n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
-   error(0), init(false), polarisation_resolved(false), has_fit(false), 
-   anscombe_tranform(false), thread_handle(NULL)
+   weighting(weighting), error(0), init(false), polarisation_resolved(false), has_fit(false)
 {
    params = new WorkerParams[n_thread]; //ok
    status = new FitStatus(this,n_thread,NULL); //ok
@@ -103,6 +102,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
 
    alf_local = NULL;
    lin_local = NULL;
+
+   thread_handle = NULL;
 
    lm_algorithm = 1;
 
@@ -851,7 +852,7 @@ void FLIMGlobalFitController::Init()
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, nmax, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(this, s, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
    }
 
    for(int i=0; i<n_fitters; i++)
@@ -1065,11 +1066,6 @@ void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
 
 }
 
-int FLIMGlobalFitController::GetNumThreads()
-{
-   return n_thread;
-}
-
 
 int FLIMGlobalFitController::GetErrorCode()
 {
@@ -1103,10 +1099,10 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
 /*===============================================
   ErrMinFcn
   ===============================================*/
-
+/*
 double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
 {
-/*
+
    using namespace boost::math;
 
    int itmax;
@@ -1150,11 +1146,11 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
   
 
    return (F-F_crit)*(F-F_crit)/F_crit;
-   */
+  
    return 0;
 }
 
-
+*/
 
 void FLIMGlobalFitController::CleanupTempVars()
 {

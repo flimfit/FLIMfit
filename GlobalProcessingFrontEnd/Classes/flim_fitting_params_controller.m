@@ -61,6 +61,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'n_theta','popupmenu');
             obj.bind_control(handles,'n_theta_fix','popupmenu');
             
+            obj.bind_control(handles,'weighting_mode','popupmenu');
             obj.bind_control(handles,'calculate_errs','checkbox');
             obj.bind_control(handles,'use_memory_mapping','checkbox');
             obj.bind_control(handles,'use_autosampling','popupmenu');
@@ -87,9 +88,9 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             if obj.data_series.init
                 obj.set_polarisation_mode(obj.data_series.polarisation_resolved);
                 
-                if ~isempty(obj.data_series.t0_image)
-                    obj.fit_params.image_irf_mode = 2;
-                end
+                %if ~isempty(obj.data_series.t0_image)
+                %    obj.fit_params.image_irf_mode = 2;
+                %end
                 
                 %obj.fit_params.split_fit = obj.data_series.lazy_loading;
                 %obj.fit_params.use_memory_mapping = obj.data_series.lazy_loading || ~is64;

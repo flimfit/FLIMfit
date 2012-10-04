@@ -281,7 +281,7 @@ void AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_
 }
 
 
-int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit)
+int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit)
 {
    if (err != 0)
       return err;
@@ -289,13 +289,13 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, float* a
    model->CalculateModel(a, b, kap, alf, irf_idx, 1, 0);
 
    int idx = 0;
-   for(int i=0; i<n; i++)
+   for(int i=0; i<n_meas; i++)
    {
       fit[idx] = adjust[i];
       for(int j=0; j<l; j++)
-         fit[idx] += a[n*j+i] * lin_params[j];
+         fit[idx] += a[n_meas*j+i] * lin_params[j];
 
-      fit[idx] += a[n*l+i];
+      fit[idx] += a[n_meas*l+i];
       fit[idx++] *= counts_per_photon;
    }
 

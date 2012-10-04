@@ -139,11 +139,7 @@ public:
    float* lin_params_err;
    double* alf_err;
 
-   bool anscombe_tranform;
    int eq_spaced_data;
-
-   conv_func Convolve;
-   conv_deriv_func ConvolveDerivative;
 
    FLIMGlobalFitController(int global_algorithm, int image_irf,
                            int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
@@ -159,58 +155,22 @@ public:
                            int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                            int pulsetrain_correction, double t_rep,
                            int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                           int n_thread, int runAsync, int callback());
-
-   void SetData(FLIMData* data);
-
-   void SetPolarisationMode(int mode);
-
-   int RunWorkers();
-
-   void WorkerThread(int thread);
-
-   void CleanupTempVars();
+                           int weighting, int n_thread, int runAsync, int callback());
 
    ~FLIMGlobalFitController();
 
-   void Init();
 
-   int  GetNumGroups();
-   int  GetNumThreads();
+   void SetData(FLIMData* data);
+   void SetPolarisationMode(int mode);
+
+
+   void Init();
+   int RunWorkers();
    int  GetErrorCode();
-   void SetGlobalVariables();
-   int  ProcessRegion(int g, int r, int px, int thread);
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[]);
    int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params_mean[], float params_std[], float params_01[], float params_99[]);
-
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
-
-
-   double ErrMinFcn(double x, ErrMinParams& params);
-
-   void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[]);
-   int check_alf_mod(int thread, const double* new_alf, int irf_idx);
-
-   void add_decay(int thread, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
-   void add_derivative(int thread, int tau_idx, int theta_idx, int fret_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
-   
-   template <typename T>
-   void add_irf(int thread, int irf_idx, T a[],int pol_group, double* scale_fact = NULL);
-
-   int flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
-   int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
-   int tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
-   int beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[]);
-   int theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
-   int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
-   int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
-
-
-   int global_algorithm;
-
-   tthread::recursive_mutex cleanup_mutex;
-   tthread::recursive_mutex mutex;
 
 
    void SetupIncMatrix(int* inc);
@@ -227,11 +187,13 @@ private:
    void CalculateIRFMax(int n_t, double t[]);
    void CleanupResults();
    
-
-   int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);
+   void WorkerThread(int thread);
    
-   void NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[]);
+   void CleanupTempVars();
 
+
+   int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
+   void NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[]);
    void DenormaliseLinearParams(int s, volatile float norm_params[], volatile float lin_params[]);
 
    int ProcessNonLinearParams(float alf[], float output[]);
@@ -243,6 +205,38 @@ private:
 
    void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
    
+
+   int flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
+   int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[]);
+   int theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+
+   int ProcessRegion(int g, int r, int px, int thread);
+
+   void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[]);
+   int check_alf_mod(int thread, const double* new_alf, int irf_idx);
+
+   void add_decay(int thread, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
+   void add_derivative(int thread, int tau_idx, int theta_idx, int fret_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
+   
+   template <typename T>
+   void add_irf(int thread, int irf_idx, T a[],int pol_group, double* scale_fact = NULL);
+
+
+   conv_func Convolve;
+   conv_deriv_func ConvolveDerivative;
+
+
+   int global_algorithm;
+   int weighting;
+
+   tthread::recursive_mutex cleanup_mutex;
+   tthread::recursive_mutex mutex;
+
+
 
    int DetermineMAStartPosition(int p);
    double CalculateMeanArrivalTime(float decay[], int p);
@@ -283,6 +277,7 @@ private:
    tthread::mutex data_mutex;
    tthread::condition_variable active_lock;
 
+   friend void StartWorkerThread(void* wparams);
 };
 
 

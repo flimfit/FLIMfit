@@ -34,26 +34,37 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 hist_classes = str2double(get(obj.hist_classes_edit,'String'));
                 
                 param_data = [];
+                I_data = [];
                 for i=1:length(sel)
                     new_data = obj.fit_controller.get_image(sel(i),param);
-                    new_data = new_data(isfinite(new_data));
+                    new_I_data = obj.fit_controller.get_image(sel(i),'I');
+                    
+                    filt = isfinite(new_data) & isfinite(new_I_data);
+                    
+                    new_data = new_data(filt);
+                    new_I_data = new_I_data(filt);
+                    
+                    I_data = [I_data; new_I_data];
                     param_data = [param_data; new_data];
                 end
                 
                 lims = r.get_cur_lims(param);
+                I_lims = r.get_cur_lims('I');
                 
-                filt = param_data >= lims(1) & param_data <= lims(2) & isfinite(param_data);
+                filt = param_data >= lims(1) & param_data <= lims(2);
                 
+                intensity = I_data( filt );
                 param_data = param_data( filt );
                                 
+                intensity = (intensity - I_lims(1))/(I_lims(2)-I_lims(1));
+                intensity(intensity<0) = 0;
+                intensity(intensity>1) = 1;
+                
                 x = linspace(lims(1),lims(2),hist_classes);
                 
                 cla(ax);
 
                 if weighting == 2
-                    intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I');
-                    intensity = intensity( filt );
-
                     weightedhist(ax,param_data,intensity,x);
                 else
                     hist(ax,param_data,x);
@@ -71,11 +82,19 @@ classdef flim_fit_hist_controller < abstract_plot_controller
         
         function export_histogram_data(obj,file,mode)
             
+            if obj.cur_param == 0
+                return;
+            end
+            
             if nargin < 3
                 mode = 'single';
             end
             
+            r = obj.fit_controller.fit_result;
             weighting = get(obj.hist_weighting_popupmenu,'Value');
+            hist_classes = str2double(get(obj.hist_classes_edit,'String'));
+            param = obj.cur_param;
+            lims = r.get_cur_lims(param);
             
             if weighting == 2
                 weighting_string = '(Intensity Weighted)';
@@ -83,7 +102,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 weighting_string = '(Unweighted)';
             end
             
-            r = obj.fit_controller.fit_result;
+            
             
             [path name ext] = fileparts(file);
             
@@ -94,24 +113,25 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             hist_se = zeros(1,r.n_results);
             hist_area = zeros(1,r.n_results);
             
-            count = zeros(obj.hist_classes+1,r.n_results);
+                
+            
+            count = zeros(hist_classes,r.n_results);
             
             for i=1:r.n_results
                
-                param_data =  obj.fit_controller.fit_result.get_image(i,param);
+                param_data =  obj.fit_controller.get_image(i,param);
                 
                 if ~isempty(param_data)
-                filt = param_data >= obj.hist_min & param_data <= obj.hist_max & ~isnan(param_data);
+                filt = param_data >= lims(1) & param_data <= lims(2) & ~isnan(param_data);
                 
                 param_data = param_data( filt );
                 
-                diff = (obj.hist_max - obj.hist_min) / obj.hist_classes;
-                x = obj.hist_min:diff:obj.hist_max;
-       
+                x = linspace(lims(1),lims(2),hist_classes);
+
                 if ~isempty(param_data)
                     
                     if weighting == 2
-                        intensity = obj.fit_controller.fit_result.get_image(i,'I');
+                        intensity = obj.fit_controller.get_image(i,'I');
                         intensity = intensity( filt );
 
                         count(:,i) = weightedhist(ax,param_data,intensity,x)';
@@ -161,7 +181,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             end
             
             if strcmp(mode,'single')
-                filename = [path filesep name ' ' obj.cur_param ' histogram' ext];
+                filename = [path filesep name ' ' r.params{param} ' histogram' ext];
                     f = fopen(filename,'w');
 
                     fprintf(f,'%s %s\r\n',obj.cur_param,weighting_string);

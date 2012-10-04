@@ -1,6 +1,7 @@
 
 #define INVALID_INPUT -1
 
+#include "FlagDefinitions.h"
 #include "VariableProjector.h"
 
 #define CMINPACK_NO_DLL
@@ -17,10 +18,12 @@
 #endif
 
 
-VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate) : 
+VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
-   weighting = AVERAGE_WEIGHTING;
+   this->weighting = weighting;
+
+   //weighting = PIXEL_WEIGHTING;
    use_numerical_derv = false;
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
@@ -410,7 +413,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       // If we're model weighting we need the linear parameters
       // every time so we can calculate the model function, otherwise
       // just calculate them at the end when requested
-      if (get_lin | (weighting == MODEL_WEIGHTING))
+      if (get_lin | iterative_weighting) //(weighting == MODEL_WEIGHTING))
          get_linear_params(j, aw, u, work);
 
    } // loop over pixels
@@ -468,6 +471,7 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
       }
    }
 
+   if (n_call != 0)
    model->GetWeights(y, a, alf, lin_params, wp, irf_idx[px], thread);
 
    for(int i=0; i<n; i++)

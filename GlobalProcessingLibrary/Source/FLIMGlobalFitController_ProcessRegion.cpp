@@ -38,7 +38,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    if (data->global_mode == MODE_PIXELWISE)
    {
       y       = this->y;
-      irf_idx = this->irf_idx;
+      irf_idx = this->irf_idx + px;
       alf     = this->alf + start * nl; 
 
       s_thresh = data->GetRegionData(thread, g, region, px, adjust_buf, y, NULL, w, irf_idx, local_decay);

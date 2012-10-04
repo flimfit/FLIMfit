@@ -179,7 +179,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     
                     im_data = obj.fit_controller.get_image(sel(i),param);
                     if merge
-                        I_data = r.get_image(sel(i),'I');
+                        I_data = obj.fit_controller.get_image(sel(i),'I');
                         gallery_I_data(ci:ci+d.height-1,ri:ri+d.width-1) = I_data;
                     
                     end
@@ -222,11 +222,12 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 
                 cscale = obj.colourscale(param);
                 lims = r.get_cur_lims(param);
+                I_lims = r.get_cur_lims('I');
                 
                 if ~merge
                     im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[]);
                 else
-                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[],gallery_I_data,r.default_lims.I);
+                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[],gallery_I_data,I_lims);
                 end
                 
                 %im=imagesc(gallery_data,'Parent',ax);    

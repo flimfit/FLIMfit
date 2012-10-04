@@ -72,6 +72,9 @@ classdef flim_data_series < handle
         polarisation_resolved = false;
         data_size;
         use;
+        
+        data_subsampling = 1;
+        irf_subsampling = 1;
     end
         
     
@@ -141,7 +144,7 @@ classdef flim_data_series < handle
         
         has_image_irf = 0;
         image_irf;
-
+        
     end
     
     events
@@ -242,9 +245,7 @@ classdef flim_data_series < handle
             %> and roi_mask from dataset selected
             
             obj.switch_active_dataset(dataset);
-            
-            n_tr_t = length(obj.tr_t);
-            
+                        
             idx = obj.get_intensity_idx(dataset);
             
             % Get mask from thresholding
@@ -573,12 +574,36 @@ classdef flim_data_series < handle
             obj.compute_tr_data();
         end
         
+        function set.ref_lifetime(obj,ref_lifetime)
+            obj.ref_lifetime = ref_lifetime;
+            obj.compute_tr_irf();
+            notify(obj,'data_updated');
+        end
+        
+        function set.irf_type(obj,irf_type)
+            obj.irf_type = irf_type;
+            obj.compute_tr_irf();
+            notify(obj,'data_updated');
+        end
+            
+        
         function set.g_factor(obj,g_factor)
             obj.g_factor = g_factor;
             obj.compute_tr_irf();
             notify(obj,'data_updated');
         end
         
+        function set.data_subsampling(obj,data_subsampling)
+            obj.data_subsampling = data_subsampling;
+            obj.compute_tr_data();
+        end
+       
+        function set.irf_subsampling(obj,irf_subsampling)
+            obj.irf_subsampling = irf_subsampling;
+            obj.compute_tr_irf();
+            notify(obj,'data_updated');
+        end
+
         function set.t0(obj,t0)
             obj.t0 = t0;
             obj.compute_tr_irf();
