@@ -1,12 +1,13 @@
 function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
 
-    if isempty(obj.fit_controller.fit_result) || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
+    f = obj.fit_controller;
+
+    if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
         return
     end
-    intensity = obj.fit_controller.get_intensity(dataset);
-    im_data = obj.fit_controller.get_image(dataset,im);
-    
-    invert = get(obj.invert_colormap_popupmenu,'Value') - 1;
+    intensity = f.get_intensity(dataset);
+    im_data = f.get_image(dataset,im);
+    invert = f.invert_colormap;
     
     if strcmp(im,'I0') || strcmp(im,'I')
         cscale = @gray;
@@ -16,10 +17,13 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
         cscale = @jet;
     end
     
+    lims = f.get_cur_lims(im);
+    I_lims = f.get_cur_intensity_lims();
+    
     if ~merge
-        colorbar_flush(h,hc,im_data,isnan(intensity),obj.plot_lims.(obj.plot_names{im}),cscale,text);
+        colorbar_flush(h,hc,im_data,isnan(intensity),lims,cscale,text);
     else
-        colorbar_flush(h,hc,im_data,[],obj.plot_lims.(obj.plot_names{im}),cscale,text,intensity,obj.plot_lims.I);
+        colorbar_flush(h,hc,im_data,[],lims,cscale,text,intensity,I_lims);
     end
 
 end

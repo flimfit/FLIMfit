@@ -50,7 +50,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param) && obj.cur_param > 0
 
-                r = obj.fit_controller.fit_result;     
+                f = obj.fit_controller;  
+                r = f.fit_result;
                 sel = obj.fit_controller.selected;
                 
                 err_name = [param '_err'];
@@ -194,7 +195,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 
                 hold(ax,'off');
 
-                lims = r.get_cur_lims(param);
+                lims = f.get_cur_lims(param);
 
                 if isnan(lims(1)) || lims(1) > min(y_data);
                     lims(1) = 0.9*min(y_data);

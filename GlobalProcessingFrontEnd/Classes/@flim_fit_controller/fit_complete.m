@@ -21,7 +21,9 @@ function fit_complete(obj,~,~)
     obj.selected = 1:obj.fit_result.n_results;
     
     obj.update_filter_table();
-    
+    obj.update_list();
+    obj.update_display_table();
+   
     try
     notify(obj,'fit_updated');    
     catch ME

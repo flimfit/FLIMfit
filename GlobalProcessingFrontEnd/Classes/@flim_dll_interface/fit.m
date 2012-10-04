@@ -1,6 +1,7 @@
 function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
     obj.load_global_library();
+   
     
     if nargin < 4
         roi_mask = [];
@@ -8,8 +9,9 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     if nargin < 5
         selected = [];
     end
-
-    if nargin >= 5 % binning mask provided
+    
+    % Check if a binning mask has been provided
+    if nargin >= 5
         obj.bin = true;
         if nargin < 6
             obj.grid = false;
@@ -22,7 +24,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     
     err = 0;
    
-
+    % If called without arguments we're continuing a fit
     if nargin > 1
         obj.data_series = data_series;
         obj.fit_params = fit_params;
@@ -31,23 +33,21 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.fit_in_progress = true;
         
         obj.fit_result = flim_fit_result();    
-
-        if obj.bin
-            obj.fit_result.init(1);
-        else
-            n_im = sum(obj.data_series.use);
-            obj.fit_result.init(n_im,obj.fit_params.use_memory_mapping);
-        end
+        
+        obj.fit_result.width = data_series.width;
+        obj.fit_result.height = data_series.height;
         obj.fit_result.binned = obj.bin;
         obj.fit_result.names = obj.data_series.names;
                 
     end
-
+    
     p = obj.fit_params;
     d = obj.data_series;
     
     obj.use_image_irf = d.has_image_irf && ~obj.bin && p.image_irf_mode == 1;
     
+    
+    % Determine which datasets we need to load and make sure they're loaded
     if p.global_fitting < 2 || p.global_variable == 0
         if false && d.lazy_loading && p.split_fit
             obj.n_rounds = ceil(d.num_datasets/p.n_thread);
@@ -103,19 +103,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         d.load_selected_files(sel);
     end    
 
-    
-    md = obj.data_series.metadata;
-    
-    fields = fieldnames(md);
-    for i=1:length(fields)
-        f = md.(fields{i});
-        md.(fields{i}) = f(d.use);
-    end
-    
-    obj.fit_result.metadata = md;
-    obj.fit_result.smoothing = (2*d.binning+1)^2;
-    
-
     if obj.bin
         obj.datasets = 1;
         use = 1;
@@ -128,8 +115,9 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         
     obj.im_size = [d.height d.width];
    
-    obj.p_use = libpointer('int32Ptr',use);
     
+    % Setup memory to pass to DLL
+    obj.p_use = libpointer('int32Ptr',use);  
     obj.p_tau_guess = libpointer('doublePtr',p.tau_guess);
     obj.p_tau_min = libpointer('doublePtr',p.tau_min);
     obj.p_tau_max = libpointer('doublePtr',p.tau_max);

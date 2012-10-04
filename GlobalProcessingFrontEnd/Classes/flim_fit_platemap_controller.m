@@ -25,8 +25,8 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
             if obj.fit_controller.has_fit && param>0
 
-                r = obj.fit_controller.fit_result;     
-                d = obj.fit_controller.data_series;
+                r = obj.fit_controller.fit_result;  
+                f = obj.fit_controller;
                 sel = obj.fit_controller.selected;
 
                 md = r.metadata;
@@ -55,7 +55,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 plate = zeros(n_row,n_col) * NaN;
                 
                 if create_im_plate
-                     gw = d.width * n_col; gh = d.height * n_row;
+                     gw = r.width * n_col; gh = r.height * n_row;
                      im_plate = NaN([gh gw]);
                 end
                
@@ -70,23 +70,20 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                         yn = 0;
 
                         if create_im_plate && ~isempty(sel_well)
-                            ci = (col-1)*d.width+1;
-                            ri = (row_idx-1)*d.height+1;
+                            ci = (col-1)*r.width+1;
+                            ri = (row_idx-1)*r.height+1;
                             
-                            im_plate(ri:ri+d.height-1,ci:ci+d.width-1) = r.get_image(sel_well(1),param);         
+                            im_plate(ri:ri+r.height-1,ci:ci+r.width-1) = r.get_image(sel_well(1),param);         
                         end
                             
                         for i=sel_well
 
-                            %if isfield(r.image_stats{i},param)
+                            n = r.image_size{i};
+                            if n > 0
+                                y = y + r.image_mean{i}(param) * n; 
+                                yn = yn + n;
+                            end
                                 
-                                n = r.image_size{i};
-                                if n > 0
-                                    y = y + r.image_mean{i}(param) * n; 
-                                    yn = yn + n;
-                                end
-                                
-                            %end
                         end
                         
                         plate(row_idx,col) = y/yn;
@@ -94,7 +91,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     end
                 end
 
-                lims = r.get_cur_lims(param);
+                lims = f.get_cur_lims(param);
                 cscale = obj.colourscale(param);
                 
 
@@ -114,8 +111,8 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                
                 if create_im_plate
                     im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale);
-                    w = d.width;
-                    h = d.height;
+                    w = r.width;
+                    h = r.height;
                     c = 'w';
                     f = 0.5;
                 else

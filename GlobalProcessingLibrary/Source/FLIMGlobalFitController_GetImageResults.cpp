@@ -244,7 +244,13 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
          else
          {
             alf_group = alf + nl * r_idx;
-            ProcessNonLinearParams(alf_group,params_mean);
+            ProcessNonLinearParams(alf_group, params_mean);
+            for(int i=0; i<n_nl_output_params; i++)
+            {
+               params_std[i] = 0;
+               params_01[i] = 0.99 * params_mean[i];
+               params_99[i] = 1.01 *  params_mean[i];
+            }
             INCR_RESULT_PTRS(n_nl_output_params);
          }
 

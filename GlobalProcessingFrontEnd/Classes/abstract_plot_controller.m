@@ -5,7 +5,6 @@ classdef abstract_plot_controller < flim_fit_observer
         handle_is_axes;
         param_popupmenu;
         data_series_list;
-        invert_colormap_popupmenu;
         contextmenu;
         window;
         param_list;
@@ -48,7 +47,6 @@ classdef abstract_plot_controller < flim_fit_observer
                         
             assign_handles(obj,handles);
 
-            add_callback(obj.invert_colormap_popupmenu,@(~,~,~) obj.update_display);
             addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
             
             obj.selected = obj.data_series_list.selected;
@@ -269,7 +267,7 @@ classdef abstract_plot_controller < flim_fit_observer
         
         function cscale = colourscale(obj,param)
             
-            invert = get(obj.invert_colormap_popupmenu,'Value') - 1;
+            invert = obj.fit_controller.invert_colormap;
             
             if strcmp(param,'I0') || strcmp(param,'I')
                 cscale = @gray;
@@ -287,15 +285,15 @@ classdef abstract_plot_controller < flim_fit_observer
                 return
             end
             
-            r = obj.fit_controller.fit_result;
+            f = obj.fit_controller;
 
-            intensity = obj.fit_controller.get_image(dataset,'I');
-            im_data = obj.fit_controller.get_image(dataset,param);
+            intensity = f.get_intensity_image(dataset);
+            im_data = f.get_image(dataset,param);
 
             cscale = obj.colourscale(param);
 
-            lims = r.get_cur_lims(param);
-            I_lims = r.get_cur_lims('I');
+            lims = f.get_cur_lims(param);
+            I_lims = f.get_cur_intensity_lims;
             if ~merge
                 im=colorbar_flush(h,hc,im_data,isnan(intensity),lims,cscale,text);
             else

@@ -25,7 +25,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             
             if obj.fit_controller.has_fit && param > 0 && obj.selected > 0
                 
-                r = obj.fit_controller.fit_result;
+                f = obj.fit_controller;
                 
                 sel = obj.data_series_list.selected;
                 %sel = obj.fit_controller.selected;
@@ -48,8 +48,8 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     param_data = [param_data; new_data];
                 end
                 
-                lims = r.get_cur_lims(param);
-                I_lims = r.get_cur_lims('I');
+                lims = f.get_cur_lims(param);
+                I_lims = f.get_cur_intensity_lims;
                 
                 filt = param_data >= lims(1) & param_data <= lims(2);
                 
@@ -94,7 +94,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             weighting = get(obj.hist_weighting_popupmenu,'Value');
             hist_classes = str2double(get(obj.hist_classes_edit,'String'));
             param = obj.cur_param;
-            lims = r.get_cur_lims(param);
+            lims = f.get_cur_lims(param);
             
             if weighting == 2
                 weighting_string = '(Intensity Weighted)';

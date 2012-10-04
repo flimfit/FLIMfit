@@ -20,13 +20,13 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             cla(ax)
             if obj.fit_controller.has_fit && all(param > 0)
                 
-                r = obj.fit_controller.fit_result;
+                f = obj.fit_controller;
                 
                 param_data_x = [];
                 param_data_y = [];
                 for i=1:length(sel)
-                    new_x = obj.fit_controller.get_image(sel(i),param{1});
-                    new_y = obj.fit_controller.get_image(sel(i),param{2});
+                    new_x = f.get_image(sel(i),param(1));
+                    new_y = f.get_image(sel(i),param(2));
                     
                     filt = isfinite( new_x ) & isfinite( new_y );
                      
@@ -37,8 +37,8 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                     param_data_y = [param_data_y; new_y];
                     
                 end
-                x_lim = r.get_cur_lims(param(1));
-                y_lim = r.get_cur_lims(param(2));
+                x_lim = f.get_cur_lims(param(1));
+                y_lim = f.get_cur_lims(param(2));
                 
                 sel = param_data_x >= x_lim(1) & param_data_x <= x_lim(2) ...
                     & param_data_y >= y_lim(1) & param_data_y <= y_lim(2);      
@@ -73,8 +73,8 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 
                 pbaspect(ax,[1 1 1])
                 
-                xlabel(ax,param{1});
-                ylabel(ax,param{2});
+                xlabel(ax,param(1));
+                ylabel(ax,param(2));
             else
                 cla(ax);
             end

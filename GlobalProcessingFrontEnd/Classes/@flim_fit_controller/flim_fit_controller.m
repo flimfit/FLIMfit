@@ -43,6 +43,22 @@ classdef flim_fit_controller < flim_data_series_observer
         
         use_popup = false;
         
+        plot_select_table;
+        invert_colormap_popupmenu;
+        
+        display_normal = struct();
+        display_merged = struct();
+        plot_names = {};
+        plot_data;
+        default_lims = {};
+        plot_lims = struct();
+        auto_lim = struct();
+
+        cur_lims = [];
+        invert_colormap = false;
+        
+        n_plots = 0;
+        
         lh = {};
                 
     end
@@ -105,6 +121,17 @@ classdef flim_fit_controller < flim_data_series_observer
                 set(obj.live_update_checkbox,'Callback',@obj.live_update_callback);
             end
             
+            if ~isempty(obj.plot_select_table)
+                set(obj.plot_select_table,'CellEditCallback',@obj.plot_select_update);
+            end
+            
+            if ~isempty(obj.invert_colormap_popupmenu)
+                add_callback(obj.invert_colormap_popupmenu,@obj.plot_select_update);
+            end
+            
+            obj.update_list();
+            obj.update_display_table();
+            
         end       
         
         function fit_params_updated(obj,~,~)
@@ -127,24 +154,41 @@ classdef flim_fit_controller < flim_data_series_observer
             end
         end
         
-        function [param_data mask] = get_image(obj,im,param)
+        function [param_data, mask] = get_image(obj,im,param)
             
             if ischar(param)
                 param_idx = strcmp(obj.fit_result.params,param);
                 param = find(param_idx);
             end
             
-            [param_data mask] = obj.dll_interface.get_image(im,param);
+            [param_data, mask] = obj.dll_interface.get_image(im,param);
         end
         
-        function [param_data mask] = get_intensity(obj,im)
+        function [param_data, mask] = get_intensity(obj,im)
             param = obj.fit_result.intensity_idx;
-            if ~isempty(param) 
-                [param_data mask] = obj.dll_interface.get_image(im,param);
-            else
-                param_data = 0;
-                mask = 0;
+            [param_data, mask] = obj.dll_interface.get_image(im,param);
+        end
+        
+        
+        function lims = get_cur_lims(obj,param)
+            
+            if ischar(param)
+                param_idx = strcmp(obj.params,param);
+                param = find(param_idx);
             end
+            
+            lims = obj.cur_lims(param,:);
+            lims(1) = sd_round(lims(1),3,3); % round down to 3sf
+            lims(2) = sd_round(lims(2),3,2); % round up to 3sf
+        end
+        
+        function lims = get_cur_intensity_lims(obj)      
+            param = obj.fit_result.intensity_idx;
+            lims = obj.get_cur_lims(param);     
+        end
+        
+        function lims = set_cur_lims(obj,param,lims)
+            obj.cur_lims(param,:) = lims;
         end
         
         
@@ -245,7 +289,6 @@ classdef flim_fit_controller < flim_data_series_observer
         function display_fit_start(obj)
             
             if ishandle(obj.fit_pushbutton)
-                %set(obj.fit_pushbutton,'BackgroundColor',[1 0.6 0.2]);
                 set(obj.fit_pushbutton,'String','Stop Fit');
                 if obj.use_popup
                     obj.wait_handle = waitbar(0,'Fitting...');
@@ -272,9 +315,100 @@ classdef flim_fit_controller < flim_data_series_observer
             
             set(obj.filter_table,'ColumnFormat',{[{'-'} fieldnames(md)'],{'=','!=','<','>'},'char'})
 
+            obj.filter_table_updated([],[]);
             
         end
         
+         function update_list(obj)
+                if (obj.has_fit)
+
+                    r = obj.fit_result;
+
+                    old_names = obj.plot_names;
+                    obj.plot_names = r.fit_param_list();
+
+                    names = obj.plot_names;
+                    n_items = length(names);
+
+                    for i=1:n_items
+                        if ~any(strcmp(old_names,names{i}))
+                            obj.display_normal.(names{i}) = false;
+                            obj.display_merged.(names{i}) = false;
+                            obj.auto_lim.(names{i}) = true;
+                            obj.plot_lims.(names{i}) = r.get_default_lims(i);
+                        end
+                    end
+
+                    for i=1:length(old_names)
+                        if ~any(strcmp(obj.plot_names,old_names{i}))
+                            obj.display_normal = rmfield(obj.display_normal,old_names{i});
+                            obj.display_merged = rmfield(obj.display_merged,old_names{i});
+                            obj.auto_lim = rmfield(obj.auto_lim,old_names{i});
+                            obj.plot_lims = rmfield(obj.plot_lims,old_names{i});
+                        end
+                    end   
+                end
+
+         end
+        
+         
+         function update_display_table(obj)
+                       
+            if obj.has_fit
+                r = obj.fit_result;
+                names = obj.plot_names;
+                table = cell(length(names),6);
+                for i=1:length(names)
+
+                    if obj.auto_lim.(names{i}) 
+                        obj.plot_lims.(names{i}) = r.get_default_lims(i);
+                    end
+
+                    table{i,1} = names{i};
+                    table{i,2} = obj.display_normal.(names{i});
+                    table{i,3} = obj.display_merged.(names{i});
+                    table(i,4:5) = num2cell(obj.plot_lims.(names{i}));
+                    table{i,6} = obj.auto_lim.(names{i});
+                end
+
+                for i=1:length(names) 
+                    obj.set_cur_lims(i, obj.plot_lims.(names{i}));
+                end
+
+                set(obj.plot_select_table,'Data',table);
+                set(obj.plot_select_table,'ColumnEditable',logical([0 1 1 1 1 1]));
+                set(obj.plot_select_table,'RowName',[]);
+
+                obj.invert_colormap = get(obj.invert_colormap_popupmenu,'Value')-1;
+            end
+         end
+         
+         function plot_select_update(obj,~,~)
+            plots = get(obj.plot_select_table,'Data');
+
+            obj.n_plots = 0;
+            
+            for i=1:size(plots,1)
+               name = plots{i,1};
+               obj.display_normal.(name) = plots{i,2};
+               obj.display_merged.(name) = plots{i,3};
+               
+               obj.n_plots = obj.n_plots + sum(cell2mat(plots(i,2:3))); 
+               
+               new_lims = cell2mat(plots(i,4:5));
+               if any(new_lims ~= obj.plot_lims.(name))
+                   obj.auto_lim.(name) = false;
+               else
+                   obj.auto_lim.(name) = plots{i,6};
+               end
+               obj.plot_lims.(name) = new_lims;
+            end
+            
+            obj.update_display_table();
+            
+            notify(obj,'fit_display_updated');
+            
+        end
         
     end
     

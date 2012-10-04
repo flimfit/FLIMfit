@@ -24,18 +24,18 @@ classdef flim_fit_result < handle
         names;
         metadata;
         
-        n_results;
+        n_results = 0;
         
         intensity_idx;
-        
-        use_memory_mapping = true;
-        file = [];
         
         smoothing = 1;
         
         params = {};
         
-        default_lims; 
+        default_lims = []; 
+        
+        width;
+        height;
     end
     
     properties(SetObservable = true)
@@ -57,46 +57,16 @@ classdef flim_fit_result < handle
     
     methods
         
-        function init(obj,n_results,memory_mapping)
-        
-            if nargin < 3
-                memory_mapping = false;
-            end
-            
-            obj.n_results = n_results;
-            
-            obj.default_lims = [];
-            
-            obj.n_regions = zeros(1, n_results);
-            
-            if obj.use_memory_mapping
-               
-                obj.file = global_tempname;
-                
-                if exist(obj.file,'file')
-                    delete(obj.file)
-                end
-                
-            end
-            
-            obj.use_memory_mapping = memory_mapping;
-            
+        function obj = flim_fit_result()
         end
+
         
-        function delete(obj)
-            if obj.use_memory_mapping && exist(obj.file,'file') && obj.is_temp
-                delete(obj.file)
-            end
-        end
- 
         function set_param_names(obj,params)
             obj.params = params;
-            obj.intensity_idx = find(strcmp(params,'I'));
-            
+            obj.intensity_idx = find(strcmp(params,'I'));            
             obj.default_lims = NaN(length(params),2);
-            
         end
-        
+            
         function set_results(obj,idx,regions,region_size,success,iterations,param_mean,param_std,param_01,param_99)
             
             [M,S,N] = combine_stats(double(param_mean),double(param_std),double(region_size));
@@ -117,28 +87,14 @@ classdef flim_fit_result < handle
             lims(:,2) = nanmax(obj.default_lims(:,2),param_99);
             obj.default_lims = lims;  
             
+            obj.n_results = obj.n_results + 1;
+            
         end
         
         function lims = get_default_lims(obj,param)
             lims = obj.default_lims(param,:);
             lims(1) = sd_round(lims(1),3,3); % round down to 3sf
             lims(2) = sd_round(lims(2),3,2); % round up to 3sf
-        end
-        
-        function lims = get_cur_lims(obj,param)
-            
-            if ischar(param)
-                param_idx = strcmp(obj.params,param);
-                param = find(param_idx);
-            end
-            
-            lims = obj.cur_lims(param,:);
-            lims(1) = sd_round(lims(1),3,3); % round down to 3sf
-            lims(2) = sd_round(lims(2),3,2); % round up to 3sf
-        end
-        
-        function lims = set_cur_lims(obj,param,lims)
-            obj.cur_lims(param,:) = lims;
         end
 
         
@@ -164,6 +120,7 @@ classdef flim_fit_result < handle
             params = obj.params;
         end
         
+        %{
         function img = get_image(obj,dataset,param)
            
             img = nan;
@@ -257,7 +214,7 @@ classdef flim_fit_result < handle
             
             
         end
-
+%}
         
         
     end
