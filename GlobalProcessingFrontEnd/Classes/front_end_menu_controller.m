@@ -6,8 +6,6 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Set_Dataset;        
         menu_OMERO_Load_FLIM_Data;
         menu_OMERO_Load_FLIM_Dataset;  
-        %menu_OMERO_Load_FLIM_Screen;                
-        menu_OMERO_Load_IRF_image;
         menu_OMERO_Load_IRF_annot;            
         menu_OMERO_Load_Background;            
         menu_OMERO_Export_Fitting_Results;    
@@ -269,8 +267,14 @@ classdef front_end_menu_controller < handle
             obj.data_series_controller.OMERO_Load_IRF_annot();
         end                    
         %------------------------------------------------------------------
-        function menu_OMERO_Load_Background_callback(obj,~,~) 
-            obj.data_series_controller.OMERO_Load_Background();
+        function menu_OMERO_Load_Background_callback(obj,~,~)                                     
+            tempfilename = OMERO_load_imagefile(obj.data_series_controller);                                      
+            if isempty(tempfilename), return, end;                                    
+            try 
+                obj.data_series_controller.data_series.load_background(tempfilename);                          
+            catch e, 
+                errordlg([e.identifier ' : ' e.message]), 
+            end                        
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
@@ -285,10 +289,6 @@ classdef front_end_menu_controller < handle
             obj.data_series_controller.OMERO_Import_Fitting_Settings();
         end                    
         %------------------------------------------------------------------
-        function menu_OMERO_Load_IRF_image_callback(obj,~,~)
-            % to be implemented...
-        end            
-       %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
                                                         

@@ -24,7 +24,11 @@ function imageId = OME_tif2Omero_Image(factory,filename,description)
     SizeY = tree.Image.Pixels.ATTRIBUTE.SizeY;
         
     DimensionOrder = tree.Image.Pixels.ATTRIBUTE.DimensionOrder;
-    isBigEndian = strcmp(tree.Image.Pixels.ATTRIBUTE.BigEndian,'true');
+    
+    isBigEndian = true;
+    if isfield(tree.Image.Pixels.ATTRIBUTE,'BigEndian')
+        isBigEndian = strcmp(tree.Image.Pixels.ATTRIBUTE.BigEndian,'true');
+    end;
                     
 queryService = factory.getQueryService();
 pixelsService = factory.getPixelsService();

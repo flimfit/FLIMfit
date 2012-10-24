@@ -418,39 +418,29 @@ classdef flim_data_series_controller < handle
         end            
         
         %------------------------------------------------------------------
-        function OMERO_Load_Background(obj,~,~)    
+        function tempfilename = OMERO_load_imagefile(obj,~,~)    
             %
-            obj.set_dataset_if_not_selected;                         
+            tempfilename = [];            
+                obj.set_dataset_if_not_selected;                                     
+                    image = select_Image(obj.dataset);                       
+                        if isempty(image), return, end;
+            %                        
+            data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC',get_ZCT(image,'ModuloAlongC'));            
+            data = squeeze(data_cube);
             %
-            if isempty(obj.dataset),
-                warndlg('Operation not completed - Background image was not loaded','Warning');
-                return;
-            end;            
-            %
-            image = select_Image(obj.dataset);           
-            if isempty(image) 
-                warndlg('Operation not completed - Background image was not loaded','Warning');
-                return;                                
+            tempfilename = [tempname '.tif'];
+            if 2 == numel(size(data))
+                imwrite(data,tempfilename,'tif');           
+            else
+               sz = size(data); 
+               nimg = sz(1);
+                 for ind = 1:nimg,
+                    imwrite( data(:,:,ind),tempfilename,'WriteMode','append');
+                 end             
             end
             %
-            data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC' );            
-            bckg_data = squeeze(data_cube);
-            if 2 ~= numel(size(bckg_data))
-                errordlg('single plane image is expected - can not complete Background image loading');
-                return;
-            end
-            %
-            fname = tempname;
-            imwrite(bckg_data,fname,'tif');           
-            %
-            try
-                obj.data_series.load_background(fname);                          
-            catch e
-                errordlg('error: menu_OMERO_Load_Background_callback');                
-                display(e);
-            end
         end            
-                
+        
         %------------------------------------------------------------------
         function OMERO_Export_Fitting_Results(obj,fit_controller,~)
             %

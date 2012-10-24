@@ -13,13 +13,9 @@ function handles = setup_menu(obj,handles)
         %
         handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM: Single FOV','Separator','on');
         handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM: Multiple FOVs');
-%        handles.menu_OMERO_Load_FLIM_Screen = uimenu(menu_OMERO,'Label','Load FLIM: OME Screen');
         %
-        %handles.menu_OMERO_Load_IRF_image = uimenu(menu_OMERO,'Label','Load IRF (Image)','Separator','on');
-        handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)');
-        %    
-        handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background','Separator','on');    
-%        handles.menu_OMERO_Load_Time_Varying_Background = uimenu(menu_OMERO,'Label','Load Time Varying Background');    
+        handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)','Separator','on');            
+        handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background');    
         %
         handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results as new Dataset','Separator','on');    
         handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings');    

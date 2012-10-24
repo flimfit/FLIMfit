@@ -299,7 +299,7 @@ data = createData();
         %        
         set(gui.Indicator,'String','..uploading..');
         %
-        if (strcmp(data.extension,'tif') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
+        if (strcmp(data.extension,'tif') || strcmp(data.extension,'tiff') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
             % simple case                 
             new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,'double');
             new_dataset = get_Object_by_Id(data.session,new_dataset_id);
@@ -459,7 +459,7 @@ data = createData();
         %
         data.extension = '???';
         data.LoadMode = '???';        
-        extensions = {'tif' 'sdt'};
+        extensions = {'tif' 'tiff' 'sdt'};
         for k=1:numel(extensions)
             files = dir([data.Directory filesep '*.' extensions{k}]);
             num_files = length(files);
@@ -558,7 +558,7 @@ data = createData();
 %-------------------------------------------------------------------------%  
     function onSetFile(hObj,~,~)
         %
-        [filename, pathname] = uigetfile({'*.tif';'*.sdt'},'Select File',data.DefaultDataDirectory);
+        [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt'},'Select File',data.DefaultDataDirectory);
         %
         if isequal(filename,0)
             return
@@ -569,7 +569,7 @@ data = createData();
         str = split('.',full_file_name);
         extension = str{2};
         %
-        if strcmp(extension,'tif') || strcmp(extension,'sdt') % kosher
+        if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') 
                                   
             if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Project')
                 % doopredelaem
@@ -593,31 +593,3 @@ data = createData();
     end
 
 end % EOF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
