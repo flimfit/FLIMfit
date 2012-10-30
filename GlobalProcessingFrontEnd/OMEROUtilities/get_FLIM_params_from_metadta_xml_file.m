@@ -31,7 +31,7 @@ function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadta_x
         software_name = tree.Image.ca_COLON_CustomAttributes.ImspectorVersion.ATTRIBUTE.ImspectorVersion;
         if strcmp(software_name,'Imspector Pro ')
             SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ;
-            FLIM_type = 'Gated';
+            FLIM_type = 'TCSPC';
             modulo = 'ModuloAlongZ';
             incr = 12500/SizeZ; %ps ??
             delays = num2cell((0:SizeZ-1)*incr);
