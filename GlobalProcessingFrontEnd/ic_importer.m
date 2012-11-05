@@ -80,9 +80,10 @@ data = createData();
         uimenu( gui.menu_file, 'Label', 'Exit', 'Callback', @onExit );        
         % + Omero menu
         gui.menu_omero = uimenu( gui.Window, 'Label', 'Omero' );
-        gui.menu_logon = uimenu( gui.menu_omero, 'Label', 'Set logon default', 'Callback', @onLogon );
+        gui.menu_logon = uimenu( gui.menu_omero, 'Label', 'Set logon default', 'Callback', @onLogon );        
         gui.menu_setproject = uimenu( gui.menu_omero, 'Label','Set Project', 'Callback', @onSetDestination );
         gui.menu_setdataset = uimenu( gui.menu_omero, 'Label','Set Dataset', 'Callback', @onSetDestination );
+        gui.menu_setproject = uimenu( gui.menu_omero, 'Label','Set Screen', 'Callback', @onSetDestination );        
         % + Upload menu
         %gui.menu_upload      = uimenu(gui.Window,'Label','Upload');
         %uimenu(gui.menu_upload,'Label','Go','Accelerator','G','Callback', @onGo);                                
@@ -240,8 +241,21 @@ data = createData();
     function onSetDestination(hObj,~,~)
                 
         label = get(hObj,'Label');
-        
-        if strcmp(label,'Set Project')
+
+        if strcmp(label,'Set Screen')        
+            scrn = select_Screen(data.session,'Select screen');
+            if ~isempty(scrn)
+                data.project = scrn; 
+                data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+            else
+                return;
+            end
+            %
+            if isempty(data.Directory) || ~isdir(data.Directory)
+                onSetDirectory();
+            end                    
+                
+        elseif strcmp(label,'Set Project')
             
             prjct = select_Project(data.session,'Select Project');             
             if ~isempty(prjct)
@@ -289,7 +303,7 @@ data = createData();
         new_dataset_name = char(strings(length(strings)));
         %  
         if ~strcmp(data.LoadMode,'single file')
-            if ~is_Dataset_name_unique(data.project,new_dataset_name)
+            if strcmp('Dataset',whos_Object(data.session,data.project)) && ~is_Dataset_name_unique(data.project,new_dataset_name)
                 errordlg('new Dataset name isn not unique - can not contuinue');
                 clear_settings;
                 updateInterface;     
@@ -336,14 +350,9 @@ data = createData();
             % IMAGE ANNOTATIONS - ENDS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
             %
         elseif strcmp(data.LoadMode,'well plate')
-            % well plate case
-            dataset_description = ' '; % no description
-            new_dataset = create_new_Dataset(data.session,data.project,new_dataset_name,dataset_description);
-            %
-            for k=1:numel(data.dirlist)
-                image_description = ' '; % no description
-                new_image_id = upload_dir_as_Channels_FLIM_Image(data.session,new_dataset,data.dirlist{k},data.extension,image_description);
-             end
+            
+            upload_PlateReader_dir_ModuloAlongC(data.session, data.project, data.Directory, 'parse_WP_format1');
+            
         elseif strcmp(data.LoadMode,'single file')
 
                         if ~strcmp('sdt',data.extension)
