@@ -18,7 +18,7 @@ data = createData();
 %-------------------------------------------------------------------------%
     function data = createData()
         %
-        data.main_well_plate_annotation_sacred_filename = 'plate_reader_metadata.txt';
+        data.main_well_plate_annotation_sacred_filename = 'plate_reader_metadata.xml';
         %
         if ~isempty(settings)
             data.DefaultDataDirectory = settings.DefaultDataDirectory;        
@@ -351,7 +351,9 @@ data = createData();
             %
         elseif strcmp(data.LoadMode,'well plate')
             
-            upload_PlateReader_dir_ModuloAlongC(data.session, data.project, data.Directory, 'parse_WP_format1');
+            FOV_name_parse_func = get_Plate_param_func_name_from_metadata_xml_file( ...
+                [data.Directory filesep data.main_well_plate_annotation_sacred_filename]);
+            upload_PlateReader_dir_ModuloAlongC(data.session, data.project, data.Directory, FOV_name_parse_func);
             
         elseif strcmp(data.LoadMode,'single file')
 

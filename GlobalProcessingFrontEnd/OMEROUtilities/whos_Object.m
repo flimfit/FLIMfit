@@ -34,12 +34,11 @@ function obj_type = whos_Object(session,objId)
                          if iid == objId
                             obj_type = 'Image';
                             return;
-                         end                         
-                     end 
+                         end;
+                     end;
                 end;
-            end; 
+            end;
             %
- %           if strcmp(obj_type,'unknown') % it might be Screen or Plate, or image inside Plate
                     iQuery = session.getQueryService();
                     screenList = iQuery.findAllByQuery('select this from Screen this left outer join fetch this.plateLinks links left outer join fetch links.child plates', param);                                
                     for k = 0:screenList.size()-1,                       
@@ -78,14 +77,11 @@ function obj_type = whos_Object(session,objId)
                                     if iid == objId
                                        obj_type = 'Image';
                                        return;
-                                    end                         
-                                end
-                            end
-                             %                             
-                         end                                                  
-                    end
-%          end;
-            %
+                                    end;
+                                end;
+                            end;
+                         end;
+                    end;
 end
 
                 

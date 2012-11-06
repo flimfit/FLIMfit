@@ -10,7 +10,9 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_Background;            
         menu_OMERO_Export_Fitting_Results;    
         menu_OMERO_Export_Fitting_Settings;            
-        menu_OMERO_Import_Fitting_Settings;    
+        menu_OMERO_Import_Fitting_Settings;
+        %
+        menu_OMERO_Set_Plate;
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
                         
         menu_file_new_window;
@@ -288,6 +290,10 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Import_Fitting_Settings_callback(obj,~,~)
             obj.data_series_controller.OMERO_Import_Fitting_Settings();
         end                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Set_Plate_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Set_Plate();
+        end                                
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                

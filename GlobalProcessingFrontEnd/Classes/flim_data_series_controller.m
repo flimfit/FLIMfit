@@ -15,10 +15,12 @@ classdef flim_data_series_controller < handle
         session;    
         dataset;    
         project;    
+        plate; 
+        screen;        
         %
         selected_channel; % need to keep this for results uploading to Omero...
         ZCT; % array containing missing OME dimensions Z,C,T (in that order)
-        % OMERO        
+        % OMERO           
         
         data_settings_filename = {'data_settings.xml', 'polarisation_data_settings.xml'};
     end
@@ -238,6 +240,9 @@ classdef flim_data_series_controller < handle
         %------------------------------------------------------------------                
         function OMERO_Set_Dataset(obj,~,~)
             %
+            obj.screen = [];
+            obj.plate = [];
+            
             [ Dataset Project ] = select_Dataset(obj.session,'Select a Dataset:'); 
             %
             if isempty(Dataset), return, end;
@@ -250,11 +255,15 @@ classdef flim_data_series_controller < handle
         %------------------------------------------------------------------        
         function OMERO_Load_FLIM_Data(obj,~,~)
             %
-            obj.set_dataset_if_not_selected;
-            %
-            if isempty(obj.dataset), return, end;            
-            % 
-            image = select_Image(obj.dataset);
+            if ~isempty(obj.plate)                
+                image = select_Image(obj.session,obj.plate);                
+            else                
+                obj.set_dataset_if_not_selected;
+                %
+                if isempty(obj.dataset), return, end;            
+                % 
+                image = select_Image(obj.session,obj.dataset);
+            end
             %
             if ~isempty(image) 
                 try
@@ -262,54 +271,113 @@ classdef flim_data_series_controller < handle
                 catch ME
                     errordlg('Error when loading an image')
                     display(ME);
-                end;
-            end;
+                end
+            end
+            %
         end                          
         
         %------------------------------------------------------------------        
         function OMERO_Load_FLIM_Dataset(obj,~,~)
             %
-            obj.set_dataset_if_not_selected;
-            if isempty(obj.dataset), return, end;                        
-            %
             extension = 'sdt'; % ?? - not used
-            imageList = obj.dataset.linkedImageList;
-            %       
-            if 0==imageList.size()
-                errordlg(['Dataset have no images - please choose Dataset with images'])
-                return;
-            end;                                    
-            %        
+            %
+            if ~isempty(obj.plate) % Plate...
+            %
             z = 0;       
-            str = char(512,256); % ?????
-            for k = 0:imageList.size()-1,                       
-                z = z + 1;                                                       
-                iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
-                A = split('.',iName);
-                if true % strcmp(extension,A(length(A))) 
-                    str(z,1:length(iName)) = iName;
-                end;
-             end 
-            %
-            folder_names = sort_nat(cellstr(str));               
-            %
-            [folder_names, ~, obj.data_series.lazy_loading] = dataset_selection(folder_names);            
-            %
-            num_datasets = length(folder_names);
-            %
-            % find corresponding Image ids list...
-            image_ids = zeros(1,num_datasets);
-            for m = 1:num_datasets
-                iName_m = folder_names{m};
-                for k = 0:imageList.size()-1,                       
-                         iName_k = char(java.lang.String(imageList.get(k).getName().getValue()));
-                         if strcmp(iName_m,iName_k)
-                            image_ids(1,m) = imageList.get(k).getId().getValue();
+            imageids_unsorted = [];
+            str = char(256,256);
+                 
+                            wellList = obj.session.getQueryService().findAllByQuery(['select well from Well as well '...
+                            'left outer join fetch well.plate as pt '...
+                            'left outer join fetch well.wellSamples as ws '...
+                            'left outer join fetch ws.plateAcquisition as pa '...
+                            'left outer join fetch ws.image as img '...
+                            'left outer join fetch img.pixels as pix '...
+                            'left outer join fetch pix.pixelsType as pt '...
+                            'where well.plate.id = ', num2str(obj.plate.getId().getValue())],[]);
+                            for j = 0:wellList.size()-1,
+                                well = wellList.get(j);
+                                wellsSampleList = well.copyWellSamples();
+                                well.getId().getValue();
+                                for i = 0:wellsSampleList.size()-1,
+                                    ws = wellsSampleList.get(i);
+                                    ws.getId().getValue();
+                                    % pa = ws.getPlateAcquisition();
+                                    z = z + 1;
+                                    image = ws.getImage();
+                                    iid = image.getId().getValue();
+                                    idName = num2str(image.getId().getValue());
+                                    iName = char(java.lang.String(image.getName().getValue()));
+                                    image_name = [ idName ' : ' iName ];
+                                    str(z,1:length(image_name)) = image_name;
+                                    imageids_unsorted(z) = iid;
+                                end
+                            end                  
+                %
+                folder_names_unsorted = cellstr(str);
+                %
+                folder_names = sort_nat(folder_names_unsorted); % sorted
+                [folder_names, ~, obj.data_series.lazy_loading] = dataset_selection(folder_names);   
+                %
+                num_datasets = length(folder_names);
+                %
+                image_ids = zeros(1,num_datasets); %sorted
+                %
+                for m = 1:num_datasets
+                    iName_m = folder_names{m};
+                    for k = 1:numel(folder_names_unsorted)                       
+                        iName_k = folder_names_unsorted{k};
+                        if strcmp(iName_m,iName_k)
+                            image_ids(1,m) = imageids_unsorted(k);
                             break;
-                         end;
-                end 
-            end
-            %                                    
+                        end;
+                    end 
+                end                                
+                %
+            else % Dataset...
+                %
+                obj.set_dataset_if_not_selected;
+                if isempty(obj.dataset), return, end;                        
+                %
+                imageList = obj.dataset.linkedImageList;
+                %       
+                if 0==imageList.size()
+                    errordlg(['Dataset have no images - please choose Dataset with images'])
+                    return;
+                end;                                    
+                %        
+                z = 0;       
+                str = char(512,256); % ?????
+                for k = 0:imageList.size()-1,                       
+                    z = z + 1;                                                       
+                    iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
+                    A = split('.',iName);
+                    if true % strcmp(extension,A(length(A))) 
+                        str(z,1:length(iName)) = iName;
+                    end;
+                 end 
+                %
+                folder_names = sort_nat(cellstr(str));
+                %
+                [folder_names, ~, obj.data_series.lazy_loading] = dataset_selection(folder_names);            
+                %
+                num_datasets = length(folder_names);
+                %
+                % find corresponding Image ids list...
+                image_ids = zeros(1,num_datasets);
+                for m = 1:num_datasets
+                    iName_m = folder_names{m};
+                    for k = 0:imageList.size()-1,                       
+                             iName_k = char(java.lang.String(imageList.get(k).getName().getValue()));
+                             if strcmp(iName_m,iName_k)
+                                image_ids(1,m) = imageList.get(k).getId().getValue();
+                                break;
+                             end;
+                    end 
+                end
+                %
+            end % Dataset...
+            %            
             polarisation_resolved = false;            
             % load new dataset
             obj.data_series = flim_data_series();            
@@ -319,6 +387,7 @@ classdef flim_data_series_controller < handle
             image_descriptor{1} = obj.session;
             image_descriptor{2} = image_ids(1);                        
             image = get_Object_by_Id(obj.session,java.lang.Long(image_descriptor{2}));
+            %
             [ FLIM_type , ~ , modulo, n_channels ] = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
             %
             obj.ZCT = get_ZCT(image, modulo);
@@ -422,7 +491,7 @@ classdef flim_data_series_controller < handle
             %
             tempfilename = [];            
                 obj.set_dataset_if_not_selected;                                     
-                    image = select_Image(obj.dataset);                       
+                    image = select_Image(obj.session,obj.dataset);                       
                         if isempty(image), return, end;
             %                        
             data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC',get_ZCT(image,'ModuloAlongC'));            
@@ -610,6 +679,22 @@ classdef flim_data_series_controller < handle
                 errordlg('Error creating OMERO session');
             end                        
         end
+        
+        %------------------------------------------------------------------                
+        function OMERO_Set_Plate(obj,~,~)
+            %
+            obj.project = [];
+            obj.dataset = [];
+            %
+            [ Plate Screen ] = select_Plate(obj.session,'Select a Plate:'); 
+            %
+            if isempty(Plate), return, end;
+            %
+            obj.plate = Plate;
+            obj.screen = Screen;
+            % 
+        end                
+        
        %------------------------------------------------------------------
        % OMERO
        %------------------------------------------------------------------                                        

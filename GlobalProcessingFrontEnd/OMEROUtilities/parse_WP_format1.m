@@ -41,5 +41,6 @@ function ret = parse_WP_format1(folder)
     ret.extension = 'tif';
     ret.columnNamingConvention = 'number'; % 'Column_Names';
     ret.rowNamingConvention = 'letter'; %'Row_Names'; 
+    ret.NumberOfFLIMChannels = 1;
     
 end
