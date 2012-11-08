@@ -9,6 +9,10 @@ function [ret fname] = select_Annotation(session, object, prompt)
                 specifier = 'omero.model.Dataset';
             case 'Image'
                 specifier = 'omero.model.Image';
+            case 'Screen'
+                specifier = 'omero.model.Screen';
+            case 'Plate'
+                specifier = 'omero.model.Plate';                
         end;
         %
         objId = java.lang.Long(object.getId().getValue());
