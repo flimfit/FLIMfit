@@ -35,8 +35,7 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel, ZCT)
         obj.OMERO_id = image_descriptor{2};
    
         obj.metadata = extract_metadata(obj.names);
-    
-        
+            
         obj.polarisation_resolved = polarisation_resolved;
    
         obj.t = delays;

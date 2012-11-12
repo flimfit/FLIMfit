@@ -1,6 +1,7 @@
 function [ret fname] = select_Annotation(session, object, prompt)
         %
         ret = [];
+        fname = [];
         %
         switch whos_Object(session,object.getId().getValue())
             case 'Project'
@@ -24,6 +25,7 @@ function [ret fname] = select_Annotation(session, object, prompt)
         %
         if 0 == annotations.size()
             errordlg('select_Annotation: no annotations - ret is empty');
+            return;
         end                
         %        
         str = char(256,256);

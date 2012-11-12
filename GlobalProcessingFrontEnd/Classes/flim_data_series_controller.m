@@ -231,7 +231,7 @@ classdef flim_data_series_controller < handle
             try
                 obj.data_series.fetch_TCSPC(imageDescriptor, polarisation_resolved, channel, obj.ZCT);            
             catch err 
-                errordlg(err.message,'Error');   
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end
             
         end
@@ -241,7 +241,7 @@ classdef flim_data_series_controller < handle
             %
             obj.screen = [];
             obj.plate = [];
-            
+            %
             [ Dataset Project ] = select_Dataset(obj.session,'Select a Dataset:'); 
             %
             if isempty(Dataset), return, end;
@@ -251,25 +251,38 @@ classdef flim_data_series_controller < handle
             % 
         end                
         
+        %------------------------------------------------------------------                
+        function OMERO_Set_Plate(obj,~,~)
+            %
+            obj.project = [];
+            obj.dataset = [];
+            %
+            [ Plate Screen ] = select_Plate(obj.session,'Select a Plate:'); 
+            %
+            if isempty(Plate), return, end;
+            %
+            obj.plate = Plate;
+            obj.screen = Screen;
+            % 
+        end                
+                
         %------------------------------------------------------------------        
         function OMERO_Load_FLIM_Data(obj,~,~)
             %
             if ~isempty(obj.plate)                
                 image = select_Image(obj.session,obj.plate);                
-            else                
-                obj.set_dataset_if_not_selected;
-                %
-                if isempty(obj.dataset), return, end;            
-                % 
+            elseif ~isempty(obj.dataset)
                 image = select_Image(obj.session,obj.dataset);
-            end
+            else
+                errordlg('Please set Dataset or Plate before trying to load images'); 
+                return; 
+            end;
             %
             if ~isempty(image) 
                 try
                     obj.selected_channel = obj.fetch_TCSPC({obj.session, image.getId().getValue()});                                                                                    
-                catch ME
-                    errordlg('Error when loading an image')
-                    display(ME);
+                catch err
+                    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
                 end
             end
             %
@@ -278,7 +291,12 @@ classdef flim_data_series_controller < handle
         %------------------------------------------------------------------        
         function OMERO_Load_FLIM_Dataset(obj,~,~)
             %
-            extension = 'sdt'; % ?? - not used
+            if isempty(obj.plate) && isempty(obj.dataset)
+                errordlg('Please set Dataset or Plate before trying to load images'); 
+                return;                 
+            end;
+            %
+            extension = 'sdt'; % used....
             %
             if ~isempty(obj.plate) 
             %
@@ -334,9 +352,6 @@ classdef flim_data_series_controller < handle
                 end                                
                 %
             elseif ~isempty(obj.dataset) 
-                %
-                obj.set_dataset_if_not_selected;
-                if isempty(obj.dataset), return, end;                        
                 %
                 imageList = obj.dataset.linkedImageList;
                 %       
@@ -404,11 +419,11 @@ classdef flim_data_series_controller < handle
             else
                 obj.data_series.mode = 'TCSPC'; % not annotated sdt..
             end
-            %
+            %           
             try
                 [delays, data_cube, name] = OMERO_fetch(image_descriptor, obj.selected_channel,obj.ZCT);
             catch err
-                 rethrow(err);
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
             data_size = size(data_cube);
             %
@@ -482,9 +497,8 @@ classdef flim_data_series_controller < handle
             %
             try
                 obj.data_series.load_irf(full_temp_file_name);
-            catch e
-                errordlg('error: menu_OMERO_Load_IRF_annot_callback');
-                dislpay(e);
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end
             %
             %delete(full_temp_file_name); %??
@@ -494,22 +508,33 @@ classdef flim_data_series_controller < handle
         function tempfilename = OMERO_load_imagefile(obj,~,~)    
             %
             tempfilename = [];            
-                obj.set_dataset_if_not_selected;                                     
-                    image = select_Image(obj.session,obj.dataset);                       
-                        if isempty(image), return, end;
-            %                        
-            data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC',get_ZCT(image,'ModuloAlongC'));            
-            data = squeeze(data_cube);
             %
-            tempfilename = [tempname '.tif'];
-            if 2 == numel(size(data))
-                imwrite(data,tempfilename,'tif');           
+            if isempty(obj.dataset)
+                [ Dataset ~ ] = select_Dataset(obj.session,'Select a Dataset:');             
+                if isempty(Dataset), return, end;                
             else
-               sz = size(data); 
-               nimg = sz(1);
-                 for ind = 1:nimg,
-                    imwrite( data(:,:,ind),tempfilename,'WriteMode','append');
-                 end             
+                Dataset = obj.dataset;
+            end;
+            %    
+            image = select_Image(obj.session,Dataset);                       
+            if isempty(image), return, end;
+            %   
+            try
+                data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC',get_ZCT(image,'ModuloAlongC'));            
+                data = squeeze(data_cube);
+                %
+                tempfilename = [tempname '.tif'];
+                if 2 == numel(size(data))
+                    imwrite(data,tempfilename,'tif');           
+                else
+                   sz = size(data); 
+                   nimg = sz(1);
+                     for ind = 1:nimg,
+                        imwrite( data(:,:,ind),tempfilename,'WriteMode','append');
+                     end             
+                end
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
             end
             %
         end            
@@ -593,7 +618,7 @@ classdef flim_data_series_controller < handle
                         for p = 1:n_params,
                             data(p,:,:) = res.get_image(dataset_index, params{p})';
                         end
-                        %                  
+                    %                  
                     new_image_description = ' ';
 
                     new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
@@ -718,14 +743,14 @@ classdef flim_data_series_controller < handle
         %------------------------------------------------------------------        
         function OMERO_Export_Fitting_Settings(obj,fitting_params_controller,~)
             %
-            choice = questdlg(['Do you want to Export fitting settings to Dataset or Plate?'], ' ', ...
+            choice = questdlg('Do you want to Export fitting settings to Dataset or Plate?', ' ', ...
                                     'Dataset' , ...
                                     'Plate','Cancel','Cancel');              
             switch choice
                 case 'Dataset',
-                    [ object parent ] = select_Dataset(obj.session,'Select Dataset:'); 
+                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
                 case 'Plate', 
-                    [ object parent ] = select_Plate(obj.session,'Select Plate:'); 
+                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
                 case 'Cancel', 
                     return;
             end                        
@@ -767,30 +792,18 @@ classdef flim_data_series_controller < handle
             fclose(fid);
             %
             try
-                fitting_params_controller.load_fitting_params(full_temp_file_name);
-            catch e
-                errordlg('error: menu_OMERO_Import_Fitting_Settings_callback');
-                display(e);
+                fitting_params_controller.load_fitting_params(full_temp_file_name); 
+                delete(full_temp_file_name); 
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end;
-            %
-            delete(full_temp_file_name);            
         end            
-        
-        %------------------------------------------------------------------                
-        function set_dataset_if_not_selected(obj,~,~)
-            if isempty(obj.dataset) 
-                obj.OMERO_Set_Dataset;
-                if isempty(obj.dataset) 
-                    return;
-                end;
-            end;            
-        end
-        
+                
         %------------------------------------------------------------------                
         function Omero_logon(obj,~)        
             %
             if exist(obj.omero_logon_filename,'file') 
-                [settings settings_name] = xml_read (obj.omero_logon_filename);    
+                [ settings ~ ] = xml_read (obj.omero_logon_filename);    
                 obj.logon = settings.logon;
             else
                 obj.logon = OMERO_logon();
@@ -799,28 +812,13 @@ classdef flim_data_series_controller < handle
             obj.client = loadOmero(obj.logon{1});
             try 
                 obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
-            catch
+            catch err
                 obj.client = [];
                 obj.session = [];
-                errordlg('Error creating OMERO session');
+                [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                
             end                        
         end
-        
-        %------------------------------------------------------------------                
-        function OMERO_Set_Plate(obj,~,~)
-            %
-            obj.project = [];
-            obj.dataset = [];
-            %
-            [ Plate Screen ] = select_Plate(obj.session,'Select a Plate:'); 
-            %
-            if isempty(Plate), return, end;
-            %
-            obj.plate = Plate;
-            obj.screen = Screen;
-            % 
-        end                
-        
+                
        %------------------------------------------------------------------
        % OMERO
        %------------------------------------------------------------------                                        

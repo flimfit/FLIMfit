@@ -73,12 +73,16 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT) 
                     image_descriptor{2} = image_ids(selected(j));                        
                     try
                         [~,data,~] = OMERO_fetch(image_descriptor,channel,ZCT);
+                        if ~isempty(data) 
+                            obj.data_series_mem(:,:,:,:,j) = single(data);                                        
+                        end;
                     catch err
+                        if using_popup, 
+                            close(wait_handle), 
+                        end;                        
                         rethrow(err);
                     end                                        
                 
-                obj.data_series_mem(:,:,:,:,j) = single(data);                
-
                 if using_popup
                     waitbar(j/num_sel,wait_handle)
                 end
