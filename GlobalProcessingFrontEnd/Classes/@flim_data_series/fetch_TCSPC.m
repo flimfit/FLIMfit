@@ -10,13 +10,19 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel, ZCT)
     
     delays = [];
     
+   
+    
     try
         
         [delays, data_cube, name] = OMERO_fetch(image_descriptor, channel, ZCT);
         
+       
+        
     catch err
         
     end
+    
+  
     
         
    if length(channel) > 1
