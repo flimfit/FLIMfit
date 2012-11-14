@@ -9,6 +9,10 @@ function str = read_Annotation(session, object, filename)
                 specifier = 'omero.model.Dataset';
             case 'Image'
                 specifier = 'omero.model.Image';
+            case 'Plate'
+                specifier = 'omero.model.Plate';
+            case 'Screen'
+                specifier = 'omero.model.Screen';                
         end;
         %
         objId = java.lang.Long(object.getId().getValue());

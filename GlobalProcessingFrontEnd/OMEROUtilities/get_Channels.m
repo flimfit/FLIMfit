@@ -1,5 +1,13 @@
 function data_cube = get_Channels( session, imgId, n_blocks, block, modulo, ZCT )
     %
+    data_cube = [];
+    %
+    if ~strcmp(modulo,'ModuloAlongC') && ~strcmp(modulo,'ModuloAlongT') && ~strcmp(modulo,'ModuloAlongZ')
+        [ST,I] = dbstack('-completenames');
+        errordlg(['No acceptable ModuloAlong* in the function ' ST.name]);
+        return;
+    end;    
+    %
     proxy = session.getContainerService();
     ids = java.util.ArrayList();
     ids.add(java.lang.Long(imgId)); 
@@ -22,8 +30,9 @@ function data_cube = get_Channels( session, imgId, n_blocks, block, modulo, ZCT 
     image.getName().getValue();
         store = session.createRawPixelsStore(); 
         store.setPixelsId(pixelsId, false);    
-    %   
-        switch modulo
+    % 
+    %
+       switch modulo
             case 'ModuloAlongZ' 
                 N = sizeZ;        
             case 'ModuloAlongC' 

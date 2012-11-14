@@ -10,11 +10,11 @@ function obj = marshal_object(file,type,obj)
         mp = mc.Properties;
 
         if isempty(mc)
-            MException('FLIM:UnrecognisedObject','Object specified by XML was not recognised')
+            throw(MException('FLIM:UnrecognisedObject','Object specified by XML was not recognised'));
         end
 
         if nargin == 2 && ~strcmp(obj_name,type)
-            MException('FLIM:UnexpectedObject','Object specified by XML was not of the type expected')
+            throw(MException('FLIM:UnexpectedObject','Object specified by XML was not of the type expected'));
         end
 
         if nargin < 3
@@ -55,7 +55,7 @@ function obj = marshal_object(file,type,obj)
              end
          end
     catch
-       warning('GlobalProcessing:LoadDataSettingsFailed','Failed to load data settings file'); 
+       throw(MException('GlobalProcessing:LoadDataSettingsFailed','Failed to load data settings file'));
     end
          
 end

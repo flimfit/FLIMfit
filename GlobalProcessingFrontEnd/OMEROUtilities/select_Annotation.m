@@ -1,6 +1,7 @@
 function [ret fname] = select_Annotation(session, object, prompt)
         %
         ret = [];
+        fname = [];
         %
         switch whos_Object(session,object.getId().getValue())
             case 'Project'
@@ -9,6 +10,10 @@ function [ret fname] = select_Annotation(session, object, prompt)
                 specifier = 'omero.model.Dataset';
             case 'Image'
                 specifier = 'omero.model.Image';
+            case 'Screen'
+                specifier = 'omero.model.Screen';
+            case 'Plate'
+                specifier = 'omero.model.Plate';                
         end;
         %
         objId = java.lang.Long(object.getId().getValue());
@@ -20,6 +25,7 @@ function [ret fname] = select_Annotation(session, object, prompt)
         %
         if 0 == annotations.size()
             errordlg('select_Annotation: no annotations - ret is empty');
+            return;
         end                
         %        
         str = char(256,256);

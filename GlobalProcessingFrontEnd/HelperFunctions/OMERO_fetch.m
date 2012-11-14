@@ -48,6 +48,7 @@ else % still can process as it is an imported file....
         sizeZ = pixels.getSizeZ.getValue();
         if sizeZ > 2 & length(channel) == 1 & max(channel) == 1
               modulo = 'ModuloAlongZ';
+              FLIM_type = 'TCSPC';
               n_channels = 1;
               
               physSizeZ = pixels.getPhysicalSizeZ().getValue().*1000;     % assume this is in ns so convert to ps
@@ -79,6 +80,7 @@ else % still can process as it is an imported file....
         if strfind(str,'bhfileHeader')
         
             modulo = 'ModuloAlongC';
+            FLIM_type = 'TCSPC';
 
             pos = strfind(str, 'bins');
             nBins = str2num(str(pos+5:pos+7));
@@ -112,7 +114,14 @@ else
     [nBins,sizeX,sizeY] = size(data_cube_);       
     data_cube = zeros(nBins,1,sizeX,sizeY,1);
     
-    data_cube(1:end,1,:,:,1) = squeeze(data_cube_(1:end,:,:));    
+    data_cube(1:end,1,:,:,1) = squeeze(data_cube_(1:end,:,:));   
+    
+    if FLIM_type ~= 'TCSPC'
+        if min(data_cube(:)) > 32500
+            data_cube = data_cube - 32768;    % clear the sign bit which is set by labview
+        end
+    end
+
     
    
 
