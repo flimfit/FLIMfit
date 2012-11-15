@@ -114,9 +114,7 @@ classdef flim_data_series < handle
         tr_tvb_profile;
         
         names;
-        
-        OMERO_id;
-        
+                
         metadata;
 
         tr_data_size;

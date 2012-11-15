@@ -25,14 +25,12 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel, ZCT)
         obj.load_multiple_channels = false;
    end
     
-    if size(delays) > 0
+   if size(delays) > 0
                
         obj.file_names = {'file'};
         obj.channels = 1;
         
-        obj.names{1} = name;
-        
-        obj.OMERO_id = image_descriptor{2};
+        obj.names{1} = name;        
    
         obj.metadata = extract_metadata(obj.names);
             
@@ -52,11 +50,11 @@ function fetch_TCSPC(obj, image_descriptor, polarisation_resolved, channel, ZCT)
         else
             obj.num_datasets = 1;
     
-        obj.loaded = ones([1 obj.num_datasets]);
-    
-        obj.switch_active_dataset(1);
+            obj.loaded = ones([1 obj.num_datasets]);
+        
+            obj.switch_active_dataset(1);
      
-        obj.init_dataset();
-    end
+            obj.init_dataset();
+        end
 
-end
+    end

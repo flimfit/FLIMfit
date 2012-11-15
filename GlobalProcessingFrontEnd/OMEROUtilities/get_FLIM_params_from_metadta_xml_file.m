@@ -14,6 +14,9 @@ function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadta_x
         if     isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo,'ModuloAlongT')
             delays = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.Label;
             modulo = 'ModuloAlongT';
+            if isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE,'NumberOfFLIMChannels')
+                n_channels = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels;
+            end;            
         elseif isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo,'ModuloAlongC')
             delays = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.Label;
             modulo = 'ModuloAlongC';
@@ -23,6 +26,9 @@ function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadta_x
         elseif isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
             delays = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label;        
             modulo = 'ModuloAlongZ';
+            if isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE,'NumberOfFLIMChannels')
+                n_channels = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels;
+            end;            
         end
     end
     %

@@ -1,4 +1,4 @@
-        function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,pixeltype)
+        function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,pixeltype,modulo)
             %
             new_datasetId = [];
             %            
@@ -23,8 +23,8 @@
                     % 
                     hw = waitbar(0, 'Loading files to Omero, please wait');
                     for i = 1 : num_files   
-                        if ~strcmp('sdt',extension)
-                            full_file_name = [folder filesep file_names{i}];
+                        full_file_name = [folder filesep file_names{i}];
+                        if ~strcmp('sdt',extension)                            
                             if strcmp('tif',extension) && is_OME_tif(full_file_name)
                                 upload_Image_OME_tif(session, new_dataset,full_file_name,' ');  
                             else % try to load as channels anyway
@@ -36,14 +36,14 @@
                                     Z(c,:,:) = squeeze(U(:,:,c))';
                                 end;
                                 img_description = ' ';
-                                imageId = mat2omeroImage_Channels(session, Z, pixeltype, file_names{i},  img_description, []);
+                                imageId = mat2omeroImage(session, Z, pixeltype, file_names{i},  img_description, [],modulo);
                                 link = omero.model.DatasetImageLinkI;
                                 link.setChild(omero.model.ImageI(imageId, false));
                                 link.setParent(omero.model.DatasetI(new_dataset.getId().getValue(), false));
                                 session.getUpdateService().saveAndReturnObject(link); 
                             end % if strcmp('tif',extension) && is_OME_tif(full_file_name)                           
                         else % strcmp('sdt',extension)
-                            upload_Image_BH(session, new_dataset,full_file_name,'sample');    
+                            upload_Image_BH(session, new_dataset,full_file_name,'sample',modulo);    
                         end
                         %
                         waitbar(i/num_files, hw);
@@ -54,4 +54,3 @@
             %
             new_datasetId = new_dataset.getId().getValue();
         end
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

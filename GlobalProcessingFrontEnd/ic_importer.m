@@ -5,7 +5,7 @@ addpath_global_analysis();
 settings = [];
 %
 if exist('ic_importer_settings.xml','file') 
-    [settings settings_name] = xml_read ('ic_importer_settings.xml');    
+    [ settings ~ ] = xml_read ('ic_importer_settings.xml');    
     logon = settings.logon;
 else
     logon = OMERO_logon();
@@ -24,10 +24,12 @@ data = createData();
             data.DefaultDataDirectory = settings.DefaultDataDirectory;        
             data.image_annotation_file_extension = settings.image_annotation_file_extension;        
             data.load_dataset_annotations = settings.load_dataset_annotations;
+            data.modulo = settings.modulo;
         else
             data.DefaultDataDirectory = 'c:\';        
             data.image_annotation_file_extension = 'none';        
             data.load_dataset_annotations = false;
+            data.modulo = 'ModuloAlongT';
         end                    
         %
         data.client  = [];
@@ -43,8 +45,7 @@ data = createData();
         %
         %        
         data.dirlist = []; % list of directories to import for well plate
-        data.dataset_annotations = [];          
-        %        
+        data.dataset_annotations = [];                          
     end % createData
 %-------------------------------------------------------------------------%
     function gui = createInterface( data )
@@ -76,6 +77,7 @@ data = createData();
         gui.handles.menu_file_single_tbckg = uimenu(gui.menu_file_set_single,'Label','time_varying_background', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_intref = uimenu(gui.menu_file_set_single,'Label','intensity_reference', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','g_factor', 'Callback', @onSetFile);        
+        gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','sample', 'Callback', @onSetFile);        
                       
         uimenu( gui.menu_file, 'Label', 'Exit', 'Callback', @onExit );        
         % + Omero menu
@@ -87,6 +89,12 @@ data = createData();
         % + Upload menu
         %gui.menu_upload      = uimenu(gui.Window,'Label','Upload');
         %uimenu(gui.menu_upload,'Label','Go','Accelerator','G','Callback', @onGo);                                
+        
+        gui.menu_upload      = uimenu(gui.Window,'Label',data.modulo);
+        uimenu(gui.menu_upload,'Label','ModuloAlongC','Callback', @onSetModuloAlong);                                
+        uimenu(gui.menu_upload,'Label','ModuloAlongT','Callback', @onSetModuloAlong);                                
+        uimenu(gui.menu_upload,'Label','ModuloAlongZ','Callback', @onSetModuloAlong);                                
+                        
         %
         % CONTROLS
         gui.ProjectNamePanel = uicontrol( 'Style', 'text','Parent',gui.Window,'String',data.ProjectName,'FontSize',10,'Position',[20 80 800 20],'BackgroundColor',bckg_color);          
@@ -289,7 +297,6 @@ data = createData();
         %
         updateInterface();
 
-
     end % onSetProject
 %-------------------------------------------------------------------------%
     function onGo(~,~)
@@ -315,7 +322,7 @@ data = createData();
         %
         if (strcmp(data.extension,'tif') || strcmp(data.extension,'tiff') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
             % simple case                 
-            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,'double');
+            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,'double',data.modulo);
             new_dataset = get_Object_by_Id(data.session,new_dataset_id);
             %                        
             % IMAGE ANNOTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% (this is ugly)
@@ -353,7 +360,9 @@ data = createData();
             
             FOV_name_parse_func = get_Plate_param_func_name_from_metadata_xml_file( ...
                 [data.Directory filesep data.main_well_plate_annotation_sacred_filename]);
-            upload_PlateReader_dir_ModuloAlongC(data.session, data.project, data.Directory, FOV_name_parse_func);
+            %            
+            new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, FOV_name_parse_func, data.modulo);
+            new_dataset = get_Object_by_Id(data.session,new_dataset_id);
             
         elseif strcmp(data.LoadMode,'single file')
 
@@ -372,7 +381,7 @@ data = createData();
                                 Z(c,:,:) = squeeze(U(:,:,c))';
                             end;
                             img_description = ' ';
-                            imageId = mat2omeroImage_Channels(data.session, Z, 'double', file_name,  img_description, []);
+                            imageId = mat2omeroImage(data.session, Z, pixeltype, file_name,  img_description, [],'ModuloAlongC');
                             link = omero.model.DatasetImageLinkI;
                             link.setChild(omero.model.ImageI(imageId, false));
                             link.setParent(omero.model.DatasetI(data.project.getId().getValue(), false)); % in this case, "project" is Dataset
@@ -411,7 +420,7 @@ data = createData();
                             delete(xmlFileName);
                             %                            
                         else % strcmp('sdt',data.extension)
-                            upload_Image_BH(data.session, data.project, data.Directory, 'double', data.SingleFileMeaningLabel);    
+                            upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo);
                         end                        
         end % strcmp(data.LoadMode,'single file')
         %      
@@ -517,6 +526,7 @@ data = createData();
         ic_importer_settings.DefaultDataDirectory = data.DefaultDataDirectory;        
         ic_importer_settings.image_annotation_file_extension = data.image_annotation_file_extension;
         ic_importer_settings.load_dataset_annotations = data.load_dataset_annotations;
+        ic_importer_settings.modulo = data.modulo;
         xml_write('ic_importer_settings.xml', ic_importer_settings);
     end % save_settings
 %-------------------------------------------------------------------------%  
@@ -584,7 +594,7 @@ data = createData();
                                   
             if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Project')
                 % doopredelaem
-                [ dtst prjct ] = select_Dataset(data.session,'Select Dataset');
+                [ dtst ~ ] = select_Dataset(data.session,'Select Dataset');
                 if ~isempty(dtst)
                     data.project = dtst; % in  reality, dataset not project;
                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -602,5 +612,12 @@ data = createData();
         %
         updateInterface();                   
     end
+
+    function onSetModuloAlong(hObj,~,~)
+      data.modulo  = get(hObj,'Label');       
+      set(gui.menu_upload,'Label',data.modulo);      
+      updateInterface();                   
+    end
+
 
 end % EOF

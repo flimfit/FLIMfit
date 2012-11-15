@@ -1,5 +1,7 @@
 function ret = parse_WP_format1(folder)
 
+% A-5-XY_00032
+
     letters = 'ABCDEFGH';
     
     dirlist = [];
@@ -42,5 +44,6 @@ function ret = parse_WP_format1(folder)
     ret.columnNamingConvention = 'number'; % 'Column_Names';
     ret.rowNamingConvention = 'letter'; %'Row_Names'; 
     ret.NumberOfFLIMChannels = 1;
+    ret.DelayedImageFileNameParsingFunction = 'parse_DIFN_format1';
     
 end

@@ -3,12 +3,17 @@ function res = is_OME_tif(filename)
     res = false;
 
     if isempty(filename)
-        errordlg('upload_Image: bad input');
+        errordlg('bad input');
         return;
     end;                   
     
     tT = Tiff(filename);
-    s = tT.getTag('ImageDescription');
+    s = [];
+    try
+        s = tT.getTag('ImageDescription');
+    catch
+        return;
+    end
     if isempty(s), return; end;    
     
     detached_metadata_xml_filename = [tempdir 'metadata.xml'];
@@ -22,6 +27,7 @@ function res = is_OME_tif(filename)
     try
         if isfield(tree.Image.Pixels.ATTRIBUTE,'SizeZ'), res = true; end;
     catch
+        return;
     end
     
     delete(detached_metadata_xml_filename);

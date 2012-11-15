@@ -1,4 +1,4 @@
-function upload_Image_BH(session, dataset, full_filename,contents_type)
+function upload_Image_BH(session, dataset, full_filename, contents_type, modulo)
     %
     bandhdata = loadBandHfile_CF(full_filename); % full filename
     %
@@ -40,46 +40,59 @@ function upload_Image_BH(session, dataset, full_filename,contents_type)
         str = split(filesep,full_filename);
             filename = str(length(str));
     %
-    imgId = mat2omeroImage_Channels(session, Z, pixeltype, filename,  img_description, channels_names);
+    imgId = mat2omeroImage(session, Z, pixeltype, filename,  img_description, channels_names, modulo);
     %
     link = omero.model.DatasetImageLinkI;
         link.setChild(omero.model.ImageI(imgId, false));
             link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
                 session.getUpdateService().saveAndReturnObject(link);     
-    % BLOCK ABOVE
-%     proxy = session.getContainerService();
-%     ids = java.util.ArrayList();
-%     ids.add(java.lang.Long(imgId)); %add the id of the image.
-%     list = proxy.getImages('omero.model.Image', ids, omero.sys.ParametersI());
-%     if (list.size == 0)
-%         exception = MException('OMERO:ImageID', 'Image Id not valid');
-%         throw(exception);
-%     end
-%     image = list.get(0);
-    % BLOCK ABOVE
-    image = get_Object_by_Id(session,imgId.getValue()); % this must do  block above
+    image = get_Object_by_Id(session,imgId);
     %
     % OME ANNOTATION
     flimXMLmetadata.Image.Pixels.ATTRIBUTE.BigEndian = 'true';
     flimXMLmetadata.Image.Pixels.ATTRIBUTE.DimensionOrder = 'XYCTZ'; % does not matter
     flimXMLmetadata.Image.Pixels.ATTRIBUTE.ID = '?????';
-    flimXMLmetadata.Image.Pixels.ATTRIBUTE.PixelType = pixeltype;
+    flimXMLmetadata.Image.Pixels.ATTRIBUTE.PixelType = pixeltype;    
     flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeX = h; % :)
     flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeY = w;
+    
     flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = 1;
-    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = n_channels*nBins;
+    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = 1;
     flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = 1;
+    %
+    SizeM = n_channels*nBins;
+            switch modulo
+                case 'ModuloAlongC'
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = SizeM;
+                case 'ModuloAlongZ'
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = SizeM;
+                case 'ModuloAlongT'
+                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = SizeM;
+            end    
     %
     flimXMLmetadata.Image.ContentsType = contents_type;
     flimXMLmetadata.Image.FLIMType = 'TCSPC';
     %
     flimXMLmetadata.StructuredAnnotation.XMLAnnotation.ATTRIBUTE.ID = 'Annotation:3'; 
     flimXMLmetadata.StructuredAnnotation.XMLAnnotation.ATTRIBUTE.Namespace = 'openmicroscopy.org/omero/dimension/modulo'; 
-    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ATTRIBUTE.namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09'; 
-    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type = 'lifetime'; 
-    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
-    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit = 'ps'; 
-    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.Label = channels_names(1:nBins); 
+    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ATTRIBUTE.namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09';     
+            switch modulo
+                case 'ModuloAlongC'
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type = 'lifetime'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit = 'ps'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.Label = channels_names(1:nBins); 
+                case 'ModuloAlongZ'
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type = 'lifetime'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit = 'ps'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label = channels_names(1:nBins); 
+                case 'ModuloAlongT'
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type = 'lifetime'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit = 'ps'; 
+                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.Label = channels_names(1:nBins); 
+            end           
     %
     xmlFileName = [tempdir 'metadata.xml'];
     xml_write(xmlFileName,flimXMLmetadata);

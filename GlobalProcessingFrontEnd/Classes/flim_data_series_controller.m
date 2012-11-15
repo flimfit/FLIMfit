@@ -627,7 +627,7 @@ classdef flim_data_series_controller < handle
                                                                 ' T ' num2str(obj.ZCT(3)) ' ' ...
                     obj.data_series.names{dataset_index}]);
 
-                    imageId = mat2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());
+                    imageId = mat2omeroImage(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list(),'ModuloAlongC');
                     link = omero.model.DatasetImageLinkI;
                     link.setChild(omero.model.ImageI(imageId, false));
                     link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
@@ -714,7 +714,7 @@ classdef flim_data_series_controller < handle
                                                             ' C ' num2str(obj.ZCT(2)) ...
                                                             ' T ' num2str(obj.ZCT(3)) ' ' ...
                                                             obj.data_series.names{dataset_index}]);
-                                                            new_imageId = mat2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());                                                                                                                
+                                                            new_imageId = mat2omeroImage(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list(),'ModuloAlongC');
                                                         %results image
                                                     newws.setImage( omero.model.ImageI(new_imageId,false) );
                                                     newws.setWell( newwell );        
