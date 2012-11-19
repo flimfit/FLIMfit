@@ -34,12 +34,12 @@ function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadta_x
     %
     %LaVision kludge    
     if isfield(tree.Image,'ca_COLON_CustomAttributes')
-        software_name = tree.Image.ca_COLON_CustomAttributes.ImspectorVersion.ATTRIBUTE.ImspectorVersion
+        software_name = tree.Image.ca_COLON_CustomAttributes.ImspectorVersion.ATTRIBUTE.ImspectorVersion;
         if strfind(software_name,'Imspector Pro')
-            SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ
+            SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ;
             FLIM_type = 'TCSPC';
             modulo = 'ModuloAlongZ';
-            incr = 12500/SizeZ; %ps ??
+            incr = tree.Image.Pixels.ATTRIBUTE.PhysicalSizeZ*1000;
             delays = num2cell((0:SizeZ-1)*incr);
             n_channels = 1;
         end
