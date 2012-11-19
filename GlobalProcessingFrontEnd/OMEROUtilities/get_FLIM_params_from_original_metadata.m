@@ -1,5 +1,6 @@
 function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadata(session,objId,annotation_filename)
 
+
     delays = [];
     FLIM_type = [];
     modulo = [];
