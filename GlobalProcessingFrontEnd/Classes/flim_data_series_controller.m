@@ -211,22 +211,27 @@ classdef flim_data_series_controller < handle
             obj.data_series = flim_data_series();            
             %
             image = get_Object_by_Id(obj.session,java.lang.Long(imageDescriptor{2}));
-            [ FLIM_type , ~ , modulo, n_channels ] = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
-            if isempty(n_channels) || 1 ~= n_channels
+            mdta = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
+                        
+            if isempty(mdta.n_channels) || mdta.n_channels > 1
                 channel = obj.data_series.request_channels(polarisation_resolved);
             else
                 channel = 1;
             end;
             %
-            if     strcmp(FLIM_type,'TCSPC')
+            if     strcmp(mdta.FLIM_type,'TCSPC')
                 obj.data_series.mode = 'TCSPC'; 
-            elseif strcmp(FLIM_type,'Gated')
+            elseif strcmp(mdta.FLIM_type,'Gated')
                 obj.data_series.mode = 'widefield';
             else
                 obj.data_series.mode = 'TCSPC'; % not annotated sdt
             end
             %
-            obj.ZCT = get_ZCT(image,modulo);
+            if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
+                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
+            else
+                obj.ZCT = get_ZCT(image,mdta.modulo);
+            end
             %
             try
                 obj.data_series.fetch_TCSPC(imageDescriptor, polarisation_resolved, channel, obj.ZCT);            
@@ -402,24 +407,29 @@ classdef flim_data_series_controller < handle
             image_descriptor{2} = image_ids(1);                        
             image = get_Object_by_Id(obj.session,java.lang.Long(image_descriptor{2}));
             %
-            [ FLIM_type , ~ , modulo, n_channels ] = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
+            mdta= get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
             %
-            obj.ZCT = get_ZCT(image, modulo);
+            obj.ZCT = get_ZCT(image, mdta.modulo);
             %
-            if isempty(n_channels) || 1 ~= n_channels            
+            if isempty(mdta.n_channels) || mdta.n_channels > 1
                 obj.selected_channel = obj.data_series.request_channels(polarisation_resolved);            
             else
                 obj.selected_channel = 1;
             end;
             %
-            if     strcmp(FLIM_type,'TCSPC')
+            if     strcmp(mdta.FLIM_type,'TCSPC')
                 obj.data_series.mode = 'TCSPC'; 
-            elseif strcmp(FLIM_type,'Gated')
+            elseif strcmp(mdta.FLIM_type,'Gated')
                 obj.data_series.mode = 'widefield';
             else
                 obj.data_series.mode = 'TCSPC'; % not annotated sdt..
             end
-            %           
+            if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
+                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
+            else
+                obj.ZCT = get_ZCT(image,mdta.modulo);
+            end
+            %                                   
             try
                 [delays, data_cube, name] = OMERO_fetch(image_descriptor, obj.selected_channel,obj.ZCT);
             catch err
@@ -520,7 +530,8 @@ classdef flim_data_series_controller < handle
             if isempty(image), return, end;
             %   
             try
-                data_cube = get_Channels( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC',get_ZCT(image,'ModuloAlongC'));            
+                zct = get_ZCT(image,'ModuloAlongC');
+                data_cube = get_FLIM_cube( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC',zct);            
                 data = squeeze(data_cube);
                 %
                 tempfilename = [tempname '.tif'];

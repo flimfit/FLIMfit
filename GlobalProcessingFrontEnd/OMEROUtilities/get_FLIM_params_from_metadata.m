@@ -1,9 +1,12 @@
-function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadata(session,objId,annotation_filename)
+function ret = get_FLIM_params_from_metadata(session,objId,annotation_filename)
 
-    delays = [];
-    FLIM_type = [];
-    modulo = [];
-    n_channels = [];
+    ret.delays = [];
+    ret.FLIM_type = [];
+    ret.modulo = [];
+    ret.n_channels = [];
+    ret.SizeZ = [];
+    ret.SizeC = [];
+    ret.SizeT = [];
 
     s = read_Annotation(session,get_Object_by_Id(session,objId.getValue()),annotation_filename);
     if isempty(s), return, end;
@@ -14,7 +17,8 @@ function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadata(
     fclose(fid);
     
     try
-        [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadta_xml_file(detached_metadata_xml_filename);
+        ret_ = get_FLIM_params_from_metadta_xml_file(detached_metadata_xml_filename);
+        ret = ret_;
     catch
     end
 
