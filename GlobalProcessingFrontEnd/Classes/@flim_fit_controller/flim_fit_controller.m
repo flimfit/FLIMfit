@@ -128,6 +128,27 @@ classdef flim_fit_controller < flim_data_series_observer
             end
         end
         
+        function [param_data mask] = get_image(obj,im,param)
+            
+            if ischar(param)
+                param_idx = strcmp(obj.fit_result.params,param);
+                param = find(param_idx);
+            end
+            
+            [param_data mask] = obj.dll_interface.get_image(im,param);
+        end
+        
+        function [param_data mask] = get_intensity(obj,im)
+            param = obj.fit_result.intensity_idx;
+            if ~isempty(param) 
+                [param_data mask] = obj.dll_interface.get_image(im,param);
+            else
+                param_data = 0;
+                mask = 0;
+            end
+        end
+        
+        
         function live_update_callback(obj,~,~)
             obj.live_update = get(obj.live_update_checkbox,'Value');
             if obj.live_update == false
@@ -161,10 +182,10 @@ classdef flim_fit_controller < flim_data_series_observer
             if ishandle(obj.results_table)
                 set(obj.results_table,'ColumnName','numbered');
                 set(obj.results_table,'RowName',obj.param_table_headers);
-                set(obj.results_table,'Data',obj.param_table');
+                set(obj.results_table,'Data',obj.param_table);
                 
-                set(obj.progress_table,'RowName',obj.param_table_headers(1:5));
-                set(obj.progress_table,'Data',obj.param_table(:,1:5)');
+                set(obj.progress_table,'RowName',obj.param_table_headers(1:4));
+                set(obj.progress_table,'Data',obj.param_table(1:4,:));
             end
         end
         

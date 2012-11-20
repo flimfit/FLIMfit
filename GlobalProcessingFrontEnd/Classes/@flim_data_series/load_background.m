@@ -33,13 +33,12 @@ function load_background(obj, background_file)
     extent = 3;
     kernel1 = ones([extent 1]) / extent;
     kernel2 = ones([1 extent]) / extent;
-    
     filtered = conv2nan(im,kernel1);                
     im = conv2nan(filtered,kernel2); 
     %}
     
     extent = 3;
-    im = medfilt2(im,[extent extent], 'symmetric');
+    im = medfilt2(im,[extent extent],'symmetric');
     
     
     if any(size(im) ~= [obj.height obj.width])

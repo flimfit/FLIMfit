@@ -1,2 +1,5 @@
-Add a copy of the boost headers to this directory
-Version 1.4.7 has been tested.
+Add a copy of the Boost header folder 'boost' to this directory
+Download from: http://www.boost.org/
+
+Version 1.5.1 has been tested with Visual Studio 2012
+Version 1.4.7 has been tested with Visual Studio 2010 and GCC but known issues with Visual Studio 2012.

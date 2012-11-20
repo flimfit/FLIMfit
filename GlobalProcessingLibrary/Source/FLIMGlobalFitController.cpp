@@ -7,6 +7,8 @@
 
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
+#include "VariableProjector.h"
+#include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
 #ifndef NO_OMP   
@@ -17,9 +19,10 @@ using namespace boost::interprocess;
 using namespace std;
 
 
-FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf,
+FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf, 
                                                  int n_irf, double t_irf[], double irf[], double pulse_pileup,
-                                                 int n_exp, int n_fix, 
+                                                 double t0_image[],
+                                                 int n_exp, int n_fix, int n_decay_group, int* decay_group,
                                                  double tau_min[], double tau_max[], 
                                                  int estimate_initial_tau, double tau_guess[],
                                                  int fit_beta, double fixed_beta[],
@@ -31,9 +34,9 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
                                                  int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                                                  int pulsetrain_correction, double t_rep,
                                                  int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                                                 int ierr[], int n_thread, int runAsync, int (*callback)()) :
+                                                 int n_thread, int runAsync, int (*callback)()) :
    global_algorithm(global_algorithm), image_irf(image_irf), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
-   n_exp(n_exp), n_fix(n_fix), 
+   t0_image(t0_image), n_exp(n_exp), n_fix(n_fix), n_decay_group(n_decay_group), decay_group(decay_group),
    tau_min(tau_min), tau_max(tau_max),
    estimate_initial_tau(estimate_initial_tau), tau_guess(tau_guess),
    fit_beta(fit_beta), fixed_beta(fixed_beta),
@@ -45,7 +48,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    n_fret(n_fret), n_fret_fix(n_fret_fix), inc_donor(inc_donor), E_guess(E_guess),
    pulsetrain_correction(pulsetrain_correction), t_rep(t_rep),
    ref_reconvolution(ref_reconvolution), ref_lifetime_guess(ref_lifetime_guess),
-   ierr(ierr), n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
+   n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
    error(0), init(false), polarisation_resolved(false), has_fit(false), 
    anscombe_tranform(false), thread_handle(NULL)
 {
@@ -53,16 +56,20 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    status = new FitStatus(this,n_thread,NULL); //ok
 
    alf          = NULL;
-   a            = NULL;
-   b            = NULL;
-   c            = NULL;
+   chi2         = NULL;
+   I            = NULL;
+   w_mean_tau   = NULL;
+   mean_tau     = NULL;
    cur_alf      = NULL;
+   cur_irf_idx  = NULL;
+
+   ierr         = NULL;
+   success      = NULL;
 
    y            = NULL;
    lin_params   = NULL;
 
    w            = NULL;
-   ws           = NULL;
 
    irf_buf      = NULL;
    t_irf_buf    = NULL;
@@ -73,10 +80,10 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    fit_buf      = NULL;
    count_buf    = NULL;
    adjust_buf   = NULL;
+   decay_group_buf = NULL;
 
    irf_max      = NULL;
-   resampled_irf= NULL;
-
+   
    conf_lim     = NULL;
 
    locked_param = NULL;
@@ -85,18 +92,19 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    lin_params_err = NULL;
    alf_err        = NULL;
 
-   chan_fact       = NULL;
-   local_irf = NULL;
+   chan_fact      = NULL;
+   irf_idx        = NULL;
+
+   param_names_ptr = NULL;
+
    result_map_filename = NULL;
-   ma_decay = NULL;
+   local_decay = NULL;
    data = NULL;
 
    alf_local = NULL;
    lin_local = NULL;
 
    lm_algorithm = 1;
-
-   memory_map_results = false;
 
 }
 
@@ -110,33 +118,30 @@ int FLIMGlobalFitController::RunWorkers()
       return ERR_COULD_NOT_START_FIT;
 
    #ifndef NO_OMP
-   if (data->n_group == 1)
-      omp_set_num_threads(n_thread);
-   else
-      omp_set_num_threads(1); 
+      omp_set_num_threads(n_omp_thread);
    #endif
 
 
-   if (n_thread == 1 && !runAsync)
+   if (n_fitters == 1 && !runAsync)
    {
       params[0].controller = this;
       params[0].thread = 0;
 
-      WorkerThread((void*)(params));
+      StartWorkerThread((void*)(params));
    }
    else
    {
-      for(int thread = 0; thread < n_thread; thread++)
+      for(int thread = 0; thread < n_fitters; thread++)
       {
          params[thread].controller = this;
          params[thread].thread = thread;
       
-         thread_handle[thread] = new tthread::thread(WorkerThread,(void*)(params+thread)); // ok
+         thread_handle[thread] = new tthread::thread(StartWorkerThread,(void*)(params+thread)); // ok
       }
 
       if (!runAsync)
       {
-         for(int thread = 0; thread < n_thread; thread++)
+         for(int thread = 0; thread < n_fitters; thread++)
             thread_handle[thread]->join();
 
          CleanupTempVars();
@@ -149,58 +154,121 @@ int FLIMGlobalFitController::RunWorkers()
 
 
 
-void WorkerThread(void* wparams)
+void StartWorkerThread(void* wparams)
 {
-   try
+   WorkerParams* p = (WorkerParams*) wparams;
+   FLIMGlobalFitController* controller = p->controller;
+   int thread = p->thread;
+
+   controller->WorkerThread(thread);
+}
+
+
+void FLIMGlobalFitController::WorkerThread(int thread)
+{
+   int idx, px, region_count;
+   
+   status->AddThread();
+
+   if (data->global_mode == MODE_PIXELWISE)
    {
-      WorkerParams* p = (WorkerParams*) wparams;
-      FLIMGlobalFitController* controller = p->controller;
-      FLIMData* data = controller->data;
-      int thread = p->thread;
-
-      int idx = 0;
-
-      if (thread >= controller->data->n_regions_total)
-         return;
-
-      controller->status->AddThread();
-
-      for(int g=0; g<data->n_group; g++)
+      for(int im=0; im<data->n_im_used; im++)
       {
-         for(int r=data->GetMinRegion(g); r<=data->GetMaxRegion(g); r++)
+         for(int r=0; r<MAX_REGION; r++)
          {
-            if(idx % controller->n_thread == thread)
+            idx = im*MAX_REGION+r;
+            if (data->GetRegionIndex(im,r) > -1)
             {
-               if (!controller->init)
-                  break;
+               data_mutex.lock();
+               region_mutex.lock();
+               if (cur_region != idx)
+               {
+                  while (threads_active > 0)
+                     active_lock.wait(region_mutex);
+                  
+                  float* I_local = I + data->GetRegionPos(im,r);
+                  
+                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, irf_idx);
+                  next_pixel = 0;
+                  
+                  cur_region = idx;
+               }
+               threads_active++;
+               region_mutex.unlock();
+               data_mutex.unlock();
+               
+               region_count = data->GetRegionCount(im,r);
 
-               controller->ProcessRegion(g,r,thread);
+               px = 0;
+               do
+               {
+                  pixel_mutex.lock();
+                  px = next_pixel;
+                  next_pixel++;
+                  pixel_mutex.unlock();
+               
+                  ProcessRegion(im, r, px, thread);
+                  
+                  if (status->terminate)
+                  {
+                     region_mutex.lock();
+                     threads_active--;
+                     active_lock.notify_all();
+                     region_mutex.unlock();
+                     
+                     goto terminated;
+                  }
 
-               controller->status->FinishedRegion(thread);
+               }while(next_pixel<region_count);
+
+               region_mutex.lock();
+               threads_active--;
+               active_lock.notify_all();
+               region_mutex.unlock();
+
             }
-            if (controller->status->terminate)
-               goto terminated;
-            idx++;
+            
+
          }
       }
-
-   terminated:
-
-      int threads_running = controller->status->RemoveThread();
-
-      if (threads_running == 0 && controller->runAsync)
-      {
-         controller->CleanupTempVars();
-      }
-
    }
-   catch(std::exception e)
+   else if (data->global_mode == MODE_IMAGEWISE)
    {
-      e = e;
-
+      for(int im=0; im<data->n_im_used; im++)
+      {
+         for(int r=0; r<MAX_REGION; r++)
+         {
+            idx = data->GetRegionIndex(im,r);
+            if (idx > -1 && idx % n_thread == thread)
+               ProcessRegion(im, r, 0, thread);
+            
+            if (status->terminate)
+               goto terminated;
+         }
+      }
    }
-   return;
+   else
+   {
+      for(int r=0; r<MAX_REGION; r++)
+      {
+         idx = data->GetRegionIndex(0,r);
+         if (idx > -1 && idx % n_thread == thread)
+            ProcessRegion(0, r, 0, thread);
+           
+         if (status->terminate)
+            goto terminated;
+      }
+   }
+
+terminated:
+
+   int threads_running = status->RemoveThread();
+
+   if (threads_running == 0 && runAsync)
+      CleanupTempVars();
+
 }
+
 
 void FLIMGlobalFitController::SetData(FLIMData* data)
 {
@@ -223,12 +291,14 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
 {
    double irf_95, c, p;
    double* t = data->GetT();
+   int j_last; 
 
    int start = 0;
 
    double *irf = this->irf_buf + idx * n_irf * n_chan;
 
    c = 0;
+   j_last = 0;
    for(int i=0; i<n_irf; i++)
       c += irf[i];
 
@@ -241,23 +311,47 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
          g_factor = c/p;
    }
 
-   irf_95 = c * 0.95;
-   
-   c = 0;
-   for(int i=0; i<n_irf; i++)
+   if (!ref_reconvolution)
    {
-      c += irf[i];
-      if (c >= irf_95)
+      // Start after 95% of IRF
+      irf_95 = c * 0.95;
+   
+      c = 0;
+      for(int i=0; i<n_irf; i++)
       {
-         for (int j=0; j<data->n_t; j++)
-            if (t[j] > t_irf[i])
-            {
-               start = j;
-               break;
-            }
-         break;
-      }   
+         c += irf[i];
+         if (c >= irf_95)
+         {
+            for (int j=0; j<data->n_t; j++)
+               if (t[j] > t_irf[i])
+               {
+                  start = j;
+                  break;
+               }
+            break;
+         }   
+      }
    }
+   else
+   {
+      // Look for maximum point of reference
+      c = 0;
+      for(int i=0; i<n_irf; i++)
+      {
+         if (irf[i] > c)
+         {
+            c = irf[i];
+            for (int j=j_last; j<data->n_t; j++)
+               if (t[j] > t_irf[i])
+               {
+                  start = j;
+                  j_last = j;
+                  break;
+               }
+         }
+      }
+   }
+
 
    return start;
 }
@@ -269,10 +363,48 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
    double  n   = 0;
    int     start;
    
-   if (image_irf)
-      start = DetermineMAStartPosition(p);
-   else
+   //if (image_irf)
+   //   start = DetermineMAStartPosition(p);
+   //else
       start = ma_start;
+      /*
+   int mid = (n_t - start)/2 + start;
+
+   double D0 = 0;
+   double D1 = 0;
+   
+   n = 0;
+   for(int i=start; i<n_t; i++)
+      n += decay[i];
+   int n2 = 0.75 * n;
+
+   n = 0;
+   for(int i=start; i<mid; i++)
+   {
+      n   += decay[i];
+      if (n>=n2)
+      {
+         mid = i;
+         break;
+      }
+   }
+   
+   int last = 2*mid - start;
+   
+   double dt = t[mid]-t[start];
+
+   for(int i=start; i<mid; i++)
+      D0 += decay[i];
+   for(int i=mid; i<last; i++)
+      D1 += decay[i];
+
+   tau = -dt/log(D1/D0);
+
+   if (tau<100)
+      tau = 100;
+
+   return tau;
+   */
 
    for(int i=start; i<n_t; i++)
    {
@@ -290,21 +422,31 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
       }
    }
 
-   return tau / n;
+   tau = tau / n;
+
+   double T = t[n_t-1]-t[start];
+
+   double tau1 = tau;
+   for(int i=0; i<10; i++)  
+   {
+      tau1 = tau + T / (exp(T/tau1)-1);
+   }
+   return tau1;
 }
 
 
 void FLIMGlobalFitController::Init()
 {
 
-   int n_group = data->n_group;
-   int n_px    = data->n_px;
+   cur_region = 0;
+   next_pixel  = 0;
+   threads_active = 0;
 
    int s_max;
 
-   getting_fit = false;
-
-   use_kappa = true;
+   getting_fit    = false;
+   use_kappa      = true;
+   calculate_errs = false;
 
    // Validate input
    //---------------------------------------
@@ -319,14 +461,6 @@ void FLIMGlobalFitController::Init()
 
    if (n_thread < 1)
       n_thread = 1;
-   
-   #ifndef NO_OMP
-      omp_set_num_threads(n_thread);
-   #endif
-
-   if (data->global_mode != MODE_PIXELWISE)
-      image_irf = false;
-
 
 
    // Set up FRET parameters
@@ -346,6 +480,7 @@ void FLIMGlobalFitController::Init()
    tau_start = inc_donor ? 0 : 1;
 
    beta_global = (fit_beta != FIT_LOCALLY);
+
 
    // Set up polarisation resolved measurements
    //---------------------------------------
@@ -385,9 +520,60 @@ void FLIMGlobalFitController::Init()
 
    n_meas = n_t * n_chan;
 
-   int n_irf_rep = image_irf ? (data->n_x*data->n_y) : 1;
+   decay_group_buf = new int[n_exp];
 
-   int a_n_irf = ceil(n_irf / 2.0) * 2;
+   if (beta_global)
+   {
+
+      // Check to make sure that decay groups increase
+      // contiguously from zero
+      int cur_group = 0;
+      if (decay_group != NULL)
+      {
+         for(int i=0; i<n_exp; i++)
+         {
+            if (decay_group[i] == (cur_group + 1))
+            {
+               cur_group++;
+            }
+            else if (decay_group[i] != cur_group)
+            {
+               decay_group = NULL;
+               break;
+            }
+         }
+      }
+   }
+   else
+   {
+      decay_group = NULL;
+      n_decay_group = 1;
+   }
+
+   if (decay_group == NULL)
+      for(int i=0; i<n_exp; i++)
+         decay_group_buf[i] = 0;
+   else
+      for(int i=0; i<n_exp; i++)
+         decay_group_buf[i] = decay_group[i];
+
+
+
+
+
+   // Copy IRF, padding to ensure we have an even number of points so we can 
+   // use SSE primatives in convolution
+   //------------------------------
+   int n_irf_rep;
+   
+   if (image_irf) 
+      n_irf_rep =  data->n_px;
+   else if (t0_image)
+      n_irf_rep = 1 + n_thread;
+   else 
+      n_irf_rep = 1;
+
+   int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
    int irf_size = a_n_irf * n_chan * n_irf_rep;
    #ifdef _WINDOWS
       irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
@@ -405,7 +591,7 @@ void FLIMGlobalFitController::Init()
       {
          t_irf_buf[i] = t_irf[i];
          for(int k=0; k<n_chan; k++)
-            irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf[j*n_irf*n_chan+k*n_irf+i];
+             irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf[j*n_irf*n_chan+k*n_irf+i];
       }
       for(i=i; i<a_n_irf; i++)
       {
@@ -418,10 +604,20 @@ void FLIMGlobalFitController::Init()
    n_irf = a_n_irf;
 
    
+   if (data->global_mode != MODE_PIXELWISE)
+      algorithm = ALG_LM;
+
+   
    if (data->global_mode == MODE_PIXELWISE)
+   {
       status->SetNumRegion(data->n_masked_px);
+   }
    else
+   {
       status->SetNumRegion(data->n_regions_total);
+   }
+
+   n_fitters = min(data->n_masked_px,n_thread);
 
    if (data->n_regions_total == 0)
    {
@@ -432,11 +628,15 @@ void FLIMGlobalFitController::Init()
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
    //---------------------------------------
-   n_thread = min(n_thread,data->n_regions_total);
-  
 
-   thread_handle = new tthread::thread*[ n_thread ];
-   for(int i=0; i<n_thread; i++)
+   
+   if (n_fitters == 1)
+      n_omp_thread = n_thread;
+   else
+      n_omp_thread = 1;
+
+   thread_handle = new tthread::thread*[ n_fitters ];
+   for(int i=0; i<n_fitters; i++)
       thread_handle[i] = NULL;
 
    // Supplied t_rep in seconds, convert to ps
@@ -444,22 +644,27 @@ void FLIMGlobalFitController::Init()
 
    s_max = data->max_region_size;
 
-   n_decay_group = n_fret + inc_donor;        // Number of decay 'groups', i.e. FRETing species + no FRET
+   n_fret_group = n_fret + inc_donor;        // Number of decay 'groups', i.e. FRETing species + no FRET
 
    n_v = n_exp - n_fix;                      // Number of unfixed exponentials
    
-   n_exp_phi = (beta_global ? 1 : n_exp);
+   n_exp_phi = (beta_global ? n_decay_group : n_exp);
    
-   n_beta = (fit_beta == FIT_GLOBALLY) ? n_exp - 1 : 0;
+   n_beta = (fit_beta == FIT_GLOBALLY) ? n_exp - n_decay_group : 0;
    
    nl  = n_v + n_fret_v + n_beta + n_theta_v;                                // (varp) Number of non-linear parameters to fit
-   p   = (n_v + n_beta)*n_decay_group*n_pol_group + n_exp_phi * n_fret_v + n_theta_v;    // (varp) Number of elements in INC matrix 
-   l   = n_exp_phi * n_decay_group * n_pol_group;          // (varp) Number of linear parameters
+   p   = (n_v + n_beta)*n_fret_group*n_pol_group + n_exp_phi * n_fret_v + n_theta_v;    // (varp) Number of elements in INC matrix 
+   l   = n_exp_phi * n_fret_group * n_pol_group;          // (varp) Number of linear parameters
 
-   s   = s_max;                              // (varp) Number of pixels (right hand sides)
+   if (data->global_mode == MODE_GLOBAL)
+   {
+      s = data->n_masked_px;                              // (varp) Number of pixels (right hand sides)
+   }
+   else
+      s = data->n_px;
 
    max_dim = max(n_irf,n_t);
-   max_dim = ceil(max_dim/4.0) * 4;
+   max_dim = int (ceil(max_dim/4.0) * 4);
 
 
    exp_dim = max_dim * n_chan;
@@ -524,51 +729,52 @@ void FLIMGlobalFitController::Init()
    ndim       = max( n, 2*nl+3 );
    nmax       = n;
    int lps    = l + s + 1;
-   int pp3    = p + 3;
-   lnls1      = l + nl + s + 1;
    
-   if (algorithm == ALG_ML)
-   {
-      int nfunc = n+1;
-      csize = nl * (6 + nfunc) + nfunc * 2;
-   }
+
+   calculate_mean_lifetimes = !beta_global && n_exp > 1;
+
+   int n_j = fit_fret ? n_fret_group : n_exp_phi;
+
+   if (polarisation_resolved || (n_j == 1))
+      lmax = l;
    else
-   {
-      csize = max(1,nl);
-      csize = csize * (csize + 7);
-   }
+      lmax = l+1; // for I, which we will compute afterwards
 
    exp_buf_size = n_exp * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
 
+   int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
+
    try
    {
-      if (!memory_map_results)
+      lin_params   = new float[ data->n_masked_px * lmax ]; //ok
+      chi2         = new float[ data->n_masked_px ]; //ok
+      I            = new float[ data->n_masked_px ];
+      ierr         = new int[ data->n_regions_total ];
+      success      = new float[ data->n_regions_total ];
+      alf          = new float[ alf_size * nl ]; //ok
+      
+      if (calculate_mean_lifetimes)
       {
-         lin_params   = new double[ data->n_regions_total * n_px * l ]; //ok
-         chi2         = new double[ data->n_regions_total * n_px ]; //ok
-         alf          = new double[ data->n_regions_total * nl ]; //ok
+         w_mean_tau   = new float[ data->n_masked_px ];  
+         mean_tau     = new float[ data->n_masked_px ];  
       }
+      
 
-      alf_local    = new double[ n_thread * nl ]; //free ok
-      a            = new double[ n_thread * n * lps ]; //free ok
-      b            = new double[ n_thread * ndim * pp3 ]; //free ok
-      c            = new double[ n_thread * csize ]; // free ok
+      alf_local    = new double[ n_fitters * nl ]; //free ok
+      y            = new float[ n_fitters * s * n_meas ]; //free ok 
+      irf_idx      = new int[ n_fitters * s ];
 
-      y            = new float[ n_thread * s * n_meas ]; //free ok 
-      ma_decay     = new float[ n_thread * n_meas ]; //ok
-      lin_local    = new double[ n_thread * l ]; //ok
-      w            = new float[ n_thread * n ]; //free ok
+      local_decay     = new float[ n_fitters * n_meas ]; //ok
+      lin_local    = new float[ n_fitters * lmax ]; //ok
+      w            = new float[ n_fitters * n ]; //free ok
 
-      cur_alf      = new double[ n_thread * nl ]; //ok
-
-      #ifdef USE_W
-      ws           = new double[ n_thread * s ];
-      #endif
+      cur_alf      = new double[ n_fitters * nl ]; //ok
+      cur_irf_idx  = new int[ n_fitters ];
 
       #ifdef _WINDOWS
-         exp_buf      = (double*) _aligned_malloc( n_thread * n_decay_group * exp_buf_size * sizeof(double), 16 ); //ok
+         exp_buf      = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
        #else
-         exp_buf      =  new double[n_thread * n_decay_group * exp_buf_size];
+         exp_buf      =  new double[n_thread * n_fret_group * exp_buf_size];
        #endif
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -576,21 +782,18 @@ void FLIMGlobalFitController::Init()
       theta_buf    = new double[ n_thread * n_theta ]; //free ok 
       fit_buf      = new double[ n_thread * n_meas ]; // free ok 
       count_buf    = new double[ n_thread * n_meas ]; // free ok 
-      adjust_buf   = new float[ n_thread * n_meas ]; // free ok 
+      adjust_buf   = new float[ n_meas ]; // free ok 
 
     
       irf_max      = new int[n_meas]; //free ok
-      resampled_irf= new double[n_meas]; //free ok 
 
-      conf_lim     = new double[ n_thread * nl ]; //free ok
+      if (calculate_errs) 
+         conf_lim     = new double[ n_thread * nl ]; //free ok
 
       locked_param = new int[n_thread]; //ok
       locked_value = new double[n_thread]; //ok
 
-      //lin_params_err = new double[ n_thread * n_px * l ]; //free ok
-      //alf_err        = new double[ n_thread * nl ]; //free ok
-
-      local_irf    = new double*[n_thread]; //ok
+      //local_irf    = new double*[n_thread]; //ok
 
       init = true;
    }
@@ -602,76 +805,60 @@ void FLIMGlobalFitController::Init()
       return;
    }
 
-   if (memory_map_results)
+
+
+   SetNaN(alf, alf_size * nl );
+   SetNaN(chi2, data->n_masked_px );
+   SetNaN(I, data->n_masked_px );
+   SetNaN(lin_params, data->n_masked_px * lmax);
+
+   for(int i=0; i<data->n_regions_total; i++)
    {
-      try
-      {
-      
-         std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
-         char z;
-
-         // Create an empty file (logically, doesn't actually write the whole file)
-         
-   #ifdef _WINDOWS
-         result_map_filename = _tempnam( "c:\\tmp", "GPTEMP_" );
-   #else
-         result_map_filename = tempnam( "c:\\tmp", "GPTEMP_" );
-   #endif
-         
-         if (result_map_filename == NULL)
-            throw -1010;
-
-         FILE* f = fopen(result_map_filename,"w+");
-         if (f == NULL)
-            throw -1010;
-
-           
-   #ifdef _WINDOWS
-         _fseeki64(f,total_sz,0);
-   #else
-         fseek(f,total_sz,0);
-   #endif
-         
-         fwrite(&z,1,1,f);
-         fclose(f);
-
-         result_map_file = file_mapping(result_map_filename,read_write);
-      }
-      catch(std::exception& e)
-      {
-         error = ERR_COULD_NOT_OPEN_MAPPED_FILE;
-         CleanupTempVars();
-         CleanupResults();
-         return;
-      }
+      success[i] = 0;
+      ierr[i] = 0;
    }
-   else
-   {
-      SetNaN(alf, data->n_regions_total * nl );
-      SetNaN(chi2, data->n_regions_total * n_px );
-   }
+
 
    if (n_irf > 2)
       t_g = t_irf[1] - t_irf[0];
    else
       t_g = 1;
 
+
+   // Check to see if gates are equally spaced
+   //---------------------------------------------
+   eq_spaced_data = true;
+   double dt0 = t[1]-t[0];
+   for(int i=2; i<n_t; i++)
+   {
+      double dt = t[i] - t[i-1];
+      if ((dt - dt0) > 1)
+      {
+         eq_spaced_data = false;
+         break;
+      }
+         
+   }
+
    CalculateIRFMax(n_t,t);
-   CalculateResampledIRF(n_t,t);
    ma_start = DetermineMAStartPosition(0);
 
-   int terminate;
-
    // Create fitting objects
-   //projectors.reserve(n_thread);
-   /*
-   for(int i=0; i<n_thread; i++)
-   {
-      projectors.push_back(
-         new VariableProjector(&ada,(int*)this,s_max,l,nl,nmax,ndim,p,t) );
-   }
-   */
+   projectors.reserve(n_fitters);
 
+   for(int i=0; i<n_fitters; i++)
+   {
+      if (algorithm == ALG_ML)
+         projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, nmax, ndim, p, t, &(status->terminate)) );
+      else
+         projectors.push_back( new VariableProjector(this, s, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), n_omp_thread, &(status->terminate)) );
+   }
+
+   for(int i=0; i<n_fitters; i++)
+   {
+      if (projectors[i].err != 0)
+         error = projectors[i].err;
+   }
 
 
    // Select correct convolution function for data type
@@ -687,6 +874,10 @@ void FLIMGlobalFitController::Init()
       ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_timegate : conv_irf_deriv_timegate;
    }
 
+   // Setup adjust buffer which will be subtracted from the data
+   SetupAdjust(0, adjust_buf, (fit_scatter == FIX) ? (float) scatter_guess : 0, 
+                              (fit_offset == FIX)  ? (float) offset_guess  : 0, 
+                              (fit_tvb == FIX)     ? (float) tvb_guess     : 0);
 
    // Set alf indices
    //-----------------------------
@@ -722,7 +913,120 @@ void FLIMGlobalFitController::Init()
   if (ref_reconvolution == FIT_GLOBALLY)
      alf_ref_idx = idx++;
 
-   first_call = true;
+   SetOutputParamNames();
+
+}
+
+
+void FLIMGlobalFitController::SetOutputParamNames()
+{
+   char buf[1024];
+
+   // Parameters associated with non-linear parameters (or fixed)
+
+   for(int i=0; i<n_exp; i++)
+   {
+      sprintf(buf,"tau_%i",i+1);
+      param_names.push_back(buf);
+   }
+
+   if (fit_beta != FIT_LOCALLY)
+      for(int i=0; i<n_exp; i++)
+      {
+         sprintf(buf,"beta_%i",i+1);
+         param_names.push_back(buf);
+      }
+
+   for(int i=0; i<n_fret; i++)
+   {
+      sprintf(buf,"E_%i",i+1);
+      param_names.push_back(buf);
+   }
+
+   for(int i=0; i<n_theta; i++)
+   {
+      sprintf(buf,"theta_%i",i+1);
+      param_names.push_back(buf);
+   }
+   
+   if (fit_offset == FIT_GLOBALLY)
+      param_names.push_back("offset");
+
+   if (fit_scatter == FIT_GLOBALLY)
+      param_names.push_back("scatter");
+
+   if (fit_tvb == FIT_GLOBALLY)
+      param_names.push_back("tvb");
+
+   if (ref_reconvolution == FIT_GLOBALLY)
+      param_names.push_back("tau_ref");
+
+   n_nl_output_params = param_names.size();
+
+   if (fit_offset == FIT_LOCALLY)
+      param_names.push_back("offset");
+
+   if (fit_scatter == FIT_LOCALLY)
+      param_names.push_back("scatter");
+
+   if (fit_tvb == FIT_LOCALLY)
+      param_names.push_back("tvb");
+
+   // Now that parameters that are derived from the linear parameters
+
+   if (fit_beta == FIT_LOCALLY && n_exp > 1)
+      for(int i=0; i<n_exp; i++)
+      {
+         sprintf(buf,"beta_%i",i+1);
+         param_names.push_back(buf);
+      }
+
+   if (n_decay_group > 1)
+      for(int i=0; i<n_decay_group; i++)
+      {
+         sprintf(buf,"gamma_%i",i+1);
+         param_names.push_back(buf);
+      }
+
+   if (fit_fret == FIT && inc_donor)
+   {
+      sprintf(buf,"gamma_0");
+      param_names.push_back(buf);
+   }
+
+   if (n_fret_group > 1)
+      for(int i=0; i<n_fret; i++)
+      {
+         sprintf(buf,"gamma_%i",i+1);
+         param_names.push_back(buf);
+      }
+
+   for(int i=0; i<n_theta; i++)
+   {
+      sprintf(buf,"r_%i",i+1);
+      param_names.push_back(buf);
+   }
+
+   param_names.push_back("I0");
+   
+   // Parameters we manually calculate at the end
+   
+   param_names.push_back("I");
+
+   if (calculate_mean_lifetimes)
+   {
+      param_names.push_back("mean_tau");
+      param_names.push_back("w_mean_tau");
+   }
+
+   param_names.push_back("chi2");
+
+   n_output_params = param_names.size();
+
+   param_names_ptr = new const char*[n_output_params];
+
+   for(int i=0; i<n_output_params; i++)
+      param_names_ptr[i] = param_names[i].c_str();
 
 }
 
@@ -738,49 +1042,8 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
    delete status;
    delete[] params;
 
-   status = 0;
-
 }
 
-/*
-int FLIMGlobalFitController::CreateResultsMapFile(int im)
-{
-   int n_px    = data->n_px;
-
-   try
-   {
-      
-      std::size_t total_sz = data->n_regions_total * (n_px * (l+1) + nl) * sizeof(double);
-      char z;
-
-      // Create an empty file (logically, doesn't actually write the whole file)
-      result_map_filename = _tempnam( "c:\\tmp", "GPTEMP" );
-      if (result_map_filename == NULL)
-         throw -1010;
-
-      FILE* f = fopen(result_map_filename,"w+");
-      if (f == NULL)
-         throw -1010;
-
-      _fseeki64(f,total_sz,0);
-      fwrite(&z,1,1,f);
-      fclose(f);
-
-      result_map_file = file_mapping(result_map_filename,read_write);
-
-      result_map_view = mapped_region(result_map_file, read_write, 0, total_sz);
-      chi2 = (double*) result_map_view.get_address();
-      alf = chi2 + data->n_regions_total * n_px;
-      lin_params = alf + data->n_regions_total * nl;
-   }
-   catch(std::exception& e)
-   {
-      CleanupTempVars();
-      CleanupResults();
-      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
-   }
-}
-*/
 
 void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
 {
@@ -800,39 +1063,6 @@ void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
       }
    }
 
-}
-
-void FLIMGlobalFitController::CalculateResampledIRF(int n_t, double t[])
-{
-   double td, weight;
-   int last_j, c;
-
-   for(int i=0; i<n_t; i++)
-   {
-      td = t[i]-t0_guess;
-
-      for(c=0; c<n_chan; c++)
-         resampled_irf[c*n_t+i] = 0;
-      
-      resampled_irf[i] = 0;
-      last_j = 0;
-      for(int j=last_j; j<n_irf-2; j++)
-      {
-         if(td>t_irf_buf[j] && td<=t_irf_buf[j+1])
-         {
-            // Interpolate between points
-            weight = (td-t_irf_buf[j]) / ( t_irf_buf[j+1]-t_irf_buf[j] );
-            for(c=0; c<n_chan; c++)
-               resampled_irf[c*n_t+i] = irf_buf[c*n_irf+j]*(1-weight) + irf_buf[c*n_irf+j+1]*weight;
-            last_j = j;
-            break;
-         }
-      }
-   }   
-}
-
-void FLIMGlobalFitController::SetGlobalVariables()
-{       
 }
 
 int FLIMGlobalFitController::GetNumThreads()
@@ -857,28 +1087,14 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
 
-   sample_irf(thread, this, adjust, n_r, scale_fact);
+   add_irf(thread, 0, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + offset_adj;
 
    if (tvb_profile != NULL)
       for(int i=0; i<n_meas; i++)
-         adjust[i] += tvb_profile[i] * tvb_adj;
-
-/*
-   idx = 0;
-   for(int k=0; k<n_chan; k++)
-   {
-      for(int i=0; i<n_t; i++)
-      {
-         adjust[idx] += adjust[idx] * scatter_adj + tvb_profile[k*n_t+i] * tvb_adj + offset_adj;
-         idx += resample_idx[i];
-      }
-      idx++;
-   }
-   */
-
+         adjust[i] += (float) (tvb_profile[i] * tvb_adj);
 }
 
 
@@ -908,7 +1124,7 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
    double *alf = this->alf + r_idx * nl;
    double *w = this->w + params.thread * n_meas;
    double *adjust_buf = this->adjust_buf + params.thread * n_meas;
-   double *lin_params_err = this->lin_params_err + params.thread * l * n_px;
+   float *lin_params_err = this->lin_params_err + params.thread * l * n_px;
    double *alf_err = this->alf_err + params.thread * nl;
    double *fit_buf = this->fit_buf + params.thread * n_meas;
 
@@ -942,34 +1158,46 @@ double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
 
 void FLIMGlobalFitController::CleanupTempVars()
 {
+
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
-   ClearVariable(a);
    ClearVariable(y);
 
-   //result_map_view = mapped_region();
-
+   boost::ptr_vector<AbstractFitter>::iterator iter = projectors.begin();
+   while (iter != projectors.end())
+   {
+        iter->ReleaseResidualMemory();
+        iter++;
+   }
 
 }
 
 void FLIMGlobalFitController::CleanupResults()
 {
+
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
 
-      init = false;
-      ClearVariable(lin_local);
-      ClearVariable(alf_local);
-      ClearVariable(tau_buf);
-      ClearVariable(beta_buf);
-      ClearVariable(theta_buf);
-      ClearVariable(chan_fact);
-      ClearVariable(locked_param);
-      ClearVariable(locked_value);
-      ClearVariable(cur_alf);
+   init = false;
+      
+   ClearVariable(lin_local);
+   ClearVariable(alf_local);
+   ClearVariable(tau_buf);
+   ClearVariable(beta_buf);
+   ClearVariable(theta_buf);
+   ClearVariable(chan_fact);
+   ClearVariable(locked_param);
+   ClearVariable(locked_value);
+   ClearVariable(cur_alf);
+   ClearVariable(cur_irf_idx);
 
-      ClearVariable(chi2);
-      ClearVariable(alf);
-      ClearVariable(lin_params);
+   ClearVariable(I);
+   ClearVariable(chi2);
+   ClearVariable(alf);
+   ClearVariable(lin_params);
+   ClearVariable(ierr);
+   ClearVariable(success);
+   ClearVariable(w_mean_tau);
+   ClearVariable(mean_tau);
 
    #ifdef _WINDOWS
    
@@ -991,51 +1219,32 @@ void FLIMGlobalFitController::CleanupResults()
    
    #else
    
-      if (exp_buf != NULL)
-      {
-         delete []exp_buf;
-         exp_buf = NULL;
-      }
-      if (irf_buf != NULL)
-      {
-         delete []irf_buf;
-         irf_buf = NULL;
-      }
-      if (t_irf_buf != NULL)
-      {
-         delete []t_irf_buf;
-         t_irf_buf = NULL;
-      }
+      ClearVariable(exp_buf);
+      ClearVariable(irf_buf);
+      ClearVariable(t_irf_buf);
    
    #endif
 
-      ClearVariable(c);
       ClearVariable(irf_max);
-      ClearVariable(resampled_irf);
       ClearVariable(fit_buf);
       ClearVariable(count_buf);
       ClearVariable(adjust_buf);
       ClearVariable(conf_lim);
-      //ClearVariable(lin_params_err);
-      //ClearVariable(alf_err);
-      ClearVariable(ma_decay);
+      ClearVariable(local_decay);
+      ClearVariable(decay_group_buf);
 
-      ClearVariable(b);
+      ClearVariable(irf_idx);
+
       ClearVariable(y);
       ClearVariable(w);
-      ClearVariable(ws);
       
+      ClearVariable(param_names_ptr);
+
       if (result_map_filename != NULL)
       {
          remove(result_map_filename);
          free(result_map_filename);
          result_map_filename = NULL;
-      }
-
-      if (local_irf != NULL)
-      {
-         delete[] local_irf;
-         local_irf = NULL;
       }
 
       if (data != NULL)
@@ -1046,7 +1255,7 @@ void FLIMGlobalFitController::CleanupResults()
 
    if (thread_handle != NULL)
    {
-      for(int i=0; i<n_thread; i++)
+      for(int i=0; i<n_fitters; i++)
       {
          if (thread_handle[i] != NULL)
             delete thread_handle[i];
@@ -1054,5 +1263,4 @@ void FLIMGlobalFitController::CleanupResults()
       delete[] thread_handle;
       thread_handle = NULL;
    }
-
 }

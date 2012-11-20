@@ -67,15 +67,28 @@ function handles = setup_layout(obj, handles)
     dataset_layout_left = uiextras.VBox( 'Parent', dataset_layout, 'Padding', 3 );
     handles.data_series_table = uitable( 'Parent', dataset_layout_left );
     
-    dataset_layout_button = uiextras.HBox( 'Parent', dataset_layout_left, 'Padding', 3 );
-    handles.data_series_sel_all = uicontrol( 'Style', 'pushbutton', 'String', 'Sel All', 'Parent', dataset_layout_button );
-    handles.data_series_sel_none = uicontrol( 'Style', 'pushbutton', 'String', 'Sel None', 'Parent', dataset_layout_button );
-
+    handles.data_series_sel_all = uicontrol( 'Style', 'pushbutton', 'String', 'Select Multiple...', 'Parent', dataset_layout_left );
+    
     set( dataset_layout_left, 'Sizes', [-1,22] );
     
-    handles.intensity_container = uicontainer( 'Parent', dataset_layout ); 
-    handles.intensity_axes = axes( 'Parent', handles.intensity_container );
+    % Intensity View
+    %---------------------------------------
     
+    intensity_layout = uiextras.VBox( 'Parent', dataset_layout, 'Spacing', 3 );
+    
+    intensity_opts_layout = uiextras.HBox( 'Parent', intensity_layout, 'Spacing', 3 );
+    uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', intensity_opts_layout, ...
+               'HorizontalAlignment', 'right' );
+    handles.intensity_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Integrated Intensity','Background','SV IRF','IRF Shift Map'}, 'Parent', intensity_opts_layout );
+    
+    set( intensity_opts_layout, 'Sizes', [-1,200] );
+    
+    
+    intensity_container = uicontainer( 'Parent', intensity_layout ); 
+    handles.intensity_axes = axes( 'Parent', intensity_container );
+    
+    set( intensity_layout, 'Sizes', [22,-1] );
     set( dataset_layout, 'Sizes', [150,-1] );
 
     

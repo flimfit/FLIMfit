@@ -82,7 +82,7 @@ function compute_tr_irf(obj)
         end
 
         % Resample IRF 
-        if obj.resample_irf && length(obj.tr_t_irf) > 2
+        if length(obj.tr_t_irf) > 2 && obj.resample_irf
             irf_spacing = obj.tr_t_irf(2) - obj.tr_t_irf(1);
 
             if irf_spacing > 75
@@ -106,21 +106,12 @@ function compute_tr_irf(obj)
         end
 
         % Shift by t0
-        
-        if obj.afterpulsing_correction
-            bg = obj.irf_background;
-        else
-            bg = 0;
-        end
-            
-        
         for i=1:size(obj.tr_irf,2)
-            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0,'cubic',bg);
+            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0,'cubic',0);
         end
-
         obj.tr_irf(isnan(obj.tr_irf)) = 0;
 
-
+        
         % Normalise irf so it sums to unity
         if true && size(obj.tr_irf,1) > 0 %obj.normalise_irf
             for i=1:size(obj.tr_irf,2) 
@@ -138,6 +129,8 @@ function compute_tr_irf(obj)
             sm = sum(obj.tr_image_irf,1);  
             sm(sm==0) = 1;
             obj.tr_image_irf = obj.tr_image_irf ./ sm;
+            
+            obj.tr_image_irf = reshape(obj.tr_image_irf,sz);
             %{
             for i=1:size(obj.tr_image_irf,2) 
                 sm = sum(obj.tr_image_irf(:,i));

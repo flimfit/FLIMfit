@@ -1,6 +1,8 @@
 #include <math.h>
 #include "cminpack.h"
 
+#include "omp.h"
+
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 #define min(a,b) ((a) <= (b) ? (a) : (b))
 #define max(a,b) ((a) >= (b) ? (a) : (b))
@@ -226,8 +228,7 @@
     int r_dim1, r_offset;
 
     /* Local variables */
-    int i, j, jm1;
-    double tan, temp, rowj, cotan;
+
 
 /*     ********** */
 
@@ -291,54 +292,64 @@
 
 /*     ********** */
     /* Parameter adjustments */
-    --sin;
-    --cos;
-    --b;
-    --w;
-    r_dim1 = ldr;
-    r_offset = 1 + r_dim1 * 1;
-    r -= r_offset;
+   int j;
+  
+   --sin;
+   --cos;
+   --b;
+   --w;
+   r_dim1 = ldr;
+   r_offset = 1 + r_dim1 * 1;
+   r -= r_offset;
 
     /* Function Body */
 
-    for (j = 1; j <= n; ++j) {
-	rowj = w[j];
-	jm1 = j - 1;
+   //#pragma omp parallel for  
+   for (j = 1; j <= n; ++j) 
+   {
+      int jm1, i;
+      double tan, temp, rowj, cotan;
+      rowj = w[j];
+      jm1 = j - 1;
 
-/*        apply the previous transformations to */
-/*        r(i,j), i=1,2,...,j-1, and to w(j). */
+//   apply the previous transformations to 
+//    r(i,j), i=1,2,...,j-1, and to w(j). 
+      
+      if (jm1 >= 1) 
+      {
+         for (i = 1; i <= jm1; ++i) 
+         {
+            temp = cos[i] * r[i + j * r_dim1] + sin[i] * rowj;
+            rowj = -sin[i] * r[i + j * r_dim1] + cos[i] * rowj;
+            r[i + j * r_dim1] = temp;
+         }
+      }
+      
+//    determine a givens rotation which eliminates w(j). */
 
-	if (jm1 >= 1) {
-            for (i = 1; i <= jm1; ++i) {
-                temp = cos[i] * r[i + j * r_dim1] + sin[i] * rowj;
-                rowj = -sin[i] * r[i + j * r_dim1] + cos[i] * rowj;
-                r[i + j * r_dim1] = temp;
-            }
-        }
+      cos[j] = 1.;
+      sin[j] = 0.;
+	   if (rowj != 0.) 
+      {
+         if (fabs(r[j + j * r_dim1]) < fabs(rowj)) 
+         {
+            cotan = r[j + j * r_dim1] / rowj;
+            sin[j] = p5 / sqrt(p25 + p25 * (cotan * cotan));
+            cos[j] = sin[j] * cotan;
+         } else {
+            tan = rowj / r[j + j * r_dim1];
+            cos[j] = p5 / sqrt(p25 + p25 * (tan * tan));
+            sin[j] = cos[j] * tan;
+         }
 
-/*        determine a givens rotation which eliminates w(j). */
+/*       apply the current transformation to r(j,j), b(j), and alpha. */
 
-	cos[j] = 1.;
-	sin[j] = 0.;
-	if (rowj != 0.) {
-            if (fabs(r[j + j * r_dim1]) < fabs(rowj)) {
-                cotan = r[j + j * r_dim1] / rowj;
-                sin[j] = p5 / sqrt(p25 + p25 * (cotan * cotan));
-                cos[j] = sin[j] * cotan;
-            } else {
-                tan = rowj / r[j + j * r_dim1];
-                cos[j] = p5 / sqrt(p25 + p25 * (tan * tan));
-                sin[j] = cos[j] * tan;
-            }
-
-/*        apply the current transformation to r(j,j), b(j), and alpha. */
-
-            r[j + j * r_dim1] = cos[j] * r[j + j * r_dim1] + sin[j] * rowj;
-            temp = cos[j] * b[j] + sin[j] * *alpha;
-            *alpha = -sin[j] * b[j] + cos[j] * *alpha;
-            b[j] = temp;
-        }
-    }
+         r[j + j * r_dim1] = cos[j] * r[j + j * r_dim1] + sin[j] * rowj;
+         temp = cos[j] * b[j] + sin[j] * *alpha;
+         *alpha = -sin[j] * b[j] + cos[j] * *alpha;
+         b[j] = temp;
+      }
+   }
 
 /*     last card of subroutine rwupdt. */
 

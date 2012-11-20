@@ -38,21 +38,21 @@ set(SOURCE
    FLIMGlobalFitController_ProcessRegion.cpp
    FLIMGlobalFitController_GetImageResults.cpp
    FLIMGlobalFitController_Model.cpp
+   FLIMGlobalFitController_ADA.cpp
    FLIMData.cpp
-   VariableProjection.cpp
    VariableProjector.cpp
-   MaximumLikelihood.cpp
-   lmvarp.cpp
-   lmmle.cpp
+   MaximumLikelihoodFitter.cpp
+   AbstractFitter.cpp
    tinythread.cpp
    lmstr.c
    lmstx.c
+   lmdif.c
+   fdjac2.c
    cminpack_support.c
    util.cpp
 )
 
-set(HEADERS
-   f2c.h   
+set(HEADERS   
    FitStatus.h
    IRFConvolution.h
    ModelADA.h
@@ -61,11 +61,13 @@ set(HEADERS
    FLIMData.h
    ModelADA.h
    VariableProjector.h
-   VariableProjection.h
+   AbstractFitter.h
+   MaximumLikelihoodFitter.h
    tinythread.h
    FlagDefinitions.h
    cminpack.h
    util.h
+   TrimmedMean.h
 )
 
 # Add _32/_64 appendix to library
@@ -80,28 +82,28 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 #===================================================
 set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
 
 # Copy header to output directory
 #===================================================
-file(COPY  ${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
-file(COPY  ${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h DESTINATION ${OUT_DIR})
+#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
+#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h DESTINATION ${OUT_DIR})
 
 # Include optimisation flags in Visual Studio
 #===================================================
 if(MSVC)
    set(PLATFORM_FLAGS_ALL "/Oi /fp:fast")
    set(PLATFORM_FLAGS_RELEASE "/Ox /Ot /Ob2")
+   set(PLATFORM_FLAGS_RELWITHDEBINFO "/Ox /Ot /Ob2")
    set(PLATFORM_FLAGS_DEBUG "/ZI")
+   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif(MSVC)
 
 if(UNIX)
@@ -117,6 +119,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 
 
+add_definitions(-DBOOST_DATE_TIME_NO_LIB)
+
 # Make library
 #===================================================
 add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} )
@@ -126,6 +130,11 @@ target_link_libraries(${LIB_NAME} levmar)
 # Make sure we don't have 'lib' prefix on UNIX
 #===================================================
 set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
+
+get_target_property(LIB_LOCATION ${LIB_NAME} LOCATION)
+add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIB_LOCATION} ${OUT_DIR}
+                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h" ${OUT_DIR}
+                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h" ${OUT_DIR})
 
 set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
 set( FGP_LIB ${LIB_NAME} CACHE STRING "Include dir for GlobalProcessing." FORCE )

@@ -50,6 +50,10 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
 
         data(data < 0) = -1; % out of range below -> dark gray
         data(data > m) = 0; % out of range above -> light gray
+        
+        %data(data<1) = 1;
+        %data(data>m) = m;
+        
         data(nan_mask) = -2; % failed to fit -> white
 
         if ~isempty(mask)

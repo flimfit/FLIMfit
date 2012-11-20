@@ -37,7 +37,7 @@ function handles = add_image_display_panel(obj,handles,parent)
     set( bottom_layout, 'ColumnSizes',[90 90 90 90 90 90], 'RowSizes', [22 22] );
     
     
-    set(gallery_layout,'Sizes',[-1,60]);
+    set(gallery_layout,'Sizes',[-1,70]);
     
     
 end

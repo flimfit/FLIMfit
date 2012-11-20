@@ -56,6 +56,13 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             r = obj.fit_controller.fit_result;
             sel = obj.fit_controller.selected;
             
+            %{
+            sort_param = cell2mat(r.metadata.Column);
+            sort_param = sort_param(sel);
+            [~,idx] = sort(sort_param);
+            sel = sel(idx);
+            %}
+            
             if save
                 pa = f;%get(f,'Parent');
                 pos = get(pa,'Position');
@@ -66,7 +73,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             children = get(f,'Children');
             delete(children);
             
-            if ~obj.fit_controller.has_fit || isempty(param) 
+            if ~obj.fit_controller.has_fit || param == 0 
                 return
             end
             
@@ -118,6 +125,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 new_height = floor(d.height*ratio);
                 
                 max_rows = floor(fig_size(2)/new_height);
+                max_rows = max(max_rows,1);
                 
                 rows = min(max_rows,total_rows);
                 
@@ -169,7 +177,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     ci = floor(idx/cols) * d.height + 1;
                     idx = idx + 1;
                     
-                    im_data = r.get_image(sel(i),param);
+                    im_data = obj.fit_controller.get_image(sel(i),param);
                     if merge
                         I_data = r.get_image(sel(i),'I');
                         gallery_I_data(ci:ci+d.height-1,ri:ri+d.width-1) = I_data;
@@ -213,11 +221,12 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 cbar = axes('Parent',f);
                 
                 cscale = obj.colourscale(param);
+                lims = r.get_cur_lims(param);
                 
                 if ~merge
-                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),r.default_lims.(param),cscale,[]);
+                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[]);
                 else
-                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),r.default_lims.(param),cscale,[],gallery_I_data,r.default_lims.I);
+                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[],gallery_I_data,r.default_lims.I);
                 end
                 
                 %im=imagesc(gallery_data,'Parent',ax);    
@@ -239,9 +248,9 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 for i=1:rows
                    for j=1:cols
                        if idx <= length(label)
-                           y = (rows-i+1)*new_height-1;
-                           x = (j-1)*new_width+2;
-                           text(x, y, label{idx},'Parent',ax,'Units','pixels',...
+                           y = (i-1)*d.height/scale+2;
+                           x = (j-1)*d.width/scale+2;
+                           text(x, y, label{idx},'Parent',ax,...
                              'Color','w','BackgroundColor','k','Margin',1,...
                              'FontUnits','points','FontSize',10,...
                              'HorizontalAlignment','left','VerticalAlignment','top');

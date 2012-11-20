@@ -1,39 +1,6 @@
 #include "IRFConvolution.h"
 #include "ModelADA.h"
 
-void alf2beta(int n, const double* alf, double beta[])
-{
-
-   for(int i=0; i<n; i++)
-      beta[i] = 1;
-
-   for(int i=0; i<n-1; i++)
-   {
-      beta[i] *= alf[i];
-      for(int j=i+1; j<n; j++)
-         beta[j] *= 1-alf[i];
-   }
-
-}
-
-double beta_derv(int n_beta, int alf_idx, int beta_idx, const double alf[])
-{
-   double d;
-
-   if(beta_idx<=alf_idx)
-      d = 1;
-   else if (beta_idx<n_beta-1)
-      d = -alf[beta_idx];
-   else
-      d = -1;
-
-   for(int k=0; k<(beta_idx-1); k++)
-   {
-      d *= (1-alf[k]);
-   }
-
-   return d;
-}
 
 /*
 void beta_derv(int n, double alf[], double d[])
@@ -58,6 +25,50 @@ void beta_derv(int n, double alf[], double d[])
 
 }
 */
+
+/*
+
+for(i=0; i<n_tau; i++)
+   beta[i] = 1;
+
+for(i=0; i<(n_tau-1); i++)
+{
+   beta[i] *= alf[i];
+   for(j=(i+1); j<n_tau; j++)
+      beta[j] *= (1-alf[i]);
+}
+
+for(i=0; i<(n_tau-1); i++)
+for(j=i; j<n_tau;     j++)
+{
+   if(j<=i)
+      d[i][j] = 1;
+   else if (j<(n_tau-1))
+      d[i][j] = -alf[j];
+
+   for(k=0; k<j; k++)
+   {
+      if k>
+      d[i][j] *= (1-alf[k]);
+   }
+
+
+
+      if (k==i)
+         d[i][j] *= 1;
+      else if (k<j)
+         d[i][j] *= ();
+      else
+         d[i][j] *= (1-alf[k]);
+   }
+}
+
+}
+
+*/
+
+
+
 
 
 void conv_irf_tcspc(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c)
@@ -149,90 +160,5 @@ void conv_irf_deriv_ref_timegate(FLIMGlobalFitController *gc, double t, double r
    
 }
 
-
-
-void sample_irf(int thread, FLIMGlobalFitController *gc, float a[], int pol_group, double* scale_fact)
-{
-   int k=0;
-   double scale;
-   int idx = 0;
-
-   int* resample_idx = gc->data->GetResampleIdx(thread);
-
-   for(int i=0; i<gc->n_chan; i++)
-   {
-      scale = (scale_fact == NULL) ? 1 : scale_fact[i];
-      for(int j=0; j<gc->n_t; j++)
-      {
-         a[idx] += (gc->resampled_irf[j]) * gc->chan_fact[pol_group*gc->n_chan+i] * scale;
-         idx += resample_idx[j];
-      }
-      idx++;
-   }
-}
-
-
-void sample_irf(int thread, FLIMGlobalFitController *gc, double a[], int pol_group, double* scale_fact)
-{
-   int k=0;
-   double scale;
-   int idx = 0;
-
-   int* resample_idx = gc->data->GetResampleIdx(thread);
-
-   for(int i=0; i<gc->n_chan; i++)
-   {
-      scale = (scale_fact == NULL) ? 1 : scale_fact[i];
-      for(int j=0; j<gc->n_t; j++)
-      {
-         a[idx] += (gc->resampled_irf[j]) * gc->chan_fact[pol_group*gc->n_chan+i] * scale;
-         idx += resample_idx[j];
-      }
-      idx++;
-   }
-}
-
-
-
-/*
-
-for(i=0; i<n_tau; i++)
-   beta[i] = 1;
-
-for(i=0; i<(n_tau-1); i++)
-{
-   beta[i] *= alf[i];
-   for(j=(i+1); j<n_tau; j++)
-      beta[j] *= (1-alf[i]);
-}
-
-for(i=0; i<(n_tau-1); i++)
-for(j=i; j<n_tau;     j++)
-{
-   if(j<=i)
-      d[i][j] = 1;
-   else if (j<(n_tau-1))
-      d[i][j] = -alf[j];
-
-   for(k=0; k<j; k++)
-   {
-      if k>
-      d[i][j] *= (1-alf[k]);
-   }
-
-
-
-      if (k==i)
-         d[i][j] *= 1;
-      else if (k<j)
-         d[i][j] *= ();
-      else
-         d[i][j] *= (1-alf[k]);
-   }
-}
-
-}
-
-*/
 
 

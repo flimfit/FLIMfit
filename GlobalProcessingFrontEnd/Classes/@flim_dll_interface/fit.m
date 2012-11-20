@@ -1,6 +1,5 @@
 function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
 
-
     obj.load_global_library();
     
     if nargin < 4
@@ -47,8 +46,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     p = obj.fit_params;
     d = obj.data_series;
     
-    
-    obj.use_image_irf = d.has_image_irf && p.global_fitting == 0 && ~obj.bin;
+    obj.use_image_irf = d.has_image_irf && ~obj.bin && p.image_irf_mode == 1;
     
     if p.global_fitting < 2 || p.global_variable == 0
         if false && d.lazy_loading && p.split_fit
@@ -115,130 +113,20 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     end
     
     obj.fit_result.metadata = md;
-     
-    obj.datasets = sel;
+    obj.fit_result.smoothing = (2*d.binning+1)^2;
+    
 
     if obj.bin
+        obj.datasets = 1;
         use = 1;
     else
+        obj.datasets = sel;
         use = datasets(d.loaded);
     end
     
-    obj.n_im = sum(use);
     obj.use = use;
-    
-    width = d.width;
-    height = d.height;
-
-    if obj.bin == true
         
-        obj.n_group = 1;
-        obj.n_regions = 1;
-        obj.n_regions_total = 1;
-        
-        obj.n_px = 1;
-        
-        mask = 1;
-        
-        obj.globals_size = [1 1];
-        
-        if p.use_phase_plane_estimation   
-            est_decay = obj.data_series.get_roi(roi_mask,selected);
-            est_decay = squeeze(nansum(est_decay,2));
-        end
-        
-    else
-        
-        
-        if ~isempty(d.seg_mask)
-            
-            mask = d.seg_mask;
-            
-            obj.n_regions = reshape(mask,[size(mask,1)*size(mask,2) size(mask,3)]);
-            obj.n_regions = squeeze(max(obj.n_regions,[],1));
-        else
-            mask = [];
-            obj.n_regions = ones([1 d.n_datasets]);
-        end
-        
-        obj.n_regions_total = sum(obj.n_regions);
-
-        
-        switch p.global_fitting
-            case 0
-                obj.n_group = width * height * obj.n_im;            
-                %{
-                if ~isempty(mask)
-                    obj.n_regions = mask;
-                    obj.n_regions_total = max(mask(:));
-                else
-                    obj.n_regions = ones([1 obj.n_im]);
-                   obj.n_regions_total = obj.n_im;
-                end
-                %}
-                obj.n_regions_total = obj.n_im;
-                obj.n_px = 1;
-                obj.globals_size = [height width obj.n_im];
-                
-                if p.use_phase_plane_estimation         
-                    est_decay = d.data_series;
-                end
-
-
-            case 1 %global_mode.image
-                obj.n_group = n_im;
-               
-                obj.globals_size = [1 obj.n_regions_total];
-
-                obj.n_px = width * height;
-                
-                if p.use_phase_plane_estimation         
-                    est_decay = zeros(d.n_tr_t,obj.n_im);
-                    
-                    for i=1:obj.n_im
-                        masked = d.get_roi([],i);
-                        sz = size(masked);
-                        decay = nansum(reshape(masked,[sz(1) prod(sz(2:end))]),2);
-                        est_decay(:,i) = decay;
-                    end
-                end
-
-
-            case 2 %global_mode.dataset
-                obj.n_group = 1;
-                %{
-                if ~isempty(mask)
-                    obj.n_regions = max(mask(:));
-                else
-                    obj.n_regions = 1;
-                end
-                obj.n_regions_total = obj.n_regions;
-                %}
-                obj.n_px = width * height * obj.n_im;
-                obj.globals_size = [1 obj.n_regions_total];
-                
-                if p.use_phase_plane_estimation          
-                    est_decay = zeros(d.n_t,1);
-                    
-                    for i=1:obj.n_im
-                        masked = d.get_roi([],i);
-                        sz = size(masked);
-                        decay = nansum(reshape(masked,[1 prod(sz(2:end))]),2);
-                        est_decay = est_decay + decay;
-                    end
-                end
-        end
-        
-
-        
-    end
-    
-    % Phase plane estimation
-    if p.use_phase_plane_estimation
-        p.tau_guess = obj.generate_phase_plane_estimates(d,est_decay,p.n_exp,p.tau_min,p.tau_max);
-    end
-       
-    obj.n_regions = double(obj.n_regions);
+    obj.im_size = [d.height d.width];
    
     obj.p_use = libpointer('int32Ptr',use);
     
@@ -252,20 +140,25 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.p_irf = libpointer('doublePtr', d.tr_irf);
     end
     
+    if ~isempty(d.t0_image) && p.image_irf_mode == 2
+        obj.p_t0_image = libpointer('doublePtr', d.t0_image);
+    else
+        obj.p_t0_image = [];
+    end
+    
     obj.p_t_int = libpointer('doublePtr',d.tr_t_int);
     obj.p_t_irf = libpointer('doublePtr', d.tr_t_irf);
-    obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta / sum(p.fixed_beta));
+    obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta);
     obj.p_E_guess = libpointer('doublePtr',p.fret_guess);
     obj.p_theta_guess = libpointer('doublePtr',p.theta_guess);
-
+    obj.p_global_beta_group = libpointer('int32Ptr',p.global_beta_group);
+    
     obj.p_tvb_profile = libpointer('doublePtr',d.tr_tvb_profile);
 
     if ~d.use_memory_mapping
         obj.p_data = libpointer('singlePtr', d.data_series_mem);
     end
 
-
-    obj.p_ierr = libpointer('int32Ptr', zeros(obj.globals_size));
     
     obj.start_time = tic;
    

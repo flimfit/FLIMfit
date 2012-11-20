@@ -3,40 +3,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
     properties
         roi_controller;
         data_series_list;
-        fit_controller
-       
-        %{
-        binning_popupmenu;
-        downsampling_popupmenu;
-        thresh_min_edit;
-        gate_max_edit;
-        t_min_edit;
-        t_max_edit;
-        t_irf_min_edit;
-        t_irf_max_edit;
-        irf_background_edit;
-        g_factor_edit;
-        afterpulsing_correction_popupmenu;
-        
-        irf_type_popupmenu;
-        ref_lifetime_edit;
-        rep_rate_edit;
-        
-        background_type_popupmenu;
-        background_value_edit;
-        tvb_popupmenu;
-        tvb_define_pushbutton;
-        
-        irf_display_axes;
-        background_axes;
-        background_container;
-        
-        g_factor_guess_pushbutton;
-        irf_background_guess_pushbutton;
-        t0_guess_pushbutton;
-        
-        t0_edit;
-        %}
+        fit_controller;
         
         irf_lower_ann = [];
         irf_upper_ann = [];
@@ -68,14 +35,8 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             obj.bind_control(handles,'rep_rate','edit');
             obj.bind_control(handles,'irf_type','popupmenu');
             obj.bind_control(handles,'t0','edit');
-           
-            %{
-            set(obj.irf_background_guess_pushbutton,'Callback',@obj.irf_background_guess_callback);
-            set(obj.g_factor_guess_pushbutton,'Callback',@obj.g_factor_guess_callback);
-            set(obj.tvb_define_pushbutton,'Callback',@obj.tvb_define_callback);
-            set(obj.t0_guess_pushbutton,'Callback',@obj.t0_guess_callback)
-            %}
-            
+            obj.bind_control(handles,'counts_per_photon','edit')
+                       
             obj.update_controls();
             
         end
@@ -107,7 +68,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
                 %%% Get the fit results
                 fit_result = obj.fit_controller.fit_result();
                 
-                chi2 = nanmean(fit_result.images{1}.chi2);
+                chi2 = nanmean(fit_result.image_mean{1}(end));
                 
                 if fit_result.ierr < 0
                     chi2 = chi2 + 1000;

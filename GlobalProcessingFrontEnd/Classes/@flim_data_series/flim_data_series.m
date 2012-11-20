@@ -6,15 +6,15 @@ classdef flim_data_series < handle
         t_irf = [-1; 0; 1];
         irf = [0; 1; 0];
         irf_name;
-                      
-        counts_per_photon;
-        
+        t0_image;
+                              
         tvb_profile = 0;
           
         subtract_background = false;
 
         min = 0;
-        max = 0;        
+        max = 0; 
+        
     end
     
     properties(Constant)
@@ -41,6 +41,8 @@ classdef flim_data_series < handle
         
         g_factor = 1;
         
+        counts_per_photon = 1;
+
         background_type = 0;
         background_value = 0;
         
@@ -79,8 +81,8 @@ classdef flim_data_series < handle
         use_memory_mapping = true;
         load_multiple_channels = false;
         
-        tr_data_series_mem;
-        data_series_mem;
+        tr_data_series_mem = single([]);
+        data_series_mem = single([]);
         
         mapfile_name;
         memmap;
@@ -233,7 +235,7 @@ classdef flim_data_series < handle
         end
         %===============================================================
         
-        function data = get_roi(obj,roi_mask,dataset)
+        function [data,irf] = get_roi(obj,roi_mask,dataset)
             %> Return an array of data points both in internal mask
             %> and roi_mask from dataset selected
             
@@ -262,20 +264,19 @@ classdef flim_data_series < handle
 
             data = obj.cur_tr_data;
             
-            % Reshape mask to apply to flim data
-            n_mask = sum(roi_mask(:));
-            %rep_mask = reshape(roi_mask,[1 1 size(roi_mask,1) size(roi_mask,2)]);
-            %rep_mask = repmat(rep_mask,[n_tr_t obj.n_chan 1 1]);
-            
-            % Recover selected data
-            %data = data(rep_mask);
-            %data = reshape(data,[n_tr_t obj.n_chan n_mask]);
             data = data(:,:,roi_mask);
-            %data = data;
+
+            if obj.has_image_irf
+                irf = obj.tr_image_irf(:,:,roi_mask);
+                irf = mean(irf,3);
+            elseif ~isempty(obj.t0_image)
+                offset = mean(obj.t0_image(roi_mask));
+                irf = interp1(obj.tr_t_irf,obj.tr_irf,obj.tr_t_irf+offset,'cubic','extrap');
+            else
+                irf = obj.tr_irf;
+            end
             
-            %d = reshape(data,[size(data,1) size(data,3)]); 
-            %[mul off] = determine_photon_stats(d);
-            %disp([mul off]);
+            
         end
         
         
@@ -628,7 +629,7 @@ classdef flim_data_series < handle
            
            obj.t_irf_min = -1;
            obj.t_irf_max = 1;
-           obj.irf_background = 0;
+           
            
            obj.compute_tr_irf();
            notify(obj,'data_updated');

@@ -11,7 +11,7 @@
         display_merged = struct();
         plot_names = {};
         plot_data;
-        default_lims = struct();
+        default_lims = {};
         plot_lims = struct();
         auto_lim = struct();
         
@@ -80,8 +80,13 @@
                
                obj.n_plots = obj.n_plots + sum(cell2mat(plots(i,2:3))); 
                
-               obj.auto_lim.(name) = plots{i,6};
-               obj.plot_lims.(name) = cell2mat(plots(i,4:5));           
+               new_lims = cell2mat(plots(i,4:5));
+               if any(new_lims ~= obj.plot_lims.(name))
+                   obj.auto_lim.(name) = false;
+               else
+                   obj.auto_lim.(name) = plots{i,6};
+               end
+               obj.plot_lims.(name) = new_lims;
             end
             
             obj.update_table();
@@ -104,16 +109,9 @@
                 names = obj.plot_names;
                 table = cell(length(names),6);
                 for i=1:length(names)
-                    if obj.auto_lim.(names{i})
-                        im_data = r.get_image(obj.dataset_selected,names{i});
-                        finite_im_data = im_data(isfinite(im_data)); 
-                        
-                        lim = prctile(finite_im_data,[1 99]);
-                                                
-                        lim= num2str(lim,2);
-                        lim= str2num(lim);
-                        
-                        obj.plot_lims.(names{i}) = lim;
+                    
+                    if obj.auto_lim.(names{i}) 
+                        obj.plot_lims.(names{i}) = r.get_default_lims(i);
                     end
                     
                     table{i,1} = names{i};
@@ -123,7 +121,9 @@
                     table{i,6} = obj.auto_lim.(names{i});
                 end
                 
-                r.default_lims = obj.plot_lims;
+                for i=1:length(names) 
+                    r.set_cur_lims(i, obj.plot_lims.(names{i}));
+                end
                 
                 set(obj.plot_select_table,'Data',table);
                 set(obj.plot_select_table,'ColumnEditable',logical([0 1 1 1 1 1]));

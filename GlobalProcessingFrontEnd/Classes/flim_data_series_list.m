@@ -63,7 +63,7 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             end
         end
         
-        function use_callback(obj,~,~)
+        function use_callback(obj,src,evtData)
            
             data = get(obj.handle,'Data');
             use = data(:,1);
@@ -73,7 +73,10 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         end
         
         function sel_all_callback(obj,~,~)
-        
+            
+            flim_data_selector(obj.data_series_controller);
+            
+            %{
             data = get(obj.handle,'Data');
             use = data(:,1);
             use = cell2mat(use);
@@ -84,11 +87,12 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             use = num2cell(use);
             data(:,1) = use;
             set(obj.handle,'Data',data);
+            %}
             
         end
         
         function sel_none_callback(obj,~,~)
-           
+           %{
             data = get(obj.handle,'Data');
             use = data(:,1);
             use = cell2mat(use);
@@ -99,7 +103,7 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             use = num2cell(use);
             data(:,1) = use;
             set(obj.handle,'Data',data);
-            
+            %}
             
         end
         
