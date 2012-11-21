@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project>
-  <configuration target="target.standalone" target-name="Standalone Application" name="GlobalProcessingExternal_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="1231975229" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+  <configuration target="target.standalone" target-name="Standalone Application" name="GlobalProcessingExternal_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="439963666" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
     <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>GlobalProcessingExternal_MAC64</param.appname>
@@ -90,7 +90,6 @@
       <root>/Applications/MATLAB_R2011b.app</root>
       <path>
         <directory>/Users/imunro/Documents/MATLAB</directory>
-        <directory>${PROJECT_ROOT}/OMEROMatlab</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/demos</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/graph2d</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/graph3d</directory>

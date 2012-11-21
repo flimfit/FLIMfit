@@ -86,7 +86,7 @@ else % still can process as it is an imported file....
             nBins = str2num(str(pos+5:pos+7));
 
             pos = strfind(str, 'base');
-            time_base = str2num(str(pos+5:pos+14)).*1000;        % get time base & convert to ps
+            time_base = str2num(str(pos+5:pos+14)).*1000;      % get time base & convert to ps
 
             % Important to close the service
             rawFileStore.close();
