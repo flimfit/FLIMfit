@@ -19,7 +19,11 @@ function [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_OME_tif(f
     fclose(fid);
     
     try
-        [ FLIM_type delays modulo n_channels ] = get_FLIM_params_from_metadta_xml_file(detached_metadata_xml_filename);
+        ret = get_FLIM_params_from_metadta_xml_file(detached_metadata_xml_filename);
+        FLIM_type   = ret.FLIM_type;
+        delays      = ret.delays;
+        modulo      = ret.modulo;
+        n_channels  = ret.n_channels;
     catch
     end;
     

@@ -36,6 +36,7 @@ function[delays,im_data,t_int,tcspc] = load_flim_file(file,channel)
                 s = tT.getTag('ImageDescription');
                 pos = strfind(s,'PhysicalSizeZ');
                 binSpacing = 1000 .* str2double(s(pos+15:pos+20));  %binSpacing in ps
+               
                 
                 delays = (0:(n_im - 1)) .* binSpacing;
                 

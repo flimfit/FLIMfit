@@ -18,6 +18,7 @@ end
 
 
 timerange=12500;        % default timeRange in ps
+
 fid=fopen(filename);
 
   
@@ -93,8 +94,8 @@ fid=fopen(filename);
     scany = fread(fid,1, 'int32');
     
     % calculate timeRange
-    timeRange = tac_r/double(tac_g);     % calculated timeRange in s
-    timeRange = timeRange * 1e12;        % convert to ps
+    timerange = tac_r/double(tac_g);     % calculated timeRange in s
+    timerange = floor(timerange .* 1e12);        % convert to ps
     
     
     
@@ -274,8 +275,8 @@ fid=fopen(filename);
     end
     
 
+Delays= floor(0:timerange/adc_res:timerange-timerange/adc_res);
 
-Delays=[0:timerange/adc_res:timerange-timerange/adc_res];    
 
 end
 

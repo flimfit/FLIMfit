@@ -1,8 +1,9 @@
-function data_cube = get_Channels( session, imgId, n_blocks, block, modulo, ZCT )
+
+function data_cube = get_FLIM_cube_Channels( session, imgId, modulo, ZCT )
     %
     data_cube = [];
     %
-    if ~strcmp(modulo,'ModuloAlongC') && ~strcmp(modulo,'ModuloAlongT') && ~strcmp(modulo,'ModuloAlongZ')
+    if ~strcmp(~strcmp(modulo,'ModuloAlongT') && ~strcmp(modulo,'ModuloAlongZ')
         [ST,I] = dbstack('-completenames');
         errordlg(['No acceptable ModuloAlong* in the function ' ST.name]);
         return;
@@ -26,49 +27,36 @@ function data_cube = get_Channels( session, imgId, n_blocks, block, modulo, ZCT 
     sizeT = pixels.getSizeT().getValue();
     sizeZ = pixels.getSizeZ().getValue();
     %
+    if 
+    %   
+    switch modulo
+        case 'ModuloAlongZ' 
+            N = sizeZ;        
+        case 'ModuloAlongT' 
+            N = sizeT;        
+    end    
+    %
     pixelsId = pixels.getId().getValue();
     image.getName().getValue();
         store = session.createRawPixelsStore(); 
         store.setPixelsId(pixelsId, false);    
     % 
-    %
-       switch modulo
-            case 'ModuloAlongZ' 
-                N = sizeZ;        
-            case 'ModuloAlongC' 
-                N = sizeC;        
-            case 'ModuloAlongT' 
-                N = sizeT;        
-        end    
-    %
-    if 0 == block || isempty(n_blocks) || isempty(block) || n_blocks < block
-        c_begin = 1;
-        c_end = N;
-    else
-        n_channels = floor(N/n_blocks);
-        %
-        c_begin = 1 + n_channels*(block - 1);
-        c_end = c_begin + n_channels - 1;        
-    end
-    %
-    data_cube = zeros(c_end - c_begin + 1, sizeY, sizeX);            
+    data_cube = zeros(N, sizeY, sizeX);            
     %
     Z = ZCT(1)-1;
     C = ZCT(2)-1;
     T = ZCT(3)-1;
     %    
-    for c = c_begin:c_end,
+    for k = 1:N,
         switch modulo % getPlane(Z,C,T)
             case 'ModuloAlongZ' 
-                rawPlane = store.getPlane(c - 1, C, T );        
-            case 'ModuloAlongC' 
-                rawPlane = store.getPlane(Z, c - 1, T);        
+                rawPlane = store.getPlane(k - 1, C, T );        
             case 'ModuloAlongT' 
-                rawPlane = store.getPlane(Z, C, c - 1);        
+                rawPlane = store.getPlane(Z, C, k - 1);        
         end
         %
         plane = toMatrix(rawPlane, pixels); 
-            data_cube(c - c_begin + 1,:,:) = plane';
+        data_cube(k,:,:) = plane';
     end
 
     store.close();

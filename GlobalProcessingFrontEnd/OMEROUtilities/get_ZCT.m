@@ -1,4 +1,4 @@
-function ZCT = get_ZCT( image, modulo )
+        function ZCT = get_ZCT( image, modulo )
 
           pixelsList = image.copyPixels();    
                 pixels = pixelsList.get(0);

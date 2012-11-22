@@ -18,13 +18,15 @@ proxy = session.getContainerService();
     end
 image = list.get(0);
 
-name = char(image.getName.getValue()); % char converts to matlab
-
-
-modulo = [];    %default
+name = char(image.getName.getValue());
 
 % check for a file imported via IC-importer
-[ FLIM_type Delays modulo n_channels ] = get_FLIM_params_from_metadata(session,image.getId(),'metadata.xml');
+mdta = get_FLIM_params_from_metadata(session,image.getId(),'metadata.xml');
+
+FLIM_type   = mdta.FLIM_type;
+Delays      = mdta.delays;
+modulo      = mdta.modulo;
+n_channels  = mdta.n_channels;
 
 if ~isempty(modulo)
     
@@ -46,7 +48,7 @@ else % still can process as it is an imported file....
         % via insight!
         
         sizeZ = pixels.getSizeZ.getValue();
-        if sizeZ > 2 & length(channel) == 1 & max(channel) == 1
+        if sizeZ > 2 && length(channel) == 1 && max(channel) == 1
               modulo = 'ModuloAlongZ';
               FLIM_type = 'TCSPC';
               n_channels = 1;
@@ -83,10 +85,10 @@ else % still can process as it is an imported file....
             FLIM_type = 'TCSPC';
 
             pos = strfind(str, 'bins');
-            nBins = str2num(str(pos+5:pos+7));
+            nBins = str2double(str(pos+5:pos+7));
 
             pos = strfind(str, 'base');
-            time_base = str2num(str(pos+5:pos+14)).*1000;      % get time base & convert to ps
+            time_base = str2double(str(pos+5:pos+14)).*1000;      % get time base & convert to ps
 
             % Important to close the service
             rawFileStore.close();
@@ -108,15 +110,18 @@ if isempty(modulo)  % if file has been identified then load it
     return;
 else
 
-    % load data
-    data_cube_ = get_Channels( session, imageID, n_channels, channel, modulo, ZCT );            
-    
+    if ~isempty(mdta.n_channels) && mdta.n_channels == mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') % native multi-spectral FLIM     
+        data_cube_ = get_FLIM_cube_Channels( session, imageID, modulo, ZCT );
+    else 
+        data_cube_ = get_FLIM_cube( session, imageID, n_channels, channel, modulo, ZCT );                
+    end
+            
     [nBins,sizeX,sizeY] = size(data_cube_);       
     data_cube = zeros(nBins,1,sizeX,sizeY,1);
     
     data_cube(1:end,1,:,:,1) = squeeze(data_cube_(1:end,:,:));   
     
-    if FLIM_type ~= 'TCSPC'
+    if ~strcmp(FLIM_type,'TCSPC')
         if min(data_cube(:)) > 32500
             data_cube = data_cube - 32768;    % clear the sign bit which is set by labview
         end
