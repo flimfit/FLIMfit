@@ -110,7 +110,7 @@ if isempty(modulo)  % if file has been identified then load it
     return;
 else
 
-    if ~isempty(mdta.n_channels) && mdta.n_channels == mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') % native multi-spectral FLIM     
+    if ~isempty(mdta.n_channels) && mdta.SizeC~=1 && mdta.n_channels == mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') % native multi-spectral FLIM     
         data_cube_ = get_FLIM_cube_Channels( session, imageID, modulo, ZCT );
     else 
         data_cube_ = get_FLIM_cube( session, imageID, n_channels, channel, modulo, ZCT );                
