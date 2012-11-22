@@ -3,8 +3,8 @@ function data_cube = get_FLIM_cube_Channels( session, imgId, modulo, ZCT )
     %
     data_cube = [];
     %
-    if ~strcmp(~strcmp(modulo,'ModuloAlongT') && ~strcmp(modulo,'ModuloAlongZ')
-        [ST,I] = dbstack('-completenames');
+    if ~strcmp(modulo,'ModuloAlongT') && ~strcmp(modulo,'ModuloAlongZ')
+        [ST,~] = dbstack('-completenames');
         errordlg(['No acceptable ModuloAlong* in the function ' ST.name]);
         return;
     end;    
@@ -26,9 +26,7 @@ function data_cube = get_FLIM_cube_Channels( session, imgId, modulo, ZCT )
     sizeC = pixels.getSizeC().getValue();
     sizeT = pixels.getSizeT().getValue();
     sizeZ = pixels.getSizeZ().getValue();
-    %
-    if 
-    %   
+    %       
     switch modulo
         case 'ModuloAlongZ' 
             N = sizeZ;        
@@ -48,7 +46,7 @@ function data_cube = get_FLIM_cube_Channels( session, imgId, modulo, ZCT )
     T = ZCT(3)-1;
     %    
     for k = 1:N,
-        switch modulo % getPlane(Z,C,T)
+        switch modulo
             case 'ModuloAlongZ' 
                 rawPlane = store.getPlane(k - 1, C, T );        
             case 'ModuloAlongT' 
