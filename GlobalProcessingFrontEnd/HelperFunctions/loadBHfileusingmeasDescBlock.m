@@ -17,7 +17,8 @@ end
 
 
 
-timerange=12500;
+timerange=12500;        % default timeRange in ps
+
 fid=fopen(filename);
 
   
@@ -66,12 +67,13 @@ fid=fopen(filename);
     mod_ser_no = fread (fid, 16, 'uint8=>char');
     meas_mode = fread(fid,1, 'uint16');
     % bunch of stuff I don't as yet understand
-    dummy = fread(fid,5, 'float');
+    dummy = fread(fid,5, 'float');      % 5 floats cfd_ll, cfd_lh, cfd_zc, cfd_hf & syn_zc
     syn_fd = fread(fid,1, 'uint16');
-    dummy = fread(fid,2, 'float');
+    syn_hf = fread(fid,1, 'float');
+    tac_r = fread(fid,1, 'float');
     tac_g = fread(fid,1, 'uint16');
     dummy = fread(fid,3, 'float');
-    adc_res = fread(fid,1, 'uint16');        % adc resolution !!
+    adc_res = fread(fid,1, 'uint16');       % adc resolution !!
     eal_de = fread(fid,1, 'uint16'); 
     ncx = fread(fid,1, 'uint16'); 
     ncy = fread(fid,1, 'uint16');
@@ -90,6 +92,11 @@ fid=fopen(filename);
     dummy = fread(fid,2, 'uint16'); % pix_clck, trigger
     scanx = fread(fid,1, 'int32');
     scany = fread(fid,1, 'int32');
+    
+    % calculate timeRange
+    timerange = tac_r/double(tac_g);     % calculated timeRange in s
+    timerange = floor(timerange .* 1e12);        % convert to ps
+    
     
     
    % read BHFileBlockHeader;
@@ -268,8 +275,8 @@ fid=fopen(filename);
     end
     
 
+Delays= floor(0:timerange/adc_res:timerange-timerange/adc_res);
 
-Delays=[0:timerange/adc_res:timerange-timerange/adc_res];    
 
 end
 
