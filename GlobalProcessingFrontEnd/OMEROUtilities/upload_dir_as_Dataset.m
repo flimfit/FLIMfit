@@ -1,4 +1,4 @@
-        function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,pixeltype,modulo)
+        function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,pixeltype,modulo,bh_native_spec)
             %
             new_datasetId = [];
             %            
@@ -43,7 +43,7 @@
                                 session.getUpdateService().saveAndReturnObject(link); 
                             end % if strcmp('tif',extension) && is_OME_tif(full_file_name)                           
                         else % strcmp('sdt',extension)
-                            upload_Image_BH(session, new_dataset,full_file_name,'sample',modulo);    
+                            upload_Image_BH(session, new_dataset,full_file_name,'sample',modulo,bh_native_spec);    
                         end
                         %
                         waitbar(i/num_files, hw);

@@ -1,4 +1,4 @@
-function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT) % 
+function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT,mdta) % 
 
     if nargin < 2
         selected = 1:obj.num_datasets;
@@ -40,11 +40,11 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT) 
             mapfile = fopen(mapfile_name,'w');
 
             for j=1:num_sel
-
-                    image_descriptor{1} = session;
-                    image_descriptor{2} = image_ids(selected(j));                        
+                    
+                    imgId = image_ids(selected(j));                        
+                    image = get_Object_by_Id(session,imgId);
                     try
-                        [~,data,~] = OMERO_fetch(image_descriptor,channel,ZCT);
+                        [~,data,~] = OMERO_fetch(session,image,channel,ZCT,mdta);
                     catch err
                         rethrow(err);
                     end                    
@@ -69,10 +69,10 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT) 
            
             for j=1:num_sel
                     
-                    image_descriptor{1} = session;
-                    image_descriptor{2} = image_ids(selected(j));                        
+                    imgId = image_ids(selected(j));                        
+                    image = get_Object_by_Id(session,imgId);
                     try
-                        [~,data,~] = OMERO_fetch(image_descriptor,channel,ZCT);
+                        [~,data,~] = OMERO_fetch(session,image,channel,ZCT,mdta);
                         if ~isempty(data) 
                             obj.data_series_mem(:,:,:,:,j) = single(data);                                        
                         end;

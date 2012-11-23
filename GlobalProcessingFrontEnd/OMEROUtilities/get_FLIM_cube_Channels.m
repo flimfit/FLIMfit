@@ -1,5 +1,5 @@
 
-function data_cube = get_FLIM_cube_Channels( session, imgId, modulo, ZCT )
+function data_cube = get_FLIM_cube_Channels( session, image, modulo, ZCT )
     %
     data_cube = [];
     %
@@ -9,17 +9,8 @@ function data_cube = get_FLIM_cube_Channels( session, imgId, modulo, ZCT )
         return;
     end;    
     %
-    proxy = session.getContainerService();
-    ids = java.util.ArrayList();
-    ids.add(java.lang.Long(imgId)); 
-    list = proxy.getImages('omero.model.Image', ids, omero.sys.ParametersI());
-    if (list.size == 0)
-        exception = MException('OMERO:ImageID', 'Image Id not valid');
-        throw(exception);
-    end
-    image = list.get(0);
-        pixelsList = image.copyPixels();    
-            pixels = pixelsList.get(0);
+    pixelsList = image.copyPixels();    
+    pixels = pixelsList.get(0);
     %
     sizeX = pixels.getSizeX().getValue();
     sizeY = pixels.getSizeY().getValue();

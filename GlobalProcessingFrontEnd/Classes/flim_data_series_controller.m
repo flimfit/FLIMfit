@@ -203,14 +203,15 @@ classdef flim_data_series_controller < handle
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------
-        function channel = fetch_TCSPC(obj, imageDescriptor)
+        
+        %------------------------------------------------------------------                        
+        function channel = get_single_channel_FLIM_FOV(obj,image)
                         
             polarisation_resolved = false;
             
             % load new dataset
             obj.data_series = flim_data_series();            
             %
-            image = get_Object_by_Id(obj.session,java.lang.Long(imageDescriptor{2}));
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
                         
             if isempty(mdta.n_channels) || mdta.n_channels > 1
@@ -234,13 +235,35 @@ classdef flim_data_series_controller < handle
             end
             %
             try
-                obj.data_series.fetch_TCSPC(imageDescriptor, polarisation_resolved, channel, obj.ZCT);            
-            catch err 
+                [delays, data_cube, name] = OMERO_fetch(obj.session, image, channel, obj.ZCT, mdta);
+            catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end
-            
+            end      
+            data_size = size(data_cube);
+            %
+            % if only one channel reshape to include singleton dimension
+            if length(data_size) == 3
+                data_size = [data_size(1) 1 data_size(2:3)];    
+            end                        
+            %
+            extension = 'sdt'; % used....
+            string = strrep(name,['.' extension],'');
+            obj.data_series.names{1} = string;            
+            obj.data_series.data_size = data_size;
+            obj.data_series.num_datasets = 1;  
+            obj.data_series.file_names = {'file'};                
+            obj.data_series.metadata = extract_metadata(obj.data_series.names);
+            obj.data_series.polarisation_resolved = polarisation_resolved;
+            obj.data_series.t = delays;
+            obj.data_series.use_memory_mapping = false;
+            obj.data_series.data_series_mem = single(data_cube);
+            obj.data_series.tr_data_series_mem = single(data_cube);                
+            obj.data_series.load_multiple_channels = false;
+            obj.data_series.loaded = ones([1 obj.data_series.num_datasets]);
+            obj.data_series.switch_active_dataset(1);    
+            obj.data_series.init_dataset();                        
         end
-                        
+                                
         %------------------------------------------------------------------                
         function OMERO_Set_Dataset(obj,~,~)
             %
@@ -285,7 +308,7 @@ classdef flim_data_series_controller < handle
             %
             if ~isempty(image) 
                 try
-                    obj.selected_channel = obj.fetch_TCSPC({obj.session, image.getId().getValue()});                                                                                    
+                    obj.selected_channel = obj.get_single_channel_FLIM_FOV(image);
                 catch err
                     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
                 end
@@ -425,13 +448,13 @@ classdef flim_data_series_controller < handle
                 obj.data_series.mode = 'TCSPC'; % not annotated sdt..
             end
             if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
-                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
+                obj.ZCT = [mdta.SizeZ obj.selected_channel mdta.SizeT]; 
             else
                 obj.ZCT = get_ZCT(image,mdta.modulo);
             end
             %                                   
             try
-                [delays, data_cube, name] = OMERO_fetch(image_descriptor, obj.selected_channel,obj.ZCT);
+                [delays, data_cube, ~] = OMERO_fetch(obj.session, image, obj.selected_channel,obj.ZCT,mdta);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
@@ -462,12 +485,12 @@ classdef flim_data_series_controller < handle
                 obj.data_series.polarisation_resolved = polarisation_resolved;
                 obj.data_series.t = delays;
                 obj.data_series.use_memory_mapping = false;
-                obj.data_series.load_multiple_channels = false; % YA
+                obj.data_series.load_multiple_channels = false; 
                 %
                 if obj.data_series.lazy_loading        
-                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1,obj.selected_channel,obj.ZCT);
+                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1,obj.selected_channel,obj.ZCT,mdta);
                 else
-                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1:obj.data_series.num_datasets,obj.selected_channel,obj.ZCT);        
+                    obj.data_series.load_selected_files_Omero(obj.session,image_ids,1:obj.data_series.num_datasets,obj.selected_channel,obj.ZCT,mdta);        
                 end    
                 % ?
                 obj.data_series.switch_active_dataset(1);    

@@ -1,39 +1,25 @@
-function [delays, data_cube, name ] =  OMERO_fetch(imageDescriptor, channel, ZCT)
+function [delays, data_cube, name ] =  OMERO_fetch(session, image, channel, ZCT, mdta)
     %> Load a single FLIM dataset
     
 delays = [];
 data_cube = [];
 
-session = imageDescriptor{1};     
-imageID = imageDescriptor{2};
-imageId = java.lang.Long(imageID);
-
-proxy = session.getContainerService();
-    ids = java.util.ArrayList();
-        ids.add(imageId); %add the id of the image.
-            list = proxy.getImages('omero.model.Image', ids, omero.sys.ParametersI());
-    if (list.size == 0)
-        exception = MException('OMERO:ImageID', 'Image Id not valid');
-        throw(exception);
-    end
-image = list.get(0);
-
+imageId = image.getId().getValue();
 name = char(image.getName.getValue());
-
-% check for a file imported via IC-importer
-mdta = get_FLIM_params_from_metadata(session,image.getId(),'metadata.xml');
 
 FLIM_type   = mdta.FLIM_type;
 Delays      = mdta.delays;
 modulo      = mdta.modulo;
 n_channels  = mdta.n_channels;
 
-if ~isempty(modulo)
+if ~isempty(mdta.modulo)
     
      delays = cell2mat(Delays)';
      
 else % still can process as it is an imported file.... 
 
+    imageId = java.lang.Long(imageId); % oops
+    %
     annotators = java.util.ArrayList;
     ann = [];
     metadataService = session.getMetadataService();
@@ -111,9 +97,9 @@ if isempty(modulo)  % if file has been identified then load it
 else
 
     if ~isempty(mdta.n_channels) && mdta.SizeC~=1 && mdta.n_channels == mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') % native multi-spectral FLIM     
-        data_cube_ = get_FLIM_cube_Channels( session, imageID, modulo, ZCT );
+        data_cube_ = get_FLIM_cube_Channels( session, image, mdta.modulo, ZCT );
     else 
-        data_cube_ = get_FLIM_cube( session, imageID, n_channels, channel, modulo, ZCT );                
+        data_cube_ = get_FLIM_cube( session, image, n_channels, channel, modulo, ZCT );                
     end
             
     [nBins,sizeX,sizeY] = size(data_cube_);       
@@ -126,9 +112,6 @@ else
             data_cube = data_cube - 32768;    % clear the sign bit which is set by labview
         end
     end
-
-    
-   
-
+      
 end
    
