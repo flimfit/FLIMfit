@@ -29,9 +29,10 @@ enum GlobalMode { MODE_GLOBAL_ANALYSIS, MODE_GLOBAL_BINNING };
 #define MODE_GLOBAL    2
 
 //----------------------------------------------
-#define BG_NONE 0
-#define BG_VALUE 1
-#define BG_IMAGE 2
+#define BG_NONE     0
+#define BG_VALUE    1
+#define BG_IMAGE    2
+#define BG_TV_IMAGE 3
 
 //----------------------------------------------
 #define APPLY_ANSCOME_TRANSFORM  0
@@ -52,8 +53,8 @@ enum GlobalMode { MODE_GLOBAL_ANALYSIS, MODE_GLOBAL_BINNING };
 
 //----------------------------------------------
 #define AVERAGE_WEIGHTING 0
-#define PIXEL_WEIGHTING 1
-#define MODEL_WEIGHTING 2
+#define PIXEL_WEIGHTING   1
+#define MODEL_WEIGHTING   2
 
 //----------------------------------------------
 #define MAX_CONTROLLER_IDX 255
@@ -70,5 +71,15 @@ enum GlobalMode { MODE_GLOBAL_ANALYSIS, MODE_GLOBAL_BINNING };
 #define ERR_FOUND_NO_REGIONS           -1008
 #define ERR_FAILED_TO_MAP_DATA         -1009
 #define ERR_INVALID_INPUT              -1010
+
+/*
+#define _CRTDBG_MAP_ALLOC
+#ifdef _DEBUG   
+#ifndef DBG_NEW     
+#define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )      
+#define new DBG_NEW   
+#endif
+#endif  // _DEBUG
+*/
 
 #endif

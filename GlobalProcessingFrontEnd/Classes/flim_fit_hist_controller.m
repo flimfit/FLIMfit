@@ -3,7 +3,8 @@ classdef flim_fit_hist_controller < abstract_plot_controller
     properties
         
         hist_weighting_popupmenu;
-        hist_classes_edit;        
+        hist_classes_edit;    
+        hist_source_popupmenu;
         
     end
     
@@ -14,6 +15,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             
             set(obj.hist_weighting_popupmenu,'Callback',@(~,~)obj.update_display);
             set(obj.hist_classes_edit,'Callback',@(~,~)obj.update_display);
+            set(obj.hist_source_popupmenu,'Callback',@(~,~)obj.update_display);
             
             obj.update_display();
         end
@@ -26,28 +28,93 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             if obj.fit_controller.has_fit && param > 0 && obj.selected > 0
                 
                 f = obj.fit_controller;
+                r = f.fit_result;
                 
-                sel = obj.data_series_list.selected;
-                %sel = obj.fit_controller.selected;
+                source = get(obj.hist_source_popupmenu,'Value');
+                
+                if source == 1
+                    sel = obj.data_series_list.selected;
+                else
+                    sel = obj.fit_controller.selected;
+                end
                 
                 weighting = get(obj.hist_weighting_popupmenu,'Value');
                 hist_classes = str2double(get(obj.hist_classes_edit,'String'));
                 
                 param_data = [];
                 I_data = [];
+                md = [];
                 for i=1:length(sel)
+                    
                     new_data = obj.fit_controller.get_image(sel(i),param);
                     new_I_data = obj.fit_controller.get_image(sel(i),'I');
                     
                     filt = isfinite(new_data) & isfinite(new_I_data);
                     
+                    
                     new_data = new_data(filt);
                     new_I_data = new_I_data(filt);
                     
+                    %{
+                    new_data = r.region_mean{sel(i)}(param,:)';
+                    new_I_data = r.region_mean{sel(i)}(6,:)';
+                    
+                    
+                    new_md = r.metadata.Column{sel(i)};
+                    new_md = repmat(new_md,size(new_data));
+                    md = [md; new_md];
+                    %}
+
                     I_data = [I_data; new_I_data];
                     param_data = [param_data; new_data];
+                   
+                end
+                %{
+                s = 2:11;
+                
+                [a,b]=kmeans(param_data,2);
+                for i=1:length(s)
+                   
+                    [~,ah] = max(b); 
+                    
+                    p(i) = sum(a(md==s(i))==ah)/sum(md==s(i));
+                    
+                    dat = param_data(a==ah & md==s(i));
+                    qh(i) = mean(dat);
+                    sh(i) = std(dat)/sqrt(length(dat));
+                    
+                    dat = param_data(a~=ah & md==s(i));
+                    ql(i) = mean(dat);
+                    sl(i) = std(dat)/sqrt(length(dat));
+                    
+                    
                 end
                 
+                
+                figure(12);
+                %{
+                plot(2*md(a==1),param_data(a==1),'xr');
+                hold on;
+                plot(2*md(a==2)+1,param_data(a==2),'xb');
+                %}
+                subplot(1,2,1);
+                hold off
+                errorbar(s,qh,sh,'r');
+                hold on;
+                errorbar(s,ql,sl,'b');
+                xlim([2 10])
+                xlabel('Dose');
+                ylabel('Mean FRET fraction of each population')
+                
+                subplot(1,2,2);
+                plot(s,p);
+                ylim([0 0.5]);
+                xlim([2 10]);
+                xlabel('Dose');
+                ylabel('Fraction of population responding');
+                
+                %}
+               
                 lims = f.get_cur_lims(param);
                 I_lims = f.get_cur_intensity_lims;
                 
@@ -64,16 +131,30 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 
                 cla(ax);
 
+                %[idx,c] = kmeans(param_data,2);
+                
+                %disp(c)
+                
+                %sum(idx==2)/length(idx)
+                
+                %disp([median(param_data) mean(param_data)]);
+                
                 if weighting == 2
                     weightedhist(ax,param_data,intensity,x);
+                    
                 else
                     hist(ax,param_data,x);
+                    %[n,xout] = hist(param_data,x);
+                    %bar(ax,xout,n);
+                    %col = r.metadata.Column{sel(1)};
+                    %csvwrite(['C:\Users\scw09\Documents\00 Local FLIM Data\2012-09-05 Ras-Raf Anca plate\hist\' num2str(col) '.csv'],[xout',n']);
+
                 end
                 
                 if all(isfinite(lims))
                     set(ax,'XLim',lims)
                 end
-                xlabel(ax,param);
+                xlabel(ax,r.latex_params{param});
                 ylabel(ax,'Frequency');
             else
                 cla(ax);
@@ -90,7 +171,9 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 mode = 'single';
             end
             
+            f = obj.fit_controller;
             r = obj.fit_controller.fit_result;
+            
             weighting = get(obj.hist_weighting_popupmenu,'Value');
             hist_classes = str2double(get(obj.hist_classes_edit,'String'));
             param = obj.cur_param;
@@ -184,7 +267,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 filename = [path filesep name ' ' r.params{param} ' histogram' ext];
                     f = fopen(filename,'w');
 
-                    fprintf(f,'%s %s\r\n',obj.cur_param,weighting_string);
+                    fprintf(f,'%s %s\r\n',r.params{param},weighting_string);
                     for i=1:r.n_results
                         fprintf(f,'\t%s',r.names{i});
                     end

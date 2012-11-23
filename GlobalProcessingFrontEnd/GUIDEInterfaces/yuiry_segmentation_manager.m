@@ -22,7 +22,7 @@ function varargout = yuiry_segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 04-May-2012 10:33:49
+% Last Modified by GUIDE v2.5 29-Oct-2012 12:29:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -156,43 +156,6 @@ function parameter_table_DeleteFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-
-function pipeline_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to pipeline_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of pipeline_edit as text
-%        str2double(get(hObject,'String')) returns contents of pipeline_edit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function pipeline_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to pipeline_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on button press in pipeline_load_button.
-function pipeline_load_button_Callback(hObject, eventdata, handles)
-% hObject    handle to pipeline_load_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in cellprofiler_segment_button.
-function cellprofiler_segment_button_Callback(hObject, eventdata, handles)
-% hObject    handle to cellprofiler_segment_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
 % --- Executes on button press in replicate_mask_checkbox.
 function replicate_mask_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to replicate_mask_checkbox (see GCBO)
@@ -243,57 +206,6 @@ delete(handles.segmentation_controller);
 delete(hObject);
 
 
-% --- Executes on button press in thresh_apply_button.
-function thresh_apply_button_Callback(hObject, eventdata, handles)
-% hObject    handle to thresh_apply_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-
-function thresh_min_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to thresh_min_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of thresh_min_edit as text
-%        str2double(get(hObject,'String')) returns contents of thresh_min_edit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function thresh_min_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to thresh_min_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function thresh_max_edit_Callback(hObject, eventdata, handles)
-% hObject    handle to thresh_max_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of thresh_max_edit as text
-%        str2double(get(hObject,'String')) returns contents of thresh_max_edit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function thresh_max_edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to thresh_max_edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
 
 
 % --- Executes on button press in delete_all_button.
@@ -306,13 +218,6 @@ function delete_all_button_Callback(hObject, eventdata, handles)
 % --- Executes on button press in copy_to_all_button.
 function copy_to_all_button_Callback(hObject, eventdata, handles)
 % hObject    handle to copy_to_all_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-function Untitled_1_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -379,15 +284,6 @@ function menu_file_load_single_segmentation_Callback(hObject, eventdata, handles
     end
 
 
-% --- Executes on button press in seg_use_multiple_regions.
-function seg_use_multiple_regions_Callback(hObject, eventdata, handles)
-% hObject    handle to seg_use_multiple_regions (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of seg_use_multiple_regions
-
-
 % --- Executes on button press in trim_outliers_checkbox.
 function trim_outliers_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to trim_outliers_checkbox (see GCBO)
@@ -402,3 +298,22 @@ function yuiry_segment_selected_button_Callback(hObject, eventdata, handles)
 % hObject    handle to yuiry_segment_selected_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
+% --- Executes on button press in apply_filtering_pushbutton.
+function apply_filtering_pushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to apply_filtering_pushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+
+% --- Executes on button press in combine_regions_checkbox.
+function combine_regions_checkbox_Callback(hObject, eventdata, handles)
+% hObject    handle to combine_regions_checkbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of combine_regions_checkbox

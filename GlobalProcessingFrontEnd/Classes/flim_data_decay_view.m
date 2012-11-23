@@ -77,6 +77,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
             
             first_call = isempty(obj.ylim_highlight);
                 
+            warning('off','MATLAB:Axes:NegativeDataInLogAxis');
             
             if obj.data_series.init
                 
@@ -278,7 +279,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                        if display_mode == 1
                            low = 0;
                        else
-                           low = 1e-3;%0.9*min(data(:));
+                           low = 0.9*min(data(:));
                        end
                        high = max(data(:))*1.1;
 

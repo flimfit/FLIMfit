@@ -28,5 +28,7 @@ function load_single_segmentation(obj,file)
             obj.mask(mask) = 0;        
     end
     
+    obj.filtered_mask = obj.mask;
+    
     obj.update_display();
 end

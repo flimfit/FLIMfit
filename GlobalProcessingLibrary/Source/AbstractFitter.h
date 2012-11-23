@@ -18,10 +18,10 @@ public:
    AbstractFitter(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate);
    virtual ~AbstractFitter();
    virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2) = 0;
-
+   virtual int GetLinearParams(int s, float* y, double* alf) = 0;
+   
    int Fit(int n, int s, int lmax, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
    int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit);
-
    double ErrMinFcn(double x);
    int CalculateErrors(double* alf, double* err);
 

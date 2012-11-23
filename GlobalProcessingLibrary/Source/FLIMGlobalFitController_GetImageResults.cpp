@@ -12,7 +12,7 @@ using namespace boost::interprocess;
 
 #include "TrimmedMean.h"
 
-void CalculateRegionStats(int n, int s, float data[], float*&region_mean, float*& region_std, float*& region_01, float*& region_99, float buf[])
+int CalculateRegionStats(int n, int s, float data[], float*&region_mean, float*& region_std, float*& region_median, float*& region_q1, float*& region_q2, float*& region_01, float*& region_99, float buf[])
 {
    for(int i=0; i<n; i++)
    {
@@ -23,9 +23,10 @@ void CalculateRegionStats(int n, int s, float data[], float*&region_mean, float*
          if (boost::math::isfinite(data[i+j*n]))
             buf[idx++] = data[i+j*n];
       }
-      int K = int (0.001 * idx);
-      TrimmedMean(buf, idx, K, *(region_mean++), *(region_std++), *(region_01++), *(region_99++));
+      int K = int (0.01 * idx);
+      TrimmedMean(buf, idx, K, *(region_mean++), *(region_std++), *(region_median++), *(region_q1++), *(region_q2++), *(region_01++), *(region_99++));
    }
+   return n;
 }
 
 
@@ -100,21 +101,25 @@ float FLIMGlobalFitController::GetNonLinearParam(int param, float alf[])
 
 int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float output[])
 {
+ 
+
    int idx = 0;
 
    int j;
 
    for(j=0; j<n_fix; j++)
-      output[idx++] = tau_guess[j];
+      output[idx++] = (float) tau_guess[j];
    for(j=0; j<n_v; j++)
       output[idx++] = alf[j];
+
+   //return idx;
 
    if (beta_global)
    {
       if (fit_beta == FIX)
       {
          for(j=0; j<n_exp; j++)
-            output[idx++] = fixed_beta[j];
+            output[idx++] = (float) fixed_beta[j];
       }
       else
       {
@@ -138,23 +143,19 @@ int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float output[])
 
          }
 
-         double norm = 0;
          for(j=0; j<n_exp; j++)
-            norm += beta_buf[j];
-
-         for(j=0; j<n_exp; j++)
-            output[idx++] = beta_buf[j];// / norm;
+            output[idx++] = (float) beta_buf[j];
       }
    }
 
 
    for(j=0; j<n_theta_fix; j++)
-      output[idx++] =  theta_guess[ j ];
+      output[idx++] = (float) theta_guess[ j ];
    for(j=0; j<n_theta_v; j++)
       output[idx++] = alf[alf_theta_idx + j];
 
    for(j=0; j<n_fret_fix; j++)
-      output[idx++] = E_guess[j];
+      output[idx++] = (float) E_guess[j];
    for(j=0; j<n_fret_v; j++)
       output[idx++] = alf[alf_E_idx+j];
 
@@ -176,9 +177,10 @@ int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float output[])
 
 
 
-int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params_mean[], float params_std[], float params_01[], float params_99[])
+int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], 
+                                           float params_mean[], float params_std[], float params_median[], float params_q1[], float params_q2[], float params_01[], float params_99[])
 {
-   #define INCR_RESULT_PTRS(n)   params_mean += (n); params_std += (n); params_01 += (n); params_99 += (n)  
+   #define INCR_RESULT_PTRS(n)   n; params_mean += (n); params_std += (n); params_01 += (n); params_99 += (n); params_median += (n); params_q1 += (n); params_q2 += (n) 
 
    int start, s_local;
    int r_idx;
@@ -186,6 +188,8 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
    int n_px = data->n_px;
 
    int thread = 0;
+
+   _ASSERTE( _CrtCheckMemory( ) );
 
    // Get mask
    uint8_t *im_mask = data->mask + im*n_px;  
@@ -200,11 +204,9 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
 
    float* buf = new float[ n_px ];
 
-   float* nl_output;
+   float* nl_output = NULL;
    if (data->global_mode == MODE_PIXELWISE)
       nl_output = new float[ n_nl_output_params * n_px ];
-   else
-      nl_output = NULL;
 
    float *alf_group, *lin_group;  
 
@@ -213,25 +215,27 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
    #endif
    
    int idx = 0;
+
    for(int rg=1; rg<MAX_REGION; rg++)
    {
       r_idx = data->GetRegionIndex(im, rg);
 
       if (r_idx > -1)
       {
+         
          start = data->GetRegionPos(im,rg);
          s_local   = data->GetRegionCount(im,rg);
-
+         
          regions[idx] = rg;
          region_size[idx] = s_local;
          iterations[idx] = ierr[r_idx];
          success[idx] = this->success[r_idx];
-
+         
          if (data->global_mode == MODE_PIXELWISE)
             success[idx] /= s_local;
 
          int n_output = 0;
-
+         
          if (data->global_mode == MODE_PIXELWISE)
          {
             alf_group = alf + start * nl; 
@@ -239,40 +243,51 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
             for(int i=0; i<s_local; i++)
                ProcessNonLinearParams(alf_group + i*nl, nl_output + i*n_nl_output_params);
 
-            CalculateRegionStats(n_nl_output_params, s_local, nl_output, params_mean, params_std, params_01, params_99, buf);
+            CalculateRegionStats(n_nl_output_params, s_local, nl_output, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);
          }
          else
          {
+            
             alf_group = alf + nl * r_idx;
+            
             ProcessNonLinearParams(alf_group, params_mean);
+            
             for(int i=0; i<n_nl_output_params; i++)
             {
                params_std[i] = 0;
-               params_01[i] = 0.99 * params_mean[i];
-               params_99[i] = 1.01 *  params_mean[i];
+               params_median[i] = params_mean[i];
+               params_q1[i] = params_mean[i];
+               params_q2[i] = params_mean[i];
+               params_01[i] = (float) (0.99 * params_mean[i]);
+               params_99[i] = (float) (1.01 * params_mean[i]);
             }
+            
             INCR_RESULT_PTRS(n_nl_output_params);
+            
+            
          }
 
         
          lin_group    = lin_params + start * lmax;
 
-         CalculateRegionStats(lmax, s_local, lin_group, params_mean, params_std, params_01, params_99, buf);
+         CalculateRegionStats(lmax, s_local, lin_group, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);
 
-         CalculateRegionStats(1, s_local, I+start, params_mean, params_std, params_01, params_99, buf);
+         CalculateRegionStats(1, s_local, I+start, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);
 
          if (calculate_mean_lifetimes)
          {
-            CalculateRegionStats(1, s_local, mean_tau+start, params_mean, params_std, params_01, params_99, buf);
-            
-            CalculateRegionStats(1, s_local, w_mean_tau+start, params_mean, params_std, params_01, params_99, buf);
+            CalculateRegionStats(1, s_local, mean_tau+start, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);         
+            CalculateRegionStats(1, s_local, w_mean_tau+start, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);
          }
 
-         CalculateRegionStats(1, s_local, chi2+start, params_mean, params_std, params_01, params_99, buf);
-                  
+         CalculateRegionStats(1, s_local, chi2+start, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);
+         
          idx++;
       }
    }
+
+   _ASSERTE( _CrtCheckMemory( ) );
+
 
    n_regions = idx;
 
@@ -316,14 +331,17 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
    int idx = 0;
    for(int rg=1; rg<MAX_REGION; rg++)
    {
+      int r_param = param;
+
       r_idx = data->GetRegionIndex(im, rg);
+
+      start = data->GetRegionPos(im,rg);
+      s_local   = data->GetRegionCount(im,rg);
 
       if (r_idx > -1)
       {         
-         start = data->GetRegionPos(im,rg);
-         s_local   = data->GetRegionCount(im,rg);
 
-         if (param < n_nl_output_params)
+         if (r_param < n_nl_output_params)
          {
             if (data->global_mode == MODE_PIXELWISE)
             {
@@ -333,7 +351,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
                for(int i=0; i<n_px; i++)
                   if(im_mask[i] == rg)
                   {
-                     image_data[i] = GetNonLinearParam(param, param_data + j*nl);
+                     image_data[i] = GetNonLinearParam(r_param, param_data + j*nl);
                      j++;
                   }
 
@@ -341,7 +359,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
             else
             {
                param_data = alf + r_idx * nl;
-               float p = GetNonLinearParam(param, param_data);
+               float p = GetNonLinearParam(r_param, param_data);
                
                int j = 0;
                for(int i=0; i<n_px; i++)
@@ -352,34 +370,34 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
          }
          else
          {
-            param -= n_nl_output_params;
+            r_param -= n_nl_output_params;
 
             span = 1;
 
-            if (param < lmax)
+            if (r_param < lmax)
             {
-               param_data = lin_params + start * lmax + param;
+               param_data = lin_params + start * lmax + r_param;
                span = lmax;
-            } param-=lmax;
+            } r_param-=lmax;
 
-            if (param == 0) 
+            if (r_param == 0) 
                param_data = I + start;
-            param-=1;
+            r_param-=1;
 
             if (calculate_mean_lifetimes)
             {
-               if (param == 0)
+               if (r_param == 0)
                   param_data = mean_tau + start;
-               param-=1;
+               r_param-=1;
             
-               if (param == 0) 
+               if (r_param == 0) 
                   param_data = w_mean_tau + start;
-               param-=1;
+               r_param-=1;
             }
 
-            if (param == 0)
+            if (r_param == 0)
                param_data = chi2 + start;
-            param-=1;
+            r_param-=1;
 
             int j = 0;
             if (param_data != NULL)
@@ -401,7 +419,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
 
 int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int fit_loc[], double fit[])
 {
-
+   
    if (!status->HasFit())
       return ERR_FIT_IN_PROGRESS;
 

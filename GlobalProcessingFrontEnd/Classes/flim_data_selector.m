@@ -59,7 +59,7 @@ function flim_data_selector(data_series_controller)
 
     function deselect_filtered(obj,~,~)
         d = handles.data_series_controller.data_series;
-        d.use = d.use & get_sel();
+        d.use = d.use & ~get_sel();
     end
 
     function select_all(obj,~,~)

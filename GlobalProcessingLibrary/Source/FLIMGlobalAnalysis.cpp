@@ -14,7 +14,6 @@ int id_registered[MAX_CONTROLLER_IDX];
 
 #ifdef _DEBUG
 #define _CRTDBG_MAP_ALLOC
-//#include <vld.h>      //visual (memory) leak detector
 #include <stdlib.h>
 #include <crtdbg.h>
 #endif
@@ -32,12 +31,15 @@ BOOL APIENTRY DllMain( HANDLE hModule,
          controller[i] = NULL;
          id_registered[i] = 0;
       }
+      //VLDDisable();
       break;
-
+      
    case DLL_THREAD_ATTACH:
+      //VLDEnable();
       break;
  
    case DLL_THREAD_DETACH:
+      //VLDDisable();
       break;
 
    case DLL_PROCESS_DETACH:
@@ -292,6 +294,11 @@ FITDLL_API int SetBackgroundValue(int c_idx, float background_value)
    return 0;
 }
 
+FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_map, float const_background)
+{
+   controller[c_idx]->data->SetTVBackground(tvb_profile, tvb_I_map, const_background);
+   return 0;
+}
 
 
 FITDLL_API int StartFit(int c_idx)
@@ -314,12 +321,13 @@ FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params)
    return controller[c_idx]->param_names_ptr;
 }
 
-FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, float* params_mean, float* params_std, float *param_01, float *param_99)
+FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, 
+                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float *param_01, float *param_99)
 {
    int valid = InitControllerIdx(c_idx);
    if (!valid) return ERR_NO_FIT;
 
-   int error = controller[c_idx]->GetImageStats(im, ret_mask, *n_regions, regions, region_size, success, iterations, params_mean, params_std, param_01, param_99);
+   int error = controller[c_idx]->GetImageStats(im, ret_mask, *n_regions, regions, region_size, success, iterations, params_mean, params_std, params_median, params_q1, params_q2, param_01, param_99);
 
    return error;
 
@@ -366,7 +374,7 @@ FITDLL_API int FLIMGlobalClearFit(int c_idx)
    }
    else
    {
-      for(int i=1; i<MAX_CONTROLLER_IDX; i++)
+      for(int i=0; i<MAX_CONTROLLER_IDX; i++)
       {
          if (controller[i] != NULL)
          {

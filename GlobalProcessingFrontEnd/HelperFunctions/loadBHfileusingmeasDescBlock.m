@@ -132,7 +132,7 @@ fid=fopen(filename);
         
     end
     
-    if meas_mode == 0        % single point data     
+    if meas_mode == 0 || meas_mode == 1        % single point data     
         fseek (fid, data_offs, 'bof'); 
         %[ ImData,  successfullyRead] =fread(fid, adc_res, 'uint16');   % single curve
         

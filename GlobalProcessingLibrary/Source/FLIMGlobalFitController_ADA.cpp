@@ -272,7 +272,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
                double Ej = tau_buf[j]/tau_buf[0]*E;
                Ej = Ej / (1-E+Ej);
 
-               tau_buf[idx++] = tau_buf[j] * (1-Ej);
+                tau_buf[idx++] = tau_buf[j] * (1-Ej);
             }
          }
 

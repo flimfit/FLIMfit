@@ -8,8 +8,15 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     if nargin < 3
         no_smoothing = false;
     end
-   
+   %{
+    x = linspace(0,3000,100);
+    h = 0;
+    for i=1:obj.n_datasets
+        a = obj.acceptor(:,:,i);
+        h = h + hist(a(:),x);
+    end
     
+    %}
     calculated = false;
     
     if obj.init && ~obj.suspend_transformation
@@ -72,6 +79,16 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
 
             
         obj.cur_tr_data = single(obj.cur_data);
+        %{
+        if isfield(obj.metadata,'ACC') && ~isempty(obj.metadata.ACC{obj.active})
+            acum = obj.metadata.ACC{obj.active};
+            if ischar(acum)
+                acum = str2num(acum);
+            end
+            obj.cur_tr_data = obj.cur_tr_data / acum;
+        end
+        %}
+
         
         % Subtract background and crop
         bg = obj.background;
@@ -117,12 +134,36 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         end
         obj.cur_tr_data = tmp;
 
+        %{
+        figure(4);
+        subplot(1,2,1);
+        s = mean(obj.cur_tr_data,1);
+        s = squeeze(s);
+        imagesc(s);
+        colorbar;
+        caxis([0 10]);
+        set(gca,'XTick',[],'YTick',[]);
+        title(['ean (' num2str(mean(s(:))) ')']);
+        daspect([1 1 1 ]);
+        
+        subplot(1,2,2);
+        s = std(obj.cur_tr_data,1);
+        s = squeeze(s);
+        imagesc(s);
+        colorbar;
+        caxis([0 3]);
+        set(gca,'XTick',[],'YTick',[]);
+        title(['Std Dev (' num2str(mean(s(:))) ')']);
+        daspect([1 1 1 ]);
+        %}
 
         % Smooth data
         if obj.binning > 0 && ~no_smoothing
             obj.cur_tr_data = obj.smooth_flim_data(obj.cur_tr_data,obj.binning);
         end
 
+        %obj.cur_tr_data(obj.cur_tr_data<0) = 0;
+        
         obj.cur_smoothed = ~no_smoothing;
         
         obj.compute_tr_irf();

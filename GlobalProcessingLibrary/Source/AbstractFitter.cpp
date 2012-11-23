@@ -1,12 +1,13 @@
 #include "AbstractFitter.h"
-#include "FlagDefinitions.h"
-#include "util.h"
 
 #include "boost/math/distributions/fisher_f.hpp"
 #include "boost/math/tools/minima.hpp"
 #include "boost/bind.hpp"
 #include <limits>
 #include <exception>
+
+#include "FlagDefinitions.h"
+#include "util.h"
 
 using namespace std;
 
@@ -113,10 +114,6 @@ int AbstractFitter::Init()
 
    ncon = nconp1 - 1;
    
-
-   //ncon = 0;
-   //nconp1 = 1;
-
 
    return 0;
 }

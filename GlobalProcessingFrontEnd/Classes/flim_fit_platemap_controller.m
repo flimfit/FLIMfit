@@ -15,7 +15,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
         
         function draw_plot(obj,ax,param)
 
-            create_im_plate = true;
+            create_im_plate = false;
             
             n_col = 12;
             n_row = 8;
@@ -73,7 +73,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                             ci = (col-1)*r.width+1;
                             ri = (row_idx-1)*r.height+1;
                             
-                            im_plate(ri:ri+r.height-1,ci:ci+r.width-1) = r.get_image(sel_well(1),param);         
+                            im_plate(ri:ri+r.height-1,ci:ci+r.width-1) = f.get_image(sel_well(1),param);         
                         end
                             
                         for i=sel_well
@@ -137,7 +137,13 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 end
                 
                 obj.raw_data = [row_headers num2cell(plate)];
-                obj.raw_data = [{param} num2cell(1:n_col); obj.raw_data];
+                obj.raw_data = [r.params{param} num2cell(1:n_col); obj.raw_data];
+                
+                set(ax,'YTick',(1:1:n_row)*h-h*f);
+                set(ax,'YTickLabel',row_headers);
+                set(ax,'XTick',(1:n_col)*w-w*f);
+                set(ax,'XTickLabel',col_headers);
+                set(ax,'TickLength',[0 0]);
             else
                 im=image(zeros([n_row n_col]),'Parent',ax);
                 set(ax,'YTickLabel',row_headers);
@@ -152,11 +158,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             
             
             
-            set(ax,'YTick',(1:1:n_row)*h-h*f);
-            set(ax,'YTickLabel',row_headers);
-            set(ax,'XTick',(1:n_col)*w-w*f);
-            set(ax,'XTickLabel',col_headers);
-            set(ax,'TickLength',[0 0]);
+
             
 
             

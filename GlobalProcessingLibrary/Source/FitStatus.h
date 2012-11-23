@@ -3,7 +3,6 @@
 #define _FITSTATUS_H
 
 #include "tinythread.h"
-//#include "ModelADA.h"
 
 class FLIMGlobalFitController;
 

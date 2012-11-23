@@ -51,7 +51,9 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         end
         
         if ~isempty(d.seg_mask)        
-            obj.p_mask = libpointer('uint8Ptr', uint8(d.seg_mask));
+            m = d.seg_mask;
+            %m(m>0) = 1;
+            obj.p_mask = libpointer('uint8Ptr', uint8(m));
         else
             obj.p_mask = [];
         end
@@ -123,6 +125,9 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         elseif d.background_type == 2
             obj.p_background = libpointer('singlePtr', d.background_image);
             calllib(obj.lib_name,'SetBackgroundImage',obj.dll_id,obj.p_background);
+        elseif d.background_type == 3 && ~isempty(d.tvb_I_image)
+            obj.p_background = libpointer('singlePtr', d.tvb_I_image);
+            calllib(obj.lib_name,'SetBackgroundTVImage',obj.dll_id,obj.p_tvb_profile_single,obj.p_background,d.background_value);
         end
     end
     

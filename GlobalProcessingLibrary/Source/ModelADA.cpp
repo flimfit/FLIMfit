@@ -78,7 +78,7 @@ double d_beta_d_alf(double beta)
 
 double kappa_spacer(double tau2, double tau1)
 {
-   return 0; 
+  return 0; 
 
    double diff_max = 30;
    double spacer = 50;
@@ -92,7 +92,8 @@ double kappa_spacer(double tau2, double tau1)
 
 double kappa_lim(double tau)
 {
-//   return 0;
+   return 0;
+
    double diff_max = 30;
    double tau_min = 50;
 
@@ -101,19 +102,6 @@ double kappa_lim(double tau)
    diff = diff > diff_max ? diff_max : diff;
    double kappa = exp(diff);
    return kappa;
-}
-
-double d_kappa_d_tau(double tau2, double tau1)
-{
-   return 0;
-
-   double kappa_diff_max = 30;
-   double kappa_fact = 2;
-
-   double diff = (tau2 - (tau1 + 200)) * kappa_fact;
-   diff = diff > kappa_diff_max ? kappa_diff_max : diff;
-   double d = kappa_fact * exp(diff); 
-   return d;
 }
 
 void updatestatus_(int* gc_int, int* thread, int* iter, float* chi2, int* terminate)

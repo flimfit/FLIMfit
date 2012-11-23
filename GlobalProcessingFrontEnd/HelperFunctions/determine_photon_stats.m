@@ -25,6 +25,10 @@ function [counts_per_photon offset] = determine_photon_stats(data,fit_offset,dis
     % Calculate intensity
     I = squeeze(sum(data,1));
     
+    mi = mean(data-200,1);
+    si = std(data-200,1);
+    
+    
     % Number of repeats for each different intensity 
     n = length(I);
     

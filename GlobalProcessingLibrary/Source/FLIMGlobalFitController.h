@@ -7,6 +7,8 @@
 #  pragma warning(disable: 4610) // can never be instantiated - user defined constructor required.
 #endif
 
+//#include "vld.h"
+
 #include <boost/interprocess/file_mapping.hpp>
 
 #include "FitStatus.h"
@@ -27,7 +29,6 @@ typedef double* DoublePtr;
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 #define _CRTDBG_MAPALLOC
-
 
 class ErrMinParams;
 
@@ -56,6 +57,10 @@ public:
 };
 
 class FLIMGlobalFitController;
+
+typedef void (* conv_func)(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
+typedef void (* conv_deriv_func)(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
+
 
 class FLIMGlobalFitController : public FitModel
 {
@@ -169,7 +174,11 @@ public:
    int  GetErrorCode();
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[]);
-   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params_mean[], float params_std[], float params_01[], float params_99[]);
+   //int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params_mean[], float params_std[], float params_01[], float params_99[]);
+   
+   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], 
+                     float params_mean[], float params_std[], float params_median[], float params_q1[], float params_q2[], float params_01[], float params_99[]);
+
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
 
@@ -305,7 +314,7 @@ void FLIMGlobalFitController::add_irf(int thread, int irf_idx, T a[], int pol_gr
          ii = (int) floor((t[i]-t_irf[0])/t_g);
 
          if (ii>=0 && ii<n_irf)
-            a[idx] += (T) (irf_buf[k*n_t+ii] * chan_fact[pol_group*n_chan+k] * scale);
+            a[idx] += (T) (irf_buf[k*n_irf+ii] * chan_fact[pol_group*n_chan+k] * scale);
          idx += resample_idx[i];
       }
       idx++;

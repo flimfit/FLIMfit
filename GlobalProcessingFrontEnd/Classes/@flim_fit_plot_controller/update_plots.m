@@ -46,7 +46,7 @@ function update_plots(obj,file_root)
     for cur_im = ims
 
         if save
-            name_root = [root ' ' d.names{cur_im}];
+            name_root = [root ' ' r.names{cur_im}];
         end
 
         subplot_idx = 1;
@@ -68,8 +68,8 @@ function update_plots(obj,file_root)
                     
                     subplot_idx = subplot_idx + 1;
                     if save
-                        savefig([name_root ' ' char(f.plot_names(plot_idx))],ext)
-                        SaveFPTiff(im_data,[name_root ' ' char(f.plot_names(plot_idx)) ' raw.tiff'])
+                        savefig([name_root ' ' r.params{plot_idx}],ext)
+                        SaveFPTiff(im_data,[name_root ' ' r.params{plot_idx} ' raw.tiff'])
                     end
                 end
 
@@ -86,7 +86,7 @@ function update_plots(obj,file_root)
                   
                     subplot_idx = subplot_idx + 1;
                     if save
-                        savefig([name_root ' ' char(f.plot_names(plot_idx)) ' merge'],ext)
+                        savefig([name_root ' ' r.params{plot_idx} ' merge'],ext)
                     end
                 end
                 

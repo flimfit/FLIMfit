@@ -15,11 +15,12 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int ierr_local = 0;
 
+   _ASSERTE( _CrtCheckMemory( ) );
+
    int r_idx = data->GetRegionIndex(g,region);
-   int region_size = data->GetRegionCount(g,region);
 
    float  *local_decay   = this->local_decay + thread * n_meas;
-   float  *w             = this->w + thread * n;
+   float  *w             = this->w + thread * n_meas;
 
    double *alf_local     = this->alf_local + thread * nl;
    float  *lin_local     = this->lin_local + thread * l;
@@ -41,7 +42,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + px;
       alf     = this->alf + start * nl; 
 
-      s_thresh = data->GetRegionData(thread, g, region, px, adjust_buf, y, NULL, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, px, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, NULL, w, irf_idx, local_decay);
       data->DetermineAutoSampling(thread, local_decay, nl+1);
    }
    else
@@ -50,7 +51,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + thread * s;
       alf     = this->alf     + nl * r_idx;
    
-      s_thresh = data->GetRegionData(thread, g, region, 0, adjust_buf, y, I, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, 0, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, I, w, irf_idx, local_decay);
    }
 
 
@@ -138,13 +139,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    }
 
    itmax = 100;
-   
-   if ((global_algorithm == MODE_GLOBAL_BINNING) && (s_thresh > 1)) // use global binning
-   {
-      s_thresh = 1;
-      y = local_decay;
-      irf_idx[0] = 0;
-   }
+
+
 
    if (data->global_mode == MODE_PIXELWISE)
    {
@@ -153,7 +149,12 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    projectors[thread].Fit(s_thresh, n_meas_res, lmax, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
                           data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
-
+   
+   //if (global_algorithm == MODE_GLOBAL_BINNING)
+   //{
+   //   projectors.GetLinearParams(s_thresh, y, alf_local, lin_params)
+   //}
+   
    if (calculate_errs)
       projectors[thread].CalculateErrors(alf_local,conf_lim);
 
@@ -179,8 +180,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       ierr[r_idx] = ierr_local;
       success[r_idx] = (float) min(0, ierr_local);
    }
-
+  
    status->FinishedRegion(thread);
+
+   _ASSERTE( _CrtCheckMemory( ) );
 
    return 0;
 }
@@ -224,7 +227,7 @@ void FLIMGlobalFitController::CalculateMeanLifetime(int s, float lin_params[], f
 
 void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[])
 {
-   float I0;
+   float I0, r0;
 
    int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
    lin_params += lin_idx;
@@ -235,11 +238,16 @@ void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_pa
       for(int i=0; i<s; i++)
       {
          I0 = lin_params[0];
+         r0 = 0;
 
-         for(int j=1; j<n_r+1; j++)
-            norm_params[j-1] = lin_params[j] / I0;
+         for(int j=0; j<n_r; j++)
+         {
+            norm_params[j] = lin_params[j+1] / I0;
+            r0 += norm_params[j];
+         }
 
-         norm_params[n_r] = I0;
+         norm_params[n_r]   = r0;
+         norm_params[n_r+1] = I0;
 
          norm_params += lmax;
          lin_params += lmax;
@@ -284,7 +292,7 @@ void FLIMGlobalFitController::DenormaliseLinearParams(int s, volatile float norm
    {
       for(int i=0; i<s; i++)
       {
-         I0 = norm_params[n_r];
+         I0 = norm_params[n_r+1];
 
          for(int j=1; j<n_r+1; j++)
             lin_params[j] = norm_params[j-1] * I0;

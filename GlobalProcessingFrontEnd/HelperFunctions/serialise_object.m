@@ -19,7 +19,7 @@ function serialise_object(obj,file,name)
     end
 
     
-    %try
+    try
         % Create a sample XML document.
         docNode = com.mathworks.xml.XMLUtils.createDocument(name);
         docRootNode = docNode.getDocumentElement;
@@ -41,7 +41,7 @@ function serialise_object(obj,file,name)
         end
     
         xmlwrite(file,docNode);
-    %catch e
-    %    warning('GlobalAnalysis:CouldNotWriteFile','Could not write serialised file');
-    %end
+    catch e
+        warning('GlobalAnalysis:CouldNotWriteFile','Could not write serialised file');
+    end
 end

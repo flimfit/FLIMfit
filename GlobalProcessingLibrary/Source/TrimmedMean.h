@@ -69,12 +69,12 @@ float Weighted(T x, T t1, T t2, T w1, T w2)
 }
 
 template <typename T>
-void TrimmedMean(T x[], int n, int K, T& mean, T& std, T& pct_lower, T& pct_upper)
+void TrimmedMean(T x[], int n, int K, T& mean, T& std, T& median, T& q1, T& q2, T& pct_lower, T& pct_upper)
 {
    T w1, w2, OS1, OS2, wt;
    
-   T mean_sq = 0;
-   mean = 0;
+   double mean_sq = 0;
+   double mean_acc = 0;
    std = 0;
 
    if (n == 0)
@@ -87,8 +87,12 @@ void TrimmedMean(T x[], int n, int K, T& mean, T& std, T& pct_lower, T& pct_uppe
    }
 
    OS1=quickselect(x, n, K);
+   q1 = quickselect(x, n, (unsigned long)(0.25*n));
+   median=quickselect(x, n, (unsigned long)(0.5*n));
+   q2 = quickselect(x, n, (unsigned long)(0.75*n));
    OS2=quickselect(x, n, n-K-1);
 
+   
    // compute weights
    T a, b=0, c, d=0, dm=0, bm=0, r;
 
@@ -109,22 +113,30 @@ void TrimmedMean(T x[], int n, int K, T& mean, T& std, T& pct_lower, T& pct_uppe
    if (OS1==OS2)
    {
       mean = x[0];
+      median = x[0];
+      q1 = x[0];
+      q2 = x[0];
       std = 0;
    }
    else
    {
+      int zc = 0;
       for(int i=0; i<n; i++)
       {
          wt = Weighted(x[i], OS1, OS2, w1, w2);
-         mean += wt;
+         mean_acc += wt;
          mean_sq += wt * wt;
+         if (wt == 0)
+            zc++;
       } 
 
-      mean /= (n-2*K);
+      mean_acc /= (n-2*K);
       mean_sq /= (n-2*K);
 
-      std = mean_sq - (mean * mean); 
+      std = (T) (mean_sq - (mean_acc * mean_acc)); 
       std = sqrt(std);
+
+      mean = (T) mean_acc;
 
    }
 

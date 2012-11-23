@@ -32,14 +32,7 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
    set( LIB_NAME "FLIMGlobalAnalysis_32" ) 
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
-# Make sure we output directly into binary folder
-#===================================================
-set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 
-#set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY ${OUT_DIR})
-#set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-#set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-#set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )

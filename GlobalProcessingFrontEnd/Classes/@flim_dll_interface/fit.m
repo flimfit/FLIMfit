@@ -142,7 +142,8 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     obj.p_global_beta_group = libpointer('int32Ptr',p.global_beta_group);
     
     obj.p_tvb_profile = libpointer('doublePtr',d.tr_tvb_profile);
-
+    obj.p_tvb_profile_single = libpointer('singlePtr',d.tr_tvb_profile);
+    
     if ~d.use_memory_mapping
         obj.p_data = libpointer('singlePtr', d.data_series_mem);
     end

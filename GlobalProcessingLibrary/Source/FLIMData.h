@@ -14,7 +14,6 @@
 #endif
 
 
-
 #define MAX_REGION 255
 
 using namespace boost;
@@ -34,19 +33,15 @@ public:
    template <typename T>
    int CalculateRegions();
 
-   int GetRegionData(int thread, int group, int region, int px, float* adjust, float* region_data, float* intensity_data, float* weight, int* irf_idx, float* local_decay);
    void DetermineAutoSampling(int thread, float decay[], int n_min_bin);
-
-//   int GetPixelData(int thread, int im, int p, int n_min_bin, float* adjust, float* masked_data, float* local_decay);
-
-//   int GetMaxRegion(int group);
-//   int GetMinRegion(int group);
 
    int GetRegionIndex(int im, int region);
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
-   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, int* irf_idx);
+   int GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* weight, int* irf_idx, float* local_decay);
+   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, int* irf_idx, int bin_px);
+
    
    int GetImLoc(int im);
 
@@ -58,6 +53,7 @@ public:
 
    void SetBackground(float* background_image);
    void SetBackground(float background);
+   void SetTVBackground(float* tvb_profile, float* tvb_I_map, float const_background);
 
    void ClearMapping();
 
@@ -106,7 +102,6 @@ public:
 
 private:
 
-
    template <typename T>
    T* GetDataPointer(int thread, int im);
 
@@ -130,9 +125,6 @@ private:
 
    char *data_file; 
 
-   //int *min_region;
-   //int *max_region;
-
    int data_mode;
    
    int has_data;
@@ -141,6 +133,9 @@ private:
    int background_type;
    float background_value;
    float* background_image;
+
+   float* tvb_profile;
+   float* tvb_I_map;
 
    int n_thread;
 
@@ -163,10 +158,6 @@ private:
    bool use_ext_resample_idx;
    int* ext_resample_idx;
    int ext_n_meas_res;
-
-
-
-   float* mean_image;
 
 
 };
@@ -228,6 +219,13 @@ int FLIMData::CalculateRegions()
    omp_set_num_threads(n_thread);
 
    T* cur_data = new T[ n_p * n_thread ];
+
+   double tvb_sum = 0;
+   if (background_type == BG_TV_IMAGE)
+      for(int i=0; i<n_meas; i++)
+         tvb_sum += tvb_profile[i];
+   else
+      tvb_sum = 0;
    
    //#pragma omp parallel for
    for(int i=0; i<n_im_used; i++)
@@ -267,7 +265,6 @@ int FLIMData::CalculateRegions()
                   if (limit > 0 && *ptr >= limit)
                   {
                      *mask_ptr = 0;
-                     break;
                   }
                   intensity += *ptr;
                   ptr++;
@@ -275,8 +272,10 @@ int FLIMData::CalculateRegions()
             }
             if (background_type == BG_VALUE)
                intensity -= background_value * n_meas_full;
-            if (background_type == BG_IMAGE)
+            else if (background_type == BG_IMAGE)
                intensity -= background_image[p] * n_meas_full;
+            else if (background_type == BG_TV_IMAGE)
+               intensity -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full);
 
             if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
                *mask_ptr = 0;
@@ -299,12 +298,18 @@ int FLIMData::CalculateRegions()
       uint8_t* mask_ptr         = mask + im*n_px;
 
       memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
+      
+      for(int j=0; j<MAX_REGION; j++)
+         region_idx[ i * MAX_REGION + j ] = -1;
+
 
       for(int p=0; p<n_px; p++)
          region_count_ptr[*(mask_ptr++)]++;
    }
 
-
+   for(int j=0; j<MAX_REGION; j++)
+      region_idx[ n_im_used * MAX_REGION + j ] = -1;
+   
    if (global_mode == MODE_PIXELWISE || global_mode == MODE_IMAGEWISE)
    {
       r_idx = 0;
@@ -312,12 +317,12 @@ int FLIMData::CalculateRegions()
 
       for(int i=0; i<n_im_used; i++)
       {
-         for(int j=1; j<MAX_REGION; j++)
+         for(int r=1; r<MAX_REGION; r++)
          {
-            region_pos[ i* MAX_REGION + j ] = cur_pos;
-            cur_pos += region_count[ i* MAX_REGION + j ];
-            if (region_count[ i* MAX_REGION + j ] > 0)
-               region_idx[ i* MAX_REGION + j ] = r_idx++;
+            region_pos[ i* MAX_REGION + r ] = cur_pos;
+            cur_pos += region_count[ i * MAX_REGION + r ];
+            if (region_count[ i * MAX_REGION + r ] > 0)
+               region_idx[ i * MAX_REGION + r ] = r_idx++;
          }
       }
    }
@@ -334,12 +339,14 @@ int FLIMData::CalculateRegions()
             region_pos[ j + i* MAX_REGION ] = cur_pos;
             cur_pos += region_count[ j + i * MAX_REGION ];
             r_count += region_count[ j + i * MAX_REGION ];
+
+            if (region_count[ j + i * MAX_REGION ] > 0)
+               region_idx[ j + (i+1) * MAX_REGION ] = r_idx;
          }
 
          if (r_count > 0)
          {
-            for(int i=0; i<n_im_used; i++)
-               region_idx[ j + i * MAX_REGION ] = r_idx;
+            region_idx[ j ] = r_idx;
             r_idx++;
          }
 
@@ -368,14 +375,12 @@ void FLIMData::TransformImage(int thread, int im)
    float* tr_buf     = this->tr_buf  + thread * n_p;
    float* intensity  = this->intensity + thread * n_px;
    float* tr_row_buf = this->tr_row_buf + thread * (n_x + n_y);
-   float* mean_image = this->mean_image + thread * n_meas;
 
    T* data_ptr = GetDataPointer<T>(thread, im);
    memcpy(tr_buf, data_ptr, n_p * sizeof(T));
 
    T* cur_data_ptr = (T*) tr_buf;
       
-
    float photons_per_count = (float) (1/counts_per_photon);
    
    if ( smoothing_factor == 0 )
@@ -478,21 +483,33 @@ void FLIMData::TransformImage(int thread, int im)
          }
    }
    
+   float tvb_sum = 0;
+   if (background_type == BG_TV_IMAGE)
+      for(int i=0; i<n_meas; i++)
+         tvb_sum += tvb_profile[i];
+   else
+      tvb_sum = 0;
+
 
    // Calculate intensity
    float* intensity_ptr = intensity;
    cur_data_ptr = (T*) tr_buf;
-   for(int y=0; y<n_y; y++)
-      for(int x=0; x<n_x; x++)
-      {
-         *intensity_ptr = 0;
-         for(int i=0; i<n_t_full; i++)
-         {
-            *intensity_ptr += cur_data_ptr[i];
-         }
-         cur_data_ptr += n_t_full;
-         intensity_ptr++;
-      }
+   for(int p=0; p<n_px; p++)
+   {
+      *intensity_ptr = 0;
+      for(int i=0; i<n_meas_full; i++)
+         *intensity_ptr += cur_data_ptr[i];
+      cur_data_ptr += n_meas_full;
+
+      if (background_type == BG_VALUE)
+         *intensity_ptr -= background_value * n_meas_full;
+      else if (background_type == BG_IMAGE)
+         *intensity_ptr -= background_image[p] * n_meas_full;
+      else if (background_type == BG_TV_IMAGE)
+         *intensity_ptr -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full) ;
+
+      intensity_ptr++;
+   }
 
 
 
@@ -509,25 +526,42 @@ void FLIMData::TransformImage(int thread, int im)
    }
    else if (background_type == BG_IMAGE)
    {
-      int n_px = n_x * n_y;
-      //#pragma omp parallel for
+      int idx = 0;
       for(int p=0; p<n_px; p++)
          for(int i=0; i<n_meas; i++)
          {
-            tr_data[p*n_meas+i] -= background_image[p];
-            tr_data[p*n_meas+i] *= photons_per_count;
+            tr_data[idx] -= background_image[p];
+            tr_data[idx] *= photons_per_count;
+            idx++;
          }
    } 
+   else if (background_type == BG_TV_IMAGE)
+   {
+      int idx = 0;
+      for(int p=0; p<n_px; p++)
+         for(int i=0; i<n_meas; i++)
+         {
+            tr_data[idx] -= (tvb_profile[i] * tvb_I_map[p] + background_value);
+            tr_data[idx] *= photons_per_count;
+            idx++;
+         }
+   }
    else
    {
       int n_tot = n_x * n_y * n_chan * n_t;
       for(int i=0; i<n_tot; i++)
-      {
          tr_data[i] *= photons_per_count;
-      }
    }
+   
 
-
+   // Set negative values to zero
+   int n_tot = n_x * n_y * n_chan * n_t;
+   for(int i=0; i<n_tot; i++)
+   {
+      if (tr_data[i] < 0)
+         tr_data[i] = 0;
+   }
+   
    cur_transformed[thread] = im;
 
 }

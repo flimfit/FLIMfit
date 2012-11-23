@@ -124,37 +124,40 @@ function [n_chan, chan_info] = get_channels(file)
 
              fid = fopen(file);
 
-             header_lines = 0;
+             header_data = cell(0,0);
              textl = fgetl(fid);
              while ~isempty(textl)
                  first = sscanf(textl,'%f\t');
                  if isempty(first) % if it's not a number skip line
-                     %header_title{end+1} = sscanf(textl,'%s');
-                     header_lines = header_lines + 1;
+                     header_data{end+1} =  textl;
                      textl = fgetl(fid);
                  else 
                      textl = [];
                  end                 
              end
-
-
-             ir = dlmread(file,'\t',header_lines,0);
-             n_col = size(ir,2);
-
-             if n_col == 1
-                 n_chan = 1;
-                 chan_info = {'txt data'};
-             else
-                 n_chan = n_col - 1;
-                 header_rows = isnan(ir(:,1));
-                 header = ir(header_rows,2:end);
-                 chan_info = cell(n_chan,1);
-
-                 for i=1:n_chan;
-                     chan_info{i} = mat2str(header(:,i)');
-                 end
-
+             
+             n_header_lines = length(header_data);
+             
+             header_title = cell(1,n_header_lines);
+             header_info = cell(1,n_header_lines);
+             
+             for i=1:n_header_lines
+                 parts = regexp(header_data{i},'\s+','split');
+                 header_title{i} = parts{1};
+                 header_info{i} = parts(2:end);
+                 n_chan = length(header_data)-1;
              end
+
+             chan_info = cell(1,n_chan);
+             
+             for i=1:n_chan
+                 for j=1:n_header_lines
+                     chan_info{i} = [chan_info{i} header_info{j}{i} ', '];
+                 end
+                 chan_info{i} = chan_info{i}(1:(end-2));
+             end
+
+
 
         case '.irf'        % Yet another F%^^ing format (for Labview this time)
             n_chan = 1;

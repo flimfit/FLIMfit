@@ -24,6 +24,8 @@ classdef front_end_menu_controller < handle
         menu_file_load_single_pol;
         menu_file_load_tcspc_pol;
         
+        menu_file_load_acceptor;
+        
         menu_file_reload_data;
         
         menu_file_save_dataset;
@@ -78,6 +80,7 @@ classdef front_end_menu_controller < handle
         menu_tools_photon_stats;
         menu_tools_estimate_irf;
         menu_tools_create_irf_shift_map;
+        menu_tools_create_tvb_intensity_map;
         
         menu_view_data
         menu_view_plots;
@@ -349,6 +352,16 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        function menu_file_load_acceptor_callback(obj,~,~)
+            folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
+            if folder ~= 0
+                obj.data_series_controller.data_series.load_acceptor_images(folder);
+                if strcmp(obj.default_path,'C:\')
+                    obj.default_path = path;
+                end
+            end
+        end
+        
         function menu_file_reload_data_callback(obj,~,~)
             obj.data_series_controller.data_series.reload_data;
         end
@@ -518,6 +531,12 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        function menu_background_tvb_I_map_load_callback(obj,~,~)
+            [file,path] = uigetfile('*.xml','Select a TVB intensity map file',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.load_background([path file]);    
+            end
+        end
         function menu_background_tvb_use_selected_callback(obj,~,~)
            obj.data_masking_controller.tvb_define_callback();    
         end
@@ -596,33 +615,68 @@ classdef front_end_menu_controller < handle
             
         end
         
+        function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
+           
+            mask=obj.data_masking_controller.roi_controller.roi_mask;
+            irf_data = obj.data_series_controller.data_series.generate_tvb_I_map(mask,1);
+            
+            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            if filename ~= 0
+
+                serialise_object(irf_data,[pathname filename],'flim_data_series');
+            end
+            
+        end
+        
         function menu_test_test2_callback(obj,~,~)
             
-            flim_data_selector(obj.data_series_controller);
-            
-            %{
-            mask=obj.data_masking_controller.roi_controller.roi_mask;
-            
-            d = obj.data_series_controller.data_series; 
-                        
-            f = d.get_roi(mask,1);
-            f = sum(f,3);
-            f = double(f);
-            
-            tau = d.ref_lifetime;
-            
-            df = gradient(f);
-            g = f + tau * df;
+            d = obj.data_series_controller.data_series;
 
-            figure
+            tr_acceptor = zeros(size(d.acceptor));
+
+            [optimizer, metric] = imregconfig('multimodal'); 
+            optimizer.MaximumIterations = 40;
+            h = waitbar(0,'Aligning...');
+
+            for i=1:d.n_datasets
             
-            plot(g)
-            %}
+                a = d.acceptor(:,:,i);
+                intensity = d.integrated_intensity(i);
+                try
+                    [tr,t] = imregister2(a,intensity,'rigid',optimizer,metric);
+                    dx = t.tdata.T(3,1:2);
+                    dx = norm(dx);
+                    disp(dx);
+                    
+                    if dx>200
+                        tr = a;
+                    end
+
+                catch
+                    tr = a;
+                end
+                
+                tr_acceptor(:,:,i) = tr;
+                
+                %figure(13);
+                %imagesc(tr_acceptor(:,:,i)); pause(1); imagesc(intensity);
+                
+                waitbar(i/d.n_datasets,h);
+            end
             
+            global acceptor;
+            acceptor = tr_acceptor;
+            %save('C:\Users\scw09\Documents\00 Local FLIM Data\2012-10-17 Rac COS Plate\acceptor_images.mat','acceptor');
+            close(h);            
             
         end
         
         function menu_test_test3_callback(obj,~,~)
+            file = 'c:\users\scw09\documents\data_serialization.h5';
+            
+            obj.data_series_controller.data_series.serialize(file);
+            
+            %{
             global fg fh;
             r = obj.fit_controller.fit_result;
             
@@ -637,6 +691,7 @@ classdef front_end_menu_controller < handle
             hold on;
             fh(end+1) = plot(s,color{length(fh)+1});
             ylim([0 500]);
+            %}
         end
         
         function menu_test_unload_dll_callback(obj,~,~)

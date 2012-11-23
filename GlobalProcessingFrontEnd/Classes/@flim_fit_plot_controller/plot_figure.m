@@ -1,7 +1,7 @@
 function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
 
     f = obj.fit_controller;
-
+    r = f.fit_result;
     if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
         return
     end
@@ -9,9 +9,11 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
     im_data = f.get_image(dataset,im);
     invert = f.invert_colormap;
     
-    if strcmp(im,'I0') || strcmp(im,'I')
+    param = r.params{im};
+    
+    if strcmp(param,'I0') || strcmp(param,'I')
         cscale = @gray;
-    elseif invert && (~isempty(strfind(im,'tau')) || ~isempty(strfind(im,'theta')))
+    elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
         cscale = @inv_jet;
     else
         cscale = @jet;

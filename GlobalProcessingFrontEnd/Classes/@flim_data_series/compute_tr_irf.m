@@ -131,8 +131,9 @@ function compute_tr_irf(obj)
             %dt = obj.tr_t_irf(2)-obj.tr_t_irf(1);
             %t2 = (0:(2*s-1))*dt + min(obj.tr_t_irf);
             %t2 = t2';
-            t2 = obj.tr_t_irf(:);
-            decay = exp(-(t2/obj.ref_lifetime));
+            T = 1e6/obj.rep_rate;
+            t2 = obj.tr_t_irf(:) - min(obj.tr_t_irf);
+            decay = exp(-(t2/obj.ref_lifetime))*(1+1/(exp(T/obj.ref_lifetime)-1));
             decay = decay(decay>1e-8);
             decay = [zeros(size(decay)); decay];
             

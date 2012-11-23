@@ -17,18 +17,21 @@ public:
 
    int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
 
+   int GetLinearParams(int s, float* y, double* alf); 
+
 private:
 
    void Cleanup();
 
-   int varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);   
+   int varproj(int nsls1, int nls, int mskip, const double *alf, double *rnorm, double *fjrow, int iflag);   
    
    void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
 
    void CalculateWeights(int px, const double* alf, int thread);
 
    void get_linear_params(int idx, double* a, double* u, double* x = 0);
-   int bacsub(int idx, double* a, double* x);
+   int bacsub(int idx, double* a, volatile double* x);
+   int bacsub(volatile double *r, double *a, volatile double *x);
 
    double d_sign(double *a, double *b);
 
@@ -42,7 +45,9 @@ private:
    double *qtf;
    double *wa1, *wa2, *wa3, *wa4;
    int    *ipvt;
-
+   
+   double* r_buf;
+ 
    int n_call;
 
    int weighting;
@@ -51,7 +56,7 @@ private:
    int use_numerical_derv;
 
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
-   friend int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag);
+   friend int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag);
 };
 
 

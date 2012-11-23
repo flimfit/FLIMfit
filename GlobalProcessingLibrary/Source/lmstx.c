@@ -10,7 +10,7 @@
 #define TRUE_ (1)
 #define FALSE_ (0)
 
-/* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, double *x, 
+/* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int mskip, double *x, 
 	double *fjac, int ldfjac, double ftol,
 	double xtol, double gtol, int maxfev, double *
 	diag, int mode, double factor, int nprint,
@@ -29,7 +29,7 @@
     double d1, d2;
 
     /* Local variables */
-    int i, j, l;
+    int i, j, l, m_max;
     double par, sum;
     int sing;
     int iter;
@@ -231,7 +231,7 @@
 /*     evaluate the function at the starting point */
 /*     and calculate its norm. */
 
-    iflag = (*fcn)(p, m, n, x, fnorm, wa3, 0);
+    iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
     *nfev = 1;
     if (iflag < 0) {
 	goto TERMINATE;
@@ -265,7 +265,7 @@
         if (nprint > 0) {
             iflag = 0;
             if ((iter - 1) % nprint == 0) {
-                iflag = (*fcn)(p, m, n, x, fnorm, wa3, 0);
+                iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
             }
             if (iflag < 0) {
                 goto TERMINATE;
@@ -284,8 +284,11 @@
             }
         }
         iflag = 2;
-        for (i = 0; i < m+1; ++i) {
-            if ((*fcn)(p, m, n, x, &temp, wa3, iflag) < 0) {
+
+        m_max = floor(((float)m)/mskip);
+        for (i = 0; i < m_max+1; ++i) {
+        //for (i = 0; i < m+1; ++i) {
+            if ((*fcn)(p, m, n, mskip, x, &temp, wa3, iflag) < 0) {
                 goto TERMINATE;
             }
             rwupdt(n, fjac, ldfjac, wa3, qtf, &temp,
@@ -412,7 +415,7 @@
 
 /*           evaluate the function at x + p and calculate its norm. */
 
-            iflag = (*fcn)(p, m, n, wa2, &fnorm1, wa3, 1);
+            iflag = (*fcn)(p, m, n, mskip, wa2, &fnorm1, wa3, 1);
             ++(*nfev);
             if (iflag < 0) {
                 goto TERMINATE;
@@ -536,7 +539,7 @@ TERMINATE:
 	info = iflag;
     }
     if (nprint > 0) {
-	(*fcn)(p, m, n, x, fnorm, wa3, 0);
+	(*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
     }
     return info;
 

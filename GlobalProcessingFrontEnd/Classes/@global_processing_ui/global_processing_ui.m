@@ -102,14 +102,14 @@ classdef global_processing_ui
             handles = guidata(obj.window); 
                                                 
             handles.external = external;
-                                                           
+            handles.version = v;
+            handles.window = obj.window;
+            
             handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
             handles.data_series_controller = flim_data_series_controller(handles);                        
             
-            handles.version = v;
-            handles.window = obj.window;
             handles.use_popup = true;
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);

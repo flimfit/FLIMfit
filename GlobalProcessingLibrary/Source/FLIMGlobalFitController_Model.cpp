@@ -394,7 +394,7 @@ int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double be
       // d(fret)/d(tau)
       for(int i=0; i<n_fret; i++)
       {
-         int g = i; //+ tau_start;
+         int g = i + inc_donor;
          double fret_tau = tau[j + n_exp * (i+1)];
          
          memset(b+idx, 0, n_meas_res*sizeof(*b));
@@ -495,10 +495,10 @@ int FLIMGlobalFitController::E_derivatives(int thread, double tau[], double beta
 
    for(int i=0; i<n_fret_v; i++)
    {
-      int g = i + n_fret_fix; //+ tau_start;
+      int g = i + n_fret_fix + inc_donor;
 
       memset(b+idx, 0, n_meas_res*sizeof(*b));
-      double* fret_tau = tau + n_exp * (i+ n_fret_fix+1);
+      double* fret_tau = tau + n_exp * (g+tau_start);
       
       for(int j=0; j<n_exp; j++)
       {

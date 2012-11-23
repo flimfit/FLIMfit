@@ -1,4 +1,4 @@
-classdef flim_fitting_params < handle
+classdef flim_fitting_params < handle & h5_serializer
    
     properties(SetObservable)
         n_exp = 1;
@@ -63,6 +63,12 @@ classdef flim_fitting_params < handle
     end
    
     methods
+        
+        function post_serialize(obj)
+        end
+        
+        function post_deserialize(obj)
+        end
         
         function obj = flim_fitting_params()
             import java.lang.*;

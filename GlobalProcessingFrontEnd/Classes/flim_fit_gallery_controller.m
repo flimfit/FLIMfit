@@ -53,18 +53,11 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             f = obj.fit_controller;
             r = f.fit_result;
             sel = obj.fit_controller.selected;
-            
-            %{
-            sort_param = cell2mat(r.metadata.Column);
-            sort_param = sort_param(sel);
-            [~,idx] = sort(sort_param);
-            sel = sel(idx);
-            %}
-            
+
             if save
                 pa = fig;%get(f,'Parent');
-                pos = get(pa,'Position');
-                pos = [0,0,800,600];
+                pos = get(obj.plot_handle,'Position');
+                %pos = [0,0,800,600];
                 set(pa,'Position',pos);
             end
             
@@ -88,6 +81,25 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
 
             unit = get(obj.gallery_unit_edit,'String');
             cols = str2double(get(obj.gallery_cols_edit,'String'));
+            
+            %{
+            sort_param = cell2mat(r.metadata.Column(sel));
+            entries = unique(sort_param);
+            
+            new_sel = [];
+            for i=1:length(entries)
+                cols_eq = sort_param == entries(i);
+                idx = find(cols_eq,cols,'first');
+                new_sel = [new_sel sel(idx)];
+            end
+
+            sort_param = cell2mat(r.metadata.Column(new_sel));
+            [~,idx] = sort(sort_param);
+            sel = new_sel(idx);
+            %}
+            
+            
+
 
             n_im = length(sel);
             
@@ -167,7 +179,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     
                     im_data = obj.fit_controller.get_image(sel(i),param);
                     if merge
-                        I_data = f.get_intensity_image(sel(i));
+                        I_data = f.get_intensity(sel(i));
                         gallery_I_data(ci:ci+r.height-1,ri:ri+r.width-1) = I_data;
                     
                     end

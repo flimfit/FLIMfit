@@ -8,7 +8,16 @@ function update_display(obj)
         
         cim = obj.data_series_controller.selected_intensity(selected,false);
         
+        d = obj.data_series_controller.data_series;
+                
+        if ~isempty(d.acceptor)
+            aim = d.acceptor(:,:,selected);
+        else
+            aim = [];
+        end
+        
         cim(cim<0) = 0;
+        aim(aim<0) = 0;
         
         if trim_outliers
             lims = quantile(cim(:),[0.01 0.99]);
@@ -22,31 +31,69 @@ function update_display(obj)
         cim(cim < 0) = 0;
         cim(cim > 1) = 1;
         cim = cim * m;
+        
+        if obj.filtered_mask == 1
+            mask_filtered = zeros(size(cim));
+            mask = zeros(size(cim));
+            bmask = zeros(size(cim));
+        else
+            mask_filtered = double(obj.filtered_mask(:,:,selected));
+            mask = double(obj.mask(:,:,selected));
+    
+            bmask = bwperim(mask);
+        end
+            
+            
+        alpha = 0.5*ones(size(mask_filtered));
+        alpha(mask_filtered == 0) = 0;
+        
+        if ~isempty(aim)
+            if trim_outliers
+                lims = quantile(aim(:),[0.01 0.99]);
+                mn = lims(1); mx = lims(2);
+            else
+                mn = min(aim(:));
+                mx = max(aim(:));
+            end
 
-        mask = double(obj.mask(:,:,selected));
-        cmask = (1 + mask/max(mask(:))) * m;
+            aim = (aim-mn) / (mx-mn);
+            aim(aim < 0) = 0;
+            aim(aim > 1) = 1;
+            aim = aim * m;
 
-        alpha = 0.5*ones(size(mask));
-        alpha(mask == 0) = 0;
+            cim = [cim; aim];
+            cmask = [mask_filtered; mask_filtered];
+            
+            bmask = [bmask; bmask];
+            alpha = [alpha; alpha];
+            
+        else
+            cmask = mask_filtered;
+        end
+                        
+        cmask = (1 + cmask/max(cmask(:))) * m + 1;
 
-        colormap(obj.segmentation_axes,[gray(m);jet(m)]);
+
+        colormap(obj.segmentation_axes,[gray(m);[1 0 0];jet(m)]);
 
         obj.segmentation_im = image(cim,'Parent',obj.segmentation_axes);
         hold(obj.segmentation_axes,'on');
+        
+        image(ones(size(bmask))*(m+1),'Parent',obj.segmentation_axes,'AlphaData',bmask);
         obj.mask_im = image(cmask,'Parent',obj.segmentation_axes, 'AlphaData',alpha);
         hold(obj.segmentation_axes,'off');
         
         set(obj.segmentation_axes,'XTick',[],'YTick',[]);
         daspect(obj.segmentation_axes,[1 1 1]);
     
-        obj.n_regions = max(mask(:));
+        obj.n_regions = max(mask_filtered(:));
         
         % find centroids for labels
         stats = regionprops(mask,'Centroid');
         
-        for i=1:length(stats);
+        for i=1:length(stats)
             c = stats(i).Centroid;
-            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes);
+            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color','k');
         end
 
         
@@ -56,7 +103,7 @@ function update_display(obj)
         table = {};
         for i=1:obj.n_regions
 
-            m = obj.mask(:,:,obj.data_series_list.selected) == i;
+            m = obj.filtered_mask(:,:,obj.data_series_list.selected) == i;
             size_region = sum(m(:));
             row = {i size_region false};
             table = [table; row];

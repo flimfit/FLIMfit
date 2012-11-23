@@ -4,11 +4,19 @@ classdef flim_fit_result < handle
         
         regions;
         region_size;
+        
         image_size;
         image_mean;
         image_std;
+        image_median;
+        image_q1;
+        image_q2;
+        
         region_mean;
         region_std;
+        region_median;
+        region_q1;
+        region_q2;
         
         images;
         image_stats;
@@ -31,6 +39,7 @@ classdef flim_fit_result < handle
         smoothing = 1;
         
         params = {};
+        latex_params = {};
         
         default_lims = []; 
         
@@ -65,9 +74,18 @@ classdef flim_fit_result < handle
             obj.params = params;
             obj.intensity_idx = find(strcmp(params,'I'));            
             obj.default_lims = NaN(length(params),2);
+            
+            for i=1:length(params)
+                lp = params{i};
+                lp = strrep(lp,'mean_tau','mean tau');
+                lp = strrep(lp,'w_mean','weighted mean');
+
+                obj.latex_params{i} = lp;
+            end
+                           
         end
             
-        function set_results(obj,idx,regions,region_size,success,iterations,param_mean,param_std,param_01,param_99)
+        function set_results(obj,idx,regions,region_size,success,iterations,param_mean,param_std,param_median,param_q1,param_q2,param_01,param_99)
             
             [M,S,N] = combine_stats(double(param_mean),double(param_std),double(region_size));
             
@@ -75,16 +93,23 @@ classdef flim_fit_result < handle
             obj.image_size{idx} = N; 
             obj.image_std{idx} = S;
             
+            obj.image_median{idx} = nanmean(param_median,2);
+            obj.image_q1{idx} = nanmean(param_q1,2);
+            obj.image_q2{idx} = nanmean(param_q2,2);
+            
             obj.regions{idx} = regions;
             obj.region_size{idx} = region_size;
             obj.region_mean{idx} = param_mean;
             obj.region_std{idx} = param_std;
+            obj.region_median{idx} = param_median;
+            obj.region_q1{idx} = param_q1;
+            obj.region_q2{idx} = param_q2;
             
             obj.success{idx} = double(success) * 100;
             obj.iterations{idx} = double(iterations);
             
-            lims(:,1) = nanmin(obj.default_lims(:,1),param_01);
-            lims(:,2) = nanmax(obj.default_lims(:,2),param_99);
+            lims(:,1) = nanmin(obj.default_lims(:,1),nanmin(param_01,[],2));
+            lims(:,2) = nanmax(obj.default_lims(:,2),nanmax(param_99,[],2));
             obj.default_lims = lims;  
             
             obj.n_results = obj.n_results + 1;

@@ -4,6 +4,10 @@ function save_raw_data(obj,mapfile_name)
         wait_handle=waitbar(0,'Opening files...');
     end
     
+    %dataset_name = ['/' obj.names{i} '/' fields{j}];
+    %h5create([mapfile_name '.hdf5'],dataset_name,size(im.(fields{j})));
+    %h5write([mapfile_name '.hdf5'],dataset_name,im.(fields{j}));
+    
     dinfo = struct();
     dinfo.t = obj.t;
     dinfo.t_int = obj.t_int;

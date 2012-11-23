@@ -42,6 +42,8 @@ function handles = setup_menu(obj,handles)
         handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
         handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
     
+        handles.menu_file_load_acceptor = uimenu(menu_file,'Label','Load Accceptor Images...');
+            
         handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
     
         handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
@@ -98,7 +100,8 @@ function handles = setup_menu(obj,handles)
         menu_tools = uimenu(obj.window,'Label','Tools');
         handles.menu_tools_photon_stats = uimenu(menu_tools,'Label','Determine Photon Statistics');
         handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
-        handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map');
+        handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
+        handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
         %menu_batch = uimenu(obj.window,'Label','Batch Fitting');
         %handles.menu_batch_batch_fitting = uimenu(menu_batch,'Label','Batch Fit...');
 

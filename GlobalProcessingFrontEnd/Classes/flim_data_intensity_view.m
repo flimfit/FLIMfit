@@ -76,12 +76,19 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     lim = prctile(flt,[0.01 99.9]);
                     
                     cmap = gray(m-1);
-                case 3 % irf image
+                case 3 % TVB I background
+                    intensity = obj.data_series.tvb_I_image;
+                    
+                    flt = intensity(isfinite(intensity));
+                    lim = prctile(flt,[0.01 99.9]);
+                    
+                    cmap = gray(m-1);
+                case 4 % irf image
                     intensity = [];
                     lim = [0 0];
                     
                     cmap = gray(m-1);
-                case 4 % t0 map
+                case 5 % t0 map
                     intensity = obj.data_series.t0_image;
                     
                     flt = intensity(isfinite(intensity));

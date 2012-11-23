@@ -172,8 +172,9 @@ end
 
 % extract the single character string elements of str1
 substr = unique(str1');
-cellsubstr = cellstr(substr);
 
+cellsubstr = cellstr(substr);
+cellsubstr = regexptranslate('escape', cellsubstr);
 % Location of these single character substrings in str2
 % regext will give this quite efficiently
 ind2 = regexp(str2,cellsubstr);

@@ -69,12 +69,14 @@ FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_
 
 FITDLL_API int SetBackgroundImage(int c_idx, float* background_image);
 FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
+FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_map, float const_background);
 
 FITDLL_API int StartFit(int c_idx);
 
 FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params);
 
-FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, float* params_mean, float* params_std, float *param_01, float *param_99);
+FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, 
+                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float *param_01, float *param_99);
 
 FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[]);
 

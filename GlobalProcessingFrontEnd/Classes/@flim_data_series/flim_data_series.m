@@ -1,4 +1,4 @@
-classdef flim_data_series < handle
+classdef flim_data_series < handle & h5_serializer
    
     properties
         mode;
@@ -9,6 +9,7 @@ classdef flim_data_series < handle
         t0_image;
                               
         tvb_profile = 0;
+        tvb_I_image;
           
         subtract_background = false;
 
@@ -77,9 +78,29 @@ classdef flim_data_series < handle
         irf_subsampling = 1;
     end
         
-    
     properties(Transient)
+        acceptor;
+        root_path;
+        
+        t;   
+        t_int;
+        
+        names;
+        metadata;
+
+        num_datasets;
+        seg_mask = [];
+        
+        has_image_irf = 0;
+        image_irf;
+    end
+    
+    properties(Transient,Hidden)
+        % Properties that won't be saved to a data_settings_file or to 
+        % a project file
+        
         raw = false;
+        hdf5 = false;
         
         use_memory_mapping = true;
         load_multiple_channels = false;
@@ -87,6 +108,7 @@ classdef flim_data_series < handle
         tr_data_series_mem = single([]);
         data_series_mem = single([]);
         
+            
         mapfile_name;
         memmap;
         mapfile_offset = 0;
@@ -96,14 +118,11 @@ classdef flim_data_series < handle
         
         cur_smoothed = 0;
                 
-        root_path;
         
         intensity = [];
         mask = [];
         thresh_mask = [];
                 
-        t;   
-        t_int;
         
         tr_t_irf;
         tr_t_int;
@@ -118,18 +137,13 @@ classdef flim_data_series < handle
         
         tr_tvb_profile;
         
-        names;
         
         OMERO_id;
         
-        metadata;
 
         tr_data_size;
-        num_datasets;
         
         init = false;
-
-        seg_mask = [];
                 
         use_popup = true;  
         lazy_loading = false;
@@ -140,10 +154,7 @@ classdef flim_data_series < handle
         loaded = [];
         load_time = [];
         
-        active = 0;
-        
-        has_image_irf = 0;
-        image_irf;
+        active = 1;
         
     end
     
@@ -209,6 +220,45 @@ classdef flim_data_series < handle
             
         end
         
+        function post_serialize(obj)
+            
+            obj.suspend_transformation = true;
+                        
+            datatype = class(obj.cur_data);
+            
+            sz = obj.data_size(:)';
+            
+            ch_sz = sz;
+            sz(end) = obj.n_datasets;
+            
+            path = '/flim_data/';
+                        
+            try
+                h5create(obj.file,path,sz,'Datatype',datatype,'ChunkSize',ch_sz);
+            catch err
+                if ~strcmp(err.identifier,'MATLAB:imagesci:h5create:datasetAlreadyExists');
+                    throw(err);
+                end
+            end
+            
+            for j=1:obj.n_datasets
+
+                obj.switch_active_dataset(j);
+
+                h5write(obj.file,path,obj.cur_data,[1 1 1 1 j],ch_sz,ones(size(sz)));
+                
+            end
+            
+            
+            obj.suspend_transformation = false;
+            
+        end
+        
+        function post_deserialize(obj)
+            
+            obj.hdf5 = true;
+            
+        end
         
         %===============================================================
         
@@ -460,6 +510,13 @@ classdef flim_data_series < handle
                     bg = obj.background_image;
                     bg = reshape(bg,[1 1 s]);
                     bg = repmat(bg,[obj.n_t obj.n_chan 1 1]);
+                case 3
+                    if ~isempty(obj.tvb_I_image)
+                        bg = reshape(obj.tvb_I_image,[1 1 obj.height obj.width]);
+                        bg = bg .* obj.tvb_profile + obj.background_value;
+                    else
+                        bg = 0;
+                    end
                 otherwise
                     bg = 0;
             end

@@ -84,6 +84,8 @@ classdef abstract_plot_controller < flim_fit_observer
                 [~,name,ext] = fileparts(filename);
                 ext = ext(2:end);
                 
+                param_name = obj.fit_controller.fit_result.params{obj.cur_param};
+                
                 f = figure('Visible','off');
                 if obj.handle_is_axes
                     ref = axes('Parent',f);
@@ -93,9 +95,9 @@ classdef abstract_plot_controller < flim_fit_observer
                 
                 obj.draw_plot(ref,obj.cur_param);
                 if strcmp(ext,'emf')
-                    print(f,'-dmeta',[pathname filesep name ' ' obj.cur_param '.' ext])
+                    print(f,'-dmeta',[pathname filesep name ' ' param_name '.' ext])
                 else
-                    savefig([pathname filesep name ' ' obj.cur_param],f,ext);
+                    savefig([pathname filesep name ' ' param_name],f,ext);
                 end
                 close(f);
             end
@@ -234,7 +236,7 @@ classdef abstract_plot_controller < flim_fit_observer
         function fit_update(obj)
             obj.update_param_menu();
             obj.plot_fit_update();
-            
+            obj.update_display();
             obj.ap_lh = addlistener(obj.fit_controller.fit_result,'cur_lims','PostSet',@obj.lims_update);
         end
         
@@ -267,11 +269,12 @@ classdef abstract_plot_controller < flim_fit_observer
         
         function cscale = colourscale(obj,param)
             
+            param_name = obj.fit_controller.fit_result.params{param};
             invert = obj.fit_controller.invert_colormap;
             
             if strcmp(param,'I0') || strcmp(param,'I')
                 cscale = @gray;
-            elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
+            elseif invert && (~isempty(strfind(param_name,'tau')) || ~isempty(strfind(param_name,'theta')))
                 cscale = @inv_jet;
             else
                 cscale = @jet;

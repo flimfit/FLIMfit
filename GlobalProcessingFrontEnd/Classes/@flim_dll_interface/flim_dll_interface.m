@@ -49,6 +49,7 @@ classdef flim_dll_interface < handle
         p_background;
 
         p_tvb_profile;
+        p_tvb_profile_single;
         p_fixed_beta;
                 
         bin;

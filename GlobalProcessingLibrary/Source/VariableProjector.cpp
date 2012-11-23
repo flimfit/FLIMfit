@@ -23,7 +23,6 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 {
    this->weighting = weighting;
 
-   //weighting = PIXEL_WEIGHTING;
    use_numerical_derv = false;
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
@@ -34,6 +33,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    bw   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
    wp   = new double[ nmax * n_thread ];
 
+   r_buf = new double[ nmax ];
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -44,7 +44,6 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    wa1  = new double[buf_dim];
    wa2  = new double[buf_dim];
    wa3  = new double[buf_dim];
-   wa4  = new double[buf_dim];
    ipvt = new int[buf_dim];
 
    if (use_numerical_derv)
@@ -81,19 +80,20 @@ VariableProjector::~VariableProjector()
    delete[] wa4;
    delete[] ipvt;
    delete[] fvec;
+   delete[] r_buf;
 }
 
 
-int VariableProjectorCallback(void *p, int m, int n, const double *x, double *fnorm, double *fjrow, int iflag)
+int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, x, fnorm, fjrow, iflag);
+   return vp->varproj(m, n, mskip, x, fnorm, fjrow, iflag);
 }
 
 int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fvec, int iflag)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, x, fvec, NULL, iflag);
+   return vp->varproj(m, n, 1, x, fvec, NULL, iflag);
 }
 
 
@@ -121,6 +121,7 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 /*         info = 7  xtol is too small. no further improvement in */
 /*                   the approximate solution x is possible. */
 
+
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
@@ -139,8 +140,9 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    int nfev, info;
    double rnorm; 
 
+  int mskip = (int) ceil((float)s/65536);
    n_call = 0;
-   varproj(nsls1, nl, alf, fvec, fjac, 0);
+   varproj(nsls1, nl, mskip, alf, fvec, fjac, 0);
    n_call = 1;
 
    if (use_numerical_derv)
@@ -150,14 +152,14 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    else
    {
    
-      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, alf, fjac, nl,
+      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, mskip, alf, fjac, nl,
                     ftol, xtol, gtol, itmax, diag, 1, factor, -1,
                     &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
    }
 
    // Get linear parameters
    if (!getting_errs)
-      varproj(nsls1, nl, alf, fvec, fjac, -1);
+      varproj(nsls1, nl, mskip, alf, fvec, fjac, -1);
 
    if (info < 0)
       *ierr = info;
@@ -173,6 +175,16 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
 }
 
 
+int VariableProjector::GetLinearParams(int s, float* y, double* alf) 
+{
+   int nsls1 = (n-l) * s;
+
+   varproj(nsls1, nl, 1, alf, fvec, fjac, -1);
+   
+   return 0;
+
+}
+
 double VariableProjector::d_sign(double *a, double *b)
 {
    double x;
@@ -183,8 +195,9 @@ double VariableProjector::d_sign(double *a, double *b)
 
 
 
-int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag)
+int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf, double *rnorm, double *fjrow, int iflag)
 {
+
    int firstca, firstcb;
    int get_lin;
    int isel;
@@ -267,6 +280,7 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       firstcb = 0;
    }  
 
+
    if (isel == 3)
    {
       GetModel(alf, irf_idx[0], isel, 0);
@@ -292,17 +306,30 @@ int VariableProjector::varproj(int nsls1, int nls, const double *alf, double *rn
       i = d_idx % nml + l;
       is = d_idx / nml;
 
-      rs = r + is * r_dim1;
-
       if (d_idx % nml == 0)
       {
+         for(int j=0; j<n; j++)
+            r_buf[j] = 0;
+
+         int j_max = min(mskip,s-is*mskip);
+         for(int j=0; j<j_max; j++)
+            for(int k=0; k<n; k++)
+               r_buf[k] += r[ (is*mskip + j) * r_dim1 + k ];
+
+         for(int j=0; j<n; j++)
+            r_buf[j] /= j_max;
+
          if (iterative_weighting)
          {
             CalculateWeights(is, alf, omp_thread); 
             transform_ab(isel, is, omp_thread, firstca, firstcb);
          }
-         bacsub(is, aw, rs);
+         bacsub(r_buf, aw, r_buf);
       }
+
+
+      //rs = r + is * r_dim1;
+      rs = r_buf;
 
       m = 0;
       for (int k = 0; k < nl; ++k)
@@ -599,7 +626,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    chi2[idx] = (float) enorm(n-l, rj+l); 
    chi2[idx] *= chi2[idx] * (float) (chi2_factor * smoothing);
 
-   bacsub(idx, a, x);
+   bacsub(rj, a, x);
    
    for (kback = 0; kback < l; ++kback) 
    {
@@ -620,13 +647,26 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
 }
 
 
-int VariableProjector::bacsub(int idx, double *a, double *x)
+int VariableProjector::bacsub(int idx, double *a, volatile double *x)
+{
+/*
+   int a_dim1;
+   int i, j, iback;
+   double acum;
+   */
+   double* rj = r + idx * n;
+
+   bacsub(rj, a, x);
+
+   return 0;
+}
+
+
+int VariableProjector::bacsub(volatile double *rj, double *a, volatile double *x)
 {
    int a_dim1;
    int i, j, iback;
    double acum;
-
-   double* rj = r + idx * n;
 
    // BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*RJ = B. 
    // THE SOLUTION IS STORED IN X (X MAY OVERWRITE RJ IF SPECIFIED)

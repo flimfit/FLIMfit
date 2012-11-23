@@ -51,8 +51,12 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
    weighting(weighting), error(0), init(false), polarisation_resolved(false), has_fit(false)
 {
-   params = new WorkerParams[n_thread]; //ok
-   status = new FitStatus(this,n_thread,NULL); //ok
+
+   if (this->n_thread < 1)
+      this->n_thread = 1;
+
+   params = new WorkerParams[this->n_thread]; //ok
+   status = new FitStatus(this,this->n_thread,NULL); //ok
 
    alf          = NULL;
    chi2         = NULL;
@@ -189,7 +193,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   
                   float* I_local = I + data->GetRegionPos(im,r);
                   
-                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, irf_idx);
+                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, irf_idx, global_algorithm == MODE_GLOBAL_BINNING);
                   next_pixel = 0;
                   
                   cur_region = idx;
@@ -201,7 +205,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                region_count = data->GetRegionCount(im,r);
 
                px = 0;
-               do
+               while(next_pixel<region_count)
                {
                   pixel_mutex.lock();
                   px = next_pixel;
@@ -220,7 +224,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                      goto terminated;
                   }
 
-               }while(next_pixel<region_count);
+               }
 
                region_mutex.lock();
                threads_active--;
@@ -252,9 +256,10 @@ void FLIMGlobalFitController::WorkerThread(int thread)
    {
       for(int r=0; r<MAX_REGION; r++)
       {
-         idx = data->GetRegionIndex(0,r);
+
+         idx = data->GetRegionIndex(-1,r);
          if (idx > -1 && idx % n_thread == thread)
-            ProcessRegion(0, r, 0, thread);
+            ProcessRegion(-1, r, 0, thread);
            
          if (status->terminate)
             goto terminated;
@@ -363,7 +368,14 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
    double  tau = 0;
    double  n   = 0;
    int     start;
+   int     N;
    
+   double sum_t  = 0;
+   double sum_t2 = 0;
+   double sum_tlnI = 0;
+   double sum_lnI = 0;
+   double dt;
+
    //if (image_irf)
    //   start = DetermineMAStartPosition(p);
    //else
@@ -407,32 +419,61 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
    return tau;
    */
 
-   for(int i=start; i<n_t; i++)
+   if (data->data_type == DATA_TYPE_TCSPC)
    {
-      tau += decay[i] * (t[i] - t[start]);
-      n   += decay[i];
-   }
-   
-   if (polarisation_resolved)
-   {
-      decay += n_t;
+      // If TCSPC calculate mean arrival time
+
       for(int i=start; i<n_t; i++)
       {
-         tau += 2 * g_factor * decay[i] * (t[i] - t[start]);
-         n   += 2 * g_factor * decay[i];
+         tau += decay[i] * (t[i] - t[start]);
+         n   += decay[i];
       }
+   
+      if (polarisation_resolved)
+      {
+         for(int i=start; i<n_t; i++)
+         {
+            tau += 2 * g_factor * decay[i+n_t] * (t[i] - t[start]);
+            n   += 2 * g_factor * decay[i+n_t];
+         }
+      }
+
+      tau = tau / n;
+
+      double T = t[n_t-1]-t[start];
+
+      double tau1 = tau;
+      for(int i=0; i<10; i++)  
+      {
+         tau = tau + T / (exp(T/tau1)-1);
+      }
+
    }
-
-   tau = tau / n;
-
-   double T = t[n_t-1]-t[start];
-
-   double tau1 = tau;
-   for(int i=0; i<10; i++)  
+   else
    {
-      tau1 = tau + T / (exp(T/tau1)-1);
+      // If widefield use RLD
+
+      N = n_t-start;
+
+      for(int i=start; i<n_t; i++)
+      {
+         dt = t[i]-t[start];
+
+         sum_t += dt;
+         sum_t2 += dt * dt;
+
+         sum_tlnI += dt * log(decay[i]);
+         sum_lnI  += log(decay[i]);
+
+      }
+
+      tau  = - (N * sum_t2   - sum_t * sum_t);
+      tau /=   (N * sum_tlnI - sum_t * sum_lnI);
+
    }
-   return tau1;
+
+   return tau;
+
 }
 
 
@@ -612,14 +653,15 @@ void FLIMGlobalFitController::Init()
    if (data->global_mode == MODE_PIXELWISE)
    {
       status->SetNumRegion(data->n_masked_px);
+      n_fitters = min(data->n_px,n_thread);
    }
    else
    {
       status->SetNumRegion(data->n_regions_total);
+      n_fitters = min(data->n_regions_total,n_thread);
    }
 
-   n_fitters = min(data->n_masked_px,n_thread);
-
+   
    if (data->n_regions_total == 0)
    {
       error = ERR_FOUND_NO_REGIONS;
@@ -665,7 +707,7 @@ void FLIMGlobalFitController::Init()
       s = data->n_px;
 
    max_dim = max(n_irf,n_t);
-   max_dim = int (ceil(max_dim/4.0) * 4);
+   max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
    exp_dim = max_dim * n_chan;
@@ -736,7 +778,7 @@ void FLIMGlobalFitController::Init()
 
    int n_j = fit_fret ? n_fret_group : n_exp_phi;
 
-   if (polarisation_resolved || (n_j == 1))
+   if (n_j == 1)
       lmax = l;
    else
       lmax = l+1; // for I, which we will compute afterwards
@@ -765,17 +807,17 @@ void FLIMGlobalFitController::Init()
       y            = new float[ n_fitters * s * n_meas ]; //free ok 
       irf_idx      = new int[ n_fitters * s ];
 
-      local_decay     = new float[ n_fitters * n_meas ]; //ok
+      local_decay  = new float[ n_fitters * n_meas ]; //ok
       lin_local    = new float[ n_fitters * lmax ]; //ok
-      w            = new float[ n_fitters * n ]; //free ok
+      w            = new float[ n_fitters * n_meas ]; //free ok
 
       cur_alf      = new double[ n_fitters * nl ]; //ok
       cur_irf_idx  = new int[ n_fitters ];
 
       #ifdef _WINDOWS
-         exp_buf      = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
+         exp_buf   = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
        #else
-         exp_buf      =  new double[n_thread * n_fret_group * exp_buf_size];
+         exp_buf   = new double[n_thread * n_fret_group * exp_buf_size];
        #endif
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -789,10 +831,10 @@ void FLIMGlobalFitController::Init()
       irf_max      = new int[n_meas]; //free ok
 
       if (calculate_errs) 
-         conf_lim     = new double[ n_thread * nl ]; //free ok
+         conf_lim  = new double[ n_thread * nl ]; //free ok
 
-      locked_param = new int[n_thread]; //ok
-      locked_value = new double[n_thread]; //ok
+      //locked_param = new int[n_thread]; //ok
+      //locked_value = new double[n_thread]; //ok
 
       //local_irf    = new double*[n_thread]; //ok
 
@@ -1008,6 +1050,9 @@ void FLIMGlobalFitController::SetOutputParamNames()
       param_names.push_back(buf);
    }
 
+   if (polarisation_resolved)
+      param_names.push_back("r_0");
+
    param_names.push_back("I0");
    
    // Parameters we manually calculate at the end
@@ -1074,11 +1119,10 @@ int FLIMGlobalFitController::GetErrorCode()
 
 void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj)
 {
+
    double scale_fact[2];
    scale_fact[0] = 1;
    scale_fact[1] = 0;
-
-   int* resample_idx = data->GetResampleIdx(thread);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
@@ -1166,6 +1210,8 @@ void FLIMGlobalFitController::CleanupTempVars()
         iter++;
    }
 
+   _ASSERTE(_CrtCheckMemory());
+
 }
 
 void FLIMGlobalFitController::CleanupResults()
@@ -1181,8 +1227,8 @@ void FLIMGlobalFitController::CleanupResults()
    ClearVariable(beta_buf);
    ClearVariable(theta_buf);
    ClearVariable(chan_fact);
-   ClearVariable(locked_param);
-   ClearVariable(locked_value);
+   //ClearVariable(locked_param);
+   //ClearVariable(locked_value);
    ClearVariable(cur_alf);
    ClearVariable(cur_irf_idx);
 
@@ -1220,6 +1266,9 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(t_irf_buf);
    
    #endif
+
+      ClearVariable(fit_buf);
+
 
       ClearVariable(irf_max);
       ClearVariable(fit_buf);
@@ -1259,4 +1308,6 @@ void FLIMGlobalFitController::CleanupResults()
       delete[] thread_handle;
       thread_handle = NULL;
    }
+
+   _ASSERTE(_CrtCheckMemory());
 }

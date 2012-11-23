@@ -22,8 +22,11 @@ else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+#find_package(HDF5)
+#include_directories (${HDF5_INCLUDE_DIRS})
 
 include_directories( ${LEVMAR_INCLUDE_DIRS} )
+
 
 
 # Set the source and header files
@@ -125,7 +128,10 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 #===================================================
 add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} )
 
+
 target_link_libraries(${LIB_NAME} levmar)
+
+
 
 # Make sure we don't have 'lib' prefix on UNIX
 #===================================================

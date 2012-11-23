@@ -4,7 +4,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         graph_independent_popupmenu;
         ind_param;
         error_type_popupmenu;
-        error_calc_popupmenu;
+        graph_grouping_popupmenu;
+        graph_display_popupmenu;
     end
     
     methods
@@ -16,7 +17,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             set(obj.graph_independent_popupmenu,'Callback',@obj.ind_param_select_update);
             
             set(obj.error_type_popupmenu,'Callback',@(~,~,~) obj.update_display);
-            set(obj.error_calc_popupmenu,'Callback',@(~,~,~) obj.update_display);
+            set(obj.graph_grouping_popupmenu,'Callback',@(~,~,~) obj.update_display);
+            set(obj.graph_display_popupmenu,'Callback',@(~,~,~) obj.update_display);
             
             obj.update_display();
         end
@@ -25,6 +27,11 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             idx = get(obj.graph_independent_popupmenu,'Value');
             r = obj.fit_controller.fit_result;            
             ind_vars = fieldnames(r.metadata);
+            if idx > length(ind_vars) || idx == 0
+                idx = 1;
+                set(obj.graph_independent_popupmenu,'Value',idx);
+            end
+                
             obj.ind_param = ind_vars{idx}; 
             
             obj.update_display();
@@ -46,7 +53,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         function draw_plot(obj,ax,param)
             
             error_type = get(obj.error_type_popupmenu,'Value');
-            error_calc = get(obj.error_calc_popupmenu,'Value');
+            grouping = get(obj.graph_grouping_popupmenu,'Value');
+            display = get(obj.graph_display_popupmenu,'Value');
 
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param) && obj.cur_param > 0
 
@@ -58,15 +66,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                 if ~any(strcmp(obj.param_list,err_name))
                     err_name = [];
-                end
-
-                
-                
-                % Reject images with no associated data (i.e. empty images)
-                %isparam = cellfun(@(x)isfield(x,param),r.image_stats);
-                %isparam = isparam(sel);
-                %sel = sel(isparam);
-                
+                end               
                 
                 % Get values for the selected parameter
                 md = r.metadata.(obj.ind_param);
@@ -111,9 +111,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     
                     x_sel = sel(x_sel);
                     
-                    ym = NaN(size(x_sel));
-                    ys = NaN(size(x_sel));
-                    yn = NaN(size(x_sel));
+                    ym = [];
+                    ys = [];
+                    yn = [];
                     
                     idx = 1;
                     for j=x_sel
@@ -121,31 +121,54 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         n = r.image_size{j};
                         if n > 0
 
-                            ym(idx) = r.image_mean{j}(param);
-                            ys(idx) = r.image_std{j}(param);
-                            yn(idx) = n;
-                        
+                            if grouping == 1 || grouping == 3
+                                ym(idx) = r.image_mean{j}(param);
+                                ys(idx) = r.image_std{j}(param);
+                                yn(idx) = n;
+                            else                                
+                                ym = [ym r.region_mean{j}(param,:)];
+                                ys = [ys r.region_std{j}(param,:)];
+                                yn = [yn r.region_size{j}];
+                            end
+                            
                             idx = idx + 1;
                         end
                         %if ~isempty(err_name)
                         %    e = e + r.image_stats{j}.(err_name).mean * n;
                         %end
                     end
-                        
+                    
+                    yfinite = ~isnan(ym);
+                    ym = ym(yfinite);
+                    ys = ys(yfinite);
+                    yn = yn(yfinite);
+                    
+                    
                     y_scatter = [y_scatter ym];
                     x_scatter = [x_scatter ones(size(ym))*i];
+                                        
+                    [M, S, N] = combine_stats(ym,ys,yn);
                     
-                    [M S N] = combine_stats(ym,ys,yn);
+                    if grouping == 1 % Pixels                
+                        y_mean(i) = M;
+                        y_err(i) = S;
+                        Ns = N / r.smoothing;
+                        
+                    else
+                        y_mean(i) = mean(ym);
+                        y_err(i) = std(ym);
+                        N = length(ym);
+                        Ns = length(ym);
+                    end
                     
-                    y_data(i) = M;
-                    y_err(i) = S / sqrt(N/r.smoothing); % 95% conf interval ~2*standard error 
-                    y_std(i) = S;
-                    y_img_std(i) = std(ym);
-                    y_img_err(i) = y_img_std(i) / sqrt(length(ym));
+                    if error_type == 2
+                        y_err(i) = y_err(i) / sqrt(Ns);
+                    elseif error_type == 3                        
+                        y_err(i) = y_err(i) / sqrt(Ns) * 1.96;
+                    end
+                    
                     y_n(i) = N;
                     %err(i) = e/yn;
-
-                    %y_mean_data(i) = nanmean(ymask);
 
                 end
 
@@ -153,32 +176,37 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 %    y_err = err;
                 %end
 
-                if error_type == 1 % std
-                    if error_calc == 1 % pixel
-                        err = y_std;
-                    else
-                        err = y_img_std;
-                    end
-                else % 95% conf
-                    if error_calc == 1 % pixel
-                        err = y_err;
-                    else
-                        err = y_img_err; 
-                    end
-                end
-                    
-                
                 if var_is_numeric
-                    errorbar(ax,x_data,y_data,err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
-                    hold(ax,'on');
-                    plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
+                    
+                    if display == 1 || display == 2
+                        errorbar(ax,x_data,y_mean,y_err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+
+                        if display == 2
+                            hold(ax,'on');
+                            plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
+                        end
+                    else
+                        boxplot(ax,y_scatter,x_scatter,'labels',num2cell(x_data(x_scatter)));
+                    end
+                    
                     cell_x_data = num2cell(x_data);
+                    
                 else
-                    errorbar(ax,y_data,err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                    
+                    if display == 1 || display == 2
+                        errorbar(ax,y_mean,y_err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                    
+                        if display == 2
+                            hold(ax,'on');
+                            plot(ax,x_scatter,y_scatter,'x','MarkerSize',5);
+                        end
+                    else
+                        boxplot(ax,y_scatter,x_scatter,'labels',x_data);
+                    end
+                    
                     hold(ax,'on')
-                    plot(ax,x_scatter,y_scatter,'x','MarkerSize',5);
-                    set(ax,'XTick',1:length(y_data));
-                    set(ax,'XTickLabel',x_data);
+                    set(ax,'XTick',1:length(y_mean));
+                    set(ax,'XTickLabel',x_data);                    
                     cell_x_data = x_data;
                 end
 
@@ -197,25 +225,39 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                 lims = f.get_cur_lims(param);
 
-                if isnan(lims(1)) || lims(1) > min(y_data);
-                    lims(1) = 0.9*min(y_data);
+                if isnan(lims(1)) || lims(1) > min(y_mean);
+                    lims(1) = 0.9*min(y_mean);
                 end
-                if isnan(lims(2)) || lims(2) < max(y_data);
-                    lims(2) = 1.1*max(y_data);
+                if isnan(lims(2)) || lims(2) < max(y_mean);
+                    lims(2) = 1.1*max(y_mean);
                 end
                 set(ax,'YLim',lims);
                 
                 %set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
                 
-                obj.raw_data = [cell_x_data; num2cell(y_data); num2cell(y_std); num2cell(y_err); num2cell(y_img_std); num2cell(y_img_err); num2cell(y_n)]';
+                obj.raw_data = [cell_x_data; num2cell(y_mean); num2cell(y_err); num2cell(y_n)]';
+       
+                switch grouping
+                    case 1
+                        g = 'pixel';
+                    case 2 
+                        g = 'region';
+                    case 3
+                        g = 'FOV';
+                end
                 
-                obj.raw_data = [{obj.ind_param param 'pixel std' 'pixel 95% conf' 'image std' 'image 95% conf' 'count'}; obj.raw_data]; 
+                switch error_type
+                    case 1
+                        e = 'std dev';
+                    case 2
+                        e = 'std err';
+                    case 3
+                        e = '95% conf';
+                end
                 
-                latex_param = r.params{param};
-                latex_param = strrep(latex_param,'mean_tau','mean tau');
-                latex_param = strrep(latex_param,'w_mean','weighted mean');
+                obj.raw_data = [{obj.ind_param [r.params{param} ' ' g ' mean'] e 'count'}; obj.raw_data]; 
                 
-                ylabel(ax,latex_param);
+                ylabel(ax,r.latex_params{param});
                 xlabel(ax,obj.ind_param);
   
             else
