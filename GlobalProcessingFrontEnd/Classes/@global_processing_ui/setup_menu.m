@@ -18,6 +18,7 @@ function handles = setup_menu(obj,handles)
         handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM: Multiple FOVs');
         %
         handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)','Separator','on');            
+        handles.menu_OMERO_Load_IRF_WF_gated = uimenu(menu_OMERO,'Label','Load IRF (Time-Gated Images)');            
         handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background');    
         %
         handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on');    
@@ -27,7 +28,7 @@ function handles = setup_menu(obj,handles)
 
     end
         
-
+    
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
     handles.menu_file_load_single = uimenu(menu_file,'Label','Load FLIM Data...','Accelerator','O','Separator','on');

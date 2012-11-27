@@ -1,28 +1,15 @@
-function imageId = mat2omeroImage(factory, data, pixeltype, imageName, description, channels_names, modulo)
-
-imageId = [];
+function imageId = fit_results2omeroImage_Channels(factory, data, pixeltype, imageName, description, channels_names)
 
             if isempty(factory) ||  isempty(data) || isempty(imageName)
                 errordlg('upload_Image: bad input');
                 return;
             end;                   
             %
-            [sizeM,sizeX,sizeY] = size(data);
-            %
-            sizeC = 1;
+            [sizeC,sizeX,sizeY] = size(data);
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Channels only
+            sizeT = 1;
             sizeZ = 1;
-            sizeT = 1;            
-            %
-            switch modulo
-                case 'ModuloAlongC'
-                    sizeC = sizeM;
-                case 'ModuloAlongZ'
-                    sizeZ = sizeM;
-                case 'ModuloAlongT'
-                    sizeT = sizeM;
-                otherwise
-                    errordlg('wrong modulo specification'), return;
-            end
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                        
 
 queryService = factory.getQueryService();
 pixelsService = factory.getPixelsService();
@@ -46,27 +33,26 @@ pixels = image.getPrimaryPixels();
 pixelsId = pixels.getId().getValue();
 rawPixelsStore.setPixelsId(pixelsId, true);
 
-minVal = min(data(:));
-maxVal = max(data(:));
+problems_with_data = false;
 
-for m = 1:sizeM % t is plane number    
-    plane = squeeze(data(m,:,:));    
+for c = 1:sizeC % k is channel number    
+    plane = squeeze(data(c,:,:));    
     bytear=omerojava.util.GatewayUtils.convertClientToServer(pixels, plane) ;
-        switch modulo
-            case 'ModuloAlongC'
-                rawPixelsStore.setPlane(bytear, int32(0),int32(m-1),int32(0));                
-                pixelsService.setChannelGlobalMinMax(pixelsId, m-1, minVal, maxVal);                
-            case 'ModuloAlongZ'
-                rawPixelsStore.setPlane(bytear, int32(m-1),int32(0),int32(0));        
-            case 'ModuloAlongT'
-                rawPixelsStore.setPlane(bytear, int32(0),int32(0),int32(m-1));        
-        end        
+    rawPixelsStore.setPlane(bytear, int32(0),int32(c - 1),int32(0));        
+    %
+    nans = sum(sum(isnan(plane)));
+    infs = sum(sum(isinf(plane)));    
+    if 0 == (nans + infs)
+        minVal = min(plane(:));
+        maxVal = max(plane(:));   
+        pixelsService.setChannelGlobalMinMax(pixelsId, c - 1, minVal, maxVal);                
+    else
+        problems_with_data = true;
+    end
 end 
 %
-if ~strcmp(modulo,'ModuloAlongC')
-    pixelsService.setChannelGlobalMinMax(pixelsId, 0, minVal, maxVal);                
-else %set channels names
-if nargin == 7 && ~isempty(channels_names) && sizeC == numel(channels_names)
+%%%%%%%%%%%%% set channels names if specified
+if nargin == 6 && ~isempty(channels_names) && sizeC == numel(channels_names)
     %
     pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
     channels = pixelsDesc.copyChannels();
@@ -77,13 +63,14 @@ if nargin == 7 && ~isempty(channels_names) && sizeC == numel(channels_names)
         factory.getUpdateService().saveAndReturnObject(ch.getLogicalChannel());
     end                                                        
 end;
-    
-end
+%%%%%%%%%%%%% channels names
 %
 rawPixelsStore.save();
 rawPixelsStore.close();
 %
+
 RENDER = true;
+
 
 re = factory.createRenderingEngine();
 %
@@ -92,11 +79,11 @@ re.lookupPixels(pixelsId)
         re.resetDefaults();  
     end;
     if ~re.lookupRenderingDef(pixelsId)
-        errordlg('mat2omeroImage: can not render properly');
+        errordlg('mat2omeroImage_Channels: can not render properly');
         RENDER = false;
     end
 %
-if RENDER
+if RENDER && ~problems_with_data
     try
         % start the rendering engine
         re.load();
@@ -104,24 +91,20 @@ if RENDER
         %renderingEngine.setChannelWindow(cIndex, float(minValue), float(maxValue))
         %
         alpha = 255;
-        if strcmp(modulo,'ModuloAlongC')
-            if 3==sizeC % likely RGB
-                    re.setRGBA(0, 255, 0, 0, alpha);
-                    re.setRGBA(1, 0, 255, 0, alpha);
-                    re.setRGBA(2, 0, 0, 255, alpha);
-            else
-                    for c = 1:sizeC,
-                        re.setRGBA(c - 1, 255, 255, 255, alpha);
-                    end
-            end            
-        else
-            re.setRGBA(0, 255, 255, 255, alpha);
+        switch sizeC % likely RGB
+            case 3
+                re.setRGBA(0, 255, 0, 0, alpha);
+                re.setRGBA(1, 0, 255, 0, alpha);
+                re.setRGBA(2, 0, 0, 255, alpha);
+            otherwise
+                for c = 1:sizeC,
+                    re.setRGBA(c - 1, 255, 255, 255, alpha);
+                end
         end
         %
         re.saveCurrentSettings();
-    catch err
-        [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+    catch
     end
-end;
+end
 
 re.close();

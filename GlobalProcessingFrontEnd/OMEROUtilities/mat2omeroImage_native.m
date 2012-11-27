@@ -31,8 +31,8 @@ pixels = image.getPrimaryPixels();
 pixelsId = pixels.getId().getValue();
 rawPixelsStore.setPixelsId(pixelsId, true);
 
-minVal = min(min(min(min(min(data)))));
-maxVal = max(max(max(max(max(data)))));
+minVal = min(data(:));
+maxVal = max(data(:));
 
             for c = 1:sizeC 
                 for z = 1:sizeZ
@@ -42,10 +42,8 @@ maxVal = max(max(max(max(max(data)))));
                         rawPixelsStore.setPlane(bytear, int32(z-1), int32(c-1), int32(t-1));                
                     end
                 end
+            pixelsService.setChannelGlobalMinMax(pixelsId, c-1, minVal, maxVal);                                
             end                         
-
-% best one can do..
-pixelsService.setChannelGlobalMinMax(pixelsId, 0, minVal, maxVal);                
 
 if ~isempty(channels_names) && sizeC == numel(channels_names)
     %
@@ -53,7 +51,7 @@ if ~isempty(channels_names) && sizeC == numel(channels_names)
     channels = pixelsDesc.copyChannels();
     %         
     for c = 1:sizeC
-        ch = channels.get(c - 1);
+        ch = channels.get(c-1);
         ch.getLogicalChannel().setName(omero.rtypes.rstring(char(channels_names{c})));
         factory.getUpdateService().saveAndReturnObject(ch.getLogicalChannel());
     end                                                        

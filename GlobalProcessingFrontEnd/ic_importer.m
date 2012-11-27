@@ -340,7 +340,7 @@ data = createData();
                 native_spec = 'whatever';
             end;
             %
-            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,'double',data.modulo,native_spec);
+            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo,native_spec);
             new_dataset = get_Object_by_Id(data.session,new_dataset_id);
             %                        
             % IMAGE ANNOTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% (this is ugly)

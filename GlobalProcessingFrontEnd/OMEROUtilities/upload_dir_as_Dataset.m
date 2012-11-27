@@ -1,4 +1,4 @@
-        function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,pixeltype,modulo,bh_native_spec)
+        function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,modulo,bh_native_spec)
             %
             new_datasetId = [];
             %            
@@ -35,7 +35,8 @@
                                 for c = 1:Nch,
                                     Z(c,:,:) = squeeze(U(:,:,c))';
                                 end;
-                                img_description = ' ';
+                                img_description = ' ';               
+                                pixeltype = get_num_type(U);
                                 imageId = mat2omeroImage(session, Z, pixeltype, file_names{i},  img_description, [],modulo);
                                 link = omero.model.DatasetImageLinkI;
                                 link.setChild(omero.model.ImageI(imageId, false));

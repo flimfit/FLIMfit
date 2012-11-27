@@ -241,11 +241,6 @@ classdef flim_data_series_controller < handle
             end      
             data_size = size(data_cube);
             %
-            % if only one channel reshape to include singleton dimension
-            if length(data_size) == 3
-                data_size = [data_size(1) 1 data_size(2:3)];    
-            end                        
-            %
             extension = 'sdt'; % used....
             string = strrep(name,['.' extension],'');
             obj.data_series.names{1} = string;            
@@ -501,6 +496,18 @@ classdef flim_data_series_controller < handle
         end            
                 
         %------------------------------------------------------------------        
+        function OMERO_Load_IRF_WF_gated(obj,~,~)
+            [ Dataset ~ ] = select_Dataset(obj.session,'Select IRF Dataset:');             
+            if isempty(Dataset), return, end;            
+            load_as_image = false;
+            try
+                obj.data_series.load_irf_from_Omero_Dataset(obj.session,Dataset,load_as_image);
+            catch
+                errordlg('Wrong input: Dataset should contain single-palne images with names encoding delays eg "INT_000750 T_01050.tif" ');
+            end
+        end            
+
+        %------------------------------------------------------------------        
         function OMERO_Load_IRF_annot(obj,~,~)
             %
             if ~isempty(obj.dataset)
@@ -536,7 +543,7 @@ classdef flim_data_series_controller < handle
             %
             %delete(full_temp_file_name); %??
         end            
-        
+                        
         %------------------------------------------------------------------
         function tempfilename = OMERO_load_imagefile(obj,~,~)    
             %
@@ -554,7 +561,7 @@ classdef flim_data_series_controller < handle
             %   
             try
                 zct = get_ZCT(image,'ModuloAlongC');
-                data_cube = get_FLIM_cube( obj.session, image.getId().getValue(), 1, 1,'ModuloAlongC',zct);            
+                data_cube = get_FLIM_cube( obj.session, image, 1, 1,'ModuloAlongC',zct);            
                 data = squeeze(data_cube);
                 %
                 tempfilename = [tempname '.tif'];
@@ -645,11 +652,12 @@ classdef flim_data_series_controller < handle
                     return;
                 end
                 %
-                hw = waitbar(0, 'Exporting fitting results to Omero, please wait');                 
+                hw = waitbar(0, 'Exporting fitting results to Omero, please wait');
+                                
                 for dataset_index = 1:obj.data_series.num_datasets
                     %
                     data = zeros(n_params,sizeX,sizeY);
-                        for p = 1:n_params,
+                        for p = 1:n_params,                                                                                                                                            
                             data(p,:,:) = res.get_image(dataset_index, params{p})';
                         end
                     %                  
@@ -659,9 +667,8 @@ classdef flim_data_series_controller < handle
                         ' Z ' num2str(obj.ZCT(1)) ...
                                             ' C ' num2str(obj.ZCT(2)) ...
                                                                 ' T ' num2str(obj.ZCT(3)) ' ' ...
-                    obj.data_series.names{dataset_index}]);
-
-                    imageId = mat2omeroImage(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list(),'ModuloAlongC');
+                    obj.data_series.names{dataset_index}]);                                    
+                    imageId = fit_results2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());                    
                     link = omero.model.DatasetImageLinkI;
                     link.setChild(omero.model.ImageI(imageId, false));
                     link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
@@ -748,7 +755,7 @@ classdef flim_data_series_controller < handle
                                                             ' C ' num2str(obj.ZCT(2)) ...
                                                             ' T ' num2str(obj.ZCT(3)) ' ' ...
                                                             obj.data_series.names{dataset_index}]);
-                                                            new_imageId = mat2omeroImage(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list(),'ModuloAlongC');
+                                                            new_imageId = fit_results2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());
                                                         %results image
                                                     newws.setImage( omero.model.ImageI(new_imageId,false) );
                                                     newws.setWell( newwell );        

@@ -11,7 +11,8 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Export_Fitting_Results;    
         menu_OMERO_Export_Fitting_Settings;            
         menu_OMERO_Import_Fitting_Settings;
-            menu_OMERO_Reset_Logon;        
+            menu_OMERO_Reset_Logon;  
+            menu_OMERO_Load_IRF_WF_gated;
         %
 
         %
@@ -301,6 +302,11 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Reset_Logon_callback(obj,~,~)
             obj.data_series_controller.Omero_logon();
         end
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_IRF_WF_gated_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Load_IRF_WF_gated();
+        end
+        
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
