@@ -13,6 +13,9 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Import_Fitting_Settings;
             menu_OMERO_Reset_Logon;  
             menu_OMERO_Load_IRF_WF_gated;
+            menu_OMERO_Load_Background_form_Dataset;
+            menu_OMERO_Load_tvb_from_Image;
+            menu_OMERO_Load_tvb_from_Dataset;
         %
 
         %
@@ -306,7 +309,18 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Load_IRF_WF_gated_callback(obj,~,~)
             obj.data_series_controller.OMERO_Load_IRF_WF_gated();
         end
-        
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_Background_form_Dataset_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Load_Background_form_Dataset();
+        end
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Load_tvb_from_Image();
+        end
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_tvb_from_Dataset_callback(obj,~,~)
+            obj.data_series_controller.OMERO_Load_tvb_from_Dataset();
+        end                               
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                

@@ -503,10 +503,52 @@ classdef flim_data_series_controller < handle
             try
                 obj.data_series.load_irf_from_Omero_Dataset(obj.session,Dataset,load_as_image);
             catch
-                errordlg('Wrong input: Dataset should contain single-palne images with names encoding delays eg "INT_000750 T_01050.tif" ');
+                errordlg('Wrong input: Dataset should contain single-plane images with names encoding delays eg "INT_000750 T_01050.tif" ');
             end
         end            
 
+        %------------------------------------------------------------------                
+        function OMERO_Load_Background_form_Dataset(obj,~,~)
+            [ Dataset ~ ] = select_Dataset(obj.session,'Select Bckg Dataset:');             
+            if isempty(Dataset), return, end;            
+            try
+                obj.data_series.load_background_from_Omero_Dataset(obj.session,Dataset);                
+            catch
+                errordlg('Wrong input: Dataset should contain single-plane images of proper size');
+            end            
+        end
+        
+        %------------------------------------------------------------------                
+        function OMERO_Load_tvb_from_Image(obj,~,~)
+            if isempty(obj.dataset)
+                [ Dataset ~ ] = select_Dataset(obj.session,'Select a Dataset:');             
+                if isempty(Dataset), return, end;                
+            else
+                Dataset = obj.dataset;
+            end;
+            %    
+            Image = select_Image(obj.session,Dataset);                       
+            if isempty(image), return, end;
+            %   
+            try
+               obj.data_series.load_tvb_from_Omero(obj.session,Image); 
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
+            end
+            %            
+        end
+        
+        %------------------------------------------------------------------                
+        function OMERO_Load_tvb_from_Dataset(obj,~,~)
+            [ Dataset ~ ] = select_Dataset(obj.session,'Select Bckg Dataset:');             
+            if isempty(Dataset), return, end;            
+            try
+                obj.data_series.load_tvb_from_Omero(obj.session,Dataset);
+            catch
+                errordlg('Wrong input: Dataset should contain single-plane images of proper size');
+            end            
+        end
+                
         %------------------------------------------------------------------        
         function OMERO_Load_IRF_annot(obj,~,~)
             %
