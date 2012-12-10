@@ -25,7 +25,7 @@
                     for i = 1 : num_files   
                         full_file_name = [folder filesep file_names{i}];
                         if ~strcmp('sdt',extension)                            
-                            if strcmp('tif',extension) && is_OME_tif(full_file_name)
+                            if strcmp('tif',extension) && is_OME_tif(full_file_name) % that ignores "modulo" specifier!..
                                 upload_Image_OME_tif(session, new_dataset,full_file_name,' ');  
                             else % try to load as channels anyway
                                 U = imread(full_file_name,extension);

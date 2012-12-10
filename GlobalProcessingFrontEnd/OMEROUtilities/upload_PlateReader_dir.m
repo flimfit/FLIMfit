@@ -106,10 +106,16 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                         session.getUpdateService().saveAndReturnObject(link);                                                                             
                     end                        
 
-                    gateway = session.createGateway();                    
-                    image = gateway.getImage(new_imageId); 
-                    gateway.close();
-                                        
+%                     gateway = session.createGateway();                    
+%                     image = gateway.getImage(new_imageId); 
+%                     gateway.close();
+                    %get image without gateway;
+                    id = java.util.ArrayList();
+                    id.add(java.lang.Long(new_imageId)); %id of the image
+                    proxy = session.getContainerService();
+                    list = proxy.getImages('Image', id, omero.sys.ParametersI());
+                    image = list.get(0);
+                    
                     % OME ANNOTATION                    
                     flimXMLmetadata.Image.Pixels.ATTRIBUTE.BigEndian = 'true';
                     flimXMLmetadata.Image.Pixels.ATTRIBUTE.DimensionOrder = 'XYCTZ'; % does not matter

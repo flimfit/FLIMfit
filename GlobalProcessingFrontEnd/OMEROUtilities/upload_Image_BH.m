@@ -1,12 +1,28 @@
 function upload_Image_BH(session, dataset, full_filename, contents_type, modulo, mode)
     %
+% % % % % % % % % % % %     bandhdata = loadBandHfile_CF(full_filename); % full filename
+% % % % % % % % % % % %     %
+% % % % % % % % % % % %     [ n_channels nBins w h ] = size(bandhdata);                            
+% % % % % % % % % % % %     % get Delays
+% % % % % % % % % % % %     [ImData Delays] = loadBHfileusingmeasDescBlock(full_filename, 1);
+% % % % % % % % % % % %     Delays = repmat(Delays,1,n_channels);
+      
     bandhdata = loadBandHfile_CF(full_filename); % full filename
+    
+    if 2==numel(size(bandhdata)), errordlg('not an sdt FLIM image - not loaded'), return, end;
     %
-    [ n_channels nBins w h ] = size(bandhdata);                            
-    % get Delays
-    [ImData Delays] = loadBHfileusingmeasDescBlock(full_filename, 1);
-    Delays = repmat(Delays,1,n_channels);
+    single_channel = (3==numel(size(bandhdata)));    
     %
+    if ~single_channel    
+        [ n_channels nBins w h ] = size(bandhdata);                            
+    else
+        n_channels = 1;
+        [ nBins w h ] = size(bandhdata);                                    
+    end;
+        % get Delays
+        [ImData Delays] = loadBHfileusingmeasDescBlock(full_filename, 1);
+        Delays = repmat(Delays,1,n_channels);
+        %
 % %     pixeltype = 'double';
 % %     if     isa(ImData,'uint16'), pixeltype = 'uint16';
 % %     elseif isa(ImData,'int16'), pixeltype = 'int16';
@@ -25,15 +41,18 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
     for k = 1: numel(Delays)
         channels_names{k} = num2str(Delays(k));
     end;            
-    %
-    
+    %    
     if ~strcmp(mode,'native')
 
         Z = zeros(n_channels*nBins, h, w);
         %
         for c = 1:n_channels,
             for b = 1:nBins,
-                u = double(squeeze(bandhdata(c,b,:,:)))';                                    
+                if ~single_channel
+                    u = double(squeeze(bandhdata(c,b,:,:)))';                                    
+                else
+                    u = double(squeeze(bandhdata(b,:,:)))';
+                end
                 index = (c - 1)*nBins + b;
                 Z(index,:,:) = u;
             end
@@ -141,7 +160,13 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
                             case 'ModuloAlongZ'
                                 k = z;
                         end
-                        u = double(squeeze(bandhdata(c,k,:,:)))';                                                            
+                        %
+                        if ~single_channel
+                            u = double(squeeze(bandhdata(c,k,:,:)))';
+                        else
+                            u = double(squeeze(bandhdata(k,:,:)))';
+                        end
+                                                                                                
                         data(:,:,z,c,t) = u;                        
                     end
                 end

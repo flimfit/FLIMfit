@@ -570,7 +570,7 @@ classdef flim_data_series_controller < handle
             fid = fopen(full_temp_file_name,'w');    
             %
             if strcmp('sdt',fname(numel(fname)-2:numel(fname)))
-                fwrite(fid,typecast(str,'double'),'double');
+                fwrite(fid,typecast(str,'uint16'),'uint16');
             else                
                 fwrite(fid,str,'*uint8');
             end
