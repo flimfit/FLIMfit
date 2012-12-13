@@ -3,7 +3,7 @@ function handles = setup_menu(obj,handles)
 
     external = handles.external;
 
-    if ~isempty(handles.data_series_controller.session)
+    if ~isempty(handles.omero_data_manager.session)
     
       external = true;
         

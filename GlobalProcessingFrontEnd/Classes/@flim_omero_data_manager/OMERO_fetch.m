@@ -1,4 +1,4 @@
-function [delays, data_cube, name ] =  OMERO_fetch(session, image, channel, ZCT, mdta)
+function [delays, data_cube, name ] =  OMERO_fetch(obj, image, channel, ZCT, mdta)
     %> Load a single FLIM dataset
     
 delays = [];
@@ -22,7 +22,7 @@ else % still can process as it is an imported file....
     %
     annotators = java.util.ArrayList;
     ann = [];
-    metadataService = session.getMetadataService();
+    metadataService = obj.session.getMetadataService();
     map = metadataService.loadAnnotations('omero.model.Image', java.util.Arrays.asList(imageId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
     annotations = map.get(imageId); 
     
@@ -58,7 +58,7 @@ else % still can process as it is an imported file....
       
         originalFile = ann.getFile();
         
-        rawFileStore = session.createRawFileStore();
+        rawFileStore = obj.session.createRawFileStore();
         rawFileStore.setFileId(originalFile.getId().getValue());
 
         %  open file and read it
@@ -97,9 +97,9 @@ if isempty(modulo)  % if file has been identified then load it
 else
 
     if ~isempty(mdta.n_channels) && mdta.SizeC~=1 && mdta.n_channels == mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') % native multi-spectral FLIM     
-        data_cube_ = get_FLIM_cube_Channels( session, image, mdta.modulo, ZCT );
+        data_cube_ = get_FLIM_cube_Channels( obj.session, image, mdta.modulo, ZCT );
     else 
-        data_cube_ = get_FLIM_cube( session, image, n_channels, channel, modulo, ZCT );                
+        data_cube_ = get_FLIM_cube( obj.session, image, n_channels, channel, modulo, ZCT );                
     end
             
     [nBins,sizeX,sizeY] = size(data_cube_);       

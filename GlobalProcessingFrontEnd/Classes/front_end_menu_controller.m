@@ -3,7 +3,9 @@ classdef front_end_menu_controller < handle
     properties
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                
+        
         menu_OMERO_Set_Dataset;        
+        menu_OMERO_Set_Plate;        
         menu_OMERO_Load_FLIM_Data;
         menu_OMERO_Load_FLIM_Dataset;  
         menu_OMERO_Load_IRF_annot;            
@@ -15,11 +17,10 @@ classdef front_end_menu_controller < handle
             menu_OMERO_Load_IRF_WF_gated;
             menu_OMERO_Load_Background_form_Dataset;
             menu_OMERO_Load_tvb_from_Image;
-            menu_OMERO_Load_tvb_from_Dataset;
-        %
-
-        %
-        menu_OMERO_Set_Plate;
+            menu_OMERO_Load_tvb_from_Dataset;        
+        
+        omero_data_manager;                
+        
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
                         
         menu_file_new_window;
@@ -260,24 +261,26 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------
-        function menu_OMERO_Set_Dataset_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Set_Dataset();
+        function menu_OMERO_Set_Dataset_callback(obj,~,~)            
+            obj.omero_data_manager.Set_Dataset();            
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_FLIM_Data();
+            obj.data_series_controller.data_series = flim_data_series();
+            obj.omero_data_manager.Load_FLIM_Data(obj.data_series_controller.data_series);
         end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_FLIM_Dataset();
+            obj.data_series_controller.data_series = flim_data_series();            
+            obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
         end                    
         %------------------------------------------------------------------        
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_IRF_annot();
+            obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series);
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
-            tempfilename = OMERO_load_imagefile(obj.data_series_controller);                                      
+            tempfilename = obj.omero_data_manager.load_imagefile();
             if isempty(tempfilename), return, end;                                    
             try 
                 obj.data_series_controller.data_series.load_background(tempfilename);                          
@@ -287,44 +290,44 @@ classdef front_end_menu_controller < handle
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Export_Fitting_Results(obj.fit_controller);
+            obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series);
         end                    
         %------------------------------------------------------------------        
         function menu_OMERO_Export_Fitting_Settings_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Export_Fitting_Settings(obj.fitting_params_controller);
+            obj.omero_data_manager.Export_Fitting_Settings(obj.fitting_params_controller);
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Import_Fitting_Settings_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Import_Fitting_Settings(obj.fitting_params_controller);
+            obj.omero_data_manager.Import_Fitting_Settings(obj.fitting_params_controller);
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Set_Plate_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Set_Plate();
+            obj.omero_data_manager.Set_Plate();
         end     
         %------------------------------------------------------------------        
         function menu_OMERO_Reset_Logon_callback(obj,~,~)
-            obj.data_series_controller.Omero_logon();
+            obj.omero_data_manager.Omero_logon();
         end
         %------------------------------------------------------------------        
         function menu_OMERO_Load_IRF_WF_gated_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_IRF_WF_gated();
+            obj.omero_data_manager.Load_IRF_WF_gated(obj.data_series_controller.data_series);
         end
         %------------------------------------------------------------------        
         function menu_OMERO_Load_Background_form_Dataset_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_Background_form_Dataset();
+            obj.omero_data_manager.Load_Background_form_Dataset(obj.data_series_controller.data_series);
         end
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_tvb_from_Image();
+            obj.omero_data_manager.Load_tvb_from_Image(obj.data_series_controller.data_series);
         end
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Dataset_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_tvb_from_Dataset();
+            obj.omero_data_manager.Load_tvb_from_Dataset(obj.data_series_controller.data_series);
         end                               
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
-                                                        
+                                        
         %------------------------------------------------------------------
         % Load Data
         %------------------------------------------------------------------

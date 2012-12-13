@@ -1,13 +1,13 @@
-function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT,mdta) % 
+function load_selected_files(obj,data_series,image_ids,selected,channel, ZCT,mdta) % 
 
     if nargin < 2
-        selected = 1:obj.num_datasets;
+        selected = 1:data_series.num_datasets;
     end
         
-    if ~isempty(obj.loaded)
+    if ~isempty(data_series.loaded)
         already_loaded = true;
         for i=1:length(selected)
-            if ~obj.loaded(selected(i))
+            if ~data_series.loaded(selected(i))
                 already_loaded = false;
             end
         end
@@ -17,24 +17,24 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT,m
         end
     end
     
-    if obj.use_popup && length(selected) > 1 && ~obj.raw
+    if data_series.use_popup && length(selected) > 1 && ~data_series.raw
         wait_handle=waitbar(0,'Opening files...');
         using_popup = true;
     else
         using_popup = false;
     end
     
-    obj.clear_memory_mapping();
+    data_series.clear_memory_mapping();
 
-    obj.loaded = false(1, obj.n_datasets);
+    data_series.loaded = false(1, data_series.n_datasets);
     num_sel = length(selected);
 
     for j=1:num_sel
-        obj.loaded(selected(j)) = true;
+        data_series.loaded(selected(j)) = true;
     end
     
-    if ~obj.raw
-        if obj.use_memory_mapping
+    if ~data_series.raw
+        if data_series.use_memory_mapping
             
             mapfile_name = global_tempname;
             mapfile = fopen(mapfile_name,'w');
@@ -42,15 +42,15 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT,m
             for j=1:num_sel
                     
                     imgId = image_ids(selected(j));                        
-                    image = get_Object_by_Id(session,imgId);
+                    image = get_Object_by_Id(obj.session,imgId);
                     try
-                        [~,data,~] = OMERO_fetch(session,image,channel,ZCT,mdta);
+                        [~,data,~] = obj.OMERO_fetch(image,channel,ZCT,mdta);
                     catch err
                         rethrow(err);
                     end                    
                                                     
-                if isempty(data) || size(data,1) ~= obj.n_t
-                    data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
+                if isempty(data) || size(data,1) ~= data_series.n_t
+                    data = zeros([data_series.n_t data_series.n_chan data_series.height data_series.width]);
                 end
 
                 c1=fwrite(mapfile,data,'single');
@@ -63,18 +63,18 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT,m
 
             fclose(mapfile);
             
-            obj.init_memory_mapping(obj.data_size(1:4), num_sel, mapfile_name);    
+            data_series.init_memory_mapping(data_series.data_size(1:4), num_sel, mapfile_name);    
             
         else % no memory mapping
            
             for j=1:num_sel
                     
                     imgId = image_ids(selected(j));                        
-                    image = get_Object_by_Id(session,imgId);
+                    image = get_Object_by_Id(obj.session,imgId);
                     try
-                        [~,data,~] = OMERO_fetch(session,image,channel,ZCT,mdta);
+                        [~,data,~] = obj.OMERO_fetch(image,channel,ZCT,mdta);
                         if ~isempty(data) 
-                            obj.data_series_mem(:,:,:,:,j) = single(data);                                        
+                            data_series.data_series_mem(:,:,:,:,j) = single(data);                                        
                         end;
                     catch err
                         if using_popup, 
@@ -89,12 +89,12 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT,m
 
             end
             
-            obj.active = 1;
-            obj.cur_data = obj.data_series_mem(:,:,:,:,1);
+            data_series.active = 1;
+            data_series.cur_data = data_series.data_series_mem(:,:,:,:,1);
             
         end
     else
-        obj.init_memory_mapping(obj.data_size(1:4), num_sel, obj.mapfile_name);
+        data_series.init_memory_mapping(data_series.data_size(1:4), num_sel, data_series.mapfile_name);
     end
         
             
@@ -102,6 +102,6 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT,m
         close(wait_handle)
     end
     
-    obj.compute_tr_data(false);
+    data_series.compute_tr_data(false);
     
 end

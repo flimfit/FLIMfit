@@ -93,7 +93,8 @@
             handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
-            handles.data_series_controller = flim_data_series_controller(handles);                        
+            handles.data_series_controller = flim_data_series_controller(handles);                                    
+            handles.omero_data_manager = flim_omero_data_manager(handles);
             
             handles.version = v;
             handles.window = obj.window;
@@ -114,7 +115,7 @@
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
                         
             if OMERO_active == true               
-               handles.data_series_controller.Omero_logon();
+               handles.omero_data_manager.Omero_logon();
             end
             
             handles = obj.setup_menu(handles);            
@@ -148,13 +149,12 @@
         function close_request_fcn(obj,~,~)
             
             handles = guidata(obj.window);
-
-            client = handles.data_series_controller.client;
+            client = handles.omero_data_manager.client;
             
             if ~isempty(client)                
                 % save logon anyway                
-                logon = handles.data_series_controller.logon;
-                logon_filename = handles.data_series_controller.omero_logon_filename;                
+                logon = handles.omero_data_manager.logon;
+                logon_filename = handles.omero_data_manager.omero_logon_filename;                
                 omero_logon = [];
                 omero_logon.logon = logon;
                 xml_write(logon_filename,omero_logon);                                
@@ -162,10 +162,10 @@
                 disp('Closing OMERO session');
                 client.closeSession();
                 %
-                handles.data_series_controller.session = [];
-                handles.data_series_controller.client = [];
+                handles.omero_data_manager.session = [];
+                handles.omero_data_manager.client = [];
             end
-            
+
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
                        

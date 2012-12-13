@@ -1,12 +1,5 @@
 function upload_Image_BH(session, dataset, full_filename, contents_type, modulo, mode)
-    %
-% % % % % % % % % % % %     bandhdata = loadBandHfile_CF(full_filename); % full filename
-% % % % % % % % % % % %     %
-% % % % % % % % % % % %     [ n_channels nBins w h ] = size(bandhdata);                            
-% % % % % % % % % % % %     % get Delays
-% % % % % % % % % % % %     [ImData Delays] = loadBHfileusingmeasDescBlock(full_filename, 1);
-% % % % % % % % % % % %     Delays = repmat(Delays,1,n_channels);
-      
+    %      
     bandhdata = loadBandHfile_CF(full_filename); % full filename
     
     if 2==numel(size(bandhdata)), errordlg('not an sdt FLIM image - not loaded'), return, end;
@@ -135,7 +128,7 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
         %
         delete(xmlFileName);
         
-    else % 'native'
+    else % 'native' - meaning every channel goes to separte "C" with lifetimes according on "T" or "Z"
 
         sizeX = h;
         sizeY = w;
@@ -165,8 +158,7 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
                             u = double(squeeze(bandhdata(c,k,:,:)))';
                         else
                             u = double(squeeze(bandhdata(k,:,:)))';
-                        end
-                                                                                                
+                        end                                                                                                
                         data(:,:,z,c,t) = u;                        
                     end
                 end
@@ -196,13 +188,12 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
         flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = sizeC;
         flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = 1;
         %
-        SizeM = n_channels*nBins;
-                switch modulo
-                    case 'ModuloAlongZ'
-                        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = sizeZ;
-                    case 'ModuloAlongT'
-                        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = sizeT;
-                end    
+        switch modulo
+            case 'ModuloAlongZ'
+                flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = sizeZ;
+            case 'ModuloAlongT'
+                flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = sizeT;
+        end    
         %
         flimXMLmetadata.Image.ContentsType = contents_type;
         flimXMLmetadata.Image.FLIMType = 'TCSPC';

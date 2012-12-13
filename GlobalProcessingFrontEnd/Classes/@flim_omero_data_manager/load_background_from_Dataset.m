@@ -1,6 +1,6 @@
-function load_background_from_Omero_Dataset(obj,session,dataset)
+function load_background_from_Dataset(obj,data_series,dataset)
     
-                store = session.createRawPixelsStore(); 
+                store = obj.session.createRawPixelsStore(); 
 
                 imageList = dataset.linkedImageList;
                 %       
@@ -59,13 +59,13 @@ function load_background_from_Omero_Dataset(obj,session,dataset)
     extent = 3;
     im = medfilt2(im,[extent extent], 'symmetric');
         
-    if any(size(im) ~= [obj.height obj.width])
+    if any(size(im) ~= [data_series.height data_series.width])
         throw(MException('GlobalAnalysis:BackgroundIncorrectShape','Error loading background, file has different dimensions to the data'));
     else
-        obj.background_image = im;
-        obj.background_type = 2;
+        data_series.background_image = im;
+        data_series.background_type = 2;
     end    
 
-    obj.compute_tr_data();
+    data_series.compute_tr_data();
     
 end

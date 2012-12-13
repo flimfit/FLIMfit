@@ -1,4 +1,6 @@
-function imageId = fit_results2omeroImage_Channels(factory, data, pixeltype, imageName, description, channels_names)
+function imageId = fit_results2omeroImage_Channels(obj, data, pixeltype, imageName, description, channels_names)
+
+factory = obj.session;
 
             if isempty(factory) ||  isempty(data) || isempty(imageName)
                 errordlg('upload_Image: bad input');

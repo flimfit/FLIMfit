@@ -1,15 +1,15 @@
-function load_tvb_from_Omero(obj,session,object)
+function load_tvb(obj,data_series,object)
 
     t_tvb = [];
     tvb_data = [];
     
-    switch whos_Object(session,object.getId().getValue());
+    switch whos_Object(obj.session,object.getId().getValue());
         case 'Image'
             
-            metadata = get_FLIM_params_from_metadata(session,object.getId(),'metadata.xml');
+            metadata = get_FLIM_params_from_metadata(obj.session,object.getId(),'metadata.xml');
                         
-            if isempty(metadata.n_channels) || metadata.n_channels > 1 strcmp(obj.mode,'TCSPC')
-                channel = obj.request_channels(obj.polarisation_resolved);
+            if isempty(metadata.n_channels) || metadata.n_channels > 1 strcmp(data_series.mode,'TCSPC')
+                channel = data_series.request_channels(data_series.polarisation_resolved);
             else
                 channel = 1;
             end;
@@ -21,13 +21,13 @@ function load_tvb_from_Omero(obj,session,object)
             end
             %
             try
-                [t_tvb, tvb_data, ~] = OMERO_fetch(session, object, channel, ZCT, metadata);
+                [t_tvb, tvb_data, ~] = obj.OMERO_fetch(object, channel, ZCT, metadata);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
                                     
         case 'Dataset'
-            [t_tvb tvb_data] = load_FLIM_data_from_Omero_Dataset(session,object);
+            [t_tvb tvb_data] = obj.load_FLIM_data_from_Dataset(object);
             t_tvb = t_tvb';
         otherwise return;        
     end
@@ -50,13 +50,13 @@ function load_tvb_from_Omero(obj,session,object)
     end
     
     % check we have all timepoints
-    if length(t_tvb)==length(obj.t) && max(abs(t_tvb-obj.t)) > 1
+    if length(t_tvb)==length(data_series.t) && max(abs(t_tvb-data_series.t)) > 1
         warning('GlobalProcessing:ErrorLoadingTVB','Timepoints were different in TVB and data');
     end
     
-    obj.tvb_profile = tvb_data;
-    obj.compute_tr_tvb_profile();
+    data_series.tvb_profile = tvb_data;
+    data_series.compute_tr_tvb_profile();
     
-    notify(obj,'data_updated');
+    notify(data_series,'data_updated');
     
 end

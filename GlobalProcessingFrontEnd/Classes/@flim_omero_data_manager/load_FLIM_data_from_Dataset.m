@@ -1,4 +1,4 @@
-function [ delays, im_data ] = load_FLIM_data_from_Omero_Dataset(session,dataset)
+function [ delays, im_data ] = load_FLIM_data_from_Dataset(obj,dataset)
 
                 imageList = dataset.linkedImageList;
                 %       
@@ -17,7 +17,7 @@ function [ delays, im_data ] = load_FLIM_data_from_Omero_Dataset(session,dataset
                 
                 filenames = sort_nat(filenames);
                 
-                store = session.createRawPixelsStore(); 
+                store = obj.session.createRawPixelsStore(); 
 
                 h = []; %sizeX
                 w = []; %sizeY
