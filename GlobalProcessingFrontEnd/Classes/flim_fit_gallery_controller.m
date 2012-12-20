@@ -54,12 +54,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             r = f.fit_result;
             sel = obj.fit_controller.selected;
 
-            if save
-                pa = fig;%get(f,'Parent');
-                pos = get(obj.plot_handle,'Position');
-                %pos = [0,0,800,600];
-                set(pa,'Position',pos);
-            end
+            
             
             children = get(fig,'Children');
             delete(children);
@@ -81,6 +76,16 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
 
             unit = get(obj.gallery_unit_edit,'String');
             cols = str2double(get(obj.gallery_cols_edit,'String'));
+            
+            
+            if save
+                pa = fig;%get(f,'Parent');
+                pos_fig = get(pa,'Position');
+                pos = get(obj.plot_handle,'Position');
+                pos_fig(3:4) = pos(3:4);
+                set(pa,'Position',pos_fig);
+            end
+            
             
             %{
             sort_param = cell2mat(r.metadata.Column(sel));
@@ -170,7 +175,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 
                 idx = 0;
                 label = cell(1,finish-start+1);
-                
+                                
                 for i=start:finish
                     
                     ri = mod(idx,cols) * r.width + 1;
@@ -178,6 +183,11 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     idx = idx + 1;
                     
                     im_data = obj.fit_controller.get_image(sel(i),param);
+                    
+                    mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
+                    
+                    M(i) = im2frame(mdata);
+                    
                     if merge
                         I_data = f.get_intensity(sel(i));
                         gallery_I_data(ci:ci+r.height-1,ri:ri+r.width-1) = I_data;
@@ -200,6 +210,8 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     end
                     label{idx} = t;
                 end
+                
+                %implay(M);
                 
                 % Subsample if possible
                 scale = max(floor(1/ratio),1);

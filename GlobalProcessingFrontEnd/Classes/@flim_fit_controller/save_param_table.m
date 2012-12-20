@@ -36,8 +36,14 @@ function save_param_table(obj,file,append,save_images)
         
         dat = [obj.param_table_headers, num2cell(obj.param_table)]';
         
+        group = [];
+        for i=1:f.n_results
+            group = [group ones(1,length(f.regions{i}))*i];
+        end
+        
         for i=1:length(metadata_fields)
-            dat = [[metadata_fields(i), metadata.(metadata_fields{i})]',dat];
+            md = metadata.(metadata_fields{i});
+            dat = [[metadata_fields(i), md(group)]',dat];
         end
         
         cell2csv(file,dat,',');

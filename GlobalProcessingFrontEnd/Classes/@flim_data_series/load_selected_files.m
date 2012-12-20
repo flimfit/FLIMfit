@@ -57,6 +57,45 @@ function load_selected_files(obj,selected)
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
+                if ~isdeployed
+                   
+                    if obj.polarisation_resolved
+                        
+                        data = data * 100;
+
+                        if j==1
+                            
+                            intensity = squeeze(sum(data,1));
+                            para = squeeze(intensity(1,:,:));
+                            perp = squeeze(intensity(2,:,:));
+
+                            
+                            [opt,metric] = imregconfig('monomodal'); 
+                            [perp2,tx] = imregister2(perp,para,'rigid',opt,metric);
+                            
+                             figure(56)
+                            subplot(1,2,1);
+                            imagesc((para-perp)./(para+2*perp));
+                            subplot(1,2,2);
+                            imagesc((para-perp2)./(para+2*perp2));
+                            
+                            disp('Warning! Realigning perpendicular channel')
+                        end
+                        
+                       
+                    
+                        for i=1:size(data,1)
+                            
+                            plane = squeeze(data(i,2,:,:));
+                            plane = imtransform(plane,tx,'XData',[1 size(plane,2)],'YData',[1 size(plane,1)]);
+                            data(i,2,:,:) = plane;
+                        end
+                        
+                    end
+                    
+                end
+                
+                
                 if isempty(data) || size(data,1) ~= obj.n_t
                     data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
@@ -83,6 +122,59 @@ function load_selected_files(obj,selected)
                     filename = obj.file_names{selected(j)};
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
+                
+                
+                 if ~isdeployed
+                   
+                    if obj.polarisation_resolved && ndims(data) > 3
+                        
+                        data = data * 100;
+
+                        if j==1 
+                            
+                            intensity = squeeze(sum(data,1));
+                            para = squeeze(intensity(1,:,:));
+                            perp = squeeze(intensity(2,:,:));
+
+                            
+                            mask = (perp+para) < 20000;
+                            
+                            
+                            [opt,metric] = imregconfig('multimodal'); 
+                            [perp2,tx] = imregister2(perp,para,'rigid',opt,metric);
+                            
+                            a1 = (para-perp)./(para+2*perp);
+                            a2 = (para-perp2)./(para+2*perp2);
+                            
+                            a1(mask) = 0;
+                            a2(mask) = 0;
+                            
+                            
+                             figure(56)
+                            subplot(1,2,1);
+                            imagesc(a1);
+                            caxis([0.2 0.5])
+                            subplot(1,2,2);
+                            imagesc(a2);
+                            caxis([0.2 0.5]);
+                            disp('Warning! Realigning perpendicular channel')
+                        end
+                        
+                       
+                    
+                        for i=1:size(data,1)
+                            
+                            plane = squeeze(data(i,2,:,:));
+                            plane = imtransform(plane,tx,'XData',[1 size(plane,2)],'YData',[1 size(plane,1)]);
+                            data(i,2,:,:) = plane;
+                        end
+                        
+                    end
+                    
+                end
+                
+                
+                
                 
                 obj.data_series_mem(:,:,:,:,j) = single(data);
                 

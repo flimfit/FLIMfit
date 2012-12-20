@@ -15,7 +15,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int ierr_local = 0;
 
-   _ASSERTE( _CrtCheckMemory( ) );
+   _ASSERT( _CrtCheckMemory( ) );
 
    int r_idx = data->GetRegionIndex(g,region);
 
@@ -27,12 +27,13 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int start = data->GetRegionPos(g,region) + px;
          
-   float *y, *lin_params, *chi2, *alf, *I, *w_mean_tau, *mean_tau;
+   float *y, *lin_params, *chi2, *alf, *I, *w_mean_tau, *mean_tau, *r_ss;
    int   *irf_idx;
 
    lin_params = this->lin_params + start * lmax;
    chi2       = this->chi2       + start;
    I          = this->I          + start;
+   r_ss       = this->r_ss       + start;
    w_mean_tau = this->w_mean_tau + start;
    mean_tau   = this->mean_tau   + start;
 
@@ -42,7 +43,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + px;
       alf     = this->alf + start * nl; 
 
-      s_thresh = data->GetRegionData(thread, g, region, px, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, NULL, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, px, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, NULL, NULL, w, irf_idx, local_decay);
       data->DetermineAutoSampling(thread, local_decay, nl+1);
    }
    else
@@ -51,7 +52,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + thread * s;
       alf     = this->alf     + nl * r_idx;
    
-      s_thresh = data->GetRegionData(thread, g, region, 0, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, I, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, 0, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, I, r_ss, w, irf_idx, local_decay);
    }
 
 
@@ -183,7 +184,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
   
    status->FinishedRegion(thread);
 
-   _ASSERTE( _CrtCheckMemory( ) );
+   //_ASSERT( _CrtCheckMemory( ) );
 
    return 0;
 }
@@ -240,17 +241,18 @@ void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_pa
          I0 = lin_params[0];
          r0 = 0;
 
-         for(int j=0; j<n_r; j++)
+
+         for(int j=1; j<n_r+1; j++)
          {
-            norm_params[j] = lin_params[j+1] / I0;
+            norm_params[j] = lin_params[j] / I0;
             r0 += norm_params[j];
          }
 
-         norm_params[n_r]   = r0;
+         norm_params[0]     = r0;
          norm_params[n_r+1] = I0;
 
          norm_params += lmax;
-         lin_params += lmax;
+         lin_params  += lmax;
       }
    }
    else
@@ -294,11 +296,12 @@ void FLIMGlobalFitController::DenormaliseLinearParams(int s, volatile float norm
       {
          I0 = norm_params[n_r+1];
 
-         for(int j=1; j<n_r+1; j++)
-            lin_params[j] = norm_params[j-1] * I0;
-
          lin_params[0] = I0;
+         
+         for(int j=1; j<n_r+1; j++)
+            lin_params[j] = norm_params[j] * I0;
 
+         
          norm_params += lmax;
          lin_params += lmax;
       }

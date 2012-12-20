@@ -48,7 +48,7 @@ classdef segmentation_controller < flim_data_series_observer
         combine_regions_checkbox;
         apply_filtering_pushbutton;
                 
-        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Solidity'};
+        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size'};
         
         
         slh = [];
@@ -234,7 +234,6 @@ classdef segmentation_controller < flim_data_series_observer
             donor_lq = [];
             acceptor_uq = [];
             min_size = [];
-            min_solidity = [];
             
             if apply_filter(1)
                 donor_lq = filter_value(1);
@@ -244,9 +243,6 @@ classdef segmentation_controller < flim_data_series_observer
             end
             if apply_filter(3)
                 min_size = filter_value(3);
-            end
-            if apply_filter(4)
-                min_solidity = filter_value(4);
             end
             
             obj.filtered_mask = obj.mask;
@@ -268,7 +264,7 @@ classdef segmentation_controller < flim_data_series_observer
                     end
 
 
-                    regions = regionprops(im_mask, {'Area','Solidity'});
+                    regions = regionprops(im_mask, {'Area'});
 
 
                     for j=1:length(regions)
@@ -291,10 +287,6 @@ classdef segmentation_controller < flim_data_series_observer
                         end
 
                         if ~isempty(min_size) && regions(j).Area < min_size
-                            im_mask(j_mask) = 0;
-                        end
-
-                        if ~isempty(min_solidity) && regions(j).Solidity < min_solidity
                             im_mask(j_mask) = 0;
                         end
 

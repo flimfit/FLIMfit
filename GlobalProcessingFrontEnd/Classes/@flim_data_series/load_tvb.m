@@ -31,10 +31,16 @@ function load_tvb(obj,file)
            t_tvb = t_tvb * 1000; 
         end
 
+        tvb = zeros(size(obj.t))';
         % check we have all timepoints
-        if length(t_tvb)==length(obj.t) && max(abs(t_tvb-obj.t)) > 1
-            warning('GlobalProcessing:ErrorLoadingTVB','Timepoints were different in TVB and data');
-        end
+        %if length(t_tvb)~=length(obj.t)
+            for i=1:length(t_tvb)
+                tvb(abs(obj.t-t_tvb(i))<0.1) = tvb_data(i);
+            end
+            tvb_data = tvb;
+
+            %warning('GlobalProcessing:ErrorLoadingTVB','Timepoints were different in TVB and data');
+        %end
 
         obj.tvb_profile = tvb_data;
     end

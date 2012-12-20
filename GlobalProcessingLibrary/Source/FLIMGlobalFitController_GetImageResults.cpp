@@ -23,7 +23,7 @@ int CalculateRegionStats(int n, int s, float data[], float*&region_mean, float*&
          if (boost::math::isfinite(data[i+j*n]))
             buf[idx++] = data[i+j*n];
       }
-      int K = int (0.01 * idx);
+      int K = int (0.1 * idx);
       TrimmedMean(buf, idx, K, *(region_mean++), *(region_std++), *(region_median++), *(region_q1++), *(region_q2++), *(region_01++), *(region_99++));
    }
    return n;
@@ -280,6 +280,9 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
             CalculateRegionStats(1, s_local, w_mean_tau+start, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);
          }
 
+        if (polarisation_resolved)
+            CalculateRegionStats(1, s_local, r_ss+start, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);         
+
          CalculateRegionStats(1, s_local, chi2+start, params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, buf);
          
          idx++;
@@ -380,9 +383,17 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
                span = lmax;
             } r_param-=lmax;
 
+
             if (r_param == 0) 
                param_data = I + start;
             r_param-=1;
+
+            if (polarisation_resolved)
+            {
+               if (r_param == 0) 
+                  param_data = r_ss + start;
+               r_param-=1;
+            }
 
             if (calculate_mean_lifetimes)
             {

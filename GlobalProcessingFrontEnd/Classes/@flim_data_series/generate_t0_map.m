@@ -3,7 +3,7 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     decay = obj.get_roi(mask, dataset);
     decay = mean(decay,3);
     decay(decay<0) = 0;
-    n = 4;
+    n = 1;
     nt = 5;
     
     diff = zeros(obj.height/n,obj.width/n);

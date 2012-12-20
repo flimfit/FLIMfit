@@ -7,8 +7,11 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
     end
     intensity = f.get_intensity(dataset);
     im_data = f.get_image(dataset,im);
-    invert = f.invert_colormap;
     
+    %im_data = stdfilt(im_data);
+    
+    invert = f.invert_colormap;
+        
     param = r.params{im};
     
     if strcmp(param,'I0') || strcmp(param,'I')

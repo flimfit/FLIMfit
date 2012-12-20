@@ -224,16 +224,19 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 hold(ax,'off');
 
                 lims = f.get_cur_lims(param);
-
+                %{
                 if isnan(lims(1)) || lims(1) > min(y_mean);
                     lims(1) = 0.9*min(y_mean);
                 end
                 if isnan(lims(2)) || lims(2) < max(y_mean);
                     lims(2) = 1.1*max(y_mean);
                 end
+                %}
                 set(ax,'YLim',lims);
                 
-                %set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
+                if isnumeric(x_data) && display < 3
+                    set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
+                end
                 
                 obj.raw_data = [cell_x_data; num2cell(y_mean); num2cell(y_err); num2cell(y_n)]';
        

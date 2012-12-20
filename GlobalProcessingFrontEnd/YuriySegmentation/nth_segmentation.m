@@ -27,6 +27,9 @@ norm = min(norm,10000);
 nth = nth / norm;
 t = t / norm;
 
+t = max(t,0);
+t = min(t,1);
+
 b1 = im2bw(nth,t);
 b2 = imerode(b1,se); b1 = imdilate(b2,se);
 

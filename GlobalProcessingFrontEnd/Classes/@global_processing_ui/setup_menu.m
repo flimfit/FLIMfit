@@ -49,6 +49,10 @@ function handles = setup_menu(obj,handles)
         handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
         handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
     end
+
+    handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
+    handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
+
     
     handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
     handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');

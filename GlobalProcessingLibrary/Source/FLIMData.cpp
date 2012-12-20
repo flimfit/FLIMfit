@@ -2,8 +2,10 @@
 #include <math.h>
 //#include "hdf5.h"
 
-FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
+FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
                    int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
+   polarisation_resolved(polarisation_resolved),
+   g_factor(g_factor),
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
@@ -90,6 +92,10 @@ FLIMData::FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double 
    tr_data    = new float[ n_thread * n_p ]; //ok
    tr_buf     = new float[ n_thread * n_p ]; //ok
    intensity  = new float[ n_thread * n_px ];
+
+   if (polarisation_resolved)
+      r_ss = new float[ n_thread * n_px ];
+
    tr_row_buf = new float[ n_thread * (n_x+n_y) ]; //ok
 
    region_count = new int[ n_im_used * MAX_REGION ];
@@ -402,7 +408,7 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* weight, int* irf_idx, float* local_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* weight, int* irf_idx, float* local_decay)
 {
    int s = 0;
 
@@ -413,14 +419,14 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_p
    }
    if ( global_mode == MODE_IMAGEWISE )
    {
-      s = GetMaskedData(thread, group, region, adjust, region_data, intensity_data, irf_idx, bin_px);
+      s = GetMaskedData(thread, group, region, adjust, region_data, intensity_data, r_ss_data, irf_idx, bin_px);
    }
    else if ( global_mode == MODE_GLOBAL )
    {
       s = 0;
       for(int i=0; i<n_im_used; i++)
       {
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas, intensity_data + s, irf_idx + s, bin_px);
+         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas, intensity_data + s, r_ss_data + s, irf_idx + s, bin_px);
       }
       if (bin_px)
       {
@@ -477,7 +483,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_p
 }
 
 
-int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, int* irf_idx, int bin_px)
+int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, int* irf_idx, int bin_px)
 {
    
    int iml = im;
@@ -487,6 +493,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
    uint8_t* im_mask = mask + iml*n_x*n_y;
    float*   tr_data   = this->tr_data + thread * n_p;
    float*   intensity = this->intensity + thread * n_px;
+   float*   r_ss      = this->r_ss + thread * n_px;
 
    if (data_class == DATA_FLOAT)
       TransformImage<float>(thread, im);
@@ -507,6 +514,10 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
          if (region < 0 || im_mask[p] == region)
          {
             masked_intensity[s] = intensity[p];
+
+            if (polarisation_resolved)
+               masked_r_ss[s] = r_ss[p];
+
             for(int i=0; i<n_meas; i++)
             {
                masked_data[i] += tr_data[p*n_meas+i] - adjust[i];
@@ -524,6 +535,10 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
          if (region < 0 || im_mask[p] == region)
          {
             masked_intensity[s] = intensity[p];
+   
+            if (polarisation_resolved)
+               masked_r_ss[s] = r_ss[p];
+            
             //memcpy(masked_data+s*n_meas, tr_data+p*n_meas, n_meas*sizeof(float));
             for(int i=0; i<n_meas; i++)
             {
@@ -563,19 +578,23 @@ FLIMData::~FLIMData()
    delete[] tr_buf;
    delete[] tr_row_buf;
    delete[] intensity;
+
    delete[] cur_transformed;
    delete[] resample_idx;
    delete[] data_map_view;
    delete[] n_meas_res;
  
-   if (!supplied_mask) 
-      delete[] mask;
-
    delete[] t_skip;
    delete[] region_count;
    delete[] region_pos;
    delete[] region_idx;
 
+   if (!supplied_mask) 
+      delete[] mask;
+   
+   if (polarisation_resolved)
+      delete[] r_ss;
+  
    if (data_file != NULL)
       delete[] data_file;
 }

@@ -241,7 +241,7 @@ if isfield(addlParms,'ppt')
             op=addlParms.ppt;
             break;
         catch
-            pause(2);
+            pause(0.2);
         end
     end
     if op==-1
@@ -524,8 +524,10 @@ if isfield(addlParms,'title')
     % Set the text in the title to the specified title
     set(new_slide.Shapes.Title.TextFrame.TextRange,'Text',addlParms.title);
 elseif isfield(addlParms,'currentslide') && get(op.Slides,'Count') > 0
-    n_slides = get(op.Slides,'Count');
-    new_slide = invoke(op.Slides,'Item',n_slides);
+    
+    slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex;
+
+    new_slide = invoke(op.Slides,'Item',slide_idx);
     if isfield(addlParms,'padding')
         top=addlParms.padding(3);
     else

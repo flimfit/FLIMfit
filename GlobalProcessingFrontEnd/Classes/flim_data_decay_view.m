@@ -178,7 +178,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                                 wifile = [path filesep name '_irf' ext];
                             end
                             dlmwrite(wfile,[t_decay' data],'\t');
-                            dlmwrite(wifile,[t_irf(:) irf(:)],'\t');
+                            dlmwrite(wifile,[t_irf irf],'\t');
                         end
 
 
@@ -274,7 +274,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                 end
 
                 % Set Y limits
-                if decay_mode == 1
+                %if decay_mode == 1
                     if ~all(data==1)
                        if display_mode == 1
                            low = 0;
@@ -298,9 +298,9 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
 
                     end
                     
-                    obj.ylim_residual = [nanmin(residual),nanmax(residual)];
+                    %obj.ylim_residual = [nanmin(residual),nanmax(residual)];
                     
-                end
+                %end
                 
                 
                 try                    

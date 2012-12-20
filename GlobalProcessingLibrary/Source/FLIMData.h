@@ -23,7 +23,7 @@ class FLIMData
 
 public:
 
-   FLIMData(int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
+   FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
             int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
 
    int  SetData(float data[]);
@@ -39,8 +39,8 @@ public:
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
-   int GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* weight, int* irf_idx, float* local_decay);
-   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, int* irf_idx, int bin_px);
+   int GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* weight, int* irf_idx, float* local_decay);
+   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, int* irf_idx, int bin_px);
 
    
    int GetImLoc(int im);
@@ -114,6 +114,7 @@ private:
    float* tr_buf;
    float* tr_row_buf;
    float* intensity;
+   float* r_ss;
 
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;
@@ -159,6 +160,8 @@ private:
    int* ext_resample_idx;
    int ext_n_meas_res;
 
+   int polarisation_resolved;
+   double g_factor;
 
 };
 
@@ -374,6 +377,7 @@ void FLIMData::TransformImage(int thread, int im)
    float* tr_data    = this->tr_data + thread * n_p;
    float* tr_buf     = this->tr_buf  + thread * n_p;
    float* intensity  = this->intensity + thread * n_px;
+   float* r_ss       = this->r_ss + thread * n_px;
    float* tr_row_buf = this->tr_row_buf + thread * (n_x + n_y);
 
    T* data_ptr = GetDataPointer<T>(thread, im);
@@ -404,12 +408,13 @@ void FLIMData::TransformImage(int thread, int im)
       int dxt = n_meas; 
       int dyt = n_x * dxt; 
 
-      int dx = n_t_full * n_chan;
+      int dx = n_meas_full;
       int dy = n_x * dx; 
 
       float* y_smoothed_buf = intensity; // use intensity as a buffer
 
       for(int c=0; c<n_chan; c++)
+      {
          for(int i=0; i<n_t; i++)
          {
             tr_idx = c*n_t + i;
@@ -481,6 +486,7 @@ void FLIMData::TransformImage(int thread, int im)
             }
 
          }
+      }
    }
    
    float tvb_sum = 0;
@@ -509,6 +515,35 @@ void FLIMData::TransformImage(int thread, int im)
          *intensity_ptr -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full) ;
 
       intensity_ptr++;
+   }
+
+   // Calculate Steady State Anisotropy
+   if (polarisation_resolved)
+   {
+      float para;
+      float perp;
+
+      float* r_ptr = r_ss;
+      cur_data_ptr = (T*) tr_data;
+      for(int p=0; p<n_px; p++)
+      {
+         para = 0;
+         perp = 0;
+
+         for(int i=0; i<n_t; i++)
+            para += cur_data_ptr[i];
+         cur_data_ptr += n_t;
+         for(int i=0; i<n_t; i++)
+            perp += cur_data_ptr[i];
+         cur_data_ptr += n_t;
+
+         perp *= (float) g_factor;
+
+         *r_ptr = (para - perp) / (para + 2 * perp);
+
+
+         r_ptr++;
+      }
    }
 
 

@@ -119,7 +119,7 @@ public:
 
    int s; int l; int nl; int n; int nmax; int ndim; 
    int lmax; int p; int n_v;
-   float *y; float *w; float *alf; float *lin_params; float *chi2; float *I;
+   float *y; float *w; float *alf; float *lin_params; float *chi2; float *I; float *r_ss;
    float *w_mean_tau, *mean_tau;
    int n_exp_phi, n_fret_group, exp_buf_size, tau_start;
 
@@ -181,6 +181,7 @@ public:
 
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
+   double CalculateGFactor();
 
    void SetupIncMatrix(int* inc);
    int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread);
@@ -281,10 +282,12 @@ private:
    int cur_region;
    int next_pixel;
    int threads_active;
+   int threads_started;
    tthread::mutex region_mutex;
    tthread::mutex pixel_mutex;
    tthread::mutex data_mutex;
    tthread::condition_variable active_lock;
+   tthread::condition_variable data_lock;
 
    friend void StartWorkerThread(void* wparams);
 };
@@ -297,12 +300,17 @@ void FLIMGlobalFitController::add_irf(int thread, int irf_idx, T a[], int pol_gr
 {
    int* resample_idx = data->GetResampleIdx(thread);
 
-   double* irf_buf = this->irf_buf;
+   double* lirf = this->irf_buf;
    
    if (image_irf)
-      irf_buf += irf_idx * n_irf * n_chan; 
+   {
+      lirf += irf_idx * n_irf * n_chan; 
+   }
    else if (t0_image)
-      irf_buf += (thread + 1) * n_irf * n_chan;
+   {
+      lirf += (thread + 1) * n_irf * n_chan;
+      ShiftIRF(t0_image[irf_idx], lirf);
+   }
 
    int idx = 0;
    int ii;
@@ -314,7 +322,7 @@ void FLIMGlobalFitController::add_irf(int thread, int irf_idx, T a[], int pol_gr
          ii = (int) floor((t[i]-t_irf[0])/t_g);
 
          if (ii>=0 && ii<n_irf)
-            a[idx] += (T) (irf_buf[k*n_irf+ii] * chan_fact[pol_group*n_chan+k] * scale);
+            a[idx] += (T) (lirf[k*n_irf+ii] * chan_fact[pol_group*n_chan+k] * scale);
          idx += resample_idx[i];
       }
       idx++;

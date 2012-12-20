@@ -40,7 +40,10 @@ function update_display(obj)
             mask_filtered = double(obj.filtered_mask(:,:,selected));
             mask = double(obj.mask(:,:,selected));
     
-            bmask = bwperim(mask);
+            bmask = mask > 0;
+            se = strel('disk',1);
+            bmaske = imerode(bmask,se);
+            bmask = bmask & ~bmaske;
         end
             
             

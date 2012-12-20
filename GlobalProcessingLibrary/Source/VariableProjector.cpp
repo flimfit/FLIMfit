@@ -636,6 +636,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
       for (i = k; i < n; ++i) 
          acum += a[i + k * a_dim1] * x[i];   
 
+
       lin_params[k + idx * lmax] = (float) x[k];
 
       x[k] = acum / a[k + k * a_dim1];

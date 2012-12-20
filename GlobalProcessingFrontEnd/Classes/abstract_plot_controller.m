@@ -79,7 +79,7 @@ classdef abstract_plot_controller < flim_fit_observer
                          '*.*',  'All Files (*.*)'},...
                          'Select root file name',[default_path filesep]);
 
-            if ~isempty(filename)
+            if filename~=0
                 
                 [~,name,ext] = fileparts(filename);
                 ext = ext(2:end);
@@ -248,9 +248,9 @@ classdef abstract_plot_controller < flim_fit_observer
             obj.draw_plot(obj.plot_handle,obj.cur_param);
         end
         
-        function mapped_data = apply_colourmap(data,param,lims)
+        function mapped_data = apply_colourmap(obj,data,param,lims)
             
-            cscale = obj.colourmap(param);
+            cscale = obj.colourscale(param);
             
             m=2^8;
             data = data - lims(1);
@@ -272,7 +272,7 @@ classdef abstract_plot_controller < flim_fit_observer
             param_name = obj.fit_controller.fit_result.params{param};
             invert = obj.fit_controller.invert_colormap;
             
-            if strcmp(param,'I0') || strcmp(param,'I')
+            if strcmp(param_name,'I0') || strcmp(param_name,'I')
                 cscale = @gray;
             elseif invert && (~isempty(strfind(param_name,'tau')) || ~isempty(strfind(param_name,'theta')))
                 cscale = @inv_jet;
@@ -293,6 +293,7 @@ classdef abstract_plot_controller < flim_fit_observer
             intensity = f.get_intensity_image(dataset);
             im_data = f.get_image(dataset,param);
 
+            
             cscale = obj.colourscale(param);
 
             lims = f.get_cur_lims(param);

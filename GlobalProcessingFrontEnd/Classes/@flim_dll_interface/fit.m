@@ -128,7 +128,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.p_irf = libpointer('doublePtr', d.tr_irf);
     end
     
-    if ~isempty(d.t0_image) && p.image_irf_mode == 2
+    if ~obj.bin && ~isempty(d.t0_image) && p.image_irf_mode == 2
         obj.p_t0_image = libpointer('doublePtr', d.t0_image);
     else
         obj.p_t0_image = [];

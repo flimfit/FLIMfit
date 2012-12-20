@@ -33,7 +33,7 @@ classdef flim_fitting_params < handle & h5_serializer
         use_phase_plane_estimation = false;
         auto_estimate_tau = true;
         
-        fixed_beta = false;
+        fixed_beta = [1];
         global_beta_group = [0];
 
         n_fret = 0;

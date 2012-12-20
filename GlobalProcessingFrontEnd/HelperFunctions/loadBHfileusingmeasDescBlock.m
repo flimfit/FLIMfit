@@ -260,6 +260,10 @@ fid=fopen(filename);
                     chanImData(:,end,:) = 0;
                 end
 
+                if c==2
+                    chanImData = circshift(chanImData,[0,0,0]);
+                end
+                
                 ImData(:,c,:,:) = chanImData;
             end
             

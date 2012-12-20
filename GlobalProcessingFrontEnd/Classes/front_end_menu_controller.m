@@ -39,6 +39,9 @@ classdef front_end_menu_controller < handle
         
         menu_file_load_raw;
         
+        menu_file_load_data_settings;
+        menu_file_save_data_settings;
+        
         menu_file_open_fit;
         menu_file_save_fit;
         
@@ -64,8 +67,6 @@ classdef front_end_menu_controller < handle
         menu_irf_estimate_t0;
         menu_irf_estimate_g_factor;
         menu_irf_estimate_background;
-        %menu_irf_set_rectangular;
-        %menu_irf_set_gaussian;
         menu_irf_recent;
         
         menu_background_background_load;
@@ -365,7 +366,24 @@ classdef front_end_menu_controller < handle
         function menu_file_reload_data_callback(obj,~,~)
             obj.data_series_controller.data_series.reload_data;
         end
-                
+
+        %------------------------------------------------------------------
+        % Export Data Settings
+        %------------------------------------------------------------------
+        function menu_file_save_data_settings_callback(obj,~,~)
+            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            if filename ~= 0
+                obj.data_series_controller.data_series.save_data_settings([pathname filename]);         
+            end
+        end
+        
+        function menu_file_load_data_settings_callback(obj,~,~)
+            [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            if filename ~= 0
+                obj.data_series_controller.data_series.load_data_settings([pathname filename]);         
+            end
+        end
+        
         %------------------------------------------------------------------
         % Export Data
         %------------------------------------------------------------------

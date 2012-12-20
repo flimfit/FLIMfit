@@ -272,9 +272,11 @@ classdef flim_data_series < handle & h5_serializer
         
         function file = save_data_settings(obj,file)
             %> Save data setting file
-            file = [];
+            if nargin < 2
+                file = [];
+            end
             if obj.init
-                if nargin < 2
+                if isempty(file)
                     pol_idx = obj.polarisation_resolved + 1;
                     file = [obj.root_path obj.data_settings_filename{pol_idx}];
                 end
@@ -416,7 +418,7 @@ classdef flim_data_series < handle & h5_serializer
                     n_px = 1;
                 end
                                 
-                data = nansum(data,3);
+                data = nanmean(data,3);
                 
                 para = data(:,1);
                 perp = data(:,2);

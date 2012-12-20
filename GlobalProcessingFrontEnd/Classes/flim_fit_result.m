@@ -79,6 +79,7 @@ classdef flim_fit_result < handle
                 lp = params{i};
                 lp = strrep(lp,'mean_tau','mean tau');
                 lp = strrep(lp,'w_mean','weighted mean');
+                lp = strrep(lp,'r_ss','r_{ss}');
 
                 obj.latex_params{i} = lp;
             end

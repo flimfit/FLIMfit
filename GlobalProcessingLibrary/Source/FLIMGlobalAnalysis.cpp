@@ -269,9 +269,11 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
    for(int i=0; i<n_t_full; i++)
       t[i] = t[i]/T_FACTOR;
 
-   int n_thread = controller[c_idx]->n_thread;
+   int    n_thread              = controller[c_idx]->n_thread;
+   int    polarisation_resolved = controller[c_idx]->polarisation_resolved;
+   double g_factor              = controller[c_idx]->CalculateGFactor();
 
-   FLIMData* d = new FLIMData(n_im, n_x, n_y, n_chan, n_t_full, t, t_int, t_skip, n_t, data_type, use_im,  
+   FLIMData* d = new FLIMData(polarisation_resolved, g_factor, n_im, n_x, n_y, n_chan, n_t_full, t, t_int, t_skip, n_t, data_type, use_im,  
                               mask, threshold, limit, counts_per_photon, global_mode, smoothing_factor, use_autosampling, n_thread);
    
    controller[c_idx]->SetData(d);
