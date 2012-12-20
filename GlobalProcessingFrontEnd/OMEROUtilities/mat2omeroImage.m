@@ -51,7 +51,8 @@ maxVal = max(data(:));
 
 for m = 1:sizeM % t is plane number    
     plane = squeeze(data(m,:,:));    
-    bytear=omerojava.util.GatewayUtils.convertClientToServer(pixels, plane) ;
+    bytear = ConvertClientToServer(pixels, plane);
+    %bytear = omerojava.util.GatewayUtils.convertClientToServer(pixels, plane);
         switch modulo
             case 'ModuloAlongC'
                 rawPixelsStore.setPlane(bytear, int32(0),int32(m-1),int32(0));                

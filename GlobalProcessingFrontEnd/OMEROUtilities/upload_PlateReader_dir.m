@@ -65,12 +65,14 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                             U = imread([folder filesep PlateSetups.names{imgind} filesep file_names{i}],PlateSetups.extension);                            
                             % rearrange planes
                             [w,h,Nch] = size(U);
-                            if isempty(Z)
-                                Z = zeros(num_files,h,w);           
-                            end;
+                            %
                             if 1 ~= Nch
                                 errordlg('Single-plane images are expected - can not continue');
                                 return;                                
+                            end;
+                            %
+                            if isempty(Z)
+                                Z = zeros(num_files,h,w);           
                             end;
                             %
                             Z(i,:,:) = squeeze(U(:,:,1))';                            
@@ -140,25 +142,25 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                     flimXMLmetadata.Image.ContentsType = 'sample';
                     flimXMLmetadata.Image.FLIMType = 'Gated';
                     %
-                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.ATTRIBUTE.ID = 'Annotation:3'; 
-                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.ATTRIBUTE.Namespace = 'openmicroscopy.org/omero/dimension/modulo'; 
-                    flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ATTRIBUTE.namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09';     
+                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.ATTRIBUTE.ID = 'Annotation:3'; 
+                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.ATTRIBUTE.Namespace = 'openmicroscopy.org/omero/dimension/modulo'; 
+                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ATTRIBUTE.namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09';     
                     switch modulo
                         case 'ModuloAlongC'
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type = 'lifetime'; 
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels = 1; % for now
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit = 'ps'; 
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.Label = channels_names; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type = 'lifetime'; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels = 1; % for now
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit = 'ps'; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.Label = channels_names; 
                         case 'ModuloAlongZ'
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type = 'lifetime'; 
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels = 1; % for now
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit = 'ps'; 
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label = channels_names; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type = 'lifetime'; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels = 1; % for now
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit = 'ps'; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label = channels_names; 
                         case 'ModuloAlongT'
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type = 'lifetime'; 
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels = 1; % for now
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit = 'ps'; 
-                            flimXMLmetadata.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.Label = channels_names; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type = 'lifetime'; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels = 1; % for now
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit = 'ps'; 
+                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label = channels_names; 
                     end           
                     %
                     xmlFileName = [tempdir 'metadata.xml'];

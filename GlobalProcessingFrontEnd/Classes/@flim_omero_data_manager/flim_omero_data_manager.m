@@ -32,7 +32,7 @@ classdef flim_omero_data_manager < handle
         % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION                                    
             polarisation_resolved = false;
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
+            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
                         
             if isempty(mdta.n_channels) || mdta.n_channels > 1
                 channel = data_series.request_channels(polarisation_resolved);
@@ -200,7 +200,7 @@ classdef flim_omero_data_manager < handle
                 imageList = obj.dataset.linkedImageList;
                 %       
                 if 0==imageList.size()
-                    errordlg(['Dataset have no images - please choose Dataset with images'])
+                    errordlg('Dataset have no images - please choose Dataset with images');
                     return;
                 end;                                    
                 %        
@@ -244,7 +244,7 @@ classdef flim_omero_data_manager < handle
             image_descriptor{2} = image_ids(1);                        
             image = get_Object_by_Id(obj.session,java.lang.Long(image_descriptor{2}));
             %
-            mdta= get_FLIM_params_from_metadata(obj.session,image.getId(),'metadata.xml');
+            mdta= get_FLIM_params_from_metadata(obj.session,image.getId());
             %
             obj.ZCT = get_ZCT(image, mdta.modulo);
             %
@@ -279,7 +279,7 @@ classdef flim_omero_data_manager < handle
                 data_size = [data_size(1) 1 data_size(2:3)];    
             end
             clear('data_cube');
-            %
+            %   
             data_series.data_size = data_size;
             data_series.num_datasets = num_datasets;       
             %
@@ -321,8 +321,9 @@ classdef flim_omero_data_manager < handle
             load_as_image = false;
             try
                 obj.load_irf_from_Dataset(data_series,Dataset,load_as_image);
-            catch
+            catch err
                 errordlg('Wrong input: Dataset should contain single-plane images with names encoding delays eg "INT_000750 T_01050.tif" ');
+                [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);                
             end
         end            
 
@@ -334,6 +335,7 @@ classdef flim_omero_data_manager < handle
                 obj.load_background_from_Dataset(data_series,Dataset);                
             catch
                 errordlg('Wrong input: Dataset should contain single-plane images of proper size');
+                [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);                
             end            
         end
         
@@ -363,8 +365,9 @@ classdef flim_omero_data_manager < handle
             if isempty(Dataset), return, end;            
             try
                 obj.load_tvb(data_series,Dataset);
-            catch
+            catch err
                 errordlg('Wrong input: Dataset should contain single-plane images of proper size');
+                [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);                
             end            
         end
                 
@@ -457,7 +460,7 @@ classdef flim_omero_data_manager < handle
                 sizeY = size(param_array,1);
                 sizeX = size(param_array,2);
             %            
-            choice = questdlg(['Do you want to Export fitting results as new Dataset or new Plate?'], ' ', ...
+            choice = questdlg('Do you want to Export fitting results as new Dataset or new Plate?', ' ', ...
                                     'new Dataset' , ...
                                     'new Plate','Cancel','Cancel');              
                                 
@@ -665,7 +668,7 @@ classdef flim_omero_data_manager < handle
             sha1 = char('pending');
             file_mime_type = char('application/octet-stream');
             %
-            ret = add_Annotation(obj.session, ...
+            add_Annotation(obj.session, ...
                             object, ...
                             sha1, ...
                             file_mime_type, ...
@@ -677,8 +680,10 @@ classdef flim_omero_data_manager < handle
         %------------------------------------------------------------------
         function Import_Fitting_Settings(obj,fitting_params_controller,~)
             %
-             if ~isempty(obj.dataset) parent = obj.dataset;
-                elseif ~isempty(obj.plate) parent = obj.plate;
+             if ~isempty(obj.dataset) 
+                parent = obj.dataset;
+             elseif ~isempty(obj.plate) 
+                parent = obj.plate;
              else
                 errordlg('please set a Dataset or a Plate'), return;
              end;            

@@ -384,7 +384,9 @@ data = createData();
             
         elseif strcmp(data.LoadMode,'single file')
 
-                        if ~strcmp('sdt',data.extension)
+                        if is_OME_tif(data.Directory)
+                            upload_Image_OME_tif(data.session,data.project,data.Directory,' ');                            
+                        elseif ~strcmp('sdt',data.extension)
                             U = imread(data.Directory,data.extension);
                             %
                             pixeltype = get_num_type(U);
@@ -612,7 +614,7 @@ data = createData();
         full_file_name = [pathname filesep filename]; % works;
         % check if file is OK - extension...
         str = split('.',full_file_name);
-        extension = str{2};
+        extension = str{length(str)};
         %
         if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') 
                                   

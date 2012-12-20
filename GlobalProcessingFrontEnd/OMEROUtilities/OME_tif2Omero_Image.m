@@ -156,7 +156,7 @@ re.close();
                         ind = l3 + L3*( (l2-1) + L2*(l1-1) );                         
                         plane = imread(filename,'Index',ind);                         
                         if ~isBigEndian, plane = swapbytes(plane); end;                        
-                        bytear=omerojava.util.GatewayUtils.convertClientToServer(pixels, plane') ;
+                        bytear = ConvertClientToServer(pixels, plane') ;
                         rawPixelsStore.setPlane(bytear, int32(z-1),int32(c-1),int32(t-1));
                         pixelsService.setChannelGlobalMinMax(pixelsId, c-1, double(min(min(plane))), double(max(max(plane))))                                            
                         %disp([ind t-1 z-1 c-1]);

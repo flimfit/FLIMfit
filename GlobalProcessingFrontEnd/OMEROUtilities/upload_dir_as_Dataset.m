@@ -27,7 +27,7 @@
                         if ~strcmp('sdt',extension)                            
                             if strcmp('tif',extension) && is_OME_tif(full_file_name) % that ignores "modulo" specifier!..
                                 upload_Image_OME_tif(session, new_dataset,full_file_name,' ');  
-                            else % try to load as channels anyway
+                            else % try to load according to "modulo"
                                 U = imread(full_file_name,extension);
                                 % rearrange planes
                                 [w,h,Nch] = size(U);
@@ -37,7 +37,7 @@
                                 end;
                                 img_description = ' ';               
                                 pixeltype = get_num_type(U);
-                                imageId = mat2omeroImage(session, Z, pixeltype, file_names{i},  img_description, [],modulo);
+                                imageId = mat2omeroImage(session, Z, pixeltype, file_names{i},  img_description, [], modulo);
                                 link = omero.model.DatasetImageLinkI;
                                 link.setChild(omero.model.ImageI(imageId, false));
                                 link.setParent(omero.model.DatasetI(new_dataset.getId().getValue(), false));

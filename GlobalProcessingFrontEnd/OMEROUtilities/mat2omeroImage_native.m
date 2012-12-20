@@ -38,7 +38,7 @@ maxVal = max(data(:));
                 for z = 1:sizeZ
                     for t = 1:sizeT
                         plane = squeeze(data(:,:,z,c,t));    
-                        bytear=omerojava.util.GatewayUtils.convertClientToServer(pixels, plane) ;
+                        bytear = ConvertClientToServer(pixels, plane) ;
                         rawPixelsStore.setPlane(bytear, int32(z-1), int32(c-1), int32(t-1));                
                     end
                 end

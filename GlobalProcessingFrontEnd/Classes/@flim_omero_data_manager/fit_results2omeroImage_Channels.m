@@ -39,7 +39,7 @@ problems_with_data = false;
 
 for c = 1:sizeC % k is channel number    
     plane = squeeze(data(c,:,:));    
-    bytear=omerojava.util.GatewayUtils.convertClientToServer(pixels, plane) ;
+    bytear = ConvertClientToServer(pixels, plane) ;
     rawPixelsStore.setPlane(bytear, int32(0),int32(c - 1),int32(0));        
     %
     nans = sum(sum(isnan(plane)));

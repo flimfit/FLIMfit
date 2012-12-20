@@ -19,24 +19,24 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
         ret.SizeT = tree.Image.Pixels.ATTRIBUTE.SizeT;       
     end
         
-    if isfield(tree,'StructuredAnnotation') 
-        if     isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo,'ModuloAlongT')
-            ret.delays = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.Label;
+    if isfield(tree,'StructuredAnnotations') 
+        if     isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT')
+            ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label;
             ret.modulo = 'ModuloAlongT';
-            if isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE,'NumberOfFLIMChannels')
-                ret.n_channels = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels;
+            if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE,'NumberOfFLIMChannels')
+                ret.n_channels = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels;
             end;            
-        elseif isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo,'ModuloAlongC')
-            ret.delays = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.Label;
+        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC')
+            ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.Label;
             ret.modulo = 'ModuloAlongC';
-            if isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE,'NumberOfFLIMChannels')
-                ret.n_channels = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels;
+            if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE,'NumberOfFLIMChannels')
+                ret.n_channels = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels;
             end;
-        elseif isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
-            ret.delays = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label;        
+        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
+            ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label;        
             ret.modulo = 'ModuloAlongZ';
-            if isfield(tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE,'NumberOfFLIMChannels')
-                ret.n_channels = tree.StructuredAnnotation.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels;
+            if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE,'NumberOfFLIMChannels')
+                ret.n_channels = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels;
             end;            
         end
     end
