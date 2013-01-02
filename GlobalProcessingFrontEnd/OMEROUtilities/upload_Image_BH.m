@@ -158,13 +158,11 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
                 case 'ModuloAlongZ'
                     flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = sizeZ;                    
                     flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type = 'lifetime'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
                     flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit = 'ps'; 
                     flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label = channels_names(1:nBins); 
                 case 'ModuloAlongT'
                     flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = sizeT;                    
                     flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type = 'lifetime'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
                     flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit = 'ps'; 
                     flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label = channels_names(1:nBins); 
             end                                   

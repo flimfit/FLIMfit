@@ -23,23 +23,18 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
         if     isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT')
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label;
             ret.modulo = 'ModuloAlongT';
-            if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE,'NumberOfFLIMChannels')
-                ret.n_channels = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels;
-            end;            
+            ret.n_channels = ret.SizeT/numel(ret.delays);
         elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC')
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.Label;
             ret.modulo = 'ModuloAlongC';
-            if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE,'NumberOfFLIMChannels')
-                ret.n_channels = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels;
-            end;
+            ret.n_channels = ret.SizeC/numel(ret.delays);            
         elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label;        
             ret.modulo = 'ModuloAlongZ';
-            if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE,'NumberOfFLIMChannels')
-                ret.n_channels = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels;
-            end;            
+            ret.n_channels = ret.SizeZ/numel(ret.delays);                        
         end
     end
+    %    
     %
     %LaVision kludge    
     if isfield(tree.Image,'ca_COLON_CustomAttributes')
