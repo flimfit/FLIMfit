@@ -8,9 +8,9 @@ function res = is_OME_tif(filename)
         return;
     end;                   
     
-    tT = Tiff(filename);
     s = [];
-    try
+    try    
+        tT = Tiff(filename);
         s = tT.getTag('ImageDescription');
     catch
         return;
