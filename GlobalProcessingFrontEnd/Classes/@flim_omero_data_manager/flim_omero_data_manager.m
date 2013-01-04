@@ -314,6 +314,82 @@ classdef flim_omero_data_manager < handle
             end
         end            
                 
+        %------------------------------------------------------------------                        
+        function channel = get_single_channel_IRF_FOV(obj,image,data_series, load_as_image)
+        % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
+        
+            if nargin < 4
+                load_as_image = false;
+            end
+            
+            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            
+            polarisation_resolved = false;
+                        
+            if isempty(mdta.n_channels) || mdta.n_channels > 1
+                channel = data_series.request_channels(polarisation_resolved);
+            else
+                channel = 1;
+            end;
+            
+            if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
+                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
+            else
+                obj.ZCT = get_ZCT(image,mdta.modulo);
+            end
+            %
+            try
+                [t_irf, irf_image_data, name] = obj.OMERO_fetch(image, channel, obj.ZCT, mdta);
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            end      
+              
+     
+            irf_image_data = double(irf_image_data);
+    
+            % Sum over pixels
+            s = size(irf_image_data);
+            if length(s) == 3
+                irf = reshape(irf_image_data,[s(1) s(2)*s(3)]);
+                irf = mean(irf,2);
+            elseif length(s) == 4
+                irf = reshape(irf_image_data,[s(1) s(2) s(3)*s(4)]);
+                irf = mean(irf,3);
+            else
+                irf = irf_image_data;
+            end
+    
+            % export may be in ns not ps.
+            if max(t_irf) < 300
+                t_irf = t_irf * 1000; 
+            end
+            
+             if load_as_image
+                irf_image_data = data_series.smooth_flim_data(irf_image_data,7);
+                data_series.image_irf = irf_image_data;
+                data_series.has_image_irf = true;
+             else
+                data_series.has_image_irf = false;
+             end
+
+            data_series.t_irf = t_irf(:);
+            data_series.irf = irf;
+            data_series.irf_name = 'irf';
+
+            data_series.t_irf_min = min(data_series.t_irf);
+            data_series.t_irf_max = max(data_series.t_irf);
+
+            data_series.estimate_irf_background();
+
+            data_series.compute_tr_irf();
+            data_series.compute_tr_data();
+
+            notify(data_series,'data_updated');
+            
+        end
+                                
+              
+        
         %------------------------------------------------------------------        
         function Load_IRF_WF_gated(obj,data_series,~)
             [ Dataset ~ ] = select_Dataset(obj.session,'Select IRF Dataset:');             
@@ -371,6 +447,28 @@ classdef flim_omero_data_manager < handle
             end            
         end
                 
+        %------------------------------------------------------------------        
+        function Load_IRF_FOV(obj,data_series,~)
+            %
+            if ~isempty(obj.plate)                
+                image = select_Image(obj.session,obj.plate);                
+            elseif ~isempty(obj.dataset)
+                image = select_Image(obj.session,obj.dataset);
+            else
+                errordlg('Please set Dataset or Plate before trying to load IRF'); 
+                return; 
+            end;
+            %
+            if ~isempty(image) 
+                try
+                    obj.selected_channel = obj.get_single_channel_IRF_FOV(image,data_series);
+                catch err
+                    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
+                end
+            end
+            %
+        end                          
+               
         %------------------------------------------------------------------        
         function Load_IRF_annot(obj,data_series,~)
             %
@@ -609,7 +707,8 @@ classdef flim_omero_data_manager < handle
                                                     newwell = updateService.saveAndReturnObject(newwell);        
                                                     newws = omero.model.WellSampleI();
                                                         %results image
-                                                            data = zeros(n_params,sizeX,sizeY);
+                                       
+                                                        data = zeros(n_params,sizeX,sizeY);
                                                                 for p = 1:n_params,
                                                                     data(p,:,:) = res.get_image(dataset_index, params{p})';
                                                                 end                                                                                  

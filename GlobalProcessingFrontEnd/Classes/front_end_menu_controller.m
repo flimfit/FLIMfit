@@ -7,7 +7,8 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Set_Dataset;        
         menu_OMERO_Set_Plate;        
         menu_OMERO_Load_FLIM_Data;
-        menu_OMERO_Load_FLIM_Dataset;  
+        menu_OMERO_Load_FLIM_Dataset; 
+        menu_OMERO_Load_IRF_FOV;
         menu_OMERO_Load_IRF_annot;            
         menu_OMERO_Load_Background;            
         menu_OMERO_Export_Fitting_Results;    
@@ -274,7 +275,11 @@ classdef front_end_menu_controller < handle
             obj.data_series_controller.data_series = flim_data_series();            
             obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
         end                    
-        %------------------------------------------------------------------        
+        %------------------------------------------------------------------ 
+        function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
+            obj.omero_data_manager.Load_IRF_FOV(obj.data_series_controller.data_series);
+        end                    
+        %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
             obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series);
         end                    
