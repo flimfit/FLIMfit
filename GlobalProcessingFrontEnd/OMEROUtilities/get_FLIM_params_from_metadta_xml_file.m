@@ -22,21 +22,18 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
     ret.n_channels = ret.SizeC; % # FLIM blocks
         
     if isfield(tree,'StructuredAnnotations') 
-        %if     isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT') && strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type)
         if  strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type)
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label;
             ret.modulo = 'ModuloAlongT';
             if 1 == ret.n_channels 
                 ret.n_channels = ret.SizeT/numel(ret.delays);
             end
-        %elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC') && strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type)
         elseif strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type)
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.Label;
             ret.modulo = 'ModuloAlongC';
             if 1 == ret.n_channels             
                 ret.n_channels = ret.SizeC/numel(ret.delays);            
             end
-        %elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ') && strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type)
         elseif strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type)
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label;        
             ret.modulo = 'ModuloAlongZ';
@@ -58,5 +55,4 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
             ret.delays = num2cell((0:SizeZ-1)*incr);
         end
     end;
-    
-    
+        
