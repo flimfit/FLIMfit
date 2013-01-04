@@ -295,7 +295,11 @@ classdef flim_omero_data_manager < handle
                 %
                 data_series.file_names = {'file'};
                 data_series.channels = 1;
-                data_series.metadata = extract_metadata(data_series.names);        
+                try
+                    data_series.metadata = extract_metadata(data_series.names);        
+                catch err
+                    [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
+                end
                 data_series.polarisation_resolved = polarisation_resolved;
                 data_series.t = delays;
                 data_series.use_memory_mapping = false;
