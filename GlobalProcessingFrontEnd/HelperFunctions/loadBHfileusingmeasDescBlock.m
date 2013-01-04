@@ -1,4 +1,4 @@
-function [ImData Delays]=loadBHfileusingmeasDescBlock(filename, channel)
+function [ImData Delays, chan_info] =loadBHfileusingmeasDescBlock(filename, channel, return_data)
 
 
 % [ImData Delays]=loadBHFile (filename)
@@ -16,7 +16,11 @@ if nargin < 2
 end
 
 
+if nargin < 3 
+    return_data = true;
+end
 
+chan_info = [];
 timerange=12500;        % default timeRange in ps
 
 fid=fopen(filename);
@@ -139,6 +143,28 @@ fid=fopen(filename);
         
     end
     
+    % if return_data has been set to false then return here! 
+    % Without getting data!
+    if return_data == false
+        ImData = [];
+        Delays = [];
+        if meas_mode == 0        % single point data     
+            chan_info = {'sdt data'};
+        else
+            datacount = block_length/2;    % 16 bit data
+            im_size = scanx * scany * adc_res;
+            n_chan = floor(datacount/im_size);
+            chan_info = cell(1,n_chan);
+            for i=1:n_chan
+                chan_info{i} = ['sdt channel ' num2str(i)];
+            end
+        end
+        return;
+    end
+        
+        
+    
+    % otherwise get data as normal
     if meas_mode == 0        % single point data     
         fseek (fid, data_offs, 'bof'); 
         %[ ImData,  successfullyRead] =fread(fid, adc_res, 'uint16');   % single curve
