@@ -19,22 +19,25 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
         ret.SizeT = tree.Image.Pixels.ATTRIBUTE.SizeT;               
     end
     
-    ret.n_channels = ret.SizeC;
+    ret.n_channels = ret.SizeC; % # FLIM blocks
         
     if isfield(tree,'StructuredAnnotations') 
-        if     isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT')
+        %if     isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT') && strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type)
+        if  strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type)
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label;
             ret.modulo = 'ModuloAlongT';
             if 1 == ret.n_channels 
                 ret.n_channels = ret.SizeT/numel(ret.delays);
             end
-        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC')
+        %elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC') && strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type)
+        elseif strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type)
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.Label;
             ret.modulo = 'ModuloAlongC';
             if 1 == ret.n_channels             
                 ret.n_channels = ret.SizeC/numel(ret.delays);            
             end
-        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
+        %elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ') && strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type)
+        elseif strcmp('lifetime',tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type)
             ret.delays = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label;        
             ret.modulo = 'ModuloAlongZ';
             if 1 == ret.n_channels            
@@ -47,7 +50,7 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
     %LaVision kludge    
     if isfield(tree.Image,'ca_COLON_CustomAttributes')
         software_name = tree.Image.ca_COLON_CustomAttributes.ImspectorVersion.ATTRIBUTE.ImspectorVersion;
-        if strcmp(software_name,'Imspector Pro ')
+        if strfind(software_name,'Imspector Pro ')
             SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ;
             ret.FLIM_type = 'TCSPC';
             ret.modulo = 'ModuloAlongZ';
