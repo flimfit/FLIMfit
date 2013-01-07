@@ -61,9 +61,17 @@ classdef flim_omero_data_manager < handle
             end      
             data_size = size(data_cube);
             %
-            extension = 'sdt'; % used....
-            string = strrep(name,['.' extension],'');
-            data_series.names{1} = string;            
+            % set name
+            extensions{1} = '.ome.tiff';
+            extensions{2} = '.ome.tif';
+            extensions{3} = '.tif';
+            extensions{4} = '.tiff';
+            extensions{5} = '.sdt';                        
+                for extind = 1:numel(extensions)    
+                    name = strrep(name,extensions{extind},'');
+                end                                
+            data_series.names{1} = name;            
+            %
             data_series.data_size = data_size;
             data_series.num_datasets = 1;  
             data_series.file_names = {'file'};                
@@ -132,15 +140,13 @@ classdef flim_omero_data_manager < handle
         end                          
         
         %------------------------------------------------------------------        
-        function Load_FLIM_Dataset(obj,data_series,~)
+        function Load_FLIM_Dataset(obj,data_series,~)                        
         % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION             
             %
             if isempty(obj.plate) && isempty(obj.dataset)
                 errordlg('Please set Dataset or Plate before trying to load images'); 
                 return;                 
             end;
-            %
-            extension = 'sdt'; % used....
             %
             if ~isempty(obj.plate) 
             %
@@ -240,13 +246,9 @@ classdef flim_omero_data_manager < handle
             %
             if 0==numel(image_ids), return, end;
             %                       
-            image_descriptor{1} = obj.session;
-            image_descriptor{2} = image_ids(1);                        
-            image = get_Object_by_Id(obj.session,java.lang.Long(image_descriptor{2}));
+            image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
             %
             mdta= get_FLIM_params_from_metadata(obj.session,image.getId());
-            %
-            obj.ZCT = get_ZCT(image, mdta.modulo);
             %
             if isempty(mdta.n_channels) || mdta.n_channels > 1
                 obj.selected_channel = data_series.request_channels(polarisation_resolved);            
@@ -265,7 +267,7 @@ classdef flim_omero_data_manager < handle
                 obj.ZCT = [mdta.SizeZ obj.selected_channel mdta.SizeT]; 
             else
                 obj.ZCT = get_ZCT(image,mdta.modulo);
-            end
+            end                        
             %                                   
             try
                 [delays, data_cube, ~] = obj.OMERO_fetch(image, obj.selected_channel,obj.ZCT,mdta);
@@ -281,15 +283,22 @@ classdef flim_omero_data_manager < handle
             clear('data_cube');
             %   
             data_series.data_size = data_size;
-            data_series.num_datasets = num_datasets;       
-            %
-            %set names
+            data_series.num_datasets = num_datasets;                   
             data_series.names = cell(1,num_datasets);
-            for j=1:num_datasets
-                % need to remove extension - for sdt...
-                string = strrep(folder_names{j},['.' extension],'');
-                data_series.names{j} = string;
-            end
+            %
+            % set names
+            extensions{1} = '.ome.tiff';
+            extensions{2} = '.ome.tif';
+            extensions{3} = '.tif';
+            extensions{4} = '.tiff';
+            extensions{5} = '.sdt';                        
+                for j=1:num_datasets
+                    string = folder_names{j};
+                    for extind = 1:numel(extensions)    
+                        string = strrep(string,extensions{extind},'');
+                    end
+                    data_series.names{j} = string;
+                end
             %        
             if numel(delays) > 0 % ??
                 %
