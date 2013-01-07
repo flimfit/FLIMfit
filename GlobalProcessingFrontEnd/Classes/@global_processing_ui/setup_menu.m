@@ -9,6 +9,8 @@ function handles = setup_menu(obj,handles)
         
       menu_OMERO = uimenu(obj.window,'Label','OMERO');
    
+        handles.menu_OMERO_Working_Data_Info = uimenu(menu_OMERO,'Label','Working Data have not been set up','ForegroundColor','red');
+        
         menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set Working Data');
             handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO_Set_Data,'Label','Dataset');
             handles.menu_OMERO_Set_Plate = uimenu(menu_OMERO_Set_Data,'Label','SPW Plate');

@@ -18,7 +18,9 @@ classdef front_end_menu_controller < handle
             menu_OMERO_Load_IRF_WF_gated;
             menu_OMERO_Load_Background_form_Dataset;
             menu_OMERO_Load_tvb_from_Image;
-            menu_OMERO_Load_tvb_from_Dataset;        
+            menu_OMERO_Load_tvb_from_Dataset; 
+            
+        menu_OMERO_Working_Data_Info;
         
         omero_data_manager;                
         
@@ -263,7 +265,8 @@ classdef front_end_menu_controller < handle
         % OMERO
         %------------------------------------------------------------------
         function menu_OMERO_Set_Dataset_callback(obj,~,~)            
-            obj.omero_data_manager.Set_Dataset();            
+            infostring = obj.omero_data_manager.Set_Dataset();
+            set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
@@ -307,7 +310,8 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Set_Plate_callback(obj,~,~)
-            obj.omero_data_manager.Set_Plate();
+            infostring = obj.omero_data_manager.Set_Plate();
+            set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
         end     
         %------------------------------------------------------------------        
         function menu_OMERO_Reset_Logon_callback(obj,~,~)

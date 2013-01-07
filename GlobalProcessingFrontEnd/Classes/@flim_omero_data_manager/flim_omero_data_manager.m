@@ -88,7 +88,7 @@ classdef flim_omero_data_manager < handle
         end
                                 
         %------------------------------------------------------------------                
-        function Set_Dataset(obj,~,~)
+        function infostring = Set_Dataset(obj,~,~)
             %
             obj.screen = [];
             obj.plate = [];
@@ -99,11 +99,17 @@ classdef flim_omero_data_manager < handle
             %
             obj.dataset = Dataset;
             obj.project = Project;
-            % 
+            %            
+            pName = char(java.lang.String(obj.project.getName().getValue()));
+            pIdName = num2str(obj.project.getId().getValue());
+            dName = char(java.lang.String(obj.dataset.getName().getValue()));                    
+            dIdName = num2str(obj.dataset.getId().getValue());                       
+            infostring = [ 'Dataset "' dName '" [' dIdName '] @ Project "' pName '" [' pIdName ']' ];
+            %
         end                
         
         %------------------------------------------------------------------                
-        function Set_Plate(obj,~,~)
+        function infostring = Set_Plate(obj,~,~)
             %
             obj.project = [];
             obj.dataset = [];
@@ -115,6 +121,12 @@ classdef flim_omero_data_manager < handle
             obj.plate = Plate;
             obj.screen = Screen;
             % 
+            sName = char(java.lang.String(obj.screen.getName().getValue()));
+            sIdName = num2str(obj.screen.getId().getValue());
+            ptName = char(java.lang.String(obj.plate.getName().getValue()));                    
+            ptIdName = num2str(obj.plate.getId().getValue());                       
+            infostring = [ 'Plate "' ptName '" [' ptIdName '] @ Screen "' sName '" [' sIdName ']' ];
+            %            
         end                
                 
         %------------------------------------------------------------------        
