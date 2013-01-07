@@ -67,7 +67,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    //------------------------------
    if (estimate_initial_tau)
    {
-      tau_ma = CalculateMeanArrivalTime(local_decay, 0);
+      tau_ma = EstimateAverageLifetime(local_decay, 0);
 
       if (n_v == 1)
       {

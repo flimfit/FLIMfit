@@ -159,25 +159,37 @@ int FLIMGlobalFitController::RunWorkers()
 }
 
 
-
+/**
+ * Wrapper function for WorkerThread
+ */
 void StartWorkerThread(void* wparams)
 {
    WorkerParams* p = (WorkerParams*) wparams;
+
    FLIMGlobalFitController* controller = p->controller;
-   int thread = p->thread;
+   int                      thread     = p->thread;
 
    controller->WorkerThread(thread);
 }
 
-
+/**
+ * Worker thread, called several times to process regions
+ */
 void FLIMGlobalFitController::WorkerThread(int thread)
 {
-   int idx, px, region_count;
+   int idx, region_count;
    
    status->AddThread();
 
+   //=============================================================================
+   // In pixelwise mode, we process one region at a time, with all threads
+   // working on the same region. When all threads are finished working
+   // on a region, thread 0 gets the data for the next thread and processing
+   // begins again. Use active_lock to ensure processes are kept in order
+   //=============================================================================
    if (data->global_mode == MODE_PIXELWISE)
    {
+
       for(int im=0; im<data->n_im_used; im++)
       {
          for(int r=0; r<MAX_REGION; r++)
@@ -187,7 +199,10 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                idx = im*MAX_REGION+r;
 
                if (thread > 0)
-               {      
+               {     
+                  // If we are not thread 0, check if thread 0 has processed
+                  // the data we need. If not, wait until it has been processed
+                  
                   region_mutex.lock();
 
                   while (idx > cur_region)
@@ -195,13 +210,18 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   
                   threads_active++;
                   threads_started++;
+
                   region_mutex.unlock();
                }
                else
                {                  
+                  // If we are thread 0, check to see if all threads have started & finished on current region
+                  // then request data for next region
+
                   region_mutex.lock();
                   
-                  while ( threads_active > 0 || (threads_started < n_thread && cur_region >= 0) )
+                  while (  threads_active > 0 ||                           // there are threads running
+                          (threads_started < n_thread && cur_region >= 0) ) // not all threads have yet started up
                      active_lock.wait(region_mutex);
   
                   float* I_local    = I    + data->GetRegionPos(im,r);
@@ -221,12 +241,14 @@ void FLIMGlobalFitController::WorkerThread(int thread)
 
                }
 
+               // Process every n_thread'th pixel in region
+
                region_count = data->GetRegionCount(im,r);
-               px = 0;
                for(int j=thread; j<region_count; j+=n_thread)
                {
                   ProcessRegion(im, r, j, thread);
                   
+                  // Check to see if a termination has been requested
                   if (status->terminate)
                   {
                      region_mutex.lock();
@@ -248,26 +270,38 @@ void FLIMGlobalFitController::WorkerThread(int thread)
          }
       }
    }
+
+   //=============================================================================
+   // In imagewise mode, each region from each image is processed seperately. 
+   // Each thread processes every n_thread'th region in the dataset
+   //=============================================================================
    else if (data->global_mode == MODE_IMAGEWISE)
    {
+      // Cycle through every region in every image
       for(int im=0; im<data->n_im_used; im++)
-      {
          for(int r=0; r<MAX_REGION; r++)
          {
+            // Get region index and process if it exists and is for this threads
             idx = data->GetRegionIndex(im,r);
-            if (idx > -1 && idx % n_thread == thread)
+            if (idx > -1 &&               // region exists
+               idx % n_thread == thread)  // should be processed by this thread
                ProcessRegion(im, r, 0, thread);
             
             if (status->terminate)
                goto terminated;
          }
-      }
    }
+
+   //=============================================================================
+   // In global mode each region is processed seperately across the images
+   // so we processes all region 1's from every image together etc
+   // Each thread processes a different region
+   //=============================================================================
    else
    {
+      // Cycle through regions
       for(int r=0; r<MAX_REGION; r++)
       {
-
          idx = data->GetRegionIndex(-1,r);
          if (idx > -1 && idx % n_thread == thread)
             ProcessRegion(-1, r, 0, thread);
@@ -281,6 +315,7 @@ terminated:
 
    int threads_running = status->RemoveThread();
 
+   // If we're the last thread running cleanup temporary variables
    if (threads_running == 0 && runAsync)
       CleanupTempVars();
 
@@ -304,54 +339,64 @@ void FLIMGlobalFitController::SetPolarisationMode(int mode)
       this->polarisation_resolved = true;
 }
 
+/**
+ * Determine which data should be used when we're calculating the average lifetime for an initial guess. 
+ * Since we won't take the IRF into account we need to only use data after the gate is mostly closed.
+ * 
+ * \param idx The pixel index, used if we have a spatially varying IRF
+*/
 int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
 {
-   double irf_95, c, p;
-   double* t = data->GetT();
-   int j_last; 
-
+   double c;
+   int j_last = 0;
    int start = 0;
 
+   // Get reference to timepoints
+   double* t = data->GetT();
+   
+   // Get IRF for the pixel position idx
    double *irf = this->irf_buf + idx * n_irf * n_chan;
 
-   c = 0;
-   j_last = 0;
-   for(int i=0; i<n_irf; i++)
-      c += irf[i];
-
-   if (polarisation_resolved)
-   {
-      p = 0;
-      for(int i=0; i<n_irf; i++)
-         p += irf[i+n_irf];
-
-         g_factor = c/p;
-   }
-
+   //===================================================
+   // If we have a scatter IRF use data after cumulative sum of IRF is
+   // 95% of total sum (so we ignore any potential tail etc)
+   //===================================================
    if (!ref_reconvolution)
-   {
-      // Start after 95% of IRF
-      irf_95 = c * 0.95;
+   {      
+      // Determine 95% of IRF
+      double irf_95 = 0;
+      for(int i=0; i<n_irf; i++)
+         irf_95 += irf[i];
+      irf_95 *= 0.95;
    
+      // Cycle through IRF to find time at which cumulative IRF is 95% of sum.
+      // Once we get there, find the time gate in the data immediately after this time
       c = 0;
       for(int i=0; i<n_irf; i++)
       {
          c += irf[i];
          if (c >= irf_95)
          {
-            for (int j=0; j<data->n_t; j++)
+            for (int j=j_last; j<data->n_t; j++)
                if (t[j] > t_irf[i])
                {
                   start = j;
+                  j_last = j;
                   break;
                }
             break;
          }   
       }
    }
+
+   //===================================================
+   // If we have reference IRF, use data after peak of reference which should roughly
+   // correspond to end of gate
+   //===================================================
    else
    {
-      // Look for maximum point of reference
+      // Cycle through IRF, if IRF is larger then previously seen find the find the 
+      // time gate in the data immediately after this time. Repeat until end of IRF.
       c = 0;
       for(int i=0; i<n_irf; i++)
       {
@@ -373,66 +418,29 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
    return start;
 }
 
-double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
+/**
+ * Estimate average lifetime of a decay as an intial guess
+ */ 
+double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
 {
    double* t   = data->GetT();
    double  tau = 0;
-   double  n   = 0;
    int     start;
-   int     N;
    
-   double sum_t  = 0;
-   double sum_t2 = 0;
-   double sum_tlnI = 0;
-   double sum_lnI = 0;
-   double dt;
-
    //if (image_irf)
    //   start = DetermineMAStartPosition(p);
    //else
       start = ma_start;
-      /*
-   int mid = (n_t - start)/2 + start;
-
-   double D0 = 0;
-   double D1 = 0;
-   
-   n = 0;
-   for(int i=start; i<n_t; i++)
-      n += decay[i];
-   int n2 = 0.75 * n;
-
-   n = 0;
-   for(int i=start; i<mid; i++)
-   {
-      n   += decay[i];
-      if (n>=n2)
-      {
-         mid = i;
-         break;
-      }
-   }
-   
-   int last = 2*mid - start;
-   
-   double dt = t[mid]-t[start];
-
-   for(int i=start; i<mid; i++)
-      D0 += decay[i];
-   for(int i=mid; i<last; i++)
-      D1 += decay[i];
-
-   tau = -dt/log(D1/D0);
-
-   if (tau<100)
-      tau = 100;
-
-   return tau;
-   */
+     
+   //===================================================
+   // For TCSPC data, calculate the mean arrival time and apply a correction for
+   // the data censoring (i.e. finite measurement window)
+   //===================================================
 
    if (data->data_type == DATA_TYPE_TCSPC)
    {
-      // If TCSPC calculate mean arrival time
+      double  n  = 0;
+
 
       for(int i=start; i<n_t; i++)
       {
@@ -440,6 +448,7 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
          n   += decay[i];
       }
    
+      // If polarisation resolevd add perp decay using I = para + 2*g*perp
       if (polarisation_resolved)
       {
          for(int i=start; i<n_t; i++)
@@ -451,18 +460,26 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
 
       tau = tau / n;
 
+      // Apply correction for measurement window
       double T = t[n_t-1]-t[start];
-
-      double tau1 = tau;
       for(int i=0; i<10; i++)  
-      {
-         tau = tau + T / (exp(T/tau1)-1);
-      }
+         tau = tau + T / (exp(T/tau)-1);
 
    }
+
+   //===================================================
+   // For widefield data, apply linearised model 
+   //===================================================
+
    else
    {
-      // If widefield use RLD
+      double sum_t  = 0;
+      double sum_t2 = 0;
+      double sum_tlnI = 0;
+      double sum_lnI = 0;
+      double dt;
+      int    N;
+
 
       N = n_t-start;
 
@@ -486,7 +503,13 @@ double FLIMGlobalFitController::CalculateMeanArrivalTime(float decay[], int p)
    return tau;
 
 }
-
+ 
+/** 
+ * Calculate g factor for polarisation resolved data
+ *
+ * g factor gives relative sensitivity of parallel and perpendicular channels, 
+ * and so can be determined from the ratio of the IRF's for the two channels 
+*/
 double FLIMGlobalFitController::CalculateGFactor()
 {
    if (polarisation_resolved)
@@ -499,12 +522,14 @@ double FLIMGlobalFitController::CalculateGFactor()
          perp += irf[i+n_irf];
       }
 
-      return para / perp;
+      g_factor = para / perp;
    }
    else
    {
-      return 1;
+      g_factor = 1;
    }
+
+   return g_factor;
 }
 
 
@@ -914,7 +939,7 @@ void FLIMGlobalFitController::Init()
    for(int i=2; i<n_t; i++)
    {
       double dt = t[i] - t[i-1];
-      if ((dt - dt0) > 1)
+      if (abs(dt - dt0) > 1e-5)
       {
          eq_spaced_data = false;
          break;
@@ -1133,11 +1158,13 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
 
 }
 
-
+/** 
+ * Calculate IRF values to include in convolution for each time point
+ *
+ * Accounts for the step function in the model - we don't want to convolve before the decay starts
+*/
 void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
 {
-   // Calculate IRF values to include in convolution for each time point
-   //------------------------------------------------------------------
    for(int j=0; j<n_chan; j++)
    {
       for(int i=0; i<n_t; i++)
@@ -1270,8 +1297,6 @@ void FLIMGlobalFitController::CleanupResults()
    ClearVariable(beta_buf);
    ClearVariable(theta_buf);
    ClearVariable(chan_fact);
-   //ClearVariable(locked_param);
-   //ClearVariable(locked_value);
    ClearVariable(cur_alf);
    ClearVariable(cur_irf_idx);
 

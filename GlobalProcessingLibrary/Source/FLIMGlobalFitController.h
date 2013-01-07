@@ -249,7 +249,7 @@ private:
 
 
    int DetermineMAStartPosition(int p);
-   double CalculateMeanArrivalTime(float decay[], int p);
+   double EstimateAverageLifetime(float decay[], int p);
 
    void ShiftIRF(double shift, double s_irf[]);
 
