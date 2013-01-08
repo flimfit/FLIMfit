@@ -217,7 +217,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                         intensity = obj.fit_controller.get_image(i,'I');
                         intensity = intensity( filt );
 
-                        count(:,i) = weightedhist(ax,param_data,intensity,x)';
+                        count(:,i) = weightedhist(param_data,intensity,x)';
                     else
                         count(:,i) = hist(param_data,x)';
                     end
