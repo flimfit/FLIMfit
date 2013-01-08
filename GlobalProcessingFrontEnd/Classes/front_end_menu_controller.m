@@ -272,11 +272,13 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
             obj.data_series_controller.data_series = flim_data_series();
             obj.omero_data_manager.Load_FLIM_Data(obj.data_series_controller.data_series);
+            notify(obj.data_series_controller,'new_dataset');
         end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
             obj.data_series_controller.data_series = flim_data_series();            
             obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
+            notify(obj.data_series_controller,'new_dataset');
         end                    
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
