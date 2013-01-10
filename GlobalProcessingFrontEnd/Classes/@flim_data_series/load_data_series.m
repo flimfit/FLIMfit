@@ -76,27 +76,8 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         
     else % widefield
 
-        %{
-        contents = dir(root_path);
-
-        % Get children of root path which are directories
-        folders = [];
-        for j=1:length(contents)
-            if contents(j).isdir && contents(j).name(1) ~= '.'
-                folders = [folders contents(j)];
-            end
-        end
-        
-                folder_names = cell(1,num_datasets);
-        for i=1:num_datasets
-            folder_names{i} = folders(i).name;
-        end
-
-        %}
-        
         folder_names = get_folders_recursive(root_path);
                 
-        
         folder_names = sort_nat(folder_names);    
         
         if isempty(selected)

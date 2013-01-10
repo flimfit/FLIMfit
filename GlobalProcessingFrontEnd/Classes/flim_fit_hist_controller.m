@@ -1,142 +1,183 @@
-classdef flim_fit_hist_controller < flim_fit_observer
+classdef flim_fit_hist_controller < abstract_plot_controller
    
     properties
-        hist_axes;
-        hist_param_popupmenu;
+        
         hist_weighting_popupmenu;
-        hist_prop_table;
-        
-        hist_min = 0;
-        hist_max = 1e3;
-        hist_classes = 100;
-        
-        param;
-        
-        data_series_list;
-        selected;
+        hist_classes_edit;    
+        hist_source_popupmenu;
         
     end
     
     methods
         function obj = flim_fit_hist_controller(handles)
-            obj = obj@flim_fit_observer(handles.fit_controller);
+            obj = obj@abstract_plot_controller(handles,handles.hist_axes,handles.hist_param_popupmenu);
             assign_handles(obj,handles);
             
-            set(obj.hist_prop_table,'CellEditCallback',@obj.table_updated);
-            set(obj.hist_param_popupmenu,'Callback',@obj.param_updated);
-            set(obj.hist_weighting_popupmenu,'Callback',@(~,~) obj.update_histogram);
+            set(obj.hist_weighting_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.hist_classes_edit,'Callback',@(~,~)obj.update_display);
+            set(obj.hist_source_popupmenu,'Callback',@(~,~)obj.update_display);
             
-            addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
+            obj.update_display();
+        end
+        
+        function draw_plot(obj,ax,param)
+            cla(ax);
+
             
-            obj.selected = obj.data_series_list.selected;
             
-            obj.update_table();
-            obj.update_param_list();
-            obj.update_histogram();
-        end
-        
-        function fit_update(obj)
-            obj.update_param_list();
-            obj.update_histogram();
-        end
-        
-        function selection_updated(obj,~,~)
-            obj.selected = obj.data_series_list.use_selected;
-            obj.update_histogram();
-        end
-        
-        function table_updated(obj,~,~)
-            table_data = get(obj.hist_prop_table,'Data');
-            obj.hist_min = table_data(1);
-            obj.hist_max = table_data(2);
-            obj.hist_classes = table_data(3);
-            obj.update_histogram();
-        end
-        
-        function update_param_list(obj)
-            if obj.fit_controller.has_fit
-                params = obj.fit_controller.fit_result.fit_param_list();
-                set(obj.hist_param_popupmenu,'String',params);
-                val = get(obj.hist_param_popupmenu,'Value');
-                if val > length(params);
-                    val = 1;
-                end
-                set(obj.hist_param_popupmenu,'Value',val);
-                str = get(obj.hist_param_popupmenu,'String');
-                obj.param = str{val};
+            if obj.fit_controller.has_fit && param > 0 && obj.selected > 0
                 
-            end
-        end
-        
-        function param_updated(obj,~,~)
-            val = get(obj.hist_param_popupmenu,'Value');
-            str = get(obj.hist_param_popupmenu,'String');
-            obj.param = str{val};
-            
-            table_data = get(obj.hist_prop_table,'Data');
-            lims = obj.fit_controller.fit_result.default_lims.(obj.param);
-            table_data(1:2) = lims;
-            obj.hist_min = lims(1);
-            obj.hist_max = lims(2);
-            set(obj.hist_prop_table,'Data',table_data);
-            
-            obj.update_histogram();
-            
-        end
-        
-        function update_table(obj)
-            table_data = zeros(3,1);
-            table_data(1) = obj.hist_min;
-            table_data(2) = obj.hist_max;
-            table_data(3) = obj.hist_classes;
-            
-            set(obj.hist_prop_table,'Data',table_data);
-        end
-        
-        function update_histogram(obj)
-            cla(obj.hist_axes);
-            if obj.fit_controller.has_fit && ~isempty(obj.param) && obj.selected > 0
+                f = obj.fit_controller;
+                r = f.fit_result;
+                
+                source = get(obj.hist_source_popupmenu,'Value');
+                
+                if source == 1
+                    sel = obj.data_series_list.selected;
+                else
+                    sel = obj.fit_controller.selected;
+                end
                 
                 weighting = get(obj.hist_weighting_popupmenu,'Value');
+                hist_classes = str2double(get(obj.hist_classes_edit,'String'));
                 
-                param_data =  obj.fit_controller.fit_result.get_image(obj.selected,obj.param);
+                param_data = [];
+                I_data = [];
+                md = [];
+                for i=1:length(sel)
+                    
+                    new_data = obj.fit_controller.get_image(sel(i),param);
+                    new_I_data = obj.fit_controller.get_image(sel(i),'I');
+                    
+                    filt = isfinite(new_data) & isfinite(new_I_data);
+                    
+                    
+                    new_data = new_data(filt);
+                    new_I_data = new_I_data(filt);
+                    
+                    %{
+                    new_data = r.region_mean{sel(i)}(param,:)';
+                    new_I_data = r.region_mean{sel(i)}(6,:)';
+                    
+                    
+                    new_md = r.metadata.Column{sel(i)};
+                    new_md = repmat(new_md,size(new_data));
+                    md = [md; new_md];
+                    %}
+
+                    I_data = [I_data; new_I_data];
+                    param_data = [param_data; new_data];
+                   
+                end
+                %{
+                s = 2:11;
+                
+                [a,b]=kmeans(param_data,2);
+                for i=1:length(s)
+                   
+                    [~,ah] = max(b); 
+                    
+                    p(i) = sum(a(md==s(i))==ah)/sum(md==s(i));
+                    
+                    dat = param_data(a==ah & md==s(i));
+                    qh(i) = mean(dat);
+                    sh(i) = std(dat)/sqrt(length(dat));
+                    
+                    dat = param_data(a~=ah & md==s(i));
+                    ql(i) = mean(dat);
+                    sl(i) = std(dat)/sqrt(length(dat));
+                    
+                    
+                end
                 
                 
-                filt = param_data >= obj.hist_min & param_data <= obj.hist_max & ~isnan(param_data);
+                figure(12);
+                %{
+                plot(2*md(a==1),param_data(a==1),'xr');
+                hold on;
+                plot(2*md(a==2)+1,param_data(a==2),'xb');
+                %}
+                subplot(1,2,1);
+                hold off
+                errorbar(s,qh,sh,'r');
+                hold on;
+                errorbar(s,ql,sl,'b');
+                xlim([2 10])
+                xlabel('Dose');
+                ylabel('Mean FRET fraction of each population')
                 
+                subplot(1,2,2);
+                plot(s,p);
+                ylim([0 0.5]);
+                xlim([2 10]);
+                xlabel('Dose');
+                ylabel('Fraction of population responding');
+                
+                %}
+               
+                lims = f.get_cur_lims(param);
+                I_lims = f.get_cur_intensity_lims;
+                
+                filt = param_data >= lims(1) & param_data <= lims(2);
+                
+                intensity = I_data( filt );
                 param_data = param_data( filt );
+                                
+                intensity = (intensity - I_lims(1))/(I_lims(2)-I_lims(1));
+                intensity(intensity<0) = 0;
+                intensity(intensity>1) = 1;
                 
-                diff = (obj.hist_max - obj.hist_min) / obj.hist_classes;
-                x = obj.hist_min:diff:obj.hist_max;
+                x = linspace(lims(1),lims(2),hist_classes);
                 
-                cla(obj.hist_axes);
+                cla(ax);
 
+                %[idx,c] = kmeans(param_data,2);
+                
+                %disp(c)
+                
+                %sum(idx==2)/length(idx)
+                
+                %disp([median(param_data) mean(param_data)]);
+                
                 if weighting == 2
-                    intensity = obj.fit_controller.fit_result.get_image(obj.selected,'I');
-                    intensity = intensity( filt );
-
-                    weightedhist(obj.hist_axes,param_data,intensity,x);
-                    %f = ksdensity(param_data,x','weight',intensity);
-                    %bar(obj.hist_axes,x,f)
+                    weightedhist(ax,param_data,intensity,x);
+                    
                 else
-                    hist(obj.hist_axes,param_data,x);
+                    hist(ax,param_data,x);
+                    %[n,xout] = hist(param_data,x);
+                    %bar(ax,xout,n);
+                    %col = r.metadata.Column{sel(1)};
+                    %csvwrite(['C:\Users\scw09\Documents\00 Local FLIM Data\2012-09-05 Ras-Raf Anca plate\hist\' num2str(col) '.csv'],[xout',n']);
+
                 end
                 
-                if ~isnan(obj.hist_min) && ~isnan(obj.hist_max)
-                    set(obj.hist_axes,'XLim',[obj.hist_min obj.hist_max])
+                if all(isfinite(lims))
+                    set(ax,'XLim',lims)
                 end
-                xlabel(obj.hist_axes,obj.param);
-                ylabel(obj.hist_axes,'Frequency');
+                xlabel(ax,r.latex_params{param});
+                ylabel(ax,'Frequency');
+            else
+                cla(ax);
             end
         end
         
         function export_histogram_data(obj,file,mode)
             
+            if obj.cur_param == 0
+                return;
+            end
+            
             if nargin < 3
                 mode = 'single';
             end
             
+            f = obj.fit_controller;
+            r = obj.fit_controller.fit_result;
+            
             weighting = get(obj.hist_weighting_popupmenu,'Value');
+            hist_classes = str2double(get(obj.hist_classes_edit,'String'));
+            param = obj.cur_param;
+            lims = f.get_cur_lims(param);
             
             if weighting == 2
                 weighting_string = '(Intensity Weighted)';
@@ -144,7 +185,7 @@ classdef flim_fit_hist_controller < flim_fit_observer
                 weighting_string = '(Unweighted)';
             end
             
-            r = obj.fit_controller.fit_result;
+            
             
             [path name ext] = fileparts(file);
             
@@ -155,27 +196,28 @@ classdef flim_fit_hist_controller < flim_fit_observer
             hist_se = zeros(1,r.n_results);
             hist_area = zeros(1,r.n_results);
             
-            count = zeros(obj.hist_classes+1,r.n_results);
+                
+            
+            count = zeros(hist_classes,r.n_results);
             
             for i=1:r.n_results
                
-                param_data =  obj.fit_controller.fit_result.get_image(i,obj.param);
+                param_data =  obj.fit_controller.get_image(i,param);
                 
                 if ~isempty(param_data)
-                filt = param_data >= obj.hist_min & param_data <= obj.hist_max & ~isnan(param_data);
+                filt = param_data >= lims(1) & param_data <= lims(2) & ~isnan(param_data);
                 
                 param_data = param_data( filt );
                 
-                diff = (obj.hist_max - obj.hist_min) / obj.hist_classes;
-                x = obj.hist_min:diff:obj.hist_max;
-       
+                x = linspace(lims(1),lims(2),hist_classes);
+
                 if ~isempty(param_data)
                     
                     if weighting == 2
-                        intensity = obj.fit_controller.fit_result.get_image(i,'I');
+                        intensity = obj.fit_controller.get_image(i,'I');
                         intensity = intensity( filt );
 
-                        count(:,i) = weightedhist(obj.hist_axes,param_data,intensity,x)';
+                        count(:,i) = weightedhist(param_data,intensity,x)';
                     else
                         count(:,i) = hist(param_data,x)';
                     end
@@ -222,10 +264,10 @@ classdef flim_fit_hist_controller < flim_fit_observer
             end
             
             if strcmp(mode,'single')
-                filename = [path filesep name ' ' obj.param ' histogram' ext];
+                filename = [path filesep name ' ' r.params{param} ' histogram' ext];
                     f = fopen(filename,'w');
 
-                    fprintf(f,'%s %s\r\n',obj.param,weighting_string);
+                    fprintf(f,'%s %s\r\n',r.params{param},weighting_string);
                     for i=1:r.n_results
                         fprintf(f,'\t%s',r.names{i});
                     end

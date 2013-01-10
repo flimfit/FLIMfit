@@ -61,8 +61,11 @@ function filter_table_updated(obj,~,~)
         
     end
 
+    nempty = cell2mat(obj.fit_result.image_size);
+    nempty = nempty > 0;
+    
     new_selected = 1:obj.fit_result.n_results;
-    new_selected = new_selected(sel);
+    new_selected = new_selected(sel & nempty);
 
     changed = length(new_selected)~=length(obj.selected) || ~all(new_selected==obj.selected);
        

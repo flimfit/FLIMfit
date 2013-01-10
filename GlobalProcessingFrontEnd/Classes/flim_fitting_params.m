@@ -1,4 +1,4 @@
-classdef flim_fitting_params < handle
+classdef flim_fitting_params < handle & h5_serializer
    
     properties(SetObservable)
         n_exp = 1;
@@ -18,9 +18,7 @@ classdef flim_fitting_params < handle
         offset = 0;
         scatter = 0;
         tvb = 0;
-        
-        %rep_rate = 80;
-        %ref_lifetime = 80;
+       
         
         pulsetrain_correction = true;
         fit_reference = false;
@@ -33,9 +31,11 @@ classdef flim_fitting_params < handle
         tau_max = [100000];
         
         use_phase_plane_estimation = false;
+        auto_estimate_tau = true;
         
-        fixed_beta = 1;
-        
+        fixed_beta = [1];
+        global_beta_group = [0];
+
         n_fret = 0;
         n_fret_fix = 0;
         inc_donor = 0;
@@ -53,12 +53,22 @@ classdef flim_fitting_params < handle
         split_fit = false;
         use_memory_mapping = false;
         
-        use_autosampling = true;
+        use_autosampling = false;
+        
+        image_irf_mode = 0;
+        
+        weighting_mode = 0;
         
         n_thread = 8;
     end
    
     methods
+        
+        function post_serialize(obj)
+        end
+        
+        function post_deserialize(obj)
+        end
         
         function obj = flim_fitting_params()
             import java.lang.*;
@@ -94,15 +104,18 @@ classdef flim_fitting_params < handle
                 padding = ones(n_exp,1) * 2000;
                 padding_max = ones(n_exp,1) * 100000;
                 padding(1:length(obj.tau_guess)) = obj.tau_guess;
+                
                 obj.tau_guess = padding;
                 obj.tau_max = padding_max;
                 obj.tau_min = zeros(size(padding));
+                obj.global_beta_group = zeros(n_exp,1);
                 
             elseif size(obj.tau_guess,1) > n_exp
                 
                 obj.tau_guess = obj.tau_guess(1:n_exp);
                 obj.tau_min = obj.tau_min(1:n_exp);
                 obj.tau_max = obj.tau_max(1:n_exp);
+                obj.global_beta_group = zeros(n_exp,1);
                 
             end
             

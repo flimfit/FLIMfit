@@ -32,12 +32,12 @@ function handles = setup_menu(obj,handles)
 
     end
         
-    
+
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
     handles.menu_file_load_single = uimenu(menu_file,'Label','Load FLIM Data...','Accelerator','O','Separator','on');
     menu_file_load = uimenu(menu_file,'Label','Load FLIM Dataset');
-    handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','W');
+    handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','Y');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
     
             
@@ -46,12 +46,17 @@ function handles = setup_menu(obj,handles)
         handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
         handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
     
-        handles.menu_file_load_raw = uimenu(menu_file,'Label','Load Raw Data...');
+        handles.menu_file_load_acceptor = uimenu(menu_file,'Label','Load Accceptor Images...');
+            
         handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
     
         handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
         handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
     end
+
+    handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
+    handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
+
     
     handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
     handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');

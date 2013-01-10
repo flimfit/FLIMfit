@@ -21,7 +21,9 @@ seD = strel('diamond',1);
 BWfinal = imerode(BWnobord,seD);
 BWfinal = imerode(BWfinal,seD);
 
-BWerode=bwmorph(BWfinal, 'erode', membrane_width);
+se = strel('disk',membrane_width);
+BWerode = imerode(BWfinal,se);
+%BWerode=bwmorph(logical(BWfinal), 'erode', membrane_width);
 
 z = BWfinal - BWerode;
 

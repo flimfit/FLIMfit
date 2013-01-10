@@ -22,7 +22,7 @@ function save_param_table(obj,file,append,save_images)
             param_list = [];
         end
         
-        fid=fopen(file,write_mode);
+        %fid=fopen(file,write_mode);
 
         rows=size(obj.param_table,1);
 
@@ -34,6 +34,21 @@ function save_param_table(obj,file,append,save_images)
             metadata_fields = [];
         end
         
+        dat = [obj.param_table_headers, num2cell(obj.param_table)]';
+        
+        group = [];
+        for i=1:f.n_results
+            group = [group ones(1,length(f.regions{i}))*i];
+        end
+        
+        for i=1:length(metadata_fields)
+            md = metadata.(metadata_fields{i});
+            dat = [[metadata_fields(i), md(group)]',dat];
+        end
+        
+        cell2csv(file,dat,',');
+        
+        %{
         if ~already_exists
             fprintf(fid,'id,');
             fprintf(fid,'file,');
@@ -48,27 +63,35 @@ function save_param_table(obj,file,append,save_images)
             fprintf(fid,'%s\r\n',obj.param_table_headers{end});
         end
         
+        %fprintf(fid,'%f,',im_group);
+        %fprintf(fid,'%f,',obj.fit_result.datasets(end));
+        
+        fprintf(fid,'%s,',obj.fit_result.names(1:end-1));
+        fprintf(fid,'%s,',obj.fit_result.names(end));
+        
+        for j=1:length(metadata_fields)
+            if isnumeric(metadata.(metadata_fields{j}){im_group})
+                fprintf(fid,'%f,',metadata.(metadata_fields{j}){1:end-1});
+                fprintf(fid,'%f,',metadata.(metadata_fields{j}){end});
+            else
+                fprintf(fid,'%s,',metadata.(metadata_fields{j}){1:end-1});
+                fprintf(fid,'%s,',metadata.(metadata_fields{j}){end});
+            end
+        end
+        
         for i=1:rows
-            fprintf(fid,'%f,',i);
-            im_group = obj.param_table(i,1);
-            fprintf(fid,'%s,',obj.fit_result.names{im_group});
-            for j=1:length(metadata_fields)
-                if isnumeric(metadata.(metadata_fields{j}){im_group})
-                    fprintf(fid,'%f,',metadata.(metadata_fields{j}){im_group});
-                else
-                    fprintf(fid,'%s,',metadata.(metadata_fields{j}){im_group});
-                end
-            end
+
             
-            for j=1:length(param_list)
-                fprintf(fid,'%s %s.tif,images,',obj.fit_result.names{i},param_list{j});
-            end
+            %for j=1:length(param_list)
+             %   fprintf(fid,'%s %s.tif,images,',obj.fit_result.names{i},param_list{j});
+            %end
             fprintf(fid,'1,');
             fprintf(fid,'%f,',obj.param_table(i,1:end-1));
             fprintf(fid,'%f\r\n',obj.param_table(i,end));
         end
 
         fclose(fid);
+        %}
     end
     
 end

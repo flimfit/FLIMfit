@@ -36,7 +36,7 @@ function regression_testing(handles)
    
     
     for kk=1:1
-    for i=1:1
+    for i=4:4 %length(tests)
         
         tests_passed = 0;
         tests_failed = 0;
@@ -78,7 +78,7 @@ function regression_testing(handles)
             pause(0.1);
         end
         
-        f = handles.fit_controller.fit_result; %#ok
+        f = handles.fit_controller; %#ok
         
         for j=1:length(test_spec)
             

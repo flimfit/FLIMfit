@@ -15,14 +15,18 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
         
         function draw_plot(obj,ax,param)
 
+            create_im_plate = false;
+            
             n_col = 12;
             n_row = 8;
             
             row_headers = {'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'};
+            col_headers = {'1';'2';'3';'4';'5';'6';'7';'8';'9';'10';'11';'12'};
 
-            if obj.fit_controller.has_fit && ~isempty(param)
+            if obj.fit_controller.has_fit && param>0
 
-                r = obj.fit_controller.fit_result;     
+                r = obj.fit_controller.fit_result;  
+                f = obj.fit_controller;
                 sel = obj.fit_controller.selected;
 
                 md = r.metadata;
@@ -47,9 +51,14 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     end
                 end
 
-                
-                plate = zeros(n_row,n_col) * NaN;
 
+                plate = zeros(n_row,n_col) * NaN;
+                
+                if create_im_plate
+                     gw = r.width * n_col; gh = r.height * n_row;
+                     im_plate = NaN([gh gw]);
+                end
+               
                 for row_idx = 1:n_row
                     row = char(row_idx+64);
                     for col = 1:n_col
@@ -60,17 +69,21 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                         y = 0;
                         yn = 0;
 
+                        if create_im_plate && ~isempty(sel_well)
+                            ci = (col-1)*r.width+1;
+                            ri = (row_idx-1)*r.height+1;
+                            
+                            im_plate(ri:ri+r.height-1,ci:ci+r.width-1) = f.get_image(sel_well(1),param);         
+                        end
+                            
                         for i=sel_well
 
-                            if isfield(r.image_stats{i},param)
-                                
-                                n = r.image_stats{i}.(param).n;
-                                if n > 0
-                                    y = y + r.image_stats{i}.(param).mean * n; 
-                                    yn = yn + r.image_stats{i}.(param).n;
-                                end
-                                
+                            n = r.image_size{i};
+                            if n > 0
+                                y = y + r.image_mean{i}(param) * n; 
+                                yn = yn + n;
                             end
+                                
                         end
                         
                         plate(row_idx,col) = y/yn;
@@ -78,7 +91,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     end
                 end
 
-                lims = r.default_lims.(param);
+                lims = f.get_cur_lims(param);
                 cscale = obj.colourscale(param);
                 
 
@@ -96,17 +109,27 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     ca = obj.colorbar_axes;
                 end
                
+                if create_im_plate
+                    im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale);
+                    w = r.width;
+                    h = r.height;
+                    c = 'w';
+                    f = 0.5;
+                else
+                    im = colorbar_flush(ax,ca,plate,[],lims,cscale);
+                    w = 1;
+                    h = 1;
+                    c = 'k';
+                    f = 0;
+                end
                 
-                im = colorbar_flush(ax,ca,plate,[],lims,cscale);
                 daspect(ax,[ 1 1 1 ])
                
-                
-                
                 for i=1:n_col
-                    line([i+.5 i+.5],[0.5 n_row+.5],'Parent',ax,'Color','k');
+                    line([i i]*w+0.5,[0 n_row]*h+0.5,'Parent',ax,'Color',c);
                 end
                 for i=1:n_row
-                    line([0.5 n_col+.5],[i+.5 i+.5],'Parent',ax,'Color','k');
+                    line([0 n_col]*w+0.5,[i i]*h+0.5,'Parent',ax,'Color',c);
                 end
 
                 if ( ax == obj.plot_handle )
@@ -114,7 +137,13 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 end
                 
                 obj.raw_data = [row_headers num2cell(plate)];
-                obj.raw_data = [{param} num2cell(1:n_col); obj.raw_data];
+                obj.raw_data = [r.params{param} num2cell(1:n_col); obj.raw_data];
+                
+                set(ax,'YTick',(1:1:n_row)*h-h*f);
+                set(ax,'YTickLabel',row_headers);
+                set(ax,'XTick',(1:n_col)*w-w*f);
+                set(ax,'XTickLabel',col_headers);
+                set(ax,'TickLength',[0 0]);
             else
                 im=image(zeros([n_row n_col]),'Parent',ax);
                 set(ax,'YTickLabel',row_headers);
@@ -122,15 +151,14 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 set(ax,'TickLength',[0 0]);
                 daspect(ax,[1 1 1]);
                 set(im,'uicontextmenu',obj.contextmenu);
-
+                w = 1;
+                h = 1;
+                f = 1;
             end
             
             
             
-            set(ax,'YTick',1:1:n_row);
-            set(ax,'YTickLabel',row_headers);
-            set(ax,'XTick',1:n_col);
-            set(ax,'TickLength',[0 0]);
+
             
 
             

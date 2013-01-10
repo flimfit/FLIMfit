@@ -31,10 +31,9 @@ typedef unsigned short uint16_t;
 FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
 
-
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
-                              int n_irf, double t_irf[], double irf[], double pulse_pileup,
-                              int n_exp, int n_fix,  double tau_min[], double tau_max[], 
+                              int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
+                              int n_exp, int n_fix, int n_decay_group, int decay_group[], double tau_min[], double tau_max[], 
                               int estimate_initial_tau, double tau_guess[],
                               int fit_beta, double fixed_beta[],
                               int fit_t0, double t0_guess, 
@@ -43,11 +42,11 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int fit_tvb, double tvb_guess, double tvb_profile[],
                               int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                               int pulsetrain_correction, double t_rep,
-                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                              int ierr[], int n_thread, int runAsync, int use_callback, int (*callback)());
+                              int ref_reconvolution, double ref_lifetime_guess, int algorithm, int weighting,
+                              int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int image_irf,
-                             int n_irf, double t_irf[], double irf[], double pulse_pileup,
+                             int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
                              int n_exp, int n_fix, 
                              double tau_min[], double tau_max[], 
                              int estimate_initial_tau, double tau_guess[],
@@ -58,11 +57,11 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int fit_scatter, double scatter_guess,
                              int fit_tvb, double tvb_guess, double tvb_profile[],
                              int pulsetrain_correction, double t_rep,
-                             int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                             int ierr[], int n_thread, int runAsync, int use_callback, int (*callback)());
+                             int ref_reconvolution, double ref_lifetime_guess, int algorithm, int weighting, 
+                             int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t,
-                             int data_type, int* use_im, uint8_t *mask, int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling);
+                             int data_type, int* use_im, uint8_t *mask, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling);
 
 FITDLL_API int SetDataFloat(int c_idx, float* data);
 FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);
@@ -70,15 +69,16 @@ FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_
 
 FITDLL_API int SetBackgroundImage(int c_idx, float* background_image);
 FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
+FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_map, float const_background);
 
 FITDLL_API int StartFit(int c_idx);
 
-FITDLL_API int GetResults(int c_idx, int im, uint8_t mask[], float chi2[], float tau[], float I0[], float beta[], float E[], 
-                          float gamma[], float theta[], float r[], float t0[], float offset[], float scatter[], 
-                          float tvb[], float ref_lifetime[]);
+FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params);
 
+FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, 
+                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float *param_01, float *param_99);
 
-
+FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[]);
 
 
 
@@ -166,7 +166,7 @@ FITDLL_API int GetResults(int c_idx, int im, uint8_t mask[], float chi2[], float
  * callback     If running asyncronously will be called periodically with current group, iteration and chi2
  *              Fitting will stop if zero returned. Not called if NULL, progress may be monitored by calling FLIMGlobalGetFitStatus
  *              Expected function prototype is int callback(int n_group, int n_thread, int *group, 
- *                                                          int *n_completed, int *iter, double *chi2, double progress)
+ *                                                          int *n_completed, int *iter, float *chi2, double progress)
  *              All arrays are of size n_thread.
  *        
  *

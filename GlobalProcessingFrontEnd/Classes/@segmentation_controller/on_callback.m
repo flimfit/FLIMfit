@@ -59,12 +59,14 @@ function on_callback(obj,src,evtData)
 
             if strcmp(erase_toggle,'on') || ~isempty(modifier)
                 obj.mask(m) = 0;
+                %obj.filtered_mask(m) = 0;
             else
                 obj.mask(m) = obj.n_regions;
+                %obj.filtered_mask(m) = obj.n_regions;
             end
                 
             delete(roi_handle);
-
+            obj.filter_masks(1:d.n_datasets);
             obj.update_display();
         end
         

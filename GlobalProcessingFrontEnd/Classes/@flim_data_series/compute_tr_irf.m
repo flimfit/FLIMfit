@@ -35,14 +35,23 @@ function compute_tr_irf(obj)
             end
 
         end
-
+        
         % Select time points based on threshold
         t_irf_inc = true(size(obj.t_irf));
 
+        % Subsample if required
+        if obj.irf_subsampling > 1
+            subs = 1:length(t_irf_inc);
+            subs = mod(subs',obj.irf_subsampling) == 1;
+
+            t_irf_inc = t_irf_inc & subs;
+        end
+        
         obj.tr_image_irf = obj.image_irf;
         obj.tr_irf = obj.irf(t_irf_inc,:);
         obj.tr_t_irf = obj.t_irf(t_irf_inc);
 
+        % Calculate coarse shift for perp channel in number of bins
         if length(obj.t) > 1
             dt = obj.t(2) - obj.t(1);
             coarse_shift = round(obj.irf_perp_shift/dt);
@@ -82,7 +91,7 @@ function compute_tr_irf(obj)
         end
 
         % Resample IRF 
-        if obj.resample_irf && length(obj.tr_t_irf) > 2
+        if length(obj.tr_t_irf) > 2 && obj.resample_irf
             irf_spacing = obj.tr_t_irf(2) - obj.tr_t_irf(1);
 
             if irf_spacing > 75
@@ -104,23 +113,53 @@ function compute_tr_irf(obj)
 
             end
         end
-
-        % Shift by t0
         
-        if obj.afterpulsing_correction
-            bg = obj.irf_background;
-        else
-            bg = 0;
-        end
+        % Deconvolve decay from reference if required
+        if (obj.irf_type == 2)
+            ir = obj.tr_irf(:);
             
-        
-        for i=1:size(obj.tr_irf,2)
-            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0,'cubic',bg);
+            p = 5;
+            
+            s = length(obj.tr_irf);
+            
+            padding = zeros(p*s,1);
+            
+            ir = [padding; ir; padding]; 
+            
+            s = length(obj.tr_irf);
+            
+            %dt = obj.tr_t_irf(2)-obj.tr_t_irf(1);
+            %t2 = (0:(2*s-1))*dt + min(obj.tr_t_irf);
+            %t2 = t2';
+            T = 1e6/obj.rep_rate;
+            t2 = obj.tr_t_irf(:) - min(obj.tr_t_irf);
+            decay = exp(-(t2/obj.ref_lifetime))*(1+1/(exp(T/obj.ref_lifetime)-1));
+            decay = decay(decay>1e-8);
+            decay = [zeros(size(decay)); decay];
+            
+            ir = edgetaper(ir,decay); 
+            ir = deconvlucy(ir,decay,20);
+            
+            %ir = deconvwnr(ir,decay,1);
+            
+            start = p*s+1;
+            finish = start + s - 1;
+              
+            obj.tr_irf = ir(start:finish);
+            
+            dt = obj.tr_t_irf(2)-obj.tr_t_irf(1);
+            t0_correction = -0.5*dt;
+        else
+            t0_correction = 0;
         end
-
+           
+        % Shift by t0
+        for i=1:size(obj.tr_irf,2)
+            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0-t0_correction,'cubic',0);
+        end
         obj.tr_irf(isnan(obj.tr_irf)) = 0;
 
-
+        
         % Normalise irf so it sums to unity
         if true && size(obj.tr_irf,1) > 0 %obj.normalise_irf
             for i=1:size(obj.tr_irf,2) 
@@ -131,6 +170,10 @@ function compute_tr_irf(obj)
             end
         end
         
+        %figure(3);
+        
+        %plot(obj.tr_t_irf,ir);
+        
         if obj.has_image_irf
             sz = size(obj.tr_image_irf);
             obj.tr_image_irf = reshape(obj.tr_image_irf,[sz(1) prod(sz(2:end))]);
@@ -138,6 +181,8 @@ function compute_tr_irf(obj)
             sm = sum(obj.tr_image_irf,1);  
             sm(sm==0) = 1;
             obj.tr_image_irf = obj.tr_image_irf ./ sm;
+            
+            obj.tr_image_irf = reshape(obj.tr_image_irf,sz);
             %{
             for i=1:size(obj.tr_image_irf,2) 
                 sm = sum(obj.tr_image_irf(:,i));

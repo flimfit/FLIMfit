@@ -1,0 +1,303 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>determine_photon_stats</title><meta name="generator" content="MATLAB 7.13"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-08-15"><meta name="DC.source" content="determine_photon_stats.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [counts_per_photon offset] = determine_photon_stats(data,fit_offset,display_progress)
+
+    <span class="keyword">if</span> nargin &lt; 2
+        fit_offset = true;
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> nargin &lt; 3
+        display_progress = false;
+    <span class="keyword">end</span>
+
+    figure();
+    ax = axes();
+
+    <span class="comment">% Number of points we will use to calculate the variance</span>
+    n_req = 100;
+
+    <span class="comment">% Number of time to repeat the calculation at diffent histogram</span>
+    <span class="comment">% positions</span>
+    N = 50;
+
+    <span class="comment">% Reshape data if required, e.g. if images are passed</span>
+    sz = size(data);
+    data = reshape(data,[sz(1) prod(sz(2:end))]);
+
+    <span class="comment">% Calculate intensity</span>
+    I = squeeze(sum(data,1));
+
+    <span class="comment">% Number of repeats for each different intensity</span>
+    n = length(I);
+
+    <span class="comment">% The fraction of those points we need either side of the chosen pt</span>
+    frac = n_req/n/2;
+
+    <span class="comment">% The histogram positions to use</span>
+    pos = linspace(0.2,0.8,N);
+
+    h = waitbar(0,<span class="string">'Computing...'</span>);
+    <span class="keyword">for</span> i=1:N
+
+        <span class="comment">% select data around the histogram position</span>
+        centre = pos(i);
+        Q = quantile(I,[centre-frac,centre+frac]);
+        sel = I &gt;= (Q(1)) &amp; I &lt;= (Q(2));
+        sel_data = data(:,sel);
+        sel_data = sel_data(2:end,:);
+
+        c = 0;
+
+        <span class="keyword">if</span> fit_offset
+            initial_guess = [1 1];
+        <span class="keyword">else</span>
+            initial_guess = 1;
+        <span class="keyword">end</span>
+
+        [o,f] = fminsearch(@objt,initial_guess);
+
+        counts_per_photon(i) = o(1);
+        <span class="keyword">if</span> fit_offset
+            offset(i) = o(2);
+        <span class="keyword">else</span>
+            offset(i) = 0;
+        <span class="keyword">end</span>
+        waitbar(i/N,h);
+    <span class="keyword">end</span>
+    close(h);
+
+    st = [<span class="string">'Counts per photon = '</span> num2str(mean(counts_per_photon),<span class="string">'%.2f'</span>) <span class="string">' +/- '</span> num2str(std(counts_per_photon),2)];
+    disp(st);
+    disp([<span class="string">'           Offset = '</span> num2str(mean(offset),<span class="string">'%.2f'</span>) <span class="string">' +/- '</span> num2str(std(offset),2)])
+
+    hold(ax,<span class="string">'off'</span>)
+    plot(ax,pos,counts_per_photon);
+    xlabel(ax,<span class="string">'Sample'</span>)
+    ylabel(ax,<span class="string">'Counts per photon'</span>);
+    title(ax,st)
+
+    counts_per_photon = mean(counts_per_photon);
+    offset = mean(offset);
+
+    <span class="keyword">function</span> r = objt(m)
+
+        <span class="keyword">if</span> fit_offset
+            offset = m(2);
+        <span class="keyword">else</span>
+            offset = 0;
+        <span class="keyword">end</span>
+
+        <span class="comment">% Transform data</span>
+        tr = (sel_data-offset)/m(1);
+
+        <span class="comment">% Apply anscrombe transform</span>
+        antr = 2*sqrt(tr+3/8);
+
+        <span class="comment">% Calculate mean and std</span>
+        s = std(antr,0,2);
+        mn = mean(antr,2);
+
+        <span class="comment">% Determine sum of square residuals</span>
+        r = norm(s-1).^2;
+
+        <span class="keyword">if</span> display_progress &amp;&amp; mod(c,10) == 0
+            hold(ax,<span class="string">'off'</span>);
+            plot(ax,mn,ones(size(s)),<span class="string">'k'</span>);
+            <span class="comment">%ylim([0.8 1.2]);</span>
+            hold(ax,<span class="string">'on'</span>);
+            plot(ax,mn,s.*s,<span class="string">'o'</span>);
+            ylabel(ax,<span class="string">'Variance'</span>);
+            xlabel(ax,<span class="string">'Corrected Photon Count'</span>);
+            title(ax,[<span class="string">'N = '</span> num2str(m(1)) <span class="string">', Z = '</span> num2str(offset)]);
+            drawnow;
+        <span class="keyword">end</span>
+        c = c + 1;
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Error using determine_photon_stats (line 22)
+Not enough input arguments.
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.13<br></p></div><!--
+##### SOURCE BEGIN #####
+function [counts_per_photon offset] = determine_photon_stats(data,fit_offset,display_progress)
+
+    if nargin < 2
+        fit_offset = true;
+    end
+    
+    if nargin < 3
+        display_progress = false;
+    end
+
+    figure();
+    ax = axes();
+    
+    % Number of points we will use to calculate the variance
+    n_req = 100;
+    
+    % Number of time to repeat the calculation at diffent histogram
+    % positions
+    N = 50;
+
+    % Reshape data if required, e.g. if images are passed
+    sz = size(data);
+    data = reshape(data,[sz(1) prod(sz(2:end))]);
+    
+    % Calculate intensity
+    I = squeeze(sum(data,1));
+    
+    % Number of repeats for each different intensity 
+    n = length(I);
+    
+    % The fraction of those points we need either side of the chosen pt
+    frac = n_req/n/2;
+    
+    % The histogram positions to use
+    pos = linspace(0.2,0.8,N);
+    
+    h = waitbar(0,'Computing...');
+    for i=1:N
+       
+        % select data around the histogram position
+        centre = pos(i);
+        Q = quantile(I,[centre-frac,centre+frac]); 
+        sel = I >= (Q(1)) & I <= (Q(2));       
+        sel_data = data(:,sel);   
+        sel_data = sel_data(2:end,:);
+
+        c = 0;
+        
+        if fit_offset
+            initial_guess = [1 1];
+        else
+            initial_guess = 1;
+        end
+        
+        [o,f] = fminsearch(@objt,initial_guess);
+
+        counts_per_photon(i) = o(1);
+        if fit_offset
+            offset(i) = o(2);
+        else
+            offset(i) = 0;
+        end
+        waitbar(i/N,h);
+    end
+    close(h);
+
+    st = ['Counts per photon = ' num2str(mean(counts_per_photon),'%.2f') ' +/- ' num2str(std(counts_per_photon),2)];
+    disp(st);
+    disp(['           Offset = ' num2str(mean(offset),'%.2f') ' +/- ' num2str(std(offset),2)])
+
+    hold(ax,'off')
+    plot(ax,pos,counts_per_photon);
+    xlabel(ax,'Sample')
+    ylabel(ax,'Counts per photon');
+    title(ax,st)
+      
+    counts_per_photon = mean(counts_per_photon);
+    offset = mean(offset);
+    
+    function r = objt(m) 
+    
+        if fit_offset
+            offset = m(2);
+        else
+            offset = 0;
+        end
+
+        % Transform data
+        tr = (sel_data-offset)/m(1);
+        
+        % Apply anscrombe transform
+        antr = 2*sqrt(tr+3/8);
+        
+        % Calculate mean and std
+        s = std(antr,0,2);
+        mn = mean(antr,2);
+        
+        % Determine sum of square residuals
+        r = norm(s-1).^2;
+                
+        if display_progress && mod(c,10) == 0
+            hold(ax,'off');
+            plot(ax,mn,ones(size(s)),'k'); 
+            %ylim([0.8 1.2]);
+            hold(ax,'on');
+            plot(ax,mn,s.*s,'o');
+            ylabel(ax,'Variance');
+            xlabel(ax,'Corrected Photon Count');
+            title(ax,['N = ' num2str(m(1)) ', Z = ' num2str(offset)]);
+            drawnow;
+        end
+        c = c + 1;
+    end
+
+end
+
+
+##### SOURCE END #####
+--></body></html>

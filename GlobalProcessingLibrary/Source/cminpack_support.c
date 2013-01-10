@@ -1,9 +1,12 @@
+
 #include <math.h>
 #include "cminpack.h"
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 #define min(a,b) ((a) <= (b) ? (a) : (b))
 #define max(a,b) ((a) >= (b) ? (a) : (b))
+
+#include "xmmintrin.h"
 
 /* Subroutine */ void qrsolv(int n, double *r, int ldr, 
 	const int *ipvt, const double *diag, const double *qtb, double *x, 
@@ -211,6 +214,34 @@
 
 } /* qrsolv_ */
 
+
+void SSESqrt( float *pOut, float *pIn )
+{
+   _mm_store_ss( pOut, _mm_rsqrt_ss( _mm_load_ss( pIn ) ) );
+   // compiles to movss, sqrtss, movss
+}
+
+float Q_rsqrt( float number )
+{
+  long i;
+  float x2, y;
+  const float threehalfs = 1.5F;
+
+  x2 = number * 0.5F;
+  y  = number;
+  i  = * ( long * ) &y;  // evil floating point bit level hacking
+  i  = 0x5f3759df - ( i >> 1 ); // what the fuck?
+  y  = * ( float * ) &i;
+  y  = y * ( threehalfs - ( x2 * y * y ) ); // 1st iteration
+  y  = y * ( threehalfs - ( x2 * y * y ) ); // 2nd iteration, this can be removed
+
+  #ifndef Q3_VM
+  #ifdef __linux__
+    assert( !isnan(y) ); // bk010122 - FPE?
+  #endif
+  #endif
+  return y;
+}
 
 
 /* Subroutine */ void rwupdt(int n, double *r, int ldr, 

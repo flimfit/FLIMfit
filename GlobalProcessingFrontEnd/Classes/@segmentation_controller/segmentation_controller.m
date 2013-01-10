@@ -13,10 +13,7 @@ classdef segmentation_controller < flim_data_series_observer
         tool_roi_erase_toggle;
         
         replicate_mask_checkbox;
-        
-        pipeline_edit;
-        cellprofiler_segment_button;
-        
+                
         algorithm_popup;
         parameter_table;
         segmentation_axes;
@@ -28,12 +25,8 @@ classdef segmentation_controller < flim_data_series_observer
         delete_all_button;
         copy_to_all_button;
         
-        thresh_min_edit;
-        thresh_max_edit;
-        thresh_apply_button;
-        
+       
         trim_outliers_checkbox;
-        
         
         data_series_list;
         
@@ -45,10 +38,18 @@ classdef segmentation_controller < flim_data_series_observer
         mask_im;
         
         mask = 1;
+        filtered_mask = 1;
         n_regions = 0;
         
         ok_button;
         cancel_button;
+        
+        region_filter_table;
+        combine_regions_checkbox;
+        apply_filtering_pushbutton;
+                
+        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size'};
+        
         
         slh = [];
     end
@@ -64,8 +65,10 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.algorithm_popup,'Callback',@obj.algorithm_updated);
             set(obj.yuiry_segment_button,'Callback',@obj.yuiry_segment_pressed);
             set(obj.yuiry_segment_selected_button,'Callback',@obj.yuiry_segment_selected_pressed);
-            set(obj.thresh_apply_button,'Callback',@obj.thresh_apply_pressed);
             set(obj.seg_results_table,'CellEdit',@obj.seg_results_delete);
+            
+            set(obj.apply_filtering_pushbutton,'Callback',@obj.apply_filtering_pressed);
+            
             
             set(obj.ok_button,'Callback',@obj.ok_pressed);
             set(obj.cancel_button,'Callback',@obj.cancel_pressed);
@@ -84,6 +87,13 @@ classdef segmentation_controller < flim_data_series_observer
             
             set(obj.trim_outliers_checkbox,'Callback',@(~,~) obj.update_display)
             
+            
+            filter_data = [num2cell(false(size(obj.filters))), ...
+                           obj.filters, ...
+                           num2cell(zeros(size(obj.filters)))];
+                           
+            set(obj.region_filter_table,'Data',filter_data);
+            set(obj.region_filter_table,'ColumnEditable',[true false true]);
                         
             if ~isdeployed
             
@@ -131,6 +141,7 @@ classdef segmentation_controller < flim_data_series_observer
             
             if ~isempty(obj.data_series.seg_mask)
                 obj.mask = obj.data_series.seg_mask;
+                obj.filtered_mask = obj.data_series.seg_mask;
             end
             
             obj.update_display();
@@ -141,10 +152,11 @@ classdef segmentation_controller < flim_data_series_observer
         function ok_pressed(obj,src,~)
             if all(obj.mask(:)==0)
                 obj.mask = [];
+                obj.filtered_mask = [];
             end
             
             
-            obj.data_series.seg_mask = obj.mask;
+            obj.data_series.seg_mask = obj.filtered_mask;
             
             obj.save_segmentation_params();
             fh = ancestor(src,'figure');
@@ -190,7 +202,7 @@ classdef segmentation_controller < flim_data_series_observer
             if strcmp(a,'Yes')
                 d = obj.data_series;
                 obj.mask = zeros([d.height d.width d.n_datasets]);
-                obj.update_display();
+                obj.filter_masks(1:obj.data_series.n_datasets);
             end
         end
         
@@ -201,30 +213,122 @@ classdef segmentation_controller < flim_data_series_observer
                 for i=1:size(obj.mask,3)
                     obj.mask(:,:,i) = m;
                 end
+                obj.filter_masks(1:obj.data_series.n_datasets);
             end
         end
+           
+        function apply_filtering_pressed(obj,~,~)
+            obj.filter_masks(1:obj.data_series.n_datasets);
+        end
+        
+        function filter_masks(obj,sel)
+            
+            d = obj.data_series;
+            
+            filter_data = get(obj.region_filter_table,'Data');
+            combine_regions = get(obj.combine_regions_checkbox,'Value');
+            
+            apply_filter = cell2mat(filter_data(:,1));
+            filter_value = cell2mat(filter_data(:,3));
+            
+            donor_lq = [];
+            acceptor_uq = [];
+            min_size = [];
+            
+            if apply_filter(1)
+                donor_lq = filter_value(1);
+            end
+            if apply_filter(2)
+                acceptor_uq = filter_value(2);
+            end
+            if apply_filter(3)
+                min_size = filter_value(3);
+            end
+            
+            obj.filtered_mask = obj.mask;
+
+            
+            for i=sel
                 
+                im_mask = obj.mask(:,:,i); 
+
+                if max(im_mask(:)) > 0
+                    intensity = obj.data_series.integrated_intensity(i);
+                    intensity(intensity<0) = 0;
+
+                    if ~isempty(d.acceptor)
+                        acceptor = d.acceptor(:,:,i);
+                        acceptor(acceptor<0) = 0;
+                    else
+                        acceptor = [];
+                    end
+
+
+                    regions = regionprops(im_mask, {'Area'});
+
+
+                    for j=1:length(regions)
+                        j_mask = im_mask == j;
+
+                        if ~isempty(donor_lq)
+                            lq = double(prctile(intensity(j_mask),25));                
+                            if lq<donor_lq
+                                im_mask(j_mask) = 0;
+                            end
+                        end
+
+                        if ~isempty(acceptor) && ~isempty(acceptor_uq)
+
+                            uq = double(prctile(acceptor(j_mask),75));
+                            if uq < acceptor_uq
+                                im_mask(j_mask) = 0;
+                            end
+
+                        end
+
+                        if ~isempty(min_size) && regions(j).Area < min_size
+                            im_mask(j_mask) = 0;
+                        end
+
+                    end
+
+
+                    im_mask = im_mask > 0;
+
+                    if ~combine_regions
+                        im_mask = bwlabel(im_mask);
+                    end
+
+                    obj.filtered_mask(:,:,i) = im_mask;
+                end
+            end
+            
+            obj.update_display();
+            
+        end
+        
         function yuiry_segment(obj,sel)
             func_idx = get(obj.algorithm_popup,'Value');
             func = obj.funcs{func_idx};
             params = get(obj.parameter_table,'Data');
             
-            multiple_regions = get(obj.seg_use_multiple_regions,'Value');
-            
             d = obj.data_series;
-            
             h = waitbar(0,'Segmenting Images...');
+            
             for i=sel
-                intensity = obj.data_series.integrated_intensity(i);
+                intensity = d.integrated_intensity(i);
                 intensity(intensity<0) = 0;
-                obj.mask(:,:,i) = call_arb_segmentation_function(func,intensity,params);
-                if ~multiple_regions
-                    obj.mask(:,:,i) = obj.mask(:,:,i) > 0;
-                end
+                
+                im_mask = call_arb_segmentation_function(func,intensity,params);
+                
+                obj.mask(:,:,i) = im_mask;
+               
+                obj.filter_masks(i);
+                
                 waitbar(i/length(sel),h);
             end
             close(h);
-            
+                        
             obj.update_display();
         end
         
@@ -240,31 +344,12 @@ classdef segmentation_controller < flim_data_series_observer
                     obj.n_regions = obj.n_regions - 1;
                 end
             end
+            
             obj.mask(:,:,obj.data_series_list.selected) = m;
+            obj.filter_masks(obj.data_series_list.selected);
             
-            obj.update_display();
         end
-        
-        function thresh_apply_pressed(obj,~,~)
-            thresh_min = str2double(get(obj.thresh_min_edit,'String'));
-            thresh_max = str2double(get(obj.thresh_max_edit,'String'));
-                        
-            d = obj.data_series;
-            
-            obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
-            h = waitbar(0,'Segmenting Images...');
-            for i=1:d.n_datasets
-                
-                intensity = obj.data_series.selected_intensity(i,false);
-                thresh = uint8(intensity >= thresh_min & intensity <= thresh_max);
-                obj.mask(:,:,i) = thresh;
-                
-                waitbar(i/obj.data_series.n_datasets,h);
-            end
-            close(h);
-            
-            obj.update_display();
-        end
+       
         
         function algorithm_updated(obj,~,~)
             idx = get(obj.algorithm_popup,'Value');

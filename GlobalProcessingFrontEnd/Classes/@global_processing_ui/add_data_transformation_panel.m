@@ -39,13 +39,13 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Background ', 'HorizontalAlignment', 'right', 'Parent', background_layout );
     uicontrol( 'Style', 'text', 'String', 'Background Value ', 'HorizontalAlignment', 'right', 'Parent', background_layout );
     
-    handles.background_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', 'Single Value', 'Image'}, 'Parent', background_layout );
+    handles.background_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', 'Single Value', 'Image', 'TV Image'}, 'Parent', background_layout );
     handles.background_value_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', background_layout );
     %handles.tvb_define_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Define', 'Parent', background_layout );
     
     
     set(background_layout,'RowSizes',[22 22]);
-    set(background_layout,'ColumnSizes',[120 250]);
+    set(background_layout,'ColumnSizes',[120 120]);
     
     % irf transformation
     irf_layout = uiextras.VBox( 'Parent', dataset_panel );
@@ -56,37 +56,47 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Time Min. ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'IRF Shift ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     
-    handles.irf_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'Scatter', 'Reference'}, 'Parent', irf_transformation_layout );
+    handles.irf_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'Scatter', 'Reference', 'Ref using deconvolution)'}, 'Parent', irf_transformation_layout );
     handles.irf_background_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', irf_transformation_layout );
     handles.t_irf_min_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', irf_transformation_layout );
     handles.t0_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', irf_transformation_layout );    
     
     
-    %uiextras.Empty( 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'Reference Lifetime ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'BG is Afterpulsing ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'Time Max. ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'G Factor ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
        
-%    irf_crop_layout = uiextras.HBox( 'Parent', irf_transformation_layout );
-%    uicontrol( 'Style', 'text', 'String', '-', 'Parent', irf_transformation_layout );
     handles.ref_lifetime_edit = uicontrol( 'Style', 'edit', 'String', '80', 'Parent', irf_transformation_layout );
     handles.afterpulsing_correction_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No', 'Yes'}, 'Parent', irf_transformation_layout );
     handles.t_irf_max_edit = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', irf_transformation_layout );
     handles.g_factor_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', irf_transformation_layout );
     
-    %{
-    uiextras.Empty( 'Parent', irf_transformation_layout );
-    handles.irf_background_guess_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Estimate', 'Parent', irf_transformation_layout );
-    uiextras.Empty( 'Parent', irf_transformation_layout );
-    handles.g_factor_guess_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Estimate', 'Parent', irf_transformation_layout );
-    handles.t0_guess_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Estimate', 'Parent', irf_transformation_layout );
-    %}
     
     set(irf_transformation_layout,'RowSizes',[22 22 22 22]);
     set(irf_transformation_layout,'ColumnSizes',[120 120 120 120]);
 
-    set(dataset_panel, 'TabNames', {'Data'; 'Background'; 'IRF'});
+    
+    % testing
+    testing_layout = uiextras.VBox( 'Parent', dataset_panel );
+    testing_layout = uiextras.Grid( 'Parent', testing_layout, 'Spacing', 1, 'Padding', 3  );
+    
+    uicontrol( 'Style', 'text', 'String', 'Data Subsampling ', 'HorizontalAlignment', 'right', 'Parent', testing_layout );
+    uicontrol( 'Style', 'text', 'String', 'IRF Subsampling ', 'HorizontalAlignment', 'right', 'Parent', testing_layout );
+    
+    handles.data_subsampling_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', testing_layout );
+    handles.irf_subsampling_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', testing_layout );
+    
+    
+    set(testing_layout,'RowSizes',[22 22]);
+    set(testing_layout,'ColumnSizes',[120 120]);
+    
+    
+    
+    
+    
+    
+    set(dataset_panel, 'TabNames', {'Data'; 'Background'; 'IRF'; 'Testing'});
     set(dataset_panel, 'SelectedChild', 1);
 
     

@@ -1,4 +1,4 @@
-    classdef global_processing_ui
+classdef global_processing_ui
    
     properties
         window
@@ -74,9 +74,22 @@
                 'Units','normalized', ...
                 'OuterPosition',[0 0.03 1 0.97]);
             
-             %position only in main monitor
             coords = get(0,'MonitorPositions'); 
-            coords = coords(1,:);
+            
+             %position only in main monitor
+            [~,hostname] = system('hostname');
+            hostname = strtrim(hostname);
+            % I want it on my second monitor!
+            if strcmp(hostname,'ph-scw09') && size(coords,1)==2
+                monitor = 2;
+            else
+                monitor = 1;
+            end
+             
+            
+            coords = coords(monitor,:);
+            
+            
             
             % Allow for taskbar if we're on windows
             comp = computer;
@@ -89,15 +102,15 @@
             handles = guidata(obj.window); 
                                                 
             handles.external = external;
-                                                           
+            handles.version = v;
+            handles.window = obj.window;
+            
             handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
             handles.data_series_controller = flim_data_series_controller(handles);                                    
             handles.omero_data_manager = flim_omero_data_manager(handles);
             
-            handles.version = v;
-            handles.window = obj.window;
             handles.use_popup = true;
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);

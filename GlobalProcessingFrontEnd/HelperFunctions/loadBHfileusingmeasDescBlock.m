@@ -148,7 +148,7 @@ fid=fopen(filename);
     if return_data == false
         ImData = [];
         Delays = [];
-        if meas_mode == 0        % single point data     
+        if meas_mode == 0  || meas_mode == 1      % single point data     
             chan_info = {'sdt data'};
         else
             datacount = block_length/2;    % 16 bit data

@@ -4,13 +4,14 @@ classdef abstract_plot_controller < flim_fit_observer
         plot_handle;
         handle_is_axes;
         param_popupmenu;
-        invert_colormap_popupmenu;
+        data_series_list;
         contextmenu;
         window;
         param_list;
+        
+        selected;
         cur_param;
 
-        data_series_list;
         
         ap_lh;
         
@@ -19,7 +20,8 @@ classdef abstract_plot_controller < flim_fit_observer
     
     methods(Abstract = true)
         
-        draw_plot(obj,ax,param);
+        draw_plot(obj,ax,param,evt);
+        
     end
     
     methods
@@ -42,10 +44,12 @@ classdef abstract_plot_controller < flim_fit_observer
             if nargin < 4
                 exports_data = false;
             end
-            
+                        
             assign_handles(obj,handles);
 
-            add_callback(obj.invert_colormap_popupmenu,@(~,~,~) obj.update_display);
+            addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
+            
+            obj.selected = obj.data_series_list.selected;
 
             obj.contextmenu = uicontextmenu('Parent',obj.window);
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
@@ -75,10 +79,12 @@ classdef abstract_plot_controller < flim_fit_observer
                          '*.*',  'All Files (*.*)'},...
                          'Select root file name',[default_path filesep]);
 
-            if ~isempty(filename)
+            if filename~=0
                 
                 [~,name,ext] = fileparts(filename);
                 ext = ext(2:end);
+                
+                param_name = obj.fit_controller.fit_result.params{obj.cur_param};
                 
                 f = figure('Visible','off');
                 if obj.handle_is_axes
@@ -89,9 +95,9 @@ classdef abstract_plot_controller < flim_fit_observer
                 
                 obj.draw_plot(ref,obj.cur_param);
                 if strcmp(ext,'emf')
-                    print(f,'-dmeta',[pathname filesep name ' ' obj.cur_param '.' ext])
+                    print(f,'-dmeta',[pathname filesep name ' ' param_name '.' ext])
                 else
-                    savefig([pathname filesep name ' ' obj.cur_param],f,ext);
+                    savefig([pathname filesep name ' ' param_name],f,ext);
                 end
                 close(f);
             end
@@ -181,47 +187,57 @@ classdef abstract_plot_controller < flim_fit_observer
         function plot_fit_update(obj) 
         end
         
+        function selection_updated(obj,~,~)
+            obj.selected = obj.data_series_list.use_selected;
+            obj.update_display();
+        end
+        
+        
         function update_param_menu(obj,~,~)
             if obj.fit_controller.has_fit
                 obj.param_list = obj.fit_controller.fit_result.fit_param_list();
-                
-                if ~isempty(obj.param_popupmenu)    
-                    old_list = get(obj.param_popupmenu,'String')';
-                    new_list = ['-',obj.param_list];
+                new_list = ['-',obj.param_list];
+                for i=1:length(obj.param_popupmenu) 
+                    old_list = get(obj.param_popupmenu(i),'String')';
                     
                     changed = length(old_list)~=length(new_list) || ...
                         any(~cellfun(@strcmp,old_list,new_list));
-                    
-                    if changed
-                        set(obj.param_popupmenu,'String',new_list);
 
-                        if get(obj.param_popupmenu,'Value') > length(obj.param_list)
-                            set(obj.param_popupmenu,'Value',1);
+                    if changed
+                        set(obj.param_popupmenu(i),'String',new_list);
+
+                        if get(obj.param_popupmenu(i),'Value') > length(obj.param_list)
+                            set(obj.param_popupmenu(i),'Value',1);
                         end
-                        
+
                         obj.param_select_update();    
-                    end
-                end            
+                    end          
+                end
             end
             
         end
         
         function param_select_update(obj,src,evt)
-            idx = get(obj.param_popupmenu,'Value')-1;
-            if idx == 0;
-                obj.cur_param = [];
-            else
-                obj.cur_param = obj.param_list{idx};
+            % Get parameters from potentially multiple popupmenus
+            val = get(obj.param_popupmenu,'Value');
+            if iscell(val)
+                val = cell2mat(val);
             end
+            idx = val-1;
+            obj.cur_param = idx;
             
+            obj.update_display();
+        end
+        
+        function lims_update(obj,src,evt)
             obj.update_display();
         end
         
         function fit_update(obj)
             obj.update_param_menu();
             obj.plot_fit_update();
-            
-            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'default_lims','PostSet',@obj.param_select_update);
+            obj.update_display();
+            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'cur_lims','PostSet',@obj.lims_update);
         end
         
         function fit_display_update(obj)
@@ -232,9 +248,9 @@ classdef abstract_plot_controller < flim_fit_observer
             obj.draw_plot(obj.plot_handle,obj.cur_param);
         end
         
-        function mapped_data = apply_colourmap(data,param,lims)
+        function mapped_data = apply_colourmap(obj,data,param,lims)
             
-            cscale = obj.colourmap(param);
+            cscale = obj.colourscale(param);
             
             m=2^8;
             data = data - lims(1);
@@ -253,11 +269,12 @@ classdef abstract_plot_controller < flim_fit_observer
         
         function cscale = colourscale(obj,param)
             
-            invert = get(obj.invert_colormap_popupmenu,'Value') - 1;
+            param_name = obj.fit_controller.fit_result.params{param};
+            invert = obj.fit_controller.invert_colormap;
             
-            if strcmp(param,'I0') || strcmp(param,'I')
+            if strcmp(param_name,'I0') || strcmp(param_name,'I')
                 cscale = @gray;
-            elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
+            elseif invert && (~isempty(strfind(param_name,'tau')) || ~isempty(strfind(param_name,'theta')))
                 cscale = @inv_jet;
             else
                 cscale = @jet;
@@ -265,24 +282,26 @@ classdef abstract_plot_controller < flim_fit_observer
             
         end
         
-        function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
+        function im_data = plot_figure(obj,h,hc,dataset,param,merge,text)
 
             if ~obj.fit_controller.has_fit || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
                 return
             end
+            
+            f = obj.fit_controller;
 
-            d = obj.fit_controller.data_series;
-            r = obj.fit_controller.fit_result;
+            intensity = f.get_intensity_image(dataset);
+            im_data = f.get_image(dataset,param);
 
-            intensity = r.get_image(dataset,'I');
-            im_data = r.get_image(dataset,im);
+            
+            cscale = obj.colourscale(param);
 
-            cscale = obj.colourscale(im);
-
+            lims = f.get_cur_lims(param);
+            I_lims = f.get_cur_intensity_lims;
             if ~merge
-                im=colorbar_flush(h,hc,im_data,isnan(intensity),r.default_lims.(im),cscale,text);
+                im=colorbar_flush(h,hc,im_data,isnan(intensity),lims,cscale,text);
             else
-                im=colorbar_flush(h,hc,im_data,[],r.default_lims.(im),cscale,text,intensity,r.default_lims.I);
+                im=colorbar_flush(h,hc,im_data,[],lims,cscale,text,intensity,I_lims);
             end
             
 

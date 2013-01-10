@@ -1,148 +1,107 @@
-classdef flim_fit_corr_controller < flim_fit_observer
-   
+classdef flim_fit_corr_controller < abstract_plot_controller
+    
     properties
-        corr_axes;
-        corr_param_x_popupmenu;
-        corr_param_y_popupmenu;
-        corr_prop_table;
-        
-        corr_x_lim = [0; 1000];
-        corr_y_lim = [0; 1000];
-        
-        param_x;
-        param_y;
-        
-        data_series_list;
-        selected;
+        corr_source_popupmenu;
+        corr_display_popupmenu;
     end
     
     methods
         function obj = flim_fit_corr_controller(handles)
-            obj = obj@flim_fit_observer(handles.fit_controller);
+            obj = obj@abstract_plot_controller(handles,handles.corr_axes,[handles.corr_param_x_popupmenu handles.corr_param_y_popupmenu]);
             assign_handles(obj,handles);
             
-            set(obj.corr_prop_table,'CellEditCallback',@obj.table_updated);
-            set(obj.corr_param_x_popupmenu,'Callback',@obj.param_updated);
-            set(obj.corr_param_y_popupmenu,'Callback',@obj.param_updated);
+            set(obj.corr_source_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.corr_display_popupmenu,'Callback',@(~,~)obj.update_display);
             
-            addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
-            
-            obj.selected = obj.data_series_list.selected;
-            
-            obj.update_table();
-            obj.update_param_list();
-            obj.update_correlation();
+            obj.update_display();
         end
-        
-        function selection_updated(obj,~,~)
-            obj.selected = obj.data_series_list.use_selected;
-            obj.update_correlation();
-        end
-        
-        function fit_update(obj)
-            obj.update_param_list();
-            obj.update_correlation();
-        end
-        
-        function table_updated(obj,~,~)
-            table_data = get(obj.corr_prop_table,'Data');
-            obj.corr_x_lim = table_data(:,1);
-            obj.corr_y_lim = table_data(:,2);
-            obj.update_correlation();
-        end
-        
-        function update_param_list(obj)
-            if obj.fit_controller.has_fit
-                params = obj.fit_controller.fit_result.fit_param_list();
-                params = [{'-'} params];
-                set(obj.corr_param_x_popupmenu,'String',params);
-                set(obj.corr_param_y_popupmenu,'String',params);
-                
-                
-                obj.param_updated()
-            end
-        end
-        
-        function param_updated(obj,~,~)
-            params = obj.fit_controller.fit_result.fit_param_list();
-            px = get(obj.corr_param_x_popupmenu,'Value');
-            py = get(obj.corr_param_y_popupmenu,'Value');
-            if px > 1
-                obj.param_x = params{px-1};
-            else
-                obj.param_x = [];
-            end
-            if py > 1
-                obj.param_y = params{py-1};
-            else
-                obj.param_y = [];
-            end
-            obj.update_correlation();
-        end
-        
-        function update_table(obj)
-            table_data = zeros(2,2);
-            table_data(:,1) = obj.corr_x_lim;
-            table_data(:,2) = obj.corr_y_lim;
-            set(obj.corr_prop_table,'Data',table_data);
-        end
-        
-                
-        function update_correlation(obj)
-            cla(obj.corr_axes)
-            if obj.fit_controller.has_fit && ~isempty(obj.param_x) && ~isempty(obj.param_y) && obj.selected > 0
-                
-                r = obj.fit_controller.fit_result;
-                
-                param_data_x = r.get_image(obj.selected,obj.param_x);
-                param_data_y = r.get_image(obj.selected,obj.param_y);
 
-                obj.corr_x_lim = r.default_lims.(obj.param_x);
-                obj.corr_y_lim = r.default_lims.(obj.param_y);
+        function plot_fit_update(obj)
+        end
+
+        function draw_plot(obj,ax,param)
+            
+            source = get(obj.corr_source_popupmenu,'Value');
+            display = get(obj.corr_display_popupmenu,'Value');
                 
-                sel = param_data_x >= obj.corr_x_lim(1) & param_data_x <= obj.corr_x_lim(2) ...
-                    & param_data_y >= obj.corr_y_lim(1) & param_data_y <= obj.corr_y_lim(2);      
+            if source == 1
+                sel = obj.data_series_list.selected;
+            else
+                sel = obj.fit_controller.selected;
+            end
+                                    
+            cla(ax)
+            if obj.fit_controller.has_fit && all(param > 0)
+                
+                f = obj.fit_controller;
+                r = f.fit_result;
+            
+                param_data_x = [];
+                param_data_y = [];
+                for i=1:length(sel)
+                    
+                    if display == 1 % Pixels
+                        new_x = f.get_image(sel(i),param(1));
+                        new_y = f.get_image(sel(i),param(2));
+
+                        filt = isfinite( new_x ) & isfinite( new_y );
+
+                        new_x = new_x(filt);
+                        new_y = new_y(filt);
+                    else % Regions
+                        new_x = r.region_mean{sel(i)}(param(1),:)';
+                        new_y = r.region_mean{sel(i)}(param(2),:)';
+                    end
+                    
+                    param_data_x = [param_data_x; new_x];
+                    param_data_y = [param_data_y; new_y];
+                    
+                end
+                x_lim = f.get_cur_lims(param(1));
+                y_lim = f.get_cur_lims(param(2));
+                
+                sel = param_data_x >= x_lim(1) & param_data_x <= x_lim(2) ...
+                    & param_data_y >= y_lim(1) & param_data_y <= y_lim(2);      
                 
                 param_data_x = param_data_x( sel );
                 param_data_y = param_data_y( sel );
                 
-                xlims = obj.fit_controller.fit_result.default_lims.(obj.param_x);
-                ylims = obj.fit_controller.fit_result.default_lims.(obj.param_y);
-                
-                x_edge = linspace(obj.corr_x_lim(1),obj.corr_x_lim(2),128);
-                y_edge = linspace(obj.corr_y_lim(1),obj.corr_y_lim(2),128);
+                if display == 1 % Pixels
+                    x_edge = linspace(x_lim(1),x_lim(2),128);
+                    y_edge = linspace(y_lim(1),y_lim(2),128);
 
-                c = histcn([param_data_y param_data_x],y_edge,x_edge);
-                
-                m=256;
-                
-                mn = min(c(:));
-                mx = max(c(:));
-                c = (c - mn)/(mx-mn);
-                c = uint32(c * m);
-                
-                cmap = jet(m);
-                c = ind2rgb(c,cmap);
-                
-                image(x_edge,y_edge,c,'Parent',obj.corr_axes);
-                set(obj.corr_axes,'YDir','normal')
-                
-                %createContour([param_data_x param_data_y],);
-                %scatter(obj.corr_axes,param_data_x,param_data_y);
+                    c = histcn([param_data_y param_data_x],y_edge,x_edge);
 
-                
-                
-                if all(isnan(xlims)) && xlims(2)>xlims(1)
-                    set(obj.corr_axes,'XLim',xlims);
+                    m=256;
+
+                    mn = min(c(:));
+                    mx = max(c(:));
+                    c = (c - mn)/(mx-mn);
+                    c = uint32(c * m);
+
+                    cmap = jet(m);
+                    c = ind2rgb(c,cmap);
+
+                    im = image(x_edge,y_edge,c,'Parent',ax);
+                    
+                    if ( ax == obj.plot_handle )
+                        set(im,'uicontextmenu',obj.contextmenu);
+                    end
+                else % Regions
+                    plot(ax,param_data_x,param_data_y,'x');
                 end
-                if all(isnan(ylims)) && ylims(2)>ylims(1) 
-                    set(obj.corr_axes,'YLim',ylims);
-                end
-
-                xlabel(obj.corr_axes,obj.param_x);
-                ylabel(obj.corr_axes,obj.param_y);
+                
+                
+                
+                set(ax,'YDir','normal')
+                set(ax,'XLim', x_lim,'YLim', y_lim);
+                
+                pbaspect(ax,[1 1 1])
+                
+                xlabel(ax,r.latex_params{param(1)});
+                ylabel(ax,r.latex_params{param(2)});
             else
-                cla(obj.corr_axes);
+                cla(ax);
             end
         end
         

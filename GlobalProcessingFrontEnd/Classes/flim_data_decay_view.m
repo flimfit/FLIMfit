@@ -28,7 +28,9 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                             
             assign_handles(obj,handles)
 
-            addlistener(obj.data_series_list,'selection_updated',@obj.roi_update);
+            if ~isempty(obj.data_series_list)
+                addlistener(obj.data_series_list,'selection_updated',@obj.roi_update);
+            end
             addlistener(obj.roi_controller,'roi_updated',@obj.roi_update);
             set(obj.highlight_display_mode_popupmenu,'Callback',@obj.display_mode_update);
             set(obj.highlight_decay_mode_popupmenu,'Callback',@obj.display_mode_update);
@@ -75,12 +77,20 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
             
             first_call = isempty(obj.ylim_highlight);
                 
+            warning('off','MATLAB:Axes:NegativeDataInLogAxis');
             
             if obj.data_series.init
                 
                 display_mode = get(obj.highlight_display_mode_popupmenu,'Value');            
                 decay_mode = get(obj.highlight_decay_mode_popupmenu,'Value');
 
+                if isempty(decay_mode)
+                    decay_mode = 1;
+                end
+                if isempty(display_mode)
+                    display_mode = 1;
+                end
+                
                 if nargin < 2
                     file = [];
                 end
@@ -91,13 +101,13 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                 d = obj.data_series;                        
                 mask = obj.roi_controller.roi_mask;
 
-                if nargin == 3
-                    datasets = 1:d.n_datasets;
-                    export_all = true;
-                else
+                if ~isempty(obj.data_series_list)
                     datasets = obj.data_series_list.selected;
-                    export_all = false;
+                else
+                    datasets = 1;
                 end
+                export_all = false;
+ 
 
                 switch display_mode
                     case 2
@@ -117,8 +127,8 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                         % Plot decay data
                         switch decay_mode
                             case 1
-                                data = obj.data_series.get_roi(mask,dataset);
-                                irf = obj.data_series.tr_irf;
+                                [data, irf] = obj.data_series.get_roi(mask,dataset);
+                                %irf = obj.data_series.tr_irf;
                             case 2
                                 data = obj.data_series.irf;
                                 t_decay = d.t_irf;
@@ -146,16 +156,6 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                         if ~isempty(data)
                             plot_fcn(obj.highlight_axes,t_decay,data,'o');
                             hold(obj.highlight_axes,'on');
-                            if ~isempty(file)
-                                w_decay = data;
-                                if export_all
-                                    [path name ext] = fileparts(file);
-                                    wfile = [path filesep d.names{dataset} '_' name '_magic' ext];
-                                else
-                                    wfile = file;
-                                end
-                                dlmwrite(wfile,[t_decay' w_decay],'\t');
-                            end
                         end
 
                         if ~isempty(bg_line)
@@ -164,18 +164,25 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
 
                         if ~isempty(irf)
                             % Plot IRF
-                            t0 = obj.fitting_params_controller.fit_params.t0;
                             scale = double(max(data(:)))/max(irf(:));
-                            plot_fcn(obj.highlight_axes,t_irf+t0,irf*scale,'--');
+                            plot_fcn(obj.highlight_axes,t_irf,irf*scale,'--');
+                        end
 
-                            if ~isempty(file) && (dataset == 1 || export_all == false)
-                                [path name ext] = fileparts(file);
-                                dlmwrite([path filesep name '_irf' ext],[t_irf irf],'\t');
+                       if ~isempty(file)
+                            [path name ext] = fileparts(file);
+                            if export_all
+                                wfile = [path filesep d.names{dataset} '_' name ext];
+                                wifile = [path filesep d.names{dataset} '_' name '_irf' ext];
+                            else
+                                wfile = [path filesep name ext];
+                                wifile = [path filesep name '_irf' ext];
                             end
+                            dlmwrite(wfile,[t_decay' data],'\t');
+                            dlmwrite(wifile,[t_irf irf],'\t');
                         end
 
 
-                        if obj.fit_controller.has_fit %&& decay_mode == 1                
+                        if ~isempty(obj.fit_controller) && obj.fit_controller.has_fit %&& decay_mode == 1                
 
                             %Plot fit
                             if true || strcmp(d.mode,'TCSPC')
@@ -238,20 +245,24 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
 
                             end
                         else
-                            cla(obj.residuals_axes);
+                            if ~isempty(obj.residuals_axes)
+                                cla(obj.residuals_axes);
+                            end
                         end
                     end
                 end
 
-                grid(obj.residuals_axes,'on');             
+                if ~isempty(obj.residuals_axes)
+                    grid(obj.residuals_axes,'on');             
+                    ylabel(obj.residuals_axes,'Normalised Residuals');
+                    xlabel(obj.residuals_axes,'Time (ps)')
+                end
+                
                 grid(obj.highlight_axes,'on');
-
-                ylabel(obj.residuals_axes,'Normalised Residuals');
                 ylabel(obj.highlight_axes,'ROI Intensity');
-
                 xlabel(obj.highlight_axes,'Time (ps)')
-                xlabel(obj.residuals_axes,'Time (ps)')
-
+                
+                
                 % Set X limits
                 try
                     xmax = max([max(obj.data_series.tr_t) max(obj.data_series.tr_t_irf)]);
@@ -263,7 +274,7 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                 end
 
                 % Set Y limits
-                if decay_mode == 1
+                %if decay_mode == 1
                     if ~all(data==1)
                        if display_mode == 1
                            low = 0;
@@ -287,9 +298,9 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
 
                     end
                     
-                    obj.ylim_residual = [nanmin(residual),nanmax(residual)];
+                    %obj.ylim_residual = [nanmin(residual),nanmax(residual)];
                     
-                end
+                %end
                 
                 
                 try                    

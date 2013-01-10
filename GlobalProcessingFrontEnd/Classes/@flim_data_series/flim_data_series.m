@@ -1,4 +1,4 @@
-classdef flim_data_series < handle
+classdef flim_data_series < handle & h5_serializer
    
     properties
         mode;
@@ -6,15 +6,16 @@ classdef flim_data_series < handle
         t_irf = [-1; 0; 1];
         irf = [0; 1; 0];
         irf_name;
-                      
-        counts_per_photon;
-        
+        t0_image;
+                              
         tvb_profile = 0;
+        tvb_I_image;
           
         subtract_background = false;
 
         min = 0;
-        max = 0;        
+        max = 0; 
+        
     end
     
     properties(Constant)
@@ -41,6 +42,8 @@ classdef flim_data_series < handle
         
         g_factor = 1;
         
+        counts_per_photon = 1;
+
         background_type = 0;
         background_value = 0;
         
@@ -70,18 +73,42 @@ classdef flim_data_series < handle
         polarisation_resolved = false;
         data_size;
         use;
+        
+        data_subsampling = 1;
+        irf_subsampling = 1;
     end
         
-    
     properties(Transient)
+        acceptor;
+        root_path;
+        
+        t;   
+        t_int;
+        
+        names;
+        metadata;
+
+        num_datasets;
+        seg_mask = [];
+        
+        has_image_irf = 0;
+        image_irf;
+    end
+    
+    properties(Transient,Hidden)
+        % Properties that won't be saved to a data_settings_file or to 
+        % a project file
+        
         raw = false;
+        hdf5 = false;
         
         use_memory_mapping = true;
         load_multiple_channels = false;
         
-        tr_data_series_mem;
-        data_series_mem;
+        tr_data_series_mem = single([]);
+        data_series_mem = single([]);
         
+            
         mapfile_name;
         memmap;
         mapfile_offset = 0;
@@ -91,14 +118,11 @@ classdef flim_data_series < handle
         
         cur_smoothed = 0;
                 
-        root_path;
         
         intensity = [];
         mask = [];
         thresh_mask = [];
                 
-        t;   
-        t_int;
         
         tr_t_irf;
         tr_t_int;
@@ -113,16 +137,13 @@ classdef flim_data_series < handle
         
         tr_tvb_profile;
         
-        names;
-                
-        metadata;
+        
+        OMERO_id;
+        
 
         tr_data_size;
-        num_datasets;
         
         init = false;
-
-        seg_mask = [];
                 
         use_popup = true;  
         lazy_loading = false;
@@ -133,11 +154,8 @@ classdef flim_data_series < handle
         loaded = [];
         load_time = [];
         
-        active = 0;
+        active = 1;
         
-        has_image_irf = 0;
-        image_irf;
-
     end
     
     events
@@ -202,6 +220,45 @@ classdef flim_data_series < handle
             
         end
         
+        function post_serialize(obj)
+            
+            obj.suspend_transformation = true;
+                        
+            datatype = class(obj.cur_data);
+            
+            sz = obj.data_size(:)';
+            
+            ch_sz = sz;
+            sz(end) = obj.n_datasets;
+            
+            path = '/flim_data/';
+                        
+            try
+                h5create(obj.file,path,sz,'Datatype',datatype,'ChunkSize',ch_sz);
+            catch err
+                if ~strcmp(err.identifier,'MATLAB:imagesci:h5create:datasetAlreadyExists');
+                    throw(err);
+                end
+            end
+            
+            for j=1:obj.n_datasets
+
+                obj.switch_active_dataset(j);
+
+                h5write(obj.file,path,obj.cur_data,[1 1 1 1 j],ch_sz,ones(size(sz)));
+                
+            end
+            
+            
+            obj.suspend_transformation = false;
+            
+        end
+        
+        function post_deserialize(obj)
+            
+            obj.hdf5 = true;
+            
+        end
         
         %===============================================================
         
@@ -215,9 +272,11 @@ classdef flim_data_series < handle
         
         function file = save_data_settings(obj,file)
             %> Save data setting file
-            file = [];
+            if nargin < 2
+                file = [];
+            end
             if obj.init
-                if nargin < 2
+                if isempty(file)
                     pol_idx = obj.polarisation_resolved + 1;
                     file = [obj.root_path obj.data_settings_filename{pol_idx}];
                 end
@@ -233,14 +292,12 @@ classdef flim_data_series < handle
         end
         %===============================================================
         
-        function data = get_roi(obj,roi_mask,dataset)
+        function [data,irf] = get_roi(obj,roi_mask,dataset)
             %> Return an array of data points both in internal mask
             %> and roi_mask from dataset selected
             
             obj.switch_active_dataset(dataset);
-            
-            n_tr_t = length(obj.tr_t);
-            
+                        
             idx = obj.get_intensity_idx(dataset);
             
             % Get mask from thresholding
@@ -262,20 +319,19 @@ classdef flim_data_series < handle
 
             data = obj.cur_tr_data;
             
-            % Reshape mask to apply to flim data
-            n_mask = sum(roi_mask(:));
-            %rep_mask = reshape(roi_mask,[1 1 size(roi_mask,1) size(roi_mask,2)]);
-            %rep_mask = repmat(rep_mask,[n_tr_t obj.n_chan 1 1]);
-            
-            % Recover selected data
-            %data = data(rep_mask);
-            %data = reshape(data,[n_tr_t obj.n_chan n_mask]);
             data = data(:,:,roi_mask);
-            %data = data;
+
+            if obj.has_image_irf
+                irf = obj.tr_image_irf(:,:,roi_mask);
+                irf = mean(irf,3);
+            elseif ~isempty(obj.t0_image)
+                offset = mean(obj.t0_image(roi_mask));
+                irf = interp1(obj.tr_t_irf,obj.tr_irf,obj.tr_t_irf+offset,'cubic','extrap');
+            else
+                irf = obj.tr_irf;
+            end
             
-            %d = reshape(data,[size(data,1) size(data,3)]); 
-            %[mul off] = determine_photon_stats(d);
-            %disp([mul off]);
+            
         end
         
         
@@ -362,7 +418,7 @@ classdef flim_data_series < handle
                     n_px = 1;
                 end
                                 
-                data = nansum(data,3);
+                data = nanmean(data,3);
                 
                 para = data(:,1);
                 perp = data(:,2);
@@ -456,6 +512,13 @@ classdef flim_data_series < handle
                     bg = obj.background_image;
                     bg = reshape(bg,[1 1 s]);
                     bg = repmat(bg,[obj.n_t obj.n_chan 1 1]);
+                case 3
+                    if ~isempty(obj.tvb_I_image)
+                        bg = reshape(obj.tvb_I_image,[1 1 obj.height obj.width]);
+                        bg = bg .* obj.tvb_profile + obj.background_value;
+                    else
+                        bg = 0;
+                    end
                 otherwise
                     bg = 0;
             end
@@ -570,12 +633,36 @@ classdef flim_data_series < handle
             obj.compute_tr_data();
         end
         
+        function set.ref_lifetime(obj,ref_lifetime)
+            obj.ref_lifetime = ref_lifetime;
+            obj.compute_tr_irf();
+            notify(obj,'data_updated');
+        end
+        
+        function set.irf_type(obj,irf_type)
+            obj.irf_type = irf_type;
+            obj.compute_tr_irf();
+            notify(obj,'data_updated');
+        end
+            
+        
         function set.g_factor(obj,g_factor)
             obj.g_factor = g_factor;
             obj.compute_tr_irf();
             notify(obj,'data_updated');
         end
         
+        function set.data_subsampling(obj,data_subsampling)
+            obj.data_subsampling = data_subsampling;
+            obj.compute_tr_data();
+        end
+       
+        function set.irf_subsampling(obj,irf_subsampling)
+            obj.irf_subsampling = irf_subsampling;
+            obj.compute_tr_irf();
+            notify(obj,'data_updated');
+        end
+
         function set.t0(obj,t0)
             obj.t0 = t0;
             obj.compute_tr_irf();
@@ -628,7 +715,7 @@ classdef flim_data_series < handle
            
            obj.t_irf_min = -1;
            obj.t_irf_max = 1;
-           obj.irf_background = 0;
+           
            
            obj.compute_tr_irf();
            notify(obj,'data_updated');

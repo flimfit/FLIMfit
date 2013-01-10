@@ -33,8 +33,12 @@ L = bwlabel(b1);
 stats = regionprops(L,'Area');
 idx = find([stats.Area] > min_area);
 z = ismember(L,idx);
+z = logical(z);
 
-z_erode = bwmorph(z, 'erode', membrane_width);
+se = strel('disk',membrane_width);
+z_erode = imerode(z,se);
+%z_erode = bwmorph(z, 'erode', membrane_width);
+
 z = z - z_erode;
 
 z = bwlabel(z);

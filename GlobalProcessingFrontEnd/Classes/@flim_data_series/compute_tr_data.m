@@ -8,8 +8,15 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     if nargin < 3
         no_smoothing = false;
     end
-   
+   %{
+    x = linspace(0,3000,100);
+    h = 0;
+    for i=1:obj.n_datasets
+        a = obj.acceptor(:,:,i);
+        h = h + hist(a(:),x);
+    end
     
+    %}
     calculated = false;
     
     if obj.init && ~obj.suspend_transformation
@@ -55,6 +62,13 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             end
         end
         
+        if obj.data_subsampling > 1
+            subs = 1:length(t_inc);
+            subs = mod(subs,obj.data_subsampling) == 1;
+
+            t_inc = t_inc & subs;
+        end
+        
         obj.t_skip = [find(t_inc,1,'first') find(t_inc_perp,1,'first')]-1;
         
         % Apply all the masking above
@@ -65,6 +79,16 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
 
             
         obj.cur_tr_data = single(obj.cur_data);
+        %{
+        if isfield(obj.metadata,'ACC') && ~isempty(obj.metadata.ACC{obj.active})
+            acum = obj.metadata.ACC{obj.active};
+            if ischar(acum)
+                acum = str2num(acum);
+            end
+            obj.cur_tr_data = obj.cur_tr_data / acum;
+        end
+        %}
+
         
         % Subtract background and crop
         bg = obj.background;
@@ -79,7 +103,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         end
         
         if obj.polarisation_resolved
-            in = in(1,1,:,:) + 2*obj.g_factor*in(1,2,:,:);
+            in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
         end
         
         obj.intensity = squeeze(in);
@@ -110,12 +134,80 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         end
         obj.cur_tr_data = tmp;
 
+        %{
+        figure(4);
+        subplot(1,2,1);
+        s = mean(obj.cur_tr_data,1);
+        s = squeeze(s);
+        imagesc(s);
+        colorbar;
+        caxis([0 10]);
+        set(gca,'XTick',[],'YTick',[]);
+        title(['Mean (' num2str(mean(s(:))) ')']);
+        daspect([1 1 1 ]);
+        
+        subplot(1,2,2);
+        s = std(obj.cur_tr_data,1);
+        s = squeeze(s);
+        imagesc(s);
+        colorbar;
+        caxis([0 3]);
+        set(gca,'XTick',[],'YTick',[]);
+        title(['Std Dev (' num2str(mean(s(:))) ')']);
+        daspect([1 1 1 ]);
+        %}
+        %{
+        figure(10);
+        in = sum(obj.cur_tr_data,1);
+        in = squeeze(in);
+                
+        
+        
+        in = permute(in,[2 3 1]);
+        
+        in1 = in(:,:,1);
+        in2 = in(:,:,2);
+        
+        c = xcorr2(in1,in2);
+        
+        m1 = max(c,[],1);
+        [~,m1] = max(m1)
+        m2 = max(c,[],2);
+        [~,m2] = max(m2)
+        
+        mx = max(in1(:));
+        mn = min(in1(:));
+        in1 = (in1 - mn) / (mx - mn);
+        
+        mx = max(in2(:));
+        mn = min(in2(:));
+        in2 = (in2 - mn) / (mx - mn);
+        
+        cdata = zeros([size(in,1) size(in,2) 3]);
+        cdata(:,:,1) = in1;
+        cdata(:,:,2) = in2;
+        
+        %subplot(1,2,1)
+        subplot(1,1,1)
+        image(cdata);
+        set(gca,'YTick',[],'XTick',[]);
+        daspect([1 1 1])
+        
+        %imagesc(c);
+        
+        %subplot(1,2,2)
+        %ss = obj.steady_state_anisotropy(obj.active);
+        %imagesc(ss);
+        %}
+        
 
         % Smooth data
         if obj.binning > 0 && ~no_smoothing
             obj.cur_tr_data = obj.smooth_flim_data(obj.cur_tr_data,obj.binning);
         end
 
+        %obj.cur_tr_data(obj.cur_tr_data<0) = 0;
+        
         obj.cur_smoothed = ~no_smoothing;
         
         obj.compute_tr_irf();

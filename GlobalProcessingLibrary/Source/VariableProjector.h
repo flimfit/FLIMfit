@@ -1,66 +1,63 @@
 #ifndef _VARIABLEPROJECTOR_H
 #define _VARIABLEPROJECTOR_H
 
-#include "VariableProjection.h"
+#include "AbstractFitter.h"
 
-class VariableProjector
+#define ANALYTICAL_DERV 0
+#define NUMERICAL_DERV  1
+
+class VariableProjector : public AbstractFitter
 {
 
 public:
-   VariableProjector(Tada ada, int* gc, int smax, int l, int nl, int nmax, int ndim, int p, double *t);
+   VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate);
    ~VariableProjector();
 
-   int Fit(int s, int n, float* y, float *w, double *alf, double *lin_params, int thread, int itmax, int& niter, int &ierr, double& c2);
+   int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2);
 
+   int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
+
+   int GetLinearParams(int s, float* y, double* alf); 
 
 private:
 
-   int Init();
+   void Cleanup();
+
+   int varproj(int nsls1, int nls, int mskip, const double *alf, double *rnorm, double *fjrow, int iflag);   
    
-   int varproj(void *pa, int nsls1, int nls, const double *alf, double *rnorm, double *fjrow, int iflag);
-   int GetLinearParams(int s, double* alf, double* beta, int thread);
+   void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
+
+   void CalculateWeights(int px, const double* alf, int thread);
+
+   void get_linear_params(int idx, double* a, double* u, double* x = 0);
+   int bacsub(int idx, double* a, volatile double* x);
+   int bacsub(volatile double *r, double *a, volatile double *x);
 
    double d_sign(double *a, double *b);
 
-   Tada ada;
-   int* gc;
+   double *work; 
+   double *aw, *bw, *wp;
 
    // Buffers used by levmar algorithm
    double *fjac;
+   double *fvec;
    double *diag;
    double *qtf;
    double *wa1, *wa2, *wa3, *wa4;
    int    *ipvt;
+   
+   double* r_buf;
+ 
+   int n_call;
 
-   // Used by variable projection
-   int     inc[96];
-   int     ncon;
-   int     nconp1;
-   int     philp1;
+   int weighting;
+   int iterative_weighting;
 
-   double *a;
-   double *b;
-   double *u;
-   double *kap;
+   int use_numerical_derv;
 
-   int     n;
-   int     s;
-   int     l;
-   int     nl;
-   int     p;
-
-   int     smax;
-   int     nmax;
-   int     ndim;
-
-   int     lp1;
-
-   float  *y;
-   float  *w;
-   double *t;
-
-   int thread;
-
+   friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
+   friend int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag);
 };
+
 
 #endif

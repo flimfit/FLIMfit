@@ -1,11 +1,14 @@
 function handles = add_hist_corr_display_panel(obj,handles,parent)
 
+    % Add Histograms controls
+    %====================================
+
     hist_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
     
     handles.hist_axes = axes('Parent',hist_layout);
     
-    param_layout = uiextras.HBox( 'Parent', hist_layout, 'Spacing', 3 );
-    opt_layout = uiextras.Grid( 'Parent', param_layout, 'Spacing', 3 );
+   
+    opt_layout = uiextras.Grid( 'Parent', hist_layout, 'Spacing', 3 );
     uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', opt_layout, ...
                'HorizontalAlignment', 'right' );
     uicontrol( 'Style', 'text', 'String', 'Weighting  ', 'Parent', opt_layout, ...
@@ -14,15 +17,22 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
             'String', {''}, 'Parent', opt_layout );
     handles.hist_weighting_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'None' 'Intensity Weighted'}, 'Parent', opt_layout );
-        
-    handles.hist_prop_table = uitable('RowName', {'Min', 'Max', 'Classes'}, 'ColumnName', {}, ...
-                                      'Data', [0;1;100], 'ColumnEditable', true,... 
-                                      'Parent', param_layout);
+      
+    uicontrol( 'Style', 'text', 'String', 'Classes  ', 'Parent', opt_layout, ...
+               'HorizontalAlignment', 'right' );
+    uicontrol( 'Style', 'text', 'String', 'Source Data  ', 'Parent', opt_layout, ...
+               'HorizontalAlignment', 'right' );
+
+    handles.hist_classes_edit = uicontrol( 'Style', 'edit', ...
+            'String', '100', 'Parent', opt_layout );
+    handles.hist_source_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Selected Image' 'All Filtered'}, 'Parent', opt_layout );
+
     
     set( hist_layout, 'Sizes', [-1,70] );
-    set( opt_layout, 'ColumnSizes', [100 200]);
+    set( opt_layout, 'ColumnSizes', [90 90 90 90]);
     set( opt_layout, 'RowSizes', [22 22]);
-    set( param_layout, 'Sizes', [300,170] );
+
 
     
     
@@ -39,11 +49,20 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
             'String', {''}, 'Parent', param_layout );
     handles.corr_param_y_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {''}, 'Parent', param_layout );
-    
+        
+    uicontrol( 'Style', 'text', 'String', 'Source Data  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
+    uicontrol( 'Style', 'text', 'String', 'Plot  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
+           
+    handles.corr_source_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Selected Image' 'All Filtered'}, 'Parent', param_layout );
+    handles.corr_display_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Pixels' 'Regions'}, 'Parent', param_layout );
     
     set( corr_layout, 'Sizes', [-1,70] );
-    set( param_layout, 'RowSizes', [22,22] );
-    set( param_layout, 'ColumnSizes', [100,200] );
+    set( param_layout, 'ColumnSizes', [90 90 90 90] );
+    set( param_layout, 'RowSizes', [22 22] );
 
 
 end

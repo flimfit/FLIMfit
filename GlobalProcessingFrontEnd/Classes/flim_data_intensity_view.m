@@ -2,6 +2,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
    
     properties
        intensity_axes;
+       intensity_mode_popupmenu;
        data_series_list;
        im;
        colorbar_axes;
@@ -14,8 +15,11 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
         function obj = flim_data_intensity_view(handles)
             obj = obj@flim_data_series_observer(handles.data_series_controller);
             assign_handles(obj,handles);
+            
             parent = get(obj.intensity_axes,'Parent');
             addlistener(parent,'Position','PostSet',@obj.update_figure);
+            
+            set(obj.intensity_mode_popupmenu,'Callback',@obj.update_figure);
             if ~isempty(obj.data_series_list)
                 addlistener(obj.data_series_list,'selection_updated',@obj.data_update_evt);
             end
@@ -39,24 +43,64 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
             
             ax = obj.intensity_axes;
             
+            view = get(obj.intensity_mode_popupmenu,'Value');
+            
             m = 2^8;
             
             if (obj.data_series.init)
-                            
-                selected = obj.data_series_list.selected;
-                intensity = obj.data_series.selected_intensity(selected);
-              
-                flt = intensity(intensity>0 & ~isnan(intensity));
-
                 
-                try
-                    lim(1) = min(flt)-1;
-                catch
-                    lim(1) = 0;
+                if ~isempty(obj.data_series_list)       
+                    selected = obj.data_series_list.selected;
+                else
+                    selected = 1;
                 end
                 
-                lim(2) = round(prctile(flt,99.5));
+                switch view
+                case 1 % integrated intensity
+                    intensity = obj.data_series.selected_intensity(selected);
+                    flt = intensity(intensity>0 & isfinite(intensity));
+                    
+                    if isempty(flt)
+                        lim(1) = 0;
+                    else
+                        lim(1) = min(flt)-1;
+                    end
+                    
+                    lim(2) = round(prctile(flt,99.5));
                 
+                    cmap = gray(m-1);
+                case 2 % background
+                    intensity = obj.data_series.background_image;
+                    
+                    flt = intensity(isfinite(intensity));
+                    lim = prctile(flt,[0.01 99.9]);
+                    
+                    cmap = gray(m-1);
+                case 3 % TVB I background
+                    intensity = obj.data_series.tvb_I_image;
+                    
+                    flt = intensity(isfinite(intensity));
+                    lim = prctile(flt,[0.01 99.9]);
+                    
+                    cmap = gray(m-1);
+                case 4 % irf image
+                    intensity = [];
+                    lim = [0 0];
+                    
+                    cmap = gray(m-1);
+                case 5 % t0 map
+                    intensity = obj.data_series.t0_image;
+                    
+                    flt = intensity(isfinite(intensity));
+                    lim = prctile(flt,[0.01 99.9]);
+
+                    cmap = jet(m-1);
+                end
+                
+                
+
+               
+
                 intensity = (intensity - lim(1))/(lim(2)-lim(1));
                 mask = intensity < 0;
                 intensity(intensity > 1) = 1;
@@ -64,7 +108,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                 intensity = intensity + 1;
                 intensity(mask) = 0;
 
-                cmap = gray(m-1);
+               
                 cmap = [ [1,0,0]; cmap];
 
                 mapped_data = ind2rgb(intensity,cmap);
@@ -84,17 +128,16 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
 
                 bar_pos = [pos(1)+pos(3) pos(2) 7 pos(4)];
 
-                cmap = gray(256);
-                a = (256:-1:1)';
+                a = linspace(m,2,m-1)';
                 a = ind2rgb(a,cmap);
                 
                 parent = get(ax,'Parent');
                 if isempty(obj.colorbar_axes)
                 	obj.colorbar_axes(1) = axes('Units','pixels','Position',bar_pos,'YTick',[],'XTick',[],'Box','on','Parent',parent);
-                    image(a,'Parent',obj.colorbar_axes(1));
                 else
                     set(obj.colorbar_axes(1),'Units','pixels','Position',bar_pos);
                 end
+                image(a,'Parent',obj.colorbar_axes(1));
                 
                 
                 set(obj.colorbar_axes(1),'XTick',[],'YTick',[]);

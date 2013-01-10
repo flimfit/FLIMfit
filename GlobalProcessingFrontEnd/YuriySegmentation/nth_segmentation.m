@@ -12,6 +12,8 @@ K = rel_bg_scale;
 t = threshold;
 se = strel('disk',max(1,round(abs(smoothing))));
 
+se20 = strel('disk',20);
+
 
 if K<1
     K=1;
@@ -25,15 +27,44 @@ norm = min(norm,10000);
 nth = nth / norm;
 t = t / norm;
 
+t = max(t,0);
+t = min(t,1);
+
 b1 = im2bw(nth,t);
 b2 = imerode(b1,se); b1 = imdilate(b2,se);
+
+%clf
 
 L = bwlabel(b1);
 stats = regionprops(L,'Area');
 idx = find([stats.Area] > min_area);
 z = ismember(L,idx);
+
 z = bwlabel(z);
+return
 
+%{
+sez = strel('disk',10);
+ze = imdilate(z,sez); %z = imerode(z,se);
 
+%imagesc(z);
+ue = imerode(z,se20);
+%imagesc(ue);
 
+ue = bwulterode(ue);
+d = bwdist(ue);
+ue = d < 20;
 
+I = imimposemin(imcomplement(U), ue | ~ze); 
+%imagesc(ue | ~z)
+L = watershed(I); 
+L(~z) = 0;
+%imagesc(L)
+
+stats = regionprops(L,'Area','Eccentricity');
+idx = find([stats.Area] > min_area & [stats.Eccentricity] < 1);
+L(~ismember(L,idx)) = 0;
+%imagesc(L)
+
+z = L-1;
+%}

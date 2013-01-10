@@ -9,8 +9,6 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
         
         axes_handles;
         colorbar_handles;
-        cols = 0;
-        rows = 0;
     end
     
     methods
@@ -48,25 +46,20 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             end
         end
         
-        function draw_plot(obj,f,param)
+        function draw_plot(obj,fig,param)
             %return
-            save = (f ~= obj.plot_handle);
+            save = (fig ~= obj.plot_handle);
             
-            d = obj.fit_controller.data_series;
-            r = obj.fit_controller.fit_result;
+            f = obj.fit_controller;
+            r = f.fit_result;
             sel = obj.fit_controller.selected;
+
             
-            if save
-                pa = f;%get(f,'Parent');
-                pos = get(pa,'Position');
-                pos = [0,0,800,600];
-                set(pa,'Position',pos);
-            end
             
-            children = get(f,'Children');
+            children = get(fig,'Children');
             delete(children);
             
-            if ~obj.fit_controller.has_fit || isempty(param) 
+            if ~obj.fit_controller.has_fit || param == 0 
                 return
             end
             
@@ -83,23 +76,42 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
 
             unit = get(obj.gallery_unit_edit,'String');
             cols = str2double(get(obj.gallery_cols_edit,'String'));
+            
+            
+            if save
+                pa = fig;%get(f,'Parent');
+                pos_fig = get(pa,'Position');
+                pos = get(obj.plot_handle,'Position');
+                pos_fig(3:4) = pos(3:4);
+                set(pa,'Position',pos_fig);
+            end
+            
+            
+            %{
+            sort_param = cell2mat(r.metadata.Column(sel));
+            entries = unique(sort_param);
+            
+            new_sel = [];
+            for i=1:length(entries)
+                cols_eq = sort_param == entries(i);
+                idx = find(cols_eq,cols,'first');
+                new_sel = [new_sel sel(idx)];
+            end
+
+            sort_param = cell2mat(r.metadata.Column(new_sel));
+            [~,idx] = sort(sort_param);
+            sel = new_sel(idx);
+            %}
+            
+            
+
 
             n_im = length(sel);
             
             total_rows = ceil(n_im/cols);
 
-            if ~strcmp(param,'-') && n_im > 0
+            if n_im > 0
                 
-                %{
-                if save || (n_im>0 && (cols ~= obj.cols || rows ~= obj.rows))
-                    [ax_h,cb_h] = tight_subplot(f,n_im,rows,cols,false,[d.width d.height],5,5);
-                    obj.cols = cols;
-                    obj.rows = rows;
-                else
-                    ax_h = obj.axes_handles;
-                    cb_h = obj.colorbar_handles;
-                end
-                %}
                 
                 if isempty(overlay);
                     meta = [];
@@ -109,21 +121,22 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 
                 cbar_size = 20;
                 
-                pos = get(f,'Position');
+                pos = get(fig,'Position');
                 fig_size = pos(3:4);
                 fig_size(1) = fig_size(1) - cbar_size;
                 
                 new_width = floor(fig_size(1)/cols);
-                ratio = new_width/d.width;
-                new_height = floor(d.height*ratio);
+                ratio = new_width/r.width;
+                new_height = floor(r.height*ratio);
                 
                 max_rows = floor(fig_size(2)/new_height);
+                max_rows = max(max_rows,1);
                 
                 rows = min(max_rows,total_rows);
                 
                 n_disp = cols * rows;
                 
-                gw = d.width * cols; gh = d.height * rows;
+                gw = r.width * cols; gh = r.height * rows;
                 gallery_data = NaN([gh gw]);
                 gallery_I_data = NaN([gh gw]);
                 
@@ -131,7 +144,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     fh = pos(3)*gh/gw;
                     pos(4) = fh;
                     fig_size(2) = fh;
-                    set(f,'Position',pos)
+                    set(fig,'Position',pos)
                 end
                 
                 scroll_pos = max(total_rows - max_rows,0);
@@ -162,25 +175,27 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 
                 idx = 0;
                 label = cell(1,finish-start+1);
-                
+                                
                 for i=start:finish
                     
-                    ri = mod(idx,cols) * d.width + 1;
-                    ci = floor(idx/cols) * d.height + 1;
+                    ri = mod(idx,cols) * r.width + 1;
+                    ci = floor(idx/cols) * r.height + 1;
                     idx = idx + 1;
                     
-                    im_data = r.get_image(sel(i),param);
+                    im_data = obj.fit_controller.get_image(sel(i),param);
+                    
+                    mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
+                    
+                    M(i) = im2frame(mdata);
+                    
                     if merge
-                        I_data = r.get_image(sel(i),'I');
-                        gallery_I_data(ci:ci+d.height-1,ri:ri+d.width-1) = I_data;
+                        I_data = f.get_intensity(sel(i));
+                        gallery_I_data(ci:ci+r.height-1,ri:ri+r.width-1) = I_data;
                     
                     end
-                    gallery_data(ci:ci+d.height-1,ri:ri+d.width-1) = im_data;
+                    gallery_data(ci:ci+r.height-1,ri:ri+r.width-1) = im_data;
                     
-                    
-                    
-                    
-                    
+
                     if ~isempty(meta)
                         t = meta{sel(i)};
                         if strcmp(overlay,'s') && strcmp(unit,'min')
@@ -194,43 +209,36 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                         t = '';
                     end
                     label{idx} = t;
-                    %{
-                    obj.plot_figure(ax_h(i),cb_h(i),i,param,merge,text);
-                    
-                    if ~save
-                        obj.axes_handles = ax_h;
-                        obj.colorbar_handles = cb_h;
-                    end
-                    %}
                 end
+                
+                %implay(M);
                 
                 % Subsample if possible
                 scale = max(floor(1/ratio),1);
                 gallery_data = gallery_data(1:scale:end,1:scale:end);
                 gallery_I_data = gallery_I_data(1:scale:end,1:scale:end);
                 
-                ax = axes('Parent',f);
-                cbar = axes('Parent',f);
+                ax = axes('Parent',fig);
+                cbar = axes('Parent',fig);
                 
                 cscale = obj.colourscale(param);
+                lims = f.get_cur_lims(param);
+                I_lims = f.get_cur_intensity_lims;
                 
                 if ~merge
-                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),r.default_lims.(param),cscale,[]);
+                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[]);
                 else
-                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),r.default_lims.(param),cscale,[],gallery_I_data,r.default_lims.I);
+                    im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[],gallery_I_data,I_lims);
                 end
-                
-                %im=imagesc(gallery_data,'Parent',ax);    
+                   
                 w = new_width*cols;
                 h = new_height*rows;
+                
                 y = fig_size(2)-h - 1;
                 set(ax,'XTick',[],'YTick',[],'Units','pixels','Position',[1 y w h ]);
-                %daspect(ax,[1 1 1])
-                %set(ax,'Units','pixels');
-                %pos=plotboxpos(ax);
                 set(cbar,'XTick',[],'YTick',[],'Units','pixels','Position',[w y cbar_size h]);
                 
-                if ( f == obj.plot_handle )
+                if ( fig == obj.plot_handle )
                     set(im,'uicontextmenu',obj.contextmenu);
                 end
 
@@ -239,9 +247,9 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 for i=1:rows
                    for j=1:cols
                        if idx <= length(label)
-                           y = (rows-i+1)*new_height-1;
-                           x = (j-1)*new_width+2;
-                           text(x, y, label{idx},'Parent',ax,'Units','pixels',...
+                           y = (i-1)*r.height/scale+2;
+                           x = (j-1)*r.width/scale+2;
+                           text(x, y, label{idx},'Parent',ax,...
                              'Color','w','BackgroundColor','k','Margin',1,...
                              'FontUnits','points','FontSize',10,...
                              'HorizontalAlignment','left','VerticalAlignment','top');
@@ -251,10 +259,10 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 end
                 
                 for i=1:cols-1
-                     line([d.width d.width]*i/scale,[0 d.height*rows]/scale,'Parent',ax,'Color','w');
+                     line([r.width r.width]*i/scale,[0 r.height*rows]/scale,'Parent',ax,'Color','w');
                 end
                 for i=1:rows-1
-                     line([0 d.width*cols]/scale,[d.height d.height]*i/scale,'Parent',ax,'Color','w');
+                     line([0 r.width*cols]/scale,[r.height r.height]*i/scale,'Parent',ax,'Color','w');
                 end
                 
             end
