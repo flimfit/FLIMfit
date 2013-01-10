@@ -35,7 +35,9 @@ function data_cube = get_FLIM_cube_Channels( session, image, modulo, ZCT )
     Z = ZCT(1)-1;
     C = ZCT(2)-1;
     T = ZCT(3)-1;
-    %    
+    %
+    w = waitbar(0, 'Loading FLIMage....');
+    %
     for k = 1:N,
         switch modulo
             case 'ModuloAlongZ' 
@@ -46,9 +48,16 @@ function data_cube = get_FLIM_cube_Channels( session, image, modulo, ZCT )
         %
         plane = toMatrix(rawPlane, pixels); 
         data_cube(k,:,:) = plane';
+        %
+        waitbar(k/N,w);
+        drawnow;
+        %        
     end
 
     store.close();
 
+    delete(w);
+    drawnow;
+    
 end
 

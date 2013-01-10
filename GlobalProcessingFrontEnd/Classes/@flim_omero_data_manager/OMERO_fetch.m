@@ -60,11 +60,12 @@ else % still can process as it is an imported file....
         
         rawFileStore = obj.session.createRawFileStore();
         rawFileStore.setFileId(originalFile.getId().getValue());
-
-        %  open file and read it
+        % open file and read it
         byteArr  = rawFileStore.read( 0,originalFile.getSize().getValue());
         str = char(byteArr');
-    
+        % Important to close the service
+        rawFileStore.close();
+            
         if strfind(str,'bhfileHeader')
         
             modulo = 'ModuloAlongC';
@@ -75,9 +76,6 @@ else % still can process as it is an imported file....
 
             pos = strfind(str, 'base');
             time_base = str2num(str(pos+5:pos+14)).*1000;        % get time base & convert to ps
-
-            % Important to close the service
-            rawFileStore.close();
     
             time_points = 0:nBins - 1;
             delays = time_points.*(time_base/nBins);

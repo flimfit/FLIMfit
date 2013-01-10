@@ -47,7 +47,9 @@ function data_cube = get_FLIM_cube( session, image, n_blocks, block, modulo, ZCT
     Z = ZCT(1)-1;
     C = ZCT(2)-1;
     T = ZCT(3)-1;
-    %    
+    
+    w = waitbar(0, 'Loading FLIMage....');
+        
     for c = c_begin:c_end,
         switch modulo % getPlane(Z,C,T)
             case 'ModuloAlongZ' 
@@ -60,8 +62,15 @@ function data_cube = get_FLIM_cube( session, image, n_blocks, block, modulo, ZCT
         %
         plane = toMatrix(rawPlane, pixels); 
             data_cube(c - c_begin + 1,:,:) = plane';
+        %
+        waitbar(c/(c_end-c_begin),w);
+        drawnow;
+        %
     end
 
+    delete(w);
+    drawnow;
+    
     store.close();
 
 end
