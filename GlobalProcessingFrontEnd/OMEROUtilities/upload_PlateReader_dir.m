@@ -117,51 +117,21 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                     proxy = session.getContainerService();
                     list = proxy.getImages('Image', id, omero.sys.ParametersI());
                     image = list.get(0);
-                    
-                    % OME ANNOTATION                    
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.BigEndian = 'true';
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.DimensionOrder = 'XYCTZ'; % does not matter
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.ID = '?????';
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.PixelType = pixeltype;
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeX = h; % :)
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeY = w;
-                    
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = 1;
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = 1;
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = 1;
+                    % 
+                    ome_params.BigEndian = 'true';
+                    ome_params.DimensionOrder = 'XYCTZ';
+                    ome_params.pixeltype = pixeltype;
+                    ome_params.SizeX = h;
+                    ome_params.SizeY = w;
+                    ome_params.SizeZ = 1;
+                    ome_params.SizeC = 1;
+                    ome_params.SizeT = 1;
+                    ome_params.modulo = modulo;
+                    ome_params.delays = channels_names;
+                    ome_params.FLIMType = 'Gated';
+                    ome_params.ContentsType = 'sample';
                     %
-                    switch modulo
-                        case 'ModuloAlongC'
-                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = num_files;
-                        case 'ModuloAlongZ'
-                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = num_files;
-                        case 'ModuloAlongT'
-                            flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = num_files;
-                    end    
-                    %
-                    flimXMLmetadata.Image.ContentsType = 'sample';
-                    flimXMLmetadata.Image.FLIMType = 'Gated';
-                    %
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.ATTRIBUTE.ID = 'Annotation:3'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.ATTRIBUTE.Namespace = 'openmicroscopy.org/omero/dimension/modulo'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ATTRIBUTE.namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09';     
-                    switch modulo
-                        case 'ModuloAlongC'
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type = 'lifetime'; 
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit = 'ps'; 
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.Label = channels_names; 
-                        case 'ModuloAlongZ'
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type = 'lifetime'; 
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit = 'ps'; 
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label = channels_names; 
-                        case 'ModuloAlongT'
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type = 'lifetime'; 
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit = 'ps'; 
-                            flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label = channels_names; 
-                    end           
-                    %
-                    xmlFileName = [tempdir 'metadata.xml'];
-                    xml_write(xmlFileName,flimXMLmetadata);
+                    xmlFileName = write_OME_FLIM_metadata(ome_params); 
                     %
                     namespace = 'IC_PHOTONICS';
                     description = ' ';

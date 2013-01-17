@@ -45,7 +45,7 @@ classdef flim_omero_data_manager < handle
             elseif strcmp(mdta.FLIM_type,'Gated')
                 data_series.mode = 'widefield';
             else
-                data_series.mode = 'TCSPC'; % not annotated sdt
+                data_series.mode = 'TCSPC'; % not annotated sdt 
             end
             %
             if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
@@ -90,6 +90,7 @@ classdef flim_omero_data_manager < handle
         %------------------------------------------------------------------                
         function infostring = Set_Dataset(obj,~,~)
             %
+            infostring = [];            
             obj.screen = [];
             obj.plate = [];
             %
@@ -111,6 +112,7 @@ classdef flim_omero_data_manager < handle
         %------------------------------------------------------------------                
         function infostring = Set_Plate(obj,~,~)
             %
+            infostring = [];
             obj.project = [];
             obj.dataset = [];
             %

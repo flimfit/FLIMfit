@@ -266,7 +266,9 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Set_Dataset_callback(obj,~,~)            
             infostring = obj.omero_data_manager.Set_Dataset();
-            set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');
+            if ~isempty(infostring)
+                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');
+            end;
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
@@ -313,7 +315,9 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Set_Plate_callback(obj,~,~)
             infostring = obj.omero_data_manager.Set_Plate();
-            set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
+            if ~isempty(infostring)
+                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
+            end;
         end     
         %------------------------------------------------------------------        
         function menu_OMERO_Reset_Logon_callback(obj,~,~)

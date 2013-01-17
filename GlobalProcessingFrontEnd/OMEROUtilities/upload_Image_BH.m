@@ -35,22 +35,20 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
         channels_names{k} = num2str(Delays(k));
     end;            
     %
-        % OME ANNOTATION
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.BigEndian = 'true';
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.DimensionOrder = 'XYCTZ'; % does not matter
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.ID = '?????';
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.PixelType = pixeltype;    
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeX = h; % :)
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeY = w;    
-        flimXMLmetadata.Image.ContentsType = contents_type;
-        flimXMLmetadata.Image.FLIMType = 'TCSPC';        
-        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.ATTRIBUTE.ID = 'Annotation:3'; 
-        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.ATTRIBUTE.Namespace = 'openmicroscopy.org/omero/dimension/modulo'; 
-        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ATTRIBUTE.namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09';             
+    % OME ANNOTATION        
+    ome_params.BigEndian = 'true';
+    ome_params.DimensionOrder = 'XYCTZ';
+    ome_params.pixeltype = pixeltype;
+    ome_params.SizeX = h;
+    ome_params.SizeY = w;
+    ome_params.modulo = modulo;
+    ome_params.delays = channels_names(1:nBins);
+    ome_params.FLIMType = 'TCSPC';
+    ome_params.ContentsType = contents_type;
     %
     if ~strcmp(mode,'native') % all channels are put along same dimension
-
-        Z = zeros(n_channels*nBins, h, w);
+    %
+    Z = zeros(n_channels*nBins, h, w);
         %
         for c = 1:n_channels,
             for b = 1:nBins,
@@ -76,32 +74,20 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
                     session.getUpdateService().saveAndReturnObject(link);     
         image = get_Object_by_Id(session,imgId);
         %
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = 1;
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = 1;
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = 1;
+        ome_params.SizeZ = 1;
+        ome_params.SizeC = 1;
+        ome_params.SizeT = 1;
         %
         SizeM = n_channels*nBins;
                 switch modulo
                     case 'ModuloAlongC'
-                        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = SizeM;                        
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Type = 'lifetime'; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit = 'ps'; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC.Label = channels_names(1:nBins); 
+                        ome_params.SizeC = SizeM;
                     case 'ModuloAlongZ'
-                        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = SizeM;                        
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type = 'lifetime'; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit = 'ps'; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label = channels_names(1:nBins); 
+                        ome_params.SizeZ = SizeM;
                     case 'ModuloAlongT'
-                        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = SizeM;                        
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type = 'lifetime'; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.NumberOfFLIMChannels = n_channels; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit = 'ps'; 
-                        flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label = channels_names(1:nBins); 
+                        ome_params.SizeT = SizeM;
                 end           
-        
+        %
     else % 'native' - meaning every channel goes to separte "C" with lifetimes according on "T" or "Z"
 
         sizeX = h;
@@ -149,28 +135,21 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
                 link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
                     session.getUpdateService().saveAndReturnObject(link);     
         image = get_Object_by_Id(session,imgId);
+        %        
+        ome_params.SizeZ = 1;
+        ome_params.SizeC = sizeC;
+        ome_params.SizeT = 1;
         %
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = 1;
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeC = sizeC;
-        flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = 1;
-        %
-            switch modulo
-                case 'ModuloAlongZ'
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeZ = sizeZ;                    
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type = 'lifetime'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit = 'ps'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ.Label = channels_names(1:nBins); 
-                case 'ModuloAlongT'
-                    flimXMLmetadata.Image.Pixels.ATTRIBUTE.SizeT = sizeT;                    
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Type = 'lifetime'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit = 'ps'; 
-                    flimXMLmetadata.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT.Label = channels_names(1:nBins); 
-            end                                   
-            
-    end % 'native'    
-    
-    xmlFileName = [tempdir 'metadata.xml'];
-    xml_write(xmlFileName,flimXMLmetadata);
+        switch modulo
+            case 'ModuloAlongZ'
+                ome_params.SizeZ = sizeZ;
+            case 'ModuloAlongT'
+                ome_params.SizeT = sizeT;
+        end                                   
+        
+    end % 'native'        
+    %
+    xmlFileName = write_OME_FLIM_metadata(ome_params); 
     %
     namespace = 'IC_PHOTONICS';
     description = ' ';
