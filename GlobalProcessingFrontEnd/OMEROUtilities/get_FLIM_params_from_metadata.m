@@ -22,8 +22,8 @@ function ret = get_FLIM_params_from_metadata(session,objId)
     fclose(fid);
     
     try
-        ret_ = get_FLIM_params_from_metadta_xml_file(detached_metadata_xml_filename);
-        ret = ret_;
+        ret_ = get_FLIM_params_from_metadata_xml_file(detached_metadata_xml_filename);
+        ret = ret_
     catch err
         [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);                
     end

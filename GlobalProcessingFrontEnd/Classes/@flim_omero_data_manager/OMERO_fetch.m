@@ -14,7 +14,7 @@ n_channels  = mdta.n_channels;
 
 if ~isempty(mdta.modulo)
     
-     delays = cell2mat(Delays)';
+     delays = Delays';
      
 else % still can process as it is an imported file.... 
 
