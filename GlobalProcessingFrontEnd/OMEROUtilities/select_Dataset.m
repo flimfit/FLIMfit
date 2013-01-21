@@ -23,7 +23,7 @@
                     dName = char(java.lang.String(d.getName().getValue()));                    
                     %
                      z = z + 1;                     
-                     dnme = [ pName '@' dName ];
+                     dnme = [ pName ' @ ' dName ];
                      str(z,1:length(dnme)) = dnme;
                      pid(z) = java.lang.Long(p.getId().getValue());
                      did(z) = java.lang.Long(d.getId().getValue());
@@ -34,6 +34,7 @@
             % request a Dataset using the "str" list
             [s,v] = listdlg('PromptString',prompt,...
                             'SelectionMode','single',...
+                            'ListSize',[300 300],...
                             'ListString',str);            
             if(v) % find Project and Dataset by pre-recorded Id's
                 for j = 0:projectsList.size()-1,

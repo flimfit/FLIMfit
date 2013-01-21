@@ -35,7 +35,10 @@ classdef flim_omero_data_manager < handle
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
                         
             if isempty(mdta.n_channels) || mdta.n_channels > 1
-                channel = data_series.request_channels(polarisation_resolved);
+                max_chnl = 16;
+                if ~isempty(mdta.n_channels), max_chnl = mdta.n_channels; end;
+                channel = cell2mat(channel_chooser({(max_chnl)}));
+                if -1 == channel, return, end;
             else
                 channel = 1;
             end;
@@ -162,11 +165,11 @@ classdef flim_omero_data_manager < handle
             end
             
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
-            
-            polarisation_resolved = false;
-                        
+                                    
             if isempty(mdta.n_channels) || mdta.n_channels > 1
-                channel = data_series.request_channels(polarisation_resolved);
+                max_chnl = 16;
+                if ~isempty(mdta.n_channels), max_chnl = mdta.n_channels; end;
+                channel = cell2mat(channel_chooser({(max_chnl)}));
             else
                 channel = 1;
             end;
@@ -178,12 +181,11 @@ classdef flim_omero_data_manager < handle
             end
             %
             try
-                [t_irf, irf_image_data, name] = obj.OMERO_fetch(image, channel, obj.ZCT, mdta);
+                [t_irf, irf_image_data, ~] = obj.OMERO_fetch(image, channel, obj.ZCT, mdta);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
-              
-     
+                   
             irf_image_data = double(irf_image_data);
     
             % Sum over pixels

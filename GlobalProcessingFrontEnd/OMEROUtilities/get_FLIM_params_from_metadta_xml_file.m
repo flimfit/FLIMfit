@@ -51,7 +51,7 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
                 e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.End;                
                      lifetimes = start:step:e;
                      dels = cell(1,numel(lifetimes));
-                     for k=1:numel(lifetimes), dels(k) = cellstr(num2str(lifetimes(k))); end
+                     for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
                      ret.delays = dels;                                                                
             else
                 ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.Label;
@@ -74,7 +74,7 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
                 e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.End;                
                      lifetimes = start:step:e;
                      dels = cell(1,numel(lifetimes));
-                     for k=1:numel(lifetimes), dels(k) = cellstr(num2str(lifetimes(k))); end
+                     for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
                      ret.delays = dels;                                                                
             else
                 ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.Label;
@@ -97,7 +97,7 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
                 e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.End;                
                      lifetimes = start:step:e;
                      dels = cell(1,numel(lifetimes));
-                     for k=1:numel(lifetimes), dels(k) = cellstr(num2str(lifetimes(k))); end
+                     for k=1:numel(lifetimes), dels{k} = lifetimes(k); end                     
                      ret.delays = dels;                                                                
             else
                 ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.Label;

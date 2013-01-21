@@ -126,7 +126,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
             %
             if isempty(mdta.n_channels) || mdta.n_channels > 1
-                obj.selected_channel = data_series.request_channels(polarisation_resolved);            
+                max_chnl = 16;
+                if ~isempty(mdta.n_channels), max_chnl = mdta.n_channels; end;
+                channel = cell2mat(channel_chooser({(max_chnl)}));
+                if -1 == obj.selected_channel, return, end;                
             else
                 obj.selected_channel = 1;
             end;
