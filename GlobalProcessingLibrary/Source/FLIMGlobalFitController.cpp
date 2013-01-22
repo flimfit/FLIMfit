@@ -350,6 +350,7 @@ int FLIMGlobalFitController::DetermineMAStartPosition(int idx)
    double c;
    int j_last = 0;
    int start = 0;
+   
 
    // Get reference to timepoints
    double* t = data->GetT();
@@ -461,9 +462,10 @@ double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
       tau = tau / n;
 
       // Apply correction for measurement window
+      double tau1 = tau;
       double T = t[n_t-1]-t[start];
       for(int i=0; i<10; i++)  
-         tau = tau + T / (exp(T/tau)-1);
+         tau = tau + T / (exp(T/tau1)-1);
 
    }
 

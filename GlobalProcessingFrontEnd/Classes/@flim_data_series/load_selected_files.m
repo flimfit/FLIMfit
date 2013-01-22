@@ -57,7 +57,7 @@ function load_selected_files(obj,selected)
                     [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
-                if ~isdeployed
+                if false && ~isdeployed
                    
                     if obj.polarisation_resolved
                         

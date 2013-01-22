@@ -22,8 +22,9 @@ function new_folders = get_folders_recursive(root_path)
             sb = cell(sb);
             subfolder_isdir = cellfun(@(x) x.isDirectory(),sb);
             subfolder_name = cellfun(@(x) cell(x.getName()),sb);
+            subfolder_is_fi = strncmp(subfolder_name,'FI',2);
 
-            if ~any(subfolder_isdir)
+            if ~any(subfolder_isdir & ~subfolder_is_fi)
                 new_folders{end+1} = folders{1};
             else
                 subfolder_name = subfolder_name(subfolder_isdir);
