@@ -1,7 +1,8 @@
-function str = read_Annotation_having_tag(session, object, tag)
+function [str, n_annotations] = read_Annotation_having_tag(session, object, tag)
         %
         str = [];
-        %
+        n_annotations = 0;  %default
+        
         switch whos_Object(session,object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
@@ -21,10 +22,12 @@ function str = read_Annotation_having_tag(session, object, tag)
         metadataService = session.getMetadataService();
         map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
         annotations = map.get(objId);
+        n_annotations = annotations.size();
+        
         %
         rawFileStore = session.createRawFileStore();
         %
-        for j = 0:annotations.size()-1
+        for j = 0:n_annotations - 1
             originalFile = annotations.get(j).getFile();        
             rawFileStore.setFileId(originalFile.getId().getValue());            
             byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());

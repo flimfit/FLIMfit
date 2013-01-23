@@ -32,7 +32,7 @@ classdef flim_omero_data_manager < handle
         % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION                                    
             polarisation_resolved = false;
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
                         
             if isempty(mdta.n_channels) || mdta.n_channels > 1
                 max_chnl = 16;
@@ -164,7 +164,7 @@ classdef flim_omero_data_manager < handle
                 load_as_image = false;
             end
             
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
                                     
             if isempty(mdta.n_channels) || mdta.n_channels > 1
                 max_chnl = 16;
