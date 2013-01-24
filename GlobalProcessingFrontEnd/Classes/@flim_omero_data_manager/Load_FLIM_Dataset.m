@@ -123,7 +123,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %
             image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
             %
             if isempty(mdta.n_channels) || mdta.n_channels > 1
                 max_chnl = 16;
