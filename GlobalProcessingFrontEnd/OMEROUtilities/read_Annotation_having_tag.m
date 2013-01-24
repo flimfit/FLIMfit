@@ -24,18 +24,18 @@ function str = read_Annotation_having_tag(session, object, tag)
         %
         rawFileStore = session.createRawFileStore();
         %
-        for j = 0:annotations.size()-1
-            originalFile = annotations.get(j).getFile();        
-            rawFileStore.setFileId(originalFile.getId().getValue());            
-            byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
-            curr_str = char(byteArr');
-            %
-            if ~isempty(strfind(curr_str,tag))
-                str = curr_str;
-                rawFileStore.close();
-                return;                
-            end                        
-        end
+            for j = 0:annotations.size()-1
+                originalFile = annotations.get(j).getFile();        
+                rawFileStore.setFileId(originalFile.getId().getValue());            
+                byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
+                curr_str = char(byteArr');
+                %
+                if ~isempty(strfind(curr_str,tag))
+                    str = curr_str;
+                    rawFileStore.close();
+                    return;                
+                end                        
+            end
         %
         rawFileStore.close();
 end

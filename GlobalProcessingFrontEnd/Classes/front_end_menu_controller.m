@@ -18,7 +18,8 @@ classdef front_end_menu_controller < handle
             menu_OMERO_Load_IRF_WF_gated;
             menu_OMERO_Load_Background_form_Dataset;
             menu_OMERO_Load_tvb_from_Image;
-            menu_OMERO_Load_tvb_from_Dataset; 
+            menu_OMERO_Load_tvb_from_Dataset;
+            menu_OMERO_Switch_User
             
         menu_OMERO_Working_Data_Info;
         
@@ -338,7 +339,12 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Dataset_callback(obj,~,~)
             obj.omero_data_manager.Load_tvb_from_Dataset(obj.data_series_controller.data_series);
-        end                               
+        end                              
+        %------------------------------------------------------------------        
+        function menu_OMERO_Switch_User_callback(obj,~,~)
+            delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
+            obj.omero_data_manager.Omero_logon();
+        end        
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                

@@ -342,7 +342,7 @@ classdef flim_omero_data_manager < handle
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end
             %
-            %delete(full_temp_file_name); %??
+            delete(full_temp_file_name); %??
         end            
                         
         %------------------------------------------------------------------
