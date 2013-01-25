@@ -125,13 +125,12 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
             %
-            if isempty(mdta.n_channels) || mdta.n_channels > 1
-                max_chnl = 16;
-                if ~isempty(mdta.n_channels), max_chnl = mdta.n_channels; end;
+            if mdta.n_channels > 1
+                max_chnl = mdta.n_channels;
                 channel = cell2mat(channel_chooser({(max_chnl)}));
-                if -1 == obj.selected_channel, return, end;                
+                if -1 == channel, return, end;
             else
-                obj.selected_channel = 1;
+                channel = 1;
             end;
             %
             if     strcmp(mdta.FLIM_type,'TCSPC')
@@ -139,14 +138,15 @@ function Load_FLIM_Dataset(obj,data_series,~)
             elseif strcmp(mdta.FLIM_type,'Gated')
                 data_series.mode = 'widefield';
             else
-                data_series.mode = 'TCSPC'; % not annotated sdt..
+                data_series.mode = 'TCSPC'; % not annotated sdt 
             end
+            %
             if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
-                obj.ZCT = [mdta.SizeZ obj.selected_channel mdta.SizeT]; 
+                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
             else
                 obj.ZCT = get_ZCT(image,mdta.modulo);
-            end                        
-            %
+            end
+            
             if data_series.use_popup && data_series.num_datasets > 1 && ~data_series.raw
                 wait_handle=waitbar(0,'Loading FLIMages...');
                 using_popup = true;

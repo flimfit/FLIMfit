@@ -33,10 +33,9 @@ classdef flim_omero_data_manager < handle
             polarisation_resolved = false;
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
-                        
-            if isempty(mdta.n_channels) || mdta.n_channels > 1
-                max_chnl = 16;
-                if ~isempty(mdta.n_channels), max_chnl = mdta.n_channels; end;
+            %
+            if mdta.n_channels > 1
+                max_chnl = mdta.n_channels;
                 channel = cell2mat(channel_chooser({(max_chnl)}));
                 if -1 == channel, return, end;
             else
@@ -164,21 +163,22 @@ classdef flim_omero_data_manager < handle
                 load_as_image = false;
             end
             
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
-                                    
-            if isempty(mdta.n_channels) || mdta.n_channels > 1
-                max_chnl = 16;
-                if ~isempty(mdta.n_channels), max_chnl = mdta.n_channels; end;
+            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());                                    
+
+            if mdta.n_channels > 1
+                max_chnl = mdta.n_channels;
                 channel = cell2mat(channel_chooser({(max_chnl)}));
+                if -1 == channel, return, end;
             else
                 channel = 1;
             end;
-            
+            %
             if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
                 obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
             else
                 obj.ZCT = get_ZCT(image,mdta.modulo);
             end
+            
             %
             try
                 [t_irf, irf_image_data, ~] = obj.OMERO_fetch(image, channel, obj.ZCT, mdta);

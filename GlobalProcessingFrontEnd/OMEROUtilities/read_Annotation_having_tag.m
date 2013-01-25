@@ -1,4 +1,4 @@
-function str = read_Annotation_having_tag(session, object, tag)
+function str = read_Annotation_having_tag(session, object, ome_model_annotation_type, tag)
         %
         str = [];
         %
@@ -19,37 +19,35 @@ function str = read_Annotation_having_tag(session, object, tag)
         %
         annotators = java.util.ArrayList;    
         metadataService = session.getMetadataService();
-        map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
+        map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList(ome_model_annotation_type), annotators, omero.sys.ParametersI());
         annotations = map.get(objId);
-        %
-        rawFileStore = session.createRawFileStore();
-        %
-            for j = 0:annotations.size()-1
-                originalFile = annotations.get(j).getFile();        
-                rawFileStore.setFileId(originalFile.getId().getValue());            
-                byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
-                curr_str = char(byteArr');
+        %        
+        switch ome_model_annotation_type
+            case 'ome.model.annotations.FileAnnotation'        
+                rawFileStore = session.createRawFileStore();
                 %
-                if ~isempty(strfind(curr_str,tag))
-                    str = curr_str;
-                    rawFileStore.close();
-                    return;                
-                end                        
-            end
-        %
-        rawFileStore.close();
-        
-        % look for xml annotation
-        map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList('ome.model.annotations.XmlAnnotation'), annotators, omero.sys.ParametersI());
-        annotations = map.get(objId);
-        %
-            for j = 0:annotations.size()-1
-                s = annotations.get(j).getTextValue().getValue();
-                str = char(s)
-                if strfind(str,tag)
-                    return;
-                end;                    
-            end
-        %                               
+                    for j = 0:annotations.size()-1
+                        originalFile = annotations.get(j).getFile();        
+                        rawFileStore.setFileId(originalFile.getId().getValue());            
+                        byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
+                        curr_str = char(byteArr');
+                        %
+                        if ~isempty(strfind(curr_str,tag))
+                            str = curr_str;
+                            rawFileStore.close();
+                            return;                
+                        end                        
+                    end
+                %
+                rawFileStore.close();
+            case 'ome.model.annotations.XmlAnnotation'                        
+                for j = 0:annotations.size()-1
+                    s = annotations.get(j).getTextValue().getValue();
+                    str = char(s);
+                    if strfind(str,tag)
+                        return;
+                    end;                    
+                end                              
+        end % switch
 end
 
