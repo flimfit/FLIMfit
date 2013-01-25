@@ -6,7 +6,7 @@ function load_tvb(obj,data_series,object)
     switch whos_Object(obj.session,object.getId().getValue());
         case 'Image'
             
-            metadata = get_FLIM_params_from_metadata(obj.session,object);
+            metadata = get_FLIM_params_from_metadata(obj.session,object.getId());
                         
             if isempty(metadata.n_channels) || metadata.n_channels > 1 strcmp(data_series.mode,'TCSPC')
                 channel = data_series.request_channels(data_series.polarisation_resolved);

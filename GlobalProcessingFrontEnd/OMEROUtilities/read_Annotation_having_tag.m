@@ -38,5 +38,18 @@ function str = read_Annotation_having_tag(session, object, tag)
             end
         %
         rawFileStore.close();
+        
+        % look for xml annotation
+        map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList('ome.model.annotations.XmlAnnotation'), annotators, omero.sys.ParametersI());
+        annotations = map.get(objId);
+        %
+            for j = 0:annotations.size()-1
+                s = annotations.get(j).getTextValue().getValue();
+                str = char(s)
+                if strfind(str,tag)
+                    return;
+                end;                    
+            end
+        %                               
 end
 

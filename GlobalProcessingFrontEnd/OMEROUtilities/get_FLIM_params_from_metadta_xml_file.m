@@ -29,6 +29,39 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
     end;
 
     ret.FLIM_type = 'TCSPC'; % default
+    
+    if ~isfield(tree,'Image') % the possibility that modulo is attached xml annotation
+        modlo = [];
+        if isfield(tree,'ModuloAlongC')
+            modlo = tree.ModuloAlongC;
+            ret.modulo = 'ModuloAlongC';
+        elseif isfield(tree,'ModuloAlongT')
+            modlo = tree.ModuloAlongT;
+            ret.modulo = 'ModuloAlongT';
+        elseif  isfield(tree,'ModuloAlongZ')
+            modlo = tree.ModuloAlongZ;
+            ret.modulo = 'ModuloAlongZ';
+        end;   
+        
+            if isfield(modlo.ATTRIBUTE,'Start')
+                start = modlo.ATTRIBUTE.Start;
+                step = modlo.ATTRIBUTE.Step;
+                e = modlo.ATTRIBUTE.End;                
+                     lifetimes = start:step:e;
+                     dels = cell(1,numel(lifetimes));
+                     for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
+                     ret.delays = dels;                                                                
+            else
+                ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.Label;
+            end
+            
+        ret.n_channels = [];     
+        return;
+         
+    end
+    
+    
+    
     if isfield(tree.Image,'HRI'), ret.FLIM_type = 'Gated'; end;
     if isfield(tree.Image,'FLIMType'), ret.FLIM_type = tree.Image.FLIMType; end;
         
