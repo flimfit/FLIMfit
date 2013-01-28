@@ -22,6 +22,7 @@
 #include <boost/interprocess/mapped_region.hpp>
 
 #include "AbstractFitter.h"
+#include "TrimmedMean.h"
 
 #include "FlagDefinitions.h"
 
@@ -93,7 +94,6 @@ public:
 
    tthread::thread **thread_handle;
 
-   //double** local_irf;
    int* irf_idx;
    
    bool polarisation_resolved;
@@ -119,7 +119,7 @@ public:
 
    int s; int l; int nl; int n; int nmax; int ndim; 
    int lmax; int p; int n_v;
-   float *y; float *w; float *alf; float *lin_params; float *chi2; float *I; float *r_ss;
+   float *y; float *w; float *alf; float *lin_params; float *chi2; float *I; float *r_ss; float *acceptor;
    float *w_mean_tau, *mean_tau;
    int n_exp_phi, n_fret_group, exp_buf_size, tau_start;
 
@@ -168,16 +168,12 @@ public:
    void SetData(FLIMData* data);
    void SetPolarisationMode(int mode);
 
-
    void Init();
    int RunWorkers();
    int  GetErrorCode();
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int& n_valid);
-   //int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params_mean[], float params_std[], float params_01[], float params_99[]);
-   
-   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], 
-                     float params_mean[], float params_std[], float params_median[], float params_q1[], float params_q2[], float params_01[], float params_99[]);
+   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], ImageStats<float>& stats);   
 
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 

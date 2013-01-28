@@ -1,11 +1,36 @@
+//=========================================================================
+//  
+//  TrimmedMean.h
+//  GlobalProcessing FLIM Analysis Package
+//
+//  Code derived from: 
+//  * Fast Computation of Trimmed Means. Gleb Beliakov
+//  * http://www.jstatsoft.org/v39/c02/paper
+//  * Modified 2013 Sean Warren
+//
+//  Routines for calculating region statistics including trimmed mean,
+//  median, percentile ranges etc
+//
+//=========================================================================
+
+
+#ifndef TRIMMED_MEAN_H
+#define TRIMMED_MEAN_H
+
+#include "ImageStats.h"
+#include "util.h"
+#define SWAP(a,b) temp=(a);(a)=(b);(b)=temp;
+
+
 /*
  Trimmed mean code from: 
  Fast Computation of Trimmed Means. Gleb Beliakov
  http://www.jstatsoft.org/v39/c02/paper
 */
-#include "util.h"
-#define SWAP(a,b) temp=(a);(a)=(b);(b)=temp;
 
+/**
+ * Classic quickselect algorithm
+ */
 template <typename T>
 float quickselect(T *arr, unsigned long n, unsigned long k) 
 {
@@ -69,28 +94,30 @@ float Weighted(T x, T t1, T t2, T w1, T w2)
 }
 
 template <typename T>
-void TrimmedMean(T x[], int n, int K, T& mean, T& std, T& median, T& q1, T& q2, T& pct_lower, T& pct_upper)
+void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
 {
-   T w1, w2, OS1, OS2, wt;
+   T w1, w2, OS1, OS2, wt, mean, std, q1, q2, median, w_mean, w_std;
    
    double mean_sq = 0;
    double mean_acc = 0;
+   double w_mean_acc = 0;
+   double w_mean_sq = 0;
+   double w_acc = 0;
+
    std = 0;
 
    if (n == 0)
    {
       SetNaN(&mean,1);
-      SetNaN(&std,1);
-      SetNaN(&pct_lower,1);
-      SetNaN(&pct_upper,1);
+      stats.SetNextParam(mean);
       return;
    }
 
-   OS1=quickselect(x, n, K);
-   q1 = quickselect(x, n, (unsigned long)(0.25*n));
-   median=quickselect(x, n, (unsigned long)(0.5*n));
-   q2 = quickselect(x, n, (unsigned long)(0.75*n));
-   OS2=quickselect(x, n, n-K-1);
+   OS1    = quickselect(x, n, K);
+   q1     = quickselect(x, n, (unsigned long)(0.25*n));
+   median = quickselect(x, n, (unsigned long)(0.5*n));
+   q2     = quickselect(x, n, (unsigned long)(0.75*n));
+   OS2    = quickselect(x, n, n-K-1);
 
    
    // compute weights
@@ -117,30 +144,41 @@ void TrimmedMean(T x[], int n, int K, T& mean, T& std, T& median, T& q1, T& q2, 
       q1 = x[0];
       q2 = x[0];
       std = 0;
+      w_mean = x[0];
+      w_std = 0;
    }
    else
    {
-      int zc = 0;
       for(int i=0; i<n; i++)
       {
          wt = Weighted(x[i], OS1, OS2, w1, w2);
          mean_acc += wt;
          mean_sq += wt * wt;
-         if (wt == 0)
-            zc++;
+
+         w_mean_acc += wt * w[i];
+         w_mean_sq += wt * wt * w[i];
+         w_acc += w[i];
+
       } 
 
       mean_acc /= (n-2*K);
-      mean_sq /= (n-2*K);
+      mean_sq  /= (n-2*K);
 
-      std = (T) (mean_sq - (mean_acc * mean_acc)); 
-      std = sqrt(std);
+      w_mean_acc /= (n-2*K) * w_acc;
+      w_mean_sq  /= (n-2*K) * w_acc;
+
+      mean_sq = (mean_sq - (mean_acc * mean_acc)); 
+      std = (T) sqrt(mean_sq);
+
+      w_mean_sq = (w_mean_sq - (w_mean_acc * w_mean_acc)); 
+      w_std = (T) sqrt(w_mean_sq);
 
       mean = (T) mean_acc;
-
+      w_mean = (T) w_mean_acc;
    }
 
-   pct_lower = OS1;
-   pct_upper = OS2;
+   stats.SetNextParam(mean, std, median, q1, q2, OS1, OS2, w_mean, w_std);
 
 }
+
+#endif

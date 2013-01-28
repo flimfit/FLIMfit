@@ -44,6 +44,7 @@ classdef flim_dll_interface < handle
         p_ierr;
         p_t0_image;
         p_global_beta_group;
+        p_acceptor;
         
         p_use;
         p_background;

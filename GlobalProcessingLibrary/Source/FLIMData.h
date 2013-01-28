@@ -30,6 +30,8 @@ public:
    int  SetData(uint16_t data[]);
    int  SetData(char* data_file, int data_class, int data_skip);
 
+   int  SetAcceptor(float acceptor[]);
+   
    template <typename T>
    int CalculateRegions();
 
@@ -39,8 +41,8 @@ public:
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
-   int GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* weight, int* irf_idx, float* local_decay);
-   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, int* irf_idx, int bin_px);
+   int GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay);
+   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx, int bin_px);
 
    
    int GetImLoc(int im);
@@ -99,6 +101,8 @@ public:
    int* use_im;
    int n_im_used;
 
+   int has_acceptor;
+
 
 private:
 
@@ -115,6 +119,7 @@ private:
    float* tr_row_buf;
    float* intensity;
    float* r_ss;
+   float* acceptor;
 
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;

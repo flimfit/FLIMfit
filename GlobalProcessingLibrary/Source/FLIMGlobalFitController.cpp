@@ -19,6 +19,8 @@ using namespace boost::interprocess;
 using namespace std;
 
 
+
+
 FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf, 
                                                  int n_irf, double t_irf[], double irf[], double pulse_pileup,
                                                  double t0_image[],
@@ -66,6 +68,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    mean_tau     = NULL;
    cur_alf      = NULL;
    cur_irf_idx  = NULL;
+   acceptor     = NULL;
 
    ierr         = NULL;
    success      = NULL;
@@ -224,10 +227,13 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                           (threads_started < n_thread && cur_region >= 0) ) // not all threads have yet started up
                      active_lock.wait(region_mutex);
   
-                  float* I_local    = I    + data->GetRegionPos(im,r);
-                  float* r_ss_local = r_ss + data->GetRegionPos(im,r);
+                  int pos =  data->GetRegionPos(im,r);
+
+                  float* I_local        = I        + pos;
+                  float* r_ss_local     = r_ss     + pos;
+                  float* acceptor_local = acceptor + pos;
                   
-                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, r_ss_local, irf_idx, global_algorithm == MODE_GLOBAL_BINNING);
+                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, r_ss_local, acceptor_local, irf_idx, global_algorithm == MODE_GLOBAL_BINNING);
                   next_pixel = 0;
                   
                   cur_region = idx;
@@ -857,6 +863,9 @@ void FLIMGlobalFitController::Init()
       if (polarisation_resolved)
          r_ss      = new float[ data->n_masked_px ];
 
+      if (data->has_acceptor)
+         acceptor  = new float[ data->n_masked_px ];
+
       ierr         = new int[ data->n_regions_total ];
       success      = new float[ data->n_regions_total ];
       alf          = new float[ alf_size * nl ]; //ok
@@ -1125,6 +1134,9 @@ void FLIMGlobalFitController::SetOutputParamNames()
    
    param_names.push_back("I");
 
+   if ( acceptor != NULL )
+      param_names.push_back("acceptor");
+
    if (polarisation_resolved)
       param_names.push_back("r_ss");
 
@@ -1145,6 +1157,7 @@ void FLIMGlobalFitController::SetOutputParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 
 }
+
 
 FLIMGlobalFitController::~FLIMGlobalFitController()
 {
@@ -1311,6 +1324,7 @@ void FLIMGlobalFitController::CleanupResults()
    ClearVariable(w_mean_tau);
    ClearVariable(mean_tau);
    ClearVariable(r_ss);
+   ClearVariable(acceptor);
 
    #ifdef _WINDOWS
    

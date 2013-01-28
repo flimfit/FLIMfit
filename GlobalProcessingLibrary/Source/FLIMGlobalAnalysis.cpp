@@ -257,6 +257,13 @@ FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_
    return controller[c_idx]->data->SetData(data_file, data_class, data_skip);
 }
 
+FITDLL_API int SetAcceptor(int c_idx, float* acceptor)
+{
+   controller[c_idx]->data->SetAcceptor(acceptor);
+   return SUCCESS;
+}
+
+
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
                              int use_im[], uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
@@ -323,13 +330,17 @@ FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params)
    return controller[c_idx]->param_names_ptr;
 }
 
+
+
 FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, 
-                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float *param_01, float *param_99)
+                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float* params_01, float* params_99, float* params_w_mean, float* params_w_std)
 {
    int valid = InitControllerIdx(c_idx);
    if (!valid) return ERR_NO_FIT;
 
-   int error = controller[c_idx]->GetImageStats(im, ret_mask, *n_regions, regions, region_size, success, iterations, params_mean, params_std, params_median, params_q1, params_q2, param_01, param_99);
+   ImageStats<float> stats(params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, params_w_mean, params_w_std);
+
+   int error = controller[c_idx]->GetImageStats(im, ret_mask, *n_regions, regions, region_size, success, iterations, stats);
 
    return error;
 

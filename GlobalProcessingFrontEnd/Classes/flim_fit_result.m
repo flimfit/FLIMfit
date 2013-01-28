@@ -11,12 +11,16 @@ classdef flim_fit_result < handle
         image_median;
         image_q1;
         image_q2;
+        image_w_mean;
+        image_w_std;
         
         region_mean;
         region_std;
         region_median;
         region_q1;
         region_q2;
+        region_w_mean;
+        region_w_std;
         
         images;
         image_stats;
@@ -86,13 +90,17 @@ classdef flim_fit_result < handle
                            
         end
             
-        function set_results(obj,idx,regions,region_size,success,iterations,param_mean,param_std,param_median,param_q1,param_q2,param_01,param_99)
+        function set_results(obj,idx,regions,region_size,success,iterations,param_mean,param_std,param_median,param_q1,param_q2,param_01,param_99,param_w_mean,param_w_std)
             
             [M,S,N] = combine_stats(double(param_mean),double(param_std),double(region_size));
+            [w_M,w_S,N] = combine_stats(double(param_w_mean),double(param_w_std),double(region_size));
             
             obj.image_mean{idx} = M; 
             obj.image_size{idx} = N; 
             obj.image_std{idx} = S;
+            
+            obj.image_mean{idx} = w_M; 
+            obj.image_std{idx} = w_S;
             
             obj.image_median{idx} = nanmean(param_median,2);
             obj.image_q1{idx} = nanmean(param_q1,2);
@@ -102,6 +110,8 @@ classdef flim_fit_result < handle
             obj.region_size{idx} = region_size;
             obj.region_mean{idx} = param_mean;
             obj.region_std{idx} = param_std;
+            obj.region_w_mean{idx} = param_mean;
+            obj.region_w_std{idx} = param_std;
             obj.region_median{idx} = param_median;
             obj.region_q1{idx} = param_q1;
             obj.region_q2{idx} = param_q2;

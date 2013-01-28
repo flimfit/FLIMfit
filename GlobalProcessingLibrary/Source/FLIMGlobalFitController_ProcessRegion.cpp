@@ -26,16 +26,18 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    float  *lin_local     = this->lin_local + thread * l;
 
    int start = data->GetRegionPos(g,region) + px;
-         
-   float *y, *lin_params, *chi2, *alf, *I, *w_mean_tau, *mean_tau, *r_ss;
-   int   *irf_idx;
 
-   lin_params = this->lin_params + start * lmax;
-   chi2       = this->chi2       + start;
-   I          = this->I          + start;
-   r_ss       = this->r_ss       + start;
-   w_mean_tau = this->w_mean_tau + start;
-   mean_tau   = this->mean_tau   + start;
+   float* lin_params = this->lin_params + start * lmax;
+   float* chi2       = this->chi2       + start;
+   float* I          = this->I          + start;
+   float* r_ss       = this->r_ss       + start;
+   float* acceptor   = this->acceptor   + start;
+   float* w_mean_tau = this->w_mean_tau + start;
+   float* mean_tau   = this->mean_tau   + start;
+
+
+   float *y, *alf;
+   int   *irf_idx;
 
    if (data->global_mode == MODE_PIXELWISE)
    {
@@ -43,7 +45,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + px;
       alf     = this->alf + start * nl; 
 
-      s_thresh = data->GetRegionData(thread, g, region, px, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, NULL, NULL, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, px, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, NULL, NULL, NULL, w, irf_idx, local_decay);
       data->DetermineAutoSampling(thread, local_decay, nl+1);
    }
    else
@@ -52,7 +54,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + thread * s;
       alf     = this->alf     + nl * r_idx;
    
-      s_thresh = data->GetRegionData(thread, g, region, 0, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, I, r_ss, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, 0, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, I, r_ss, acceptor, w, irf_idx, local_decay);
    }
 
 

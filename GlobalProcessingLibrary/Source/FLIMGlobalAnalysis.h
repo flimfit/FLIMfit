@@ -1,12 +1,12 @@
-/* =============================================
- * FLIMGlobalFit.h
- * v0.1  7 June 2010
- * Sean Warren, Imperial College London.
- *
- * Header file for FLIM Global Fitting library.
- *
- * =============================================
- */
+//=========================================================================
+//  
+//  FLIMGlobalAnalysis.h
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//  Header file for dynamic linked library
+//
+//=========================================================================
 
 #ifndef _FLIMGLOBALFIT_
 #define _FLIMGLOBALFIT_
@@ -67,6 +67,9 @@ FITDLL_API int SetDataFloat(int c_idx, float* data);
 FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);
 FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_skip);
 
+FITDLL_API int SetAcceptor(int c_idx, float* acceptor);
+
+
 FITDLL_API int SetBackgroundImage(int c_idx, float* background_image);
 FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
 FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_map, float const_background);
@@ -76,7 +79,8 @@ FITDLL_API int StartFit(int c_idx);
 FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params);
 
 FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, 
-                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float *param_01, float *param_99);
+                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float* param_01, float* param_99,
+                             float* params_w_mean, float* params_w_std, float* params_w_median, float* params_w_q1, float* params_w_q2, float* param_w_01, float* param_w_99);
 
 FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[]);
 

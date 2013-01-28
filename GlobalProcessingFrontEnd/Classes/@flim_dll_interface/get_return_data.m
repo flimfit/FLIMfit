@@ -29,14 +29,18 @@ function get_return_data(obj)
     p_n_regions = libpointer('int32Ptr',0);
     p_regions = libpointer('int32Ptr',zeros(n_output,255)); 
     p_region_size = libpointer('int32Ptr',zeros(n_output,255)); 
+    
     p_mean = libpointer('singlePtr',zeros(n_output,255));
     p_std = libpointer('singlePtr',zeros(n_output,255));
     p_median = libpointer('singlePtr',zeros(n_output,255));
     p_q1 = libpointer('singlePtr',zeros(n_output,255));
     p_q2 = libpointer('singlePtr',zeros(n_output,255));
-    
     p_pct_01 = libpointer('singlePtr',zeros(n_output,255));
     p_pct_99 = libpointer('singlePtr',zeros(n_output,255));
+    
+    p_w_mean = libpointer('singlePtr',zeros(n_output,255));
+    p_w_std = libpointer('singlePtr',zeros(n_output,255));
+    
     p_success = libpointer('singlePtr',zeros(n_output,255)); 
     p_iterations = libpointer('int32Ptr',zeros(n_output,255)); 
     p_mask = libpointer('uint8Ptr', []);
@@ -53,7 +57,7 @@ function get_return_data(obj)
                             
 
         err = calllib(obj.lib_name,'GetImageStats',obj.dll_id, im-1, p_mask, p_n_regions, ...
-                      p_regions, p_region_size, p_success, p_iterations, p_mean, p_std, p_median, p_q1, p_q2, p_pct_01, p_pct_99);
+                      p_regions, p_region_size, p_success, p_iterations, p_mean, p_std, p_median, p_q1, p_q2, p_pct_01, p_pct_99, p_w_mean, p_w_std);
 
         n_regions = p_n_regions.Value;
         
@@ -84,7 +88,10 @@ function get_return_data(obj)
             param_pct_01 = reshape_return(p_pct_01,sel);
             param_pct_99 = reshape_return(p_pct_99,sel);
 
-            r.set_results(idx,regions,region_size,success,iterations,param_mean,param_std,param_median,param_q1,param_q2,param_pct_01,param_pct_99);
+            param_w_mean = reshape_return(p_w_mean,sel);
+            param_w_std = reshape_return(p_w_std,sel);
+            
+            r.set_results(idx,regions,region_size,success,iterations,param_mean,param_std,param_median,param_q1,param_q2,param_pct_01,param_pct_99,param_w_mean,param_w_std);
             idx = idx+1;
         else
             keep(i) = false;

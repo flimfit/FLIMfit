@@ -115,6 +115,11 @@ function err = call_fitting_lib(obj,roi_mask,selected)
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, obj.p_t_int, t_skip, length(d.tr_t),...
             data_type, obj.p_use, obj.p_mask, thresh_min, d.gate_max, d.counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
  
+    if ~isempty(d.acceptor)
+        obj.p_acceptor = libpointer('singlePtr', d.acceptor);
+        calllib(obj.lib_name,'SetAcceptor',obj.dll_id,obj.p_acceptor)
+    end
+        
     if err ~= 0
         return;
     end

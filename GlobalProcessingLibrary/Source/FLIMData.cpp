@@ -26,8 +26,10 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    n_thread(n_thread)
 {
    has_data = false;
+   has_acceptor = false;
 
    data_file = NULL;
+   acceptor  = NULL;
 
    n_masked_px = 0;
 
@@ -190,6 +192,14 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
 
 }
 */
+
+int FLIMData::SetAcceptor(float acceptor[])
+{
+   this->acceptor = acceptor;
+   has_acceptor = true;
+
+   return SUCCESS;
+}
 
 int FLIMData::SetData(char* data_file, int data_class, int data_skip)
 {
@@ -408,7 +418,7 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* weight, int* irf_idx, float* local_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay)
 {
    int s = 0;
 
@@ -419,14 +429,14 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_p
    }
    if ( global_mode == MODE_IMAGEWISE )
    {
-      s = GetMaskedData(thread, group, region, adjust, region_data, intensity_data, r_ss_data, irf_idx, bin_px);
+      s = GetMaskedData(thread, group, region, adjust, region_data, intensity_data, r_ss_data, acceptor_data, irf_idx, bin_px);
    }
    else if ( global_mode == MODE_GLOBAL )
    {
       s = 0;
       for(int i=0; i<n_im_used; i++)
       {
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas, intensity_data + s, r_ss_data + s, irf_idx + s, bin_px);
+         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas, intensity_data + s, r_ss_data + s, acceptor_data + s, irf_idx + s, bin_px);
       }
       if (bin_px)
       {
@@ -483,7 +493,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_p
 }
 
 
-int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, int* irf_idx, int bin_px)
+int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx, int bin_px)
 {
    
    int iml = im;
@@ -494,6 +504,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
    float*   tr_data   = this->tr_data + thread * n_p;
    float*   intensity = this->intensity + thread * n_px;
    float*   r_ss      = this->r_ss + thread * n_px;
+   float*   acceptor  = this->acceptor + im*n_x*n_y;
 
    if (data_class == DATA_FLOAT)
       TransformImage<float>(thread, im);
@@ -518,10 +529,11 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
             if (polarisation_resolved)
                masked_r_ss[s] = r_ss[p];
 
+            if (has_acceptor)
+               masked_acceptor[s] = acceptor[p];
+
             for(int i=0; i<n_meas; i++)
-            {
                masked_data[i] += tr_data[p*n_meas+i] - adjust[i];
-            }
          }
       }  
       irf_idx[s] = 0;
@@ -538,14 +550,12 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
    
             if (polarisation_resolved)
                masked_r_ss[s] = r_ss[p];
+
+            if (has_acceptor)
+               masked_acceptor[s] = acceptor[p];
             
-            //memcpy(masked_data+s*n_meas, tr_data+p*n_meas, n_meas*sizeof(float));
             for(int i=0; i<n_meas; i++)
-            {
                masked_data[s*n_meas+i] = tr_data[p*n_meas+i] - adjust[i];
-               //if (masked_data[i] < 0)
-               //   masked_data[i] = 0;
-            }
 
 
             irf_idx[s] = p;
