@@ -124,6 +124,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
             image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            if isempty(mdta) || isempty(mdta.delays)
+                errordlg('can not load: data have no FLIM specification');
+                return;
+            end                        
             %
             if mdta.n_channels > 1
                 max_chnl = mdta.n_channels;

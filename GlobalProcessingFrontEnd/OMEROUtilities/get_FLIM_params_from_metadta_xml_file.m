@@ -62,90 +62,90 @@ function ret = get_FLIM_params_from_metadta_xml_file(filename)
     
     
     
-    if isfield(tree.Image,'HRI'), ret.FLIM_type = 'Gated'; end;
-    if isfield(tree.Image,'FLIMType'), ret.FLIM_type = tree.Image.FLIMType; end;
-        
-    if isfield(tree.Image.Pixels.ATTRIBUTE,'SizeC')     
-        ret.SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ;
-        ret.SizeC = tree.Image.Pixels.ATTRIBUTE.SizeC;
-        ret.SizeT = tree.Image.Pixels.ATTRIBUTE.SizeT;               
-    end    
-    %           
-    ret.n_channels = ret.SizeC; % # FLIM blocks
-           
-    if isfield(tree,'SA_COLON_StructuredAnnotations') 
-        
-        if  isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo,'ModuloAlongT') && strcmp('lifetime',tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Type)
-            
-            ret.modulo = 'ModuloAlongT';
-            if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE,'Start')
-                start = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Start;
-                step = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Step;
-                e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.End;                
-                     lifetimes = start:step:e;
-                     dels = cell(1,numel(lifetimes));
-                     for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
-                     ret.delays = dels;                                                                
-            else
-                ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.Label;
-            end
-            if ret.SizeT >= numel(ret.delays) && 1 == ret.n_channels %
-                ret.n_channels = ret.SizeT/numel(ret.delays);
-            end
-            if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE,'Unit')
-                if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit,'ns')
-                    ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+        if isfield(tree.Image,'HRI'), ret.FLIM_type = 'Gated'; end;
+        if isfield(tree.Image,'FLIMType'), ret.FLIM_type = tree.Image.FLIMType; end;
+
+        if isfield(tree.Image.Pixels.ATTRIBUTE,'SizeC')     
+            ret.SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ;
+            ret.SizeC = tree.Image.Pixels.ATTRIBUTE.SizeC;
+            ret.SizeT = tree.Image.Pixels.ATTRIBUTE.SizeT;               
+        end    
+        %           
+        ret.n_channels = ret.SizeC; % # FLIM blocks
+
+        if isfield(tree,'SA_COLON_StructuredAnnotations') 
+
+            if  isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo,'ModuloAlongT') && strcmp('lifetime',tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Type)
+
+                ret.modulo = 'ModuloAlongT';
+                if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE,'Start')
+                    start = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Start;
+                    step = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Step;
+                    e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.End;                
+                         lifetimes = start:step:e;
+                         dels = cell(1,numel(lifetimes));
+                         for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
+                         ret.delays = dels;                                                                
+                else
+                    ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.Label;
                 end
-            end
-            
-        elseif isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo,'ModuloAlongC') && strcmp('lifetime',tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Type)
-            
-            ret.modulo = 'ModuloAlongC';
-            if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE,'Start')
-                start = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Start;
-                step = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Step;
-                e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.End;                
-                     lifetimes = start:step:e;
-                     dels = cell(1,numel(lifetimes));
-                     for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
-                     ret.delays = dels;                                                                
-            else
-                ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.Label;
-            end
-            if ret.SizeC >= numel(ret.delays) 
-                ret.n_channels = ret.SizeC/numel(ret.delays);
-            end
-            if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE,'Unit')
-                if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit,'ns')
-                    ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                if ret.SizeT >= numel(ret.delays) && 1 == ret.n_channels %
+                    ret.n_channels = ret.SizeT/numel(ret.delays);
                 end
-            end
-                                    
-        elseif isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo,'ModuloAlongZ') && strcmp('lifetime',tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type)     
-            
-            ret.modulo = 'ModuloAlongZ';
-            if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE,'Start')
-                start = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Start;
-                step = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Step;
-                e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.End;                
-                     lifetimes = start:step:e;
-                     dels = cell(1,numel(lifetimes));
-                     for k=1:numel(lifetimes), dels{k} = lifetimes(k); end                     
-                     ret.delays = dels;                                                                
-            else
-                ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.Label;
-            end
-            if ret.SizeZ >= numel(ret.delays) && 1 == ret.n_channels
-                ret.n_channels = ret.SizeZ/numel(ret.delays);
-            end
-            if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE,'Unit')
-                if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit,'ns')
-                    ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE,'Unit')
+                    if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit,'ns')
+                        ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                    end
                 end
+
+            elseif isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo,'ModuloAlongC') && strcmp('lifetime',tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Type)
+
+                ret.modulo = 'ModuloAlongC';
+                if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE,'Start')
+                    start = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Start;
+                    step = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Step;
+                    e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.End;                
+                         lifetimes = start:step:e;
+                         dels = cell(1,numel(lifetimes));
+                         for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
+                         ret.delays = dels;                                                                
+                else
+                    ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.Label;
+                end
+                if ret.SizeC >= numel(ret.delays) 
+                    ret.n_channels = ret.SizeC/numel(ret.delays);
+                end
+                if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE,'Unit')
+                    if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit,'ns')
+                        ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                    end
+                end
+
+            elseif isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo,'ModuloAlongZ') && strcmp('lifetime',tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Type)     
+
+                ret.modulo = 'ModuloAlongZ';
+                if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE,'Start')
+                    start = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Start;
+                    step = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Step;
+                    e = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.End;                
+                         lifetimes = start:step:e;
+                         dels = cell(1,numel(lifetimes));
+                         for k=1:numel(lifetimes), dels{k} = lifetimes(k); end                     
+                         ret.delays = dels;                                                                
+                else
+                    ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.Label;
+                end
+                if ret.SizeZ >= numel(ret.delays) && 1 == ret.n_channels
+                    ret.n_channels = ret.SizeZ/numel(ret.delays);
+                end
+                if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE,'Unit')
+                    if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit,'ns')
+                        ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                    end
+                end
+
             end
-                                   
-        end
-    end        
+        end        
     
 end
     

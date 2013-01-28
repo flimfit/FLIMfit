@@ -157,7 +157,9 @@
                 logon_filename = handles.omero_data_manager.omero_logon_filename;                
                 omero_logon = [];
                 omero_logon.logon = logon;
-                xml_write(logon_filename,omero_logon);                                
+                if ~handles.external
+                    xml_write(logon_filename,omero_logon);                                
+                end;
                 %
                 disp('Closing OMERO session');
                 client.closeSession();

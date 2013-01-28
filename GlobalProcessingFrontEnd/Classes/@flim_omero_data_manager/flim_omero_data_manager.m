@@ -33,6 +33,11 @@ classdef flim_omero_data_manager < handle
             polarisation_resolved = false;
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            if isempty(mdta) || isempty(mdta.delays)
+                channel = [];
+                errordlg('can not load: data have no FLIM specification');
+                return;
+            end
             %
             if mdta.n_channels > 1
                 max_chnl = mdta.n_channels;
@@ -163,8 +168,13 @@ classdef flim_omero_data_manager < handle
                 load_as_image = false;
             end
             
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());                                    
-
+            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            if isempty(mdta) || isempty(mdta.delays)
+                channel = [];
+                errordlg('can not load: data have no FLIM specification');
+                return;
+            end
+            %            
             if mdta.n_channels > 1
                 max_chnl = mdta.n_channels;
                 channel = cell2mat(channel_chooser({(max_chnl)}));

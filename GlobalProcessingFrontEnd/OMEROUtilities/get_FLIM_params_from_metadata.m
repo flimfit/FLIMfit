@@ -1,7 +1,8 @@
 function ret = get_FLIM_params_from_metadata(session,objId)
 
-    ret.delays = [];
-    ret.numeric_delays = [];    
+    str_delays = [];
+    
+    ret.delays = [];    
     ret.FLIM_type = [];
     ret.modulo = [];
     ret.n_channels = [];
@@ -43,8 +44,6 @@ function ret = get_FLIM_params_from_metadata(session,objId)
         
     % MAIN METADATA ASSIGNMENT PART
     if          ~isempty(s1) % file annotation
-
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
             if isfield(tree.Image,'HRI'), ret.FLIM_type = 'Gated'; end;
             if isfield(tree.Image,'FLIMType'), ret.FLIM_type = tree.Image.FLIMType; end;
@@ -68,16 +67,16 @@ function ret = get_FLIM_params_from_metadata(session,objId)
                              lifetimes = start:step:e;
                              dels = cell(1,numel(lifetimes));
                              for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
-                             ret.delays = dels;                                                                
+                             str_delays = dels;                                                                
                     else
-                        ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.Label;
+                        str_delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.Label;
                     end
                     
-                        ret.n_channels = ret.SizeT/numel(ret.delays);
+                        ret.n_channels = ret.SizeT/numel(str_delays);
 
                     if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE,'Unit')
                         if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongT.ATTRIBUTE.Unit,'ns')
-                            ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                            str_delays = str_delays*1000; % assumes units are ps  unless specified as ns
                         end
                     end
 
@@ -91,16 +90,16 @@ function ret = get_FLIM_params_from_metadata(session,objId)
                              lifetimes = start:step:e;
                              dels = cell(1,numel(lifetimes));
                              for k=1:numel(lifetimes), dels{k} = lifetimes(k); end
-                             ret.delays = dels;                                                                
+                             str_delays = dels;                                                                
                     else
-                        ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.Label;
+                        str_delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.Label;
                     end
 
-                        ret.n_channels = ret.SizeC/numel(ret.delays);
+                        ret.n_channels = ret.SizeC/numel(str_delays);
 
                     if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE,'Unit')
                         if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongC.ATTRIBUTE.Unit,'ns')
-                            ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                            str_delays = str_delays*1000; % assumes units are ps  unless specified as ns
                         end
                     end
 
@@ -114,23 +113,21 @@ function ret = get_FLIM_params_from_metadata(session,objId)
                              lifetimes = start:step:e;
                              dels = cell(1,numel(lifetimes));
                              for k=1:numel(lifetimes), dels{k} = lifetimes(k); end                     
-                             ret.delays = dels;                                                                
+                             str_delays = dels;                                                                
                     else
-                        ret.delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.Label;
+                        str_delays = tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.Label;
                     end
 
-                        ret.n_channels = ret.SizeZ/numel(ret.delays);
+                        ret.n_channels = ret.SizeZ/numel(str_delays);
 
                     if isfield(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE,'Unit')
                         if strfind(tree.SA_COLON_StructuredAnnotations.SA_COLON_XMLAnnotation.SA_COLON_Value.Modulo.ModuloAlongZ.ATTRIBUTE.Unit,'ns')
-                            ret.delays = ret.delays*1000; % assumes units are ps  unless specified as ns
+                            str_delays = str_delays*1000; % assumes units are ps  unless specified as ns
                         end
                     end
 
                 end
             end        
-                
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
         elseif  ~isempty(s2) % B&H - image
             
@@ -141,7 +138,7 @@ function ret = get_FLIM_params_from_metadata(session,objId)
                     pos = strfind(s, 'base');
                     time_base = str2num(s(pos+5:pos+14)).*1000;        % get time base & convert to ps   
             time_points = 0:nBins - 1;
-            ret.numeric_delays = time_points.*(time_base/nBins);   
+            ret.delays = time_points.*(time_base/nBins);   
             ret.n_channels = ret.SizeC/nBins;
                         
         elseif  ~isempty(s3) % LaVision            
@@ -155,8 +152,8 @@ function ret = get_FLIM_params_from_metadata(session,objId)
                     ret.FLIM_type = 'TCSPC';
                     ret.modulo = 'ModuloAlongZ';
                     incr = tree.Image.Pixels.ATTRIBUTE.PhysicalSizeZ*1000;
-                    %ret.delays = num2cell((0:ret.SizeZ-1)*incr);
-                    ret.numeric_delays = (0:ret.SizeZ-1)*incr;
+                    %str_delays = num2cell((0:ret.SizeZ-1)*incr);
+                    ret.delays = (0:ret.SizeZ-1)*incr;
                     ret.n_channels = 1;
                 end
 
@@ -187,12 +184,12 @@ function ret = get_FLIM_params_from_metadata(session,objId)
                     start = modlo.ATTRIBUTE.Start;
                     step = modlo.ATTRIBUTE.Step;
                     e = modlo.ATTRIBUTE.End;                
-                    ret.numeric_delays = start:step:e;
+                    ret.delays = start:step:e;
                 else
-                    ret.delays = modlo.Label;
+                    str_delays = modlo.Label;
                 end
 
-            ret.n_channels = SizeM/numel(ret.numeric_delays);
+            ret.n_channels = SizeM/numel(ret.delays);
             
     else % all are empty but let us treat it as Z LaVision file
 
@@ -208,24 +205,24 @@ function ret = get_FLIM_params_from_metadata(session,objId)
             ret.modulo = 'ModuloAlongZ';
             ret.FLIM_type = 'TCSPC';
             ret.n_channels = 1;
-              
-            physSizeZ = pixels.getPhysicalSizeZ().getValue().*1000;     % assume this is in ns so convert to ps
-            ret.numeric_delays = (0:ret.SizeZ-1)*physSizeZ;
+             
+            if 1 == ret.SizeC && 1 == ret.SizeT && ret.SizeZ > 1
+                try
+                    physSizeZ = pixels.getPhysicalSizeZ().getValue().*1000;     % assume this is in ns so convert to ps
+                    ret.delays = (0:ret.SizeZ-1)*physSizeZ;
+                catch err
+                    disp(err.message);
+                    ret = [];
+                    return;
+                end
+            end
                        
         end
                 
     end
-            
-    if isempty(ret.delays)
-        dels = cell(1,numel(ret.numeric_delays));
-        for k=1:numel(dels), dels{k} = ret.numeric_delays(k); end
-        ret.delays = dels;                                                                
-    end;
 
-    if isempty(ret.numeric_delays)
-        %
-        % TODO
-        %
+    if isempty(ret.delays)
+        ret.delays = cell2mat(str_delays);
     end;
     
 end

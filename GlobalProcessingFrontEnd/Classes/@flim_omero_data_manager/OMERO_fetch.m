@@ -1,19 +1,15 @@
 function [delays, data_cube, name ] =  OMERO_fetch(obj, image, channel, ZCT, mdta)
-    %> Load a single FLIM dataset
     
 data_cube = [];
 
 name = char(image.getName.getValue());
 
 FLIM_type   = mdta.FLIM_type;
-Delays      = mdta.delays;
 modulo      = mdta.modulo;
 n_channels  = mdta.n_channels;
+delays      = mdta.delays';
 
-delays = cell2mat(Delays)';
-
-if isempty(modulo)  % if file has been identified then load it
-    
+if isempty(modulo)    
     errordlg('no suitable annotation found - can not continue');
     return;
 else
