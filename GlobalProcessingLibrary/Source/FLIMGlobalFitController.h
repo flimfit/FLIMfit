@@ -22,7 +22,7 @@
 #include <boost/interprocess/mapped_region.hpp>
 
 #include "AbstractFitter.h"
-#include "TrimmedMean.h"
+#include "ImageStats.h"
 
 #include "FlagDefinitions.h"
 

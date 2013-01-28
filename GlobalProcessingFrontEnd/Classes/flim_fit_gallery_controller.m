@@ -182,7 +182,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     ci = floor(idx/cols) * r.height + 1;
                     idx = idx + 1;
                     
-                    im_data = obj.fit_controller.get_image(sel(i),param);
+                    im_data = obj.fit_controller.get_image_result_idx(sel(i),param);
                     
                     mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
                     

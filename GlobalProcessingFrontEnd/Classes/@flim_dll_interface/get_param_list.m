@@ -28,7 +28,7 @@ function [data, column_headers] = get_param_list(obj)
         regions = f.regions{i};
         n_regions = length(regions);
         im = repmat(im,[1,n_regions]);
-        mean = f.region_mean{i};
+        mean = f.region_stats{i}.mean;
 
         success = f.success{i};
         iterations = f.iterations{i};

@@ -44,12 +44,18 @@ function on_callback(obj,src,evtData)
         if ~failed
             obj.n_regions = obj.n_regions + 1;
 
+            d = obj.data_series;
+            
             modifier = get(gcbf,'currentmodifier');
             erase_toggle = get(obj.tool_roi_erase_toggle,'State');
             
             roi_mask = roi_handle.createMask(obj.segmentation_im);
+            
+            if ~isempty(d.acceptor)
+                roi_mask = roi_mask(1:d.height,1:d.width);
+            end
 
-            d = obj.data_series;
+            
             if get(obj.replicate_mask_checkbox,'Value')
                 m = repmat(roi_mask,[1 1 d.n_datasets]);
             else

@@ -21,6 +21,12 @@
 #include "util.h"
 #define SWAP(a,b) temp=(a);(a)=(b);(b)=temp;
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/moment.hpp>
+#include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/weighted_moment.hpp>
 
 /*
  Trimmed mean code from: 
@@ -86,30 +92,28 @@ float quickselect(T *arr, unsigned long n, unsigned long k)
 template <typename T>
 float Weighted(T x, T t1, T t2, T w1, T w2)
 {
-   if(x<t2 && x>t1) return x;
+   if(x<t2 && x>t1) return 1;
    if(x<t1) return 0;
    if(x>t2) return 0;
-   if(x==t1) return w1*x;
-   return w2*x; // if(x==t2)
+   if(x==t1) return w1;
+   return w2; // if(x==t2)
 }
 
 template <typename T>
 void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
 {
-   T w1, w2, OS1, OS2, wt, mean, std, q1, q2, median, w_mean, w_std;
+   using namespace boost::accumulators;
+
+   T w1, w2, OS1, OS2, wt, q1, q2, median;
+   double p_mean, p_std, p_w_mean, p_w_std;
+
+   accumulator_set< double, features< tag::weighted_mean, tag::weighted_moment<2> >, double > acc;
+   accumulator_set< double, features< tag::weighted_mean, tag::weighted_moment<2> >, double > w_acc;
    
-   double mean_sq = 0;
-   double mean_acc = 0;
-   double w_mean_acc = 0;
-   double w_mean_sq = 0;
-   double w_acc = 0;
-
-   std = 0;
-
    if (n == 0)
    {
-      SetNaN(&mean,1);
-      stats.SetNextParam(mean);
+      SetNaN(&q1,1);
+      stats.SetNextParam(q1);
       return;
    }
 
@@ -139,45 +143,29 @@ void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
 
    if (OS1==OS2)
    {
-      mean = x[0];
-      median = x[0];
-      q1 = x[0];
-      q2 = x[0];
-      std = 0;
-      w_mean = x[0];
-      w_std = 0;
+      stats.SetNextParam(x[0]);
    }
    else
    {
       for(int i=0; i<n; i++)
       {
          wt = Weighted(x[i], OS1, OS2, w1, w2);
-         mean_acc += wt;
-         mean_sq += wt * wt;
-
-         w_mean_acc += wt * w[i];
-         w_mean_sq += wt * wt * w[i];
-         w_acc += w[i];
-
+         
+         acc(x[i], weight = wt);
+         w_acc(x[i], weight = (wt*w[i]));
       } 
 
-      mean_acc /= (n-2*K);
-      mean_sq  /= (n-2*K);
+      p_mean = mean(acc);
+      p_std  = sqrt(weighted_moment<2>(acc)-p_mean*p_mean);
 
-      w_mean_acc /= (n-2*K) * w_acc;
-      w_mean_sq  /= (n-2*K) * w_acc;
+      p_w_mean = mean(w_acc);
+      p_w_std  = sqrt(weighted_moment<2>(w_acc)-p_w_mean*p_w_mean);
 
-      mean_sq = (mean_sq - (mean_acc * mean_acc)); 
-      std = (T) sqrt(mean_sq);
+      stats.SetNextParam((T) p_mean, (T) p_std, median, q1, q2, OS1, OS2, (T) p_w_mean, (T) p_w_std);
 
-      w_mean_sq = (w_mean_sq - (w_mean_acc * w_mean_acc)); 
-      w_std = (T) sqrt(w_mean_sq);
-
-      mean = (T) mean_acc;
-      w_mean = (T) w_mean_acc;
    }
 
-   stats.SetNextParam(mean, std, median, q1, q2, OS1, OS2, w_mean, w_std);
+   
 
 }
 

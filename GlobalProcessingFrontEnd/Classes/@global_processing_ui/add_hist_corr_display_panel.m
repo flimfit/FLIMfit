@@ -60,8 +60,20 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     handles.corr_display_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Pixels' 'Regions'}, 'Parent', param_layout );
     
+    uicontrol( 'Style', 'text', 'String', 'Scale  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
+    uicontrol( 'Style', 'text', 'String', 'Color Parameter  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
+    
+    handles.corr_scale_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Linear' 'Logarithmic'}, 'Parent', param_layout );
+    handles.corr_independent_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {''}, 'Parent', param_layout );
+        
+    uiextras.Empty( 'Parent', param_layout);
+        
     set( corr_layout, 'Sizes', [-1,70] );
-    set( param_layout, 'ColumnSizes', [90 90 90 90] );
+    set( param_layout, 'ColumnSizes', [90 90 90 90 90 90] );
     set( param_layout, 'RowSizes', [22 22] );
 
 

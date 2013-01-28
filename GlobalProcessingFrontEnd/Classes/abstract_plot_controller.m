@@ -290,8 +290,8 @@ classdef abstract_plot_controller < flim_fit_observer
             
             f = obj.fit_controller;
 
-            intensity = f.get_intensity_image(dataset);
-            im_data = f.get_image(dataset,param);
+            intensity = f.get_intensity_result_idx(dataset);
+            im_data = f.get_image_result_idx(dataset,param);
 
             
             cscale = obj.colourscale(param);

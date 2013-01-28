@@ -496,7 +496,7 @@ classdef flim_data_series_controller < handle
             % get first parameter image just to get the size
             params = res.fit_param_list();
             n_params = length(params);
-            param_array(:,:) = single(res.get_image(1, params{1}));
+            param_array(:,:) = single(res.get_image_result_idx(1, params{1}));
                 sizeY = size(param_array,1);
                 sizeX = size(param_array,2);
             %      
@@ -505,7 +505,7 @@ classdef flim_data_series_controller < handle
                 %
                 data = zeros(n_params,sizeX,sizeY);
                     for p = 1:n_params,
-                        data(p,:,:) = res.get_image(dataset_index, params{p})';
+                        data(p,:,:) = res.get_image_result_idx(dataset_index, params{p})';
                     end
                     %                  
                 new_image_description = ' ';

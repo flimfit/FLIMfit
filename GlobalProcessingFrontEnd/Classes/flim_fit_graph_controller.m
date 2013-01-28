@@ -122,12 +122,12 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         if n > 0
 
                             if grouping == 1 || grouping == 3
-                                ym(idx) = r.image_mean{j}(param);
-                                ys(idx) = r.image_std{j}(param);
+                                ym(idx) = r.image_stats{j}.('w_mean')(param);
+                                ys(idx) = r.image_stats{j}.('w_std')(param);
                                 yn(idx) = n;
                             else                                
-                                ym = [ym r.region_mean{j}(param,:)];
-                                ys = [ys r.region_std{j}(param,:)];
+                                ym = [ym r.region_stats{j}.('w_mean')(param,:)];
+                                ys = [ys r.region_stats{j}.('w_std')(param,:)];
                                 yn = [yn r.region_size{j}];
                             end
                             

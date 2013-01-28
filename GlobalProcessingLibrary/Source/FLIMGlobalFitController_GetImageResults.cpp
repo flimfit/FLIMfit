@@ -33,7 +33,7 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageSta
          if (boost::math::isfinite(data[i+j*n]))
             buf[idx++] = data[i+j*n];
       }
-      int K = int (0.1 * idx);
+      int K = int (0.01 * idx);
       TrimmedMean(buf, intensity, idx, K, stats);
    }
    return n;

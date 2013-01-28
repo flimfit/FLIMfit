@@ -154,21 +154,36 @@ classdef flim_fit_controller < flim_data_series_observer
             end
         end
         
-        function [param_data, mask] = get_image(obj,im,param)
+        function [param_data, mask] = get_image_result_idx(obj,im,param)
             
             if ischar(param)
                 param_idx = strcmp(obj.fit_result.params,param);
                 param = find(param_idx);
             end
             
-            [param_data, mask] = obj.dll_interface.get_image(im,param);
+            [param_data, mask] = obj.dll_interface.get_image_result_idx(im,param);
         end
+
+        function [param_data, mask] = get_image_data_idx(obj,dataset,param)
+            
+            if ischar(param)
+                param_idx = strcmp(obj.fit_result.params,param);
+                param = find(param_idx);
+            end
+            
+            [param_data, mask] = obj.dll_interface.get_image_data_idx(dataset,param);
+        end
+
         
-        function [param_data, mask] = get_intensity(obj,im)
+        function [param_data, mask] = get_intensity_data_idx(obj,im)
             param = obj.fit_result.intensity_idx;
-            [param_data, mask] = obj.dll_interface.get_image(im,param);
+            [param_data, mask] = obj.dll_interface.get_image_data_idx(im,param);
         end
         
+        function [param_data, mask] = get_intensity_result_idx(obj,im)
+            param = obj.fit_result.intensity_idx;
+            [param_data, mask] = obj.dll_interface.get_image_result_idx(im,param);
+        end
         
         function lims = get_cur_lims(obj,param)
             
