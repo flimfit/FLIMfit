@@ -235,7 +235,7 @@ FITDLL_API int FLIMGlobalTerminateFit(int c_idx);
  * fit[]   [n_fit, n_t] array of fitted decays. Failed pixels return NaN
  *
  */
-FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[]);
+FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int* n_valid);
 
 /* =============================================
  * FLIMGlobalClearFit

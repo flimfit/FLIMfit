@@ -347,7 +347,7 @@ FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[
 
 }
 
-FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[])
+FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int* n_valid)
 {
 
    int valid = InitControllerIdx(c_idx);
@@ -356,7 +356,7 @@ FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fi
    for(int i=0; i<n_t; i++)
       t[i] = t[i]/T_FACTOR;
 
-   int error = controller[c_idx]->GetFit(im, n_t, t, n_fit, fit_mask, fit);
+   int error = controller[c_idx]->GetFit(im, n_t, t, n_fit, fit_mask, fit, *n_valid);
 
    return error;
 

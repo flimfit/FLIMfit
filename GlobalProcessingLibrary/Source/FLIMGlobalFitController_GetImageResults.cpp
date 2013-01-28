@@ -428,7 +428,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
   GetFit
   ===============================================*/
 
-int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int fit_loc[], double fit[])
+int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int fit_loc[], double fit[], int& n_valid)
 {
    
    if (!status->HasFit())
@@ -479,6 +479,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int ispx = (data->global_mode == MODE_PIXELWISE);
 
    idx = 0;
+   n_valid = 0;
    for(int rg=1; rg<MAX_REGION; rg++)
    {
       r_idx = data->GetRegionIndex(im, rg);
@@ -504,6 +505,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             {
                for(int j=last_idx; j<idx; j++)
                   lin_idx += (mask[j] == rg);
+               last_idx = idx;
 
                for(int j=0; j<nl; j++)
                   alf_local[j] = alf_group[lin_idx*nl*ispx+j];
@@ -511,8 +513,9 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
                DenormaliseLinearParams(1, lin_group + lin_idx*lmax, lin_local);
 
                projectors[0].GetFit(n_meas, idx, alf_local, lin_local, adjust_buf, data->counts_per_photon, fit+n_meas*i);
+               n_valid++;
             }
-            last_idx = idx;
+            
          }
 
 

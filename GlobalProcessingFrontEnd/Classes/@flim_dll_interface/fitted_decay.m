@@ -27,20 +27,22 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     loc = loc(mask);
     
     
-    n_fit = sum(mask(:));
+    n_fit = sum(mask(:)>0);
     n_t = length(t);
     n_chan = d.n_chan;
     
     p_fit = libpointer('doublePtr',zeros([n_t n_chan n_fit]));
-    
+    p_n_valid = libpointer('int32Ptr',0);
     %try
         
-        calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, im, n_t, t, n_fit, loc, p_fit);
+        calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, im, n_t, t, n_fit, loc, p_fit, p_n_valid);
         
+        n_valid = p_n_valid.Value;
         decay = p_fit.Value;
         decay = reshape(decay,[n_t n_chan n_fit]);
-        decay = nanmean(decay,3);
-       
+        
+        decay = nansum(decay,3);
+        decay = decay / double(n_valid);
         
         %decay = zeros(n_t,1);
         

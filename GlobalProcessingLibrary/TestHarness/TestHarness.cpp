@@ -72,6 +72,7 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
 
    int e;
    int i0= 0;
+   int n_valid;
 
    for(int i=0; i<2; i++)
    {
@@ -90,7 +91,9 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
 //      e=GetResults(id, 0, NULL, NULL, tau_est, I0_est, beta_est, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 //      BOOST_CHECK_EQUAL( e, 0 );
       
-      e=FLIMGlobalGetFit(id, 0, n_t, t, 1, &i0, fit); 
+
+
+      e=FLIMGlobalGetFit(id, 0, n_t, t, 1, &i0, fit, &n_valid); 
       BOOST_CHECK_EQUAL( e, 0 );
       
 //      BOOST_CHECK( tau_est[0] - tau[0] < 5 );

@@ -173,7 +173,7 @@ public:
    int RunWorkers();
    int  GetErrorCode();
 
-   int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[]);
+   int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int& n_valid);
    //int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params_mean[], float params_std[], float params_01[], float params_99[]);
    
    int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], 

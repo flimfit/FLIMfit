@@ -12,9 +12,6 @@ classdef flim_data_series < handle & h5_serializer
         tvb_I_image;
           
         subtract_background = false;
-
-        min = 0;
-        max = 0; 
         
     end
     
@@ -314,7 +311,7 @@ classdef flim_data_series < handle & h5_serializer
             else
                 roi_mask = m;
             end
-            
+                        
             % Get data
 
             data = obj.cur_tr_data;
@@ -758,8 +755,6 @@ classdef flim_data_series < handle & h5_serializer
                 obj.mask = obj.thresh_mask;
 
                 v = obj.intensity(obj.mask);
-                obj.max = max(v);  %#ok
-                obj.min = min(v);  %#ok
                 
                 % If we have a segmentation mask apply it the mask
                 if ~isempty(obj.seg_mask)
