@@ -28,6 +28,7 @@ function metadata = extract_metadata(strings)
             metadata.Row{i} = tokens{1};
             metadata.Column{i} = tokens{2};
             metadata.FOV{i} = tokens{3};
+            metadata.Well_FOV{i} = [tokens{1} tokens{2} '-' tokens{3}];
             
             s = strrep(s,match,'');
         end

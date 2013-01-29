@@ -7,6 +7,7 @@
 //  * Fast Computation of Trimmed Means. Gleb Beliakov
 //  * http://www.jstatsoft.org/v39/c02/paper
 //  * Modified 2013 Sean Warren
+//  * Subject to the terms of the GPLv2 (JStatSoft)
 //
 //  Routines for calculating region statistics including trimmed mean,
 //  median, percentile ranges etc
@@ -23,16 +24,7 @@
 
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/moment.hpp>
 #include <boost/accumulators/statistics/weighted_mean.hpp>
-#include <boost/accumulators/statistics/weighted_moment.hpp>
-
-/*
- Trimmed mean code from: 
- Fast Computation of Trimmed Means. Gleb Beliakov
- http://www.jstatsoft.org/v39/c02/paper
-*/
 
 /**
  * Classic quickselect algorithm
@@ -107,9 +99,12 @@ void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
    T w1, w2, OS1, OS2, wt, q1, q2, median;
    double p_mean, p_std, p_w_mean, p_w_std;
 
-   accumulator_set< double, features< tag::weighted_mean, tag::weighted_moment<2> >, double > acc;
-   accumulator_set< double, features< tag::weighted_mean, tag::weighted_moment<2> >, double > w_acc;
-   
+   accumulator_set< double, features< tag::weighted_mean >, double > acc;
+   accumulator_set< double, features< tag::weighted_mean >, double > w_acc;
+
+   accumulator_set< double, features< tag::weighted_mean >, double > acc_m2;
+   accumulator_set< double, features< tag::weighted_mean >, double > w_acc_m2;
+
    if (n == 0)
    {
       SetNaN(&q1,1);
@@ -153,13 +148,16 @@ void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
          
          acc(x[i], weight = wt);
          w_acc(x[i], weight = (wt*w[i]));
+
+         acc_m2(x[i]*x[i], weight = wt);
+         w_acc_m2(x[i]*x[i], weight = (wt*w[i]));
       } 
 
       p_mean = mean(acc);
-      p_std  = sqrt(weighted_moment<2>(acc)-p_mean*p_mean);
+      p_std  = sqrt(mean(acc_m2)-p_mean*p_mean);
 
       p_w_mean = mean(w_acc);
-      p_w_std  = sqrt(weighted_moment<2>(w_acc)-p_w_mean*p_w_mean);
+      p_w_std  = sqrt(mean(w_acc)-p_w_mean*p_w_mean);
 
       stats.SetNextParam((T) p_mean, (T) p_std, median, q1, q2, OS1, OS2, (T) p_w_mean, (T) p_w_std);
 

@@ -9,6 +9,7 @@ syntax: glob
 *.zip
 *.orig
 *.bak
+*.rej
 data_settings.xml
 FLIMGlobalAnalysisProto_*
 .DS_Store
