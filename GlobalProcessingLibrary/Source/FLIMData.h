@@ -224,7 +224,9 @@ int FLIMData::CalculateRegions()
 
    int r_count, r_idx; 
    
+   #ifndef NO_OMP
    omp_set_num_threads(n_thread);
+   #endif
 
    T* cur_data = new T[ n_p * n_thread ];
 
