@@ -157,7 +157,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
             else
                 using_popup = false;
             end
-            %                        
+            %
+            obj.selected_channel = channel;
+            %
             try
                 [delays, data_cube, ~] = obj.OMERO_fetch(image, obj.selected_channel,obj.ZCT,mdta);
             catch err
