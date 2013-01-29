@@ -1,4 +1,4 @@
-classdef global_processing_ui
+    classdef global_processing_ui
    
     properties
         window
@@ -74,8 +74,7 @@ classdef global_processing_ui
                 'Units','normalized', ...
                 'OuterPosition',[0 0.03 1 0.97]);
             
-            coords = get(0,'MonitorPositions'); 
-            
+            coords = get(0,'MonitorPositions');             
              %position only in main monitor
             [~,hostname] = system('hostname');
             hostname = strtrim(hostname);
@@ -84,12 +83,8 @@ classdef global_processing_ui
                 monitor = 2;
             else
                 monitor = 1;
-            end
-             
-            
+            end                         
             coords = coords(monitor,:);
-            
-            
             
             % Allow for taskbar if we're on windows
             comp = computer;
@@ -102,20 +97,22 @@ classdef global_processing_ui
             handles = guidata(obj.window); 
                                                 
             handles.external = external;
-            handles.version = v;
-            handles.window = obj.window;
-            
+                                                           
             handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
-            handles.data_series_controller = flim_data_series_controller(handles);                        
+            handles.data_series_controller = flim_data_series_controller(handles);                                    
+            handles.omero_data_manager = flim_omero_data_manager(handles);
             
+            handles.version = v;
+            handles.window = obj.window;
             handles.use_popup = true;
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);
             handles.data_intensity_view = flim_data_intensity_view(handles);
             handles.roi_controller = roi_controller(handles);                                                   
             handles.fit_controller = flim_fit_controller(handles);    
+            %handles.fit_display_controller = flim_fit_display_controller(handles);
             handles.data_decay_view = flim_data_decay_view(handles);
             handles.data_masking_controller = flim_data_masking_controller(handles);
             handles.plot_controller = flim_fit_plot_controller(handles);
@@ -126,7 +123,7 @@ classdef global_processing_ui
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
                         
             if OMERO_active == true               
-               handles.data_series_controller.Omero_logon();
+               handles.omero_data_manager.Omero_logon();
             end
             
             handles = obj.setup_menu(handles);            
@@ -160,24 +157,25 @@ classdef global_processing_ui
         function close_request_fcn(obj,~,~)
             
             handles = guidata(obj.window);
-
-            client = handles.data_series_controller.client;
+            client = handles.omero_data_manager.client;
             
             if ~isempty(client)                
                 % save logon anyway                
-                logon = handles.data_series_controller.logon;
-                logon_filename = handles.data_series_controller.omero_logon_filename;                
+                logon = handles.omero_data_manager.logon;
+                logon_filename = handles.omero_data_manager.omero_logon_filename;                
                 omero_logon = [];
                 omero_logon.logon = logon;
-                xml_write(logon_filename,omero_logon);                                
+                if ~handles.external
+                    xml_write(logon_filename,omero_logon);                                
+                end;
                 %
                 disp('Closing OMERO session');
                 client.closeSession();
                 %
-                handles.data_series_controller.session = [];
-                handles.data_series_controller.client = [];
+                handles.omero_data_manager.session = [];
+                handles.omero_data_manager.client = [];
             end
-            
+
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
                        
