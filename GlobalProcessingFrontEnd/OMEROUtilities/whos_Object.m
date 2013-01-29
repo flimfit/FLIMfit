@@ -1,6 +1,6 @@
-        function obj = get_Object_by_Id(session,objId)
+function obj_type = whos_Object(session,objId)
             %
-            obj = [];            
+            obj_type = 'unknown';            
             %
             proxy = session.getContainerService();
             %Set the options
@@ -16,7 +16,7 @@
                 p = projectsList.get(j);
                 pid = java.lang.Long(p.getId().getValue());                
                 if pid == objId
-                    obj = p;
+                    obj_type = 'Project';
                     return;
                 end;
                 datasetsList = p.linkedDatasetList;
@@ -24,7 +24,7 @@
                      d = datasetsList.get(i);
                      did = java.lang.Long(d.getId().getValue());
                      if did == objId
-                        obj = d;
+                        obj_type = 'Dataset';
                         return;
                      end
                      imageList = d.linkedImageList;
@@ -32,12 +32,12 @@
                          img = imageList.get(k);
                          iid = java.lang.Long(img.getId().getValue());
                          if iid == objId
-                            obj = img;
+                            obj_type = 'Image';
                             return;
-                         end                         
-                     end 
+                         end;
+                     end;
                 end;
-            end;  
+            end;
             %
                     iQuery = session.getQueryService();
                     screenList = iQuery.findAllByQuery('select this from Screen this left outer join fetch this.plateLinks links left outer join fetch links.child plates', param);                                
@@ -45,7 +45,7 @@
                          scr = screenList.get(k);
                          scrid = java.lang.Long(scr.getId().getValue());
                          if scrid == objId
-                            obj = scr;
+                            obj_type = 'Screen';
                             return;
                          end  
                          platesList = scr.linkedPlateList;
@@ -53,7 +53,7 @@
                              plt = platesList.get(k);
                              pltid = java.lang.Long(plt.getId().getValue());
                              if pltid == objId
-                                obj = plt;
+                                obj_type = 'Plate';
                                 return;
                              end  
                              %
@@ -73,16 +73,15 @@
                                     ws = wellsSampleList.get(i);
                                     ws.getId().getValue();
                                     % pa = ws.getPlateAcquisition();
-                                    img = ws.getImage();
-                                    iid = java.lang.Long(img.getId().getValue());
+                                    iid = java.lang.Long(ws.getImage().getId().getValue());
                                     if iid == objId
-                                       obj = img;
+                                       obj_type = 'Image';
                                        return;
-                                    end                         
-                                end
-                            end
-                             %                             
-                         end                                                  
-                    end
-            
-        end
+                                    end;
+                                end;
+                            end;
+                         end;
+                    end;
+end
+
+                

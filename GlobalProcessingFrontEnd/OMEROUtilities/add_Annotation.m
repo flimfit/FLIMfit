@@ -7,7 +7,7 @@ function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,
             return;
         end;
         %
-    try                               
+%    try                               
         iUpdate = session.getUpdateService(); % service used to write object
         %
         file = java.io.File(full_file_name);
@@ -31,16 +31,14 @@ function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,
         L = file.length();
         fid = fopen(full_file_name,'r');    
             byteArray = fread(fid,L,'uint8');
+            %[filename, permission, machineformat, encoding] = fopen(fid)
         fclose(fid);
-        %
-%                 fid = fopen(full_file_name,'r');    
-%                     byteArray2 = fread(fid,L,'uint8=>char')'
-%                 fclose(fid);  
-                
+                                
         rawFileStore.write(byteArray, 0, L);        
-        originalFile = rawFileStore.save();
+        originalFile = rawFileStore.save();                
         % Important to close the service
         rawFileStore.close();
+                                                
         % now we have an original File in DB and raw data uploaded.
         % We now need to link the Original file to the image using the File annotation object. That's the way to do it.
         fa = omero.model.FileAnnotationI;
@@ -49,14 +47,23 @@ function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,
         fa.setNs(omero.rtypes.rstring(namespace)) % The name space you have set to identify the file annotation.
         % save the file annotation.
         fa = iUpdate.saveAndReturnObject(fa);
-        %                      
-        switch whos_Object(session,object.getId().getValue())
+        %      
+        whos_object = whos_Object(session,object.getId().getValue());
+        switch whos_object
             case 'Project'
                 link = omero.model.ProjectAnnotationLinkI;
             case 'Dataset'
                 link = omero.model.DatasetAnnotationLinkI;
             case 'Image'
                 link = omero.model.ImageAnnotationLinkI;                
+            case 'Screen'
+                link = omero.model.ScreenAnnotationLinkI;                
+            case 'Plate'
+                link = omero.model.PlateAnnotationLinkI;                                
+        end;
+        %
+        if strcmp('unknown',whos_Object(session,object.getId().getValue()))
+            link = omero.model.ImageAnnotationLinkI;
         end;
         %
         link.setChild(fa);
@@ -64,10 +71,10 @@ function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,
         % save the link back to the server.
         iUpdate.saveAndReturnObject(link);
         %
-    catch ME
-        disp(ME);
-        return;
-    end
+%     catch ME
+%         disp(ME);
+%         return;
+%     end
     %
     ret = true;    
 end

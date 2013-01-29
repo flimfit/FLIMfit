@@ -8,6 +8,7 @@ syntax: glob
 *.obj
 *.zip
 *.orig
+*.bak
 data_settings.xml
 FLIMGlobalAnalysisProto_*
 .DS_Store
@@ -21,3 +22,4 @@ GlobalProcessingFrontEnd/DeployFiles/*
 GlobalProcessingFrontEnd/GlobalProcessing_*
 GlobalProcessingFrontEnd/OMEROMatlab/*
 GlobalProcessingStandalone/*
+.git/

@@ -3,16 +3,28 @@ classdef front_end_menu_controller < handle
     properties
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                
+        
         menu_OMERO_Set_Dataset;        
+        menu_OMERO_Set_Plate;        
         menu_OMERO_Load_FLIM_Data;
-        menu_OMERO_Load_FLIM_Dataset;  
-        %menu_OMERO_Load_FLIM_Screen;                
-        menu_OMERO_Load_IRF_image;
+        menu_OMERO_Load_FLIM_Dataset; 
+        menu_OMERO_Load_IRF_FOV;
         menu_OMERO_Load_IRF_annot;            
         menu_OMERO_Load_Background;            
         menu_OMERO_Export_Fitting_Results;    
         menu_OMERO_Export_Fitting_Settings;            
-        menu_OMERO_Import_Fitting_Settings;    
+        menu_OMERO_Import_Fitting_Settings;
+            menu_OMERO_Reset_Logon;  
+            menu_OMERO_Load_IRF_WF_gated;
+            menu_OMERO_Load_Background_form_Dataset;
+            menu_OMERO_Load_tvb_from_Image;
+            menu_OMERO_Load_tvb_from_Dataset;
+            menu_OMERO_Switch_User
+            
+        menu_OMERO_Working_Data_Info;
+        
+        omero_data_manager;                
+        
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
                         
         menu_file_new_window;
@@ -23,8 +35,6 @@ classdef front_end_menu_controller < handle
         
         menu_file_load_single_pol;
         menu_file_load_tcspc_pol;
-        
-        menu_file_load_acceptor;
         
         menu_file_reload_data;
         
@@ -38,9 +48,6 @@ classdef front_end_menu_controller < handle
         menu_file_recent_default
         
         menu_file_load_raw;
-        
-        menu_file_load_data_settings;
-        menu_file_save_data_settings;
         
         menu_file_open_fit;
         menu_file_save_fit;
@@ -67,6 +74,8 @@ classdef front_end_menu_controller < handle
         menu_irf_estimate_t0;
         menu_irf_estimate_g_factor;
         menu_irf_estimate_background;
+        %menu_irf_set_rectangular;
+        %menu_irf_set_gaussian;
         menu_irf_recent;
         
         menu_background_background_load;
@@ -80,8 +89,6 @@ classdef front_end_menu_controller < handle
         
         menu_tools_photon_stats;
         menu_tools_estimate_irf;
-        menu_tools_create_irf_shift_map;
-        menu_tools_create_tvb_intensity_map;
         
         menu_view_data
         menu_view_plots;
@@ -89,8 +96,6 @@ classdef front_end_menu_controller < handle
         menu_view_chi2_display;
         
         menu_test_test1;
-        menu_test_test2;
-        menu_test_test3;
         menu_test_unload_dll;
         
         menu_help_bugs;
@@ -98,7 +103,6 @@ classdef front_end_menu_controller < handle
         
         menu_batch_batch_fitting;
         
-        data_series_list;
         data_series_controller;
         data_decay_view;
         fit_controller;
@@ -261,45 +265,90 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------
-        function menu_OMERO_Set_Dataset_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Set_Dataset();
+        function menu_OMERO_Set_Dataset_callback(obj,~,~)            
+            infostring = obj.omero_data_manager.Set_Dataset();
+            if ~isempty(infostring)
+                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');
+            end;
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_FLIM_Data();
+            obj.data_series_controller.data_series = flim_data_series();
+            obj.omero_data_manager.Load_FLIM_Data(obj.data_series_controller.data_series);
+            notify(obj.data_series_controller,'new_dataset');
         end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_FLIM_Dataset();
+            obj.data_series_controller.data_series = flim_data_series();            
+            obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
+            notify(obj.data_series_controller,'new_dataset');
         end                    
-        %------------------------------------------------------------------        
-        function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Load_IRF_annot();
+        %------------------------------------------------------------------ 
+        function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
+            obj.omero_data_manager.Load_IRF_FOV(obj.data_series_controller.data_series);
         end                    
         %------------------------------------------------------------------
-        function menu_OMERO_Load_Background_callback(obj,~,~) 
-            obj.data_series_controller.OMERO_Load_Background();
+        function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
+            obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series);
+        end                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Load_Background_callback(obj,~,~)                                     
+            tempfilename = obj.omero_data_manager.load_imagefile();
+            if isempty(tempfilename), return, end;                                    
+            try 
+                obj.data_series_controller.data_series.load_background(tempfilename);                          
+            catch e, 
+                errordlg([e.identifier ' : ' e.message]), 
+            end                        
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Export_Fitting_Results(obj.fit_controller);
+            obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series);
         end                    
         %------------------------------------------------------------------        
         function menu_OMERO_Export_Fitting_Settings_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Export_Fitting_Settings();
+            obj.omero_data_manager.Export_Fitting_Settings(obj.fitting_params_controller);
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Import_Fitting_Settings_callback(obj,~,~)
-            obj.data_series_controller.OMERO_Import_Fitting_Settings();
+            obj.omero_data_manager.Import_Fitting_Settings(obj.fitting_params_controller);
         end                    
         %------------------------------------------------------------------
-        function menu_OMERO_Load_IRF_image_callback(obj,~,~)
-            % to be implemented...
-        end            
-       %------------------------------------------------------------------
+        function menu_OMERO_Set_Plate_callback(obj,~,~)
+            infostring = obj.omero_data_manager.Set_Plate();
+            if ~isempty(infostring)
+                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
+            end;
+        end     
+        %------------------------------------------------------------------        
+        function menu_OMERO_Reset_Logon_callback(obj,~,~)
+            obj.omero_data_manager.Omero_logon();
+        end
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_IRF_WF_gated_callback(obj,~,~)
+            obj.omero_data_manager.Load_IRF_WF_gated(obj.data_series_controller.data_series);
+        end
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_Background_form_Dataset_callback(obj,~,~)
+            obj.omero_data_manager.Load_Background_form_Dataset(obj.data_series_controller.data_series);
+        end
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
+            obj.omero_data_manager.Load_tvb_from_Image(obj.data_series_controller.data_series);
+        end
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_tvb_from_Dataset_callback(obj,~,~)
+            obj.omero_data_manager.Load_tvb_from_Dataset(obj.data_series_controller.data_series);
+        end                              
+        %------------------------------------------------------------------        
+        function menu_OMERO_Switch_User_callback(obj,~,~)
+            delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
+            obj.omero_data_manager.Omero_logon();
+        end        
+        %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
-                                                        
+                                        
         %------------------------------------------------------------------
         % Load Data
         %------------------------------------------------------------------
@@ -353,37 +402,10 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_file_load_acceptor_callback(obj,~,~)
-            folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
-            if folder ~= 0
-                obj.data_series_controller.data_series.load_acceptor_images(folder);
-                if strcmp(obj.default_path,'C:\')
-                    obj.default_path = path;
-                end
-            end
-        end
-        
         function menu_file_reload_data_callback(obj,~,~)
             obj.data_series_controller.data_series.reload_data;
         end
-
-        %------------------------------------------------------------------
-        % Export Data Settings
-        %------------------------------------------------------------------
-        function menu_file_save_data_settings_callback(obj,~,~)
-            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-            if filename ~= 0
-                obj.data_series_controller.data_series.save_data_settings([pathname filename]);         
-            end
-        end
-        
-        function menu_file_load_data_settings_callback(obj,~,~)
-            [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-            if filename ~= 0
-                obj.data_series_controller.data_series.load_data_settings([pathname filename]);         
-            end
-        end
-        
+                
         %------------------------------------------------------------------
         % Export Data
         %------------------------------------------------------------------
@@ -549,12 +571,6 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_background_tvb_I_map_load_callback(obj,~,~)
-            [file,path] = uigetfile('*.xml','Select a TVB intensity map file',obj.default_path);
-            if file ~= 0
-                obj.data_series_controller.data_series.load_background([path file]);    
-            end
-        end
         function menu_background_tvb_use_selected_callback(obj,~,~)
            obj.data_masking_controller.tvb_define_callback();    
         end
@@ -586,20 +602,11 @@ classdef front_end_menu_controller < handle
         
         
         function menu_tools_photon_stats_callback(obj,~,~)
-            
             d = obj.data_series_controller.data_series;
-            
-            % get data without smoothing
-            d.compute_tr_data(false,true);
-            
             data = d.cur_tr_data;
-            [N,Z] = determine_photon_stats(data);
-            
-            d.counts_per_photon = N;
-            d.background_value = d.background_value + Z;
-            
-            d.compute_tr_data(true,true);
-            
+            seg = d.mask > 0;
+            [N,Z] = determine_photon_stats(data(:,:,seg));
+            disp(['N= ' num2str(N) ', Z = ' num2str(Z)]);
         end
         
         function menu_tools_estimate_irf_callback(obj,~,~)
@@ -619,97 +626,6 @@ classdef front_end_menu_controller < handle
         function menu_test_test1_callback(obj,~,~)
             regression_testing(obj);
             %polarisation_testing(obj.data_series_controller.data_series,obj.default_path);
-        end
-        
-        function menu_tools_create_irf_shift_map_callback(obj,~,~)
-            mask=obj.data_masking_controller.roi_controller.roi_mask;
-            irf_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
-            
-            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-            if filename ~= 0
-
-                serialise_object(irf_data,[pathname filename],'flim_data_series');
-            end
-            
-        end
-        
-        function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
-           
-            mask=obj.data_masking_controller.roi_controller.roi_mask;
-            irf_data = obj.data_series_controller.data_series.generate_tvb_I_map(mask,1);
-            
-            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-            if filename ~= 0
-
-                serialise_object(irf_data,[pathname filename],'flim_data_series');
-            end
-            
-        end
-        
-        function menu_test_test2_callback(obj,~,~)
-            
-            d = obj.data_series_controller.data_series;
-
-            tr_acceptor = zeros(size(d.acceptor));
-
-            [optimizer, metric] = imregconfig('multimodal'); 
-            optimizer.MaximumIterations = 40;
-            h = waitbar(0,'Aligning...');
-
-            for i=1:d.n_datasets
-            
-                a = d.acceptor(:,:,i);
-                intensity = d.integrated_intensity(i);
-                try
-                    [tr,t] = imregister2(a,intensity,'rigid',optimizer,metric);
-                    dx = t.tdata.T(3,1:2);
-                    dx = norm(dx);
-                    disp(dx);
-                    
-                    if dx>200
-                        tr = a;
-                    end
-
-                catch
-                    tr = a;
-                end
-                
-                tr_acceptor(:,:,i) = tr;
-                
-                %figure(13);
-                %imagesc(tr_acceptor(:,:,i)); pause(1); imagesc(intensity);
-                
-                waitbar(i/d.n_datasets,h);
-            end
-            
-            global acceptor;
-            acceptor = tr_acceptor;
-            %save('C:\Users\scw09\Documents\00 Local FLIM Data\2012-10-17 Rac COS Plate\acceptor_images.mat','acceptor');
-            close(h);            
-            
-        end
-        
-        function menu_test_test3_callback(obj,~,~)
-            file = 'c:\users\scw09\documents\data_serialization.h5';
-            
-            obj.data_series_controller.data_series.serialize(file);
-            
-            %{
-            global fg fh;
-            r = obj.fit_controller.fit_result;
-            
-            im = r.get_image(1,'tau_1');
-            I = r.get_image(1,'I');
-            dim = 2;
-            color = {'b', 'r', 'm', 'g', 'k'};
-            s = nanstd(im,0,dim);
-            m = nanmean(im,dim);
-            I = nanmean(I,dim);
-            figure(fg);
-            hold on;
-            fh(end+1) = plot(s,color{length(fh)+1});
-            ylim([0 500]);
-            %}
         end
         
         function menu_test_unload_dll_callback(obj,~,~)

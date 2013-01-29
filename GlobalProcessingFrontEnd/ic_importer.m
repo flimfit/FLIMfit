@@ -5,7 +5,7 @@ addpath_global_analysis();
 settings = [];
 %
 if exist('ic_importer_settings.xml','file') 
-    [settings settings_name] = xml_read ('ic_importer_settings.xml');    
+    [ settings ~ ] = xml_read ('ic_importer_settings.xml');    
     logon = settings.logon;
 else
     logon = OMERO_logon();
@@ -18,16 +18,20 @@ data = createData();
 %-------------------------------------------------------------------------%
     function data = createData()
         %
-        data.main_well_plate_annotation_sacred_filename = 'plate_reader_metadata.txt';
+        data.main_well_plate_annotation_sacred_filename = 'plate_reader_metadata.xml';
         %
         if ~isempty(settings)
             data.DefaultDataDirectory = settings.DefaultDataDirectory;        
             data.image_annotation_file_extension = settings.image_annotation_file_extension;        
             data.load_dataset_annotations = settings.load_dataset_annotations;
+            data.modulo = settings.modulo;
+            data.native_multichannel_FLIM = settings.native_multichannel_FLIM;            
         else
             data.DefaultDataDirectory = 'c:\';        
             data.image_annotation_file_extension = 'none';        
             data.load_dataset_annotations = false;
+            data.modulo = 'ModuloAlongT';
+            data.native_multichannel_FLIM = false;
         end                    
         %
         data.client  = [];
@@ -43,8 +47,7 @@ data = createData();
         %
         %        
         data.dirlist = []; % list of directories to import for well plate
-        data.dataset_annotations = [];          
-        %        
+        data.dataset_annotations = [];                          
     end % createData
 %-------------------------------------------------------------------------%
     function gui = createInterface( data )
@@ -76,16 +79,26 @@ data = createData();
         gui.handles.menu_file_single_tbckg = uimenu(gui.menu_file_set_single,'Label','time_varying_background', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_intref = uimenu(gui.menu_file_set_single,'Label','intensity_reference', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','g_factor', 'Callback', @onSetFile);        
+        gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','sample', 'Callback', @onSetFile);        
                       
         uimenu( gui.menu_file, 'Label', 'Exit', 'Callback', @onExit );        
         % + Omero menu
         gui.menu_omero = uimenu( gui.Window, 'Label', 'Omero' );
-        gui.menu_logon = uimenu( gui.menu_omero, 'Label', 'Set logon default', 'Callback', @onLogon );
+        gui.menu_logon = uimenu( gui.menu_omero, 'Label', 'Set logon default', 'Callback', @onLogon );        
         gui.menu_setproject = uimenu( gui.menu_omero, 'Label','Set Project', 'Callback', @onSetDestination );
         gui.menu_setdataset = uimenu( gui.menu_omero, 'Label','Set Dataset', 'Callback', @onSetDestination );
+        gui.menu_setproject = uimenu( gui.menu_omero, 'Label','Set Screen', 'Callback', @onSetDestination );        
         % + Upload menu
         %gui.menu_upload      = uimenu(gui.Window,'Label','Upload');
         %uimenu(gui.menu_upload,'Label','Go','Accelerator','G','Callback', @onGo);                                
+        
+        gui.menu_upload      = uimenu(gui.Window,'Label',data.modulo);
+        uimenu(gui.menu_upload,'Label','ModuloAlongC','Callback', @onSetModuloAlong);                                
+        uimenu(gui.menu_upload,'Label','ModuloAlongT','Callback', @onSetModuloAlong);                                
+        uimenu(gui.menu_upload,'Label','ModuloAlongZ','Callback', @onSetModuloAlong);                                
+        uimenu(gui.menu_upload,'Label','ModuloAlongT (multichannel sdt)','Callback', @onSetModuloAlong);                                
+        uimenu(gui.menu_upload,'Label','ModuloAlongZ (multichannel sdt)','Callback', @onSetModuloAlong);                                        
+                        
         %
         % CONTROLS
         gui.ProjectNamePanel = uicontrol( 'Style', 'text','Parent',gui.Window,'String',data.ProjectName,'FontSize',10,'Position',[20 80 800 20],'BackgroundColor',bckg_color);          
@@ -178,6 +191,14 @@ data = createData();
         set(gui.DatasetAnnotationsCheckboxPrompt, 'Visible', multiple_data_controls_visibility);
         set(gui.DatasetAnnotationsCheckbox, 'Visible', multiple_data_controls_visibility);
         %
+        if data.native_multichannel_FLIM
+            if strcmp(data.modulo,'ModuloAlongT')
+                set(gui.menu_upload,'Label','ModuloAlongT (multichannel sdt)');     
+            elseif strcmp(data.modulo,'ModuloAlongZ')                
+                set(gui.menu_upload,'Label','ModuloAlongZ (multichannel sdt)');                 
+            end;
+        end
+            
     end % updateInterface
 %-------------------------------------------------------------------------%
     function onExit(~,~)
@@ -240,8 +261,21 @@ data = createData();
     function onSetDestination(hObj,~,~)
                 
         label = get(hObj,'Label');
-        
-        if strcmp(label,'Set Project')
+
+        if strcmp(label,'Set Screen')        
+            scrn = select_Screen(data.session,'Select screen');
+            if ~isempty(scrn)
+                data.project = scrn; 
+                data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+            else
+                return;
+            end
+            %
+            if isempty(data.Directory) || ~isdir(data.Directory)
+                onSetDirectory();
+            end                    
+                
+        elseif strcmp(label,'Set Project')
             
             prjct = select_Project(data.session,'Select Project');             
             if ~isempty(prjct)
@@ -275,7 +309,6 @@ data = createData();
         %
         updateInterface();
 
-
     end % onSetProject
 %-------------------------------------------------------------------------%
     function onGo(~,~)
@@ -289,7 +322,7 @@ data = createData();
         new_dataset_name = char(strings(length(strings)));
         %  
         if ~strcmp(data.LoadMode,'single file')
-            if ~is_Dataset_name_unique(data.project,new_dataset_name)
+            if strcmp('Dataset',whos_Object(data.session,data.project)) && ~is_Dataset_name_unique(data.project,new_dataset_name)
                 errordlg('new Dataset name isn not unique - can not contuinue');
                 clear_settings;
                 updateInterface;     
@@ -299,9 +332,15 @@ data = createData();
         %        
         set(gui.Indicator,'String','..uploading..');
         %
-        if (strcmp(data.extension,'tif') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
+        if (strcmp(data.extension,'tif') || strcmp(data.extension,'tiff') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
             % simple case                 
-            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,'double');
+            if data.native_multichannel_FLIM
+                native_spec = 'native';
+            else
+                native_spec = 'whatever';
+            end;
+            %
+            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo,native_spec);
             new_dataset = get_Object_by_Id(data.session,new_dataset_id);
             %                        
             % IMAGE ANNOTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% (this is ugly)
@@ -336,17 +375,18 @@ data = createData();
             % IMAGE ANNOTATIONS - ENDS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
             %
         elseif strcmp(data.LoadMode,'well plate')
-            % well plate case
-            dataset_description = ' '; % no description
-            new_dataset = create_new_Dataset(data.session,data.project,new_dataset_name,dataset_description);
-            %
-            for k=1:numel(data.dirlist)
-                image_description = ' '; % no description
-                new_image_id = upload_dir_as_Channels_FLIM_Image(data.session,new_dataset,data.dirlist{k},data.extension,image_description);
-             end
+            
+            FOV_name_parse_func = get_Plate_param_func_name_from_metadata_xml_file( ...
+                [data.Directory filesep data.main_well_plate_annotation_sacred_filename]);
+            %            
+            new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, FOV_name_parse_func, data.modulo);
+            new_dataset = get_Object_by_Id(data.session,new_dataset_id);
+            
         elseif strcmp(data.LoadMode,'single file')
 
-                        if ~strcmp('sdt',data.extension)
+                        if is_OME_tif(data.Directory)
+                            upload_Image_OME_tif(data.session,data.project,data.Directory,' ');                            
+                        elseif ~strcmp('sdt',data.extension)
                             U = imread(data.Directory,data.extension);
                             %
                             pixeltype = get_num_type(U);
@@ -361,7 +401,7 @@ data = createData();
                                 Z(c,:,:) = squeeze(U(:,:,c))';
                             end;
                             img_description = ' ';
-                            imageId = mat2omeroImage_Channels(data.session, Z, 'double', file_name,  img_description, []);
+                            imageId = mat2omeroImage(data.session, Z, pixeltype, file_name,  img_description, [],'ModuloAlongC');
                             link = omero.model.DatasetImageLinkI;
                             link.setChild(omero.model.ImageI(imageId, false));
                             link.setParent(omero.model.DatasetI(data.project.getId().getValue(), false)); % in this case, "project" is Dataset
@@ -400,7 +440,12 @@ data = createData();
                             delete(xmlFileName);
                             %                            
                         else % strcmp('sdt',data.extension)
-                            upload_Image_BH(data.session, data.project, data.Directory, 'double', data.SingleFileMeaningLabel);    
+                            if data.native_multichannel_FLIM
+                                native_spec = 'native';
+                            else
+                                native_spec = 'whatever';
+                            end;
+                            upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo, native_spec);
                         end                        
         end % strcmp(data.LoadMode,'single file')
         %      
@@ -459,7 +504,7 @@ data = createData();
         %
         data.extension = '???';
         data.LoadMode = '???';        
-        extensions = {'tif' 'sdt'};
+        extensions = {'tif' 'tiff' 'sdt'};
         for k=1:numel(extensions)
             files = dir([data.Directory filesep '*.' extensions{k}]);
             num_files = length(files);
@@ -506,6 +551,8 @@ data = createData();
         ic_importer_settings.DefaultDataDirectory = data.DefaultDataDirectory;        
         ic_importer_settings.image_annotation_file_extension = data.image_annotation_file_extension;
         ic_importer_settings.load_dataset_annotations = data.load_dataset_annotations;
+        ic_importer_settings.modulo = data.modulo;
+        ic_importer_settings.native_multichannel_FLIM = data.native_multichannel_FLIM;
         xml_write('ic_importer_settings.xml', ic_importer_settings);
     end % save_settings
 %-------------------------------------------------------------------------%  
@@ -558,7 +605,7 @@ data = createData();
 %-------------------------------------------------------------------------%  
     function onSetFile(hObj,~,~)
         %
-        [filename, pathname] = uigetfile({'*.tif';'*.sdt'},'Select File',data.DefaultDataDirectory);
+        [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt'},'Select File',data.DefaultDataDirectory);
         %
         if isequal(filename,0)
             return
@@ -567,13 +614,13 @@ data = createData();
         full_file_name = [pathname filesep filename]; % works;
         % check if file is OK - extension...
         str = split('.',full_file_name);
-        extension = str{2};
+        extension = str{length(str)};
         %
-        if strcmp(extension,'tif') || strcmp(extension,'sdt') % kosher
+        if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') 
                                   
             if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Project')
                 % doopredelaem
-                [ dtst prjct ] = select_Dataset(data.session,'Select Dataset');
+                [ dtst ~ ] = select_Dataset(data.session,'Select Dataset');
                 if ~isempty(dtst)
                     data.project = dtst; % in  reality, dataset not project;
                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -592,32 +639,21 @@ data = createData();
         updateInterface();                   
     end
 
+    function onSetModuloAlong(hObj,~,~)
+        label = get(hObj,'Label');
+        if strcmp(label,'ModuloAlongT (multichannel sdt)')
+            data.modulo = 'ModuloAlongT';
+            data.native_multichannel_FLIM = true;
+        elseif strcmp(label,'ModuloAlongZ (multichannel sdt)')
+            data.modulo = 'ModuloAlongZ';
+            data.native_multichannel_FLIM = true;
+        else
+            data.modulo  = label;    
+            data.native_multichannel_FLIM = false;
+        end;                        
+      set(gui.menu_upload,'Label',label);      
+      updateInterface();                   
+    end
+
+
 end % EOF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
