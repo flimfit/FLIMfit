@@ -1,12 +1,16 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #ifndef _UTIL_H
 #define _UTIL_H
 
 #include <stdio.h>
-/*
-void ClearVariable(double*& var);
-void ClearVariable(int*& var);
-void ClearVariable(float*& var);
-*/
 
 template<typename T>
 void ClearVariable(T*& var)

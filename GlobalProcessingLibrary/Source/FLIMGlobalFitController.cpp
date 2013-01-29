@@ -1,3 +1,11 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
 
 #include "boost/math/distributions/fisher_f.hpp"
 #include "boost/math/tools/minima.hpp"

@@ -1,3 +1,11 @@
+##=========================================================================
+##  
+##  GlobalProcessing FLIM Analysis Package
+##  (c) 2013 Sean Warren
+##
+##
+##
+##=========================================================================
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -32,7 +40,6 @@ include_directories( ${LEVMAR_INCLUDE_DIRS} )
 # Set the source and header files
 #===================================================
 set(SOURCE
-   fcommon.cpp
    FitStatus.cpp
    IRFConvolution.cpp
    ModelADA.cpp

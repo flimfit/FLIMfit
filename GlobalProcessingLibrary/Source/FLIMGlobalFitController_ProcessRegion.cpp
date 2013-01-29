@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "IRFConvolution.h"

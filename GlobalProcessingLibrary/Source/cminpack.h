@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  CMinPack
+//  http://devernay.free.fr/hacks/cminpack/index.html
+//  Subject to Minpack Copyright Notice (1999) University of Chicago.  
+//  All rights reserved
+//
+//=========================================================================
+
 #ifndef __CMINPACK_H__
 #define __CMINPACK_H__
 

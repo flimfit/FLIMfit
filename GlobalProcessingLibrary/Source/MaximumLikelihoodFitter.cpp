@@ -1,3 +1,13 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
+
 #include "MaximumLikelihoodFitter.h"
 
 #include <cfloat>

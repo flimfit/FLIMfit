@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #ifndef _FLIMGLOBALFITCONTROLLER_H
 #define _FLIMGLOBALFITCONTROLLER_H
 

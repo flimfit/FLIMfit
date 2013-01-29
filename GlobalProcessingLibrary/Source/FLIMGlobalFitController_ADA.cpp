@@ -1,8 +1,15 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #include "ModelADA.h"
 #include "FlimGlobalFitController.h"
 #include "IRFConvolution.h"
-
-
 
 void FLIMGlobalFitController::SetupIncMatrix(int* inc)
 {
