@@ -3,31 +3,37 @@ function handles = setup_menu(obj,handles)
 
     external = handles.external;
 
-    if ~isempty(handles.data_series_controller.session)
+     if ~isempty(handles.omero_data_manager.session)
     
       external = true;
         
       menu_OMERO = uimenu(obj.window,'Label','OMERO');
    
-        handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO,'Label','Set Working Dataset');
+        handles.menu_OMERO_Working_Data_Info = uimenu(menu_OMERO,'Label','Working Data have not been set up','ForegroundColor','red');
+        
+        menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set Working Data');
+            handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO_Set_Data,'Label','Dataset');
+            handles.menu_OMERO_Set_Plate = uimenu(menu_OMERO_Set_Data,'Label','SPW Plate');
+        handles.menu_OMERO_Switch_User = uimenu(menu_OMERO_Set_Data,'Label','Switch User...','Separator','on');            
+            handles.menu_OMERO_Reset_Logon = uimenu(menu_OMERO_Set_Data,'Label','Restore Logon');                
         %
-        handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM: Single FOV','Separator','on');
-        handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM: Multiple FOVs');
-%        handles.menu_OMERO_Load_FLIM_Screen = uimenu(menu_OMERO,'Label','Load FLIM: OME Screen');
+        handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM data: Single FOV','Separator','on');
+        handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM data: Multiple FOVs');
         %
-        %handles.menu_OMERO_Load_IRF_image = uimenu(menu_OMERO,'Label','Load IRF (Image)','Separator','on');
-        handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)');
-        %    
-        handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background','Separator','on');    
-%        handles.menu_OMERO_Load_Time_Varying_Background = uimenu(menu_OMERO,'Label','Load Time Varying Background');    
+        handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)','Separator','on');    
+        handles.menu_OMERO_Load_IRF_WF_gated = uimenu(menu_OMERO,'Label','Load IRF (Dataset Images to average)'); 
+        handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)');                    
+        handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background (single plane: Image)','Separator','on');    
+        handles.menu_OMERO_Load_Background_form_Dataset = uimenu(menu_OMERO,'Label','Load Background (single plane: Dataset Images to smooth)');            
+        handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)');    
+        handles.menu_OMERO_Load_tvb_from_Dataset = uimenu(menu_OMERO,'Label','Load Time Varying Background (Dataset Images)');                    
         %
-        handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results as new Dataset','Separator','on');    
-        handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings');    
+        handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on');    
         %
-        handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings','Separator','on');    
+        handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings','Separator','on');            
+        handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings');    
 
     end
-        
 
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
@@ -124,3 +130,4 @@ function handles = setup_menu(obj,handles)
     handles.menu_help_bugs = uimenu(menu_help,'Label','File Bug Report...');
     
 end
+
