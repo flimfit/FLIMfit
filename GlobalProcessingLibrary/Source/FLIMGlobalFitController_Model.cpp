@@ -2,6 +2,7 @@
 #include "IRFConvolution.h"
 #include <xmmintrin.h>
 #include <cfloat>
+#include "util.h"
 
 int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf, int irf_idx)
 {
@@ -550,8 +551,8 @@ void FLIMGlobalFitController::ShiftIRF(double shift, double s_irf[])
    int c_shift = (int) floor(shift); 
    double f_shift = shift-c_shift;
 
-   int start = max(0,-c_shift)+1;
-   int end   = min(n_irf-1,n_irf-c_shift)-1;
+   int start = maxx(0,-c_shift)+1;
+   int end   = minn(n_irf-1,n_irf-c_shift)-1;
 
    for(i=0; i<start; i++)
       s_irf[i] = irf_buf[0];

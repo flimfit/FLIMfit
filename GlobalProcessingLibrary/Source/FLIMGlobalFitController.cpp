@@ -11,7 +11,7 @@
 #include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
-#include <omp.h>
+#include "omp_stub.h"
 
 using namespace boost::interprocess;
 using namespace std;
@@ -1291,8 +1291,9 @@ void FLIMGlobalFitController::CleanupTempVars()
         iter++;
    }
 
-   _ASSERTE(_CrtCheckMemory());
-
+    #ifdef _WINDOWS
+      _ASSERTE(_CrtCheckMemory());
+    #endif
 }
 
 void FLIMGlobalFitController::CleanupResults()
@@ -1390,5 +1391,7 @@ void FLIMGlobalFitController::CleanupResults()
       thread_handle = NULL;
    }
 
-   _ASSERTE(_CrtCheckMemory());
+    #ifdef _WINDOWS
+      _ASSERTE(_CrtCheckMemory());
+    #endif
 }

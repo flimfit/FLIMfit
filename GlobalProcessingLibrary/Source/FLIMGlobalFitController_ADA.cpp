@@ -1,7 +1,7 @@
 #include "ModelADA.h"
 #include "FlimGlobalFitController.h"
 #include "IRFConvolution.h"
-
+#include "util.h"
 
 
 void FLIMGlobalFitController::SetupIncMatrix(int* inc)
@@ -214,7 +214,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          for(j=0; j<n_v; j++)
          {
             tau_buf[j+n_fix] = InverseTransformRange(alf[j],tau_min[j+n_fix],tau_max[j+n_fix]);
-            tau_buf[j+n_fix] = max(tau_buf[j+n_fix],60);
+            tau_buf[j+n_fix] = maxx(tau_buf[j+n_fix],60);
          }
          // Set theta's
          for(j=0; j<n_theta_fix; j++)
@@ -222,7 +222,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          for(j=0; j<n_theta_v; j++)
          {
             theta_buf[j+n_theta_fix] = InverseTransformRange(alf[alf_theta_idx+j],0,1000000);
-            theta_buf[j+n_theta_fix] = max(theta_buf[j+n_theta_fix],60);
+            theta_buf[j+n_theta_fix] = maxx(theta_buf[j+n_theta_fix],60);
          }
 
 

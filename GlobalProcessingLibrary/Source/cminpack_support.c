@@ -2,11 +2,13 @@
 #include <math.h>
 #include "cminpack.h"
 
-#include "omp.h"
+#include "omp_stub.h"
 
+#ifdef abs
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 #define min(a,b) ((a) <= (b) ? (a) : (b))
 #define max(a,b) ((a) >= (b) ? (a) : (b))
+#endif
 
 #include "xmmintrin.h"
 

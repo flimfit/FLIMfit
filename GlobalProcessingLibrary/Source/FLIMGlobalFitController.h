@@ -14,7 +14,8 @@
 #include "FitStatus.h"
 #include "ModelADA.h"
 #include "FLIMData.h"
-#include <stdio.h>
+//#include <stdio.h>
+#include <math.h>
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
 

@@ -194,7 +194,9 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
 
    int thread = 0;
 
-   _ASSERTE( _CrtCheckMemory( ) );
+    #ifdef _WINDOWS
+      _ASSERTE( _CrtCheckMemory( ) );
+    #endif
 
    // Get mask
    uint8_t *im_mask = data->mask + im*n_px;  
@@ -285,7 +287,9 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
       }
    }
 
-   _ASSERTE( _CrtCheckMemory( ) );
+    #ifdef _WINDOWS
+      _ASSERTE( _CrtCheckMemory( ) );
+    #endif
 
 
    n_regions = idx;

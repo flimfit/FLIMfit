@@ -13,7 +13,7 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
-#include <omp.h>
+#include "omp_stub.h"
 
 
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 
@@ -35,7 +35,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
-   int buf_dim = max(1,nl);
+   int buf_dim = maxx(1,nl);
    
    diag = new double[buf_dim];
    qtf  = new double[buf_dim];
@@ -309,7 +309,7 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
          for(int j=0; j<n; j++)
             r_buf[j] = 0;
 
-         int j_max = min(mskip,s-is*mskip);
+         int j_max = minn(mskip,s-is*mskip);
          for(int j=0; j<j_max; j++)
             for(int k=0; k<n; k++)
                r_buf[k] += r[ (is*mskip + j) * r_dim1 + k ];
