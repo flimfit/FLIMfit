@@ -1,14 +1,12 @@
 
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include "cminpack.h"
-
 #include "omp.h"
-
-#define abs(x) ((x) >= 0 ? (x) : -(x))
-#define min(a,b) ((a) <= (b) ? (a) : (b))
-#define max(a,b) ((a) >= (b) ? (a) : (b))
-
 #include "xmmintrin.h"
+
+using namespace std;
+
 
 /* Subroutine */ void qrsolv(int n, double *r, int ldr, 
 	const int *ipvt, const double *diag, const double *qtb, double *x, 
