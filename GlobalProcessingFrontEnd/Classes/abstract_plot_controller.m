@@ -188,7 +188,7 @@ classdef abstract_plot_controller < flim_fit_observer
         end
         
         function selection_updated(obj,~,~)
-            obj.selected = obj.data_series_list.use_selected;
+            obj.selected = obj.data_series_list.selected;
             obj.update_display();
         end
         
@@ -290,8 +290,8 @@ classdef abstract_plot_controller < flim_fit_observer
             
             f = obj.fit_controller;
 
-            intensity = f.get_intensity_result_idx(dataset);
-            im_data = f.get_image_result_idx(dataset,param);
+            intensity = f.get_intensity(dataset,'result');
+            im_data = f.get_image(dataset,param,'result');
 
             
             cscale = obj.colourscale(param);

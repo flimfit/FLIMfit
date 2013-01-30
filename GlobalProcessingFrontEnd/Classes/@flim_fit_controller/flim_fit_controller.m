@@ -154,35 +154,29 @@ classdef flim_fit_controller < flim_data_series_observer
             end
         end
         
-        function [param_data, mask] = get_image_result_idx(obj,im,param)
+        function [param_data, mask] = get_image(obj,im,param,indexing)
+            
+            if nargin < 4
+                indexing = 'dataset';
+            end
             
             if ischar(param)
                 param_idx = strcmp(obj.fit_result.params,param);
                 param = find(param_idx);
             end
             
-            [param_data, mask] = obj.dll_interface.get_image_result_idx(im,param);
+            [param_data, mask] = obj.dll_interface.get_image(im,param,indexing);
         end
 
-        function [param_data, mask] = get_image_data_idx(obj,dataset,param)
+        
+        function [param_data, mask] = get_intensity(obj,im,indexing)
             
-            if ischar(param)
-                param_idx = strcmp(obj.fit_result.params,param);
-                param = find(param_idx);
+            if nargin < 3
+                indexing = 'dataset';
             end
             
-            [param_data, mask] = obj.dll_interface.get_image_data_idx(dataset,param);
-        end
-
-        
-        function [param_data, mask] = get_intensity_data_idx(obj,im)
             param = obj.fit_result.intensity_idx;
-            [param_data, mask] = obj.dll_interface.get_image_data_idx(im,param);
-        end
-        
-        function [param_data, mask] = get_intensity_result_idx(obj,im)
-            param = obj.fit_result.intensity_idx;
-            [param_data, mask] = obj.dll_interface.get_image_result_idx(im,param);
+            [param_data, mask] = obj.dll_interface.get_image(im,param,indexing);
         end
         
         function lims = get_cur_lims(obj,param)

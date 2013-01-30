@@ -73,7 +73,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                             ci = (col-1)*r.width+1;
                             ri = (row_idx-1)*r.height+1;
                             
-                            im_plate(ri:ri+r.height-1,ci:ci+r.width-1) = f.get_image_result_idx(sel_well(1),param);         
+                            im_plate(ri:ri+r.height-1,ci:ci+r.width-1) = f.get_image(sel_well(1),param);         
                         end
                             
                         for i=sel_well

@@ -404,7 +404,7 @@ classdef flim_omero_data_manager < handle
             params = res.fit_param_list();
             n_params = length(params);
             %param_array(:,:) = single(res.get_image(1, params{1}));
-            param_array(:,:) = single(fit_controller.get_image_dataset_idx(1, 1));
+            param_array(:,:) = single(fit_controller.get_image(1, 1));
                 sizeY = size(param_array,1);
                 sizeX = size(param_array,2);
             %            
@@ -471,7 +471,7 @@ classdef flim_omero_data_manager < handle
                     data = zeros(n_params,sizeX,sizeY);
                         for p = 1:n_params,                                                                                                                                            
                             %data(p,:,:) = res.get_image(dataset_index, params{p})';
-                            data(p,:,:) = fit_controller.get_image_dataset_idx(dataset_index, p)';
+                            data(p,:,:) = fit_controller.get_image(dataset_index, p)';
                         end
                     %                  
                     new_image_description = ' ';
@@ -561,7 +561,7 @@ classdef flim_omero_data_manager < handle
                                        
                                                         data = zeros(n_params,sizeX,sizeY);
                                                                 for p = 1:n_params,
-                                                                    data(p,:,:) = fit_controller.get_image_dataset_idx(dataset_index, p);
+                                                                    data(p,:,:) = fit_controller.get_image(dataset_index, p);
                                                                     %data(p,:,:) = res.get_image(dataset_index, params{p})';
                                                                 end                                                                                  
                                                             new_image_description = ' ';

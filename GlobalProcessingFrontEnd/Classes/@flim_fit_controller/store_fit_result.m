@@ -60,7 +60,7 @@ function store_fit_result(obj, session)
          % get first parameter image just to get the size
          params = res.fit_param_list();
          n_params = length(params);
-         param_array(:,:) = single(obj.get_image_result_idx(1, params{1}));
+         param_array(:,:) = single(obj.get_image(1, params{1}));
          sizeY = size(param_array,1);
          sizeX = size(param_array,2);
                  %
@@ -69,7 +69,7 @@ function store_fit_result(obj, session)
                  
         data = zeros(n_params,sizeX,sizeY);
         for p = 1:n_params,
-            data(p,:,:) = obj.get_image_result_idx(data_set, p)';
+            data(p,:,:) = obj.get_image(data_set, p)';
         end
         
         % WARNING!!

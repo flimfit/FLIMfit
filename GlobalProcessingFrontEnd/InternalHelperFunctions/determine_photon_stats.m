@@ -5,7 +5,7 @@ function [counts_per_photon offset] = determine_photon_stats(data,fit_offset,dis
     end
     
     if nargin < 3
-        display_progress = false;
+        display_progress = true;
     end
 
     figure();

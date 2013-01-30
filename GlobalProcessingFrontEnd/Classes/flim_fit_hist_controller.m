@@ -33,9 +33,11 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 source = get(obj.hist_source_popupmenu,'Value');
                 
                 if source == 1
-                    sel = obj.data_series_list.selected;
+                    sel = obj.selected;
+                    indexing = 'data';
                 else
                     sel = obj.fit_controller.selected;
+                    indexing = 'result';
                 end
                 
                 weighting = get(obj.hist_weighting_popupmenu,'Value');
@@ -46,9 +48,10 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 md = [];
                 for i=1:length(sel)
                     
-                    new_data = obj.fit_controller.get_image_result_idx(sel(i),param);
-                    new_I_data = obj.fit_controller.get_intensity_result_idx(sel(i));
                     
+                    new_data = obj.fit_controller.get_image(sel(i),param,indexing);
+                    new_I_data = obj.fit_controller.get_intensity(sel(i),indexing);
+                        
                     filt = isfinite(new_data) & isfinite(new_I_data);
                     
                     

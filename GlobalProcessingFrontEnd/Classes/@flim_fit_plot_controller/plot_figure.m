@@ -5,8 +5,8 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
     if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
         return
     end
-    intensity = f.get_intensity_data_idx(dataset);
-    im_data = f.get_image_data_idx(dataset,im);
+    intensity = f.get_intensity(dataset);
+    im_data = f.get_image(dataset,im);
     
     %im_data = stdfilt(im_data);
     
