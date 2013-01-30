@@ -13,9 +13,7 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
-#ifndef NO_OMP   
 #include <omp.h>
-#endif
 
 
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 

@@ -14,9 +14,7 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#ifndef NO_OMP   
-#include <omp.h>
-#endif
+#include "omp_stub.h"
 
 using namespace boost::interprocess;
 
@@ -218,9 +216,7 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
    float *alf_group, *lin_group; 
    float *intensity;
 
-   #ifndef NO_OMP
    omp_set_num_threads(n_thread);
-   #endif
    
    int idx = 0;
 

@@ -16,10 +16,12 @@ include_directories( "../Boost" )
 if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_OMP")
 else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   find_package("OpenMP")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+   option(USE_OMP "Use OpenMP" ON)
+   if (USE_OMP)
+      find_package("OpenMP")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+   endif()
 endif()
 
 #find_package(HDF5)
@@ -71,6 +73,7 @@ set(HEADERS
    cminpack.h
    util.h
    TrimmedMean.h
+   omp_stub.h
 )
 
 # Add _32/_64 appendix to library
