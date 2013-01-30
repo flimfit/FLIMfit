@@ -11,16 +11,18 @@ if(Boost_FOUND)
 endif()
 include_directories( "../Boost" )
 
-# enable openmp support in xcode
+# Enable OpenMP support, disable for XCode
 #===================================================
 if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
 else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   option(USE_OMP "Use OpenMP" ON)
-   if (USE_OMP)
-      find_package("OpenMP")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+   find_package("OpenMP")
+   if (OPENMP_FOUND)
+      option(USE_OMP "Use OpenMP" ON)
+      if (USE_OMP)
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+      endif()
    endif()
 endif()
 
