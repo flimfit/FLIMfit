@@ -51,11 +51,11 @@ set(SOURCE
    MaximumLikelihoodFitter.cpp
    AbstractFitter.cpp
    tinythread.cpp
-   lmstr.c
-   lmstx.c
-   lmdif.c
-   fdjac2.c
-   cminpack_support.c
+   lmstr.cpp
+   lmstx.cpp
+   lmdif.cpp
+   fdjac2.cpp
+   cminpack_support.cpp
    util.cpp
 )
 

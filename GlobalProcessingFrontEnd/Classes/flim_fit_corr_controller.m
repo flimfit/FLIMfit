@@ -72,8 +72,8 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 for i=1:length(sel)
                     
                     if display == 1 % Pixels
-                        new_x = f.get_image_result_idx(sel(i),param(1),indexing);
-                        new_y = f.get_image_result_idx(sel(i),param(2),indexing);
+                        new_x = f.get_image(sel(i),param(1),indexing);
+                        new_y = f.get_image(sel(i),param(2),indexing);
 
                         filt = isfinite( new_x ) & isfinite( new_y );
 

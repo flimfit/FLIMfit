@@ -1,8 +1,8 @@
 #include "MaximumLikelihoodFitter.h"
 
 #include <cfloat>
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <string>
 
 #include "levmar.h"
 #include "util.h"

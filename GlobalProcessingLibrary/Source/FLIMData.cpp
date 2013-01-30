@@ -1,5 +1,5 @@
 #include "FLIMData.h"
-#include <math.h>
+#include <cmath>
 //#include "hdf5.h"
 
 FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 

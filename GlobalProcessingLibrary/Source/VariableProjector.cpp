@@ -7,7 +7,7 @@
 #define CMINPACK_NO_DLL
 
 #include "cminpack.h"
-#include <math.h>
+#include <cmath>
 #include "util.h"
 
 #include <boost/bind.hpp>
