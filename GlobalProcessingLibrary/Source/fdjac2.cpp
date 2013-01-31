@@ -3,9 +3,9 @@
 	-lf2c -lm   (in that order)
 */
 
-#include <cmath>;
-#include <algorithm>;
-#include "cminpack.h";
+#include <cmath>
+#include <algorithm>
+#include "cminpack.h"
 
 using namespace std;
 

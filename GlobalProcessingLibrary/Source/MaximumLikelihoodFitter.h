@@ -33,4 +33,4 @@ private:
    friend void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa);
 };
 
-#endif _MAXIMIUMLIKELIHOODFITTER_H
+#endif

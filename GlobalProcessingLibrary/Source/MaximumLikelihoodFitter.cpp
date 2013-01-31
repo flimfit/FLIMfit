@@ -2,7 +2,7 @@
 
 #include <cfloat>
 #include <cmath>
-#include <string>
+#include <cstring>
 
 #include "levmar.h"
 #include "util.h"

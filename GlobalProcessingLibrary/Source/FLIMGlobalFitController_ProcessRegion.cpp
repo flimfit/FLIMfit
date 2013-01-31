@@ -1,7 +1,12 @@
+#include <cmath>
+#include <algorithm>
+
 #include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "IRFConvolution.h"
 #include "util.h"
+
+using namespace std;
 
 /*===============================================
   ProcessRegion

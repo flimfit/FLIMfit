@@ -1,5 +1,7 @@
 #include "util.h"
 
+#include <stdio.h>
+
 void SetNaN(double* var, int n)
 {
    unsigned long nan_l[2]={0xffffffff, 0x7fffffff};
@@ -20,3 +22,6 @@ void SetNaN(float* var, int n)
       for(int i=0; i<n; i++)
          var[i] = nan;
 }
+
+int _CrtCheckMemory( )
+{};

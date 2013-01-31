@@ -54,7 +54,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 
             if source == 1
                 sel = obj.selected;
-                indexing = 'data';
+                indexing = 'dataset';
             else
                 sel = obj.fit_controller.selected;
                 indexing = 'result';

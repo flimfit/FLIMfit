@@ -186,7 +186,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     
                     mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
                     
-                    M(i) = im2frame(mdata);
+                    %M(i) = im2frame(mdata);
                     
                     if merge
                         I_data = f.get_intensity(sel(i),'result');

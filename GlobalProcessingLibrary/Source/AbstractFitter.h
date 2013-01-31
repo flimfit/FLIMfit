@@ -93,4 +93,4 @@ protected:
 
 };
 
-#endif _ABSTRACTFITTER_H
+#endif

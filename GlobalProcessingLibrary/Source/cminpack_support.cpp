@@ -2,7 +2,7 @@
 #include <cmath>
 #include <algorithm>
 #include "cminpack.h"
-#include "omp.h"
+#include "omp_stub.h"
 #include "xmmintrin.h"
 
 using namespace std;

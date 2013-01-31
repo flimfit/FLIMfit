@@ -11,6 +11,7 @@
 
 #include <boost/interprocess/file_mapping.hpp>
 
+#include <cmath>
 #include "FitStatus.h"
 #include "ModelADA.h"
 #include "FLIMData.h"
@@ -32,6 +33,7 @@ typedef double* DoublePtr;
 #define _CRTDBG_MAPALLOC
 
 class ErrMinParams;
+class FLIMGlobalFitController;
 
 class WorkerParams 
 {
@@ -43,7 +45,7 @@ public:
    WorkerParams() 
    { 
       controller = NULL;
-      thread = NULL;
+      thread = 0;
    };
 
    WorkerParams operator=(const WorkerParams& wp)

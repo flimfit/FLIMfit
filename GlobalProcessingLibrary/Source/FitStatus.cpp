@@ -1,6 +1,7 @@
 #include "FitStatus.h"
 #include "FLIMGlobalFitController.h"
 
+
 double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_param)
 {
    return chi2 * chi2 / (gc->n_meas * s - (gc->nl-(int)fixed_param) - s*gc->l);

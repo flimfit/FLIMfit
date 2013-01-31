@@ -8,13 +8,15 @@
 
 #include "cminpack.h"
 #include <cmath>
+#include <algorithm>
 #include "util.h"
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
-#include <omp.h>
+#include "omp_stub.h"
 
+using namespace std;
 
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)

@@ -11,7 +11,7 @@
 #include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
-#include <omp.h>
+#include "omp_stub.h"
 
 using namespace boost::interprocess;
 using namespace std;

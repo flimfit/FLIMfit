@@ -1,11 +1,11 @@
-#ifndef OMP_H
-#define OMP_H
-
 #ifdef USE_OMP
 
-#include "omp.h"
+#include <omp.h>
 
 #else
+
+#ifndef OMP_H
+#define OMP_H
 
 int omp_get_thread_num()
 {
