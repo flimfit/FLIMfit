@@ -134,10 +134,6 @@ classdef flim_data_series < handle & h5_serializer
         
         tr_tvb_profile;
         
-        
-        OMERO_id;
-        
-
         tr_data_size;
         
         init = false;

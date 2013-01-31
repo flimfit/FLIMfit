@@ -76,8 +76,14 @@ classdef flim_omero_data_manager < handle
             extensions{5} = '.sdt';                        
                 for extind = 1:numel(extensions)    
                     name = strrep(name,extensions{extind},'');
-                end                                
-            data_series.names{1} = name;            
+                end  
+            %
+            if ~isempty(obj.dataset)
+                data_series.names{1} = name;            
+            else % SPW image - treated differently at results import
+                idStr = num2str(image.getId().getValue());
+                data_series.names{1} = [ idStr ' : ' name ];                
+            end;                
             %
             data_series.data_size = data_size;
             data_series.num_datasets = 1;  
@@ -403,50 +409,23 @@ classdef flim_omero_data_manager < handle
             res = fit_controller.fit_result;
             params = res.fit_param_list();
             n_params = length(params);
-            param_array(:,:) = single(res.get_image(1, params{1}));
+            
+            param_array(:,:) = single(fit_controller.get_image_data_idx(1, params{1}));                        
                 sizeY = size(param_array,1);
                 sizeX = size(param_array,2);
-            %            
-            choice = questdlg('Do you want to Export fitting results as new Dataset or new Plate?', ' ', ...
-                                    'new Dataset' , ...
-                                    'new Plate','Cancel','Cancel');              
-                                
-            clear_dataset_project_after_export = false;
-            clear_plate_screen_after_export = false;
-            switch choice
-                case 'new Dataset',
-                    if isempty(obj.dataset)
-                        [ dtst prjct ] = select_Dataset(obj.session,'Select Dataset:'); 
-                        if isempty(dtst), return, end;
-                        obj.dataset = dtst;
-                        obj.project = prjct;
-                        clear_dataset_project_after_export = true;
-                    end
-                case 'new Plate', 
-                    if isempty(obj.plate)
-                        [ plte scrn ] = select_Plate(obj.session,'Select Plate:'); 
-                        if isempty(plte), return, end;
-                        obj.plate = plte;
-                        obj.screen = scrn;
-                        clear_plate_screen_after_export = true;
-                    end
-                case 'Cancel', 
-                    return;
-            end                        
+            %
             
-            if ~isempty(obj.dataset)                
+            if ~isempty(obj.dataset)
                 %
-                dName = char(java.lang.String(obj.dataset.getName().getValue()));
-                pName = char(java.lang.String(obj.project.getName().getValue()));
-                name = [ pName ' : ' dName ];
-                %
-                choice = questdlg(['Do you want to Export current results on ' name ' to OMERO? It might take some time.'], ...
-                                        'Export current analysis' , ...
-                                        'Export','Cancel','Cancel');              
-                switch choice
-                    case 'Cancel', return;
-                end            
-                %
+%                 dName = char(java.lang.String(obj.dataset.getName().getValue()));
+%                 pName = char(java.lang.String(obj.project.getName().getValue()));
+%                 name = [ pName ' : ' dName ];
+%                 %
+%                 choice = questdlg(['Do you want to Export current results on ' name ' to OMERO? It might take some time.'], ...
+%                                         'Export current analysis' , ...
+%                                         'Export','Cancel','Cancel');              
+%                 if strcmp(choice,'Cancel'), return, end;
+%                 %
                 current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
 
                 new_dataset_name = [current_dataset_name ' FLIM fitting channel ' num2str(obj.selected_channel) ...
@@ -469,7 +448,7 @@ classdef flim_omero_data_manager < handle
                     %
                     data = zeros(n_params,sizeX,sizeY);
                         for p = 1:n_params,                                                                                                                                            
-                            data(p,:,:) = res.get_image(dataset_index, params{p})';
+                            data(p,:,:) = fit_controller.get_image_data_idx(dataset_index, params{p})';
                         end
                     %                  
                     new_image_description = ' ';
@@ -490,13 +469,15 @@ classdef flim_omero_data_manager < handle
                 end;
                 delete(hw);
                 drawnow;                                  
-                %
-                if clear_dataset_project_after_export
-                    obj.dataset = [];
-                    obj.project = [];
-                end;
                 
-            else % if isempty(obj.dataset) - work with SPW layout
+            elseif ~isempty(obj.plate) % work with SPW layout
+                
+                 str = split(':',data_series.names{1});
+                 if 2 ~= numel(str)
+                    errordlg('names of FOVs are inconistent - ensure data were loaded from SPW Plate');
+                    return;
+                 end
+                 %
                  z = 0;       
                  %
                  newplate = [];
@@ -526,7 +507,7 @@ classdef flim_omero_data_manager < handle
                                     imgName = char(java.lang.String(image.getName().getValue()));                                                                        
                                         % compare with what we have in analysis...        
                                         for dataset_index = 1:data_series.num_datasets
-                                            str = split(' : ',data_series.names{dataset_index});
+                                            str = split(':',data_series.names{dataset_index});
                                             imgname = char(str(2));                                        
                                             iid = str2num(str2mat(cellstr(str(1)))); % wtf                                        
                                             if (1==strcmp(imgName,imgname)) && (iid == iId) % put new well into new plate
@@ -555,11 +536,10 @@ classdef flim_omero_data_manager < handle
                                                     newwell.setPlate( omero.model.PlateI(newplate.getId().getValue(),false) );
                                                     newwell = updateService.saveAndReturnObject(newwell);        
                                                     newws = omero.model.WellSampleI();
-                                                        %results image
-                                       
+                                                        %results image                                       
                                                         data = zeros(n_params,sizeX,sizeY);
                                                                 for p = 1:n_params,
-                                                                    data(p,:,:) = res.get_image(dataset_index, params{p})';
+                                                                    data(p,:,:) = fit_controller.get_image_data_idx(dataset_index, params{p})';
                                                                 end                                                                                  
                                                             new_image_description = ' ';
                                                             new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
@@ -567,7 +547,7 @@ classdef flim_omero_data_manager < handle
                                                             ' C ' num2str(obj.ZCT(2)) ...
                                                             ' T ' num2str(obj.ZCT(3)) ' ' ...
                                                             data_series.names{dataset_index}]);
-                                                            new_imageId = fit_results2omeroImage_Channels(obj.session, data, 'double', new_image_name, new_image_description, res.fit_param_list());
+                                                            new_imageId = obj.fit_results2omeroImage_Channels(data, 'double', new_image_name, new_image_description, res.fit_param_list());
                                                         %results image
                                                     newws.setImage( omero.model.ImageI(new_imageId,false) );
                                                     newws.setWell( newwell );        
@@ -581,13 +561,10 @@ classdef flim_omero_data_manager < handle
                             end
                             delete(hw);
                             drawnow;                                                              
-                %        
-                if clear_plate_screen_after_export
-                    obj.plate = [];
-                    obj.acreen = [];
-                end;
                 
-            end
+            else
+                return; % never happens
+            end;
                 %
                 % attach fitting options to results - including irf etc. ?
                 %            
