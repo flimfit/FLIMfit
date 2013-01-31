@@ -1,6 +1,17 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #include "ModelADA.h"
 #include "FlimGlobalFitController.h"
 #include "IRFConvolution.h"
+
+
 
 #include <cmath>
 #include <algorithm>

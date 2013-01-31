@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//  Includes code derived from VARP2 package by Prof. Randall LeVeque
+//  http://www.netlib.org/opt/varp2
+//
+//=========================================================================
 
 #define INVALID_INPUT -1
 

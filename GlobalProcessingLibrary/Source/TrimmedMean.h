@@ -1,6 +1,5 @@
 //=========================================================================
 //  
-//  TrimmedMean.h
 //  GlobalProcessing FLIM Analysis Package
 //
 //  Code derived from: 

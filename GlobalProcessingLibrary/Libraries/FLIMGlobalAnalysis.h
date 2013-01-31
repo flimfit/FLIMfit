@@ -1,6 +1,5 @@
 //=========================================================================
 //  
-//  FLIMGlobalAnalysis.h
 //  GlobalProcessing FLIM Analysis Package
 //  (c) 2013 Sean Warren
 //

@@ -1,10 +1,19 @@
-#include <cmath>
-#include <algorithm>
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
 
 #include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "IRFConvolution.h"
 #include "util.h"
+
+#include <cmath>
+#include <algorithm>
 
 using namespace std;
 

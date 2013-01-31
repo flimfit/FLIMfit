@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #ifndef _VARIABLEPROJECTOR_H
 #define _VARIABLEPROJECTOR_H
 
