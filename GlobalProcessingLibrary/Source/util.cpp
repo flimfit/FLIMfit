@@ -9,6 +9,7 @@
 
 
 #include "util.h"
+#include "omp_stub.h"
 
 #include <stdio.h>
 
@@ -34,4 +35,18 @@ void SetNaN(float* var, int n)
 }
 
 int _CrtCheckMemory( )
-{};
+{ return 0; };
+
+#ifndef USE_OMP
+
+int omp_get_thread_num()
+{
+   return 0;
+}
+
+void omp_set_num_threads(int num_threads)
+{
+   return;
+}
+
+#endif
