@@ -1,8 +1,11 @@
         function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,modulo,bh_native_spec)
             %
             new_datasetId = [];
-            %            
-            strings  = split(filesep,folder);
+            %     
+
+            %strings  = split(filesep,folder);
+            strings1 = strrep(folder,filesep,'/');
+            strings = split('/',strings1);
             %
                     files = dir([folder filesep '*.' extension]);
                     num_files = length(files);

@@ -6,7 +6,10 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
 
     PlateSetups = feval(fov_name_parse_function,folder);
        
-    str = split(filesep,folder);
+    %str = split(filesep,folder);
+    strings1 = strrep(folder,filesep,'/');
+    str = split('/',strings1);                            
+        
     newdataname = str(length(str));
     
     whos_parent = whos_Object(session,parent.getId().getValue());
@@ -36,7 +39,9 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
             col = PlateSetups.cols(imgind);
             if col > PlateSetups.colMaxNum-1 || row > PlateSetups.rowMaxNum-1, errordlg('wrong col or row number'), return, end;
             %            
-            strings  = split(filesep,[folder filesep PlateSetups.names{imgind}]); % stupid...
+            %strings  = split(filesep,[folder filesep PlateSetups.names{imgind}]); % stupid...
+             strings1 = strrep([folder filesep PlateSetups.names{imgind}],filesep,'/');
+             strings = split('/',strings1);                            
             %
             %%%%%%%%%%%%%%%%%%%%%%%%% that works only for tiffs....                         
                     files = dir([folder filesep PlateSetups.names{imgind} filesep '*.' PlateSetups.extension]);

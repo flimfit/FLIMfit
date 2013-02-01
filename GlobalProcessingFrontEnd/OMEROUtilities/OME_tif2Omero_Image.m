@@ -10,12 +10,14 @@ function imageId = OME_tif2Omero_Image(factory,filename,description)
     tT = Tiff(filename);
     s = tT.getTag('ImageDescription'); %getTag accesses “native” tiff header data (bitdepth, x/y res etc.) – OME-XML data is stored in the ImageDescription field.  
     if isempty(s), return; end;
-    detached_metadata_xml_filename = [tempdir 'metadata.xml'];
-    fid = fopen(detached_metadata_xml_filename,'w');    
-        fwrite(fid,s,'*uint8');
-    fclose(fid);
-    tree = xml_read(detached_metadata_xml_filename);
-    delete(detached_metadata_xml_filename);
+%     detached_metadata_xml_filename = [tempdir 'metadata.xml'];
+%     fid = fopen(detached_metadata_xml_filename,'w');    
+%         fwrite(fid,s,'*uint8');
+%     fclose(fid);
+%     tree = xml_read(detached_metadata_xml_filename);
+%     delete(detached_metadata_xml_filename);
+    [parseResult,~] = xmlreadstring(s);
+    tree = xml_read(parseResult);
     
     SizeC = tree.Image.Pixels.ATTRIBUTE.SizeC;
     SizeT = tree.Image.Pixels.ATTRIBUTE.SizeT;
@@ -52,7 +54,9 @@ p.add('type',rstring(pixeltype));
 q=['from PixelsType as p where p.value= :type'];
 pixelsType = queryService.findByQuery(q,p);
 
-strng = split(filesep,filename); imageName = strng(length(strng));
+%strng = split(filesep,filename); imageName = strng(length(strng));
+strings1 = strrep(filename,filesep,'/');
+strng = split('/',strings1);imageName = strng(length(strng));
 
 % Use the PixelsService to create a new image of the correct dimensions:
 imageId = pixelsService.createImage(SizeX, SizeY, SizeZ, SizeT, toJavaList([uint32(0:(SizeC - 1))]), pixelsType, char(imageName), char(description));

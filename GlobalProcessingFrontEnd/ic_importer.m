@@ -317,8 +317,11 @@ data = createData();
             errordlg('either directory or project not set properly - can not continue');
             return;
         end
-        %        
-        strings  = split(filesep,data.Directory);
+        %           
+        %strings  = split(filesep,data.Directory);
+        strings1 = strrep(data.Directory,filesep,'/');
+        strings = split('/',strings1);
+        
         new_dataset_name = char(strings(length(strings)));
         %  
         if ~strcmp(data.LoadMode,'single file')
@@ -390,8 +393,10 @@ data = createData();
                             U = imread(data.Directory,data.extension);
                             %
                             pixeltype = get_num_type(U);
-                            %                                                        
-                            str = split(filesep,data.Directory);
+                            %                                             
+                            %str = split(filesep,data.Directory);
+                            strings1 = strrep(data.Directory,filesep,'/');
+                            str = split('/',strings1);                            
                             file_name = str(length(str));
                             %
                             % rearrange planes

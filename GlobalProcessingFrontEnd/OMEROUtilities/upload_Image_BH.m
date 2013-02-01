@@ -4,6 +4,12 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
     
     if 2==numel(size(bandhdata)), errordlg('not an sdt FLIM image - not loaded'), return, end;
     %
+    img_description = ' ';
+    %str = split(filesep,full_filename);
+    strings1 = strrep(full_filename,filesep,'/');
+    str = split('/',strings1);            
+    filename = str(length(str));    
+    %
     single_channel = (3==numel(size(bandhdata)));    
     %
     if ~single_channel    
@@ -62,10 +68,6 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
             end
         end;                                                    
         %
-        img_description = ' ';
-            str = split(filesep,full_filename);
-                filename = str(length(str));
-        %
         imgId = mat2omeroImage(session, Z, pixeltype, filename,  img_description, channels_names, modulo);
         %
         link = omero.model.DatasetImageLinkI;
@@ -123,10 +125,6 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
                     end
                 end
             end              
-        
-        img_description = ' ';
-            str = split(filesep,full_filename);
-                filename = str(length(str));
         %
         imgId = mat2omeroImage_native(session, data, pixeltype, filename,  img_description, channels_names);
         %

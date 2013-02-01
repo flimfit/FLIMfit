@@ -26,11 +26,13 @@ function ret = get_FLIM_params_from_metadata(session,objId)
     end
 
     if isempty(s2) && ( ~isempty(s1) || ~isempty(s3) || ~isempty(s4) )
-        detached_metadata_xml_filename = [tempdir 'metadata.xml'];
-        fid = fopen(detached_metadata_xml_filename,'w');    
-            fwrite(fid,s,'*uint8');
-        fclose(fid);
-        tree = xml_read(detached_metadata_xml_filename);
+%         detached_metadata_xml_filename = [tempdir 'metadata.xml'];
+%         fid = fopen(detached_metadata_xml_filename,'w');    
+%             fwrite(fid,s,'*uint8');
+%         fclose(fid);
+%         tree = xml_read(detached_metadata_xml_filename);
+          [parseResult,~] = xmlreadstring(s);
+          tree = xml_read(parseResult);
     end;    
 
     if ~isempty(s2) || ~isempty(s4) % will need image in this case..
