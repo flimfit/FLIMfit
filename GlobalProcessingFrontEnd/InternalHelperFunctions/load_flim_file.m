@@ -31,7 +31,18 @@ function[delays,im_data,t_int,tcspc] = load_flim_file(file,channel)
                 sz = [n_im info(1).Height info(1).Width];
                 im_data = zeros(sz);
                 
-                delays = (0:(n_im-1))/n_im*12.5e3;
+                % Now gets bin spacing from file header rather than assuming 12.5ns
+                %delays = (0:(n_im-1))/n_im*12.5e3;
+                  
+                % get binSpacing from file header
+                tT = Tiff(file);
+                s = tT.getTag('ImageDescription');
+                pos = strfind(s,'PhysicalSizeZ');
+                binSpacing = 1000 .* str2double(s(pos+15:pos+20));          %binSpacing in ps
+
+                delays = (0:(n_im - 1)) .* binSpacing;
+
+
                 
                 for i=1:n_im
                     im_data(i,:,:) = imread(file,'Index',i,'Info',info);

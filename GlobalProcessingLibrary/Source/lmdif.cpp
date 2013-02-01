@@ -3,10 +3,12 @@
 	-lf2c -lm   (in that order)
 */
 
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include "cminpack.h"
-#define min(a,b) ((a) <= (b) ? (a) : (b))
-#define max(a,b) ((a) >= (b) ? (a) : (b))
+
+using namespace std;
+
 #define TRUE_ (1)
 #define FALSE_ (0)
 

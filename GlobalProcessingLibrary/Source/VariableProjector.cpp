@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//  Includes code derived from VARP2 package by Prof. Randall LeVeque
+//  http://www.netlib.org/opt/varp2
+//
+//=========================================================================
 
 #define INVALID_INPUT -1
 
@@ -7,16 +16,16 @@
 #define CMINPACK_NO_DLL
 
 #include "cminpack.h"
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include "util.h"
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 
-#ifndef NO_OMP   
-#include <omp.h>
-#endif
+#include "omp_stub.h"
 
+using namespace std;
 
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 
     AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)

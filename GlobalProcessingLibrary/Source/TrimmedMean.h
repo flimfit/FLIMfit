@@ -1,6 +1,5 @@
 //=========================================================================
 //  
-//  TrimmedMean.h
 //  GlobalProcessing FLIM Analysis Package
 //
 //  Code derived from: 
@@ -157,7 +156,7 @@ void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
       p_std  = sqrt(mean(acc_m2)-p_mean*p_mean);
 
       p_w_mean = mean(w_acc);
-      p_w_std  = sqrt(mean(w_acc)-p_w_mean*p_w_mean);
+      p_w_std  = sqrt(mean(w_acc_m2)-p_w_mean*p_w_mean);
 
       stats.SetNextParam((T) p_mean, (T) p_std, median, q1, q2, OS1, OS2, (T) p_w_mean, (T) p_w_std);
 

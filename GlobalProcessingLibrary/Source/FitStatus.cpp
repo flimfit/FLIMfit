@@ -1,5 +1,15 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #include "FitStatus.h"
 #include "FLIMGlobalFitController.h"
+
 
 double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_param)
 {

@@ -1,3 +1,11 @@
+##=========================================================================
+##  
+##  GlobalProcessing FLIM Analysis Package
+##  (c) 2013 Sean Warren
+##
+##
+##
+##=========================================================================
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -11,15 +19,20 @@ if(Boost_FOUND)
 endif()
 include_directories( "../Boost" )
 
-# enable openmp support in xcode
+# Enable OpenMP support, disable for XCode
 #===================================================
 if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
 #   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 #   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNO_OMP")
 else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
    find_package("OpenMP")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+   if (OPENMP_FOUND)
+      option(USE_OMP "Use OpenMP" ON)
+      if (USE_OMP)
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+         message("Using OpenMP")
+      endif()
+   endif()
 endif()
 
 #find_package(HDF5)
@@ -32,7 +45,6 @@ include_directories( ${LEVMAR_INCLUDE_DIRS} )
 # Set the source and header files
 #===================================================
 set(SOURCE
-   fcommon.cpp
    FitStatus.cpp
    IRFConvolution.cpp
    ModelADA.cpp
@@ -47,11 +59,11 @@ set(SOURCE
    MaximumLikelihoodFitter.cpp
    AbstractFitter.cpp
    tinythread.cpp
-   lmstr.c
-   lmstx.c
-   lmdif.c
-   fdjac2.c
-   cminpack_support.c
+   lmstr.cpp
+   lmstx.cpp
+   lmdif.cpp
+   fdjac2.cpp
+   cminpack_support.cpp
    util.cpp
 )
 
@@ -71,6 +83,7 @@ set(HEADERS
    cminpack.h
    util.h
    TrimmedMean.h
+   omp_stub.h
 )
 
 # Add _32/_64 appendix to library
@@ -107,6 +120,7 @@ if(MSVC)
    set(PLATFORM_FLAGS_RELWITHDEBINFO "/Ox /Ot /Ob2")
    set(PLATFORM_FLAGS_DEBUG "/ZI")
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+   add_definitions(-D_MSVC)
 endif(MSVC)
 
 if(UNIX)

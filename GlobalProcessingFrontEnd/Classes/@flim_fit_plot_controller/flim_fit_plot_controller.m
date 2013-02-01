@@ -46,7 +46,7 @@
         
         
         function dataset_selected_update(obj,src,~)          
-            obj.dataset_selected = src.use_selected;
+            obj.dataset_selected = src.selected;
             obj.update_plots();
         end
         

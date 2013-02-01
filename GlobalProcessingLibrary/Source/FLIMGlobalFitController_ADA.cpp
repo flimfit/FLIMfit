@@ -1,8 +1,22 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #include "ModelADA.h"
 #include "FlimGlobalFitController.h"
 #include "IRFConvolution.h"
 
 
+
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
 
 void FLIMGlobalFitController::SetupIncMatrix(int* inc)
 {
@@ -209,20 +223,21 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          }
 
          // Set tau's
+         double buf; 
          for(j=0; j<n_fix; j++)
             tau_buf[j] = tau_guess[j];
          for(j=0; j<n_v; j++)
          {
-            tau_buf[j+n_fix] = InverseTransformRange(alf[j],tau_min[j+n_fix],tau_max[j+n_fix]);
-            tau_buf[j+n_fix] = max(tau_buf[j+n_fix],60);
+            buf = InverseTransformRange(alf[j],tau_min[j+n_fix],tau_max[j+n_fix]);
+            tau_buf[j+n_fix] = max(buf,60.0);
          }
          // Set theta's
          for(j=0; j<n_theta_fix; j++)
             theta_buf[j] = theta_guess[j];
          for(j=0; j<n_theta_v; j++)
          {
-            theta_buf[j+n_theta_fix] = InverseTransformRange(alf[alf_theta_idx+j],0,1000000);
-            theta_buf[j+n_theta_fix] = max(theta_buf[j+n_theta_fix],60);
+            buf = InverseTransformRange(alf[alf_theta_idx+j],0,1000000);
+            theta_buf[j+n_theta_fix] = max(buf,60.0);
          }
 
 

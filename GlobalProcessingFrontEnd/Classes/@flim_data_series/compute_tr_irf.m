@@ -86,7 +86,7 @@ function compute_tr_irf(obj)
         else
             new_bg = bg;
             z = (obj.tr_irf < bg);
-            obj.tr_irf(z) = new_bg;
+            %obj.tr_irf(z) = new_bg;
             obj.tr_irf(clamp,:) = new_bg; 
         end
 

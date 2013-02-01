@@ -3,18 +3,20 @@
 	-lf2c -lm   (in that order)
 */
 
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include "cminpack.h"
-#define min(a,b) ((a) <= (b) ? (a) : (b))
-#define max(a,b) ((a) >= (b) ? (a) : (b))
+
+using namespace std;
+
 #define TRUE_ (1)
 #define FALSE_ (0)
 
-/* Subroutine */ int lmstr(minpack_funcderstr_mn fcn, void *p, int m, int n, double *x, 
-	double *fvec, double *fjac, int ldfjac, double ftol,
+/* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int mskip, double *x, 
+	double *fjac, int ldfjac, double ftol,
 	double xtol, double gtol, int maxfev, double *
 	diag, int mode, double factor, int nprint,
-	int *nfev, int *njev, int *ipvt, double *qtf, 
+	int *nfev, int *njev, double *fnorm, int *ipvt, double *qtf, 
 	double *wa1, double *wa2, double *wa3, double *wa4)
 {
     /* Initialized data */
@@ -29,7 +31,7 @@
     double d1, d2;
 
     /* Local variables */
-    int i, j, l;
+    int i, j, l, m_max;
     double par, sum;
     int sing;
     int iter;
@@ -37,7 +39,7 @@
     int iflag;
     double delta = 0.;
     double ratio;
-    double fnorm, gnorm, pnorm, xnorm = 0., fnorm1, actred, dirder, 
+    double gnorm, pnorm, xnorm = 0., fnorm1, actred, dirder, 
 	    epsmch, prered;
     int info;
 
@@ -68,10 +70,11 @@
 /*         integer m,n,iflag */
 /*         double precision x(n),fvec(m),fjrow(n) */
 /*         ---------- */
-/*         if iflag = 1 calculate the functions at x and */
-/*         return this vector in fvec. */
+/*         if iflag = 1 calculate the norm of the functions */
+/*         at x and return this in fnorm. */
 /*         if iflag = i calculate the (i-1)-st row of the */
-/*         jacobian at x and return this vector in fjrow. */
+/*         jacobian at x and return this vector in fjrow and
+/*         calculate the (i-1)-st function and return this in fnorm */
 /*         ---------- */
 /*         return */
 /*         end */
@@ -200,9 +203,9 @@
 /*       qtf is an output array of length n which contains */
 /*         the first n elements of the vector (q transpose)*fvec. */
 
-/*       wa1, wa2, and wa3 are work arrays of length n. */
+/*       wa1, wa2, and wa3, wa4 are work arrays of length n. */
 
-/*       wa4 is a work array of length m. */
+/*       wa4 is a work array of length n. */
 
 /*     subprograms called */
 
@@ -227,6 +230,15 @@
     *nfev = 0;
     *njev = 0;
 
+/*     evaluate the function at the starting point */
+/*     and calculate its norm. */
+
+    iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
+    *nfev = 1;
+    if (iflag < 0) {
+	goto TERMINATE;
+    }
+
 /*     check the input parameters for errors. */
 
     if (n <= 0 || m < n || ldfjac < n || ftol < 0. || xtol < 0. || 
@@ -240,16 +252,6 @@
             }
         }
     }
-
-/*     evaluate the function at the starting point */
-/*     and calculate its norm. */
-
-    iflag = (*fcn)(p, m, n, x, fvec, wa3, 1);
-    *nfev = 1;
-    if (iflag < 0) {
-	goto TERMINATE;
-    }
-    fnorm = enorm(m, fvec);
 
 /*     initialize levenberg-marquardt parameter and iteration counter. */
 
@@ -265,7 +267,7 @@
         if (nprint > 0) {
             iflag = 0;
             if ((iter - 1) % nprint == 0) {
-                iflag = (*fcn)(p, m, n, x, fvec, wa3, 0);
+                iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
             }
             if (iflag < 0) {
                 goto TERMINATE;
@@ -284,11 +286,13 @@
             }
         }
         iflag = 2;
-        for (i = 0; i < m; ++i) {
-            if ((*fcn)(p, m, n, x, fvec, wa3, iflag) < 0) {
+
+        m_max = floor(((float)m)/mskip);
+        for (i = 0; i < m_max+1; ++i) {
+        //for (i = 0; i < m+1; ++i) {
+            if ((*fcn)(p, m, n, mskip, x, &temp, wa3, iflag) < 0) {
                 goto TERMINATE;
             }
-            temp = fvec[i];
             rwupdt(n, fjac, ldfjac, wa3, qtf, &temp,
                    wa1, wa2);
             ++iflag;
@@ -353,13 +357,13 @@
 /*        compute the norm of the scaled gradient. */
 
         gnorm = 0.;
-        if (fnorm != 0.) {
+        if (*fnorm != 0.) {
             for (j = 0; j < n; ++j) {
                 l = ipvt[j]-1;
                 if (wa2[l] != 0.) {
                     sum = 0.;
                     for (i = 0; i <= j; ++i) {
-                        sum += fjac[i + j * ldfjac] * (qtf[i] / fnorm);
+                        sum += fjac[i + j * ldfjac] * (qtf[i] / *fnorm);
                     }
                     /* Computing MAX */
                     d1 = fabs(sum / wa2[l]);
@@ -413,19 +417,18 @@
 
 /*           evaluate the function at x + p and calculate its norm. */
 
-            iflag = (*fcn)(p, m, n, wa2, wa4, wa3, 1);
+            iflag = (*fcn)(p, m, n, mskip, wa2, &fnorm1, wa3, 1);
             ++(*nfev);
             if (iflag < 0) {
                 goto TERMINATE;
             }
-            fnorm1 = enorm(m, wa4);
 
 /*           compute the scaled actual reduction. */
 
             actred = -1.;
-            if (p1 * fnorm1 < fnorm) {
+            if (p1 * fnorm1 < *fnorm) {
                 /* Computing 2nd power */
-                d1 = fnorm1 / fnorm;
+                d1 = fnorm1 / *fnorm;
                 actred = 1. - d1 * d1;
             }
 
@@ -440,8 +443,8 @@
                     wa3[i] += fjac[i + j * ldfjac] * temp;
                 }
             }
-            temp1 = enorm(n, wa3) / fnorm;
-            temp2 = (sqrt(par) * pnorm) / fnorm;
+            temp1 = enorm(n, wa3) / *fnorm;
+            temp2 = (sqrt(par) * pnorm) / *fnorm;
             prered = temp1 * temp1 + temp2 * temp2 / p5;
             dirder = -(temp1 * temp1 + temp2 * temp2);
 
@@ -461,7 +464,7 @@
                 } else {
                     temp = p5 * dirder / (dirder + p5 * actred);
                 }
-                if (p1 * fnorm1 >= fnorm || temp < p1) {
+                if (p1 * fnorm1 >= *fnorm || temp < p1) {
                     temp = p1;
                 }
                 /* Computing MIN */
@@ -485,11 +488,8 @@
                     x[j] = wa2[j];
                     wa2[j] = diag[j] * x[j];
                 }
-                for (i = 0; i < m; ++i) {
-                    fvec[i] = wa4[i];
-                }
                 xnorm = enorm(n, wa2);
-                fnorm = fnorm1;
+                *fnorm = fnorm1;
                 ++iter;
             }
 
@@ -541,7 +541,7 @@ TERMINATE:
 	info = iflag;
     }
     if (nprint > 0) {
-	(*fcn)(p, m, n, x, fvec, wa3, 0);
+	(*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
     }
     return info;
 

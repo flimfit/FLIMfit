@@ -3,9 +3,11 @@
 	-lf2c -lm   (in that order)
 */
 
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include "cminpack.h"
-#define max(a,b) ((a) >= (b) ? (a) : (b))
+
+using namespace std;
 
 /* Subroutine */ int fdjac2(minpack_func_mn fcn, void *p, int m, int n, double *x, 
 	const double *fvec, double *fjac, int ldfjac,

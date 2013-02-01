@@ -1,3 +1,11 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
 
 #include "boost/math/distributions/fisher_f.hpp"
 #include "boost/math/tools/minima.hpp"
@@ -11,9 +19,7 @@
 #include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
-#ifndef NO_OMP   
-#include <omp.h>
-#endif
+#include "omp_stub.h"
 
 using namespace boost::interprocess;
 using namespace std;
@@ -126,9 +132,7 @@ int FLIMGlobalFitController::RunWorkers()
    if (!init)
       return ERR_COULD_NOT_START_FIT;
 
-   #ifndef NO_OMP
-      omp_set_num_threads(n_omp_thread);
-   #endif
+   omp_set_num_threads(n_omp_thread);
 
 
    if (n_fitters == 1 && !runAsync)

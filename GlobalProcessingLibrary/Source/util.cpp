@@ -1,4 +1,17 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
+
 #include "util.h"
+#include "omp_stub.h"
+
+#include <stdio.h>
 
 void SetNaN(double* var, int n)
 {
@@ -20,3 +33,20 @@ void SetNaN(float* var, int n)
       for(int i=0; i<n; i++)
          var[i] = nan;
 }
+
+int _CrtCheckMemory( )
+{ return 0; };
+
+#ifndef USE_OMP
+
+int omp_get_thread_num()
+{
+   return 0;
+}
+
+void omp_set_num_threads(int num_threads)
+{
+   return;
+}
+
+#endif

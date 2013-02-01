@@ -1,8 +1,11 @@
-function [param_data mask] = get_image_data_idx(obj,dataset,param)
+function [param_data, mask] = get_image(obj,dataset,param,indexing)
 
     param_data = 0;
     mask = 0;
         
+    if nargin < 4 || strcmp(indexing,'result')
+        dataset = obj.datasets(dataset);
+    end
     
     if (obj.bin || param == 0)
         return
@@ -10,10 +13,9 @@ function [param_data mask] = get_image_data_idx(obj,dataset,param)
             
     sz = obj.im_size;
     
-    %dataset = obj.datasets(im);
     
-    p_mask = libpointer('uint8Ptr', zeros(sz));
-    p_param_data = libpointer('singlePtr', zeros(sz));
+    p_mask = libpointer('uint8Ptr', NaN(sz));
+    p_param_data = libpointer('singlePtr', NaN(sz));
 
     err = calllib(obj.lib_name,'GetParameterImage',obj.dll_id, dataset-1, param-1, p_mask, p_param_data);
     

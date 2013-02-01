@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #ifndef _MAXIMIUMLIKELIHOODFITTER_H
 #define _MAXIMIUMLIKELIHOODFITTER_H
 
@@ -33,4 +42,4 @@ private:
    friend void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa);
 };
 
-#endif _MAXIMIUMLIKELIHOODFITTER_H
+#endif

@@ -1,3 +1,12 @@
+//=========================================================================
+//  
+//  GlobalProcessing FLIM Analysis Package
+//  (c) 2013 Sean Warren
+//
+//
+//
+//=========================================================================
+
 #define BOOST_TEST_MODULE FLIMGlobalProcessingTest
 #define BOOST_TEST_SHOW_PROGRESS yes
 #define BOOST_TEST_AUTO_START_DBG yes
@@ -10,7 +19,7 @@ using namespace boost::unit_test;
 
 #include <iostream>
 #include <string>
-#include <math.h>
+#include <cmath>
 #include "FLIMGlobalAnalysis.h"
 
 

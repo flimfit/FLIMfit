@@ -124,13 +124,7 @@ classdef flim_dll_interface < handle
                 calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
             end
         end
-        
-        function [param_data, mask] = get_image_result_idx(obj,im,param)
-
-            dataset = obj.datasets(im);
-            [param_data, mask] = get_image_data_idx(obj,dataset,param);
-
-        end
+       
         
         function im = fill_image(obj,var,mask,min_region)
 

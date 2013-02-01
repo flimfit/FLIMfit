@@ -6,7 +6,6 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         data_series_sel_all;
         data_series_sel_none;
         selected = 0;
-        use_selected = 0;
         lh;
     end
     
@@ -51,13 +50,6 @@ classdef flim_data_series_list < handle & flim_data_series_observer
                 if ~isempty(sel)
                     obj.selected = sel;
                     
-                    use = obj.data_series.use;
-                    if use(sel)
-                        use_to_sel = obj.data_series.use(1:sel);
-                        obj.use_selected = sum(use_to_sel);
-                    else
-                        obj.use_selected = 0;
-                    end
                     notify(obj,'selection_updated');
                 end
             end
@@ -159,7 +151,6 @@ classdef flim_data_series_list < handle & flim_data_series_observer
 
                 else
                     obj.selected = 0;
-                    obj.use_selected = 0;
                     obj.notify('selection_updated');
                 end
             end
