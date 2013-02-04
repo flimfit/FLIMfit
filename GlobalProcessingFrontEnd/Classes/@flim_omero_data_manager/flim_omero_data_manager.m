@@ -55,7 +55,7 @@ classdef flim_omero_data_manager < handle
                 data_series.mode = 'TCSPC'; % not annotated sdt 
             end
             %
-            if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
+            if ~isempty(mdta.n_channels) && mdta.n_channels > 1 && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
                 obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
             else
                 obj.ZCT = get_ZCT(image,mdta.modulo);
@@ -189,7 +189,7 @@ classdef flim_omero_data_manager < handle
                 channel = 1;
             end;
             %
-            if ~isempty(mdta.n_channels) && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
+            if ~isempty(mdta.n_channels) && mdta.n_channels > 1 && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
                 obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
             else
                 obj.ZCT = get_ZCT(image,mdta.modulo);
