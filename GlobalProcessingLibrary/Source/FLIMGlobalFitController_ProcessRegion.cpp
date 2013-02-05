@@ -29,7 +29,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int ierr_local = 0;
 
-   _ASSERT( _CrtCheckMemory( ) );
+    #ifdef _WINDOWS
+      _ASSERT( _CrtCheckMemory( ) );
+    #endif
 
    int r_idx = data->GetRegionIndex(g,region);
 
@@ -195,7 +197,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    else
    {
       ierr[r_idx] = ierr_local;
-      success[r_idx] = (float) min(0, ierr_local);
+      success[r_idx] = (float) minn(0, ierr_local);
    }
   
    status->FinishedRegion(thread);
