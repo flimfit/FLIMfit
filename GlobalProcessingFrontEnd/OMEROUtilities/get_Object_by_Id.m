@@ -19,7 +19,8 @@
                     obj = p;
                     return;
                 end;
-                datasetsList = p.linkedDatasetList;
+            end;
+                datasetsList = proxy.loadContainerHierarchy('omero.model.Dataset', [], param);
                 for i = 0:datasetsList.size()-1,                     
                      d = datasetsList.get(i);
                      did = java.lang.Long(d.getId().getValue());
@@ -37,7 +38,6 @@
                          end                         
                      end 
                 end;
-            end;  
             %
                     iQuery = session.getQueryService();
                     screenList = iQuery.findAllByQuery('select this from Screen this left outer join fetch this.plateLinks links left outer join fetch links.child plates', param);                                

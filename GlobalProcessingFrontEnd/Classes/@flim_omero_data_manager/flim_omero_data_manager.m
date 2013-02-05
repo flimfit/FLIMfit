@@ -114,8 +114,13 @@ classdef flim_omero_data_manager < handle
             obj.dataset = Dataset;
             obj.project = Project;
             %            
-            pName = char(java.lang.String(obj.project.getName().getValue()));
-            pIdName = num2str(obj.project.getId().getValue());
+            if ~isempty(obj.project)
+                pName = char(java.lang.String(obj.project.getName().getValue()));
+                pIdName = num2str(obj.project.getId().getValue());
+            else
+                pName = 'NO PROJECT!';
+                pIdName = 'XXXX';
+            end;
             dName = char(java.lang.String(obj.dataset.getName().getValue()));                    
             dIdName = num2str(obj.dataset.getId().getValue());                       
             infostring = [ 'Dataset "' dName '" [' dIdName '] @ Project "' pName '" [' pIdName ']' ];
