@@ -414,12 +414,12 @@ classdef flim_omero_data_manager < handle
             res = fit_controller.fit_result;
             params = res.fit_param_list();
             n_params = length(params);
+            %
+            param_array(:,:) = fit_controller.get_image(1, params{1});
             
-            param_array(:,:) = single(fit_controller.get_image_data_idx(1, params{1}));                        
                 sizeY = size(param_array,1);
                 sizeX = size(param_array,2);
-            %
-            
+            %            
             if ~isempty(obj.dataset)
                 %
 %                 dName = char(java.lang.String(obj.dataset.getName().getValue()));
@@ -453,7 +453,8 @@ classdef flim_omero_data_manager < handle
                     %
                     data = zeros(n_params,sizeX,sizeY);
                         for p = 1:n_params,                                                                                                                                            
-                            data(p,:,:) = fit_controller.get_image_data_idx(dataset_index, params{p})';
+                            data(p,:,:) = fit_controller.get_image(dataset_index, params{p})';
+                            fit_controller.get_image(1, params{1});
                         end
                     %                  
                     new_image_description = ' ';
@@ -544,7 +545,7 @@ classdef flim_omero_data_manager < handle
                                                         %results image                                       
                                                         data = zeros(n_params,sizeX,sizeY);
                                                                 for p = 1:n_params,
-                                                                    data(p,:,:) = fit_controller.get_image_data_idx(dataset_index, params{p})';
+                                                                    data(p,:,:) = fit_controller.get_image(dataset_index, params{p})';                                                                    
                                                                 end                                                                                  
                                                             new_image_description = ' ';
                                                             new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
@@ -565,14 +566,15 @@ classdef flim_omero_data_manager < handle
                                 end
                             end
                             delete(hw);
-                            drawnow;                                                              
-                
+                            drawnow;                  
             else
                 return; % never happens
             end;
-                %
-                % attach fitting options to results - including irf etc. ?
-                %            
+                            if exist('newplate_name','var')
+                                msgbox(['the analysis dataset ' newplate_name ' has been created']);
+                            elseif exist('new_dataset_name','var')
+                                msgbox(['the analysis dataset ' new_dataset_name ' has been created']);
+                            end;                
         end            
 
         %------------------------------------------------------------------        
