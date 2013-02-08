@@ -43,8 +43,6 @@ Retrieved from : http://www.csse.uwa.edu.au/~pk/research/matlabfns/
 % 
 % November 2010
 
-hist
-
 function h = weightedhistc(vals, weights, edges)
     
     if ~isvector(vals) || ~isvector(weights) || length(vals)~=length(weights)

@@ -127,7 +127,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         %}
         
         
-        % Shift the perpendicular channel
+        % Shift the perpendicular channel and crop in time
         tmp = obj.cur_tr_data(t_inc,1,:,:);
         if obj.polarisation_resolved
             tmp(:,2,:,:) = obj.cur_tr_data(t_inc_perp,2,:,:);

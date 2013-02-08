@@ -138,13 +138,6 @@ classdef flim_data_series_list < handle & flim_data_series_observer
                         
                         sel = 1;
                         obj.selected = sel;
-                        use = obj.data_series.use;
-                        if use(sel)
-                            use_to_sel = obj.data_series.use(1:sel);
-                            obj.use_selected = sum(use_to_sel);
-                        else
-                            obj.use_selected = 0;
-                        end
                         
                         obj.notify('selection_updated');
                     end

@@ -8,7 +8,7 @@ function filter_table_updated(obj,~,~)
     
     for i=1:size(data,1)
        
-        if all(cellfun(@isempty,data(i,:)))==0 && ~strcmp(data{i,1},'-')
+        if all(cellfun(@isempty,data(i,:)))==0 && ~strcmp(data{i,1},'-') && isfield(md,data{i,1})
             
             field = data{i,1};
             op_str = data{i,2};

@@ -22,16 +22,17 @@ using namespace boost::interprocess;
 
 int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageStats<float>& stats, float buf[])
 {
+
    for(int i=0; i<n; i++)
    {
       int idx = 0;
       for(int j=0; j<s; j++)
       {
          // Only include finite numbers
-         if (boost::math::isfinite(data[i+j*n]))
+         if ( boost::math::isfinite(data[i+j*n]) && boost::math::isfinite(data[i+j*n]*data[i+j*n]) )
             buf[idx++] = data[i+j*n];
       }
-      int K = int (0.01 * idx);
+      int K = int (0.05 * idx);
       TrimmedMean(buf, intensity, idx, K, stats);
    }
    return n;
@@ -194,9 +195,7 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
 
    int thread = 0;
 
-    #ifdef _WINDOWS
-      _ASSERTE( _CrtCheckMemory( ) );
-    #endif
+   _ASSERTE( _CrtCheckMemory( ) );
 
    // Get mask
    uint8_t *im_mask = data->mask + im*n_px;  
@@ -209,7 +208,7 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
    if (iml == -1)
       return 0;
 
-   float* buf = new float[ n_px ];
+   float* buf = new float[ max(n_px,nl)  ];
 
    float* nl_output = NULL;
    if (data->global_mode == MODE_PIXELWISE)
@@ -287,9 +286,7 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
       }
    }
 
-    #ifdef _WINDOWS
-      _ASSERTE( _CrtCheckMemory( ) );
-    #endif
+   _ASSERTE( _CrtCheckMemory( ) );
 
 
    n_regions = idx;

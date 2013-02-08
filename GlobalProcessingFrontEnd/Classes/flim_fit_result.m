@@ -5,24 +5,7 @@ classdef flim_fit_result < handle
         regions;
         region_size;
         image_size;
-        
-        %{
-        image_mean;
-        image_std;
-        image_median;
-        image_q1;
-        image_q2;
-        image_w_mean;
-        image_w_std;
-        
-        region_mean;
-        region_std;
-        region_median;
-        region_q1;
-        region_q2;
-        region_w_mean;
-        region_w_std;
-        %}
+       
         
         images;
         image_stats;

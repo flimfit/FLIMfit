@@ -24,6 +24,7 @@
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/weighted_sum_kahan.hpp>
 
 /**
  * Classic quickselect algorithm
@@ -141,6 +142,7 @@ void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
    }
    else
    {
+	  double a = 0;
       for(int i=0; i<n; i++)
       {
          wt = Weighted(x[i], OS1, OS2, w1, w2);
@@ -150,13 +152,19 @@ void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
 
          acc_m2(x[i]*x[i], weight = wt);
          w_acc_m2(x[i]*x[i], weight = (wt*w[i]));
+
+		 a = a + x[i]*x[i];
+		 if (!boost::math::isfinite(a))
+			 a = a;
       } 
 
       p_mean = mean(acc);
-      p_std  = sqrt(mean(acc_m2)-p_mean*p_mean);
+      p_std  = mean(acc_m2) - p_mean*p_mean;
+	  p_std = sqrt(p_std);
 
-      p_w_mean = mean(w_acc);
-      p_w_std  = sqrt(mean(w_acc_m2)-p_w_mean*p_w_mean);
+	  p_w_mean = mean(w_acc);
+      p_w_std  = mean(w_acc_m2) - p_w_mean*p_w_mean;
+	  p_w_std = sqrt(p_w_std);
 
       stats.SetNextParam((T) p_mean, (T) p_std, median, q1, q2, OS1, OS2, (T) p_w_mean, (T) p_w_std);
 
