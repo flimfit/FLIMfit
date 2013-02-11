@@ -23,7 +23,12 @@ else
     [nBins,sizeX,sizeY] = size(data_cube_);       
     data_cube = zeros(nBins,1,sizeX,sizeY,1);
     
-    data_cube(1:end,1,:,:,1) = squeeze(data_cube_(1:end,:,:));   
+    data_cube(1:end,1,:,:,1) = squeeze(data_cube_(1:end,:,:));  
+    
+    %Bodge to suppress bright line artefact on RHS in BH .sdt files
+    if strfind(name,'.sdt')
+       data_cube(:,:,:,end,:) = 0;
+    end
     
     if FLIM_type ~= 'TCSPC'
         if min(data_cube(:)) > 32500
