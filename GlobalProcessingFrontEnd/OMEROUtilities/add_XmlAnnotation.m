@@ -4,9 +4,10 @@ function ret = add_XmlAnnotation(session,object,Xml,namespace)
 %
 % ret = add_XmlAnnotation(session,object,Xml,namespace)
 % creates a new XmlAnnotation linked to the object
-% and sets the namespace. Xml must be a valid DOM 
+% and sets the namespace. Xml must be a valid DOM
+% functio returns true if successful
 
-% Copyright (C) 2013 Imperial College, London.
+% Copyright (C) 2013 Imperial College London.
 % All rights reserved.
 %
 % This program is free software; you can redistribute it and/or modify
@@ -27,7 +28,7 @@ function ret = add_XmlAnnotation(session,object,Xml,namespace)
 % Engineering and Physical Sciences Council 
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
-% ?The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
+% "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
 
         ret = false;
