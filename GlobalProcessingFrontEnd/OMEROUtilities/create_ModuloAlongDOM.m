@@ -63,7 +63,7 @@ function node = create_ModuloAlongDOM(delays, namespace, modulo, FLIM_type)
            for i=1:length(delays)
                 thisElement = node.createElement('Label'); 
                 thisElement.appendChild(node.createTextNode(num2str(delays(i))));
-               ModuloAlong.appendChild(thisElement);
+                ModuloAlong.appendChild(thisElement);
            end
        
        else
