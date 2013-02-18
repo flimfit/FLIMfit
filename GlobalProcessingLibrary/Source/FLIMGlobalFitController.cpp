@@ -196,7 +196,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
    //=============================================================================
    if (data->global_mode == MODE_PIXELWISE)
    {
-
+	  int n_active_thread = min(n_thread,data->n_px);
       for(int im=0; im<data->n_im_used; im++)
       {
          for(int r=0; r<MAX_REGION; r++)
@@ -228,7 +228,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   region_mutex.lock();
                   
                   while (  threads_active > 0 ||                           // there are threads running
-                          (threads_started < n_thread && cur_region >= 0) ) // not all threads have yet started up
+                          (threads_started < n_active_thread && cur_region >= 0) ) // not all threads have yet started up
                      active_lock.wait(region_mutex);
   
                   int pos =  data->GetRegionPos(im,r);

@@ -1,5 +1,5 @@
 
-function[delays,im_data,t_int,tcspc] = load_flim_file(file,channel)
+function[delays,im_data,t_int,tcspc,metadata] = load_flim_file(file,channel)
 
 %Opens a set if .tiffs, .pngs or a .sdt file into 
 %into a 3d image of dimensions [num_time_points,height,width]
@@ -7,6 +7,7 @@ function[delays,im_data,t_int,tcspc] = load_flim_file(file,channel)
     tcspc = 0;              % default is 'not tcspc'
 
     t_int = [];
+    metadata = struct();
     
     if (nargin < 2)
         channel = -1;
@@ -180,6 +181,8 @@ function[delays,im_data,t_int,tcspc] = load_flim_file(file,channel)
                      im_data(:,c,1,1) = ir(:,channel(c) + 1); %#ok
                  end
 
+%                 metadata.()
+                 
                  delays(1,:) = ir(:,1);
 
                  im_data = im_data(~isnan(delays),:,:,:);

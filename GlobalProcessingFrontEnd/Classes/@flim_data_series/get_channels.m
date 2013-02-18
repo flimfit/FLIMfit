@@ -111,7 +111,7 @@ function [n_chan, chan_info] = get_channels(file)
                  parts = regexp(header_data{i},'\s+','split');
                  header_title{i} = parts{1};
                  header_info{i} = parts(2:end);
-                 n_chan = length(header_info{i})-1;
+                 n_chan = length(header_info{i});
              end
 
              chan_info = cell(1,n_chan);

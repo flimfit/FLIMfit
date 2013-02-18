@@ -210,6 +210,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                             hold(ax,'on');
                             plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
                         end
+                        
+                        hold(ax,'off');
                     else
                         boxplot(ax,y_scatter,x_scatter,'labels',num2cell(x_data(x_scatter)));
                     end
