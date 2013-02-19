@@ -126,6 +126,7 @@ function handles = setup_menu(obj,handles)
     end
     
     menu_help = uimenu(obj.window,'Label','Help');
+    handles.menu_help_about = uimenu(menu_help,'Label','About...');
     handles.menu_help_tracker = uimenu(menu_help,'Label','Open Issue Tracker...');
     handles.menu_help_bugs = uimenu(menu_help,'Label','File Bug Report...');
     

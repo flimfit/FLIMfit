@@ -134,6 +134,7 @@ classdef front_end_menu_controller < handle
         menu_test_test3;
         menu_test_unload_dll;
         
+        menu_help_about;
         menu_help_bugs;
         menu_help_tracker;
         
@@ -848,6 +849,11 @@ classdef front_end_menu_controller < handle
             if filename ~= 0
                 obj.hist_controller.export_histogram_data([pathname filename]);
             end
+        end
+        
+        function menu_help_about_callback(obj, ~, ~)
+            ver = obj.data_series_controller.version;
+            HelpAbout('Property', ver); 
         end
 
         function menu_help_tracker_callback(obj, ~, ~)
