@@ -1,4 +1,5 @@
 function varargout = HelpAbout(varargin)
+
 % HELPABOUT MATLAB code for HelpAbout.fig
 %      HELPABOUT, by itself, creates a new HELPABOUT or raises the existing
 %      singleton*.
