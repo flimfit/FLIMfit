@@ -2,7 +2,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
 %> Transform data based on settings
     
     
-    % Copyright (C) 2013 Imperial College London.
+% Copyright (C) 2013 Imperial College London.
 % All rights reserved.
 %
 % This program is free software; you can redistribute it and/or modify
