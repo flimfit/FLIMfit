@@ -69,5 +69,6 @@ function ret = parse_WP_format1(folder)
     ret.rowNamingConvention = 'letter'; %'Row_Names'; 
     ret.NumberOfFLIMChannels = 1;
     ret.DelayedImageFileNameParsingFunction = 'parse_DIFN_format1';
+    ret.image_metadata_filename = [];
     
 end

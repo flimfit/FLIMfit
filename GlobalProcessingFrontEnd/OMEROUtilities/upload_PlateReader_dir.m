@@ -22,7 +22,6 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-        
 
     objId = [];    
     if isempty(parent) || isempty(folder), return, end;    
@@ -54,8 +53,9 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
     end
 
     objId = newdata.getId().getValue();
-    whos_object = whos_Object(session,objId);
-            
+    
+    if strcmp(whos_parent,'Project');
+   
             for imgind = 1 : numel(PlateSetups.names)
         
             row = PlateSetups.rows(imgind);
@@ -117,29 +117,11 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                     new_image_name = char(strings(length(strings)));
                     new_imageId = mat2omeroImage(session, Z, pixeltype, new_image_name, ' ', channels_names, modulo);
                                                                            
-                    if strcmp('Plate',whos_object)                                                     
-                        updateService = session.getUpdateService();
-                        well = omero.model.WellI;    
-                        well.setColumn( omero.rtypes.rint(col) );
-                        well.setRow( omero.rtypes.rint(row) );
-                        well.setPlate( omero.model.PlateI(objId,false) );
-                        well = updateService.saveAndReturnObject(well);        
-                        ws = omero.model.WellSampleI();
-                        ws.setImage( omero.model.ImageI(new_imageId,false) );
-                        ws.setWell( well );        
-                        well.addWellSample(ws);
-                        ws = updateService.saveAndReturnObject(ws);                                                        
-                    elseif strcmp('Dataset',whos_object)                        
                         link = omero.model.DatasetImageLinkI;
                         link.setChild(omero.model.ImageI(new_imageId, false));
                         link.setParent(omero.model.DatasetI(objId, false));
                         session.getUpdateService().saveAndReturnObject(link);                                                                             
-                    end                        
-
-%                     gateway = session.createGateway();                    
-%                     image = gateway.getImage(new_imageId); 
-%                     gateway.close();
-                    %get image without gateway;
+                        
                     id = java.util.ArrayList();
                     id.add(java.lang.Long(new_imageId)); %id of the image
                     proxy = session.getContainerService();
@@ -175,7 +157,175 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                                     description, ...
                                     namespace);    
                     %
-                    delete(xmlFileName);                    
-            end        
-           
-end
+                    delete(xmlFileName);  
+                    
+                    if ~isempty(PlateSetups.image_metadata_filename)                    
+                        add_Annotation(session, ...
+                                    image, ...
+                                    sha1, ...
+                                    file_mime_type, ...
+                                    [folder filesep PlateSetups.names{imgind} filesep PlateSetups.image_metadata_filename], ...
+                                    description, ...
+                                    namespace);                                            
+                    end;
+                    %                    
+            end
+            
+    elseif strcmp(whos_parent,'Screen'); %Plate
+        
+            updateService = session.getUpdateService();
+        
+            for col = 0:PlateSetups.colMaxNum-1,
+            for row = 0:PlateSetups.rowMaxNum-1,                
+                imgnameslist = [];
+                z = 0;
+                for imgind = 1 : numel(PlateSetups.names)                    
+                    if col == PlateSetups.cols(imgind) && row == PlateSetups.rows(imgind)
+                        z = z+1;
+                        imgnameslist{z} = PlateSetups.names{imgind};                                                                                                                                                                       
+                    end;                                        
+                end
+                %
+                if ~isempty(imgnameslist) 
+                    disp(imgnameslist);
+                    disp([col row]);
+                    %                    
+                        well = omero.model.WellI;    
+                        well.setColumn( omero.rtypes.rint(col) );
+                        well.setRow( omero.rtypes.rint(row) );
+                        well.setPlate( omero.model.PlateI(objId,false) );
+                        well = updateService.saveAndReturnObject(well);        
+                        %ws = omero.model.WellSampleI();
+                        
+                        for k = 1:numel(imgnameslist)
+                            
+                            ws = omero.model.WellSampleI();
+                            
+                             strings1 = strrep([folder filesep imgnameslist{k}],filesep,'/');
+                             strings = split('/',strings1);                            
+                            
+                            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                files = dir([folder filesep imgnameslist{k} filesep '*.' PlateSetups.extension]);
+                                num_files = length(files);
+                                if 0==num_files
+                                    errordlg('No suitable files in the directory');
+                                    return;
+                                end;
+                                %
+                                file_names = cell(1,num_files);
+                                for i=1:num_files
+                                    file_names{i} = files(i).name;
+                                end
+                                file_names = sort_nat(file_names);
+                                %
+                                % pixeltype...
+                                U = imread([folder filesep imgnameslist{k} filesep file_names{1}],PlateSetups.extension);                    
+                                pixeltype = get_num_type(U);
+                                %                                                            
+                                Z = [];
+                                %
+                                channels_names = cell(1,num_files);
+                                %
+                                hw = waitbar(0, 'Loading files to Omero, please wait');
+                                for i = 1 : num_files                
+                                        U = imread([folder filesep imgnameslist{k} filesep file_names{i}],PlateSetups.extension);                            
+                                        % rearrange planes
+                                        [w,h,Nch] = size(U);
+                                        %
+                                        if 1 ~= Nch
+                                            errordlg('Single-plane images are expected - can not continue');
+                                            return;                                
+                                        end;
+                                        %
+                                        if isempty(Z)
+                                            Z = zeros(num_files,h,w);           
+                                        end;
+                                        %
+                                        Z(i,:,:) = squeeze(U(:,:,1))';                            
+                                        %
+                                        fnamestruct = feval(PlateSetups.DelayedImageFileNameParsingFunction,file_names{i});
+                                        channels_names{i} = fnamestruct.delaystr; % delay [ps] in string format
+                                        %
+                                        waitbar(i/num_files, hw);
+                                        drawnow;                            
+                                end
+                                delete(hw);
+                                drawnow;                                        
+                                %
+                                new_image_name = char(strings(length(strings)))
+                                new_imageId = mat2omeroImage(session, Z, pixeltype, new_image_name, ' ', channels_names, modulo);                                                            
+                            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                                                        
+                            
+                            ws.setImage( omero.model.ImageI(new_imageId,false) );                            
+                            %
+                            ws.setWell( well );        
+                            well.addWellSample(ws);
+                            ws = updateService.saveAndReturnObject(ws);
+                            %
+                            % annotations
+                                %get image without gateway;
+                                id = java.util.ArrayList();
+                                id.add(java.lang.Long(new_imageId)); %id of the image
+                                proxy = session.getContainerService();
+                                list = proxy.getImages('Image', id, omero.sys.ParametersI());
+                                image = list.get(0);
+                                % 
+                                ome_params.BigEndian = 'true';
+                                ome_params.DimensionOrder = 'XYCTZ';
+                                ome_params.pixeltype = pixeltype;
+                                ome_params.SizeX = h;
+                                ome_params.SizeY = w;
+                                ome_params.SizeZ = 1;
+                                ome_params.SizeC = 1;
+                                ome_params.SizeT = 1;
+                                ome_params.modulo = modulo;
+                                ome_params.delays = channels_names;
+                                ome_params.FLIMType = 'Gated';
+                                ome_params.ContentsType = 'sample';
+                                %
+                                xmlFileName = write_OME_FLIM_metadata(ome_params); 
+                                %
+                                namespace = 'IC_PHOTONICS';
+                                description = ' ';
+                                %
+                                sha1 = char('pending');
+                                file_mime_type = char('application/octet-stream');
+                                %
+                                add_Annotation(session, ...
+                                                image, ...
+                                                sha1, ...
+                                                file_mime_type, ...
+                                                xmlFileName, ...
+                                                description, ...
+                                                namespace);    
+                                %
+                                delete(xmlFileName);  
+
+                                if ~isempty(PlateSetups.image_metadata_filename)                    
+                                    add_Annotation(session, ...
+                                                image, ...
+                                                sha1, ...
+                                                file_mime_type, ...
+                                                [folder filesep PlateSetups.names{imgind} filesep PlateSetups.image_metadata_filename], ...
+                                                description, ...
+                                                namespace);                                            
+                                end;
+                                %                            
+                            % annotations
+                                                        
+                        end
+%                         %
+%                         ws.setWell( well );        
+%                         well.addWellSample(ws);
+%                         ws = updateService.saveAndReturnObject(ws);                                                        
+                    %
+                end
+                %
+            end
+            end
+
+        
+    end
+
+    end
+                
