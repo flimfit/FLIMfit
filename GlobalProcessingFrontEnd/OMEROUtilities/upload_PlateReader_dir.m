@@ -187,8 +187,8 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                 end
                 %
                 if ~isempty(imgnameslist) 
-                    disp(imgnameslist);
-                    disp([col row]);
+                    %disp(imgnameslist);
+                    %disp([col row]);
                     %                    
                         well = omero.model.WellI;    
                         well.setColumn( omero.rtypes.rint(col) );

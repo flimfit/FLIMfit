@@ -522,7 +522,7 @@ classdef flim_omero_data_manager < handle
                             'left outer join fetch img.pixels as pix '...
                             'left outer join fetch pix.pixelsType as pt '...
                             'where well.plate.id = ', num2str(obj.plate.getId().getValue())],[]);
-                        
+                                                
                             hw = waitbar(0, 'Exporting fitting results to Omero, please wait');                 
                             %
                             for j = 0:wellList.size()-1,
@@ -561,11 +561,32 @@ classdef flim_omero_data_manager < handle
                                                             updateService.saveObject(link);                                                     
                                                 end % create new plate
                                                 %                   
-                                                    newwell = omero.model.WellI;    
-                                                    newwell.setRow(well.getRow());
-                                                    newwell.setColumn(well.getColumn());
-                                                    newwell.setPlate( omero.model.PlateI(newplate.getId().getValue(),false) );
-                                                    newwell = updateService.saveAndReturnObject(newwell);        
+                                                    % check if the well with the same row,col as of the current image, aready exists in the new (target) plate 
+                                                    newwell = [];
+                                                    newwellList = obj.session.getQueryService().findAllByQuery(['select well from Well as well '...
+                                                        'left outer join fetch well.plate as pt '...
+                                                        'left outer join fetch well.wellSamples as ws '...
+                                                        'left outer join fetch ws.plateAcquisition as pa '...
+                                                        'left outer join fetch ws.image as img '...
+                                                        'left outer join fetch img.pixels as pix '...
+                                                        'left outer join fetch pix.pixelsType as pt '...
+                                                        'where well.plate.id = ', num2str(newplate.getId().getValue())],[]);
+                                                    for curwellind = 0:newwellList.size()-1,
+                                                        curwell = newwellList.get(curwellind);
+                                                        if curwell.getRow() == well.getRow()  && curwell.getColumn() == well.getColumn()
+                                                            newwell = curwell;
+                                                            break;
+                                                        end
+                                                    end
+                                                    % if there is no well with specified row,col in the new plate - create new well 
+                                                    if isempty(newwell) 
+                                                        newwell = omero.model.WellI;    
+                                                        newwell.setRow(well.getRow());
+                                                        newwell.setColumn(well.getColumn());
+                                                        newwell.setPlate( omero.model.PlateI(newplate.getId().getValue(),false) );
+                                                        newwell = updateService.saveAndReturnObject(newwell);                                                        
+                                                    end                                                    
+                                                    %
                                                     newws = omero.model.WellSampleI();
                                                         %results image                                       
                                                         data = zeros(n_params,sizeX,sizeY);
@@ -582,8 +603,10 @@ classdef flim_omero_data_manager < handle
                                                         %results image
                                                     newws.setImage( omero.model.ImageI(new_imageId,false) );
                                                     newws.setWell( newwell );        
+                                                    %
                                                     newwell.addWellSample(newws);
                                                     newws = updateService.saveAndReturnObject(newws);                                                                                                                                               
+
                                                     z = z + 1; % param image count
                                                     waitbar(z/data_series.num_datasets, hw);
                                             end % put new well into new plate                                       
