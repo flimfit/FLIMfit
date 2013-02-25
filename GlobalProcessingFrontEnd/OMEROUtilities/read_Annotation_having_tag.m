@@ -67,8 +67,9 @@ function str = read_Annotation_having_tag(session, object, ome_model_annotation_
             case 'ome.model.annotations.XmlAnnotation'                        
                 for j = 0:annotations.size()-1
                     s = annotations.get(j).getTextValue().getValue();
-                    str = char(s);
-                    if strfind(str,tag)
+                    curr_str = char(s);
+                    if strfind(curr_str,tag)
+                        str = curr_str;
                         return;
                     end;                    
                 end                              

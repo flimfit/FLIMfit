@@ -128,36 +128,35 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                     list = proxy.getImages('Image', id, omero.sys.ParametersI());
                     image = list.get(0);
                     % 
-                    ome_params.BigEndian = 'true';
-                    ome_params.DimensionOrder = 'XYCTZ';
-                    ome_params.pixeltype = pixeltype;
-                    ome_params.SizeX = h;
-                    ome_params.SizeY = w;
-                    ome_params.SizeZ = 1;
-                    ome_params.SizeC = 1;
-                    ome_params.SizeT = 1;
-                    ome_params.modulo = modulo;
-                    ome_params.delays = channels_names;
-                    ome_params.FLIMType = 'Gated';
-                    ome_params.ContentsType = 'sample';
+                     namespace = 'IC_PHOTONICS';                    
+                     sha1 = char('pending');
+                     file_mime_type = char('application/octet-stream');
+                     description = ' ';                     
                     %
-                    xmlFileName = write_OME_FLIM_metadata(ome_params); 
-                    %
-                    namespace = 'IC_PHOTONICS';
-                    description = ' ';
-                    %
-                    sha1 = char('pending');
-                    file_mime_type = char('application/octet-stream');
-                    %
-                    add_Annotation(session, ...
-                                    image, ...
-                                    sha1, ...
-                                    file_mime_type, ...
-                                    xmlFileName, ...
-                                    description, ...
-                                    namespace);    
-                    %
-                    delete(xmlFileName);  
+%                     ome_params.BigEndian = 'true';
+%                     ome_params.DimensionOrder = 'XYCTZ';
+%                     ome_params.pixeltype = pixeltype;
+%                     ome_params.SizeX = h;
+%                     ome_params.SizeY = w;
+%                     ome_params.SizeZ = 1;
+%                     ome_params.SizeC = 1;
+%                     ome_params.SizeT = 1;
+%                     ome_params.modulo = modulo;
+%                     ome_params.delays = channels_names;
+%                     ome_params.FLIMType = 'Gated';
+%                     ome_params.ContentsType = 'sample';
+%                     %
+%                     xmlFileName = write_OME_FLIM_metadata(ome_params); 
+%                     %
+%                     add_Annotation(session, ...
+%                                     image, ...
+%                                     sha1, ...
+%                                     file_mime_type, ...
+%                                     xmlFileName, ...
+%                                     description, ...
+%                                     namespace);    
+%                     %
+%                     delete(xmlFileName);  
                     
                     if ~isempty(PlateSetups.image_metadata_filename)                    
                         add_Annotation(session, ...
@@ -168,7 +167,15 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                                     description, ...
                                     namespace);                                            
                     end;
-                    %                    
+                    % add xml modulo annotation
+                    delaynums = zeros(1,numel(channels_names));
+                    for f=1:numel(channels_names)
+                        delaynums(f) = str2num(channels_names{f});
+                    end
+                    %
+                    xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'Gated');
+                    add_XmlAnnotation(session,image,xmlnode,namespace);
+                    %
             end
             
     elseif strcmp(whos_parent,'Screen'); %Plate
@@ -252,7 +259,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                                 delete(hw);
                                 drawnow;                                        
                                 %
-                                new_image_name = char(strings(length(strings)))
+                                new_image_name = char(strings(length(strings)));
                                 new_imageId = mat2omeroImage(session, Z, pixeltype, new_image_name, ' ', channels_names, modulo);                                                            
                             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                                                        
                             
@@ -270,36 +277,34 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                                 list = proxy.getImages('Image', id, omero.sys.ParametersI());
                                 image = list.get(0);
                                 % 
-                                ome_params.BigEndian = 'true';
-                                ome_params.DimensionOrder = 'XYCTZ';
-                                ome_params.pixeltype = pixeltype;
-                                ome_params.SizeX = h;
-                                ome_params.SizeY = w;
-                                ome_params.SizeZ = 1;
-                                ome_params.SizeC = 1;
-                                ome_params.SizeT = 1;
-                                ome_params.modulo = modulo;
-                                ome_params.delays = channels_names;
-                                ome_params.FLIMType = 'Gated';
-                                ome_params.ContentsType = 'sample';
-                                %
-                                xmlFileName = write_OME_FLIM_metadata(ome_params); 
-                                %
-                                namespace = 'IC_PHOTONICS';
-                                description = ' ';
-                                %
-                                sha1 = char('pending');
-                                file_mime_type = char('application/octet-stream');
-                                %
-                                add_Annotation(session, ...
-                                                image, ...
-                                                sha1, ...
-                                                file_mime_type, ...
-                                                xmlFileName, ...
-                                                description, ...
-                                                namespace);    
-                                %
-                                delete(xmlFileName);  
+                                  namespace = 'IC_PHOTONICS';                                                    
+                                  sha1 = char('pending');
+                                  file_mime_type = char('application/octet-stream');
+                                  description = ' ';                     
+%                                 ome_params.BigEndian = 'true';
+%                                 ome_params.DimensionOrder = 'XYCTZ';
+%                                 ome_params.pixeltype = pixeltype;
+%                                 ome_params.SizeX = h;
+%                                 ome_params.SizeY = w;
+%                                 ome_params.SizeZ = 1;
+%                                 ome_params.SizeC = 1;
+%                                 ome_params.SizeT = 1;
+%                                 ome_params.modulo = modulo;
+%                                 ome_params.delays = channels_names;
+%                                 ome_params.FLIMType = 'Gated';
+%                                 ome_params.ContentsType = 'sample';
+%                                 %
+%                                 xmlFileName = write_OME_FLIM_metadata(ome_params); 
+%                                 %
+%                                 add_Annotation(session, ...
+%                                                 image, ...
+%                                                 sha1, ...
+%                                                 file_mime_type, ...
+%                                                 xmlFileName, ...
+%                                                 description, ...
+%                                                 namespace);    
+%                                 %
+%                                 delete(xmlFileName);  
 
                                 if ~isempty(PlateSetups.image_metadata_filename)                    
                                     add_Annotation(session, ...
@@ -310,7 +315,16 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                                                 description, ...
                                                 namespace);                                            
                                 end;
-                                %                            
+                                %  
+                                % add xml modulo annotation
+                                delaynums = zeros(1,numel(channels_names));
+                                for f=1:numel(channels_names)
+                                    delaynums(f) = str2num(channels_names{f});
+                                end
+                                %
+                                xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'Gated');
+                                add_XmlAnnotation(session,image,xmlnode,namespace);
+                                %                                
                             % annotations
                                                         
                         end
