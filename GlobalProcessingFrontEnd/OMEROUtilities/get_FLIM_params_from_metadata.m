@@ -211,11 +211,15 @@ function ret = get_FLIM_params_from_metadata(session,objId)
                     step = modlo.ATTRIBUTE.Step;
                     e = modlo.ATTRIBUTE.End;                
                     ret.delays = start:step:e;
+                    ret.n_channels = SizeM/numel(ret.delays);                    
                 else
                     str_delays = modlo.Label;
+                    ret.n_channels = SizeM/numel(str_delays);                    
                 end
-
-            ret.n_channels = SizeM/numel(ret.delays);
+                
+            if isfield(modlo.ATTRIBUTE,'Description')
+                ret.FLIM_type = modlo.ATTRIBUTE.Description;
+            end
             
     else % all are empty but let us treat it as Z LaVision file
 
