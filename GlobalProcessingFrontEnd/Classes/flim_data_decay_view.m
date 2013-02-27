@@ -203,8 +203,8 @@ classdef flim_data_decay_view < handle & flim_data_series_observer & flim_fit_ob
                                 wfile = [path filesep name ext];
                                 wifile = [path filesep name '_irf' ext];
                             end
-                            dlmwrite(wfile,[t_decay' data],'\t');
-                            dlmwrite(wifile,[t_irf irf],'\t');
+                            dlmwrite(wfile,[t_decay(:) data],'\t');
+                            dlmwrite(wifile,[t_irf(:) irf],'\t');
                         end
 
 
