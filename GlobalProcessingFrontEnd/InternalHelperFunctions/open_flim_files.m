@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-% THIS FUNCTION IS DEPRECIATED!
+% THIS FUNCTION IS DEPRECATED!
 % PLEASE USE LOAD_FLIM_FILE INSTEAD
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

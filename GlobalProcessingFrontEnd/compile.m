@@ -30,7 +30,7 @@ function compile(v)
 
     distrib_folder = 'Y:\Group\Software\Global Analysis\';
 
-    fid = fopen('GeneratedFiles\version.txt','w');
+    fid = fopen('GeneratedFiles'filesep'version.txt','w');
     fwrite(fid,v);
     fclose(fid);
     
