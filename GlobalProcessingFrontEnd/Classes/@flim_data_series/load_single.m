@@ -67,7 +67,7 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     % Load data file
     [obj.t,data,obj.t_int] = load_flim_file(file,channel);
     
-    if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') 
+    if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif')
         obj.mode = 'TCSPC';
     end
     

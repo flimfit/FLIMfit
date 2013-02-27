@@ -33,8 +33,9 @@ function[delays,im_data,t_int,tcspc,metadata] = load_flim_file(file,channel)
                 im_data = zeros(sz);
                 
                 % Now gets bin spacing from file header rather than assuming 12.5ns
-                %delays = (0:(n_im-1))/n_im*12.5e3;
-                  
+                delays = (0:(n_im-1))/n_im*11.94e3;
+                
+                %{
                 % get binSpacing from file header
                 tT = Tiff(file);
                 s = tT.getTag('ImageDescription');
@@ -42,7 +43,7 @@ function[delays,im_data,t_int,tcspc,metadata] = load_flim_file(file,channel)
                 binSpacing = 1000 .* str2double(s(pos+15:pos+20));          %binSpacing in ps
 
                 delays = (0:(n_im - 1)) .* binSpacing;
-
+                %}
 
                 
                 for i=1:n_im

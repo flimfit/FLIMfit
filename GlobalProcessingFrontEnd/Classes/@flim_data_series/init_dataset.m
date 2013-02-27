@@ -89,6 +89,8 @@ function init_dataset(obj,setting_file_name)
     
     if nargin >= 2 && exist(setting_file_name,'file')
        obj.load_data_settings(setting_file_name); 
+    else
+        obj.set_delta_irf();
     end
     
     obj.init = true;

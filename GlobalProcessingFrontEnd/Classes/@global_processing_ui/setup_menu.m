@@ -52,7 +52,7 @@ function handles = setup_menu(obj,handles)
             
         handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
     
-        handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
+        %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
         handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
     end
 
@@ -66,13 +66,13 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_import_plate_metadata = uimenu(menu_file,'Label','Import Plate Metadata...','Separator','on');
     
     handles.menu_file_export_decay = uimenu(menu_file,'Label','Export Decay...','Separator','on');
-    handles.menu_file_export_decay_series = uimenu(menu_file,'Label','Export Series Decay...');
+    %handles.menu_file_export_decay_series = uimenu(menu_file,'Label','Export Series Decay...');
     
     
     handles.menu_file_export_fit_params = uimenu(menu_file,'Label','Export Initial Fit Parameters...','Separator','on');
     handles.menu_file_import_fit_params = uimenu(menu_file,'Label','Import Initial Fit Parameters...');
-    handles.menu_file_export_fit_results = uimenu(menu_file,'Label','Export Fit Results as HDF...','Separator','on');    
-    handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
+    %handles.menu_file_export_fit_results = uimenu(menu_file,'Label','Export Fit Results as HDF...','Separator','on');    
+    %handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
     
     handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...','Separator','on');
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
