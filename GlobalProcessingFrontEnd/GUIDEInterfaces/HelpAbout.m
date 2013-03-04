@@ -70,6 +70,8 @@ if fid > 2
         line = line + 1;
     end
     fclose(fid);
+else
+    str = 'See File named Third Party Licenses.txt';
 end
 
 set(handles.edit3,'String',str)
