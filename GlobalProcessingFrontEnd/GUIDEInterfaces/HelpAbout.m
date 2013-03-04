@@ -56,7 +56,7 @@ function HelpAbout_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for HelpAbout
 handles.output = hObject;
 
-name = ['FLIMFit', varargin(2)];
+name = ['FLIMfit', varargin(2)];
 set(handles.text1,'String',name);
 
 

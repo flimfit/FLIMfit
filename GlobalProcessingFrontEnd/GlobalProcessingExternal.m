@@ -24,7 +24,8 @@ function GlobalProcessingExternal()
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 % Author : Sean Warren
-
+    
+    % arguments are: wait,OMERO_active,external,require_auth
 
     addpath_global_analysis();
     global_processing_ui(false, false, true);
