@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="GlobalProcessingExternal_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="3746136321" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+  <configuration target="target.standalone" target-name="Standalone Application" name="GlobalProcessingExternal_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="849742263" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
     <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>GlobalProcessingExternal_MAC64</param.appname>
@@ -77,6 +77,7 @@
       <file>${PROJECT_ROOT}/icons.mat</file>
       <file>${PROJECT_ROOT}/segmentation_funcs.mat</file>
       <file>/Users/imunro/globalprocessing/GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
+      <file>/Users/imunro/globalprocessing/Third Party Licenses.txt</file>
     </fileset.resources>
     <fileset.package>
       <file special-file="file.mcr" reference-mode="direct">${MATLAB_ROOT}/toolbox/compiler/deploy/maci64/MCRInstaller.zip</file>
