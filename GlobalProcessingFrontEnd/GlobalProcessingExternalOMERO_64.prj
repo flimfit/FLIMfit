@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="GlobalProcessingExternal_64" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessingExternal_64.prj" preferred-package-type="package.type.exe" build-checksum="2982247636" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
-    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessingExternal_64.prj</param.project.name>
+  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="GlobalProcessingExternalOMERO_64" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessingExternalOMERO_64.prj" preferred-package-type="package.type.exe" build-checksum="3783086501" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
+    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessingExternalOMERO_64.prj</param.project.name>
     <param.target.type>Windows Standalone Application</param.target.type>
     <param.appname>GlobalProcessing_64</param.appname>
     <param.intermediate>${PROJECT_ROOT}\GlobalProcessing_64\src</param.intermediate>
@@ -58,7 +58,7 @@
       <param.user.defined.mcr.options />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}\GlobalProcessingExternal.m</file>
+      <file>${PROJECT_ROOT}\GlobalProcessingExternalOMERO.m</file>
     </fileset.main>
     <fileset.resources>
       <file>${PROJECT_ROOT}\Classes</file>
@@ -73,6 +73,9 @@
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch\isHGUsingMATLABClasses.p</file>
       <file>${PROJECT_ROOT}\icons.mat</file>
       <file>${PROJECT_ROOT}\InternalHelperFunctions</file>
+      <file>${PROJECT_ROOT}\OMEROMatlab</file>
+      <file>${PROJECT_ROOT}\OMEROMatlab\helper</file>
+      <file>${PROJECT_ROOT}\OMEROUtilities</file>
       <file>${PROJECT_ROOT}\segmentation_funcs.mat</file>
       <file>${PROJECT_ROOT}\YuriySegmentation</file>
       <file>${PROJECT_ROOT}\YuriySegmentation\Support</file>

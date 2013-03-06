@@ -74,6 +74,7 @@
       <file>${PROJECT_ROOT}\segmentation_funcs.mat</file>
       <file>${PROJECT_ROOT}\YuriySegmentation</file>
       <file>${PROJECT_ROOT}\YuriySegmentation\Support</file>
+      <file>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\Third Party Licenses.txt</file>
     </fileset.resources>
     <fileset.package>
       <file>C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\FLIMGlobalAnalysisLibraries\FLIMGlobalAnalysisDLL_x86.dll</file>
@@ -84,8 +85,25 @@
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files (x86)\MATLAB\R2012b</root>
+      <root>C:\Program Files\MATLAB\R2012b</root>
       <path>
+        <directory>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd</directory>
+        <directory>${PROJECT_ROOT}\Classes</directory>
+        <directory>${PROJECT_ROOT}\GUIDEInterfaces</directory>
+        <directory>${PROJECT_ROOT}\GeneratedFiles</directory>
+        <directory>${PROJECT_ROOT}\InternalHelperFunctions</directory>
+        <directory>${PROJECT_ROOT}\InternalHelperFunctions\RawDataFunctions</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\layoutHelp</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\xml_io_toos</directory>
+        <directory>${PROJECT_ROOT}\..\GlobalProcessingLibrary\Libraries</directory>
+        <directory>${PROJECT_ROOT}\OMEROMatlab</directory>
+        <directory>${PROJECT_ROOT}\OMEROMatlab\helper</directory>
+        <directory>${PROJECT_ROOT}\OMEROUtilities</directory>
+        <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
         <directory>\\ic.ac.uk\homes\scw09\MATLAB</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\demos</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\graph2d</directory>
@@ -200,9 +218,6 @@
         <directory>${MATLAB_ROOT}\toolbox\curvefit\curvefitdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\daq\daq</directory>
         <directory>${MATLAB_ROOT}\toolbox\daq\daqguis</directory>
-        <directory>${MATLAB_ROOT}\toolbox\daq\daqblks\daqblks</directory>
-        <directory>${MATLAB_ROOT}\toolbox\daq\daqblks\daqmasks</directory>
-        <directory>${MATLAB_ROOT}\toolbox\daq\daqblks\daqmex</directory>
         <directory>${MATLAB_ROOT}\toolbox\daq\daqdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\database\database</directory>
         <directory>${MATLAB_ROOT}\toolbox\database\vqb</directory>
@@ -259,8 +274,6 @@
         <directory>${MATLAB_ROOT}\toolbox\fuzzy\fuzzy</directory>
         <directory>${MATLAB_ROOT}\toolbox\fuzzy\fuzzyutil</directory>
         <directory>${MATLAB_ROOT}\toolbox\fuzzy\fuzdemos</directory>
-        <directory>${MATLAB_ROOT}\toolbox\gauges</directory>
-        <directory>${MATLAB_ROOT}\toolbox\gauges\gaugesdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\geoweb\geoweb</directory>
         <directory>${MATLAB_ROOT}\toolbox\globaloptim</directory>
         <directory>${MATLAB_ROOT}\toolbox\globaloptim\globaloptim</directory>
@@ -323,7 +336,6 @@
         <directory>${MATLAB_ROOT}\toolbox\ident\iddemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\ident\iddemos\examples</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\colorspaces</directory>
-        <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\imuitools</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\iptformats</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\iptutils</directory>
@@ -674,9 +686,9 @@
       <linux>false</linux>
       <solaris>false</solaris>
       <osver>6.1</osver>
-      <os32>true</os32>
-      <os64>false</os64>
-      <arch>win32</arch>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
       <matlab>true</matlab>
     </platform>
   </configuration>
