@@ -57,6 +57,20 @@ function metadata = extract_metadata(strings)
             metadata.Well_FOV{i} = [tokens{1} tokens{2} '-' tokens{3}];
             
             s = strrep(s,match,'');
+        else
+            [match,tokens] = regexp(s,'^([A-Z]{1,2})(\d){1,2}$','match','tokens','once');
+            
+            if ~isempty(match)
+                add_class('Well');
+                add_class('Row');
+                add_class('Column');
+
+                metadata.Well{i} = [tokens{1} tokens{2}];
+                metadata.Row{i} = tokens{1};
+                metadata.Column{i} = tokens{2};
+
+                s = strrep(s,match,'');
+            end
         end
 
         % Look for things of the form 'x=nn'

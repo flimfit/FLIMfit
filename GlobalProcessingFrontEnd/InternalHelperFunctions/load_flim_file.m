@@ -1,6 +1,8 @@
 
 function[delays,im_data,t_int,tcspc,metadata] = load_flim_file(file,channel)
 
+global buf buf_name
+
 %Opens a set if .tiffs, .pngs or a .sdt file into 
 %into a 3d image of dimensions [num_time_points,height,width]
 
@@ -197,8 +199,18 @@ function[delays,im_data,t_int,tcspc,metadata] = load_flim_file(file,channel)
                  fclose(fid);
 
              
-                 ir = dlmread(file,'\t',header_lines,0);
-             
+                 % buf and buf_name are global variables, but of a hack to 
+                 % speed up loading multiple channels of a text file
+                 
+                 if ~isempty(buf_name) && strcmp(buf_name,file)
+                     ir = buf;
+                 else
+                     ir = dlmread(file,'\t',header_lines,0);
+                     buf_name = file;
+                     buf = ir;
+                 end
+                 
+                 
                  if max(channel) > (size(ir,2)-1)
                      throw(MException('FLIM:ChannelNotFound','A specified channel was not found in the file'));
                  end

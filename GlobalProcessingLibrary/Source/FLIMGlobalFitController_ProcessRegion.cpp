@@ -79,7 +79,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + px;
       alf     = this->alf + start * nl; 
 
-      s_thresh = data->GetRegionData(thread, g, region, px, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, NULL, NULL, NULL, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, px, adjust_buf, y, NULL, NULL, NULL, w, irf_idx, local_decay);
       data->DetermineAutoSampling(thread, local_decay, nl+1);
    }
    else
@@ -88,7 +88,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + thread * s;
       alf     = this->alf     + nl * r_idx;
    
-      s_thresh = data->GetRegionData(thread, g, region, 0, global_algorithm == MODE_GLOBAL_BINNING, adjust_buf, y, I, r_ss, acceptor, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, 0, adjust_buf, y, I, r_ss, acceptor, w, irf_idx, local_decay);
    }
 
 
@@ -178,19 +178,26 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    itmax = 100;
 
 
+   float* y_fit;
+   if (data->global_mode == MODE_PIXELWISE || global_algorithm == MODE_GLOBAL_BINNING)
+      y_fit = local_decay;
+   else
+      y_fit = y;
 
-   if (data->global_mode == MODE_PIXELWISE)
-   {
-      y = local_decay;
-   }
+   float s_fit;
+   if (global_algorithm == MODE_GLOBAL_BINNING)
+      s_fit = 1;
+   else
+      s_fit = s_thresh;
 
-   projectors[thread].Fit(s_thresh, n_meas_res, lmax, y, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
+
+   projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
                           data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
    
-   //if (global_algorithm == MODE_GLOBAL_BINNING)
-   //{
-   //   projectors.GetLinearParams(s_thresh, y, alf_local, lin_params)
-   //}
+   if (global_algorithm == MODE_GLOBAL_BINNING)
+   {
+      projectors[thread].GetLinearParams(s_thresh, y, alf_local);
+   }
    
    if (calculate_errs)
       projectors[thread].CalculateErrors(alf_local,conf_lim);

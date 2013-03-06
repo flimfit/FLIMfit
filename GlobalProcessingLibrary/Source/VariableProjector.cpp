@@ -187,6 +187,8 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
 int VariableProjector::GetLinearParams(int s, float* y, double* alf) 
 {
    int nsls1 = (n-l) * s;
+   this->y   = y;
+   this->s   = s;
 
    varproj(nsls1, nl, 1, alf, fvec, fjac, -1);
    
@@ -508,12 +510,12 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    }
 
    if (n_call != 0)
-   model->GetWeights(y, a, alf, lin_params, wp, irf_idx[px], thread);
+      model->GetWeights(y, a, alf, lin_params, wp, irf_idx[px], thread);
 
    for(int i=0; i<n; i++)
    {
       if (wp[i] <= 0)
-         wp[i] = 1;
+         wp[i] = sqrt(1);
       else
          wp[i] = sqrt(1/wp[i]);
    }

@@ -40,9 +40,13 @@ function import_plate_metadata(obj,file)
     for i=1:length(sheets)
 
         sheet = sheets{i};
-
+        
         [num,txt,raw]=xlsread(file,sheet);
 
+        sheet = strrep(sheet,'-','_');
+        sheet = strrep(sheet,'.','_');
+        sheet = strrep(sheet,' ','_');
+        
         rows = size(raw,1)-1;
         cols = size(raw,2)-1;
 
@@ -56,9 +60,11 @@ function import_plate_metadata(obj,file)
                 sel = strcmp(md_well,well);
                 new_md(sel) = raw(row_idx+1,col+1);
 
-
+               
             end
         end
+        
+
         
         obj.metadata.(sheet) = new_md;
 

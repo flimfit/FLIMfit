@@ -43,12 +43,19 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
             create_im_plate = false;
             
-            n_col = 12;
-            n_row = 8;
+            plate_size = 0;
             
-            row_headers = {'A'; 'B'; 'C'; 'D'; 'E'; 'F'; 'G'; 'H'};
-            col_headers = {'1';'2';'3';'4';'5';'6';'7';'8';'9';'10';'11';'12'};
-
+            n_col = 12*2^plate_size;
+            n_row = 8*2^plate_size;
+            
+            row_headers = (1:n_row)+64;
+            row_headers = char(row_headers);
+            row_headers = cellstr(row_headers');
+            
+            col_headers = 1:n_col;
+            col_headers = num2str(col_headers');
+            col_headers = cellstr(col_headers)';
+            
             if obj.fit_controller.has_fit && param>0
 
                 r = obj.fit_controller.fit_result;  

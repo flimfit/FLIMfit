@@ -30,7 +30,7 @@ function compile(v)
 
     distrib_folder = 'Y:\Group\Software\Global Analysis\';
 
-    fid = fopen('GeneratedFiles'filesep'version.txt','w');
+    fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
     fwrite(fid,v);
     fclose(fid);
     
@@ -74,36 +74,19 @@ function compile(v)
     new_distrib_folder = [distrib_folder 'GlobalProcessing_' v filesep 'GlobalProcessing_' v '_' computer filesep];
     copyfile(deploy_folder,new_distrib_folder);
     
-    
-    chlog_file = [distrib_folder 'Changelog.txt'];
-    f = fopen(chlog_file);
-    
-    l = fgetl(f);
-    log = false;
-    change = [];
-    while ischar(l)
-       if strcmp(l,['v' v])
-           log = true;
-       end
-       if log
-           change = [change l '\r\n'];
-       end
-       l = fgetl(f);
-    end
-    if isempty(change)
-        change = ['v' v];
+    if strcmp(sys,'64')
+        arch = 'x64';
+    else
+        arch = 'x86';
     end
     
-    %{
-    cd('..');
-    %system('hg addremove');
-    system(['hg commit -m "' v ' (' computer ')"']);
-    cd('GlobalProcessingFrontEnd');
-    %}
+    system(['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion=' v ' /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"'])
+
     
     try
         rmdir(['GlobalProcessing_' sys]);
     catch e %#ok
     end
+    
     
 end

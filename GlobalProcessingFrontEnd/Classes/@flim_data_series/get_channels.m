@@ -117,10 +117,11 @@ function [n_chan, chan_info] = get_channels(file)
              chan_info = cell(1,n_chan);
              
              for i=1:n_chan
-                 for j=1:n_header_lines
-                     chan_info{i} = [chan_info{i} header_info{j}{i} ', '];
-                 end
-                 chan_info{i} = chan_info{i}(1:(end-2));
+                 chan_info{i} = header_info{1}{i};
+                 %for j=1:n_header_lines
+                 %    chan_info{i} = [chan_info{i} header_info{j}{i} ', '];
+                 %end
+                 %chan_info{i} = chan_info{i}(1:(end-2));
              end
 
 

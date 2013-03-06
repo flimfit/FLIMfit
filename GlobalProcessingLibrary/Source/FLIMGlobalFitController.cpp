@@ -257,7 +257,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   float* r_ss_local     = r_ss     + pos;
                   float* acceptor_local = acceptor + pos;
                   
-                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, r_ss_local, acceptor_local, irf_idx, global_algorithm == MODE_GLOBAL_BINNING);
+                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, r_ss_local, acceptor_local, irf_idx);
                   next_pixel = 0;
                   
                   cur_region = idx;

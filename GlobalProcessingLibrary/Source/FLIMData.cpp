@@ -448,7 +448,7 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, int px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay)
 {
    int s = 0;
 
@@ -459,51 +459,24 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_p
    }
    if ( global_mode == MODE_IMAGEWISE )
    {
-      s = GetMaskedData(thread, group, region, adjust, region_data, intensity_data, r_ss_data, acceptor_data, irf_idx, bin_px);
+      s = GetMaskedData(thread, group, region, adjust, region_data, intensity_data, r_ss_data, acceptor_data, irf_idx);
    }
    else if ( global_mode == MODE_GLOBAL )
    {
       s = 0;
       for(int i=0; i<n_im_used; i++)
       {
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas, intensity_data + s, r_ss_data + s, acceptor_data + s, irf_idx + s, bin_px);
-      }
-      if (bin_px)
-      {
-         for(int i=1; i<n_im_used; i++)
-            for(int j=0; j<n_meas; j++)
-               region_data[j] += region_data[j+i*n_meas];
-         s = 1;
+         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas, intensity_data + s, r_ss_data + s, acceptor_data + s, irf_idx + s);
       }
    }
-   /*
-   int* data_idx = new int[s];
-   int* region_c = new int[n_px];
-   
-   for(int i=0; i<n_px; i++)
-      region_c = 0;
 
-   for(int i=0; i<s; i++)
-      region_c[irf_idx[i]]++;
-   
-   for(int i=1; i<n_px; i++)
-      region_c[i] += region_c[i-1];
-
-   for(int i=0; i<s; i++)
-   {
-      int idx = irf_idx[i];
-      data_idx[ region_c[idx]++ ] = i;
-   }
-
-   delete[] region_c;
-   delete[] data_idx;
-   */
    memset(weight,0, n_meas * sizeof(float));
 
    for(int i=0; i<s; i++)
       for(int j=0; j<n_meas; j++)
          weight[j] += region_data[i*n_meas + j];
       
+
    for(int j=0; j<n_meas; j++)
       weight[j] /= s;
 
@@ -523,7 +496,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, int bin_p
 }
 
 
-int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx, int bin_px)
+int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx)
 {
    
    int iml = im;
@@ -547,52 +520,25 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
    // Store masked values
    int s = 0;
 
-   if (bin_px)
+   for(int p=0; p<n_px; p++)
    {
-      for(int p=0; p<n_px; p++)
+      if (region < 0 || im_mask[p] == region)
       {
-
-         if (region < 0 || im_mask[p] == region)
-         {
-            masked_intensity[s] = intensity[p];
-
-            if (polarisation_resolved)
-               masked_r_ss[s] = r_ss[p];
-
-            if (has_acceptor)
-               masked_acceptor[s] = acceptor[p];
-
-            for(int i=0; i<n_meas; i++)
-               masked_data[i] += tr_data[p*n_meas+i] - adjust[i];
-         }
-      }  
-      irf_idx[s] = 0;
-      s++;
-   }
-   else
-   {
-
-      for(int p=0; p<n_px; p++)
-      {
-         if (region < 0 || im_mask[p] == region)
-         {
-            masked_intensity[s] = intensity[p];
+         masked_intensity[s] = intensity[p];
    
-            if (polarisation_resolved)
-               masked_r_ss[s] = r_ss[p];
+         if (polarisation_resolved)
+            masked_r_ss[s] = r_ss[p];
 
-            if (has_acceptor)
-               masked_acceptor[s] = acceptor[p];
+         if (has_acceptor)
+            masked_acceptor[s] = acceptor[p];
             
-            for(int i=0; i<n_meas; i++)
-               masked_data[s*n_meas+i] = tr_data[p*n_meas+i] - adjust[i];
+         for(int i=0; i<n_meas; i++)
+            masked_data[s*n_meas+i] = tr_data[p*n_meas+i] - adjust[i];
 
 
-            irf_idx[s] = p;
-            s++;
-         }
+         irf_idx[s] = p;
+         s++;
       }
-
    }
 
    return s;
