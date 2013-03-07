@@ -1,5 +1,5 @@
 function Load_FLIM_Dataset(obj,data_series,~)                        
-        % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
+    % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
         
         
     % Copyright (C) 2013 Imperial College London.
