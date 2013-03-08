@@ -71,8 +71,9 @@ function node = create_ModuloAlongDOM(delays, namespace, modulo, FLIM_type)
        else
            ModuloAlong.setAttribute('Description','TCSPC');    
            
-           ModuloAlong.setAttribute('Start',num2str(delays(1)));                        
-           ModuloAlong.setAttribute('Step',num2str(delays(2) - delays(1)));
+           ModuloAlong.setAttribute('Start',num2str(delays(1))); 
+           step = (delays(end) - delays(1))./(length(delays) -1);
+           ModuloAlong.setAttribute('Step',num2str(step));
            ModuloAlong.setAttribute('End',num2str(delays(end)));
        end
                                        
