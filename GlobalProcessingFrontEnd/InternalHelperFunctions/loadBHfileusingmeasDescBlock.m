@@ -121,7 +121,7 @@ fid=fopen(filename);
     
     % calculate timeRange
     timerange = tac_r/double(tac_g);     % calculated timeRange in s
-    timerange = floor(timerange .* 1e12);        % convert to ps
+    timerange = (timerange .* 1e12);        % convert to ps
     
    
    
@@ -318,7 +318,7 @@ fid=fopen(filename);
     end
     
 
-Delays= floor(0:timerange/adc_res:timerange-timerange/adc_res);
+Delays= (0:timerange/adc_res:timerange-timerange/adc_res);
 
 
 end
