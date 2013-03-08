@@ -517,7 +517,7 @@ data = createData();
         % annotations first
         annotations = [];
         % check dataset annotations..
-        annotations_extensions = {'xml' 'txt' 'rtf' 'doc' 'docx' 'ppt' 'pdf' 'xls' 'xlsx' 'm' 'irf'};
+        annotations_extensions = {'xml' 'txt' 'csv' 'rtf' 'doc' 'docx' 'ppt' 'pdf' 'xls' 'xlsx' 'm' 'irf'};
         for k=1:numel(annotations_extensions)
             files = dir([data.Directory filesep '*.' annotations_extensions{k}]);
             num_files = length(files);

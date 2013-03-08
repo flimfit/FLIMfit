@@ -171,21 +171,33 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
         
     end % 'native'        
     %
-    xmlFileName = write_OME_FLIM_metadata(ome_params); 
-    %
-    namespace = 'IC_PHOTONICS';
-    description = ' ';
-    %
-    sha1 = char('pending');
-    file_mime_type = char('application/octet-stream');
-    %
-    add_Annotation(session, ...
-                        image, ...
-                        sha1, ...
-                        file_mime_type, ...
-                        xmlFileName, ...
-                        description, ...
-                        namespace);    
-    %
-    delete(xmlFileName);
+%     xmlFileName = write_OME_FLIM_metadata(ome_params); 
+%     %
+%     namespace = 'IC_PHOTONICS';
+%     description = ' ';
+%     %
+%     sha1 = char('pending');
+%     file_mime_type = char('application/octet-stream');
+%     %
+%     add_Annotation(session, ...
+%                         image, ...
+%                         sha1, ...
+%                         file_mime_type, ...
+%                         xmlFileName, ...
+%                         description, ...
+%                         namespace);    
+%     %
+%     delete(xmlFileName);
+
+        % add xml modulo annotation
+        delaynums = zeros(1,numel(channels_names));
+        for f=1:numel(channels_names)
+            delaynums(f) = str2num(channels_names{f});
+        end
+        %
+        xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'TCSPC');
+        namespace = 'IC_PHOTONICS';
+        add_XmlAnnotation(session,image,xmlnode,namespace);
+        %                                
+
 end
