@@ -172,13 +172,27 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     weightedhist(ax,param_data,intensity,x);
                     
                 else
-                    hist(ax,param_data,x);
+                    
+                     hist(ax,param_data,x);
+                    
                     %[n,xout] = hist(param_data,x);
                     %bar(ax,xout,n);
                     %col = r.metadata.Column{sel(1)};
                     %csvwrite(['C:\Users\scw09\Documents\00 Local FLIM Data\2012-09-05 Ras-Raf Anca plate\hist\' num2str(col) '.csv'],[xout',n']);
 
                 end
+                
+                %if add_colour
+                % add colour to histogram
+                cmap = colormap;
+                range = lims(2) - lims(1);
+                index = (x - lims(1))./range;
+                index = floor(index .* (length(cmap) -1));
+                colour = cmap(index + 1,:)
+                h = findobj(ax,'Type','patch');
+                set(h,'FaceColor','flat','FaceVertexCData',colour,'CDataMapping','direct');
+                %end
+                
                 
                 if all(isfinite(lims))
                     set(ax,'XLim',lims)
