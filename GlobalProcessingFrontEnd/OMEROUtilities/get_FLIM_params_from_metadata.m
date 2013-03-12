@@ -34,10 +34,24 @@ function ret = get_FLIM_params_from_metadata(session,objId)
     ret.SizeC = [];
     ret.SizeT = [];
 
-    s1 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','StructuredAnnotations');
-    s2 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','bhfileHeader');
-    s3 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','Imspector Pro ');
-    s4 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.XmlAnnotation','ModuloAlong');
+%     s1 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','StructuredAnnotations');
+%     s2 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','bhfileHeader');
+%     s3 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','Imspector Pro ');
+%     s4 = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.XmlAnnotation','ModuloAlong');
+
+s1=[];s2=[];s3=[];
+
+obj = get_Object_by_Id(session,objId.getValue());
+        s4 = read_Annotation_having_tag(session,obj,'ome.model.annotations.XmlAnnotation','ModuloAlong');
+     if isempty(s4)
+        s1 = read_Annotation_having_tag(session,obj,'ome.model.annotations.FileAnnotation','StructuredAnnotations');
+     end
+     if isempty(s1)
+        s2 = read_Annotation_having_tag(session,obj,'ome.model.annotations.FileAnnotation','bhfileHeader');
+     end
+     if isempty(s2)     
+        s3 = read_Annotation_having_tag(session,obj,'ome.model.annotations.FileAnnotation','Imspector Pro ');
+     end
 
     if          ~isempty(s1) % xml file annotation
             s = s1;
