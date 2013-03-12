@@ -59,7 +59,7 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
                'HorizontalAlignment', 'right' );
         
     handles.hist_addcolour_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Off' 'On'}, 'Parent', opt_layout );
+            'String', {'Off' 'On' 'Inverted'}, 'Parent', opt_layout );
 
     
     set( hist_layout, 'Sizes', [-1,70] );

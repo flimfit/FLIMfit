@@ -191,6 +191,8 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 xlabel(ax,r.latex_params{param});
                 ylabel(ax,'Frequency');
                 
+               
+                
                 % add colour to histogram
                 addcolour = get(obj.hist_addcolour_popupmenu,'Value');
                 if addcolour > 1
@@ -200,6 +202,9 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     index = (x - lims(1))./range;
                     index = floor(index .* (length(cmap) -1));
                     colour = cmap(index + 1,:);
+                    if addcolour > 2
+                        colour = flipud(colour);
+                    end
                     h = findobj(ax,'Type','patch');
                     set(h,'FaceColor','flat','FaceVertexCData',colour,'CDataMapping','direct');
                 end
