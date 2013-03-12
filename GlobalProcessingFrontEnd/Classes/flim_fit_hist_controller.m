@@ -31,6 +31,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
         hist_weighting_popupmenu;
         hist_classes_edit;    
         hist_source_popupmenu;
+        hist_addcolour_popupmenu;
         
     end
     
@@ -42,6 +43,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             set(obj.hist_weighting_popupmenu,'Callback',@(~,~)obj.update_display);
             set(obj.hist_classes_edit,'Callback',@(~,~)obj.update_display);
             set(obj.hist_source_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.hist_addcolour_popupmenu,'Callback',@(~,~)obj.update_display);
             
             obj.update_display();
         end
@@ -182,23 +184,27 @@ classdef flim_fit_hist_controller < abstract_plot_controller
 
                 end
                 
-                %if add_colour
-                % add colour to histogram
-                cmap = colormap;
-                range = lims(2) - lims(1);
-                index = (x - lims(1))./range;
-                index = floor(index .* (length(cmap) -1));
-                colour = cmap(index + 1,:)
-                h = findobj(ax,'Type','patch');
-                set(h,'FaceColor','flat','FaceVertexCData',colour,'CDataMapping','direct');
-                %end
-                
                 
                 if all(isfinite(lims))
                     set(ax,'XLim',lims)
                 end
                 xlabel(ax,r.latex_params{param});
                 ylabel(ax,'Frequency');
+                
+                % add colour to histogram
+                addcolour = get(obj.hist_addcolour_popupmenu,'Value');
+                if addcolour > 1
+                
+                    cmap = colormap;
+                    range = lims(2) - lims(1);
+                    index = (x - lims(1))./range;
+                    index = floor(index .* (length(cmap) -1));
+                    colour = cmap(index + 1,:);
+                    h = findobj(ax,'Type','patch');
+                    set(h,'FaceColor','flat','FaceVertexCData',colour,'CDataMapping','direct');
+                end
+                
+                
             else
                 cla(ax);
             end
