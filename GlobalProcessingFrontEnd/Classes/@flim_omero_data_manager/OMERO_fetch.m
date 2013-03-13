@@ -20,7 +20,7 @@ else
        data_cube(:,:,:,end,:) = 0;
     end
     
-    if strfind('TCSPC',FLIM_type)       % WARNING don't think this will give a good min
+    if ~strfind('TCSPC',FLIM_type)       % WARNING don't think this will give a good min
         if min(data_cube(:)) > 32500
             data_cube = data_cube - 32768;    % clear the sign bit which is set by labview
         end

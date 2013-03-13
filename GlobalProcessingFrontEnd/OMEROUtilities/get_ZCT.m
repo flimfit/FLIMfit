@@ -7,16 +7,16 @@
             C = pixels.getSizeC().getValue();
             T = pixels.getSizeT().getValue();
             %
-            dims = {1,1,1};
+            dims = [ 1 1 1];
             if ~isempty(modulo)                
                 switch modulo
                     case 'ModuloAlongZ'
                         Z = Z/sizet;                 
                     case 'ModuloAlongC'
-                        C = C/sizet                                       
+                        C = C/sizet;                                       
                     case 'ModuloAlongT'
-                        T = T/sizet
-                            end
+                        T = T/sizet;
+                end
             end 
             if (Z + C + T) > 3
             dims = cell2mat(ZCT_chooser({Z,C,T}));

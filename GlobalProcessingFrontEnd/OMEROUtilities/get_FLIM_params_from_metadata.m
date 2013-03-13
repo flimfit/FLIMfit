@@ -1,12 +1,14 @@
-function ret = get_FLIM_params_from_metadata(session,objId)
+function ret = get_FLIM_params_from_metadata(session, image)
 
     
     ret = [];    
     
      s = [];
+     
+     objId = image.getId();
     
-
-    s = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.XmlAnnotation','ModuloAlong');
+    s = read_XmlAnnotation_havingNS(session,image,'http://www.openmicroscopy.org/Schemas/Additions/2011-09'); 
+    %s = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.XmlAnnotation','ModuloAlong');
     
     if ~isempty(s)      % found correct ModuloAlong XmlAnnotation
         
@@ -51,6 +53,8 @@ function ret = get_FLIM_params_from_metadata(session,objId)
         return;
     
     else
+        % can't we just use image instead of
+        % get_Object_by_Id(session,objId.getValue() ??? Ian
         s = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','bhfileHeader'); 
     end
     
@@ -73,11 +77,20 @@ function ret = get_FLIM_params_from_metadata(session,objId)
         
        
         if strcmp('Image',whos_Object(session,objId.getValue()))
+            
+            pixelsList = image.copyPixels();    
+            pixels = pixelsList.get(0);
+            
+            
+            SizeC = pixels.getSizeC().getValue();
+            SizeZ = pixels.getSizeZ().getValue();
+            SizeT = pixels.getSizeT().getValue();
+            
         
-            if 1 == ret.SizeC && 1 == ret.SizeT && ret.SizeZ > 1
+            if 1 == SizeC && 1 == SizeT && SizeZ > 1
                 if ~isempty(pixels.getPhysicalSizeZ().getValue())
                     physSizeZ = pixels.getPhysicalSizeZ().getValue().*1000;     % assume this is in ns so convert to ps
-                    ret.delays = (0:ret.SizeZ-1)*physSizeZ;
+                    ret.delays = (0:SizeZ-1)*physSizeZ;
                     ret.modulo = 'ModuloAlongZ';
                     ret.FLIM_type = 'TCSPC';
                     return;
