@@ -57,13 +57,14 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
         
     uicontrol( 'Style', 'text', 'String', 'Add False Colour  ', 'Parent', opt_layout, ...
                'HorizontalAlignment', 'right' );
+    uiextras.Empty( 'Parent', opt_layout );
         
     handles.hist_addcolour_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Off' 'On' 'Inverted'}, 'Parent', opt_layout );
-
+            'String', {'Off' 'On'}, 'Parent', opt_layout );
+   uiextras.Empty( 'Parent', opt_layout );
     
     set( hist_layout, 'Sizes', [-1,70] );
-    set( opt_layout, 'ColumnSizes', [90 90 90 90]);
+    set( opt_layout, 'ColumnSizes', [90 90 90 90 90 90]);
     set( opt_layout, 'RowSizes', [22 22]);
 
 

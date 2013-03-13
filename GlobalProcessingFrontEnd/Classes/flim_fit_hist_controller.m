@@ -197,14 +197,13 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 addcolour = get(obj.hist_addcolour_popupmenu,'Value');
                 if addcolour > 1
                 
-                    cmap = colormap;
-                    range = lims(2) - lims(1);
-                    index = (x - lims(1))./range;
-                    index = floor(index .* (length(cmap) -1));
-                    colour = cmap(index + 1,:);
-                    if addcolour > 2
-                        colour = flipud(colour);
-                    end
+                    nbins = length(x);
+                    cscale = obj.colourscale(param);
+                    % one colour at the start + one at the midpoint of each
+                    % bin + 1 fencepost
+                    cmap = feval(cscale,(nbins*2)+ 1 );      
+                    colour = cmap(2:2:end,:);   % only use midpoint colours
+                    
                     h = findobj(ax,'Type','patch');
                     set(h,'FaceColor','flat','FaceVertexCData',colour,'CDataMapping','direct');
                 end
