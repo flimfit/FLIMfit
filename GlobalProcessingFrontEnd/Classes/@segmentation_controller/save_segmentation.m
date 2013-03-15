@@ -37,7 +37,7 @@ function save_segmentation(obj,folder)
     for i=1:d.n_datasets
        
         file = [folder d.names{i} ' segmentation.tif'];
-        imwrite(obj.filtered_mask(:,:,i),file);
+        SaveUInt8Tiff(obj.filtered_mask(:,:,i),file);
         
     end
 

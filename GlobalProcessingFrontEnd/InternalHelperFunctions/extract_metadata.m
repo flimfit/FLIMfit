@@ -25,7 +25,7 @@ function metadata = extract_metadata(strings)
 
     % Author : Sean Warren
 
-
+try 
     strrep(strings,pathsep,' ');
     metadata = struct();
 
@@ -116,8 +116,9 @@ function metadata = extract_metadata(strings)
         
         common_substring = commonsubstring(common_substring,s);
         
-        common_substring = common_substring(1,:);
-
+        if size(common_substring,1) > 1
+            common_substring = common_substring(1,:);
+        end
     end
     
     if length(new_strings) > 1
@@ -150,6 +151,12 @@ function metadata = extract_metadata(strings)
             metadata.(names{j}) = d;  
         end
     end
+
+catch e
+    
+    warning('Error while trying to extract metadata! Falling back to filenames');
+    metadata.FileName = strings;
+end
 
     function add_class(class)
         if ~isfield(metadata,class)

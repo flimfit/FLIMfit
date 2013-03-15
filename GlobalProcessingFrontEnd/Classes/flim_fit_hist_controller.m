@@ -37,7 +37,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
     
     methods
         function obj = flim_fit_hist_controller(handles)
-            obj = obj@abstract_plot_controller(handles,handles.hist_axes,handles.hist_param_popupmenu);
+            obj = obj@abstract_plot_controller(handles,handles.hist_axes,handles.hist_param_popupmenu,false);
             assign_handles(obj,handles);
             
             set(obj.hist_weighting_popupmenu,'Callback',@(~,~)obj.update_display);
@@ -45,14 +45,22 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             set(obj.hist_source_popupmenu,'Callback',@(~,~)obj.update_display);
             set(obj.hist_addcolour_popupmenu,'Callback',@(~,~)obj.update_display);
             
+            obj.register_tab_function('Histogram');
             obj.update_display();
         end
         
-        function draw_plot(obj,ax,param)
-            cla(ax);
+        function draw_plot(obj,ax)
+            
+            export_plot = (nargin == 2);
+            if ~export_plot
+                ax = obj.plot_handle;
+            end
 
             
-            
+            param = obj.cur_param;
+
+            cla(ax);
+
             if obj.fit_controller.has_fit && param > 0 && obj.selected > 0
                 
                 f = obj.fit_controller;

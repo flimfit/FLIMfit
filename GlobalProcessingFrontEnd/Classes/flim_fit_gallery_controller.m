@@ -40,7 +40,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
     methods
         function obj = flim_fit_gallery_controller(handles)
                        
-            obj = obj@abstract_plot_controller(handles,handles.gallery_panel,handles.gallery_param_popupmenu);            
+            obj = obj@abstract_plot_controller(handles,handles.gallery_panel,handles.gallery_param_popupmenu,false);            
             assign_handles(obj,handles);
             
            
@@ -54,6 +54,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             set(obj.gallery_merge_popupmenu,'Callback',@obj.gallery_params_update);
             set(obj.gallery_slider,'Callback',@obj.gallery_params_update);
             
+            obj.register_tab_function('Gallery');
             obj.update_display();
         end
         
@@ -72,16 +73,20 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             end
         end
         
-        function draw_plot(obj,fig,param)
-            %return
-            save = (fig ~= obj.plot_handle);
+        function draw_plot(obj,fig)
+           
+            export_plot = (nargin == 2);
+            if ~export_plot
+                fig = obj.plot_handle;
+            end
+
+            
+            param = obj.cur_param;
             
             f = obj.fit_controller;
             r = f.fit_result;
             sel = obj.fit_controller.selected;
-
-            
-            
+           
             children = get(fig,'Children');
             delete(children);
             
@@ -104,7 +109,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             cols = str2double(get(obj.gallery_cols_edit,'String'));
             
             
-            if save
+            if export_plot
                 pa = fig;%get(f,'Parent');
                 pos_fig = get(pa,'Position');
                 pos = get(obj.plot_handle,'Position');
@@ -166,7 +171,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 gallery_data = NaN([gh gw]);
                 gallery_I_data = NaN([gh gw]);
                 
-                if save
+                if export_plot
                     fh = pos(3)*gh/gw;
                     pos(4) = fh;
                     fig_size(2) = fh;

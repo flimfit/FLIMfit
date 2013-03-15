@@ -1,4 +1,4 @@
-function handles = add_decay_display_panel(obj,handles,parent)
+function SaveUInt8Tiff(data,file)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -25,23 +25,18 @@ function handles = add_decay_display_panel(obj,handles,parent)
 
     % Author : Sean Warren
 
-
-    decay_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+    t = Tiff(file,'w');
+    tagstruct.ImageLength = size(data,1);
+    tagstruct.ImageWidth = size(data,2);
+    tagstruct.Photometric = Tiff.Photometric.MinIsBlack;
+    tagstruct.SampleFormat = Tiff.SampleFormat.UInt;
+    tagstruct.BitsPerSample = 8;
+    tagstruct.SamplesPerPixel = 1;
+    tagstruct.RowsPerStrip = 16;
+    tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
+    tagstruct.Software = 'MATLAB';
+    t.setTag(tagstruct);
     
-    decay_display_layout = uiextras.HBox( 'Parent', decay_layout, 'Spacing', 3 );
-    uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', decay_display_layout, ...
-               'HorizontalAlignment', 'right' );
-    handles.highlight_decay_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Decay','Raw IRF','TV Background','Magic Angle','Anisotropy Decay','G Factor'}, 'Parent', decay_display_layout );
-    uicontrol( 'Style', 'text', 'String', 'Display  ', 'Parent', decay_display_layout, ...
-               'HorizontalAlignment', 'right' );
-    handles.highlight_display_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Linear' 'Logarithmic'}, 'Parent', decay_display_layout );
-    set( decay_display_layout, 'Sizes', [-1,100,50,100] );
-    
-    handles.decay_panel = uipanel( 'Parent', decay_layout );
-    %handles.highlight_axes = axes('Parent', decay_layout);
-    %handles.residuals_axes = axes('Parent', decay_layout);
-    set( decay_layout, 'Sizes', [22,-1] );
-    
+    t.write(uint8(data));
+    t.close();
 end

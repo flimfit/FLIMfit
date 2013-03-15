@@ -97,10 +97,7 @@ handles.menu_OMERO_Load_Pate_Metadata = uimenu(menu_OMERO,'Label','Load Plate Me
     handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');
     
     handles.menu_file_import_plate_metadata = uimenu(menu_file,'Label','Import Plate Metadata...','Separator','on');
-    
-    handles.menu_file_export_decay = uimenu(menu_file,'Label','Export Decay...','Separator','on');
-    %handles.menu_file_export_decay_series = uimenu(menu_file,'Label','Export Series Decay...');
-    
+        
     
     handles.menu_file_export_fit_params = uimenu(menu_file,'Label','Export Initial Fit Parameters...','Separator','on');
     handles.menu_file_import_fit_params = uimenu(menu_file,'Label','Import Initial Fit Parameters...');

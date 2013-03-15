@@ -45,6 +45,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             set(obj.graph_grouping_popupmenu,'Callback',@(~,~,~) obj.update_display);
             set(obj.graph_display_popupmenu,'Callback',@(~,~,~) obj.update_display);
             
+            obj.register_tab_function('Plotter');
             obj.update_display();
         end
         
@@ -75,7 +76,14 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         end
         
         
-        function draw_plot(obj,ax,param)
+        function draw_plot(obj,ax)
+            
+            export_plot = (nargin == 2);
+            if ~export_plot
+                ax = obj.plot_handle;
+            end
+            
+            param = obj.cur_param;
             
             error_type = get(obj.error_type_popupmenu,'Value');
             grouping = get(obj.graph_grouping_popupmenu,'Value');

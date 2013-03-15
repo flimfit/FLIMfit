@@ -36,10 +36,19 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             obj = obj@abstract_plot_controller(handles,handles.plate_axes,handles.plate_param_popupmenu,true);            
             assign_handles(obj,handles);
 
+            obj.register_tab_function('Plate');
+        
             obj.update_display();
         end
         
-        function draw_plot(obj,ax,param)
+        function draw_plot(obj,ax)
+            
+            export_plot = (nargin == 2);
+            if ~export_plot
+                ax = obj.plot_handle;
+            end
+
+            param = obj.cur_param;
 
             create_im_plate = false;
             

@@ -36,7 +36,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
     
     methods
         function obj = flim_fit_corr_controller(handles)
-            obj = obj@abstract_plot_controller(handles,handles.corr_axes,[handles.corr_param_x_popupmenu handles.corr_param_y_popupmenu]);
+            obj = obj@abstract_plot_controller(handles,handles.corr_axes,[handles.corr_param_x_popupmenu handles.corr_param_y_popupmenu],false);
             assign_handles(obj,handles);
             
             set(obj.corr_independent_popupmenu,'Callback',@obj.ind_param_select_update);
@@ -44,6 +44,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             set(obj.corr_display_popupmenu,'Callback',@(~,~)obj.update_display);
             set(obj.corr_scale_popupmenu,'Callback',@(~,~)obj.update_display);
             
+            obj.register_tab_function('Correlation');
             obj.update_display();
         end
 
@@ -72,7 +73,14 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             end
         end
 
-        function draw_plot(obj,ax,param)
+        function draw_plot(obj,ax)
+            
+            export_plot = (nargin == 2);
+            if ~export_plot
+                ax = obj.plot_handle;
+            end
+            
+            param = obj.cur_param;
             
             source = get(obj.corr_source_popupmenu,'Value');
             display = get(obj.corr_display_popupmenu,'Value');

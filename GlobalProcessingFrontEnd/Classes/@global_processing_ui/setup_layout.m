@@ -40,16 +40,17 @@ function handles = setup_layout(obj, handles)
     
     topright_layout = uiextras.HBox( 'Parent', right_layout );
             
-    display_panel = uiextras.TabPanel( 'Parent', topright_layout );
+    display_tabpanel = uiextras.TabPanel( 'Parent', topright_layout );
+    handles.display_tabpanel = display_tabpanel;
     
-    handles = obj.add_decay_display_panel(handles,display_panel);
-    handles = obj.add_table_display_panel(handles,display_panel);
-    handles = obj.add_image_display_panel(handles,display_panel);
-    handles = obj.add_hist_corr_display_panel(handles,display_panel);
-    handles = obj.add_plotter_display_panel(handles,display_panel);
+    handles = obj.add_decay_display_panel(handles,display_tabpanel);
+    handles = obj.add_table_display_panel(handles,display_tabpanel);
+    handles = obj.add_image_display_panel(handles,display_tabpanel);
+    handles = obj.add_hist_corr_display_panel(handles,display_tabpanel);
+    handles = obj.add_plotter_display_panel(handles,display_tabpanel);
 
-    set(display_panel, 'TabNames', {'Decay','Parameters','Images','Gallery','Histogram','Correlation','Plotter','Plate'});
-    set(display_panel, 'SelectedChild', 1);
+    set(display_tabpanel, 'TabNames', {'Decay','Parameters','Images','Gallery','Histogram','Correlation','Plotter','Plate'});
+    set(display_tabpanel, 'SelectedChild', 1);
     
     display_params_panel = uiextras.VBox( 'Parent', topright_layout );
     
@@ -75,7 +76,7 @@ function handles = setup_layout(obj, handles)
         end
     end
     
-    set( display_panel, 'Callback', @display_panel_callback );
+    set( display_tabpanel, 'Callback', @display_panel_callback );
     
     % Progress Panel
     %---------------------------------------
@@ -142,6 +143,6 @@ function handles = setup_layout(obj, handles)
         
     set(top_layout,'Sizes',[550,-1]);
 
-    dragzoom([handles.highlight_axes handles.residuals_axes])
+%    dragzoom([handles.highlight_axes handles.residuals_axes])
        
 end
