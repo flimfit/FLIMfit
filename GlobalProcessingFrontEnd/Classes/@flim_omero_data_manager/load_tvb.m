@@ -22,10 +22,7 @@ function load_tvb(obj,data_series,object)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
     
-
-
     t_tvb = [];
     tvb_data = [];
     
@@ -34,6 +31,8 @@ function load_tvb(obj,data_series,object)
             
             metadata = get_FLIM_params_from_metadata(obj.session,object);
                         
+            channel = [];
+            
             if isempty(metadata.n_channels) || metadata.n_channels > 1 strcmp(data_series.mode,'TCSPC')
                 channel = data_series.request_channels(data_series.polarisation_resolved);
             else

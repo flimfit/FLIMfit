@@ -42,6 +42,8 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     
      tStart = tic; 
      
+     barstep = 1;
+     
      if sizet > 16 
          barstep = 4;
      end;

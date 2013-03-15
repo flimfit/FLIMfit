@@ -57,6 +57,8 @@ classdef flim_omero_data_manager < handle
         % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION                                    
             polarisation_resolved = false;
             %
+            channel = [];
+            %
             mdta = get_FLIM_params_from_metadata(obj.session,image);
             if isempty(mdta) || isempty(mdta.delays)
                 errordlg('can not load: data have no FLIM specification');

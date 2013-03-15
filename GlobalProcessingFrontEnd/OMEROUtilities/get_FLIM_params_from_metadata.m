@@ -99,7 +99,6 @@ function ret = get_FLIM_params_from_metadata(session, image)
                        
         end
         
-        disp(err.nessage);
         ret = [];
         
     end
