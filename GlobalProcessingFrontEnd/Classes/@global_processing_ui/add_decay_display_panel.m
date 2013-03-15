@@ -32,7 +32,7 @@ function handles = add_decay_display_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', decay_display_layout, ...
                'HorizontalAlignment', 'right' );
     handles.highlight_decay_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Decay','Raw IRF','TV Background','Magic Angle','Anisotropy Decay','G Factor'}, 'Parent', decay_display_layout );
+            'String', {'Intensity Decay','Raw IRF','TV Background','Magic Angle','Anisotropy Decay','G Factor'}, 'Parent', decay_display_layout );
     uicontrol( 'Style', 'text', 'String', 'Display  ', 'Parent', decay_display_layout, ...
                'HorizontalAlignment', 'right' );
     handles.highlight_display_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
@@ -40,8 +40,6 @@ function handles = add_decay_display_panel(obj,handles,parent)
     set( decay_display_layout, 'Sizes', [-1,100,50,100] );
     
     handles.decay_panel = uipanel( 'Parent', decay_layout );
-    %handles.highlight_axes = axes('Parent', decay_layout);
-    %handles.residuals_axes = axes('Parent', decay_layout);
     set( decay_layout, 'Sizes', [22,-1] );
     
 end

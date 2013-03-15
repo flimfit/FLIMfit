@@ -271,8 +271,9 @@ classdef segmentation_controller < flim_data_series_observer
                 min_size = filter_value(3);
             end
             
-            %obj.filtered_mask = obj.mask;
-
+            if ndims(obj.mask) ~= ndims(obj.filtered_mask)
+                obj.filtered_mask = obj.mask;
+            end
             
             for i=sel
                 
@@ -326,7 +327,9 @@ classdef segmentation_controller < flim_data_series_observer
                     end
 
                 end
-                obj.filtered_mask(:,:,i) = uint8(im_mask);
+                if ~isempty(im_mask)
+                    obj.filtered_mask(:,:,i) = uint8(im_mask);
+                end
             end
             
             if any(obj.data_series_list.selected == sel)

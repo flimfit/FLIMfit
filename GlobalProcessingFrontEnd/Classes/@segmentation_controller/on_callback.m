@@ -98,7 +98,11 @@ function on_callback(obj,src,evtData)
             end
                 
             delete(roi_handle);
-            obj.filter_masks(1:d.n_datasets);
+            if get(obj.replicate_mask_checkbox,'Value')
+                obj.filter_masks(1:d.n_datasets);
+            else
+                obj.filter_masks(obj.data_series_list.selected);
+            end
             obj.update_display();
         end
         
