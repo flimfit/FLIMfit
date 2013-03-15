@@ -19,7 +19,8 @@
                 end
             end 
             if (Z + C + T) > 3
-            dims = cell2mat(ZCT_chooser({Z,C,T}));
+                dims = cell2mat(ZCT_chooser({Z,C,T}));
+            end
             
           
 end

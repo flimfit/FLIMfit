@@ -196,8 +196,7 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
         end
         %
         xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'TCSPC');
-        namespace = 'IC_PHOTONICS';
-        add_XmlAnnotation(session,image,xmlnode,namespace);
+        add_XmlAnnotation(session,image,xmlnode,'http://www.openmicroscopy.org/Schemas/Additions/2011-09');
         %                                
 
 end

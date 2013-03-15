@@ -55,7 +55,7 @@ function ret = get_FLIM_params_from_metadata(session, image)
     else
         % can't we just use image instead of
         % get_Object_by_Id(session,objId.getValue() ??? Ian
-        s = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.FileAnnotation','bhfileHeader'); 
+        s = read_Annotation_having_tag(session,image,'ome.model.annotations.FileAnnotation','bhfileHeader'); 
     end
     
     if ~isempty(s)      % found a BH file header FileAnnotation

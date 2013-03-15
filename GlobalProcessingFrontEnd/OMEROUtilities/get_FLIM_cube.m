@@ -33,7 +33,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     C = ZCT(2)-1;
     T = ZCT(3)-1;
     
-    data_cube = zeros(sizet,1,sizeX,sizeY,1);
+    data_cube = zeros(sizet,1,sizeY,sizeX,1);
     
     w = waitbar(0, 'Loading FLIMage....');
     
