@@ -26,7 +26,10 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     pixelsId = pixels.getId().getValue();
    
     store = session.createRawPixelsStore(); 
-    store.setPixelsId(pixelsId, false);   
+    store.setPixelsId(pixelsId, false);  
+    
+    w = waitbar(0, 'Loading FLIMage....');
+    drawnow;
     
     % convert to java/c++ numbering from 0
     Z  = ZCT(1)-1;
@@ -35,7 +38,19 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     
     data_cube = zeros(sizet,1,sizeY,sizeX,1);
     
-    w = waitbar(0, 'Loading FLIMage....');
+    
+    
+     tStart = tic; 
+     
+     if sizet > 16 
+         barstep = 4;
+     end;
+     
+      if sizet > 64
+         barstep = 16;
+     end;
+     
+     barctr = 0;
     
     switch modulo
         case 'ModuloAlongZ'
@@ -45,8 +60,12 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
                 tt = tt + 1;
                 plane = toMatrix(rawPlane, pixels); 
                 data_cube(t,1,:,:,1) = plane';
-                waitbar((t/sizet),w);
-                drawnow;
+                if barctr == barstep
+                    waitbar((t/sizet),w);
+                    barctr = 0;
+                    drawnow;
+                end
+                
             end
             
         case 'ModuloAlongC' 
@@ -56,8 +75,11 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
                 tt = tt + 1;
                 plane = toMatrix(rawPlane, pixels); 
                 data_cube(t,1,:,:,1) = plane';
-                waitbar((t/sizet),w);
-                drawnow;
+                if barctr == barstep
+                    waitbar((t/sizet),w);
+                    barctr = 0;
+                    drawnow;
+                end
             end
             
         case 'ModuloAlongT' 
@@ -67,11 +89,18 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
                 tt = tt + 1;
                 plane = toMatrix(rawPlane, pixels); 
                 data_cube(t,1,:,:,1) = plane';
-                waitbar((t/sizet),w);
-                drawnow;
+                barctr = barctr + 1;
+                if barctr == barstep
+                    waitbar((t/sizet),w);
+                    barctr = 0;
+                    drawnow;
+                end
+                
             end
             
     end
+    
+     tElapsed = toc(tStart)
     
     
 
