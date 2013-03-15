@@ -214,6 +214,8 @@ public:
    void SetupIncMatrix(int* inc);
    int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread);
    void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
+   float* GetConstantAdjustment();
+
 
    int n_output_params;
    int n_nl_output_params;

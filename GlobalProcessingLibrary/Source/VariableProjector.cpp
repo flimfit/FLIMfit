@@ -369,7 +369,7 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
       return 0;
    }
       
-
+   float* adjust = model->GetConstantAdjustment();
    if (!variable_phi)
       GetModel(alf, irf_idx[0], isel, 0);
    if (!iterative_weighting)
@@ -413,14 +413,14 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
       if (!philp1)
       {
          for (int i=0; i < n; ++i)
-            rj[i] = y[i + j * y_dim1] * wp[i];
+            rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i];
       }
       else
       {
          // Store the data in rj, subtracting the column l+1 which does not
          // have a linear parameter
          for(int i=0; i < n; ++i)
-            rj[i] = y[i + j * y_dim1] * wp[i] - aw[i + l * a_dim1];
+            rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i] - aw[i + l * a_dim1];
       }
 
       // Transform Y, getting Q*Y=R 

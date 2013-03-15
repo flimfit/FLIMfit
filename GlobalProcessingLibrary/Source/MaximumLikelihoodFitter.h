@@ -54,6 +54,7 @@ private:
    double info[LM_INFO_SZ];
    double* dy;
    double* work;
+   double* expA;
 
    int nfunc;
    int nvar;

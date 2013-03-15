@@ -34,6 +34,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "omp_stub.h"
 #include "levmar.h"
 #include "util.h"
 
@@ -59,6 +60,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl,
 
    dy = new double[nfunc];
    work = new double[ LM_DER_WORKSZ(nvar, nfunc) ];
+   expA = new double[nfunc];
 }
 
 
@@ -72,12 +74,12 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
       dy[i] = y[i] * smoothing;
    dy[n] = 1;
    
-    
+    /*
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
-    
+    *
 /*    
    double opt[4];
    opt[0] = DBL_EPSILON;
@@ -86,7 +88,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
    opt[3] = DBL_EPSILON;
    */
    int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, nvar, n+1, itmax, NULL, info, work, NULL, this);
-
+   
    					           /* O: information regarding the minimization. Set to NULL if don't care
                       * info[0]= ||e||_2 at initial p.
                       * info[1-4]=[ ||e||_2, ||J^T e||_inf,  ||Dp||_2, mu/max[J^T J]_ii ], all computed at estimated p.
@@ -127,17 +129,25 @@ int MaximumLikelihoodFitter::GetLinearParams(int s, float* y, double* alf)
 void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int nfunc)
 {
    int i,j;
+   float* adjust;
 
    GetModel(alf, 0, 1, 0);
+   adjust = model->GetConstantAdjustment();
    
    int gnl = nl-l;
    double* A = alf+gnl;
 
-   memset(fvec,0,nfunc*sizeof(double));
+   for(i=0; i<l; i++)
+      expA[i] = exp(A[i]);
+
+   //memset(fvec,0,nfunc*sizeof(double));
 
    for (i=0; i<n; i++)
+   {
+      fvec[i] = adjust[i] * smoothing;
       for(j=0; j<l; j++)
-      fvec[i] += exp(A[j])*a[i+n*j];
+         fvec[i] += expA[j]*a[i+n*j];
+   }
 
    if (philp1)
       for (i=0; i<n; i++)
@@ -151,10 +161,11 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
 void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nfunc)
 {
    int i,j,k;
-
+   float* adjust;
    int iflag = 1;
 
    GetModel(alf, 0, 1, 0);
+   adjust = model->GetConstantAdjustment();
 
    int gnl = nl-l;
    double* A = alf+gnl;
@@ -169,7 +180,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
          if (inc[k + j * 12] != 0)
          {
             for (i=0; i<n; i++)
-               fjac[nl*i+k] += exp(A[j]) * b[ndim*m+i];
+               fjac[nl*i+k] += expA[j] * b[ndim*m+i];
             fjac[nl*i+k] = kap[k+1];
             m++;
          }
@@ -186,7 +197,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    for(j=0; j<l; j++)
    {
          for (i=0; i<n; i++)
-            fjac[nl*i+j+gnl] = exp(A[j]) * a[i+n*j];
+            fjac[nl*i+j+gnl] = expA[j] * a[i+n*j];
          fjac[nl*i+j+gnl] = 0; // kappa derv. for I
    }
 }
@@ -196,4 +207,5 @@ MaximumLikelihoodFitter::~MaximumLikelihoodFitter()
 {
    delete[] dy;
    delete[] work;
+   delete[] expA;
 }

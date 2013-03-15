@@ -68,8 +68,8 @@ public:
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
-   int GetRegionData(int thread, int group, int region, int px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay);
-   int GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx);
+   int GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay);
+   int GetMaskedData(int thread, int im, int region, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx);
 
    
    int GetImLoc(int im);
@@ -288,7 +288,6 @@ int FLIMData::CalculateRegions()
          //----------------------------------------------------
 
          uint8_t* mask_ptr = mask + im*n_px;
-            
          for(int p=0; p<n_px; p++)
          {
             T* ptr = cur_data_ptr + p*n_meas_full;
@@ -298,9 +297,8 @@ int FLIMData::CalculateRegions()
                for(int j=0; j<n_t_full; j++)
                {
                   if (limit > 0 && *ptr >= limit)
-                  {
                      *mask_ptr = 0;
-                  }
+
                   intensity += *ptr;
                   ptr++;
                }
@@ -322,7 +320,7 @@ int FLIMData::CalculateRegions()
 
    // Determine how many regions we have in each image
    //--------------------------------------------------------
-   #pragma omp parallel for
+   //#pragma omp parallel for
    for(int i=0; i<n_im_used; i++)
    {
       int im = i;
@@ -525,10 +523,8 @@ void FLIMData::TransformImage(int thread, int im)
    if (background_type == BG_TV_IMAGE)
       for(int i=0; i<n_meas; i++)
          tvb_sum += tvb_profile[i];
-   else
-      tvb_sum = 0;
 
-
+   
    // Calculate intensity
    float* intensity_ptr = intensity;
    cur_data_ptr = (T*) tr_buf;

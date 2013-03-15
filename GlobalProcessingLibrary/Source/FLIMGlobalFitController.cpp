@@ -257,7 +257,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   float* r_ss_local     = r_ss     + pos;
                   float* acceptor_local = acceptor + pos;
                   
-                  data->GetMaskedData(0, im, r, adjust_buf, y, I_local, r_ss_local, acceptor_local, irf_idx);
+                  data->GetMaskedData(0, im, r, y, I_local, r_ss_local, acceptor_local, irf_idx);
                   next_pixel = 0;
                   
                   cur_region = idx;
@@ -471,12 +471,13 @@ double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
    if (data->data_type == DATA_TYPE_TCSPC)
    {
       double  n  = 0;
-
+      double c;
 
       for(int i=start; i<n_t; i++)
       {
-         tau += decay[i] * (t[i] - t[start]);
-         n   += decay[i];
+         c = decay[i]-adjust_buf[i];
+         tau += c * (t[i] - t[start]);
+         n   += c;
       }
    
       // If polarisation resolevd add perp decay using I = para + 2*g*perp
@@ -974,7 +975,7 @@ void FLIMGlobalFitController::Init()
    for(int i=2; i<n_t; i++)
    {
       double dt = t[i] - t[i-1];
-      if (abs(dt - dt0) > 1e-5)
+      if (abs(dt - dt0) > 1)
       {
          eq_spaced_data = false;
          break;

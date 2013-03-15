@@ -79,8 +79,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + px;
       alf     = this->alf + start * nl; 
 
-      s_thresh = data->GetRegionData(thread, g, region, px, adjust_buf, y, NULL, NULL, NULL, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, px, y, NULL, NULL, NULL, w, irf_idx, local_decay);
       data->DetermineAutoSampling(thread, local_decay, nl+1);
+
+      y = local_decay;
    }
    else
    {
@@ -88,7 +90,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       irf_idx = this->irf_idx + thread * s;
       alf     = this->alf     + nl * r_idx;
    
-      s_thresh = data->GetRegionData(thread, g, region, 0, adjust_buf, y, I, r_ss, acceptor, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, w, irf_idx, local_decay);
    }
 
 
@@ -179,25 +181,24 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
 
    float* y_fit;
-   if (data->global_mode == MODE_PIXELWISE || global_algorithm == MODE_GLOBAL_BINNING)
-      y_fit = local_decay;
-   else
-      y_fit = y;
-
-   float s_fit;
+   int   s_fit;
    if (global_algorithm == MODE_GLOBAL_BINNING)
+   {
       s_fit = 1;
+      y_fit = local_decay;
+   }
    else
+   {
       s_fit = s_thresh;
-
+      y_fit = y;
+   }
 
    projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
                           data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
    
-   if (global_algorithm == MODE_GLOBAL_BINNING)
-   {
+   // If we're fitting globally using global binning now retrieve the linear parameters
+   if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
       projectors[thread].GetLinearParams(s_thresh, y, alf_local);
-   }
    
    if (calculate_errs)
       projectors[thread].CalculateErrors(alf_local,conf_lim);
@@ -205,10 +206,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    for(int i=0; i<nl; i++)
       alf[i] = (float) alf_local[i];
 
-   // Normalise to get beta/gamma/r and I0
+   // Normalise to get beta/gamma/r and I0 and determine mean lifetimes
    //--------------------------------------
    NormaliseLinearParams(s_thresh,lin_params,lin_params);
-  
    CalculateMeanLifetime(s_thresh, lin_params, alf, mean_tau, w_mean_tau);
 
    if (data->global_mode == MODE_PIXELWISE)
@@ -236,11 +236,11 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
 void FLIMGlobalFitController::CalculateMeanLifetime(int s, float lin_params[], float alf[], float mean_tau[], float w_mean_tau[])
 {
-   int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
-   lin_params += lin_idx;
-
    if (calculate_mean_lifetimes)
    {
+      int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+      lin_params += lin_idx;
+
       for (int j=0; j<s; j++)
       {
          w_mean_tau[j] = 0;

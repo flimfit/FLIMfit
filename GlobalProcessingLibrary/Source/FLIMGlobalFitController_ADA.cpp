@@ -534,3 +534,8 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
    }
 
 }
+
+float* FLIMGlobalFitController::GetConstantAdjustment()
+{
+   return adjust_buf;
+}

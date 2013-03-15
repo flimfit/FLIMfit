@@ -68,17 +68,17 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    if (threshold < 3)
       threshold = 3;
 
-   if (mask == NULL)
+   supplied_mask = (mask != NULL);
+
+   if (!supplied_mask)
    {
-      this->mask = new uint8_t[n_im * n_x * n_y]; //ok
+      int sz_mask = n_im * n_x * n_y;
+      this->mask = new uint8_t[sz_mask]; //ok
       supplied_mask = false;
-      for(int i=0; i<n_im * n_x * n_y; i++)
+      for(int i=0; i<sz_mask; i++)
          this->mask[i] = 1;
    }
-   else
-   {  
-      supplied_mask = true;
-   }
+
 
    n_im_used = 0;
    if (use_im != NULL)
@@ -448,7 +448,7 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, int px, float* adjust, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay)
 {
    int s = 0;
 
@@ -459,14 +459,14 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* ad
    }
    if ( global_mode == MODE_IMAGEWISE )
    {
-      s = GetMaskedData(thread, group, region, adjust, region_data, intensity_data, r_ss_data, acceptor_data, irf_idx);
+      s = GetMaskedData(thread, group, region, region_data, intensity_data, r_ss_data, acceptor_data, irf_idx);
    }
    else if ( global_mode == MODE_GLOBAL )
    {
       s = 0;
       for(int i=0; i<n_im_used; i++)
       {
-         s += GetMaskedData(thread, i, region, adjust, region_data + s*n_meas, intensity_data + s, r_ss_data + s, acceptor_data + s, irf_idx + s);
+         s += GetMaskedData(thread, i, region, region_data + s*n_meas, intensity_data + s, r_ss_data + s, acceptor_data + s, irf_idx + s);
       }
    }
 
@@ -485,7 +485,6 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* ad
 
    for(int j=0; j<n_meas; j++)
    {
-      weight[j] += adjust[j];
       if (weight[j] <= 0)
          weight[j] = 1;   // If we have a zero data point set to 1
       else
@@ -496,7 +495,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* ad
 }
 
 
-int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx)
+int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx)
 {
    
    int iml = im;
@@ -533,7 +532,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* adjust, float
             masked_acceptor[s] = acceptor[p];
             
          for(int i=0; i<n_meas; i++)
-            masked_data[s*n_meas+i] = tr_data[p*n_meas+i] - adjust[i];
+            masked_data[s*n_meas+i] = tr_data[p*n_meas+i];
 
 
          irf_idx[s] = p;

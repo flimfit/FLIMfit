@@ -362,6 +362,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
       start = data->GetRegionPos(im,rg);
       s_local   = data->GetRegionCount(im,rg);
 
+
       if (r_idx > -1)
       {         
 

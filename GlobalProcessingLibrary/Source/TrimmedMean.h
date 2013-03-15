@@ -160,11 +160,11 @@ void TrimmedMean(T x[], T w[], int n, int K, ImageStats<T>& stats)
 
       p_mean = mean(acc);
       p_std  = mean(acc_m2) - p_mean*p_mean;
-	  p_std = sqrt(p_std);
+	   p_std = sqrt(p_std);
 
-	  p_w_mean = mean(w_acc);
+	   p_w_mean = mean(w_acc);
       p_w_std  = mean(w_acc_m2) - p_w_mean*p_w_mean;
-	  p_w_std = sqrt(p_w_std);
+	   p_w_std = sqrt(p_w_std);
 
       stats.SetNextParam((T) p_mean, (T) p_std, median, q1, q2, OS1, OS2, (T) p_w_mean, (T) p_w_std);
 

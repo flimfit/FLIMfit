@@ -30,6 +30,7 @@
 #ifndef _ABSTRACTFITTER_H
 #define _ABSTRACTFITTER_H
 
+#include "omp_stub.h"
 #include "levmar.h"
 
 class FitModel
@@ -38,6 +39,7 @@ class FitModel
       virtual void SetupIncMatrix(int* inc) = 0;
       virtual int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
       virtual void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread) = 0;
+      virtual float* GetConstantAdjustment() = 0;
 };
 
 class AbstractFitter

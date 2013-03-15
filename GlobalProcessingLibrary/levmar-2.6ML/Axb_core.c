@@ -1119,6 +1119,8 @@ int info, *ipiv, nrhs=1;
 
 #else // no LAPACK
 
+#include "compiler.h"
+
 /* precision-specific definitions */
 #define AX_EQ_B_LU LM_ADD_PREFIX(Ax_eq_b_LU_noLapack)
 
@@ -1165,6 +1167,12 @@ LM_REAL *a, *work, max, sum, tmp;
   work_sz=m;
   tot_sz=(a_sz+work_sz)*sizeof(LM_REAL) + idx_sz*sizeof(int); /* should be arranged in that order for proper doubles alignment */
 
+  // Check inputs for validity
+  for(i=0; i<a_sz; i++)
+     if (!LM_FINITE(A[i]))
+        return 0;
+
+
 #ifdef LINSOLVERS_RETAIN_MEMORY
   if(tot_sz>buf_sz){ /* insufficient memory, allocate a "big" memory chunk at once */
     if(buf) free(buf); /* free previously allocated memory */
@@ -1185,7 +1193,7 @@ LM_REAL *a, *work, max, sum, tmp;
     }
 #endif /* LINSOLVERS_RETAIN_MEMORY */
 
-  a=buf;
+  a=(LM_REAL*)buf;
   work=a+a_sz;
   idx=(int *)(work+work_sz);
 
