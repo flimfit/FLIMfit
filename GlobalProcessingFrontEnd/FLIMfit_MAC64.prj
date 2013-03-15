@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="GlobalProcessingExternal_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="849742263" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
-    <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64.prj</param.project.name>
+  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="2746070519" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+    <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
-    <param.appname>GlobalProcessingExternal_MAC64</param.appname>
-    <param.intermediate>${PROJECT_ROOT}/GlobalProcessingExternal_MAC64/src</param.intermediate>
-    <param.output>${PROJECT_ROOT}/GlobalProcessingExternal_MAC64/distrib</param.output>
+    <param.appname>FLIMfit_MAC64</param.appname>
+    <param.intermediate>${PROJECT_ROOT}/FLIMfit_MAC64/src</param.intermediate>
+    <param.output>${PROJECT_ROOT}/FLIMfit_MAC64/distrib</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.tbx_on_path>
       <item>all</item>
@@ -58,7 +58,7 @@
       <param.user.defined.mcr.options />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}/GlobalProcessingExternalOMERO.m</file>
+      <file>${PROJECT_ROOT}/FLIMfit.m</file>
     </fileset.main>
     <fileset.resources>
       <file>${PROJECT_ROOT}/Classes</file>
@@ -74,6 +74,7 @@
       <file>${PROJECT_ROOT}/InternalHelperFunctions</file>
       <file>${PROJECT_ROOT}/OMEROMatlab</file>
       <file>${PROJECT_ROOT}/OMEROUtilities</file>
+      <file>${PROJECT_ROOT}/YuriySegmentation</file>
       <file>${PROJECT_ROOT}/icons.mat</file>
       <file>${PROJECT_ROOT}/segmentation_funcs.mat</file>
       <file>/Users/imunro/globalprocessing/GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
@@ -83,9 +84,9 @@
       <file special-file="file.mcr" reference-mode="direct">${MATLAB_ROOT}/toolbox/compiler/deploy/maci64/MCRInstaller.zip</file>
     </fileset.package>
     <build-deliverables>
-      <file name="GlobalProcessingExternal_MAC64.app" location="${PROJECT_ROOT}/GlobalProcessingExternal_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64/distrib/GlobalProcessingExternal_MAC64.app</file>
-      <file name="run_GlobalProcessingExternal_MAC64.sh" location="${PROJECT_ROOT}/GlobalProcessingExternal_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64/distrib/run_GlobalProcessingExternal_MAC64.sh</file>
-      <file name="readme.txt" location="${PROJECT_ROOT}/GlobalProcessingExternal_MAC64/distrib" optional="true">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/GlobalProcessingExternal_MAC64/distrib/readme.txt</file>
+      <file name="run_FLIMfit_MAC64.sh" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/run_FLIMfit_MAC64.sh</file>
+      <file name="FLIMfit_MAC64.app" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/FLIMfit_MAC64.app</file>
+      <file name="readme.txt" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="true">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/readme.txt</file>
     </build-deliverables>
     <workflow />
     <matlab>

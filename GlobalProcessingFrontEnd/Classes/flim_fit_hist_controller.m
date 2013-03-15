@@ -31,6 +31,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
         hist_weighting_popupmenu;
         hist_classes_edit;    
         hist_source_popupmenu;
+        hist_addcolour_popupmenu;
         
     end
     
@@ -42,6 +43,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             set(obj.hist_weighting_popupmenu,'Callback',@(~,~)obj.update_display);
             set(obj.hist_classes_edit,'Callback',@(~,~)obj.update_display);
             set(obj.hist_source_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.hist_addcolour_popupmenu,'Callback',@(~,~)obj.update_display);
             
             obj.update_display();
         end
@@ -172,7 +174,9 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     weightedhist(ax,param_data,intensity,x);
                     
                 else
-                    hist(ax,param_data,x);
+                    
+                     hist(ax,param_data,x);
+                    
                     %[n,xout] = hist(param_data,x);
                     %bar(ax,xout,n);
                     %col = r.metadata.Column{sel(1)};
@@ -180,11 +184,31 @@ classdef flim_fit_hist_controller < abstract_plot_controller
 
                 end
                 
+                
                 if all(isfinite(lims))
                     set(ax,'XLim',lims)
                 end
                 xlabel(ax,r.latex_params{param});
                 ylabel(ax,'Frequency');
+                
+               
+                
+                % add colour to histogram
+                addcolour = get(obj.hist_addcolour_popupmenu,'Value');
+                if addcolour > 1
+                
+                    nbins = length(x);
+                    cscale = obj.colourscale(param);
+                    % one colour at the start + one at the midpoint of each
+                    % bin + 1 fencepost
+                    cmap = feval(cscale,(nbins*2)+ 1 );      
+                    colour = cmap(2:2:end,:);   % only use midpoint colours
+                    
+                    h = findobj(ax,'Type','patch');
+                    set(h,'FaceColor','flat','FaceVertexCData',colour,'CDataMapping','direct');
+                end
+                
+                
             else
                 cla(ax);
             end
