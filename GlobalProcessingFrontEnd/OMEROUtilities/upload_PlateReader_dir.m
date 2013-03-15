@@ -174,7 +174,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                     end
                     %
                     xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'Gated');
-                    add_XmlAnnotation(session,image,xmlnode,namespace);
+                    add_XmlAnnotation(session,image,xmlnode);
                     %
             end
             
@@ -323,7 +323,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                                 end
                                 %
                                 xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'Gated');
-                                add_XmlAnnotation(session,image,xmlnode,namespace);
+                                add_XmlAnnotation(session,image,xmlnode);
                                 %                                
                             % annotations
                                                         

@@ -147,35 +147,19 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %                                   
             polarisation_resolved = false;            
             %
-            image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
+            %image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
+            myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
             if isempty(mdta) || isempty(mdta.delays)
                 errordlg('can not load: data have no FLIM specification');
                 return;
-            end                        
-            %
-            if mdta.n_channels > 1
-                max_chnl = mdta.n_channels;
-                channel = cell2mat(channel_chooser({(max_chnl)}));
-                if -1 == channel, return, end;
-            else
-                channel = 1;
-            end;
-            %
-            if     strcmp(mdta.FLIM_type,'TCSPC')
-                data_series.mode = 'TCSPC'; 
-            elseif strcmp(mdta.FLIM_type,'Gated')
-                data_series.mode = 'widefield';
-            else
-                data_series.mode = 'TCSPC'; % not annotated sdt 
-            end
-            %
-            if ~isempty(mdta.n_channels) && mdta.n_channels > 1 && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
-                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
-            else
-                obj.ZCT = get_ZCT(image,mdta.modulo);
-            end
+            end  
+            
+            delays = mdta.delays;
+            
+            obj.ZCT = get_ZCT(image,mdta.modulo, length(delays));
+           
             
             if data_series.use_popup && data_series.num_datasets > 1 && ~data_series.raw
                 wait_handle=waitbar(0,'Loading FLIMages...');
@@ -184,10 +168,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 using_popup = false;
             end
             %
-            obj.selected_channel = channel;
+            obj.selected_channel = obj.ZCT(2);
             %
             try
-                [delays, data_cube, ~] = obj.OMERO_fetch(image, obj.selected_channel,obj.ZCT,mdta);
+                [data_cube, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end     
@@ -197,26 +181,30 @@ function Load_FLIM_Dataset(obj,data_series,~)
             end            
             %
             data_size = size(data_cube);
-            %
-            % if only one channel reshape to include singleton dimension
-            if length(data_size) == 3
-                data_size = [data_size(1) 1 data_size(2:3)];    
-            end
+            
+            data_series.mode = mdta.FLIM_type;
             %
             data_series.data_series_mem(:,:,:,:,1) = single(data_cube);               
             data_series.data_size = data_size;
             %        
-            if numel(delays) > 0 % ??
+            if length(delays) > 0 % ??
                 %
                 data_series.file_names = {'file'};
                 data_series.channels = 1;
+                 
+                
                 try
                     data_series.metadata = extract_metadata(data_series.names);        
                 catch err
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
+                
+                
                 data_series.polarisation_resolved = polarisation_resolved;
                 data_series.t = delays;
+                if strcmp(data_series.mode,'TCSPC')
+                    data_series.t_int = ones(size(t));      % Not sure of behaviour for gated data
+                end
                 data_series.use_memory_mapping = false;
                 data_series.load_multiple_channels = false; 
                 %                
@@ -241,9 +229,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
                         for j = 2:num_sel
 
                                 imgId = image_ids(selected(j));                        
-                                image = get_Object_by_Id(obj.session,imgId);
+                                % image = get_Object_by_Id(obj.session,imgId);
+                                myimages = getImages(obj.session,imgId); image = myimages(1);
                                 try
-                                    [~,data,~] = obj.OMERO_fetch(image,obj.selected_channel,obj.ZCT,mdta);
+                                    [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
                                 catch err
                                     rethrow(err);
                                 end                    
@@ -269,9 +258,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
                         for j = 2:num_sel
 
                                 imgId = image_ids(selected(j));                        
-                                image = get_Object_by_Id(obj.session,imgId);
+                                %image = get_Object_by_Id(obj.session,imgId);
+                                myimages = getImages(obj.session,imgId); image = myimages(1);
                                 try
-                                    [~,data,~] = obj.OMERO_fetch(image,obj.selected_channel,obj.ZCT,mdta);
+                                    [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
                                     if ~isempty(data) 
                                         data_series.data_series_mem(:,:,:,:,j) = single(data);                                        
                                     end;
@@ -303,9 +293,11 @@ function Load_FLIM_Dataset(obj,data_series,~)
 
                 data_series.compute_tr_data(false);    
                 data_series.switch_active_dataset(1);    
-                %data_series.init_dataset(dataset_indexting_file); %?                    
+                %data_series.init_dataset(dataset_indexting_file); %?   
+                
+                
                 data_series.init_dataset();            
                 
-            end % if numel(delays) > 0
+            end % if length(delays) > 0
             
 end            

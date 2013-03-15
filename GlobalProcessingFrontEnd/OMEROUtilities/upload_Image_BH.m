@@ -98,7 +98,8 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
             link.setChild(omero.model.ImageI(imgId, false));
                 link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
                     session.getUpdateService().saveAndReturnObject(link);     
-        image = get_Object_by_Id(session,imgId);
+        %image = get_Object_by_Id(session,imgId);
+        myimages = getImages(session,imgId); image = myimages(1);        
         %
         ome_params.SizeZ = 1;
         ome_params.SizeC = 1;
@@ -156,7 +157,8 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
             link.setChild(omero.model.ImageI(imgId, false));
                 link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
                     session.getUpdateService().saveAndReturnObject(link);     
-        image = get_Object_by_Id(session,imgId);
+        %image = get_Object_by_Id(session,imgId);
+        myimages = getImages(session,imgId); image = myimages(1);        
         %        
         ome_params.SizeZ = 1;
         ome_params.SizeC = sizeC;
@@ -196,8 +198,7 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo,
         end
         %
         xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'TCSPC');
-        namespace = 'IC_PHOTONICS';
-        add_XmlAnnotation(session,image,xmlnode,namespace);
+        add_XmlAnnotation(session,image,xmlnode);
         %                                
 
 end

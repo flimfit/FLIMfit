@@ -157,6 +157,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         obj.load_selected_files(1:obj.num_datasets);
     end
     
+    
     obj.init_dataset(data_setting_file);
     
 end

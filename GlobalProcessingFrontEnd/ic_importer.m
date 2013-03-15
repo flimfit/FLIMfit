@@ -369,7 +369,8 @@ data = createData();
             end;
             %
             new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo,native_spec);
-            new_dataset = get_Object_by_Id(data.session,new_dataset_id);
+            mydatasets = getDatasets(data.session,new_dataset_id); 
+            new_dataset = mydatasets(1);                         
             %                        
             % IMAGE ANNOTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% (this is ugly)
             if ~strcmp(data.image_annotation_file_extension,'none')
@@ -408,7 +409,8 @@ data = createData();
                 [data.Directory filesep data.main_well_plate_annotation_sacred_filename]);
             %            
             new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, FOV_name_parse_func, data.modulo);
-            new_dataset = get_Object_by_Id(data.session,new_dataset_id);
+            new_dataset = get_Object_by_Id(data.session,new_dataset_id);            
+            % myplates = getPlates(data.session,new_dataset_id); new_dataset = myplates(1);                         
             
         elseif strcmp(data.LoadMode,'single file')
 
@@ -459,8 +461,10 @@ data = createData();
                             sha1 = char('pending');
                             file_mime_type = char('application/octet-stream');
                             %
+                            myimages = getImages(data.session,imageId); image = myimages(1);
+                            %
                             add_Annotation(data.session, ...
-                                            get_Object_by_Id(data.session,imageId), ...
+                                            image, ...
                                             sha1, ...
                                             file_mime_type, ...
                                             xmlFileName, ...

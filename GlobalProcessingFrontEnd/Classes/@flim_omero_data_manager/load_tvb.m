@@ -22,32 +22,29 @@ function load_tvb(obj,data_series,object)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
     
-
-
     t_tvb = [];
     tvb_data = [];
     
     switch whos_Object(obj.session,object.getId().getValue());
         case 'Image'
             
-            metadata = get_FLIM_params_from_metadata(obj.session,object.getId());
+            metadata = get_FLIM_params_from_metadata(obj.session,object);
                         
+            channel = [];
+            
             if isempty(metadata.n_channels) || metadata.n_channels > 1 strcmp(data_series.mode,'TCSPC')
                 channel = data_series.request_channels(data_series.polarisation_resolved);
             else
                 channel = 1;
             end;
-            %
-            if ~isempty(metadata.n_channels) && metadata.n_channels==metadata.SizeC && ~strcmp(metadata.modulo,'ModuloAlongC') %if native multi-spectral FLIM
-                ZCT = [metadata.SizeZ channel metadata.SizeT]; 
-            else
-                ZCT = get_ZCT(object,metadata.modulo);
-            end
-            %
+            
+            t_tvb = metadata.delays;
+            
+            ZCT = get_ZCT(object,metadata.modulo, length(t_tvb) );
+            
             try
-                [t_tvb, tvb_data, ~] = obj.OMERO_fetch(object, channel, ZCT, metadata);
+                [ tvb_data, ~] = obj.OMERO_fetch(object, ZCT, metadata);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      

@@ -57,42 +57,27 @@ classdef flim_omero_data_manager < handle
         % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION                                    
             polarisation_resolved = false;
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            channel = [];
+            %
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
             if isempty(mdta) || isempty(mdta.delays)
-                channel = [];
                 errordlg('can not load: data have no FLIM specification');
                 return;
             end
-            %
-            if mdta.n_channels > 1
-                max_chnl = mdta.n_channels;
-                channel = cell2mat(channel_chooser({(max_chnl)}));
-                if -1 == channel, return, end;
-            else
-                channel = 1;
-            end;
-            %
-            if     strcmp(mdta.FLIM_type,'TCSPC')
-                data_series.mode = 'TCSPC'; 
-            elseif strcmp(mdta.FLIM_type,'Gated')
-                data_series.mode = 'widefield';
-            else
-                data_series.mode = 'TCSPC'; % not annotated sdt 
-            end
-            %
-            if ~isempty(mdta.n_channels) && mdta.n_channels > 1 && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
-                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
-            else
-                obj.ZCT = get_ZCT(image,mdta.modulo);
-            end
-            %
+           
+            delays = mdta.delays;
+           
+            obj.ZCT = get_ZCT(image,mdta.modulo, length(delays));
+            
+            channel = obj.ZCT(2);       % not sure why we need this?
+            
             try
-                [delays, data_cube, name] = obj.OMERO_fetch(image, channel, obj.ZCT, mdta);
+                [data_cube, name] = obj.OMERO_fetch(image, obj.ZCT, mdta);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
             data_size = size(data_cube);
-            %
+            
             % set name
             extensions{1} = '.ome.tiff';
             extensions{2} = '.ome.tif';
@@ -204,30 +189,21 @@ classdef flim_omero_data_manager < handle
                 load_as_image = false;
             end
             
-            mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
             if isempty(mdta) || isempty(mdta.delays)
                 channel = [];
                 errordlg('can not load: data have no FLIM specification');
                 return;
             end
-            %            
-            if mdta.n_channels > 1
-                max_chnl = mdta.n_channels;
-                channel = cell2mat(channel_chooser({(max_chnl)}));
-                if -1 == channel, return, end;
-            else
-                channel = 1;
-            end;
-            %
-            if ~isempty(mdta.n_channels) && mdta.n_channels > 1 && mdta.n_channels==mdta.SizeC && ~strcmp(mdta.modulo,'ModuloAlongC') %if native multi-spectral FLIM
-                obj.ZCT = [mdta.SizeZ channel mdta.SizeT]; 
-            else
-                obj.ZCT = get_ZCT(image,mdta.modulo);
-            end
             
-            %
+            t_irf = mdta.delays;
+           
+            obj.ZCT = get_ZCT(image,mdta.modulo, length(t_irf));
+            
+            channel = obj.ZCT(2);       % Don't think we need to return this!
+           
             try
-                [t_irf, irf_image_data, ~] = obj.OMERO_fetch(image, channel, obj.ZCT, mdta);
+                [irf_image_data, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
