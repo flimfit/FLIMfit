@@ -115,6 +115,8 @@ function metadata = extract_metadata(strings)
         new_strings{i} = s;
         
         common_substring = commonsubstring(common_substring,s);
+        
+        common_substring = common_substring(1,:);
 
     end
     

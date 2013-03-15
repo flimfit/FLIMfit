@@ -33,25 +33,42 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     
     diff = zeros(obj.height/n,obj.width/n);
     sim = zeros(obj.height/n,obj.width/n);
+    intensity = zeros(obj.height/n,obj.width/n);
     
     ti = obj.tr_t;
     tii = min(ti):nt:max(ti);
     
     decayi = interp1(ti,decay,tii);
+    decayi = decayi/sum(decayi);
     
     h=waitbar(0,'Calculating offsets');
     for i=1:(obj.width/n)
         for j=1:(obj.height/n)
             
             decayij = obj.cur_tr_data(:,:,j*n,i*n);   
+            mask = obj.mask(j*n,i*n);
             decayij(decayij<0) = 0;
-            decayiji = interp1(ti,decayij,tii);
             
-            [a,lags] = xcorr(decayi,decayiji,200/nt);
-            [m,idx] = max(a);
-            sim(j,i) = m;
-            diff(j,i) = lags(idx)*nt;
+            if ~mask
             
+                intensity(j,i) = NaN;
+                diff(j,i) = NaN;
+                sim(j,i) = NaN;
+                
+            else
+                
+                decayiji = interp1(ti,decayij,tii);
+
+                intensity(j,i) = sum(decayiji);
+
+                decayiji = decayiji / intensity(j,i);
+
+                [a,lags] = xcorr(decayi,decayiji,200/nt);
+                [m,idx] = max(a);
+                sim(j,i) = m;
+                diff(j,i) = lags(idx)*nt;
+                
+            end
         end
         if mod(i,20)
             waitbar(i/obj.width*n,h);
@@ -65,13 +82,27 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     p(2:4) = [200,400,600];
     set(f,'Position',p);
     
-    subplot(2,1,1);
+    subplot(2,2,1);
     plot(obj.tr_t,decay);
+    title('IRF Shape');
     
-    subplot(2,1,2);
+    subplot(2,2,2);
     imagesc(diff);
     daspect([1,1,1]);
     colorbar
+    title('IRF Shift (ps)')
+
+    subplot(2,2,3);
+    imagesc(sim/max(sim(:)));
+    daspect([1,1,1]);
+    colorbar
+    title('Degree of correlation (Normalised)');
+
+    subplot(2,2,4);
+    imagesc(intensity);
+    daspect([1,1,1]);
+    colorbar
+    title('Intensity (DN)');
     
     irf_data = struct('t_irf',obj.tr_t,'irf',decay,'t0_image',diff);
     
