@@ -7,7 +7,7 @@ function ret = get_FLIM_params_from_metadata(session, image)
      
      objId = image.getId();
     
-    s = read_XmlAnnotation_havingNS(session,image,'http://www.openmicroscopy.org/Schemas/Additions/2011-09'); 
+    s = read_XmlAnnotation_havingNS(session,image,'openmicroscopy.org/omero/dimension/modulo'); 
     %s = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.XmlAnnotation','ModuloAlong');
     
     if ~isempty(s)      % found correct ModuloAlong XmlAnnotation

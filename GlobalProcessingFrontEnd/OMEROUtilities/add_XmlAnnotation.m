@@ -1,4 +1,4 @@
-function ret = add_XmlAnnotation(session,object,Xml,namespace)
+function ret = add_XmlAnnotation(session,object,Xml)
 
 % add_XmlAnnotation adds an OMERO XmlAnnotation
 %
@@ -36,6 +36,9 @@ function ret = add_XmlAnnotation(session,object,Xml,namespace)
         if isempty(Xml) || isempty(session) || isempty(object)
             return;
         end;
+
+
+        namespace  = 'openmicroscopy.org/omero/dimension/modulo';
                                     
         iUpdate = session.getUpdateService(); % service used to write object
         
