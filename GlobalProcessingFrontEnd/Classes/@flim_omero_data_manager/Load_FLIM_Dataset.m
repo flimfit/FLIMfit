@@ -147,7 +147,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %                                   
             polarisation_resolved = false;            
             %
-            image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
+            %image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
+            
+            myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
+            
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image.getId());
             if isempty(mdta) || isempty(mdta.delays)
@@ -240,8 +243,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
 
                         for j = 2:num_sel
 
-                                imgId = image_ids(selected(j));                        
-                                image = get_Object_by_Id(obj.session,imgId);
+                                imgId = image_ids(selected(j));                                                        
+                                myimages = getImages(obj.session,imgId); image = myimages(1);
+                                
                                 try
                                     [~,data,~] = obj.OMERO_fetch(image,obj.selected_channel,obj.ZCT,mdta);
                                 catch err
@@ -269,7 +273,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
                         for j = 2:num_sel
 
                                 imgId = image_ids(selected(j));                        
-                                image = get_Object_by_Id(obj.session,imgId);
+                                myimages = getImages(obj.session,imgId); image = myimages(1);
+                                
                                 try
                                     [~,data,~] = obj.OMERO_fetch(image,obj.selected_channel,obj.ZCT,mdta);
                                     if ~isempty(data) 
