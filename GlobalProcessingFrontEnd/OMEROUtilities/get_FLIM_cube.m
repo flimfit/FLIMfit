@@ -62,6 +62,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
                 tt = tt + 1;
                 plane = toMatrix(rawPlane, pixels); 
                 data_cube(t,1,:,:,1) = plane';
+                barctr = barctr + 1;
                 if barctr == barstep
                     waitbar((t/sizet),w);
                     barctr = 0;
@@ -77,6 +78,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
                 tt = tt + 1;
                 plane = toMatrix(rawPlane, pixels); 
                 data_cube(t,1,:,:,1) = plane';
+                barctr = barctr + 1;
                 if barctr == barstep
                     waitbar((t/sizet),w);
                     barctr = 0;
