@@ -198,12 +198,11 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 catch err
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
-                
-                
+                                
                 data_series.polarisation_resolved = polarisation_resolved;
                 data_series.t = delays;
                 if strcmp(data_series.mode,'TCSPC')
-                    data_series.t_int = ones(size(t));      % Not sure of behaviour for gated data
+                    data_series.t_int = ones(size(data_series.t));      % Not sure of behaviour for gated data
                 end
                 data_series.use_memory_mapping = false;
                 data_series.load_multiple_channels = false; 
@@ -258,7 +257,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                         for j = 2:num_sel
 
                                 imgId = image_ids(selected(j));                        
-                                %image = get_Object_by_Id(obj.session,imgId);
+                                %
                                 myimages = getImages(obj.session,imgId); image = myimages(1);
                                 try
                                     [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
@@ -294,8 +293,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 data_series.compute_tr_data(false);    
                 data_series.switch_active_dataset(1);    
                 %data_series.init_dataset(dataset_indexting_file); %?   
-                
-                
+                                
                 data_series.init_dataset();            
                 
             end % if length(delays) > 0
