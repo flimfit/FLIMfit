@@ -383,8 +383,17 @@ classdef flim_omero_data_manager < handle
             if isempty(image), return, end;
             %   
             try
-                zct = get_ZCT(image,'ModuloAlongC');
-                data_cube = get_FLIM_cube( obj.session, image, 1, 1,'ModuloAlongC',zct);            
+                % single plane (not time-resolved) so set sizet to 1
+                ZCT = get_ZCT(image,'ModuloAlongC',1);
+                
+                %create a dummy metadata in order to get data via
+                %OMERO_fetch
+                mdta.FLIM_type = '?';
+                mdta.modulo = 'ModuloAlongC';
+                mdta.delays = 1;
+                
+                [ data_cube, name ] =  obj.OMERO_fetch(  image, ZCT, mdta);
+                            
                 data = squeeze(data_cube);
                 %
                 tempfilename = [tempname '.tif'];

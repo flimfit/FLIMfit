@@ -40,7 +40,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     
     
     
-     tStart = tic; 
+     %tStart = tic; 
      
      barstep = 1;
      
@@ -104,7 +104,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
             
     end
     
-     tElapsed = toc(tStart)
+    % tElapsed = toc(tStart)
     
     
 
