@@ -202,7 +202,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 data_series.polarisation_resolved = polarisation_resolved;
                 data_series.t = delays;
                 if strcmp(data_series.mode,'TCSPC')
-                    data_series.t_int = ones(length(data_series.t));      % Not sure of behaviour for gated data
+                    data_series.t_int = ones(size(data_series.t));      % Not sure of behaviour for gated data
                 end
                 data_series.use_memory_mapping = false;
                 data_series.load_multiple_channels = false; 
