@@ -50,13 +50,11 @@ data = createData();
             data.image_annotation_file_extension = settings.image_annotation_file_extension;        
             data.load_dataset_annotations = settings.load_dataset_annotations;
             data.modulo = settings.modulo;
-            data.native_multichannel_FLIM = settings.native_multichannel_FLIM;            
         else
             data.DefaultDataDirectory = 'c:\';        
             data.image_annotation_file_extension = 'none';        
             data.load_dataset_annotations = false;
             data.modulo = 'ModuloAlongT';
-            data.native_multichannel_FLIM = false;
         end                    
         %
         data.client  = [];
@@ -110,7 +108,8 @@ data = createData();
         % + Omero menu
         gui.menu_omero = uimenu( gui.Window, 'Label', 'Omero' );
         gui.menu_logon = uimenu( gui.menu_omero, 'Label', 'Set logon default', 'Callback', @onLogon );        
-        gui.menu_setproject = uimenu( gui.menu_omero, 'Label','Set Project', 'Callback', @onSetDestination );
+        gui.menu_logon = uimenu( gui.menu_omero, 'Label', 'Restore logon', 'Callback', @onRestoreLogon );        
+        gui.menu_setproject = uimenu( gui.menu_omero, 'Label','Set Project', 'Callback', @onSetDestination,'Separator','on' );
         gui.menu_setdataset = uimenu( gui.menu_omero, 'Label','Set Dataset', 'Callback', @onSetDestination );
         gui.menu_setproject = uimenu( gui.menu_omero, 'Label','Set Screen', 'Callback', @onSetDestination );        
         % + Upload menu
@@ -120,10 +119,7 @@ data = createData();
         gui.menu_upload      = uimenu(gui.Window,'Label',data.modulo);
         uimenu(gui.menu_upload,'Label','ModuloAlongC','Callback', @onSetModuloAlong);                                
         uimenu(gui.menu_upload,'Label','ModuloAlongT','Callback', @onSetModuloAlong);                                
-        uimenu(gui.menu_upload,'Label','ModuloAlongZ','Callback', @onSetModuloAlong);                                
-        uimenu(gui.menu_upload,'Label','ModuloAlongT (multichannel sdt)','Callback', @onSetModuloAlong);                                
-        uimenu(gui.menu_upload,'Label','ModuloAlongZ (multichannel sdt)','Callback', @onSetModuloAlong);                                        
-                        
+        uimenu(gui.menu_upload,'Label','ModuloAlongZ','Callback', @onSetModuloAlong);                                                        
         %
         % CONTROLS
         gui.ProjectNamePanel = uicontrol( 'Style', 'text','Parent',gui.Window,'String',data.ProjectName,'FontSize',10,'Position',[20 80 800 20],'BackgroundColor',bckg_color);          
@@ -215,15 +211,7 @@ data = createData();
         set(gui.ImageAnnotationFileExtensionPopup, 'Visible', multiple_data_controls_visibility);
         set(gui.DatasetAnnotationsCheckboxPrompt, 'Visible', multiple_data_controls_visibility);
         set(gui.DatasetAnnotationsCheckbox, 'Visible', multiple_data_controls_visibility);
-        %
-        if data.native_multichannel_FLIM
-            if strcmp(data.modulo,'ModuloAlongT')
-                set(gui.menu_upload,'Label','ModuloAlongT (multichannel sdt)');     
-            elseif strcmp(data.modulo,'ModuloAlongZ')                
-                set(gui.menu_upload,'Label','ModuloAlongZ (multichannel sdt)');                 
-            end;
-        end
-            
+        %            
     end % updateInterface
 %-------------------------------------------------------------------------%
     function onExit(~,~)
@@ -282,6 +270,10 @@ data = createData();
                     updateInterface();
         end;
     end % onLogon
+%-------------------------------------------------------------------------%
+    function onRestoreLogon(~,~)  
+        load_omero();
+    end
 %-------------------------------------------------------------------------%
     function onSetDestination(hObj,~,~)
                 
@@ -361,12 +353,6 @@ data = createData();
         set(gui.Indicator,'String','..uploading..');
         %
         if (strcmp(data.extension,'tif') || strcmp(data.extension,'tiff') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
-            % simple case                 
-            if data.native_multichannel_FLIM
-                native_spec = 'native';
-            else
-                native_spec = 'whatever';
-            end;
             %
             new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo);
             mydatasets = getDatasets(data.session,new_dataset_id); 
@@ -581,7 +567,6 @@ data = createData();
         ic_importer_settings.image_annotation_file_extension = data.image_annotation_file_extension;
         ic_importer_settings.load_dataset_annotations = data.load_dataset_annotations;
         ic_importer_settings.modulo = data.modulo;
-        ic_importer_settings.native_multichannel_FLIM = data.native_multichannel_FLIM;
         xml_write('ic_importer_settings.xml', ic_importer_settings);
     end % save_settings
 %-------------------------------------------------------------------------%  
@@ -670,16 +655,7 @@ data = createData();
 
     function onSetModuloAlong(hObj,~,~)
         label = get(hObj,'Label');
-        if strcmp(label,'ModuloAlongT (multichannel sdt)')
-            data.modulo = 'ModuloAlongT';
-            data.native_multichannel_FLIM = true;
-        elseif strcmp(label,'ModuloAlongZ (multichannel sdt)')
-            data.modulo = 'ModuloAlongZ';
-            data.native_multichannel_FLIM = true;
-        else
             data.modulo  = label;    
-            data.native_multichannel_FLIM = false;
-        end;                        
       set(gui.menu_upload,'Label',label);      
       updateInterface();                   
     end
