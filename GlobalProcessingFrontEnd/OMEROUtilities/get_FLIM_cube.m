@@ -53,56 +53,54 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
      end;
      
      barctr = 0;
-    
-    switch modulo
+     
+      % Cast the binary data into the appropriate format
+    type = char(pixels.getPixelsType().getValue().getValue());
+    if strcmp(type,'float')
+         type = 'single';
+    end
+     
+     % set up target planes
+     targetz = ones(1,sizet) .* Z;        %defaults
+     targetc = ones(1,sizet) .* C;
+     targett = ones(1,sizet) .* T;
+     
+     switch modulo
         case 'ModuloAlongZ'
             tt = Z .* sizet;
-            for t = 1:sizet
-                rawPlane = store.getPlane(tt , C, T ); 
-                tt = tt + 1;
-                plane = toMatrix(rawPlane, pixels); 
-                data_cube(t,1,:,:,1) = plane';
-                barctr = barctr + 1;
-                if barctr == barstep
-                    waitbar((t/sizet),w);
-                    barctr = 0;
-                    drawnow;
-                end
-                
-            end
-            
+            targetz = tt:(tt + (sizet - 1));
         case 'ModuloAlongC' 
             tt = C .* sizet;
-            for t = 1:sizet
-                rawPlane = store.getPlane(Z , tt, T ); 
-                tt = tt + 1;
-                plane = toMatrix(rawPlane, pixels); 
-                data_cube(t,1,:,:,1) = plane';
-                barctr = barctr + 1;
-                if barctr == barstep
-                    waitbar((t/sizet),w);
-                    barctr = 0;
-                    drawnow;
-                end
-            end
-            
+            targetc = tt:(tt + (sizet - 1));
         case 'ModuloAlongT' 
             tt = T .* sizet;
-            for t = 1:sizet
-                rawPlane = store.getPlane(Z , C, tt); 
-                tt = tt + 1;
-                plane = toMatrix(rawPlane, pixels); 
-                data_cube(t,1,:,:,1) = plane';
-                barctr = barctr + 1;
-                if barctr == barstep
-                    waitbar((t/sizet),w);
-                    barctr = 0;
-                    drawnow;
-                end
+            targett = tt:(tt + (sizet - 1));
+     end
+     
+     for t = 1:sizet
+        rawPlane = store.getPlane(targetz(t) , targetc(t), targett(t) ); 
+        
+        %following 3 lines replace 'plane = toMatrix(rawPlane, pixels);'
+        %for speed
+        plane = typecast(rawPlane, type );
+        plane = reshape(plane, sizeX, sizeY);
+        plane  = swapbytes(plane);
+
+        
+        plane = toMatrix(rawPlane, pixels); 
+        data_cube(t,1,:,:,1) = plane';
+        barctr = barctr + 1;
+        if barctr == barstep
+            waitbar((t/sizet),w);
+            barctr = 0;
+            drawnow;
+        end
                 
-            end
-            
-    end
+     end
+     
+     
+    
+    
     
     % tElapsed = toc(tStart)
     
