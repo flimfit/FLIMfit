@@ -69,6 +69,8 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     
     if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif')
         obj.mode = 'TCSPC';
+    else
+        obj.mode = 'widefield';
     end
     
     obj.file_names = {file};

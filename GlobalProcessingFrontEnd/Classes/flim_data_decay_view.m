@@ -165,7 +165,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                         obj.data = obj.data_series.get_anisotropy_roi(mask,dataset);
                     case 6
                         obj.data = obj.data_series.get_g_factor_roi(mask,dataset);
-                        obj.bg_line = ones(size(t))*d.g_factor;
+                        obj.bg_line = ones(size(obj.t))*d.g_factor;
                 end
 
                 if length(size(obj.data)) > 2
@@ -201,24 +201,17 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
         
         function [ha,ra] = setup_axes(obj,f)
            
-            clf(f);
+            children = get(f,'Children');
+            if ~isempty(children)
+                for i=1:length(children)
+                    delete(children(i))
+                end
+            end
+            
             set(f,'Units','Normalized');
             ha = axes('OuterPosition',[0 0.3 1 0.7],'Box','off','Parent',f);
             ra = axes('OuterPosition',[0 0 1 0.32],'XTickLabel',[],'Parent',f);
-            
-       %{   
-set(res_axes,'YLim',[-0.6 0.6],'XLim',[0 7000])
-ylabel(res_axes,'Normalised Residual')
-hold(res_axes,'on');
-
-
-set(hr(1),'Color','k','LineStyle','-');
-set(hr(2),'Color',[0.6 0.6 0.6],'LineStyle','-');
-
-         %}   
-            
-            
-            
+      
         end
         
         function draw_plot(obj,f)
@@ -286,6 +279,7 @@ set(hr(2),'Color',[0.6 0.6 0.6],'LineStyle','-');
                            
             if ~isempty(obj.fit)
                 set(ra,'Visible','on');
+                set(ha,'OuterPosition',[0 0.3 1 0.7]);
                 if obj.fit_binned
                     plot_style = 'r--';
                 else
@@ -317,6 +311,7 @@ set(hr(2),'Color',[0.6 0.6 0.6],'LineStyle','-');
             else
                 cla(ra);
                 set(ra,'Visible','off');
+                set(ha,'OuterPosition',[0 0 1 1]);
             end
 
             % Set Y limits

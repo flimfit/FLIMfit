@@ -27,7 +27,7 @@ function [counts_per_photon offset] = determine_photon_stats(data,fit_offset,dis
 
 
     if nargin < 2
-        fit_offset = false;
+        fit_offset = true;
     end
     
     if nargin < 3
@@ -107,6 +107,9 @@ function [counts_per_photon offset] = determine_photon_stats(data,fit_offset,dis
     else
         offset = 0;
     end
+    
+    subplot(1,1,1);
+    plot(counts_per_photon);
  
     
     st = ['Counts per photon = ' num2str(mean(counts_per_photon),'%.2f') ' +/- ' num2str(std(counts_per_photon),2)];

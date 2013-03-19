@@ -41,12 +41,12 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Export_Fitting_Results;    
         menu_OMERO_Export_Fitting_Settings;            
         menu_OMERO_Import_Fitting_Settings;
-            menu_OMERO_Reset_Logon;  
-            menu_OMERO_Load_IRF_WF_gated;
-            menu_OMERO_Load_Background_form_Dataset;
-            menu_OMERO_Load_tvb_from_Image;
-            menu_OMERO_Load_tvb_from_Dataset;
-            menu_OMERO_Switch_User
+        menu_OMERO_Reset_Logon;  
+        menu_OMERO_Load_IRF_WF_gated;
+        menu_OMERO_Load_Background_form_Dataset;
+        menu_OMERO_Load_tvb_from_Image;
+        menu_OMERO_Load_tvb_from_Dataset;
+        menu_OMERO_Switch_User
             
         menu_OMERO_Working_Data_Info;
         
@@ -123,11 +123,7 @@ classdef front_end_menu_controller < handle
         menu_tools_estimate_irf;
         menu_tools_create_irf_shift_map;
         menu_tools_create_tvb_intensity_map;
-
-        menu_view_data
-        menu_view_plots;
-        menu_view_hist_corr;
-        menu_view_chi2_display;
+        menu_tools_preferences;
         
         menu_test_test1;
         menu_test_test2;
@@ -688,6 +684,12 @@ classdef front_end_menu_controller < handle
             d.compute_tr_data(true,true);
 
         end
+
+        function menu_tools_preferences_callback(obj,~,~)
+            profile = profile_controller();
+            profile.set_profile();
+        end
+
         
         function menu_tools_estimate_irf_callback(obj,~,~)
             d = obj.data_series_controller.data_series;
