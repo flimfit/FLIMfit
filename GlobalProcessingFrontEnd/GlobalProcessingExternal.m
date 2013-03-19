@@ -28,7 +28,7 @@ function GlobalProcessingExternal()
     % arguments are: wait,OMERO_active,external,require_auth
 
     addpath_global_analysis();
-    global_processing_ui(false, false, true);
+    flim_fit_ui(false, false, true);
     
 end
 

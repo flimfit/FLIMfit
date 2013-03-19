@@ -1,4 +1,4 @@
-    classdef global_processing_ui
+    classdef flim_fit_ui
         
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -33,9 +33,8 @@
     
     methods
       
-        function obj = global_processing_ui(wait,OMERO_active,external,require_auth)
-        
-            
+        function obj = flim_fit_ui(wait,OMERO_active,external,require_auth)
+                    
             if nargin < 1
                 wait = false;
             end
@@ -54,6 +53,9 @@
             else
                 wait = true;
             end
+            
+            load_preferences();
+
 
             
             % Try and read in version number

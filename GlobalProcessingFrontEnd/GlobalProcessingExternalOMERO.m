@@ -31,9 +31,8 @@ function GlobalProcessingExternalOMERO()
     OMERO_active    = true;
     external        = true;
     require_auth    = false;
-    global_processing_ui(wait,OMERO_active,external,require_auth);
-    
-    %global_processing_ui(false, true );
+    flim_fit_ui(wait,OMERO_active,external,require_auth);
+
     
 end
 
