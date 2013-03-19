@@ -28,7 +28,6 @@
    
     properties
         window
-        %handles
     end
     
     methods
@@ -54,10 +53,10 @@
                 wait = true;
             end
             
-            load_preferences();
+            profile = profile_controller();
+            profile.load_profile();
 
-
-            
+   
             % Try and read in version number
             try
                 v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
@@ -104,10 +103,9 @@
             
             coords = get(0,'MonitorPositions');             
              %position only in main monitor
-            [~,hostname] = system('hostname');
-            hostname = strtrim(hostname);
+            hostname = getenv('COMPUTERNAME');
             % I want it on my second monitor!
-            if strcmp(hostname,'ph-scw09') && size(coords,1)==2
+            if strcmp(hostname,'PH-SCW09') && size(coords,1)==2
                 monitor = 2;
             else
                 monitor = 1;

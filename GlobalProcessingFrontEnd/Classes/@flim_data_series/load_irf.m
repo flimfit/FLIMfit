@@ -25,6 +25,8 @@ function load_irf(obj,file,load_as_image)
 
     % Author : Sean Warren
 
+    global profile;
+    
     [path,name,ext] = fileparts(file);
     if strcmp(ext,'.xml')
        
@@ -82,7 +84,9 @@ function load_irf(obj,file,load_as_image)
     obj.t_irf_min = min(obj.t_irf);
     obj.t_irf_max = max(obj.t_irf);
     
-    obj.estimate_irf_background();
+    if profile.Data.Automatically_Estimate_IRF_Background
+        obj.estimate_irf_background();
+    end
     
     obj.compute_tr_irf();
     obj.compute_tr_data();
