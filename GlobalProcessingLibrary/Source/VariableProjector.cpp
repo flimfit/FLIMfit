@@ -138,9 +138,9 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
 {
    int nsls1 = (n-l) * s;
  
-   double ftol = sqrt(dpmpar(1));
-   double xtol = sqrt(dpmpar(1));
-   double epsfcn = sqrt(dpmpar(1));
+   double ftol = (double)sqrt(dpmpar(1));
+   double xtol = (double)sqrt(dpmpar(1));
+   double epsfcn = (double)sqrt(dpmpar(1));
    double gtol = 0.;
    double factor = 1;
 
@@ -463,7 +463,7 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
    if (!use_numerical_derv)
    {
       r_sq += kap[0] * kap[0];
-      *rnorm = sqrt(r_sq);
+      *rnorm = (double)sqrt(r_sq);
    }
 
    n_call++;
@@ -515,9 +515,9 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    for(int i=0; i<n; i++)
    {
       if (wp[i] <= 0)
-         wp[i] = sqrt(1);
+         wp[i] = (double)sqrt((double)1);
       else
-         wp[i] = sqrt(1/wp[i]);
+         wp[i] = (double)sqrt(((double)1)/wp[i]);
    }
 }
 

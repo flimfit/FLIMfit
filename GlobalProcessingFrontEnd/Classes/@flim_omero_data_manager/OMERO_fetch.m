@@ -15,12 +15,14 @@ else
 
     data_cube = get_FLIM_cube( obj.session, image, length(delays), modulo, ZCT );                
          
-    %Bodge to suppress bright line artefact on RHS in BH .sdt files
-    if strfind(name,'.sdt')
-       data_cube(:,:,:,end,:) = 0;
-    end
+    if strcmp('TCSPC',FLIM_type)
     
-    if strcmp('Gated',FLIM_type)       % WARNING don't think this will give a good min
+        %Bodge to suppress bright line artefact on RHS in BH .sdt files
+        if strfind(name,'.sdt')
+           data_cube(:,:,:,end,:) = 0;
+        end
+    else    % Not TCSPC
+    
         if min(data_cube(:)) > 32500
             data_cube = data_cube - 32768;    % clear the sign bit which is set by labview
         end

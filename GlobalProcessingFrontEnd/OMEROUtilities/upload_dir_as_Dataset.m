@@ -1,4 +1,4 @@
-function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,modulo,bh_native_spec)
+function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,modulo)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -72,7 +72,7 @@ function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,
                                 session.getUpdateService().saveAndReturnObject(link); 
                             end % if strcmp('tif',extension) && is_OME_tif(full_file_name)                           
                         else % strcmp('sdt',extension)
-                            upload_Image_BH(session, new_dataset,full_file_name,'sample',modulo,bh_native_spec);    
+                            upload_Image_BH(session, new_dataset,full_file_name,'sample',modulo);    
                         end
                         %
                         waitbar(i/num_files, hw);

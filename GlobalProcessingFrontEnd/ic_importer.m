@@ -368,7 +368,7 @@ data = createData();
                 native_spec = 'whatever';
             end;
             %
-            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo,native_spec);
+            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo);
             mydatasets = getDatasets(data.session,new_dataset_id); 
             new_dataset = mydatasets(1);                         
             %                        
@@ -474,12 +474,7 @@ data = createData();
                             delete(xmlFileName);
                             %                            
                         else % strcmp('sdt',data.extension)
-                            if data.native_multichannel_FLIM
-                                native_spec = 'native';
-                            else
-                                native_spec = 'whatever';
-                            end;
-                            upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo, native_spec);
+                            upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo);
                         end                        
         end % strcmp(data.LoadMode,'single file')
         %      
