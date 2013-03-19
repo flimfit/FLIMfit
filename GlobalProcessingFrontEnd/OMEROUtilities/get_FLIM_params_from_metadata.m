@@ -6,6 +6,16 @@ function ret = get_FLIM_params_from_metadata(session, image)
      s = [];
      
      objId = image.getId();
+     
+     
+     
+     pixelsList = image.copyPixels();    
+     pixels = pixelsList.get(0);
+            
+            
+     SizeC = pixels.getSizeC().getValue();
+     SizeZ = pixels.getSizeZ().getValue();
+     SizeT = pixels.getSizeT().getValue();
     
     s = read_XmlAnnotation_havingNS(session,image,'openmicroscopy.org/omero/dimension/modulo'); 
     %s = read_Annotation_having_tag(session,get_Object_by_Id(session,objId.getValue()),'ome.model.annotations.XmlAnnotation','ModuloAlong');
@@ -48,6 +58,28 @@ function ret = get_FLIM_params_from_metadata(session, image)
         if isfield(modlo.ATTRIBUTE,'Description')        
             ret.FLIM_type = modlo.ATTRIBUTE.Description;
         end
+        
+        % validity check
+        % crude  test for nonsense in the Annotation
+        sizet = length(ret.delays);
+        switch ret.modulo
+            case 'ModuloAlongZ'
+                nZplanes = floor(SizeZ/sizet);
+                if nZplanes * sizet ~= SizeZ
+                    ret = [];   
+                end
+            case 'ModuloAlongC'
+                nchannels = floor(SizeC/sizet);
+                if nchannels * sizet ~= SizeC
+                    ret = [];   
+                end
+            case 'ModuloAlongT'
+                nTpoints = floor(SizeT/sizet);
+                if nTpoints * sizet ~= SizeT
+                    ret = [];   
+                end
+            
+        end
        
         
         return;
@@ -75,33 +107,27 @@ function ret = get_FLIM_params_from_metadata(session, image)
         % no Modulo XmlAnnotation or BHFile header. Forced to treat it as a
         % LaVision ome.tif
         
-       
-        if strcmp('Image',whos_Object(session,objId.getValue()))
-            
-            pixelsList = image.copyPixels();    
-            pixels = pixelsList.get(0);
-            
-            
-            SizeC = pixels.getSizeC().getValue();
-            SizeZ = pixels.getSizeZ().getValue();
-            SizeT = pixels.getSizeT().getValue();
-            
+             
         
-            if 1 == SizeC && 1 == SizeT && SizeZ > 1
-                if ~isempty(pixels.getPhysicalSizeZ().getValue())
-                    physSizeZ = pixels.getPhysicalSizeZ().getValue().*1000;     % assume this is in ns so convert to ps
-                    ret.delays = (0:SizeZ-1)*physSizeZ;
-                    ret.modulo = 'ModuloAlongZ';
-                    ret.FLIM_type = 'TCSPC';
-                    return;
-                end
+        if 1 == SizeC && 1 == SizeT && SizeZ > 1
+            if ~isempty(pixels.getPhysicalSizeZ().getValue())
+                physSizeZ = pixels.getPhysicalSizeZ().getValue().*1000;     % assume this is in ns so convert to ps
+                ret.delays = (0:SizeZ-1)*physSizeZ;
+                ret.modulo = 'ModuloAlongZ';
+                ret.FLIM_type = 'TCSPC';
+                return;
             end
-                       
         end
+                        
         
         ret = [];
         
     end
+    
+    
+                  
+             
+
         
     
     

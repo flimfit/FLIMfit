@@ -102,8 +102,12 @@ classdef flim_omero_data_manager < handle
             data_series.polarisation_resolved = polarisation_resolved;
             data_series.t = delays;
             data_series.use_memory_mapping = false;
+            
             data_series.data_series_mem = single(data_cube);
-            data_series.tr_data_series_mem = single(data_cube);                
+            
+            data_series.tr_data_series_mem = single(data_cube); 
+             
+    
             data_series.load_multiple_channels = false;
             data_series.loaded = ones([1 data_series.num_datasets]);
             data_series.switch_active_dataset(1);    

@@ -8,6 +8,7 @@ FLIM_type   = mdta.FLIM_type;
 modulo      = mdta.modulo;
 delays      = mdta.delays';
 
+
 if isempty(modulo)    
     errordlg('no suitable annotation found - can not continue');
     return;
