@@ -27,9 +27,7 @@
 //
 //=========================================================================
 
-#include "boost/math/distributions/fisher_f.hpp"
-#include "boost/math/tools/minima.hpp"
-#include "boost/bind.hpp"
+#include "boost/math/distributions/normal.hpp"
 #include <limits>
 #include <exception>
 
@@ -42,7 +40,6 @@
 #include "omp_stub.h"
 
 using namespace boost::interprocess;
-using namespace std;
 
 
 
@@ -62,7 +59,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
                                                  int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                                                  int pulsetrain_correction, double t_rep,
                                                  int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                                                 int weighting, int n_thread, int runAsync, int (*callback)()) :
+                                                 int weighting, int calculate_errors, double conf_interval,
+                                                 int n_thread, int runAsync, int (*callback)()) :
    global_algorithm(global_algorithm), image_irf(image_irf), n_irf(n_irf),  t_irf(t_irf), irf(irf), pulse_pileup(pulse_pileup),
    t0_image(t0_image), n_exp(n_exp), n_fix(n_fix), n_decay_group(n_decay_group), decay_group(decay_group),
    tau_min(tau_min), tau_max(tau_max),
@@ -77,7 +75,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    pulsetrain_correction(pulsetrain_correction), t_rep(t_rep),
    ref_reconvolution(ref_reconvolution), ref_lifetime_guess(ref_lifetime_guess),
    n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
-   weighting(weighting), error(0), init(false), polarisation_resolved(false), has_fit(false)
+   weighting(weighting), calculate_errors(calculate_errors), conf_interval(conf_interval),
+   error(0), init(false), polarisation_resolved(false), has_fit(false)
 {
 
    if (this->n_thread < 1)
@@ -117,13 +116,9 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
 
    irf_max      = NULL;
    
-   conf_lim     = NULL;
-
-   locked_param = NULL;
-   locked_value = NULL;
-
    lin_params_err = NULL;
-   alf_err        = NULL;
+   alf_err_lower  = NULL;
+   alf_err_upper  = NULL;
 
    chan_fact      = NULL;
    irf_idx        = NULL;
@@ -205,7 +200,6 @@ void StartWorkerThread(void* wparams)
 void FLIMGlobalFitController::WorkerThread(int thread)
 {
    int idx, region_count;
-   
    status->AddThread();
 
    //=============================================================================
@@ -216,7 +210,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
    //=============================================================================
    if (data->global_mode == MODE_PIXELWISE)
    {
-	  int n_active_thread = min(n_thread,data->n_px);
+	  int n_active_thread = std::min(n_thread,data->n_px);
       for(int im=0; im<data->n_im_used; im++)
       {
          for(int r=0; r<MAX_REGION; r++)
@@ -578,8 +572,7 @@ void FLIMGlobalFitController::Init()
 
    getting_fit    = false;
    use_kappa      = true;
-   calculate_errs = false;
-
+   
    // Validate input
    //---------------------------------------
    if (polarisation_resolved)
@@ -605,7 +598,7 @@ void FLIMGlobalFitController::Init()
       inc_donor = true;
    }
    else
-      n_fret_fix = min(n_fret_fix,n_fret);
+      n_fret_fix = std::min(n_fret_fix,n_fret);
  
    n_fret_v = n_fret - n_fret_fix;
       
@@ -745,12 +738,12 @@ void FLIMGlobalFitController::Init()
    if (data->global_mode == MODE_PIXELWISE)
    {
       status->SetNumRegion(data->n_masked_px);
-      n_fitters = min(data->n_px,n_thread);
+      n_fitters = std::min(data->n_px,n_thread);
    }
    else
    {
       status->SetNumRegion(data->n_regions_total);
-      n_fitters = min(data->n_regions_total,n_thread);
+      n_fitters = std::min(data->n_regions_total,n_thread);
    }
 
    
@@ -798,7 +791,7 @@ void FLIMGlobalFitController::Init()
    else
       s = data->n_px;
 
-   max_dim = max(n_irf,n_t);
+   max_dim = std::max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
@@ -861,7 +854,7 @@ void FLIMGlobalFitController::Init()
    else
       n = n_meas;
 
-   ndim       = max( n, 2*nl+3 );
+   ndim       = std::max( n, 2*nl+3 );
    nmax       = n;
    int lps    = l + s + 1;
    
@@ -894,6 +887,12 @@ void FLIMGlobalFitController::Init()
       ierr         = new int[ data->n_regions_total ];
       success      = new float[ data->n_regions_total ];
       alf          = new float[ alf_size * nl ]; //ok
+
+      if (calculate_errors)
+      {
+         alf_err_lower = new float[ alf_size * nl ];
+         alf_err_upper = new float[ alf_size * nl ];
+      }
       
       if (calculate_mean_lifetimes)
       {
@@ -902,7 +901,7 @@ void FLIMGlobalFitController::Init()
       }
       
 
-      alf_local    = new double[ n_fitters * nl ]; //free ok
+      alf_local    = new double[ n_fitters * nl * 3 ]; //free ok
       y            = new float[ n_fitters * s * n_meas ]; //free ok 
       irf_idx      = new int[ n_fitters * s ];
 
@@ -928,14 +927,6 @@ void FLIMGlobalFitController::Init()
 
     
       irf_max      = new int[n_meas]; //free ok
-
-      if (calculate_errs) 
-         conf_lim  = new double[ n_thread * nl ]; //free ok
-
-      //locked_param = new int[n_thread]; //ok
-      //locked_value = new double[n_thread]; //ok
-
-      //local_irf    = new double*[n_thread]; //ok
 
       init = true;
    }
@@ -1057,6 +1048,13 @@ void FLIMGlobalFitController::Init()
      alf_ref_idx = idx++;
 
    SetOutputParamNames();
+
+
+   // standard normal distribution object:
+   boost::math::normal norm;
+   conf_factor = quantile(complement(norm, 0.5*conf_interval));
+   conf_factor = conf_factor;
+
 
 }
 
@@ -1383,7 +1381,6 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(fit_buf);
       ClearVariable(count_buf);
       ClearVariable(adjust_buf);
-      ClearVariable(conf_lim);
       ClearVariable(local_decay);
       ClearVariable(decay_group_buf);
 

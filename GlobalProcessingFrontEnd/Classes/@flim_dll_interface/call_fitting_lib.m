@@ -25,6 +25,8 @@ function err = call_fitting_lib(obj,roi_mask,selected)
 
     % Author : Sean Warren
 
+    global profile;
+    
     p = obj.fit_params;
     d = obj.data_series;
     
@@ -84,6 +86,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         end
     end
     
+    conf_interval = profile.Fitting.Confidence_Interval;
     
     if p.polarisation_resolved
         
@@ -99,7 +102,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
                             p.fit_tvb, p.tvb, obj.p_tvb_profile, ...
                             p.pulsetrain_correction, 1e-6/d.rep_rate, ...
                             ref_recov, d.ref_lifetime, p.fitting_algorithm, p.weighting_mode, ...
-                            p.n_thread, true, false, 0);
+                            p.calculate_errs, conf_interval, p.n_thread, true, false, 0);
     else
        
         n_decay_group = max(p.global_beta_group)+1;
@@ -118,7 +121,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
                             p.n_fret, p.n_fret_fix, p.inc_donor, obj.p_E_guess, ...
                             p.pulsetrain_correction, 1e-6/d.rep_rate, ...
                             ref_recov, d.ref_lifetime, p.fitting_algorithm, p.weighting_mode, ...
-                            p.n_thread, true, false, 0);
+                            p.calculate_errs, conf_interval, p.n_thread, true, false, 0);
     end
 
     if err ~= 0

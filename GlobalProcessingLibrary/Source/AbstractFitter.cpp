@@ -180,7 +180,7 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
 }
 
 
-int AbstractFitter::CalculateErrors(double* alf, double* conf_lim)
+int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_lower, double *err_upper)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
@@ -190,38 +190,50 @@ int AbstractFitter::CalculateErrors(double* alf, double* conf_lim)
    if (err != 0)
       return err;
 
+   this->conf_limit = conf_limit;
+
    getting_errs = true;
 
-   for(int i=0; i<nl; i++)
+   // Get lower and upper limit (j=0, j=1 respectively)
+   for(int lim=0; lim<2; lim++)
    {
-      fixed_param = i;
-      fixed_value_initial = alf[i];
-   
-      Init();
-
-      int idx = 0;
-      for(int j=0; j<nl; j++)
-         if (j!=fixed_param)
-            alf_err[idx++] = alf[j];
-
-      double f[3] = {0.1, 0.5, 1.0};
-
-
-      for(int k=0; k<3; k++)
+      for(int i=0; i<nl; i++)
       {
-         ans = brent_find_minima(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
-                                 0.0, f[k]*fixed_value_initial, 9);
-               
-         if (ans.second < 1)
-            break;   
-      }
+         fixed_param = i;
+         fixed_value_initial = alf[i];
+   
+         Init();
 
-      if (ans.second > 1)
-         ans.first = 0;
+         int idx = 0;
+         for(int j=0; j<nl; j++)
+            if (j!=fixed_param)
+               alf_err[idx++] = alf[j];
+         double f[4] = {0.02, 0.1, 0.5, 1.0};
+
+
+         for(int k=0; k<4; k++)
+         {
+            double start_offset = f[k]*fixed_value_initial;
+            if (lim==0)
+               start_offset *= -1;
             
-      conf_lim[i] = fixed_value_initial + ans.first;
-   }
 
+            ans = brent_find_minima(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
+                                    0.0, start_offset, 9);
+               
+            if (ans.second < 1)
+               break;   
+         }
+
+         if (ans.second > 1)
+            ans.first = 0;
+            
+         if (lim==0)
+            err_lower[i] = -ans.first;
+         else
+            err_upper[i] = ans.first;
+      }
+   }
    return 0;
 }
 
@@ -230,25 +242,28 @@ double AbstractFitter::ErrMinFcn(double x)
 {
    using namespace boost::math;
    
-   double alpha,c2,F,F_crit;
+   double alpha,c2,F,F_crit,chi2_crit;
    int itmax = 10;
 
    int niter, ierr;
 
-   alpha = 0.05;
-   fisher_f dist(1, n * s - nl - s * l);
-   F_crit = quantile(complement(dist, alpha));
+   int nmp = n * s - nl - s * l;
+
+   fisher_f dist(1, nmp);
+   F_crit = quantile(complement(dist, conf_limit));
    
+   chi2_crit = chi2_final*(F_crit/nmp+1);
+
    fixed_value_cur = fixed_value_initial + x; 
 
    FitFcn(nl-1,alf_err,itmax,&niter,&ierr,&c2);
             
    //c2 = CalculateChi2(params.thread, params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask, NULL);
 
-   F = (*cur_chi2-chi2_final)/chi2_final / chi2_factor * s ;
+   F = (*cur_chi2-chi2_final)/chi2_final * nmp ;
    
 
-   return (F-F_crit)*(F-F_crit)/F_crit;
+   return (*cur_chi2-chi2_crit)*(*cur_chi2-chi2_crit)/chi2_crit;
 
 }
 

@@ -40,6 +40,7 @@ classdef flim_fit_controller < flim_data_series_observer
         fit_pushbutton;
         results_table;
         progress_table;
+        table_stat_popupmenu;
     
         filter_table;
         
@@ -156,6 +157,10 @@ classdef flim_fit_controller < flim_data_series_observer
                 add_callback(obj.invert_colormap_popupmenu,@obj.plot_select_update);
             end
             
+            if ~isempty(obj.table_stat_popupmenu)
+                set(obj.table_stat_popupmenu,'Callback',@obj.table_stat_updated);
+            end
+            
             obj.update_list();
             obj.update_display_table();
             
@@ -257,15 +262,8 @@ classdef flim_fit_controller < flim_data_series_observer
             obj.clear_fit();
         end
         
-        function update_table(obj)
-            if ishandle(obj.results_table)
-                set(obj.results_table,'ColumnName','numbered');
-                set(obj.results_table,'RowName',obj.param_table_headers);
-                set(obj.results_table,'Data',obj.param_table);
-                
-                set(obj.progress_table,'RowName',obj.param_table_headers(1:4));
-                set(obj.progress_table,'Data',obj.param_table(1:4,:));
-            end
+        function table_stat_updated(obj,~,~)
+            obj.update_table()
         end
         
         function decay = fitted_decay(obj,t,im_mask,selected)

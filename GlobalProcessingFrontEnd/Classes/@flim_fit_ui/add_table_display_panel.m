@@ -27,9 +27,18 @@ function handles = add_table_display_panel(obj,handles,parent)
 
 
     layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+    top_layout = uiextras.HBox( 'Parent', layout, 'Spacing', 3 );
         
+    uicontrol( 'Style', 'text', 'String', 'Statistic  ', 'Parent', top_layout, ...
+               'HorizontalAlignment', 'right' );
+    
+    handles.table_stat_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {''}, 'Parent', top_layout );     
+    
     % Results Panel
     %---------------------------------------
     handles.results_table = uitable( 'Parent', layout );
+    
+    set(layout,'Sizes',[22,-1])
+    set(top_layout,'Sizes',[90,90])
     
 end

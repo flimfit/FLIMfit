@@ -28,12 +28,16 @@ function fit_complete(obj,~,~)
     
     obj.fit_result = obj.dll_interface.fit_result;
     
-    [obj.param_table, obj.param_table_headers] = obj.dll_interface.get_param_list();
+    %[obj.param_table, obj.param_table_headers] = obj.dll_interface.get_param_list();
     
     obj.dll_interface.fit_result = [];
     
     obj.display_fit_end();
 
+    if ishandle(obj.table_stat_popupmenu)
+        set(obj.table_stat_popupmenu,'String',obj.fit_result.stat_names);
+    end
+    
     obj.update_table();
 
     obj.has_fit = true;

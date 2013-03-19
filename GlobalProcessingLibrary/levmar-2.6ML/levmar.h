@@ -39,7 +39,7 @@
  * Bellow, an attempt is made to issue a warning if this option is turned on and OpenMP
  * is being used (note that this will work only if omp.h is included before levmar.h)
  */
-/* #undef LINSOLVERS_RETAIN_MEMORY */
+#undef LINSOLVERS_RETAIN_MEMORY
 #if (defined(_OPENMP))
 # ifdef LINSOLVERS_RETAIN_MEMORY
 #  ifdef _MSC_VER
@@ -55,8 +55,9 @@
 /* specifies whether single precision routines will be compiled or not */
 #define LM_SNGL_PREC
 
-/****************** End of configuration options, no changes necessary beyond this point ******************/
+#define NOMINMAX
 
+/****************** End of configuration options, no changes necessary beyond this point ******************/
 
 #ifdef __cplusplus
 extern "C" {

@@ -25,8 +25,10 @@ function metadata = extract_metadata(strings)
 
     % Author : Sean Warren
 
+
+    strrep(strings,filesep,' ');
+
 try 
-    strrep(strings,pathsep,' ');
     metadata = struct();
 
     if nargin < 1

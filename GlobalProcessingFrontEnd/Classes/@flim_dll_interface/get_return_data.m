@@ -1,6 +1,5 @@
 function get_return_data(obj)
 
-
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
     %
@@ -57,16 +56,10 @@ function get_return_data(obj)
     p_regions = libpointer('int32Ptr',zeros(n_output,255)); 
     p_region_size = libpointer('int32Ptr',zeros(n_output,255)); 
     
-    p_mean = libpointer('singlePtr',zeros(n_output,255));
-    p_std = libpointer('singlePtr',zeros(n_output,255));
-    p_median = libpointer('singlePtr',zeros(n_output,255));
-    p_q1 = libpointer('singlePtr',zeros(n_output,255));
-    p_q2 = libpointer('singlePtr',zeros(n_output,255));
-    p_pct_01 = libpointer('singlePtr',zeros(n_output,255));
-    p_pct_99 = libpointer('singlePtr',zeros(n_output,255));
     
-    p_w_mean = libpointer('singlePtr',zeros(n_output,255));
-    p_w_std = libpointer('singlePtr',zeros(n_output,255));
+    n_stats = 11;
+    
+    p_stats = libpointer('singlePtr',zeros(n_stats,n_output,255));
     
     p_success = libpointer('singlePtr',zeros(n_output,255)); 
     p_iterations = libpointer('int32Ptr',zeros(n_output,255)); 
@@ -84,7 +77,7 @@ function get_return_data(obj)
                             
 
         err = calllib(obj.lib_name,'GetImageStats',obj.dll_id, im-1, p_mask, p_n_regions, ...
-                      p_regions, p_region_size, p_success, p_iterations, p_mean, p_std, p_median, p_q1, p_q2, p_pct_01, p_pct_99, p_w_mean, p_w_std);
+                      p_regions, p_region_size, p_success, p_iterations, p_stats);
 
         n_regions = p_n_regions.Value;
         
@@ -107,18 +100,17 @@ function get_return_data(obj)
             success = double(p_success.Value);
             success = success(sel);
 
-            param_mean = reshape_return(p_mean,sel);
-            param_std = reshape_return(p_std,sel);
-            param_median = reshape_return(p_median,sel);
-            param_q1 = reshape_return(p_q1,sel);
-            param_q2 = reshape_return(p_q2,sel);
-            param_pct_01 = reshape_return(p_pct_01,sel);
-            param_pct_99 = reshape_return(p_pct_99,sel);
-
-            param_w_mean = reshape_return(p_w_mean,sel);
-            param_w_std = reshape_return(p_w_std,sel);
             
-            r.set_results(idx,regions,region_size,success,iterations,param_mean,param_std,param_median,param_q1,param_q2,param_pct_01,param_pct_99,param_w_mean,param_w_std);
+            stats = reshape(double(p_stats.Value),[n_stats,n_output,255]);
+            s = false([1,255]);
+            s(1:length(sel)) = sel;
+            stats = stats(:,:,s); 
+            
+            stats = permute(stats,[2 3 1]);
+
+            names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
+
+            r.set_results(idx,im,regions,region_size,success,iterations,stats,names);
             idx = idx+1;
         else
             keep(i) = false;
@@ -139,10 +131,7 @@ function get_return_data(obj)
     obj.fit_result.metadata = md;
     
     function data = reshape_return(data,sel)
-        data = reshape(double(data.Value),[n_output,255]);
-        s = false([1,255]);
-        s(1:length(sel)) = sel;
-        data = data(1:n_output,s);
+
         
     end
     

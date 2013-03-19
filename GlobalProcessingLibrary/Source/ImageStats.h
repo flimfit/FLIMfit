@@ -11,6 +11,11 @@
 #ifndef IMAGE_STATS_H
 #define IMAGE_STATS_H
 
+enum PARAM_IDX { PARAM_MEAN, PARAM_W_MEAN, PARAM_STD, PARAM_W_STD, PARAM_MEDIAN, 
+                 PARAM_Q1, PARAM_Q2, PARAM_01, PARAM_99, PARAM_ERR_LOWER, PARAM_ERR_UPPER };
+
+const int N_STATS = 11;
+
 /**
  * Convenience class to encapsulate returned results for a dataset
  */
@@ -20,27 +25,34 @@ class ImageStats
 {
 public:
 
-   ImageStats(T* params_mean, T* params_std, T* params_median, T* params_q1, T* params_q2, T* params_01, T* params_99, T* params_w_mean, T* params_w_std) :
-                 idx(0), n_im(n_im), params_mean(params_mean), params_std(params_std), params_median(params_median), params_q1(params_q1),  
-                 params_q2(params_q2), params_01(params_01), params_99(params_99), params_w_mean(params_w_mean), params_w_std(params_w_std)
-   {};
+   ImageStats(T* params)
+   {
+      this->params = params;
+      next_param = params;
+      idx = 0;
+   };
+
 
    /**
     * Set the next parameter statistics to specified values
     */ 
-   void SetNextParam(T mean, T std, T median, T q1, T q2, T p01, T p99, T w_mean, T w_std)
+   void SetNextParam(T mean, T w_mean, T std, T w_std, T median, T q1, T q2, T p01, T p99, T err_lower, T err_upper )
    {
 
-      params_mean[idx] = mean; 
-      params_std[idx] = std; 
-      params_median[idx] = median; 
-      params_q1[idx] = q1; 
-      params_q2[idx] = q2; 
-      params_01[idx] = p01; 
-      params_99[idx] = p99; 
+      next_param[PARAM_MEAN] = mean; 
+      next_param[PARAM_W_MEAN] = w_mean; 
+      next_param[PARAM_STD] = std; 
+      next_param[PARAM_W_STD] = w_std; 
+      next_param[PARAM_MEDIAN] = median; 
+      next_param[PARAM_Q1] = q1; 
+      next_param[PARAM_Q2] = q2; 
+      next_param[PARAM_01] = p01; 
+      next_param[PARAM_99] = p99; 
 
-      params_w_mean[idx] = w_mean; 
-      params_w_std[idx] = w_std; 
+      next_param[PARAM_ERR_LOWER] = err_lower;
+      next_param[PARAM_ERR_UPPER] = err_upper;
+
+      next_param += N_STATS;
 
       idx++;
    }
@@ -51,35 +63,54 @@ public:
    void SetNextParam(T mean)
    {
 
-      params_mean[idx] = mean; 
-      params_std[idx] = 0; 
-      params_median[idx] = mean; 
-      params_q1[idx] = mean; 
-      params_q2[idx] = mean; 
-      params_01[idx] = 0.99f*mean;  // These parameters are used for setting inital limits 
-      params_99[idx] = 1.01f*mean;  // so must be different to mean for correct display
+      next_param[PARAM_MEAN] = mean; 
+      next_param[PARAM_W_MEAN] = mean; 
+      next_param[PARAM_STD] = NaN(); 
+      next_param[PARAM_W_STD] = NaN(); 
+      next_param[PARAM_MEDIAN] = mean; 
+      next_param[PARAM_Q1] = mean; 
+      next_param[PARAM_Q2] = mean; 
+      next_param[PARAM_01] = 0.99f*mean;  // These parameters are used for setting inital limits 
+      next_param[PARAM_99] = 1.01f*mean;  // so must be different to mean for correct display
 
-      params_w_mean[idx] = mean; 
-      params_w_std[idx] = 0; 
+      SetNaN(next_param+PARAM_ERR_LOWER,1);
+      SetNaN(next_param+PARAM_ERR_UPPER,1);
+
+      next_param += N_STATS;
+
+      idx++;
+   }
+
+   /**
+    * Set the next parameter to @mean, parameter has no variance 
+    */
+   void SetNextParam(T mean, T err_lower, T err_upper)
+   {
+
+      next_param[PARAM_MEAN] = mean; 
+      next_param[PARAM_W_MEAN] = mean; 
+      next_param[PARAM_STD] = NaN(); 
+      next_param[PARAM_W_STD] = NaN(); 
+      next_param[PARAM_MEDIAN] = mean; 
+      next_param[PARAM_Q1] = mean; 
+      next_param[PARAM_Q2] = mean; 
+      next_param[PARAM_01] = 0.99f*mean;  // These parameters are used for setting inital limits 
+      next_param[PARAM_99] = 1.01f*mean;  // so must be different to mean for correct display
+
+      next_param[PARAM_ERR_LOWER] = err_lower;
+      next_param[PARAM_ERR_UPPER] = err_upper;
+
+      next_param += N_STATS;
 
       idx++;
    }
 
 private:
 
-   T* params_mean;
-   T* params_std; 
-   T* params_median;
-   T* params_q1;
-   T* params_q2;
-   T* params_01;
-   T* params_99;
-
-   T* params_w_mean;
-   T* params_w_std; 
-
+   T* params;
+   T* next_param;
    int idx;
-   int n_im;
+
 };
 
 #endif

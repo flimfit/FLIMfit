@@ -45,6 +45,9 @@ void ClearVariable(T*& var)
 void SetNaN(double* var, int n);
 void SetNaN(float* var, int n);
 
+double NaN();
+
+
 #ifndef _MSVC
 
 #define _ASSERTE(x)

@@ -17,6 +17,7 @@ classdef profile_controller
 
             % Fitting Preferences
             profile_def.Fitting.Maximum_Iterations = 100;
+            profile_def.Fitting.Confidence_Interval = 0.05;
 
             % Display Preferences
             profile_def.Display.Invert_Colourscale = false;

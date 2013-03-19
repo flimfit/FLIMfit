@@ -66,6 +66,7 @@ freely, subject to the following restrictions:
 #endif
 
 // Platform specific includes
+#define NOMINMAX
 #if defined(_TTHREAD_WIN32_)
   #include <windows.h>
 #else

@@ -53,11 +53,14 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int r_idx = data->GetRegionIndex(g,region);
 
-   float  *local_decay   = this->local_decay + thread * n_meas;
-   float  *w             = this->w + thread * n_meas;
+   float  *local_decay     = this->local_decay + thread * n_meas;
+   float  *w               = this->w + thread * n_meas;
 
-   double *alf_local     = this->alf_local + thread * nl;
-   float  *lin_local     = this->lin_local + thread * l;
+   double *alf_local       = this->alf_local + thread * nl * 3;
+   double *err_lower_local = this->alf_local + thread * nl * 3 +   nl;
+   double *err_upper_local = this->alf_local + thread * nl * 3 + 2*nl;
+
+   float  *lin_local       = this->lin_local + thread * l;
 
    int start = data->GetRegionPos(g,region) + px;
 
@@ -70,14 +73,16 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    float* mean_tau   = this->mean_tau   + start;
 
 
-   float *y, *alf;
+   float *y, *alf, *alf_err_lower, *alf_err_upper;
    int   *irf_idx;
 
    if (data->global_mode == MODE_PIXELWISE)
    {
-      y       = this->y;
-      irf_idx = this->irf_idx + px;
-      alf     = this->alf + start * nl; 
+      y             = this->y;
+      irf_idx       = this->irf_idx       + px;
+      alf           = this->alf           + start * nl; 
+      alf_err_lower = this->alf_err_lower + start * nl; 
+      alf_err_upper = this->alf_err_upper + start * nl; 
 
       s_thresh = data->GetRegionData(thread, g, region, px, y, NULL, NULL, NULL, w, irf_idx, local_decay);
       data->DetermineAutoSampling(thread, local_decay, nl+1);
@@ -86,10 +91,12 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    }
    else
    {
-      y       = this->y       + thread * s * n_meas;
-      irf_idx = this->irf_idx + thread * s;
-      alf     = this->alf     + nl * r_idx;
-   
+      y             = this->y             + thread * s * n_meas;
+      irf_idx       = this->irf_idx       + thread * s;
+      alf           = this->alf           + nl * r_idx;
+      alf_err_lower = this->alf_err_lower + nl * r_idx; 
+      alf_err_upper = this->alf_err_upper + nl * r_idx; 
+
       s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, w, irf_idx, local_decay);
    }
 
@@ -200,8 +207,16 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
       projectors[thread].GetLinearParams(s_thresh, y, alf_local);
    
-   if (calculate_errs)
-      projectors[thread].CalculateErrors(alf_local,conf_lim);
+   if (calculate_errors)
+   {
+      projectors[thread].CalculateErrors(alf_local, conf_interval, err_lower_local, err_upper_local);
+
+      for(int i=0; i<nl; i++)
+      {
+         alf_err_lower[i] = (float) err_lower_local[i];
+         alf_err_upper[i] = (float) err_upper_local[i];
+      }
+   }
 
    for(int i=0; i<nl; i++)
       alf[i] = (float) alf_local[i];

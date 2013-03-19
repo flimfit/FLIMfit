@@ -61,7 +61,8 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int fit_tvb, double tvb_guess, double tvb_profile[],
                               int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                               int pulsetrain_correction, double t_rep,
-                              int ref_reconvolution, double ref_lifetime_guess, int algorithm, int weighting,
+                              int ref_reconvolution, double ref_lifetime_guess, 
+                              int algorithm, int weighting, int calculate_errors, double conf_interval,
                               int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int image_irf,
@@ -76,7 +77,8 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int fit_scatter, double scatter_guess,
                              int fit_tvb, double tvb_guess, double tvb_profile[],
                              int pulsetrain_correction, double t_rep,
-                             int ref_reconvolution, double ref_lifetime_guess, int algorithm, int weighting, 
+                             int ref_reconvolution, double ref_lifetime_guess, 
+                             int algorithm, int weighting, int calculate_errors, double conf_interval,
                              int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t,
@@ -97,8 +99,7 @@ FITDLL_API int StartFit(int c_idx);
 
 FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params);
 
-FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, 
-                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float* param_01, float* param_99, float* params_w_mean, float* params_w_std);
+FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, float* stats);
 
 FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[]);
 

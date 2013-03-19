@@ -54,7 +54,7 @@ public:
    int Fit(int n, int s, int lmax, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double chi2_factor, int& niter, int &ierr, double& c2);
    int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit);
    double ErrMinFcn(double x);
-   int CalculateErrors(double* alf, double* err);
+   int CalculateErrors(double* alf, double conf_limit, double* err_lower, double* err_upper);
 
    void GetParams(int nl, const double* alf);
    void GetModel(const double* alf, int irf_idx, int isel, int thread);
@@ -121,6 +121,7 @@ protected:
    double chi2_final;
 
    bool getting_errs;
+   double conf_limit;
 
 };
 

@@ -173,7 +173,8 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                               int pulsetrain_correction, double t_rep,
                               int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                              int weighting, int n_thread, int runAsync, int use_callback, int (*callback)())
+                              int weighting, int calculate_errors, double conf_interval,
+                              int n_thread, int runAsync, int use_callback, int (*callback)())
 {
    int error;
 
@@ -205,7 +206,8 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                                       n_fret, n_fret_fix, inc_donor, E_guess, 
                                       pulsetrain_correction, t_rep,
                                       ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      weighting, n_thread, runAsync, callback );
+                                      weighting, calculate_errors, conf_interval,
+                                      n_thread, runAsync, callback );
                                       
    return controller[c_idx]->GetErrorCode();
    
@@ -225,7 +227,8 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int fit_tvb, double tvb_guess, double tvb_profile[],
                              int pulsetrain_correction, double t_rep,
                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                             int weighting, int n_thread, int runAsync, int use_callback, int (*callback)())
+                             int weighting, int calculate_errors, double conf_interval,
+                             int n_thread, int runAsync, int use_callback, int (*callback)())
 {
 
    int error = CheckControllerIdx(c_idx);
@@ -260,7 +263,8 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                                       n_fret, n_fret_fix, inc_donor, E_guess, 
                                       pulsetrain_correction, t_rep,
                                       ref_reconvolution, ref_lifetime_guess, algorithm,
-                                      weighting, n_thread, runAsync, callback );
+                                      weighting, calculate_errors, conf_interval,
+                                      n_thread, runAsync, callback );
    controller[c_idx]->SetPolarisationMode(MODE_POLARISATION);
 
    return controller[c_idx]->GetErrorCode();
@@ -360,13 +364,10 @@ FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params)
 
 
 
-FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, 
-                             float* params_mean, float* params_std, float* params_median, float* params_q1, float* params_q2, float* params_01, float* params_99, float* params_w_mean, float* params_w_std)
+FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, float* stats)
 {
    int valid = InitControllerIdx(c_idx);
    if (!valid) return ERR_NO_FIT;
-
-   ImageStats<float> stats(params_mean, params_std, params_median, params_q1, params_q2, params_01, params_99, params_w_mean, params_w_std);
 
    int error = controller[c_idx]->GetImageStats(im, ret_mask, *n_regions, regions, region_size, success, iterations, stats);
 

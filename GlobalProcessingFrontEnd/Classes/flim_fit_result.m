@@ -34,7 +34,7 @@ classdef flim_fit_result < handle
         image_size;
        
         
-        images;
+        image;
         image_stats;
         region_stats;
         
@@ -61,6 +61,8 @@ classdef flim_fit_result < handle
         
         width;
         height;
+        
+        stat_names = {};
     end
     
     properties(SetObservable = true)
@@ -102,10 +104,26 @@ classdef flim_fit_result < handle
                            
         end
             
-        function set_results(obj,idx,regions,region_size,success,iterations,param_mean,param_std,param_median,param_q1,param_q2,param_01,param_99,param_w_mean,param_w_std)
+        function set_results(obj,im,idx,regions,region_size,success,iterations,stats,names)
             
-            [M,S,N] = combine_stats(double(param_mean),double(param_std),double(region_size));
-            [w_M,w_S,N] = combine_stats(double(param_w_mean),double(param_w_std),double(region_size));
+            region_size = double(region_size);
+            stats = double(stats);
+            
+            
+            % Set statistics by region
+            obj.regions{idx} = regions;
+            obj.image(idx) = im;
+            obj.region_size{idx} = region_size;
+            
+            for i=1:length(names)
+                r_stats.(names{i}) = stats(:,:,i);
+            end
+            
+            obj.region_stats{idx} = r_stats;
+
+            % Calculate image wise statistics
+            [M,S] = combine_stats(r_stats.mean,r_stats.std,region_size);
+            [w_M,w_S,N] = combine_stats(r_stats.w_mean,r_stats.w_std,region_size);
             
             obj.image_size{idx} = N;
             
@@ -115,51 +133,22 @@ classdef flim_fit_result < handle
             obj.image_stats{idx}.w_mean = w_M; 
             obj.image_stats{idx}.w_std = w_S;
             
-            obj.image_stats{idx}.median = nanmean(param_median,2);
-            obj.image_stats{idx}.q1 = nanmean(param_q1,2);
-            obj.image_stats{idx}.q2 = nanmean(param_q2,2);
+            stats_to_average = {'median','q1','q2','pct_01','pct_99','err_l','err_u'};
             
-            obj.regions{idx} = regions;
-            obj.region_size{idx} = region_size;
-            obj.region_stats{idx}.mean = param_mean;
-            obj.region_stats{idx}.std = param_std;
-            obj.region_stats{idx}.w_mean = param_w_mean;
-            obj.region_stats{idx}.w_std = param_w_std;
-            obj.region_stats{idx}.median = param_median;
-            obj.region_stats{idx}.q1 = param_q1;
-            obj.region_stats{idx}.q2 = param_q2;
-            
-            %{
-            obj.image_mean{idx} = M; 
-            obj.image_size{idx} = N; 
-            obj.image_std{idx} = S;
-            
-            obj.image_w_mean{idx} = w_M; 
-            obj.image_w_std{idx} = w_S;
-            
-            obj.image_median{idx} = nanmean(param_median,2);
-            obj.image_q1{idx} = nanmean(param_q1,2);
-            obj.image_q2{idx} = nanmean(param_q2,2);
-            
-            obj.regions{idx} = regions;
-            obj.region_size{idx} = region_size;
-            obj.region_mean{idx} = param_mean;
-            obj.region_std{idx} = param_std;
-            obj.region_w_mean{idx} = param_mean;
-            obj.region_w_std{idx} = param_std;
-            obj.region_median{idx} = param_median;
-            obj.region_q1{idx} = param_q1;
-            obj.region_q2{idx} = param_q2;
-            %}
+            for i=1:length(stats_to_average)
+                obj.image_stats{idx}.(stats_to_average{i}) = nanmean(r_stats.(stats_to_average{i}),2);
+            end
             
             obj.success{idx} = double(success) * 100;
             obj.iterations{idx} = double(iterations);
             
-            lims(:,1) = nanmin(obj.default_lims(:,1),nanmin(param_01,[],2));
-            lims(:,2) = nanmax(obj.default_lims(:,2),nanmax(param_99,[],2));
+            lims(:,1) = nanmin(obj.default_lims(:,1),nanmin(r_stats.pct_01,[],2));
+            lims(:,2) = nanmax(obj.default_lims(:,2),nanmax(r_stats.pct_99,[],2));
             obj.default_lims = lims;  
             
             obj.n_results = obj.n_results + 1;
+            
+            obj.stat_names = names;
             
         end
         
@@ -183,10 +172,7 @@ classdef flim_fit_result < handle
                 end
             end 
         end
-        
-        function n_results = get_n_results(obj)
-            n_results = length(obj.images);
-        end
+       
         
         function params = fit_param_list(obj)
             params = obj.params;

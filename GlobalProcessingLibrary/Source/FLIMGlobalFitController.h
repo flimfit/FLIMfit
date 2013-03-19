@@ -36,16 +36,11 @@
 #  pragma warning(disable: 4610) // can never be instantiated - user defined constructor required.
 #endif
 
-//#include "vld.h"
-
 #include <boost/interprocess/file_mapping.hpp>
 
-#include <cmath>
 #include "FitStatus.h"
 #include "ModelADA.h"
 #include "FLIMData.h"
-//#include <stdio.h>
-#include <math.h>
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
 
@@ -168,13 +163,14 @@ public:
    int alf_t0_idx, alf_offset_idx, alf_scatter_idx, alf_E_idx, alf_beta_idx, alf_theta_idx, alf_tvb_idx, alf_ref_idx;
    double t_g;
 
-   int *locked_param;
-   double *locked_value;
    bool getting_fit;
-   double* conf_lim;
-   int calculate_errs;
+   int calculate_errors;
+   double conf_interval;
+   double conf_factor;
+
    float* lin_params_err;
-   double* alf_err;
+   float* alf_err_lower;
+   float* alf_err_upper;
 
    int eq_spaced_data;
 
@@ -192,7 +188,8 @@ public:
                            int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
                            int pulsetrain_correction, double t_rep,
                            int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                           int weighting, int n_thread, int runAsync, int callback());
+                           int weighting, int calculate_errors, double conf_interval,
+                           int n_thread, int runAsync, int callback());
 
    ~FLIMGlobalFitController();
 
@@ -205,7 +202,7 @@ public:
    int  GetErrorCode();
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int& n_valid);
-   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], ImageStats<float>& stats);   
+   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params[]);   
 
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
@@ -236,7 +233,7 @@ private:
    void NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[]);
    void DenormaliseLinearParams(int s, volatile float norm_params[], volatile float lin_params[]);
 
-   int ProcessNonLinearParams(float alf[], float output[]);
+   int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
    float GetNonLinearParam(int param, float alf[]);
    
    void CalculateMeanLifetime(int s, float lin_params[], float alf[], float mean_tau[], float w_mean_tau[]);
