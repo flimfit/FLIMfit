@@ -78,6 +78,9 @@ classdef flim_omero_data_manager < handle
             end      
             data_size = size(data_cube);
             
+            
+            data_series.mode = mdta.FLIM_type;
+            
             % set name
             extensions{1} = '.ome.tiff';
             extensions{2} = '.ome.tif';
