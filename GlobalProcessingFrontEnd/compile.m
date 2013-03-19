@@ -40,18 +40,19 @@ function compile(v)
         sys = '32';
     end
 
+    exe = ['DeployFiles\FLIMfit_' sys '.exe'];
+    
     try
-    exe = ['DeployFiles\GlobalProcessing_' sys '.exe'];
     delete(exe);
     end
     
-    eval(['deploytool -build GlobalProcessing_' sys '.prj']);
-    
+    eval(['deploytool -build FLIMfit_' sys '.prj']);
+   
     while ~exist(exe,'file')
        pause(0.2);
     end
-    
-    deploy_folder = ['..\GlobalProcessingStandalone\GlobalProcessing_' v '_' sys];
+   %
+    deploy_folder = ['..\FLIMfitStandalone\FLIMfit_' v '_' sys];
     
     mkdir(deploy_folder);
     
@@ -66,13 +67,8 @@ function compile(v)
     end
     
     %copyfile(['DeployFiles\GlobalProcessing_' sys '.ctf'],deploy_folder);
-    copyfile(['DeployFiles\Start_GlobalProcessing_' sys '.exe'],deploy_folder);
+    copyfile(['DeployFiles\Start_FLIMfit_' sys '.exe'],deploy_folder);
     copyfile(['..\GlobalProcessingLibrary\Libraries\FLIMGlobalAnalysis_' sys '.' lib_ext],deploy_folder);
-    
-    mkdir([distrib_folder 'GlobalProcessing_' v]);
-    
-    new_distrib_folder = [distrib_folder 'GlobalProcessing_' v filesep 'GlobalProcessing_' v '_' computer filesep];
-    copyfile(deploy_folder,new_distrib_folder);
     
     if strcmp(sys,'64')
         arch = 'x64';
@@ -83,8 +79,20 @@ function compile(v)
     system(['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion=' v ' /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"'])
 
     
+    mkdir([distrib_folder 'FLIMfit_' v]);
+    
+    new_distrib_folder = [distrib_folder 'FLIMfit_' v filesep 'FLIMfit' v '_' computer filesep];
+    copyfile(deploy_folder,new_distrib_folder);
+
+    installer_file_name = ['FLIMfit ' v ' Setup x' sys '.exe'];
+    installer_file = ['..\FLIMfitStandalone\Installer\' installer_file_name];
+    copyfile(installer_file,[distrib_folder 'FLIMfit_' v filesep installer_file_name]);
+
+   
+
+    
     try
-        rmdir(['GlobalProcessing_' sys]);
+        rmdir(['FLIMfit_' sys]);
     catch e %#ok
     end
     

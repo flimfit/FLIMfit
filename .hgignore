@@ -21,6 +21,9 @@ GlobalProcessingFrontEnd/FLIMGlobalAnalysisProto_*
 GlobalProcessingFrontEnd/Testing/simulation/*
 GlobalProcessingFrontEnd/DeployFiles/*
 GlobalProcessingFrontEnd/GlobalProcessing_*
+GlobalProcessingFrontEnd/FLIMfit_32/*
+GlobalProcessingFrontEnd/FLIMfit_64/*
 GlobalProcessingFrontEnd/OMEROMatlab/*
 GlobalProcessingStandalone/*
+FLIMfitStandalone/*
 .git/

@@ -62,7 +62,7 @@ function regression_testing(handles)
    
     
     for kk=1:1
-    for i=1:1 %length(tests)
+    for i=2:length(tests)
         
         tests_passed = 0;
         tests_failed = 0;
@@ -108,7 +108,11 @@ function regression_testing(handles)
         
         for j=1:length(test_spec)
             
-            test_passed = eval(test_spec{j});
+            try
+                test_passed = eval(test_spec{j});
+            catch
+                disp(['[X] Error running test! : ' test_spec{j}]);
+            end
             
             if test_passed
                 test_result_text = '[*] PASS';

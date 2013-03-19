@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="GlobalProcessing_64" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessing_64.prj" preferred-package-type="package.type.exe" build-checksum="2982247636" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
-    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessing_64.prj</param.project.name>
+  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfit_32" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_32.prj" preferred-package-type="package.type.exe" build-checksum="3680181347" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
+    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_32.prj</param.project.name>
     <param.target.type>Windows Standalone Application</param.target.type>
-    <param.appname>GlobalProcessing_64</param.appname>
-    <param.intermediate>${PROJECT_ROOT}\GlobalProcessing_64\src</param.intermediate>
+    <param.appname>FLIMfit_32</param.appname>
+    <param.intermediate>${PROJECT_ROOT}\FLIMfit_32\src</param.intermediate>
     <param.output>${PROJECT_ROOT}\DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.tbx_on_path>
@@ -59,16 +59,13 @@
       <param.user.defined.mcr.options />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}\GlobalProcessing.m</file>
+      <file>${PROJECT_ROOT}\FLIMfit.m</file>
     </fileset.main>
     <fileset.resources>
       <file>${PROJECT_ROOT}\Classes</file>
-      <file>${PROJECT_ROOT}\FLIMGlobalAnalysis_64_thunk_pcwin64.dll</file>
-      <file>${PROJECT_ROOT}\FLIMGlobalAnalysisProto_PCWIN64.m</file>
+      <file>${PROJECT_ROOT}\FLIMGlobalAnalysisProto_PCWIN.m</file>
       <file>${PROJECT_ROOT}\GeneratedFiles\version.txt</file>
-      <file>${PROJECT_ROOT}\GUIDEInterfaces</file>
       <file>${PROJECT_ROOT}\HelperFunctions</file>
-      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\+uiextras\Resources</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch\getpixelposition.p</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch\isHGUsingMATLABClasses.p</file>
@@ -80,11 +77,11 @@
       <file>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\Third Party Licenses.txt</file>
     </fileset.resources>
     <fileset.package>
-      <file>C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\FLIMGlobalAnalysisLibraries\FLIMGlobalAnalysisDLL_x64.dll</file>
+      <file>C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\FLIMGlobalAnalysisLibraries\FLIMGlobalAnalysisDLL_x86.dll</file>
     </fileset.package>
     <build-deliverables>
-      <file name="GlobalProcessing_64.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\GlobalProcessing_64.exe</file>
       <file name="readme.txt" location="${PROJECT_ROOT}\DeployFiles" optional="true">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\readme.txt</file>
+      <file name="FLIMfit_32.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\FLIMfit_32.exe</file>
     </build-deliverables>
     <workflow />
     <matlab>

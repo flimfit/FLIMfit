@@ -236,7 +236,7 @@ int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_re
    if (iml == -1)
       return 0;
 
-   int buf_size = std::max(n_px, nl);
+   int buf_size = std::max(n_px, n_nl_output_params);
 
    float* param_buf = new float[buf_size];
    float* err_lower_buf = new float[buf_size];

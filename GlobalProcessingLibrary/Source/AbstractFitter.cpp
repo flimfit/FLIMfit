@@ -242,7 +242,7 @@ double AbstractFitter::ErrMinFcn(double x)
 {
    using namespace boost::math;
    
-   double alpha,c2,F,F_crit,chi2_crit;
+   double c2,F,F_crit,chi2_crit;
    int itmax = 10;
 
    int niter, ierr;
