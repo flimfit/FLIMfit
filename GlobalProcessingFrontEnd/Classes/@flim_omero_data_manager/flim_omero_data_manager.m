@@ -103,9 +103,8 @@ classdef flim_omero_data_manager < handle
             data_series.t = delays;
             data_series.use_memory_mapping = false;
             
-            tStart = tic; 
             data_series.data_series_mem = single(data_cube);
-            tElapsed = toc(tStart)
+            
             data_series.tr_data_series_mem = single(data_cube); 
              
     
