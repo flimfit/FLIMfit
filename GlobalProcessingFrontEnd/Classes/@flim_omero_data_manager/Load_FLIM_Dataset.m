@@ -158,6 +158,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
+            obj.verbose = false;  % suppress waitbar if loading mutiple images
+            
             obj.ZCT = get_ZCT(image,mdta.modulo, length(delays));
            
             

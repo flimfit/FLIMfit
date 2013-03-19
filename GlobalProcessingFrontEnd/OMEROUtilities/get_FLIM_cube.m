@@ -1,4 +1,4 @@
-function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
+function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbose)
 
     % sizet  here is the size of the relative-time dimension(t)
     % ie the number of time-points/length(delays)
@@ -24,10 +24,18 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     pixelsId = pixels.getId().getValue();
    
     store = session.createRawPixelsStore(); 
-    store.setPixelsId(pixelsId, false);  
+    store.setPixelsId(pixelsId, false); 
     
-    w = waitbar(0, 'Loading FLIMage....');
-    drawnow;
+    
+    barstep = sizet +1;        % default doesn't display a bar
+    
+    if verbose
+    
+        w = waitbar(0, 'Loading FLIMage....');
+        drawnow;
+        
+        barstep = ceil(sizet/16);
+    end
     
     % convert to java/c++ numbering from 0
     Z  = ZCT(1)-1;
@@ -36,20 +44,6 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     
     data_cube = zeros(sizet,1,sizeY,sizeX,1);
     
-    
-    
-     %tStart = tic; 
-     
-     barstep = 1;
-     
-     if sizet > 16 
-         barstep = 4;
-     end;
-     
-      if sizet > 64
-         barstep = 16;
-     end;
-     
      barctr = 0;
      
       % Cast the binary data into the appropriate format
@@ -101,12 +95,14 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
     
     % tElapsed = toc(tStart)
     
-    
-
-    delete(w);
-    drawnow;
+  
     
     store.close();
+    
+    if verbose
+        delete(w);
+        drawnow;
+    end
 
 end
 

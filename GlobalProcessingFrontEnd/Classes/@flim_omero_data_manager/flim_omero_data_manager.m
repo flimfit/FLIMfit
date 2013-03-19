@@ -38,7 +38,8 @@ classdef flim_omero_data_manager < handle
         screen;        
         %
         selected_channel; % need to keep this for results uploading to Omero...
-        ZCT; % array containing missing OME dimensions Z,C,T (in that order)        
+        ZCT; % array containing missing OME dimensions Z,C,T (in that order)  
+        verbose;        % flag to switch waitbar in OMERO_fetch on or off
 
     end
         
@@ -47,6 +48,7 @@ classdef flim_omero_data_manager < handle
         function obj = flim_omero_data_manager(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
+            obj.verbose = true;
         end
                                         
         function delete(obj)
@@ -70,6 +72,7 @@ classdef flim_omero_data_manager < handle
             obj.ZCT = get_ZCT(image,mdta.modulo, length(delays));
             
             channel = obj.ZCT(2);       % not sure why we need this?
+            
             
             try
                 [data_cube, name] = obj.OMERO_fetch(image, obj.ZCT, mdta);
