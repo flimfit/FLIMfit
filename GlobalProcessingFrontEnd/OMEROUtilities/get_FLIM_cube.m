@@ -1,7 +1,5 @@
 function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
 
-
-
     % sizet  here is the size of the relative-time dimension(t)
     % ie the number of time-points/length(delays)
      %
@@ -86,8 +84,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT )
         plane = reshape(plane, sizeX, sizeY);
         plane  = swapbytes(plane);
 
-        
-        plane = toMatrix(rawPlane, pixels); 
+       
         data_cube(t,1,:,:,1) = plane';
         barctr = barctr + 1;
         if barctr == barstep
