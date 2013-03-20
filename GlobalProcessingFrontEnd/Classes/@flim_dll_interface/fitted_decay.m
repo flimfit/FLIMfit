@@ -60,7 +60,7 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     
     p_fit = libpointer('doublePtr',zeros([n_t n_chan n_fit]));
     p_n_valid = libpointer('int32Ptr',0);
-    %try
+    try
         
         calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, im, n_t, t, n_fit, loc, p_fit, p_n_valid);
         
@@ -70,14 +70,13 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         
         decay = nansum(decay,3);
         decay = decay / double(n_valid);
+       
         
-        %decay = zeros(n_t,1);
+    catch error
         
-    %catch error
-        
-    %    decay = zeros(n_t,1);
-    %     disp('Warning: could not get fit');
-    %end
+        decay = zeros(n_t,1);
+         disp('Warning: Could not get fit');
+    end
             
     clear p_fit;
     

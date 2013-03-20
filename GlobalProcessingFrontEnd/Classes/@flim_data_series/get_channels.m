@@ -93,7 +93,9 @@ function [n_chan, chan_info] = get_channels(file)
              textl = fgetl(fid);
              while ~isempty(textl)
                  first = sscanf(textl,'%f\t');
-                 if isempty(first) % if it's not a number skip line
+                 if strncmp(textl,'TRFA',4) || isempty(strtrim(textl))
+                     textl = fgetl(fid);
+                 elseif isempty(first) % if it's not a number skip line
                      header_data{end+1} =  textl;
                      textl = fgetl(fid);
                  else 
@@ -108,10 +110,10 @@ function [n_chan, chan_info] = get_channels(file)
              
              n_chan = 0;
              for i=1:n_header_lines
-                 parts = regexp(header_data{i},'\s+','split');
+                 parts = regexp(header_data{i},'\s*\t\s*','split');
                  header_title{i} = parts{1};
                  header_info{i} = parts(2:end);
-                 n_chan = length(header_info{i});
+                 n_chan = max(length(header_info{i}),n_chan);
              end
 
              chan_info = cell(1,n_chan);

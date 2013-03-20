@@ -267,7 +267,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     lims(2) = 1.1*max(y_mean);
                 end
                 %}
-                set(ax,'YLim',lims);
+                if all(isfinite(lims))
+                    set(ax,'YLim',lims);
+                end
                 
                 if isnumeric(x_data) && display < 3
                     set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
