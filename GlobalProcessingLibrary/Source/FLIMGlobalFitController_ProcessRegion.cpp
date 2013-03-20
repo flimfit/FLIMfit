@@ -169,21 +169,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       alf_local[i++] = ref_lifetime_guess;
 
 
-   // For maximum likihood set initial guesses for contributions 
-   // to sum to maximum intensity, evenly distributed
-   if(algorithm == ALG_ML)
-   {
-      double mx = 0;
-      for(int j=0; j<n; j++)
-      {
-         if (y[j]>mx)
-            mx = y[j]; 
-      }
-
-      for(int j=0; j<l; j++)
-         alf_local[i++] = log(mx/l);
-   }
-
    itmax = 100;
 
 

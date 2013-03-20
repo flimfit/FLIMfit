@@ -39,8 +39,8 @@
 
 using namespace std;
 
-AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p_full, double *t, int variable_phi, int n_thread, int* terminate) : 
-    model(model), smax(smax), l(l), nl(nl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
+AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl, int nmax, int ndim, int p_full, double *t, int variable_phi, int n_thread, int* terminate) : 
+    model(model), smax(smax), l(l), nl(nl), gnl(gnl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
 {
    err = 0;
 
@@ -169,12 +169,16 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
    this->smoothing  = smoothing;
    this->thread     = thread;
 
-   chi2_factor = 1 / (n - ((double)nl)/s - l);
 
+   int n_zero = 0;
+   //for(int i=0; i<n*s; i++)
+   //   n_zero += (y[i]==0);
+
+   chi2_norm = n - ((double)(nl+n_zero))/s - l;
    
-   int ret = FitFcn(nl, alf, itmax, &niter, &ierr, &c2);
+   int ret = FitFcn(nl, alf, itmax, &niter, &ierr);
 
-   chi2_final = c2;
+   chi2_final = *cur_chi2;
 
    return ret;
 }
@@ -194,10 +198,13 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
 
    getting_errs = true;
 
+   double f[3] = {1e-2, 1e-1, 1};
+   double search_min, search_max;
+
    // Get lower and upper limit (j=0, j=1 respectively)
    for(int lim=0; lim<2; lim++)
    {
-      for(int i=0; i<nl; i++)
+      for(int i=0; i<gnl; i++)
       {
          fixed_param = i;
          fixed_value_initial = alf[i];
@@ -208,25 +215,30 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
          for(int j=0; j<nl; j++)
             if (j!=fixed_param)
                alf_err[idx++] = alf[j];
-         double f[4] = {0.02, 0.1, 0.5, 1.0};
 
 
-         for(int k=0; k<4; k++)
+         for(int k=0; k<5; k++)
          {
-            double start_offset = f[k]*fixed_value_initial;
             if (lim==0)
-               start_offset *= -1;
-            
+            {
+               search_min = -f[k]*fixed_value_initial;
+               search_max = 0.0;
+            }
+            else
+            {
+               search_min = 0;
+               search_max = f[k]*fixed_value_initial;
+            }            
 
             ans = brent_find_minima(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
-                                    0.0, start_offset, 9);
+                                    search_min, search_max, 9);
                
-            if (ans.second < 1)
+            if (ans.second < 1e-2)
                break;   
          }
 
          if (ans.second > 1)
-            ans.first = 0;
+            ans.first = NaN();
             
          if (lim==0)
             err_lower[i] = -ans.first;
@@ -242,7 +254,7 @@ double AbstractFitter::ErrMinFcn(double x)
 {
    using namespace boost::math;
    
-   double c2,F,F_crit,chi2_crit;
+   double F,F_crit,chi2_crit;
    int itmax = 10;
 
    int niter, ierr;
@@ -250,21 +262,21 @@ double AbstractFitter::ErrMinFcn(double x)
    int nmp = n * s - nl - s * l;
 
    fisher_f dist(1, nmp);
-   F_crit = quantile(complement(dist, conf_limit));
+   F_crit = quantile(complement(dist, conf_limit/2));
    
    chi2_crit = chi2_final*(F_crit/nmp+1);
 
    fixed_value_cur = fixed_value_initial + x; 
 
-   FitFcn(nl-1,alf_err,itmax,&niter,&ierr,&c2);
+   FitFcn(nl-1,alf_err,itmax,&niter,&ierr);
             
    //c2 = CalculateChi2(params.thread, params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask, NULL);
 
    F = (*cur_chi2-chi2_final)/chi2_final * nmp ;
    
 
-   return (*cur_chi2-chi2_crit)*(*cur_chi2-chi2_crit)/chi2_crit;
-
+//   return (*cur_chi2-chi2_crit)*(*cur_chi2-chi2_crit)/chi2_crit;
+   return (F-F_crit)*(F-F_crit)/F_crit;
 }
 
 
@@ -280,7 +292,7 @@ void AbstractFitter::GetParams(int nl, const double* alf)
    }
 }
 
-void AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
+double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
 {
    int valid_cols  = 0;
    int ignore_cols = 0;
@@ -318,6 +330,7 @@ void AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_
       
    }
 
+   return params;
 }
 
 

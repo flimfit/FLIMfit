@@ -28,7 +28,7 @@
 using namespace std;
 
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 
-    AbstractFitter(model, smax, l, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
+    AbstractFitter(model, smax, l, nl, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
 {
    this->weighting = weighting;
 
@@ -134,7 +134,7 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
+int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
 {
    int nsls1 = (n-l) * s;
  
@@ -458,7 +458,7 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
 
 
    // Compute the norm of the residual matrix
-   *cur_chi2 = r_sq * smoothing * chi2_factor / s;
+   *cur_chi2 = r_sq * smoothing / (chi2_norm * s);
 
    if (!use_numerical_derv)
    {
@@ -635,7 +635,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    double* rj = r + idx * n;
 
    chi2[idx] = (float) enorm(n-l, rj+l); 
-   chi2[idx] *= chi2[idx] * (float) (chi2_factor * smoothing);
+   chi2[idx] *= chi2[idx] * (float) (smoothing / chi2_norm);
 
    bacsub(rj, a, x);
    

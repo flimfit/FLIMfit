@@ -53,7 +53,7 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 
 
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl, int nmax, int ndim, int p, double *t, int* terminate) : 
-    AbstractFitter(model, 1, l, nl, nmax, ndim, p, t, false, 1, terminate)
+    AbstractFitter(model, 1, l, nl, nl-l, nmax, ndim, p, t, false, 1, terminate)
 {
    nfunc = nmax + 1; // +1 for kappa
    nvar = nl;
@@ -65,15 +65,27 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl,
 
 
 
-int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr, double* c2)
+int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
 {
-
-   //chi2_factor = chi2_factor/(n-nl);
 
    for(int i=0; i<n; i++)
       dy[i] = y[i] * smoothing;
    dy[n] = 1;
    
+   // For maximum likihood set initial guesses for contributions 
+   // to sum to maximum intensity, evenly distributed
+   if (!getting_errs)
+   {
+      double mx = 0;
+      for(int j=0; j<n; j++)
+      {
+         if (dy[j]>mx)
+            mx = dy[j]; 
+      }
+      for(int j=0; j<l; j++)
+         alf[nl-l+j] = log(mx/l);
+   }
+
     /*
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
@@ -87,7 +99,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
    opt[2] = DBL_EPSILON;
    opt[3] = DBL_EPSILON;
    */
-   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, nvar, n+1, itmax, NULL, info, work, NULL, this);
+   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, nl, n+1, itmax, NULL, info, work, NULL, this);
    
    					           /* O: information regarding the minimization. Set to NULL if don't care
                       * info[0]= ||e||_2 at initial p.
@@ -104,12 +116,16 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
                       * info[8]= # Jacobian evaluations
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
-   for(int i=0; i<l; i++)
-      lin_params[i] = (float) (exp(alf[nl-l+i]) / smoothing);
+   *cur_chi2 = (info[1] / chi2_norm);
 
-   chi2[0] = (float) (info[1] * chi2_factor);
+   if(!getting_errs)
+   {
+      for(int i=0; i<l; i++)
+         lin_params[i] = (float) (exp(alf[nvar-l+i]) / smoothing);
 
-
+      chi2[0] = (float) *cur_chi2;
+   }
+   
 
    if (ret < 0)
       *ierr = (int) info[6]; // reason for terminating
@@ -131,11 +147,10 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
    int i,j;
    float* adjust;
 
-   GetModel(alf, 0, 1, 0);
+   double* params = GetModel(alf, 0, 1, 0);
    adjust = model->GetConstantAdjustment();
    
-   int gnl = nl-l;
-   double* A = alf+gnl;
+   double* A = params+gnl;
 
    for(i=0; i<l; i++)
       expA[i] = exp(A[i]);
@@ -164,41 +179,45 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    float* adjust;
    int iflag = 1;
 
-   GetModel(alf, 0, 1, 0);
+   double* params = GetModel(alf, 0, 1, 0);
    adjust = model->GetConstantAdjustment();
 
-   int gnl = nl-l;
-   double* A = alf+gnl;
+   double* A = params+gnl;
 
    memset(fjac,0,nfunc*nl*sizeof(double));
 
    int m = 0;
+   int k_sub = 0;
    for (k=0; k<gnl; k++)
    {
-      for(j=0; j<l; j++)
-      {
-         if (inc[k + j * 12] != 0)
+      if (k != fixed_param)
+         {
+         for(j=0; j<l; j++)
+         {
+            if (inc[k + j * 12] != 0)
+            {
+               for (i=0; i<n; i++)
+                  fjac[nl*i+k] += expA[j] * b[ndim*m+i];
+               fjac[nl*i+k] = kap[k+1];
+               m++;
+            }
+         }
+         if (inc[k + l * 12] != 0)
          {
             for (i=0; i<n; i++)
-               fjac[nl*i+k] += expA[j] * b[ndim*m+i];
+               fjac[nl*i+k] += b[ndim*m+i];
             fjac[nl*i+k] = kap[k+1];
             m++;
          }
       }
-      if (inc[k + l * 12] != 0)
-      {
-         for (i=0; i<n; i++)
-            fjac[nl*i+k] += b[ndim*m+i];
-         fjac[nl*i+k] = kap[k+1];
-         m++;
-      }
+      k_sub++;
    }
    // Set derv's for I
    for(j=0; j<l; j++)
    {
          for (i=0; i<n; i++)
-            fjac[nl*i+j+gnl] = expA[j] * a[i+n*j];
-         fjac[nl*i+j+gnl] = 0; // kappa derv. for I
+            fjac[nl*i+j+k_sub] = expA[j] * a[i+n*j];
+         fjac[nl*i+j+k_sub] = 0; // kappa derv. for I
    }
 }
 

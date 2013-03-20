@@ -7,6 +7,7 @@
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
+
 //  the Free Software Foundation; either version 2 of the License, or
 //  (at your option) any later version.
 //
@@ -16,6 +17,7 @@
 //  GNU General Public License for more details.
 //
 /////////////////////////////////////////////////////////////////////////////////
+
 
 #ifndef LM_REAL // not included by lm.c
 #error This file should not be compiled directly!
@@ -235,20 +237,25 @@ int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
 
       for(l=n; l-->0; )
       {
-        LM_REAL alf_fact = x[l]/(hx[l]*hx[l]);
-        LM_REAL beta_fact = -(1-x[l]/hx[l]);
-        jaclm=jac+l*m;
-        for(i=m; i-->0; )
+        if (x[l]>LM_CNST(EPSILON) && hx[l]>LM_CNST(EPSILON))
         {
-          jacTjacim=jacTjac+i*m;
-          alpha=jaclm[i]; //jac[l*m+i];
-          for(j=i+1; j-->0; ) /* j<=i computes lower triangular part only */
-            jacTjacim[j]+= jaclm[j]*alpha*alf_fact; //jacTjac[i*m+j]+=jac[l*m+j]*alpha
-            //jacTjacim[j]+=jaclm[j]*alpha;
+           LM_REAL alf_fact = x[l]/(hx[l]*hx[l]);
+           LM_REAL beta_fact = -(1-x[l]/hx[l]);
 
-          /* J^T e */
-          //jacTe[i]+=alpha*e[l];
-			 jacTe[i]+=alpha*beta_fact;
+              
+           jaclm=jac+l*m;
+           for(i=m; i-->0; )
+           {
+             jacTjacim=jacTjac+i*m;
+             alpha=jaclm[i]; //jac[l*m+i];
+             for(j=i+1; j-->0; ) /* j<=i computes lower triangular part only */
+               jacTjacim[j]+= jaclm[j]*alpha*alf_fact; //jacTjac[i*m+j]+=jac[l*m+j]*alpha
+               //jacTjacim[j]+=jaclm[j]*alpha;
+
+             /* J^T e */
+             //jacTe[i]+=alpha*e[l];
+			    jacTe[i]+=alpha*beta_fact;
+           }
         }
       }
       

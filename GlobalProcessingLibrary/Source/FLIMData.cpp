@@ -50,7 +50,6 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    threshold(threshold),
    limit(limit),
    counts_per_photon(counts_per_photon),
-   global_mode(global_mode),
    smoothing_factor(smoothing_factor),
    use_autosampling(use_autosampling),
    n_thread(n_thread)
@@ -60,6 +59,13 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
 
    data_file = NULL;
    acceptor  = NULL;
+
+   // So that we can calculate errors properly
+   if (global_mode == MODE_PIXELWISE && n_x == 1 && n_y == 1)
+      global_mode = MODE_IMAGEWISE;
+
+   this->global_mode = global_mode;
+
 
    n_masked_px = 0;
 

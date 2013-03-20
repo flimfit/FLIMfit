@@ -507,6 +507,8 @@ double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
       double dt;
       int    N;
 
+      double log_di;
+      double* t_int = data->t_int;
 
       N = n_t-start;
 
@@ -517,8 +519,10 @@ double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
          sum_t += dt;
          sum_t2 += dt * dt;
 
-         sum_tlnI += dt * log(decay[i]);
-         sum_lnI  += log(decay[i]);
+         log_di = log((decay[i]-adjust_buf[i])/t_int[i]);
+
+         sum_tlnI += dt * log_di;
+         sum_lnI  += log_di;
 
       }
 
@@ -731,7 +735,7 @@ void FLIMGlobalFitController::Init()
    n_irf = a_n_irf;
 
    
-   if (data->global_mode != MODE_PIXELWISE)
+   if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && data->n_px > 1))
       algorithm = ALG_LM;
 
    
