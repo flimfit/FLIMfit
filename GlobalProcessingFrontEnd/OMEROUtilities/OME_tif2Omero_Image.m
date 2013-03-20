@@ -1,4 +1,4 @@
-function imageId = OME_tif2Omero_Image(factory,filename,description)
+function ret = OME_tif2Omero_Image(factory,filename,description)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -23,9 +23,11 @@ function imageId = OME_tif2Omero_Image(factory,filename,description)
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
+    ret.imageId = [];
+    ret.s = [];
 
     imageId = [];
-
+    
     if isempty(factory) || isempty(filename)
         errordlg('upload_Image: bad input');
         return;
@@ -33,13 +35,8 @@ function imageId = OME_tif2Omero_Image(factory,filename,description)
     
     tT = Tiff(filename);
     s = tT.getTag('ImageDescription'); %getTag accesses “native” tiff header data (bitdepth, x/y res etc.) – OME-XML data is stored in the ImageDescription field.  
-    if isempty(s), return; end;
-%     detached_metadata_xml_filename = [tempdir 'metadata.xml'];
-%     fid = fopen(detached_metadata_xml_filename,'w');    
-%         fwrite(fid,s,'*uint8');
-%     fclose(fid);
-%     tree = xml_read(detached_metadata_xml_filename);
-%     delete(detached_metadata_xml_filename);
+    if isempty(s), return; end;    
+    
     [parseResult,~] = xmlreadstring(s);
     tree = xml_read(parseResult);
     
@@ -48,7 +45,7 @@ function imageId = OME_tif2Omero_Image(factory,filename,description)
     SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ;
     SizeX = tree.Image.Pixels.ATTRIBUTE.SizeX;
     SizeY = tree.Image.Pixels.ATTRIBUTE.SizeY;
-
+    
     counter = 0;
     max_counter = SizeC*SizeT*SizeZ;
     w = waitbar(0, [ 'Loading ' filename ]);
@@ -78,7 +75,6 @@ p.add('type',rstring(pixeltype));
 q=['from PixelsType as p where p.value= :type'];
 pixelsType = queryService.findByQuery(q,p);
 
-%strng = split(filesep,filename); imageName = strng(length(strng));
 strings1 = strrep(filename,filesep,'/');
 strng = split('/',strings1);imageName = strng(length(strng));
 
@@ -88,6 +84,16 @@ imageId = pixelsService.createImage(SizeX, SizeY, SizeZ, SizeT, toJavaList([uint
 % Then you have to get the PixelsId from that image, to initialise the rawPixelsStore. I use the containerService to give me the Image with pixels loaded:
 image = containerService.getImages('Image',  toJavaList(uint64(imageId.getValue())),[]).get(0);
 pixels = image.getPrimaryPixels();
+
+% physicalsize - ..WHY DOESN'T IT WORK?
+%     PhysicalSizeX = tree.Image.Pixels.ATTRIBUTE.PhysicalSizeX;
+%     PhysicalSizeY = tree.Image.Pixels.ATTRIBUTE.PhysicalSizeY;
+%     PhysicalSizeZ = tree.Image.Pixels.ATTRIBUTE.PhysicalSizeZ;    
+%         pixels.setPhysicalSizeX(rdouble(PhysicalSizeX));
+%         pixels.setPhysicalSizeY(rdouble(PhysicalSizeY));
+%         pixels.setPhysicalSizeZ(rdouble(PhysicalSizeZ));
+%         %pixels.save();
+                
 pixelsId = pixels.getId().getValue();
 rawPixelsStore.setPixelsId(pixelsId, true);
 
@@ -194,6 +200,9 @@ re.close();
 
 delete(w);
 drawnow;
+
+ret.imageId = imageId;
+ret.s = s;
 
     function set_plane(c,z,t,l1,l2,l3,L2,L3)
                         ind = l3 + L3*( (l2-1) + L2*(l1-1) );                         

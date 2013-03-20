@@ -23,14 +23,13 @@ function imageId = upload_Image_OME_tif(factory,dataset,filename,description)
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
+    ometiffdata = OME_tif2Omero_Image(factory,filename,description);
 
-    imageId = OME_tif2Omero_Image(factory,filename,description);
-
+    imageId = ometiffdata.imageId;
+    s = ometiffdata.s;
+    
     if isempty(imageId) || isempty(dataset), errordlg('bad input'); return; end;                   
 
-    tT = Tiff(filename);
-    s = tT.getTag('ImageDescription');
-    if isempty(s), return; end;    
     detached_metadata_xml_filename = [tempdir 'metadata.xml'];
     fid = fopen(detached_metadata_xml_filename,'w');    
         fwrite(fid,s,'*uint8');
@@ -41,7 +40,7 @@ function imageId = upload_Image_OME_tif(factory,dataset,filename,description)
     link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
     factory.getUpdateService().saveAndReturnObject(link);
 
-    image = get_Object_by_Id(factory,imageId.getValue());
+    myimages = getImages(factory,imageId.getValue()); image = myimages(1);        
         
     namespace = 'IC_PHOTONICS';
     description = ' ';
@@ -57,6 +56,66 @@ function imageId = upload_Image_OME_tif(factory,dataset,filename,description)
                     description, ...
                     namespace);    
     %
-    delete(detached_metadata_xml_filename);    
+    delete(detached_metadata_xml_filename);  
+    
+    % use "s" to create XML annotation
+    [parseResult,~] = xmlreadstring(s);
+    tree = xml_read(parseResult);
+            
+            modlo = [];
+            modulo = [];
+            FLIM_type = [];
+            Delays = [];
+            
+            if isfield(tree,'ModuloAlongC')
+                modlo = tree.ModuloAlongC;
+                modulo = 'ModuloAlongC';
+            elseif isfield(tree,'ModuloAlongT')
+                modlo = tree.ModuloAlongT;
+                modulo = 'ModuloAlongT';
+            elseif  isfield(tree,'ModuloAlongZ')
+                modlo = tree.ModuloAlongZ;
+                modulo = 'ModuloAlongZ';
+            end   
+            %
+            if ~isempty(modlo)
+                if isfield(modlo.ATTRIBUTE,'Start')
+                    start = modlo.ATTRIBUTE.Start;
+                    step = modlo.ATTRIBUTE.Step;
+                    e = modlo.ATTRIBUTE.End;                
+                    Delays = start:step:e;
+                elseif isfield(modlo.Label)
+                    str_delays = modlo.Label;
+                    Delays = cell2mat(str_delays);
+                end
+                %    
+                if isfield(modlo.ATTRIBUTE,'Description')
+                    FLIM_type = modlo.ATTRIBUTE.Description;
+                end
+            end
+            
+    % last chance that it is LaVision modulo Z format..
+    if isempty(Delays) && isempty(modulo) && isempty(FLIM_type)    
+        pixelsList = image.copyPixels();    
+        pixels = pixelsList.get(0);                        
+        SizeC = pixels.getSizeC().getValue();
+        SizeZ = pixels.getSizeZ().getValue();
+        SizeT = pixels.getSizeT().getValue();
+        %
+        if 1 == SizeC && 1 == SizeT && SizeZ > 1
+            if isfield(tree.Image.Pixels.ATTRIBUTE,'PhysicalSizeZ')
+                physSizeZ = tree.Image.Pixels.ATTRIBUTE.PhysicalSizeZ*1000;     % assume this is in ns so convert to ps
+                Delays = (0:SizeZ-1)*physSizeZ;
+                modulo = 'ModuloAlongZ';
+                FLIM_type = 'TCSPC';
+            end
+        end                        
+    end
+    %
+    if ~isempty(Delays) && ~isempty(modulo) && ~isempty(FLIM_type)
+        xmlnode = create_ModuloAlongDOM(Delays, [], modulo, FLIM_type);
+        add_XmlAnnotation(factory,image,xmlnode);
+    end           
+    %             
 end
     
