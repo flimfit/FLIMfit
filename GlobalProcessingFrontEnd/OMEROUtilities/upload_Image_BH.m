@@ -41,10 +41,10 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo)
         n_channels = 1;
         [ nBins w h ] = size(bandhdata);                                    
     end;
-        % get Delays
+    % to get Delays
         [ImData Delays] = loadBHfileusingmeasDescBlock(full_filename, 1);
-        %
-    pixeltype = get_num_type(ImData); % NOT CHECKED!!!
+    %
+    pixeltype = get_num_type(bandhdata); % NOT CHECKED!!!
     %
     clear('ImData');                            
     %
