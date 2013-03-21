@@ -27,6 +27,7 @@ function load_selected_files_Omero(obj,session,image_ids,selected,channel, ZCT) 
     if nargin < 2
         selected = 1:obj.num_datasets;
     end
+    
         
     if ~isempty(obj.loaded)
         already_loaded = true;

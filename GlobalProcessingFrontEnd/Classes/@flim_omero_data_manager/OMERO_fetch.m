@@ -1,4 +1,4 @@
-function [ data_cube, name ] =  OMERO_fetch( obj, image, ZCT, mdta)
+function [ data_cube, name ] =  OMERO_fetch( obj, image, ZCT, mdta )
     
 data_cube = [];
 
@@ -13,8 +13,10 @@ if isempty(modulo)
     errordlg('no suitable annotation found - can not continue');
     return;
 else
-
-    data_cube = get_FLIM_cube( obj.session, image, length(delays), modulo, ZCT );                
+    
+   
+   
+    data_cube = get_FLIM_cube( obj.session, image, length(delays), modulo, ZCT, obj.verbose );                
          
     if strcmp('TCSPC',FLIM_type)
     
