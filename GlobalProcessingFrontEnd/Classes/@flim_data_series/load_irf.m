@@ -25,7 +25,8 @@ function load_irf(obj,file,load_as_image)
 
     % Author : Sean Warren
 
-    global prof;
+     prof = get_profile();    
+   
     
     [path,name,ext] = fileparts(file);
     if strcmp(ext,'.xml')

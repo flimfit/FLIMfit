@@ -1,7 +1,7 @@
 function init_dataset(obj,setting_file_name)
     %> Initalise dataset after we've loaded in the data
     
-        % Copyright (C) 2013 Imperial College London.
+    % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -27,15 +27,7 @@ function init_dataset(obj,setting_file_name)
     % Author : Sean Warren
     
   
-    
-    global prof;
-    
-    if isempty(prof)
-    
-        profile = profile_controller();
-        profile.get_profile();
-    end
-    
+    prof = get_profile();    
    
     
     % Set defaults for background depending on type of data
