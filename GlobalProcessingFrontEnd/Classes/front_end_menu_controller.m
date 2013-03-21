@@ -46,9 +46,11 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_Background_form_Dataset;
         menu_OMERO_Load_tvb_from_Image;
         menu_OMERO_Load_tvb_from_Dataset;
-        menu_OMERO_Switch_User
+        menu_OMERO_Switch_User;
             
         menu_OMERO_Working_Data_Info;
+        
+        menu_OMERO_Load_Pate_Metadata;
         
         omero_data_manager;                
         
@@ -379,6 +381,9 @@ classdef front_end_menu_controller < handle
             delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
             obj.omero_data_manager.Omero_logon();
         end        
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_Pate_Metadata_callback(obj,~,~)
+        end                        
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
