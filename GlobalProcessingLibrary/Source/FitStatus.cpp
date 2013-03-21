@@ -29,6 +29,10 @@
 
 #include "FitStatus.h"
 #include "FLIMGlobalFitController.h"
+#include <math.h>
+
+
+
 
 
 double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_param)

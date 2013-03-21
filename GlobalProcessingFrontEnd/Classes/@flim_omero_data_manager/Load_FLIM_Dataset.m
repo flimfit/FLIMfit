@@ -170,7 +170,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 using_popup = false;
             end
             %
-            obj.selected_channel = obj.ZCT(2);
+            obj.selected_channel = obj.ZCT{2};
             %
             try
                 [data_cube, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);

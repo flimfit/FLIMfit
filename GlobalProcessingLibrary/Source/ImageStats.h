@@ -11,6 +11,9 @@
 #ifndef IMAGE_STATS_H
 #define IMAGE_STATS_H
 
+#include <math.h>
+#include <float.h>
+
 enum PARAM_IDX { PARAM_MEAN, PARAM_W_MEAN, PARAM_STD, PARAM_W_STD, PARAM_MEDIAN, 
                  PARAM_Q1, PARAM_Q2, PARAM_01, PARAM_99, PARAM_ERR_LOWER, PARAM_ERR_UPPER };
 
@@ -65,6 +68,9 @@ public:
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
+      // Ian DEBUG
+      next_param[PARAM_STD] = NAN;
+      
       next_param[PARAM_STD] = NaN(); 
       next_param[PARAM_W_STD] = NaN(); 
       next_param[PARAM_MEDIAN] = mean; 

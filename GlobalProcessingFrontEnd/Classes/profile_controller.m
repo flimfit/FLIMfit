@@ -32,11 +32,11 @@ classdef profile_controller
         
         function obj = profile_controller()
             folder = getapplicationdatadir('FLIMfit',true,true);
-            subfolder = [folder '\Profiles']; 
+            subfolder = [folder filesep 'Profiles']; 
             if ~exist(subfolder,'dir')
                 mkdir(subfolder)
             end
-            obj.profile_file = [ subfolder '\FLIMfitPrefs.mat' ];
+            obj.profile_file = [ subfolder filesep 'FLIMfitPrefs.mat' ];
         end
  
         function load_profile(obj)
