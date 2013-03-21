@@ -26,18 +26,18 @@ function init_dataset(obj,setting_file_name)
 
     % Author : Sean Warren
     
-    global profile;
+    global prof;
     
     % Set defaults for background depending on type of data
     if strcmp(obj.mode,'TCSPC')
         obj.background_value = 0;
         obj.background_type = 0;
     else
-        obj.background_value = profile.Data.Default_Camera_Background;
+        obj.background_value = prof.Data.Default_Camera_Background;
         obj.background_type = 1;
     end
     
-    obj.rep_rate = profile.Data.Default_Rep_Rate;
+    obj.rep_rate = prof.Data.Default_Rep_Rate;
     
     obj.background_image = [];
     
