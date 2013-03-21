@@ -25,7 +25,8 @@ function err = call_fitting_lib(obj,roi_mask,selected)
 
     % Author : Sean Warren
 
-    global profile;
+     prof = get_profile();    
+   
     
     p = obj.fit_params;
     d = obj.data_series;
@@ -86,7 +87,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         end
     end
     
-    conf_interval = profile.Fitting.Confidence_Interval;
+    conf_interval = prof.Fitting.Confidence_Interval;
     
     if p.polarisation_resolved
         

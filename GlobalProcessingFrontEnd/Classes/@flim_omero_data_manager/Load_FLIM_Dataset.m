@@ -158,6 +158,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
+            obj.verbose = false;  % suppress waitbar if loading mutiple images
+            
             obj.ZCT = get_ZCT(image,mdta.modulo, length(delays));
            
             
@@ -168,7 +170,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 using_popup = false;
             end
             %
-            obj.selected_channel = obj.ZCT(2);
+            obj.selected_channel = obj.ZCT{2};
             %
             try
                 [data_cube, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);

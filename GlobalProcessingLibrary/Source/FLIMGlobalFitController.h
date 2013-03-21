@@ -51,6 +51,7 @@
 #include "ImageStats.h"
 
 #include "FlagDefinitions.h"
+#include <cmath>
 
 typedef double* DoublePtr;  
 

@@ -38,10 +38,23 @@ classdef profile_controller
             end
             obj.profile_file = [ subfolder filesep 'FLIMfitPrefs.mat' ];
         end
+        
+        function current_prof = get_profile(obj)
+            
+            global prof;
+            
+            if isempty(prof)
+                obj.load_profile();
+            end
+            
+            current_prof = prof;
+        end
+            
+            
  
         function load_profile(obj)
         
-            global profile;
+            global prof;
 
             
             if exist(obj.profile_file,'file')
@@ -68,7 +81,7 @@ classdef profile_controller
                         end 
                     end
                     
-                    profile.(groups{i}) = group;
+                    prof.(groups{i}) = group;
 
                 end
 
@@ -78,7 +91,7 @@ classdef profile_controller
         
         function set_profile(obj)
             
-            global profile;
+            global prof;
 
             % Setup Figures
 
@@ -115,8 +128,8 @@ classdef profile_controller
             for i=1:length(groups)
                 h(i) = uipanel( 'Parent', tab_panel );
 
-                if isfield( profile, groups{i} )
-                    cur_profile = profile.(groups{i});
+                if isfield( prof, groups{i} )
+                    cur_profile = prof.(groups{i});
                 else
                     cur_profile = struct();
                 end
@@ -135,10 +148,10 @@ classdef profile_controller
             function ok_callback(~,~,~)
 
                 for j=1:length(groups)
-                    profile.(groups{j}) = getappdata(h(j),'mirror');
+                    prof.(groups{j}) = getappdata(h(j),'mirror');
                 end
                 
-                save(obj.profile_file,'profile');
+                save(obj.profile_file,'prof');
 
                 close(f);
             end
