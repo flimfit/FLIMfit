@@ -138,7 +138,7 @@ classdef profile_controller
                     prof.(groups{j}) = getappdata(h(j),'mirror');
                 end
                 
-                save(obj.profile_file,'profile');
+                save(obj.profile_file,'prof');
 
                 close(f);
             end
