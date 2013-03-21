@@ -38,6 +38,19 @@ classdef profile_controller
             end
             obj.profile_file = [ subfolder filesep 'FLIMfitPrefs.mat' ];
         end
+        
+        function current_prof = get_profile(obj)
+            
+            global prof;
+            
+            if isempty(prof)
+                obj.load_profile();
+            end
+            
+            current_prof = prof;
+        end
+            
+            
  
         function load_profile(obj)
         

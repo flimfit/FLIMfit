@@ -26,7 +26,17 @@ function init_dataset(obj,setting_file_name)
 
     % Author : Sean Warren
     
+  
+    
     global prof;
+    
+    if isempty(prof)
+    
+        profile = profile_controller();
+        profile.get_profile();
+    end
+    
+   
     
     % Set defaults for background depending on type of data
     if strcmp(obj.mode,'TCSPC')

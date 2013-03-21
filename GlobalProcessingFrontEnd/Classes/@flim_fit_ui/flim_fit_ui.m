@@ -53,10 +53,11 @@
                 wait = true;
             end
             
+           
             profile = profile_controller();
             profile.load_profile();
+            
 
-   
             % Try and read in version number
             try
                 v = textread(['GeneratedFiles' filesep 'version.txt'],'%s');
