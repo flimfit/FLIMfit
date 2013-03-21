@@ -85,7 +85,7 @@ function [counts_per_photon offset] = determine_photon_stats(data,fit_offset,dis
     end
     
     if fit_offset
-        initial_guess = [15 200 5];
+        initial_guess = [15 5 5];
     else
         initial_guess = 15;
     end
