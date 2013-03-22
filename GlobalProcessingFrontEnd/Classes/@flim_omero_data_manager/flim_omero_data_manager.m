@@ -682,16 +682,34 @@ classdef flim_omero_data_manager < handle
         end            
                 
         %------------------------------------------------------------------                
-        function Omero_logon(obj,~)        
-            %
-            if exist(obj.omero_logon_filename,'file') 
-                [ settings ~ ] = xml_read (obj.omero_logon_filename);    
-                obj.logon = settings.logon;
-            else
+        function Omero_logon(obj,~) 
+            
+            settings = [];
+            
+            % look in FLIMfit/dev for logon file
+            folder = getapplicationdatadir('FLIMfit',true,true);
+            subfolder = [folder filesep 'Dev']; 
+            if exist(subfolder,'dir')
+                logon_filename = [ subfolder filesep obj.omero_logon_filename ];
+                if exist(logon_filename,'file') 
+                    [ settings ~ ] = xml_read (logon_filename);    
+                    obj.logon = settings.logon;
+                end
+                
+            end
+            
+            % if no logon file then user must login
+            if isempty(settings)
                 obj.logon = OMERO_logon();
             end
-            %
+             
+           if isempty(obj.logon)
+               return
+           end
+
             obj.client = loadOmero(obj.logon{1});
+            
+            
             try 
                 obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
             catch err
