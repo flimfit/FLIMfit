@@ -781,6 +781,41 @@ classdef flim_omero_data_manager < handle
                             irf_file_name, ...
                             description, ...
                             namespace);                        
+        end                
+       %------------------------------------------------------------------                        
+        function Export_TVB_annot(obj,data_series,~)
+
+               choice = questdlg('Do you want to Export TVB to Dataset or Plate?', ' ', ...
+                                    'Dataset' , ...
+                                    'Plate','Cancel','Cancel');              
+            switch choice
+                case 'Dataset',
+                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                case 'Plate', 
+                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                case 'Cancel', 
+                    return;
+            end                        
+            %                        
+            tvbdata = [data_series.t(:) data_series.tvb_profile(:)];
+            %
+            ext = '.tvb';   
+            irf_file_name = [tempdir 'TVB '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
+            %
+            dlmwrite(irf_file_name,tvbdata);            
+            %            
+            namespace = 'IC_PHOTONICS';
+            description = ' ';            
+            sha1 = char('pending');
+            file_mime_type = char('application/octet-stream');
+            %
+            add_Annotation(obj.session, ...
+                            object, ...
+                            sha1, ...
+                            file_mime_type, ...
+                            irf_file_name, ...
+                            description, ...
+                            namespace);                                                            
         end        
     %
     end

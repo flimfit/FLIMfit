@@ -53,6 +53,9 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_Pate_Metadata;
         menu_OMERO_Export_IRF_annot;
         
+        menu_OMERO_Load_tvb_Annotation; 
+        menu_OMERO_Export_tvb_Annotation;
+        
         omero_data_manager;                
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
@@ -391,7 +394,14 @@ classdef front_end_menu_controller < handle
             irfdata = obj.data_decay_view.get_IRF_data();
             obj.omero_data_manager.Export_IRF_annot(irfdata);
         end                        
-                
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_tvb_Annotation_callback(obj,~,~)
+            % .. TO DO ..
+        end                        
+        %------------------------------------------------------------------        
+        function menu_OMERO_Export_tvb_Annotation_callback(obj,~,~)
+            obj.omero_data_manager.Export_TVB_annot(obj.data_series_controller.data_series);
+        end                                                
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
