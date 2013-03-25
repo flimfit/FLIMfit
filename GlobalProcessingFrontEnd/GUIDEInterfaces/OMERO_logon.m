@@ -83,9 +83,10 @@ if isempty(handles)
     varargout{1} = [];
 else
  varargout{1} = handles.output;
+ delete(handles.figure1);
+
 end
 
-delete(handles.figure1);
 
 
 
