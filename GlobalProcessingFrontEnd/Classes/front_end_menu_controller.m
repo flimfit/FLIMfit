@@ -51,6 +51,7 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Working_Data_Info;
         
         menu_OMERO_Load_Pate_Metadata;
+        menu_OMERO_Export_IRF_annot;
         
         omero_data_manager;                
         
@@ -383,7 +384,14 @@ classdef front_end_menu_controller < handle
         end        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_Pate_Metadata_callback(obj,~,~)
+            obj.omero_data_manager.Load_Plate_Metadata_annot(obj.data_series_controller.data_series);
         end                        
+        %------------------------------------------------------------------        
+        function menu_OMERO_Export_IRF_annot_callback(obj,~,~)
+            irfdata = obj.data_decay_view.get_IRF_data();
+            obj.omero_data_manager.Export_IRF_annot(irfdata);
+        end                        
+                
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                

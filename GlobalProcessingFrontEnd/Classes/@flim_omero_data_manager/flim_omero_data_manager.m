@@ -718,6 +718,70 @@ classdef flim_omero_data_manager < handle
                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                
             end                        
         end
+       %------------------------------------------------------------------        
+        function Load_Plate_Metadata_annot(obj,data_series,~)
+            %
+            if ~isempty(obj.dataset)
+                parent = obj.dataset;
+            elseif ~isempty(obj.plate)
+                parent = obj.plate;
+            else
+                errordlg('please set Dataset or Plate and load the data before loading plate metadata'), return;
+            end;
+            %    
+            [str fname] = select_Annotation(obj.session, parent,'Please choose metadata xlsx file');
+            %
+            if isempty(str)
+                return;
+            end;        
+            %
+            %debug
+            full_temp_file_name = [tempdir fname];
+            fid = fopen(full_temp_file_name,'w');                
+            fwrite(fid,str,'int8');                        
+            fclose(fid);                                                
+            %
+            try
+                data_series.import_plate_metadata(full_temp_file_name);
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            end
+            %
+            delete(full_temp_file_name); %??
+        end      
+       %------------------------------------------------------------------                
+        function Export_IRF_annot(obj,irf_data,~)
+            
+               choice = questdlg('Do you want to Export IRF to Dataset or Plate?', ' ', ...
+                                    'Dataset' , ...
+                                    'Plate','Cancel','Cancel');              
+            switch choice
+                case 'Dataset',
+                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                case 'Plate', 
+                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                case 'Cancel', 
+                    return;
+            end                        
+            %                        
+            ext = '.irf';   
+            irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
+            % works - but why is it t axis distortion there if IRF is from single-plane-tif-averaging
+            dlmwrite(irf_file_name,irf_data);            
+            %            
+            namespace = 'IC_PHOTONICS';
+            description = ' ';            
+            sha1 = char('pending');
+            file_mime_type = char('application/octet-stream');
+            %
+            add_Annotation(obj.session, ...
+                            object, ...
+                            sha1, ...
+                            file_mime_type, ...
+                            irf_file_name, ...
+                            description, ...
+                            namespace);                        
+        end        
     %
     end
 end
