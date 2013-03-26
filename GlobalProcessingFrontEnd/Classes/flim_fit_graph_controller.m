@@ -78,10 +78,25 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         
         function draw_plot(obj,ax)
             
+            prof = get_profile();
+            
             export_plot = (nargin == 2);
             if ~export_plot
                 ax = obj.plot_handle;
             end
+            
+            %{
+            if export_plot
+                f = get(ax,'Parent');
+                pos = get(f,'Position');
+                
+                w = prof.Export.Plotter_Width_Px;
+                h = w * 3/4;
+                
+                pos(3:4) = [w h];
+                set(f,'Position',pos);
+            end
+            %}
             
             param = obj.cur_param;
             
@@ -271,7 +286,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     set(ax,'YLim',lims);
                 end
                 
-                if isnumeric(x_data) && display < 3
+                if isnumeric(x_data) && all(~isnan(x_data)) && length(x_data) > 1 && display < 3
                     set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
                 end
                 

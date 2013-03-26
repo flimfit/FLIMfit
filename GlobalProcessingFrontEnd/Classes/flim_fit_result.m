@@ -104,7 +104,7 @@ classdef flim_fit_result < handle
                            
         end
             
-        function set_results(obj,im,idx,regions,region_size,success,iterations,stats,names)
+        function set_results(obj,idx,im,regions,region_size,success,iterations,stats,names)
             
             region_size = double(region_size);
             stats = double(stats);

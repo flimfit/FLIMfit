@@ -44,7 +44,7 @@ function data = smooth_flim_data(data,extent,mode)
         
     kernel = ones(extent) ./ extent2;
     n = ~isnan(kernel);
-    %NB to work with imaginary numbers use real in place of double in
+    %NB to work with imaginary numbers use real in place of cast( xx , datatype) in
     %following line & for loop
     %realKern = real(n);  
     realKern = cast(n, datatype);

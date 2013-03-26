@@ -416,10 +416,6 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             end
         end
         
-        function irf_data = get_IRF_data(obj,~,~)
-            irf_data = [obj.t_irf obj.irf];
-        end
-        
     end
     
 end

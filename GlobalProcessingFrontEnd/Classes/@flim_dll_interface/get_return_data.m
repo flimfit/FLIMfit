@@ -83,8 +83,6 @@ function get_return_data(obj)
         
         if n_regions > 0
             
-            have_data(i) = 0;
-            
             region_size = double(p_region_size.Value);
             region_size = region_size(1:n_regions);
 

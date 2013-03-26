@@ -22,6 +22,9 @@ classdef profile_controller
             % Display Preferences
             profile_def.Display.Invert_Colourscale = false;
             profile_def.Display.Text_Size = 12;
+            
+            % Export Preferences
+            profile_def.Export.Plotter_Width_Px = 400;
         end
 
         

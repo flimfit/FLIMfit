@@ -147,7 +147,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
    int i,j;
    float* adjust;
 
-   double* params = GetModel(alf, 0, 1, 0);
+   double* params = GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->GetConstantAdjustment();
    
    double* A = params+gnl;
@@ -179,7 +179,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    float* adjust;
    int iflag = 1;
 
-   double* params = GetModel(alf, 0, 1, 0);
+   double* params = GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->GetConstantAdjustment();
 
    double* A = params+gnl;

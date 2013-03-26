@@ -275,7 +275,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 if ~isempty(param_data)
                     
                     if weighting == 2
-                        intensity = obj.fit_controller.get_itensity_image(i);
+                        intensity = obj.fit_controller.get_itensity(i);
                         intensity = intensity( filt );
 
                         count(:,i) = weightedhist(param_data,intensity,x)';
