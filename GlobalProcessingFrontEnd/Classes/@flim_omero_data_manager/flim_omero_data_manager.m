@@ -785,7 +785,7 @@ classdef flim_omero_data_manager < handle
        %------------------------------------------------------------------                        
         function Export_TVB_annot(obj,data_series,~)
 
-               choice = questdlg('Do you want to Export TVB to Dataset or Plate?', ' ', ...
+            choice = questdlg('Do you want to Export TVB to Dataset or Plate?', ' ', ...
                                     'Dataset' , ...
                                     'Plate','Cancel','Cancel');              
             switch choice
@@ -799,10 +799,10 @@ classdef flim_omero_data_manager < handle
             %                        
             tvbdata = [data_series.t(:) data_series.tvb_profile(:)];
             %
-            ext = '.tvb';   
-            irf_file_name = [tempdir 'TVB '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
+            ext = '.irf';   
+            tvb_file_name = [tempdir 'TVB '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
             %
-            dlmwrite(irf_file_name,tvbdata);            
+            dlmwrite(tvb_file_name,tvbdata);            
             %            
             namespace = 'IC_PHOTONICS';
             description = ' ';            
@@ -813,10 +813,40 @@ classdef flim_omero_data_manager < handle
                             object, ...
                             sha1, ...
                             file_mime_type, ...
-                            irf_file_name, ...
+                            tvb_file_name, ...
                             description, ...
                             namespace);                                                            
-        end        
+        end                 
+       %------------------------------------------------------------------        
+        function Load_TVB_annot(obj,data_series,~)
+            %
+            if ~isempty(obj.dataset)
+                parent = obj.dataset;
+            elseif ~isempty(obj.plate)
+                parent = obj.plate;
+            else
+                errordlg('please set Dataset or Plate and load the data before loading TVB'), return;
+            end;
+            %    
+            [str fname] = select_Annotation(obj.session, parent,'Please choose TVB file');
+            %
+            if isempty(str)
+                return;
+            end;            
+            %
+            full_temp_file_name = [tempdir fname];
+            fid = fopen(full_temp_file_name,'w');                
+            fwrite(fid,str,'*uint8');                        
+            fclose(fid);
+            %
+            try
+                data_series.load_tvb(full_temp_file_name);
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            end
+            %
+            delete(full_temp_file_name); %??            
+        end                      
     %
     end
 end

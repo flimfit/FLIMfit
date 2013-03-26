@@ -391,12 +391,12 @@ classdef front_end_menu_controller < handle
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Export_IRF_annot_callback(obj,~,~)
-            irfdata = obj.data_decay_view.get_IRF_data();
+            irfdata = [obj.data_series_controller.data_series.t(:) obj.data_series_controller.data_series.irf(:)];
             obj.omero_data_manager.Export_IRF_annot(irfdata);
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_Annotation_callback(obj,~,~)
-            % .. TO DO ..
+            obj.omero_data_manager.Load_TVB_annot(obj.data_series_controller.data_series);
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Export_tvb_Annotation_callback(obj,~,~)
