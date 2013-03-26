@@ -22,7 +22,7 @@ function varargout = OMERO_logon(varargin)
 
 % Edit the above text to modify the response to help OMERO_logon
 
-% Last Modified by GUIDE v2.5 10-Feb-2012 15:56:41
+% Last Modified by GUIDE v2.5 22-Mar-2013 16:31:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,9 +57,11 @@ handles.output = hObject;
 
 handles.server = '??';
 handles.userName = '??';
-handles.passwd = '??';
+handles.passwd = [];
 
 handles.output = {'??', '??', '??'};
+
+
 
 % Update handles structure
 guidata(hObject, handles);
@@ -77,9 +79,17 @@ function varargout = OMERO_logon_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-varargout{1} = handles.output;
+if isempty(handles)
+    varargout{1} = [];
+else
+ varargout{1} = handles.output;
+ delete(handles.figure1);
 
-delete(handles.figure1);
+end
+
+
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -145,7 +155,7 @@ function passwd_CreateFcn(hObject, eventdata, handles)
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+    set(hObject,'BackgroundColor','white') ;
 end
 
 
@@ -160,11 +170,10 @@ function passwd_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of passwd as text
 %        str2double(get(hObject,'String')) returns contents of passwd as a double
 
-passwd = get(hObject,'String');
-
+%
 % Save the new  value
-handles.passwd = passwd;
-guidata(hObject,handles);
+%handles.passwd = passwd;
+%guidata(hObject,handles);
 
 
 
@@ -194,3 +203,31 @@ function figure1_DeleteFcn(hObject, eventdata, handles)
 % hObject    handle to figure1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on key press with focus on passwd and none of its controls.
+function passwd_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to passwd (see GCBO)
+% eventdata  structure with the following fields (see UICONTROL)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+
+key = eventdata.Key;
+switch key
+    case 'backspace'
+        handles.passwd = handles.passwd(1:end-1); % Delete the last character in the password
+    case 'return'  % This cannot be done through callback without making tab to the same thing
+        % do nothing
+    case 'shift'
+        % do nothing
+    otherwise
+        handles.passwd = [handles.passwd eventdata.Character];
+        
+end
+
+
+asterisk(1,1:length(handles.passwd)) = '*'; % Create a string of asterisks the same size as the password
+set(hObject,'String',asterisk) % Set the text in the password edit box to the asterisk string
+guidata(hObject,handles);

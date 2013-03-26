@@ -682,16 +682,34 @@ classdef flim_omero_data_manager < handle
         end            
                 
         %------------------------------------------------------------------                
-        function Omero_logon(obj,~)        
-            %
-            if exist(obj.omero_logon_filename,'file') 
-                [ settings ~ ] = xml_read (obj.omero_logon_filename);    
-                obj.logon = settings.logon;
-            else
+        function Omero_logon(obj,~) 
+            
+            settings = [];
+            
+            % look in FLIMfit/dev for logon file
+            folder = getapplicationdatadir('FLIMfit',true,true);
+            subfolder = [folder filesep 'Dev']; 
+            if exist(subfolder,'dir')
+                logon_filename = [ subfolder filesep obj.omero_logon_filename ];
+                if exist(logon_filename,'file') 
+                    [ settings ~ ] = xml_read (logon_filename);    
+                    obj.logon = settings.logon;
+                end
+                
+            end
+            
+            % if no logon file then user must login
+            if isempty(settings)
                 obj.logon = OMERO_logon();
             end
-            %
+             
+           if isempty(obj.logon)
+               return
+           end
+
             obj.client = loadOmero(obj.logon{1});
+            
+            
             try 
                 obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
             catch err
@@ -700,6 +718,135 @@ classdef flim_omero_data_manager < handle
                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                
             end                        
         end
+       %------------------------------------------------------------------        
+        function Load_Plate_Metadata_annot(obj,data_series,~)
+            %
+            if ~isempty(obj.dataset)
+                parent = obj.dataset;
+            elseif ~isempty(obj.plate)
+                parent = obj.plate;
+            else
+                errordlg('please set Dataset or Plate and load the data before loading plate metadata'), return;
+            end;
+            %    
+            [str fname] = select_Annotation(obj.session, parent,'Please choose metadata xlsx file');
+            %
+            if isempty(str)
+                return;
+            end;        
+            %
+            %debug
+            full_temp_file_name = [tempdir fname];
+            fid = fopen(full_temp_file_name,'w');                
+            fwrite(fid,str,'int8');                        
+            fclose(fid);                                                
+            %
+            try
+                data_series.import_plate_metadata(full_temp_file_name);
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            end
+            %
+            delete(full_temp_file_name); %??
+        end      
+       %------------------------------------------------------------------                
+        function Export_IRF_annot(obj,irf_data,~)
+            
+               choice = questdlg('Do you want to Export IRF to Dataset or Plate?', ' ', ...
+                                    'Dataset' , ...
+                                    'Plate','Cancel','Cancel');              
+            switch choice
+                case 'Dataset',
+                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                case 'Plate', 
+                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                case 'Cancel', 
+                    return;
+            end                        
+            %                        
+            ext = '.irf';   
+            irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
+            % works - but why is it t axis distortion there if IRF is from single-plane-tif-averaging
+            dlmwrite(irf_file_name,irf_data);            
+            %            
+            namespace = 'IC_PHOTONICS';
+            description = ' ';            
+            sha1 = char('pending');
+            file_mime_type = char('application/octet-stream');
+            %
+            add_Annotation(obj.session, ...
+                            object, ...
+                            sha1, ...
+                            file_mime_type, ...
+                            irf_file_name, ...
+                            description, ...
+                            namespace);                        
+        end                
+       %------------------------------------------------------------------                        
+        function Export_TVB_annot(obj,data_series,~)
+
+            choice = questdlg('Do you want to Export TVB to Dataset or Plate?', ' ', ...
+                                    'Dataset' , ...
+                                    'Plate','Cancel','Cancel');              
+            switch choice
+                case 'Dataset',
+                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                case 'Plate', 
+                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                case 'Cancel', 
+                    return;
+            end                        
+            %                        
+            tvbdata = [data_series.t(:) data_series.tvb_profile(:)];
+            %
+            ext = '.irf';   
+            tvb_file_name = [tempdir 'TVB '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
+            %
+            dlmwrite(tvb_file_name,tvbdata);            
+            %            
+            namespace = 'IC_PHOTONICS';
+            description = ' ';            
+            sha1 = char('pending');
+            file_mime_type = char('application/octet-stream');
+            %
+            add_Annotation(obj.session, ...
+                            object, ...
+                            sha1, ...
+                            file_mime_type, ...
+                            tvb_file_name, ...
+                            description, ...
+                            namespace);                                                            
+        end                 
+       %------------------------------------------------------------------        
+        function Load_TVB_annot(obj,data_series,~)
+            %
+            if ~isempty(obj.dataset)
+                parent = obj.dataset;
+            elseif ~isempty(obj.plate)
+                parent = obj.plate;
+            else
+                errordlg('please set Dataset or Plate and load the data before loading TVB'), return;
+            end;
+            %    
+            [str fname] = select_Annotation(obj.session, parent,'Please choose TVB file');
+            %
+            if isempty(str)
+                return;
+            end;            
+            %
+            full_temp_file_name = [tempdir fname];
+            fid = fopen(full_temp_file_name,'w');                
+            fwrite(fid,str,'*uint8');                        
+            fclose(fid);
+            %
+            try
+                data_series.load_tvb(full_temp_file_name);
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            end
+            %
+            delete(full_temp_file_name); %??            
+        end                      
     %
     end
 end

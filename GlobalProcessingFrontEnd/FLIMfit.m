@@ -31,7 +31,7 @@ function FLIMfit(OMERO_active)
 addpath_global_analysis();
 
 if nargin == 0 
-    flim_fit_ui();
+    flim_fit_ui(false, true);
 else
     flim_fit_ui(false, OMERO_active);
 end

@@ -187,13 +187,13 @@
             
             if ~isempty(client)                
                 % save logon anyway                
-                logon = handles.omero_data_manager.logon;
-                logon_filename = handles.omero_data_manager.omero_logon_filename;                
-                omero_logon = [];
-                omero_logon.logon = logon;
-                if ~handles.external
-                    xml_write(logon_filename,omero_logon);                                
-                end;
+                %logon = handles.omero_data_manager.logon;
+                %logon_filename = handles.omero_data_manager.omero_logon_filename;                
+                %omero_logon = [];
+                %omero_logon.logon = logon;
+                %if ~handles.external
+                %    xml_write(logon_filename,omero_logon);                                
+                %end;
                 %
                 disp('Closing OMERO session');
                 client.closeSession();
