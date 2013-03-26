@@ -74,13 +74,20 @@ function load_selected_files(obj,selected)
 
             for j=1:num_sel
 
-                if obj.load_multiple_channels
-                    filename = obj.file_names{1};
-                    [~,data] = load_flim_file(filename,obj.channels(selected(j)));
-                else
-                    filename = obj.file_names{selected(j)};
-                    [~,data] = load_flim_file(filename,obj.channels);
+                filename = '';
+                try
+                    if obj.load_multiple_channels
+                        filename = obj.file_names{1};
+                        [~,data] = load_flim_file(filename,obj.channels(selected(j)));
+                    else
+                        filename = obj.file_names{selected(j)};
+                        [~,data] = load_flim_file(filename,obj.channels);
+                    end
+                catch
+                    disp(['Warning: could not load dataset ' filename ', replacing with blank']);
+                    data = zeros(obj.data_size(1:4)');
                 end
+                    
                 
                 if false && ~isdeployed
                    
@@ -149,7 +156,7 @@ function load_selected_files(obj,selected)
                 end
                 
                 
-                 if ~isdeployed
+                 if false && ~isdeployed
                    
                     if obj.polarisation_resolved && ndims(data) > 3
                         
@@ -175,7 +182,7 @@ function load_selected_files(obj,selected)
                             a2(mask) = 0;
                             
                             
-                             figure(56)
+                            figure(56)
                             subplot(1,2,1);
                             imagesc(a1);
                             caxis([0.2 0.5])

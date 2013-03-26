@@ -39,26 +39,29 @@ function [data, row_headers] = get_table_data(obj, stat)
     data = [];
     for i=1:length(r.regions)
 
-        im = r.image(i);
-        regions = r.regions{i};
-        n_regions = length(regions);
-        im = repmat(im,[1,n_regions]);
-        success = r.success{i};
-        iterations = r.iterations{i};
-        pixels = r.region_size{i};
+        if ~isempty(r.regions{i})
+        
+            im = r.image(i);
+            regions = r.regions{i};
+            n_regions = length(regions);
+            im = repmat(im,[1,n_regions]);
+            success = r.success{i};
+            iterations = r.iterations{i};
+            pixels = r.region_size{i};
 
-        if isempty(stat)
-            row = [];
-            for j=1:length(r.stat_names)
-                row = [row; r.region_stats{i}.(r.stat_names{j})];
+            if isempty(stat)
+                row = [];
+                for j=1:length(r.stat_names)
+                    row = [row; r.region_stats{i}.(r.stat_names{j})];
+                end
+            else
+                row = r.region_stats{i}.(stat);
             end
-        else
-            row = r.region_stats{i}.(stat);
+
+            col = [im; double(regions); success; iterations; pixels; row]; 
+
+            data = [data col];
         end
-
-        col = [im; double(regions); success; iterations; pixels; row]; 
-
-        data = [data col];
     end
 
 end

@@ -46,8 +46,8 @@ function data = smooth_flim_data(data,extent,mode)
         for j = 1:n_chan
             plane = squeeze(data(i,j,:,:));
 
-            filtered = conv2nan(plane,kernel1);                
-            filtered = conv2nan(filtered,kernel2);                
+            filtered = conv2(plane,kernel1,'same');                
+            filtered = conv2(filtered,kernel2,'same');                
 
             data(i,j,:,:) = filtered;
         end
