@@ -38,18 +38,39 @@ function data = smooth_flim_data(data,extent,mode)
     end
     
     extent = extent*2+1;
-        
-    kernel1 = ones([extent 1]) / extent;
-    kernel2 = ones([1 extent]) / extent;
+    extent2 = extent * extent;
     
+    datatype = class(data);
+        
+    kernel = ones(extent) ./ extent2;
+    n = ~isnan(kernel);
+    %NB to work with imaginary numbers use real in place of double in
+    %following line & for loop
+    %realKern = real(n);  
+    realKern = cast(n, datatype);
+   
+    % pre-calculate correction of normalization (same for all planes)
+    siz = size(data);
+    size_plane = siz(3:4);
+    c = conv2(ones(size_plane),ones(size(kernel)),'same');
+  
+   
+  
     for i = 1:n_t
         for j = 1:n_chan
             plane = squeeze(data(i,j,:,:));
-
-            filtered = conv2nan(plane,kernel1);                
-            filtered = conv2nan(filtered,kernel2);                
-
-            data(i,j,:,:) = filtered;
+            
+            m = ~isnan(plane);
+              
+            if numel(m) == numel(plane)       % no Nans
+                data(i,j,:,:) = conv2(plane,kernel,'same');
+            else
+           
+                plane(~m) = 0;
+                C = conv2(plane,kernel,'same');
+                N = conv2(cast(m,datatype),realKern,'same'); %normalization term 
+                data(i,j,:,:) = C.*c./N;
+            end
         end
     end
 end
