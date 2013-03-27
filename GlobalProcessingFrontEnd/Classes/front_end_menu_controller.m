@@ -277,7 +277,7 @@ classdef front_end_menu_controller < handle
         % Default Path
         %------------------------------------------------------------------
         function menu_file_new_window_callback(obj,~,~)
-            GlobalProcessing();
+            FLIMfit();
         end
         
         %------------------------------------------------------------------

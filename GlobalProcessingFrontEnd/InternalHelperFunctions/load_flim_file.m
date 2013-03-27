@@ -52,7 +52,7 @@ global buf buf_name
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case '.tif'
             
-            if strcmp(fname(end-3:end),'.ome')
+            if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')
                 
                 info = imfinfo(file);
                 
