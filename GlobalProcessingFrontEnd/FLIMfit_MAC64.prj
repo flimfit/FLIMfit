@@ -80,9 +80,7 @@
       <file>/Users/imunro/globalprocessing/GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
       <file>/Users/imunro/globalprocessing/Third Party Licenses.txt</file>
     </fileset.resources>
-    <fileset.package>
-      <file special-file="file.mcr" reference-mode="direct">${MATLAB_ROOT}/toolbox/compiler/deploy/maci64/MCRInstaller.zip</file>
-    </fileset.package>
+    <fileset.package />
     <build-deliverables>
       <file name="run_FLIMfit_MAC64.sh" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/run_FLIMfit_MAC64.sh</file>
       <file name="FLIMfit_MAC64.app" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/FLIMfit_MAC64.app</file>

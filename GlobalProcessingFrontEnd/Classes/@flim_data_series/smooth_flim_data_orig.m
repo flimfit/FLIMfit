@@ -1,4 +1,4 @@
-function data = smooth_flim_data_opt(data,extent,mode)
+function data = smooth_flim_data_orig(data,extent,mode)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -39,31 +39,17 @@ function data = smooth_flim_data_opt(data,extent,mode)
     
     extent = extent*2+1;
         
-    kernel = ones(extent) ./ (extent * extent);
-    n = ~isnan(kernel);
-    %NB to work with imaginary numbers use real in place of double in
-    %following line & for loop
-    %realKern = real(n);  
-    realKern = double(n);
-   
-    % pre-calculate correction of normalization (same for all planes)
-    siz = size(data);
-    size_plane = siz(3:4);
-    c = conv2(ones(size_plane),ones(size(kernel)),'same');
-   
-  
+    kernel1 = ones([extent 1]) / extent;
+    kernel2 = ones([1 extent]) / extent;
+    
     for i = 1:n_t
         for j = 1:n_chan
             plane = squeeze(data(i,j,:,:));
-            
-            m = ~isnan(plane);
-            plane(~m) = 0;
-           
-            C = conv2(plane,kernel,'same'); 
-            N = conv2(double(m),realKern,'same'); %normalization term
-          
-         
-            data(i,j,:,:) = C.*c./N;
+
+            filtered = conv2nan(plane,kernel1);                
+            filtered = conv2nan(filtered,kernel2);                
+
+            data(i,j,:,:) = filtered;
         end
     end
 end
