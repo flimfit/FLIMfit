@@ -71,6 +71,9 @@ data = createData();
         %        
         data.dirlist = []; % list of directories to import for well plate
         data.dataset_annotations = [];                          
+        %
+        data.DirectoryList = [];
+        
     end % createData
 %-------------------------------------------------------------------------%
     function gui = createInterface( data )
@@ -95,6 +98,9 @@ data = createData();
         % + File menu
         gui.menu_file = uimenu( gui.Window, 'Label', 'File' );
         uimenu( gui.menu_file, 'Label','Set data directory', 'Callback', @onSetDirectory );
+        
+% BATCH
+uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSetDirectoryList );
         
         gui.menu_file_set_single = uimenu(gui.menu_file,'Label','Set image');
         gui.handles.menu_file_single_irf = uimenu(gui.menu_file_set_single,'Label','irf', 'Callback', @onSetFile);
@@ -328,7 +334,26 @@ data = createData();
 
     end % onSetProject
 %-------------------------------------------------------------------------%
-    function onGo(~,~)
+    function onGo(~,~)                
+        %
+        if ~isempty(data.DirectoryList)
+            % go through list                                    
+            for d = 1:numel(data.DirectoryList)
+                data.Directory = char(data.DirectoryList{d});             
+                set_directory_info();            
+                updateInterface();                                
+                import_directory();                
+            end;                                   
+            data.ProjectName = [];
+            data.project = [];                    
+            updateInterface();                                            
+        else
+            import_directory();             
+        end        
+        %
+    end
+%-------------------------------------------------------------------------%
+    function import_directory()
         %
         if isempty(data.Directory) || isempty(data.project)
             errordlg('either directory or project not set properly - can not continue');
@@ -342,7 +367,7 @@ data = createData();
         new_dataset_name = char(strings(length(strings)));
         %  
         if ~strcmp(data.LoadMode,'single file')
-            if strcmp('Dataset',whos_Object(data.session,data.project)) && ~is_Dataset_name_unique(data.project,new_dataset_name)
+            if strcmp('Dataset',whos_Object(data.session,data.project.getId().getValue())) && ~is_Dataset_name_unique(data.project,new_dataset_name)
                 errordlg('new Dataset name isn not unique - can not contuinue');
                 clear_settings;
                 updateInterface;     
@@ -549,8 +574,12 @@ data = createData();
 %-------------------------------------------------------------------------%
     function clear_settings()
         data.Directory = [];
-        data.ProjectName = [];
-        data.project = [];        
+        
+        if isempty(data.DirectoryList)
+            data.ProjectName = [];
+            data.project = [];        
+        end
+                
         %
         data.extension = '???';
         data.LoadMode = '???';        
@@ -659,6 +688,59 @@ data = createData();
       set(gui.menu_upload,'Label',label);      
       updateInterface();                   
     end
+%-------------------------------------------------------------------------%  
+    function onSetDirectoryList(~,~)
+            [file,path] = uigetfile('*.xlsx;*.xls','Select a text file containing list of data directories',data.DefaultDataDirectory);
+            
+            if file == 0, return, end;
+                
+                [~,dirs,~] = xlsread([path file]);
+                
+                for d=1:numel(dirs)                    
+                    if ~isdir(char(dirs{d}))
+                        errordlg(['Directory list has not been set: ' char(dirs{d}) ' not a directory']);
+                        return;
+                    end
+                end
+                %
+                data.DirectoryList = dirs;
+                %
+                if isempty(data.project)
 
-
+                        choice = questdlg('Do you want to import data as Datasets or Plates?', ' ', ...
+                                                'Datasets' , ...
+                                                'Plates','Cancel','Cancel');              
+                        switch choice
+                            case 'Datasets',
+                                prjct = select_Project(data.session,'Select Project');             
+                                if ~isempty(prjct)
+                                    data.project = prjct; 
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                else
+                                    return;
+                                end
+                                %                                
+                            case 'Plates', 
+                                scrn = select_Screen(data.session,'Select screen');
+                                if ~isempty(scrn)
+                                    data.project = scrn; 
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                else
+                                    return;
+                                end
+                            case 'Cancel', 
+                                return;
+                        end                        
+                                                            
+                end;
+                %
+                data.Directory = char(data.DirectoryList{1});             
+                set_directory_info();            
+                updateInterface();
+                                
+                if strcmp(data.DefaultDataDirectory,'C:\')
+                    data.DefaultDataDirectory = path;
+                end
+    end
+                              
 end % EOF
