@@ -43,8 +43,6 @@ data = createData();
 %-------------------------------------------------------------------------%
     function data = createData()
         %
-        data.main_well_plate_annotation_sacred_filename = 'plate_reader_metadata.xml';
-        %
         if ~isempty(settings)
             data.DefaultDataDirectory = settings.DefaultDataDirectory;        
             data.image_annotation_file_extension = settings.image_annotation_file_extension;        
@@ -86,7 +84,7 @@ data = createData();
             'Name', 'Imperial College Omero Importer', ...
             'NumberTitle', 'off', ...
             'MenuBar', 'none', ... % 
-            'Position', [280 678 970 120], ... % ??? 'Position', [680 678 560 420], ...
+            'Position', [0 0 970 120], ... % ??? 'Position', [680 678 560 420], ...
             'Toolbar', 'none', ...
             'DockControls', 'off', ...
             'Resize', 'off', ...
@@ -185,6 +183,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 Color = 'green';
         end
         set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
+        %
+            set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
+        %
         set(gui.ProjectNamePanel,'String',data.ProjectName);
         set(gui.DirectoryNamePanel,'String',data.Directory);            
         %                        
@@ -284,6 +285,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
     function onSetDestination(hObj,~,~)
                 
         label = get(hObj,'Label');
+        
+        data.DirectoryList = [];
 
         if strcmp(label,'Set Screen')        
             scrn = select_Screen(data.session,'Select screen');
@@ -343,10 +346,10 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 set_directory_info();            
                 updateInterface();                                
                 import_directory();                
-            end;                                   
-            data.ProjectName = [];
-            data.project = [];                    
-            updateInterface();                                            
+            end;                                             
+            data.DirectoryList = [];
+            clear_settings;
+            updateInterface;                                            
         else
             import_directory();             
         end        
@@ -416,10 +419,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             %
         elseif strcmp(data.LoadMode,'well plate')
             
-            FOV_name_parse_func = get_Plate_param_func_name_from_metadata_xml_file( ...
-                [data.Directory filesep data.main_well_plate_annotation_sacred_filename]);
-            %            
-            new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, FOV_name_parse_func, data.modulo);
+            new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, data.modulo);
             new_dataset = get_Object_by_Id(data.session,new_dataset_id);            
             % myplates = getPlates(data.session,new_dataset_id); new_dataset = myplates(1);                         
             
@@ -564,10 +564,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 z=z+1;
                 data.dirlist{z}=[data.Directory filesep totlist(k).name];
             else
-                if strcmp(totlist(k).name,data.main_well_plate_annotation_sacred_filename)
-                    data.extension = 'tif'; % this is bad
-                    data.LoadMode = 'well plate'; 
-                end;
+                data.extension = 'tif'; % this is bad
+                data.LoadMode = 'well plate'; 
             end
         end   
     end % set_directory_info

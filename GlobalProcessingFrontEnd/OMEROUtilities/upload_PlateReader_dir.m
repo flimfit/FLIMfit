@@ -1,4 +1,4 @@
-function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_function, modulo)
+function objId = upload_PlateReader_dir(session, parent, folder, modulo)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -26,13 +26,9 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
     objId = [];    
     if isempty(parent) || isempty(folder), return, end;    
 
-    PlateSetups = feval(fov_name_parse_function,folder);
-       
-    %str = split(filesep,folder);
-    strings1 = strrep(folder,filesep,'/');
-    str = split('/',strings1);                            
-        
-    newdataname = str(length(str));
+    PlateSetups = parse_WP_format(folder);           
+
+    newdataname = folder;
     
     whos_parent = whos_Object(session,parent.getId().getValue());
     
@@ -61,6 +57,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
             row = PlateSetups.rows(imgind);
             col = PlateSetups.cols(imgind);
             if col > PlateSetups.colMaxNum-1 || row > PlateSetups.rowMaxNum-1, errordlg('wrong col or row number'), return, end;
+
             %            
             %strings  = split(filesep,[folder filesep PlateSetups.names{imgind}]); % stupid...
              strings1 = strrep([folder filesep PlateSetups.names{imgind}],filesep,'/');
@@ -157,15 +154,16 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
 %                                     namespace);    
 %                     %
 %                     delete(xmlFileName);  
-                    
-                    if ~isempty(PlateSetups.image_metadata_filename)                    
-                        add_Annotation(session, ...
-                                    image, ...
-                                    sha1, ...
-                                    file_mime_type, ...
-                                    [folder filesep PlateSetups.names{imgind} filesep PlateSetups.image_metadata_filename], ...
-                                    description, ...
-                                    namespace);                                            
+                                   
+                   mdtafname = [folder filesep PlateSetups.names{imgind} filesep PlateSetups.image_metadata_filename];
+                   if exist(mdtafname,'file')                    
+                                    add_Annotation(session, ...
+                                                image, ...
+                                                sha1, ...
+                                                file_mime_type, ...
+                                                mdtafname, ...
+                                                description, ...
+                                                namespace);                                         
                     end;
                     % add xml modulo annotation
                     delaynums = zeros(1,numel(channels_names));
@@ -306,12 +304,13 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
 %                                 %
 %                                 delete(xmlFileName);  
 
-                                if ~isempty(PlateSetups.image_metadata_filename)                    
+                                mdtafname = [folder filesep PlateSetups.names{imgind} filesep PlateSetups.image_metadata_filename];
+                                if exist(mdtafname,'file')                    
                                     add_Annotation(session, ...
                                                 image, ...
                                                 sha1, ...
                                                 file_mime_type, ...
-                                                [folder filesep PlateSetups.names{imgind} filesep PlateSetups.image_metadata_filename], ...
+                                                mdtafname, ...
                                                 description, ...
                                                 namespace);                                            
                                 end;
@@ -336,10 +335,8 @@ function objId = upload_PlateReader_dir(session, parent, folder, fov_name_parse_
                 end
                 %
             end
-            end
-
-        
+            end     
     end
-
-    end
+    
+end
                 
