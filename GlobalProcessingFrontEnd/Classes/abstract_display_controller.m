@@ -79,7 +79,7 @@ classdef abstract_display_controller < handle
            
         end
         
-        function auto_export = export(~)
+        function auto_export = export(~,~)
             auto_export = true;
         end
         

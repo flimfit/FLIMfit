@@ -199,21 +199,18 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     
                     if grouping == 1 % Pixels                
                         y_mean(i) = M;
-                        y_err(i) = S;
+                        y_std(i) = S;
                         Ns = N / r.smoothing;
                         
                     else
                         y_mean(i) = mean(ym);
-                        y_err(i) = std(ym);
+                        y_std(i) = std(ym);
                         N = length(ym);
                         Ns = length(ym);
                     end
                     
-                    if error_type == 2
-                        y_err(i) = y_err(i) / sqrt(Ns);
-                    elseif error_type == 3                        
-                        y_err(i) = y_err(i) / sqrt(Ns) * 1.96;
-                    end
+                    y_err(i) = y_std(i) / sqrt(Ns);
+                    y_conf(i) = y_std(i) / sqrt(Ns) * 1.96;
                     
                     y_n(i) = N;
                     %err(i) = e/yn;
@@ -223,11 +220,20 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 %if ~all(err==0) && ~all(isnan(err))
                 %    y_err = err;
                 %end
-
+                
+                switch error_type
+                    case 1
+                        y_err_disp = y_std;
+                    case 2
+                        y_err_disp = y_err;
+                    case 3
+                        y_err_disp = y_conf;
+                end
+                
                 if var_is_numeric
                     
                     if display == 1 || display == 2
-                        errorbar(ax,x_data,y_mean,y_err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                        errorbar(ax,x_data,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
 
                         if display == 2
                             hold(ax,'on');
@@ -244,7 +250,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 else
                     
                     if display == 1 || display == 2
-                        errorbar(ax,y_mean,y_err,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                        errorbar(ax,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
                     
                         if display == 2
                             hold(ax,'on');
@@ -290,7 +296,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     set(ax,'XLim',[nanmin(x_data) nanmax(x_data)])
                 end
                 
-                obj.raw_data = [cell_x_data; num2cell(y_mean); num2cell(y_err); num2cell(y_n)]';
+                obj.raw_data = [cell_x_data; num2cell(y_mean); num2cell(y_std); num2cell(y_err); num2cell(y_conf); num2cell(y_n)]';
        
                 switch grouping
                     case 1
@@ -300,17 +306,9 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     case 3
                         g = 'FOV';
                 end
+               
                 
-                switch error_type
-                    case 1
-                        e = 'std dev';
-                    case 2
-                        e = 'std err';
-                    case 3
-                        e = '95% conf';
-                end
-                
-                obj.raw_data = [{obj.ind_param [r.params{param} ' ' g ' mean'] e 'count'}; obj.raw_data]; 
+                obj.raw_data = [{obj.ind_param [r.params{param} ' ' g ' mean'] 'std dev' 'std err' '95% conf' 'count'}; obj.raw_data]; 
                 
                 ylabel(ax,r.latex_params{param});
                 xlabel(ax,obj.ind_param);

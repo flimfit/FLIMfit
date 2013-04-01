@@ -75,10 +75,14 @@ function handles = add_plotter_display_panel(obj,handles,parent)
     param_layout = uiextras.Grid( 'Parent', plate_layout, 'Spacing', 3 );
     uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
+    uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
     handles.plate_param_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {''}, 'Parent', param_layout );
+    handles.plate_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Well Average','First Image'}, 'Parent', param_layout );
     
-    set( param_layout, 'RowSizes', [22] );
+    set( param_layout, 'RowSizes', [22 22] );
     set( param_layout, 'ColumnSizes', [100,100] );
     
     set( plate_layout, 'Sizes', [-1 70])

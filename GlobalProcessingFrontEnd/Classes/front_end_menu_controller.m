@@ -104,6 +104,8 @@ classdef front_end_menu_controller < handle
         menu_file_import_fit_results;
         menu_file_export_fit_results;
         
+        menu_file_import_exclusion_list;
+        menu_file_export_exclusion_list;
         
         menu_irf_load;
         menu_irf_image_load;
@@ -583,6 +585,20 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        
+        function menu_file_import_exclusion_list_callback(obj,~,~)
+            [file,path] = uigetfile({'*.txt','Text Files'},'Select the exclusion file',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.import_exclusion_list([path file]);
+            end
+        end
+        
+        function menu_file_export_exclusion_list_callback(obj,~,~)
+            [file,path] = uiputfile({'*.txt','Text Files'},'Select the exclusion file',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.export_exclusion_list([path file]);
+            end
+        end
         
         %------------------------------------------------------------------
         % IRF

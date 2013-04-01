@@ -97,7 +97,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');
     
     handles.menu_file_import_plate_metadata = uimenu(menu_file,'Label','Import Plate Metadata...','Separator','on');
-        
+    handles.menu_file_export_exclusion_list = uimenu(menu_file,'Label','Export Exclusion List...');
+    handles.menu_file_import_exclusion_list = uimenu(menu_file,'Label','Import Exclusion List...');    
     
     handles.menu_file_export_fit_params = uimenu(menu_file,'Label','Export Initial Fit Parameters...','Separator','on');
     handles.menu_file_import_fit_params = uimenu(menu_file,'Label','Import Initial Fit Parameters...');

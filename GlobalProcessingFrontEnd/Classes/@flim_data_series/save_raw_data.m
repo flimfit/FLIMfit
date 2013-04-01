@@ -25,6 +25,8 @@ function save_raw_data(obj,mapfile_name)
 
     % Author : Sean Warren
     
+    frame_binning = 1;
+    
     if obj.use_popup
         wait_handle=waitbar(0,'Opening files...');
     end
@@ -32,16 +34,26 @@ function save_raw_data(obj,mapfile_name)
     %dataset_name = ['/' obj.names{i} '/' fields{j}];
     %h5create([mapfile_name '.hdf5'],dataset_name,size(im.(fields{j})));
     %h5write([mapfile_name '.hdf5'],dataset_name,im.(fields{j}));
+        
+    field_names = fieldnames(obj.metadata);
+    for i=1:length(field_names)
+       
+        md = obj.metadata.(field_names{i});
+        new_metadata.(field_names{i}) = md(1:frame_binning:end);
+        
+    end
+    
+    num_binned_frames = ceil(obj.num_datasets / frame_binning);
     
     dinfo = struct();
     dinfo.t = obj.t;
     dinfo.t_int = obj.t_int;
-    dinfo.names = obj.names;
-    dinfo.metadata = obj.metadata;
+    dinfo.names = obj.names(1:frame_binning:end);
+    dinfo.metadata = new_metadata;
     dinfo.channels = obj.channels;
     dinfo.data_size = obj.data_size;
     dinfo.polarisation_resolved = obj.polarisation_resolved;
-    dinfo.num_datasets = obj.num_datasets;
+    dinfo.num_datasets = num_binned_frames;
     dinfo.mode = obj.mode;
     dinfo.root_path = obj.root_path;
     
@@ -57,20 +69,28 @@ function save_raw_data(obj,mapfile_name)
     fwrite(mapfile,length(byteData),'uint16');
     fwrite(mapfile,byteData,'uint8');
     
-    for j=1:obj.n_datasets
+    idx = 1;
+    for j=1:num_binned_frames
 
-        file = obj.file_names{j};
-        [~,data] = load_flim_file(file,obj.channels);
+        data = 0;
         
-        if isempty(data) || size(data,1) ~= obj.n_t
-            data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
+        for i=1:frame_binning
+            if idx <= obj.num_datasets
+                file = obj.file_names{idx};
+                [~,f_data] = load_flim_file(file,obj.channels);
+                data = data + f_data;
+                if isempty(data) || size(data,1) ~= obj.n_t
+                    data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
+                end
+                idx = idx + 1;
+                
+                if obj.use_popup
+                    waitbar(idx/obj.num_datasets,wait_handle)
+                end
+            end
         end
-        
         c1=fwrite(mapfile,data,'uint16');
-      
-        if obj.use_popup
-            waitbar(j/obj.n_datasets,wait_handle)
-        end
+
         
     end
 

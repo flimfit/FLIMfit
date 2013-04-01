@@ -28,6 +28,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
    
     properties
        colorbar_axes; 
+       plate_mode_popupmenu;
     end
     
     methods
@@ -37,6 +38,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             assign_handles(obj,handles);
 
             obj.register_tab_function('Plate');
+            set(obj.plate_mode_popupmenu,'Callback',@(~,~)obj.update_display);
         
             obj.update_display();
         end
@@ -50,7 +52,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
             param = obj.cur_param;
 
-            create_im_plate = false;
+            create_im_plate = get(obj.plate_mode_popupmenu,'Value')-1;
             
             plate_size = 0;
             
@@ -97,7 +99,11 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 plate = zeros(n_row,n_col) * NaN;
                 
                 if create_im_plate
-                     gw = r.width * n_col; gh = r.height * n_row;
+                     ds = 4;
+                     imw = r.width / ds;
+                     imh = r.height / ds;
+                     
+                     gw = imw * n_col; gh = imh * n_row;
                      im_plate = NaN([gh gw]);
                 end
                
@@ -112,10 +118,13 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                         yn = 0;
 
                         if create_im_plate && ~isempty(sel_well)
-                            ci = (col-1)*r.width+1;
-                            ri = (row_idx-1)*r.height+1;
+                            ci = (col-1)*imw+1;
+                            ri = (row_idx-1)*imh+1;
                             
-                            im_plate(ri:ri+r.height-1,ci:ci+r.width-1) = f.get_image(sel_well(1),param);         
+                            im = f.get_image(sel_well(1),param,'result');
+                            im = imresize(im,[imh imw],'nearest');
+                            
+                            im_plate(ri:ri+imh-1,ci:ci+imw-1) = im;         
                         end
                             
                         for i=sel_well
@@ -153,14 +162,12 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                
                 if create_im_plate
                     im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale);
-                    w = r.width;
-                    h = r.height;
                     c = 'w';
                     f = 0.5;
                 else
                     im = colorbar_flush(ax,ca,plate,[],lims,cscale);
-                    w = 1;
-                    h = 1;
+                    imw = 1;
+                    imh = 1;
                     c = 'k';
                     f = 0;
                 end
@@ -168,10 +175,10 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 daspect(ax,[ 1 1 1 ])
                
                 for i=1:n_col
-                    line([i i]*w+0.5,[0 n_row]*h+0.5,'Parent',ax,'Color',c);
+                    line([i i]*imw+0.5,[0 n_row]*imh+0.5,'Parent',ax,'Color',c);
                 end
                 for i=1:n_row
-                    line([0 n_col]*w+0.5,[i i]*h+0.5,'Parent',ax,'Color',c);
+                    line([0 n_col]*imw+0.5,[i i]*imh+0.5,'Parent',ax,'Color',c);
                 end
 
                 if ( ax == obj.plot_handle )
@@ -181,9 +188,9 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 obj.raw_data = [row_headers num2cell(plate)];
                 obj.raw_data = [r.params{param} num2cell(1:n_col); obj.raw_data];
                 
-                set(ax,'YTick',(1:1:n_row)*h-h*f);
+                set(ax,'YTick',(1:1:n_row)*imh-imh*f);
                 set(ax,'YTickLabel',row_headers);
-                set(ax,'XTick',(1:n_col)*w-w*f);
+                set(ax,'XTick',(1:n_col)*imw-imw*f);
                 set(ax,'XTickLabel',col_headers);
                 set(ax,'TickLength',[0 0]);
             else
@@ -193,16 +200,8 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 set(ax,'TickLength',[0 0]);
                 daspect(ax,[1 1 1]);
                 set(im,'uicontextmenu',obj.contextmenu);
-                w = 1;
-                h = 1;
-                f = 1;
             end
             
-            
-            
-
-            
-
             
         end
 

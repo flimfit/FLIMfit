@@ -60,22 +60,25 @@ fid=fopen(filename);
     data_block_length = fread(fid,1, 'uint32');  %length of longest block in file
     meas_desc_block_offs = fread(fid,1, 'uint32'); 
     no_of_meas_desc_blocks = fread(fid,1, 'uint16');
-    %{
+    
+    
+    
     if no_of_data_blocks > 1
         
-        errordlg('Unable to deal with multi-block data! Sorry!','Error!');
-        dbgstop;
-        
+        blockk = no_of_data_blocks;
+        %{
         blockk = uint32(0);
-        dlgTitle = 'Multi-block file:Select block';
+        dlgTitle = 'Multi-block file: Select block';
         prompt = {'Block '};
         defaultvalues = {'1'};
         numLines = 1;
-        while (blockk < 1) | (blockk > no_of_data_blocks)
+        while (blockk < 1) || (blockk > no_of_data_blocks)
             inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
             blockk = uint32(str2num(inputdata{1}));
         end
-        
+        %}
+    else
+        blockk = 1;
         
     end
    %}
@@ -153,7 +156,7 @@ fid=fopen(filename);
                 a = memmap.Data(1).data;
             end
         else
-            if no_of_meas_desc_blocks == i
+            if blockk == i
                 datacount = block_length/2;
                 memmap = memmapfile(filename,'Offset',data_offs,'Format',{'uint16',[datacount 1],'data'});
                 a = memmap.Data(1).data;

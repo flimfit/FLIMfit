@@ -835,6 +835,56 @@ classdef flim_data_series < handle & h5_serializer
         end
         
         
+        function import_exclusion_list(obj,file)
+
+            f = fopen(file);
+            
+            
+            tline = fgetl(f);
+            
+            exclude = [];
+            if strcmp(tline,'FOV') && isfield(obj.metadata,tline);
+                while ischar(tline)
+                    tline = fgetl(f);
+                    exclude(end+1) = str2double(tline);
+                end
+            else
+                warning('Only FOV exclusion currently supported');
+                return
+            end    
+            fclose(f);
+            
+            FOV = obj.metadata.FOV;
+            FOV = cell2mat(FOV');
+                        
+            obj.use = obj.use & ~ismember(FOV,exclude); 
+            
+        end
+        
+        function export_exclusion_list(obj,file)
+
+            if isfield(obj.metadata,'FOV')
+                exclude = obj.metadata.FOV;
+                exclude = exclude(~obj.use);
+                
+                f = fopen(file,'w');
+                
+                fprintf(f,'FOV\r\n');
+                
+                for i=1:length(exclude)
+                    fprintf(f, '%d\r\n', exclude{i});
+                end
+                    
+                fclose(f);
+                
+            else
+                warning('No FOV metadata, cannot export exclusion list'); 
+            end
+
+
+
+        end
+        
         %===============================================================
         
         function delete(obj)
