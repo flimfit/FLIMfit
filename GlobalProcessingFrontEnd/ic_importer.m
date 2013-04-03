@@ -767,13 +767,13 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 delete(hw);
                 drawnow;
                                                                 
-                data.Directory = char(data.DirectoryList{1});             
-%                set_directory_info;            
-                updateInterface;
+%               data.Directory = char(data.DirectoryList{1});             
+%               set_directory_info;            
+%               updateInterface;
                                 
-                %if strcmp(data.DefaultDataDirectory,'C:\')
-                    data.DefaultDataDirectory = path;
-                %end
+%                 if strcmp(data.DefaultDataDirectory,'C:\')
+%                     data.DefaultDataDirectory = path;
+%                 end
     end
                               
 end % EOF
