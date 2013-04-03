@@ -71,6 +71,7 @@ data = createData();
         data.dataset_annotations = [];                          
         %
         data.DirectoryList = [];
+        data.BatchFileName = [];
         
     end % createData
 %-------------------------------------------------------------------------%
@@ -182,12 +183,16 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         if ~isempty(data.Directory) && ~isempty(data.ProjectName) && ~strcmp('???',data.extension)          
                 Color = 'green';
         end
-        set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
-        %
-            set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
         %
         set(gui.ProjectNamePanel,'String',data.ProjectName);
-        set(gui.DirectoryNamePanel,'String',data.Directory);            
+        %        
+        if ~isempty(data.DirectoryList) 
+            set(gui.Indicator,'BackgroundColor',Color,'String','BATCH'); 
+            set(gui.DirectoryNamePanel,'String',data.BatchFileName);                                            
+        else
+            set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
+            set(gui.DirectoryNamePanel,'String',data.Directory);                                
+        end;        
         %                        
         if strcmp(data.image_annotation_file_extension,'none')
             set(gui.ImageAnnotationFileExtensionPopup,'Value',1);
@@ -237,6 +242,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
 %-------------------------------------------------------------------------%
     function onSetDirectory(~,~)     
         %
+        data.DirectoryList = [];
+        data.BatchFileName = [];
+        
         data.Directory = uigetdir(data.DefaultDataDirectory,'Select the folder containing the data');     
         %
         if 0 ~= data.Directory
@@ -286,8 +294,6 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 
         label = get(hObj,'Label');
         
-        data.DirectoryList = [];
-
         if strcmp(label,'Set Screen')        
             scrn = select_Screen(data.session,'Select screen');
             if ~isempty(scrn)
@@ -346,8 +352,10 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 set_directory_info();            
                 updateInterface();                                
                 import_directory();                
+                d
             end;                                             
             data.DirectoryList = [];
+            data.BatchFileName = [];
             clear_settings;
             updateInterface;                                            
         else
@@ -555,7 +563,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 end
         end              
         %                        
-        % it might be well-plate data...        
+        % presume it is well-plate data...        
         data.dirlist = [];
         totlist = dir(data.Directory);
         z = 0;
@@ -563,11 +571,12 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             if 1==totlist(k).isdir
                 z=z+1;
                 data.dirlist{z}=[data.Directory filesep totlist(k).name];
-            else
-                data.extension = 'tif'; % this is bad
-                data.LoadMode = 'well plate'; 
             end
         end   
+        %
+        data.extension = 'tif'; % this is bad
+        data.LoadMode = 'well plate'; 
+        %
     end % set_directory_info
 %-------------------------------------------------------------------------%
     function clear_settings()
@@ -697,11 +706,16 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 for d=1:numel(dirs)                    
                     if ~isdir(char(dirs{d}))
                         errordlg(['Directory list has not been set: ' char(dirs{d}) ' not a directory']);
+                        data.DirectoryList = [];
+                        data.BatchFileName = [];
+                        clear_settings;
+                        updateInterface;                        
                         return;
                     end
                 end
                 %
                 data.DirectoryList = dirs;
+                data.BatchFileName = [path file];
                 %
                 if isempty(data.project)
 
@@ -732,13 +746,34 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                                             
                 end;
                 %
+                hw = waitbar(0, 'checking Directory List, please wait...');
+                for d = 1:numel(data.DirectoryList)                    
+                    data.Directory = char(data.DirectoryList{d});             
+                    updateInterface;                                                                        
+                    set_directory_info;  
+                    if ~(strcmp(data.LoadMode,'well plate') || strcmp(data.LoadMode,'general'))
+                        errordlg(['Not data directory: ' data.DirectoryList{d} ' , batch is not set!']);
+                        data.DirectoryList = [];
+                        data.BatchFileName = [];
+                        clear_settings;
+                        delete(hw);
+                        drawnow;                        
+                        updateInterface;
+                        return;
+                    end
+                    waitbar(d/numel(data.DirectoryList), hw);
+                    drawnow;                    
+                end;                                             
+                delete(hw);
+                drawnow;
+                                                                
                 data.Directory = char(data.DirectoryList{1});             
-                set_directory_info();            
-                updateInterface();
+%                set_directory_info;            
+                updateInterface;
                                 
-                if strcmp(data.DefaultDataDirectory,'C:\')
+                %if strcmp(data.DefaultDataDirectory,'C:\')
                     data.DefaultDataDirectory = path;
-                end
+                %end
     end
                               
 end % EOF
