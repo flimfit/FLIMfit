@@ -27,7 +27,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbos
     
      % convert to java/c++ numbering from 0
     Zarr  = ZCT{1}-1;
-    Carr = ZCT{2}-1;
+    Carr = double(ZCT{2}-1);
     Tarr = ZCT{3}-1;
     
     

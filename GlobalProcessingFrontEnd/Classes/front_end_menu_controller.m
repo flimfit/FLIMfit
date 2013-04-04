@@ -56,6 +56,8 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_tvb_Annotation; 
         menu_OMERO_Export_tvb_Annotation;
         
+        menu_OMERO_Load_FLIM_Dataset_Polarization
+        
         omero_data_manager;                
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
@@ -401,7 +403,12 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Export_tvb_Annotation_callback(obj,~,~)
             obj.omero_data_manager.Export_TVB_annot(obj.data_series_controller.data_series);
-        end                                                
+        end    
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~)
+            obj.data_series_controller.data_series = flim_data_series();                        
+            obj.omero_data_manager.Load_FLIM_Dataset_Polarization(obj.data_series_controller.data_series);
+        end                    
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                

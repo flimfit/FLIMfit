@@ -1,4 +1,4 @@
-function Load_FLIM_Dataset(obj,data_series,~)                        
+function Load_FLIM_Dataset_Polarization(obj,data_series,~)                        
     % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
         
         
@@ -145,9 +145,6 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %                
             if 0==numel(image_ids), return, end;
             %                                   
-            polarisation_resolved = false;            
-            %
-            %image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
             myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image);
@@ -159,9 +156,11 @@ function Load_FLIM_Dataset(obj,data_series,~)
             delays = mdta.delays;
             
             obj.verbose = false;  % suppress waitbar if loading mutiple images
+            if 1==numel(image_ids), obj.verbose = true; end;
             
-            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays));
-           
+            channels = data_series.request_channels(true);
+            
+            obj.ZCT = {1 channels 1}; % temp...          
             
             if data_series.use_popup && data_series.num_datasets > 1 && ~data_series.raw
                 wait_handle=waitbar(0,'Loading FLIMages...');
@@ -169,8 +168,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
             else
                 using_popup = false;
             end
-            %
-            obj.selected_channel = obj.ZCT{2};
+            % ????? !!!!!            
+            obj.selected_channel = channels(1)*10 + channels(2); % ?????
             %
             try
                 [data_cube, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);
@@ -193,21 +192,22 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 %
                 data_series.file_names = {'file'};
                 data_series.channels = 1;
-                 
-                
+                                 
                 try
                     data_series.metadata = extract_metadata(data_series.names);        
                 catch err
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
                                 
-                data_series.polarisation_resolved = polarisation_resolved;
+                data_series.polarisation_resolved = true;
+                
                 data_series.t = delays;
+                
                 if strcmp(data_series.mode,'TCSPC')
                     data_series.t_int = ones(size(data_series.t));      % Not sure of behaviour for gated data
                 end
                 data_series.use_memory_mapping = false;
-                data_series.load_multiple_channels = false; 
+                data_series.load_multiple_channels = true; 
                 %                
                 selected = 1:data_series.num_datasets;
                 %
@@ -230,7 +230,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                         for j = 2:num_sel
 
                                 imgId = image_ids(selected(j));                        
-                                % image = get_Object_by_Id(obj.session,imgId);
+                                %
                                 myimages = getImages(obj.session,imgId); image = myimages(1);
                                 try
                                     [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
