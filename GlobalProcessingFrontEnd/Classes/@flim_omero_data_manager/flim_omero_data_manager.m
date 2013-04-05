@@ -663,7 +663,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set a Dataset or a Plate'), return;
              end;            
             
-            [str fname] = select_Annotation(obj.session, parent,'Please choose settings file');
+            [str fname] = select_Annotation(obj.session, parent,'Choose fitting settings file');
             %
             if isempty(str)
                 return;
@@ -729,7 +729,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set Dataset or Plate and load the data before loading plate metadata'), return;
             end;
             %    
-            [str fname] = select_Annotation(obj.session, parent,'Please choose metadata xlsx file');
+            [str fname] = select_Annotation(obj.session, parent,'Choose metadata xlsx file');
             %
             if isempty(str)
                 return;
@@ -828,7 +828,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set Dataset or Plate and load the data before loading TVB'), return;
             end;
             %    
-            [str fname] = select_Annotation(obj.session, parent,'Please choose TVB file');
+            [str fname] = select_Annotation(obj.session, parent,'Choose TVB file');
             %
             if isempty(str)
                 return;
@@ -848,5 +848,66 @@ classdef flim_omero_data_manager < handle
             delete(full_temp_file_name); %??            
         end                      
     %
+        %------------------------------------------------------------------        
+        function Export_Data_Settings(obj,data_series,~)
+            %
+            choice = questdlg('Do you want to Export data settings to Dataset or Plate?', ' ', ...
+                                    'Dataset' , ...
+                                    'Plate','Cancel','Cancel');              
+            switch choice
+                case 'Dataset',
+                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                case 'Plate', 
+                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                case 'Cancel', 
+                    return;
+            end                        
+            %                        
+            fname = [tempdir 'data settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
+            data_series.save_data_settings(fname);         
+            %            
+            namespace = 'IC_PHOTONICS';
+            description = ' ';            
+            sha1 = char('pending');
+            file_mime_type = char('application/octet-stream');
+            %
+            add_Annotation(obj.session, ...
+                            object, ...
+                            sha1, ...
+                            file_mime_type, ...
+                            fname, ...
+                            description, ...
+                            namespace);               
+        end            
+        
+        %------------------------------------------------------------------
+        function Import_Data_Settings(obj,data_series,~)
+            %
+             if ~isempty(obj.dataset) 
+                parent = obj.dataset;
+             elseif ~isempty(obj.plate) 
+                parent = obj.plate;
+             else
+                errordlg('please set a Dataset or a Plate'), return;
+             end;            
+            
+            [str fname] = select_Annotation(obj.session, parent,'Choose data settings file');
+            %
+            if isempty(str)
+                return;
+            end;
+            full_temp_file_name = [tempdir fname];
+            fid = fopen(full_temp_file_name,'w');    
+                fwrite(fid,str,'*uint8');
+            fclose(fid);
+            %
+            try
+                data_series.load_data_settings(full_temp_file_name);
+                delete(full_temp_file_name); 
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            end;
+        end            
+            
     end
 end
