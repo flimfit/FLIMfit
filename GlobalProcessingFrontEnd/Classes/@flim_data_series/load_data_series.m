@@ -49,9 +49,10 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     if strcmp(mode,'TCSPC')
 
         if isempty(channel)
-            channel = obj.request_channels(polarisation_resolved);
+            [channel,block] = obj.request_channels(polarisation_resolved);
         end
         obj.channels = channel;
+        obj.block = block;
         
         files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif'])];            
         num_datasets = length(files);
@@ -79,7 +80,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         
         % open first file
-        [obj.t,data,obj.t_int] = load_flim_file(obj.file_names{1},channel);         
+        [obj.t,data,obj.t_int] = load_flim_file(obj.file_names{1},channel,block);         
         data_size = size(data);
         
         % if only one channel reshape to include singleton dimension

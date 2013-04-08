@@ -169,6 +169,7 @@ classdef flim_data_series < handle & h5_serializer
         
         file_names;
         channels;
+        block = -1;
         
         loaded = [];
         load_time = [];
@@ -196,22 +197,26 @@ classdef flim_data_series < handle & h5_serializer
             end
         end
         
-        function channel = request_channels(polarisation_resolved)
+        function [channel,block] = request_channels(polarisation_resolved)
             %> Request which channels to use from dataset via dialog box
             if polarisation_resolved
                 dlgTitle = 'Select channels';
-                prompt = {'Parallel Channel';'Perpendicular Channel'};
-                defaultvalues = {'1','2'};
+                prompt = {'Parallel Channel ';'Perpendicular Channel ';'Block '};
+                defaultvalues = {'1','2','0'};
                 numLines = 1;
                 inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                channel = uint32(str2double(inputdata));
+                ret = str2double(inputdata);
+                channel = uint32(ret(1:2));
+                block = ret(3);
             else
                 dlgTitle = 'Select channel';
-                prompt = {'Channel '};
-                defaultvalues = {'1'};
+                prompt = {'Channel ','Block '};
+                defaultvalues = {'1','0'};
                 numLines = 1;
                 inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                channel = uint32(str2double(inputdata{1}));
+                ret = str2double(inputdata);
+                channel = uint32(ret(1));
+                block = ret(2);
             end
        end
         

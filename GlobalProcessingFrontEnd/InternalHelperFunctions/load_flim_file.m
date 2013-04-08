@@ -1,5 +1,5 @@
 
-function[delays,im_data,t_int,tcspc,metadata] = load_flim_file(file,channel)
+function[delays,im_data,t_int,tcspc,metadata] = load_flim_file(file,channel,block)
 
 global buf buf_name
 
@@ -39,6 +39,9 @@ global buf buf_name
     
     if (nargin < 2)
         channel = -1;
+    end
+    if (nargin < 3)
+        block = -1;
     end
 
     [path,fname,ext] = fileparts(file);
@@ -128,7 +131,7 @@ global buf buf_name
          case '.sdt'
 
 
-             [im_data, delays]=loadBHfileusingmeasDescBlock(file,channel);
+             [im_data, delays]=loadBHfileusingmeasDescBlock(file,channel,block);
              tcspc = 1;
 
 

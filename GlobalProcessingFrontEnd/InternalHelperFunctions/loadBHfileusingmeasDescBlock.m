@@ -1,4 +1,4 @@
-function [ImData Delays noOfChannels] = loadBHfileusingmeasDescBlock(filename, channel)
+function [ImData Delays noOfChannels] = loadBHfileusingmeasDescBlock(filename, channel, blockk)
 
 
 % [ImData Delays noOfChannels]=loadBHFile (filename)
@@ -37,6 +37,9 @@ function [ImData Delays noOfChannels] = loadBHfileusingmeasDescBlock(filename, c
 if nargin < 2
     channel = -1;
 end
+if nargin < 3
+    blockk = -1;
+end
 
 
 ImData = [];
@@ -65,7 +68,9 @@ fid=fopen(filename);
     
     if no_of_data_blocks > 1
         
-        blockk = no_of_data_blocks;
+        if blockk < 1 || blockk > no_of_data_blocks
+            blockk = no_of_data_blocks;
+        end
         %{
         blockk = uint32(0);
         dlgTitle = 'Multi-block file: Select block';
@@ -323,6 +328,8 @@ fid=fopen(filename);
 
 Delays= (0:timerange/adc_res:timerange-timerange/adc_res);
 
+
+fclose(fid);
 
 end
 

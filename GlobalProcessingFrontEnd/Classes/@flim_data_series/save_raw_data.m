@@ -28,7 +28,7 @@ function save_raw_data(obj,mapfile_name)
     frame_binning = 1;
     
     if obj.use_popup
-        wait_handle=waitbar(0,'Opening files...');
+        wait_handle=waitbar(0,'Saving raw file...');
     end
     
     %dataset_name = ['/' obj.names{i} '/' fields{j}];
@@ -69,6 +69,8 @@ function save_raw_data(obj,mapfile_name)
     fwrite(mapfile,length(byteData),'uint16');
     fwrite(mapfile,byteData,'uint8');
     
+    obj.suspend_transformation(true);
+    
     idx = 1;
     for j=1:num_binned_frames
 
@@ -76,8 +78,10 @@ function save_raw_data(obj,mapfile_name)
         
         for i=1:frame_binning
             if idx <= obj.num_datasets
-                file = obj.file_names{idx};
-                [~,f_data] = load_flim_file(file,obj.channels);
+                obj.switch_active_dataset(idx);
+                f_data = obj.cur_data;
+                %file = obj.file_names{idx};
+                %[~,f_data] = load_flim_file(file,obj.channels,obj.block);
                 data = data + f_data;
                 if isempty(data) || size(data,1) ~= obj.n_t
                     data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
@@ -94,6 +98,8 @@ function save_raw_data(obj,mapfile_name)
         
     end
 
+    obj.suspend_transformation(false);
+    
     fclose(mapfile);
             
     if obj.use_popup
