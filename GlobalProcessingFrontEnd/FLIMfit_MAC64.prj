@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="2746070519" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="3452512126" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
     <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>FLIMfit_MAC64</param.appname>
@@ -61,6 +61,7 @@
       <file>${PROJECT_ROOT}/FLIMfit.m</file>
     </fileset.main>
     <fileset.resources>
+      <file>/Users/imunro/globalprocessing/GPL Licence.txt</file>
       <file>${PROJECT_ROOT}/Classes</file>
       <file>${PROJECT_ROOT}/FLIMGlobalAnalysisProto_MACI64.m</file>
       <file>${PROJECT_ROOT}/FLIMGlobalAnalysis_64_thunk_maci64.dylib</file>
@@ -90,6 +91,27 @@
     <matlab>
       <root>/Applications/MATLAB_R2012b.app</root>
       <path>
+        <directory>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd</directory>
+        <directory>${PROJECT_ROOT}/Classes</directory>
+        <directory>${PROJECT_ROOT}/GUIDEInterfaces</directory>
+        <directory>${PROJECT_ROOT}/GeneratedFiles</directory>
+        <directory>${PROJECT_ROOT}/InternalHelperFunctions</directory>
+        <directory>${PROJECT_ROOT}/InternalHelperFunctions/RawDataFunctions</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout-v1p8</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout-v1p8/Patch</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout-v1p8/layoutHelp</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/xml_io_toos</directory>
+        <directory>${PROJECT_ROOT}/../GlobalProcessingLibrary/Libraries</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/helper</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/io</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/libs</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/roi</directory>
+        <directory>${PROJECT_ROOT}/OMEROUtilities</directory>
+        <directory>${MATLAB_ROOT}/toolbox/images/images</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/libs/test</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/doubleops_MACI64</directory>
         <directory>/Users/imunro/Documents/MATLAB</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/demos</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/graph2d</directory>
@@ -225,7 +247,6 @@
         <directory>${MATLAB_ROOT}/toolbox/idelink/extensions/ticcs/ccsdemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/idelink/extensions/ticcs/ccsdemos/util</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/colorspaces</directory>
-        <directory>${MATLAB_ROOT}/toolbox/images/images</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/imuitools</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/iptformats</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/iptutils</directory>

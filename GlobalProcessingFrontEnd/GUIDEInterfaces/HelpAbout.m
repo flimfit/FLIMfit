@@ -60,6 +60,7 @@ name = ['FLIMfit', varargin(2)];
 set(handles.text1,'String',name);
 
 
+
 fname = ['.',filesep,'..',filesep,'Third Party Licenses.txt'];
 fid = fopen(fname,'r');
 

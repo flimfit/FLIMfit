@@ -900,11 +900,40 @@ classdef front_end_menu_controller < handle
         end
 
         function menu_help_tracker_callback(obj, ~, ~)
-            web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
+            
+            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues');
+            %web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
         end
 
         function menu_help_bugs_callback(obj, ~, ~)
-            web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
+            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues/new');
+            %web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
+        end
+        
+        function open_browser(~, url_str)
+            % cut down web function to open a web  browser without HelpUtils
+            
+            stat = -1; %default
+            
+            if ismac
+                 % We can't detect system errors on the Mac, so the warning options are unnecessary.
+                unix(['open ' url_str]);
+                stat = 0;
+       
+            elseif isunix
+                
+                errordlg('Sorry! - not currently available for Linux/Unix', 'Browser Error')
+            
+            elseif ispc
+                stat = dos(['cmd.exe /c rundll32 url.dll,FileProtocolHandler "' url_str '"']);
+            end
+            
+            if stat ~= 0
+                errordlg(horzcat('Failed to open browser! Please direct a browser to ', url_str ),'Browser Error');
+                
+            end
+            
+            
         end
 
 
