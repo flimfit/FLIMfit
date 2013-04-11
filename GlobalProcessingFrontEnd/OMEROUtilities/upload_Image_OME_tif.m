@@ -197,6 +197,9 @@ function imageId = upload_Image_OME_tif(factory,dataset,filename,description)
     if ~isempty(Delays) && ~isempty(modulo) && ~isempty(FLIM_type)
         xmlnode = create_ModuloAlongDOM(Delays, [], modulo, FLIM_type);
         add_XmlAnnotation(factory,image,xmlnode);
+        %
+        add_Original_Metadata_Annotation(factory,image,filename);
+        %
     end           
     %             
 end
