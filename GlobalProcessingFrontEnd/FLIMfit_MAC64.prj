@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="3452512126" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="2430295941" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
     <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>FLIMfit_MAC64</param.appname>
@@ -58,10 +58,9 @@
       <param.user.defined.mcr.options />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}/FLIMfit.m</file>
+      <file>${PROJECT_ROOT}/FLIMfitOMERO.m</file>
     </fileset.main>
     <fileset.resources>
-      <file>/Users/imunro/globalprocessing/GPL Licence.txt</file>
       <file>${PROJECT_ROOT}/Classes</file>
       <file>${PROJECT_ROOT}/FLIMGlobalAnalysisProto_MACI64.m</file>
       <file>${PROJECT_ROOT}/FLIMGlobalAnalysis_64_thunk_maci64.dylib</file>
@@ -73,13 +72,14 @@
       <file>${PROJECT_ROOT}/HelperFunctions/GUILayout-v1p8/Patch/getpixelposition.p</file>
       <file>${PROJECT_ROOT}/HelperFunctions/GUILayout-v1p8/Patch/isHGUsingMATLABClasses.p</file>
       <file>${PROJECT_ROOT}/InternalHelperFunctions</file>
+      <file>${PROJECT_ROOT}/LicenseFiles</file>
+      <file>${PROJECT_ROOT}/LicenseFiles/Third Party Licenses.txt</file>
       <file>${PROJECT_ROOT}/OMEROMatlab</file>
       <file>${PROJECT_ROOT}/OMEROUtilities</file>
       <file>${PROJECT_ROOT}/YuriySegmentation</file>
       <file>${PROJECT_ROOT}/icons.mat</file>
       <file>${PROJECT_ROOT}/segmentation_funcs.mat</file>
       <file>/Users/imunro/globalprocessing/GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
-      <file>/Users/imunro/globalprocessing/Third Party Licenses.txt</file>
     </fileset.resources>
     <fileset.package />
     <build-deliverables>
