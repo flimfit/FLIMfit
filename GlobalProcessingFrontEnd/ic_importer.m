@@ -352,7 +352,6 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 set_directory_info();            
                 updateInterface();                                
                 import_directory();                
-                d
             end;                                             
             data.DirectoryList = [];
             data.BatchFileName = [];
