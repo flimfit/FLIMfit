@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="2430295941" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="1105569877" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
     <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>FLIMfit_MAC64</param.appname>
@@ -102,6 +102,7 @@
         <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout-v1p8/Patch</directory>
         <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout-v1p8/layoutHelp</directory>
         <directory>${PROJECT_ROOT}/HelperFunctions/xml_io_toos</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/bftools</directory>
         <directory>${PROJECT_ROOT}/../GlobalProcessingLibrary/Libraries</directory>
         <directory>${PROJECT_ROOT}/OMEROMatlab</directory>
         <directory>${PROJECT_ROOT}/OMEROMatlab/helper</directory>
