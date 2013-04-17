@@ -350,8 +350,7 @@ classdef front_end_menu_controller < handle
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
-            %obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series);
-            obj.omero_data_manager.save_visualisation_images(obj.plot_controller,obj.data_series_controller.data_series);
+            obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series);
         end                    
         %------------------------------------------------------------------        
         function menu_OMERO_Export_Fitting_Settings_callback(obj,~,~)

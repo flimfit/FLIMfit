@@ -28,6 +28,13 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,~)
         return;
     end
     
+    f = plot_controller.fit_controller;
+    r = f.fit_result;
+            
+    f_save = figure('visible','on');        
+    save = true;        
+    root = tempdir;    
+    
     if ~isempty(obj.dataset)
                 %
                 current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
@@ -53,15 +60,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,~)
                     errordlg('Can not create new Dataset');
                     return;
                 end
-            
-    f = plot_controller.fit_controller;
-    r = f.fit_result;
-            
-        f_save = figure('visible','on');        
-        save = true;
-        
-        root = tempdir;
-      
+                  
     cnt=0;
     
     nplots = r.n_results*f.n_plots;
@@ -110,9 +109,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,~)
             end
 
         end                  
-    end
-    
-    close(f_save)
+    end    
     
     delete(hw);
     drawnow;
@@ -120,10 +117,69 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,~)
     elseif ~isempty(obj.plate) % work with SPW layout    
         %
         % TO DO..
-        errordlg('SPW is not presently supported');
+        % errordlg('SPW is not presently supported');
         %
-    end
+    cnt=0;
+    
+    nplots = r.n_results*f.n_plots;
+            
+    hw = waitbar(0, 'Loading FLIM maps to Omero, please wait');
+            
+    ims = 1:r.n_results;
+    
+        if f.n_plots > 0
+
+            for plot_idx = 1:length(f.plot_names)
+                                
+                if f.display_normal.(f.plot_names{plot_idx})
+
+                    %create output plate...
+                    create_new_Plate(r.params{plot_idx});
+                                                            
+                    for cur_im = ims
+                        name_root = [root ' ' r.names{cur_im}];
+
+                        [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
+                        plot_controller.plot_figure(h,c,cur_im,plot_idx,true,'');                                                            
+
+                        fname = [name_root ' @ ' r.params{plot_idx}]
+                        %saveas(h,fname,'tif');
+                        cnt=cnt+1;
+                        waitbar(cnt/nplots, hw);
+                        drawnow;                            
+                    end;                                        
+                end
+
+                % Merge
+                if f.display_merged.(f.plot_names{plot_idx})
+                    
+                    %create output plate...              
+                    create_new_Plate([r.params{plot_idx} ' merge']);
+    
+                    for cur_im = ims
+                        name_root = [root ' ' r.names{cur_im}];                    
+                                        
+                        [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);                    
+                        plot_controller.plot_figure(h,c,cur_im,plot_idx,true,'');                  
+
+                        fname = [name_root ' @ ' r.params{plot_idx} ' merge']
+                        %saveas(h,fname,'tif');
+                        cnt=cnt+1;
+                        waitbar(cnt/nplots, hw);
+                        drawnow;        
+                    end
+                end
+                
+            end
+
+        end  
+        
+        delete(hw);
+        drawnow;                
+    end                                                
        
+    close(f_save);    
+    
     function transfer_tif_to_Omero_Dataset(fname)
                             U = imread(fname,'tif');
                             %
@@ -146,6 +202,29 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,~)
                             link.setChild(omero.model.ImageI(imageId, false));
                             link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false)); % in this case, "project" is Dataset
                             obj.session.getUpdateService().saveAndReturnObject(link); 
+    end
+    
+    %
+    function newplate = create_new_Plate(fitted_parameter_name)
+
+        updateService = obj.session.getUpdateService();
+        
+        current_plate_name = char(java.lang.String(obj.plate.getName().getValue()));    
+            newplate_name = [current_plate_name ' FLIM MAPS ' fitted_parameter_name ' channel ' num2str(obj.selected_channel) ...
+            ' Z ' num2str(obj.ZCT{1}) ...
+            ' C ' num2str(obj.ZCT{2}) ...
+            ' T ' num2str(obj.ZCT{3}) ' ' ...
+            datestr(now,'yyyy-mm-dd-T-HH-MM-SS')]                                                        
+        
+            newplate = omero.model.PlateI();
+            newplate.setName(omero.rtypes.rstring(newplate_name));    
+            newplate.setColumnNamingConvention(obj.plate.getColumnNamingConvention());
+            newplate.setRowNamingConvention(obj.plate.getRowNamingConvention());                                                                    
+            newplate = updateService.saveAndReturnObject(newplate);
+            newplatelink = omero.model.ScreenPlateLinkI;
+            newplatelink.setChild(newplate);            
+            newplatelink.setParent(omero.model.ScreenI(obj.screen.getId().getValue(),false));            
+            updateService.saveObject(newplatelink);                                                                     
     end
     
 end            
