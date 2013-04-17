@@ -482,7 +482,6 @@ classdef flim_omero_data_manager < handle
                     data = zeros(n_params,sizeX,sizeY);
                         for p = 1:n_params,                                                                                                                                            
                             data(p,:,:) = fit_controller.get_image(dataset_index, params{p})';
-                            fit_controller.get_image(1, params{1});
                         end
                     %                  
                     new_image_description = ' ';
