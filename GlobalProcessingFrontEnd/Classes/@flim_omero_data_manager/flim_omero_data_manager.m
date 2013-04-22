@@ -482,7 +482,6 @@ classdef flim_omero_data_manager < handle
                     data = zeros(n_params,sizeX,sizeY);
                         for p = 1:n_params,                                                                                                                                            
                             data(p,:,:) = fit_controller.get_image(dataset_index, params{p})';
-                            fit_controller.get_image(1, params{1});
                         end
                     %                  
                     new_image_description = ' ';
@@ -723,9 +722,7 @@ classdef flim_omero_data_manager < handle
             if isempty(settings)
                 obj.logon = OMERO_logon();
             end
-            
-           
-             
+                                    
            if isempty(obj.logon)
                return
            end
@@ -761,6 +758,49 @@ classdef flim_omero_data_manager < handle
                 obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
             end     % end while
         end
+       %------------------------------------------------------------------        
+       function Omero_logon_forced(obj,~) 
+                        
+            keeptrying = true;
+           
+            while keeptrying 
+            
+            obj.logon = OMERO_logon();
+                                    
+           if isempty(obj.logon)
+               return
+           end
+            
+                keeptrying = false;     % only try again in the event of failure to logon
+          
+                obj.client = loadOmero(obj.logon{1});
+
+                try 
+                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                catch err
+                    obj.client = [];
+                    obj.session = [];
+
+                    % Construct a questdlg with three options
+                    choice = questdlg('OMERO logon failed!', ...
+                    'Logon Failure!', ...
+                    'Try again to logon','Launch FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
+                    % Handle response
+                    switch choice
+                        case 'Try again to logon'
+                            keeptrying = true;
+                      
+                            
+                        case 'Launch FLIMfit in non-OMERO mode'
+                            % no action keeptrying is already false
+                       
+                    end    % end switch           
+                end   % end catch
+                
+                obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+            end     % end while           
+       end
+        
        %------------------------------------------------------------------        
         function Load_Plate_Metadata_annot(obj,data_series,~)
             %

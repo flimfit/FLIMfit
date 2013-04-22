@@ -61,6 +61,8 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Export_Data_Settings;
         menu_OMERO_Import_Data_Settings;
         
+        menu_OMERO_Export_Visualisation_Images;
+        
         omero_data_manager;                
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
@@ -388,7 +390,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Switch_User_callback(obj,~,~)
             %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
-            obj.omero_data_manager.Omero_logon();
+            obj.omero_data_manager.Omero_logon_forced();
         end        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_Pate_Metadata_callback(obj,~,~)
@@ -420,6 +422,10 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Import_Data_Settings_callback(obj,~,~)
             obj.omero_data_manager.Import_Data_Settings(obj.data_series_controller.data_series);
         end                                            
+        %------------------------------------------------------------------
+        function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
+            obj.omero_data_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
+        end                            
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
