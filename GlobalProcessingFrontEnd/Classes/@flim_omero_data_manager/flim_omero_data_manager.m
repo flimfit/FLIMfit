@@ -109,9 +109,9 @@ classdef flim_omero_data_manager < handle
             data_series.t = delays;
             data_series.use_memory_mapping = false;
             
-            data_series.data_series_mem = single(data_cube);
+            data_series.data_series_mem = data_cube;
             
-            data_series.tr_data_series_mem = single(data_cube); 
+            data_series.tr_data_series_mem = data_cube; 
              
     
             data_series.load_multiple_channels = false;
@@ -404,7 +404,7 @@ classdef flim_omero_data_manager < handle
                 
                 [ data_cube, name ] =  obj.OMERO_fetch(  image, ZCT, mdta);
                             
-                data = squeeze(data_cube);
+                data = double(squeeze(data_cube));
                 %
                 tempfilename = [tempname '.tif'];
                 if 2 == numel(size(data))

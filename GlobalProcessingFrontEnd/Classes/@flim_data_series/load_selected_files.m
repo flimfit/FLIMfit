@@ -224,11 +224,13 @@ function load_selected_files(obj,selected)
 
     end
         
+    obj.loaded
             
     if using_popup
         close(wait_handle)
     end
     
     obj.compute_tr_data(false);
+    
     
 end
