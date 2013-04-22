@@ -1,4 +1,4 @@
-function [ Dataset Project ] = select_Dataset(session,prompt)
+ function [ Dataset Project ] = select_Dataset(session,prompt)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -22,16 +22,14 @@ function [ Dataset Project ] = select_Dataset(session,prompt)
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-        
-            %
+
             Dataset = [];
             Project = [];            
             %
             proxy = session.getContainerService();
-            %Set the options
+            %
             param = omero.sys.ParametersI();
-            %param.noLeaves(); %no images loaded, this is the default value.
-            param.leaves();
+            %            
             userId = session.getAdminService().getEventContext().userId; %id of the user.
             param.exp(omero.rtypes.rlong(userId));
             projectsList = proxy.loadContainerHierarchy('omero.model.Project', [], param);
@@ -58,7 +56,23 @@ function [ Dataset Project ] = select_Dataset(session,prompt)
                     str(i+1,1:length(dnme)) = dnme;
                     did(i+1) = java.lang.Long(d.getId().getValue());                    
                 end
-            
+            % to sort by project etc. - start
+            strcell_sorted = sort_nat(cellstr(str));
+            strcell_unsorted = cellstr(str);
+            did_sorted = zeros(1,alldatasetsList.size()); % to fill..
+            %
+            for d = 1:alldatasetsList.size()
+                for dd = 1:alldatasetsList.size()
+                    if strcmp(char(strcell_sorted(d)),char(strcell_unsorted(dd)))
+                        did_sorted(d) = did(dd);
+                        break;
+                    end
+                end
+            end
+            str = char(strcell_sorted);
+            did = did_sorted;    
+            % to sort by project etc. - end
+            %
             % request a Dataset using the "str" list
             [s,v] = listdlg('PromptString',prompt,...
                             'SelectionMode','single',...
@@ -85,4 +99,4 @@ function [ Dataset Project ] = select_Dataset(session,prompt)
                     end                                                            
             end;
                     
-        end
+ end

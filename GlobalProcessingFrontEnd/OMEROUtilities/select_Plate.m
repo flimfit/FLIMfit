@@ -22,9 +22,7 @@ function [ Plate Screen ] = select_Plate(session,prompt)
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-        
-        
-            %
+           
             Plate = [];
             Screen = [];            
             %
@@ -71,5 +69,8 @@ function [ Plate Screen ] = select_Plate(session,prompt)
                         end                    
                      end                                        
                 end            
-            end;
-        end
+            end
+end
+        
+
+                
