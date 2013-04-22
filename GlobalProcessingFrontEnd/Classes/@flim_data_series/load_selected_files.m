@@ -224,7 +224,6 @@ function load_selected_files(obj,selected)
 
     end
         
-    obj.loaded
             
     if using_popup
         close(wait_handle)
