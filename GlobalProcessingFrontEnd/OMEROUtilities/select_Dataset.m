@@ -29,6 +29,7 @@
             proxy = session.getContainerService();
             %
             param = omero.sys.ParametersI();
+            param.leaves();
             %            
             userId = session.getAdminService().getEventContext().userId; %id of the user.
             param.exp(omero.rtypes.rlong(userId));
