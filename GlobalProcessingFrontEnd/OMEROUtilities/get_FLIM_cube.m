@@ -175,13 +175,14 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbos
                 
                 data_cube(t,c,:,:,1) = plane';
                 t = t + 1;
-                totalPlane = totalPlane + 1;
+                
             end
             
            
             
             if verbose
                
+                totalPlane = totalPlane + nplanes;
                 waitbar(totalPlane /totalPlanes,w);
                 drawnow;
             end

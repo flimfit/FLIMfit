@@ -197,7 +197,6 @@ function Load_FLIM_Dataset(obj,data_series,~)
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
                                 
-                data_series.polarisation_resolved = false;
                 
                 data_series.t = delays;
                 
@@ -205,7 +204,6 @@ function Load_FLIM_Dataset(obj,data_series,~)
                     data_series.t_int = ones(size(data_series.t));      % Not sure of behaviour for gated data
                 end
              
-                data_series.load_multiple_channels = false; 
                 
                 data_series.clear_memory_mapping();
                 
