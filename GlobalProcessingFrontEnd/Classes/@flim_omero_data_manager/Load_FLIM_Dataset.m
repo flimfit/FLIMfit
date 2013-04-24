@@ -155,21 +155,18 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
-            if length(image_ids) < 2 
-                obj.verbose = true; 
-            else
-                obj.verbose = false;    % suppress waitbar if loading mutiple images
-            end;
-            
-            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays));
-           
-            
             if data_series.use_popup && data_series.num_datasets > 1 && ~data_series.raw
                 wait_handle=waitbar(0,'Loading FLIMages...');
                 using_popup = true;
+                obj.verbose = false;     % suppress low-level waitbar if loading mutiple images
             else
                 using_popup = false;
+                obj.verbose = true; 
             end
+            
+          
+            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
+                          
             %
             obj.selected_channel = obj.ZCT{2};
             %

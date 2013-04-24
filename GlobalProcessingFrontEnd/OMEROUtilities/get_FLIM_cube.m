@@ -123,11 +123,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbos
     step.add(java.lang.Integer(1));
     step.add(java.lang.Integer(1));
 
-    
-   
-        
-    
-   
+    totalPlane = 1;
  
     imSize = sizeX * sizeY;
     
@@ -179,12 +175,14 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbos
                 
                 data_cube(t,c,:,:,1) = plane';
                 t = t + 1;
+                totalPlane = totalPlane + 1;
             end
             
            
             
             if verbose
-                waitbar((t*c) /totalPlanes,w);
+               
+                waitbar(totalPlane /totalPlanes,w);
                 drawnow;
             end
            
