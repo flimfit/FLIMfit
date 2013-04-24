@@ -115,8 +115,9 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                             'left outer join fetch pix.pixelsType as pt '...
                             'where well.plate.id = ', num2str(obj.plate.getId().getValue())],[]);
 
-	newplate = [];		
-
+	newplate = [];
+    create_new_Plate('altogether'); % uncomment if want single plate
+    thatplateid  = newplate.getId.getValue;% uncomment if want single plate
                         
     cnt=0; % FOVs counter    
     nplots = r.n_results*f.n_plots;            
@@ -126,7 +127,8 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
             for plot_idx = 1:length(f.plot_names)                                
                 if f.display_normal.(f.plot_names{plot_idx})
                     %create output plate...
-                    create_new_Plate(r.params{plot_idx});
+                    %create_new_Plate(r.params{plot_idx}); % comment out if want single plate
+                    %thatplateid  = newplate.getId.getValue; % comment out if want single plate
                     %    
                     for cur_im = ims
                         name_root = [root ' ' r.names{cur_im}];
@@ -139,12 +141,14 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                                 waitbar(cnt/nplots, hw);
                                 drawnow;                            
                     end;                                        
-                    % add_annotations(newplate); %?????????                                                   
+                    %thatplate = get_Object_by_Id(obj.session,thatplateid); % comment out if want single plate
+                    %add_annotations(thatplate); % comment out if want single plate                                                  
                 end
                 % Merge
                 if f.display_merged.(f.plot_names{plot_idx})                    
                     %create output plate...              
-                    create_new_Plate([r.params{plot_idx} ' merge']);
+                    %create_new_Plate([r.params{plot_idx} ' merge']);% comment out if want single plate
+                    %thatplateid  = newplate.getId.getValue;% comment out if want single plate
                     %
                     for cur_im = ims
                         name_root = [root ' ' r.names{cur_im}];                                                            
@@ -157,11 +161,15 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                                 waitbar(cnt/nplots, hw);
                                 drawnow;        
                     end
-                    % add_annotations(newplate); %?????????
+                    %thatplate = get_Object_by_Id(obj.session,thatplateid);% comment out if want single plate
+                    %add_annotations(thatplate);% comment out if want single plate                                                   
                 end % if f.display_normal.(f.plot_names{plot_idx})                
             end % for plot_idx = 1:length(f.plot_names)
         end % f.n_plots > 0 
-        
+
+        thatplate = get_Object_by_Id(obj.session,thatplateid);% uncomment if want single plate
+        add_annotations(thatplate);% uncomment if want single plate                                                   
+                
         delete(hw);
         drawnow;                
     end                                                
