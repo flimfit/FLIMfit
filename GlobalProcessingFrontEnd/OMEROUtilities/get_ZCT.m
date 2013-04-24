@@ -49,22 +49,43 @@
                 end
             end 
             
-            
-            
-            maxx = [  1 1 1]; % choose a single plane by default
-            
+             
             
             if polarisation_resolved == true
-                maxx(2) = 2;     % 2 channels needed for polarization
+                
+                if (Z + T) > 2
+                    maxx = [ 1  1];   % select one from each 
+                    minn = maxx;      % no subset selection allowed
+            
+                    ZT = ZT_selection([Z T], maxx, minn);
+                    dims{1} = ZT{1};
+                    dims{3} = ZT{2}
+                    
+                    
+                end
+                
+                
+                % copied from request_channels in flim_data_series
+                dlgTitle = 'Select channels';
+                prompt = {'Parallel Channel';'Perpendicular Channel'};
+                defaultvalues = {'1','2'};
+                numLines = 1;
+                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                dims{2} = str2double(inputdata);
+              
+                
+                
+            else
+            
+                if (Z + C + T) > 3
+                
+                    maxx = [ 1 1 1];   % select one from each 
+                    minn = maxx;      % no subset selection allowed
+            
+                    dims = ZCT_selection([Z C T], maxx, minn);
+                end
+            
             end
-            
-            minn = maxx;      % no subset selection allowed
-            
-            
-            if (Z + C + T) > 3
-                dims = ZCT_selection([Z C T], maxx, minn);
-            end
-            
           
 end
 
