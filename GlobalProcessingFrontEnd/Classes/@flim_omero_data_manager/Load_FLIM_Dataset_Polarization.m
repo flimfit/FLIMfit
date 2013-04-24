@@ -25,6 +25,9 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+    
+             data_series.polarisation_resolved = true;
+                
 
             %
             if isempty(obj.plate) && isempty(obj.dataset)
@@ -99,10 +102,10 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                 for k = 0:imageList.size()-1,                       
                     z = z + 1;                                                       
                     iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
-                    A = split('.',iName);
-                    if true % strcmp(extension,A(length(A))) 
+                    %A = split('.',iName);
+                    %if true % strcmp(extension,A(length(A))) 
                         str(z,1:length(iName)) = iName;
-                    end;
+                    %end;
                  end 
                 %
                 folder_names = sort_nat(cellstr(str));
@@ -126,7 +129,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                 %
             end % Dataset...
             %            
-            data_series.num_datasets = num_datasets;                               
+            data_series.num_datasets = num_datasets;                 
             data_series.names = cell(1,num_datasets);
             %
             % set names
@@ -144,7 +147,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                 end
             %                
             if 0==numel(image_ids), return, end;
-            %                                   
+           
             myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image);
@@ -155,12 +158,17 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
             
             delays = mdta.delays;
             
-            obj.verbose = false;  % suppress waitbar if loading mutiple images
-            if 1==numel(image_ids), obj.verbose = true; end;
+          
+            if length(image_ids) < 2 
+                obj.verbose = true; 
+            else
+                obj.verbose = false;    % suppress waitbar if loading mutiple images
+            end;
             
-            channels = data_series.request_channels(true);
+           
             
-            obj.ZCT = {1 channels 1}; % temp...          
+            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
+                   
             
             if data_series.use_popup && data_series.num_datasets > 1 && ~data_series.raw
                 wait_handle=waitbar(0,'Loading FLIMages...');
@@ -168,8 +176,8 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
             else
                 using_popup = false;
             end
-            % ????? !!!!!            
-            obj.selected_channel = channels(1)*10 + channels(2); % ?????
+                      
+            obj.selected_channel = obj.ZCT{2};
             %
             try
                 [data_cube, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);
@@ -184,9 +192,8 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
             data_size = size(data_cube);
             
             data_series.mode = mdta.FLIM_type;
-            %
-            data_series.data_series_mem(:,:,:,:,1) = single(data_cube);               
-            data_series.data_size = data_size;
+                      
+            data_series.data_size = [data_size num_datasets];;
             %        
             if length(delays) > 0 % ??
                 %
@@ -199,37 +206,44 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
                                 
-                data_series.polarisation_resolved = true;
-                
+               
                 data_series.t = delays;
                 
                 if strcmp(data_series.mode,'TCSPC')
                     data_series.t_int = ones(size(data_series.t));      % Not sure of behaviour for gated data
                 end
-                data_series.use_memory_mapping = false;
+                
                 data_series.load_multiple_channels = true; 
-                %                
-                selected = 1:data_series.num_datasets;
-                %
+                                
                 data_series.clear_memory_mapping();
                 %
-                data_series.loaded = false(1, data_series.n_datasets);
-                num_sel = length(selected);
-
-                for j=1:num_sel
-                    data_series.loaded(selected(j)) = true;
-                end
+                data_series.loaded = true(1, num_datasets);
+                
 
                 if ~data_series.raw % not checked
 
-                    if data_series.use_memory_mapping % this block wasn't checked
+                    if data_series.use_memory_mapping
 
                         mapfile_name = global_tempname;
                         mapfile = fopen(mapfile_name,'w');
+                        
+                         % store the data_cube that has already been loaded
+                        if isempty(data_cube) || size(data_cube,1) ~= data_series.n_t
+                            data_cube = zeros(data_size);
+                        end
+                        
+                         % kick off async write NEEDS Matlab 2013 !!
+                         % c1=fwrite(mapfile,data_cube,'single', 'async');
+                         c1=fwrite(mapfile,data_cube,'single');
 
-                        for j = 2:num_sel
 
-                                imgId = image_ids(selected(j));                        
+                         if using_popup
+                            waitbar(1/num_datasets,wait_handle)
+                         end
+
+                         for j = 2:num_datasets
+
+                                imgId = image_ids(j);                        
                                 %
                                 myimages = getImages(obj.session,imgId); image = myimages(1);
                                 try
@@ -239,26 +253,43 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                                 end                    
 
                             if isempty(data) || size(data,1) ~= data_series.n_t
-                                data = zeros([data_series.n_t data_series.n_chan data_series.height data_series.width]);
+                                data = zeros(data_size);
                             end
+                            
+                            % async ver need Matlab 2013 !!
+                            %while~(strcmp('idle',mapfile.TransferStatus))
+                            %end
+                            %c1=fwrite(mapfile,data,'single', 'async');
 
                             c1=fwrite(mapfile,data,'single');
 
                             if using_popup
-                                waitbar(j/num_sel,wait_handle)
+                                waitbar(j/num_datasets,wait_handle)
                             end
 
-                        end
+                         end
+                        
+                         % asyn ver need Matlab 2013 !!
+                         %while~(strcmp('idle',mapfile.TransferStatus))
+                         %end
 
                         fclose(mapfile);
 
-                        data_series.init_memory_mapping(data_series.data_size(1:4), num_sel, mapfile_name);    
+                        data_series.init_memory_mapping(data_series.data_size(1:4), num_datasets, mapfile_name);    
 
                     else % no memory mapping
+                        
+                        if ~isempty(data_cube) 
+                            data_series.data_series_mem(:,:,:,:,1) = single(data_cube);                                        
+                        end;
+                        
+                        if using_popup
+                            waitbar(1/num_datasets,wait_handle)
+                        end
 
-                        for j = 2:num_sel
+                        for j = 2:num_datasets
 
-                                imgId = image_ids(selected(j));                        
+                                imgId = image_ids(j);                        
                                 %
                                 myimages = getImages(obj.session,imgId); image = myimages(1);
                                 try
@@ -274,7 +305,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                                 end                                        
 
                             if using_popup
-                                waitbar(j/num_sel,wait_handle)
+                                waitbar(j/num_datasets,wait_handle)
                             end
 
                         end
@@ -285,7 +316,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                     end
                     
                 else
-                    data_series.init_memory_mapping(data_series.data_size(1:4), num_sel, data_series.mapfile_name);
+                    data_series.init_memory_mapping(data_series.data_size(1:4), num_datasets, data_series.mapfile_name);
                 end
 
                 if using_popup

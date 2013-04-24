@@ -69,7 +69,7 @@ classdef flim_omero_data_manager < handle
            
             delays = mdta.delays;
            
-            obj.ZCT = get_ZCT(image,mdta.modulo, length(delays));
+            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays) );
             
             channel = obj.ZCT{2};       % not sure why we need this?
             
@@ -109,9 +109,9 @@ classdef flim_omero_data_manager < handle
             data_series.t = delays;
             data_series.use_memory_mapping = false;
             
-            data_series.data_series_mem = data_cube;
+            data_series.data_series_mem = single(data_cube);
             
-            data_series.tr_data_series_mem = data_cube; 
+            data_series.tr_data_series_mem = single(data_cube); 
              
     
             data_series.load_multiple_channels = false;
@@ -207,6 +207,7 @@ classdef flim_omero_data_manager < handle
             end
             
             t_irf = mdta.delays;
+            
            
             obj.ZCT = get_ZCT(image,mdta.modulo, length(t_irf));
             

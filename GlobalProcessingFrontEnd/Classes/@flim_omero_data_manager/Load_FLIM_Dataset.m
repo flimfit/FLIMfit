@@ -102,7 +102,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                    % A = split('.',iName);
                    % if true % strcmp(extension,A(length(A))) 
                         str(z,1:length(iName)) = iName;
-                    %end;
+                   %end;
                  end 
                 %
                 folder_names = sort_nat(cellstr(str));
@@ -126,9 +126,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 %
             end % Dataset...
             %            
-            data_series.num_datasets = num_datasets; 
-           
-            
+            data_series.num_datasets = num_datasets;
             data_series.names = cell(1,num_datasets);
             %
             % set names
@@ -146,10 +144,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 end
             %                
             if 0==numel(image_ids), return, end;
-            %                                   
-            polarisation_resolved = false;            
-            %
-            %image = get_Object_by_Id(obj.session,java.lang.Long(image_ids(1)));
+                                              
             myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image);
@@ -160,7 +155,11 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
-            obj.verbose = false;  % suppress waitbar if loading mutiple images
+            if length(image_ids) < 2 
+                obj.verbose = true; 
+            else
+                obj.verbose = false;    % suppress waitbar if loading mutiple images
+            end;
             
             obj.ZCT = get_ZCT(image, mdta.modulo, length(delays));
            
@@ -195,37 +194,31 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 data_series.file_names = {'file'};
                 data_series.channels = 1;
                  
-                
                 try
                     data_series.metadata = extract_metadata(data_series.names);        
                 catch err
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
                                 
-                data_series.polarisation_resolved = polarisation_resolved;
+                data_series.polarisation_resolved = false;
+                
                 data_series.t = delays;
+                
                 if strcmp(data_series.mode,'TCSPC')
                     data_series.t_int = ones(size(data_series.t));      % Not sure of behaviour for gated data
                 end
              
-                
-               
-                
                 data_series.load_multiple_channels = false; 
                 
                 data_series.clear_memory_mapping();
                 
-              
-              
                 data_series.loaded = true(1, num_datasets);
               
 
-
                 if ~data_series.raw % not checked
 
-                    if data_series.use_memory_mapping % this block wasn't checked
+                    if data_series.use_memory_mapping 
                         
-                       
                         mapfile_name = global_tempname;
                         mapfile = fopen(mapfile_name,'w');
                         
@@ -244,12 +237,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
                             waitbar(1/num_datasets,wait_handle)
                          end
                         
-                        
-
-                        for j = 2:num_datasets
+                         for j = 2:num_datasets
 
                                 imgId = image_ids(j);                        
-                                % image = get_Object_by_Id(obj.session,imgId);
+                               
                                 myimages = getImages(obj.session,imgId); image = myimages(1);
                                 try
                                     [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
@@ -258,7 +249,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                 end                    
 
                             if isempty(data) || size(data,1) ~= data_series.n_t
-                                data = single(zeros(data_size));
+                                data = zeros(data_size);
                             end
                             
                             % async ver need Matlab 2013 !!
@@ -268,7 +259,6 @@ function Load_FLIM_Dataset(obj,data_series,~)
                             
                             c1=fwrite(mapfile,data,'single');
                             
-
                             if using_popup
                                 waitbar(j/num_datasets,wait_handle)
                             end
@@ -277,7 +267,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                         
                         % asyn ver need Matlab 2013 !!
                         %while~(strcmp('idle',mapfile.TransferStatus))
-                         %end
+                        %end
 
                         fclose(mapfile);
                         
@@ -288,7 +278,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                     else % no memory mapping
                         
                         if ~isempty(data_cube) 
-                            data_series.data_series_mem(:,:,:,:,1) = data_cube;                                        
+                            data_series.data_series_mem(:,:,:,:,1) = single(data_cube);                                        
                         end;
                         
                         if using_popup
@@ -303,7 +293,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                 try
                                     [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
                                     if ~isempty(data) 
-                                        data_series.data_series_mem(:,:,:,:,j) = data;                                        
+                                        data_series.data_series_mem(:,:,:,:,j) = single(data);                                        
                                     end;
                                 catch err
                                     if using_popup, 
@@ -318,7 +308,6 @@ function Load_FLIM_Dataset(obj,data_series,~)
 
                         end
                         
-                      
                         data_series.active = 1;
                         data_series.cur_data = data_series.data_series_mem(:,:,:,:,1);
 
