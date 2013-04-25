@@ -30,8 +30,6 @@ function handles = setup_menu(obj,handles)
     external = handles.external;
 
     if ~isempty(handles.omero_data_manager.session)
-    
-        external = true;
         
         menu_OMERO = uimenu(obj.window,'Label','OMERO');
    
