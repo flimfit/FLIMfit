@@ -61,6 +61,7 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbos
          nplanesInBlock(end) = nplanesInBlock(end) - overshoot;
          if nplanesInBlock(end) == 0;
             nplanesInBlock = nplanesInBlock(1:end -1);
+            nblocks = nblocks - 1;
          end
         
         
