@@ -75,6 +75,7 @@ classdef front_end_menu_controller < handle
         
         menu_file_save_dataset;
         menu_file_save_raw;
+        menu_file_save_magic_angle_raw;
         
         menu_file_export_decay;
         menu_file_export_decay_series;
@@ -509,6 +510,13 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        function menu_file_save_magic_angle_raw_callback(obj,~,~)
+            [filename, pathname] = uiputfile({'*.raw', 'Raw File (*.raw)'},'Select file name',obj.default_path);
+            if filename ~= 0
+                obj.data_series_controller.data_series.save_magic_angle_raw([pathname filename]);         
+            end
+        end
+            
         function menu_file_load_raw_callback(obj,~,~)
             [filename, pathname] = uigetfile({'*.raw', 'Raw File (*.raw)'},'Select file name',obj.default_path);
             if filename ~= 0

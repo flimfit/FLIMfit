@@ -60,7 +60,7 @@ function load_selected_files(obj,selected)
     
     if obj.hdf5
     
-        
+        %...
         
     elseif obj.raw
         
@@ -68,6 +68,8 @@ function load_selected_files(obj,selected)
     
     else
         if obj.use_memory_mapping
+            
+            obj.data_type = 'single';
             
             mapfile_name = global_tempname;
             mapfile = fopen(mapfile_name,'w');

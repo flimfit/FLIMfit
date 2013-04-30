@@ -95,6 +95,7 @@ classdef flim_data_series < handle & h5_serializer
         n_chan = 1;
         polarisation_resolved = false;
         data_size;
+        data_type = 'uint16';
         use;
         
         data_subsampling = 1;

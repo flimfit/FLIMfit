@@ -170,10 +170,11 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end    
     
     if d.use_memory_mapping && ~obj.bin
-        if d.raw
-            data_class = 1; % uint16
-        else
-            data_class = 0; % double
+        switch(d.data_type)
+            case 'uint16'
+                data_class = 1;
+            case 'single'
+                data_class = 0;
         end
         err = calllib(obj.lib_name,'SetDataFile',obj.dll_id,d.mapfile_name,data_class,d.mapfile_offset);
     else

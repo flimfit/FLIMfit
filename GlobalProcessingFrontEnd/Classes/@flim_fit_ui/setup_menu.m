@@ -87,6 +87,7 @@ function handles = setup_menu(obj,handles)
     
         %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
         handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
+        handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
     end
 
     handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
