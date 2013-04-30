@@ -30,8 +30,6 @@ function handles = setup_menu(obj,handles)
     external = handles.external;
 
     if ~isempty(handles.omero_data_manager.session)
-    
-        external = true;
         
         menu_OMERO = uimenu(obj.window,'Label','OMERO');
    
@@ -61,11 +59,15 @@ function handles = setup_menu(obj,handles)
         %
         handles.menu_OMERO_Load_Pate_Metadata = uimenu(menu_OMERO,'Label','Load Plate Metadata','Separator','on');                            
         %
-        handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on');    
-        %
         handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings','Separator','on');            
         handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings');    
-
+        %
+        handles.menu_OMERO_Export_Data_Settings = uimenu(menu_OMERO,'Label','Export Data Settings','Separator','on');            
+        handles.menu_OMERO_Import_Data_Settings = uimenu(menu_OMERO,'Label','Import Data Settings');    
+        %
+        handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on');
+        handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps');        
+        
     end
 
     menu_file      = uimenu(obj.window,'Label','File');

@@ -45,9 +45,12 @@ function str = read_Annotation_having_tag(session, object, ome_model_annotation_
         metadataService = session.getMetadataService();
         map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList(ome_model_annotation_type), annotators, omero.sys.ParametersI());
         annotations = map.get(objId);
-        %        
-        switch ome_model_annotation_type
-            case 'ome.model.annotations.FileAnnotation'        
+       
+        
+        %assume annotation_type = file_annotation (needs switch statement
+        %to handle other types)
+        
+                  
                 rawFileStore = session.createRawFileStore();
                 %
                     for j = 0:annotations.size()-1
@@ -64,15 +67,6 @@ function str = read_Annotation_having_tag(session, object, ome_model_annotation_
                     end
                 %
                 rawFileStore.close();
-            case 'ome.model.annotations.XmlAnnotation'                        
-                for j = 0:annotations.size()-1
-                    s = annotations.get(j).getTextValue().getValue();
-                    curr_str = char(s);
-                    if strfind(curr_str,tag)
-                        str = curr_str;
-                        return;
-                    end;                    
-                end                              
-        end % switch
+            
 end
 

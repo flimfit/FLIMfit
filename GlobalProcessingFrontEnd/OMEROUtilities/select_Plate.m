@@ -22,9 +22,7 @@ function [ Plate Screen ] = select_Plate(session,prompt)
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-        
-        
-            %
+           
             Plate = [];
             Screen = [];            
             %
@@ -53,7 +51,23 @@ function [ Plate Screen ] = select_Plate(session,prompt)
                     %
                 end
             end
-            %                        
+            %      
+            % sort by Screen etc. - start
+            strcell_sorted = sort_nat(cellstr(str));
+            strcell_unsorted = cellstr(str);
+            did_sorted = zeros(1,screensList.size()); % to fill..
+            %
+            for d = 1:numel(strcell_sorted)
+                for dd = 1:numel(strcell_sorted)
+                    if strcmp(char(strcell_sorted(d)),char(strcell_unsorted(dd)))
+                        did_sorted(d) = did(dd);
+                        break;
+                    end
+                end
+            end
+            str = char(strcell_sorted);
+            did = did_sorted;    
+                                    
             % request a Dataset using the "str" list
             [s,v] = listdlg('PromptString',prompt,...
                             'SelectionMode','single',...
@@ -65,11 +79,15 @@ function [ Plate Screen ] = select_Plate(session,prompt)
                     platesList = p.linkedPlateList;
                     for i = 0:platesList.size()-1,
                         d = platesList.get(i);
-                        if java.lang.Long(p.getId().getValue()) == pid(s) && java.lang.Long(d.getId().getValue()) == did(s)
+                        if java.lang.Long(d.getId().getValue()) == did(s)
                             Screen = p;
                             Plate = d;
+                            return;
                         end                    
                      end                                        
                 end            
-            end;
-        end
+            end
+end
+        
+
+                

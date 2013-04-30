@@ -56,6 +56,13 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_tvb_Annotation; 
         menu_OMERO_Export_tvb_Annotation;
         
+        menu_OMERO_Load_FLIM_Dataset_Polarization;
+        
+        menu_OMERO_Export_Data_Settings;
+        menu_OMERO_Import_Data_Settings;
+        
+        menu_OMERO_Export_Visualisation_Images;
+        
         omero_data_manager;                
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
@@ -322,7 +329,10 @@ classdef front_end_menu_controller < handle
         end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
-            obj.data_series_controller.data_series = flim_data_series();            
+             
+            obj.data_series_controller.data_series = flim_data_series();   
+            obj.data_series_controller.data_series.polarisation_resolved = false;
+            obj.data_series_controller.data_series.load_multiple_channels = false;
             obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
             notify(obj.data_series_controller,'new_dataset');
         end                    
@@ -386,7 +396,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Switch_User_callback(obj,~,~)
             %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
-            obj.omero_data_manager.Omero_logon();
+            obj.omero_data_manager.Omero_logon_forced();
         end        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_Pate_Metadata_callback(obj,~,~)
@@ -394,7 +404,7 @@ classdef front_end_menu_controller < handle
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Export_IRF_annot_callback(obj,~,~)
-            irfdata = [obj.data_series_controller.data_series.t(:) obj.data_series_controller.data_series.irf(:)];
+            irfdata = [obj.data_series_controller.data_series.t_irf(:) obj.data_series_controller.data_series.irf(:)];
             obj.omero_data_manager.Export_IRF_annot(irfdata);
         end                        
         %------------------------------------------------------------------        
@@ -404,7 +414,26 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Export_tvb_Annotation_callback(obj,~,~)
             obj.omero_data_manager.Export_TVB_annot(obj.data_series_controller.data_series);
-        end                                                
+        end    
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~) 
+            obj.data_series_controller.data_series = flim_data_series(); 
+             obj.data_series_controller.data_series.polarisation_resolved =true;
+            obj.data_series_controller.data_series.load_multiple_channels = true;
+            obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
+        end                            
+        %------------------------------------------------------------------        
+        function menu_OMERO_Export_Data_Settings_callback(obj,~,~)
+            obj.omero_data_manager.Export_Data_Settings(obj.data_series_controller.data_series);
+        end                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Import_Data_Settings_callback(obj,~,~)
+            obj.omero_data_manager.Import_Data_Settings(obj.data_series_controller.data_series);
+        end                                            
+        %------------------------------------------------------------------
+        function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
+            obj.omero_data_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
+        end                            
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
@@ -906,11 +935,40 @@ classdef front_end_menu_controller < handle
         end
 
         function menu_help_tracker_callback(obj, ~, ~)
-            web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
+            
+            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues');
+            %web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
         end
 
         function menu_help_bugs_callback(obj, ~, ~)
-            web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
+            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues/new');
+            %web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
+        end
+        
+        function open_browser(~, url_str)
+            % cut down web function to open a web  browser without HelpUtils
+            
+            stat = -1; %default
+            
+            if ismac
+                 % We can't detect system errors on the Mac, so the warning options are unnecessary.
+                unix(['open ' url_str]);
+                stat = 0;
+       
+            elseif isunix
+                
+                errordlg('Sorry! - not currently available for Linux/Unix', 'Browser Error')
+            
+            elseif ispc
+                stat = dos(['cmd.exe /c rundll32 url.dll,FileProtocolHandler "' url_str '"']);
+            end
+            
+            if stat ~= 0
+                errordlg(horzcat('Failed to open browser! Please direct a browser to ', url_str ),'Browser Error');
+                
+            end
+            
+            
         end
 
 

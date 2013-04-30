@@ -69,7 +69,7 @@ classdef flim_omero_data_manager < handle
            
             delays = mdta.delays;
            
-            obj.ZCT = get_ZCT(image,mdta.modulo, length(delays));
+            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays) );
             
             channel = obj.ZCT{2};       % not sure why we need this?
             
@@ -207,6 +207,7 @@ classdef flim_omero_data_manager < handle
             end
             
             t_irf = mdta.delays;
+            
            
             obj.ZCT = get_ZCT(image,mdta.modulo, length(t_irf));
             
@@ -404,7 +405,7 @@ classdef flim_omero_data_manager < handle
                 
                 [ data_cube, name ] =  obj.OMERO_fetch(  image, ZCT, mdta);
                             
-                data = squeeze(data_cube);
+                data = double(squeeze(data_cube));
                 %
                 tempfilename = [tempname '.tif'];
                 if 2 == numel(size(data))
@@ -453,11 +454,19 @@ classdef flim_omero_data_manager < handle
 %                 %
                 current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
 
-                new_dataset_name = [current_dataset_name ' FLIM fitting channel ' num2str(obj.selected_channel) ...
-                        ' Z ' num2str(obj.ZCT{1}) ...
-                                            ' C ' num2str(obj.ZCT{2}) ...
-                                                                ' T ' num2str(obj.ZCT{3}) ' ' ...
-                datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
+                if ~data_series.polarisation_resolved
+                    new_dataset_name = [current_dataset_name ' FLIM fitting channel ' num2str(obj.selected_channel) ...
+                    ' Z ' num2str(obj.ZCT{1}) ...
+                    ' C ' num2str(obj.ZCT{2}) ...
+                    ' T ' num2str(obj.ZCT{3}) ' ' ...
+                    datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
+                else
+                    new_dataset_name = [current_dataset_name ' FLIM fitting: Polarization channel ' num2str(obj.selected_channel) ...
+                    ' Z ' num2str(obj.ZCT{1}) ...
+                    ' C ' num2str(obj.selected_channel) ...
+                    ' T ' num2str(obj.ZCT{3}) ' ' ...
+                    datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
+                end
 
                 description  = ['analysis of the ' current_dataset_name ' at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
                 newdataset = create_new_Dataset(obj.session,obj.project,new_dataset_name,description);                                                                                                    
@@ -474,16 +483,24 @@ classdef flim_omero_data_manager < handle
                     data = zeros(n_params,sizeX,sizeY);
                         for p = 1:n_params,                                                                                                                                            
                             data(p,:,:) = fit_controller.get_image(dataset_index, params{p})';
-                            fit_controller.get_image(1, params{1});
                         end
                     %                  
                     new_image_description = ' ';
 
-                    new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
-                        ' Z ' num2str(obj.ZCT{1}) ...
-                                            ' C ' num2str(obj.ZCT{2}) ...
-                                                                ' T ' num2str(obj.ZCT{3}) ' ' ...
-                    data_series.names{dataset_index}]);                                    
+                     if ~data_series.polarisation_resolved   
+                        new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
+                            ' Z ' num2str(obj.ZCT{1}) ...
+                            ' C ' num2str(obj.ZCT{2}) ...
+                            ' T ' num2str(obj.ZCT{3}) ' _@@_ ' ...
+                            data_series.names{dataset_index}]);                                    
+                     else
+                        new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
+                            ' Z ' num2str(obj.ZCT{1}) ...
+                            ' C ' num2str(obj.selected_channel) ...
+                            ' T ' num2str(obj.ZCT{3}) ' _@@_ ' ...
+                            data_series.names{dataset_index}]);                                                             
+                     end
+                                        
                     imageId = obj.fit_results2omeroImage_Channels(data, 'double', new_image_name, new_image_description, res.fit_param_list());                    
                     link = omero.model.DatasetImageLinkI;
                     link.setChild(omero.model.ImageI(imageId, false));
@@ -592,7 +609,7 @@ classdef flim_omero_data_manager < handle
                                                             new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
                                                             ' Z ' num2str(obj.ZCT{1}) ...
                                                             ' C ' num2str(obj.ZCT{2}) ...
-                                                            ' T ' num2str(obj.ZCT{3}) ' ' ...
+                                                            ' T ' num2str(obj.ZCT{3}) ' _@@_ ' ...
                                                             data_series.names{dataset_index}]);
                                                             new_imageId = obj.fit_results2omeroImage_Channels(data, 'double', new_image_name, new_image_description, res.fit_param_list());
                                                         %results image
@@ -663,7 +680,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set a Dataset or a Plate'), return;
              end;            
             
-            [str fname] = select_Annotation(obj.session, parent,'Please choose settings file');
+            [str fname] = select_Annotation(obj.session, parent,'Choose fitting settings file');
             %
             if isempty(str)
                 return;
@@ -698,26 +715,93 @@ classdef flim_omero_data_manager < handle
                 
             end
             
+            keeptrying = true;
+           
+            while keeptrying 
+            
             % if no logon file then user must login
             if isempty(settings)
                 obj.logon = OMERO_logon();
             end
-             
+                                    
            if isempty(obj.logon)
                return
            end
+            
+                keeptrying = false;     % only try again in the event of failure to logon
+          
 
-            obj.client = loadOmero(obj.logon{1});
-            
-            
-            try 
-                obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
-            catch err
-                obj.client = [];
-                obj.session = [];
-                [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                
-            end                        
+                obj.client = loadOmero(obj.logon{1});
+
+
+                try 
+                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                catch err
+                    obj.client = [];
+                    obj.session = [];
+
+                    % Construct a questdlg with three options
+                    choice = questdlg('OMERO logon failed!', ...
+                    'Logon Failure!', ...
+                    'Try again to logon','Launch FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
+                    % Handle response
+                    switch choice
+                        case 'Try again to logon'
+                            keeptrying = true;
+                      
+                            
+                        case 'Launch FLIMfit in non-OMERO mode'
+                            % no action keeptrying is already false
+                       
+                    end    % end switch           
+                end   % end catch
+                
+                obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+            end     % end while
         end
+       %------------------------------------------------------------------        
+       function Omero_logon_forced(obj,~) 
+                        
+            keeptrying = true;
+           
+            while keeptrying 
+            
+            obj.logon = OMERO_logon();
+                                    
+           if isempty(obj.logon)
+               return
+           end
+            
+                keeptrying = false;     % only try again in the event of failure to logon
+          
+                obj.client = loadOmero(obj.logon{1});
+
+                try 
+                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                catch err
+                    obj.client = [];
+                    obj.session = [];
+
+                    % Construct a questdlg with three options
+                    choice = questdlg('OMERO logon failed!', ...
+                    'Logon Failure!', ...
+                    'Try again to logon','Launch FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
+                    % Handle response
+                    switch choice
+                        case 'Try again to logon'
+                            keeptrying = true;
+                      
+                            
+                        case 'Launch FLIMfit in non-OMERO mode'
+                            % no action keeptrying is already false
+                       
+                    end    % end switch           
+                end   % end catch
+                
+                obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+            end     % end while           
+       end
+        
        %------------------------------------------------------------------        
         function Load_Plate_Metadata_annot(obj,data_series,~)
             %
@@ -729,7 +813,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set Dataset or Plate and load the data before loading plate metadata'), return;
             end;
             %    
-            [str fname] = select_Annotation(obj.session, parent,'Please choose metadata xlsx file');
+            [str fname] = select_Annotation(obj.session, parent,'Choose metadata xlsx file');
             %
             if isempty(str)
                 return;
@@ -828,7 +912,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set Dataset or Plate and load the data before loading TVB'), return;
             end;
             %    
-            [str fname] = select_Annotation(obj.session, parent,'Please choose TVB file');
+            [str fname] = select_Annotation(obj.session, parent,'Choose TVB file');
             %
             if isempty(str)
                 return;
@@ -848,5 +932,66 @@ classdef flim_omero_data_manager < handle
             delete(full_temp_file_name); %??            
         end                      
     %
+        %------------------------------------------------------------------        
+        function Export_Data_Settings(obj,data_series,~)
+            %
+            choice = questdlg('Do you want to Export data settings to Dataset or Plate?', ' ', ...
+                                    'Dataset' , ...
+                                    'Plate','Cancel','Cancel');              
+            switch choice
+                case 'Dataset',
+                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                case 'Plate', 
+                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                case 'Cancel', 
+                    return;
+            end                        
+            %                        
+            fname = [tempdir 'data settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
+            data_series.save_data_settings(fname);         
+            %            
+            namespace = 'IC_PHOTONICS';
+            description = ' ';            
+            sha1 = char('pending');
+            file_mime_type = char('application/octet-stream');
+            %
+            add_Annotation(obj.session, ...
+                            object, ...
+                            sha1, ...
+                            file_mime_type, ...
+                            fname, ...
+                            description, ...
+                            namespace);               
+        end            
+        
+        %------------------------------------------------------------------
+        function Import_Data_Settings(obj,data_series,~)
+            %
+             if ~isempty(obj.dataset) 
+                parent = obj.dataset;
+             elseif ~isempty(obj.plate) 
+                parent = obj.plate;
+             else
+                errordlg('please set a Dataset or a Plate'), return;
+             end;            
+            
+            [str fname] = select_Annotation(obj.session, parent,'Choose data settings file');
+            %
+            if isempty(str)
+                return;
+            end;
+            full_temp_file_name = [tempdir fname];
+            fid = fopen(full_temp_file_name,'w');    
+                fwrite(fid,str,'*uint8');
+            fclose(fid);
+            %
+            try
+                data_series.load_data_settings(full_temp_file_name);
+                delete(full_temp_file_name); 
+            catch err
+                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            end;
+        end            
+            
     end
 end

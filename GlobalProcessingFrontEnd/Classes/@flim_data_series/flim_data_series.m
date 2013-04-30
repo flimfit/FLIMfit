@@ -303,10 +303,16 @@ classdef flim_data_series < handle & h5_serializer
             if obj.init
                 if isempty(file)
                     pol_idx = obj.polarisation_resolved + 1;
-                    file = [obj.root_path obj.data_settings_filename{pol_idx}];
+                    if ~isempty(obj.root_path)      % data opened from OMERO so no root_path
+                        file = [obj.root_path obj.data_settings_filename{pol_idx}];
+                    end
                 end
-
-                serialise_object(obj,file);
+                
+                if ~isempty(file)
+                    serialise_object(obj,file);
+                end
+                
+                
             end
         end
         

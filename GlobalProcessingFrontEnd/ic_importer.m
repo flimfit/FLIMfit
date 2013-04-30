@@ -43,8 +43,6 @@ data = createData();
 %-------------------------------------------------------------------------%
     function data = createData()
         %
-        data.main_well_plate_annotation_sacred_filename = 'plate_reader_metadata.xml';
-        %
         if ~isempty(settings)
             data.DefaultDataDirectory = settings.DefaultDataDirectory;        
             data.image_annotation_file_extension = settings.image_annotation_file_extension;        
@@ -71,6 +69,10 @@ data = createData();
         %        
         data.dirlist = []; % list of directories to import for well plate
         data.dataset_annotations = [];                          
+        %
+        data.DirectoryList = [];
+        data.BatchFileName = [];
+        
     end % createData
 %-------------------------------------------------------------------------%
     function gui = createInterface( data )
@@ -83,7 +85,7 @@ data = createData();
             'Name', 'Imperial College Omero Importer', ...
             'NumberTitle', 'off', ...
             'MenuBar', 'none', ... % 
-            'Position', [280 678 970 120], ... % ??? 'Position', [680 678 560 420], ...
+            'Position', [0 0 970 120], ... % ??? 'Position', [680 678 560 420], ...
             'Toolbar', 'none', ...
             'DockControls', 'off', ...
             'Resize', 'off', ...
@@ -95,6 +97,9 @@ data = createData();
         % + File menu
         gui.menu_file = uimenu( gui.Window, 'Label', 'File' );
         uimenu( gui.menu_file, 'Label','Set data directory', 'Callback', @onSetDirectory );
+        
+% BATCH
+uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSetDirectoryList );
         
         gui.menu_file_set_single = uimenu(gui.menu_file,'Label','Set image');
         gui.handles.menu_file_single_irf = uimenu(gui.menu_file_set_single,'Label','irf', 'Callback', @onSetFile);
@@ -178,9 +183,16 @@ data = createData();
         if ~isempty(data.Directory) && ~isempty(data.ProjectName) && ~strcmp('???',data.extension)          
                 Color = 'green';
         end
-        set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
+        %
         set(gui.ProjectNamePanel,'String',data.ProjectName);
-        set(gui.DirectoryNamePanel,'String',data.Directory);            
+        %        
+        if ~isempty(data.DirectoryList) 
+            set(gui.Indicator,'BackgroundColor',Color,'String','BATCH'); 
+            set(gui.DirectoryNamePanel,'String',data.BatchFileName);                                            
+        else
+            set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
+            set(gui.DirectoryNamePanel,'String',data.Directory);                                
+        end;        
         %                        
         if strcmp(data.image_annotation_file_extension,'none')
             set(gui.ImageAnnotationFileExtensionPopup,'Value',1);
@@ -230,6 +242,9 @@ data = createData();
 %-------------------------------------------------------------------------%
     function onSetDirectory(~,~)     
         %
+        data.DirectoryList = [];
+        data.BatchFileName = [];
+        
         data.Directory = uigetdir(data.DefaultDataDirectory,'Select the folder containing the data');     
         %
         if 0 ~= data.Directory
@@ -278,7 +293,7 @@ data = createData();
     function onSetDestination(hObj,~,~)
                 
         label = get(hObj,'Label');
-
+        
         if strcmp(label,'Set Screen')        
             scrn = select_Screen(data.session,'Select screen');
             if ~isempty(scrn)
@@ -328,7 +343,27 @@ data = createData();
 
     end % onSetProject
 %-------------------------------------------------------------------------%
-    function onGo(~,~)
+    function onGo(~,~)                
+        %
+        if ~isempty(data.DirectoryList)
+            % go through list                                    
+            for d = 1:numel(data.DirectoryList)
+                data.Directory = char(data.DirectoryList{d});             
+                set_directory_info();            
+                updateInterface();                                
+                import_directory();                
+            end;                                             
+            data.DirectoryList = [];
+            data.BatchFileName = [];
+            clear_settings;
+            updateInterface;                                            
+        else
+            import_directory();             
+        end        
+        %
+    end
+%-------------------------------------------------------------------------%
+    function import_directory()
         %
         if isempty(data.Directory) || isempty(data.project)
             errordlg('either directory or project not set properly - can not continue');
@@ -342,7 +377,7 @@ data = createData();
         new_dataset_name = char(strings(length(strings)));
         %  
         if ~strcmp(data.LoadMode,'single file')
-            if strcmp('Dataset',whos_Object(data.session,data.project)) && ~is_Dataset_name_unique(data.project,new_dataset_name)
+            if strcmp('Dataset',whos_Object(data.session,data.project.getId().getValue())) && ~is_Dataset_name_unique(data.project,new_dataset_name)
                 errordlg('new Dataset name isn not unique - can not contuinue');
                 clear_settings;
                 updateInterface;     
@@ -391,10 +426,7 @@ data = createData();
             %
         elseif strcmp(data.LoadMode,'well plate')
             
-            FOV_name_parse_func = get_Plate_param_func_name_from_metadata_xml_file( ...
-                [data.Directory filesep data.main_well_plate_annotation_sacred_filename]);
-            %            
-            new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, FOV_name_parse_func, data.modulo);
+            new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, data.modulo);
             new_dataset = get_Object_by_Id(data.session,new_dataset_id);            
             % myplates = getPlates(data.session,new_dataset_id); new_dataset = myplates(1);                         
             
@@ -530,7 +562,7 @@ data = createData();
                 end
         end              
         %                        
-        % it might be well-plate data...        
+        % presume it is well-plate data...        
         data.dirlist = [];
         totlist = dir(data.Directory);
         z = 0;
@@ -538,19 +570,22 @@ data = createData();
             if 1==totlist(k).isdir
                 z=z+1;
                 data.dirlist{z}=[data.Directory filesep totlist(k).name];
-            else
-                if strcmp(totlist(k).name,data.main_well_plate_annotation_sacred_filename)
-                    data.extension = 'tif'; % this is bad
-                    data.LoadMode = 'well plate'; 
-                end;
             end
         end   
+        %
+        data.extension = 'tif'; % this is bad
+        data.LoadMode = 'well plate'; 
+        %
     end % set_directory_info
 %-------------------------------------------------------------------------%
     function clear_settings()
         data.Directory = [];
-        data.ProjectName = [];
-        data.project = [];        
+        
+        if isempty(data.DirectoryList)
+            data.ProjectName = [];
+            data.project = [];        
+        end
+                
         %
         data.extension = '???';
         data.LoadMode = '???';        
@@ -659,6 +694,85 @@ data = createData();
       set(gui.menu_upload,'Label',label);      
       updateInterface();                   
     end
+%-------------------------------------------------------------------------%  
+    function onSetDirectoryList(~,~)
+            [file,path] = uigetfile('*.xlsx;*.xls','Select a text file containing list of data directories',data.DefaultDataDirectory);
+            
+            if file == 0, return, end;
+                
+                [~,dirs,~] = xlsread([path file]);
+                
+                for d=1:numel(dirs)                    
+                    if ~isdir(char(dirs{d}))
+                        errordlg(['Directory list has not been set: ' char(dirs{d}) ' not a directory']);
+                        data.DirectoryList = [];
+                        data.BatchFileName = [];
+                        clear_settings;
+                        updateInterface;                        
+                        return;
+                    end
+                end
+                %
+                data.DirectoryList = dirs;
+                data.BatchFileName = [path file];
+                %
+                if isempty(data.project)
 
-
+                        choice = questdlg('Do you want to import data as Datasets or Plates?', ' ', ...
+                                                'Datasets' , ...
+                                                'Plates','Cancel','Cancel');              
+                        switch choice
+                            case 'Datasets',
+                                prjct = select_Project(data.session,'Select Project');             
+                                if ~isempty(prjct)
+                                    data.project = prjct; 
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                else
+                                    return;
+                                end
+                                %                                
+                            case 'Plates', 
+                                scrn = select_Screen(data.session,'Select screen');
+                                if ~isempty(scrn)
+                                    data.project = scrn; 
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                else
+                                    return;
+                                end
+                            case 'Cancel', 
+                                return;
+                        end                        
+                                                            
+                end;
+                %
+                hw = waitbar(0, 'checking Directory List, please wait...');
+                for d = 1:numel(data.DirectoryList)                    
+                    data.Directory = char(data.DirectoryList{d});             
+                    updateInterface;                                                                        
+                    set_directory_info;  
+                    if ~(strcmp(data.LoadMode,'well plate') || strcmp(data.LoadMode,'general'))
+                        errordlg(['Not data directory: ' data.DirectoryList{d} ' , batch is not set!']);
+                        data.DirectoryList = [];
+                        data.BatchFileName = [];
+                        clear_settings;
+                        delete(hw);
+                        drawnow;                        
+                        updateInterface;
+                        return;
+                    end
+                    waitbar(d/numel(data.DirectoryList), hw);
+                    drawnow;                    
+                end;                                             
+                delete(hw);
+                drawnow;
+                                                                
+%               data.Directory = char(data.DirectoryList{1});             
+%               set_directory_info;            
+%               updateInterface;
+                                
+%                 if strcmp(data.DefaultDataDirectory,'C:\')
+%                     data.DefaultDataDirectory = path;
+%                 end
+    end
+                              
 end % EOF

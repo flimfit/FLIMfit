@@ -24,22 +24,21 @@ function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
 
-%
-            new_datasetId = [];
-            %     
-
-            %strings  = split(filesep,folder);
-            strings1 = strrep(folder,filesep,'/');
-            strings = split('/',strings1);
-            %
-                    files = dir([folder filesep '*.' extension]);
+                    new_datasetId = [];
+                    %     
+                    if strcmp(extension,'tif') || strcmp(extension,'tiff')
+                        files = dir([folder filesep '*.' 'tif*']);
+                    else
+                        files = dir([folder filesep '*.' extension]);
+                    end
+                    %
                     num_files = length(files);
                     if 0==num_files
                         errordlg('No suitable files in the directory');
                         return;
                     end;
                     %
-                    new_dataset_name = char(strings(length(strings)));
+                    new_dataset_name = folder;
                     description = [ 'new dataset created at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')]; %?? duplicate
                     new_dataset = create_new_Dataset(session,Project,new_dataset_name,description);                    
                     %

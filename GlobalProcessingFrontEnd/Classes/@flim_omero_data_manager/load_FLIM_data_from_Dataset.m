@@ -24,12 +24,10 @@ function [ delays, im_data ] = load_FLIM_data_from_Dataset(obj,dataset)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
    
-
-
                 imageList = dataset.linkedImageList;
                 %       
                 if 0==imageList.size()
-                    errordlg(['Dataset ' pName ' have no images'])
+                    errordlg('Dataset has no images');
                     return;
                 end;                                    
                 %        
@@ -89,7 +87,7 @@ function [ delays, im_data ] = load_FLIM_data_from_Dataset(obj,dataset)
                          rawPlane = store.getPlane(0, 0, 0);   
                          plane = toMatrix(rawPlane, pixels); 
                          im_data(f,:,:) = plane';                                            
-                    end
+                end
     
                 store.close();
                 

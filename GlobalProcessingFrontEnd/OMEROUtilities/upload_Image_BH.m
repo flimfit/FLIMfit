@@ -93,5 +93,7 @@ function upload_Image_BH(session, dataset, full_filename, contents_type, modulo)
         %        
         xmlnode = create_ModuloAlongDOM(Delays, [], modulo, 'TCSPC');
         add_XmlAnnotation(session,image,xmlnode);
-        %                                           
+        %
+        add_Original_Metadata_Annotation(session,image,full_filename);
+        %
 end
