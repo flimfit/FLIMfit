@@ -67,10 +67,10 @@
       <file>${PROJECT_ROOT}\GeneratedFiles\version.txt</file>
       <file>${PROJECT_ROOT}\GUIDEInterfaces</file>
       <file>${PROJECT_ROOT}\HelperFunctions</file>
-      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8</file>
-      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\+uiextras\Resources</file>
-      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch\getpixelposition.p</file>
-      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch\isHGUsingMATLABClasses.p</file>
+      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout</file>
+      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout\+uiextras\Resources</file>
+      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout\Patch\getpixelposition.p</file>
+      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout\Patch\isHGUsingMATLABClasses.p</file>
       <file>${PROJECT_ROOT}\icons.mat</file>
       <file>${PROJECT_ROOT}\InternalHelperFunctions</file>
       <file>${PROJECT_ROOT}\segmentation_funcs.mat</file>
@@ -96,9 +96,9 @@
         <directory>${PROJECT_ROOT}\InternalHelperFunctions</directory>
         <directory>${PROJECT_ROOT}\InternalHelperFunctions\RawDataFunctions</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\Patch</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout-v1p8\layoutHelp</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout\Patch</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout\layoutHelp</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\xml_io_toos</directory>
         <directory>${PROJECT_ROOT}\..\GlobalProcessingLibrary\Libraries</directory>
         <directory>${PROJECT_ROOT}\OMEROMatlab</directory>

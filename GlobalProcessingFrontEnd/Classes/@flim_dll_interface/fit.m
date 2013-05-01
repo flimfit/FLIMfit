@@ -76,9 +76,9 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     % Determine which datasets we need to load and make sure they're loaded
     if p.global_fitting < 2 || p.global_variable == 0
         if false && d.lazy_loading && p.split_fit
-            obj.n_rounds = ceil(d.num_datasets/p.n_thread);
+            obj.n_rounds = ceil(d.n_datasets/p.n_thread);
 
-            idx = 1:d.num_datasets;
+            idx = 1:d.n_datasets;
             
             idx = idx/p.n_thread;
             idx = ceil(idx);
@@ -116,7 +116,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
             
     end
      
-    sel = 1:d.num_datasets;
+    sel = 1:d.n_datasets;
     
     if obj.bin
         datasets = (sel == selected);

@@ -1,4 +1,4 @@
-function init_memory_mapping(obj, data_size, num_datasets, mapfile_name)
+function init_memory_mapping(obj, data_size, n_datasets, mapfile_name)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -50,14 +50,14 @@ function init_memory_mapping(obj, data_size, num_datasets, mapfile_name)
             end
             zd = zeros(zs,'single');
             n_4 = data_size(end);
-            for i=1:num_datasets
+            for i=1:n_datasets
                 for j=1:n_4
                     if ~data_preloaded
                         fwrite(mapfile,zd,'single');
                     end
                 end
                 if obj.use_popup
-                    waitbar(i/num_datasets,wait_handle)
+                    waitbar(i/n_datasets,wait_handle)
                 end
             end
             clear zd;
@@ -72,9 +72,9 @@ function init_memory_mapping(obj, data_size, num_datasets, mapfile_name)
             repeat = 1;
         else
             if obj.raw
-                repeat = obj.num_datasets;
+                repeat = obj.n_datasets;
             else
-                repeat = num_datasets;
+                repeat = n_datasets;
             end
         end
 

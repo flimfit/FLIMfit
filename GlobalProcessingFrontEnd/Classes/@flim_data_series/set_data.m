@@ -40,15 +40,15 @@ function set_data(obj,t,data,polarisation_resolved)
     obj.t = t;
     
     if ndims(data) > 4
-        obj.num_datasets = size(data,5);
+        obj.n_datasets = size(data,5);
     else
-        obj.num_datasets = 1;
+        obj.n_datasets = 1;
     end
     
     % Set names
     %--------------------------------------
     
-    nstr = 1:obj.num_datasets;
+    nstr = 1:obj.n_datasets;
     nstr = num2cell(nstr);
     nstr = cellfun(@(x)num2str(x),nstr,'UniformOutput',false);
     obj.names = nstr;   

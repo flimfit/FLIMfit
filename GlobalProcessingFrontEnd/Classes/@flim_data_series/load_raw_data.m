@@ -43,7 +43,15 @@ function load_raw_data(obj,file)
     
     fields = fieldnames(dinfo);
     for i=1:length(fields)
-        eval(['obj.' fields{i} '= dinfo.' fields{i} ';']);
+        
+        if strcmp(fields{i},'num_datasets')
+            new_field = 'n_datasets'; % account for legacy files
+        else
+            new_field = fields{i};
+        end
+        
+        eval(['obj.' new_field '= dinfo.' fields{i} ';']);
+
     end
     
     obj.suspend_transformation = false;

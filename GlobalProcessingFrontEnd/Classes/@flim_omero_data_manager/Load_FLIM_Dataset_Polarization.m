@@ -129,7 +129,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
                 %
             end % Dataset...
             %            
-            data_series.num_datasets = num_datasets;                 
+            data_series.n_datasets = num_datasets;                 
             data_series.names = cell(1,num_datasets);
             %
             % set names
@@ -158,7 +158,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
             
             delays = mdta.delays;
             
-            if data_series.use_popup && data_series.num_datasets > 1 && ~data_series.raw
+            if data_series.use_popup && data_series.n_datasets > 1 && ~data_series.raw
                 wait_handle=waitbar(0,'Loading FLIMages...');
                 using_popup = true;
                 obj.verbose = false;     % suppress low-level waitbar if loading mutiple images
@@ -179,7 +179,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
             end     
             %
             if using_popup
-                waitbar(1/data_series.num_datasets,wait_handle);
+                waitbar(1/data_series.n_datasets,wait_handle);
             end            
             %
             data_size = size(data_cube);
