@@ -48,7 +48,7 @@ function save_raw_data(obj,mapfile_name)
         
     end
     
-    num_binned_frames = ceil(obj.num_datasets / frame_binning);
+    num_binned_frames = ceil(obj.n_datasets / frame_binning);
     
     dinfo = struct();
     dinfo.t = obj.tr_t;
@@ -56,6 +56,7 @@ function save_raw_data(obj,mapfile_name)
     dinfo.names = obj.names(1:frame_binning:end);
     dinfo.metadata = new_metadata;
     dinfo.data_size = obj.data_size;
+    dinfo.n_datasets = num_binned_frames;
     dinfo.num_datasets = num_binned_frames;
     dinfo.mode = obj.mode;
     dinfo.root_path = obj.root_path;
@@ -85,7 +86,7 @@ function save_raw_data(obj,mapfile_name)
         data = 0;
         
         for i=1:frame_binning
-            if idx <= obj.num_datasets
+            if idx <= obj.n_datasets
                 obj.switch_active_dataset(idx);
                 f_data = obj.cur_tr_data;
                 f_data = f_data(:,1,:,:) + 2*obj.g_factor*f_data(:,2,:,:);
@@ -96,7 +97,7 @@ function save_raw_data(obj,mapfile_name)
                 idx = idx + 1;
                 
                 if obj.use_popup
-                    waitbar(idx/obj.num_datasets,wait_handle)
+                    waitbar(idx/obj.n_datasets,wait_handle)
                 end
             end
         end

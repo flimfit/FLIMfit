@@ -88,7 +88,7 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
         end
     end
     
-    obj.num_datasets = length(obj.names);
+    obj.n_datasets = length(obj.names);
     
     obj.polarisation_resolved = polarisation_resolved;
    

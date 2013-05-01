@@ -49,6 +49,7 @@ function write_raw_data(file,t,data,t_irf,irf,ref)
     dinfo.channels = 1;
     dinfo.data_size = [size(data,1) 1 size(data,2) size(data,3) 1];
     dinfo.polarisation_resolved = false;
+    dinfo.n_datasets = n_datasets;
     dinfo.num_datasets = n_datasets;
     dinfo.mode = 'TCSPC';
 

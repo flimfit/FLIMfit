@@ -81,10 +81,11 @@ classdef flim_data_series < handle & h5_serializer
     properties(Dependent)
         width;
         height;
-        n_datasets;
         n_masked;
                
         background;
+        
+        num_datasets; % This property is for backwards compatability only; do not use in new code
         
         im_size;
         n_t;
@@ -102,17 +103,21 @@ classdef flim_data_series < handle & h5_serializer
         irf_subsampling = 1;
     end
         
+    properties(SetObservable,Dependent)
+       
+    end
+    
     properties(Transient)
         acceptor;
         root_path;
         
         t;   
         t_int;
+        n_datasets;
         
         names;
         metadata;
 
-        num_datasets;
         seg_mask = [];
         
         has_image_irf = 0;
@@ -317,7 +322,7 @@ classdef flim_data_series < handle & h5_serializer
         end
         
         function reload_data(obj)
-            l = 1:obj.num_datasets;
+            l = 1:obj.n_datasets;
             obj.loaded(:) = false;
             obj.load_selected_files(l);
         end
@@ -724,11 +729,11 @@ classdef flim_data_series < handle & h5_serializer
                 height = 1;
             end
         end
-        
-        function n_datasets = get.n_datasets(obj)
-            n_datasets = obj.num_datasets;
-        end
                 
+        function num_datasets = get.num_datasets(obj)
+            num_datasets = obj.n_datasets;
+        end
+        
         function n_t = get.n_t(obj)
             n_t = obj.data_size(1);
         end     

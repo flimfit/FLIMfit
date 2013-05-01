@@ -102,7 +102,7 @@ classdef flim_omero_data_manager < handle
             end;                
             %
             data_series.data_size = data_size;
-            data_series.num_datasets = 1;  
+            data_series.n_datasets = 1;  
             data_series.file_names = {'file'};                
             data_series.metadata = extract_metadata(data_series.names);
             data_series.polarisation_resolved = polarisation_resolved;
@@ -115,7 +115,7 @@ classdef flim_omero_data_manager < handle
              
     
             data_series.load_multiple_channels = false;
-            data_series.loaded = ones([1 data_series.num_datasets]);
+            data_series.loaded = ones([1 data_series.n_datasets]);
             data_series.switch_active_dataset(1);    
             data_series.init_dataset();                        
         end
@@ -478,7 +478,7 @@ classdef flim_omero_data_manager < handle
                 %
                 hw = waitbar(0, 'Exporting fitting results to Omero, please wait');
                                 
-                for dataset_index = 1:data_series.num_datasets
+                for dataset_index = 1:data_series.n_datasets
                     %
                     data = zeros(n_params,sizeX,sizeY);
                         for p = 1:n_params,                                                                                                                                            
@@ -507,7 +507,7 @@ classdef flim_omero_data_manager < handle
                     link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
                     obj.session.getUpdateService().saveAndReturnObject(link); 
                     %   
-                    waitbar(dataset_index/data_series.num_datasets, hw);
+                    waitbar(dataset_index/data_series.n_datasets, hw);
                     drawnow;                                                                 
                 end;
                 delete(hw);
@@ -549,7 +549,7 @@ classdef flim_omero_data_manager < handle
                                     iId = image.getId().getValue();
                                     imgName = char(java.lang.String(image.getName().getValue()));                                                                        
                                         % compare with what we have in analysis...        
-                                        for dataset_index = 1:data_series.num_datasets
+                                        for dataset_index = 1:data_series.n_datasets
                                             str = split(':',data_series.names{dataset_index});
                                             imgname = char(str(2));                                        
                                             iid = str2num(str2mat(cellstr(str(1)))); % wtf                                        
@@ -620,7 +620,7 @@ classdef flim_omero_data_manager < handle
                                                     newws = updateService.saveAndReturnObject(newws);                                                                                                                                               
 
                                                     z = z + 1; % param image count
-                                                    waitbar(z/data_series.num_datasets, hw);
+                                                    waitbar(z/data_series.n_datasets, hw);
                                             end % put new well into new plate                                       
                                         end                                                                        
                                 end

@@ -26,7 +26,7 @@ function load_selected_files(obj,selected)
     % Author : Sean Warren
 
     if nargin < 2
-        selected = 1:obj.num_datasets;
+        selected = 1:obj.n_datasets;
     end
         
     if ~isempty(obj.loaded)

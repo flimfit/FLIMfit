@@ -55,10 +55,10 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         obj.block = block;
         
         files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif'])];            
-        num_datasets = length(files);
+        n_datasets = length(files);
         
-        file_names = cell(1,num_datasets);
-        for i=1:num_datasets
+        file_names = cell(1,n_datasets);
+        for i=1:n_datasets
             file_names{i} = files(i).name;
         end
         file_names = sort_nat(file_names);   
@@ -73,9 +73,9 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             obj.lazy_loading = false;
         end
         
-        num_datasets = length(obj.file_names);
+        n_datasets = length(obj.file_names);
 
-        for i=1:num_datasets
+        for i=1:n_datasets
             obj.file_names{i} = [root_path obj.file_names{i}];
         end
         
@@ -91,11 +91,11 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         clear data;
         
         obj.data_size = data_size;
-        obj.num_datasets = num_datasets;
+        obj.n_datasets = n_datasets;
         
         %set names
-        obj.names = cell(1,num_datasets);
-        for j=1:num_datasets
+        obj.names = cell(1,n_datasets);
+        for j=1:n_datasets
             [~,name,~] = fileparts(obj.file_names{j});
             obj.names{j} = name;
         end
@@ -115,7 +115,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             obj.lazy_loading = false;
         end
         
-        num_datasets = length(folder_names);
+        n_datasets = length(folder_names);
         
         % Load first folder to get sizes etc.
         first_root = [root_path folder_names{1}];
@@ -140,12 +140,12 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         clear data;
 
         obj.data_size = data_size;
-        obj.num_datasets = num_datasets;       
+        obj.n_datasets = n_datasets;       
 
         %set names
-        obj.names = cell(1,num_datasets);
+        obj.names = cell(1,n_datasets);
 
-        for j=1:num_datasets
+        for j=1:n_datasets
             obj.names{j} = folder_names{j};
         end
     end    
@@ -155,7 +155,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     if obj.lazy_loading
         obj.load_selected_files(1);
     else
-        obj.load_selected_files(1:obj.num_datasets);
+        obj.load_selected_files(1:obj.n_datasets);
     end
     
     
