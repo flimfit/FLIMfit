@@ -26,7 +26,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 
-            %
+            data_series.data_type = 'single';       % always use single for OMERO for now
+            
             if isempty(obj.plate) && isempty(obj.dataset)
                 errordlg('Please set Dataset or Plate before trying to load images'); 
                 return;                 
