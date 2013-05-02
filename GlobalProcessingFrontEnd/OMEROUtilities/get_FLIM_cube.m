@@ -84,8 +84,8 @@ function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbos
     store = session.createRawPixelsStore(); 
     store.setPixelsId(pixelsId, false); 
     
-    % returns type double
-    data_cube = zeros(sizet,nchans,sizeY,sizeX,1);
+    % returns type single
+    data_cube = single(zeros(sizet,nchans,sizeY,sizeX,1));
     
     
      

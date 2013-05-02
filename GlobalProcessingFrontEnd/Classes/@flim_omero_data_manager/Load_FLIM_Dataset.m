@@ -26,8 +26,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 
-            data_series.data_type = 'single';       % always use single for OMERO for now
-            
+            data_series.data_type = 'single';       % type for memory_mapped files! Always use single for OMERO for now
+              
             if isempty(obj.plate) && isempty(obj.dataset)
                 errordlg('Please set Dataset or Plate before trying to load images'); 
                 return;                 
@@ -71,11 +71,11 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 folder_names = sort_nat(folder_names_unsorted); % sorted
                 [folder_names, ~, data_series.lazy_loading] = dataset_selection(folder_names);   
                 %
-                num_datasets = length(folder_names);
+                n_datasets = length(folder_names);
                 %
-                image_ids = zeros(1,num_datasets); %sorted
+                image_ids = zeros(1,n_datasets); %sorted
                 %
-                for m = 1:num_datasets
+                for m = 1:n_datasets
                     iName_m = folder_names{m};
                     for k = 1:numel(folder_names_unsorted)                       
                         iName_k = folder_names_unsorted{k};
@@ -110,11 +110,11 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 %
                 [folder_names, ~, data_series.lazy_loading] = dataset_selection(folder_names);            
                 %
-                num_datasets = length(folder_names);
+                n_datasets = length(folder_names);
                 %
                 % find corresponding Image ids list...
-                image_ids = zeros(1,num_datasets);
-                for m = 1:num_datasets
+                image_ids = zeros(1,n_datasets);
+                for m = 1:n_datasets
                     iName_m = folder_names{m};
                     for k = 0:imageList.size()-1,                       
                              iName_k = char(java.lang.String(imageList.get(k).getName().getValue()));
@@ -127,8 +127,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 %
             end % Dataset...
             %            
-            data_series.n_datasets = num_datasets;
-            data_series.names = cell(1,num_datasets);
+            data_series.n_datasets = n_datasets;
+            data_series.names = cell(1,n_datasets);
             %
             % set names
             extensions{1} = '.ome.tiff';
@@ -136,7 +136,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             extensions{3} = '.tif';
             extensions{4} = '.tiff';
             extensions{5} = '.sdt';                        
-                for j=1:num_datasets
+                for j=1:n_datasets
                     string = folder_names{j};
                     for extind = 1:numel(extensions)    
                         string = strrep(string,extensions{extind},'');
@@ -156,6 +156,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
+            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
+            obj.selected_channel = obj.ZCT{2};
+            
             if data_series.use_popup && data_series.n_datasets > 1 && ~data_series.raw
                 wait_handle=waitbar(0,'Loading FLIMages...');
                 using_popup = true;
@@ -166,11 +169,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             end
             
           
-            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
-                          
-            %
-            obj.selected_channel = obj.ZCT{2};
-            %
+           
             try
                 [data_cube, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);
             catch err
@@ -185,7 +184,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             data_series.mode = mdta.FLIM_type;
                         
-            data_series.data_size = [data_size num_datasets];
+            data_series.data_size = [data_size n_datasets];
             %        
             if length(delays) > 0 % ??
                 %
@@ -208,7 +207,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 data_series.clear_memory_mapping();
                 
-                data_series.loaded = true(1, num_datasets);
+                data_series.loaded = true(1, n_datasets);
               
 
                 if ~data_series.raw % not checked
@@ -223,17 +222,15 @@ function Load_FLIM_Dataset(obj,data_series,~)
                             data_cube = zeros(data_size);
                         end
                   
-                       
-                         % kick off async write NEEDS Matlab 2013 !!
-                         % c1=fwrite(mapfile,data_cube,'single', 'async');
+                      
                          c1=fwrite(mapfile,data_cube,'single');
 
 
                          if using_popup
-                            waitbar(1/num_datasets,wait_handle)
+                            waitbar(1/n_datasets,wait_handle)
                          end
                         
-                         for j = 2:num_datasets
+                         for j = 2:n_datasets
 
                                 imgId = image_ids(j);                        
                                
@@ -248,40 +245,37 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                 data = zeros(data_size);
                             end
                             
-                            % async ver need Matlab 2013 !!
-                            %while~(strcmp('idle',mapfile.TransferStatus))
-                            %end
-                            %c1=fwrite(mapfile,data,'single', 'async');
+                          
                             
                             c1=fwrite(mapfile,data,'single');
                             
                             if using_popup
-                                waitbar(j/num_datasets,wait_handle)
+                                waitbar(j/n_datasets,wait_handle)
                             end
 
                         end
                         
-                        % asyn ver need Matlab 2013 !!
-                        %while~(strcmp('idle',mapfile.TransferStatus))
-                        %end
+                       
 
                         fclose(mapfile);
                         
                       
                       
-                        data_series.init_memory_mapping(data_series.data_size(1:4), num_datasets, mapfile_name);    
+                        data_series.init_memory_mapping(data_series.data_size(1:4), n_datasets, mapfile_name);    
 
                     else % no memory mapping
                         
                         if ~isempty(data_cube) 
-                            data_series.data_series_mem(:,:,:,:,1) = single(data_cube);                                        
+                           
+                            data_series.data_series_mem(:,:,:,:,1) = single(data_cube);  
+                           
                         end;
                         
                         if using_popup
-                            waitbar(1/num_datasets,wait_handle)
+                            waitbar(1/n_datasets,wait_handle)
                         end
 
-                        for j = 2:num_datasets
+                        for j = 2:n_datasets
                                          
                             imgId = image_ids(j);                        
                                 %
@@ -299,7 +293,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                 end                                        
 
                             if using_popup
-                                waitbar(j/num_datasets,wait_handle)
+                                waitbar(j/n_datasets,wait_handle)
                             end
 
                         end
@@ -310,7 +304,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                     end
                     
                 else
-                    data_series.init_memory_mapping(data_series.data_size(1:4), num_datasets, data_series.mapfile_name);
+                    data_series.init_memory_mapping(data_series.data_size(1:4), n_datasets, data_series.mapfile_name);
                 end
 
                 if using_popup
