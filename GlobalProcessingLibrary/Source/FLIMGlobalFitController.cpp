@@ -464,13 +464,14 @@ double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
 
    if (data->data_type == DATA_TYPE_TCSPC)
    {
+      double t_mean = 0;
       double  n  = 0;
       double c;
 
       for(int i=start; i<n_t; i++)
       {
          c = decay[i]-adjust_buf[i];
-         tau += c * (t[i] - t[start]);
+         t_mean += c * (t[i] - t[start]);
          n   += c;
       }
    
@@ -479,19 +480,32 @@ double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
       {
          for(int i=start; i<n_t; i++)
          {
-            tau += 2 * g_factor * decay[i+n_t] * (t[i] - t[start]);
+            t_mean += 2 * g_factor * decay[i+n_t] * (t[i] - t[start]);
             n   += 2 * g_factor * decay[i+n_t];
          }
       }
 
-      tau = tau / n;
+      t_mean = t_mean / n;
 
       // Apply correction for measurement window
-      double tau1 = tau;
       double T = t[n_t-1]-t[start];
-      for(int i=0; i<10; i++)  
-         tau = tau + T / (exp(T/tau1)-1);
+      
+      // Older iterative correction; tends to same value more slowly
+      //tau = t_mean;
+      //for(int i=0; i<10; i++)  
+      //   tau = t_mean + T / (exp(T/tau)-1);
 
+      t_mean /= T;
+      tau = t_mean;
+
+      // Newton-Raphson update
+      for(int i=0; i<3; i++)  
+      {
+         double e = exp(1/tau);
+         double iem1 = 1/(e-1);
+         tau = tau - ( - tau + t_mean + iem1 ) / ( e * iem1 * iem1 / (tau*tau) - 1 );
+      }
+      tau *= T;
    }
 
    //===================================================
