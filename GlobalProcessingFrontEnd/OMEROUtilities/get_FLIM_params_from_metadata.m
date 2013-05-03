@@ -41,12 +41,14 @@ function ret = get_FLIM_params_from_metadata(session, image)
      SizeC = pixels.getSizeC().getValue();
      SizeZ = pixels.getSizeZ().getValue();
      SizeT = pixels.getSizeT().getValue();
+     
+     % NB x and y are swapped here! Because the images are transposed
+     % during loading from OMERO. 
+     ret.sizeX = pixels.getSizeY().getValue();  
+     ret.sizeY = pixels.getSizeX().getValue(); 
     
     s = read_XmlAnnotation_havingNS(session,image,'openmicroscopy.org/omero/dimension/modulo'); 
-    %
-    if isempty(s)
-       s = read_XmlAnnotation_havingNS(session,image,'IC_PHOTONICS'); % temp
-    end
+    
         
     if ~isempty(s)      % found correct ModuloAlong XmlAnnotation
         
