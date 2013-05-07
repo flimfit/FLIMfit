@@ -53,6 +53,8 @@
             
             if polarisation_resolved == true
                 
+                
+                
                 if (Z + T) > 2
                     maxx = [ 1  1];   % select one from each 
                     minn = maxx;      % no subset selection allowed
@@ -60,19 +62,27 @@
                     ZT = ZT_selection([Z T], maxx, minn);
                     dims{1} = ZT{1};
                     dims{3} = ZT{2}
-                    
-                    
+                     
                 end
                 
-                
-                % copied from request_channels in flim_data_series
-                dlgTitle = 'Select channels';
-                prompt = {'Parallel Channel';'Perpendicular Channel'};
-                defaultvalues = {'1','2'};
-                numLines = 1;
-                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                dims{2} = str2double(inputdata);
-              
+                if C  > 1
+                    
+                    chans = -1;
+                    
+                    while max(chans) > C  | chans == -1
+                     
+                        % copied from request_channels in flim_data_series
+                        dlgTitle = 'Select channels';
+                        prompt = {'Parallel Channel';'Perpendicular Channel'};
+                        defaultvalues = {'1','2'};
+                        numLines = 1;
+                        inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                        chans = str2double(inputdata);
+                    end
+                    
+                    dims{2} = chans;
+
+                end
                 
                 
             else

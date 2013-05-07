@@ -25,8 +25,6 @@ function Load_FLIM_Dataset(obj,data_series,~)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-            % DEBUG
-            data_series.use_memory_mapping = false;
             
               
             if isempty(obj.plate) && isempty(obj.dataset)
@@ -36,10 +34,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %
             if ~isempty(obj.plate) 
             %
-            z = 0;       
-            imageids_unsorted = [];
-            str = char(256,256);
-                 
+                z = 0;       
+                imageids_unsorted = [];
+                str = char(256,256);
+
                             wellList = obj.session.getQueryService().findAllByQuery(['select well from Well as well '...
                             'left outer join fetch well.plate as pt '...
                             'left outer join fetch well.wellSamples as ws '...
@@ -157,12 +155,19 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
+            
             data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
-            obj.selected_channel = data_series.ZCT{2}
+            
+            obj.selected_channel = data_series.ZCT{2};  % not sure what this does
+            
+            if data_series.polarisation_resolved & length(obj.selected_channel) ~= 2
+                
+                errordlg('Two channels must be selected for polarization data');
+                return;
+            end
             
             
             
-            data_series.verbose = false;     % suppress low-level waitbar if loading mutiple images
            
             
             data_size = [ length(delays) length(obj.selected_channel) mdta.sizeX mdta.sizeY ];
@@ -179,7 +184,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             if length(delays) > 0 
                 
                 data_series.file_names = {'file'};
-                data_series.channels = 1;
+                data_series.channels = data_series.ZCT{2};  % not sure what this does
                 
                 data_series.session = obj.session;      % copy current session into OMERO_data_series
                  
