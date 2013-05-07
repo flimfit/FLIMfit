@@ -1,4 +1,4 @@
-function data_cube = get_FLIM_cube( session, image, sizet , modulo, ZCT , verbose)
+function data_cube = get_FLIM_cube( obj,  session, image, sizet , modulo, ZCT , verbose)
 
     % sizet  here is the size of the relative-time dimension(t)
     % ie the number of time-points/length(delays)

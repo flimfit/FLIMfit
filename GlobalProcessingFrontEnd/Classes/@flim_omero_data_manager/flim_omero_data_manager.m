@@ -38,8 +38,7 @@ classdef flim_omero_data_manager < handle
         screen;        
         %
         selected_channel; % need to keep this for results uploading to Omero...
-        ZCT; % array containing missing OME dimensions Z,C,T (in that order)  
-        verbose;        % flag to switch waitbar in OMERO_fetch on or off
+        
 
     end
         
@@ -48,7 +47,7 @@ classdef flim_omero_data_manager < handle
         function obj = flim_omero_data_manager(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
-            obj.verbose = true;
+            
         end
                                         
         function delete(obj)
@@ -69,13 +68,16 @@ classdef flim_omero_data_manager < handle
            
             delays = mdta.delays;
            
-            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays) );
+            data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays) );
             
-            channel = obj.ZCT{2};       % not sure why we need this?
+            channel = data_series.ZCT{2};       % not sure why we need this?
+            
+            data_series.verbose = true;     % loading a single image
+            data_series.session = obj.session;  % copy the current session
             
             
             try
-                [data_cube, name] = obj.OMERO_fetch(image, obj.ZCT, mdta);
+                [data_cube, name] = data_series.OMERO_fetch(image, data_series.ZCT, mdta);
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
@@ -101,7 +103,7 @@ classdef flim_omero_data_manager < handle
                 data_series.names{1} = [ idStr ' : ' name ];                
             end;                
             %
-            data_series.data_size = data_size;
+            data_series.data_size = [ data_size 1];
             data_series.n_datasets = 1;  
             data_series.file_names = {'file'};                
             data_series.metadata = extract_metadata(data_series.names);

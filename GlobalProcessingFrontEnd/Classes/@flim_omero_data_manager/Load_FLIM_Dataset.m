@@ -25,8 +25,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-
-          
+            % DEBUG
+            data_series.use_memory_mapping = false;
+            
               
             if isempty(obj.plate) && isempty(obj.dataset)
                 errordlg('Please set Dataset or Plate before trying to load images'); 
@@ -156,25 +157,31 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
-            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
-            obj.selected_channel = obj.ZCT{2};
+            data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
+            obj.selected_channel = data_series.ZCT{2}
             
             
-            obj.verbose = false;     % suppress low-level waitbar if loading mutiple images
+            
+            data_series.verbose = false;     % suppress low-level waitbar if loading mutiple images
            
             
-          
-            data_size = [ length(delays) 1 mdta.sizeX mdta.sizeY ];
+            data_size = [ length(delays) length(obj.selected_channel) mdta.sizeX mdta.sizeY ];
            
             
             data_series.mode = mdta.FLIM_type;
+            data_series.mdta = mdta;
                         
-            data_series.data_size = [data_size n_datasets];
+           
+            data_series.data_size = [data_size n_datasets ];
+                
+           
                    
             if length(delays) > 0 
                 
                 data_series.file_names = {'file'};
                 data_series.channels = 1;
+                
+                data_series.session = obj.session;      % copy current session into OMERO_data_series
                  
                 try
                     data_series.metadata = extract_metadata(data_series.names);        
@@ -194,14 +201,21 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 data_series.loaded = false(1,n_datasets);
                 
-         
-                  
-               selected  = 1:n_datasets;
-               obj.load_selected_OMERO( data_series,  image_ids, mdta , selected);
+                data_series.image_ids = image_ids;
+                data_series.mdta = mdta;
+               
+                
+                
+                
+                if data_series.lazy_loading
+                    data_series.load_selected_files(1);
+                else
+                    data_series.load_selected_files(1:n_datasets);
+                end
                
                
                
-
+               
                 data_series.compute_tr_data(false);    
                
                                 
