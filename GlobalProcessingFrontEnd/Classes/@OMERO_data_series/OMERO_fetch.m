@@ -16,7 +16,7 @@ else
     
    
    
-    data_cube = get_FLIM_cube( obj.session, image, length(delays), modulo, ZCT, obj.verbose );                
+    data_cube = obj.get_FLIM_cube( obj.session, image, length(delays), modulo, ZCT, obj.verbose );                
          
     if strcmp('TCSPC',FLIM_type)
     

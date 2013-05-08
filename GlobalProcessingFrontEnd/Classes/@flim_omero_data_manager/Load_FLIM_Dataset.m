@@ -25,8 +25,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-
-            data_series.data_type = 'single';       % type for memory_mapped files! Always use single for OMERO for now
+            
               
             if isempty(obj.plate) && isempty(obj.dataset)
                 errordlg('Please set Dataset or Plate before trying to load images'); 
@@ -35,10 +34,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %
             if ~isempty(obj.plate) 
             %
-            z = 0;       
-            imageids_unsorted = [];
-            str = char(256,256);
-                 
+                z = 0;       
+                imageids_unsorted = [];
+                str = char(256,256);
+
                             wellList = obj.session.getQueryService().findAllByQuery(['select well from Well as well '...
                             'left outer join fetch well.plate as pt '...
                             'left outer join fetch well.wellSamples as ws '...
@@ -91,7 +90,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 imageList = obj.dataset.linkedImageList;
                 %       
                 if 0==imageList.size()
-                    errordlg('Dataset have no images - please choose Dataset with images');
+                    errordlg('Dataset has no images - please choose a Dataset with images');
                     return;
                 end;                                    
                 %        
@@ -156,40 +155,38 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             delays = mdta.delays;
             
-            obj.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
-            obj.selected_channel = obj.ZCT{2};
             
-            if data_series.use_popup && data_series.n_datasets > 1 && ~data_series.raw
-                wait_handle=waitbar(0,'Loading FLIMages...');
-                using_popup = true;
-                obj.verbose = false;     % suppress low-level waitbar if loading mutiple images
-            else
-                using_popup = false;
-                obj.verbose = true; 
+            data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
+            
+            obj.selected_channel = data_series.ZCT{2};  % not sure what this does
+            
+            if data_series.polarisation_resolved & length(obj.selected_channel) ~= 2
+                
+                errordlg('Two channels must be selected for polarization data');
+                return;
             end
             
-          
+            
+            
            
-            try
-                [data_cube, ~] = obj.OMERO_fetch(image, obj.ZCT, mdta);
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end     
-            %
-            if using_popup
-                waitbar(1/data_series.n_datasets,wait_handle);
-            end            
-            %
-            data_size = size(data_cube);
+            
+            data_size = [ length(delays) length(obj.selected_channel) mdta.sizeX mdta.sizeY ];
+           
             
             data_series.mode = mdta.FLIM_type;
+            data_series.mdta = mdta;
                         
-            data_series.data_size = [data_size n_datasets];
-            %        
-            if length(delays) > 0 % ??
-                %
+           
+            data_series.data_size = [data_size n_datasets ];
+                
+           
+                   
+            if length(delays) > 0 
+                
                 data_series.file_names = {'file'};
-                data_series.channels = 1;
+                data_series.channels = data_series.ZCT{2};  % not sure what this does
+                
+                data_series.session = obj.session;      % copy current session into OMERO_data_series
                  
                 try
                     data_series.metadata = extract_metadata(data_series.names);        
@@ -207,113 +204,25 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 data_series.clear_memory_mapping();
                 
-                data_series.loaded = true(1, n_datasets);
-              
-
-                if ~data_series.raw % not checked
-
-                    if data_series.use_memory_mapping 
-                        
-                        mapfile_name = global_tempname;
-                        mapfile = fopen(mapfile_name,'w');
-                        
-                        % store the data_cube that has already been loaded
-                        if isempty(data_cube) || size(data_cube,1) ~= data_series.n_t
-                            data_cube = zeros(data_size);
-                        end
-                  
-                      
-                         c1=fwrite(mapfile,data_cube,'single');
-
-
-                         if using_popup
-                            waitbar(1/n_datasets,wait_handle)
-                         end
-                        
-                         for j = 2:n_datasets
-
-                                imgId = image_ids(j);                        
-                               
-                                myimages = getImages(obj.session,imgId); image = myimages(1);
-                                try
-                                    [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
-                                catch err
-                                    rethrow(err);
-                                end                    
-
-                            if isempty(data) || size(data,1) ~= data_series.n_t
-                                data = zeros(data_size);
-                            end
-                            
-                          
-                            
-                            c1=fwrite(mapfile,data,'single');
-                            
-                            if using_popup
-                                waitbar(j/n_datasets,wait_handle)
-                            end
-
-                        end
-                        
-                       
-
-                        fclose(mapfile);
-                        
-                      
-                      
-                        data_series.init_memory_mapping(data_series.data_size(1:4), n_datasets, mapfile_name);    
-
-                    else % no memory mapping
-                        
-                        if ~isempty(data_cube) 
-                           
-                            data_series.data_series_mem(:,:,:,:,1) = single(data_cube);  
-                           
-                        end;
-                        
-                        if using_popup
-                            waitbar(1/n_datasets,wait_handle)
-                        end
-
-                        for j = 2:n_datasets
-                                         
-                            imgId = image_ids(j);                        
-                                %
-                                myimages = getImages(obj.session,imgId); image = myimages(1);
-                                try
-                                    [data,~] = obj.OMERO_fetch(image,obj.ZCT,mdta);
-                                    if ~isempty(data) 
-                                        data_series.data_series_mem(:,:,:,:,j) = single(data);                                        
-                                    end;
-                                catch err
-                                    if using_popup, 
-                                        close(wait_handle), 
-                                    end;                        
-                                    rethrow(err);
-                                end                                        
-
-                            if using_popup
-                                waitbar(j/n_datasets,wait_handle)
-                            end
-
-                        end
-                        
-                        data_series.active = 1;
-                        data_series.cur_data = data_series.data_series_mem(:,:,:,:,1);
-
-                    end
-                    
+                data_series.loaded = false(1,n_datasets);
+                
+                data_series.image_ids = image_ids;
+                data_series.mdta = mdta;
+               
+                
+                
+                
+                if data_series.lazy_loading
+                    data_series.load_selected_files(1);
                 else
-                    data_series.init_memory_mapping(data_series.data_size(1:4), n_datasets, data_series.mapfile_name);
+                    data_series.load_selected_files(1:n_datasets);
                 end
-
-                if using_popup
-                    close(wait_handle)
-                end
-
+               
+               
+               
+               
                 data_series.compute_tr_data(false);    
-                data_series.switch_active_dataset(1);    
-                %data_series.init_dataset(dataset_indexting_file); %?   
+               
                                 
                 data_series.init_dataset();            
                 
