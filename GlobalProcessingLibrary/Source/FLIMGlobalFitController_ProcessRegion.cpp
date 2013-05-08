@@ -76,6 +76,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    float *y, *alf, *alf_err_lower, *alf_err_upper;
    int   *irf_idx;
 
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   span* sp = new span (*writer, _T("Getting Data"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_mode == MODE_PIXELWISE)
    {
       y             = this->y;
@@ -99,7 +102,13 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
       s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, w, irf_idx, local_decay);
    }
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   sp = new span (*writer, _T("Estimating initial guesses"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    int n_meas_res = data->GetResampleNumMeas(thread);
 
@@ -134,7 +143,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
          alf_local[i] = tau_guess[n_fix+i];
    }
 
-
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    // Assign initial guesses to nonlinear variables
    //------------------------------

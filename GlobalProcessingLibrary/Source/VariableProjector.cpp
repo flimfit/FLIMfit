@@ -25,6 +25,8 @@
 
 #include "omp_stub.h"
 
+#include "ConcurrencyAnalysis.h"
+
 using namespace std;
 
 VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 
@@ -166,9 +168,17 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
                     &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
    }
 
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   span* sp = new span (*writer, _T("Calculating Linear Parameters"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
    // Get linear parameters
    if (!getting_errs)
       varproj(nsls1, nl, mskip, alf, fvec, fjac, -1);
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    if (info < 0)
       *ierr = info;
@@ -378,7 +388,6 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
    if (!variable_phi && !iterative_weighting)
       transform_ab(isel, 0, 0, firstca, firstcb);
 
-
    #pragma omp parallel for reduction(+:r_sq)
    for (int j=0; j<s; j++)
    {
@@ -390,7 +399,7 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
       double beta, acum;
     
       double *aw, *u, *work, *wp;
-      if (iterative_weighting)
+      if (iterative_weighting)   
          idx = omp_thread;
       else
          idx = 0;

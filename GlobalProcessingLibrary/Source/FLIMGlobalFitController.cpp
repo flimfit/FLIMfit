@@ -27,6 +27,9 @@
 //
 //=========================================================================
 
+#ifndef FLIMGLOBALFITCONTROLLER_H_
+#define FLIMGLOBALFITCONTROLLER_H_
+
 #include "boost/math/distributions/normal.hpp"
 #include <limits>
 #include <exception>
@@ -41,7 +44,7 @@
 
 using namespace boost::interprocess;
 
-
+marker_series* writer;
 
 
 FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf, 
@@ -301,19 +304,38 @@ void FLIMGlobalFitController::WorkerThread(int thread)
    //=============================================================================
    else if (data->global_mode == MODE_IMAGEWISE)
    {
-      // Cycle through every region in every image
-      for(int im=0; im<data->n_im_used; im++)
-         for(int r=0; r<MAX_REGION; r++)
+      int im0 = 0;
+      int process_idx = 0;
+
+processed: 
+
+         region_mutex.lock();
+         if (next_region >= data->n_regions_total)
+            process_idx = -1;
+         else
+            process_idx = next_region++;
+         region_mutex.unlock();
+
+         // Cycle through every region in every image
+         if (process_idx >= 0)
          {
-            // Get region index and process if it exists and is for this threads
-            idx = data->GetRegionIndex(im,r);
-            if (idx > -1 &&               // region exists
-               idx % n_thread == thread)  // should be processed by this thread
-               ProcessRegion(im, r, 0, thread);
+            for(int im=im0; im<data->n_im_used; im++)
+               for(int r=0; r<MAX_REGION; r++)
+               {
+                  // Get region index and process if it exists and is for this threads
+                  idx = data->GetRegionIndex(im,r);
+                  if (idx == process_idx)  // should be processed by this thread
+                  {
+                     ProcessRegion(im, r, 0, thread);
+                     im0=im;
+                     goto processed;
+                  }
             
-            if (status->terminate)
-               goto terminated;
+                  if (status->terminate)
+                     goto terminated;
+               }
          }
+      
    }
 
    //=============================================================================
@@ -331,7 +353,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
             ProcessRegion(-1, r, 0, thread);
            
          if (status->terminate)
-            goto terminated;
+            break;
       }
    }
 
@@ -583,6 +605,7 @@ void FLIMGlobalFitController::Init()
 
    cur_region = -1;
    next_pixel  = 0;
+   next_region = 0;
    threads_active = 0;
    threads_started = 0;
 
@@ -1259,8 +1282,11 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
       adjust[i] = adjust[i] * scatter_adj + offset_adj;
 
    if (tvb_profile != NULL)
+   {
+      tvb_adj /= data->counts_per_photon;
       for(int i=0; i<n_meas; i++)
          adjust[i] += (float) (tvb_profile[i] * tvb_adj);
+   }
 }
 
 
@@ -1435,3 +1461,5 @@ void FLIMGlobalFitController::CleanupResults()
 
      _ASSERTE(_CrtCheckMemory());
 }
+
+#endif

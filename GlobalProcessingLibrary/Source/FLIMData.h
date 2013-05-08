@@ -37,6 +37,7 @@
 #include <boost/function.hpp>
 
 #include "FlagDefinitions.h"
+#include "ConcurrencyAnalysis.h"
 
 #include "omp_stub.h"
 
@@ -65,6 +66,7 @@ public:
    void DetermineAutoSampling(int thread, float decay[], int n_min_bin);
 
    int GetRegionIndex(int im, int region);
+   int GetOutputRegionIndex(int im, int region);
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
@@ -102,6 +104,7 @@ public:
    int n_p;
 
    int n_regions_total;
+   int n_output_regions_total;
    int max_region_size;
    int data_type;
 
@@ -130,7 +133,6 @@ public:
 
    int has_acceptor;
 
-
 private:
 
    template <typename T>
@@ -150,11 +152,6 @@ private:
 
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;
-
-   int* region_idx;
-   int* region_count;
-   int* region_pos;
-
 
    char *data_file; 
 
@@ -194,6 +191,12 @@ private:
 
    int polarisation_resolved;
    double g_factor;
+
+   int* region_idx;
+   int* output_region_idx;
+   int* region_count;
+   int* region_pos;
+
 
 };
 
@@ -262,6 +265,11 @@ int FLIMData::CalculateRegions()
    else
       tvb_sum = 0;
    
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   span* s = new span (*writer, _T("Calculating regions"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
    //#pragma omp parallel for
    for(int i=0; i<n_im_used; i++)
    {
@@ -287,10 +295,12 @@ int FLIMData::CalculateRegions()
          // and apply min intensity and max bin mask
          //----------------------------------------------------
 
-         uint8_t* mask_ptr = mask + im*n_px;
+         
+         //#pragma omp parallel for
          for(int p=0; p<n_px; p++)
          {
             T* ptr = cur_data_ptr + p*n_meas_full;
+            uint8_t* mask_ptr = mask + im*n_px + p;
             double intensity = 0;
             for(int k=0; k<n_chan; k++)
             {
@@ -313,7 +323,6 @@ int FLIMData::CalculateRegions()
             if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
                *mask_ptr = 0;
 
-            mask_ptr++;
           }
        }
    }
@@ -332,34 +341,33 @@ int FLIMData::CalculateRegions()
 
       memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
       
-      for(int j=0; j<MAX_REGION; j++)
-         region_idx[ i * MAX_REGION + j ] = -1;
-
-
       for(int p=0; p<n_px; p++)
          region_count_ptr[*(mask_ptr++)]++;
    }
-
-   for(int j=0; j<MAX_REGION; j++)
-      region_idx[ n_im_used * MAX_REGION + j ] = -1;
    
-   if (global_mode == MODE_PIXELWISE || global_mode == MODE_IMAGEWISE)
-   {
-      r_idx = 0;
-      cur_pos = 0;
 
-      for(int i=0; i<n_im_used; i++)
+   // Calculate region indexes
+   //-----------------------------------------------------
+
+   r_idx = 0;
+   cur_pos = 0;
+
+   for(int i=0; i<n_im_used; i++)
+   {
+      for(int r=1; r<MAX_REGION; r++)
       {
-         for(int r=1; r<MAX_REGION; r++)
+         region_pos[ i* MAX_REGION + r ] = cur_pos;
+         cur_pos += region_count[ i * MAX_REGION + r ];
+         if (region_count[ i * MAX_REGION + r ] > 0)
          {
-            region_pos[ i* MAX_REGION + r ] = cur_pos;
-            cur_pos += region_count[ i * MAX_REGION + r ];
-            if (region_count[ i * MAX_REGION + r ] > 0)
-               region_idx[ i * MAX_REGION + r ] = r_idx++;
+            output_region_idx[ i * MAX_REGION + r ] = r_idx++;
          }
       }
    }
-   else
+ 
+   n_output_regions_total = r_idx;
+
+   if (global_mode == MODE_GLOBAL)
    {
       cur_pos = 0;
       r_idx = 0;
@@ -385,11 +393,20 @@ int FLIMData::CalculateRegions()
 
       }
    }
+   else
+   {
+      for(int i=0; i<MAX_REGION*n_im_used; i++)
+         region_idx[i] = output_region_idx[i];
+   }
    
    n_masked_px = cur_pos;
    n_regions_total = r_idx;
 
    delete[] cur_data;
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete s;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return err;
 
@@ -451,6 +468,7 @@ void FLIMData::TransformImage(int thread, int im)
             idx = c*n_t_full + t_skip[c] + i;
 
             //Smooth in y axis
+            //#pragma omp parallel for
             for(int x=0; x<n_x; x++)
             {
                for(int y=0; y<s; y++)
@@ -461,7 +479,7 @@ void FLIMData::TransformImage(int thread, int im)
                   tr_row_buf[y] /= y+s;
                }
 
-               //#pragma omp parallel for
+              
                for(int y=s; y<n_y-s; y++ )
                {
                   tr_row_buf[y] = 0;
@@ -483,6 +501,7 @@ void FLIMData::TransformImage(int thread, int im)
             }
 
             //Smooth in x axis
+            //#pragma omp parallel for
             for(int y=0; y<n_y; y++)
             {
                for(int x=0; x<s; x++)
@@ -501,7 +520,7 @@ void FLIMData::TransformImage(int thread, int im)
                   tr_row_buf[x] /= 2*s+1;
                }
 
-               //#pragma omp parallel for
+               //
                for(int x=n_x-s; x<n_x; x++ )
                {
                   tr_row_buf[x] = 0;

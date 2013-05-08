@@ -43,11 +43,13 @@
 
 #include "omp_stub.h"
 
+#include "ConcurrencyAnalysis.h"
+
 using namespace boost::interprocess;
 #include "TrimmedMean.h"
 
 
-int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageStats<float>& stats, double conf_factor, float buf[])
+int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageStats<float>& stats, int region, double conf_factor, float buf[])
 {
    using namespace boost::math;
 
@@ -61,7 +63,7 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageSta
             buf[idx++] = data[i+j*n];
       }
       int K = int (0.05 * idx);
-      TrimmedMean(buf, intensity, idx, K, (float) conf_factor, stats);
+      TrimmedMean(buf, intensity, idx, K, (float) conf_factor, stats, region);
    }
    return n;
 }
@@ -210,167 +212,172 @@ int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float alf_err_l
 }
 
 
-
-int FLIMGlobalFitController::GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params[])
+int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[])
 {
-   int start, s_local;
-   int r_idx;
-
    int n_px = data->n_px;
 
-   int thread = 0;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   span* sp = new span (*writer, _T("Calculating Image Statistics"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   ImageStats<float> stats(params);
-
+   ImageStats<float> stats(data->n_output_regions_total, n_output_params, params);
 
    _ASSERTE( _CrtCheckMemory( ) );
-
-   // Get mask
-   uint8_t *im_mask = data->mask + im*n_px;  
-   
-   if (ret_mask)
-      memcpy(ret_mask, im_mask, n_px * sizeof(uint8_t));
-
-   int iml = data->GetImLoc(im);
-   im = iml;
-   if (iml == -1)
-      return 0;
 
    int buf_size = std::max(n_px, n_nl_output_params);
 
-   float* param_buf = new float[buf_size];
-   float* err_lower_buf = new float[buf_size];
-   float* err_upper_buf = new float[buf_size];
+   float* param_buf_ = new float[buf_size * n_thread];
+   float* err_lower_buf_ = new float[buf_size * n_thread];
+   float* err_upper_buf_ = new float[buf_size * n_thread];
 
-   float* nl_output = NULL;
-   float* err_lower_output = NULL;
-   float* err_upper_output = NULL;
+   float* nl_output_ = NULL;
+   float* err_lower_output_ = NULL;
+   float* err_upper_output_ = NULL;
    if (data->global_mode == MODE_PIXELWISE)
    {
-      nl_output = new float[ n_nl_output_params * n_px ];
-      err_lower_output = new float[ n_nl_output_params * n_px ];
-      err_upper_output = new float[ n_nl_output_params * n_px ];
+      nl_output_ = new float[ n_nl_output_params * n_px * n_thread ];
+      err_lower_output_ = new float[ n_nl_output_params * n_px * n_thread ];
+      err_upper_output_ = new float[ n_nl_output_params * n_px * n_thread ];
    }
 
-   float* nan_buf = new float[nl];
-   SetNaN(nan_buf,nl);
-
-
-   float *alf_group, *lin_group; 
-   float *alf_err_lower_group, *alf_err_upper_group;
-   float *intensity;
+   float* nan_buf_ = new float[nl * n_thread];
+   SetNaN(nan_buf_, nl * n_thread);
 
    omp_set_num_threads(n_thread);
    
-   int idx = 0;
 
-   for(int rg=1; rg<MAX_REGION; rg++)
+
+   #pragma omp parallel for
+   for(int im=0; im<data->n_im_used; im++)
    {
-      r_idx = data->GetRegionIndex(im, rg);
+      int thread = omp_get_thread_num();
 
-      if (r_idx > -1)
+      float *alf_group, *lin_group; 
+      float *alf_err_lower_group, *alf_err_upper_group;
+
+      float* param_buf     = param_buf_     + buf_size * thread;
+      float* err_lower_buf = err_lower_buf_ + buf_size * thread;
+      float* err_upper_buf = err_upper_buf_ + buf_size * thread;
+
+      float* nl_output        = nl_output_        + n_nl_output_params * n_px * thread;
+      float* err_lower_output = err_lower_output_ + n_nl_output_params * n_px * thread;
+      float* err_upper_output = err_upper_output_ + n_nl_output_params * n_px * thread;
+
+      float* nan_buf = nan_buf_ + nl * thread;
+
+      for(int rg=1; rg<MAX_REGION; rg++)
       {
-         
-         start = data->GetRegionPos(im,rg);
-         s_local   = data->GetRegionCount(im,rg);
-         intensity = I+start;
-         
-         regions[idx] = rg;
-         region_size[idx] = s_local;
-         iterations[idx] = ierr[r_idx];
-         success[idx] = this->success[r_idx];
-         
-         if (data->global_mode == MODE_PIXELWISE)
-            success[idx] /= s_local;
+         int r_idx = data->GetRegionIndex(im, rg);
+         int idx = data->GetOutputRegionIndex(im, rg);
 
-         int n_output = 0;
-         
-         if (data->global_mode == MODE_PIXELWISE)
+         if (r_idx > -1)
          {
-            alf_group = alf + start * nl; 
+         
+            int start = data->GetRegionPos(im,rg);
+            int s_local   = data->GetRegionCount(im,rg);
+            float* intensity = I+start;
+         
+            image[idx] = data->use_im[im];
+            regions[idx] = rg;
+            region_size[idx] = s_local;
+            iterations[idx] = ierr[r_idx];
+            success[idx] = this->success[r_idx];
+         
+            if (data->global_mode == MODE_PIXELWISE)
+               success[idx] /= s_local;
 
-            if (calculate_errors)
+            int n_output = 0;
+         
+            if (data->global_mode == MODE_PIXELWISE)
             {
-               alf_err_lower_group = alf_err_lower + start * nl; 
-               alf_err_upper_group = alf_err_upper + start * nl; 
+               alf_group = alf + start * nl; 
 
-               for(int i=0; i<s_local; i++)
-                  ProcessNonLinearParams(alf_group + i*nl, alf_err_lower_group + i*nl, alf_err_upper_group + i*nl, 
-                                         nl_output + i*n_nl_output_params, err_lower_output + i*n_nl_output_params, err_upper_output + i*n_nl_output_params);
+               if (calculate_errors)
+               {
+                  alf_err_lower_group = alf_err_lower + start * nl; 
+                  alf_err_upper_group = alf_err_upper + start * nl; 
+
+                  for(int i=0; i<s_local; i++)
+                     ProcessNonLinearParams(alf_group + i*nl, alf_err_lower_group + i*nl, alf_err_upper_group + i*nl, 
+                                            nl_output + i*n_nl_output_params, err_lower_output + i*n_nl_output_params, err_upper_output + i*n_nl_output_params);
+               }
+               else
+               {
+
+                  for(int i=0; i<s_local; i++)
+                     ProcessNonLinearParams(alf_group + i*nl, nan_buf, nan_buf, 
+                                            nl_output + i*n_nl_output_params, err_lower_output + i*n_nl_output_params, err_upper_output + i*n_nl_output_params);
+               }
+
+               CalculateRegionStats(n_nl_output_params, s_local, nl_output, intensity, stats, idx, conf_factor, param_buf);
             }
             else
-            {
-
-               for(int i=0; i<s_local; i++)
-                  ProcessNonLinearParams(alf_group + i*nl, nan_buf, nan_buf, 
-                                         nl_output + i*n_nl_output_params, err_lower_output + i*n_nl_output_params, err_upper_output + i*n_nl_output_params);
-            }
-
-            CalculateRegionStats(n_nl_output_params, s_local, nl_output, intensity, stats, conf_factor, param_buf);
-         }
-         else
-         {  
-            alf_group = alf + nl * r_idx;
+            {  
+               alf_group = alf + nl * r_idx;
           
             
-            if (calculate_errors)
-            {
-               alf_err_lower_group = alf_err_lower + nl * r_idx; 
-               alf_err_upper_group = alf_err_upper + nl * r_idx; 
+               if (calculate_errors)
+               {
+                  alf_err_lower_group = alf_err_lower + nl * r_idx; 
+                  alf_err_upper_group = alf_err_upper + nl * r_idx; 
             
-               ProcessNonLinearParams(alf_group, alf_err_lower_group, alf_err_upper_group, 
+                  ProcessNonLinearParams(alf_group, alf_err_lower_group, alf_err_upper_group, 
+                                         param_buf, err_lower_buf, err_upper_buf);
+
+                  for(int i=0; i<n_nl_output_params; i++)
+                     stats.SetNextParam(idx,param_buf[i],err_lower_buf[i],err_upper_buf[i]);
+               }
+               else
+               {
+                  ProcessNonLinearParams(alf_group, nan_buf, nan_buf, 
                                       param_buf, err_lower_buf, err_upper_buf);
 
-               for(int i=0; i<n_nl_output_params; i++)
-                  stats.SetNextParam(param_buf[i],err_lower_buf[i],err_upper_buf[i]);
+                  for(int i=0; i<n_nl_output_params; i++)
+                     stats.SetNextParam(idx,param_buf[i]);  
+               }
             }
-            else
-            {
-               ProcessNonLinearParams(alf_group, nan_buf, nan_buf, 
-                                   param_buf, err_lower_buf, err_upper_buf);
-
-               for(int i=0; i<n_nl_output_params; i++)
-                  stats.SetNextParam(param_buf[i]);  
-            }
-         }
 
         
-         lin_group    = lin_params + start * lmax;
+            lin_group    = lin_params + start * lmax;
 
-         CalculateRegionStats(lmax, s_local, lin_group, intensity, stats, conf_factor, param_buf);
+            CalculateRegionStats(lmax, s_local, lin_group, intensity, stats, idx, conf_factor, param_buf);
 
-         CalculateRegionStats(1, s_local, I+start, intensity, stats, conf_factor, param_buf);
+            CalculateRegionStats(1, s_local, I+start, intensity, stats, idx, conf_factor, param_buf);
 
-         if (data->has_acceptor)
-            CalculateRegionStats(1, s_local, acceptor+start, intensity, stats, conf_factor, param_buf);
+            if (data->has_acceptor)
+               CalculateRegionStats(1, s_local, acceptor+start, intensity, stats, idx, conf_factor, param_buf);
 
-         if (calculate_mean_lifetimes)
-         {
-            CalculateRegionStats(1, s_local, mean_tau+start, intensity, stats, conf_factor, param_buf);         
-            CalculateRegionStats(1, s_local, w_mean_tau+start, intensity, stats, conf_factor, param_buf);
-         }
+            if (calculate_mean_lifetimes)
+            {
+               CalculateRegionStats(1, s_local, mean_tau+start,   intensity, stats, idx, conf_factor, param_buf);         
+               CalculateRegionStats(1, s_local, w_mean_tau+start, intensity, stats, idx, conf_factor, param_buf);
+            }
 
-        if (polarisation_resolved)
-            CalculateRegionStats(1, s_local, r_ss+start, intensity, stats, conf_factor, param_buf);         
+           if (polarisation_resolved)
+               CalculateRegionStats(1, s_local, r_ss+start, intensity, stats, idx, conf_factor, param_buf);         
 
-         CalculateRegionStats(1, s_local, chi2+start, intensity, stats, conf_factor, param_buf);
+            CalculateRegionStats(1, s_local, chi2+start, intensity, stats, idx, conf_factor, param_buf);
          
-         idx++;
+         }
       }
-   }
+   }  
 
    _ASSERTE( _CrtCheckMemory( ) );
 
 
-   n_regions = idx;
+   //n_regions = idx;
 
-   ClearVariable(nl_output);
-   ClearVariable(err_lower_output);
-   ClearVariable(err_upper_output);
-   ClearVariable(param_buf);
-   ClearVariable(err_lower_buf);
-   ClearVariable(err_upper_buf);
-   ClearVariable(nan_buf);
+   ClearVariable(nl_output_);
+   ClearVariable(err_lower_output_);
+   ClearVariable(err_upper_output_);
+   ClearVariable(param_buf_);
+   ClearVariable(err_lower_buf_);
+   ClearVariable(err_upper_buf_);
+   ClearVariable(nan_buf_);
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return 0;
 

@@ -92,7 +92,7 @@ float Weighted(T x, T t1, T t2, T w1, T w2)
 }
 
 template <typename T>
-void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, ImageStats<T>& stats)
+void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, ImageStats<T>& stats, int region)
 {
    using namespace boost::accumulators;
 
@@ -108,7 +108,7 @@ void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, ImageStats<T>& stats
    if (n == 0)
    {
       SetNaN(&q1,1);
-      stats.SetNextParam(q1);
+      stats.SetNextParam(region, q1);
       return;
    }
 
@@ -138,7 +138,7 @@ void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, ImageStats<T>& stats
 
    if (OS1==OS2)
    {
-      stats.SetNextParam(x[0]);
+      stats.SetNextParam(region, x[0]);
    }
    else
    {
@@ -167,7 +167,7 @@ void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, ImageStats<T>& stats
 
       p_err = conf_factor * p_std / sqrt((double) n );
 
-      stats.SetNextParam((T) p_mean, (T) p_w_mean, (T) p_std,  (T) p_w_std, median, q1, q2, OS1, OS2, (T) p_err, (T) p_err);
+      stats.SetNextParam(region, (T) p_mean, (T) p_w_mean, (T) p_std,  (T) p_w_std, median, q1, q2, OS1, OS2, (T) p_err, (T) p_err);
 
    }
 

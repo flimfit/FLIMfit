@@ -53,10 +53,15 @@
 #include "FlagDefinitions.h"
 #include <cmath>
 
+#include "ConcurrencyAnalysis.h"
+
 typedef double* DoublePtr;  
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 #define _CRTDBG_MAPALLOC
+
+
+
 
 class ErrMinParams;
 class FLIMGlobalFitController;
@@ -203,7 +208,7 @@ public:
    int  GetErrorCode();
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int& n_valid);
-   int GetImageStats(int im, uint8_t ret_mask[], int& n_regions, int regions[], int region_size[], float success[], int iterations[], float params[]);   
+   int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[]);   
 
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
@@ -309,6 +314,7 @@ private:
 
    int cur_region;
    int next_pixel;
+   int next_region;
    int threads_active;
    int threads_started;
    tthread::mutex region_mutex;

@@ -7,6 +7,8 @@
 #include <algorithm>
 #include "cminpack.h"
 
+#include "ConcurrencyAnalysis.h"
+
 using namespace std;
 
 #define TRUE_ (1)
@@ -233,11 +235,19 @@ using namespace std;
 /*     evaluate the function at the starting point */
 /*     and calculate its norm. */
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    span* s = new span (*writer, _T("Calculating residuals at initial point"));
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
     *nfev = 1;
     if (iflag < 0) {
 	goto TERMINATE;
     }
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    delete s;
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /*     check the input parameters for errors. */
 
@@ -278,6 +288,10 @@ using namespace std;
 /*        calculated one row at a time, while simultaneously */
 /*        forming (q transpose)*fvec and storing the first */
 /*        n components in qtf. */
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        span* sp = new span (*writer, _T("Factoring Jacobian"));
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         for (j = 0; j < n; ++j) {
             qtf[j] = 0.;
@@ -328,6 +342,10 @@ using namespace std;
             }
         }
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        delete sp;
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
 /*        on the first iteration and if mode is 1, scale according */
 /*        to the norms of the columns of the initial jacobian. */
 
@@ -417,11 +435,19 @@ using namespace std;
 
 /*           evaluate the function at x + p and calculate its norm. */
 
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            span* s = new span (*writer, _T("Calculating residuals"));
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
             iflag = (*fcn)(p, m, n, mskip, wa2, &fnorm1, wa3, 1);
             ++(*nfev);
             if (iflag < 0) {
                 goto TERMINATE;
             }
+
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            delete s;
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /*           compute the scaled actual reduction. */
 

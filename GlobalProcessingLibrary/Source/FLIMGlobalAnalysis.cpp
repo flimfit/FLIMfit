@@ -59,6 +59,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
          controller[i] = NULL;
          id_registered[i] = 0;
       }
+      writer = new marker_series("FLIMfit");
       //VLDDisable();
       break;
       
@@ -72,6 +73,7 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 
    case DLL_PROCESS_DETACH:
       FLIMGlobalClearFit(-1);
+      delete writer;
       break;
    }
     return TRUE;
@@ -178,6 +180,10 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
 {
    int error;
 
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   span* sp = new span (*writer, _T("Setting up fit"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
    error = CheckControllerIdx(c_idx);
    if (error)
       return error;
@@ -209,6 +215,10 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                                       weighting, calculate_errors, conf_interval,
                                       n_thread, runAsync, callback );
                                       
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
    return controller[c_idx]->GetErrorCode();
    
 }
@@ -230,6 +240,10 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int weighting, int calculate_errors, double conf_interval,
                              int n_thread, int runAsync, int use_callback, int (*callback)())
 {
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   span* sp = new span (*writer, _T("Setting up fit"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    int error = CheckControllerIdx(c_idx);
    if (error)
@@ -266,6 +280,10 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                                       weighting, calculate_errors, conf_interval,
                                       n_thread, runAsync, callback );
    controller[c_idx]->SetPolarisationMode(MODE_POLARISATION);
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return controller[c_idx]->GetErrorCode();
 
@@ -305,6 +323,10 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 //   if (!valid)
 //      return -1;
 
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   span* sp = new span (*writer, _T("Setting up data object"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
    for(int i=0; i<n_t_full; i++)
       t[i] = t[i]/T_FACTOR;
 
@@ -316,6 +338,10 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
                               mask, threshold, limit, counts_per_photon, global_mode, smoothing_factor, use_autosampling, n_thread);
    
    controller[c_idx]->SetData(d);
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return SUCCESS;
 
@@ -362,14 +388,20 @@ FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params)
    return controller[c_idx]->param_names_ptr;
 }
 
+FITDLL_API int GetTotalNumOutputRegions(int c_idx)
+{
+   int valid = InitControllerIdx(c_idx);
+   if (!valid) return NULL;
 
+   return controller[c_idx]->data->n_output_regions_total;
+}
 
-FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, float* stats)
+FITDLL_API int GetImageStats(int c_idx, int* n_regions, int* image, int* regions, int* region_size, float* success, int* iterations, float* stats)
 {
    int valid = InitControllerIdx(c_idx);
    if (!valid) return ERR_NO_FIT;
 
-   int error = controller[c_idx]->GetImageStats(im, ret_mask, *n_regions, regions, region_size, success, iterations, stats);
+   int error = controller[c_idx]->GetImageStats(*n_regions, image, regions, region_size, success, iterations, stats);
 
    return error;
 

@@ -139,14 +139,18 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    region_count = new int[ n_im_used * MAX_REGION ];
    region_pos   = new int[ n_im_used * MAX_REGION ];
    region_idx   = new int[ (n_im_used+1) * MAX_REGION ];
+   output_region_idx   = new int[ n_im_used * MAX_REGION ];
 
    for (int i=0; i<n_im_used * MAX_REGION; i++)
    {
       region_count[i] = 0;
       region_pos[i] = 0;
       region_idx[i] = -1;
+      output_region_idx[i] = -1;
    }
-
+   for (int i=0; i<MAX_REGION; i++)
+      region_idx[n_im_used * MAX_REGION + i] = -1;
+   
    data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
 
    cur_transformed = new int[n_thread]; //ok 
@@ -327,6 +331,11 @@ int FLIMData::GetRegionIndex(int im, int region)
          im++;
 
    return region_idx[region + im * MAX_REGION];
+}
+
+int FLIMData::GetOutputRegionIndex(int im, int region)
+{
+   return output_region_idx[region + im * MAX_REGION];
 }
 
 int FLIMData::GetRegionPos(int im, int region)
@@ -579,7 +588,7 @@ FLIMData::~FLIMData()
    delete[] region_count;
    delete[] region_pos;
    delete[] region_idx;
-
+   delete[] output_region_idx;
    if (!supplied_mask) 
       delete[] mask;
    

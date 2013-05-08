@@ -99,7 +99,9 @@ FITDLL_API int StartFit(int c_idx);
 
 FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params);
 
-FITDLL_API int GetImageStats(int c_idx, int im, uint8_t* ret_mask, int* n_regions, int* regions, int* region_size, float* success, int* iterations, float* stats);
+FITDLL_API int GetTotalNumOutputRegions(int c_idx);
+
+FITDLL_API int GetImageStats(int c_idx, int* n_regions, int* image, int* regions, int* region_size, float* success, int* iterations, float* stats);
 
 FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[]);
 
@@ -268,44 +270,6 @@ FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fi
  *
  */
 FITDLL_API int FLIMGlobalClearFit(int c_idx);
-
-
-/* =============================================
- * FLIMGlobalSimulateData
- * =============================================
- *
- *   Simulate FLIM data
- *
- * INPUT PARAMETERS
- * ---------------------------
- * n_px                    Number of pixels in each group
- * n_t                     Number of timepoints in each measurement
- * t[]                     [n_t] array of gate/bin times in ps
- * n_irf                     Number of points in IRF
- * t_irf                   [n_irf] array of time points for IRF measurements
- * irf                     [n_irf] array of irf measurements
- * n_exp                   Number of exponential species to fit
- * tau[]                   [n_exp] array of initial estimates for tau values. First n_fix will be treated as fixed.
- * fit_t0                  Reserved for future use
- * t0_guess                Initial guess for t0 (zero timepoint). Fixed if fit_t0 = false 
-
- *
- * OUTPUT PARAMETERS (memory must be allocated on entry)
- * ---------------------------
- * fit[]   [n_fit, n_t] array of fitted decays. Failed pixels return NaN
- *
- *
- */
-/*
-FITDLL_API int FLIMSimulateData(int n_px, int n_t, double t[],
-                                int n_irf, double t_irf[], double irf[],
-                                int n_exp, double tau[],
-                                double I0[], double beta[],
-                                double offset, double scatter, 
-                                int pulsetrain_correction, double t_rep,
-                                double data[]);
-                                */
-
 
 
 #ifdef __cplusplus

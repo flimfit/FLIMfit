@@ -27,19 +27,31 @@ class ImageStats
 {
 public:
 
-   ImageStats(T* params)
+   ImageStats(int n_regions, int n_params, T* params) :
+      n_regions(n_regions),   
+      n_params(n_params),
+      params(params)
    {
-      this->params = params;
-      next_param = params;
-      idx = 0;
+      param_idx = new int[n_regions];
+
+      for(int i=0; i<n_regions; i++)
+         param_idx[i] = 0;
    };
+
+   ~ImageStats()
+   {
+      delete[] param_idx;
+   }
 
 
    /**
     * Set the next parameter statistics to specified values
     */ 
-   void SetNextParam(T mean, T w_mean, T std, T w_std, T median, T q1, T q2, T p01, T p99, T err_lower, T err_upper )
+   void SetNextParam(int region, T mean, T w_mean, T std, T w_std, T median, T q1, T q2, T p01, T p99, T err_lower, T err_upper )
    {
+      _ASSERT( param_idx[region] < n_params );
+
+      T* next_param = params + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = w_mean; 
@@ -54,16 +66,18 @@ public:
       next_param[PARAM_ERR_LOWER] = err_lower;
       next_param[PARAM_ERR_UPPER] = err_upper;
 
-      next_param += N_STATS;
+      param_idx[region]++;
 
-      idx++;
    }
 
    /**
     * Set the next parameter to @mean, parameter has no variance 
     */
-   void SetNextParam(T mean)
+   void SetNextParam(int region, T mean)
    {
+      _ASSERT( param_idx[region] < n_params );
+
+      T* next_param = params + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
@@ -75,19 +89,21 @@ public:
       next_param[PARAM_01] = 0.99f*mean;  // These parameters are used for setting inital limits 
       next_param[PARAM_99] = 1.01f*mean;  // so must be different to mean for correct display
 
-      SetNaN(next_param+PARAM_ERR_LOWER,1);
-      SetNaN(next_param+PARAM_ERR_UPPER,1);
+      next_param[PARAM_ERR_LOWER] = NaN();
+      next_param[PARAM_ERR_UPPER] = NaN();
 
-      next_param += N_STATS;
+      param_idx[region]++;
 
-      idx++;
    }
 
    /**
     * Set the next parameter to @mean, parameter has no variance 
     */
-   void SetNextParam(T mean, T err_lower, T err_upper)
+   void SetNextParam(int region, T mean, T err_lower, T err_upper)
    {
+      _ASSERT( param_idx[region] < n_params );
+
+      T* next_param = params + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
@@ -102,16 +118,17 @@ public:
       next_param[PARAM_ERR_LOWER] = err_lower;
       next_param[PARAM_ERR_UPPER] = err_upper;
 
-      next_param += N_STATS;
+      param_idx[region]++;
 
-      idx++;
    }
 
 private:
 
+   int n_regions;
+   int n_params;
+   int* param_idx;
+
    T* params;
-   T* next_param;
-   int idx;
 
 };
 

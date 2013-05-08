@@ -36,6 +36,8 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         data_setting_file = [];
     end
     
+    block = [];
+    
     if ~exist(root_path,'dir')
         throw(MException('GlobalAnalysis:PathDoesNotExist','Path does not exist'));
     end
@@ -49,11 +51,14 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     if strcmp(mode,'TCSPC')
 
         if isempty(channel)
-            [channel,block] = obj.request_channels(polarisation_resolved);
+            [channel,blockk] = obj.request_channels(polarisation_resolved);
         end
         obj.channels = channel;
+        if isempty(block)
+            block = 1;
+        end
         obj.block = block;
-        
+       
         files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif'])];            
         n_datasets = length(files);
         
