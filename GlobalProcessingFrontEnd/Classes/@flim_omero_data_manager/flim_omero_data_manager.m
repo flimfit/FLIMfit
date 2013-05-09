@@ -757,8 +757,9 @@ classdef flim_omero_data_manager < handle
                        
                     end    % end switch           
                 end   % end catch
-                
-                obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+                if ~isempty(obj.session)
+                    obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+                end
             end     % end while
         end
        %------------------------------------------------------------------        
@@ -799,8 +800,9 @@ classdef flim_omero_data_manager < handle
                        
                     end    % end switch           
                 end   % end catch
-                
-                obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+                if ~isempty(obj.session)
+                    obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+                end
             end     % end while           
        end
         
