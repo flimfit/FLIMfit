@@ -85,6 +85,7 @@ set(HEADERS
    TrimmedMean.h
    omp_stub.h
    ImageStats.h
+   ConcurrencyAnalysis.h
 )
 
 # Add _32/_64 appendix to library
