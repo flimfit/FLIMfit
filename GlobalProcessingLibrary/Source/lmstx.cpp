@@ -236,7 +236,7 @@ using namespace std;
 /*     and calculate its norm. */
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    span* s = new span (*writer, _T("Calculating residuals at initial point"));
+    span* s = new span (*writer, _T("Calculating Variable Projection"));
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
@@ -436,7 +436,7 @@ using namespace std;
 /*           evaluate the function at x + p and calculate its norm. */
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            span* s = new span (*writer, _T("Calculating residuals"));
+            span* s = new span (*writer, _T("Calculating Variable Projection"));
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             iflag = (*fcn)(p, m, n, mskip, wa2, &fnorm1, wa3, 1);

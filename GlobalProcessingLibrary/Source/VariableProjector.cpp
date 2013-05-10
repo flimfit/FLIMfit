@@ -151,10 +151,14 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    int nfev, info;
    double rnorm; 
 
-  int mskip = (int) ceil((float)s/65536);
+   int mskip = min(3,(int) ceil((float)s/65536));
    n_call = 0;
-   varproj(nsls1, nl, mskip, alf, fvec, fjac, 0);
-   n_call = 1;
+
+   if (weighting != AVERAGE_WEIGHTING)
+   {
+      varproj(nsls1, nl, mskip, alf, fvec, fjac, 0);
+      n_call = 1;
+   }
 
    if (use_numerical_derv)
       info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf, fvec,
@@ -169,7 +173,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    }
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Calculating Linear Parameters"));
+   span* sp = new span (*writer, _T("Computing Linear Parameters"));
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    // Get linear parameters

@@ -31,6 +31,7 @@
 #define _FITSTATUS_H
 
 #include "tinythread.h"
+#include <list>
 
 class FLIMGlobalFitController;
 
@@ -74,6 +75,9 @@ public:
    bool Finished();
    bool HasFit();
    bool IsRunning();
+   void AddConditionVariable(tthread::condition_variable* cond);
+
+   std::list<tthread::condition_variable*> cond_list;
 };
 
 

@@ -138,9 +138,23 @@ int FitStatus::UpdateStatus(int thread, int t_group, int t_iter, double t_chi2)
    return terminate;
 }
 
+
+void FitStatus::AddConditionVariable(tthread::condition_variable* cond)
+{
+   // Add a condition variable that might need to be notified when we terminate
+
+   cond_list.push_back(cond);
+}
+
 void FitStatus::Terminate()
 {
    terminate = true;
+
+   // Wake up any threads that are sleeping
+   for (std::list<tthread::condition_variable*>::const_iterator it = cond_list.begin(), end = cond_list.end(); it != end; it++)
+      (*it)->notify_all();
+
+
 }
 
 bool FitStatus::Finished()

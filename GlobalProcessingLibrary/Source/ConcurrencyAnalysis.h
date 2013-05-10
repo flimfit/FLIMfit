@@ -7,8 +7,6 @@
 #include "cvmarkersobj.h"
 using namespace Concurrency::diagnostic;
 
-extern marker_series* writer;
-
 #else
 
 #define _T(x) 0 
@@ -24,4 +22,7 @@ class span
 }
 
 #endif
+
+extern marker_series* writer;
+
 #endif

@@ -236,8 +236,8 @@ private:
 
 
    int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
-   void NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[]);
-   void DenormaliseLinearParams(int s, volatile float norm_params[], volatile float lin_params[]);
+   void NormaliseLinearParams(int s, float volatile lin_params[], float volatile norm_params[]);
+   void DenormaliseLinearParams(int s, float volatile norm_params[], float volatile lin_params[]);
 
    int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
    float GetNonLinearParam(int param, float alf[]);
