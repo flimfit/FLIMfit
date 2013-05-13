@@ -48,13 +48,13 @@ public:
 
    AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate);
    virtual ~AbstractFitter();
-   virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr) = 0;
+   virtual int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr) = 0;
    virtual int GetLinearParams(int s, float* y, double* alf) = 0;
    
    int Fit(int n, int s, int lmax, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2);
    int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit);
    double ErrMinFcn(double x);
-   int CalculateErrors(double* alf, double conf_limit, double* err_lower, double* err_upper);
+   int CalculateErrors(int s, float* y, double* alf, double conf_limit, double* err_lower, double* err_upper);
 
    void GetParams(int nl, const double* alf);
    double* GetModel(const double* alf, int irf_idx, int isel, int thread);
@@ -73,6 +73,7 @@ protected:
 
    // Used by variable projection
    int     inc[96];
+   int     inc_full[96];
    int     ncon;
    int     nconp1;
    int     philp1;
@@ -82,8 +83,9 @@ protected:
    double *b;
    double *u;
    double *kap;
-   double *params;
+   double *params; 
    double *alf_err;
+   double *alf_buf;
 
    int     n;
    int     s;
@@ -91,6 +93,7 @@ protected:
    int     lmax;
    int     nl;
    int     gnl;
+   int     gnl_full;
    int     p;
    int     p_full;
 
@@ -123,6 +126,8 @@ protected:
 
    bool getting_errs;
    double conf_limit;
+
+   int search_dir;
 
 };
 

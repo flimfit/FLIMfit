@@ -136,8 +136,10 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
+int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr)
 {
+   INIT_CONCURRENCY;
+
    int nsls1 = (n-l) * s;
  
    double ftol = (double)sqrt(dpmpar(1));
@@ -151,7 +153,8 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    int nfev, info;
    double rnorm; 
 
-   int mskip = min(3,(int) ceil((float)s/65536));
+   int mskip = min(10,(int) ceil((float)s/max_jacb));
+
    n_call = 0;
 
    if (weighting != AVERAGE_WEIGHTING)
@@ -173,7 +176,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    }
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Computing Linear Parameters"));
+   START_SPAN("Computing Linear Parameters");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    // Get linear parameters
@@ -181,7 +184,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
       varproj(nsls1, nl, mskip, alf, fvec, fjac, -1);
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    if (info < 0)

@@ -214,10 +214,12 @@ int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float alf_err_l
 
 int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[])
 {
+   INIT_CONCURRENCY;
+   
    int n_px = data->n_px;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Calculating Result Statistics"));
+   START_SPAN("Calculating Result Statistics");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    ImageStats<float> stats(data->n_output_regions_total, n_output_params, params);
@@ -376,7 +378,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
    ClearVariable(nan_buf_);
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return 0;

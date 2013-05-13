@@ -59,7 +59,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
          controller[i] = NULL;
          id_registered[i] = 0;
       }
+      #ifdef USE_CONCURRENCY_ANALYSIS
       writer = new marker_series("FLIMfit");
+      #endif
       //VLDDisable();
       break;
       
@@ -73,7 +75,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 
    case DLL_PROCESS_DETACH:
       FLIMGlobalClearFit(-1);
+      #ifdef USE_CONCURRENCY_ANALYSIS
       delete writer;
+      #endif
       break;
    }
     return TRUE;
@@ -178,10 +182,12 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int weighting, int calculate_errors, double conf_interval,
                               int n_thread, int runAsync, int use_callback, int (*callback)())
 {
+   INIT_CONCURRENCY;
+
    int error;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Setting up fit"));
+   START_SPAN("Setting up fit");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    error = CheckControllerIdx(c_idx);
@@ -216,7 +222,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                                       n_thread, runAsync, callback );
                                       
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return controller[c_idx]->GetErrorCode();
@@ -240,9 +246,10 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int weighting, int calculate_errors, double conf_interval,
                              int n_thread, int runAsync, int use_callback, int (*callback)())
 {
+   INIT_CONCURRENCY;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Setting up fit"));
+   START_SPAN("Setting up fit");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    int error = CheckControllerIdx(c_idx);
@@ -282,7 +289,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
    controller[c_idx]->SetPolarisationMode(MODE_POLARISATION);
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return controller[c_idx]->GetErrorCode();
@@ -318,13 +325,14 @@ FITDLL_API int SetAcceptor(int c_idx, float* acceptor)
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
                              int use_im[], uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
 {
+   INIT_CONCURRENCY;
 
 //   int valid = ValidControllerIdx(c_idx);
 //   if (!valid)
 //      return -1;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Setting up data object"));
+   START_SPAN("Setting up data object");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    for(int i=0; i<n_t_full; i++)
@@ -341,7 +349,7 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
    controller[c_idx]->SetData(d);
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    return SUCCESS;

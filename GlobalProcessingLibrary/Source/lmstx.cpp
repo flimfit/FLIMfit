@@ -225,6 +225,8 @@ using namespace std;
 
 /*     epsmch is the machine precision. */
 
+    INIT_CONCURRENCY;
+
     epsmch = dpmpar(1);
 
     info = 0;
@@ -236,7 +238,7 @@ using namespace std;
 /*     and calculate its norm. */
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    span* s = new span (*writer, _T("Calculating Variable Projection"));
+    START_SPAN("Calculating Variable Projection");
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
@@ -246,7 +248,7 @@ using namespace std;
     }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    delete s;
+    END_SPAN;
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /*     check the input parameters for errors. */
@@ -290,7 +292,7 @@ using namespace std;
 /*        n components in qtf. */
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        span* sp = new span (*writer, _T("Factoring Jacobian"));
+        START_SPAN("Factoring Jacobian");
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         for (j = 0; j < n; ++j) {
@@ -343,7 +345,7 @@ using namespace std;
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        delete sp;
+        END_SPAN;
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
 /*        on the first iteration and if mode is 1, scale according */
@@ -436,7 +438,7 @@ using namespace std;
 /*           evaluate the function at x + p and calculate its norm. */
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            span* s = new span (*writer, _T("Calculating Variable Projection"));
+            START_SPAN("Calculating Variable Projection");
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
             iflag = (*fcn)(p, m, n, mskip, wa2, &fnorm1, wa3, 1);
@@ -446,7 +448,7 @@ using namespace std;
             }
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            delete s;
+            END_SPAN;
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /*           compute the scaled actual reduction. */

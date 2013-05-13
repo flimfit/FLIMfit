@@ -44,7 +44,9 @@
 
 using namespace boost::interprocess;
 
+#ifdef USE_CONCURRENCY_ANALYSIS
 marker_series* writer;
+#endif
 
 
 FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image_irf, 

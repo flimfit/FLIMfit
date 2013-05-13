@@ -43,6 +43,8 @@ using namespace std;
 
 int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread)
 {
+   INIT_CONCURRENCY;
+
    int i, j, s_thresh, itmax;
    double ref = 0;
    double tau_ma;
@@ -77,7 +79,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    int   *irf_idx;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Processing Data"));
+   START_SPAN("Processing Data");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_mode == MODE_PIXELWISE)
    {
@@ -103,7 +105,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, w, irf_idx, local_decay);
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    int n_meas_res = data->GetResampleNumMeas(thread);
@@ -198,7 +200,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    
    if (calculate_errors)
    {
-      projectors[thread].CalculateErrors(alf_local, conf_interval, err_lower_local, err_upper_local);
+
+      projectors[thread].CalculateErrors(1, local_decay, alf_local, conf_interval, err_lower_local, err_upper_local);
 
       for(int i=0; i<nl; i++)
       {
@@ -211,7 +214,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       alf[i] = (float) alf_local[i];
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   sp = new span (*writer, _T("Processing Results"));
+   START_SPAN("Processing Results");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    // Normalise to get beta/gamma/r and I0 and determine mean lifetimes
@@ -220,7 +223,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    CalculateMeanLifetime(s_thresh, lin_params, alf, mean_tau, w_mean_tau);
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    if (data->global_mode == MODE_PIXELWISE)

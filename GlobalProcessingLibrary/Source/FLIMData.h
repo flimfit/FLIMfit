@@ -267,6 +267,8 @@ T* FLIMData::GetDataPointer(int thread, int im)
 template <typename T>
 int FLIMData::CalculateRegions()
 {
+   INIT_CONCURRENCY;
+
    int err = 0;
 
    int cur_pos = 0;
@@ -288,7 +290,7 @@ int FLIMData::CalculateRegions()
   
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* s = new span (*writer, _T("Loading Data"));
+   START_SPAN("Loading Data");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    tthread::thread loader_thread(StartDataLoaderThread,(void*)this); // ok
@@ -400,8 +402,13 @@ int FLIMData::CalculateRegions()
    n_regions_total = r_idx;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete s;
+   END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+   // Wait for loader thread to terminate
+   if (loader_thread.joinable())
+      loader_thread.join();
 
    return err;
 

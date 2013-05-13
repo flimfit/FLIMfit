@@ -40,7 +40,7 @@
 using namespace std;
 
 AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl, int nmax, int ndim, int p_full, double *t, int variable_phi, int n_thread, int* terminate) : 
-    model(model), smax(smax), l(l), nl(nl), gnl(gnl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
+    model(model), smax(smax), l(l), nl(nl), gnl(gnl), gnl_full(gnl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
 {
    err = 0;
 
@@ -49,6 +49,8 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl
    b   = NULL;
    u   = NULL;
    kap = NULL;
+   alf_buf = NULL;
+   alf_err = NULL;
 
    params = NULL;
    alf_err = NULL;
@@ -72,6 +74,7 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl
 
    params = new double[ nl ];
    alf_err = new double[ nl ];
+   alf_buf = new double[ nl ];
 
    fixed_param = -1;
 
@@ -157,6 +160,7 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
 
    Init();
 
+
    this->n          = n;
    this->s          = s;
    this->lmax       = lmax;
@@ -169,14 +173,13 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
    this->smoothing  = smoothing;
    this->thread     = thread;
 
+   gnl = gnl_full;
 
-   int n_zero = 0;
-   //for(int i=0; i<n*s; i++)
-   //   n_zero += (y[i]==0);
+   int max_jacb = 65536; 
 
-   chi2_norm = n - ((double)(nl+n_zero))/s - l;
+   chi2_norm = n - ((double)(nl))/s - l;
    
-   int ret = FitFcn(nl, alf, itmax, &niter, &ierr);
+   int ret = FitFcn(nl, alf, itmax, max_jacb, &niter, &ierr);
 
    chi2_final = *cur_chi2;
 
@@ -184,7 +187,7 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
 }
 
 
-int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_lower, double *err_upper)
+int AbstractFitter::CalculateErrors(int s, float* y, double* alf, double conf_limit, double* err_lower, double *err_upper)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
@@ -194,54 +197,61 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
    if (err != 0)
       return err;
 
+   //this->s = s;
+   //this->y = y;
+   //this->smoothing = 1;
+
    this->conf_limit = conf_limit;
+
+   
+   int itmax = 0;
+   int niter = 0;
+   int ierr = 0;
+
+   //int ret = FitFcn(nl, alf, itmax, &niter, &ierr);
+   //chi2_final = *cur_chi2;
+   
+   memcpy(alf_buf, alf, nl * sizeof(double));
+   memcpy(inc_full, inc, 96*sizeof(int));
 
    getting_errs = true;
 
    double f[3] = {1e-2, 1e-1, 1};
    double search_min, search_max;
 
-   // Get lower and upper limit (j=0, j=1 respectively)
+   gnl = gnl_full - 1;
+
+   // Get lower (lim=0) and upper (lim=1) limit
    for(int lim=0; lim<2; lim++)
    {
-      for(int i=0; i<gnl; i++)
+      for(int i=0; i<gnl_full; i++)
       {
          fixed_param = i;
          fixed_value_initial = alf[i];
    
          Init();
 
-         int idx = 0;
-         for(int j=0; j<nl; j++)
-            if (j!=fixed_param)
-               alf_err[idx++] = alf[j];
+         search_dir = lim;
 
 
-         for(int k=0; k<5; k++)
+         for(int k=0; k<3; k++)
          {
-            if (lim==0)
-            {
-               search_min = -f[k]*fixed_value_initial;
-               search_max = 0.0;
-            }
-            else
-            {
-               search_min = 0;
-               search_max = f[k]*fixed_value_initial;
-            }            
+            search_min = 0;
+            search_max = f[k]*fixed_value_initial;          
 
             ans = brent_find_minima(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
                                     search_min, search_max, 9);
                
-            if (ans.second < 1e-2)
+            if (ans.second < 1e-1) // this is the value at the minimum, should be zero
                break;   
          }
 
          if (ans.second > 1)
             ans.first = NaN();
-            
+           
+
          if (lim==0)
-            err_lower[i] = -ans.first;
+            err_lower[i] = ans.first;
          else
             err_upper[i] = ans.first;
       }
@@ -254,29 +264,40 @@ double AbstractFitter::ErrMinFcn(double x)
 {
    using namespace boost::math;
    
-   double F,F_crit,chi2_crit;
+   double F,F_crit,chi2_crit,dF;
    int itmax = 10;
 
    int niter, ierr;
 
-   int nmp = n * s - nl - s * l;
+   double xs = x;
+   if (search_dir == 0)
+      xs *= -1;
+   fixed_value_cur = fixed_value_initial + xs; 
+
+   int nmp = n * s/smoothing - nl - s/smoothing * l;
+   //int nmp = n * s - nl - s * l;
 
    fisher_f dist(1, nmp);
    F_crit = quantile(complement(dist, conf_limit/2));
    
    chi2_crit = chi2_final*(F_crit/nmp+1);
 
-   fixed_value_cur = fixed_value_initial + x; 
 
-   FitFcn(nl-1,alf_err,itmax,&niter,&ierr);
+   int idx = 0;
+   for(int j=0; j<nl; j++)
+      if (j!=fixed_param)
+         alf_err[idx++] = alf_buf[j];
+
+
+   int max_jacb = 1024;
+
+   FitFcn(nl-1,alf_err,itmax,max_jacb,&niter,&ierr);
             
-   //c2 = CalculateChi2(params.thread, params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask, NULL);
-
    F = (*cur_chi2-chi2_final)/chi2_final * nmp ;
    
+   dF = (F-F_crit)/F_crit;
 
-//   return (*cur_chi2-chi2_crit)*(*cur_chi2-chi2_crit)/chi2_crit;
-   return (F-F_crit)*(F-F_crit)/F_crit;
+   return dF*dF;
 }
 
 
@@ -317,10 +338,10 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    
       for (int k = 0; k < fixed_param; ++k)
          for (int j = 0; j < l; ++j) 
-            valid_cols += inc[k + j * 12];
+            valid_cols += inc_full[k + j * 12];
 
       for (int j = 0; j < l; ++j)
-         ignore_cols += inc[fixed_param + j * 12];
+         ignore_cols += inc_full[fixed_param + j * 12];
 
       double* src = b + ndim * (valid_cols + ignore_cols);
       double* dest = b + ndim * valid_cols;
@@ -370,4 +391,5 @@ AbstractFitter::~AbstractFitter()
 
    ClearVariable(params);
    ClearVariable(alf_err);
+   ClearVariable(alf_buf);
 }
