@@ -333,7 +333,6 @@ float Q_rsqrt( float number )
 
     /* Function Body */
 
-   //#pragma omp parallel for  
    for (j = 1; j <= n; ++j) 
    {
       int jm1, i;

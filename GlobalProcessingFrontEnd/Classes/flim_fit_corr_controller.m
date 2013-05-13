@@ -75,6 +75,9 @@ classdef flim_fit_corr_controller < abstract_plot_controller
 
         function draw_plot(obj,ax)
             
+            f = obj.fit_controller;
+            r = f.fit_result;
+            
             export_plot = (nargin == 2);
             if ~export_plot
                 ax = obj.plot_handle;
@@ -87,19 +90,16 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             scale = get(obj.corr_scale_popupmenu,'Value');
                 
             if source == 1
-                sel = obj.selected;
+                sel = obj.selected == r.image;
                 indexing = 'dataset';
             else
-                sel = obj.fit_controller.selected;
+                sel = f.selected;
                 indexing = 'result';
             end
                                     
             cla(ax)
             if obj.fit_controller.has_fit && all(param > 0)
                 
-                f = obj.fit_controller;
-                r = f.fit_result;
-            
                 param_data_x = [];
                 param_data_y = [];
                 md = {};

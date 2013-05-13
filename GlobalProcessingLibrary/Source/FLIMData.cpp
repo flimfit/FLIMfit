@@ -33,7 +33,7 @@
 //#include "hdf5.h"
 
 FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
-                   int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread) :
+                   int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
    polarisation_resolved(polarisation_resolved),
    g_factor(g_factor),
    n_im(n_im), 
@@ -52,13 +52,21 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    counts_per_photon(counts_per_photon),
    smoothing_factor(smoothing_factor),
    use_autosampling(use_autosampling),
-   n_thread(n_thread)
+   n_thread(n_thread),
+   status(status)
 {
    has_data = false;
    has_acceptor = false;
 
    data_file = NULL;
-   acceptor  = NULL;
+   acceptor_  = NULL;
+   loader_thread = NULL;
+
+
+   // Make sure waiting threads are notified when we terminate
+   status->AddConditionVariable(&data_avail_cond);
+   status->AddConditionVariable(&data_used_cond);
+
 
    // So that we can calculate errors properly
    if (global_mode == MODE_PIXELWISE && n_x == 1 && n_y == 1)
@@ -127,14 +135,14 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
          this->t_skip[i] = t_skip[i];
    }
 
-   tr_data    = new float[ n_thread * n_p ]; //ok
-   tr_buf     = new float[ n_thread * n_p ]; //ok
-   intensity  = new float[ n_thread * n_px ];
+   tr_data_    = new float[ n_thread * n_p ]; //ok
+   tr_buf_     = new float[ n_thread * n_p ]; //ok
+   intensity_  = new float[ n_thread * n_px ];
 
    if (polarisation_resolved)
-      r_ss = new float[ n_thread * n_px ];
+      r_ss_ = new float[ n_thread * n_px ];
 
-   tr_row_buf = new float[ n_thread * (n_x+n_y) ]; //ok
+   tr_row_buf_ = new float[ n_thread * (n_x+n_y) ]; //ok
 
    region_count = new int[ n_im_used * MAX_REGION ];
    region_pos   = new int[ n_im_used * MAX_REGION ];
@@ -155,9 +163,15 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
 
    cur_transformed = new int[n_thread]; //ok 
 
+   data_used = new int[n_thread];
+   data_loaded = new int[n_thread];
 
    for (int i=0; i<n_thread; i++)
+   {
       cur_transformed[i] = -1;
+      data_used[i] = 1;
+      data_loaded[i] = -1;
+   }
 
    int dim_required = smoothing_factor*2 + 2;
    if (n_x < dim_required || n_y < dim_required)
@@ -183,6 +197,31 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    }
 
 
+}
+
+
+/**
+ * Wrapper function for DataLoaderThread
+ */
+void StartDataLoaderThread(void* wparams)
+{
+   FLIMData* data = (FLIMData*) wparams;
+  
+   if (data->data_class == DATA_UINT16)
+      data->DataLoaderThread<uint16_t>();
+   else
+      data->DataLoaderThread<float>();
+
+}
+
+void FLIMData::MarkCompleted(int slot)
+{
+   data_mutex.lock();
+   data_loaded[slot] = -1;
+   data_used[slot] = 1;
+   data_mutex.unlock();
+
+   data_used_cond.notify_all();
 }
 
 /*
@@ -235,7 +274,7 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
 
 int FLIMData::SetAcceptor(float acceptor[])
 {
-   this->acceptor = acceptor;
+   this->acceptor_ = acceptor;
    has_acceptor = true;
 
    return SUCCESS;
@@ -272,6 +311,8 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
    else
       err = CalculateRegions<uint16_t>();
 
+   loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
+
    return err;
 
 }
@@ -286,6 +327,8 @@ int FLIMData::SetData(float* data)
    
    has_data = true;
 
+   loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
+   
    return err;
 }
 
@@ -298,6 +341,8 @@ int FLIMData::SetData(uint16_t* data)
    int err = CalculateRegions<uint16_t>();
    
    has_data = true;
+
+   loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
 
    return err;
 }
@@ -479,9 +524,13 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
    else if ( global_mode == MODE_GLOBAL )
    {
       s = 0;
+      int start = GetRegionPos(0, region);
+      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
       for(int i=0; i<n_im_used; i++)
       {
-         s += GetMaskedData(thread, i, region, region_data + s*n_meas, intensity_data + s, r_ss_data + s, acceptor_data + s, irf_idx + s);
+         int omp_thread = omp_get_thread_num();
+         int pos = GetRegionPos(i, region) - start;
+         s += GetMaskedData(omp_thread, i, region, region_data + pos*n_meas, intensity_data + pos, r_ss_data + pos, acceptor_data + pos, irf_idx + pos);
       }
    }
 
@@ -518,10 +567,10 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
       iml = use_im[im];
 
    uint8_t* im_mask = mask + iml*n_x*n_y;
-   float*   tr_data   = this->tr_data + thread * n_p;
-   float*   intensity = this->intensity + thread * n_px;
-   float*   r_ss      = this->r_ss + thread * n_px;
-   float*   acceptor  = this->acceptor + im*n_x*n_y;
+   float*   tr_data   = tr_data_ + thread * n_p;
+   float*   intensity = intensity_ + thread * n_px;
+   float*   r_ss      = r_ss_ + thread * n_px;
+   float*   acceptor  = acceptor_ + im*n_x*n_y;
 
    if (data_class == DATA_FLOAT)
       TransformImage<float>(thread, im);
@@ -574,16 +623,19 @@ FLIMData::~FLIMData()
 {
    ClearMapping();
 
-   delete[] tr_data;
-   delete[] tr_buf;
-   delete[] tr_row_buf;
-   delete[] intensity;
+   delete[] tr_data_;
+   delete[] tr_buf_;
+   delete[] tr_row_buf_;
+   delete[] intensity_;
 
    delete[] cur_transformed;
    delete[] resample_idx;
    delete[] data_map_view;
    delete[] n_meas_res;
  
+   delete[] data_used;
+   delete[] data_loaded;
+
    delete[] t_skip;
    delete[] region_count;
    delete[] region_pos;
@@ -593,10 +645,13 @@ FLIMData::~FLIMData()
       delete[] mask;
    
    if (polarisation_resolved)
-      delete[] r_ss;
+      delete[] r_ss_;
   
    if (data_file != NULL)
       delete[] data_file;
+
+   if (loader_thread != NULL)
+      delete loader_thread;
 }
 
 

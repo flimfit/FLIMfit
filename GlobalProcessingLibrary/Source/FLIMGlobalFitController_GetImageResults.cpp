@@ -217,7 +217,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
    int n_px = data->n_px;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Calculating Image Statistics"));
+   span* sp = new span (*writer, _T("Calculating Result Statistics"));
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    ImageStats<float> stats(data->n_output_regions_total, n_output_params, params);

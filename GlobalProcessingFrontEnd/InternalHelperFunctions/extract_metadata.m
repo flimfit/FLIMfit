@@ -27,7 +27,8 @@ function metadata = extract_metadata(strings)
 
 
     strrep(strings,filesep,' ');
-
+    strrep(strings,'.','_');
+    
 try 
     metadata = struct();
 

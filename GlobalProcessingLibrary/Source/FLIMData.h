@@ -35,6 +35,8 @@
 #include <stdint.h>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include "tinythread.h"
+#include "FitStatus.h"
 
 #include "FlagDefinitions.h"
 #include "ConcurrencyAnalysis.h"
@@ -52,7 +54,7 @@ class FLIMData
 public:
 
    FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-            int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread);
+            int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status);
 
    int  SetData(float data[]);
    int  SetData(uint16_t data[]);
@@ -87,6 +89,10 @@ public:
    void SetTVBackground(float* tvb_profile, float* tvb_I_map, float const_background);
 
    void ClearMapping();
+   
+   template <typename T>
+   void DataLoaderThread();
+
 
 
    ~FLIMData();
@@ -141,14 +147,19 @@ private:
    template <typename T>
    void TransformImage(int thread, int im);
 
+   template <typename T>
+   int GetStreamedData(int im, T*& data);
+   
+   void MarkCompleted(int slot);
+
    void* data;
 
-   float* tr_data;
-   float* tr_buf;
-   float* tr_row_buf;
-   float* intensity;
-   float* r_ss;
-   float* acceptor;
+   float* tr_data_;
+   float* tr_buf_;
+   float* tr_row_buf_;
+   float* intensity_;
+   float* r_ss_;
+   float* acceptor_;
 
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;
@@ -197,6 +208,17 @@ private:
    int* region_count;
    int* region_pos;
 
+   int* data_used;
+   int* data_loaded;
+
+   tthread::thread* loader_thread;
+   tthread::mutex data_mutex;
+   tthread::condition_variable data_avail_cond;
+   tthread::condition_variable data_used_cond;
+
+   FitStatus *status;
+
+   friend void StartDataLoaderThread(void* wparams);
 
 };
 
@@ -247,16 +269,15 @@ int FLIMData::CalculateRegions()
 {
    int err = 0;
 
-   int cur_pos;
+   int cur_pos = 0;
    int average_count = 0;
    
    n_regions_total = 0;
 
-   int r_count, r_idx; 
+   int r_count = 0;
+   int r_idx = 0; 
    
    omp_set_num_threads(n_thread);
-
-   T* cur_data = new T[ n_p * n_thread ];
 
    double tvb_sum = 0;
    if (background_type == BG_TV_IMAGE)
@@ -264,78 +285,62 @@ int FLIMData::CalculateRegions()
          tvb_sum += tvb_profile[i];
    else
       tvb_sum = 0;
-   
+  
+
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* s = new span (*writer, _T("Calculating regions"));
+   span* s = new span (*writer, _T("Loading Data"));
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+   tthread::thread loader_thread(StartDataLoaderThread,(void*)this); // ok
 
-   //#pragma omp parallel for
+
+   #pragma omp parallel for schedule(dynamic, 1)
    for(int i=0; i<n_im_used; i++)
    {
-      int thread = 0; //omp_get_thread_num();
-
-      T* data_ptr = GetDataPointer<T>(thread, i);
-      T* cur_data_ptr = cur_data + n_p * thread;
 
       int im = i;
       if (use_im != NULL)
             im = use_im[im];
 
-      if (data_ptr == NULL)
-      {
-         err = ERR_FAILED_TO_MAP_DATA;
-      }
-      else
-      {
+      T* cur_data_ptr;
+      int slot = GetStreamedData(i, cur_data_ptr);
 
-         memcpy(cur_data_ptr, data_ptr, n_p * sizeof(T));
-      
-         // We already have segmentation mask, now calculate integrated intensity
-         // and apply min intensity and max bin mask
-         //----------------------------------------------------
-
+      // We already have segmentation mask, now calculate integrated intensity
+      // and apply min intensity and max bin mask
+      //----------------------------------------------------
          
-         //#pragma omp parallel for
-         for(int p=0; p<n_px; p++)
+      for(int p=0; p<n_px; p++)
+      {
+         T* ptr = cur_data_ptr + p*n_meas_full;
+         uint8_t* mask_ptr = mask + im*n_px + p;
+         double intensity = 0;
+         for(int k=0; k<n_chan; k++)
          {
-            T* ptr = cur_data_ptr + p*n_meas_full;
-            uint8_t* mask_ptr = mask + im*n_px + p;
-            double intensity = 0;
-            for(int k=0; k<n_chan; k++)
+            for(int j=0; j<n_t_full; j++)
             {
-               for(int j=0; j<n_t_full; j++)
-               {
-                  if (limit > 0 && *ptr >= limit)
-                     *mask_ptr = 0;
+               if (limit > 0 && *ptr >= limit)
+                  *mask_ptr = 0;
 
-                  intensity += *ptr;
-                  ptr++;
-               }
+               intensity += *ptr;
+               ptr++;
             }
-            if (background_type == BG_VALUE)
-               intensity -= background_value * n_meas_full;
-            else if (background_type == BG_IMAGE)
-               intensity -= background_image[p] * n_meas_full;
-            else if (background_type == BG_TV_IMAGE)
-               intensity -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full);
+         }
+         if (background_type == BG_VALUE)
+            intensity -= background_value * n_meas_full;
+         else if (background_type == BG_IMAGE)
+            intensity -= background_image[p] * n_meas_full;
+         else if (background_type == BG_TV_IMAGE)
+            intensity -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full);
 
-            if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
-               *mask_ptr = 0;
+         if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
+            *mask_ptr = 0;
 
-          }
-       }
-   }
+      }
 
-   // Determine how many regions we have in each image
-   //--------------------------------------------------------
-   //#pragma omp parallel for
-   for(int i=0; i<n_im_used; i++)
-   {
-      int im = i;
-      if (use_im != NULL)
-         im = use_im[im];
-         
+      MarkCompleted(slot);
+
+      // Determine how many regions we have in each image
+      //--------------------------------------------------------
       int*     region_count_ptr = region_count + i * MAX_REGION;
       uint8_t* mask_ptr         = mask + im*n_px;
 
@@ -343,30 +348,22 @@ int FLIMData::CalculateRegions()
       
       for(int p=0; p<n_px; p++)
          region_count_ptr[*(mask_ptr++)]++;
-   }
-   
 
-   // Calculate region indexes
-   //-----------------------------------------------------
-
-   r_idx = 0;
-   cur_pos = 0;
-
-   for(int i=0; i<n_im_used; i++)
-   {
+      // Calculate region indexes
       for(int r=1; r<MAX_REGION; r++)
       {
          region_pos[ i* MAX_REGION + r ] = cur_pos;
          cur_pos += region_count[ i * MAX_REGION + r ];
          if (region_count[ i * MAX_REGION + r ] > 0)
-         {
             output_region_idx[ i * MAX_REGION + r ] = r_idx++;
-         }
       }
+
+
    }
- 
+   
    n_output_regions_total = r_idx;
 
+   //Calculate global region indices
    if (global_mode == MODE_GLOBAL)
    {
       cur_pos = 0;
@@ -402,8 +399,6 @@ int FLIMData::CalculateRegions()
    n_masked_px = cur_pos;
    n_regions_total = r_idx;
 
-   delete[] cur_data;
-
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    delete s;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -412,6 +407,88 @@ int FLIMData::CalculateRegions()
 
 }
 
+template <typename T>
+void FLIMData::DataLoaderThread()
+{
+   for(int i=0; i<n_thread; i++)
+   {
+      data_loaded[i] = -1;
+      data_used[i] = 1;
+   }
+
+   int free_slot;
+
+   for(int im=0; im<n_im_used; im++)
+   {
+      data_mutex.lock();
+
+      // wait for some space to become free
+      do
+      {
+         free_slot = -1;
+         for(int j=0; j<n_thread; j++)
+         {
+            if (data_used[j])
+            {
+               free_slot = j;
+               break;
+            }
+         }   
+
+         if (status->terminate)
+            return;
+
+         if (free_slot == -1)
+            data_used_cond.wait(data_mutex);
+                  
+      }
+      while( free_slot == -1 );
+
+      data_used[free_slot] = 0;
+
+      data_mutex.unlock();
+
+      T* tr_buf = (T*) this->tr_buf_  + free_slot * n_p;
+      T* data_ptr = GetDataPointer<T>(free_slot, im);
+      memcpy(tr_buf, data_ptr, n_p * sizeof(T));
+      data_loaded[free_slot] = im;
+
+      data_avail_cond.notify_all();
+   }
+
+
+}
+
+template <typename T>
+int FLIMData::GetStreamedData(int im, T*& data)
+{
+ // Get data from loading thread
+   data_mutex.lock();
+
+   int slot;
+   do
+   {
+
+      slot = -1;
+      for(int j=0; j<n_thread; j++)
+      {
+         if (data_loaded[j]==im)
+         {
+            slot = j;
+            break;
+         }
+      }   
+
+      if (slot == -1)
+         data_avail_cond.wait(data_mutex);
+   }
+   while( slot == -1 );
+   data_mutex.unlock();
+
+   data = (T*) tr_buf_  + slot * n_p;
+
+   return slot;
+}
 
 template <typename T>
 void FLIMData::TransformImage(int thread, int im)
@@ -421,18 +498,19 @@ void FLIMData::TransformImage(int thread, int im)
    if (im == cur_transformed[thread])
       return;
 
-   float* tr_data    = this->tr_data + thread * n_p;
-   float* tr_buf     = this->tr_buf  + thread * n_p;
-   float* intensity  = this->intensity + thread * n_px;
-   float* r_ss       = this->r_ss + thread * n_px;
-   float* tr_row_buf = this->tr_row_buf + thread * (n_x + n_y);
+   float* tr_data    = tr_data_    + thread * n_p;
+   float* intensity  = intensity_  + thread * n_px;
+   float* r_ss       = r_ss_       + thread * n_px;
+   float* tr_row_buf = tr_row_buf_ + thread * (n_x + n_y);
 
-   T* data_ptr = GetDataPointer<T>(thread, im);
-   memcpy(tr_buf, data_ptr, n_p * sizeof(T));
 
-   T* cur_data_ptr = (T*) tr_buf;
+   T* tr_buf;
+   int slot = GetStreamedData(im, tr_buf);  
+   T* cur_data_ptr = tr_buf;
+
       
    float photons_per_count = (float) (1/counts_per_photon);
+
    
    if ( smoothing_factor == 0 )
    {
@@ -468,7 +546,6 @@ void FLIMData::TransformImage(int thread, int im)
             idx = c*n_t_full + t_skip[c] + i;
 
             //Smooth in y axis
-            //#pragma omp parallel for
             for(int x=0; x<n_x; x++)
             {
                for(int y=0; y<s; y++)
@@ -501,7 +578,6 @@ void FLIMData::TransformImage(int thread, int im)
             }
 
             //Smooth in x axis
-            //#pragma omp parallel for
             for(int y=0; y<n_y; y++)
             {
                for(int x=0; x<s; x++)
@@ -645,6 +721,8 @@ void FLIMData::TransformImage(int thread, int im)
    }
    
    cur_transformed[thread] = im;
+   MarkCompleted(slot);
+
 
 }
 

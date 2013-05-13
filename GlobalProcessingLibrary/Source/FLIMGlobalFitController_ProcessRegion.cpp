@@ -77,7 +77,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    int   *irf_idx;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   span* sp = new span (*writer, _T("Getting Data"));
+   span* sp = new span (*writer, _T("Processing Data"));
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_mode == MODE_PIXELWISE)
    {
@@ -104,10 +104,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    delete sp;
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   sp = new span (*writer, _T("Estimating initial guesses"));
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    int n_meas_res = data->GetResampleNumMeas(thread);
@@ -143,9 +139,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
          alf_local[i] = tau_guess[n_fix+i];
    }
 
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   delete sp;
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    // Assign initial guesses to nonlinear variables
    //------------------------------
@@ -217,10 +210,18 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    for(int i=0; i<nl; i++)
       alf[i] = (float) alf_local[i];
 
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   sp = new span (*writer, _T("Processing Results"));
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
    // Normalise to get beta/gamma/r and I0 and determine mean lifetimes
    //--------------------------------------
-   NormaliseLinearParams(s_thresh,lin_params,lin_params);
+   NormaliseLinearParams(s_thresh, lin_params, lin_params);
    CalculateMeanLifetime(s_thresh, lin_params, alf, mean_tau, w_mean_tau);
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   delete sp;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    if (data->global_mode == MODE_PIXELWISE)
    {
@@ -252,29 +253,27 @@ void FLIMGlobalFitController::CalculateMeanLifetime(int s, float lin_params[], f
       int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
       lin_params += lin_idx;
 
+      #pragma omp parallel for
       for (int j=0; j<s; j++)
       {
          w_mean_tau[j] = 0;
          mean_tau[j]   = 0;
-      }
 
-      for (int i=0; i<n_fix; i++)
-         for (int j=0; j<s; j++)
+         for (int i=0; i<n_fix; i++)
          {
             w_mean_tau[j] += (float) (tau_guess[i] * tau_guess[i] * lin_params[i+lmax*j]);
-            mean_tau[j]   += (float) (               tau_guess[i] * lin_params[i+lmax*j]); 
+            mean_tau[j]   += (float) (               tau_guess[i] * lin_params[i+lmax*j]);
          }
 
-      for (int i=0; i<n_v; i++)
-         for (int j=0; j<s; j++)
+         for (int i=0; i<n_v; i++)
          {
             w_mean_tau[j] += (float) (alf[i] * alf[i] * lin_params[i+n_fix+lmax*j]);
             mean_tau[j]   += (float) (         alf[i] * lin_params[i+n_fix+lmax*j]); 
          }
-     
-      for (int j=0; j<s; j++)
-         w_mean_tau[j] /= mean_tau[j];
 
+         w_mean_tau[j] /= mean_tau[j];
+      }
+    
    }
 }
 
@@ -282,52 +281,53 @@ void FLIMGlobalFitController::CalculateMeanLifetime(int s, float lin_params[], f
 
 void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[])
 {
-   float I0, r0;
-
    int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
    lin_params += lin_idx;
    norm_params += lin_idx;
 
    if (polarisation_resolved)
    {
+      #pragma omp parallel for
       for(int i=0; i<s; i++)
       {
-         I0 = lin_params[0];
-         r0 = 0;
+         volatile float* lin_local = lin_params + lmax * i;
+         volatile float* norm_local = norm_params + lmax * i;
 
+         float I0 = lin_local[0];
+         float r0 = 0;
 
          for(int j=1; j<n_r+1; j++)
          {
-            norm_params[j] = lin_params[j] / I0;
-            r0 += norm_params[j];
+            norm_local[j] = lin_local[j] / I0;
+            r0 += norm_local[j];
          }
 
-         norm_params[0]     = r0;
-         norm_params[n_r+1] = I0;
+         norm_local[0]     = r0;
+         norm_local[n_r+1] = I0;
 
-         norm_params += lmax;
-         lin_params  += lmax;
       }
    }
    else
    {
       int n_j = fit_fret ? n_fret_group : n_exp_phi;
 
+      #pragma omp parallel for
       for(int i=0; i<s; i++)
       {
-         I0 = 0;
+         volatile float* lin_local = lin_params + lmax * i;
+         volatile float* norm_local = norm_params + lmax * i;
+
+         float I0 = 0;
          for(int j=0; j<n_j; j++)
-            I0 += lin_params[j];
+            I0 += lin_local[j];
 
          if (n_j > 1)
          {
             for (int j=0; j<n_j; j++)
-               norm_params[j] = lin_params[j] / I0;
-            norm_params[n_j] = I0;
+               norm_local[j] = lin_local[j] / I0;
+            norm_local[n_j] = I0;
          }
 
-         lin_params += lmax;
-         norm_params += lmax;
       }
    }
 }
