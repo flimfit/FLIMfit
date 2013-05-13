@@ -98,7 +98,7 @@ global buf buf_name
 
                 im_data = zeros([noOfFiles size(im)],'uint16');
                 delays = zeros([1,noOfFiles]);
-
+                
                 for f = 1:noOfFiles
                     filename = [path filesep dirStruct(f).name];
                     [~,name] = fileparts(filename);
@@ -122,6 +122,9 @@ global buf buf_name
                     end
                 end
 
+                [delays, sort_idx] = sort(delays);
+                im_data = im_data(sort_idx,:,:);
+                
                 if min(im_data(:)) > 32500
                     im_data = im_data - 32768;    % clear the sign bit which is set by labview
                 end
