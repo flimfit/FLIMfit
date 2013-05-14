@@ -51,23 +51,25 @@ function serialise_object(obj,file,name)
         docRootNode = docNode.getDocumentElement;
         for i=1:length(flds)
             val = obj.(flds{i});
+            if ~isstruct(val) && ~iscell(val) && ~isjava(val)                
+                thisElement = docNode.createElement(flds{i}); 
 
-            thisElement = docNode.createElement(flds{i}); 
+                if all(size(val)>1)% check for a multidimensional matrix
+                    str = serialize(val);
+                    str = base64encode(str,'java',true);
+                    thisElement.setAttribute('encoded','true');
+                else
+                    str = mat2str(val);
+                end
 
-            if all(size(val)>1) % check for a multidimensional matrix
-                str = serialize(val);
-                str = base64encode(str,'java',true);
-                thisElement.setAttribute('encoded','true');
-            else
-                str = mat2str(val);
+                thisElement.appendChild(docNode.createTextNode(str));
+                docRootNode.appendChild(thisElement);
             end
-
-            thisElement.appendChild(docNode.createTextNode(str));
-            docRootNode.appendChild(thisElement);
         end
     
         xmlwrite(file,docNode);
     catch e
         warning('GlobalAnalysis:CouldNotWriteFile','Could not write serialised file');
     end
+    
 end
