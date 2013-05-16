@@ -1006,13 +1006,14 @@ classdef flim_omero_data_manager < handle
         
         %------------------------------------------------------------------
         function Select_Another_User(obj,~)
-       
+                   
             ec = obj.session.getAdminService().getEventContext();
             AdminServicePrx = obj.session.getAdminService();            
-
-            groupids = toMatlabList(ec.memberOfGroups);                             
-            experimenter_list_g = AdminServicePrx.containedExperimenters(groupids(1)); 
                         
+            groupids = toMatlabList(ec.memberOfGroups);                  
+            gid = groupids(1); %default - first group is the current?                                   
+            experimenter_list_g = AdminServicePrx.containedExperimenters(gid);
+                                    
             z = 0;
             for exp = 0:experimenter_list_g.size()-1
                 exp_g = experimenter_list_g.get(exp);
