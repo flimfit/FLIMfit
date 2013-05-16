@@ -1,4 +1,4 @@
-function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,description,namespace)
+function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_file_name,description,namespace)
 
         % Copyright (C) 2013 Imperial College London.
         % All rights reserved.
@@ -23,7 +23,9 @@ function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,
         % and The Wellcome Trust through a grant entitled 
         % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-
+        if isempty(userId)
+            userId = session.getAdminService().getEventContext().userId;
+        end
         %
         ret = false;
         %
@@ -73,7 +75,7 @@ function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,
         % save the file annotation.
         fa = iUpdate.saveAndReturnObject(fa);
         %      
-        whos_object = whos_Object(session,object.getId().getValue());
+        whos_object = whos_Object(session,userId,object.getId().getValue());
         switch whos_object
             case 'Project'
                 link = omero.model.ProjectAnnotationLinkI;
@@ -87,7 +89,7 @@ function ret = add_Annotation(session,object,sha1,file_mime_type,full_file_name,
                 link = omero.model.PlateAnnotationLinkI;                                
         end;
         %
-        if strcmp('unknown',whos_Object(session,object.getId().getValue()))
+        if strcmp('unknown',whos_Object(session,userId,object.getId().getValue()))
             link = omero.model.ImageAnnotationLinkI;
         end;
         %

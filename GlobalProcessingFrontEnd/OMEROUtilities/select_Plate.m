@@ -1,4 +1,4 @@
-function [ Plate Screen ] = select_Plate(session,prompt)
+function [ Plate Screen ] = select_Plate(session,userId,prompt)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -23,13 +23,17 @@ function [ Plate Screen ] = select_Plate(session,prompt)
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
            
+            if isempty(userId)
+                userId = session.getAdminService().getEventContext().userId;
+            end;     
+            %
             Plate = [];
             Screen = [];            
             %
             proxy = session.getContainerService();
             %Set the options
             param = omero.sys.ParametersI();
-            userId = session.getAdminService().getEventContext().userId; %id of the user.
+            %
             param.exp(omero.rtypes.rlong(userId));
             screensList = proxy.loadContainerHierarchy('omero.model.Screen', [], param);
             %
@@ -51,7 +55,9 @@ function [ Plate Screen ] = select_Plate(session,prompt)
                     %
                 end
             end
-            %      
+            %
+            if ~exist('str','var'), return, end;
+            %
             % sort by Screen etc. - start
             strcell_sorted = sort_nat(cellstr(str));
             strcell_unsorted = cellstr(str);

@@ -1,4 +1,4 @@
-function str = read_Annotation_having_tag(session, object, ome_model_annotation_type, tag)
+function str = read_Annotation_having_tag(session, userId, object, ome_model_annotation_type, tag)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -26,7 +26,7 @@ function str = read_Annotation_having_tag(session, object, ome_model_annotation_
         %
         str = [];
         %
-        switch whos_Object(session,object.getId().getValue())
+        switch whos_Object(session,userId,object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
             case 'Dataset'

@@ -1,4 +1,4 @@
- function obj = get_Object_by_Id(session,objId)
+ function obj = get_Object_by_Id(session,userId,objId)
         
  % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -32,7 +32,10 @@
             %
             param.leaves();
             %
-            userId = session.getAdminService().getEventContext().userId; %id of the user.
+            if isempty(userId)
+                userId = session.getAdminService().getEventContext().userId; %id of the user.
+            end
+            %
             param.exp(omero.rtypes.rlong(userId));
             projectsList = proxy.loadContainerHierarchy('omero.model.Project', [], param);
             %

@@ -145,9 +145,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %                
             if 0==numel(image_ids), return, end;
                                               
-            myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
+            myimages = getImages_v(obj.session,obj.userid,image_ids(1)); image = myimages(1);
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
+            mdta = get_FLIM_params_from_metadata(obj.session,obj.userid,image);
             if isempty(mdta) || isempty(mdta.delays)
                 errordlg('can not load: data have no FLIM specification');
                 return;
@@ -213,9 +213,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 
                 if data_series.lazy_loading
-                    data_series.load_selected_files(1);
+                    data_series.load_selected_files(obj.userid,1);
                 else
-                    data_series.load_selected_files(1:n_datasets);
+                    data_series.load_selected_files(obj.userid,1:n_datasets);
                 end
                
                

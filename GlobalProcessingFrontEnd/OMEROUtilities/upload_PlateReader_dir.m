@@ -30,7 +30,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, modulo)
 
     newdataname = folder;
     
-    whos_parent = whos_Object(session,parent.getId().getValue());
+    whos_parent = whos_Object(session,[],parent.getId().getValue());
     
     if strcmp('Screen',whos_parent) % append new Plate: data -> Plate -> Screen
         updateService = session.getUpdateService();        

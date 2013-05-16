@@ -1,4 +1,4 @@
- function ret = select_Image(session,Parent)
+ function ret = select_Image(session,userId,Parent)
  
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -22,7 +22,10 @@
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-        
+
+            if isempty(userId)
+                userId = session.getAdminService().getEventContext().userId;
+            end;        
             %
             ret = [];
             %
@@ -33,7 +36,7 @@
             %
             pName = char(java.lang.String(Parent.getName().getValue()));
             
-            parent_is = whos_Object(session,Parent.getId().getValue());
+            parent_is = whos_Object(session,userId,Parent.getId().getValue());
             
             if strcmp(parent_is,'Dataset') % load images from Dataset
 
