@@ -1,4 +1,4 @@
-function load_selected_files(obj, userId, selected )
+function load_selected_files(obj, selected )
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -70,7 +70,7 @@ function load_selected_files(obj, userId, selected )
 
                 imgId = obj.image_ids(selected(j));                        
                                
-                myimages = getImages_v(obj.session,userId,imgId); 
+                myimages = getImages(obj.session,imgId); 
                 image = myimages(1);
                 
                
@@ -105,7 +105,7 @@ function load_selected_files(obj, userId, selected )
                 
                 imgId = obj.image_ids(selected(j));                        
                                 
-                myimages = getImages_v(obj.session,userId,imgId); 
+                myimages = getImages(obj.session,imgId); 
                 image = myimages(1);
 
                 try

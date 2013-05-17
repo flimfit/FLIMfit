@@ -213,9 +213,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 
                 if data_series.lazy_loading
-                    data_series.load_selected_files(obj.userid,1);
+                    data_series.load_selected_files(1);
                 else
-                    data_series.load_selected_files(obj.userid,1:n_datasets);
+                    data_series.load_selected_files(1:n_datasets);
                 end
                
                
