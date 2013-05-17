@@ -36,7 +36,7 @@
             %
             pName = char(java.lang.String(Parent.getName().getValue()));
             
-            parent_is = whos_Object(session,userId,Parent.getId().getValue());
+            parent_is = whos_Object(session,Parent.getId().getValue());
             
             if strcmp(parent_is,'Dataset') % load images from Dataset
 

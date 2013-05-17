@@ -75,7 +75,7 @@ function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_fil
         % save the file annotation.
         fa = iUpdate.saveAndReturnObject(fa);
         %      
-        whos_object = whos_Object(session,userId,object.getId().getValue());
+        whos_object = whos_Object(session, object.getId().getValue());
         switch whos_object
             case 'Project'
                 link = omero.model.ProjectAnnotationLinkI;
@@ -89,7 +89,7 @@ function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_fil
                 link = omero.model.PlateAnnotationLinkI;                                
         end;
         %
-        if strcmp('unknown',whos_Object(session,userId,object.getId().getValue()))
+        if strcmp('unknown',whos_object)
             link = omero.model.ImageAnnotationLinkI;
         end;
         %

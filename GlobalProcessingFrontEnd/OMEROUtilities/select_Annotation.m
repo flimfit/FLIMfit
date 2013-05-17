@@ -30,7 +30,7 @@ function [ret fname] = select_Annotation(session, userId, object, prompt)
         ret = [];
         fname = [];
         %
-        switch whos_Object(session,userId,object.getId().getValue())
+        switch whos_Object(session, object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
             case 'Dataset'

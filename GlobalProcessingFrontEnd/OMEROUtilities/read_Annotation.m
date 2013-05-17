@@ -29,7 +29,7 @@ function str = read_Annotation(session, userId, object, filename)
         %
         str = [];
         %
-        switch whos_Object(session,userId,object.getId().getValue())
+        switch whos_Object(session, object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
             case 'Dataset'

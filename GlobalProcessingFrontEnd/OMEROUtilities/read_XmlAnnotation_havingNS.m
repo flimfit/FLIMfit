@@ -28,7 +28,7 @@ function str = read_XmlAnnotation_havingNS(session, userId, object, tag)
         
        
         %
-        switch whos_Object(session,userId,object.getId().getValue())
+        switch whos_Object(session ,object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
             case 'Dataset'

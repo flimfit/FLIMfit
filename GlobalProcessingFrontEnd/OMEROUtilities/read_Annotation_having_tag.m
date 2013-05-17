@@ -26,7 +26,7 @@ function str = read_Annotation_having_tag(session, userId, object, ome_model_ann
         %
         str = [];
         %
-        switch whos_Object(session,userId,object.getId().getValue())
+        switch whos_Object(session ,object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
             case 'Dataset'

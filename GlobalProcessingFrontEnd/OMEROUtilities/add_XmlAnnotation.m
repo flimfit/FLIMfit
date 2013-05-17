@@ -55,7 +55,7 @@ function ret = add_XmlAnnotation(session,userId,object,Xml)
         link.setParent(object);
         
                                            
-        whos_object = whos_Object(session,userId,object.getId().getValue());
+        whos_object = whos_Object(session,object.getId().getValue());
         switch whos_object
             case 'Project'
                 link = omero.model.ProjectAnnotationLinkI;
@@ -69,7 +69,7 @@ function ret = add_XmlAnnotation(session,userId,object,Xml)
                 link = omero.model.PlateAnnotationLinkI;                                
         end;
         %
-        if strcmp('unknown',whos_Object(session,userId,object.getId().getValue()))
+        if strcmp('unknown',whos_object)
             link = omero.model.ImageAnnotationLinkI;
         end;
         %

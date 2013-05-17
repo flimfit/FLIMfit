@@ -1,4 +1,4 @@
-function obj_type = whos_Object(session,userId,objId)
+function obj_type = whos_Object(session, objId)
             %
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -28,25 +28,20 @@ function obj_type = whos_Object(session,userId,objId)
             param = omero.sys.ParametersI();            
             param.leaves();            
             
-            if isempty(userId)
-                userId = session.getAdminService().getEventContext().userId; %id of the user.
-            end
-            
-            param.exp(omero.rtypes.rlong(userId));
                                         
-            myprojects = getProjects_v(session,userId,objId);
+            myprojects = getProjects(session ,objId);
             if ~isempty(myprojects) 
                 obj_type = 'Project';
                 return;
             end
             
-            mydatasets = getDatasets_v(session,userId,objId);
+            mydatasets = getDatasets(session ,objId);
             if ~isempty(mydatasets) 
                 obj_type = 'Dataset';
                 return;
             end
             
-            myimages = getImages_v(session,userId,objId);
+            myimages = getImages(session,objId);
             if ~isempty(myimages) 
                 obj_type = 'Image';
                 return;
