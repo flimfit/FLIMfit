@@ -61,7 +61,10 @@
                     did(i+1) = java.lang.Long(d.getId().getValue());                    
                 end
             %
-            if ~exist('str','var'), return, end;
+            if ~exist('str','var')
+                errordlg('Sorry no datasets available for this user', 'Dataset error!');
+                return; 
+            end
             %
             % to sort by project etc. - start
             strcell_sorted = sort_nat(cellstr(str));
@@ -79,7 +82,7 @@
             str = char(strcell_sorted);
             did = did_sorted;    
             % to sort by project etc. - end
-            %
+            
             % request a Dataset using the "str" list
             [s,v] = listdlg('PromptString',prompt,...
                             'SelectionMode','single',...

@@ -56,7 +56,10 @@ function [ Plate Screen ] = select_Plate(session,userId,prompt)
                 end
             end
             %
-            if ~exist('str','var'), return, end;
+            if ~exist('str','var')
+                errordlg('Sorry no platess available for this user','Plate error!');
+                return; 
+            end
             %
             % sort by Screen etc. - start
             strcell_sorted = sort_nat(cellstr(str));
