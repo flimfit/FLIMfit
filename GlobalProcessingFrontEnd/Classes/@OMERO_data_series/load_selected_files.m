@@ -70,7 +70,7 @@ function load_selected_files(obj, selected )
 
                 imgId = obj.image_ids(selected(j));                        
                                
-                myimages = getImages(obj.session,imgId); 
+                myimages = getImages(obj.omero_data_manager.session,imgId); 
                 image = myimages(1);
                 
                
@@ -105,7 +105,7 @@ function load_selected_files(obj, selected )
                 
                 imgId = obj.image_ids(selected(j));                        
                                 
-                myimages = getImages(obj.session,imgId); 
+                myimages = getImages(obj.omero_data_manager.session,imgId); 
                 image = myimages(1);
 
                 try

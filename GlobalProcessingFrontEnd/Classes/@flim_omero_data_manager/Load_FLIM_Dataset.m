@@ -185,9 +185,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 data_series.file_names = {'file'};
                 data_series.channels = data_series.ZCT{2};  % not sure what this does
-                
-                data_series.session = obj.session;      % copy current session into OMERO_data_series
-                 
+                                 
                 try
                     data_series.metadata = extract_metadata(data_series.names);        
                 catch err

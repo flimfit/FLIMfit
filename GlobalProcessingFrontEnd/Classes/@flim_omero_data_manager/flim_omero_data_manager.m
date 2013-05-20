@@ -73,9 +73,7 @@ classdef flim_omero_data_manager < handle
             
             channel = data_series.ZCT{2};       % not sure why we need this?
             
-            data_series.verbose = true;     % loading a single image
-            data_series.session = obj.session;  % copy the current session
-            
+            data_series.verbose = true;     % loading a single image            
             
             try
                 [data_cube, name] = data_series.OMERO_fetch(image, data_series.ZCT, mdta);
