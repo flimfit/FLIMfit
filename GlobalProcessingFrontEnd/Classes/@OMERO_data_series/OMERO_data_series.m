@@ -28,13 +28,7 @@ classdef OMERO_data_series < flim_data_series
    
     properties
         
-        image_ids;
-        mdta;
-       
-        ZCT; % cell array containing missing OME dimensions Z,C,T (in that order)  
-        verbose;        % flag to switch waitbar in OMERO_fetch on or off
         
-        session;
         
     end
     
@@ -65,6 +59,14 @@ classdef OMERO_data_series < flim_data_series
     properties(Transient,Hidden)
         % Properties that won't be saved to a data_settings_file or to 
         % a project file
+        
+        image_ids;
+        mdta;
+       
+        ZCT; % cell array containing missing OME dimensions Z,C,T (in that order)  
+        verbose;        % flag to switch waitbar in OMERO_fetch on or off
+        
+        omero_data_manager;
         
     end
     

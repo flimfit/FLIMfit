@@ -63,7 +63,13 @@ classdef front_end_menu_controller < handle
         
         menu_OMERO_Export_Visualisation_Images;
         
-        omero_data_manager;                
+        %%%%%%%%%%%%%%%%%%%%%%%
+        menu_OMERO_Connect_To_Another_User;    
+        menu_OMERO_Connect_To_Logon_User;    
+        %%%%%%%%%%%%%%%%%%%%%%%
+        
+        omero_data_manager;     
+        
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
                         
@@ -324,6 +330,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
             obj.data_series_controller.data_series = OMERO_data_series();
+            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
             obj.omero_data_manager.Load_FLIM_Data(obj.data_series_controller.data_series);
             notify(obj.data_series_controller,'new_dataset');
         end                                  
@@ -331,6 +338,7 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
              
             obj.data_series_controller.data_series = OMERO_data_series();   
+            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;            
             obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
             notify(obj.data_series_controller,'new_dataset');
         end                    
@@ -431,6 +439,20 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
             obj.omero_data_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
+        end                                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Connect_To_Another_User_callback(obj,~,~)
+            obj.omero_data_manager.Select_Another_User();
+            set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
+        end                            
+        %------------------------------------------------------------------
+        function menu_OMERO_Connect_To_Logon_User_callback(obj,~,~)            
+            obj.omero_data_manager.userid = obj.omero_data_manager.session.getAdminService().getEventContext().userId;
+            obj.omero_data_manager.project = [];
+            obj.omero_data_manager.dataset = [];
+            obj.omero_data_manager.screen = [];
+            obj.omero_data_manager.plate = [];
+            set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------
         % OMERO

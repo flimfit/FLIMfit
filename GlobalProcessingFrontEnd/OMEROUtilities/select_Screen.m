@@ -1,4 +1,4 @@
-function ret = select_Screen(session,prompt)
+function ret = select_Screen(session,userId,prompt)
 
 
 % Copyright (C) 2013 Imperial College London.
@@ -24,12 +24,16 @@ function ret = select_Screen(session,prompt)
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
+           if isempty(userId)
+                userId = session.getAdminService().getEventContext().userId;
+            end;     
+
             ret = [];
                         % one needs to choose Project where to store new data
                         proxy = session.getContainerService();
                         %Set the options
                         param = omero.sys.ParametersI();
-                        userId = session.getAdminService().getEventContext().userId; %id of the user.
+                        %
                         param.exp(omero.rtypes.rlong(userId));
                         screenList = proxy.loadContainerHierarchy('omero.model.Screen', [], param);
                         % populate the list of strings "str"                                    

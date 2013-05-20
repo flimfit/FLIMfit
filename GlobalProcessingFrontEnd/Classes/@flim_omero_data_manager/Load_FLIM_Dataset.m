@@ -145,9 +145,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %                
             if 0==numel(image_ids), return, end;
                                               
-            myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
+            myimages = getImages_v(obj.session,obj.userid,image_ids(1)); image = myimages(1);
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
+            mdta = get_FLIM_params_from_metadata(obj.session,obj.userid,image);
             if isempty(mdta) || isempty(mdta.delays)
                 errordlg('can not load: data have no FLIM specification');
                 return;
@@ -185,9 +185,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 data_series.file_names = {'file'};
                 data_series.channels = data_series.ZCT{2};  % not sure what this does
-                
-                data_series.session = obj.session;      % copy current session into OMERO_data_series
-                 
+                                 
                 try
                     data_series.metadata = extract_metadata(data_series.names);        
                 catch err

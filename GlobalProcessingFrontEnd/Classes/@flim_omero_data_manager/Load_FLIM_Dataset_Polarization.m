@@ -150,7 +150,7 @@ function Load_FLIM_Dataset_Polarization(obj,data_series,~)
            
             myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
+            mdta = get_FLIM_params_from_metadata(obj.session,obj.userid,image);
             if isempty(mdta) || isempty(mdta.delays)
                 errordlg('can not load: data have no FLIM specification');
                 return;

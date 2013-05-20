@@ -523,7 +523,10 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
    {
       s = 0;
       int start = GetRegionPos(0, region);
-      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
+       
+     // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
+      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) 
+       
       for(int i=0; i<n_im_used; i++)
       {
          int omp_thread = omp_get_thread_num();

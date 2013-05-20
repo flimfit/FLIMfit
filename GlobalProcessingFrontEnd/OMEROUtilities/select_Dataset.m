@@ -1,4 +1,4 @@
- function [ Dataset Project ] = select_Dataset(session,prompt)
+ function [ Dataset, Project ] = select_Dataset(session, userId, prompt)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -23,6 +23,10 @@
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+            if isempty(userId)
+                userId = session.getAdminService().getEventContext().userId;
+            end;
+            %
             Dataset = [];
             Project = [];            
             %
@@ -31,7 +35,6 @@
             param = omero.sys.ParametersI();
             param.leaves();
             %            
-            userId = session.getAdminService().getEventContext().userId; %id of the user.
             param.exp(omero.rtypes.rlong(userId));
             projectsList = proxy.loadContainerHierarchy('omero.model.Project', [], param);
             %
@@ -57,6 +60,12 @@
                     str(i+1,1:length(dnme)) = dnme;
                     did(i+1) = java.lang.Long(d.getId().getValue());                    
                 end
+            %
+            if ~exist('str','var')
+                errordlg('Sorry no datasets available for this user', 'Dataset error!');
+                return; 
+            end
+            %
             % to sort by project etc. - start
             strcell_sorted = sort_nat(cellstr(str));
             strcell_unsorted = cellstr(str);
@@ -73,7 +82,7 @@
             str = char(strcell_sorted);
             did = did_sorted;    
             % to sort by project etc. - end
-            %
+            
             % request a Dataset using the "str" list
             [s,v] = listdlg('PromptString',prompt,...
                             'SelectionMode','single',...

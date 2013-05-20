@@ -26,7 +26,7 @@ function load_tvb(obj,data_series,object)
     t_tvb = [];
     tvb_data = [];
     
-    switch whos_Object(obj.session,object.getId().getValue());
+    switch whos_Object(obj.session, object.getId().getValue());
         case 'Image'
             
             metadata = get_FLIM_params_from_metadata(obj.session,object);

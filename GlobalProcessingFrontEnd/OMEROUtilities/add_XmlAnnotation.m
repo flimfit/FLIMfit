@@ -1,4 +1,4 @@
-function ret = add_XmlAnnotation(session,object,Xml)
+function ret = add_XmlAnnotation(session,userId,object,Xml)
 
 % add_XmlAnnotation adds an OMERO XmlAnnotation
 %
@@ -30,7 +30,10 @@ function ret = add_XmlAnnotation(session,object,Xml)
         % and The Wellcome Trust through a grant entitled 
         % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
-
+           if isempty(userId)
+                userId = session.getAdminService().getEventContext().userId;
+           end;     
+            
         ret = false;
         %
         if isempty(Xml) || isempty(session) || isempty(object)
@@ -66,7 +69,7 @@ function ret = add_XmlAnnotation(session,object,Xml)
                 link = omero.model.PlateAnnotationLinkI;                                
         end;
         %
-        if strcmp('unknown',whos_Object(session,object.getId().getValue()))
+        if strcmp('unknown',whos_object)
             link = omero.model.ImageAnnotationLinkI;
         end;
         %

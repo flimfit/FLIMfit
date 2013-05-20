@@ -23,13 +23,16 @@
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
+
+                userId = session.getAdminService().getEventContext().userId;
+
             ret = [];
                         % one needs to choose Project where to store new data
                         proxy = session.getContainerService();
                         %Set the options
                         param = omero.sys.ParametersI();
                         param.noLeaves();
-                        userId = session.getAdminService().getEventContext().userId; %id of the user.
+                        %
                         param.exp(omero.rtypes.rlong(userId));
                         projectsList = proxy.loadContainerHierarchy('omero.model.Project', [], param);
                         % populate the list of strings "str"                                    

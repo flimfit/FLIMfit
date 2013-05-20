@@ -222,6 +222,9 @@ private:
 };
 
 
+void StartDataLoaderThread(void* wparams);
+
+
 template <typename T>
 T* FLIMData::GetDataPointer(int thread, int im)
 {

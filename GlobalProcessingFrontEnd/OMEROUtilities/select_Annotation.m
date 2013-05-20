@@ -1,4 +1,4 @@
-function [ret fname] = select_Annotation(session, object, prompt)
+function [ret fname] = select_Annotation(session, userId, object, prompt)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -22,12 +22,15 @@ function [ret fname] = select_Annotation(session, object, prompt)
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-        
+     
+        if isempty(userId)
+            userId = session.getAdminService().getEventContext().userId;
+        end
         %
         ret = [];
         fname = [];
         %
-        switch whos_Object(session,object.getId().getValue())
+        switch whos_Object(session, object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
             case 'Dataset'

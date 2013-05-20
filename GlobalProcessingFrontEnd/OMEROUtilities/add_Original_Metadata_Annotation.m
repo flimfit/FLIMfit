@@ -1,4 +1,4 @@
-function add_Original_Metadata_Annotation(session,image,full_filename)
+function add_Original_Metadata_Annotation(session,userId,image,full_filename)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -22,6 +22,10 @@ function add_Original_Metadata_Annotation(session,image,full_filename)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
+    
+            if isempty(userId)
+                userId = session.getAdminService().getEventContext().userId;
+            end;     
 
         bfdata = bfopen(full_filename);
         metadata = bfdata{1, 2}; % place for original metadata :)         
@@ -51,7 +55,7 @@ function add_Original_Metadata_Annotation(session,image,full_filename)
         description = ' ';        
         sha1 = char('pending');
         file_mime_type = char('application/octet-stream');        
-        add_Annotation(session, ...
+        add_Annotation(session, userId, ...
                         image, ...
                         sha1, ...
                         file_mime_type, ...

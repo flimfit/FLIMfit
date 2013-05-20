@@ -1,4 +1,4 @@
-function str = read_XmlAnnotation_havingNS(session, object, tag)
+function str = read_XmlAnnotation_havingNS(session, userId, object, tag)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -28,7 +28,7 @@ function str = read_XmlAnnotation_havingNS(session, object, tag)
         
        
         %
-        switch whos_Object(session,object.getId().getValue())
+        switch whos_Object(session ,object.getId().getValue())
             case 'Project'
                 specifier = 'omero.model.Project';
             case 'Dataset'

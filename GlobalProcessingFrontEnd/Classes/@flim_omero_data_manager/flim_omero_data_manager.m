@@ -38,6 +38,7 @@ classdef flim_omero_data_manager < handle
         screen;        
         %
         selected_channel; % need to keep this for results uploading to Omero...
+        userid;
         
 
     end
@@ -60,7 +61,7 @@ classdef flim_omero_data_manager < handle
             %
             channel = [];
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
+            mdta = get_FLIM_params_from_metadata(obj.session,obj.userid,image);
             if isempty(mdta) || isempty(mdta.delays)
                 errordlg('can not load: data have no FLIM specification');
                 return;
@@ -72,9 +73,7 @@ classdef flim_omero_data_manager < handle
             
             channel = data_series.ZCT{2};       % not sure why we need this?
             
-            data_series.verbose = true;     % loading a single image
-            data_series.session = obj.session;  % copy the current session
-            
+            data_series.verbose = true;     % loading a single image            
             
             try
                 [data_cube, name] = data_series.OMERO_fetch(image, data_series.ZCT, mdta);
@@ -129,7 +128,7 @@ classdef flim_omero_data_manager < handle
             obj.screen = [];
             obj.plate = [];
             %
-            [ Dataset Project ] = select_Dataset(obj.session,'Select a Dataset:'); 
+            [ Dataset, Project ] = select_Dataset(obj.session,obj.userid,'Select a Dataset:'); 
             %
             if isempty(Dataset), return, end;
             %
@@ -156,7 +155,7 @@ classdef flim_omero_data_manager < handle
             obj.project = [];
             obj.dataset = [];
             %
-            [ Plate Screen ] = select_Plate(obj.session,'Select a Plate:'); 
+            [ Plate, Screen ] = select_Plate(obj.session,obj.userid,'Select a Plate:'); 
             %
             if isempty(Plate), return, end;
             %
@@ -175,9 +174,9 @@ classdef flim_omero_data_manager < handle
         function Load_FLIM_Data(obj,data_series,~)
             %
             if ~isempty(obj.plate)                
-                image = select_Image(obj.session,obj.plate);                
+                image = select_Image(obj.session,obj.userid,obj.plate);                
             elseif ~isempty(obj.dataset)
-                image = select_Image(obj.session,obj.dataset);
+                image = select_Image(obj.session,obj.userid,obj.dataset);
             else
                 errordlg('Please set Dataset or Plate before trying to load images'); 
                 return; 
@@ -201,7 +200,7 @@ classdef flim_omero_data_manager < handle
                 load_as_image = false;
             end
             
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
+            mdta = get_FLIM_params_from_metadata(obj.session,obj.userid,image);
             if isempty(mdta) || isempty(mdta.delays)
                 channel = [];
                 errordlg('can not load: data have no FLIM specification');
@@ -266,7 +265,7 @@ classdef flim_omero_data_manager < handle
                                                       
         %------------------------------------------------------------------        
         function Load_IRF_WF_gated(obj,data_series,~)
-            [ Dataset ~ ] = select_Dataset(obj.session,'Select IRF Dataset:');             
+            [ Dataset ~ ] = select_Dataset(obj.session,obj.userid,'Select IRF Dataset:');             
             if isempty(Dataset), return, end;            
             load_as_image = false;
             try
@@ -279,7 +278,7 @@ classdef flim_omero_data_manager < handle
 
         %------------------------------------------------------------------                
         function Load_Background_form_Dataset(obj,data_series,~)
-            [ Dataset ~ ] = select_Dataset(obj.session,'Select Bckg Dataset:');             
+            [ Dataset ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
             if isempty(Dataset), return, end;            
             try
                 obj.load_background_from_Dataset(data_series,Dataset);                
@@ -292,13 +291,13 @@ classdef flim_omero_data_manager < handle
         %------------------------------------------------------------------                
         function Load_tvb_from_Image(obj,data_series,~)
             if isempty(obj.dataset)
-                [ Dataset ~ ] = select_Dataset(obj.session,'Select a Dataset:');             
+                [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select a Dataset:');             
                 if isempty(Dataset), return, end;                
             else
                 Dataset = obj.dataset;
             end;
             %    
-            Image = select_Image(obj.session,Dataset);                       
+            Image = select_Image(obj.session,obj.userid,Dataset);                       
             if isempty(image), return, end;
             %   
             try
@@ -311,7 +310,7 @@ classdef flim_omero_data_manager < handle
         
         %------------------------------------------------------------------                
         function Load_tvb_from_Dataset(obj,data_series,~)
-            [ Dataset ~ ] = select_Dataset(obj.session,'Select Bckg Dataset:');             
+            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
             if isempty(Dataset), return, end;            
             try
                 obj.load_tvb(data_series,Dataset);
@@ -325,9 +324,9 @@ classdef flim_omero_data_manager < handle
         function Load_IRF_FOV(obj,data_series,~)
             %
             if ~isempty(obj.plate)                
-                image = select_Image(obj.session,obj.plate);                
+                image = select_Image(obj.session,obj.userid,obj.plate);                
             elseif ~isempty(obj.dataset)
-                image = select_Image(obj.session,obj.dataset);
+                image = select_Image(obj.session,obj.userid,obj.dataset);
             else
                 errordlg('Please set Dataset or Plate before trying to load IRF'); 
                 return; 
@@ -354,7 +353,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set Dataset or Plate and load the data before loading IRF'), return;
             end;
             %    
-            [str fname] = select_Annotation(obj.session, parent,'Please choose IRF file');
+            [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Please choose IRF file');
             %
             if isempty(str)
                 return;
@@ -386,13 +385,13 @@ classdef flim_omero_data_manager < handle
             tempfilename = [];            
             %
             if isempty(obj.dataset)
-                [ Dataset ~ ] = select_Dataset(obj.session,'Select a Dataset:');             
+                [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select a Dataset:');             
                 if isempty(Dataset), return, end;                
             else
                 Dataset = obj.dataset;
             end;
             %    
-            image = select_Image(obj.session,Dataset);                       
+            image = select_Image(obj.session,obj.userid,Dataset);                       
             if isempty(image), return, end;
             %   
             try
@@ -647,9 +646,9 @@ classdef flim_omero_data_manager < handle
                                     'Plate','Cancel','Cancel');              
             switch choice
                 case 'Dataset',
-                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
                 case 'Plate', 
-                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
             end                        
@@ -662,7 +661,7 @@ classdef flim_omero_data_manager < handle
             sha1 = char('pending');
             file_mime_type = char('application/octet-stream');
             %
-            add_Annotation(obj.session, ...
+            add_Annotation(obj.session, obj.userid, ...
                             object, ...
                             sha1, ...
                             file_mime_type, ...
@@ -682,7 +681,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set a Dataset or a Plate'), return;
              end;            
             
-            [str fname] = select_Annotation(obj.session, parent,'Choose fitting settings file');
+            [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose fitting settings file');
             %
             if isempty(str)
                 return;
@@ -711,7 +710,7 @@ classdef flim_omero_data_manager < handle
             if exist(subfolder,'dir')
                 logon_filename = [ subfolder filesep obj.omero_logon_filename ];
                 if exist(logon_filename,'file') 
-                    [ settings ~ ] = xml_read (logon_filename);    
+                    [ settings, ~ ] = xml_read (logon_filename);    
                     obj.logon = settings.logon;
                 end
                 
@@ -761,6 +760,9 @@ classdef flim_omero_data_manager < handle
                     obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
                 end
             end     % end while
+            
+            obj.userid = obj.session.getAdminService().getEventContext().userId;
+            
         end
        %------------------------------------------------------------------        
        function Omero_logon_forced(obj,~) 
@@ -803,7 +805,10 @@ classdef flim_omero_data_manager < handle
                 if ~isempty(obj.session)
                     obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
                 end
-            end     % end while           
+            end     % end while     
+            
+            obj.userid = obj.session.getAdminService().getEventContext().userId;
+            
        end
         
        %------------------------------------------------------------------        
@@ -817,7 +822,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set Dataset or Plate and load the data before loading plate metadata'), return;
             end;
             %    
-            [str fname] = select_Annotation(obj.session, parent,'Choose metadata xlsx file');
+            [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose metadata xlsx file');
             %
             if isempty(str)
                 return;
@@ -845,9 +850,9 @@ classdef flim_omero_data_manager < handle
                                     'Plate','Cancel','Cancel');              
             switch choice
                 case 'Dataset',
-                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
                 case 'Plate', 
-                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
             end                        
@@ -862,7 +867,7 @@ classdef flim_omero_data_manager < handle
             sha1 = char('pending');
             file_mime_type = char('application/octet-stream');
             %
-            add_Annotation(obj.session, ...
+            add_Annotation(obj.session, obj.userid, ...
                             object, ...
                             sha1, ...
                             file_mime_type, ...
@@ -878,9 +883,9 @@ classdef flim_omero_data_manager < handle
                                     'Plate','Cancel','Cancel');              
             switch choice
                 case 'Dataset',
-                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
                 case 'Plate', 
-                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
             end                        
@@ -897,7 +902,7 @@ classdef flim_omero_data_manager < handle
             sha1 = char('pending');
             file_mime_type = char('application/octet-stream');
             %
-            add_Annotation(obj.session, ...
+            add_Annotation(obj.session, obj.userid, ...
                             object, ...
                             sha1, ...
                             file_mime_type, ...
@@ -916,7 +921,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set Dataset or Plate and load the data before loading TVB'), return;
             end;
             %    
-            [str fname] = select_Annotation(obj.session, parent,'Choose TVB file');
+            [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose TVB file');
             %
             if isempty(str)
                 return;
@@ -944,9 +949,9 @@ classdef flim_omero_data_manager < handle
                                     'Plate','Cancel','Cancel');              
             switch choice
                 case 'Dataset',
-                    [ object ~ ] = select_Dataset(obj.session,'Select Dataset:'); 
+                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
                 case 'Plate', 
-                    [ object ~ ] = select_Plate(obj.session,'Select Plate:'); 
+                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
             end                        
@@ -959,7 +964,7 @@ classdef flim_omero_data_manager < handle
             sha1 = char('pending');
             file_mime_type = char('application/octet-stream');
             %
-            add_Annotation(obj.session, ...
+            add_Annotation(obj.session, obj.userid, ...
                             object, ...
                             sha1, ...
                             file_mime_type, ...
@@ -979,7 +984,7 @@ classdef flim_omero_data_manager < handle
                 errordlg('please set a Dataset or a Plate'), return;
              end;            
             
-            [str fname] = select_Annotation(obj.session, parent,'Choose data settings file');
+            [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose data settings file');
             %
             if isempty(str)
                 return;
@@ -995,7 +1000,83 @@ classdef flim_omero_data_manager < handle
             catch err
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end;
-        end            
+        end 
+        
+        %------------------------------------------------------------------
+        function Select_Another_User(obj,~)
+                   
+            ec = obj.session.getAdminService().getEventContext();
+            AdminServicePrx = obj.session.getAdminService();            
+                        
+            groupids = toMatlabList(ec.memberOfGroups);                  
+            gid = groupids(1); %default - first group is the current?                                   
+            experimenter_list_g = AdminServicePrx.containedExperimenters(gid);
+                                    
+            z = 0;
+            for exp = 0:experimenter_list_g.size()-1
+                exp_g = experimenter_list_g.get(exp);
+                z = z + 1;
+                nme = [num2str(exp_g.getId.getValue) ' @ ' char(java.lang.String(exp_g.getOmeName().getValue()))];
+                str(z,1:length(nme)) = nme;                                                
+            end                
+                        
+            strcell_sorted = sort_nat(unique(cellstr(str)));
+            str = char(strcell_sorted);
+                                    
+            EXPID = [];
+            prompt = 'Please choose the user';
+            [s,v] = listdlg('PromptString',prompt,...
+                                        'SelectionMode','single',...
+                                        'ListSize',[300 300],...                                        
+                                        'ListString',str);                        
+            if(v)
+                expname = str(s,:);
+                expnamesplit = split('@',expname);
+                EXPID = str2num(char(expnamesplit(1)));
+            end;                                            
+
+            if ~isempty(EXPID) 
+                obj.userid = EXPID;
+            else
+                obj.userid = obj.session.getAdminService().getEventContext().userId;                
+            end                                                                     
+            %
+            obj.project = [];
+            obj.dataset = [];
+            obj.screen = [];
+            obj.plate = [];
+            %
+        end        
             
     end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
