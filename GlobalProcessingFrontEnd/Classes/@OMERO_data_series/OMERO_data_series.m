@@ -66,7 +66,7 @@ classdef OMERO_data_series < flim_data_series
         ZCT; % cell array containing missing OME dimensions Z,C,T (in that order)  
         verbose;        % flag to switch waitbar in OMERO_fetch on or off
         
-        session;
+        omero_data_manager;
         
     end
     
