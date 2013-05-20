@@ -1,4 +1,4 @@
- function ret = select_Project(session,userId,prompt)
+ function ret = select_Project(session,prompt)
  
  % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -23,9 +23,8 @@
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
-            if isempty(userId)
+
                 userId = session.getAdminService().getEventContext().userId;
-            end;     
 
             ret = [];
                         % one needs to choose Project where to store new data

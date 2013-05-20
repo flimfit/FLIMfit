@@ -253,9 +253,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             set_directory_info();            
             updateInterface();
             %            
-            if isempty(data.project) || strcmp(whos_Object(data.session,[],data.project.getId().getValue()),'Dataset')
+            if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Dataset')
                 % doopredelaem
-                prjct = select_Project(data.session,[],'Select Project');
+                prjct = select_Project(data.session,'Select Project');
                 if ~isempty(prjct)
                     data.project = prjct;
                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -295,7 +295,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         label = get(hObj,'Label');
         
         if strcmp(label,'Set Screen')        
-            scrn = select_Screen(data.session,[],'Select screen');
+            scrn = select_Screen(data.session,'Select screen');
             if ~isempty(scrn)
                 data.project = scrn; 
                 data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -309,7 +309,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 
         elseif strcmp(label,'Set Project')
             
-            prjct = select_Project(data.session,[],'Select Project');             
+            prjct = select_Project(data.session,'Select Project');             
             if ~isempty(prjct)
                 data.project = prjct; 
                 data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -328,7 +328,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 return;
             end
                         
-            [ dtst prjct ] = select_Dataset(data.session,[],'Select Dataset');
+            [ dtst prjct ] = select_Dataset(data.session,'Select Dataset');
             
             if ~isempty(dtst)
                 data.project = dtst; % in  reality, dataset not project;
@@ -377,7 +377,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         new_dataset_name = char(strings(length(strings)));
         %  
         if ~strcmp(data.LoadMode,'single file')
-            if strcmp('Dataset',whos_Object(data.session,[],data.project.getId().getValue())) && ~is_Dataset_name_unique(data.project,new_dataset_name)
+            if strcmp('Dataset',whos_Object(data.session,data.project.getId().getValue())) && ~is_Dataset_name_unique(data.project,new_dataset_name)
                 errordlg('new Dataset name isn not unique - can not contuinue');
                 clear_settings;
                 updateInterface;     
@@ -427,7 +427,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         elseif strcmp(data.LoadMode,'well plate')
             
             new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, data.modulo);
-            new_dataset = get_Object_by_Id(data.session,new_dataset_id);            
+            userId = data.session.getAdminService().getEventContext().userId;
+            new_dataset = get_Object_by_Id(data.session,userId,new_dataset_id);            
             % myplates = getPlates(data.session,new_dataset_id); new_dataset = myplates(1);                         
             
         elseif strcmp(data.LoadMode,'single file')
@@ -667,9 +668,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         %
         if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') 
                                   
-            if isempty(data.project) || strcmp(whos_Object(data.session,[],data.project.getId().getValue()),'Project')
+            if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Project')
                 % doopredelaem
-                [ dtst ~ ] = select_Dataset(data.session,[],'Select Dataset');
+                [ dtst ~ ] = select_Dataset(data.session,'Select Dataset');
                 if ~isempty(dtst)
                     data.project = dtst; % in  reality, dataset not project;
                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -723,7 +724,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                                 'Plates','Cancel','Cancel');              
                         switch choice
                             case 'Datasets',
-                                prjct = select_Project(data.session,[],'Select Project');             
+                                prjct = select_Project(data.session,'Select Project');             
                                 if ~isempty(prjct)
                                     data.project = prjct; 
                                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -732,7 +733,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                 end
                                 %                                
                             case 'Plates', 
-                                scrn = select_Screen(data.session,[],'Select screen');
+                                scrn = select_Screen(data.session,'Select screen');
                                 if ~isempty(scrn)
                                     data.project = scrn; 
                                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                

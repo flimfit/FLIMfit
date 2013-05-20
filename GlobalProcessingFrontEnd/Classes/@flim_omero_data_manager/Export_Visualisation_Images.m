@@ -167,7 +167,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
             end % for plot_idx = 1:length(f.plot_names)
         end % f.n_plots > 0 
 
-        thatplate = get_Object_by_Id(obj.session,thatplateid);% uncomment if want single plate
+        thatplate = get_Object_by_Id(obj.session,obj.userid,thatplateid);% uncomment if want single plate
         add_annotations(thatplate);% uncomment if want single plate                                                   
                 
         delete(hw);
