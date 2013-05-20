@@ -43,6 +43,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    aw   = new double[ nmax * (l+1) * n_thread ]; //free ok
    bw   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
    wp   = new double[ nmax * n_thread ];
+   w    = new double[ nmax ];
 
    r_buf = new double[ nmax ];
 
@@ -81,6 +82,7 @@ VariableProjector::~VariableProjector()
    delete[] aw;
    delete[] bw;
    delete[] wp;
+   delete[] w;
 
    delete[] fjac;
    delete[] diag;
@@ -153,9 +155,59 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    int nfev, info;
    double rnorm; 
 
-   int mskip = min(10,(int) ceil((float)s/max_jacb));
+   // Calculate weighting
+   // If required use, Parameter Estimation in Astronomy with Poisson-distributed Data. I. The 
+   // Reference: http://iopscience.iop.org/0004-637X/518/1/380/
+
+
+  
+   if (weighting == AVERAGE_WEIGHTING)
+   {
+      bool avg_has_zeros = false;
+      for(int i=0; i<n; i++)
+         if (avg_y[i] == 0.0f)
+         {
+            avg_has_zeros = true;
+            break;
+         }
+
+      if (avg_has_zeros)
+      {
+         /*
+         for (int i=0; i<n; i++)
+         {
+         
+            if (avg_y[i] == 0.0f)
+               w[i] = 1;
+            else
+               w[i] = 1/sqrt(avg_y[i]);
+         }
+         */
+         for (int i=0; i<n; i++)
+            w[i] = 1/sqrt(avg_y[i]+1);
+      
+         for(int j=0; j<s; j++)
+            for (int i=0; i < n; ++i)
+                  y[i + j * nmax] += min(y[i + j * nmax], 1.0f);
+      }
+      else
+      {
+         for (int i=0; i<n; i++)
+            w[i] = 1/sqrt(avg_y[i]);
+      }
+   }
+
+   int mskip = 1; //max(10,(int) ceil((float)s/max_jacb));
 
    n_call = 0;
+
+   if (weighting == AVERAGE_WEIGHTING && !getting_errs)
+   {
+      float* adjust = model->GetConstantAdjustment();
+      for(int j=0; j<s; j++)
+         for (int i=0; i < n; ++i)
+               y[i + j * nmax] = (y[i + j * nmax]-adjust[i]) * w[i];
+   }
 
    if (weighting != AVERAGE_WEIGHTING)
    {
@@ -180,9 +232,15 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    // Get linear parameters
-   if (!getting_errs)
-      varproj(nsls1, nl, mskip, alf, fvec, fjac, -1);
-
+   if (info == -8)
+   {
+      SetNaN(alf,nl);
+   }
+   else
+   {
+      if (!getting_errs)
+         varproj(nsls1, nl, mskip, alf, fvec, fjac, -1);
+   }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -194,6 +252,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    
    //*ierr = info;
    
+
    return 0;
 
 
@@ -402,6 +461,7 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
       int omp_thread = omp_get_thread_num();
       
       double* rj = r + j * r_dim1;
+      float* yj = y + j * y_dim1;
       int k, kp1;
       double beta, acum;
     
@@ -426,18 +486,35 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
          transform_ab(isel, j, omp_thread, firstca, firstcb);
 
       // Get the data we're about to transform
-      if (!philp1)
+      if (weighting == AVERAGE_WEIGHTING)
       {
-         for (int i=0; i < n; ++i)
-            rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i];
+         if (!philp1)
+         {
+            for(int i=0; i < n; ++i)
+               rj[i] = yj[i];
+         }
+         else
+         {
+            for(int i=0; i < n; ++i)
+               rj[i] = yj[i] - aw[i + l * a_dim1];
+         } 
       }
       else
       {
-         // Store the data in rj, subtracting the column l+1 which does not
-         // have a linear parameter
-         for(int i=0; i < n; ++i)
-            rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i] - aw[i + l * a_dim1];
+         if (!philp1)
+         {
+            for (int i=0; i < n; ++i)
+               rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i];
+         }
+         else
+         {
+            // Store the data in rj, subtracting the column l+1 which does not
+            // have a linear parameter
+            for(int i=0; i < n; ++i)
+               rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i] - aw[i + l * a_dim1];
+         }  
       }
+
 
       // Transform Y, getting Q*Y=R 
       for (k = 0; k < l; ++k) 
@@ -531,9 +608,9 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    for(int i=0; i<n; i++)
    {
       if (wp[i] <= 0)
-         wp[i] = (double)sqrt((double)1);
+         wp[i] = 1;
       else
-         wp[i] = (double)sqrt(((double)1)/wp[i]);
+         wp[i] = (double) sqrt(1.0/wp[i]);
    }
 }
 
@@ -620,12 +697,12 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
          for (m = 0; m < p; ++m)
          {
             acum = u[k] * bw[k + m * b_dim1];
-            for (i = k; i < n; ++i) 
+            for (i = kp1; i < n; ++i) 
                acum += aw[i + k * a_dim1] * bw[i + m * b_dim1];
             acum /= beta;
 
             bw[k + m * b_dim1] -= u[k] * acum;
-            for (i = k; i < n; ++i) 
+            for (i = kp1; i < n; ++i) 
                bw[i + m * b_dim1] -= aw[i + k * a_dim1] * acum;
          }
       }

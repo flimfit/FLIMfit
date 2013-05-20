@@ -33,6 +33,7 @@
 #include "boost/math/distributions/normal.hpp"
 #include <limits>
 #include <exception>
+#include <cmath>
 
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
@@ -42,6 +43,7 @@
 
 #include "omp_stub.h"
 
+using namespace std;
 using namespace boost::interprocess;
 
 #ifdef USE_CONCURRENCY_ANALYSIS
@@ -611,8 +613,6 @@ void FLIMGlobalFitController::Init()
    threads_active = 0;
    threads_started = 0;
 
-   int s_max;
-
    getting_fit    = false;
    use_kappa      = true;
    
@@ -813,8 +813,6 @@ void FLIMGlobalFitController::Init()
    // Supplied t_rep in seconds, convert to ps
    this->t_rep = t_rep * 1e12;
 
-   s_max = data->max_region_size;
-
    n_fret_group = n_fret + inc_donor;        // Number of decay 'groups', i.e. FRETing species + no FRET
 
    n_v = n_exp - n_fix;                      // Number of unfixed exponentials
@@ -828,11 +826,13 @@ void FLIMGlobalFitController::Init()
    l   = n_exp_phi * n_fret_group * n_pol_group;          // (varp) Number of linear parameters
 
    if (data->global_mode == MODE_GLOBAL)
-   {
       s = data->n_masked_px;                              // (varp) Number of pixels (right hand sides)
-   }
-   else
+   else if (data->global_mode == MODE_IMAGEWISE)
       s = data->n_px;
+   else
+      s = 1;
+
+   y_dim = max(s,data->n_px);
 
    max_dim = std::max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
@@ -945,8 +945,8 @@ void FLIMGlobalFitController::Init()
       
 
       alf_local    = new double[ n_fitters * nl * 3 ]; //free ok
-      y            = new float[ n_fitters * s * n_meas ]; //free ok 
-      irf_idx      = new int[ n_fitters * s ];
+      y            = new float[ n_fitters * y_dim * n_meas ]; //free ok 
+      irf_idx      = new int[ n_fitters * y_dim ];
 
       local_decay  = new float[ n_fitters * n_meas ]; //ok
       lin_local    = new float[ n_fitters * lmax ]; //ok
@@ -1292,63 +1292,6 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
 }
 
 
-
-
-/*===============================================
-  ErrMinFcn
-  ===============================================*/
-/*
-double FLIMGlobalFitController::ErrMinFcn(double x, ErrMinParams& params)
-{
-
-   using namespace boost::math;
-
-   int itmax;
-
-   int r_idx = params.r_idx;
-   
-   int n_px = data->n_px;
-   int lps = l+s;
-   int pp3 = p+3;
-
-   int    *mask = data->mask + params.group * n_px;
-   double *a = this->a + params.thread * n_meas * lps;
-   double *b = this->b + params.thread * ndim * pp3;
-   double *y = this->y + params.thread * s * n_meas;
-   double *alf = this->alf + r_idx * nl;
-   double *w = this->w + params.thread * n_meas;
-   double *adjust_buf = this->adjust_buf + params.thread * n_meas;
-   float *lin_params_err = this->lin_params_err + params.thread * l * n_px;
-   double *alf_err = this->alf_err + params.thread * nl;
-   double *fit_buf = this->fit_buf + params.thread * n_meas;
-
-   double alpha,c2,F,F_crit;
-   int nierr;
-   itmax = 10;
-
-   alpha = 0.05;
-   fisher_f dist(1, n_meas * params.s_thresh - nl - params.s_thresh * l);
-   F_crit = quantile(complement(dist, alpha));
-   
-   
-   locked_value[params.thread] = params.param_value + x;
-   alf_err[locked_param[params.thread]] = locked_value[params.thread];
-   
-   varp2_(  &params.s_thresh, &l, &lmax, &nl, &n_meas, &nmax, &ndim, &lpps1_, &lps, &pp2, 
-            t, y, w, (U_fp)ada, a, b, &iprint, &itmax, (int*)this, &params.thread, static_store, 
-            alf_err, lin_params_err, &nierr, &c2, &algorithm, alf_best );
-            
-   c2 = CalculateChi2(params.thread, params.region, params.s_thresh, y, w, a, lin_params_err, adjust_buf, fit_buf, mask, NULL);
-
-   F = (c2-params.chi2)/params.chi2*(n_meas * params.s_thresh - nl - params.s_thresh * l);
-  
-
-   return (F-F_crit)*(F-F_crit)/F_crit;
-  
-   return 0;
-}
-
-*/
 
 void FLIMGlobalFitController::CleanupTempVars()
 {

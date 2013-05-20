@@ -49,6 +49,7 @@ function get_return_data(obj)
     end
 
     r.set_param_names(param_names);
+    r.names = d.names(obj.datasets);
 
     
     n_regions_total = calllib(obj.lib_name,'GetTotalNumOutputRegions',obj.dll_id);

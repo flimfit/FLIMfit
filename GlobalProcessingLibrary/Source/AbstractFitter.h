@@ -33,6 +33,8 @@
 #include "omp_stub.h"
 #include "levmar.h"
 
+#include <cstdio>
+
 class FitModel
 {
    public: 
@@ -51,10 +53,10 @@ public:
    virtual int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr) = 0;
    virtual int GetLinearParams(int s, float* y, double* alf) = 0;
    
-   int Fit(int n, int s, int lmax, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2);
+   int Fit(int n, int s, int lmax, float* y, float *avg_y, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2);
    int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit);
    double ErrMinFcn(double x);
-   int CalculateErrors(int s, float* y, double* alf, double conf_limit, double* err_lower, double* err_upper);
+   int CalculateErrors(double* alf, double conf_limit, double* err_lower, double* err_upper);
 
    void GetParams(int nl, const double* alf);
    double* GetModel(const double* alf, int irf_idx, int isel, int thread);
@@ -104,7 +106,7 @@ protected:
    int     lp1;
 
    float  *y;
-   float  *w;
+   float  *avg_y;
    float *lin_params;
    float *chi2;
    double *t;
@@ -128,6 +130,8 @@ protected:
    double conf_limit;
 
    int search_dir;
+
+   FILE* f_debug;
 
 };
 

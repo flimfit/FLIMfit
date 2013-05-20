@@ -30,6 +30,7 @@
 
 #include "boost/math/distributions/fisher_f.hpp"
 #include "boost/math/tools/minima.hpp"
+#include <boost/math/tools/roots.hpp>
 #include "boost/bind.hpp"
 #include <limits>
 #include <exception>
@@ -149,7 +150,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2)
 {
 
    if (err != 0)
@@ -165,7 +166,7 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
    this->s          = s;
    this->lmax       = lmax;
    this->y          = y;
-   this->w          = w;
+   this->avg_y      = avg_y;
    this->lin_params = lin_params;
    this->irf_idx    = irf_idx;
    this->chi2       = chi2;
@@ -175,7 +176,7 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
 
    gnl = gnl_full;
 
-   int max_jacb = 65536; 
+   int max_jacb = s; 
 
    chi2_norm = n - ((double)(nl))/s - l;
    
@@ -186,20 +187,25 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *w, int* irf_idx
    return ret;
 }
 
+double tol(double a, double b)
+{
+   return 2*(b-a)/(a+b) < 0.001;
+}
 
-int AbstractFitter::CalculateErrors(int s, float* y, double* alf, double conf_limit, double* err_lower, double *err_upper)
+int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_lower, double *err_upper)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
 
    pair<double , double> ans;
 
+   f_debug = fopen("c:\\users\\scw09\\ERROR_DEBUG_OUTPUT4.csv","w");
+
+   if(f_debug)
+      fprintf(f_debug,"VAR, LIM,fixed_value_initial, fixed_value_cur, chi2_crit, chi2, F_crit, F\n");
+   
    if (err != 0)
       return err;
-
-   //this->s = s;
-   //this->y = y;
-   //this->smoothing = 1;
 
    this->conf_limit = conf_limit;
 
@@ -207,9 +213,6 @@ int AbstractFitter::CalculateErrors(int s, float* y, double* alf, double conf_li
    int itmax = 0;
    int niter = 0;
    int ierr = 0;
-
-   //int ret = FitFcn(nl, alf, itmax, &niter, &ierr);
-   //chi2_final = *cur_chi2;
    
    memcpy(alf_buf, alf, nl * sizeof(double));
    memcpy(inc_full, inc, 96*sizeof(int));
@@ -224,16 +227,27 @@ int AbstractFitter::CalculateErrors(int s, float* y, double* alf, double conf_li
    // Get lower (lim=0) and upper (lim=1) limit
    for(int lim=0; lim<2; lim++)
    {
+
       for(int i=0; i<gnl_full; i++)
       {
+
          fixed_param = i;
-         fixed_value_initial = alf[i];
+         fixed_value_initial = alf_buf[i];
+
+         if(f_debug)
+            fprintf(f_debug,"%d, %d, %f, %f, NaN, %f, NaN, NaN\n", i, lim, fixed_value_initial, fixed_value_initial, chi2_final);
+   
    
          Init();
 
          search_dir = lim;
 
+         uintmax_t max = 20;
 
+         ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
+                     0.0, 0.8*fixed_value_initial, tol, max);
+
+         /*
          for(int k=0; k<3; k++)
          {
             search_min = 0;
@@ -245,18 +259,24 @@ int AbstractFitter::CalculateErrors(int s, float* y, double* alf, double conf_li
             if (ans.second < 1e-1) // this is the value at the minimum, should be zero
                break;   
          }
-
-         if (ans.second > 1)
-            ans.first = NaN();
+         */
+         //if (ans.second > 1)
+         //   ans.first = NaN();
            
 
          if (lim==0)
-            err_lower[i] = ans.first;
+            err_lower[i] = (ans.first+ans.second)/2;
          else
-            err_upper[i] = ans.first;
+            err_upper[i] = (ans.first+ans.second)/2;
       }
    }
+
+   if(f_debug)
+      fclose(f_debug);
+
    return 0;
+
+
 }
 
 
@@ -274,7 +294,7 @@ double AbstractFitter::ErrMinFcn(double x)
       xs *= -1;
    fixed_value_cur = fixed_value_initial + xs; 
 
-   int nmp = n * s/smoothing - nl - s/smoothing * l;
+   int nmp = (n-l) * s/smoothing - nl - s/smoothing * l;
    //int nmp = n * s - nl - s * l;
 
    fisher_f dist(1, nmp);
@@ -282,14 +302,14 @@ double AbstractFitter::ErrMinFcn(double x)
    
    chi2_crit = chi2_final*(F_crit/nmp+1);
 
-
+   // Use default starting parameters
    int idx = 0;
    for(int j=0; j<nl; j++)
       if (j!=fixed_param)
          alf_err[idx++] = alf_buf[j];
 
 
-   int max_jacb = 1024;
+   int max_jacb = 65536;
 
    FitFcn(nl-1,alf_err,itmax,max_jacb,&niter,&ierr);
             
@@ -297,7 +317,10 @@ double AbstractFitter::ErrMinFcn(double x)
    
    dF = (F-F_crit)/F_crit;
 
-   return dF*dF;
+   if(f_debug)
+      fprintf(f_debug,"%d, %d, %f, %f, %f, %f, %f, %f\n",fixed_param,search_dir,fixed_value_initial,fixed_value_cur,chi2_crit,*cur_chi2,F_crit,F);
+
+   return F-F_crit;
 }
 
 

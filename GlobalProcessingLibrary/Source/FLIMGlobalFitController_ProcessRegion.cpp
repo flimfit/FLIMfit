@@ -83,26 +83,25 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_mode == MODE_PIXELWISE)
    {
-      y             = this->y;
+      y             = this->y             + px * n_meas;
       irf_idx       = this->irf_idx       + px;
       alf           = this->alf           + start * nl; 
       alf_err_lower = this->alf_err_lower + start * nl; 
       alf_err_upper = this->alf_err_upper + start * nl; 
 
-      s_thresh = data->GetRegionData(thread, g, region, px, y, NULL, NULL, NULL, w, irf_idx, local_decay);
+      memcpy(local_decay,y,n_meas*sizeof(float));
       data->DetermineAutoSampling(thread, local_decay, nl+1);
-
-      y = local_decay;
+      s_thresh = 1;
    }
    else
    {
-      y             = this->y             + thread * s * n_meas;
-      irf_idx       = this->irf_idx       + thread * s;
+      y             = this->y             + thread * y_dim * n_meas;
+      irf_idx       = this->irf_idx       + thread * y_dim;
       alf           = this->alf           + nl * r_idx;
       alf_err_lower = this->alf_err_lower + nl * r_idx; 
       alf_err_upper = this->alf_err_upper + nl * r_idx; 
 
-      s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, w, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, irf_idx, local_decay);
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
@@ -191,7 +190,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       y_fit = y;
    }
 
-   projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, w, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
+   projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
                           data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
    
    // If we're fitting globally using global binning now retrieve the linear parameters
@@ -201,7 +200,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    if (calculate_errors)
    {
 
-      projectors[thread].CalculateErrors(1, local_decay, alf_local, conf_interval, err_lower_local, err_upper_local);
+      projectors[thread].CalculateErrors(alf_local, conf_interval, err_lower_local, err_upper_local);
 
       for(int i=0; i<nl; i++)
       {

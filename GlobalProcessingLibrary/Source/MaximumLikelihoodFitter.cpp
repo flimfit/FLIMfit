@@ -87,12 +87,12 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
 
    }
 
-    
+    /*
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
-    
+    */
 /*    
    double opt[4];
    opt[0] = DBL_EPSILON;

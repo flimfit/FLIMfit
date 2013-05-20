@@ -1,4 +1,4 @@
-function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
+function im_data = plot_figure(obj,h,hc,dataset,im,merge,text,indexing)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -31,8 +31,8 @@ function im_data = plot_figure(obj,h,hc,dataset,im,merge,text)
     if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
         return
     end
-    intensity = f.get_intensity(dataset);
-    im_data = f.get_image(dataset,im);
+    intensity = f.get_intensity(dataset,indexing);
+    im_data = f.get_image(dataset,im,indexing);
     
     %im_data = stdfilt(im_data);
     

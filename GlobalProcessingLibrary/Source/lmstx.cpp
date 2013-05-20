@@ -286,6 +286,11 @@ using namespace std;
             }
         }
 
+
+        //TestReducedJacobian(fcn, p, m, n, x, fjac, ldfjac, qtf, wa1, wa2,  wa3, wa4);
+
+
+
 /*        compute the qr factorization of the jacobian matrix */
 /*        calculated one row at a time, while simultaneously */
 /*        forming (q transpose)*fvec and storing the first */

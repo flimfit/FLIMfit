@@ -113,7 +113,9 @@ typedef int (*minpack_funcderstx_mn)(void *p, int m, int n, int mskip, const dou
 
 
 
-
+// Function to test reduced jacobian approach
+void TestReducedJacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, double *x, double *fjac,
+                         int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, double *wa4);
 
 
 

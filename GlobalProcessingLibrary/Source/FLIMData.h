@@ -72,7 +72,7 @@ public:
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
-   int GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay);
+   int GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay);
    int GetMaskedData(int thread, int im, int region, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx);
 
    
@@ -111,7 +111,6 @@ public:
 
    int n_regions_total;
    int n_output_regions_total;
-   int max_region_size;
    int data_type;
 
    int data_skip;
@@ -310,35 +309,36 @@ int FLIMData::CalculateRegions()
       // We already have segmentation mask, now calculate integrated intensity
       // and apply min intensity and max bin mask
       //----------------------------------------------------
-         
-      for(int p=0; p<n_px; p++)
+      if (slot >= 0)
       {
-         T* ptr = cur_data_ptr + p*n_meas_full;
-         uint8_t* mask_ptr = mask + im*n_px + p;
-         double intensity = 0;
-         for(int k=0; k<n_chan; k++)
+         for(int p=0; p<n_px; p++)
          {
-            for(int j=0; j<n_t_full; j++)
+            T* ptr = cur_data_ptr + p*n_meas_full;
+            uint8_t* mask_ptr = mask + im*n_px + p;
+            double intensity = 0;
+            for(int k=0; k<n_chan; k++)
             {
-               if (limit > 0 && *ptr >= limit)
-                  *mask_ptr = 0;
+               for(int j=0; j<n_t_full; j++)
+               {
+                  if (limit > 0 && *ptr >= limit)
+                     *mask_ptr = 0;
 
-               intensity += *ptr;
-               ptr++;
+                  intensity += *ptr;
+                  ptr++;
+               }
             }
+            if (background_type == BG_VALUE)
+               intensity -= background_value * n_meas_full;
+            else if (background_type == BG_IMAGE)
+               intensity -= background_image[p] * n_meas_full;
+            else if (background_type == BG_TV_IMAGE)
+               intensity -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full);
+
+            if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
+               *mask_ptr = 0;
+
          }
-         if (background_type == BG_VALUE)
-            intensity -= background_value * n_meas_full;
-         else if (background_type == BG_IMAGE)
-            intensity -= background_image[p] * n_meas_full;
-         else if (background_type == BG_TV_IMAGE)
-            intensity -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full);
-
-         if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
-            *mask_ptr = 0;
-
       }
-
       MarkCompleted(slot);
 
       // Determine how many regions we have in each image
@@ -485,6 +485,8 @@ int FLIMData::GetStreamedData(int im, T*& data)
             break;
          }
       }   
+      if (status->terminate)
+         return -1;
 
       if (slot == -1)
          data_avail_cond.wait(data_mutex);
@@ -492,7 +494,10 @@ int FLIMData::GetStreamedData(int im, T*& data)
    while( slot == -1 );
    data_mutex.unlock();
 
-   data = (T*) tr_buf_  + slot * n_p;
+   if (slot == -1)
+      data = NULL;
+   else
+      data = (T*) tr_buf_  + slot * n_p;
 
    return slot;
 }
@@ -515,10 +520,12 @@ void FLIMData::TransformImage(int thread, int im)
    int slot = GetStreamedData(im, tr_buf);  
    T* cur_data_ptr = tr_buf;
 
-      
+   if (slot == -1)
+      return;
+
    float photons_per_count = (float) (1/counts_per_photon);
 
-   
+
    if ( smoothing_factor == 0 )
    {
       float* tr_ptr = tr_data;
@@ -654,18 +661,18 @@ void FLIMData::TransformImage(int thread, int im)
       float perp;
 
       float* r_ptr = r_ss;
-      cur_data_ptr = (T*) tr_data;
+      float*  tr_data_ptr = tr_data;
       for(int p=0; p<n_px; p++)
       {
          para = 0;
          perp = 0;
 
          for(int i=0; i<n_t; i++)
-            para += cur_data_ptr[i];
-         cur_data_ptr += n_t;
+            para += tr_data_ptr[i];
+         tr_data_ptr += n_t;
          for(int i=0; i<n_t; i++)
-            perp += cur_data_ptr[i];
-         cur_data_ptr += n_t;
+            perp += tr_data_ptr[i];
+         tr_data_ptr += n_t;
 
          perp *= (float) g_factor;
 

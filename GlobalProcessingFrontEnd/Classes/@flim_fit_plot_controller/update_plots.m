@@ -65,8 +65,10 @@ function update_plots(obj,file_root)
     
     if ~save
         ims = obj.dataset_selected;
+        indexing = 'dataset';
     else
         ims = 1:r.n_results;
+        indexing = 'result';
     end
     
     for cur_im = ims
@@ -90,7 +92,7 @@ function update_plots(obj,file_root)
                         [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
                     end
                     
-                    im_data = obj.plot_figure(h,c,cur_im,plot_idx,false,'');
+                    im_data = obj.plot_figure(h,c,cur_im,plot_idx,false,'',indexing);
                     
                     subplot_idx = subplot_idx + 1;
                     if save
@@ -108,7 +110,7 @@ function update_plots(obj,file_root)
                         [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
                     end
                     
-                    obj.plot_figure(h,c,cur_im,plot_idx,true,'');
+                    obj.plot_figure(h,c,cur_im,plot_idx,true,'',indexing);
                   
                     subplot_idx = subplot_idx + 1;
                     if save

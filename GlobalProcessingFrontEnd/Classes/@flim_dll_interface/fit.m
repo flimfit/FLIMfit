@@ -63,7 +63,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
         obj.fit_result.width = data_series.width;
         obj.fit_result.height = data_series.height;
         obj.fit_result.binned = obj.bin;
-        obj.fit_result.names = obj.data_series.names;
                 
     end
     

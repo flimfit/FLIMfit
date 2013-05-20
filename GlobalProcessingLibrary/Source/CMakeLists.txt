@@ -65,6 +65,7 @@ set(SOURCE
    fdjac2.cpp
    cminpack_support.cpp
    util.cpp
+   TestReducedJacobian.cpp
 )
 
 set(HEADERS   

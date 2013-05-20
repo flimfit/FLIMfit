@@ -64,7 +64,7 @@ private:
 
    double d_sign(double *a, double *b);
 
-   double *work; 
+   double *work, *w; 
    double *aw, *bw, *wp;
 
    // Buffers used by levmar algorithm

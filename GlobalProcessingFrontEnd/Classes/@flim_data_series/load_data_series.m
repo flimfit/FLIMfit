@@ -108,8 +108,9 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     else % widefield
 
         folder_names = get_folders_recursive(root_path);
-                
+            
         folder_names = sort_nat(folder_names);    
+        
         
         if isempty(selected)
             [folder_names, ~, obj.lazy_loading] = dataset_selection(folder_names);
@@ -119,6 +120,8 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             folder_names = folder_names(selected);
             obj.lazy_loading = false;
         end
+        
+        safe_folder_names = strrep(folder_names,filesep,' ');  
         
         n_datasets = length(folder_names);
         
@@ -150,8 +153,9 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         %set names
         obj.names = cell(1,n_datasets);
 
-        for j=1:n_datasets
-            obj.names{j} = folder_names{j};
+        
+        for j=1:n_datasets  
+            obj.names{j} = safe_folder_names{j};
         end
     end    
    

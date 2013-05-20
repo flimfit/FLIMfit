@@ -74,7 +74,7 @@ function mapfile = init_raw_data(file,t,data_size,n_datasets,metadata,t_irf,irf,
     dinfo.num_datasets = n_datasets;
     dinfo.mode = mode;
     dinfo.t_int = t_int;
-    dinfo.format = format;
+    dinfo.data_type = format;
 
     if nargin > 6
         dinfo.irf = irf;

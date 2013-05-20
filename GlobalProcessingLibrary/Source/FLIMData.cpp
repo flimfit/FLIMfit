@@ -100,10 +100,13 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
       for(int i=0; i<n_im; i++)
       {
          if (use_im[i])
-         {
-            use_im[n_im_used] = i;
-            n_im_used++;
-         }
+            for(int j=0; j<n_x*n_y; j++)
+               if(this->mask[i*n_x*n_y+j] > 0)
+               {
+                  use_im[n_im_used] = i;
+                  n_im_used++;
+                  break;
+               }
       }
    }
    else
@@ -508,15 +511,10 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, float* weight, int* irf_idx, float* local_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay)
 {
    int s = 0;
 
-   if ( global_mode == MODE_PIXELWISE )
-   {
-      s = 1;
-      region_data = region_data + px * n_meas;
-   }
    if ( global_mode == MODE_IMAGEWISE )
    {
       s = GetMaskedData(thread, group, region, region_data, intensity_data, r_ss_data, acceptor_data, irf_idx);
@@ -534,26 +532,14 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
       }
    }
 
-   memset(weight,0, n_meas * sizeof(float));
+   memset(local_decay,0, n_meas * sizeof(float));
 
    for(int i=0; i<s; i++)
       for(int j=0; j<n_meas; j++)
-         weight[j] += region_data[i*n_meas + j];
+         local_decay[j] += region_data[i*n_meas + j];
       
-
    for(int j=0; j<n_meas; j++)
-      weight[j] /= s;
-
-   for(int j=0; j<n_meas; j++)
-      local_decay[j] = weight[j];
-
-   for(int j=0; j<n_meas; j++)
-   {
-      if (weight[j] <= 0)
-         weight[j] = 1;   // If we have a zero data point set to 1
-      else
-         weight[j] = 1/sqrt(weight[j]);
-   }
+      local_decay[j] /= s;
 
    return s;
 }

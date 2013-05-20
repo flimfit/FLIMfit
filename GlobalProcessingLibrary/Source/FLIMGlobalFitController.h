@@ -131,6 +131,7 @@ public:
    
    bool polarisation_resolved;
    int n_chan, n_meas, n_pol_group;
+   int y_dim;
    int n_theta, n_theta_fix, n_theta_v, n_r, inc_rinf;
    double *theta_guess;
    double *theta, *theta_err, *r;
