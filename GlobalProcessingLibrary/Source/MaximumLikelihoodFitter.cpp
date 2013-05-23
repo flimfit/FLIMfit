@@ -82,9 +82,13 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
          if (dy[j]>mx)
             mx = dy[j]; 
       }
+#if CONSTRAIN_FRACTIONS
       for(int j=0; j<l; j++)
          alf[nl-l+j] = log(mx/l);
-
+#else
+      for(int j=0; j<l; j++)
+         alf[nl-l+j] = mx/l;
+#endif
    }
 
     /*
@@ -122,9 +126,13 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
 
    if(!getting_errs)
    {
+#if CONSTRAIN_FRACTIONS
       for(int i=0; i<l; i++)
          lin_params[i] = (float) (exp(alf[nvar-l+i]) / smoothing);
-
+#else
+      for(int i=0; i<l; i++)
+         lin_params[i] = (float) (alf[nvar-l+i] / smoothing);
+#endif
       chi2[0] = (float) *cur_chi2;
    }
    
@@ -144,6 +152,7 @@ int MaximumLikelihoodFitter::GetLinearParams(int s, float* y, double* alf)
    return 0;
 }
 
+
 void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int nfunc)
 {
    int i,j;
@@ -154,21 +163,24 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
    
    double* A = alf+gnl;
 
+#if CONSTRAIN_FRACTIONS
    for(i=0; i<l; i++)
       expA[i] = exp(A[i]);
-
-   //memset(fvec,0,nfunc*sizeof(double));
+#else
+   for(i=0; i<l; i++)
+      expA[i] = A[i];
+#endif
 
    for (i=0; i<n; i++)
    {
       fvec[i] = adjust[i] * smoothing;
       for(j=0; j<l; j++)
-         fvec[i] += expA[j]*a[i+n*j];
+         fvec[i] += expA[j]*a_[i+n*j];
    }
 
    if (philp1)
       for (i=0; i<n; i++)
-         fvec[i] += a[i+n*l];
+         fvec[i] += a_[i+n*l];
       
 
    fvec[n] = kap[0]+1;
@@ -197,7 +209,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
             if (inc[k + j * 12] != 0)
             {
                for (i=0; i<n; i++)
-                  fjac[nl*i+k] += expA[j] * b[ndim*m+i];
+                  fjac[nl*i+k] += expA[j] * b_[ndim*m+i];
                fjac[nl*i+k] = kap[k+1];
                m++;
             }
@@ -205,7 +217,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
          if (inc[k + l * 12] != 0)
          {
             for (i=0; i<n; i++)
-               fjac[nl*i+k] += b[ndim*m+i];
+               fjac[nl*i+k] += b_[ndim*m+i];
             fjac[nl*i+k] = kap[k+1];
             m++;
          }
@@ -214,8 +226,13 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    // Set derv's for I
    for(j=0; j<l; j++)
    {
+#if CONSTRAIN_FRACTIONS
          for (i=0; i<n; i++)
-            fjac[nl*i+j+k_sub] = expA[j] * a[i+n*j];
+            fjac[nl*i+j+k_sub] = expA[j] * a_[i+n*j];
+#else
+         for (i=0; i<n; i++)
+            fjac[nl*i+j+k_sub] = a_[i+n*j];
+#endif
          fjac[nl*i+j+k_sub] = 0; // kappa derv. for I
    }
 }

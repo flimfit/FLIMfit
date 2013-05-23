@@ -80,10 +80,9 @@ protected:
    int     nconp1;
    int     philp1;
 
-   double *a;
+   double *a_;
    double *r;
-   double *b;
-   double *u;
+   double *b_;
    double *kap;
    double *params; 
    double *alf_err;

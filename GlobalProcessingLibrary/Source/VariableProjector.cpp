@@ -38,12 +38,14 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
 
-   work = new double[nmax * n_thread];
+   work_ = new double[nmax * n_thread];
 
-   aw   = new double[ nmax * (l+1) * n_thread ]; //free ok
-   bw   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
-   wp   = new double[ nmax * n_thread ];
-   w    = new double[ nmax ];
+   aw_   = new double[ nmax * (l+1) * n_thread ]; //free ok
+   bw_   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
+   wp_   = new double[ nmax * n_thread ];
+   u_    = new double[ l * n_thread ];
+   w     = new double[ nmax ];
+
 
    r_buf = new double[ nmax ];
 
@@ -78,10 +80,11 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
 VariableProjector::~VariableProjector()
 {
-   delete[] work;
-   delete[] aw;
-   delete[] bw;
-   delete[] wp;
+   delete[] work_;
+   delete[] aw_;
+   delete[] bw_;
+   delete[] wp_;
+   delete[] u_;
    delete[] w;
 
    delete[] fjac;
@@ -161,47 +164,52 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
 
 
   
+   using_gamma_weighting = false;
    if (weighting == AVERAGE_WEIGHTING)
-   {
-      bool avg_has_zeros = false;
       for(int i=0; i<n; i++)
          if (avg_y[i] == 0.0f)
          {
-            avg_has_zeros = true;
+            using_gamma_weighting = true;
             break;
          }
 
-      if (avg_has_zeros)
+   if (using_gamma_weighting)
+   {
+      /*
+      for (int i=0; i<n; i++)
       {
-         /*
-         for (int i=0; i<n; i++)
-         {
          
-            if (avg_y[i] == 0.0f)
-               w[i] = 1;
-            else
-               w[i] = 1/sqrt(avg_y[i]);
-         }
-         */
-         for (int i=0; i<n; i++)
-            w[i] = 1/sqrt(avg_y[i]+1);
-      
-         for(int j=0; j<s; j++)
-            for (int i=0; i < n; ++i)
-                  y[i + j * nmax] += min(y[i + j * nmax], 1.0f);
-      }
-      else
-      {
-         for (int i=0; i<n; i++)
+         if (avg_y[i] == 0.0f)
+            w[i] = 1;
+         else
             w[i] = 1/sqrt(avg_y[i]);
       }
+      */
+      for (int i=0; i<n; i++)
+         w[i] = 1/sqrt(avg_y[i]+1);
+      
+      for(int j=0; j<s; j++)
+         for (int i=0; i < n; ++i)
+               y[i + j * nmax] += min(y[i + j * nmax], 1.0f);
    }
+   else
+   {
+      for (int i=0; i<n; i++)
+         w[i] = 1/sqrt(avg_y[i]);
+   }
+
 
    int mskip = 1; //max(10,(int) ceil((float)s/max_jacb));
 
    n_call = 0;
 
-   if (weighting == AVERAGE_WEIGHTING && !getting_errs)
+   if (iterative_weighting)
+   {
+      varproj(nsls1, nl, mskip, alf, fvec, fjac, 0);
+      n_call = 1;
+   }
+
+   if (false && weighting == AVERAGE_WEIGHTING && !getting_errs)
    {
       float* adjust = model->GetConstantAdjustment();
       for(int j=0; j<s; j++)
@@ -239,7 +247,10 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    else
    {
       if (!getting_errs)
+      {
          varproj(nsls1, nl, mskip, alf, fvec, fjac, -1);
+         varproj(nsls1, nl, 1, alf, fvec, fjac, -2);
+      }
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
@@ -267,6 +278,7 @@ int VariableProjector::GetLinearParams(int s, float* y, double* alf)
    this->s   = s;
 
    varproj(nsls1, nl, 1, alf, fvec, fjac, -1);
+   varproj(nsls1, nl, 1, alf, fvec, fjac, -2);
    
    return 0;
 
@@ -286,7 +298,7 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
 {
 
    int firstca, firstcb;
-   int get_lin;
+   int get_lin, iterative_weighting_buf, weighting_buf;
    int isel;
 
    int is, i, j, m, d_idx;
@@ -332,11 +344,27 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
 /*     .................................................................. */
 
    get_lin = false;
+   iterative_weighting_buf = iterative_weighting;
+   weighting_buf = weighting;
 
    if (iflag == -1)
    {
       isel = 2;
       get_lin = true;
+   }
+   else if (iflag == -2)
+   {
+      isel = 2;
+      get_lin = true;
+      iterative_weighting = true;
+      weighting = MODEL_WEIGHTING;
+      
+      // remove gamma weighting correction to data
+      if (using_gamma_weighting)
+         for(int j=0; j<s; j++)
+            for (int i=0; i < n; ++i)
+              if (y[i+j*nmax] > 0)
+                  y[i+j*nmax] -= 1;
    }
    else
    {
@@ -411,11 +439,10 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
             CalculateWeights(is, alf, omp_thread); 
             transform_ab(isel, is, omp_thread, firstca, firstcb);
          }
-         bacsub(r_buf, aw, r_buf);
+         bacsub(r_buf, aw_, r_buf);
+         
       }
 
-
-      //rs = r + is * r_dim1;
       rs = r_buf;
 
       m = 0;
@@ -426,14 +453,14 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
          {
             if (inc[k + j * 12] != 0) 
             {
-               acum += bw[i + m * b_dim1] * rs[j];
+               acum += bw_[i + m * b_dim1] * rs[j];
                ++m;
             }
          }
 
          if (inc[k + l * 12] != 0)
          {   
-            acum += bw[i + m * b_dim1];
+            acum += bw_[i + m * b_dim1];
             ++m;
          }
 
@@ -471,11 +498,11 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
       else
          idx = 0;
 
-      aw = this->aw + idx * nmax * (l+1);
-      wp = this->wp + idx * nmax;
-      u  = this->u + idx * l;
+      aw = aw_ + idx * nmax * (l+1);
+      wp = wp_ + idx * nmax;
+      u  = u_  + idx * l;
 
-      work = this->work + omp_thread * nmax;
+      work = this->work_ + omp_thread * nmax;
 
       if (variable_phi)
          GetModel(alf, irf_idx[j], isel, omp_thread);
@@ -486,7 +513,8 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
          transform_ab(isel, j, omp_thread, firstca, firstcb);
 
       // Get the data we're about to transform
-      if (weighting == AVERAGE_WEIGHTING)
+      
+      if (false && weighting == AVERAGE_WEIGHTING)
       {
          if (!philp1)
          {
@@ -561,6 +589,9 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
 
    n_call++;
 
+   iterative_weighting = iterative_weighting_buf;
+   weighting = weighting_buf;
+
    if (isel < 0)
       iflag = isel;
    return iflag;
@@ -570,47 +601,49 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
 void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
    float*  y = this->y + px * nmax;
-   double* wp = this->wp + omp_thread * nmax;
+   double* wp = wp_ + omp_thread * nmax;
+   
+   double *a;
+   if (variable_phi)
+      a = a_ + omp_thread * nmax * lp1;
+   else
+      a = a_;
 
-   if (weighting == AVERAGE_WEIGHTING)
+   if (weighting == AVERAGE_WEIGHTING || n_call == 0)
    {
       for (int i=0; i<n; i++)
          wp[i] = w[i];
       return;
    }
-   else if (weighting == PIXEL_WEIGHTING || n_call == 0)
+   else if (weighting == PIXEL_WEIGHTING)
    {
       for (int i=0; i<n; i++)
          wp[i] = y[i];
    }
    else // MODEL_WEIGHTING
    {
-      double *a;
-      if (variable_phi)
-         a  = this->a + omp_thread * nmax * lp1;
-      else
-         a = this->a;
-
-      float *lin_params = this->lin_params + px*l;
+      
 
       for(int i=0; i<n; i++)
       {
          wp[i] = 0;
          for(int j=0; j<l; j++)
-            wp[i] += a[n*j+i] * lin_params[j];
-         wp[i] += a[n*l+i];
+            wp[i] += a[n*j+i] * lin_params[px*lmax+j];
+         if (philp1)
+            wp[i] += a[n*l+i];
       }
    }
 
    if (n_call != 0)
-      model->GetWeights(y, a, alf, lin_params, wp, irf_idx[px], thread);
+      model->GetWeights(y, a, alf, lin_params+px*lmax, wp, irf_idx[px], thread);
 
    for(int i=0; i<n; i++)
    {
       if (wp[i] <= 0)
          wp[i] = 1;
       else
-         wp[i] = (double) sqrt(1.0/wp[i]);
+         wp[i] = sqrt(1.0/wp[i]);
+
    }
 }
 
@@ -625,21 +658,17 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 
    int i, m, k, kp1;
 
-   double *a, *b, *u, *aw, *bw, *wp;
-   aw = this->aw + omp_thread * nmax * lp1;
-   bw = this->bw + omp_thread * ndim * ( p_full + 3 );
-   u  = this->u  + omp_thread * l;
-   wp = this->wp + omp_thread * nmax;
+   double* aw = aw_ + omp_thread * nmax * lp1;
+   double* bw = bw_ + omp_thread * ndim * ( p_full + 3 );
+   double* u  = u_  + omp_thread * l;
+   double* wp = wp_ + omp_thread * nmax;
       
+   double *a = a_; 
+   double *b = b_;
    if (variable_phi)
    {
-      a  = this->a + omp_thread * nmax * lp1;
-      b  = this->b + omp_thread * ndim * ( p_full + 3 );
-   }
-   else
-   {
-      a = this->a;
-      b = this->b;
+      a  += omp_thread * nmax * lp1;
+      b  += omp_thread * ndim * ( p_full + 3 );
    }
    
    if (firstca >= 0)

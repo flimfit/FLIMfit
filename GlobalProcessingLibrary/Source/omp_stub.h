@@ -44,3 +44,17 @@ void omp_set_num_threads(int num_threads);
 #endif
 
 #endif
+
+/*
+
+Incorporating grand central dispatch...
+
+#define START_PARALLEL_FOR(INDEX,MIN,MAX) \
+   dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);   \
+   dispatch_apply(n_omp_thread, queue, ^(size_t omp_thread){                                 \
+      for(int INDEX=MIN+omp_thread; INDEX<MAX; INDEX+=n_omp_thread)
+
+
+#define END_PARALLEL_FOR() });
+
+*/

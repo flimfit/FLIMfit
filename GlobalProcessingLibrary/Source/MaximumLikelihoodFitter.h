@@ -30,6 +30,8 @@
 #ifndef _MAXIMIUMLIKELIHOODFITTER_H
 #define _MAXIMIUMLIKELIHOODFITTER_H
 
+#define CONSTRAIN_FRACTIONS 1
+
 #include "AbstractFitter.h"
 
 class MaximumLikelihoodFitter : public AbstractFitter

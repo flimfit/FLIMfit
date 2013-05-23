@@ -297,11 +297,9 @@ int FLIMData::CalculateRegions()
 
    tthread::thread loader_thread(StartDataLoaderThread,(void*)this); // ok
 
-
    #pragma omp parallel for schedule(dynamic, 1)
    for(int i=0; i<n_im_used; i++)
    {
-
       int im = i;
       if (use_im != NULL)
             im = use_im[im];

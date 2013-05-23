@@ -45,10 +45,9 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl
 {
    err = 0;
 
-   a   = NULL;
+   a_   = NULL;
    r   = NULL;
-   b   = NULL;
-   u   = NULL;
+   b_   = NULL;
    kap = NULL;
    alf_buf = NULL;
    alf_err = NULL;
@@ -66,22 +65,20 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl
       err = ERR_INVALID_INPUT;
       return;
    }
+   
+   lp1 = l+1;
 
-   a   = new double[ nmax * (l+1) * n_thread ]; //free ok
-   r   = new double[ nmax * smax ];
-   b   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
-   u   = new double[ l * n_thread ];
-   kap = new double[ nl + 1 ];
-
-   params = new double[ nl ];
+   a_      = new double[ nmax * lp1 * n_thread ]; //free ok
+   r       = new double[ nmax * smax ];
+   b_      = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
+   kap     = new double[ nl + 1 ];
+   params  = new double[ nl ];
    alf_err = new double[ nl ];
    alf_buf = new double[ nl ];
 
    fixed_param = -1;
 
    getting_errs = false;
-
-   lp1 = l+1;
 
    Init();
 
@@ -350,8 +347,8 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
          params[i] = alf[idx++];
    }
 
-   double* a = this->a + omp_thread * nmax * (l+1);
-   double* b = this->b + omp_thread * ndim * ( p_full + 3 );
+   double* a = a_ + omp_thread * nmax * (l+1);
+   double* b = b_ + omp_thread * ndim * ( p_full + 3 );
 
    model->CalculateModel(a, b, kap, params, irf_idx, isel, thread * n_thread + omp_thread);
 
@@ -383,16 +380,16 @@ int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_para
    if (err != 0)
       return err;
 
-   model->CalculateModel(a, b, kap, alf, irf_idx, 1, 0);
+   model->CalculateModel(a_, b_, kap, alf, irf_idx, 1, 0);
 
    int idx = 0;
    for(int i=0; i<n_meas; i++)
    {
       fit[idx] = adjust[i];
       for(int j=0; j<l; j++)
-         fit[idx] += a[n_meas*j+i] * lin_params[j];
+         fit[idx] += a_[n_meas*j+i] * lin_params[j];
 
-      fit[idx] += a[n_meas*l+i];
+      fit[idx] += a_[n_meas*l+i];
       fit[idx++] *= counts_per_photon;
    }
 
@@ -407,9 +404,8 @@ void AbstractFitter::ReleaseResidualMemory()
 AbstractFitter::~AbstractFitter()
 {
    ClearVariable(r);
-   ClearVariable(a);
-   ClearVariable(b);
-   ClearVariable(u);
+   ClearVariable(a_);
+   ClearVariable(b_);
    ClearVariable(kap);
 
    ClearVariable(params);

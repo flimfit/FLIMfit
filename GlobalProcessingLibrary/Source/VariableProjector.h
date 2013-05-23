@@ -64,8 +64,8 @@ private:
 
    double d_sign(double *a, double *b);
 
-   double *work, *w; 
-   double *aw, *bw, *wp;
+   double *work_, *w; 
+   double *aw_, *bw_, *wp_, *u_;
 
    // Buffers used by levmar algorithm
    double *fjac;
@@ -83,6 +83,7 @@ private:
    int iterative_weighting;
 
    int use_numerical_derv;
+   int using_gamma_weighting;
 
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag);

@@ -559,7 +559,10 @@ double FLIMGlobalFitController::EstimateAverageLifetime(float decay[], int p)
          sum_t += dt;
          sum_t2 += dt * dt;
 
-         log_di = log((decay[i]-adjust_buf[i])/t_int[i]);
+         if ((decay[i]-adjust_buf[i]) > 0)
+            log_di = log((decay[i]-adjust_buf[i])/t_int[i]);
+         else
+            log_di = 0;
 
          sum_tlnI += dt * log_di;
          sum_lnI  += log_di;

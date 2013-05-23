@@ -67,10 +67,12 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     % Load data file
     [obj.t,data,obj.t_int] = load_flim_file(file,channel);
     
-    if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif')
-        obj.mode = 'TCSPC';
-    else
-        obj.mode = 'widefield';
+    if ~strcmp(ext,'.raw')
+        if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif')
+            obj.mode = 'TCSPC';
+        else
+            obj.mode = 'widefield';
+        end
     end
     
     obj.file_names = {file};
