@@ -51,7 +51,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
-   int buf_dim = max(32,nl);
+   int buf_dim = max(16,nl);
    
    diag = new double[buf_dim * n_thread];
    qtf  = new double[buf_dim * n_thread];

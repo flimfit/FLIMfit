@@ -592,6 +592,7 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
             fjac_true[i + j * ldfjac] = 0.;
       }
    }
+ 
    int iflag = 2;
    (*fcn)(p, m, n, s, x, fvec, wa3, iflag++, 0);
    rwupdt(n, fjac_true, ldfjac, wa3, qtf_true, fvec, wa1, wa2);
@@ -602,7 +603,7 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
          rwupdt(n, fjac_true, ldfjac, wa3+n*j, qtf_true, fvec+j, wa1, wa2);
    }
    */
-   int dim = max(32,n);
+   int dim = max(16,n);
   
    memset(qtf, 0, dim*n_thread*sizeof(double));
    memset(fjac, 0, dim*ldfjac*n_thread*sizeof(double));
@@ -611,7 +612,7 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
    rwupdt(n, fjac, ldfjac, wa3, qtf, fvec, wa1, wa2);
 
 
-   #pragma omp parallel for
+   #pragma omp parallel for schedule(dynamic, 10)
    for (int i = 0; i<s; i++)
    {
       int thread = omp_get_thread_num();
@@ -622,19 +623,39 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
       double* wa3_  = wa3 + m * dim * thread;
       double* wa1_  = wa1 + dim * thread;
       double* wa2_  = wa2 + dim * thread;
-
+      /*
+      double* fjac_1 = fjac + dim * ldfjac * 1;
+      double* qtf_1  = qtf + dim * 1;
+      double* fvec_1 = fvec + m * 1; 
+      double* wa3_1  = wa3 + m * dim * 1;
+      double* wa1_1  = wa1 + dim * 1;
+      double* wa2_1  = wa2 + dim * 1;
+      */
+      
       (*fcn)(p, m, n, s, x, fvec_, wa3_, i+3, thread);
-      for(int j=0; j<m; j++)
-         rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, fvec_+j, wa1_, wa2_);
 
+      //memset(qtf_1, 0, dim*sizeof(double));
+      //memset(fjac_1, 0, dim*ldfjac*sizeof(double));
+
+      //for(int j=0; j<m; j++)
+      //   rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, fvec_+j, wa1_, wa2_);
+      
+      //(*fcn)(p, m, n, s, x, fvec_, wa3_, i+3, thread);
+      
+      qrfac2( m, n, wa3_, ldfjac, fvec_, wa1_, wa2_);
+      combine_givens(n, fjac_, wa3_, ldfjac, qtf_, wa1_);
+      
+      
    }
    
    for (int thread = 1; thread < n_thread; thread++)
       combine_givens(n, fjac, fjac + thread * dim * ldfjac, ldfjac, qtf, qtf + thread * dim);
+   
    /*
    delete[] qtf_true;
    delete[] fjac_true;
    */
+
    return 0;
 
 }
@@ -682,3 +703,4 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
 
 
 }
+

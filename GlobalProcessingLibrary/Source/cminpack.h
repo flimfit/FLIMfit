@@ -240,6 +240,7 @@ void CMINPACK_EXPORT chkder ( int m, int n, const double *x, double *fvec, doubl
 double CMINPACK_EXPORT dpmpar ( int i );
 
 double CMINPACK_EXPORT enorm ( int n, const double *x );
+double CMINPACK_EXPORT enorm_stride(int n, int stride, const double *x);
 
 /* compute a forward-difference approximation to the m by n jacobian
    matrix associated with a specified problem of m functions in n
@@ -294,8 +295,10 @@ void lmpar(int n, double *r, int ldr,
             double *par, double *x, double *sdiag, double *wa1, 
             double *wa2);
 void rwupdt(int n, double *r, int ldr, 
-             const double *w, double *b, double *alpha, double *cos, 
-             double *sin);
+             const double *w, double *b, double *alpha, double *cos, double *sin);
+
+void qrfac2(int m, int n, double *a, int lda, double *fvec, double *qtf, double *rdiag);
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
