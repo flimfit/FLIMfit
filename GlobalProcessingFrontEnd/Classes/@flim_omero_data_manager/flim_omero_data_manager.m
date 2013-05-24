@@ -61,7 +61,7 @@ classdef flim_omero_data_manager < handle
             %
             channel = [];
             %
-            mdta = get_FLIM_params_from_metadata(obj.session,obj.userid,image);
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
             if isempty(mdta) || isempty(mdta.delays)
                 errordlg('can not load: data have no FLIM specification');
                 return;
@@ -200,7 +200,7 @@ classdef flim_omero_data_manager < handle
                 load_as_image = false;
             end
             
-            mdta = get_FLIM_params_from_metadata(obj.session,obj.userid,image);
+            mdta = get_FLIM_params_from_metadata(obj.session,image);
             if isempty(mdta) || isempty(mdta.delays)
                 channel = [];
                 errordlg('can not load: data have no FLIM specification');
