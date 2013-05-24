@@ -354,34 +354,37 @@ float Q_rsqrt( float number )
       }
       
 //    determine a givens rotation which eliminates w(j). */
-
-      cos[j] = 1.;
-      sin[j] = 0.;
+      double cj, sj;
+      cj = 1.;
+      sj = 0.;
 	   if (rowj != 0.) 
       {
          if (fabs(r[j + j * r_dim1]) < fabs(rowj)) 
          {
             cotan = r[j + j * r_dim1] / rowj;
-            sin[j] = p5 / sqrt(p25 + p25 * (cotan * cotan));
-            cos[j] = sin[j] * cotan;
+            sj = p5 / sqrt(p25 + p25 * (cotan * cotan));
+            cj = sj * cotan;
          } else {
             tan = rowj / r[j + j * r_dim1];
-            cos[j] = p5 / sqrt(p25 + p25 * (tan * tan));
-            sin[j] = cos[j] * tan;
+            cj = p5 / sqrt(p25 + p25 * (tan * tan));
+            sj = cj * tan;
          }
 
 /*       apply the current transformation to r(j,j), b(j), and alpha. */
 
-         r[j + j * r_dim1] = cos[j] * r[j + j * r_dim1] + sin[j] * rowj;
-         temp = cos[j] * b[j] + sin[j] * *alpha;
-         *alpha = -sin[j] * b[j] + cos[j] * *alpha;
+         r[j + j * r_dim1] = cj * r[j + j * r_dim1] + sj * rowj;
+         temp = cj * b[j] + sj * *alpha;
+         *alpha = -sj * b[j] + cj * *alpha;
          b[j] = temp;
       }
+      cos[j] = cj;
+      sin[j] = sj;
    }
 
 /*     last card of subroutine rwupdt. */
 
 } /* rwupdt_ */
+
 
 
 

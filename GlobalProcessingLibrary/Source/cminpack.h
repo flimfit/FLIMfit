@@ -109,7 +109,7 @@ typedef int (*minpack_funcderstr_mn)(void *p, int m, int n, const double *x, dou
 /*         jacobian at x and return this vector in fjrow. */
 /* return a negative value to terminate lmstr1/lmstr */
 typedef int (*minpack_funcderstx_mn)(void *p, int m, int n, int mskip, const double *x, double *fnorm,
-                                     double *fjrow, int iflag );
+                                     double *fjrow, int iflag, int thread );
 
 
 
@@ -226,10 +226,10 @@ int CMINPACK_EXPORT lmstx1 ( minpack_funcderstx_mn fcn, void *p, int m, int n,
    variables by a modification of the Levenberg-Marquardt algorithm
    (user-supplied Jacobian, minimal storage, more general) */
 int CMINPACK_EXPORT lmstx (  minpack_funcderstx_mn fcn, void *p, int m,
-	      int n, int mskip, double *x, double *fjac,
+	      int n, int mskip, double *x, double *fvec, double *fjac,
 	      int ldfjac, double ftol, double xtol, double gtol,
 	      int maxfev, double *diag, int mode, double factor,
-	      int nprint, int *nfev, int *njev, double *fnorm, int *ipvt,
+	      int nprint, int n_thread, int *nfev, int *njev, double *fnorm, int *ipvt,
 	      double *qtf, double *wa1, double *wa2, double *wa3,
 	      double *wa4 );
  

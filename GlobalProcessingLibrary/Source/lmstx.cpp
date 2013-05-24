@@ -9,15 +9,23 @@
 
 #include "ConcurrencyAnalysis.h"
 
+#include "omp_stub.h"
+
 using namespace std;
 
 #define TRUE_ (1)
 #define FALSE_ (0)
 
-/* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int mskip, double *x, 
-	double *fjac, int ldfjac, double ftol,
+
+int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, double *x, 
+	double *fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread);
+
+void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *b2);
+
+/* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, double *x, 
+	double *fvec, double *fjac, int ldfjac, double ftol,
 	double xtol, double gtol, int maxfev, double *
-	diag, int mode, double factor, int nprint,
+	diag, int mode, double factor, int nprint, int n_thread,
 	int *nfev, int *njev, double *fnorm, int *ipvt, double *qtf, 
 	double *wa1, double *wa2, double *wa3, double *wa4)
 {
@@ -33,7 +41,7 @@ using namespace std;
     double d1, d2;
 
     /* Local variables */
-    int i, j, l, m_max;
+    int i, j, l;
     double par, sum;
     int sing;
     int iter;
@@ -241,7 +249,7 @@ using namespace std;
     START_SPAN("Calculating Variable Projection");
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
+    iflag = (*fcn)(p, m, n, s, x, fnorm, wa3, 0, 0);
     *nfev = 1;
     if (iflag < 0) {
 	goto TERMINATE;
@@ -279,7 +287,7 @@ using namespace std;
         if (nprint > 0) {
             iflag = 0;
             if ((iter - 1) % nprint == 0) {
-                iflag = (*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
+                iflag = (*fcn)(p, m, n, s, x, fnorm, wa3, 0, 0);
             }
             if (iflag < 0) {
                 goto TERMINATE;
@@ -300,24 +308,10 @@ using namespace std;
         START_SPAN("Factoring Jacobian");
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        for (j = 0; j < n; ++j) {
-            qtf[j] = 0.;
-            for (i = 0; i < n; ++i) {
-                fjac[i + j * ldfjac] = 0.;
-            }
-        }
-        iflag = 2;
 
-        m_max = floor(((float)m)/mskip);
-        for (i = 0; i < m_max+1; ++i) {
-        //for (i = 0; i < m+1; ++i) {
-            if ((*fcn)(p, m, n, mskip, x, &temp, wa3, iflag) < 0) {
-                goto TERMINATE;
-            }
-            rwupdt(n, fjac, ldfjac, wa3, qtf, &temp,
-                   wa1, wa2);
-            ++iflag;
-        }
+
+        factorise_jacobian(fcn, p, m, n, s, x, fvec, fjac, ldfjac, qtf, wa1, wa2, wa3, n_thread);
+
         ++(*njev);
 
 /*        if the jacobian is rank deficient, call qrfac to */
@@ -446,7 +440,7 @@ using namespace std;
             START_SPAN("Calculating Variable Projection");
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            iflag = (*fcn)(p, m, n, mskip, wa2, &fnorm1, wa3, 1);
+            iflag = (*fcn)(p, m, n, s, wa2, &fnorm1, wa3, 1, 0);
             ++(*nfev);
             if (iflag < 0) {
                 goto TERMINATE;
@@ -574,7 +568,7 @@ TERMINATE:
 	info = iflag;
     }
     if (nprint > 0) {
-	(*fcn)(p, m, n, mskip, x, fnorm, wa3, 0);
+	(*fcn)(p, m, n, s, x, fnorm, wa3, 0, 0);
     }
     return info;
 
@@ -582,3 +576,109 @@ TERMINATE:
 
 } /* lmstr_ */
 
+
+
+/* Subroutine */ int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, double *x, 
+double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread)
+{
+   /*
+   double* qtf_true = new double[n];
+   double* fjac_true = new double[n*ldfjac];
+   
+   for (int j = 0; j < n; ++j) 
+   {
+      qtf_true[j] = 0.;
+      for (int i = 0; i < n; ++i) {
+            fjac_true[i + j * ldfjac] = 0.;
+      }
+   }
+   int iflag = 2;
+   (*fcn)(p, m, n, s, x, fvec, wa3, iflag++, 0);
+   rwupdt(n, fjac_true, ldfjac, wa3, qtf_true, fvec, wa1, wa2);
+   for (int i = 0; i < s; ++i)
+   {
+      (*fcn)(p, m, n, s, x, fvec, wa3, iflag++, 0);
+      for(int j=0; j<m; j++)
+         rwupdt(n, fjac_true, ldfjac, wa3+n*j, qtf_true, fvec+j, wa1, wa2);
+   }
+   */
+   int dim = max(32,n);
+  
+   memset(qtf, 0, dim*n_thread*sizeof(double));
+   memset(fjac, 0, dim*ldfjac*n_thread*sizeof(double));
+
+   (*fcn)(p, m, n, s, x, fvec, wa3, 2, 0);
+   rwupdt(n, fjac, ldfjac, wa3, qtf, fvec, wa1, wa2);
+
+
+   #pragma omp parallel for
+   for (int i = 0; i<s; i++)
+   {
+      int thread = omp_get_thread_num();
+
+      double* fjac_ = fjac + dim * ldfjac * thread;
+      double* qtf_  = qtf + dim * thread;
+      double* fvec_ = fvec + m * thread; 
+      double* wa3_  = wa3 + m * dim * thread;
+      double* wa1_  = wa1 + dim * thread;
+      double* wa2_  = wa2 + dim * thread;
+
+      (*fcn)(p, m, n, s, x, fvec_, wa3_, i+3, thread);
+      for(int j=0; j<m; j++)
+         rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, fvec_+j, wa1_, wa2_);
+
+   }
+   
+   for (int thread = 1; thread < n_thread; thread++)
+      combine_givens(n, fjac, fjac + thread * dim * ldfjac, ldfjac, qtf, qtf + thread * dim);
+   /*
+   delete[] qtf_true;
+   delete[] fjac_true;
+   */
+   return 0;
+
+}
+
+
+
+
+void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *b2)
+{
+   // Combine two lower triangular matrices by givens transform
+
+   #define p5 .5
+   #define p25 .25
+   
+   double cos, sin, cotan, tan, r1_ij, r2_ij;
+
+   for(int i=0; i<n; i++)
+   {
+      for(int j=0; j<=i; j++)
+      {
+         r1_ij = r1[i*ldr+j];
+         r2_ij = r2[i*ldr+j];
+         cos = 1.;
+         sin = 0.;
+	      if (r2[i*ldr+j] != 0.) 
+         {
+            if (fabs(r1_ij) < fabs(r2_ij)) 
+            {
+               cotan = r1_ij / r2_ij;
+               sin = p5 / sqrt(p25 + p25 * (cotan * cotan));
+               cos = sin * cotan;
+            } 
+            else 
+            {
+               tan = r2_ij / r1_ij;
+               cos = p5 / sqrt(p25 + p25 * (tan * tan));
+               sin = cos * tan;
+            }
+            r1[i*ldr+j] = cos * r1_ij + sin * r2_ij;
+         }
+      }
+      if (r2_ij != 0.) 
+         b1[i] = cos * b1[i] + sin * b2[i];
+   }
+
+
+}

@@ -52,7 +52,7 @@ private:
 
    void Cleanup();
 
-   int varproj(int nsls1, int nls, int mskip, const double *alf, double *rnorm, double *fjrow, int iflag);   
+   int varproj(int nsls1, int nls, int mskip, const double *alf, double *rnorm, double *fjrow, int iflag, int thread);   
    
    void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
 
@@ -75,7 +75,7 @@ private:
    double *wa1, *wa2, *wa3, *wa4;
    int    *ipvt;
    
-   double* r_buf;
+   double* r_buf_;
  
    int n_call;
 
@@ -86,7 +86,7 @@ private:
    int using_gamma_weighting;
 
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
-   friend int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag);
+   friend int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
 };
 
 

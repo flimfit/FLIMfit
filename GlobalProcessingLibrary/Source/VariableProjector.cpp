@@ -47,30 +47,30 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    w     = new double[ nmax ];
 
 
-   r_buf = new double[ nmax ];
+   r_buf_ = new double[ nmax * n_thread ];
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
-   int buf_dim = max(1,nl);
+   int buf_dim = max(32,nl);
    
-   diag = new double[buf_dim];
-   qtf  = new double[buf_dim];
-   wa1  = new double[buf_dim];
-   wa2  = new double[buf_dim];
-   wa3  = new double[buf_dim];
-   ipvt = new int[buf_dim];
+   diag = new double[buf_dim * n_thread];
+   qtf  = new double[buf_dim * n_thread];
+   wa1  = new double[buf_dim * n_thread];
+   wa2  = new double[buf_dim * n_thread];
+   wa3  = new double[buf_dim * n_thread * nmax];
+   ipvt = new int[buf_dim * n_thread];
 
    if (use_numerical_derv)
    {
-      fjac = new double[nmax * smax * nl];
+      fjac = new double[nmax * smax * n];
       wa4  = new double[nmax * smax]; 
       fvec = new double[nmax * smax];
    }
    else
    {
-      fjac = new double[buf_dim * buf_dim];
-      wa4 = new double[buf_dim];
-      fvec = new double[1];
+      fjac = new double[buf_dim * buf_dim * n_thread];
+      wa4 = new double[buf_dim * n_thread];
+      fvec = new double[nmax * n_thread];
    }
 
    for(int i=0; i<nl; i++)
@@ -96,20 +96,20 @@ VariableProjector::~VariableProjector()
    delete[] wa4;
    delete[] ipvt;
    delete[] fvec;
-   delete[] r_buf;
+   delete[] r_buf_;
 }
 
 
-int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag)
+int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, mskip, x, fnorm, fjrow, iflag);
+   return vp->varproj(m, n, s_red, x, fnorm, fjrow, iflag, thread);
 }
 
 int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fvec, int iflag)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, 1, x, fvec, NULL, iflag);
+   return vp->varproj(m, n, 1, x, fvec, NULL, iflag, 0);
 }
 
 
@@ -145,7 +145,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
 {
    INIT_CONCURRENCY;
 
-   int nsls1 = (n-l) * s;
+   int nsls1 = (n-l); //(n-l) * s;
  
    double ftol = (double)sqrt(dpmpar(1));
    double xtol = (double)sqrt(dpmpar(1));
@@ -199,13 +199,14 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    }
 
 
-   int mskip = 1; //max(10,(int) ceil((float)s/max_jacb));
+   //int mskip = 1; //max(10,(int) ceil((float)s/max_jacb));
+   int s_red = s;
 
    n_call = 0;
 
    if (iterative_weighting)
    {
-      varproj(nsls1, nl, mskip, alf, fvec, fjac, 0);
+      varproj(nsls1, nl, s_red, alf, fvec, fjac, 0, 0);
       n_call = 1;
    }
 
@@ -217,12 +218,6 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
                y[i + j * nmax] = (y[i + j * nmax]-adjust[i]) * w[i];
    }
 
-   if (weighting != AVERAGE_WEIGHTING)
-   {
-      varproj(nsls1, nl, mskip, alf, fvec, fjac, 0);
-      n_call = 1;
-   }
-
    if (use_numerical_derv)
       info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf, fvec,
                   ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
@@ -230,8 +225,8 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    else
    {
    
-      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, mskip, alf, fjac, nl,
-                    ftol, xtol, gtol, itmax, diag, 1, factor, -1,
+      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, alf, fvec, fjac, nl,
+                    ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
                     &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
    }
 
@@ -248,8 +243,8 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    {
       if (!getting_errs)
       {
-         varproj(nsls1, nl, mskip, alf, fvec, fjac, -1);
-         varproj(nsls1, nl, 1, alf, fvec, fjac, -2);
+         varproj(nsls1, nl, s_red, alf, fvec, fjac, -1, 0);
+         varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
       }
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -277,8 +272,8 @@ int VariableProjector::GetLinearParams(int s, float* y, double* alf)
    this->y   = y;
    this->s   = s;
 
-   varproj(nsls1, nl, 1, alf, fvec, fjac, -1);
-   varproj(nsls1, nl, 1, alf, fvec, fjac, -2);
+   varproj(nsls1, nl, 1, alf, fvec, fjac, -1, 0);
+   varproj(nsls1, nl, 1, alf, fvec, fjac, -2, 0);
    
    return 0;
 
@@ -294,15 +289,14 @@ double VariableProjector::d_sign(double *a, double *b)
 
 
 
-int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf, double *rnorm, double *fjrow, int iflag)
+int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread)
 {
 
    int firstca, firstcb;
    int get_lin, iterative_weighting_buf, weighting_buf;
    int isel;
 
-   int is, i, j, m, d_idx;
-   double *rs;
+   int is;
 
    int lnls = l + nls + s;
    int lps  = l + s;
@@ -397,14 +391,14 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
 
 
    if (isel == 3)
-   {
-      GetModel(alf, irf_idx[0], isel, 0);
-
+   {   
+      if (!variable_phi)
+         GetModel(alf, irf_idx[0], isel, 0);
       if (!iterative_weighting)
-      {
          CalculateWeights(0, alf, 0);
+
+      if (!variable_phi && !iterative_weighting)
          transform_ab(isel, 0, 0, firstca, firstcb);
-      }
 
       // Set kappa derivatives
       *rnorm = kap[0];
@@ -415,59 +409,71 @@ int VariableProjector::varproj(int nsls1, int nls, int mskip, const double *alf,
    } 
    else if (isel > 3)
    {
-      int omp_thread = 0;
 
-      d_idx = isel - 4;
-      i = d_idx % nml + l;
-      is = d_idx / nml;
+      double* r_buf = r_buf_ + nmax*thread;
 
-      if (d_idx % nml == 0)
+      int idx;
+      double *aw, *bw;
+      if (iterative_weighting)   
+         idx = thread;
+      else
+         idx = 0;
+
+      aw = aw_ + idx * nmax * (l+1);
+      bw = bw_ + idx * ndim * ( p_full + 3 );
+
+      int mskip = s/s_red;
+      is = isel - 4;
+      
+      for(int j=0; j<n; j++)
+         r_buf[j] = 0;
+
+      int j_max = min(mskip,s-is*mskip);
+      for(int j=0; j<j_max; j++)
+         for(int k=0; k<n; k++)
+            r_buf[k] += r[ (is*mskip + j) * r_dim1 + k ];
+
+      for(int j=0; j<n; j++)
+         r_buf[j] /= j_max;
+
+      if (variable_phi)
+         GetModel(alf, irf_idx[is], 3, thread);
+
+      if (iterative_weighting)
+         CalculateWeights(is, alf, thread); 
+      
+      if (variable_phi | iterative_weighting)
+         transform_ab(isel, is, thread, firstca, firstcb);
+
+      bacsub(r_buf, aw, r_buf);
+
+      for(int i=0; i<nml; i++)
       {
-         for(int j=0; j<n; j++)
-            r_buf[j] = 0;
-
-         int j_max = min(mskip,s-is*mskip);
-         for(int j=0; j<j_max; j++)
-            for(int k=0; k<n; k++)
-               r_buf[k] += r[ (is*mskip + j) * r_dim1 + k ];
-
-         for(int j=0; j<n; j++)
-            r_buf[j] /= j_max;
-
-         if (iterative_weighting)
+         int ipl = i+l;
+         int m = 0;
+         for (int k = 0; k < nl; ++k)
          {
-            CalculateWeights(is, alf, omp_thread); 
-            transform_ab(isel, is, omp_thread, firstca, firstcb);
-         }
-         bacsub(r_buf, aw_, r_buf);
-         
-      }
-
-      rs = r_buf;
-
-      m = 0;
-      for (int k = 0; k < nl; ++k)
-      {
-         acum = (float)0.;
-         for (j = 0; j < l; ++j) 
-         {
-            if (inc[k + j * 12] != 0) 
+            acum = (float)0.;
+            for (int j = 0; j < l; ++j) 
             {
-               acum += bw_[i + m * b_dim1] * rs[j];
+               if (inc[k + j * 12] != 0) 
+               {
+                  acum += bw[ipl + m * b_dim1] * r_buf[j];
+                  ++m;
+               }
+            }
+
+            if (inc[k + l * 12] != 0)
+            {   
+               acum += bw[ipl + m * b_dim1];
                ++m;
             }
-         }
 
-         if (inc[k + l * 12] != 0)
-         {   
-            acum += bw_[i + m * b_dim1];
-            ++m;
-         }
+            fjrow[i*nl+k] = -acum;
 
-         fjrow[k] = -acum;
+         }
+         rnorm[i] = r_buf[ipl];
       }
-
-      *rnorm = rs[i];
 
       return 0;
    }
