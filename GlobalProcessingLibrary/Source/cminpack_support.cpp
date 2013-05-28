@@ -733,13 +733,11 @@ float Q_rsqrt( float number )
       qtf[j] = fvec[j];
    }
 
-   // Move r into lower triangle of matrix
-   //for(i=0; i<n; i++)
-   //   a[i * lda] = a[i]; 
+   // Zero entries specifying q
    for(j=0; j<n; j++)
-      for(i=j; i<n; i++)
-         a[i * lda + j] = a[j * lda + i] ; 
-
+      for(i=0; i<j; i++)
+         a[j * lda + i] = 0; 
+         
 }
 
 

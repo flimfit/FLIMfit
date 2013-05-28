@@ -69,7 +69,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    else
    {
       fjac = new double[buf_dim * buf_dim * n_thread];
-      wa4 = new double[buf_dim * n_thread];
+      wa4 = new double[buf_dim *  n_thread];
       fvec = new double[nmax * n_thread];
    }
 
@@ -200,7 +200,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
 
 
    //int mskip = 1; //max(10,(int) ceil((float)s/max_jacb));
-   int s_red = s;
+   int s_red = s; max_jacb;
 
    n_call = 0;
 
@@ -244,7 +244,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
       if (!getting_errs)
       {
          varproj(nsls1, nl, s_red, alf, fvec, fjac, -1, 0);
-         varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
+//         varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
       }
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -495,20 +495,17 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       
       double* rj = r + j * r_dim1;
       float* yj = y + j * y_dim1;
-      int k, kp1;
       double beta, acum;
     
-      double *aw, *u, *work, *wp;
       if (iterative_weighting)   
          idx = omp_thread;
       else
          idx = 0;
 
-      aw = aw_ + idx * nmax * (l+1);
-      wp = wp_ + idx * nmax;
-      u  = u_  + idx * l;
-
-      work = this->work_ + omp_thread * nmax;
+      double* aw = aw_ + idx * nmax * (l+1);
+      double* wp = wp_ + idx * nmax;
+      double* u  = u_  + idx * l;
+      double* work = this->work_ + omp_thread * nmax;
 
       if (variable_phi)
          GetModel(alf, irf_idx[j], isel, omp_thread);
@@ -524,12 +521,12 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       {
          if (!philp1)
          {
-            for(int i=0; i < n; ++i)
+            for(int i=0; i < n; i++)
                rj[i] = yj[i];
          }
          else
          {
-            for(int i=0; i < n; ++i)
+            for(int i=0; i < n; i++)
                rj[i] = yj[i] - aw[i + l * a_dim1];
          } 
       }
@@ -537,23 +534,23 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       {
          if (!philp1)
          {
-            for (int i=0; i < n; ++i)
+            for (int i=0; i < n; i++)
                rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i];
          }
          else
          {
             // Store the data in rj, subtracting the column l+1 which does not
             // have a linear parameter
-            for(int i=0; i < n; ++i)
+            for(int i=0; i < n; i++)
                rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i] - aw[i + l * a_dim1];
          }  
       }
 
 
       // Transform Y, getting Q*Y=R 
-      for (k = 0; k < l; ++k) 
+      for (int k = 0; k < l; k++) 
       {
-         kp1 = k + 1;
+         int kp1 = k + 1;
          beta = -aw[k + k * a_dim1] * u[k];
 
          acum = u[k] * rj[k];
@@ -563,7 +560,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
          acum /= beta;
 
          rj[k] -= u[k] * acum;
-         for (int i = kp1; i < n; ++i) 
+         for (int i = kp1; i < n; i++) 
             rj[i] -= aw[i + k * a_dim1] * acum;
       }
 

@@ -62,7 +62,7 @@ function regression_testing(handles)
    
     
     for kk=1:1
-    for i=4:4 %2:length(tests)
+    for i=1:1 %2:length(tests)
         
         tests_passed = 0;
         tests_failed = 0;

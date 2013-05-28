@@ -173,7 +173,7 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf
 
    gnl = gnl_full;
 
-   int max_jacb = s; 
+   int max_jacb = 65536; 
 
    chi2_norm = n - ((double)(nl))/s - l;
    
@@ -217,7 +217,6 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
    getting_errs = true;
 
    double f[3] = {1e-2, 1e-1, 1};
-   double search_min, search_max;
 
    gnl = gnl_full - 1;
 
@@ -242,24 +241,7 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
          uintmax_t max = 20;
 
          ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
-                     0.0, 0.8*fixed_value_initial, tol, max);
-
-         /*
-         for(int k=0; k<3; k++)
-         {
-            search_min = 0;
-            search_max = f[k]*fixed_value_initial;          
-
-            ans = brent_find_minima(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
-                                    search_min, search_max, 9);
-               
-            if (ans.second < 1e-1) // this is the value at the minimum, should be zero
-               break;   
-         }
-         */
-         //if (ans.second > 1)
-         //   ans.first = NaN();
-           
+                     0.0, 0.8*fixed_value_initial, tol, max);          
 
          if (lim==0)
             err_lower[i] = (ans.first+ans.second)/2;

@@ -8,7 +8,7 @@
 #include "cminpack.h"
 
 #include "ConcurrencyAnalysis.h"
-
+#include "Windows.h"
 #include "omp_stub.h"
 
 using namespace std;
@@ -235,6 +235,8 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
 
     INIT_CONCURRENCY;
 
+    char buf[1000];
+
     epsmch = dpmpar(1);
 
     info = 0;
@@ -294,7 +296,8 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
             }
         }
 
-
+       sprintf(buf,"%f, %f\n",x[0],x[1]);
+       OutputDebugString(buf);
         //TestReducedJacobian(fcn, p, m, n, x, fjac, ldfjac, qtf, wa1, wa2,  wa3, wa4);
 
 
@@ -505,6 +508,9 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
                 }
             }
 
+            sprintf(buf,"%f, %f: %e, %e --- %e\n",wa2[0],wa2[1],prered,actred,fnorm1 );
+            OutputDebugString(buf);
+               
 /*           test for successful iteration. */
 
             if (ratio >= p0001) {
@@ -581,17 +587,12 @@ TERMINATE:
 /* Subroutine */ int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, double *x, 
 double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread)
 {
-   /*
+#ifdef TEST_FACTORISATION
    double* qtf_true = new double[n];
    double* fjac_true = new double[n*ldfjac];
    
-   for (int j = 0; j < n; ++j) 
-   {
-      qtf_true[j] = 0.;
-      for (int i = 0; i < n; ++i) {
-            fjac_true[i + j * ldfjac] = 0.;
-      }
-   }
+   memset(qtf_true, 0, n*sizeof(double));
+   memset(fjac_true, 0, n*ldfjac*sizeof(double));
  
    int iflag = 2;
    (*fcn)(p, m, n, s, x, fvec, wa3, iflag++, 0);
@@ -602,7 +603,8 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
       for(int j=0; j<m; j++)
          rwupdt(n, fjac_true, ldfjac, wa3+n*j, qtf_true, fvec+j, wa1, wa2);
    }
-   */
+#endif
+
    int dim = max(16,n);
   
    memset(qtf, 0, dim*n_thread*sizeof(double));
@@ -610,7 +612,6 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
 
    (*fcn)(p, m, n, s, x, fvec, wa3, 2, 0);
    rwupdt(n, fjac, ldfjac, wa3, qtf, fvec, wa1, wa2);
-
 
    #pragma omp parallel for schedule(dynamic, 10)
    for (int i = 0; i<s; i++)
@@ -623,84 +624,42 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
       double* wa3_  = wa3 + m * dim * thread;
       double* wa1_  = wa1 + dim * thread;
       double* wa2_  = wa2 + dim * thread;
-      /*
-      double* fjac_1 = fjac + dim * ldfjac * 1;
-      double* qtf_1  = qtf + dim * 1;
-      double* fvec_1 = fvec + m * 1; 
-      double* wa3_1  = wa3 + m * dim * 1;
-      double* wa1_1  = wa1 + dim * 1;
-      double* wa2_1  = wa2 + dim * 1;
-      */
       
       (*fcn)(p, m, n, s, x, fvec_, wa3_, i+3, thread);
 
-      //memset(qtf_1, 0, dim*sizeof(double));
-      //memset(fjac_1, 0, dim*ldfjac*sizeof(double));
-
+      // Givens transforms
       //for(int j=0; j<m; j++)
       //   rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, fvec_+j, wa1_, wa2_);
-      
-      //(*fcn)(p, m, n, s, x, fvec_, wa3_, i+3, thread);
-      
+
+      // Householder / Givens hybrid
       qrfac2( m, n, wa3_, ldfjac, fvec_, wa1_, wa2_);
-      combine_givens(n, fjac_, wa3_, ldfjac, qtf_, wa1_);
-      
-      
+      for(int j=0; j<n; j++)
+         rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, wa1_+j, wa2_, fvec_); // here we just use fvec_ as a buffer
    }
    
-   for (int thread = 1; thread < n_thread; thread++)
-      combine_givens(n, fjac, fjac + thread * dim * ldfjac, ldfjac, qtf, qtf + thread * dim);
-   
-   /*
+
+   for(int i=1; i<n_thread; i++)
+   {
+      double* fjac_ = fjac + dim * ldfjac * i;
+      double* qtf_  = qtf + dim * i;
+
+      for(int j=0; j<n; j++)
+         for(int k=0; k<j; k++)
+         {
+            fjac_[k * n + j] = fjac_[j * n + k] ;
+            fjac_[j * n + k] = 0; 
+         }
+
+      for(int j=0; j<n; j++)
+         rwupdt(n, fjac, ldfjac, fjac_ + n*j, qtf, qtf_+j, wa1, wa2);
+   }
+  
+#ifdef TEST_FACTORISATION
    delete[] qtf_true;
    delete[] fjac_true;
-   */
+#endif
 
    return 0;
-
-}
-
-
-
-
-void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *b2)
-{
-   // Combine two lower triangular matrices by givens transform
-
-   #define p5 .5
-   #define p25 .25
-   
-   double cos, sin, cotan, tan, r1_ij, r2_ij;
-
-   for(int i=0; i<n; i++)
-   {
-      for(int j=0; j<=i; j++)
-      {
-         r1_ij = r1[i*ldr+j];
-         r2_ij = r2[i*ldr+j];
-         cos = 1.;
-         sin = 0.;
-	      if (r2[i*ldr+j] != 0.) 
-         {
-            if (fabs(r1_ij) < fabs(r2_ij)) 
-            {
-               cotan = r1_ij / r2_ij;
-               sin = p5 / sqrt(p25 + p25 * (cotan * cotan));
-               cos = sin * cotan;
-            } 
-            else 
-            {
-               tan = r2_ij / r1_ij;
-               cos = p5 / sqrt(p25 + p25 * (tan * tan));
-               sin = cos * tan;
-            }
-            r1[i*ldr+j] = cos * r1_ij + sin * r2_ij;
-         }
-      }
-      if (r2_ij != 0.) 
-         b1[i] = cos * b1[i] + sin * b2[i];
-   }
-
 
 }
 
