@@ -89,8 +89,10 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             display = get(obj.corr_display_popupmenu,'Value');
             scale = get(obj.corr_scale_popupmenu,'Value');
                 
+            obj.selected
+            
             if source == 1
-                sel = obj.selected == r.image;
+                sel = obj.selected; % == r.image;
                 indexing = 'dataset';
             else
                 sel = f.selected;

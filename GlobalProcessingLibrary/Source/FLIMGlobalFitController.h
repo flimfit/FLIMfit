@@ -141,9 +141,7 @@ public:
    double *tau_buf;
    double *beta_buf;
    double *theta_buf;
-   double *fit_buf;
    float  *adjust_buf;
-   double *count_buf;
 
    int *irf_max;
 
@@ -318,6 +316,8 @@ private:
    int next_region;
    int threads_active;
    int threads_started;
+   int* cur_im;
+
    tthread::mutex region_mutex;
    tthread::mutex pixel_mutex;
    tthread::mutex data_mutex;

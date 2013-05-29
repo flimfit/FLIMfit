@@ -38,16 +38,20 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
 
-   work_ = new double[nmax * n_thread];
+   n_jac_group = ceil(1024.0 / (nmax-l));
 
-   aw_   = new double[ nmax * (l+1) * n_thread ]; //free ok
+   nmaxb = nmax + 16; // pad to prevent false sharing
+
+   work_ = new double[nmaxb * n_thread];
+
+   aw_   = new double[ nmaxb * (l+1) * n_thread ]; //free ok
    bw_   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
-   wp_   = new double[ nmax * n_thread ];
-   u_    = new double[ l * n_thread ];
-   w     = new double[ nmax ];
+   wp_   = new double[ nmaxb * n_thread ];
+   u_    = new double[ nmaxb * n_thread ];
+   w     = new double[ nmaxb ];
 
 
-   r_buf_ = new double[ nmax * n_thread ];
+   r_buf_ = new double[ nmaxb * n_thread ];
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -57,7 +61,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    qtf  = new double[buf_dim * n_thread];
    wa1  = new double[buf_dim * n_thread];
    wa2  = new double[buf_dim * n_thread];
-   wa3  = new double[buf_dim * n_thread * nmax];
+   wa3  = new double[buf_dim * n_thread * nmax * n_jac_group];
    ipvt = new int[buf_dim * n_thread];
 
    if (use_numerical_derv)
@@ -70,7 +74,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    {
       fjac = new double[buf_dim * buf_dim * n_thread];
       wa4 = new double[buf_dim *  n_thread];
-      fvec = new double[nmax * n_thread];
+      fvec = new double[nmax * n_thread * n_jac_group];
    }
 
    for(int i=0; i<nl; i++)
@@ -199,8 +203,8 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    }
 
 
-   //int mskip = 1; //max(10,(int) ceil((float)s/max_jacb));
-   int s_red = s; max_jacb;
+   // Specifiy fraction of s to reduce jacobian
+   int s_red = s;
 
    n_call = 0;
 
@@ -225,7 +229,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    else
    {
    
-      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, alf, fvec, fjac, nl,
+      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, n_jac_group, alf, fvec, fjac, nl,
                     ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
                     &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
    }
@@ -244,7 +248,9 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
       if (!getting_errs)
       {
          varproj(nsls1, nl, s_red, alf, fvec, fjac, -1, 0);
-//         varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
+         
+         // Get optimal linear parameters by recalculating weighted by previous fit
+         //varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
       }
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -255,9 +261,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
       *ierr = info;
    else
       *ierr = *niter;
-   
-   //*ierr = info;
-   
+  
 
    return 0;
 
@@ -410,7 +414,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    else if (isel > 3)
    {
 
-      double* r_buf = r_buf_ + nmax*thread;
+      double* r_buf = r_buf_ + nmaxb*thread;
 
       int idx;
       double *aw, *bw;
@@ -419,7 +423,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       else
          idx = 0;
 
-      aw = aw_ + idx * nmax * (l+1);
+      aw = aw_ + idx * nmaxb * (l+1);
       bw = bw_ + idx * ndim * ( p_full + 3 );
 
       int mskip = s/s_red;
@@ -487,7 +491,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    if (!variable_phi && !iterative_weighting)
       transform_ab(isel, 0, 0, firstca, firstcb);
 
-   #pragma omp parallel for reduction(+:r_sq)
+   #pragma omp parallel for reduction(+:r_sq) schedule(dynamic,10)
    for (int j=0; j<s; j++)
    {
       int idx;
@@ -502,10 +506,10 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       else
          idx = 0;
 
-      double* aw = aw_ + idx * nmax * (l+1);
-      double* wp = wp_ + idx * nmax;
+      double* aw = aw_ + idx * nmaxb * (l+1);
+      double* wp = wp_ + idx * nmaxb;
       double* u  = u_  + idx * l;
-      double* work = this->work_ + omp_thread * nmax;
+      double* work = this->work_ + omp_thread * nmaxb;
 
       if (variable_phi)
          GetModel(alf, irf_idx[j], isel, omp_thread);
@@ -604,11 +608,11 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
 void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
    float*  y = this->y + px * nmax;
-   double* wp = wp_ + omp_thread * nmax;
+   double* wp = wp_ + omp_thread * nmaxb;
    
    double *a;
    if (variable_phi)
-      a = a_ + omp_thread * nmax * lp1;
+      a = a_ + omp_thread * nmaxb * lp1;
    else
       a = a_;
 
@@ -661,16 +665,16 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 
    int i, m, k, kp1;
 
-   double* aw = aw_ + omp_thread * nmax * lp1;
+   double* aw = aw_ + omp_thread * nmaxb * lp1;
    double* bw = bw_ + omp_thread * ndim * ( p_full + 3 );
    double* u  = u_  + omp_thread * l;
-   double* wp = wp_ + omp_thread * nmax;
+   double* wp = wp_ + omp_thread * nmaxb;
       
    double *a = a_; 
    double *b = b_;
    if (variable_phi)
    {
-      a  += omp_thread * nmax * lp1;
+      a  += omp_thread * nmaxb * lp1;
       b  += omp_thread * ndim * ( p_full + 3 );
    }
    

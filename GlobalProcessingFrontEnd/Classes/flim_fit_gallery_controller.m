@@ -118,10 +118,13 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             end
             
             
-            %{
+            %{            
             sort_param = cell2mat(r.metadata.Column(sel));
             entries = unique(sort_param);
             
+            % Find first cols entry from each Column and sort by column order
+            % ---
+
             new_sel = [];
             for i=1:length(entries)
                 cols_eq = sort_param == entries(i);
@@ -132,8 +135,8 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             sort_param = cell2mat(r.metadata.Column(new_sel));
             [~,idx] = sort(sort_param);
             sel = new_sel(idx);
+            % --- 
             %}
-            
             
 
 
@@ -215,7 +218,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     
                     im_data = obj.fit_controller.get_image(sel(i),param,'result');
                     
-                    mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
+                    %mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
                     
                     %M(i) = im2frame(mdata);
                     

@@ -116,8 +116,6 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
    tau_buf      = NULL;
    beta_buf     = NULL;
    theta_buf    = NULL;
-   fit_buf      = NULL;
-   count_buf    = NULL;
    adjust_buf   = NULL;
    decay_group_buf = NULL;
 
@@ -141,6 +139,8 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
 
    thread_handle = NULL;
 
+   cur_im = NULL;
+
    lm_algorithm = 1;
 
 }
@@ -156,6 +156,7 @@ int FLIMGlobalFitController::RunWorkers()
 
    omp_set_num_threads(n_omp_thread);
 
+   data->StartStreaming();
 
    if (n_fitters == 1 && !runAsync)
    {
@@ -178,6 +179,8 @@ int FLIMGlobalFitController::RunWorkers()
       {
          for(int thread = 0; thread < n_fitters; thread++)
             thread_handle[thread]->join();
+
+         data->StopStreaming();
 
          CleanupTempVars();
          has_fit = true;
@@ -259,6 +262,8 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   float* acceptor_local = acceptor + pos;
                   
                   data->GetMaskedData(0, im, r, y, I_local, r_ss_local, acceptor_local, irf_idx);
+                  data->ImageDataFinished(im);
+
                   next_pixel = 0;
                   
                   cur_region = idx;
@@ -269,13 +274,16 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   active_lock.notify_all();
                   region_mutex.unlock();
 
-
                }
 
                // Process every n_thread'th pixel in region
 
                region_count = data->GetRegionCount(im,r);
-               for(int j=thread; j<region_count; j+=n_thread)
+
+               int regions_per_thread = ceil((double)region_count / n_thread);
+               int j_max = min( regions_per_thread * (thread + 1), region_count );
+
+               for(int j=regions_per_thread*thread; j<j_max; j++)
                {
                   ProcessRegion(im, r, j, thread);
                   
@@ -324,20 +332,43 @@ processed:
          if (process_idx >= 0)
          {
             for(int im=im0; im<data->n_im_used; im++)
+            {
                for(int r=0; r<MAX_REGION; r++)
                {
                   // Get region index and process if it exists and is for this threads
                   idx = data->GetRegionIndex(im,r);
                   if (idx == process_idx)  // should be processed by this thread
                   {
+                     
+
+                     region_mutex.lock();
+                     cur_im[thread] = im;
+
+                     int release_im = cur_im[0];
+                     for(int i=1; i<n_thread; i++)
+                     {
+                        if (cur_im[i] < release_im)
+                           release_im = cur_im[i];
+                     }            
+                     data->AllImageLowerDataFinished(release_im-1);
+
+                     region_mutex.unlock();
+
                      ProcessRegion(im, r, 0, thread);
+                     
                      im0=im;
+                     
+ 
                      goto processed;
                   }
             
                   if (status->terminate)
                      goto terminated;
                }
+
+
+            }
+
          }
       
    }
@@ -367,8 +398,10 @@ terminated:
 
    // If we're the last thread running cleanup temporary variables
    if (threads_running == 0 && runAsync)
+   {
+      data->StopStreaming();
       CleanupTempVars();
-
+   }
 }
 
 
@@ -615,6 +648,9 @@ void FLIMGlobalFitController::Init()
    next_region = 0;
    threads_active = 0;
    threads_started = 0;
+
+   cur_im = new int[n_thread];
+   memset(cur_im,0,n_thread*sizeof(int));
 
    getting_fit    = false;
    use_kappa      = true;
@@ -967,8 +1003,6 @@ void FLIMGlobalFitController::Init()
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
       beta_buf     = new double[ n_thread * n_exp ]; //free ok
       theta_buf    = new double[ n_thread * n_theta ]; //free ok 
-      fit_buf      = new double[ n_thread * n_meas ]; // free ok 
-      count_buf    = new double[ n_thread * n_meas ]; // free ok 
       adjust_buf   = new float[ n_meas ]; // free ok 
 
     
@@ -1366,12 +1400,8 @@ void FLIMGlobalFitController::CleanupResults()
    
    #endif
 
-      ClearVariable(fit_buf);
-
 
       ClearVariable(irf_max);
-      ClearVariable(fit_buf);
-      ClearVariable(count_buf);
       ClearVariable(adjust_buf);
       ClearVariable(local_decay);
       ClearVariable(decay_group_buf);
@@ -1382,6 +1412,8 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(w);
       
       ClearVariable(param_names_ptr);
+
+      ClearVariable(cur_im);
 
       if (result_map_filename != NULL)
       {

@@ -50,6 +50,80 @@ typedef unsigned short uint16_t;
 FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
 
+/* =============================================
+ * SetupGlobalFit
+ * =============================================
+ *
+ * Setup a global fit controller
+ *
+ *
+ * INPUT PARAMETERS
+ * ---------------------------
+ * c_idx                   Controller index to request fit
+ * global_algorithm 
+ * image_irf
+ * n_irf                   Number of points in IRF
+ * t_irf                   [n_irf] array of time points for IRF measurements
+ * irf                     [n_irf] array of irf measurements
+ * pulse_pileup            reseved for future use
+ * t0_image                
+ * n_exp                   Number of exponential species to fit
+ * n_fix                   Number of exponential species which have fixed tau values
+ * n_decay_group
+ * decay_group             [n_exp]
+ * tau_min                 [n_exp]
+ * tau_max                 [n_exp]
+ * estimate_initial_tau    
+ * tau_guess               [n_exp] array of initial estimates for tau values. First n_fix will be treated as fixed.
+ * fit_beta
+ * fixed_beta
+ * fit_t0                  Reserved for future use. Set to zero.
+ * t0_guess                Initial guess for t0 (zero timepoint). Fixed if fit_t0 = false 
+ * fit_offset              Indicates whether to fit an offset. Possible values: {FIX, FIT_LOCALLY, FIT_GLOBALLY}
+ * offset_guess            Inital guess for offset
+ * fit_scatter             Indicates whether to fit a 'scatter' component. Possible values: {FIX, FIT_LOCALLY, FIT_GLOBALLY}
+ * scatter_guess           Initial guess for scatter contribution 
+
+
+ * mask[]                  [n_group, n_px, n_t] array indicating which which region each pixel belongs to. 
+                           Zero indicates the pixel is excluded from any fit 
+ * n_t                     Number of timepoints in each measurement
+ * t[]                     [n_t] array of gate/bin times in ps
+
+ 
+ * tau_guess[]             [n_exp] array of initial estimates for tau values. First n_fix will be treated as fixed.
+ * fit_fret                Reserved for future use. Set to zero
+ * E_guess                Reserved for future use. Set to zero
+
+ * pulsetrain_correction   Indicates whether to account for incomplete decays
+ * t_rep                   Repetition rate of laser,  used for pulse train correction. Ignored if pulsetrain_correction = false
+ * ref_reconvolution       Indicates whether to use reference reconvolution, i.e. if the IRF was taken using a fluorophore
+ * ref_lifetime            Lifetime of reference fluorophore. Ignored if ref_reconvolution = false
+ * algorithm               Indicate whether to use Levenberg–Marquardt or Gauss-Newton update rule. In general LM should be used,
+                           GN may provide more reliable results for single exponential fits with very few gates.
+                              0 LM  Use Levenberg–Marquardt update rule
+                              1 GN  Use Gauss-Newton update rule
+
+ *
+ * CONFIGURATION PARAMETERS
+ * ----- 
+ * n_thread     Number of threads to use when fitting. Should be twice the number of processors
+ * run_async    Indicates whether the function should run asyncronously 
+ * use_callback Indicates whether the program should periodicaly call 'callback' with a status update 
+ *              Note that the function will be called from a different thread to the main program
+ * callback     If running asyncronously will be called periodically with current group, iteration and chi2
+ *              Fitting will stop if zero returned. Not called if NULL, progress may be monitored by calling FLIMGlobalGetFitStatus
+ *              Expected function prototype is int callback(int n_group, int n_thread, int *group, 
+ *                                                          int *n_completed, int *iter, float *chi2, double progress)
+ *              All arrays are of size n_thread.
+ *        
+ *
+ * RETURN VALUE
+ * -----
+ * 0     Success
+ * ...
+ */
+
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
                               int n_exp, int n_fix, int n_decay_group, int decay_group[], double tau_min[], double tau_max[], 
@@ -108,99 +182,6 @@ FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[
 
 
 
-
-
-
-/* =============================================
- * FLIMGlobalFit
- * =============================================
- *
- * Performs global, NLLS fitting by variable projection on FLIM data. 
- * Model assumes data of form:
- *
- *                         n_exp
- * y(g, s, t) = I0(g, s) * SUM   beta(g, s, i) * exp[ (t - t0) / tau(g, i) ]  + offset(g),
- *                         i=0
- * 
- * convolved with an arbitary, user provided IRF.
- *
- * Fitting is based on the VarPro Netlib code.
- 
- *
- * INPUT PARAMETERS
- * ---------------------------
- * n_group                 Number of groups of pixels to fit. Tau's will be fixed within groups 
- * n_px                    Number of pixels in each group
- * n_regions               [n_group] array indicating number of regions within each group
- * data[]                  [n_group, n_px, n_t] array of measured decays
- * global_mode             Reserved for future use
- * mask[]                  [n_group, n_px, n_t] array indicating which which region each pixel belongs to. 
-                           Zero indicates the pixel is excluded from any fit 
- * n_t                     Number of timepoints in each measurement
- * t[]                     [n_t] array of gate/bin times in ps
- * n_irf                     Number of points in IRF
- * t_irf                   [n_irf] array of time points for IRF measurements
- * irf                     [n_irf] array of irf measurements
- * n_exp                   Number of exponential species to fit
- * n_fix                   Number of exponential species which have fixed tau values
- * tau_guess[]             [n_exp] array of initial estimates for tau values. First n_fix will be treated as fixed.
- * fit_t0                  Reserved for future use. Set to zero.
- * t0_guess                Initial guess for t0 (zero timepoint). Fixed if fit_t0 = false 
- * fit_offset              Indicates whether to fit an offset. Possible values:
-                              0 FIX          Fix the offset to the guess provided
-                              1 FIT_LOCALLY  Fit the offset as a local parameter, i.e. seperately for each pixel
-                              2 FIT_GLOBALLY Fit the offset as a global parameter, i.e. across all pixels in the group
- * offset_guess            Inital guess for offset
- * fit_scatter             Indicates whether to fit a 'scatter' component. Possible values:
-                              0 FIX          Fix the scatter to the guess provided
-                              1 FIT_LOCALLY  Fit the scatter as a local parameter, i.e. seperately for each pixel
-                              2 FIT_GLOBALLY Fit the scatter as a global parameter, i.e. across all pixels in the group
- * scatter_guess           Initial guess for scatter contribution 
-
- * fit_fret                Reserved for future use. Set to zero
- * E_guess                Reserved for future use. Set to zero
-
- * pulsetrain_correction   Indicates whether to account for incomplete decays
- * t_rep                   Repetition rate of laser,  used for pulse train correction. Ignored if pulsetrain_correction = false
- * ref_reconvolution       Indicates whether to use reference reconvolution, i.e. if the IRF was taken using a fluorophore
- * ref_lifetime            Lifetime of reference fluorophore. Ignored if ref_reconvolution = false
- * algorithm               Indicate whether to use Levenberg–Marquardt or Gauss-Newton update rule. In general LM should be used,
-                           GN may provide more reliable results for single exponential fits with very few gates.
-                              0 LM  Use Levenberg–Marquardt update rule
-                              1 GN  Use Gauss-Newton update rule
- *
- * OUTPUT PARAMETERS (memory must be allocated on entry)
- * -----
- * tau[]        [n_group, n_px, n_exp] array of fitted (and fixed) tau values for each pixel
- * I0[]         [n_group, n_px] array of pixel intensities. Zero for masked values
- * beta[]       [n_group, n_px, n_exp] array of fractional pre-exponetial factors
- * E[]         Reserved for future use. Set to NULL
- * t0[]         [n_group, n_px] array of zero timepoints
- * offset[]     [n_group, n_px] array of measurement offsets
- * scatter[]    [n_group, n_px] array of scatter contributions
- * chi2[]       [n_group] array of chi2 values
- * ierr[]       [n_group] array of return parameters. Positive values indicate the number of iterations taken for a 
-                successful fit. Negative values indicate failure and correspond to Varp2 error codes
- *
- * CONFIGURATION PARAMETERS
- * ----- 
- * n_thread     Number of threads to use when fitting. Should be twice the number of processors
- * run_async    Indicates whether the function should run asyncronously 
- * use_callback Indicates whether the program should periodicaly call 'callback' with a status update 
- *              Note that the function will be called from a different thread to the main program
- * callback     If running asyncronously will be called periodically with current group, iteration and chi2
- *              Fitting will stop if zero returned. Not called if NULL, progress may be monitored by calling FLIMGlobalGetFitStatus
- *              Expected function prototype is int callback(int n_group, int n_thread, int *group, 
- *                                                          int *n_completed, int *iter, float *chi2, double progress)
- *              All arrays are of size n_thread.
- *        
- *
- * RETURN VALUE
- * -----
- * 0     Success
- * ...
- */
-
 /* =============================================
  * FLIMGlobalGetFitStatus
  * =============================================
@@ -249,16 +230,17 @@ FITDLL_API int FLIMGlobalTerminateFit(int c_idx);
  *
  * INPUT PARAMETERS
  * ---------------------------
- * group    Group index from which fit should be retrieved
- * n_fit    Number of pixels requested
- * mask[]   [n_px] array, mask indicating pixels to return
- * n_t      Number of timepoints required
- * t[]      [n_t] array of timepoints required
+ * c_idx       Controller index to request fit
+ * im          Image index of requested fit
+ * n_t         Number of timepoints required
+ * t[]         [n_t] array of timepoints required
+ * n_fit       Number of pixels requested
+ * fit_mask[]  [n_px] array, mask indicating pixels to return
  *
  * OUTPUT PARAMETERS (memory must be allocated on entry)
  * ---------------------------
- * fit[]   [n_fit, n_t] array of fitted decays. Failed pixels return NaN
- *
+ * fit[]       [n_t, n_fit] array of fitted decays. Failed pixels return NaN
+ * n_valid     Number of valid fits returned
  */
 FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int* n_valid);
 

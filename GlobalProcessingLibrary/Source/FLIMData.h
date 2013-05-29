@@ -43,8 +43,9 @@
 
 #include "omp_stub.h"
 
-
 #define MAX_REGION 255
+
+#define STREAM_DATA  true
 
 using namespace boost;
 
@@ -90,6 +91,11 @@ public:
 
    void ClearMapping();
    
+   void ImageDataFinished(int im);
+   void AllImageLowerDataFinished(int im);
+   void StartStreaming();
+   void StopStreaming();
+
    template <typename T>
    void DataLoaderThread();
 
@@ -147,7 +153,7 @@ private:
    void TransformImage(int thread, int im);
 
    template <typename T>
-   int GetStreamedData(int im, T*& data);
+   int GetStreamedData(int im, int thread, T*& data);
    
    void MarkCompleted(int slot);
 
@@ -209,6 +215,8 @@ private:
 
    int* data_used;
    int* data_loaded;
+
+   bool stream_data;
 
    tthread::thread* loader_thread;
    tthread::mutex data_mutex;
@@ -295,17 +303,19 @@ int FLIMData::CalculateRegions()
    START_SPAN("Loading Data");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   tthread::thread loader_thread(StartDataLoaderThread,(void*)this); // ok
+   StartStreaming();
 
-   #pragma omp parallel for schedule(dynamic, 1)
+   //#pragma omp parallel for schedule(dynamic, 1)
    for(int i=0; i<n_im_used; i++)
    {
+      int thread = omp_get_thread_num();
+
       int im = i;
       if (use_im != NULL)
             im = use_im[im];
 
       T* cur_data_ptr;
-      int slot = GetStreamedData(i, cur_data_ptr);
+      int slot = GetStreamedData(i, thread, cur_data_ptr);
 
       // We already have segmentation mask, now calculate integrated intensity
       // and apply min intensity and max bin mask
@@ -341,6 +351,13 @@ int FLIMData::CalculateRegions()
          }
       }
       MarkCompleted(slot);
+   }
+
+   for(int i=0; i<n_im_used; i++)
+   {
+      int im = i;
+      if (use_im != NULL)
+            im = use_im[im];
 
       // Determine how many regions we have in each image
       //--------------------------------------------------------
@@ -406,10 +423,7 @@ int FLIMData::CalculateRegions()
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-   // Wait for loader thread to terminate
-   if (loader_thread.joinable())
-      loader_thread.join();
+   StopStreaming();
 
    return err;
 
@@ -468,39 +482,54 @@ void FLIMData::DataLoaderThread()
 }
 
 template <typename T>
-int FLIMData::GetStreamedData(int im, T*& data)
+int FLIMData::GetStreamedData(int im, int thread, T*& data)
 {
- // Get data from loading thread
-   data_mutex.lock();
-
-   int slot;
-   do
+   if (stream_data)
    {
+    // Get data from loading thread
+      data_mutex.lock();
 
-      slot = -1;
-      for(int j=0; j<n_thread; j++)
+      int slot;
+      do
       {
-         if (data_loaded[j]==im)
+
+         slot = -1;
+         for(int j=0; j<n_thread; j++)
          {
-            slot = j;
-            break;
-         }
-      }   
-      if (status->terminate)
-         return -1;
+            if (data_loaded[j]==im)
+            {
+               slot = j;
+               break;
+            }
+         }   
+         if (status->terminate)
+            return -1;
+
+         if (slot == -1)
+            data_avail_cond.wait(data_mutex);
+      }
+      while( slot == -1 );
+      data_mutex.unlock();
 
       if (slot == -1)
-         data_avail_cond.wait(data_mutex);
+         data = NULL;
+      else
+         data = (T*) tr_buf_  + slot * n_p;
+
+      return slot;
+
    }
-   while( slot == -1 );
-   data_mutex.unlock();
-
-   if (slot == -1)
-      data = NULL;
    else
-      data = (T*) tr_buf_  + slot * n_p;
+   {
 
-   return slot;
+      T* tr_buf = (T*) this->tr_buf_  + thread * n_p;
+      T* data_ptr = GetDataPointer<T>(thread, im);
+      memcpy(tr_buf, data_ptr, n_p * sizeof(T));
+      data = tr_buf;
+
+      return 0;
+
+   }
 }
 
 template <typename T>
@@ -516,15 +545,15 @@ void FLIMData::TransformImage(int thread, int im)
    float* r_ss       = r_ss_       + thread * n_px;
    float* tr_row_buf = tr_row_buf_ + thread * (n_x + n_y);
 
-
    T* tr_buf;
-   int slot = GetStreamedData(im, tr_buf);  
-   T* cur_data_ptr = tr_buf;
-
+   int slot = GetStreamedData(im, thread, tr_buf);  
    if (slot == -1)
       return;
 
+   T* cur_data_ptr = tr_buf;
+ 
    float photons_per_count = (float) (1/counts_per_photon);
+
 
 
    if ( smoothing_factor == 0 )
@@ -734,10 +763,8 @@ void FLIMData::TransformImage(int thread, int im)
       if (tr_data[i] < 0)
          tr_data[i] = 0;
    }
-   
-   cur_transformed[thread] = im;
-   MarkCompleted(slot);
 
+   cur_transformed[thread] = im;
 
 }
 

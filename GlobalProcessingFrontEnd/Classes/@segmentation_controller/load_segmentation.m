@@ -51,6 +51,8 @@ function load_segmentation(obj,folder)
         new_mask = reshape(obj.mask,new_sz);
     end
     
+    h = waitbar(0,'Loading segmentation images');
+    
     for i=1:d.n_datasets
 
         matching_files = dir([folder '*' d.names{i} '*.tif*']);
@@ -93,8 +95,11 @@ function load_segmentation(obj,folder)
 
                 
         end
-                
+          
+        waitbar(i/d.n_datasets,h);
     end
+    
+    close(h);
     
     obj.mask = reshape(new_mask,[d.height d.width d.n_datasets]);
     obj.filtered_mask = obj.mask;

@@ -52,7 +52,7 @@ private:
 
    void Cleanup();
 
-   int varproj(int nsls1, int nls, int mskip, const double *alf, double *rnorm, double *fjrow, int iflag, int thread);   
+   int varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread);   
    
    void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
 
@@ -66,7 +66,7 @@ private:
 
    double *work_, *w; 
    double *aw_, *bw_, *wp_, *u_;
-
+   int nmaxb; 
    // Buffers used by levmar algorithm
    double *fjac;
    double *fvec;
@@ -79,6 +79,8 @@ private:
  
    int n_call;
 
+   int n_jac_group;
+
    int weighting;
    int iterative_weighting;
 
@@ -86,7 +88,7 @@ private:
    int using_gamma_weighting;
 
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
-   friend int VariableProjectorCallback(void *p, int m, int n, int mskip, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
+   friend int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
 };
 
 

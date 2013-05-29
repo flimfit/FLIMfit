@@ -17,12 +17,12 @@ using namespace std;
 #define FALSE_ (0)
 
 
-int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, double *x, 
+int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_group, double *x, 
 	double *fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread);
 
 void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *b2);
 
-/* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, double *x, 
+/* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_group, double *x, 
 	double *fvec, double *fjac, int ldfjac, double ftol,
 	double xtol, double gtol, int maxfev, double *
 	diag, int mode, double factor, int nprint, int n_thread,
@@ -296,8 +296,8 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
             }
         }
 
-       sprintf(buf,"%f, %f\n",x[0],x[1]);
-       OutputDebugString(buf);
+       //sprintf(buf,"%f, %f\n",x[0],x[1]);
+       //OutputDebugString(buf);
         //TestReducedJacobian(fcn, p, m, n, x, fjac, ldfjac, qtf, wa1, wa2,  wa3, wa4);
 
 
@@ -313,7 +313,7 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
 
 
 
-        factorise_jacobian(fcn, p, m, n, s, x, fvec, fjac, ldfjac, qtf, wa1, wa2, wa3, n_thread);
+        factorise_jacobian(fcn, p, m, n, s, n_jac_group, x, fvec, fjac, ldfjac, qtf, wa1, wa2, wa3, n_thread);
 
         ++(*njev);
 
@@ -584,9 +584,12 @@ TERMINATE:
 
 
 
-/* Subroutine */ int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, double *x, 
+
+/* Subroutine */ int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_group, double *x, 
 double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread)
 {
+//#define TEST_FACTORISATION
+
 #ifdef TEST_FACTORISATION
    double* qtf_true = new double[n];
    double* fjac_true = new double[n*ldfjac];
@@ -613,26 +616,30 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
    (*fcn)(p, m, n, s, x, fvec, wa3, 2, 0);
    rwupdt(n, fjac, ldfjac, wa3, qtf, fvec, wa1, wa2);
 
+   int sm = ceil((double)s/n_jac_group);
+
    #pragma omp parallel for schedule(dynamic, 10)
-   for (int i = 0; i<s; i++)
+   for (int i = 0; i<sm; i++)
    {
       int thread = omp_get_thread_num();
 
       double* fjac_ = fjac + dim * ldfjac * thread;
       double* qtf_  = qtf + dim * thread;
-      double* fvec_ = fvec + m * thread; 
-      double* wa3_  = wa3 + m * dim * thread;
+      double* fvec_ = fvec + m * thread * n_jac_group; 
+      double* wa3_  = wa3 + m * dim * thread * n_jac_group;
       double* wa1_  = wa1 + dim * thread;
       double* wa2_  = wa2 + dim * thread;
       
-      (*fcn)(p, m, n, s, x, fvec_, wa3_, i+3, thread);
+      int j_max = min(s,(i+1)*n_jac_group) - i*n_jac_group;
+      for(int j=0; j<j_max; j++)
+         (*fcn)(p, m, n, s, x, fvec_+m*j, wa3_+m*n*j, i*n_jac_group+j+3, thread);
 
       // Givens transforms
       //for(int j=0; j<m; j++)
       //   rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, fvec_+j, wa1_, wa2_);
 
       // Householder / Givens hybrid
-      qrfac2( m, n, wa3_, ldfjac, fvec_, wa1_, wa2_);
+      qrfac2( m*j_max, n, wa3_, ldfjac, fvec_, wa1_, wa2_);
       for(int j=0; j<n; j++)
          rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, wa1_+j, wa2_, fvec_); // here we just use fvec_ as a buffer
    }

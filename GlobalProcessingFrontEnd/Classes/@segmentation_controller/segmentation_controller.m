@@ -275,6 +275,12 @@ classdef segmentation_controller < flim_data_series_observer
                 obj.filtered_mask = obj.mask;
             end
             
+            if length(sel) > 1
+                h = waitbar(0,'Filtering Regions...');
+            else
+                h = [];
+            end
+            idx = 0;
             for i=sel
                 
                 im_mask = obj.mask(:,:,i); 
@@ -330,6 +336,15 @@ classdef segmentation_controller < flim_data_series_observer
                 if ~isempty(im_mask)
                     obj.filtered_mask(:,:,i) = uint8(im_mask);
                 end
+                
+                idx = idx + 1;
+                if ~isempty(h)
+                    waitbar(idx/length(sel),h);
+                end
+            end
+            
+            if ~isempty(h)
+                close(h);
             end
             
             if any(obj.data_series_list.selected == sel)

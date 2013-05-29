@@ -74,6 +74,7 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
 
    this->global_mode = global_mode;
 
+   stream_data = STREAM_DATA;
 
    n_masked_px = 0;
 
@@ -314,7 +315,9 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
    else
       err = CalculateRegions<uint16_t>();
 
-   loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
+   // We can't stream data globally with more than one region
+   if (global_mode == MODE_GLOBAL && n_regions_total > 1)
+      stream_data = false;
 
    return err;
 
@@ -329,8 +332,6 @@ int FLIMData::SetData(float* data)
    int err = CalculateRegions<float>();
    
    has_data = true;
-
-   loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
    
    return err;
 }
@@ -345,11 +346,50 @@ int FLIMData::SetData(uint16_t* data)
    
    has_data = true;
 
-   loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
-
    return err;
 }
 
+void FLIMData::ImageDataFinished(int im)
+{
+   if (stream_data)
+   {
+      for(int i=0; i<n_thread; i++)
+      {
+         if (data_loaded[i] >= 0 && data_loaded[i] == im)
+            MarkCompleted(i);
+      }
+   }
+}
+
+void FLIMData::AllImageLowerDataFinished(int im)
+{
+   if (stream_data)
+   {
+      for(int i=0; i<n_thread; i++)
+      {
+         if (data_loaded[i] >= 0 && data_loaded[i] <= im)
+            MarkCompleted(i);
+      }
+   }
+}
+
+void FLIMData::StartStreaming()
+{
+   if (stream_data && loader_thread == NULL)
+      loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
+}
+
+void FLIMData::StopStreaming()
+{
+   if (stream_data)
+   {
+      // Wait for loader thread to terminate
+      if (loader_thread->joinable())
+         loader_thread->join();
+      delete loader_thread;
+      loader_thread = NULL;
+   }
+}
 
 void FLIMData::SetBackground(float* background_image)
 {
@@ -525,13 +565,23 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
       int start = GetRegionPos(0, region);
        
      // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
-      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) 
-       
+      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1)  
       for(int i=0; i<n_im_used; i++)
       {
-         int omp_thread = omp_get_thread_num();
-         int pos = GetRegionPos(i, region) - start;
-         s += GetMaskedData(omp_thread, i, region, region_data + pos*n_meas, intensity_data + pos, r_ss_data + pos, acceptor_data + pos, irf_idx + pos);
+         if (!status->terminate)
+         {
+            // This thread index will only be used if we're not streaming data,
+            // make sure that we pass the right one in
+            int r_thread;
+            if (omp_get_num_threads() == 1)
+               r_thread = thread;
+            else
+               r_thread = omp_get_thread_num();
+
+            int pos = GetRegionPos(i, region) - start;
+            s += GetMaskedData(r_thread, i, region, region_data + pos*n_meas, intensity_data + pos, r_ss_data + pos, acceptor_data + pos, irf_idx + pos);
+            ImageDataFinished(i);
+         }
       }
    }
 
