@@ -381,7 +381,7 @@ void FLIMData::StartStreaming()
 
 void FLIMData::StopStreaming()
 {
-   if (stream_data)
+   if (stream_data && loader_thread != NULL)
    {
       // Wait for loader thread to terminate
       if (loader_thread->joinable())

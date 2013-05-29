@@ -241,12 +241,19 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
          uintmax_t max = 20;
 
          ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
-                     0.0, 0.8*fixed_value_initial, tol, max);          
+                     0.0, 0.8*fixed_value_initial, tol, max);    
+
+         if (*terminate)
+         {
+            lim = 2;
+            break;
+         }
 
          if (lim==0)
             err_lower[i] = (ans.first+ans.second)/2;
          else
             err_upper[i] = (ans.first+ans.second)/2;
+
       }
    }
 
@@ -298,6 +305,10 @@ double AbstractFitter::ErrMinFcn(double x)
 
    if(f_debug)
       fprintf(f_debug,"%d, %d, %f, %f, %f, %f, %f, %f\n",fixed_param,search_dir,fixed_value_initial,fixed_value_cur,chi2_crit,*cur_chi2,F_crit,F);
+
+   // terminate ASAP
+   if (*terminate)
+      F = F_crit;
 
    return F-F_crit;
 }
