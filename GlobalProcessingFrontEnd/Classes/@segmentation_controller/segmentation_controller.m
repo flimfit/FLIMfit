@@ -123,12 +123,12 @@ classdef segmentation_controller < flim_data_series_observer
                         
             if ~isdeployed
             
-                folder = [pwd '\YuriySegmentation'];
+                folder = [pwd filesep 'YuriySegmentation'];
                 addpath(folder);
-                addpath([folder '\Support']);
+                addpath([folder filesep 'Support']);
 
                 [funcs, param_list, default_list, desc_list summary_list] = parse_function_folder(folder);
-
+                
                 save('segmentation_funcs.mat', 'funcs', 'param_list', 'default_list', 'desc_list', 'summary_list');
                 
             else
@@ -399,10 +399,10 @@ classdef segmentation_controller < flim_data_series_observer
         
         function algorithm_updated(obj,~,~)
             idx = get(obj.algorithm_popup,'Value');
-            params = obj.param_list{idx};
-            default_values = obj.default_list{idx};
-            desc = obj.desc_list{idx};
-            summary = obj.summary_list{idx};
+                params = obj.param_list{idx};
+                default_values = obj.default_list{idx};
+                desc = obj.desc_list{idx};
+                summary = obj.summary_list{idx};
             
             tooltip = ['<html><font color="blue"><b>' summary '</b></font><br>'];
             for i=1:length(params)

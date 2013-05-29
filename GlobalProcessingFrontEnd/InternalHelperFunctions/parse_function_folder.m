@@ -26,7 +26,7 @@ function [funcs, params, defaults, descriptions, summaries] = parse_function_fol
     % Author : Sean Warren
 
 
-    files = dir([folder '\*.m']);
+    files = dir([folder filesep '*.m']);
     n_files = length(files);
     
     

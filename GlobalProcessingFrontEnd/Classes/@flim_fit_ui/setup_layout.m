@@ -69,9 +69,19 @@ function handles = setup_layout(obj, handles)
     set( topright_layout, 'Sizes', [-1, 0] );
    
     function display_panel_callback(~,src,~)
-        if src.SelectedChild <= 2
+        
+        
+        %kluge! setting topright layout to -1 0  seems to  hide platemap when colored
+        %histograms are selected ??
+        
+        if src.SelectedChild < 8 
+            % don't set platemap in this way
             set( topright_layout, 'Sizes', [-1, 0] )
-        else
+        end
+        
+        
+        if src.SelectedChild > 2
+      
             set( topright_layout, 'Sizes', [-1, 253] )
         end
     end

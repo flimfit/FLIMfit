@@ -42,8 +42,9 @@ function load_selected_files(obj, selected )
     end
     
     if obj.use_popup && length(selected) > 1 
-        wait_handle=waitbar(0,'Opening files...');
+        wait_handle=waitbar(0,'Loading FLIMages...');
         using_popup = true;
+        obj.verbose = false;
     else
         using_popup = false;
         obj.verbose = true;

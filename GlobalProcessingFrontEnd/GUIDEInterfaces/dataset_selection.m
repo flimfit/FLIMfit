@@ -87,9 +87,16 @@ function varargout = dataset_selection_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-varargout = handles.output;
 
-delete(handles.figure1);
+if isempty(handles)
+    varargout{1} = [];
+    varargout{2} = [];
+    varargout{3} = [];
+else
+ varargout = handles.output;
+ delete(handles.figure1);
+
+end
 
 
 % --- Executes on button press in select_all_pushbutton.
