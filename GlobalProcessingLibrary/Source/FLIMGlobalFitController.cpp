@@ -399,6 +399,10 @@ terminated:
    // If we're the last thread running cleanup temporary variables
    if (threads_running == 0 && runAsync)
    {
+      for(int i = 0; i < n_fitters; i++)
+         if(i != thread && thread_handle[i]->joinable())
+            thread_handle[i]->join();
+
       data->StopStreaming();
       CleanupTempVars();
    }

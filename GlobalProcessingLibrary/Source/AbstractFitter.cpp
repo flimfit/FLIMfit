@@ -193,8 +193,15 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
 {
    using namespace boost::math;
    using namespace boost::math::tools;
+   using namespace boost::math::policies;
+   using boost::math::policies::domain_error;
+   using boost::math::policies::ignore_error;
 
    pair<double , double> ans;
+
+   typedef policy<
+      domain_error<errno_on_error>
+   > c_policy;
 
    f_debug = fopen("c:\\users\\scw09\\ERROR_DEBUG_OUTPUT4.csv","w");
 
@@ -240,8 +247,15 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
 
          uintmax_t max = 20;
 
+         errno = 0;
          ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
-                     0.0, 0.8*fixed_value_initial, tol, max);    
+                     0.0, 0.1*fixed_value_initial, tol, max, c_policy());    
+         
+         if (errno != 0)
+         {
+            ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
+                     0.1*fixed_value_initial, 0.8*fixed_value_initial, tol, max, c_policy());    
+         }
 
          if (*terminate)
          {
@@ -261,7 +275,6 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
       fclose(f_debug);
 
    return 0;
-
 
 }
 
