@@ -67,6 +67,9 @@ classdef OMERO_data_series < flim_data_series
         verbose;        % flag to switch waitbar in OMERO_fetch on or off
         
         omero_data_manager;
+        fitted_data;
+        
+        fit_result;
         
     end
     
@@ -88,13 +91,73 @@ classdef OMERO_data_series < flim_data_series
             polarisation_resolved = false;  % defaults
             load_multiple_channels = false;
             
+            obj.fitted_data = [];
+            
         end
                                         
         function delete(obj)
         end   
         
+        %------------------------------------------------------------------
+        function [param_data, mask] = get_image(obj,im,param,indexing)
+            
+            if ischar(param)
+                param_idx = strcmp(obj.fit_result.params,param);
+                param = find(param_idx);
+            end
+            
+            param_data = squeeze(obj.fitted_data(im,:,:,param)); 
+            mask = uint8(~isnan(param_data));
+        end;
         
-        
+        %------------------------------------------------------------------
+        function table_data = read_analysis_stats_data_from_annotation(obj,object_id)
+            %
+            table_data = [];
+            %
+            session = obj.omero_data_manager.session;
+            %           
+            whosobject = whos_Object(session,object_id);
+            %
+            if strcmp('Plate',whosobject)
+                annotations = getPlateFileAnnotations(session, object_id);
+            elseif strcmp('Dataset',whosobject)
+                annotations = getDatasetFileAnnotations(session, object_id);               
+            else
+                return;
+            end
+            %
+            rawFileStore = session.createRawFileStore();
+                    %
+                    for j = 1:annotations.size()
+                        originalFile = annotations(j).getFile();        
+                        rawFileStore.setFileId(originalFile.getId().getValue());            
+                        byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
+                        str = char(byteArr');
+                        
+                        filename_str = char(originalFile.getName().getValue());
+                        %
+                        if ~isempty(strfind(filename_str,'Fit Results Table'))
+                            L = length(filename_str);
+                            if strcmp('.csv',filename_str(L-3:L))
+                                %
+                                full_temp_file_name = [tempdir filename_str];
+                                fid = fopen(full_temp_file_name,'w');                
+                                fwrite(fid,str,'int8');                        
+                                fclose(fid);                                                
+                                %
+                                [~,~,table_data] = xlsread(full_temp_file_name);                                                                                                                                
+                                %
+                                rawFileStore.close();
+                                return;        
+                            end
+                        end                        
+                    end
+                    %
+            rawFileStore.close();
+            %                            
+        end
+                        
     end
     
 end
