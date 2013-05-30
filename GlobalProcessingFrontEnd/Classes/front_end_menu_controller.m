@@ -458,7 +458,10 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Import_Fitting_Results_callback(obj,~,~)            
             obj.data_series_controller.data_series = OMERO_data_series();
             obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
-            obj.data_series_controller.data_series.load_fitted_data(obj.fit_controller);
+            infostring = obj.data_series_controller.data_series.load_fitted_data(obj.fit_controller);
+            if ~isempty(infostring)
+                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
+            end;            
         end                                    
         
         %------------------------------------------------------------------

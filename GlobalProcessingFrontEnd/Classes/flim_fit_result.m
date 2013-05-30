@@ -182,8 +182,13 @@ classdef flim_fit_result < handle
             
             stats_names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
             
+            offset = 7;
+            if strcmp(char(table_data(2,1)),'nm') 
+                offset = offset + 1;
+            end;
+                        
             [rows, cols] = size(table_data);
-            table_stats_names = table_data(7:rows,1);
+            table_stats_names = table_data(offset:rows,1);
             
             statnames = cell(1,numel(table_stats_names));
             param_names = cell(1,numel(table_stats_names));
@@ -225,7 +230,7 @@ classdef flim_fit_result < handle
                 Dd = struct();
                 for s = 1 : n_stats
                     %Dd.(stats_names{s}) = rand(1,n_params);
-                    strtind = 7 + n_params*(s-1);
+                    strtind = offset + n_params*(s-1);
                     endind = strtind + n_params - 1;
                     Dd.(stats_names{s}) = cell2mat(table_data(strtind:endind,d+1))';
                 end

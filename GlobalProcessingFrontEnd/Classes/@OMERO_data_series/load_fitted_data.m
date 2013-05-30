@@ -21,7 +21,7 @@
 %     and The Wellcome Trust through a grant entitled 
 %     "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-function load_fitted_data(obj,f,~) %f : flim_fit_controller
+function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
             %
             obj.fit_result = f.fit_result;
             %
@@ -33,20 +33,31 @@ function load_fitted_data(obj,f,~) %f : flim_fit_controller
                                     'Plate','Cancel','Cancel');              
             switch choice
                 case 'Dataset',
-                    [ object, ~ ] = select_Dataset(session,userid,'Select Dataset:'); 
+                    [ object, parent ] = select_Dataset(session,userid,'Select Dataset:'); 
                 case 'Plate', 
-                    [ object, ~ ] = select_Plate(session,userid,'Select Plate:'); 
+                    [ object, parent ] = select_Plate(session,userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
             end   
-            
+                        
             if isempty(object), return, end; 
+            
+            if ~isempty(parent)
+                pName = char(java.lang.String(parent.getName().getValue()));
+                pIdName = num2str(parent.getId().getValue());
+            else
+                pName = 'NO PARENT!';
+                pIdName = 'XXXX';
+            end;
+            oName = char(java.lang.String(object.getName().getValue()));                    
+            oIdName = num2str(object.getId().getValue());                       
+            infostring = [ 'VISUALIZING: ' choice ' ' oName '" [' oIdName '] @ Parent "' pName '" [' pIdName ']' ];                        
                                
-            if strcmp('Dataset',whos_Object(session,object.getId().getValue())) 
+            if strcmp('Dataset',choice) 
                 %                
                 imageList = getImages(session,'dataset',object.getId().getValue());
                 %
-            elseif strcmp('Plate',whos_Object(session,object.getId().getValue())) 
+            elseif strcmp('Plate',choice) 
                 %
                 z = 0;       
                 wellList = session.getQueryService().findAllByQuery(['select well from Well as well '...
