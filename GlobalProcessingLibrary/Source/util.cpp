@@ -76,4 +76,9 @@ void omp_set_num_threads(int num_threads)
    return;
 }
 
+int omp_get_num_threads()
+{
+    return 1;
+}
+
 #endif

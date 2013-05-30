@@ -40,9 +40,8 @@
 
 int omp_get_thread_num();
 void omp_set_num_threads(int num_threads);
-int omp_get_num_threads()  {
-    return 1;
-}
+int omp_get_num_threads();
+ 
 
 #endif
 
