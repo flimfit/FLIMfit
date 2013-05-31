@@ -50,8 +50,8 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    u_    = new double[ nmaxb * n_thread ];
    w     = new double[ nmaxb ];
 
-
    r_buf_ = new double[ nmaxb * n_thread ];
+   norm_buf_ = new double[ nmaxb * n_thread ];
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -101,6 +101,7 @@ VariableProjector::~VariableProjector()
    delete[] ipvt;
    delete[] fvec;
    delete[] r_buf_;
+   delete[] norm_buf_;
 }
 
 
@@ -491,7 +492,10 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    if (!variable_phi && !iterative_weighting)
       transform_ab(isel, 0, 0, firstca, firstcb);
 
-   #pragma omp parallel for reduction(+:r_sq) schedule(dynamic,10)
+   for(int i=0; i<n_thread; i++)
+      norm_buf_[i*nmaxb] = 0;
+
+   #pragma omp parallel for //reduction(+:r_sq) schedule(dynamic,10)
    for (int j=0; j<s; j++)
    {
       int idx;
@@ -551,6 +555,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       }
 
 
+
       // Transform Y, getting Q*Y=R 
       for (int k = 0; k < l; k++) 
       {
@@ -570,7 +575,8 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
 
       // Calcuate the norm of the jth column and add to residual
       rj_norm = enorm(n-l, rj+l);
-      r_sq += rj_norm * rj_norm;
+      //r_sq += rj_norm * rj_norm;
+      norm_buf_[omp_thread*nmaxb] += rj_norm * rj_norm;
 
       if (use_numerical_derv)
          memcpy(rnorm+j*(n-l),rj+l,(n-l)*sizeof(double));
@@ -584,6 +590,8 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
 
    } // loop over pixels
 
+   for(int i=0; i<n_thread; i++)
+      r_sq += norm_buf_[i*nmaxb];
 
    // Compute the norm of the residual matrix
    *cur_chi2 = r_sq * smoothing / (chi2_norm * s);

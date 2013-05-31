@@ -157,6 +157,7 @@ int FLIMGlobalFitController::RunWorkers()
    omp_set_num_threads(n_omp_thread);
 
    data->StartStreaming();
+   status->AddConditionVariable(&active_lock);
 
    if (n_fitters == 1 && !runAsync)
    {
@@ -236,7 +237,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   
                   region_mutex.lock();
 
-                  while (idx > cur_region)
+                  while (idx > cur_region && !(status->terminate))
                      active_lock.wait(region_mutex);
                   
                   threads_active++;
