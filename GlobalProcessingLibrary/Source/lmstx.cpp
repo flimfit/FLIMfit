@@ -7,10 +7,15 @@
 #include <algorithm>
 #include "cminpack.h"
 
+
 #include "ConcurrencyAnalysis.h"
 
 #ifdef _WINDOWS
 #include "Windows.h"
+#else
+#include <stdio.h>
+#include <cstring>
+
 #endif
 
 #include "omp_stub.h"

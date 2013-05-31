@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "cminpack.h"
 
+#include <stdio.h>
+
 using namespace std;
 
 #define TRUE_ (1)
