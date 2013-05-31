@@ -559,15 +559,11 @@ using namespace std;
 
 #define p05 .05
 
-    /* System generated locals */
-    double d1;
-
     /* Local variables */
     int i, j, k, jp1;
     double sum;
     double temp;
     int minmn;
-    double epsmch;
     double ajnorm;
 
 /*     ********** */
