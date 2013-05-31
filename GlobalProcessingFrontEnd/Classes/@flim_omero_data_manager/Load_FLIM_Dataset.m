@@ -158,28 +158,21 @@ function Load_FLIM_Dataset(obj,data_series,~)
             
             data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
             
-            obj.selected_channel = data_series.ZCT{2};  % not sure what this does
+            obj.selected_channel = data_series.ZCT(2);  % not sure what this does
             
-            if data_series.polarisation_resolved & length(obj.selected_channel) ~= 2
+            if data_series.polarisation_resolved & length(cell2mat(obj.selected_channel)) ~= 2
                 
                 errordlg('Two channels must be selected for polarization data');
                 return;
             end
-            
-            
-            
-           
-            
-            data_size = [ length(delays) length(obj.selected_channel) mdta.sizeX mdta.sizeY ];
-           
-            
+                        
+            data_size = [ length(delays) length(cell2mat(obj.selected_channel)) mdta.sizeX mdta.sizeY ];
+                       
             data_series.mode = mdta.FLIM_type;
             data_series.mdta = mdta;
-                        
-           
+                                   
             data_series.data_size = [data_size n_datasets ];
-                
-           
+                           
                    
             if length(delays) > 0 
                 

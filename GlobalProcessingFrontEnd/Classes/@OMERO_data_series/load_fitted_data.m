@@ -78,8 +78,7 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
                         z = z + 1;
                         imageList(z) = ws.getImage();
                      end
-                end                  
-                % 
+                end                                   
             end                
                 
                 z = 0;       

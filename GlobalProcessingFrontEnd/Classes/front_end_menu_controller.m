@@ -424,6 +424,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~) 
             obj.data_series_controller.data_series = OMERO_data_series(); 
+            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;                        
              obj.data_series_controller.data_series.polarisation_resolved = true;
             obj.data_series_controller.data_series.load_multiple_channels = true;
             obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
