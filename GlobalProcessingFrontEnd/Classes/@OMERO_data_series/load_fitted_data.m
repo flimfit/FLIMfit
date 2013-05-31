@@ -22,9 +22,7 @@
 %     "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
-            %
-            obj.fit_result = f.fit_result;
-            %
+            %            
             session = obj.omero_data_manager.session;
             userid = obj.omero_data_manager.userid;
             %
@@ -38,8 +36,10 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
                     [ object, parent ] = select_Plate(session,userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end   
-                        
+            end  
+            %
+            obj.fit_result = f.fit_result;
+            %                                    
             if isempty(object), return, end; 
             
             if ~isempty(parent)
