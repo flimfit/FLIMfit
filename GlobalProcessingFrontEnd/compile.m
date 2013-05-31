@@ -76,7 +76,7 @@ function compile(v)
         arch = 'x86';
     end
     
-    system(['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion=' v ' /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"'])
+    system(['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"'])
 
     
     mkdir([distrib_folder 'FLIMfit_' v]);
