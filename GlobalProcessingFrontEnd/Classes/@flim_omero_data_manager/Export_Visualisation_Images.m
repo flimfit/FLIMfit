@@ -28,26 +28,41 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
         return;
     end
     
+    indexing = 'result';
+    
     f = plot_controller.fit_controller;
     r = f.fit_result;
             
-    updateService = obj.session.getUpdateService();
-    
+    updateService = obj.session.getUpdateService();    
+    %
+    Z_str = num2str(cell2mat(data_series.ZCT(1)));
+    T_str = num2str(cell2mat(data_series.ZCT(3)));
+    if data_series.polarisation_resolved                
+        chnls = cell2mat(obj.selected_channel);
+        C_str = [num2str(chnls(1)) num2str(chnls(2))];                
+    else
+        C_str = num2str(cell2mat(data_series.ZCT(2)));
+    end
+
+    f_save = figure('visible','on');        
+    save = true;        
+    root = tempdir;    
+        
     if ~isempty(obj.dataset)
                 %
                 current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
 
                 if ~data_series.polarisation_resolved
-                    new_dataset_name = [current_dataset_name ' FLIM MAPS ' num2str(obj.selected_channel) ...
-                    ' Z ' num2str(data_series.ZCT{1}) ...
-                    ' C ' num2str(data_series.ZCT{2}) ...
-                    ' T ' num2str(data_series.ZCT{3}) ...
+                    new_dataset_name = [current_dataset_name ' FLIM MAPS ' num2str(cell2mat(obj.selected_channel)) ...
+                    ' Z ' Z_str ...
+                    ' C ' C_str ...
+                    ' T ' T_str ' ' ...
                     datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
                 else
-                    new_dataset_name = [current_dataset_name ' FLIM fitting: Polarization channel ' num2str(obj.selected_channel) ...
-                    ' Z ' num2str(data_series.ZCT{1}) ...
-                    ' C ' num2str(obj.selected_channel) ...
-                    ' T ' num2str(data_series.ZCT{3}) ' ' ...
+                    new_dataset_name = [current_dataset_name ' FLIM MAPS Polarization channel ' C_str ...
+                    ' Z ' Z_str ...
+                    ' C ' C_str ...
+                    ' T ' T_str ' ' ...
                     datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
                 end
 
@@ -58,11 +73,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                     errordlg('Can not create new Dataset');
                     return;
                 end
-            
-    f_save = figure('visible','on');        
-    save = true;        
-    root = tempdir;    
-                                
+                                            
     cnt=0; % flimmaps counter    
     nplots = r.n_results*f.n_plots;            
                             hw = waitbar(0, 'Loading FLIM maps to Omero, please wait');            
@@ -74,7 +85,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
             
                 if f.display_normal.(f.plot_names{plot_idx})
                     [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
-                    plot_controller.plot_figure(h,c,cur_im,plot_idx,false,'');                                                                                
+                    plot_controller.plot_figure(h,c,cur_im,plot_idx,false,'',indexing);                                                                                
                     fname = [name_root ' @ ' r.params{plot_idx}];
                     saveas(h,fname,'tiff');
                     transfer_tif_to_Omero_Dataset(fname);
@@ -85,7 +96,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                 % Merge
                 if f.display_merged.(f.plot_names{plot_idx})                    
                     [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);                    
-                    plot_controller.plot_figure(h,c,cur_im,plot_idx,true,'');                  
+                    plot_controller.plot_figure(h,c,cur_im,plot_idx,true,'',indexing);                  
                     fname = [name_root ' @ ' r.params{plot_idx} ' merge'];                    
                     saveas(h,fname,'tif');
                     transfer_tif_to_Omero_Dataset(fname);                    
@@ -103,9 +114,6 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
     
     elseif ~isempty(obj.plate) % work with SPW layout    
         %
-        % TO DO..
-        % errordlg('SPW is not presently supported');
-        %        
                             wellList = obj.session.getQueryService().findAllByQuery(['select well from Well as well '...
                             'left outer join fetch well.plate as pt '...
                             'left outer join fetch well.wellSamples as ws '...
@@ -133,7 +141,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                     for cur_im = ims
                         name_root = [root ' ' r.names{cur_im}];
                         [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
-                        plot_controller.plot_figure(h,c,cur_im,plot_idx,false,'');
+                        plot_controller.plot_figure(h,c,cur_im,plot_idx,false,'',indexing);
                         fname = [name_root ' @ ' r.params{plot_idx}];
                         saveas(h,fname,'tif');                        
                         transfer_parameter_images_to_Plate();                        
@@ -153,7 +161,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                     for cur_im = ims
                         name_root = [root ' ' r.names{cur_im}];                                                            
                         [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);                    
-                        plot_controller.plot_figure(h,c,cur_im,plot_idx,true,'');                  
+                        plot_controller.plot_figure(h,c,cur_im,plot_idx,true,'',indexing);                  
                         fname = [name_root ' @ ' r.params{plot_idx} ' merge'];
                         saveas(h,fname,'tif');                        
                         transfer_parameter_images_to_Plate();                        
@@ -204,12 +212,21 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
     function create_new_Plate(fitted_parameter_name)
                 
         current_plate_name = char(java.lang.String(obj.plate.getName().getValue()));    
-            newplate_name = [current_plate_name ' FLIM MAPS ' fitted_parameter_name ' channel ' num2str(obj.selected_channel) ...
-            ' Z ' num2str(data_series.ZCT{1}) ...
-            ' C ' num2str(data_series.ZCT{2}) ...
-            ' T ' num2str(data_series.ZCT{3}) ' ' ...
-            datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                                                        
-        
+
+                if ~data_series.polarisation_resolved
+                    newplate_name = [current_plate_name ' FLIM MAPS ' fitted_parameter_name ' channel ' num2str(cell2mat(obj.selected_channel)) ...
+                    ' Z ' Z_str ...
+                    ' C ' C_str ...
+                    ' T ' T_str ' ' ...
+                    datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
+                else
+                    newplate_name = [current_plate_name ' FLIM MAPS Polarization channel ' C_str ...
+                    ' Z ' Z_str ...
+                    ' C ' C_str ...
+                    ' T ' T_str ' ' ...
+                    datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
+                end
+                        
             newplate = omero.model.PlateI();
             newplate.setName(omero.rtypes.rstring(newplate_name));    
             newplate.setColumnNamingConvention(obj.plate.getColumnNamingConvention());
