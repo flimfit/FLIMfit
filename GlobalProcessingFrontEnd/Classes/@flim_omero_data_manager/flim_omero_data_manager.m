@@ -837,10 +837,9 @@ classdef flim_omero_data_manager < handle
                 end   % end catch
                 if ~isempty(obj.session)
                     obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+                    obj.userid = obj.session.getAdminService().getEventContext().userId;                    
                 end
-            end     % end while
-            
-            obj.userid = obj.session.getAdminService().getEventContext().userId;
+            end     % end while                        
             
         end
        %------------------------------------------------------------------        
@@ -883,10 +882,9 @@ classdef flim_omero_data_manager < handle
                 end   % end catch
                 if ~isempty(obj.session)
                     obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
+                    obj.userid = obj.session.getAdminService().getEventContext().userId;                                        
                 end
             end     % end while     
-            
-            obj.userid = obj.session.getAdminService().getEventContext().userId;
             
        end
         
