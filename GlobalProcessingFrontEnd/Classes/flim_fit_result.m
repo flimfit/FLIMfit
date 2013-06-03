@@ -232,7 +232,13 @@ classdef flim_fit_result < handle
                     %Dd.(stats_names{s}) = rand(1,n_params);
                     strtind = offset + n_params*(s-1);
                     endind = strtind + n_params - 1;
-                    Dd.(stats_names{s}) = cell2mat(table_data(strtind:endind,d+1))';
+                        data_to_set = table_data(strtind:endind,d+1)';
+                        for k = 1 : numel(data_to_set)
+                            if ~isnumeric(data_to_set{k})
+                                data_to_set(k) = {0}; %mat2cell(0);
+                            end
+                        end
+                        Dd.(stats_names{s}) = cell2mat(data_to_set);
                 end
                 data{d} = Dd;
             end
@@ -241,7 +247,15 @@ classdef flim_fit_result < handle
             z = 0;
             for d = 1 : n_data
                 for sd = 1 : numel(obj.metadata.FileName) 
-                    if strcmp(filenameS{d},obj.metadata.FileName{sd})
+                    datafilename_d = filenameS{d};                    
+                    if ~ischar(datafilename_d) 
+                        datafilename_d = num2str(datafilename_d); 
+                    end;
+                    metadatafilename_sd = obj.metadata.FileName{sd};
+                    if ~ischar(metadatafilename_sd) 
+                        metadatafilename_sd = num2str(metadatafilename_sd); 
+                    end;                    
+                    if strcmp(datafilename_d,metadatafilename_sd)
                         z = z + 1;
                         data_cropped(z) = data(d);
                         imagesizes{z} = pixelS{d}; % BTW
