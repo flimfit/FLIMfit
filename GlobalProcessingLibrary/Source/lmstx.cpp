@@ -5,6 +5,9 @@
 
 #include <cmath>
 #include <algorithm>
+
+#include <string.h>
+
 #include "cminpack.h"
 
 #include "ConcurrencyAnalysis.h"
