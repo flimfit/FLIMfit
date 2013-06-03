@@ -38,8 +38,7 @@ classdef flim_omero_data_manager < handle
         screen;        
         %
         selected_channel; % need to keep this for results uploading to Omero...
-        userid;
-        
+        userid;       
 
     end
         
@@ -425,7 +424,7 @@ classdef flim_omero_data_manager < handle
         end            
         
         %------------------------------------------------------------------
-        function Export_Fitting_Results(obj,fit_controller,data_series)
+        function Export_Fitting_Results(obj,fit_controller,data_series,fittingparamscontroller)
             %
             if ~fit_controller.has_fit
                  errordlg('There are no analysis results - nothing to Export');
@@ -462,9 +461,11 @@ classdef flim_omero_data_manager < handle
                     ' T ' num2str(data_series.ZCT{3}) ' ' ...
                     datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];
                 else
-                    new_dataset_name = [current_dataset_name ' FLIM fitting: Polarization channel ' num2str(obj.selected_channel) ...
+                    chnls = cell2mat(obj.selected_channel);
+                    chnls_str = [num2str(chnls(1)) num2str(chnls(2))];
+                    new_dataset_name = [current_dataset_name ' FLIM fitting: Polarization channels ' chnls_str ...
                     ' Z ' num2str(data_series.ZCT{1}) ...
-                    ' C ' num2str(obj.selected_channel) ...
+                    ' C ' chnls_str ...
                     ' T ' num2str(data_series.ZCT{3}) ' ' ...
                     datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
                 end
@@ -495,9 +496,11 @@ classdef flim_omero_data_manager < handle
                             ' T ' num2str(data_series.ZCT{3}) ' _@@_ ' ...
                             data_series.names{dataset_index}]);                                    
                      else
-                        new_image_name = char(['FLIM fitting channel ' num2str(obj.selected_channel) ...
+                        chnls = cell2mat(obj.selected_channel);
+                        chnls_str = [num2str(chnls(1)) num2str(chnls(2))];                         
+                        new_image_name = char(['FLIM fitting channel ' chnls_str ...
                             ' Z ' num2str(data_series.ZCT{1}) ...
-                            ' C ' num2str(obj.selected_channel) ...
+                            ' C ' chnls_str  ...
                             ' T ' num2str(data_series.ZCT{3}) ' _@@_ ' ...
                             data_series.names{dataset_index}]);                                                             
                      end
@@ -571,7 +574,7 @@ classdef flim_omero_data_manager < handle
                                                             link = omero.model.ScreenPlateLinkI;
                                                             link.setChild(newplate);            
                                                             link.setParent(omero.model.ScreenI(obj.screen.getId().getValue(),false));            
-                                                            updateService.saveObject(link);                                                     
+                                                            updateService.saveObject(link);
                                                 end % create new plate
                                                 %                   
                                                     % check if the well with the same row,col as of the current image, aready exists in the new (target) plate 
@@ -627,15 +630,58 @@ classdef flim_omero_data_manager < handle
                                 end
                             end
                             delete(hw);
-                            drawnow;                  
+                            drawnow;    
             else
                 return; % never happens
             end;
-                            if exist('newplate_name','var')
-                                msgbox(['the analysis dataset ' newplate_name ' has been created']);
-                            elseif exist('new_dataset_name','var')
-                                msgbox(['the analysis dataset ' new_dataset_name ' has been created']);
-                            end;                
+
+                            if exist('newplate','var')
+                                object = newplate;
+                                msgbox(['the analysis dataset ' newplate_name ' has been created']);                                
+                            elseif exist('newdataset','var')
+                                object = newdataset;
+                                msgbox(['the analysis dataset ' new_dataset_name ' has been created']);                                
+                            end;  
+                         
+                % fitting results table      
+                namespace = 'IC_PHOTONICS';
+                description = ' ';            
+                sha1 = char('pending');
+                file_mime_type = char('application/octet-stream');
+
+                root = tempdir;
+                param_table_name = [' Fit Results Table ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.csv'];
+                fit_controller.save_param_table([root param_table_name]);
+                add_Annotation(obj.session, obj.userid, ...
+                                object, ...
+                                sha1, ...
+                                file_mime_type, ...
+                                [root param_table_name], ...
+                                description, ...
+                                namespace);
+                %
+                % data settings
+                data_settings_name = [' data settings ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
+                data_series.save_data_settings([root data_settings_name]);
+                add_Annotation(obj.session, obj.userid, ...
+                                object, ...
+                                sha1, ...
+                                file_mime_type, ...
+                                [root data_settings_name], ...
+                                description, ...
+                                namespace);               
+
+                % fitting settings
+                fitting_settings_name = [' fitting settings ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
+                fittingparamscontroller.save_fitting_params([root fitting_settings_name]);
+                add_Annotation(obj.session, obj.userid, ...
+                                object, ...
+                                sha1, ...
+                                file_mime_type, ...
+                                [root fitting_settings_name], ...
+                                description, ...
+                                namespace);                                                                                                                               
+                                            
         end            
 
         %------------------------------------------------------------------        
@@ -827,8 +873,7 @@ classdef flim_omero_data_manager < handle
             if isempty(str)
                 return;
             end;        
-            %
-            %debug
+            %            
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');                
             fwrite(fid,str,'int8');                        
@@ -889,7 +934,9 @@ classdef flim_omero_data_manager < handle
                 case 'Cancel', 
                     return;
             end                        
-            %                        
+            %
+            if ~exist('object','var') || isempty(object), return, end;
+            %
             tvbdata = [data_series.t(:) data_series.tvb_profile(:)];
             %
             ext = '.irf';   
@@ -1046,7 +1093,7 @@ classdef flim_omero_data_manager < handle
             obj.screen = [];
             obj.plate = [];
             %
-        end        
+        end          
             
     end
 end

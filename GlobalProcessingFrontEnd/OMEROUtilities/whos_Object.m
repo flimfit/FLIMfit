@@ -27,8 +27,7 @@ function obj_type = whos_Object(session, objId)
             %
             param = omero.sys.ParametersI();            
             param.leaves();            
-            
-                                        
+                                                    
             myprojects = getProjects(session ,objId);
             if ~isempty(myprojects) 
                 obj_type = 'Project';
@@ -46,26 +45,19 @@ function obj_type = whos_Object(session, objId)
                 obj_type = 'Image';
                 return;
             end
-                        
-            iQuery = session.getQueryService();
-                    screenList = iQuery.findAllByQuery('select this from Screen this left outer join fetch this.plateLinks links left outer join fetch links.child plates', param);                                
-                    for k = 0:screenList.size()-1,                       
-                         scr = screenList.get(k);
-                         scrid = java.lang.Long(scr.getId().getValue());
-                         if scrid == objId
-                            obj_type = 'Screen';
-                            return;
-                         end  
-                         platesList = scr.linkedPlateList;
-                         for m = 0:platesList.size()-1,                       
-                             plt = platesList.get(m);
-                             pltid = java.lang.Long(plt.getId().getValue());
-                             if pltid == objId
-                                obj_type = 'Plate';
-                                return;
-                             end  
-                         end;
-                    end;
+
+            myscreens = getScreens(session,objId);
+            if ~isempty(myscreens) 
+                obj_type = 'Screen';
+                return;
+            end
+
+            myplates = getPlates(session,objId);
+            if ~isempty(myplates) 
+                obj_type = 'Plate';
+                return;
+            end
+            
 end
 
                 

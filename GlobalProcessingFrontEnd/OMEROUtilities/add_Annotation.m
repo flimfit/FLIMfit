@@ -74,27 +74,28 @@ function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_fil
         fa.setNs(omero.rtypes.rstring(namespace)) % The name space you have set to identify the file annotation.
         % save the file annotation.
         fa = iUpdate.saveAndReturnObject(fa);
-        %      
+        %
         whos_object = whos_Object(session, object.getId().getValue());
         switch whos_object
             case 'Project'
                 link = omero.model.ProjectAnnotationLinkI;
+                Parent = omero.model.ProjectI(object.getId().getValue(),false);                
             case 'Dataset'
                 link = omero.model.DatasetAnnotationLinkI;
+                Parent = omero.model.DatasetI(object.getId().getValue(),false);                                
             case 'Image'
                 link = omero.model.ImageAnnotationLinkI;                
+                Parent = omero.model.ImageI(object.getId().getValue(),false);                                
             case 'Screen'
                 link = omero.model.ScreenAnnotationLinkI;                
+                Parent = omero.model.ScreenI(object.getId().getValue(),false);                                
             case 'Plate'
                 link = omero.model.PlateAnnotationLinkI;                                
-        end;
-        %
-        if strcmp('unknown',whos_object)
-            link = omero.model.ImageAnnotationLinkI;
+                Parent = omero.model.PlateI(object.getId().getValue(),false);                                
         end;
         %
         link.setChild(fa);
-        link.setParent(object);
+        link.setParent(Parent);
         % save the link back to the server.
         iUpdate.saveAndReturnObject(link);
         %

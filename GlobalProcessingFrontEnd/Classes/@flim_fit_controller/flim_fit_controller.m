@@ -196,8 +196,13 @@ classdef flim_fit_controller < flim_data_series_observer
                 param_idx = strcmp(obj.fit_result.params,param);
                 param = find(param_idx);
             end
-            
-            [param_data, mask] = obj.dll_interface.get_image(im,param,indexing);
+                                    
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
+                    [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
+            else            
+                [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
+            end;
+                                        
         end
 
         
@@ -208,7 +213,13 @@ classdef flim_fit_controller < flim_data_series_observer
             end
             
             param = obj.fit_result.intensity_idx;
-            [param_data, mask] = obj.dll_interface.get_image(im,param,indexing);
+            
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
+                    [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
+            else            
+                [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
+            end;
+                        
         end
         
         function lims = get_cur_lims(obj,param)

@@ -63,10 +63,10 @@ classdef front_end_menu_controller < handle
         
         menu_OMERO_Export_Visualisation_Images;
         
-        %%%%%%%%%%%%%%%%%%%%%%%
         menu_OMERO_Connect_To_Another_User;    
         menu_OMERO_Connect_To_Logon_User;    
-        %%%%%%%%%%%%%%%%%%%%%%%
+        
+        menu_OMERO_Import_Fitting_Results;
         
         omero_data_manager;     
         
@@ -362,12 +362,12 @@ classdef front_end_menu_controller < handle
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
-            obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series);
+            obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
         end                    
         %------------------------------------------------------------------        
         function menu_OMERO_Export_Fitting_Settings_callback(obj,~,~)
             obj.omero_data_manager.Export_Fitting_Settings(obj.fitting_params_controller);
-        end                    
+        end                     
         %------------------------------------------------------------------
         function menu_OMERO_Import_Fitting_Settings_callback(obj,~,~)
             obj.omero_data_manager.Import_Fitting_Settings(obj.fitting_params_controller);
@@ -424,7 +424,8 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~) 
             obj.data_series_controller.data_series = OMERO_data_series(); 
-             obj.data_series_controller.data_series.polarisation_resolved =true;
+            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;                        
+             obj.data_series_controller.data_series.polarisation_resolved = true;
             obj.data_series_controller.data_series.load_multiple_channels = true;
             obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
         end                            
@@ -454,6 +455,16 @@ classdef front_end_menu_controller < handle
             obj.omero_data_manager.plate = [];
             set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
+        %------------------------------------------------------------------                
+        function menu_OMERO_Import_Fitting_Results_callback(obj,~,~)            
+            obj.data_series_controller.data_series = OMERO_data_series();
+            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
+            infostring = obj.data_series_controller.data_series.load_fitted_data(obj.fit_controller);
+            if ~isempty(infostring)
+                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
+            end;            
+        end                                    
+        
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                

@@ -1,5 +1,6 @@
 function [M, S, N] = combine_stats(m,s,n)
-    % Combine a number of means and standard deviations, will be combined along rows
+    % Calculates the combined means and standard deviations for aech parameter across an aimage 
+    % by combining the stats for each of n regions in that image.
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -38,8 +39,14 @@ function [M, S, N] = combine_stats(m,s,n)
         M = NaN;
         S = NaN;
     else   
-        N = sum(n);
-        M = sum(n .* m,2) / N;
-        S = sqrt(sum( n .* s.*s, 2) / N); 
+        n_regions = length(n);
+        N = sum(n);     % n is a vector of the size in pixels of each region in an image
+        s2 = s.* s;
+        for r = 1:n_regions
+            nm(:,r) = n(r) .* m(:,r);
+            ns2(:,r) = n(r) .* s2(:,r);        
+        end
+        M = sum(nm,2) / N;
+        S = sqrt(sum( ns2, 2) / N); 
     end
 end
