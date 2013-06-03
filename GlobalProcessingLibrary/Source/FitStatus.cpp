@@ -153,7 +153,7 @@ void FitStatus::Terminate()
    // Wake up any threads that are sleeping
    for (std::list<tthread::condition_variable*>::const_iterator it = cond_list.begin(), end = cond_list.end(); it != end; it++)
    {
-      for(int i=0; i<10; i++)
+      for(int i=0; i<100; i++)
          (*it)->notify_all();
    }
 

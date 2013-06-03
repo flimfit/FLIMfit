@@ -76,6 +76,7 @@ private:
    int    *ipvt;
    
    double* r_buf_;
+   double* norm_buf_;
  
    int n_call;
 

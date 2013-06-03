@@ -55,7 +55,7 @@ function save_param_table(obj,file)
             dat = [[metadata_fields(i), md(group)]; dat];
         end
         
-        cell2csv(file,dat,',');
+        cell2csv(file,dat',',');
         
     end
     

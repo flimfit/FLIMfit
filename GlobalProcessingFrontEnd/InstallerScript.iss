@@ -12,9 +12,9 @@
 ;#define MyAppSystem 64 / 32
 
 ; Define Matlab compiler runtime download and required version
-#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2012b/MCR_R2012b_win32_installer.exe"
-#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2012b/MCR_R2012b_win64_installer.exe"
-#define McrVersionRequired "8.0"
+#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013b/MCR_R2013b_win32_installer.exe"
+#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013b/MCR_R2013b_win64_installer.exe"
+#define McrVersionRequired "8.1"
 
 ; Define Ghostscript download urls and required version
 #define GhostscriptUrl32 "http://ghostscript.googlecode.com/files/gs871w32.exe"
@@ -51,7 +51,7 @@ SolidCompression=yes
 
 ShowLanguageDialog=no
 AppCopyright={#MyAppCopyright}
-LicenseFile={#RepositoryRoot}\GPL Licence.txt
+LicenseFile={#RepositoryRoot}\GlobalProcessingFrontEnd\LicenseFiles\GPL Licence.txt
 AllowUNCPath=False
 VersionInfoVersion={#MyAppVersion}
 MinVersion=0,5.01sp3

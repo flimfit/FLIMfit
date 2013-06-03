@@ -118,13 +118,13 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             end
             
             
-            %{            
-            sort_param = cell2mat(r.metadata.Column(sel));
-            entries = unique(sort_param);
+                       
             
+            %{
             % Find first cols entry from each Column and sort by column order
             % ---
-
+            sort_param = cell2mat(r.metadata.Column(sel));
+            entries = unique(sort_param);
             new_sel = [];
             for i=1:length(entries)
                 cols_eq = sort_param == entries(i);

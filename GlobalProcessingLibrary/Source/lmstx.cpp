@@ -7,17 +7,8 @@
 #include <algorithm>
 #include "cminpack.h"
 
-
 #include "ConcurrencyAnalysis.h"
-
-#ifdef _WINDOWS
 #include "Windows.h"
-#else
-#include <stdio.h>
-#include <cstring>
-
-#endif
-
 #include "omp_stub.h"
 
 using namespace std;
@@ -517,11 +508,13 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
                 }
             }
 
-            sprintf(buf,"%f, %f: %e, %e --- %e\n",wa2[0],wa2[1],prered,actred,fnorm1 );
-            
+            #ifdef DEBUG
             #ifdef _WINDOWS
-            OutputDebugString(buf);
+                        sprintf(buf,"%f, %f: %e, %e --- %e\n",wa2[0],wa2[1],prered,actred,fnorm1 );
+                        OutputDebugString(buf);
             #endif
+            #endif // DEBUG
+
                
 /*           test for successful iteration. */
 
