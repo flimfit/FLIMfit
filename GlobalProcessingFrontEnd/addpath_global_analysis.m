@@ -48,7 +48,16 @@ function addpath_global_analysis()
                 [thisdir filesep 'OMEROUtilities'],...
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
             
-            %makegenops;
+            % Test genops
+            a = ones(1,10);
+            b = ones(10,1);
+            
+            try 
+                c = a.*b;
+            catch
+                makegenops;
+            end
+            
             genops(1);
     end
 
