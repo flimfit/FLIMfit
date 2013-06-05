@@ -49,6 +49,8 @@ function addpath_global_analysis()
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
             
             % Test genops
+            genops(1);
+            
             a = ones(1,10);
             b = ones(10,1);
             
@@ -56,9 +58,10 @@ function addpath_global_analysis()
                 c = a.*b;
             catch
                 makegenops;
+                genops(1);
             end
             
-            genops(1);
+            
     end
 
 end

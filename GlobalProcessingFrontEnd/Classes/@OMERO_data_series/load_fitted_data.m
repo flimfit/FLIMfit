@@ -300,7 +300,7 @@ end
     end    
     f.fit_result.metadata = md;
     % AFTER metadata filled, can call this function
-    f.fit_result.set_stats_from_table(table_data);
+    f.fit_result.set_stats_from_table(table_data');
                                    
     f.dll_interface.fit_result = [];
      
