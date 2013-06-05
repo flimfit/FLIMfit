@@ -19,6 +19,7 @@ TestDatasets/*
 GlobalProcessingLibrary/GeneratedProjects/*
 GlobalProcessingFrontEnd/HelperFunctions/doubleops_*
 GlobalProcessingFrontEnd/segmentation_funcs.mat
+GlobalProcessingFrontEnd/FLIMGlobalAnalysis_64_thunk_*
 GlobalProcessingFrontEnd/FLIMGlobalAnalysisProto_*
 GlobalProcessingFrontEnd/Testing/simulation/*
 GlobalProcessingFrontEnd/DeployFiles/*
