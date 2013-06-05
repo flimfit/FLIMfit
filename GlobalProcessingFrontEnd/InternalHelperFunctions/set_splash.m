@@ -1,5 +1,7 @@
 function set_splash(splash_image_filename)
 
+try
+
 % create a figure that is not visible yet, and has minimal titlebar properties
 fh = figure('Visible','off','MenuBar','none','NumberTitle','off');
 
@@ -19,6 +21,10 @@ movegui(fh,'center')
 
 % make the figure visible
 set(fh,'Visible','on');
+
+catch err
+    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+end
 
 end
 
