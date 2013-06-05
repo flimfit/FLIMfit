@@ -43,8 +43,8 @@ classdef segmentation_controller < flim_data_series_observer
         algorithm_popup;
         parameter_table;
         segmentation_axes;
-        yuiry_segment_button;
-        yuiry_segment_selected_button;
+        segment_button;
+        segment_selected_button;
         seg_results_table;
         seg_use_multiple_regions;
         
@@ -89,8 +89,8 @@ classdef segmentation_controller < flim_data_series_observer
             assign_handles(obj,handles);
 
             set(obj.algorithm_popup,'Callback',@obj.algorithm_updated);
-            set(obj.yuiry_segment_button,'Callback',@obj.yuiry_segment_pressed);
-            set(obj.yuiry_segment_selected_button,'Callback',@obj.yuiry_segment_selected_pressed);
+            set(obj.segment_button,'Callback',@obj.segment_pressed);
+            set(obj.segment_selected_button,'Callback',@obj.segment_selected_pressed);
             set(obj.seg_results_table,'CellEdit',@obj.seg_results_delete);
             
             set(obj.apply_filtering_pushbutton,'Callback',@obj.apply_filtering_pressed);
@@ -123,7 +123,7 @@ classdef segmentation_controller < flim_data_series_observer
                         
             if ~isdeployed
             
-                folder = [pwd filesep 'YuriySegmentation'];
+                folder = [pwd filesep 'SegmentationFunctions'];
                 addpath(folder);
                 addpath([folder filesep 'Support']);
 
@@ -215,12 +215,12 @@ classdef segmentation_controller < flim_data_series_observer
             obj.update_display();
         end
         
-        function yuiry_segment_pressed(obj,~,~)
-            obj.yuiry_segment(1:obj.data_series.n_datasets);
+        function segment_pressed(obj,~,~)
+            obj.segment(1:obj.data_series.n_datasets);
         end
         
-        function yuiry_segment_selected_pressed(obj,~,~)
-            obj.yuiry_segment(obj.data_series_list.selected);
+        function segment_selected_pressed(obj,~,~)
+            obj.segment(obj.data_series_list.selected);
         end
         
         function delete_all_pressed(obj,~,~)
@@ -353,7 +353,7 @@ classdef segmentation_controller < flim_data_series_observer
             
         end
         
-        function yuiry_segment(obj,sel)
+        function segment(obj,sel)
             func_idx = get(obj.algorithm_popup,'Value');
             func = obj.funcs{func_idx};
             params = get(obj.parameter_table,'Data');

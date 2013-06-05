@@ -76,7 +76,8 @@
       <file>${PROJECT_ROOT}/LicenseFiles/Third Party Licenses.txt</file>
       <file>${PROJECT_ROOT}/OMEROMatlab</file>
       <file>${PROJECT_ROOT}/OMEROUtilities</file>
-      <file>${PROJECT_ROOT}/YuriySegmentation</file>
+      <file>${PROJECT_ROOT}/SegmentationFunctions</file>
+      <file>${PROJECT_ROOT}/SegmentationFunctions/Support</file>
       <file>${PROJECT_ROOT}/icons.mat</file>
       <file>${PROJECT_ROOT}/segmentation_funcs.mat</file>
       <file>/Users/imunro/globalprocessing/GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>

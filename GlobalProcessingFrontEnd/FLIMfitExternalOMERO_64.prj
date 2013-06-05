@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="GlobalProcessingExternalOMERO_64" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessingExternalOMERO_64.prj" preferred-package-type="package.type.exe" build-checksum="3783086501" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
-    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessingExternalOMERO_64.prj</param.project.name>
+  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfitExternalOMERO_64" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\GlobalProcessingExternalOMERO_64.prj" preferred-package-type="package.type.exe" build-checksum="3783086501" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
+    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfitExternalOMERO_64.prj</param.project.name>
     <param.target.type>Windows Standalone Application</param.target.type>
-    <param.appname>GlobalProcessing_64</param.appname>
-    <param.intermediate>${PROJECT_ROOT}\GlobalProcessing_64\src</param.intermediate>
+    <param.appname>FLIMfitExternalOMERO_64</param.appname>
+    <param.intermediate>${PROJECT_ROOT}\FLIMfit_64\src</param.intermediate>
     <param.output>${PROJECT_ROOT}\DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.tbx_on_path>
@@ -73,19 +73,20 @@
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout\Patch\isHGUsingMATLABClasses.p</file>
       <file>${PROJECT_ROOT}\icons.mat</file>
       <file>${PROJECT_ROOT}\InternalHelperFunctions</file>
+      <file>${PROJECT_ROOT}\LicenseFiles</file>
       <file>${PROJECT_ROOT}\OMEROMatlab</file>
       <file>${PROJECT_ROOT}\OMEROMatlab\helper</file>
       <file>${PROJECT_ROOT}\OMEROUtilities</file>
       <file>${PROJECT_ROOT}\segmentation_funcs.mat</file>
-      <file>${PROJECT_ROOT}\YuriySegmentation</file>
-      <file>${PROJECT_ROOT}\YuriySegmentation\Support</file>
+      <file>${PROJECT_ROOT}\SegmentationFunctions</file>
+      <file>${PROJECT_ROOT}\SegmentationFunctions\Support</file>
       <file>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\Third Party Licenses.txt</file>
     </fileset.resources>
     <fileset.package>
       <file>C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\FLIMGlobalAnalysisLibraries\FLIMGlobalAnalysisDLL_x64.dll</file>
     </fileset.package>
     <build-deliverables>
-      <file name="GlobalProcessing_64.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\GlobalProcessing_64.exe</file>
+      <file name="FLIMfit_64.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\GlobalProcessing_64.exe</file>
       <file name="readme.txt" location="${PROJECT_ROOT}\DeployFiles" optional="true">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\readme.txt</file>
     </build-deliverables>
     <workflow />

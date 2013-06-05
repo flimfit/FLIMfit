@@ -1,4 +1,4 @@
-function varargout = yuiry_segmentation_manager(varargin)
+function varargout = segmentation_manager(varargin)
 % YUIRY_SEGMENTATION_MANAGER M-file for yuiry_segmentation_manager.fig
 %      YUIRY_SEGMENTATION_MANAGER, by itself, creates a new YUIRY_SEGMENTATION_MANAGER or raises the existing
 %      singleton*.
@@ -22,14 +22,14 @@ function varargout = yuiry_segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 29-Oct-2012 12:29:21
+% Last Modified by GUIDE v2.5 05-Jun-2013 12:48:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @yuiry_segmentation_manager_OpeningFcn, ...
-                   'gui_OutputFcn',  @yuiry_segmentation_manager_OutputFcn, ...
+                   'gui_OpeningFcn', @segmentation_manager_OpeningFcn, ...
+                   'gui_OutputFcn',  @segmentation_manager_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -45,7 +45,7 @@ end
 
 
 % --- Executes just before yuiry_segmentation_manager is made visible.
-function yuiry_segmentation_manager_OpeningFcn(hObject, eventdata, handles, varargin)
+function segmentation_manager_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -69,7 +69,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = yuiry_segmentation_manager_OutputFcn(hObject, eventdata, handles) 
+function varargout = segmentation_manager_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -142,9 +142,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in yuiry_segment_button.
-function yuiry_segment_button_Callback(hObject, eventdata, handles)
-% hObject    handle to yuiry_segment_button (see GCBO)
+% --- Executes on button press in segment_button.
+function segment_button_Callback(hObject, eventdata, handles)
+% hObject    handle to segment_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -188,9 +188,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in yuiry_segment_button.
+% --- Executes on button press in segment_button.
 function pushbutton7_Callback(hObject, eventdata, handles)
-% hObject    handle to yuiry_segment_button (see GCBO)
+% hObject    handle to segment_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -293,9 +293,9 @@ function trim_outliers_checkbox_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of trim_outliers_checkbox
 
 
-% --- Executes on button press in yuiry_segment_selected_button.
-function yuiry_segment_selected_button_Callback(hObject, eventdata, handles)
-% hObject    handle to yuiry_segment_selected_button (see GCBO)
+% --- Executes on button press in segment_selected_button.
+function segment_selected_button_Callback(hObject, eventdata, handles)
+% hObject    handle to segment_selected_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 

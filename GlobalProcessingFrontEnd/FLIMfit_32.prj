@@ -72,8 +72,8 @@
       <file>${PROJECT_ROOT}\icons.mat</file>
       <file>${PROJECT_ROOT}\InternalHelperFunctions</file>
       <file>${PROJECT_ROOT}\segmentation_funcs.mat</file>
-      <file>${PROJECT_ROOT}\YuriySegmentation</file>
-      <file>${PROJECT_ROOT}\YuriySegmentation\Support</file>
+      <file>${PROJECT_ROOT}\SegmentationFunctions</file>
+      <file>${PROJECT_ROOT}\SegmentationFunctions\Support</file>
       <file>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\Third Party Licenses.txt</file>
     </fileset.resources>
     <fileset.package>

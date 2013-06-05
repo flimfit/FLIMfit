@@ -1068,9 +1068,9 @@ void FLIMGlobalFitController::Init()
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
-         projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, nmax, ndim, p, t, &(status->terminate)) );
+         projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, n, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s, l, nl, nmax, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
    }
 
    for(int i=0; i<n_fitters; i++)
