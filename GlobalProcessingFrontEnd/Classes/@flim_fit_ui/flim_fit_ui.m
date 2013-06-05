@@ -33,6 +33,8 @@
     methods
       
         function obj = flim_fit_ui(wait,OMERO_active,external,require_auth)
+            
+            set_splash('FLIMfit_splash1.tif');
                     
             if nargin < 1
                 wait = false;
@@ -157,6 +159,8 @@
             handles.menu_controller = front_end_menu_controller(handles);
 
             guidata(obj.window,handles);
+            
+            close all;
             
             set(obj.window,'Visible','on');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
