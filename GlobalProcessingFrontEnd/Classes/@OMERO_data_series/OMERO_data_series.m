@@ -92,6 +92,7 @@ classdef OMERO_data_series < flim_data_series
             load_multiple_channels = false;
             
             obj.fitted_data = [];
+            obj.fit_result = [];
             
         end
                                         

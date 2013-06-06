@@ -182,12 +182,13 @@ classdef flim_fit_result < handle
             
             stats_names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
             
-            offset = 7;
-            if strcmp(char(table_data(2,1)),'nm') 
-                offset = offset + 1;
-            end;
-                        
             [rows, cols] = size(table_data);
+            
+            for k = 1 : rows
+                if strcmp(char(table_data(k,1)),'pixels'), break, end; 
+            end
+            offset = k + 1;
+
             table_stats_names = table_data(offset:rows,1);
             
             statnames = cell(1,numel(table_stats_names));
@@ -210,18 +211,18 @@ classdef flim_fit_result < handle
                 if strcmp( char(statnames(z)),char(statnames(1)) )
                     unique_param_names(z) = param_names(z);
                 else
-                    break;
+                     break;
                 end;                
             end
             
             n_params = numel(unique_param_names);
             
             filenameS =     table_data(1,2:cols);
-            im_groupS =     table_data(2,2:cols);
-            regionS =       table_data(3,2:cols);
-            successS =      table_data(4,2:cols);
-            iterationS =    table_data(5,2:cols);
-            pixelS =        table_data(6,2:cols);                        
+            im_groupS =     table_data(offset-5,2:cols);
+            regionS =       table_data(offset-4,2:cols);
+            successS =      table_data(offset-3,2:cols);
+            iterationS =    table_data(offset-2,2:cols);
+            pixelS =        table_data(offset-1,2:cols);                        
             
             n_stats = numel(stats_names);
             n_data = cols-1;            
@@ -265,7 +266,7 @@ classdef flim_fit_result < handle
             end
             
             obj.image_size = imagesizes;
-            obj.region_size = obj.image_size;
+            obj.region_size = max(cell2mat(regionS)); % ??
             obj.success = succcsesss; 
             
             n_data = numel(obj.image_size); %re-assign "n_data" :)
@@ -289,9 +290,6 @@ classdef flim_fit_result < handle
             for d=1:n_data, obj.regions{d} = 1; end;
             
             obj.smoothing = 9;
-            
-            str = obj.params;
-            obj.latex_params = strrep(str,'_',' ');
             
         end
         

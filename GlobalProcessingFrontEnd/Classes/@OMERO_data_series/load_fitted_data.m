@@ -22,7 +22,9 @@
 %     "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
-            %            
+            %
+            infostring = [];
+            %
             session = obj.omero_data_manager.session;
             userid = obj.omero_data_manager.userid;
             %
@@ -141,7 +143,7 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
                  obj.fitted_data = single(zeros(n_FOVs,SizeX,SizeY,SizeC));                 
                  %
                  %names....
-                 param_names = cell(1,n_FOVs);
+                 param_names = cell(1,SizeC);
                  pixelsService = session.getPixelsService();
                  image = imageList(1);
                  pixelsList = image.copyPixels();    
@@ -283,7 +285,7 @@ end
             f.selected = (1:n_FOVs);            
             f.fit_result.image = (1:n_FOVs);
             f.fit_result.names = obj.names'; 
-            f.fit_result.params = param_names;              
+            f.fit_result.set_param_names(param_names); % !
             f.fit_result.n_results = n_FOVs;
             f.fit_result.intensity_idx = intensity_idx;
             f.fit_result.width = SizeY;

@@ -22,7 +22,7 @@ movegui(fh,'center')
 % make the figure visible
 
 set(fh,'Visible','on');
-set(fh,'Name','Loading FLIMfit...');
+set(fh,'Name','Loading...');
 
 catch err
     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
