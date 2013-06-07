@@ -97,6 +97,8 @@ classdef OMERO_data_series < flim_data_series
         end
                                         
         function delete(obj)
+            obj.fitted_data = [];
+            obj.fit_result = [];            
         end   
         
         %------------------------------------------------------------------

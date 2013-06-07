@@ -292,6 +292,7 @@ end
             f.fit_result.height = SizeX;
             f.fit_result.ready = 1; 
             f.fit_result.is_temp = 1;
+            f.fit_result.binned = false;
                         
     % Get metadata for the datasetes we've just fit
     md = obj.metadata;
