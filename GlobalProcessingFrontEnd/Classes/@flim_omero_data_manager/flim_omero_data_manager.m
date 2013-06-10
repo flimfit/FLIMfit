@@ -489,25 +489,27 @@ classdef flim_omero_data_manager < handle
                                 
                 for dataset_index = 1:data_series.n_datasets
                     %
-                    data = zeros(n_params,sizeX,sizeY);
-                        for p = 1:n_params,                                                                                                                                            
-                            data(p,:,:) = fit_controller.get_image(dataset_index, params{p})';
-                        end
-                    %                  
-                    new_image_description = ' ';
+                    if data_series.use(dataset_index)
+                        data = zeros(n_params,sizeX,sizeY);
+                            for p = 1:n_params,                                                                                                                                            
+                                data(p,:,:) = fit_controller.get_image(dataset_index, params{p})';
+                            end
+                        %                  
+                        new_image_description = ' ';
 
-                        new_image_name = char(['FLIM fitting channel ' ...
-                            ' Z ' Z_str ...
-                            ' C ' C_str ...
-                            ' T ' T_str ' ' ...
-                            ' _@@_ ' ...
-                            data_series.names{dataset_index}]);                                    
-                                        
-                    imageId = obj.fit_results2omeroImage_Channels(data, 'double', new_image_name, new_image_description, res.fit_param_list());                    
-                    link = omero.model.DatasetImageLinkI;
-                    link.setChild(omero.model.ImageI(imageId, false));
-                    link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
-                    obj.session.getUpdateService().saveAndReturnObject(link); 
+                            new_image_name = char(['FLIM fitting channel ' ...
+                                ' Z ' Z_str ...
+                                ' C ' C_str ...
+                                ' T ' T_str ' ' ...
+                                ' _@@_ ' ...
+                                data_series.names{dataset_index}]);                                    
+
+                        imageId = obj.fit_results2omeroImage_Channels(data, 'double', new_image_name, new_image_description, res.fit_param_list());                    
+                        link = omero.model.DatasetImageLinkI;
+                        link.setChild(omero.model.ImageI(imageId, false));
+                        link.setParent(omero.model.DatasetI(newdataset.getId().getValue(), false));
+                        obj.session.getUpdateService().saveAndReturnObject(link); 
+                    end;
                     %   
                     waitbar(dataset_index/data_series.n_datasets, hw);
                     drawnow;                                                                 
@@ -554,8 +556,8 @@ classdef flim_omero_data_manager < handle
                                         for dataset_index = 1:data_series.n_datasets
                                             str = split(':',data_series.names{dataset_index});
                                             imgname = char(str(2));                                        
-                                            iid = str2num(str2mat(cellstr(str(1)))); % wtf                                        
-                                            if (1==strcmp(imgName,imgname)) && (iid == iId) % put new well into new plate
+                                            iid = str2num(str2mat(cellstr(str(1)))); % oops..                                        
+                                            if (1==strcmp(imgName,imgname)) && (iid == iId) && data_series.use(dataset_index)
                                                 %
                                                 if isempty(newplate) % create new plate                                                    
                                                     current_plate_name = char(java.lang.String(obj.plate.getName().getValue()));    
@@ -619,7 +621,7 @@ classdef flim_omero_data_manager < handle
                                                                 end                                                                                  
                                                             new_image_description = ' ';
                                                             
-                                                                new_image_name = char(['FLIM fitting channel ' 
+                                                                new_image_name = char(['FLIM fitting channel ' ...
                                                                     ' Z ' Z_str ...
                                                                     ' C ' C_str ...
                                                                     ' T ' T_str ' ' ...
