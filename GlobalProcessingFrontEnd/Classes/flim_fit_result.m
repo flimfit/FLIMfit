@@ -178,122 +178,96 @@ classdef flim_fit_result < handle
             params = obj.params;
         end
         
+        
         function set_stats_from_table(obj,table_data)
             
-            stats_names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
+           stats_names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
+           n_stats = numel(stats_names);            
             
-            [rows, cols] = size(table_data);
+           [rows, cols] = size(table_data);
             
-            for k = 1 : rows
-                if strcmp(char(table_data(k,1)),'pixels'), break, end; 
-            end
-            offset = k + 1;
-
-            table_stats_names = table_data(offset:rows,1);
-            
-            statnames = cell(1,numel(table_stats_names));
-            param_names = cell(1,numel(table_stats_names));
-            for k = 1 : numel(table_stats_names)
-                curstr = char(table_stats_names(k));
-                sepstart = strfind(curstr,' - ');
-                A = curstr(1:sepstart-1);
-                B = curstr(sepstart+3:length(curstr));
-                statnames(k) = cellstr(A);
-                param_names(k) = cellstr(B);                
-            end
-            
-%            statnames = unique(statnames,'legacy');
-%            param_names = unique(param_names,'legacy');            
-
-            z = 0;
-            while true
-                z=z+1;                
-                if strcmp( char(statnames(z)),char(statnames(1)) )
-                    unique_param_names(z) = param_names(z);
-                else
-                     break;
-                end;                
-            end
-            
-            n_params = numel(unique_param_names);
-            
-            filenameS =     table_data(1,2:cols);
-            im_groupS =     table_data(offset-5,2:cols);
-            regionS =       table_data(offset-4,2:cols);
-            successS =      table_data(offset-3,2:cols);
-            iterationS =    table_data(offset-2,2:cols);
-            pixelS =        table_data(offset-1,2:cols);                        
-            
-            n_stats = numel(stats_names);
-            n_data = cols-1;            
-
-            for d = 1 : n_data
-                Dd = struct();
-                for s = 1 : n_stats
-                    %Dd.(stats_names{s}) = rand(1,n_params);
-                    strtind = offset + n_params*(s-1);
-                    endind = strtind + n_params - 1;
-                        data_to_set = table_data(strtind:endind,d+1)';
-                        for k = 1 : numel(data_to_set)
-                            if ~isnumeric(data_to_set{k})
-                                data_to_set(k) = {0}; %mat2cell(0);
-                            end
+           for k = 1 : cols,
+            if strcmp(char(table_data(1,k)),'pixels'), break, end; 
+           end
+           offset = k + 1;
+           
+           n_params = numel(obj.params);
+                                  
+           filenameS =     table_data(1:rows,1);           
+                      
+           for fovind = 1 : numel(obj.metadata.FileName) % main loop by FOVs   
+               
+                   metadatafilename = obj.metadata.FileName{fovind}; % FOV name
+                   if ~ischar(metadatafilename) % might happen...
+                        metadatafilename = num2str(metadatafilename); 
+                   end;                
+                   % find start and end index in the table
+                   startind = 0;
+                   endind = rows;
+                   for tablind = 2:rows
+                        previous_datafilename = filenameS{tablind-1};                        
+                        datafilename = filenameS{tablind};
+                        %
+                        if ~ischar(datafilename) 
+                            datafilename = num2str(datafilename); 
+                        end;
+                        %
+                        if ~ischar(previous_datafilename) 
+                            previous_datafilename = num2str(previous_datafilename); 
+                        end;                        
+                        %
+                        if strcmp(metadatafilename,datafilename) && ~strcmp(metadatafilename,previous_datafilename)
+                            startind  = tablind;
                         end
-                        Dd.(stats_names{s}) = cell2mat(data_to_set);
-                end
-                data{d} = Dd;
-            end
-            
-            % need to leave only columns corresponding to the selected FOVs..            
-            z = 0;
-            for d = 1 : n_data
-                for sd = 1 : numel(obj.metadata.FileName) 
-                    datafilename_d = filenameS{d};                    
-                    if ~ischar(datafilename_d) 
-                        datafilename_d = num2str(datafilename_d); 
-                    end;
-                    metadatafilename_sd = obj.metadata.FileName{sd};
-                    if ~ischar(metadatafilename_sd) 
-                        metadatafilename_sd = num2str(metadatafilename_sd); 
-                    end;                    
-                    if strcmp(datafilename_d,metadatafilename_sd)
-                        z = z + 1;
-                        data_cropped(z) = data(d);
-                        imagesizes{z} = pixelS{d}; % BTW
-                        succcsesss{z} = successS{d};
-                    end
-                end
-            end
-            
-            obj.image_size = imagesizes;
-            obj.region_size = max(cell2mat(regionS)); % ??
-            obj.success = succcsesss; 
-            
-            n_data = numel(obj.image_size); %re-assign "n_data" :)
-            
-            obj.image_stats = data_cropped;
-            obj.region_stats = data_cropped;
-            
-            lims(:,1) = ones(n_params,1)*Inf;
-            lims(:,2) = ones(n_params,1)*(-Inf);
-
-            for p = 1 : n_params
-                for d = 1 : n_data
-                    lims(p,1) = nanmin( lims(p,1),obj.image_stats{d}.pct_01(p) );
-                    lims(p,2) = nanmax( lims(p,2),obj.image_stats{d}.pct_99(p) );
-                end
-            end
-            obj.default_lims = lims;
-            obj.stat_names = stats_names;
-            
-            obj.regions = cell(1,n_data);
-            for d=1:n_data, obj.regions{d} = 1; end;
-            
-            obj.smoothing = 9;
-            
+                        if ~strcmp(metadatafilename,datafilename) && strcmp(metadatafilename,previous_datafilename) 
+                            endind  = tablind-1;
+                        end                                                
+                   end 
+                   %
+                   regionS =       cell2mat(table_data(startind:endind,offset-4))';
+                   successS =      cell2mat(table_data(startind:endind,offset-3))';
+                   iterationS =    cell2mat(table_data(startind:endind,offset-2))';
+                   pixelS =        cell2mat(table_data(startind:endind,offset-1))';
+                   %
+                   statS = zeros(n_params,numel(regionS),n_stats);
+                   %
+                   % stats ASSIGNMENT....                   
+                   NNUMCOLS = n_stats*n_params;
+                   for c = offset : NNUMCOLS,
+                                       curstr = char(table_data(1,c));
+                                       sepstart = strfind(curstr,' - ');
+                                       A = curstr(1:sepstart-1);
+                                       B = curstr(sepstart+3:length(curstr));
+                                       cur_stat_name = cellstr(A);
+                                       cur_param_name = cellstr(B);
+                                                                                                                     
+                                       data = table_data(startind:endind,c);
+                                       
+                                       ival = cellfun(@ischar,data);
+                                       data(ival) = {NaN};
+                                       data = cell2mat(data);
+                                       
+                                       %find param index
+                                       for p=1:n_params
+                                           if strcmp(cur_param_name,obj.params{p}), break, end;
+                                       end
+                                       param_ind = p;
+                                       
+                                       %find stat index
+                                       for s=1:n_stats
+                                           if strcmp(cur_stat_name,stats_names{s}), break, end;
+                                       end
+                                       stat_ind = s;
+                                       
+                                       statS(param_ind,:,stat_ind) = data;
+                   end % stats ASSIGNMENT....                                                         
+                   %
+                   obj.set_results(fovind,fovind,regionS,pixelS,successS,iterationS,statS,stats_names);                                                                                                       
+           end                                              
+           %
+           obj.smoothing = 9; % ?                                  
         end
-        
-        
+                        
         %{
         function img = get_image(obj,dataset,param)
            
