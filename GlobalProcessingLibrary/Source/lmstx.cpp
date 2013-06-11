@@ -630,7 +630,7 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
 
    int sm = ceil((double)s/n_jac_group);
 
-   #pragma omp parallel for schedule(dynamic, 10)
+   #pragma omp parallel for num_threads(n_thread) schedule(dynamic, 10)
    for (int i = 0; i<sm; i++)
    {
       int thread = omp_get_thread_num();
