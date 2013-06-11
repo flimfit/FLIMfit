@@ -203,10 +203,6 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
                                                 
                 obj.t = delays;
                 
-%                 if strcmp(obj.mode,'TCSPC')
-%                     obj.t_int = ones(size(obj.t));      % Not sure of behaviour for gated data
-%                 end
-                             
                 obj.clear_memory_mapping();                
                 obj.loaded = false(1,n_FOVs);
                 
@@ -286,7 +282,7 @@ end
             f.fit_result.image = (1:n_FOVs);
             f.fit_result.names = obj.names'; 
             f.fit_result.set_param_names(param_names); % !
-            f.fit_result.n_results = n_FOVs;
+            %f.fit_result.n_results = n_FOVs; % set in set_results !! ...
             f.fit_result.intensity_idx = intensity_idx;
             f.fit_result.width = SizeY;
             f.fit_result.height = SizeX;
@@ -303,18 +299,14 @@ end
     end    
     f.fit_result.metadata = md;
     % AFTER metadata filled, can call this function
-    f.fit_result.set_stats_from_table(table_data');
-                                   
-    f.dll_interface.fit_result = [];
-     
+    f.fit_result.set_stats_from_table(table_data);
+    f.dll_interface.fit_result = [];     
     f.display_fit_end();
 
-%     if ishandle(obj.table_stat_popupmenu)
+%     if ishandle(obj.table_stat_popupmenu) % NOT SURE WHAT THAT IS
 %         set(f.table_stat_popupmenu,'String',f.fit_result.stat_names);
 %     end
     
-%    f.update_table();
-
     f.has_fit = true;
     f.fit_in_progress = false;    
     f.update_progress([],[]);
