@@ -170,7 +170,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end    
     
     if ~isempty(obj.progress_bar)
-        obj.progress_bar.StatusMessage = 'Procesing Data...';
+        obj.progress_bar.StatusMessage = 'Processing Data...';
     end
     
     if d.use_memory_mapping && ~obj.bin

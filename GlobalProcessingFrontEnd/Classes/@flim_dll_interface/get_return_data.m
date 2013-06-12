@@ -129,9 +129,6 @@ function get_return_data(obj)
     
     obj.fit_result.metadata = md;
     
-    function data = reshape_return(data,sel)
-
-        
-    end
+    obj.progress_bar = [];
     
 end
