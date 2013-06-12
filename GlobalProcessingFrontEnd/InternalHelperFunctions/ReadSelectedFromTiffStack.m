@@ -1,5 +1,4 @@
-function update_progress(obj,~,~)
-
+function images = ReadSelectedFromTiffStack(file,names,description)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -25,26 +24,36 @@ function update_progress(obj,~,~)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-
     
-    if obj.fit_in_progress
+    t = Tiff(file,'r');
+    
+    sz = [t.getTag('ImageLength'), t.getTag('ImageWidth'), length(names)];
+    
+    images = NaN(sz);
 
-        p = obj.fit_params;
-
-        [progress, n_completed, cur_group, iter, chi2] = obj.dll_interface.get_progress();
-
-        if ~isempty(obj.wait_handle)
-            if progress > 0
-                obj.wait_handle.Indeterminate = false;
-                obj.wait_handle.FractionComplete = progress;
-            end
-            %waitbar(progress,obj.wait_handle);
+    % Check image description matches provided description 
+    if nargin >= 3
+        im_description = t.getTag('ImageDescription');
+        if ~strcmp(im_description,description);
+            return;
         end
-
-        table_data = [double((1:p.n_thread)); double(n_completed); ...
-                      double(cur_group); double(iter); double(chi2)];
-
-        set(obj.progress_table,'Data',table_data);
     end
     
+    % Read images with the given names
+    finished = false;
+    while ~finished
+        name = t.getTag('DocumentName');
+        sel = strcmp(name,names);
+              
+        im = t.read();
+        images(:,:,sel) = im;
+        
+        if t.lastDirectory()
+            finished = true;
+        else
+            t.nextDirectory();
+        end
+        
+    end
+
 end

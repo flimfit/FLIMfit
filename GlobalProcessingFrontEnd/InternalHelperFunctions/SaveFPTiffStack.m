@@ -1,5 +1,4 @@
-function update_progress(obj,~,~)
-
+function SaveFPTiffStack(file,images,names,description)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -26,25 +25,43 @@ function update_progress(obj,~,~)
 
     % Author : Sean Warren
 
+    images = single(images);
     
-    if obj.fit_in_progress
-
-        p = obj.fit_params;
-
-        [progress, n_completed, cur_group, iter, chi2] = obj.dll_interface.get_progress();
-
-        if ~isempty(obj.wait_handle)
-            if progress > 0
-                obj.wait_handle.Indeterminate = false;
-                obj.wait_handle.FractionComplete = progress;
-            end
-            %waitbar(progress,obj.wait_handle);
+    t = Tiff(file,'w');
+    tagstruct.ImageLength = size(images,1);
+    tagstruct.ImageWidth = size(images,2);
+    tagstruct.Photometric = Tiff.Photometric.MinIsBlack;
+    tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP;
+    tagstruct.BitsPerSample = 32;
+    tagstruct.SamplesPerPixel = 1;
+    tagstruct.RowsPerStrip = 16;
+    tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
+    tagstruct.Software = 'MATLAB';
+    
+    if nargin >= 4
+        tagstruct.ImageDescription = description;
+    end
+   
+%    global_tag = tagstruct;
+%    global_tag.SubIFD = length(names);
+        
+%    t.setTag(global_tag);
+    
+    for i=1:10 %length(names)
+    
+        if (i > 1)
+            t.writeDirectory();
         end
 
-        table_data = [double((1:p.n_thread)); double(n_completed); ...
-                      double(cur_group); double(iter); double(chi2)];
-
-        set(obj.progress_table,'Data',table_data);
+        
+        local_tag = tagstruct;
+        local_tag.DocumentName = names{i};
+        
+        t.setTag(local_tag);
+        t.write(images(:,:,i))
+               
     end
     
+    t.close()
+
 end

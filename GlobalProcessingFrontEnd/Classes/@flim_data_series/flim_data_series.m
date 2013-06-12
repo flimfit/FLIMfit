@@ -326,6 +326,13 @@ classdef flim_data_series < handle & h5_serializer
             obj.loaded(:) = false;
             obj.load_selected_files(l);
         end
+        
+        function export_acceptor_images(obj,file)
+            
+            SaveFPTiffStack(file,obj.acceptor,obj.names,'Acceptor');
+            
+        end
+        
         %===============================================================
         
         function [data,irf] = get_roi(obj,roi_mask,dataset)

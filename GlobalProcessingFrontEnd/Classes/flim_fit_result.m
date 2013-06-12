@@ -70,8 +70,6 @@ classdef flim_fit_result < handle
     end
     
     properties(Transient = true)
-        has_grid;
-        grid;
         binned;
         t_exec;
         job;

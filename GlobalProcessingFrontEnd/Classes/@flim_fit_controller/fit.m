@@ -27,7 +27,6 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
 
     
     bin = false;
-    grid = false;
     roi_mask = [];
     dataset = [];
 
@@ -37,9 +36,6 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
         bin = varargin{1};
         roi_mask = varargin{2};
         dataset = varargin{3};
-        if nargin == 5
-            grid = varargin{4};
-        end
     end
     
     if obj.fit_in_progress && ~bin
@@ -81,7 +77,7 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
                 dataset = obj.data_series_list.selected;
             end
             
-            err = obj.dll_interface.fit(obj.data_series_controller.data_series, obj.fit_params, roi_mask, dataset, grid);
+            err = obj.dll_interface.fit(obj.data_series_controller.data_series, obj.fit_params, roi_mask, dataset);
         end
             
         if err ~= 0

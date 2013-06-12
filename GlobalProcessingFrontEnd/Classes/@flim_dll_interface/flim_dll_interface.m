@@ -46,6 +46,8 @@ classdef flim_dll_interface < handle
         
         lib_name;
         flim_fit;
+        
+        progress_bar;
     end
     
     events
@@ -80,8 +82,6 @@ classdef flim_dll_interface < handle
         p_fixed_beta;
                 
         bin;
-        grid;
-        grid_dims;
         
         fit_timer;
         wait_handle;

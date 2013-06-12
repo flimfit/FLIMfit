@@ -88,8 +88,13 @@ function handles = setup_menu(obj,handles)
         handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
         handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
     
-        handles.menu_file_load_acceptor = uimenu(menu_file,'Label','Load Accceptor Images...');
-            
+        
+        menu_file_acceptor = uimenu(menu_file,'Label','Acceptor Images...');
+        handles.menu_file_load_acceptor = uimenu(menu_file_acceptor,'Label','Load Accceptor Images...');
+        handles.menu_file_export_acceptor = uimenu(menu_file_acceptor,'Label','Export Acceptor Images...','Separator','on');
+        handles.menu_file_import_acceptor = uimenu(menu_file_acceptor,'Label','Import Saved Acceptor Images...');
+        
+        
         handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
     
         %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');

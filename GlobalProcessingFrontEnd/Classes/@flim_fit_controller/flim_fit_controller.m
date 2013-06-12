@@ -331,7 +331,7 @@ classdef flim_fit_controller < flim_data_series_observer
                 set(obj.fit_pushbutton,'String','Fit Dataset');  
             end
             
-            if ishandle(obj.wait_handle)
+            if ~isempty(obj.wait_handle)
                 delete(obj.wait_handle)
             end
            
@@ -342,7 +342,8 @@ classdef flim_fit_controller < flim_data_series_observer
             if ishandle(obj.fit_pushbutton)
                 set(obj.fit_pushbutton,'String','Stop Fit');
                 if obj.use_popup
-                    obj.wait_handle = waitbar(0,'Fitting...');
+                    obj.wait_handle = ProgressDialog('Indeterminate', true); %waitbar(0,'Fitting...');
+                    obj.dll_interface.progress_bar = obj.wait_handle;
                 end
             end
             
