@@ -214,6 +214,12 @@
                     delete(handles.(names{i}));
                 end
             end
+            
+            global f_temp;
+            if ~isempty(f_temp) && ishandle(f_temp)
+                delete(f_temp);
+                clear('f_temp');            
+            end
                         
         end
         
