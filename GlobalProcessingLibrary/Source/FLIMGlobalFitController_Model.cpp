@@ -192,8 +192,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
 
          row--;
         
-         double tg = t[1] - t[0];
-
+         //double tg = t[1] - t[0];
          // Actual decay
          //if (data->data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
          //   fact = ( 1 - exp( - tg * rate ) ) / rate;
@@ -317,7 +316,7 @@ int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], d
    // Total number of columns 
    int n_col = n_fret_group * n_pol_group * n_exp_phi;
 
-   memset(a, 0, n_meas_res*n_col*sizeof(a)); 
+   memset(a, 0, n_meas_res*n_col*sizeof(double));
 
    int idx = 0;
    for(int p=0; p<n_pol_group; p++)

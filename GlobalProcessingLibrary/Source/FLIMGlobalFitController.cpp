@@ -807,7 +807,7 @@ void FLIMGlobalFitController::Init()
          for(int k=0; k<n_chan; k++)
              irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf[j*n_irf*n_chan+k*n_irf+i];
       }
-      for(i=i; i<a_n_irf; i++)
+      for(; i<a_n_irf; i++)
       {
          t_irf_buf[i] = t_irf_buf[i-1] + dt;
          for(int k=0; k<n_chan; k++)
@@ -942,9 +942,7 @@ void FLIMGlobalFitController::Init()
       n = n_meas;
 
    ndim       = std::max( n, 2*nl+3 );
-   nmax       = n;
-   int lps    = l + s + 1;
-   
+   nmax       = n;   
 
    calculate_mean_lifetimes = !beta_global && n_exp > 1;
 
@@ -1138,7 +1136,6 @@ void FLIMGlobalFitController::Init()
    // standard normal distribution object:
    boost::math::normal norm;
    conf_factor = quantile(complement(norm, 0.5*conf_interval));
-   conf_factor = conf_factor;
 
 
 }

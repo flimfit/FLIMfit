@@ -158,8 +158,6 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    double gtol = 0.;
    double factor = 1;
 
-   int    maxfev = itmax;
-
    int nfev, info;
    double rnorm; 
 
@@ -303,16 +301,13 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
 
    int is;
 
-   int lnls = l + nls + s;
-   int lps  = l + s;
-   int nml  = n - l; 
+   int nml  = n - l;
 
    // Matrix dimensions
    int r_dim1 = n;
    int y_dim1 = nmax;
    int a_dim1 = n;
    int b_dim1 = ndim;
-   int t_dim1 = nmax;
    
    double r_sq, rj_norm, acum;
 
@@ -767,7 +762,6 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    double acum;
 
    int a_dim1 = n;
-   int r_dim1 = n;
    
    double* rj = r + idx * n;
 

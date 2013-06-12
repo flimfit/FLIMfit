@@ -213,17 +213,10 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
 
    this->conf_limit = conf_limit;
 
-   
-   int itmax = 0;
-   int niter = 0;
-   int ierr = 0;
-   
    memcpy(alf_buf, alf, nl * sizeof(double));
    memcpy(inc_full, inc, 96*sizeof(int));
 
    getting_errs = true;
-
-   double f[3] = {1e-2, 1e-1, 1};
 
    gnl = gnl_full - 1;
 

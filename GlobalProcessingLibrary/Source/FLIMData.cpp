@@ -551,7 +551,7 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay)
+int FLIMData::GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay, int n_thread)
 {
    int s = 0;
 
@@ -565,7 +565,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
       int start = GetRegionPos(0, region);
        
      // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
-      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1)  
+      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
       for(int i=0; i<n_im_used; i++)
       {
          if (!status->terminate)
@@ -573,7 +573,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
             // This thread index will only be used if we're not streaming data,
             // make sure that we pass the right one in
             int r_thread;
-            if (omp_get_num_threads() == 1)
+            if (n_thread == 1)
                r_thread = thread;
             else
                r_thread = omp_get_thread_num();

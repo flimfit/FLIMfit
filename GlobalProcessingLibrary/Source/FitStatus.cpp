@@ -42,8 +42,8 @@ double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_par
 
 
 FitStatus::FitStatus(FLIMGlobalFitController* gc, int n_thread, int (*callback)()) : 
-   gc(gc), n_region(n_region), n_thread(n_thread), callback(callback), 
-   threads_running(0), progress(0), terminate(0), has_fit(0), running(0)
+   gc(gc), n_thread(n_thread), callback(callback), n_region(0),
+   progress(0), threads_running(0),  terminate(0), has_fit(0), running(0)
 {
    group = new int[n_thread];
    n_completed = new int[n_thread];

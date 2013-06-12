@@ -165,12 +165,9 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    int n_meas = data->GetResampleNumMeas(thread);
    int N = n_meas;
                                
-   double *exp_buf   = this->exp_buf + thread * n_fret_group * exp_buf_size;
    double *tau_buf   = this->tau_buf + thread * n_exp * (n_fret + 1);
    double *beta_buf  = this->beta_buf + thread * n_exp;
    double *theta_buf = this->theta_buf + thread * n_theta;
-   float  *w         = this->w + thread * n;
-   float  *y         = this->y + thread * n * (s+1);
    
    if ( fit_t0 )
       t0 = alf[alf_t0_idx];

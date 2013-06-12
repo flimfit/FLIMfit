@@ -73,7 +73,7 @@ public:
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
-   int GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay);
+   int GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay, int n_thread);
    int GetMaskedData(int thread, int im, int region, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx);
 
    
@@ -194,8 +194,6 @@ private:
 
    int* cur_transformed;
 
-   float* average_data;
-
    int data_class;
 
    int* resample_idx;
@@ -282,7 +280,6 @@ int FLIMData::CalculateRegions()
    int err = 0;
 
    int cur_pos = 0;
-   int average_count = 0;
    
    n_regions_total = 0;
 
@@ -305,7 +302,7 @@ int FLIMData::CalculateRegions()
 
    StartStreaming();
 
-   //#pragma omp parallel for schedule(dynamic, 1)
+   #pragma omp parallel for schedule(dynamic, 1)
    for(int i=0; i<n_im_used; i++)
    {
       int thread = omp_get_thread_num();

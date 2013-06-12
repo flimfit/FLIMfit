@@ -191,12 +191,9 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
 {
    int i,j,k;
    float* adjust;
-   int iflag = 1;
 
    GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->GetConstantAdjustment();
-
-   double* A = alf+gnl;
 
    memset(fjac,0,nfunc*nl*sizeof(double));
 

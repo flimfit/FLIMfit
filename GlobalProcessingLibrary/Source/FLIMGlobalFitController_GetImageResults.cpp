@@ -72,7 +72,7 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageSta
 
 float FLIMGlobalFitController::GetNonLinearParam(int param, float alf[])
 {
-   #define GET_PARAM(param,n,p)  if (p < n) return ((float)(param)[p]); else (p-=n)
+   #define GET_PARAM(param,n,p)  {if (p < n) return ((float)(param)[p]); else (p-=n);}
 
    int p = param;
 
@@ -287,8 +287,6 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
          
             if (data->global_mode == MODE_PIXELWISE)
                success[idx] /= s_local;
-
-            int n_output = 0;
          
             if (data->global_mode == MODE_PIXELWISE)
             {
@@ -397,8 +395,6 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
    float* param_data = NULL;
    int span;
 
-   int thread = 0;
-
    if (   param < 0 || param >= n_output_params
        || im    < 0 || im    >= data->n_im )
       return -1;
@@ -416,7 +412,6 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
 
    SetNaN(image_data, n_px);
 
-   int idx = 0;
    for(int rg=1; rg<MAX_REGION; rg++)
    {
       int r_param = param;
@@ -450,7 +445,6 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
                param_data = alf + r_idx * nl;
                float p = GetNonLinearParam(r_param, param_data);
                
-               int j = 0;
                for(int i=0; i<n_px; i++)
                   if(im_mask[i] == rg)
                      image_data[i] = p;

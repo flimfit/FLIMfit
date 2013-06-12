@@ -172,7 +172,6 @@ void conv_irf_deriv_ref_tcspc(FLIMGlobalFitController *gc, double t, double rate
 void conv_irf_deriv_ref_timegate(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c)
 {
    double c_rep;
-   double last = 0;
    int j = k*gc->n_t+i;
    int irf_end = (k+1)*gc->n_irf-1;
    

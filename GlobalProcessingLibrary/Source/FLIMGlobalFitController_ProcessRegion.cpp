@@ -46,7 +46,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    INIT_CONCURRENCY;
 
    int i, j, s_thresh, itmax;
-   double ref = 0;
    double tau_ma;
 
    int ierr_local = 0;
@@ -56,13 +55,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    int r_idx = data->GetRegionIndex(g,region);
 
    float  *local_decay     = this->local_decay + thread * n_meas;
-   float  *w               = this->w + thread * n_meas;
 
    double *alf_local       = this->alf_local + thread * nl * 3;
    double *err_lower_local = this->alf_local + thread * nl * 3 +   nl;
    double *err_upper_local = this->alf_local + thread * nl * 3 + 2*nl;
-
-   float  *lin_local       = this->lin_local + thread * l;
 
    int start = data->GetRegionPos(g,region) + px;
 
@@ -101,7 +97,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       alf_err_lower = this->alf_err_lower + nl * r_idx; 
       alf_err_upper = this->alf_err_upper + nl * r_idx; 
 
-      s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, irf_idx, local_decay);
+      s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, irf_idx, local_decay, n_omp_thread);
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;

@@ -242,7 +242,7 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
 
     INIT_CONCURRENCY;
 
-    char buf[1000];
+    //char buf[1000];
 
     epsmch = dpmpar(1);
 
