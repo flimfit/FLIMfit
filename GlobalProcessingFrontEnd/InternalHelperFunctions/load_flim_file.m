@@ -99,7 +99,9 @@ global buf buf_name
                 im_data = zeros([noOfFiles size(im)],'uint16');
                 delays = zeros([1,noOfFiles]);
                 
-                for f = 1:noOfFiles
+                im_data(1,:,:) = im;
+                
+                for f = 2:noOfFiles
                     filename = [path filesep dirStruct(f).name];
                     [~,name] = fileparts(filename);
                     tokens = regexp(name,'INT\_(\d+)','tokens');

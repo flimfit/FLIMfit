@@ -1,4 +1,4 @@
-function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
+function err = fit(obj, data_series, fit_params, roi_mask, selected)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -39,13 +39,8 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected, grid)
     % Check if a binning mask has been provided
     if nargin >= 5
         obj.bin = true;
-        if nargin < 6
-            obj.grid = false;
-        end
-        obj.grid = grid;
     else
         obj.bin = false;
-        obj.grid = false;
     end
     
     err = 0;

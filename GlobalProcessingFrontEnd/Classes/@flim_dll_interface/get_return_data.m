@@ -26,6 +26,11 @@ function get_return_data(obj)
     % Author : Sean Warren
 
 
+    if ~isempty(obj.progress_bar)
+        obj.progress_bar.StatusMessage = 'Processing Fit Results...';
+        obj.progress_bar.Indeterminate = true;
+    end
+    
     r = obj.fit_result;
     d = obj.data_series;
     

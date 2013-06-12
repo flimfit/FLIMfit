@@ -83,6 +83,8 @@ classdef front_end_menu_controller < handle
         menu_file_load_tcspc_pol;
         
         menu_file_load_acceptor;
+        menu_file_export_acceptor;
+        menu_file_import_acceptor;
         
         menu_file_reload_data;
         
@@ -527,12 +529,23 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_file_load_acceptor_callback(obj,~,~)
-            folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
+            folder = uigetdir(obj.default_path,'Select the folder containing the acceptor images');
             if folder ~= 0
                 obj.data_series_controller.data_series.load_acceptor_images(folder);
-                if strcmp(obj.default_path,'C:\')
-                    obj.default_path = path;
-                end
+            end
+        end
+        
+        function menu_file_import_acceptor_callback(obj,~,~)
+            [file path] = uigetfile({'*.tiff'},'Select the exported acceptor image file',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.load_acceptor_images([path file]);
+            end
+        end
+        
+        function menu_file_export_acceptor_callback(obj,~,~)
+            [file path] = uiputfile({'*.tiff'},'Select exported acceptor image file name',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.export_acceptor_images([path file]);
             end
         end
         
@@ -856,24 +869,52 @@ classdef front_end_menu_controller < handle
             
                 a = d.acceptor(:,:,i);
                 intensity = d.integrated_intensity(i);
-                try
-                    [tr,t] = imregister2(a,intensity,'rigid',optimizer,metric);
-                    dx = t.tdata.T(3,1:2);
+                %try
+                    t = imregtform(a,intensity,'rigid',optimizer,metric);
+                    dx = t.T(3,1:2);
                     dx = norm(dx);
                     disp(dx);
                     
                     if dx>200
                         tr = a;
+                    else
+                        tr = imwarp(a,t,'OutputView',imref2d(size(intensity)));
                     end
 
-                catch
-                    tr = a;
-                end
+                %catch e
+                %    tr = a;
+                %end
                 
                 tr_acceptor(:,:,i) = tr;
                 
-                %figure(13);
-                %imagesc(tr_acceptor(:,:,i)); pause(1); imagesc(intensity);
+                figure(13);
+                
+                subplot(1,2,1)
+                a = a - min(a(:));
+                im(:,:,1) = a ./ max(a(:));
+                im(:,:,2) = intensity ./ max(intensity(:));
+                im(:,:,3) = 0;
+                
+                im(im<0) = 0;
+                
+                imagesc(im);
+                daspect([1 1 1]);
+                set(gca,'XTick',[],'YTick',[]);
+                title('Before Alignment');
+                
+
+                subplot(1,2,2)
+                tr = tr - min(tr(:));
+                im(:,:,1) = tr ./ max(tr(:));
+                im(:,:,2) = intensity ./ max(intensity(:));
+                im(:,:,3) = 0;
+                
+                im(im<0) = 0;
+                
+                imagesc(im);
+                daspect([1 1 1]);
+                set(gca,'XTick',[],'YTick',[]);
+                title('After Alignment');
                 
                 waitbar(i/d.n_datasets,h);
             end
@@ -886,9 +927,24 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_test_test3_callback(obj,~,~)
-            file = 'c:\users\scw09\documents\data_serialization.h5';
             
-            obj.data_series_controller.data_series.serialize(file);
+            d = obj.data_series_controller.data_series;
+            
+            
+            images = d.acceptor;
+            names = d.names;
+            description = 'Acceptor';
+            file = 'c:\users\scw09\documents\acceptor.tiff';
+            
+            %SaveFPTiffStack(file,images,names,description)
+            
+            %return ;
+            
+            l_images = ReadSelectedFromTiffStack(file,names,description);
+            
+            %file = 'c:\users\scw09\documents\data_serialization.h5';
+            
+            %obj.data_series_controller.data_series.serialize(file);
             
             %{
             global fg fh;
