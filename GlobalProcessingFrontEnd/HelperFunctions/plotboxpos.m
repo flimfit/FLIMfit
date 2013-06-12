@@ -106,7 +106,7 @@ else
 end
 
 global f_temp
-if isempty(f_temp)
+if isempty(f_temp) || ~ishandle(f_temp)
     f_temp = figure('Visible','off');
 end
 temp = axes('Units', 'Pixels', 'Position', pos, 'Visible', 'off','Parent',f_temp);

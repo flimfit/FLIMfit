@@ -495,7 +495,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    for(int i=0; i<n_thread; i++)
       norm_buf_[i*nmaxb] = 0;
 
-   #pragma omp parallel for //reduction(+:r_sq) schedule(dynamic,10)
+   #pragma omp parallel for num_threads(n_thread)
    for (int j=0; j<s; j++)
    {
       int idx;

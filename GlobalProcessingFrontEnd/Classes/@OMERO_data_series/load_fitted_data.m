@@ -22,7 +22,9 @@
 %     "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
-            %            
+            %
+            infostring = [];
+            %
             session = obj.omero_data_manager.session;
             userid = obj.omero_data_manager.userid;
             %
@@ -141,7 +143,7 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
                  obj.fitted_data = single(zeros(n_FOVs,SizeX,SizeY,SizeC));                 
                  %
                  %names....
-                 param_names = cell(1,n_FOVs);
+                 param_names = cell(1,SizeC);
                  pixelsService = session.getPixelsService();
                  image = imageList(1);
                  pixelsList = image.copyPixels();    
@@ -201,10 +203,6 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
                                                 
                 obj.t = delays;
                 
-%                 if strcmp(obj.mode,'TCSPC')
-%                     obj.t_int = ones(size(obj.t));      % Not sure of behaviour for gated data
-%                 end
-                             
                 obj.clear_memory_mapping();                
                 obj.loaded = false(1,n_FOVs);
                 
@@ -283,13 +281,14 @@ end
             f.selected = (1:n_FOVs);            
             f.fit_result.image = (1:n_FOVs);
             f.fit_result.names = obj.names'; 
-            f.fit_result.params = param_names;              
-            f.fit_result.n_results = n_FOVs;
+            f.fit_result.set_param_names(param_names); % !
+            %f.fit_result.n_results = n_FOVs; % set in set_results !! ...
             f.fit_result.intensity_idx = intensity_idx;
             f.fit_result.width = SizeY;
             f.fit_result.height = SizeX;
             f.fit_result.ready = 1; 
             f.fit_result.is_temp = 1;
+            f.fit_result.binned = false;
                         
     % Get metadata for the datasetes we've just fit
     md = obj.metadata;
@@ -300,18 +299,14 @@ end
     end    
     f.fit_result.metadata = md;
     % AFTER metadata filled, can call this function
-    f.fit_result.set_stats_from_table(table_data');
-                                   
-    f.dll_interface.fit_result = [];
-     
+    f.fit_result.set_stats_from_table(table_data);
+    f.dll_interface.fit_result = [];     
     f.display_fit_end();
 
-%     if ishandle(obj.table_stat_popupmenu)
+%     if ishandle(obj.table_stat_popupmenu) % NOT SURE WHAT THAT IS
 %         set(f.table_stat_popupmenu,'String',f.fit_result.stat_names);
 %     end
     
-%    f.update_table();
-
     f.has_fit = true;
     f.fit_in_progress = false;    
     f.update_progress([],[]);
