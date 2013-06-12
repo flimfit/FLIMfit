@@ -168,6 +168,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
 
   
    using_gamma_weighting = false;
+
    if (weighting == AVERAGE_WEIGHTING)
       for(int i=0; i<n; i++)
          if (avg_y[i] == 0.0f)
@@ -188,12 +189,14 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
             w[i] = 1/sqrt(avg_y[i]);
       }
       */
+      float g_fact = (float) (1.0/smoothing);
+
       for (int i=0; i<n; i++)
-         w[i] = 1/sqrt(avg_y[i]+1);
+         w[i] = 1/sqrt(avg_y[i]+g_fact);
       
       for(int j=0; j<s; j++)
          for (int i=0; i < n; ++i)
-               y[i + j * nmax] += min(y[i + j * nmax], 1.0f);
+               y[i + j * nmax] += min(y[i + j * nmax], g_fact);
    }
    else
    {
@@ -348,17 +351,23 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    }
    else if (iflag == -2)
    {
+
+      // remove gamma weighting correction to data
+      if (using_gamma_weighting)
+      {
+         float g_fact = (float) (1.0/smoothing);
+
+         for(int j=0; j<s; j++)
+            for (int i=0; i < n; ++i)
+              if (y[i+j*nmax] > 0)
+                  y[i+j*nmax] -= g_fact;
+      }
+
       isel = 2;
       get_lin = true;
       iterative_weighting = true;
       weighting = MODEL_WEIGHTING;
       
-      // remove gamma weighting correction to data
-      if (using_gamma_weighting)
-         for(int j=0; j<s; j++)
-            for (int i=0; i < n; ++i)
-              if (y[i+j*nmax] > 0)
-                  y[i+j*nmax] -= 1;
    }
    else
    {
