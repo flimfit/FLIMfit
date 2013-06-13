@@ -27,9 +27,7 @@ function fit_complete(obj,~,~)
 
     
     obj.fit_result = obj.dll_interface.fit_result;
-    
-    %[obj.param_table, obj.param_table_headers] = obj.dll_interface.get_param_list();
-    
+        
     obj.dll_interface.fit_result = [];
     
     obj.display_fit_end();
@@ -42,6 +40,7 @@ function fit_complete(obj,~,~)
 
     obj.has_fit = true;
     obj.fit_in_progress = false;
+    obj.terminating = false;
     
     obj.update_progress([],[]);
     

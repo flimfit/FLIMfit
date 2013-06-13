@@ -162,41 +162,54 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    double rnorm; 
 
    // Calculate weighting
-   // If required use, Parameter Estimation in Astronomy with Poisson-distributed Data. I. The 
+   // If required use, gamma weighting from
+   // "Parameter Estimation in Astronomy with Poisson-distributed Data"
    // Reference: http://iopscience.iop.org/0004-637X/518/1/380/
 
-
-  
    using_gamma_weighting = false;
 
+   float g_fact = (float) (1.0/smoothing);
+
    if (weighting == AVERAGE_WEIGHTING)
+   {
       for(int i=0; i<n; i++)
          if (avg_y[i] == 0.0f)
          {
             using_gamma_weighting = true;
             break;
          }
+   }
+   else if (weighting == PIXEL_WEIGHTING)
+   {
+      for(int i=0; i<s*n; i++)
+         if (y[i] == 0.0f)
+         {
+            using_gamma_weighting = true;
+            break;
+         }
+   }
 
    if (using_gamma_weighting)
    {
-      /*
-      for (int i=0; i<n; i++)
-      {
-         
-         if (avg_y[i] == 0.0f)
-            w[i] = 1;
-         else
-            w[i] = 1/sqrt(avg_y[i]);
-      }
-      */
-      float g_fact = (float) (1.0/smoothing);
-
       for (int i=0; i<n; i++)
          w[i] = 1/sqrt(avg_y[i]+g_fact);
       
       for(int j=0; j<s; j++)
          for (int i=0; i < n; ++i)
                y[i + j * nmax] += min(y[i + j * nmax], g_fact);
+   }
+   else if (weighting == MODEL_WEIGHTING)
+   {
+      // Fit the first time with Neymann weighting 
+      // After first iteration will use model weighting
+      for (int i=0; i<n; i++)
+      {
+         
+         if (avg_y[i] == 0.0f)
+            w[i] = g_fact;
+         else
+            w[i] = 1/sqrt(avg_y[i]);
+      }
    }
    else
    {
@@ -659,7 +672,7 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    for(int i=0; i<n; i++)
    {
       if (wp[i] <= 0)
-         wp[i] = 1;
+         wp[i] = 1/smoothing;
       else
          wp[i] = sqrt(1.0/wp[i]);
 

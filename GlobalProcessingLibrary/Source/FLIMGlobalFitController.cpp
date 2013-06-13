@@ -154,6 +154,9 @@ int FLIMGlobalFitController::RunWorkers()
    if (!init)
       return ERR_COULD_NOT_START_FIT;
 
+   if (status->terminate)
+      return 0;
+
    omp_set_num_threads(n_omp_thread);
 
    data->StartStreaming();
@@ -1324,10 +1327,12 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
 
    if (tvb_profile != NULL)
    {
-      tvb_adj /= data->counts_per_photon;
       for(int i=0; i<n_meas; i++)
          adjust[i] += (float) (tvb_profile[i] * tvb_adj);
    }
+
+   for(int i=0; i<n_meas; i++)
+      adjust[i] = adjust[i] /= data->counts_per_photon;
 }
 
 

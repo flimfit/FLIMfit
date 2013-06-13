@@ -150,13 +150,12 @@ void FitStatus::Terminate()
 {
    terminate = true;
 
-   // Wake up any threads that are sleeping
-   for (std::list<tthread::condition_variable*>::const_iterator it = cond_list.begin(), end = cond_list.end(); it != end; it++)
+   while(threads_running > 0)
    {
-      for(int i=0; i<100; i++)
-         (*it)->notify_all();
+      // Wake up any threads that are sleeping
+      for (std::list<tthread::condition_variable*>::const_iterator it = cond_list.begin(), end = cond_list.end(); it != end; it++)
+            (*it)->notify_all();
    }
-
 
 }
 
@@ -164,9 +163,13 @@ bool FitStatus::Finished()
 {
    if ( running_mutex.try_lock() )
    {
-      bool ret = !running && started;
+      bool finished = false; 
+      if (terminate && !started)
+         finished = true;
+      else
+         finished = !running && started;
       running_mutex.unlock();
-      return ret;
+      return finished;
    }
    else 
       return false;

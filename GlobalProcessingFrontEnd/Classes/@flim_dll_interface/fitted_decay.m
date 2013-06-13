@@ -68,13 +68,16 @@ function decay = fitted_decay(obj,t,im_mask,selected)
         decay = p_fit.Value;
         decay = reshape(decay,[n_t n_chan n_fit]);
         
-        decay = nansum(decay,3);
-        decay = decay / double(n_valid);
-       
+        if (all(isnan(decay)))
+            decay = NaN(n_t,n_chan);
+        else
+            decay = nansum(decay,3);
+            decay = decay / double(n_valid);
+        end
         
     catch error
         
-        decay = zeros(n_t,1);
+        decay = NaN(n_t,n_chan);
          disp('Warning: Could not get fit');
     end
             

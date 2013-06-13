@@ -240,10 +240,11 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
 
 /*     epsmch is the machine precision. */
 
-    INIT_CONCURRENCY;
+   INIT_CONCURRENCY;
 
-    //char buf[1000];
-
+    #ifdef _DEBUG
+    char buf[1000];
+    #endif
     epsmch = dpmpar(1);
 
     info = 0;
@@ -251,8 +252,8 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
     *nfev = 0;
     *njev = 0;
 
-/*     evaluate the function at the starting point */
-/*     and calculate its norm. */
+/*    evaluate the function at the starting point */
+/*    and calculate its norm. */
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     START_SPAN("Calculating Variable Projection");
@@ -515,7 +516,7 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
                 }
             }
 
-            #ifdef DEBUG
+            #ifdef _DEBUG
             #ifdef _WINDOWS
                         sprintf(buf,"%f, %f: %e, %e --- %e\n",wa2[0],wa2[1],prered,actred,fnorm1 );
                         OutputDebugString(buf);

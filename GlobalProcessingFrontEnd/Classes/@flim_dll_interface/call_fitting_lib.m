@@ -54,6 +54,9 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         width = 1;
         
         [decay,irf] = obj.data_series.get_roi(roi_mask,selected);
+        
+        n_average = size(decay,3);
+        
         decay = squeeze(nanmean(decay,3));
         obj.p_data = libpointer('singlePtr', decay);
         t_skip = [];
@@ -62,6 +65,14 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         obj.p_mask = libpointer('uint8Ptr',uint8(1));
 
         obj.p_irf = libpointer('doublePtr', irf);
+        
+        counts_per_photon = d.counts_per_photon / n_average;
+        
+        % Only account for smoothing if we only have one pixel - otherwise
+        % the effects of smoothing average out over the region
+        if n_average == 1
+            counts_per_photon = counts_per_photon / (2*d.binning+1)^2;
+        end
         
     else
         n_datasets = sum(d.loaded);
@@ -85,6 +96,9 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         else
             obj.p_mask = [];
         end
+        
+        counts_per_photon = d.counts_per_photon;
+        
     end
     
     conf_interval = prof.Fitting.Confidence_Interval;
@@ -142,7 +156,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, obj.p_t_int, t_skip, length(d.tr_t),...
-            data_type, obj.p_use, obj.p_mask, thresh_min, d.gate_max, d.counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
+            data_type, obj.p_use, obj.p_mask, thresh_min, d.gate_max, counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
  
     if ~isempty(d.acceptor)
         obj.p_acceptor = libpointer('singlePtr', d.acceptor);
@@ -169,7 +183,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         return;
     end    
     
-    if ~isempty(obj.progress_bar)
+    if ishandleandvalid(obj.progress_bar)
         obj.progress_bar.StatusMessage = 'Processing Data...';
     end
     
@@ -189,7 +203,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         return;
     end
 
-    if ~isempty(obj.progress_bar)
+    if ishandleandvalid(obj.progress_bar)
         obj.progress_bar.StatusMessage = 'Fitting...';
         obj.progress_bar.Indeterminate = true;
     end

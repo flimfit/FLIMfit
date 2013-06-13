@@ -59,6 +59,7 @@ classdef flim_fit_controller < flim_data_series_observer
         
         has_fit = false;
         fit_in_progress = false;
+        terminating = false;
         
         wait_handle;
         cur_fit;
@@ -280,7 +281,7 @@ classdef flim_fit_controller < flim_data_series_observer
         function decay = fitted_decay(obj,t,im_mask,selected)
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
-                    decay = 0;
+                    decay = NaN;
             else            
                     decay = obj.dll_interface.fitted_decay(t,im_mask,selected);
             end;

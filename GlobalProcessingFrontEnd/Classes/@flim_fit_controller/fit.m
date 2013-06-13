@@ -29,6 +29,10 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
     bin = false;
     roi_mask = [];
     dataset = [];
+    
+    if obj.terminating
+        return;
+    end
 
     if nargin == 2
         bin = varargin{1};
@@ -40,9 +44,8 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
     
     if obj.fit_in_progress && ~bin
         
-        obj.fit_in_progress = false;
         obj.dll_interface.terminate_fit();
-        obj.display_fit_end();
+        obj.terminating = true;
         obj.refit_after_return = false;
         
     elseif obj.fit_in_progress && bin
