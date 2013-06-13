@@ -22,7 +22,6 @@ GlobalProcessingFrontEnd/segmentation_funcs.mat
 GlobalProcessingFrontEnd/FLIMGlobalAnalysis_64_thunk_*
 GlobalProcessingFrontEnd/FLIMGlobalAnalysisProto_*
 GlobalProcessingFrontEnd/Testing/simulation/*
-GlobalProcessingFrontEnd/DeployFiles/*
 GlobalProcessingFrontEnd/GlobalProcessing_*
 GlobalProcessingFrontEnd/FLIMfit_32/*
 GlobalProcessingFrontEnd/FLIMfit_64/*

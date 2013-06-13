@@ -57,6 +57,7 @@ function compile(v)
 
     % Try and delete executable if it already exists
     %------------------------------------------------
+    
     exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
     
     try
@@ -70,13 +71,13 @@ function compile(v)
     
     % Build compiled Matlab project
     %------------------------------------------------
-    %{
+    
     eval(['deploytool -build FLIMfit_' computer '.prj']);
    
     while ~exist(exe,'file')
        pause(0.2);
     end
-    %}
+    
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
@@ -91,7 +92,7 @@ function compile(v)
 
             copyfile(exe,deploy_folder);
             copyfile(['DeployFiles\Start_FLIMfit_' sys '.exe'],deploy_folder);
-            copyfile(['..\GlobalProcessingLibrary\Libraries\FLIMGlobalAnalysis_' sys '.' lib_ext],deploy_folder);
+            copyfile(['..\GlobalProcessingLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
             if strcmp(sys,'64')
                 arch = 'x64';

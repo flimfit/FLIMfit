@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfit_32" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_32.prj" preferred-package-type="package.type.exe" build-checksum="3680181347" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
-    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_32.prj</param.project.name>
+  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfit_PCWIN32" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN32.prj" preferred-package-type="package.type.exe" build-checksum="3680181347" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
+    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN32.prj</param.project.name>
     <param.target.type>Windows Standalone Application</param.target.type>
-    <param.appname>FLIMfit_32</param.appname>
-    <param.intermediate>${PROJECT_ROOT}\FLIMfit_32\src</param.intermediate>
+    <param.appname>FLIMfit_PCWIN32</param.appname>
+    <param.intermediate>${PROJECT_ROOT}\DeployFiles\src</param.intermediate>
     <param.output>${PROJECT_ROOT}\DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.tbx_on_path>
@@ -39,7 +39,6 @@
       <param.project.name />
       <param.target.type />
       <param.appname />
-      <param.intermediate />
       <param.embed.ctf />
       <param.warnings />
       <param.version />
@@ -80,8 +79,8 @@
       <file>C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\FLIMGlobalAnalysisLibraries\FLIMGlobalAnalysisDLL_x86.dll</file>
     </fileset.package>
     <build-deliverables>
+      <file name="FLIMfit_PCWIN32.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\FLIMfit_PCWIN32.exe</file>
       <file name="readme.txt" location="${PROJECT_ROOT}\DeployFiles" optional="true">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\readme.txt</file>
-      <file name="FLIMfit_32.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\FLIMfit_32.exe</file>
     </build-deliverables>
     <workflow />
     <matlab>
@@ -110,8 +109,8 @@
         <directory>${PROJECT_ROOT}\OMEROMatlab\roi</directory>
         <directory>${PROJECT_ROOT}\OMEROUtilities</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
-        <directory>${PROJECT_ROOT}\YuriySegmentation\Support</directory>
-        <directory>${PROJECT_ROOT}\YuriySegmentation</directory>
+        <directory>${PROJECT_ROOT}\SegmentationFunctions\Support</directory>
+        <directory>${PROJECT_ROOT}\SegmentationFunctions</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
         <directory>\\ic.ac.uk\homes\scw09\MATLAB</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\testframework</directory>

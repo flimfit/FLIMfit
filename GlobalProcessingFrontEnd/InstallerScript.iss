@@ -44,7 +44,7 @@ DefaultDirName={pf}\{#MyAppName}\{#MyAppName} {#MyAppVersion}
 DefaultGroupName={#MyAppName}
 OutputDir={#RepositoryRoot}\FLIMfitStandalone\Installer
 OutputBaseFilename=FLIMFit {#MyAppVersion} Setup {#MyAppArch}
-SetupIconFile={#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\microscope.ico
+SetupIconFile={#RepositoryRoot}\GlobalProcessingFrontEnd\DeployFiles\microscope.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -66,9 +66,9 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 [Files]
 Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppSystem}\Start_FLIMfit_{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppSystem}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppSystem}\FLIMfit_{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_PCWIN{#MyAppSystem}\Start_FLIMfit_{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_PCWIN{#MyAppSystem}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_PCWIN{#MyAppSystem}\FLIMfit_PCWIN{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 
 [Icons]
 Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"
