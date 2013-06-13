@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="906010882" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MAC64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj" preferred-package-type="package.type.zip" build-checksum="2083527102" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
     <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>FLIMfit_MAC64</param.appname>
-    <param.intermediate>${PROJECT_ROOT}/FLIMfit_MAC64/src</param.intermediate>
-    <param.output>${PROJECT_ROOT}/FLIMfit_MAC64/distrib</param.output>
+    <param.intermediate>${PROJECT_ROOT}/DeployFiles/src</param.intermediate>
+    <param.output>${PROJECT_ROOT}/DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.tbx_on_path>
-      <item>all</item>
+      <item>images</item>
+      <item>optim</item>
+      <item>signal</item>
     </param.tbx_on_path>
     <param.warnings>
       <warning.fullpath>on</warning.fullpath>
@@ -36,10 +38,7 @@
       <param.project.name />
       <param.target.type />
       <param.appname />
-      <param.intermediate />
-      <param.output />
       <param.embed.ctf />
-      <param.tbx_on_path />
       <param.warnings />
       <param.version />
       <param.user.only.registration />
@@ -85,9 +84,9 @@
     </fileset.resources>
     <fileset.package />
     <build-deliverables>
-      <file name="run_FLIMfit_MAC64.sh" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/run_FLIMfit_MAC64.sh</file>
-      <file name="FLIMfit_MAC64.app" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/FLIMfit_MAC64.app</file>
-      <file name="readme.txt" location="${PROJECT_ROOT}/FLIMfit_MAC64/distrib" optional="true">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MAC64/distrib/readme.txt</file>
+      <file name="run_FLIMfit_MAC64.sh" location="${PROJECT_ROOT}/DeployFiles" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/run_FLIMfit_MAC64.sh</file>
+      <file name="readme.txt" location="${PROJECT_ROOT}/DeployFiles" optional="true">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/readme.txt</file>
+      <file name="FLIMfit_MAC64.app" location="${PROJECT_ROOT}/DeployFiles" optional="false">/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/FLIMfit_MAC64.app</file>
     </build-deliverables>
     <workflow />
     <matlab>
@@ -96,6 +95,31 @@
         <toolbox name="fixedpoint" />
       </toolboxes>
       <path>
+        <directory>${PROJECT_ROOT}/OMEROMatlab</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/annotations</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/delete</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/helper</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/image</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/io</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/libs</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/libs/test</directory>
+        <directory>${PROJECT_ROOT}/OMEROMatlab/roi</directory>
+        <directory>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd</directory>
+        <directory>${PROJECT_ROOT}/Classes</directory>
+        <directory>${PROJECT_ROOT}/GUIDEInterfaces</directory>
+        <directory>${PROJECT_ROOT}/GeneratedFiles</directory>
+        <directory>${PROJECT_ROOT}/InternalHelperFunctions</directory>
+        <directory>${PROJECT_ROOT}/InternalHelperFunctions/RawDataFunctions</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout/Patch</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout/layoutHelp</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/xml_io_toos</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/bftools</directory>
+        <directory>${PROJECT_ROOT}/../GlobalProcessingLibrary/Libraries</directory>
+        <directory>${PROJECT_ROOT}/OMEROUtilities</directory>
+        <directory>${MATLAB_ROOT}/toolbox/images/images</directory>
+        <directory>${PROJECT_ROOT}/HelperFunctions/doubleops_MACI64</directory>
         <directory>/Users/imunro/Documents/MATLAB</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/demos</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/graph2d</directory>
@@ -320,7 +344,6 @@
         <directory>${MATLAB_ROOT}/toolbox/ident/iddemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/ident/iddemos/examples</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/colorspaces</directory>
-        <directory>${MATLAB_ROOT}/toolbox/images/images</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/imuitools</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/iptformats</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/iptutils</directory>

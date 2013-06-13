@@ -144,6 +144,11 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 end
 
                 if isempty(mask)
+                    obj.data = [];
+                    obj.residual = [];
+                    obj.irf = [];
+                    obj.bg_line = [];
+                    obj.fit = [];
                     return
                 end
 
@@ -258,6 +263,9 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                     plot_fcn = @plot;
             end
                      
+            cla(ha);
+            cla(ra);
+            
             if ~isempty(obj.data)
                 plot_fcn(ha,obj.t,obj.data,'o');
                 hold(ha,'on');
