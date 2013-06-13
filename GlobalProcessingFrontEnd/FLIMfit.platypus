@@ -12,7 +12,7 @@
 	<string>Imperial College Photonics</string>
 	<key>BundledFiles</key>
 	<array>
-		<string>./FLIMfit_MAC64/distrib/FLIMfit_MAC64.app</string>
+		<string>./DeployFiles/FLIMfit_MACI64.app</string>
 	</array>
 	<key>Creator</key>
 	<string>Platypus-4.7</string>
@@ -36,7 +36,7 @@
 		<string>fold</string>
 	</array>
 	<key>IconPath</key>
-	<string></string>
+	<string>./DeployFiles/microscope.icns</string>
 	<key>Identifier</key>
 	<string>org.flimfit.FLIMfit</string>
 	<key>Interpreter</key>
@@ -60,7 +60,7 @@
 		<string>/Applications/MATLAB/MATLAB_Compiler_Runtime/v81/</string>
 	</array>
 	<key>ScriptPath</key>
-	<string>./FLIMfit_MAC64/distrib/run_FLIMfit_MAC64.sh</string>
+	<string>./DeployFiles/run_FLIMfit_MACI64.sh</string>
 	<key>Secure</key>
 	<false/>
 	<key>ShowInDock</key>

@@ -57,16 +57,18 @@ function compile(v)
 
     % Try and delete executable if it already exists
     %------------------------------------------------
-    
+   
     exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
     
-    try
-        switch platform
-            case 'WIN'
+    switch platform
+    	case 'WIN'
+            if exist(exe,'file')
                 delete(exe);
-            case 'MAC'
-                rmdir(exe);
-        end
+            end
+        case 'MAC'
+            if isdir(exe)
+                rmdir(exe,'s');
+            end
     end
     
     % Build compiled Matlab project
@@ -77,7 +79,7 @@ function compile(v)
     while ~exist(exe,'file')
        pause(0.2);
     end
-    
+   
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
@@ -110,7 +112,7 @@ function compile(v)
             
             package_name = ['FLIMFit ' v];
             cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
-            system(cmd);
+            system(cmd)
             movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
     end
     
