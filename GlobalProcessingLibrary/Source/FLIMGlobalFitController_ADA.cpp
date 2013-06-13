@@ -344,17 +344,6 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
             }
          }
 
-         if (use_kappa && kap != NULL)
-         {
-            kap[0] = 0;
-            for(i=1; i<n_v; i++)
-               kap[0] += kappa_spacer(alf[i],alf[i-1]);
-            for(i=0; i<n_v; i++)
-               kap[0] += kappa_lim(alf[i]);
-            for(i=0; i<n_theta_v; i++)
-               kap[0] += kappa_lim(alf[alf_theta_idx+i]);
-         }
-
          // Add offset
          
          if (fit_offset == FIT_GLOBALLY)
@@ -369,6 +358,17 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
                }
                idx++;
             }
+         }
+
+         if (use_kappa && kap != NULL)
+         {
+            kap[0] = 0;
+            for(i=1; i<n_v; i++)
+               kap[0] += kappa_spacer(alf[i],alf[i-1]);
+            for(i=0; i<n_v; i++)
+               kap[0] += kappa_lim(alf[i]);
+            for(i=0; i<n_theta_v; i++)
+               kap[0] += kappa_lim(alf[alf_theta_idx+i]);
          }
 
          /*
@@ -386,6 +386,9 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
             fclose(fx);
          }
          */
+
+         for(i=0; i<N*(a_col+1); i++)
+            a[i] *= photons_per_count; 
          
          if (isel==2 || getting_fit)
             break;
@@ -440,6 +443,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
                idx++;
             }
             d_offset += ndim;
+            col++;
          }
          
          // Set derivatives for scatter 
@@ -449,6 +453,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
                b[d_offset+i]=0;
             add_irf(thread, irf_idx, b+d_offset,n_r,scale_fact);
             d_offset += ndim;
+            col++;
          }
 
          // Set derivatives for tvb 
@@ -467,7 +472,11 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
                idx++;
             }
             d_offset += ndim;
+            col++;
          }
+
+        for(i=0; i<col*ndim; i++)
+            b[i] *= photons_per_count; 
 
          if (use_kappa && kap != NULL)
          {

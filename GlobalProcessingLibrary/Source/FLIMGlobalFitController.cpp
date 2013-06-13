@@ -696,6 +696,7 @@ void FLIMGlobalFitController::Init()
 
    beta_global = (fit_beta != FIT_LOCALLY);
 
+   photons_per_count = data->GetPhotonsPerCount();
 
    // Set up polarisation resolved measurements
    //---------------------------------------
@@ -1332,7 +1333,7 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    }
 
    for(int i=0; i<n_meas; i++)
-      adjust[i] = adjust[i] /= data->counts_per_photon;
+      adjust[i] = adjust[i] *= photons_per_count;
 }
 
 

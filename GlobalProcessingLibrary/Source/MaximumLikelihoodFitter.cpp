@@ -69,7 +69,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
 {
 
    for(int i=0; i<n; i++)
-      dy[i] = y[i] * smoothing;
+      dy[i] = y[i];
    dy[n] = 1;
    
    // For maximum likihood set initial guesses for contributions 
@@ -82,6 +82,9 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
          if (dy[j]>mx)
             mx = dy[j]; 
       }
+
+      mx /= photons_per_count; 
+
 #if CONSTRAIN_FRACTIONS
       for(int j=0; j<l; j++)
          alf[nl-l+j] = log(mx/l);
@@ -91,12 +94,12 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
 #endif
    }
 
-    /*
+    
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
-    */
+    
 /*    
    double opt[4];
    opt[0] = DBL_EPSILON;
@@ -128,10 +131,10 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
    {
 #if CONSTRAIN_FRACTIONS
       for(int i=0; i<l; i++)
-         lin_params[i] = (float) (exp(alf[nvar-l+i]) / smoothing);
+         lin_params[i] = (float) (exp(alf[nvar-l+i]));
 #else
       for(int i=0; i<l; i++)
-         lin_params[i] = (float) (alf[nvar-l+i] / smoothing);
+         lin_params[i] = (float) (alf[nvar-l+i]); 
 #endif
       chi2[0] = (float) *cur_chi2;
    }
@@ -173,7 +176,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
 
    for (i=0; i<n; i++)
    {
-      fvec[i] = adjust[i] * smoothing;
+      fvec[i] = adjust[i];
       for(j=0; j<l; j++)
          fvec[i] += expA[j]*a_[i+n*j];
    }

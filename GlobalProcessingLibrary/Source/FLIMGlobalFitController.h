@@ -289,6 +289,8 @@ private:
    float* local_decay;
    double g_factor;
 
+   double photons_per_count;
+
    int lm_algorithm;
    
    char* result_map_filename;

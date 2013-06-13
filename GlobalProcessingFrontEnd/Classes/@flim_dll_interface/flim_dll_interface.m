@@ -128,7 +128,6 @@ classdef flim_dll_interface < handle
          end
          
          function terminate_fit(obj)
-             obj.fit_in_progress = false;
              calllib(obj.lib_name,'FLIMGlobalTerminateFit',obj.dll_id);
              clear obj.data obj.p_data obj.mask obj.p_beta obj.p_I0 obj.p_chi2 obj.p_ierr obj.p_tau obj.p_t0 obj.p_offset obj.p_scatter;
          end

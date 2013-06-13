@@ -168,8 +168,6 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
 
    using_gamma_weighting = false;
 
-   float g_fact = (float) (1.0/smoothing);
-
    if (weighting == AVERAGE_WEIGHTING)
    {
       for(int i=0; i<n; i++)
@@ -192,11 +190,11 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    if (using_gamma_weighting)
    {
       for (int i=0; i<n; i++)
-         w[i] = 1/sqrt(avg_y[i]+g_fact);
+         w[i] = 1/sqrt(avg_y[i]+1.0f);
       
       for(int j=0; j<s; j++)
          for (int i=0; i < n; ++i)
-               y[i + j * nmax] += min(y[i + j * nmax], g_fact);
+               y[i + j * nmax] += min(y[i + j * nmax], 1.0f);
    }
    else if (weighting == MODEL_WEIGHTING)
    {
@@ -206,9 +204,9 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
       {
          
          if (avg_y[i] == 0.0f)
-            w[i] = g_fact;
+            w[i] = 1.0;
          else
-            w[i] = 1/sqrt(avg_y[i]);
+            w[i] = 1.0/sqrt(avg_y[i]);
       }
    }
    else
@@ -368,12 +366,11 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       // remove gamma weighting correction to data
       if (using_gamma_weighting)
       {
-         float g_fact = (float) (1.0/smoothing);
 
          for(int j=0; j<s; j++)
             for (int i=0; i < n; ++i)
               if (y[i+j*nmax] > 0)
-                  y[i+j*nmax] -= g_fact;
+                  y[i+j*nmax] -= 1;
       }
 
       isel = 2;
@@ -611,7 +608,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       r_sq += norm_buf_[i*nmaxb];
 
    // Compute the norm of the residual matrix
-   *cur_chi2 = r_sq * smoothing / (chi2_norm * s);
+   *cur_chi2 = r_sq / (chi2_norm * s);
 
    if (!use_numerical_derv)
    {
@@ -672,7 +669,7 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    for(int i=0; i<n; i++)
    {
       if (wp[i] <= 0)
-         wp[i] = 1/smoothing;
+         wp[i] = 1.0;
       else
          wp[i] = sqrt(1.0/wp[i]);
 
@@ -788,7 +785,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    double* rj = r + idx * n;
 
    chi2[idx] = (float) enorm(n-l, rj+l); 
-   chi2[idx] *= chi2[idx] * (float) (smoothing / chi2_norm);
+   chi2[idx] *= chi2[idx] / chi2_norm;
 
    bacsub(rj, a, x);
    

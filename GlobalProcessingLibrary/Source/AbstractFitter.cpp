@@ -147,7 +147,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double smoothing, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2)
 {
 
    if (err != 0)
@@ -168,8 +168,8 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf
    this->irf_idx    = irf_idx;
    this->chi2       = chi2;
    this->cur_chi2   = &c2;
-   this->smoothing  = smoothing;
    this->thread     = thread;
+   this->photons_per_count  = photons_per_count;
 
    gnl = gnl_full;
 
@@ -286,7 +286,7 @@ double AbstractFitter::ErrMinFcn(double x)
       xs *= -1;
    fixed_value_cur = fixed_value_initial + xs; 
 
-   int nmp = (n-l) * s/smoothing - nl - s/smoothing * l;
+   int nmp = (n-l) * s - nl - s * l;
    //int nmp = n * s - nl - s * l;
 
    fisher_f dist(1, nmp);
@@ -373,8 +373,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    return params;
 }
 
-
-int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double counts_per_photon, double* fit)
+int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double* fit)
 {
    if (err != 0)
       return err;
@@ -389,7 +388,7 @@ int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_para
          fit[idx] += a_[n_meas*j+i] * lin_params[j];
 
       fit[idx] += a_[n_meas*l+i];
-      fit[idx++] *= counts_per_photon;
+      fit[idx++] /= photons_per_count;
    }
 
    return 0;

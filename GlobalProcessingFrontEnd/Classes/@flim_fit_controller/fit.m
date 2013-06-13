@@ -30,7 +30,7 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
     roi_mask = [];
     dataset = [];
     
-    if obj.terminating
+    if obj.fit_in_progress && obj.terminating
         return;
     end
 

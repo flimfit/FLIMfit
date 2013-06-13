@@ -349,6 +349,11 @@ int FLIMData::SetData(uint16_t* data)
    return err;
 }
 
+double FLIMData::GetPhotonsPerCount()
+{
+   return smoothing_area / counts_per_photon;
+}
+
 void FLIMData::ImageDataFinished(int im)
 {
    if (stream_data)

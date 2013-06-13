@@ -85,6 +85,8 @@ public:
 
    double* GetT();  
 
+   double GetPhotonsPerCount();
+
    void SetBackground(float* background_image);
    void SetBackground(float background);
    void SetTVBackground(float* tvb_profile, float* tvb_I_map, float const_background);
@@ -579,6 +581,8 @@ void FLIMData::TransformImage(int thread, int im)
 
       float* y_smoothed_buf = intensity; // use intensity as a buffer
 
+      float sa = 2*s+1;
+
       for(int c=0; c<n_chan; c++)
       {
          for(int i=0; i<n_t; i++)
@@ -594,7 +598,7 @@ void FLIMData::TransformImage(int thread, int im)
                   tr_row_buf[y] = 0;
                   for(int yp=0; yp<y+s; yp++)
                      tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] /= y+s;
+                  tr_row_buf[y] *= (sa / (y+s));
                }
 
               
@@ -603,7 +607,6 @@ void FLIMData::TransformImage(int thread, int im)
                   tr_row_buf[y] = 0;
                   for(int yp=y-s; yp<=y+s; yp++)
                      tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] /= 2*s+1;
                }
 
                for(int y=n_y-s; y<n_y; y++ )
@@ -611,7 +614,7 @@ void FLIMData::TransformImage(int thread, int im)
                   tr_row_buf[y] = 0;
                   for(int yp=y-s; yp<n_y; yp++)
                      tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] /= n_y-(y-s);
+                  tr_row_buf[y] *= (sa / (n_y-y+s));
                }
 
                for(int y=0; y<n_y; y++)
@@ -626,7 +629,7 @@ void FLIMData::TransformImage(int thread, int im)
                   tr_row_buf[x] = 0;
                   for(int xp=0; xp<x+s; xp++)
                      tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
-                  tr_row_buf[x] /= x+s;
+                  tr_row_buf[x] *= (sa / (x+s));
                }
 
                for(int x=s; x<n_x-s; x++)
@@ -634,16 +637,14 @@ void FLIMData::TransformImage(int thread, int im)
                   tr_row_buf[x] = 0;
                   for(int xp=x-s; xp<=x+s; xp++)
                      tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
-                  tr_row_buf[x] /= 2*s+1;
                }
 
-               //
                for(int x=n_x-s; x<n_x; x++ )
                {
                   tr_row_buf[x] = 0;
                   for(int xp=x-s; xp<n_x; xp++)
                      tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
-                  tr_row_buf[x] /= n_x-(x-s);
+                  tr_row_buf[x] *= (sa / (n_x-x+s));
                }
 
                for(int x=0; x<n_x; x++)

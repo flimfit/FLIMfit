@@ -187,7 +187,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    }
 
    projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
-                          data->smoothing_area, status->iter[thread], ierr_local, status->chi2[thread]);
+                          photons_per_count, status->iter[thread], ierr_local, status->chi2[thread]);
    
    // If we're fitting globally using global binning now retrieve the linear parameters
    if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
@@ -279,10 +279,8 @@ void FLIMGlobalFitController::CalculateMeanLifetime(int s, float lin_params[], f
 
 void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_params[], volatile float norm_params[])
 {
-   int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
-   lin_params += lin_idx;
-   norm_params += lin_idx;
-
+   int n_stray = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+   
    if (polarisation_resolved)
    {
       #pragma omp parallel for
@@ -290,6 +288,12 @@ void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_pa
       {
          volatile float* lin_local = lin_params + lmax * i;
          volatile float* norm_local = norm_params + lmax * i;
+
+         for(int j=0; j<n_stray; j++)
+            norm_local[j] = lin_local[j];
+
+         lin_local  += n_stray;
+         norm_local += n_stray;
 
          float I0 = lin_local[0];
          float r0 = 0;
@@ -315,6 +319,12 @@ void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_pa
          volatile float* lin_local = lin_params + lmax * i;
          volatile float* norm_local = norm_params + lmax * i;
 
+         for(int j=0; j<n_stray; j++)
+            norm_local[j] = lin_local[j]; 
+
+         lin_local  += n_stray;
+         norm_local += n_stray;
+
          float I0 = 0;
          for(int j=0; j<n_j; j++)
             I0 += lin_local[j];
@@ -323,7 +333,7 @@ void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_pa
          {
             for (int j=0; j<n_j; j++)
                norm_local[j] = lin_local[j] / I0;
-            norm_local[n_j] = I0;
+            norm_local[n_j] = I0; 
          }
 
       }
@@ -334,19 +344,19 @@ void FLIMGlobalFitController::DenormaliseLinearParams(int s, volatile float norm
 {
    float I0;
 
-   int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+   int n_stray = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
    
-   for(int i=0; i<lin_idx; i++)
-      lin_params[i] = norm_params[i];
+   for(int i=0; i<n_stray; i++)
+      lin_params[i] = norm_params[i]; 
 
-   lin_params += lin_idx;
-   norm_params += lin_idx;
+   lin_params += n_stray;
+   norm_params += n_stray;
 
    if (polarisation_resolved)
    {
       for(int i=0; i<s; i++)
       {
-         I0 = norm_params[n_r+1];
+         I0 = norm_params[n_r+1]; 
 
          lin_params[0] = I0;
          

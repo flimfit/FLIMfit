@@ -184,7 +184,8 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end    
     
     if ishandleandvalid(obj.progress_bar)
-        obj.progress_bar.StatusMessage = 'Processing Data...';
+        obj.progress_bar.StatusMessage = 'Fitting...';
+        obj.progress_bar.Indeterminate = true;
     end
     
     if d.use_memory_mapping && ~obj.bin
@@ -201,11 +202,6 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     
     if err ~= 0
         return;
-    end
-
-    if ishandleandvalid(obj.progress_bar)
-        obj.progress_bar.StatusMessage = 'Fitting...';
-        obj.progress_bar.Indeterminate = true;
     end
 
     err = calllib(obj.lib_name,'StartFit',obj.dll_id);

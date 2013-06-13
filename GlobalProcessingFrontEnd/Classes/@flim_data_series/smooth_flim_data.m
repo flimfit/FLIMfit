@@ -24,10 +24,6 @@ function data = smooth_flim_data(data,extent,mode)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-
-    if nargin < 3
-        mode = 'rectangular';
-    end
     
     s = size(data);
     n_t = s(1);
@@ -39,38 +35,20 @@ function data = smooth_flim_data(data,extent,mode)
     
     extent = extent*2+1;
     extent2 = extent * extent;
-    
-    datatype = class(data);
         
     kernel = ones(extent) ./ extent2;
-    n = ~isnan(kernel);
-    %NB to work with imaginary numbers use real in place of cast( xx , datatype) in
-    %following line & for loop
-    %realKern = real(n);  
-    realKern = cast(n, datatype);
-   
+
     % pre-calculate correction of normalization (same for all planes)
     siz = size(data);
     size_plane = siz(3:4);
-    c = conv2(ones(size_plane),ones(size(kernel)),'same');
-  
-   
+    c = conv2(ones(size_plane),kernel,'same');
   
     for i = 1:n_t
         for j = 1:n_chan
             plane = squeeze(data(i,j,:,:));
-            
-            m = ~isnan(plane);
-              
-            if numel(m) == numel(plane)       % no Nans
-                data(i,j,:,:) = conv2(plane,kernel,'same');
-            else
-           
-                plane(~m) = 0;
-                C = conv2(plane,kernel,'same');
-                N = conv2(cast(m,datatype),realKern,'same'); %normalization term 
-                data(i,j,:,:) = C.*c./N;
-            end
+
+            C = conv2(plane,kernel,'same');
+            data(i,j,:,:) = C./c;
         end
     end
 end

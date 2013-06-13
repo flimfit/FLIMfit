@@ -599,7 +599,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
                DenormaliseLinearParams(1, lin_group + lin_idx*lmax, lin_local);
 
-               projectors[0].GetFit(n_meas, idx, alf_local, lin_local, adjust_buf, data->counts_per_photon, fit+n_meas*i);
+               projectors[0].GetFit(n_meas, idx, alf_local, lin_local, adjust_buf, fit+n_meas*i);
                n_valid++;
             }
             
