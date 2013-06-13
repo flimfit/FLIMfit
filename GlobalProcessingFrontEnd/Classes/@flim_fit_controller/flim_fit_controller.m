@@ -334,6 +334,7 @@ classdef flim_fit_controller < flim_data_series_observer
             
             if ~isempty(obj.wait_handle)
                 delete(obj.wait_handle)
+                obj.wait_handle = [];       % delete seems to leave an invalid obj in the class so replace
             end
            
         end
