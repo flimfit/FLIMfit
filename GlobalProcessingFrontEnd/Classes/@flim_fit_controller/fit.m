@@ -91,6 +91,7 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
             end
             
             obj.fit_in_progress = false;
+            obj.terminating = false;
             obj.display_fit_end();
             
         else

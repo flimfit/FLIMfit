@@ -179,10 +179,16 @@ classdef flim_fit_controller < flim_data_series_observer
         function roi_mask_updated(obj,~,~)
             d = obj.data_series_controller.data_series;
             if ~(obj.has_fit && obj.fit_result.binned == false) && d.init
-                if obj.live_update
-                    obj.fit(true);
-                else
-                    obj.clear_fit();
+                updated_live_fit = false;
+                if obj.live_update 
+                    decay = obj.data_series.get_roi(obj.roi_controller.roi_mask,obj.data_series_list.selected);
+                    if ~all(isnan(decay))
+                        obj.fit(true);
+                        updated_live_fit = true;
+                    end
+                end
+                if ~updated_live_fit
+                   obj.clear_fit();
                 end
             end
         end
