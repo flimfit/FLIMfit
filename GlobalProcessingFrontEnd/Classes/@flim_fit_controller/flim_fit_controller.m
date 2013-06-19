@@ -456,12 +456,17 @@ classdef flim_fit_controller < flim_data_series_observer
                obj.n_plots = obj.n_plots + sum(cell2mat(plots(i,2:3))); 
                
                new_lims = cell2mat(plots(i,4:5));
-               if any(new_lims ~= obj.plot_lims.(name))
-                   obj.auto_lim.(name) = false;
-               else
-                   obj.auto_lim.(name) = plots{i,6};
+               
+               % Only update if min < max (locks out fat fingers)
+               if new_lims(1) < new_lims(2)
+               
+                   if any(new_lims ~= obj.plot_lims.(name))
+                       obj.auto_lim.(name) = false;
+                   else
+                       obj.auto_lim.(name) = plots{i,6};
+                   end
+                   obj.plot_lims.(name) = new_lims;
                end
-               obj.plot_lims.(name) = new_lims;
             end
             
             obj.update_display_table();
