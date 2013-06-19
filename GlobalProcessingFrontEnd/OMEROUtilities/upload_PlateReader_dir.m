@@ -322,7 +322,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, modulo)
                                 end
                                 %
                                 xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'Gated');
-                                add_XmlAnnotation(session,image,xmlnode);
+                                add_XmlAnnotation(session,[],image,xmlnode);
                                 %                                
                             % annotations
                                                         

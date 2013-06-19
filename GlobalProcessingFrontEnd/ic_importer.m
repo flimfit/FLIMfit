@@ -30,7 +30,7 @@ addpath_global_analysis();
 settings = [];
 %
 if exist('ic_importer_settings.xml','file') 
-    [ settings ~ ] = xml_read ('ic_importer_settings.xml');    
+    [ settings, ~ ] = xml_read ('ic_importer_settings.xml');    
     logon = settings.logon;
 else
     logon = OMERO_logon();
@@ -253,9 +253,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             set_directory_info();            
             updateInterface();
             %            
-            if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Dataset')
-                % doopredelaem
-                prjct = select_Project(data.session,'Select Project');
+             if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Dataset')
+                %
+                prjct = select_Project(data.session,[],'Select Project');
                 if ~isempty(prjct)
                     data.project = prjct;
                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -295,7 +295,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         label = get(hObj,'Label');
         
         if strcmp(label,'Set Screen')        
-            scrn = select_Screen(data.session,'Select screen');
+            scrn = select_Screen(data.session,[],'Select screen');
             if ~isempty(scrn)
                 data.project = scrn; 
                 data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -309,7 +309,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 
         elseif strcmp(label,'Set Project')
             
-            prjct = select_Project(data.session,'Select Project');             
+            prjct = select_Project(data.session,[],'Select Project');             
             if ~isempty(prjct)
                 data.project = prjct; 
                 data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -328,7 +328,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 return;
             end
                         
-            [ dtst prjct ] = select_Dataset(data.session,'Select Dataset');
+            [ dtst prjct ] = select_Dataset(data.session,[],'Select Dataset');
             
             if ~isempty(dtst)
                 data.project = dtst; % in  reality, dataset not project;
@@ -670,7 +670,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                   
             if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Project')
                 % doopredelaem
-                [ dtst ~ ] = select_Dataset(data.session,'Select Dataset');
+                [ dtst ~ ] = select_Dataset(data.session,[],'Select Dataset');
                 if ~isempty(dtst)
                     data.project = dtst; % in  reality, dataset not project;
                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -724,7 +724,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                                 'Plates','Cancel','Cancel');              
                         switch choice
                             case 'Datasets',
-                                prjct = select_Project(data.session,'Select Project');             
+                                prjct = select_Project(data.session,[],'Select Project');             
                                 if ~isempty(prjct)
                                     data.project = prjct; 
                                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -733,7 +733,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                 end
                                 %                                
                             case 'Plates', 
-                                scrn = select_Screen(data.session,'Select screen');
+                                scrn = select_Screen(data.session,[],'Select screen');
                                 if ~isempty(scrn)
                                     data.project = scrn; 
                                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
