@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MACI64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MACI64.prj" preferred-package-type="package.type.zip" build-checksum="2083527102" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
+  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MACI64" location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd" file="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MACI64.prj" preferred-package-type="package.type.zip" build-checksum="2679470914" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
     <param.project.name>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/FLIMfit_MACI64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>FLIMfit_MACI64</param.appname>
@@ -116,12 +116,6 @@
         <directory>${PROJECT_ROOT}/OMEROMatlab/roi</directory>
         <directory>${PROJECT_ROOT}/OMEROUtilities</directory>
         <directory>${MATLAB_ROOT}/toolbox/images/images</directory>
-        <directory>${PROJECT_ROOT}/SegmentationFunctions/Support</directory>
-        <directory>${PROJECT_ROOT}/SegmentationFunctions</directory>
-        <directory>${PROJECT_ROOT}/OMEROMatlab/annotations</directory>
-        <directory>${PROJECT_ROOT}/OMEROMatlab/delete</directory>
-        <directory>${PROJECT_ROOT}/OMEROMatlab/image</directory>
-        <directory>${PROJECT_ROOT}/OMEROMatlab/libs/test</directory>
         <directory>${PROJECT_ROOT}/HelperFunctions/doubleops_MACI64</directory>
         <directory>/Users/imunro/Documents/MATLAB</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/demos</directory>

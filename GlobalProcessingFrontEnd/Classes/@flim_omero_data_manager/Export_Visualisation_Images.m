@@ -43,7 +43,13 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
     else
         C_str = num2str(cell2mat(data_series.ZCT(2)));
     end
-
+    
+    if ~isnumeric(obj.selected_channel)
+        selected_channel = num2str(cell2mat(obj.selected_channel));
+    else
+        selected_channel = obj.selected_channel;
+    end
+    
     f_save = figure('visible','on');        
     save = true;        
     root = tempdir;    
@@ -53,7 +59,8 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                 current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
 
                 if ~data_series.polarisation_resolved
-                    new_dataset_name = [current_dataset_name ' FLIM MAPS ' num2str(cell2mat(obj.selected_channel)) ...
+                    
+                    new_dataset_name = [current_dataset_name ' FLIM MAPS ' selected_channel ...
                     ' Z ' Z_str ...
                     ' C ' C_str ...
                     ' T ' T_str ' ' ...

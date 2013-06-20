@@ -77,7 +77,7 @@ function compile(v)
     eval(['deploytool -build FLIMfit_' computer '.prj']);
    
     while ~exist(exe,'file')
-       pause(0.2);
+       pause(2);
     end
    
    

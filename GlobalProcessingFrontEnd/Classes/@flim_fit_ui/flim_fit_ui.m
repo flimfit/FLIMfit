@@ -208,13 +208,18 @@
 
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
-                       
+                      
             for i=1:length(names)
-                if ishandle(handles.(names{i}))
+                % Check the field is actually a handle and isn't the window
+                % which we need to close right at the end
+                if ~strcmp(names{i},'window') && all(ishandle(handles.(names{i})))
                     delete(handles.(names{i}));
                 end
             end
-                        
+            
+            % Finally actaully close window
+            delete(handles.window);
+            
         end
         
     end

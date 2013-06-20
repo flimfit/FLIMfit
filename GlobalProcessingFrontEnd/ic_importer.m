@@ -30,7 +30,7 @@ addpath_global_analysis();
 settings = [];
 %
 if exist('ic_importer_settings.xml','file') 
-    [ settings ~ ] = xml_read ('ic_importer_settings.xml');    
+    [ settings, ~ ] = xml_read ('ic_importer_settings.xml');    
     logon = settings.logon;
 else
     logon = OMERO_logon();
@@ -108,6 +108,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         gui.handles.menu_file_single_intref = uimenu(gui.menu_file_set_single,'Label','intensity_reference', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','g_factor', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','sample', 'Callback', @onSetFile);        
+        gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','OPT stack', 'Callback', @onSetFile);                
                       
         uimenu( gui.menu_file, 'Label', 'Exit', 'Callback', @onExit );        
         % + Omero menu
@@ -253,9 +254,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             set_directory_info();            
             updateInterface();
             %            
-            if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Dataset')
-                % doopredelaem
-                prjct = select_Project(data.session,'Select Project');
+             if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Dataset')
+                %
+                prjct = select_Project(data.session,[],'Select Project');
                 if ~isempty(prjct)
                     data.project = prjct;
                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -295,7 +296,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         label = get(hObj,'Label');
         
         if strcmp(label,'Set Screen')        
-            scrn = select_Screen(data.session,'Select screen');
+            scrn = select_Screen(data.session,[],'Select screen');
             if ~isempty(scrn)
                 data.project = scrn; 
                 data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -309,7 +310,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 
         elseif strcmp(label,'Set Project')
             
-            prjct = select_Project(data.session,'Select Project');             
+            prjct = select_Project(data.session,[],'Select Project');             
             if ~isempty(prjct)
                 data.project = prjct; 
                 data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -328,7 +329,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 return;
             end
                         
-            [ dtst prjct ] = select_Dataset(data.session,'Select Dataset');
+            [ dtst prjct ] = select_Dataset(data.session,[],'Select Dataset');
             
             if ~isempty(dtst)
                 data.project = dtst; % in  reality, dataset not project;
@@ -376,9 +377,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         
         new_dataset_name = char(strings(length(strings)));
         %  
-        if ~strcmp(data.LoadMode,'single file')
+        if ~( strcmp(data.LoadMode,'single file') || strcmp(data.LoadMode,'OPT image') )
             if strcmp('Dataset',whos_Object(data.session,data.project.getId().getValue())) && ~is_Dataset_name_unique(data.project,new_dataset_name)
-                errordlg('new Dataset name isn not unique - can not contuinue');
+                errordlg('new Dataset name is not unique - can not contuinue');
                 clear_settings;
                 updateInterface;     
                 return;
@@ -495,6 +496,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                         else % strcmp('sdt',data.extension)
                             upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo);
                         end                        
+        elseif strcmp(data.LoadMode,'OPT image')                        
+                        imgid = upload_OPT_dir_as_Omero_Image(data.session, data.project, data.Directory,'tif');
+                        new_dataset = get_Object_by_Id(data.session,[],imgid);
         end % strcmp(data.LoadMode,'single file')
         %      
         if data.load_dataset_annotations
@@ -507,7 +511,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                     file_mime_type = char('application/octet-stream');
                     %
                     add_Annotation(data.session, [], ...
-                        new_dataset, ...
+                        new_dataset, ... % not always "Dataset" :)
                         sha1, ...
                         file_mime_type, ...
                         data.dataset_annotations{k}, ...
@@ -654,39 +658,78 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
     end
 %-------------------------------------------------------------------------%  
     function onSetFile(hObj,~,~)
-        %
-        [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt'},'Select File',data.DefaultDataDirectory);
-        %
-        if isequal(filename,0)
-            return
-        end
-        %
-        full_file_name = [pathname filesep filename]; % works;
-        % check if file is OK - extension...
-        str = split('.',full_file_name);
-        extension = str{length(str)};
-        %
-        if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') 
-                                  
-            if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Project')
-                % doopredelaem
-                [ dtst ~ ] = select_Dataset(data.session,'Select Dataset');
-                if ~isempty(dtst)
-                    data.project = dtst; % in  reality, dataset not project;
-                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
-                else
-                    return;
-                end;
-            end
+
+        data.SingleFileMeaningLabel  = get(hObj,'Label');  
+        
+        if strcmp('OPT stack',data.SingleFileMeaningLabel)
+            directoryname = uigetdir(data.DefaultDataDirectory,'Select the folder containing the data');
+            if isequal(directoryname,0), return, end;
             %
-            data.extension = extension;
-            data.SingleFileMeaningLabel  = get(hObj,'Label');  
-            data.LoadMode = 'single file';
-            data.Directory = full_file_name;
-            data.load_dataset_annotations = false;                                             
+            OK_dir  = true;
+            extension = 'tif';
+            if OK_dir
+                data.extension = extension;
+                data.LoadMode = 'OPT image';
+                data.Directory = directoryname;
+            end
+            %            
+            % Matlab function annotation
+            annotations = [];
+            % check dataset annotations..
+            annotations_extensions = {'xml' 'txt' 'csv' 'rtf' 'doc' 'docx' 'ppt' 'pdf' 'xls' 'xlsx' 'm' 'irf'};
+            for k=1:numel(annotations_extensions)
+                files = dir([data.Directory filesep '*.' annotations_extensions{k}]);
+                num_files = length(files);
+                    if 0 ~= num_files
+                        annotations = [annotations; files];
+                    end
+            end                        
+            % fill the list of annotations
+            data.dataset_annotations = [];
+            for k=1:numel(annotations)
+                data.dataset_annotations{k} = [data.Directory filesep annotations(k).name]; %full name
+                % disp(data.dataset_annotations{k});
+            end                
+            %
+            data.load_dataset_annotations = true;      
+                                    
+        else
+            [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt'},'Select File',data.DefaultDataDirectory);            
+            if isequal(filename,0), return, end;
+            %
+            full_file_name = [pathname filesep filename]; % works;
+            % check if file is OK - extension...
+            str = split('.',full_file_name);
+            extension = str{length(str)};
+            %
+            if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') 
+                %
+                data.extension = extension;
+                data.LoadMode = 'single file';
+                data.Directory = full_file_name;
+                data.load_dataset_annotations = false;                                             
+            end
+
+            data.load_dataset_annotations = false;                                                         
+            
         end
+                
+        if ~isempty(data.project)
+            whos_destination = whos_Object(data.session,data.project.getId().getValue());
+        end;
+        if isempty(data.project) || strcmp(whos_destination,'Project') || strcmp(whos_destination,'Plate')
         %
-        updateInterface();                   
+        [ dtst ~ ] = select_Dataset(data.session,[],'Select Dataset');
+            if ~isempty(dtst)
+               data.project = dtst; % in  reality, dataset not project;
+               data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
+            else
+                clear_settings;
+                return;
+            end;
+        end                
+        %
+        updateInterface();                                   
     end
 
     function onSetModuloAlong(hObj,~,~)
@@ -724,7 +767,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                                 'Plates','Cancel','Cancel');              
                         switch choice
                             case 'Datasets',
-                                prjct = select_Project(data.session,'Select Project');             
+                                prjct = select_Project(data.session,[],'Select Project');             
                                 if ~isempty(prjct)
                                     data.project = prjct; 
                                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
@@ -733,7 +776,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                                 end
                                 %                                
                             case 'Plates', 
-                                scrn = select_Screen(data.session,'Select screen');
+                                scrn = select_Screen(data.session,[],'Select screen');
                                 if ~isempty(scrn)
                                     data.project = scrn; 
                                     data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
