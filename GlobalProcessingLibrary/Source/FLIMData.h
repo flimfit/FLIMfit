@@ -457,7 +457,7 @@ void FLIMData::DataLoaderThread()
          }   
 
          if (status->terminate)
-            return;
+            free_slot = -2;
 
          if (free_slot == -1)
             data_used_cond.wait(data_mutex);
@@ -465,9 +465,13 @@ void FLIMData::DataLoaderThread()
       }
       while( free_slot == -1 );
 
-      data_used[free_slot] = 0;
+      if (free_slot >= 0)
+         data_used[free_slot] = 0;
 
       data_mutex.unlock();
+
+      if (free_slot == -2)
+         return;
 
       T* tr_buf = (T*) this->tr_buf_  + free_slot * n_p;
       T* data_ptr = GetDataPointer<T>(free_slot, im);
@@ -502,7 +506,7 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
             }
          }   
          if (status->terminate)
-            return -1;
+            slot = -2;
 
          if (slot == -1)
             data_avail_cond.wait(data_mutex);
@@ -510,8 +514,11 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
       while( slot == -1 );
       data_mutex.unlock();
 
-      if (slot == -1)
+      if (slot < 0)
+      {
          data = NULL;
+         slot = -1;
+      }
       else
          data = (T*) tr_buf_  + slot * n_p;
 
