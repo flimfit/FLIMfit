@@ -98,10 +98,10 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             merge = merge - 1;
             
             overlay = get(obj.gallery_overlay_popupmenu,'Value');
-            if overlay == 1
+            names = get(obj.gallery_overlay_popupmenu,'String');
+            if overlay == 1 || overlay > length(names)
                 overlay = [];
             else
-                names = get(obj.gallery_overlay_popupmenu,'String');
                 overlay = names{overlay};
             end
 
