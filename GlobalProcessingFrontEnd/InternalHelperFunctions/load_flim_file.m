@@ -178,7 +178,14 @@ global buf buf_name
 
 
           % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-          case '.txt'
+          case {'.csv','.txt'}
+              
+             if strcmp(ext,'.txt')
+                 dlm = '\t';
+             else
+                 dlm = ',';
+             end
+              
              tcspc = 1;
 
              % check if we're reading a TRFA file
@@ -195,7 +202,7 @@ global buf buf_name
                  header_lines = 0;
                  textl = fgetl(fid);
                  while ~isempty(textl)
-                     first = sscanf(textl,'%f\t');
+                     first = sscanf(textl,['%f' dlm]);
                      if isempty(first)
                          header_lines = header_lines + 1;
                          textl = fgetl(fid);
@@ -213,7 +220,7 @@ global buf buf_name
                  if ~isempty(buf_name) && strcmp(buf_name,file)
                      ir = buf;
                  else
-                     ir = dlmread(file,'\t',header_lines,0);
+                     ir = dlmread(file,dlm,header_lines,0);
                      buf_name = file;
                      buf = ir;
                  end
