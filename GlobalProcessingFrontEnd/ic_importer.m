@@ -108,7 +108,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         gui.handles.menu_file_single_intref = uimenu(gui.menu_file_set_single,'Label','intensity_reference', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','g_factor', 'Callback', @onSetFile);        
         gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','sample', 'Callback', @onSetFile);        
-        gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','OPT stack', 'Callback', @onSetFile);                
+        gui.handles.menu_file_single_Gfctr = uimenu(gui.menu_file_set_single,'Label','from image stack directory', 'Callback', @onSetFile);                
                       
         uimenu( gui.menu_file, 'Label', 'Exit', 'Callback', @onExit );        
         % + Omero menu
@@ -497,7 +497,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                             upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo);
                         end                        
         elseif strcmp(data.LoadMode,'OPT image')                        
-                        imgid = upload_OPT_dir_as_Omero_Image(data.session, data.project, data.Directory,'tif');
+                        if strcmp(data.modulo,'ModuloAlongC'), errordlg('ModuloAlongC presetnly not supported'), return, end;
+                        imgid = upload_dir_as_Omero_Image(data.session, data.project, data.Directory,'tif',data.modulo,[]);
                         new_dataset = get_Object_by_Id(data.session,[],imgid);
         end % strcmp(data.LoadMode,'single file')
         %      
@@ -519,7 +520,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                         namespace);    
             end        
         end % if data.load_dataset_annotations
-        %
+        %        
         clear_settings;
         updateInterface;        
     end % onGo
@@ -661,7 +662,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
 
         data.SingleFileMeaningLabel  = get(hObj,'Label');  
         
-        if strcmp('OPT stack',data.SingleFileMeaningLabel)
+        if strcmp('from image stack directory',data.SingleFileMeaningLabel)
             directoryname = uigetdir(data.DefaultDataDirectory,'Select the folder containing the data');
             if isequal(directoryname,0), return, end;
             %
