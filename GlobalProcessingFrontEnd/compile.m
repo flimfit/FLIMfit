@@ -114,6 +114,7 @@ function compile(v)
             cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
             system(cmd)
             movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
+            pause(2)
     end
     
 
