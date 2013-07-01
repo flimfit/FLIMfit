@@ -192,10 +192,19 @@ classdef flim_fit_result < handle
            n_params = numel(obj.params);
                                   
            filenameS =     table_data(1:rows,1);           
-                      
-           for fovind = 1 : numel(obj.metadata.FileName) % main loop by FOVs   
                
-                   metadatafilename = obj.metadata.FileName{fovind}; % FOV name
+           filenamecontainerlist = [];
+           if isfield(obj.metadata,'FileName')
+               filenamecontainerlist = obj.metadata.FileName;               
+           elseif isfield(obj.metadata,'Well_FOV')
+               filenamecontainerlist = obj.metadata.Well_FOV;
+           else
+               errordlg('filenamecontainerlist not identified - ERROR');
+           end
+           
+           for fovind = 1 : numel(filenamecontainerlist) % main loop by FOVs   
+               
+                   metadatafilename = filenamecontainerlist{fovind}; % FOV name
                    if ~ischar(metadatafilename) % might happen...
                         metadatafilename = num2str(metadatafilename); 
                    end;                
