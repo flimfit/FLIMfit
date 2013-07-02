@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfit_PCWIN32" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN32.prj" preferred-package-type="package.type.exe" build-checksum="3680181347" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
-    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN32.prj</param.project.name>
+  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfit_PCWIN" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN.prj" preferred-package-type="package.type.exe" build-checksum="3680181347" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
+    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN.prj</param.project.name>
     <param.target.type>Windows Standalone Application</param.target.type>
-    <param.appname>FLIMfit_PCWIN32</param.appname>
+    <param.appname>FLIMfit_PCWIN</param.appname>
     <param.intermediate>${PROJECT_ROOT}\DeployFiles\src</param.intermediate>
     <param.output>${PROJECT_ROOT}\DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
@@ -64,27 +64,29 @@
       <file>${PROJECT_ROOT}\Classes</file>
       <file>${PROJECT_ROOT}\FLIMGlobalAnalysisProto_PCWIN.m</file>
       <file>${PROJECT_ROOT}\GeneratedFiles\version.txt</file>
+      <file>${PROJECT_ROOT}\GUIDEInterfaces</file>
       <file>${PROJECT_ROOT}\HelperFunctions</file>
+      <file>${PROJECT_ROOT}\HelperFunctions\GUILayout</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout\+uiextras\Resources</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout\Patch\getpixelposition.p</file>
       <file>${PROJECT_ROOT}\HelperFunctions\GUILayout\Patch\isHGUsingMATLABClasses.p</file>
       <file>${PROJECT_ROOT}\icons.mat</file>
       <file>${PROJECT_ROOT}\InternalHelperFunctions</file>
+      <file>${PROJECT_ROOT}\LicenseFiles</file>
       <file>${PROJECT_ROOT}\segmentation_funcs.mat</file>
       <file>${PROJECT_ROOT}\SegmentationFunctions</file>
       <file>${PROJECT_ROOT}\SegmentationFunctions\Support</file>
-      <file>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\Third Party Licenses.txt</file>
     </fileset.resources>
     <fileset.package>
       <file>C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\FLIMGlobalAnalysisLibraries\FLIMGlobalAnalysisDLL_x86.dll</file>
     </fileset.package>
     <build-deliverables>
-      <file name="FLIMfit_PCWIN32.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\FLIMfit_PCWIN32.exe</file>
       <file name="readme.txt" location="${PROJECT_ROOT}\DeployFiles" optional="true">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\readme.txt</file>
+      <file name="FLIMfit_PCWIN.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\FLIMfit_PCWIN.exe</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2013a</root>
+      <root>C:\Program Files (x86)\MATLAB\R2013a</root>
       <toolboxes>
         <toolbox name="fixedpoint" />
       </toolboxes>
@@ -109,9 +111,7 @@
         <directory>${PROJECT_ROOT}\OMEROMatlab\roi</directory>
         <directory>${PROJECT_ROOT}\OMEROUtilities</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
-        <directory>${PROJECT_ROOT}\SegmentationFunctions\Support</directory>
-        <directory>${PROJECT_ROOT}\SegmentationFunctions</directory>
-        <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
+        <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN</directory>
         <directory>\\ic.ac.uk\homes\scw09\MATLAB</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\testframework</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\demos</directory>
@@ -234,6 +234,9 @@
         <directory>${MATLAB_ROOT}\toolbox\curvefit\curvefitdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\daq\daq</directory>
         <directory>${MATLAB_ROOT}\toolbox\daq\daqguis</directory>
+        <directory>${MATLAB_ROOT}\toolbox\daq\daqblks\daqblks</directory>
+        <directory>${MATLAB_ROOT}\toolbox\daq\daqblks\daqmasks</directory>
+        <directory>${MATLAB_ROOT}\toolbox\daq\daqblks\daqmex</directory>
         <directory>${MATLAB_ROOT}\toolbox\daq\daqdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\database\database</directory>
         <directory>${MATLAB_ROOT}\toolbox\database\vqb</directory>
@@ -290,6 +293,8 @@
         <directory>${MATLAB_ROOT}\toolbox\fuzzy\fuzzy</directory>
         <directory>${MATLAB_ROOT}\toolbox\fuzzy\fuzzyutil</directory>
         <directory>${MATLAB_ROOT}\toolbox\fuzzy\fuzdemos</directory>
+        <directory>${MATLAB_ROOT}\toolbox\gauges</directory>
+        <directory>${MATLAB_ROOT}\toolbox\gauges\gaugesdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\geoweb\geoweb</directory>
         <directory>${MATLAB_ROOT}\toolbox\globaloptim</directory>
         <directory>${MATLAB_ROOT}\toolbox\globaloptim\globaloptim</directory>
@@ -721,9 +726,9 @@
       <linux>false</linux>
       <solaris>false</solaris>
       <osver>6.1</osver>
-      <os32>false</os32>
-      <os64>true</os64>
-      <arch>win64</arch>
+      <os32>true</os32>
+      <os64>false</os64>
+      <arch>win32</arch>
       <matlab>true</matlab>
     </platform>
   </configuration>

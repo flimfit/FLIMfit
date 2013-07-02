@@ -59,7 +59,7 @@ function compile(v)
     %------------------------------------------------
    
     exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
-    
+   
     switch platform
     	case 'WIN'
             if exist(exe,'file')
@@ -102,7 +102,8 @@ function compile(v)
                 arch = 'x86';
             end
 
-            system(['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"'])
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"']
+            system(cmd);
 
             installer_file_name = ['FLIMfit ' v ' Setup x' sys '.exe'];
             installer_file = ['..\FLIMfitStandalone\Installer\' installer_file_name];

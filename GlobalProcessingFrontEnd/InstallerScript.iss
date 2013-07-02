@@ -40,6 +40,7 @@ AppId={{5B6988D3-4B10-4DC8-AE28-E29DF8D99C39}}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+UsePreviousAppDir=no
 DefaultDirName={pf}\{#MyAppName}\{#MyAppName} {#MyAppVersion}
 DefaultGroupName={#MyAppName}
 OutputDir={#RepositoryRoot}\FLIMfitStandalone\Installer
