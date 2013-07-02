@@ -62,6 +62,7 @@
     </fileset.main>
     <fileset.resources>
       <file>${PROJECT_ROOT}\Classes</file>
+      <file>${PROJECT_ROOT}\FLIMfit_splash1.tif</file>
       <file>${PROJECT_ROOT}\FLIMGlobalAnalysisProto_PCWIN.m</file>
       <file>${PROJECT_ROOT}\GeneratedFiles\version.txt</file>
       <file>${PROJECT_ROOT}\GUIDEInterfaces</file>

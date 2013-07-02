@@ -12,8 +12,8 @@
 ;#define MyAppSystem 64 / 32
 
 ; Define Matlab compiler runtime download and required version
-#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013b/MCR_R2013b_win32_installer.exe"
-#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013b/MCR_R2013b_win64_installer.exe"
+#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win32_installer.exe"
+#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win64_installer.exe"
 #define McrVersionRequired "8.1"
 
 ; Define Ghostscript download urls and required version
@@ -29,9 +29,11 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 #if MyAppSystem == "32"
 #define MyAppArch "x86"
+#define MyAppComputer "PCWIN"
 ArchitecturesAllowed=x86 x64
 #else
 #define MyAppArch "x64"
+#define MyAppComputer "PCWIN64"
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
 #endif
@@ -67,17 +69,17 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 [Files]
 Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_PCWIN{#MyAppSystem}\Start_FLIMfit_{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_PCWIN{#MyAppSystem}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_PCWIN{#MyAppSystem}\FLIMfit_PCWIN{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit_{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppComputer}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 
 [Icons]
 Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"
 Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"; Tasks: quicklaunchicon
 
-[Run]
-Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+;[Run]
+;Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 
 [Messages]

@@ -62,6 +62,7 @@
     </fileset.main>
     <fileset.resources>
       <file>${PROJECT_ROOT}\Classes</file>
+      <file>${PROJECT_ROOT}\FLIMfit_splash1.tif</file>
       <file>${PROJECT_ROOT}\FLIMGlobalAnalysis_64_thunk_pcwin64.dll</file>
       <file>${PROJECT_ROOT}\FLIMGlobalAnalysisProto_PCWIN64.m</file>
       <file>${PROJECT_ROOT}\GeneratedFiles\version.txt</file>
@@ -110,8 +111,6 @@
         <directory>${PROJECT_ROOT}\OMEROMatlab\roi</directory>
         <directory>${PROJECT_ROOT}\OMEROUtilities</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
-        <directory>${PROJECT_ROOT}\SegmentationFunctions\Support</directory>
-        <directory>${PROJECT_ROOT}\SegmentationFunctions</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
         <directory>\\ic.ac.uk\homes\scw09\MATLAB</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\testframework</directory>

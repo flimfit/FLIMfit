@@ -105,7 +105,7 @@ function compile(v)
             cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"']
             system(cmd);
 
-            installer_file_name = ['FLIMfit ' v ' Setup x' sys '.exe'];
+            installer_file_name = ['FLIMfit ' v ' Setup ' arch '.exe'];
             installer_file = ['..\FLIMfitStandalone\Installer\' installer_file_name];
 
         case 'MAC'
@@ -129,6 +129,7 @@ function compile(v)
     new_distrib_folder = [distrib_folder 'FLIMfit_' v filesep 'FLIMfit_' v '_' computer filesep];
     copyfile(deploy_folder,new_distrib_folder);   
     
+
     if strcmp(platform,'WIN')
         copyfile(installer_file,[distrib_folder 'FLIMfit_' v filesep installer_file_name]);
     end
