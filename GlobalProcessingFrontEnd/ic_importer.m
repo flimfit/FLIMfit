@@ -23,9 +23,8 @@ function ic_importer()
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-
 %
-addpath_global_analysis();        
+addpath_global_analysis;        
 %
 settings = [];
 %
@@ -37,7 +36,7 @@ else
 end
 %
 data = createData();
-    gui = createInterface(data);
+    gui = createInterface(data);    
         updateInterface();    
 %
 %-------------------------------------------------------------------------%
@@ -329,7 +328,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 return;
             end
                         
-            [ dtst prjct ] = select_Dataset(data.session,[],'Select Dataset');
+            [ dtst, ~ ] = select_Dataset(data.session,[],'Select Dataset');
             
             if ~isempty(dtst)
                 data.project = dtst; % in  reality, dataset not project;
@@ -371,58 +370,54 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             return;
         end
         %           
-        %strings  = split(filesep,data.Directory);
-        strings1 = strrep(data.Directory,filesep,'/');
-        strings = split('/',strings1);
-        
-        new_dataset_name = char(strings(length(strings)));
-        %  
-        if ~( strcmp(data.LoadMode,'single file') || strcmp(data.LoadMode,'OPT image') )
-            if strcmp('Dataset',whos_Object(data.session,data.project.getId().getValue())) && ~is_Dataset_name_unique(data.project,new_dataset_name)
-                errordlg('new Dataset name is not unique - can not contuinue');
-                clear_settings;
-                updateInterface;     
-                return;
-            end        
-        end;
+        whos_destination = whos_Object(data.session,data.project.getId().getValue());
         %        
         set(gui.Indicator,'String','..uploading..');
         %
         if (strcmp(data.extension,'tif') || strcmp(data.extension,'tiff') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
             %
-            new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo);
-            mydatasets = getDatasets(data.session,new_dataset_id); 
-            new_dataset = mydatasets(1);                         
-            %                        
-            % IMAGE ANNOTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% (this is ugly)
-            if ~strcmp(data.image_annotation_file_extension,'none')
-                proxy = data.session.getContainerService();
-                %Set the options
-                param = omero.sys.ParametersI();
-                %
-                param.leaves();
-                %
-                userId = data.session.getAdminService().getEventContext().userId; %id of the user.
-                param.exp(omero.rtypes.rlong(userId));
-                projectsList = proxy.loadContainerHierarchy('omero.model.Project', [], param);
-                %
-                for j = 0:projectsList.size()-1,
-                    p = projectsList.get(j);
-                    pid = java.lang.Long(p.getId().getValue());                
-                    datasetsList = p.linkedDatasetList;
-                    for i = 0:datasetsList.size()-1,                     
-                         d = datasetsList.get(i);
-                         did = java.lang.Long(d.getId().getValue());
-                         imageList = d.linkedImageList;
-                         for k = 0:imageList.size()-1,                       
-                             img = imageList.get(k);                         
-                             if pid == data.project.getId().getValue() && did == new_dataset_id
-                                attach_file_with_same_name_if_in_the_directory(img,data.image_annotation_file_extension,data.Directory); 
-                             end
-                         end 
-                    end;
-                end;                                    
-            end;
+            if strcmp(whos_destination,'Project')
+                
+                new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo);
+                mydatasets = getDatasets(data.session,new_dataset_id); 
+                new_dataset = mydatasets(1);                         
+                %                        
+                % IMAGE ANNOTATIONS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% (this is ugly)
+                if ~strcmp(data.image_annotation_file_extension,'none')
+                    proxy = data.session.getContainerService();
+                    %Set the options
+                    param = omero.sys.ParametersI();
+                    %
+                    param.leaves();
+                    %
+                    userId = data.session.getAdminService().getEventContext().userId; %id of the user.
+                    param.exp(omero.rtypes.rlong(userId));
+                    projectsList = proxy.loadContainerHierarchy('omero.model.Project', [], param);
+                    %
+                    for j = 0:projectsList.size()-1,
+                        p = projectsList.get(j);
+                        pid = java.lang.Long(p.getId().getValue());                
+                        datasetsList = p.linkedDatasetList;
+                        for i = 0:datasetsList.size()-1,                     
+                             d = datasetsList.get(i);
+                             did = java.lang.Long(d.getId().getValue());
+                             imageList = d.linkedImageList;
+                             for k = 0:imageList.size()-1,                       
+                                 img = imageList.get(k);                         
+                                 if pid == data.project.getId().getValue() && did == new_dataset_id
+                                    attach_file_with_same_name_if_in_the_directory(img,data.image_annotation_file_extension,data.Directory); 
+                                 end
+                             end 
+                        end;
+                    end;                                    
+                end;
+                
+            elseif strcmp(whos_destination,'Dataset') % that means - one needs to upload dir as Omero Image to that Dataset
+                        if strcmp(data.modulo,'ModuloAlongC'), errordlg('ModuloAlongC presetnly not supported'), return, end;
+                        imgid = upload_dir_as_Omero_Image(data.session, data.project, data.Directory,'tif',data.modulo,[]);
+                        new_dataset = get_Object_by_Id(data.session,[],imgid);                
+            end
+                
             % IMAGE ANNOTATIONS - ENDS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
             %
         elseif strcmp(data.LoadMode,'well plate')
@@ -496,7 +491,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                         else % strcmp('sdt',data.extension)
                             upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo);
                         end                        
-        elseif strcmp(data.LoadMode,'OPT image')                        
+        elseif strcmp(data.LoadMode,'image from stack')                        
                         if strcmp(data.modulo,'ModuloAlongC'), errordlg('ModuloAlongC presetnly not supported'), return, end;
                         imgid = upload_dir_as_Omero_Image(data.session, data.project, data.Directory,'tif',data.modulo,[]);
                         new_dataset = get_Object_by_Id(data.session,[],imgid);
@@ -670,11 +665,11 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             extension = 'tif';
             if OK_dir
                 data.extension = extension;
-                data.LoadMode = 'OPT image';
+                data.LoadMode = 'image from stack';
                 data.Directory = directoryname;
             end
             %            
-            % Matlab function annotation
+            % ...annotation
             annotations = [];
             % check dataset annotations..
             annotations_extensions = {'xml' 'txt' 'csv' 'rtf' 'doc' 'docx' 'ppt' 'pdf' 'xls' 'xlsx' 'm' 'irf'};
@@ -693,6 +688,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             end                
             %
             data.load_dataset_annotations = true;      
+            %
+            data.DefaultDataDirectory = directoryname;
                                     
         else
             [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt'},'Select File',data.DefaultDataDirectory);            
@@ -711,7 +708,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 data.load_dataset_annotations = false;                                             
             end
 
-            data.load_dataset_annotations = false;                                                         
+            data.load_dataset_annotations = false;  
+            %
+            data.DefaultDataDirectory = pathname;                                                                
             
         end
                 
@@ -720,7 +719,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         end;
         if isempty(data.project) || strcmp(whos_destination,'Project') || strcmp(whos_destination,'Plate')
         %
-        [ dtst ~ ] = select_Dataset(data.session,[],'Select Dataset');
+        [ dtst, ~ ] = select_Dataset(data.session,[],'Select Dataset');
             if ~isempty(dtst)
                data.project = dtst; % in  reality, dataset not project;
                data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
@@ -741,6 +740,59 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
     end
 %-------------------------------------------------------------------------%  
     function onSetDirectoryList(~,~)
+        
+                str = char(3,256);
+                s1 = 'as Datasets (well plate..)';
+                s2 = 'as SPW Plates (well plate..)';
+                s3 = 'as Images (from stack)';
+                s4 = 'as Images (general)';                
+                str(1,1:length(s1)) = s1;
+                str(2,1:length(s2)) = s2;
+                str(3,1:length(s3)) = s3;
+                str(4,1:length(s4)) = s4;                
+                %
+                [s,v] = listdlg('PromptString','Please specify how to transfer the data',...
+                                'SelectionMode','single',...
+                                'ListSize',[300 60],...                                
+                                'ListString',str);
+                %
+                if ~v, return, end;
+                %    
+                switch (s)                    
+                    case 1  %   as Datasets  
+                                prjct = select_Project(data.session,[],'Select Project');             
+                                if ~isempty(prjct)
+                                    data.project = prjct; 
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                else
+                                    return;
+                                end                        
+                    case 2  %   as SPW Plates
+                                scrn = select_Screen(data.session,[],'Select screen');
+                                if ~isempty(scrn)
+                                    data.project = scrn; 
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                else
+                                    return;
+                                end                        
+                    case 3  %   as Images (from stack)
+                                [ dtst,~ ] = select_Dataset(data.session,[],'Select Dataset');            
+                                if ~isempty(dtst)
+                                    data.project = dtst; % in  reality, dataset not project;
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
+                                else
+                                    return;
+                                end;           
+                    case 4  %   as Images (general)
+                                prjct = select_Project(data.session,[],'Select Project');             
+                                if ~isempty(prjct)
+                                    data.project = prjct; 
+                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                else
+                                    return;
+                                end                                                                                                        
+                end
+                
             [file,path] = uigetfile('*.xlsx;*.xls','Select a text file containing list of data directories',data.DefaultDataDirectory);
             
             if file == 0, return, end;
@@ -760,35 +812,6 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 %
                 data.DirectoryList = dirs;
                 data.BatchFileName = [path file];
-                %
-                if isempty(data.project)
-
-                        choice = questdlg('Do you want to import data as Datasets or Plates?', ' ', ...
-                                                'Datasets' , ...
-                                                'Plates','Cancel','Cancel');              
-                        switch choice
-                            case 'Datasets',
-                                prjct = select_Project(data.session,[],'Select Project');             
-                                if ~isempty(prjct)
-                                    data.project = prjct; 
-                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
-                                else
-                                    return;
-                                end
-                                %                                
-                            case 'Plates', 
-                                scrn = select_Screen(data.session,[],'Select screen');
-                                if ~isempty(scrn)
-                                    data.project = scrn; 
-                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
-                                else
-                                    return;
-                                end
-                            case 'Cancel', 
-                                return;
-                        end                        
-                                                            
-                end;
                 %
                 hw = waitbar(0, 'checking Directory List, please wait...');
                 for d = 1:numel(data.DirectoryList)                    
@@ -810,14 +833,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 end;                                             
                 delete(hw);
                 drawnow;
-                                                                
-%               data.Directory = char(data.DirectoryList{1});             
-%               set_directory_info;            
-%               updateInterface;
-                                
-%                 if strcmp(data.DefaultDataDirectory,'C:\')
-%                     data.DefaultDataDirectory = path;
-%                 end
+                
+                data.DefaultDataDirectory = path;                                                                
     end
                               
 end % EOF
