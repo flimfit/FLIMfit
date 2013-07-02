@@ -24,7 +24,7 @@ function ic_importer()
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 %
-addpath_global_analysis();      
+addpath_global_analysis;        
 %
 settings = [];
 %
@@ -669,7 +669,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 data.Directory = directoryname;
             end
             %            
-            % Matlab function annotation
+            % ...annotation
             annotations = [];
             % check dataset annotations..
             annotations_extensions = {'xml' 'txt' 'csv' 'rtf' 'doc' 'docx' 'ppt' 'pdf' 'xls' 'xlsx' 'm' 'irf'};
@@ -688,6 +688,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             end                
             %
             data.load_dataset_annotations = true;      
+            %
+            data.DefaultDataDirectory = directoryname;
                                     
         else
             [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt'},'Select File',data.DefaultDataDirectory);            
@@ -706,7 +708,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 data.load_dataset_annotations = false;                                             
             end
 
-            data.load_dataset_annotations = false;                                                         
+            data.load_dataset_annotations = false;  
+            %
+            data.DefaultDataDirectory = pathname;                                                                
             
         end
                 
@@ -829,7 +833,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 end;                                             
                 delete(hw);
                 drawnow;
-                                                                
+                
+                data.DefaultDataDirectory = path;                                                                
     end
                               
 end % EOF
