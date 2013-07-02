@@ -141,7 +141,7 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
             
             if strcmp(param_name,'I0') || strcmp(param_name,'I')
                 cscale = @gray;
-            elseif invert && (~isempty(strfind(param_name,'tau')) || ~isempty(strfind(param_name,'theta')))
+            elseif invert && (~isempty(strfind(param_name,'tau')) || ~isempty(strfind(param_name,'theta')) || ~isempty(strfind(param_name,'r_ss')) )
                 cscale = @inv_jet;
             else
                 cscale = @jet;

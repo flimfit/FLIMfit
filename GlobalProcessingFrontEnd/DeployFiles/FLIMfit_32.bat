@@ -1,4 +1,4 @@
 @echo off
 echo Starting FLIMfit...
-FLIMfit_32.exe
+FLIMfit_PCWIN32.exe
 pause
