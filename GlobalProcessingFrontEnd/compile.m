@@ -55,31 +55,33 @@ function compile(v)
         sys = '32';
     end
 
-    % Try and delete executable if it already exists
-    %------------------------------------------------
-   
-    exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
-   
-    switch platform
-    	case 'WIN'
-            if exist(exe,'file')
-                delete(exe);
-            end
-        case 'MAC'
-            if isdir(exe)
-                rmdir(exe,'s');
-            end
-    end
-    
     % Build compiled Matlab project
     %------------------------------------------------
-    
-    eval(['deploytool -build FLIMfit_' computer '.prj']);
-   
-    while ~exist(exe,'file')
-       pause(2);
+    exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
+
+    if(true)
+
+        % Try and delete executable if it already exists
+        %------------------------------------------------
+
+
+        switch platform
+            case 'WIN'
+                if exist(exe,'file')
+                    delete(exe);
+                end
+            case 'MAC'
+                if isdir(exe)
+                    rmdir(exe,'s');
+                end
+        end
+
+        eval(['deploytool -build FLIMfit_' computer '.prj']);
+
+        while ~exist(exe,'file')
+           pause(2);
+        end
     end
-   
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
@@ -93,7 +95,16 @@ function compile(v)
             % Make installer using Inno Setup
 
             copyfile(exe,deploy_folder);
-            copyfile(['DeployFiles\Start_FLIMfit_' sys '.exe'],deploy_folder);
+            
+            f = fopen([deploy_folder '\Start_FLIMfit_' sys '.bat'],'w');
+            fprintf(f,'@echo off\r\necho Starting FLIMfit...\r\n');
+            fprintf(f,['set MCR_CACHE_ROOT=%%LOCALAPPDATA%%\\FLIMfit_' v '_' computer '_MCR_cache\r\n']);
+            fprintf(f,'if not exist %%MCR_CACHE_ROOT%% echo Decompressing files for first run, please wait this may take a few minutes\r\n');
+            fprintf(f,'if not exist %%MCR_CACHE_ROOT%% mkdir %%MCR_CACHE_ROOT%%\r\n');
+            fprintf(f,['FLIMfit_' computer '.exe \r\n pause']);
+            fclose(f);
+            
+            %copyfile(['DeployFiles\Start_FLIMfit_' sys '.exe'],deploy_folder);
             copyfile(['..\GlobalProcessingLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
             if strcmp(sys,'64')

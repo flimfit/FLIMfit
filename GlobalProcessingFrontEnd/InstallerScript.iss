@@ -69,17 +69,17 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 [Files]
 Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit_{#MyAppSystem}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit_{#MyAppSystem}.bat"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppComputer}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-
+Source: "{#RepositoryRoot}\GlobalProcessingFrontEnd\DeployFiles\microscope.ico"; DestDir: "{app}"
 [Icons]
-Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"
-Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"; Tasks: quicklaunchicon
+Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; IconFilename: "{app}\microscope.ico"
+Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
 
 ;[Run]
-;Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.exe"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+;Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 
 [Messages]
