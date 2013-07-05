@@ -614,7 +614,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
    float*   tr_data   = tr_data_ + thread * n_p;
    float*   intensity = intensity_ + thread * n_px;
    float*   r_ss      = r_ss_ + thread * n_px;
-   float*   acceptor  = acceptor_ + im*n_x*n_y;
+   float*   acceptor  = acceptor_ + iml*n_x*n_y;
 
    if (data_class == DATA_FLOAT)
       TransformImage<float>(thread, im);
