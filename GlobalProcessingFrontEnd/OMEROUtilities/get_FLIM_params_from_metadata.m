@@ -68,6 +68,16 @@ function ret = get_FLIM_params_from_metadata(session, image)
             ret.modulo = 'ModuloAlongZ';
         end;  
         
+        
+        if isfield(modlo.ATTRIBUTE,'Type')
+            if isempty(strfind(modlo.ATTRIBUTE.Type,'lifetime'))
+                ret = [];
+                return;
+            end
+        end
+        
+            
+        
         if isfield(modlo.ATTRIBUTE,'Start')
             start = modlo.ATTRIBUTE.Start;
             step = modlo.ATTRIBUTE.Step;
