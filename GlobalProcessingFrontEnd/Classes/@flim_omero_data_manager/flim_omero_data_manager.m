@@ -90,6 +90,7 @@ classdef flim_omero_data_manager < handle
             extensions{3} = '.tif';
             extensions{4} = '.tiff';
             extensions{5} = '.sdt';                        
+            extensions{5} = '.txt';                                    
                 for extind = 1:numel(extensions)    
                     name = strrep(name,extensions{extind},'');
                 end  

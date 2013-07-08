@@ -24,7 +24,7 @@ function ic_importer()
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 %
-addpath_global_analysis;        
+addpath_global_analysis;              
 %
 settings = [];
 %
@@ -374,7 +374,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         %        
         set(gui.Indicator,'String','..uploading..');
         %
-        if (strcmp(data.extension,'tif') || strcmp(data.extension,'tiff') || strcmp(data.extension,'sdt')) && strcmp(data.LoadMode,'general')
+        if (strcmp(data.extension,'tif') || strcmp(data.extension,'tiff') || strcmp(data.extension,'sdt') || strcmp(data.extension,'txt'))  && strcmp(data.LoadMode,'general')
             %
             if strcmp(whos_destination,'Project')
                 
@@ -552,7 +552,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         %
         data.extension = '???';
         data.LoadMode = '???';        
-        extensions = {'tif' 'tiff' 'sdt'};
+        extensions = {'tif' 'tiff' 'sdt' 'txt'};
         for k=1:numel(extensions)
             files = dir([data.Directory filesep '*.' extensions{k}]);
             num_files = length(files);

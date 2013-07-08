@@ -54,6 +54,12 @@ function new_datasetId = upload_dir_as_Dataset(session,Project,folder,extension,
                         if ~strcmp('sdt',extension)                            
                             if strcmp('tif',extension) && is_OME_tif(full_file_name) % that ignores "modulo" specifier!..
                                 upload_Image_OME_tif(session, new_dataset,full_file_name,' ');  
+                            elseif strcmp('txt',extension)
+                                
+                                % single_pixel stuff
+                                upload_Image_singlePix(session, new_dataset,full_file_name,modulo);                                    
+                                % single_pixel stuff
+                                
                             else % try to load according to "modulo"
                                 U = imread(full_file_name,extension);
                                 % rearrange planes
