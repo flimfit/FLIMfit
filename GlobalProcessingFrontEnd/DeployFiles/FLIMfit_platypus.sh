@@ -12,8 +12,8 @@ echo $exe_dir
 echo Setting up environment variables
 MCRROOT="/Applications/MATLAB/MATLAB_Compiler_Runtime/v81"
 echo ---
-DYLD_LIBRARY_PATH=.:${MCRROOT}/runtime/maci64 ;
-DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/bin/maci64 ;
+DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/runtime/maci64;
+DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/bin/maci64;
 DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/sys/os/maci64;
 
 DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:"$exe_dir";
@@ -24,6 +24,9 @@ export DYLD_LIBRARY_PATH;
 export XAPPLRESDIR;
 
 echo DYLD_LIBRARY_PATH is ${DYLD_LIBRARY_PATH};
+
+echo PATH is ${PATH};
+
 shift 1
   args=
   while [ $# -gt 0 ]; do
