@@ -101,7 +101,7 @@ function ret = get_FLIM_params_from_metadata(session, image)
         end
         
          if isfield(modlo.ATTRIBUTE,'TypeDescription')        
-            ret.FLIM_type = modlo.ATTRIBUTE.Description;
+            ret.FLIM_type = modlo.ATTRIBUTE.TypeDescription;
         end
         
         % validity check

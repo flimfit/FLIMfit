@@ -104,7 +104,7 @@ function imageId = upload_dir_as_Omero_Image(session,dataset,folder,extension,mo
                   Modulo.setAttribute('namespace',namespace);
                   %
                   ModuloAlong = node.createElement(modulo);
-                  ModuloAlong.setAttribute('Description','Single_Plane_Image_File_Names');
+                  ModuloAlong.setAttribute('TypeDescription','Single_Plane_Image_File_Names');
                   %
                   for m = 1:num_files                   
                     thisElement = node.createElement('Label');
