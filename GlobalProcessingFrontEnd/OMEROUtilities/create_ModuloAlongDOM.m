@@ -60,7 +60,7 @@ function node = create_ModuloAlongDOM(delays, namespace, modulo, FLIM_type)
        
        if strfind('Gated',FLIM_type)
            
-           ModuloAlong.setAttribute('Description','Gated');    
+           ModuloAlong.setAttribute('TypeDescription','Gated');    
            
            for i=1:length(delays)
                 thisElement = node.createElement('Label'); 
@@ -69,7 +69,7 @@ function node = create_ModuloAlongDOM(delays, namespace, modulo, FLIM_type)
            end
        
        else
-           ModuloAlong.setAttribute('Description','TCSPC');    
+           ModuloAlong.setAttribute('TypeDescription','TCSPC');    
            
            ModuloAlong.setAttribute('Start',num2str(delays(1))); 
            step = (delays(end) - delays(1))./(length(delays) -1);

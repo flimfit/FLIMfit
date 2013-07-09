@@ -95,7 +95,12 @@ function ret = get_FLIM_params_from_metadata(session, image)
         
         ret.FLIM_type = 'TCSPC';        % set as default
         
+        % Deprecated. Replaced by "TypeDescription" To be removed when safe.
         if isfield(modlo.ATTRIBUTE,'Description')        
+            ret.FLIM_type = modlo.ATTRIBUTE.Description;
+        end
+        
+         if isfield(modlo.ATTRIBUTE,'TypeDescription')        
             ret.FLIM_type = modlo.ATTRIBUTE.Description;
         end
         
