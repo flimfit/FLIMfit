@@ -100,8 +100,8 @@ global buf buf_name
                 delays = zeros([1,noOfFiles]);
                 
                 im_data(1,:,:) = im;
-                
-                for f = 2:noOfFiles
+
+                for f = 1:noOfFiles
                     filename = [path filesep dirStruct(f).name];
                     [~,name] = fileparts(filename);
                     tokens = regexp(name,'INT\_(\d+)','tokens');
@@ -117,10 +117,12 @@ global buf buf_name
                         delays(f) = str2double(name);                       
                     end
 
-                    try
-                        im_data(f,:,:) = imread(filename,'tif');
-                    catch error
-                        throw(error);
+                    if f > 1
+                        try
+                            im_data(f,:,:) = imread(filename,'tif');
+                        catch error
+                            throw(error);
+                        end
                     end
                 end
 

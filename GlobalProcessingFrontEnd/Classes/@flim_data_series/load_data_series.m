@@ -51,7 +51,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     if strcmp(mode,'TCSPC')
 
         if isempty(channel)
-            [channel,blockk] = obj.request_channels(polarisation_resolved);
+            [channel,block] = obj.request_channels(polarisation_resolved);
         end
         obj.channels = channel;
         if isempty(block)
