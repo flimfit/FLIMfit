@@ -20,12 +20,15 @@ DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:"$exe_dir";
 
 XAPPLRESDIR=${MCRROOT}/X11/app-defaults ;
 
+PATH=${PATH}:"$exe_dir";
+
 export DYLD_LIBRARY_PATH;
 export XAPPLRESDIR;
+export PATH;
 
 echo DYLD_LIBRARY_PATH is ${DYLD_LIBRARY_PATH};
-
 echo PATH is ${PATH};
+
 
 shift 1
   args=

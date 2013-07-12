@@ -231,10 +231,15 @@ function savefig(fname, varargin)
 	
 	% Generate the gs command.
 	switch(computer)													% Get gs command.
-		case {'MAC','MACI64'},			gs= '/usr/local/bin/gs';
+		case {'MAC','MACI64'},			
+            if isdeployed
+                gs= 'gs-noX11';
+            else
+                gs= '/usr/local/bin/gs';
+            end
 		case {'PCWIN','PCWIN64'},		gs= '"C:\Program Files\gs\gs8.71\bin\gswin32c.exe"';
 		otherwise,						gs= 'gs';
-	end
+    end
 	gs=		[gs		' -q -dNOPAUSE -dBATCH -dEPSCrop'];					% Essential.
 	gs=		[gs     ' -dPDFSETTINGS=/prepress -dEmbedAllFonts=' fonts];	% Must be first?
 	gs=		[gs		' -dUseFlateCompression=true'];						% Useful stuff.

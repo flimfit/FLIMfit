@@ -79,7 +79,7 @@ function compile(v)
         eval(['deploytool -build FLIMfit_' computer '.prj']);
 
         while ~exist(exe,'file')
-           pause(2);
+           pause(3);
         end
     end
    
@@ -87,6 +87,8 @@ function compile(v)
     %------------------------------------------------
     deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer];
     mkdir(deploy_folder);
+    
+    pause(2);
     
     
 
@@ -120,10 +122,26 @@ function compile(v)
             installer_file = ['..\FLIMfitStandalone\Installer\' installer_file_name];
 
         case 'MAC'
-            % Package app with platypus
+           
             
+            % change icon by overwriting matlab membrane.icns
+            deployFiles_folder = ['.' filesep 'DeployFiles']
+            resource_folder = [ './' exe filesep 'Contents' filesep 'Resources']
+            
+            filename = [resource_folder '/membrane.icns']
+            if exist([resource_folder '/membrane.icns'], 'file') == 2
+                    delete([resource_folder '/membrane.icns'])
+                    deletedSuccessfully = 1
+            end
+            source =  [deployFiles_folder '/microscopeGreen.icns']
+            dest = [resource_folder '/membrane.icns' ]
+            
+            copyfile( [deployFiles_folder '/microscopeGreen.icns'], [resource_folder '/membrane.icns' ],'f');
+           % movefile( [resource_folder '/microscopeGreen.icns'], [resource_folder '/membrane.icns'] )
+            
+            % Package app with platypus
             package_name = ['FLIMFit ' v];
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfitTerminal.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
+            cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
             system(cmd)
             movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
             pause(3)
