@@ -88,9 +88,7 @@ function compile(v)
     deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer];
     mkdir(deploy_folder);
     
-    pause(2);
-    
-    
+   
 
     switch platform
         case 'WIN'
@@ -123,7 +121,9 @@ function compile(v)
 
         case 'MAC'
            
-            
+             pause(3);
+             
+             
             % change icon by overwriting matlab membrane.icns
             deployFiles_folder = ['.' filesep 'DeployFiles']
             resource_folder = [ './' exe filesep 'Contents' filesep 'Resources']
@@ -131,13 +131,15 @@ function compile(v)
             filename = [resource_folder '/membrane.icns']
             if exist([resource_folder '/membrane.icns'], 'file') == 2
                     delete([resource_folder '/membrane.icns'])
-                    deletedSuccessfully = 1
+                    pause(2);
             end
-            source =  [deployFiles_folder '/microscopeGreen.icns']
-            dest = [resource_folder '/membrane.icns' ]
+            
+           
+            disp( ['copying ' deployFiles_folder '/microscopeGreen.icns' ' to ' resource_folder '/membrane.icns' ] );
             
             copyfile( [deployFiles_folder '/microscopeGreen.icns'], [resource_folder '/membrane.icns' ],'f');
-           % movefile( [resource_folder '/microscopeGreen.icns'], [resource_folder '/membrane.icns'] )
+           
+            pause(1);
             
             % Package app with platypus
             package_name = ['FLIMFit ' v];
