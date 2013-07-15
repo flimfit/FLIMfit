@@ -16,6 +16,7 @@
 		<string>/opt/local/lib/libstdc++.6.dylib</string>
 		<string>/opt/local/lib/gcc47/libgcc_s.1.dylib</string>
 		<string>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/FLIMfit_MACI64.app</string>
+		<string>/usr/local/bin/gs-noX11</string>
 	</array>
 	<key>Creator</key>
 	<string>Platypus-4.7</string>
@@ -39,15 +40,15 @@
 		<string>fold</string>
 	</array>
 	<key>IconPath</key>
-	<string>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/microscope.icns</string>
+	<string>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/microscopeGrey.icns</string>
 	<key>Identifier</key>
-	<string>org.flimfit.FlimfitTerminal</string>
+	<string>org.flimfit.Flimfit</string>
 	<key>Interpreter</key>
-	<string>/bin/sh</string>
+	<string>/bin/bash</string>
 	<key>InterpreterArgs</key>
 	<array/>
 	<key>Name</key>
-	<string>FlimfitTerminal</string>
+	<string>Flimfit</string>
 	<key>NibPath</key>
 	<string>/usr/local/share/platypus/MainMenu.nib</string>
 	<key>OptimizeApplication</key>
