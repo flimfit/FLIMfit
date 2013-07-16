@@ -1854,7 +1854,9 @@ Initialize(varargin{:})
         if fIsRubberBandOn
             fIsRubberBandOn = false;
             
-            delete(mRubberBand.obj);          
+            % changed from delete to = [] as mRubberBand.obj is double
+            mRubberBand.obj = [];
+            %delete(mRubberBand.obj);          
             RubberBandZoomAxes();
             PointerCrossUpdate();
             mRubberBand = [];
