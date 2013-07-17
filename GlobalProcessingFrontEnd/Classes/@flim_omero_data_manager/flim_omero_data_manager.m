@@ -951,7 +951,7 @@ classdef flim_omero_data_manager < handle
             %
             tvbdata = [data_series.t(:) data_series.tvb_profile(:)];
             %
-            ext = '.irf';   
+            ext = '.txt';   
             tvb_file_name = [tempdir 'TVB '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
             %
             dlmwrite(tvb_file_name,tvbdata);            

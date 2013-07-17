@@ -830,30 +830,116 @@ classdef front_end_menu_controller < handle
             %polarisation_testing(obj.data_series_controller.data_series,obj.default_path);
         end
         
+        
         function menu_tools_create_irf_shift_map_callback(obj,~,~)
+                        
             mask=obj.data_masking_controller.roi_controller.roi_mask;
-            irf_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
-            
-            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-            if filename ~= 0
-
-                serialise_object(irf_data,[pathname filename],'flim_data_series');
+            t0_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
+            %
+            filesave = true;
+            % 
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
+                choice = questdlg('Do you want to export t0 shift data to the current working Omero data or save on disk?', ' ', ...
+                                        'Omero' , ...
+                                        'disk','Cancel','Cancel');              
+                if strcmp( choice, 'Omero'), filesave = false; end;                                               
+                if strcmp( choice, 'Cancel'), return, end;                                                               
             end
             
+            if filesave
+                
+                [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+                if filename ~= 0
+                    serialise_object(t0_data,[pathname filename],'flim_data_series');
+                end                
+                
+            else % Omero
+                
+                if ~isempty(obj.omero_data_manager.dataset)
+                    object = obj.omero_data_manager.dataset;
+                elseif ~isempty(obj.omero_data_manager.plate)
+                    object = obj.omero_data_manager.plate;
+                end
+
+                root = tempdir;
+                t0_name = [' irf shift map ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];                
+                serialise_object(t0_data,[root t0_name],'flim_data_series');
+                                
+                % fitting results table      
+                namespace = 'IC_PHOTONICS';
+                description = ' ';            
+                sha1 = char('pending');
+                file_mime_type = char('application/octet-stream');
+
+                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                                object, ...
+                                sha1, ...
+                                file_mime_type, ...
+                                [root t0_name], ...
+                                description, ...
+                                namespace);
+                            
+                msgbox(['The file annotation "' t0_name '" has been attached to the current working data']);
+                
+            end
+            
+        end
+
+
+        function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
+
+            mask=obj.data_masking_controller.roi_controller.roi_mask;
+            tvb_data = obj.data_series_controller.data_series.generate_tvb_I_map(mask,1);            
+            %
+            filesave = true;
+            % 
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
+                choice = questdlg('Do you want to export TVB settings to the current working Omero data or save on disk?', ' ', ...
+                                        'Omero' , ...
+                                        'disk','Cancel','Cancel');              
+                if strcmp( choice, 'Omero'), filesave = false; end;                                               
+                if strcmp( choice, 'Cancel'), return, end;                                                               
+            end
+            
+            if filesave
+                
+                [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+                if filename ~= 0
+                    serialise_object(tvb_data,[pathname filename],'flim_data_series');
+                end                
+                
+            else % Omero
+                
+                if ~isempty(obj.omero_data_manager.dataset)
+                    object = obj.omero_data_manager.dataset;
+                elseif ~isempty(obj.omero_data_manager.plate)
+                    object = obj.omero_data_manager.plate;
+                end
+
+                root = tempdir;
+                tvb_name = [' TVB ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];                
+                serialise_object(tvb_data,[root tvb_name],'flim_data_series');
+                                
+                % fitting results table      
+                namespace = 'IC_PHOTONICS';
+                description = ' ';            
+                sha1 = char('pending');
+                file_mime_type = char('application/octet-stream');
+
+                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                                object, ...
+                                sha1, ...
+                                file_mime_type, ...
+                                [root tvb_name], ...
+                                description, ...
+                                namespace);
+                            
+                msgbox(['The file annotation "' tvb_name '" has been attached to the current working data']);
+                            
+            end
+
         end
         
-        function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
-           
-            mask=obj.data_masking_controller.roi_controller.roi_mask;
-            irf_data = obj.data_series_controller.data_series.generate_tvb_I_map(mask,1);
-            
-            [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-            if filename ~= 0
-
-                serialise_object(irf_data,[pathname filename],'flim_data_series');
-            end
-            
-        end
         
         function menu_test_test2_callback(obj,~,~)
             
