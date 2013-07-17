@@ -87,7 +87,7 @@ function save_raw_data(obj,mapfile_name)
         
         for i=1:frame_binning
             if idx <= obj.n_datasets
-                obj.switch_active_dataset(idx);
+                obj.switch_active_dataset(idx,true);
                 f_data = obj.cur_tr_data;
                 f_data = f_data(:,1,:,:) + 2*obj.g_factor*f_data(:,2,:,:);
                 data = data + f_data;

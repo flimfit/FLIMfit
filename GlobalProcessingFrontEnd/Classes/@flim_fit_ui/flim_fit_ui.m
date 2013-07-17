@@ -68,8 +68,14 @@
                 v = '[unknown version]';
             end
             
-            
+            %{
+            cur_ver = urlread('https://raw.github.com/openmicroscopy/Imperial-FLIMfit/master/GlobalProcessingFrontEnd/GeneratedFiles/version.txt');
+            if obj.split_ver(cur_ver) > obj.split_ver(v)
+                msgbox(['A new version of FLIMfit, v' cur_ver ' is now available. ']);
+            end
+              %}  
             % Get authentication if needed
+            %{
             if require_auth
                 auth_text = urlread('https://global-analysis.googlecode.com/hg/GlobalAnalysisAuth.txt');
                 auth_success = false;
@@ -92,6 +98,7 @@
                     return
                 end
             end
+            %}
             
             % Open a window and add some menus
             obj.window = figure( ...
@@ -172,7 +179,7 @@
             
         end
         
-        function vx = split_ver(ver)
+        function vx = split_ver(obj,ver)
             % Convert version string into a number
             tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
             if ~isempty(tk{1})

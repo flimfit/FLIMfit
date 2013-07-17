@@ -218,6 +218,14 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     
                     im_data = obj.fit_controller.get_image(sel(i),param,'result');
                     
+                    %{
+                    im_data1 = obj.fit_controller.get_image(sel(i),'offset','result');
+                    im_data2 = obj.fit_controller.get_image(sel(i),'I0','result');
+                    
+                    im_data = im_data2 ./ im_data1;
+                    %im_data = im_data2;
+                    %}
+                    
                     %mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
                     
                     %M(i) = im2frame(mdata);

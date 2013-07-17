@@ -727,7 +727,7 @@ void FLIMData::TransformImage(int thread, int im)
       int n_tot = n_x * n_y * n_chan * n_t;
       for(int i=0; i<n_tot; i++)
       {
-         tr_data[i] -= background_value;
+         tr_data[i] -= background_value * smoothing_area;
          tr_data[i] *= photons_per_count;
       }
    }
@@ -737,7 +737,7 @@ void FLIMData::TransformImage(int thread, int im)
       for(int p=0; p<n_px; p++)
          for(int i=0; i<n_meas; i++)
          {
-            tr_data[idx] -= background_image[p];
+            tr_data[idx] -= background_image[p] * smoothing_area;
             tr_data[idx] *= photons_per_count;
             idx++;
          }
@@ -748,7 +748,7 @@ void FLIMData::TransformImage(int thread, int im)
       for(int p=0; p<n_px; p++)
          for(int i=0; i<n_meas; i++)
          {
-            tr_data[idx] -= (tvb_profile[i] * tvb_I_map[p] + background_value);
+            tr_data[idx] -= (tvb_profile[i] * tvb_I_map[p] + background_value) * smoothing_area;
             tr_data[idx] *= photons_per_count;
             idx++;
          }
