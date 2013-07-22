@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MACI64" location="/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd" file="/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd/FLIMfit_MACI64.prj" preferred-package-type="package.type.zip" build-checksum="2928449483" preferred-package-location="/Users/imunro/globalprocessing/GlobalProcessingFrontEnd">
-    <param.project.name>/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd/FLIMfit_MACI64.prj</param.project.name>
+  <configuration target="target.standalone" target-name="Standalone Application" name="FLIMfit_MACI64" location="${PROJECT_ROOT}" file="${PROJECT_ROOT}/FLIMfit_MACI64.prj" preferred-package-type="package.type.zip" build-checksum="2928449483" preferred-package-location="${PROJECT_ROOT}">
+    <param.project.name>${PROJECT_ROOT}/FLIMfit_MACI64.prj</param.project.name>
     <param.target.type>Standalone Application</param.target.type>
     <param.appname>FLIMfit_MACI64</param.appname>
     <param.intermediate>${PROJECT_ROOT}/DeployFiles/src</param.intermediate>
@@ -80,13 +80,13 @@
       <file>${PROJECT_ROOT}/SegmentationFunctions/Support</file>
       <file>${PROJECT_ROOT}/icons.mat</file>
       <file>${PROJECT_ROOT}/segmentation_funcs.mat</file>
-      <file>/Users/imunro/Imperial-FLIMfit/GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
+      <file>${PROJECT_ROOT}/../GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
     </fileset.resources>
     <fileset.package />
     <build-deliverables>
-      <file name="readme.txt" location="${PROJECT_ROOT}/DeployFiles" optional="true">/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd/DeployFiles/readme.txt</file>
-      <file name="FLIMfit_MACI64.app" location="${PROJECT_ROOT}/DeployFiles" optional="false">/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd/DeployFiles/FLIMfit_MACI64.app</file>
-      <file name="run_FLIMfit_MACI64.sh" location="${PROJECT_ROOT}/DeployFiles" optional="false">/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd/DeployFiles/run_FLIMfit_MACI64.sh</file>
+      <file name="readme.txt" location="${PROJECT_ROOT}/DeployFiles" optional="true">${PROJECT_ROOT}/DeployFiles/readme.txt</file>
+      <file name="FLIMfit_MACI64.app" location="${PROJECT_ROOT}/DeployFiles" optional="false">${PROJECT_ROOT}/DeployFiles/FLIMfit_MACI64.app</file>
+      <file name="run_FLIMfit_MACI64.sh" location="${PROJECT_ROOT}/DeployFiles" optional="false">${PROJECT_ROOT}/DeployFiles/run_FLIMfit_MACI64.sh</file>
     </build-deliverables>
     <workflow />
     <matlab>
@@ -95,7 +95,7 @@
         <toolbox name="fixedpoint" />
       </toolboxes>
       <path>
-        <directory>/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd</directory>
+        <directory>${PROJECT_ROOT}</directory>
         <directory>${PROJECT_ROOT}/Classes</directory>
         <directory>${PROJECT_ROOT}/GUIDEInterfaces</directory>
         <directory>${PROJECT_ROOT}/GeneratedFiles</directory>
@@ -120,7 +120,6 @@
         <directory>${PROJECT_ROOT}/OMEROMatlab/image</directory>
         <directory>${PROJECT_ROOT}/OMEROMatlab/libs/test</directory>
         <directory>${PROJECT_ROOT}/HelperFunctions/doubleops_MACI64</directory>
-        <directory>/Users/imunro/Documents/MATLAB</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/demos</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/graph2d</directory>
         <directory>${MATLAB_ROOT}/toolbox/matlab/graph3d</directory>
