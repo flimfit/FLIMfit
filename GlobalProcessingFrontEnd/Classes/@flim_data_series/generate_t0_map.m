@@ -25,10 +25,16 @@ function irf_data = generate_t0_map(obj, mask, dataset)
 
     % Author : Sean Warren
 
+    prof = get_profile();  
+    
+    max_shift = prof.Tools.IRF_Shift_Map_Max_Shift;
+    downsampling = prof.Tools.IRF_Shift_Map_Max_Downsampling;
+    
     decay = obj.get_roi(mask, dataset);
     decay = mean(decay,3);
     decay(decay<0) = 0;
-    n = 1;
+
+    n = downsampling;
     nt = 5;
     
     diff = zeros(obj.height/n,obj.width/n);
@@ -63,7 +69,7 @@ function irf_data = generate_t0_map(obj, mask, dataset)
 
                 decayiji = decayiji / intensity(j,i);
 
-                [a,lags] = xcorr(decayi,decayiji,200/nt);
+                [a,lags] = xcorr(decayi,decayiji,max_shift/nt);
                 [m,idx] = max(a);
                 sim(j,i) = m;
                 diff(j,i) = lags(idx)*nt;
