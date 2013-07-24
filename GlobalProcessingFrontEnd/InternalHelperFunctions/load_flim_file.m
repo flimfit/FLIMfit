@@ -148,36 +148,57 @@ global buf buf_name
 
              dataUnShaped = dlmread(file);
              siz = size(dataUnShaped);
-             if length(siz) == 2      % if  data is not 3d
-                 if siz(1) == 2     % looks like this includes delays
-                     step = dataUnShaped(1,3)/dataUnShaped(1,2);
-                     if step > 1.99 && step < 2.01
-                         dataUnShaped = squeeze(dataUnShaped(2,:));   % discard delays
-                     else
-                         dataUnShaped = squeeze(dataUnShaped(1,:));
-                     end
+             
+             % 1d or 2d data
+             if length(siz) == 2      % if  data is 2D  not 3d
+                 if siz(2) < 3  % transpose data from column to row if it's x by 1 or x by 2 
+                     dataUnShaped = dataUnShaped';
+                     siz = size(dataUnShaped);
                  end
-                 if siz(2) == 2     % looks like this includes delays
-                     step = dataUnShaped(3,1)/dataUnShaped(2,1);
-                     if step > 1.99 && step < 2.01
-                         dataUnShaped = squeeze(dataUnShaped(:,2));   % discard delays
-                     else
-                         dataUnShaped =  squeeze(dataUnShaped(:,1));
-                     end
+                 
+                 if siz(1) == 2
+                 
+                    % check if 1 is the delays
+                    if max(dataUnShaped(1,:)) == dataUnShaped(1,end)
+                        delays = squeeze(dataUnShaped(1,:));
+                        im_data = squeeze(dataUnShaped(2,:));   % discard delays
+                    else
+                        delays = squeeze(dataUnShaped(2,:));
+                        im_data = squeeze(dataUnShaped(1,:));
+                    end
+                    nbins = length(im_data);
+                    im_data = reshape(im_data,nbins,1,1); 
+                    
                  end
+             
+                 
+             
+                % 1d data
+                if siz(2) == 1
+               
+                     % if up to 1024 data points then assume a single-point
+                     % decay & 12.5ns
+                     if length(dataUnShaped) <  1025
+                         nbins = length(dataUnShaped);
+                          im_data = reshape(dataUnShaped,nbins,1,1);
+                          delays = (0:nbins-1)*12500.0/nbins;
+                     else
+                     % too long for a single-point decay so assume a square
+                     % image res by res & assume 64 time bins ???
+                         res = sqrt(length(dataUnShaped)/64)
+                         im_data = reshape(dataUnShaped, 64, res, res);
+                         delays = (0:63)*12500.0/64;
+                     
+            
+                     end
+                end
+                
+      
+           
+                
              end
-
-
-             res = sqrt(size(dataUnShaped,1)/64);
-             if res >= 1 
-                im_data = reshape(dataUnShaped, 64, res, res);
-                delays = (0:63)*12500.0/64;
-             else
-                 im_data = dataUnShaped;
-                delays = (0:length(im_data)-1)*12500.0/64;
-             end
-
-
+                 
+                 
 
           % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           case {'.csv','.txt'}
@@ -258,6 +279,7 @@ global buf buf_name
     end
     
     s = size(im_data);
+    
     if length(s) == 3
         im_data = reshape(im_data,[s(1) 1 s(2) s(3)]);
     end

@@ -15,8 +15,8 @@
 		<string>/opt/local/lib/gcc47/libgomp.1.dylib</string>
 		<string>/opt/local/lib/libstdc++.6.dylib</string>
 		<string>/opt/local/lib/gcc47/libgcc_s.1.dylib</string>
-		<string>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/FLIMfit_MACI64.app</string>
 		<string>/usr/local/bin/gs-noX11</string>
+		<string>/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd/DeployFiles/FLIMfit_MACI64.app</string>
 	</array>
 	<key>Creator</key>
 	<string>Platypus-4.8</string>
