@@ -66,7 +66,7 @@ private:
 
    double *work_, *w; 
    double *aw_, *bw_, *wp_, *u_;
-   int nmaxb; 
+   
    // Buffers used by levmar algorithm
    double *fjac;
    double *fvec;

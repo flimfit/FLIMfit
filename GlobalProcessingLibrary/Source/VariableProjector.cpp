@@ -40,18 +40,16 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
 
    n_jac_group = ceil(1024.0 / (nmax-l));
 
-   nmaxb = nmax + 16; // pad to prevent false sharing
+   work_ = new double[nmax * n_thread];
 
-   work_ = new double[nmaxb * n_thread];
-
-   aw_   = new double[ nmaxb * (l+1) * n_thread ]; //free ok
+   aw_   = new double[ nmax * (l+1) * n_thread ]; //free ok
    bw_   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
-   wp_   = new double[ nmaxb * n_thread ];
-   u_    = new double[ nmaxb * n_thread ];
-   w     = new double[ nmaxb ];
+   wp_   = new double[ nmax * n_thread ];
+   u_    = new double[ nmax * n_thread ];
+   w     = new double[ nmax ];
 
-   r_buf_ = new double[ nmaxb * n_thread ];
-   norm_buf_ = new double[ nmaxb * n_thread ];
+   r_buf_ = new double[ nmax * n_thread ];
+   norm_buf_ = new double[ nmax * n_thread ];
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -429,7 +427,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    else if (isel > 3)
    {
 
-      double* r_buf = r_buf_ + nmaxb*thread;
+      double* r_buf = r_buf_ + nmax*thread;
 
       int idx;
       double *aw, *bw;
@@ -438,7 +436,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       else
          idx = 0;
 
-      aw = aw_ + idx * nmaxb * (l+1);
+      aw = aw_ + idx * nmax * (l+1);
       bw = bw_ + idx * ndim * ( p_full + 3 );
 
       int mskip = s/s_red;
@@ -507,7 +505,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       transform_ab(isel, 0, 0, firstca, firstcb);
 
    for(int i=0; i<n_thread; i++)
-      norm_buf_[i*nmaxb] = 0;
+      norm_buf_[i*nmax] = 0;
 
    #pragma omp parallel for num_threads(n_thread)
    for (int j=0; j<s; j++)
@@ -524,10 +522,10 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       else
          idx = 0;
 
-      double* aw = aw_ + idx * nmaxb * (l+1);
-      double* wp = wp_ + idx * nmaxb;
+      double* aw = aw_ + idx * nmax * (l+1);
+      double* wp = wp_ + idx * nmax;
       double* u  = u_  + idx * l;
-      double* work = this->work_ + omp_thread * nmaxb;
+      double* work = this->work_ + omp_thread * nmax;
 
       if (variable_phi)
          GetModel(alf, irf_idx[j], isel, omp_thread);
@@ -590,7 +588,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
       // Calcuate the norm of the jth column and add to residual
       rj_norm = enorm(n-l, rj+l);
       //r_sq += rj_norm * rj_norm;
-      norm_buf_[omp_thread*nmaxb] += rj_norm * rj_norm;
+      norm_buf_[omp_thread*nmax] += rj_norm * rj_norm;
 
       if (use_numerical_derv)
          memcpy(rnorm+j*(n-l),rj+l,(n-l)*sizeof(double));
@@ -605,7 +603,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    } // loop over pixels
 
    for(int i=0; i<n_thread; i++)
-      r_sq += norm_buf_[i*nmaxb];
+      r_sq += norm_buf_[i*nmax];
 
    // Compute the norm of the residual matrix
    *cur_chi2 = r_sq / (chi2_norm * s);
@@ -630,11 +628,11 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
 void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
    float*  y = this->y + px * nmax;
-   double* wp = wp_ + omp_thread * nmaxb;
+   double* wp = wp_ + omp_thread * nmax;
    
    double *a;
    if (variable_phi)
-      a = a_ + omp_thread * nmaxb * lp1;
+      a = a_ + omp_thread * nmax * lp1;
    else
       a = a_;
 
@@ -687,16 +685,16 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 
    int i, m, k, kp1;
 
-   double* aw = aw_ + omp_thread * nmaxb * lp1;
+   double* aw = aw_ + omp_thread * nmax * lp1;
    double* bw = bw_ + omp_thread * ndim * ( p_full + 3 );
    double* u  = u_  + omp_thread * l;
-   double* wp = wp_ + omp_thread * nmaxb;
+   double* wp = wp_ + omp_thread * nmax;
       
    double *a = a_; 
    double *b = b_;
    if (variable_phi)
    {
-      a  += omp_thread * nmaxb * lp1;
+      a  += omp_thread * nmax * lp1;
       b  += omp_thread * ndim * ( p_full + 3 );
    }
    

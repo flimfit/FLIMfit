@@ -946,7 +946,7 @@ void FLIMGlobalFitController::Init()
       n = n_meas;
 
    ndim       = std::max( n, 2*nl+3 );
-   nmax       = n;   
+   nmax       = n + 16; // pad to prevent false sharing   
 
    calculate_mean_lifetimes = !beta_global && n_exp > 1;
 
