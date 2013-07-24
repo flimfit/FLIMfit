@@ -1,6 +1,6 @@
 ==========================================
 
-  FLIMfit 4.3.3
+  FLIMfit 4.5.8
 
   (c) Imperial College London, 2013
 
@@ -23,14 +23,15 @@ SUPPORT
 
 If you have issues installing or running this software, please contact 
     Sean Warren at sean.warren09@imperial.ac.uk
+    or FLIMfit@imperial.ac.uk
 
 
 COMPILING AND RUNNING FLIMfit
 ------------------------------------------ 
 
-This software has been extensively tested on Windows 7 with Matlab 2013b using
-Visual Studio 2012. It has been shown to compile under MacOS X with XCode 4 and
-under Linux with GCC 4.7, however testing on these platforms has been limited.  
+This software has been extensively tested on Windows 7 with Matlab 2013a using
+Visual Studio 2012. It has been shown to compile under MacOS X with both XCode 4 and
+macports GCC4.7 and under Linux with GCC 4.7, however testing on these platforms has been limited.  
 
 If you wish to compile the package from source please follow these instructions 
 which assume a Windows platform.
@@ -39,7 +40,7 @@ Required Packages
 --------------------
 - CMake 2.8.10			http://www.cmake.org/
 - Visual Studio 2012		http://www.microsoft.com/visualstudio/eng/downloads	
-- MATLAB 2013b			http://www.mathworks.co.uk/products/matlab/
+- MATLAB 2013a			http://www.mathworks.co.uk/products/matlab/
 - Boost 1.5.1			http://www.boost.org/users/history/version_1_51_0.html		
 
 Compiling
@@ -67,6 +68,6 @@ Running FLIMFit from MATLAB
 	GlobalProcessingFrontEnd\
 
 2. Start the UI by typing
-	FLIMfit
+	FLIMfit <or FLIMfit(true) for the OMERO enabled version>
 
 3. See the online instructions for usage

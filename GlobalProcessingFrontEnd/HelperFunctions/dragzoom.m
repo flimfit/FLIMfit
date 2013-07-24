@@ -1853,8 +1853,11 @@ Initialize(varargin{:})
         
         if fIsRubberBandOn
             fIsRubberBandOn = false;
-            
-            delete(mRubberBand.obj);          
+
+            % prevent attempts to delete invlaid object
+            if ishandle(mRubberBand.obj)
+                delete(mRubberBand.obj);
+            end
             RubberBandZoomAxes();
             PointerCrossUpdate();
             mRubberBand = [];

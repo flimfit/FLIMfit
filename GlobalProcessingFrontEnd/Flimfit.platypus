@@ -19,7 +19,7 @@
 		<string>/usr/local/bin/gs-noX11</string>
 	</array>
 	<key>Creator</key>
-	<string>Platypus-4.7</string>
+	<string>Platypus-4.8</string>
 	<key>DeclareService</key>
 	<false/>
 	<key>Destination</key>
@@ -34,11 +34,6 @@
 	<false/>
 	<key>ExecutablePath</key>
 	<string>/usr/local/share/platypus/ScriptExec</string>
-	<key>FileTypes</key>
-	<array>
-		<string>****</string>
-		<string>fold</string>
-	</array>
 	<key>IconPath</key>
 	<string>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/microscopeGrey.icns</string>
 	<key>Identifier</key>
@@ -55,6 +50,8 @@
 	<true/>
 	<key>Output</key>
 	<string>Text Window</string>
+	<key>PromptForFileOnLaunch</key>
+	<false/>
 	<key>RemainRunning</key>
 	<true/>
 	<key>Role</key>
@@ -62,7 +59,7 @@
 	<key>ScriptArgs</key>
 	<array/>
 	<key>ScriptPath</key>
-	<string>/Users/imunro/globalprocessing/GlobalProcessingFrontEnd/DeployFiles/FLIMfit_platypus.sh</string>
+	<string>/Users/imunro/Imperial-FLIMfit/GlobalProcessingFrontEnd/DeployFiles/FLIMfit_platypus.sh</string>
 	<key>Secure</key>
 	<false/>
 	<key>ShowInDock</key>

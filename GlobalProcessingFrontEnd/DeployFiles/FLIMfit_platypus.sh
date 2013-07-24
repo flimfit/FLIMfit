@@ -9,9 +9,23 @@ echo "Executing FlIMfit from "
 exe_dir=`dirname "$0"`
 echo $exe_dir
   
-echo Setting up environment variables
+
 MCRROOT="/Applications/MATLAB/MATLAB_Compiler_Runtime/v81"
-echo ---
+echo ----
+
+FILE=${MCRROOT}/bin/maci64/libmwlaunchermain.dylib
+
+echo "Checking for correct version of Matlab MCR"
+echo
+
+if [ -f $FILE ];
+then
+echo "Found MCR !"
+echo ----
+
+echo Setting up environment variables
+
+
 DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/runtime/maci64;
 DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/bin/maci64;
 DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:${MCRROOT}/sys/os/maci64;
@@ -38,6 +52,17 @@ shift 1
       shift
   done
   eval "\"${exe_dir}/FLIMfit_MACI64.app/Contents/MacOS/FLIMfit_MACI64\"" $args
+
+
+
+else
+echo
+echo "FLIMfit was unable to locate the Matlab MCR "
+echo "Please install Matlab MCR v8.1 to /Applications/MATLAB/MATLAB_Compiler_Runtime/v81 "
+echo  "then try FLIMfit again "
+echo "this is available from http://www.mathworks.co.uk/products/compiler/mcr/ "
+fi
+
 
 exit
 
