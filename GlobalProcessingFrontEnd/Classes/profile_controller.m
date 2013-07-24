@@ -127,6 +127,8 @@ classdef profile_controller
             profile_def = obj.profile_definitions();
             groups = fieldnames(profile_def);
 
+            com.mathworks.mwswing.MJUtilities.initJIDE();
+            
             % Setup tab panels
             for i=1:length(groups)
                 h(i) = uipanel( 'Parent', tab_panel );
