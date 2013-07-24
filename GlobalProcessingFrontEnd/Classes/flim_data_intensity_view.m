@@ -89,7 +89,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     if isempty(flt)
                         lim(1) = 0;
                     else
-                        lim(1) = min(flt)-1;
+                        lim(1) = min(flt);
                     end
                     
                     lim(2) = round(prctile(flt,99.5));

@@ -22,7 +22,7 @@ function varargout = segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 05-Jun-2013 12:48:36
+% Last Modified by GUIDE v2.5 16-Jul-2013 13:47:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -317,3 +317,31 @@ function combine_regions_checkbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of combine_regions_checkbox
+
+
+% --------------------------------------------------------------------
+function OMERO_Callback(hObject, eventdata, handles)
+% hObject    handle to OMERO (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --------------------------------------------------------------------
+function OMERO_Load_Segmentation_Images_Callback(hObject, eventdata, handles)
+% hObject    handle to OMERO_Load_Segmentation_Images (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.segmentation_controller.load_segmentation_OMERO;
+
+% --------------------------------------------------------------------
+function OMERO_Load_Single_Segmentation_Image_Callback(hObject, eventdata, handles)
+% hObject    handle to OMERO_Load_Single_Segmentation_Image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.segmentation_controller.load_single_segmentation_OMERO;
+
+% --------------------------------------------------------------------
+function OMERO_Save_Segmentation_Images_Callback(hObject, eventdata, handles)
+% hObject    handle to OMERO_Save_Segmentation_Images (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.segmentation_controller.save_segmentation_OMERO;
