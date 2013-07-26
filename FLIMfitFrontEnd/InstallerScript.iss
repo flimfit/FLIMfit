@@ -3,13 +3,13 @@
 
 #define MyAppName "FLIMfit"
 #define MyAppPublisher "Sean Warren"
-#define RepositoryRoot "C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev"
 #define MyAppCopyright "(c) Imperial College London"
 
 
-; These options need to be set on the commandline, eg. > iscc \dMyAppVersion=4.2.8 \dMyAppSystem=64 "InstallerScript.iss"
+; These options need to be set on the commandline, eg. > iscc \dMyAppVersion=4.2.8 \dMyAppSystem=64 \dRepositoryRoot="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev" "InstallerScript.iss"
 ;#define MyAppVersion "4.2.8"
-;#define MyAppSystem 64 / 32
+;#define MyAppSystem 64 / 32 
+;#define RepositoryRoot "C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev"
 
 ; Define Matlab compiler runtime download and required version
 #define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win32_installer.exe"
@@ -47,14 +47,14 @@ DefaultDirName={pf}\{#MyAppName}\{#MyAppName} {#MyAppVersion}
 DefaultGroupName={#MyAppName}
 OutputDir={#RepositoryRoot}\FLIMfitStandalone\Installer
 OutputBaseFilename=FLIMFit {#MyAppVersion} Setup {#MyAppArch}
-SetupIconFile={#RepositoryRoot}\GlobalProcessingFrontEnd\DeployFiles\microscope.ico
+SetupIconFile={#RepositoryRoot}\FLIMfitFrontEnd\DeployFiles\microscope.ico
 Compression=lzma
 SolidCompression=yes
 
 
 ShowLanguageDialog=no
 AppCopyright={#MyAppCopyright}
-LicenseFile={#RepositoryRoot}\GlobalProcessingFrontEnd\LicenseFiles\GPL Licence.txt
+LicenseFile={#RepositoryRoot}\FLIMfitFrontEnd\LicenseFiles\GPL Licence.txt
 AllowUNCPath=False
 VersionInfoVersion={#MyAppVersion}
 MinVersion=0,5.01sp3
@@ -72,7 +72,7 @@ Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\vcredist_{#MyAppAr
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit_{#MyAppSystem}.bat"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppComputer}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "{#RepositoryRoot}\GlobalProcessingFrontEnd\DeployFiles\microscope.ico"; DestDir: "{app}"
+Source: "{#RepositoryRoot}\FLIMfitFrontEnd\DeployFiles\microscope.ico"; DestDir: "{app}"
 [Icons]
 Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; IconFilename: "{app}\microscope.ico"
 Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
