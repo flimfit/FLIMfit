@@ -25,8 +25,13 @@ function compile(v)
 
 % Author : Sean Warren
 
-
+    
     addpath_global_analysis();
+    
+    % Make sure we have included the DLL
+    dll_interface = flim_dll_interface();
+    dll_interface.unload_global_library();
+    dll_interface.load_global_library();
 
     fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
     fwrite(fid,v);
@@ -59,7 +64,7 @@ function compile(v)
     %------------------------------------------------
     exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
 
-    if(true)
+    if(false)
 
         % Try and delete executable if it already exists
         %------------------------------------------------
@@ -104,8 +109,7 @@ function compile(v)
             fprintf(f,['FLIMfit_' computer '.exe \r\n pause']);
             fclose(f);
             
-            %copyfile(['DeployFiles\Start_FLIMfit_' sys '.exe'],deploy_folder);
-            copyfile(['..\GlobalProcessingLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
+            copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
             if strcmp(sys,'64')
                 arch = 'x64';
@@ -113,7 +117,8 @@ function compile(v)
                 arch = 'x86';
             end
 
-            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' "InstallerScript.iss"']
+            root = [cd '\..'];
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"']
             system(cmd);
 
             installer_file_name = ['FLIMfit ' v ' Setup ' arch '.exe'];
