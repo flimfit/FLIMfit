@@ -5,7 +5,9 @@ function [imdata, ATTRIBUTES, VALUES] = load_omero_image_stack(session, varargin
     userid = session.getAdminService().getEventContext().userId;
 
     [ dataset, ~ ] = select_Dataset(session,userid,'Select a Dataset:');
+    if isempty(dataset), return, end;
     image = select_Image(session,userid,dataset);
+    if isempty(image), return, end;
              
     pixelsList = image.copyPixels();    
     pixels = pixelsList.get(0);
@@ -49,7 +51,11 @@ function [imdata, ATTRIBUTES, VALUES] = load_omero_image_stack(session, varargin
     if isfield(modulo.ATTRIBUTE,'Description')
         if ~strcmp(modulo.ATTRIBUTE.Description,'Single_Plane_Image_File_Names'), errordlg('..no filenames spec?.. bye..'), return, end;
     end
-    
+
+    if isfield(modulo.ATTRIBUTE,'TypeDescription')
+        if ~strcmp(modulo.ATTRIBUTE.TypeDescription,'Single_Plane_Image_File_Names'), errordlg('..no filenames spec?.. bye..'), return, end;
+    end
+        
 try
         out = parse_string_for_attribute_value(modulo.Label{1},varargin);    
         z = 0;
