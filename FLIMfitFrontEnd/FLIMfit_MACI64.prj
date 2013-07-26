@@ -81,6 +81,7 @@
       <file>${PROJECT_ROOT}/icons.mat</file>
       <file>${PROJECT_ROOT}/segmentation_funcs.mat</file>
       <file>${PROJECT_ROOT}/../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
+      <file>${PROJECT_ROOT}/FLIMGlobalAnalysis_64_thunk_maci64.dylib</file>
     </fileset.resources>
     <fileset.package />
     <build-deliverables>
@@ -237,29 +238,8 @@
         <directory>${MATLAB_ROOT}/toolbox/curvefit/cftoolgui</directory>
         <directory>${MATLAB_ROOT}/toolbox/curvefit/sftoolgui</directory>
         <directory>${MATLAB_ROOT}/toolbox/curvefit/curvefitdemos</directory>
-        <directory>${MATLAB_ROOT}/toolbox/database/database</directory>
-        <directory>${MATLAB_ROOT}/toolbox/database/vqb</directory>
-        <directory>${MATLAB_ROOT}/toolbox/database/dbdemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/datafeed/datafeed</directory>
         <directory>${MATLAB_ROOT}/toolbox/datafeed/dfgui</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/distcomp</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/user</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/mpi</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/parallel</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/parallel/util</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/lang</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/cluster</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/gpu</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/array</directory>
-        <directory>${MATLAB_ROOT}/toolbox/distcomp/pctdemos</directory>
-        <directory>${MATLAB_ROOT}/toolbox/dsp/dsp</directory>
-        <directory>${MATLAB_ROOT}/toolbox/dsp/dsputilities</directory>
-        <directory>${MATLAB_ROOT}/toolbox/dsp/dsputilities/dspinit</directory>
-        <directory>${MATLAB_ROOT}/toolbox/dsp/dsputilities/dspmex</directory>
-        <directory>${MATLAB_ROOT}/toolbox/dsp/dspdemos</directory>
-        <directory>${MATLAB_ROOT}/help/toolbox/dsp/examples</directory>
-        <directory>${MATLAB_ROOT}/toolbox/shared/dsp/simulink/dsp</directory>
         <directory>${MATLAB_ROOT}/toolbox/rtw/targets/ecoder</directory>
         <directory>${MATLAB_ROOT}/toolbox/rtw/targets/mpt</directory>
         <directory>${MATLAB_ROOT}/toolbox/rtw/targets/mpt/mpt</directory>
@@ -271,11 +251,6 @@
         <directory>${MATLAB_ROOT}/toolbox/econ/econdemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/eml/eml</directory>
         <directory>${MATLAB_ROOT}/toolbox/dsp/filterdesign</directory>
-        <directory>${MATLAB_ROOT}/toolbox/finance/finance</directory>
-        <directory>${MATLAB_ROOT}/toolbox/finance/calendar</directory>
-        <directory>${MATLAB_ROOT}/toolbox/finance/finsupport</directory>
-        <directory>${MATLAB_ROOT}/toolbox/finance/ftseries</directory>
-        <directory>${MATLAB_ROOT}/toolbox/finance/findemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/fininst/fininst</directory>
         <directory>${MATLAB_ROOT}/toolbox/fininst/fininstdemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/fixedpoint/fidemos</directory>
@@ -286,9 +261,6 @@
         <directory>${MATLAB_ROOT}/toolbox/simulink/fixedandfloat/fxpdemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/coder/float2fixed</directory>
         <directory>${MATLAB_ROOT}/toolbox/coder/float2fixed/dmm_emlauthoring</directory>
-        <directory>${MATLAB_ROOT}/toolbox/fuzzy/fuzzy</directory>
-        <directory>${MATLAB_ROOT}/toolbox/fuzzy/fuzzyutil</directory>
-        <directory>${MATLAB_ROOT}/toolbox/fuzzy/fuzdemos</directory>
         <directory>${MATLAB_ROOT}/toolbox/geoweb/geoweb</directory>
         <directory>${MATLAB_ROOT}/toolbox/globaloptim</directory>
         <directory>${MATLAB_ROOT}/toolbox/globaloptim/globaloptim</directory>

@@ -64,7 +64,7 @@ function compile(v)
     %------------------------------------------------
     exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
 
-    if(false)
+    if(true)
 
         % Try and delete executable if it already exists
         %------------------------------------------------
@@ -90,7 +90,7 @@ function compile(v)
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
-    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer];
+    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer]
     mkdir(deploy_folder);
     
    
@@ -123,6 +123,24 @@ function compile(v)
 
             installer_file_name = ['FLIMfit ' v ' Setup ' arch '.exe'];
             installer_file = ['..\FLIMfitStandalone\Installer\' installer_file_name];
+            
+            
+             % Try and copy files to Imperial server
+            %------------------------------------------------
+            distrib_folder = [server 'fogim_datastore' filesep 'Group' filesep 'Software' filesep 'Global Analysis' filesep];
+
+
+            mkdir([distrib_folder 'FLIMfit_' v]);
+
+            new_distrib_folder = [distrib_folder 'FLIMfit_' v filesep 'FLIMfit_' v '_' computer filesep];
+            copyfile(deploy_folder,new_distrib_folder);   
+
+
+            if strcmp(platform,'WIN')
+                copyfile(installer_file,[distrib_folder 'FLIMfit_' v filesep installer_file_name]);
+            end
+
+            
 
         case 'MAC'
            
@@ -132,6 +150,7 @@ function compile(v)
             % change icon by overwriting matlab membrane.icns
             deployFiles_folder = ['.' filesep 'DeployFiles']
             resource_folder = [ './' exe filesep 'Contents' filesep 'Resources']
+ 
             
             filename = [resource_folder '/membrane.icns']
             if exist([resource_folder '/membrane.icns'], 'file') == 2
@@ -147,29 +166,17 @@ function compile(v)
             pause(1);
             
             % Package app with platypus
-            package_name = ['FLIMFit ' v];
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
-            system(cmd)
+            package_name = ['FLIMfit ' v];
+            cmd = ['./platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
+            system(cmd);
             movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
             pause(3)
+            
+            
     end
     
 
-    % Try and copy files to Imperial server
-    %------------------------------------------------
-    distrib_folder = [server 'fogim_datastore' filesep 'Group' filesep 'Software' filesep 'Global Analysis' filesep];
-
-       
-    mkdir([distrib_folder 'FLIMfit_' v]);
-    
-    new_distrib_folder = [distrib_folder 'FLIMfit_' v filesep 'FLIMfit_' v '_' computer filesep];
-    copyfile(deploy_folder,new_distrib_folder);   
-    
-
-    if strcmp(platform,'WIN')
-        copyfile(installer_file,[distrib_folder 'FLIMfit_' v filesep installer_file_name]);
-    end
-    
+   
     
 %    try
 %        rmdir(['FLIMfit_' sys]);
