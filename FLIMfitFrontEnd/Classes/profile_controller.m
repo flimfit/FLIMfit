@@ -23,6 +23,10 @@ classdef profile_controller
             profile_def.Display.Invert_Colourscale = false;
             profile_def.Display.Text_Size = 12;
             
+            % Tools Preferences
+            profile_def.Tools.IRF_Shift_Map_Max_Shift = 200;
+            profile_def.Tools.IRF_Shift_Map_Max_Downsampling = 4;
+            
             % Export Preferences
             profile_def.Export.Plotter_Width_Px = 400;
         end

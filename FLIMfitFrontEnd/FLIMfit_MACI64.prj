@@ -80,7 +80,7 @@
       <file>${PROJECT_ROOT}/SegmentationFunctions/Support</file>
       <file>${PROJECT_ROOT}/icons.mat</file>
       <file>${PROJECT_ROOT}/segmentation_funcs.mat</file>
-      <file>${PROJECT_ROOT}/../GlobalProcessingLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
+      <file>${PROJECT_ROOT}/../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib</file>
     </fileset.resources>
     <fileset.package />
     <build-deliverables>
@@ -107,7 +107,7 @@
         <directory>${PROJECT_ROOT}/HelperFunctions/GUILayout/layoutHelp</directory>
         <directory>${PROJECT_ROOT}/HelperFunctions/xml_io_toos</directory>
         <directory>${PROJECT_ROOT}/HelperFunctions/bftools</directory>
-        <directory>${PROJECT_ROOT}/../GlobalProcessingLibrary/Libraries</directory>
+        <directory>${PROJECT_ROOT}/../FLIMfitLibrary/Libraries</directory>
         <directory>${PROJECT_ROOT}/OMEROMatlab</directory>
         <directory>${PROJECT_ROOT}/OMEROMatlab/helper</directory>
         <directory>${PROJECT_ROOT}/OMEROMatlab/io</directory>

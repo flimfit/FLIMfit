@@ -58,7 +58,7 @@ Compiling
 3. Compile the generated solution in Visual Studio
 
 
-Running FLIMFit from MATLAB
+Running FLIMfit from MATLAB
 ------------------
 1. In MATLAB, ensure you have setup the MATLAVB compiler by typing
 	mex -setup

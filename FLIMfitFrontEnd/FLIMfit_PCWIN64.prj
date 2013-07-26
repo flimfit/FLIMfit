@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <deployment-project plugin="plugin.deploytool" plugin-version="1.0">
-  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfit_PCWIN64" location="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd" file="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN64.prj" preferred-package-type="package.type.exe" build-checksum="2982247636" preferred-package-location="C:\Users\scw09\Documents\Repositories\GlobalAnalysisPolarisation\GlobalFittingFrontEnd">
-    <param.project.name>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\FLIMfit_PCWIN64.prj</param.project.name>
+  <configuration target="target.standalone.win" target-name="Windows Standalone Application" name="FLIMfit_PCWIN64" location="${PROJECT_ROOT}" file="${PROJECT_ROOT}\FLIMfit_PCWIN64.prj" preferred-package-type="package.type.exe" build-checksum="2982247636" preferred-package-location="${PROJECT_ROOT}">
+    <param.project.name>${PROJECT_ROOT}\FLIMfit_PCWIN64.prj</param.project.name>
     <param.target.type>Windows Standalone Application</param.target.type>
     <param.appname>FLIMfit_PCWIN64</param.appname>
     <param.intermediate>${PROJECT_ROOT}\DeployFiles\src</param.intermediate>
@@ -81,8 +81,8 @@
     </fileset.resources>
     <fileset.package />
     <build-deliverables>
-      <file name="FLIMfit_PCWIN64.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\FLIMfit_PCWIN64.exe</file>
-      <file name="readme.txt" location="${PROJECT_ROOT}\DeployFiles" optional="true">C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd\DeployFiles\readme.txt</file>
+      <file name="FLIMfit_PCWIN64.exe" location="${PROJECT_ROOT}\DeployFiles" optional="false">${PROJECT_ROOT}\DeployFiles\FLIMfit_PCWIN64.exe</file>
+      <file name="readme.txt" location="${PROJECT_ROOT}\DeployFiles" optional="true">${PROJECT_ROOT}\DeployFiles\readme.txt</file>
     </build-deliverables>
     <workflow />
     <matlab>
@@ -91,7 +91,7 @@
         <toolbox name="fixedpoint" />
       </toolboxes>
       <path>
-        <directory>C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev\GlobalProcessingFrontEnd</directory>
+        <directory>${PROJECT_ROOT}</directory>
         <directory>${PROJECT_ROOT}\Classes</directory>
         <directory>${PROJECT_ROOT}\GUIDEInterfaces</directory>
         <directory>${PROJECT_ROOT}\GeneratedFiles</directory>
@@ -103,7 +103,7 @@
         <directory>${PROJECT_ROOT}\HelperFunctions\GUILayout\layoutHelp</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\xml_io_toos</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\bftools</directory>
-        <directory>${PROJECT_ROOT}\..\GlobalProcessingLibrary\Libraries</directory>
+        <directory>${PROJECT_ROOT}\..\FLIMfitLibrary\Libraries</directory>
         <directory>${PROJECT_ROOT}\OMEROMatlab</directory>
         <directory>${PROJECT_ROOT}\OMEROMatlab\helper</directory>
         <directory>${PROJECT_ROOT}\OMEROMatlab\io</directory>
@@ -112,7 +112,6 @@
         <directory>${PROJECT_ROOT}\OMEROUtilities</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
-        <directory>\\ic.ac.uk\homes\scw09\MATLAB</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\testframework</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\demos</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\graph2d</directory>

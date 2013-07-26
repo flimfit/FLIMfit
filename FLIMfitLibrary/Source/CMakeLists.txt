@@ -29,7 +29,7 @@
 
 cmake_minimum_required(VERSION 2.8.10)
 
-project(FLIMGlobalAnalysis)
+project(FLIMfit)
 
 # Include the BOOST header files
 #===================================================
