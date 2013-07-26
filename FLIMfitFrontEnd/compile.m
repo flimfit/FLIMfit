@@ -167,7 +167,16 @@ function compile(v)
             
             % Package app with platypus
             package_name = ['FLIMfit ' v];
-            cmd = ['./platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
+            
+            % NB The platypus profile file FLIMfit_????.platypus used in the following line will
+            % determine which files are included  in the final .app 
+            % Please use an appropriate configuration for your build
+            % environment 
+            % examples are included for:
+            % Macports GCC 4.7 [FLIMfit_GCC47MP.platypus]
+            cmd = ['./platypus -y -P FLIMfit_GCC47MP.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
+            
+            
             system(cmd);
             movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
             pause(3)
