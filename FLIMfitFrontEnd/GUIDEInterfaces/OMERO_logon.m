@@ -22,7 +22,7 @@ function varargout = OMERO_logon(varargin)
 
 % Edit the above text to modify the response to help OMERO_logon
 
-% Last Modified by GUIDE v2.5 22-Mar-2013 16:31:09
+% Last Modified by GUIDE v2.5 28-Jul-2013 19:52:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,7 +61,20 @@ handles.passwd = [];
 
 handles.output = {'??', '??', '??'};
 
-
+try
+    login_details = getpref('GlobalAnalysisFrontEnd','OMEROlogin');
+    handles.server = login_details{1};
+    handles.userName = login_details{2};
+    
+    set(handles.Server,'string',login_details{1});
+    set(handles.UserName,'string',login_details{2});
+    
+    % Set focus to password
+    uicontrol(handles.Passwd);
+    
+catch e
+    addpref('GlobalAnalysisFrontEnd','OMEROlogin',{'',''})
+end
 
 % Update handles structure
 guidata(hObject, handles);
@@ -147,8 +160,8 @@ guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
-function passwd_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to passwd (see GCBO)
+function Passwd_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Passwd (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -162,17 +175,17 @@ end
 
 
 
-function passwd_Callback(hObject, eventdata, handles)
-% hObject    handle to passwd (see GCBO)
+function Passwd_Callback(hObject, eventdata, handles)
+% hObject    handle to Passwd (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of passwd as text
-%        str2double(get(hObject,'String')) returns contents of passwd as a double
+% Hints: get(hObject,'String') returns contents of Passwd as text
+%        str2double(get(hObject,'String')) returns contents of Passwd as a double
 
 %
 % Save the new  value
-%handles.passwd = passwd;
+%handles.Passwd = Passwd;
 %guidata(hObject,handles);
 
 
@@ -188,9 +201,9 @@ server = handles.server;
 userName = handles.userName;
 passwd = handles.passwd;
 
-
 handles.output = {server, userName, passwd};
 
+setpref('GlobalAnalysisFrontEnd','OMEROlogin',{server,userName});
 
 guidata(hObject,handles);
 
@@ -205,9 +218,9 @@ function figure1_DeleteFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on key press with focus on passwd and none of its controls.
-function passwd_KeyPressFcn(hObject, eventdata, handles)
-% hObject    handle to passwd (see GCBO)
+% --- Executes on key press with focus on Passwd and none of its controls.
+function Passwd_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to Passwd (see GCBO)
 % eventdata  structure with the following fields (see UICONTROL)
 %	Key: name of the key that was pressed, in lower case
 %	Character: character interpretation of the key(s) that was pressed
@@ -217,17 +230,37 @@ function passwd_KeyPressFcn(hObject, eventdata, handles)
 key = eventdata.Key;
 switch key
     case 'backspace'
-        handles.passwd = handles.passwd(1:end-1); % Delete the last character in the password
+        handles.Passwd = handles.Passwd(1:end-1); % Delete the last character in the password
     case 'return'  % This cannot be done through callback without making tab to the same thing
         % do nothing
     case 'shift'
         % do nothing
     otherwise
-        handles.passwd = [handles.passwd eventdata.Character];
+        handles.Passwd = [handles.Passwd eventdata.Character];
         
 end
 
 
-asterisk(1,1:length(handles.passwd)) = '*'; % Create a string of asterisks the same size as the password
+asterisk(1,1:length(handles.Passwd)) = '*'; % Create a string of asterisks the same size as the password
 set(hObject,'String',asterisk) % Set the text in the password edit box to the asterisk string
 guidata(hObject,handles);
+
+
+% --- Executes on button press in cancel.
+function cancel_Callback(hObject, eventdata, handles)
+% hObject    handle to cancel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+server = '??';
+userName = '??';
+passwd = [];
+
+handles.output = {server, userName, passwd};
+
+guidata(hObject,handles);
+
+
+uiresume(handles.figure1);
+
+

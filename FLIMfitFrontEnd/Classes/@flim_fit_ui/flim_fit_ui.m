@@ -36,6 +36,8 @@
             
             set_splash('FLIMfit_splash1.tif');
                     
+            obj.check_prefs();
+            
             if nargin < 1
                 wait = false;
             end
