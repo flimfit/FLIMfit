@@ -24,7 +24,7 @@ function ic_importer()
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 %
-addpath_global_analysis;              
+addpath_project;              
 %
 settings = [];
 %
@@ -56,10 +56,10 @@ data = createData();
         %
         data.client  = [];
         data.session  = [];            
-        data.project = [];            
+        data.Destination = [];            
         %
-        data.Directory = [];
-        data.ProjectName = [];
+        data.Source = [];
+        data.DestinationName = [];
         %
         data.extension = '???';
         data.LoadMode = '???';  
@@ -69,7 +69,7 @@ data = createData();
         data.dirlist = []; % list of directories to import for well plate
         data.dataset_annotations = [];                          
         %
-        data.DirectoryList = [];
+        data.SourceList = [];
         data.BatchFileName = [];
         
     end % createData
@@ -127,9 +127,9 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         uimenu(gui.menu_upload,'Label','ModuloAlongZ','Callback', @onSetModuloAlong);                                                        
         %
         % CONTROLS
-        gui.ProjectNamePanel = uicontrol( 'Style', 'text','Parent',gui.Window,'String',data.ProjectName,'FontSize',10,'Position',[20 80 800 20],'BackgroundColor',bckg_color);          
+        gui.ProjectNamePanel = uicontrol( 'Style', 'text','Parent',gui.Window,'String',data.DestinationName,'FontSize',10,'Position',[20 80 800 20],'BackgroundColor',bckg_color);          
         %
-        gui.DirectoryNamePanel = uicontrol( 'Style', 'text', 'Parent',gui.Window,'String',data.Directory,'FontSize',10,'Position',[20 60 800 20],'BackgroundColor',bckg_color);
+        gui.DirectoryNamePanel = uicontrol( 'Style', 'text', 'Parent',gui.Window,'String',data.Source,'FontSize',10,'Position',[20 60 800 20],'BackgroundColor',bckg_color);
         %
         gui.GoButton = uicontrol('Style', 'PushButton','Parent',gui.Window,'String','Go',...
              'Position',[20 20 100 20 ],'Callback', @onGo,'FontSize',10);
@@ -180,18 +180,18 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         %
         % indicator panel
         Color = 'red';
-        if ~isempty(data.Directory) && ~isempty(data.ProjectName) && ~strcmp('???',data.extension)          
+        if ~isempty(data.Source) && ~isempty(data.DestinationName) && ~strcmp('???',data.extension)          
                 Color = 'green';
         end
         %
-        set(gui.ProjectNamePanel,'String',data.ProjectName);
+        set(gui.ProjectNamePanel,'String',data.DestinationName);
         %        
-        if ~isempty(data.DirectoryList) 
+        if ~isempty(data.SourceList) 
             set(gui.Indicator,'BackgroundColor',Color,'String','BATCH'); 
             set(gui.DirectoryNamePanel,'String',data.BatchFileName);                                            
         else
             set(gui.Indicator,'BackgroundColor',Color,'String',data.extension);
-            set(gui.DirectoryNamePanel,'String',data.Directory);                                
+            set(gui.DirectoryNamePanel,'String',data.Source);                                
         end;        
         %                        
         if strcmp(data.image_annotation_file_extension,'none')
@@ -242,23 +242,23 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
 %-------------------------------------------------------------------------%
     function onSetDirectory(~,~)     
         %
-        data.DirectoryList = [];
+        data.SourceList = [];
         data.BatchFileName = [];
         
-        data.Directory = uigetdir(data.DefaultDataDirectory,'Select the folder containing the data');     
+        data.Source = uigetdir(data.DefaultDataDirectory,'Select the folder containing the data');     
         %
-        if 0 ~= data.Directory
+        if 0 ~= data.Source
             %
-            data.DefaultDataDirectory = data.Directory;            
+            data.DefaultDataDirectory = data.Source;            
             set_directory_info();            
             updateInterface();
             %            
-             if isempty(data.project) || strcmp(whos_Object(data.session,data.project.getId().getValue()),'Dataset')
+             if isempty(data.Destination) || strcmp(whos_Object(data.session,data.Destination.getId().getValue()),'Dataset')
                 %
                 prjct = select_Project(data.session,[],'Select Project');
                 if ~isempty(prjct)
-                    data.project = prjct;
-                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
+                    data.Destination = prjct;
+                    data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));
                 else
                     clear_settings();
                     return;
@@ -297,13 +297,13 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         if strcmp(label,'Set Screen')        
             scrn = select_Screen(data.session,[],'Select screen');
             if ~isempty(scrn)
-                data.project = scrn; 
-                data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                data.Destination = scrn; 
+                data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));                
             else
                 return;
             end
             %
-            if isempty(data.Directory) || ~isdir(data.Directory)
+            if isempty(data.Source) || ~isdir(data.Source)
                 onSetDirectory();
             end                    
                 
@@ -311,19 +311,19 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             
             prjct = select_Project(data.session,[],'Select Project');             
             if ~isempty(prjct)
-                data.project = prjct; 
-                data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                data.Destination = prjct; 
+                data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));                
             else
                 return;
             end
             %
-            if isempty(data.Directory) || ~isdir(data.Directory)
+            if isempty(data.Source) || ~isdir(data.Source)
                 onSetDirectory();
             end
             %
         else % need to set Dataset
 
-            if isdir(data.Directory)
+            if isdir(data.Source)
                 errordlg('please first choose an image you want to upload');
                 return;
             end
@@ -331,8 +331,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             [ dtst, ~ ] = select_Dataset(data.session,[],'Select Dataset');
             
             if ~isempty(dtst)
-                data.project = dtst; % in  reality, dataset not project;
-                data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
+                data.Destination = dtst; % in  reality, dataset not project;
+                data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));
             else
                 return;
             end;           
@@ -345,15 +345,15 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
 %-------------------------------------------------------------------------%
     function onGo(~,~)                
         %
-        if ~isempty(data.DirectoryList)
+        if ~isempty(data.SourceList)
             % go through list                                    
-            for d = 1:numel(data.DirectoryList)
-                data.Directory = char(data.DirectoryList{d});             
+            for d = 1:numel(data.SourceList)
+                data.Source = char(data.SourceList{d});             
                 set_directory_info();            
                 updateInterface();                                
                 import_directory();                
             end;                                             
-            data.DirectoryList = [];
+            data.SourceList = [];
             data.BatchFileName = [];
             clear_settings;
             updateInterface;                                            
@@ -365,12 +365,12 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
 %-------------------------------------------------------------------------%
     function import_directory()
         %
-        if isempty(data.Directory) || isempty(data.project)
+        if isempty(data.Source) || isempty(data.Destination)
             errordlg('either directory or project not set properly - can not continue');
             return;
         end
         %           
-        whos_destination = whos_Object(data.session,data.project.getId().getValue());
+        whos_destination = whos_Object(data.session,data.Destination.getId().getValue());
         %        
         set(gui.Indicator,'String','..uploading..');
         %
@@ -378,7 +378,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             %
             if strcmp(whos_destination,'Project')
                 
-                new_dataset_id = upload_dir_as_Dataset(data.session,data.project,data.Directory,data.extension,data.modulo);
+                new_dataset_id = upload_dir_as_Dataset(data.session,data.Destination,data.Source,data.extension,data.modulo);
                 mydatasets = getDatasets(data.session,new_dataset_id); 
                 new_dataset = mydatasets(1);                         
                 %                        
@@ -404,8 +404,8 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                              imageList = d.linkedImageList;
                              for k = 0:imageList.size()-1,                       
                                  img = imageList.get(k);                         
-                                 if pid == data.project.getId().getValue() && did == new_dataset_id
-                                    attach_file_with_same_name_if_in_the_directory(img,data.image_annotation_file_extension,data.Directory); 
+                                 if pid == data.Destination.getId().getValue() && did == new_dataset_id
+                                    attach_file_with_same_name_if_in_the_directory(img,data.image_annotation_file_extension,data.Source); 
                                  end
                              end 
                         end;
@@ -414,7 +414,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 
             elseif strcmp(whos_destination,'Dataset') % that means - one needs to upload dir as Omero Image to that Dataset
                         if strcmp(data.modulo,'ModuloAlongC'), errordlg('ModuloAlongC presetnly not supported'), return, end;
-                        imgid = upload_dir_as_Omero_Image(data.session, data.project, data.Directory,'tif',data.modulo,[]);
+                        imgid = upload_dir_as_Omero_Image(data.session, data.Destination, data.Source,'tif',data.modulo,[]);
                         new_dataset = get_Object_by_Id(data.session,[],imgid);                
             end
                 
@@ -422,22 +422,26 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             %
         elseif strcmp(data.LoadMode,'well plate')
             
-            new_dataset_id = upload_PlateReader_dir(data.session, data.project, data.Directory, data.modulo);
+            new_dataset_id = upload_PlateReader_dir(data.session, data.Destination, data.Source, data.modulo);
             userId = data.session.getAdminService().getEventContext().userId;
             new_dataset = get_Object_by_Id(data.session,userId,new_dataset_id);            
             % myplates = getPlates(data.session,new_dataset_id); new_dataset = myplates(1);                         
             
         elseif strcmp(data.LoadMode,'single file')
 
-                        if is_OME_tif(data.Directory)
-                            upload_Image_OME_tif(data.session,data.project,data.Directory,' ');                            
-                        elseif ~strcmp('sdt',data.extension)
-                            U = imread(data.Directory,data.extension);
+                        if is_OME_tif(data.Source)
+                            upload_Image_OME_tif(data.session,data.Destination,data.Source,' ');  
+                        elseif  strcmp('txt',data.extension)                              
+                            upload_Image_singlePix(data.session,data.Destination,data.Source,data.modulo);                                    
+                        elseif strcmp('sdt',data.extension)
+                            upload_Image_BH(data.session, data.Destination, data.Source, data.SingleFileMeaningLabel, data.modulo);
+                        else
+                            U = imread(data.Source,data.extension);
                             %
                             pixeltype = get_num_type(U);
                             %                                             
-                            %str = split(filesep,data.Directory);
-                            strings1 = strrep(data.Directory,filesep,'/');
+                            %str = split(filesep,data.Source);
+                            strings1 = strrep(data.Source,filesep,'/');
                             str = split('/',strings1);                            
                             file_name = str(length(str));
                             %
@@ -451,7 +455,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                             imageId = mat2omeroImage(data.session, Z, pixeltype, file_name,  img_description, [],'ModuloAlongC');
                             link = omero.model.DatasetImageLinkI;
                             link.setChild(omero.model.ImageI(imageId, false));
-                            link.setParent(omero.model.DatasetI(data.project.getId().getValue(), false)); % in this case, "project" is Dataset
+                            link.setParent(omero.model.DatasetI(data.Destination.getId().getValue(), false)); % in this case, "project" is Dataset
                             data.session.getUpdateService().saveAndReturnObject(link); 
                             %
                             % OME ANNOTATION
@@ -488,12 +492,10 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                             %
                             delete(xmlFileName);
                             %                            
-                        else % strcmp('sdt',data.extension)
-                            upload_Image_BH(data.session, data.project, data.Directory, data.SingleFileMeaningLabel, data.modulo);
                         end                        
         elseif strcmp(data.LoadMode,'image from stack')                        
                         if strcmp(data.modulo,'ModuloAlongC'), errordlg('ModuloAlongC presetnly not supported'), return, end;
-                        imgid = upload_dir_as_Omero_Image(data.session, data.project, data.Directory,'tif',data.modulo,[]);
+                        imgid = upload_dir_as_Omero_Image(data.session, data.Destination, data.Source,'tif',data.modulo,[]);
                         new_dataset = get_Object_by_Id(data.session,[],imgid);
         end % strcmp(data.LoadMode,'single file')
         %      
@@ -537,7 +539,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         % check dataset annotations..
         annotations_extensions = {'xml' 'txt' 'csv' 'rtf' 'doc' 'docx' 'ppt' 'pdf' 'xls' 'xlsx' 'm' 'irf'};
         for k=1:numel(annotations_extensions)
-            files = dir([data.Directory filesep '*.' annotations_extensions{k}]);
+            files = dir([data.Source filesep '*.' annotations_extensions{k}]);
             num_files = length(files);
                 if 0 ~= num_files
                     annotations = [annotations; files];
@@ -546,7 +548,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         % fill the list of annotations
         data.dataset_annotations = [];
         for k=1:numel(annotations)
-            data.dataset_annotations{k} = [data.Directory filesep annotations(k).name]; %full name
+            data.dataset_annotations{k} = [data.Source filesep annotations(k).name]; %full name
             % disp(data.dataset_annotations{k});
         end                
         %
@@ -554,7 +556,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         data.LoadMode = '???';        
         extensions = {'tif' 'tiff' 'sdt' 'txt'};
         for k=1:numel(extensions)
-            files = dir([data.Directory filesep '*.' extensions{k}]);
+            files = dir([data.Source filesep '*.' extensions{k}]);
             num_files = length(files);
                 if 0 ~= num_files
                     data.extension = extensions{k};
@@ -565,12 +567,12 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
         %                        
         % presume it is well-plate data...        
         data.dirlist = [];
-        totlist = dir(data.Directory);
+        totlist = dir(data.Source);
         z = 0;
         for k=3:length(totlist)
             if 1==totlist(k).isdir
                 z=z+1;
-                data.dirlist{z}=[data.Directory filesep totlist(k).name];
+                data.dirlist{z}=[data.Source filesep totlist(k).name];
             end
         end   
         %
@@ -580,11 +582,11 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
     end % set_directory_info
 %-------------------------------------------------------------------------%
     function clear_settings()
-        data.Directory = [];
+        data.Source = [];
         
-        if isempty(data.DirectoryList)
-            data.ProjectName = [];
-            data.project = [];        
+        if isempty(data.SourceList)
+            data.DestinationName = [];
+            data.Destination = [];        
         end
                 
         %
@@ -666,7 +668,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             if OK_dir
                 data.extension = extension;
                 data.LoadMode = 'image from stack';
-                data.Directory = directoryname;
+                data.Source = directoryname;
             end
             %            
             % ...annotation
@@ -674,7 +676,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             % check dataset annotations..
             annotations_extensions = {'xml' 'txt' 'csv' 'rtf' 'doc' 'docx' 'ppt' 'pdf' 'xls' 'xlsx' 'm' 'irf'};
             for k=1:numel(annotations_extensions)
-                files = dir([data.Directory filesep '*.' annotations_extensions{k}]);
+                files = dir([data.Source filesep '*.' annotations_extensions{k}]);
                 num_files = length(files);
                     if 0 ~= num_files
                         annotations = [annotations; files];
@@ -683,7 +685,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             % fill the list of annotations
             data.dataset_annotations = [];
             for k=1:numel(annotations)
-                data.dataset_annotations{k} = [data.Directory filesep annotations(k).name]; %full name
+                data.dataset_annotations{k} = [data.Source filesep annotations(k).name]; %full name
                 % disp(data.dataset_annotations{k});
             end                
             %
@@ -692,19 +694,19 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             data.DefaultDataDirectory = directoryname;
                                     
         else
-            [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt'},'Select File',data.DefaultDataDirectory);            
+            [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt';'*.txt'},'Select File',data.DefaultDataDirectory);            
             if isequal(filename,0), return, end;
             %
             full_file_name = [pathname filesep filename]; % works;
             % check if file is OK - extension...
             str = split('.',full_file_name);
-            extension = str{length(str)};
+            extension = lower(str{length(str)});
             %
-            if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') 
+            if strcmp(extension,'tif') || strcmp(extension,'tiff') || strcmp(extension,'sdt') || strcmp(extension,'txt')
                 %
                 data.extension = extension;
                 data.LoadMode = 'single file';
-                data.Directory = full_file_name;
+                data.Source = full_file_name;
                 data.load_dataset_annotations = false;                                             
             end
 
@@ -714,15 +716,15 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
             
         end
                 
-        if ~isempty(data.project)
-            whos_destination = whos_Object(data.session,data.project.getId().getValue());
+        if ~isempty(data.Destination)
+            whos_destination = whos_Object(data.session,data.Destination.getId().getValue());
         end;
-        if isempty(data.project) || strcmp(whos_destination,'Project') || strcmp(whos_destination,'Plate')
+        if isempty(data.Destination) || strcmp(whos_destination,'Project') || strcmp(whos_destination,'Plate')
         %
         [ dtst, ~ ] = select_Dataset(data.session,[],'Select Dataset');
             if ~isempty(dtst)
-               data.project = dtst; % in  reality, dataset not project;
-               data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
+               data.Destination = dtst; % in  reality, dataset not project;
+               data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));
             else
                 clear_settings;
                 return;
@@ -762,32 +764,32 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                     case 1  %   as Datasets  
                                 prjct = select_Project(data.session,[],'Select Project');             
                                 if ~isempty(prjct)
-                                    data.project = prjct; 
-                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                    data.Destination = prjct; 
+                                    data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));                
                                 else
                                     return;
                                 end                        
                     case 2  %   as SPW Plates
                                 scrn = select_Screen(data.session,[],'Select screen');
                                 if ~isempty(scrn)
-                                    data.project = scrn; 
-                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                    data.Destination = scrn; 
+                                    data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));                
                                 else
                                     return;
                                 end                        
                     case 3  %   as Images (from stack)
                                 [ dtst,~ ] = select_Dataset(data.session,[],'Select Dataset');            
                                 if ~isempty(dtst)
-                                    data.project = dtst; % in  reality, dataset not project;
-                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));
+                                    data.Destination = dtst; % in  reality, dataset not project;
+                                    data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));
                                 else
                                     return;
                                 end;           
                     case 4  %   as Images (general)
                                 prjct = select_Project(data.session,[],'Select Project');             
                                 if ~isempty(prjct)
-                                    data.project = prjct; 
-                                    data.ProjectName = char(java.lang.String(data.project.getName().getValue()));                
+                                    data.Destination = prjct; 
+                                    data.DestinationName = char(java.lang.String(data.Destination.getName().getValue()));                
                                 else
                                     return;
                                 end                                                                                                        
@@ -802,7 +804,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                 for d=1:numel(dirs)                    
                     if ~isdir(char(dirs{d}))
                         errordlg(['Directory list has not been set: ' char(dirs{d}) ' not a directory']);
-                        data.DirectoryList = [];
+                        data.SourceList = [];
                         data.BatchFileName = [];
                         clear_settings;
                         updateInterface;                        
@@ -810,17 +812,17 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                     end
                 end
                 %
-                data.DirectoryList = dirs;
+                data.SourceList = dirs;
                 data.BatchFileName = [path file];
                 %
                 hw = waitbar(0, 'checking Directory List, please wait...');
-                for d = 1:numel(data.DirectoryList)                    
-                    data.Directory = char(data.DirectoryList{d});             
+                for d = 1:numel(data.SourceList)                    
+                    data.Source = char(data.SourceList{d});             
                     updateInterface;                                                                        
                     set_directory_info;  
                     if ~(strcmp(data.LoadMode,'well plate') || strcmp(data.LoadMode,'general'))
-                        errordlg(['Not data directory: ' data.DirectoryList{d} ' , batch is not set!']);
-                        data.DirectoryList = [];
+                        errordlg(['Not data directory: ' data.SourceList{d} ' , batch is not set!']);
+                        data.SourceList = [];
                         data.BatchFileName = [];
                         clear_settings;
                         delete(hw);
@@ -828,7 +830,7 @@ uimenu( gui.menu_file, 'Label','Set list of data directories', 'Callback', @onSe
                         updateInterface;
                         return;
                     end
-                    waitbar(d/numel(data.DirectoryList), hw);
+                    waitbar(d/numel(data.SourceList), hw);
                     drawnow;                    
                 end;                                             
                 delete(hw);

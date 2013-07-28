@@ -1,4 +1,4 @@
-function upload_Image_singlePix(session, dataset, full_filename, modulo)
+function upload_Image_singlePix(session, dataset, full_filename, modulo_in)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -22,8 +22,11 @@ function upload_Image_singlePix(session, dataset, full_filename, modulo)
 % through  a studentship from the Institute of Chemical Biology 
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-                
-    [delays,im_data,~] = load_flim_file(full_filename,1);
+      
+modulo = modulo_in;
+if strcmp(modulo_in,'ModuloAlongC') modulo = 'ModuloAlongZ'; end; % hack
+
+    [delays,im_data,~] = load_flim_file(lower(full_filename),1);
     pixeltype = get_num_type(im_data);
 
     str = split(filesep,full_filename);
@@ -36,8 +39,31 @@ function upload_Image_singlePix(session, dataset, full_filename, modulo)
     session.getUpdateService().saveAndReturnObject(link);
       
 % annotation
-    node = create_ModuloAlongDOM(delays, [], modulo, 'TCSPC');
-    
+                                                          
+    % non-FLIM  
+    if delays(1) > 250 % spectrum..
+        
+        if delays(1) > 250000 % hack
+            delays = delays/1000;
+        end
+        
+        node = com.mathworks.xml.XMLUtils.createDocument('Modulo');
+        Modulo = node.getDocumentElement;     
+            namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09';    
+            Modulo.setAttribute('namespace',namespace);        
+        ModuloAlong = node.createElement(modulo);
+        ModuloAlong.setAttribute('Type','wavelength');
+        ModuloAlong.setAttribute('Unit','nm');
+        ModuloAlong.setAttribute('TypeDescription','Spectrum');
+        ModuloAlong.setAttribute('Start',num2str(delays(1)));
+            step = (delays(end) - delays(1))./(length(delays) -1);
+        ModuloAlong.setAttribute('Step',num2str(step));
+        ModuloAlong.setAttribute('End',num2str(delays(end)));
+        Modulo.appendChild(ModuloAlong);
+    else % FLIM
+        node = create_ModuloAlongDOM(delays, [], modulo, 'TCSPC');
+    end
+            
     id = java.util.ArrayList();
     id.add(java.lang.Long(imgId)); %id of the image
     containerService = session.getContainerService();
