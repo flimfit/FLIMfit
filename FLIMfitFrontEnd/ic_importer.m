@@ -24,7 +24,7 @@ function ic_importer()
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 %
-addpath_project;              
+addpath_global_analysis;              
 %
 settings = [];
 %
