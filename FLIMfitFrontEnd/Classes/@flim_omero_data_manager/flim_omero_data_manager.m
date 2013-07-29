@@ -784,8 +784,9 @@ classdef flim_omero_data_manager < handle
             if isempty(settings)
                 obj.logon = OMERO_logon();
             end
+           
                                     
-           if isempty(obj.logon)
+           if isempty(obj.logon{3})
                return
            end
             
