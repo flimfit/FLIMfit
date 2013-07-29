@@ -230,18 +230,18 @@ function Passwd_KeyPressFcn(hObject, eventdata, handles)
 key = eventdata.Key;
 switch key
     case 'backspace'
-        handles.Passwd = handles.Passwd(1:end-1); % Delete the last character in the password
+        handles.passwd = handles.passwd(1:end-1); % Delete the last character in the password
     case 'return'  % This cannot be done through callback without making tab to the same thing
         % do nothing
     case 'shift'
         % do nothing
     otherwise
-        handles.Passwd = [handles.Passwd eventdata.Character];
+        handles.passwd = [handles.passwd eventdata.Character];
         
 end
 
 
-asterisk(1,1:length(handles.Passwd)) = '*'; % Create a string of asterisks the same size as the password
+asterisk(1,1:length(handles.passwd)) = '*'; % Create a string of asterisks the same size as the password
 set(hObject,'String',asterisk) % Set the text in the password edit box to the asterisk string
 guidata(hObject,handles);
 
