@@ -1,4 +1,4 @@
-function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
+function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim,gamma)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -38,7 +38,14 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
     else
         merge = true;
     end
+    
+    if nargin < 10
+        prof = get_profile();  
+        gamma = prof.Display.Gamma_Factor;
+    end
 
+
+    
     h1 = 256;
     cbar = (h1:-1:1)'/h1;
     cbar = repmat(cbar,[1,w]);
@@ -65,6 +72,8 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim)
         intensity = intensity - int_lim(1);
         intensity(intensity<0 | isnan(intensity)) = 0;
         intensity = intensity / (int_lim(2)-int_lim(1));
+        
+        intensity = intensity .^ gamma;
 
         cbar = cbar .* repmat(ibar,[1 1 3]);
         mapped_data = mapped_data .* repmat(intensity, [1 1 3]);
