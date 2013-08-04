@@ -779,6 +779,13 @@ classdef flim_omero_data_manager < handle
             keeptrying = true;
            
             while keeptrying 
+                
+            if ~ispref('GlobalAnalysisFrontEnd','OMEROlogin')
+                neverTriedLog = true;       % set flag if the OMERO dialog login has never been called on this machine
+            else
+                neverTriedLog = false;
+            end
+                
             
             % if no logon file then user must login
             if isempty(settings)
@@ -787,6 +794,12 @@ classdef flim_omero_data_manager < handle
            
                                     
            if isempty(obj.logon{3})
+               if neverTriedLog == true
+                   ret_string = questdlg('Respond "Yes" ONLY if you intend NEVER to use FLIMfit with OMERO on this machine!');
+                   if strcmp(ret_string,'Yes')
+                        addpref('GlobalAnalysisFrontEnd','NeverOMERO','On');
+                   end
+               end
                return
            end
             

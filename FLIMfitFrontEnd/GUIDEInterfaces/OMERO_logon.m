@@ -72,7 +72,7 @@ try
     % Set focus to password
     uicontrol(handles.Passwd);
     
-catch e
+catch 
     addpref('GlobalAnalysisFrontEnd','OMEROlogin',{'',''})
 end
 

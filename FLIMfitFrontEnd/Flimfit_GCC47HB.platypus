@@ -12,6 +12,9 @@
 	<string>Imperial College, London Photonics</string>
 	<key>BundledFiles</key>
 	<array>
+		<string>/usr/local/Cellar/gcc47/4.7.3/gcc/lib/libgomp.1.dylib</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/gcc/lib/libstdc++.6.dylib</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/gcc/lib/libgcc_s.1.dylib</string>
 		<string>/usr/local/Cellar/ghostscript/9.07/bin/gs</string>
 		<string>./DeployFiles/FLIMfit_MACI64.app</string>
 	</array>

@@ -84,7 +84,11 @@ function ret = get_FLIM_params_from_metadata(session, image)
             e = modlo.ATTRIBUTE.End;                
             ret.delays = start:step:e;
         else
-            ret.delays = cell2mat(modlo.Label);
+            if isnumeric(modlo.Label)
+                ret.delays = modlo.Label;
+            else
+                ret.delays = cell2mat(modlo.Label);
+            end
         end
         
         if isfield(modlo.ATTRIBUTE,'Unit')
