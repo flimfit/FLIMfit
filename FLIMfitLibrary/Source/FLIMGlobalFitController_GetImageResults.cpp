@@ -226,7 +226,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
 
    _ASSERTE( _CrtCheckMemory( ) );
 
-   int buf_size = std::max(n_px, n_nl_output_params);
+   int buf_size = max(n_px, n_nl_output_params);
 
    float* param_buf_ = new float[buf_size * n_thread];
    float* err_lower_buf_ = new float[buf_size * n_thread];

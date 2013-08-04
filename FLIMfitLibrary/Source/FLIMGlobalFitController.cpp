@@ -31,9 +31,6 @@
 #define FLIMGLOBALFITCONTROLLER_H_
 
 #include "boost/math/distributions/normal.hpp"
-#include <limits>
-#include <exception>
-#include <cmath>
 
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
@@ -41,7 +38,13 @@
 #include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
+#include "tinythread.h"
 #include "omp_stub.h"
+
+#include <limits>
+#include <exception>
+#include <cmath>
+#include <algorithm>
 
 using namespace std;
 using namespace boost::interprocess;
@@ -224,7 +227,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
    //=============================================================================
    if (data->global_mode == MODE_PIXELWISE)
    {
-	  int n_active_thread = std::min(n_thread,data->n_px);
+	  int n_active_thread = min(n_thread,data->n_px);
       for(int im=0; im<data->n_im_used; im++)
       {
          for(int r=0; r<MAX_REGION; r++)
@@ -702,7 +705,7 @@ void FLIMGlobalFitController::Init()
       inc_donor = true;
    }
    else
-      n_fret_fix = std::min(n_fret_fix,n_fret);
+      n_fret_fix = min(n_fret_fix,n_fret);
  
    n_fret_v = n_fret - n_fret_fix;
       
@@ -843,12 +846,12 @@ void FLIMGlobalFitController::Init()
    if (data->global_mode == MODE_PIXELWISE)
    {
       status->SetNumRegion(data->n_masked_px);
-      n_fitters = std::min(data->n_px,n_thread);
+      n_fitters = min(data->n_px,n_thread);
    }
    else
    {
       status->SetNumRegion(data->n_regions_total);
-      n_fitters = std::min(data->n_regions_total,n_thread);
+      n_fitters = min(data->n_regions_total,n_thread);
    }
 
    
@@ -896,7 +899,7 @@ void FLIMGlobalFitController::Init()
 
    y_dim = max(s,data->n_px);
 
-   max_dim = std::max(n_irf,n_t);
+   max_dim = max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
@@ -959,7 +962,7 @@ void FLIMGlobalFitController::Init()
    else
       n = n_meas;
 
-   ndim       = std::max( n, 2*nl+3 );
+   ndim       = max( n, 2*nl+3 );
    nmax       = n + 16; // pad to prevent false sharing   
 
    calculate_mean_lifetimes = !beta_global && n_exp > 1;
