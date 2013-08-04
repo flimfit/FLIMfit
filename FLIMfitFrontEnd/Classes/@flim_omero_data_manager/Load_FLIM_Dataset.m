@@ -106,9 +106,94 @@ function Load_FLIM_Dataset(obj,data_series,~)
                  end 
                 %
                 folder_names = sort_nat(cellstr(str));
+                                
+                %TREAT POSSIBLE ACCEPTOR IMAGES - STARTS
+                %{ 
+                recognize a situation when one should load acceptor images.. 
+                two possible places where to look for them - 
+                1) the same Dataset, recognized by the name
+                2) separate Dataset linked by the Omero tag or annotation (?)
+                3) to have separate menu item (3)
+                %} 
+                %
+                list_load_acceptor = []; % this is image names list that will be filled, possibly.. 
+                %
+                possible_acceptor_images = false;
+                %
+                prefixes = [];
+                for k=1:numel(folder_names)
+                    str = split(' ',folder_names{k});    
+                    prefixes = [prefixes str(1)];
+                end
+
+                prefixes = unique(prefixes);
+
+                if numel(prefixes) == 2 % check more attentively
+
+                    p1 = char(prefixes(1));
+                    p2 = char(prefixes(2));
+                    if ~(strcmp(p1(1:2),'Z=') || strcmp(p1(1:2),'C=') || strcmp(p1(1:2),'T='))
+                        possible_acceptor_images = true;
+                    end;
+                    if ~(strcmp(p2(1:2),'Z=') || strcmp(p2(1:2),'C=') || strcmp(p2(1:2),'T='))
+                        possible_acceptor_images = true;
+                    end;
+
+                end
+
+                if possible_acceptor_images 
+
+                    str = { prefixes{1}...
+                            prefixes{2}...
+                            ['no Acceptor: load as FLIM "' prefixes{1} '" only']...
+                            ['no Acceptor: load as FLIM "' prefixes{2} '" only']...
+                            'load all as FLIM'};
+                                [s,v] = listdlg('PromptString','Please choose posibble Acceptor images',...
+                                                'SelectionMode','single',...
+                                                'ListSize',[300 80],...                                
+                                                'ListString',str);
+                                %
+                                if ~v, return, end;
+                                % 
+                            switch s
+                                case 1
+                                    flim_load_prefix = prefixes{2};
+                                    acceptor_load_prefix = prefixes{1};
+                                case 2
+                                    flim_load_prefix = prefixes{1};
+                                    acceptor_load_prefix = prefixes{2};
+                                case 3
+                                    flim_load_prefix = prefixes{1};
+                                    acceptor_load_prefix = [];
+                                case 4
+                                    flim_load_prefix = prefixes{2};
+                                    acceptor_load_prefix = [];
+                                case 5 % take them all
+                                    flim_load_prefix = [];
+                                    acceptor_load_prefix = [];
+                            end
+
+                    list_load_flim = [];
+
+                    for k=1:numel(folder_names)
+                        str = split(' ',folder_names{k});    
+                        prefix = str(1);
+                        if ~isempty(flim_load_prefix) && strcmp(prefix,flim_load_prefix)
+                            list_load_flim = [list_load_flim folder_names(k)];
+                        elseif ~isempty(acceptor_load_prefix) && strcmp(prefix,acceptor_load_prefix)
+                            list_load_acceptor = [list_load_acceptor folder_names(k)];
+                        end
+                    end
+
+                    if isempty(list_load_flim) list_load_flim = folder_names; end;
+
+                    folder_names = list_load_flim;
+
+                end %if possible_acceptor_images 
+                %TREAT POSSIBLE ACCEPTOR IMAGES - END                                
                 %
                 [folder_names, ~, data_series.lazy_loading] = dataset_selection(folder_names);            
-                %
+                %                                                                                                                                
                 n_datasets = length(folder_names);
                 %
                 % find corresponding Image ids list...
@@ -144,7 +229,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 end
             %                
             if 0==numel(image_ids), return, end;
-                                              
+                                                                                                                 
             myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
             %
             mdta = get_FLIM_params_from_metadata(obj.session,image);
@@ -154,8 +239,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             end  
             
             delays = mdta.delays;
-            
-            
+                        
             data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays), data_series.polarisation_resolved);
             
             obj.selected_channel = data_series.ZCT(2);  % not sure what this does
@@ -199,18 +283,37 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 
                 data_series.image_ids = image_ids;
                 data_series.mdta = mdta;
-               
-                
-                
-                
+                                                                
                 if data_series.lazy_loading
                     data_series.load_selected_files(1);
                 else
                     data_series.load_selected_files(1:n_datasets);
                 end
                
-               
-               
+                if ~isempty(list_load_acceptor)
+                    %
+                    acceptor_ids = [];
+                    
+                    % one needs to find for every loaded image ITS acceptor image                    
+                    L_flim_prefix = length(flim_load_prefix);
+                    for k = 1:n_datasets
+                        flim_name_k = data_series.names{k};
+                        no_prefix_flim_name_k = flim_name_k(L_flim_prefix+1:length(flim_name_k));                        
+                            for m = 0:imageList.size()-1,                       
+                                iName = char(java.lang.String(imageList.get(m).getName().getValue()));                                                                
+                                    str = split(' ',iName);    
+                                    prefix_m = str(1);                                                                                                
+                                if strfind(iName,no_prefix_flim_name_k)
+                                    if strcmp(prefix_m,acceptor_load_prefix)
+                                        acceptor_ids = [acceptor_ids imageList.get(m).getId().getValue()];
+                                    end
+                                end
+                            end                                                
+                    end                    
+                    %                    
+                    data_series.load_acceptor_images(acceptor_ids);                     
+                    %
+                end               
                
                 data_series.compute_tr_data(false);    
                

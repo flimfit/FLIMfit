@@ -3,7 +3,14 @@ function check_prefs(obj)
     % This function deletes the preferences if we're running on a different
     % computer to when they were set - i.e. if we're deployed
 
-    hostname = getenv('COMPUTERNAME');
+    if strcmp(computer,'MACI64')
+        [status, hostname] = unix('scutil --get ComputerName');
+
+    else
+        % NB Is this reliable on a PC? May only work if user has set this
+        % variable
+        hostname = getenv('COMPUTERNAME');
+    end
     
     try
     
@@ -12,11 +19,27 @@ function check_prefs(obj)
         
         if (~strcmp(pref_hostname,hostname))
            
-            rmpref('GlobalAnalysisFrontEnd','DefaultFolder');
-            rmpref('GlobalAnalysisFrontEnd','RecentData');
-            rmpref('GlobalAnalysisFrontEnd','RecentIRF');
-            rmpref('GlobalAnalysisFrontEnd','RecentDefaultPath');
-            rmpref('GlobalAnalysisFrontEnd','OMEROlogin');
+            if ispref('GlobalAnalysisFrontEnd','DefaultFolder');
+                rmpref('GlobalAnalysisFrontEnd','DefaultFolder');
+            end
+            if ispref('GlobalAnalysisFrontEnd','RecentData');
+                rmpref('GlobalAnalysisFrontEnd','RecentData');
+            end
+            if ispref('GlobalAnalysisFrontEnd','RecentIRF');
+                rmpref('GlobalAnalysisFrontEnd','RecentIRF');
+            end
+            if ispref('GlobalAnalysisFrontEnd','RecentDefaultPath');
+                rmpref('GlobalAnalysisFrontEnd','RecentDefaultPath');
+            end
+            if ispref('GlobalAnalysisFrontEnd','OMEROlogin');
+                rmpref('GlobalAnalysisFrontEnd','OMEROlogin');
+            end
+            if ispref('GlobalAnalysisFrontEnd','NeverOMERO');
+                rmpref('GlobalAnalysisFrontEnd','NeverOMERO');
+            end
+           
+           
+            
             
         end
     
