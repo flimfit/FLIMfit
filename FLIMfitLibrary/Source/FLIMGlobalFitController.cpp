@@ -367,13 +367,15 @@ processed:
                   }
             
                   if (status->terminate)
-                     goto terminated;
+                     goto imagewise_terminated;
                }
 
 
             }
 
          }
+
+imagewise_terminated:
 
 		   // When thread detaches make sure we release correctly
 		   region_mutex.lock();

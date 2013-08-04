@@ -518,8 +518,8 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
 
             #ifdef _DEBUG
             #ifdef _WINDOWS
-                        sprintf(buf,"%f, %f: %e, %e --- %e\n",wa2[0],wa2[1],prered,actred,fnorm1 );
-                        OutputDebugString(buf);
+                        //sprintf(buf,"%f, %f: %e, %e --- %e\n",wa2[0],wa2[1],prered,actred,fnorm1 );
+                        //OutputDebugString(buf);
             #endif
             #endif // DEBUG
 
