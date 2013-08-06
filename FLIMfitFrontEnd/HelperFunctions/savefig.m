@@ -235,7 +235,7 @@ function savefig(fname, varargin)
             if isdeployed
                 gs= 'gs-noX11';
             else
-                gs= '/usr/local/bin/gs';
+                gs= '/usr/local/bin/gs-noX11';
             end
 		case {'PCWIN','PCWIN64'},		gs= '"C:\Program Files\gs\gs8.71\bin\gswin32c.exe"';
 		otherwise,						gs= 'gs';
