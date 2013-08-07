@@ -27,7 +27,7 @@ function handles = setup_menu(obj,handles)
     % Author : Sean Warren
 
 
-    external = handles.external;
+   
 
     if ~isempty(handles.omero_data_manager.session)
         
@@ -83,7 +83,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
     
             
-    if ~external
+   
         menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
         handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
         handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
@@ -100,7 +100,7 @@ function handles = setup_menu(obj,handles)
         %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
         handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
         handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
-    end
+   
 
     handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
     handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
@@ -124,9 +124,9 @@ function handles = setup_menu(obj,handles)
     
     menu_irf       = uimenu(obj.window,'Label','IRF');
     handles.menu_irf_load = uimenu(menu_irf,'Label','Load IRF...');
-    if ~external
-        handles.menu_irf_image_load = uimenu(menu_irf,'Label','Load Spatially Varying IRF...');
-    end
+   
+    handles.menu_irf_image_load = uimenu(menu_irf,'Label','Load Spatially Varying IRF...');
+  
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');
     
     handles.menu_irf_set_delta = uimenu(menu_irf,'Label','Set Delta Function IRF','Separator','on');
@@ -149,7 +149,7 @@ function handles = setup_menu(obj,handles)
     menu_segmentation = uimenu(obj.window,'Label','Segmentation');
     handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager');
     
-    if ~external
+   
 
         menu_tools = uimenu(obj.window,'Label','Tools');
         handles.menu_tools_photon_stats = uimenu(menu_tools,'Label','Determine Photon Statistics');
@@ -165,7 +165,7 @@ function handles = setup_menu(obj,handles)
         handles.menu_test_test2 = uimenu(menu_test,'Label','Test Fcn 2');
         handles.menu_test_test3 = uimenu(menu_test,'Label','Test Fcn 3');
         handles.menu_test_unload_dll = uimenu(menu_test,'Label','Unload DLL','Accelerator','U');
-    end
+   
     
     menu_help = uimenu(obj.window,'Label','Help');
     handles.menu_help_about = uimenu(menu_help,'Label','About...');

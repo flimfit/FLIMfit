@@ -58,7 +58,7 @@
       <param.user.defined.mcr.options />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}/FLIMfitOMERO.m</file>
+      <file>${PROJECT_ROOT}/FLIMfit.m</file>
     </fileset.main>
     <fileset.resources>
       <file>${PROJECT_ROOT}/Classes</file>

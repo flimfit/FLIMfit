@@ -32,7 +32,7 @@
     
     methods
       
-        function obj = flim_fit_ui(wait,OMERO_active,external,require_auth)
+        function obj = flim_fit_ui(wait,require_auth)
             
             set_splash('FLIMfit_splash1.tif');
                     
@@ -41,13 +41,8 @@
             if nargin < 1
                 wait = false;
             end
+            
             if nargin < 2
-                OMERO_active = false;
-            end
-            if nargin < 3
-                external = false;
-            end
-            if nargin < 4
                 require_auth = false;
             end
             
@@ -58,9 +53,7 @@
             end
             
             
-            if ispref('GlobalAnalysisFrontEnd','NeverOMERO');
-                OMERO_active = false;
-            end
+           
            
             profile = profile_controller();
             profile.load_profile();
@@ -140,7 +133,7 @@
            
             handles = guidata(obj.window); 
                                                 
-            handles.external = external;
+        
             handles.version = v;
             handles.window = obj.window;
             handles.use_popup = true;
@@ -164,8 +157,10 @@
             handles.corr_controller = flim_fit_corr_controller(handles);
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
-                        
-            if OMERO_active == true               
+            
+            
+            % unless preferences specifically say not, then show OMERO logon
+            if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
                handles.omero_data_manager.Omero_logon();
             end
             
@@ -210,9 +205,9 @@
                 %logon_filename = handles.omero_data_manager.omero_logon_filename;                
                 %omero_logon = [];
                 %omero_logon.logon = logon;
-                %if ~handles.external
+                
                 %    xml_write(logon_filename,omero_logon);                                
-                %end;
+               
                 %
                 disp('Closing OMERO session');
                 client.closeSession();

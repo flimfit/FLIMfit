@@ -1,4 +1,4 @@
-function FLIMfit(OMERO_active)
+function FLIMfit()
 
 
 % Copyright (C) 2013 Imperial College London.
@@ -30,10 +30,8 @@ function FLIMfit(OMERO_active)
 
 addpath_global_analysis();
 
-if nargin == 0 
-    flim_fit_ui(false, false);
-else
-    flim_fit_ui(false, OMERO_active);
-end
+
+flim_fit_ui(false);
+
     
 end
