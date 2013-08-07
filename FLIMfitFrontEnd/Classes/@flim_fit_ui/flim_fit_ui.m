@@ -160,9 +160,9 @@
             
             
             % unless preferences specifically say not, then show OMERO logon
-            if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
-               handles.omero_data_manager.Omero_logon();
-            end
+            %if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
+            %   handles.omero_data_manager.Omero_logon();
+            %end
             
             handles = obj.setup_menu(handles);            
             
