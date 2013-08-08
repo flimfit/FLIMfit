@@ -1,47 +1,46 @@
-==========================================
+FLIMfit
+=======
 
-  FLIMfit 4.5.8
+An open source package for rapid analysis of large FLIM datasets. For further information please see:
 
-  (c) Imperial College London, 2013
+Warren SC, Margineanu A, Alibhai D, Kelly DJ, Talbot C, et al. (2013) Rapid Global Fitting of Large Fluorescence Lifetime Imaging Microscopy Datasets. PLoS ONE 8(8): e70687. <http://dx.plos.org/10.1371/journal.pone.007068>
 
-==========================================
 
-LATEST VERSIONS AND BINARY EXECUTABLE
-------------------------------------------
+Latest versions and binary executables
+--------------------------------------
 
-For the lastest version and binary executables , please visit 
-http://www.openmicroscopy.org/site/products/partner/flimfit
+For the lastest version, binary executables and further documentation please visit 
+<http://www.openmicroscopy.org/site/products/partner/flimfit>
 
 The binary executables do not require MATLAB. 
 
-The source code repository is available at:
-https://github.com/openmicroscopy/Imperial-FLIMfit/
+The source code repository is available at: <https://github.com/openmicroscopy/Imperial-FLIMfit/>
 
 
-SUPPORT
+Support
 ------------------------------------------ 
 
 If you have issues installing or running this software, please contact 
-    Sean Warren at sean.warren09@imperial.ac.uk
-    or FLIMfit@imperial.ac.uk
+    Sean Warren at <sean.warren09@imperial.ac.uk>
+    or <FLIMfit@imperial.ac.uk>
 
 
-COMPILING AND RUNNING FLIMfit
+Compling and running FLIMfit
 ------------------------------------------ 
 
 This software has been extensively tested on Windows 7 with Matlab 2013a using
-Visual Studio 2012. It has been shown to compile under MacOS X with both XCode 4 and
-macports GCC4.7 and under Linux with GCC 4.7, however testing on these platforms has been limited.  
+Visual Studio 2012, It has been shown to compile under MacOS X with both XCode 4 and
+macports GCC4.7 and under Linux with GCC 4.7.
 
 If you wish to compile the package from source please follow these instructions 
 which assume a Windows platform.
 
 Required Packages
 --------------------
-- CMake 2.8.10			http://www.cmake.org/
-- Visual Studio 2012		http://www.microsoft.com/visualstudio/eng/downloads	
-- MATLAB 2013a			http://www.mathworks.co.uk/products/matlab/
-- Boost 1.5.1			http://www.boost.org/users/history/version_1_51_0.html		
+- CMake 2.8.10    	<http://www.cmake.org/>
+- Visual Studio 2012	<http://www.microsoft.com/visualstudio/eng/downloads>
+- MATLAB 2013a		<http://www.mathworks.co.uk/products/matlab/>
+- Boost 1.5.1		<http://www.boost.org/users/history/version_1_51_0.html>
 
 Compiling
 -------------------
@@ -50,19 +49,17 @@ Compiling
 	
 	GlobalProcessingLibrary\Boost\boost
 
-   You do not need to compile Boost, only the headers arae used
+   You do not need to compile Boost, only the headers are used
 
 2. Use CMake to generate a Visual Studio Project in a folder such as:
-	GlobalProcessingLibrary\GeneratedProjects\MSVC11_64
+	`GlobalProcessingLibrary\GeneratedProjects\MSVC11_64`
 
 3. Compile the generated solution in Visual Studio
 
 
 Running FLIMfit from MATLAB
 ------------------
-1. In MATLAB, ensure you have setup the MATLAVB compiler by typing
-	mex -setup
-   and following the instructions
+1. In MATLAB, ensure you have setup the MATLAB compiler by typing `mex -setup` and following the instructions
 
 1. Set your working directory to 
 	GlobalProcessingFrontEnd\
