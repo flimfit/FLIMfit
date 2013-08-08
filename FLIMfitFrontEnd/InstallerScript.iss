@@ -103,7 +103,7 @@ begin
   Exec(expandconstant('{tmp}\bin\win{#MyAppSystem}\setup.exe'), '-mode automated', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
   // Install Visual Studio Redist
-  Exec(expandconstant('{tmp}\vcredist_x{#MyAppSystem}.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
+  Exec(expandconstant('{tmp}\vcredist_{#MyAppArch}.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
   // Install Ghostscript if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\Ghostscript.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
