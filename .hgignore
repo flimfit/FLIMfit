@@ -17,12 +17,9 @@ GlobalProcessingLibrary/Boost/*
 GlobalProcessingLibrary/Minpack/*
 TestDatasets/*
 GlobalProcessingLibrary/GeneratedProjects/*
-GlobalProcessingFrontEnd/HelperFunctions/doubleops_*
 GlobalProcessingFrontEnd/segmentation_funcs.mat
 GlobalProcessingFrontEnd/FLIMGlobalAnalysis_64_thunk_*
 GlobalProcessingFrontEnd/FLIMGlobalAnalysisProto_*
-GlobalProcessingFrontEnd/Testing/simulation/*
-GlobalProcessingFrontEnd/GlobalProcessing_*
 GlobalProcessingFrontEnd/FLIMfit_32/*
 GlobalProcessingFrontEnd/FLIMfit_64/*
 GlobalProcessingFrontEnd/OMEROMatlab/*

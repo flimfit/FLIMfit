@@ -11,7 +11,7 @@ echo Generate 64 bit CMake Project
 cmake ..\..\ -G "Visual Studio 11 Win64" -T "v110_xp"
 
 echo Build 64 bit Project
-msbuild "GlobalProcessing.sln" /property:Configuration=Release
+msbuild "FLIMfit.sln" /property:Configuration=Release
 cd ..\..\
 
 

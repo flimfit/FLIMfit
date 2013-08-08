@@ -17,10 +17,7 @@ FLIMFitLibrary/Boost/*
 FLIMFitLibrary/Minpack/*
 TestDatasets/*
 FLIMFitLibrary/GeneratedProjects/*
-FLIMFitFrontEnd/HelperFunctions/doubleops_*
 FLIMFitFrontEnd/FLIMGlobalAnalysis_64_thunk_*
-FLIMFitFrontEnd/FLIMGlobalAnalysisProto_*
-FLIMFitFrontEnd/Testing/simulation/*
 GlobalProcessingFrontEnd/FLIMfit_32/*
 GlobalProcessingFrontEnd/FLIMfit_64/*
 FLIMFitFrontEnd/OMEROMatlab/*

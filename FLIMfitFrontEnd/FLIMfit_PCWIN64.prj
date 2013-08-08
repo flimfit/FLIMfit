@@ -22,7 +22,7 @@
     </param.warnings>
     <param.version>1.0</param.version>
     <param.user.only.registration>false</param.user.only.registration>
-    <param.c.cpp.options.file />
+    <param.c.cpp.options.file>${MATLAB_ROOT}\bin\win32\mbuildopts\msvc110compp.bat</param.c.cpp.options.file>
     <param.include.dirs />
     <param.lib.dirs />
     <param.lib.files />
