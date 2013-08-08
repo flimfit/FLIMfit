@@ -33,9 +33,11 @@ function compile(v)
     dll_interface.unload_global_library();
     dll_interface.load_global_library();
 
-    fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
-    fwrite(fid,v);
-    fclose(fid);
+    if nargin >= 1
+        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
+        fwrite(fid,v);
+        fclose(fid);
+    end
     
     if ~isempty(strfind(computer,'PCWIN'))
         platform = 'WIN';
@@ -103,9 +105,10 @@ function compile(v)
             
             f = fopen([deploy_folder '\Start_FLIMfit_' sys '.bat'],'w');
             fprintf(f,'@echo off\r\necho Starting FLIMfit...\r\n');
-            fprintf(f,['set MCR_CACHE_ROOT=%%LOCALAPPDATA%%\\FLIMfit_' v '_' computer '_MCR_cache\r\n']);
-            fprintf(f,'if not exist %%MCR_CACHE_ROOT%% echo Decompressing files for first run, please wait this may take a few minutes\r\n');
-            fprintf(f,'if not exist %%MCR_CACHE_ROOT%% mkdir %%MCR_CACHE_ROOT%%\r\n');
+            fprintf(f,'if "%%LOCALAPPDATA%%"=="" (set APPDATADIR=%%APPDATA%%) else (set APPDATADIR=%%LOCALAPPDATA%%)\r\n');
+            fprintf(f,['set MCR_CACHE_ROOT=%%APPDATADIR%%\\FLIMfit_' v '_' computer '_MCR_cache\r\n']);
+            fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" echo Decompressing files for first run, please wait this may take a few minutes\r\n');
+            fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" mkdir "%%MCR_CACHE_ROOT%%"\r\n');
             fprintf(f,['FLIMfit_' computer '.exe \r\n pause']);
             fclose(f);
             

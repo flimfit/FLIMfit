@@ -31,6 +31,8 @@ classdef front_end_menu_controller < handle
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                
         
+        menu_login;
+        
         menu_OMERO_Set_Dataset;        
         menu_OMERO_Set_Plate;        
         menu_OMERO_Load_FLIM_Data;
@@ -322,6 +324,19 @@ classdef front_end_menu_controller < handle
                 
         %------------------------------------------------------------------
         % OMERO
+        %------------------------------------------------------------------
+        function menu_login_callback(obj,~,~)
+            obj.omero_data_manager.Omero_logon();
+            
+            if ~isempty(obj.omero_data_manager.session)
+                props = properties(obj);
+                OMERO_props = props( strncmp('menu_OMERO',props,10) );
+                for i=1:length(OMERO_props)
+                    set(obj.(OMERO_props{i}),'Enable','on');
+                end
+            end
+            
+        end
         %------------------------------------------------------------------
         function menu_OMERO_Set_Dataset_callback(obj,~,~)            
             infostring = obj.omero_data_manager.Set_Dataset();

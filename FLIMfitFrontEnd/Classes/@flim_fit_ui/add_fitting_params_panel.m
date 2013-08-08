@@ -26,13 +26,11 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     % Author : Sean Warren
 
     
-    external = handles.external;
+    
 
-    if ~external
-        global_modes = {'Global Binning', 'Global Analysis'};
-    else
-        global_modes = {'Global Binning'};
-    end
+   
+    global_modes = {'Global Binning', 'Global Analysis'};
+    
 
     
     % Fit Params Panel
@@ -80,7 +78,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     set(fit_params_stray_layout,'Sizes',[120 120 300])
     set(fit_params_stray_col2_layout,'Sizes',[70 120])
     
-    if ~external
+   
         % Anisotropy tab
         fit_params_anis_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
         fit_params_anis_label_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
@@ -136,13 +134,10 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         set(fit_params_adv_layout,'Sizes',[120 120 300])
         set(fit_params_adv_col2_layout,'Sizes',[20 -1])
         
-    end %external
+   
     
-    if ~external
         set(fit_params_panel, 'TabNames', {'Lifetime'; 'Stray Light'; 'Anisotropy'; 'FRET'; 'Advanced'});
-    else
-        set(fit_params_panel, 'TabNames', {'Lifetime'; 'Stray Light'});
-    end
+   
     
     set(fit_params_panel, 'SelectedChild', 1);
 

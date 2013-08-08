@@ -818,14 +818,14 @@ classdef flim_omero_data_manager < handle
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
-                    'Try again to logon','Launch FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
+                    'Try again to logon','Run FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
                     % Handle response
                     switch choice
                         case 'Try again to logon'
                             keeptrying = true;
                       
                             
-                        case 'Launch FLIMfit in non-OMERO mode'
+                        case 'Run FLIMfit in non-OMERO mode'
                             % no action keeptrying is already false
                        
                     end    % end switch           
@@ -863,14 +863,14 @@ classdef flim_omero_data_manager < handle
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
-                    'Try again to logon','Launch FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
+                    'Try again to logon','Run FLIMfit in non-OMERO mode','Run FLIMfit in non-OMERO mode');
                     % Handle response
                     switch choice
                         case 'Try again to logon'
                             keeptrying = true;
                       
                             
-                        case 'Launch FLIMfit in non-OMERO mode'
+                        case 'Run FLIMfit in non-OMERO mode'
                             % no action keeptrying is already false
                        
                     end    % end switch           
