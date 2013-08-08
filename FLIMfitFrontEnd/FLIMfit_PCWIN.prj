@@ -77,6 +77,8 @@
       <file>${PROJECT_ROOT}\segmentation_funcs.mat</file>
       <file>${PROJECT_ROOT}\SegmentationFunctions</file>
       <file>${PROJECT_ROOT}\SegmentationFunctions\Support</file>
+      <file>${PROJECT_ROOT}\OMEROMatlab</file>
+      <file>${PROJECT_ROOT}\OMEROUtilities</file>
     </fileset.resources>
     <build-deliverables>
       <file name="readme.txt" location="${PROJECT_ROOT}\DeployFiles" optional="true">${PROJECT_ROOT}\DeployFiles\readme.txt</file>
