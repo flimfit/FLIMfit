@@ -25,17 +25,14 @@ function compile(v)
 
 % Author : Sean Warren
 
-    
-    addpath_global_analysis();
-    
-    % Make sure we have included the DLL
-    dll_interface = flim_dll_interface();
-    dll_interface.unload_global_library();
-    dll_interface.load_global_library();
 
     if nargin >= 1
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
         fwrite(fid,v);
+        fclose(fid);
+    else
+        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'r');
+        v = fgetl(fid);
         fclose(fid);
     end
     
@@ -44,6 +41,18 @@ function compile(v)
         lib_ext = '.dll';
         exe_ext = '.exe';
         server = '\\ph-nas-02.ph.ic.ac.uk\';
+        
+        
+        % setup compiler on windows
+        if strcmp(computer,'PCWIN64')
+            mex_setup_dir = [matlabroot '\bin\win64'];
+        else
+            mex_setup_dir = [matlabroot '\bin\win32'];
+        end
+        f = [mex_setup_dir '\mexopts\msvc110opts.bat'];
+        %copyfile(f,'mexopts.bat');
+        
+        
     elseif ~isempty(strfind(computer,'MAC'))
         platform = 'MAC';
         lib_ext = '.dylib';
@@ -54,14 +63,20 @@ function compile(v)
         lib_ext = '.so';
         exe_ext = '';
     end
+        
+    addpath_global_analysis();
     
-    
+    % Make sure we have included the DLL
+    dll_interface = flim_dll_interface();
+    dll_interface.unload_global_library();
+    dll_interface.load_global_library();
+
     if is64
         sys = '64';
     else
         sys = '32';
-    end
-
+    end    
+    
     % Build compiled Matlab project
     %------------------------------------------------
     exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];

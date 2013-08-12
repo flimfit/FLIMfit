@@ -21,6 +21,7 @@ classdef profile_controller
 
             % Display Preferences
             profile_def.Display.Invert_Colourscale = false;
+            profile_def.Display.Gamma_Factor = 0.6;
             profile_def.Display.Text_Size = 12;
             
             % Tools Preferences

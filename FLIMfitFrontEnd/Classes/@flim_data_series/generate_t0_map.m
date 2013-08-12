@@ -90,7 +90,7 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     
     subplot(2,2,1);
     plot(obj.tr_t,decay);
-    title('IRF Shape');
+    title('Decay Shape');
     
     subplot(2,2,2);
     imagesc(diff);
@@ -110,9 +110,13 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     colorbar
     title('Intensity (DN)');
     
-    irf_data = struct('t_irf',obj.tr_t,'irf',decay,'t0_image',diff);
-    
-
+    % If we don't have an IRF loaded, use the decay.
+    % Otherwise use the loaded IRF.
+    if length(obj.irf) > 3         
+        irf_data = struct('t_irf',obj.tr_t,'irf',decay,'t0_image',diff);
+    else
+        irf_data = struct('t_irf',obj.tr_t_irf,'irf',obj.tr_irf,'t0_image',diff);
+    end
     
     
     
