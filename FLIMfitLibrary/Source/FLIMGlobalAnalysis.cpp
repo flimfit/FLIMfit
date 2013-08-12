@@ -27,6 +27,8 @@
 //
 //=========================================================================
 
+#ifdef DONE
+
 #include "FitStatus.h"
 #include "ModelADA.h" 
 #include "FLIMGlobalAnalysis.h"
@@ -204,7 +206,8 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
    int     n_theta_fix     = 0;
    int     inc_rinf        = 0;
    double* theta_guess     = NULL;
-
+   /*
+   TODO
    controller[c_idx] = 
          new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup, t0_image,
                                       n_exp, n_fix, n_decay_group, decay_group, tau_min, tau_max, 
@@ -220,7 +223,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                                       ref_reconvolution, ref_lifetime_guess, algorithm,
                                       weighting, calculate_errors, conf_interval,
                                       n_thread, runAsync, callback );
-                                      
+     */                                 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -270,7 +273,8 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
 
    int n_decay_group = 1;
    int* decay_group = NULL;
-
+   /*
+   TODO
    controller[c_idx] = 
          new FLIMGlobalFitController( global_algorithm, image_irf, n_irf, t_irf, irf, pulse_pileup, t0_image,
                                       n_exp, n_fix, n_decay_group, decay_group, tau_min, tau_max, 
@@ -287,7 +291,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                                       weighting, calculate_errors, conf_interval,
                                       n_thread, runAsync, callback );
    controller[c_idx]->SetPolarisationMode(MODE_POLARISATION);
-
+   */
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -505,3 +509,5 @@ FITDLL_API int FLIMGlobalTerminateFit(int c_idx)
    controller[c_idx]->status->Terminate();
    return SUCCESS;
 }
+
+#endif

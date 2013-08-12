@@ -33,9 +33,9 @@
 #include "tinythread.h"
 #include <list>
 
-class FLIMGlobalFitController;
+class DecayModel;
 
-double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed = false);
+double norm_chi2(DecayModel* gc, double chi2, int s, bool fixed = false);
 
 class FitStatus
 {
@@ -60,9 +60,9 @@ public:
    bool running;
    bool started;
 
-   FLIMGlobalFitController* gc;
+   DecayModel* gc;
 
-   FitStatus(FLIMGlobalFitController* gc, int n_thread, int (*callback)());
+   FitStatus(DecayModel* gc, int n_thread, int (*callback)());
    ~FitStatus();
 
    void SetNumRegion(int n_region);

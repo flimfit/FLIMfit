@@ -38,7 +38,7 @@ class MaximumLikelihoodFitter : public AbstractFitter
 {
 public:
 
-   MaximumLikelihoodFitter(FitModel* model, int l, int nl, int nmax, int ndim, int p, double *t, int* terminate);
+   MaximumLikelihoodFitter(FitModel* model, int* terminate);
    ~MaximumLikelihoodFitter();
 
    int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr);

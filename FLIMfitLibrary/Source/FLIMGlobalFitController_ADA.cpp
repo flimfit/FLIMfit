@@ -28,7 +28,7 @@
 //=========================================================================
 
 #include "ModelADA.h"
-#include "FlimGlobalFitController.h"
+#include "DecayModel.h"
 #include "IRFConvolution.h"
 
 
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-void FLIMGlobalFitController::SetupIncMatrix(int* inc)
+void DecayModel::SetupIncMatrix(int* inc)
 {
    int i, j, n_exp_col, cur_col;
 
@@ -147,7 +147,7 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
 
 
 /* ============================================================== */
-int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread)
+int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread)
 {
 
    int i,j,k, d_offset, total_n_exp, idx;
@@ -506,7 +506,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
 }
 
 
-void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx, int thread)
+void DecayModel::GetWeights(float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx, int thread)
 {
    int i, l_start;
    double F0, ref_lifetime;
@@ -541,7 +541,7 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
 
 }
 
-float* FLIMGlobalFitController::GetConstantAdjustment()
+float* DecayModel::GetConstantAdjustment()
 {
    return adjust_buf;
 }

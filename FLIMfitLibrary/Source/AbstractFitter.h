@@ -30,33 +30,29 @@
 #ifndef _ABSTRACTFITTER_H
 #define _ABSTRACTFITTER_H
 
+#include "FitModel.h"
+
 #include "omp_stub.h"
 #include "levmar.h"
 
 #include <cstdio>
 
-class FitModel
-{
-   public: 
-      virtual void SetupIncMatrix(int* inc) = 0;
-      virtual int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
-      virtual void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread) = 0;
-      virtual float* GetConstantAdjustment() = 0;
-};
+
 
 class AbstractFitter
 {
 public:
 
-   AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl, int nmax, int ndim, int p, double *t, int variable_phi, int n_thread, int* terminate);
+
+   AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl, int nmax, int ndim, int p, int variable_phi, int n_thread, int* terminate);
    virtual ~AbstractFitter();
    virtual int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr) = 0;
    virtual int GetLinearParams(int s, float* y, double* alf) = 0;
    
-   int Fit(int n, int s, int lmax, float* y, float *avg_y, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2);
+   int Fit(int n, int s, int lmax, float* y, float *avg_y, int* irf_idx, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2);
    int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
    double ErrMinFcn(double x);
-   int CalculateErrors(double* alf, double conf_limit, double* err_lower, double* err_upper);
+   int CalculateErrors(double conf_limit);
 
    void GetParams(int nl, const double* alf);
    double* GetModel(const double* alf, int irf_idx, int isel, int thread);
@@ -73,6 +69,10 @@ protected:
 
    int* terminate;
 
+   double*  alf;
+   double*  err_lower;
+   double*  err_upper;
+
    // Used by variable projection
    int     inc[96];
    int     inc_full[96];
@@ -88,18 +88,19 @@ protected:
    double *alf_err;
    double *alf_buf;
 
+   int a_size;
+   int b_size;
+
    int     n;
    int     s;
    int     l;
    int     lmax;
-   int     nl;
    int     gnl;
-   int     gnl_full;
+   int     gnlmax;
    int     p;
-   int     p_full;
+   int     pmax;
 
    int     smax;
-   int     nmax;
    int     ndim;
 
    int     lp1;
@@ -108,7 +109,7 @@ protected:
    float  *avg_y;
    float *lin_params;
    float *chi2;
-   double *t;
+   //double *t;
    int    *irf_idx;
 
    double chi2_norm;

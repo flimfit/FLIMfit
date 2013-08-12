@@ -52,10 +52,10 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 }
 
 
-MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int l, int nl, int nmax, int ndim, int p, double *t, int* terminate) : 
-    AbstractFitter(model, 1, l, nl, nl-l, nmax, ndim, p, t, false, 1, terminate)
+MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int* terminate) : 
+    AbstractFitter(model, 1, model->l, model->nl, model->nl-l, model->nmax, model->ndim, model->p, false, 1, terminate)
 {
-   nfunc = nmax + 1; // +1 for kappa
+   nfunc = model->nmax + 1; // +1 for kappa
    nvar = nl;
 
    dy = new double[nfunc];

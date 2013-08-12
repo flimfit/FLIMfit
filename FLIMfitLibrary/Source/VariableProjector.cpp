@@ -43,7 +43,7 @@ VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, i
    work_ = new double[nmax * n_thread];
 
    aw_   = new double[ nmax * (l+1) * n_thread ]; //free ok
-   bw_   = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
+   bw_   = new double[ ndim * ( pmax + 3 ) * n_thread ]; //free ok
    wp_   = new double[ nmax * n_thread ];
    u_    = new double[ nmax * n_thread ];
    w     = new double[ nmax ];
@@ -437,7 +437,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
          idx = 0;
 
       aw = aw_ + idx * nmax * (l+1);
-      bw = bw_ + idx * ndim * ( p_full + 3 );
+      bw = bw_ + idx * ndim * ( pmax + 3 );
 
       int mskip = s/s_red;
       is = isel - 4;
@@ -686,7 +686,7 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
    int i, m, k, kp1;
 
    double* aw = aw_ + omp_thread * nmax * lp1;
-   double* bw = bw_ + omp_thread * ndim * ( p_full + 3 );
+   double* bw = bw_ + omp_thread * ndim * ( pmax + 3 );
    double* u  = u_  + omp_thread * l;
    double* wp = wp_ + omp_thread * nmax;
       
@@ -695,7 +695,7 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
    if (variable_phi)
    {
       a  += omp_thread * nmax * lp1;
-      b  += omp_thread * ndim * ( p_full + 3 );
+      b  += omp_thread * ndim * ( pmax + 3 );
    }
    
    if (firstca >= 0)

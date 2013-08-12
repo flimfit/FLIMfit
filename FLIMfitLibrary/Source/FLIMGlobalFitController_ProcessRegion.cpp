@@ -55,10 +55,11 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    int r_idx = data->GetRegionIndex(g,region);
 
    float  *local_decay     = this->local_decay + thread * n_meas;
-
+/*
    double *alf_local       = this->alf_local + thread * nl * 3;
    double *err_lower_local = this->alf_local + thread * nl * 3 +   nl;
    double *err_upper_local = this->alf_local + thread * nl * 3 + 2*nl;
+*/
 
    int start = data->GetRegionPos(g,region) + px;
 
@@ -109,65 +110,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    //-------------------------------
    if (s_thresh == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;
-
-   // Estimate lifetime from mean arrival time if requested
-   //------------------------------
-   if (estimate_initial_tau)
-   {
-      tau_ma = EstimateAverageLifetime(local_decay, 0);
-
-      if (n_v == 1)
-      {
-         alf_local[0] = tau_ma;
-      }
-      else if (n_v > 1)
-      {
-         double min_tau  = 0.5*tau_ma;
-         double max_tau  = 1.5*tau_ma;
-         double tau_step = (max_tau - min_tau)/(n_v-1);
-
-         for(int i=0; i<n_v; i++)
-            alf_local[i] = max_tau-i*tau_step;
-      }
-   }
-   else
-   {
-      for(int i=0; i<n_v; i++)
-         alf_local[i] = tau_guess[n_fix+i];
-   }
-
-
-   // Assign initial guesses to nonlinear variables
-   //------------------------------
-   i=0;
-   for(j=0; j<n_v; j++)
-      alf_local[i++] = TransformRange(alf_local[j],tau_min[j+n_fix],tau_max[j+n_fix]);
-
-   if(fit_beta == FIT_GLOBALLY)
-      for(int j=0; j<n_exp-1; j++)
-         if (decay_group_buf[j+1] == decay_group_buf[j])
-            alf_local[i++] = fixed_beta[j];
-
-   for(j=0; j<n_fret_v; j++)
-      alf_local[i++] = E_guess[j+n_fret_fix];
-
-   for(j=0; j<n_theta_v; j++)
-      alf_local[i++] = TransformRange(theta_guess[j+n_theta_fix],0,1000000);
-
-   if(fit_t0)
-      alf_local[i++] = t0_guess;
-
-   if(fit_offset == FIT_GLOBALLY)
-      alf_local[i++] = offset_guess;
-
-   if(fit_scatter == FIT_GLOBALLY)
-      alf_local[i++] = scatter_guess;
-
-   if(fit_tvb == FIT_GLOBALLY) 
-      alf_local[i++] = tvb_guess;
-
-   if(ref_reconvolution == FIT_GLOBALLY)
-      alf_local[i++] = ref_lifetime_guess;
+   
 
 
    itmax = 100;
@@ -186,17 +129,20 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       y_fit = y;
    }
 
-   projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
+   projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, lin_params, chi2, thread, itmax, 
                           photons_per_count, status->iter[thread], ierr_local, status->chi2[thread]);
-   
+   //TODO: get alf
+
    // If we're fitting globally using global binning now retrieve the linear parameters
    if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
-      projectors[thread].GetLinearParams(s_thresh, y, alf_local);
+      projectors[thread].GetLinearParams(s_thresh, y);
    
    if (calculate_errors)
    {
 
-      projectors[thread].CalculateErrors(alf_local, conf_interval, err_lower_local, err_upper_local);
+      projectors[thread].CalculateErrors(conf_interval);
+
+      // TODO: get errors
 
       for(int i=0; i<nl; i++)
       {

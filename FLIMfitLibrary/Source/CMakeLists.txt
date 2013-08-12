@@ -68,6 +68,7 @@ set(SOURCE
    FitStatus.cpp
    IRFConvolution.cpp
    ModelADA.cpp
+   InstrumentResponseFunction.cpp
    FLIMGlobalAnalysis.cpp
    FLIMGlobalFitController.cpp
    FLIMGlobalFitController_ProcessRegion.cpp
@@ -75,6 +76,9 @@ set(SOURCE
    FLIMGlobalFitController_Model.cpp
    FLIMGlobalFitController_ADA.cpp
    FLIMData.cpp
+   DecayModel.cpp
+   ModelParameters.cpp
+   FitResults.cpp
    VariableProjector.cpp
    MaximumLikelihoodFitter.cpp
    AbstractFitter.cpp
@@ -91,10 +95,15 @@ set(HEADERS
    FitStatus.h
    IRFConvolution.h
    ModelADA.h
+   InstrumentResponseFunction.h
    FLIMGlobalAnalysis.h
    FLIMGlobalFitController.h
    FLIMData.h
+   FitResults.h
    ModelADA.h
+   DecayModel.h
+   ModelParameters.h
+   FitModel.h
    VariableProjector.h
    AbstractFitter.h
    MaximumLikelihoodFitter.h

@@ -40,8 +40,8 @@
 
 using namespace std;
 
-AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl, int nmax, int ndim, int p_full, double *t, int variable_phi, int n_thread, int* terminate) : 
-    model(model), smax(smax), l(l), nl(nl), gnl(gnl), gnl_full(gnl), nmax(nmax), ndim(ndim), p_full(p_full), t(t), variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
+AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int gnl, int ndim, int p_full, int variable_phi, int n_thread, int* terminate) : 
+    model(model), smax(smax), l(l), gnl(gnl), gnlmax(gnl), ndim(ndim), pmax(p_full),  variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
 {
    err = 0;
 
@@ -55,6 +55,7 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl
    params = NULL;
    alf_err = NULL;
    
+
    // Check for valid input
    //----------------------------------
    if  (!(             l >= 0
@@ -68,13 +69,31 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl
    
    lp1 = l+1;
 
-   a_      = new double[ nmax * lp1 * n_thread ]; //free ok
+   int nmax = model->nmax;
+   int nl   = model->nl;
+
+   a_size = nmax * lp1;
+   b_size = ndim * ( pmax + 3 );
+
+   a_      = new double[ a_size * n_thread ]; //free ok
    r       = new double[ nmax * smax ];
-   b_      = new double[ ndim * ( p_full + 3 ) * n_thread ]; //free ok
-   kap     = new double[ nl + 1 ];
-   params  = new double[ nl ];
-   alf_err = new double[ nl ];
-   alf_buf = new double[ nl ];
+   b_      = new double[ ndim * ( pmax + 3 ) * n_thread ]; //free ok
+   kap     = new double[ model->nl + 1 ];
+   params  = new double[ model->nl ];
+   alf_err = new double[ model->nl ];
+   alf_buf = new double[ model->nl ];
+   alf     = new double[ nl ];
+   err_upper = new double[ nl ];
+   err_lower = new double[ nl ];
+
+   y            = new float[ y_dim * n_meas ]; //free ok 
+   irf_idx      = new int[ y_dim ];
+
+   local_decay  = new float[ n_meas ]; //ok
+   lin_local    = new float[ lmax ]; //ok
+   w            = new float[ n_meas ]; //free ok
+    
+   
 
    fixed_param = -1;
 
@@ -87,6 +106,21 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl
 
 }
 
+AbstractFitter::~AbstractFitter()
+{
+   ClearVariable(r);
+   ClearVariable(a_);
+   ClearVariable(b_);
+   ClearVariable(kap);
+
+   ClearVariable(params);
+   ClearVariable(alf_err);
+   ClearVariable(alf_buf);
+   ClearVariable(alf);
+   ClearVariable(err_lower);
+   ClearVariable(err_upper);
+}
+
 int AbstractFitter::Init()
 {
    int j, k, inckj;
@@ -95,9 +129,14 @@ int AbstractFitter::Init()
    // Determine number of constant functions
    //------------------------------------------
 
+   int nl = model->nl;
+   int l  = model->l;
+
    nconp1 = l+1;
    philp1 = l == 0;
    p = 0;
+
+   
 
    if ( l > 0 && nl > 0 )
    {
@@ -147,7 +186,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf_idx, double *alf, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf_idx, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2)
 {
 
    if (err != 0)
@@ -162,7 +201,6 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf
    this->n          = n;
    this->s          = s;
    this->lmax       = lmax;
-   this->y          = y;
    this->avg_y      = avg_y;
    this->lin_params = lin_params;
    this->irf_idx    = irf_idx;
@@ -171,13 +209,22 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf
    this->thread     = thread;
    this->photons_per_count  = photons_per_count;
 
-   gnl = gnl_full;
+   gnl = gnlmax;
 
    int max_jacb = 65536; 
 
-   chi2_norm = n - ((double)(nl))/s - l;
-   
-   int ret = FitFcn(nl, alf, itmax, max_jacb, &niter, &ierr);
+   chi2_norm = n - ((double)(model->nl))/s - l;
+
+   // Assign initial guesses to nonlinear variables
+   //------------------------------   
+   //TODO: decide best place for average lifetime estimation
+   //tau_ma = EstimateAverageLifetime(average_y, 0);
+   double tau_ma = 0;
+
+   model->SetInitialParameters(alf, tau_ma);
+
+
+   int ret = FitFcn(model->nl, alf, itmax, max_jacb, &niter, &ierr);
 
    chi2_final = *cur_chi2;
 
@@ -189,7 +236,9 @@ double tol(double a, double b)
    return 2*(b-a)/(a+b) < 0.001;
 }
 
-int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_lower, double *err_upper)
+
+
+int AbstractFitter::CalculateErrors(double conf_limit)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
@@ -213,18 +262,18 @@ int AbstractFitter::CalculateErrors(double* alf, double conf_limit, double* err_
 
    this->conf_limit = conf_limit;
 
-   memcpy(alf_buf, alf, nl * sizeof(double));
+   memcpy(alf_buf, alf, model->nl * sizeof(double));
    memcpy(inc_full, inc, 96*sizeof(int));
 
    getting_errs = true;
 
-   gnl = gnl_full - 1;
+   gnl = gnlmax - 1;
 
    // Get lower (lim=0) and upper (lim=1) limit
    for(int lim=0; lim<2; lim++)
    {
 
-      for(int i=0; i<gnl_full; i++)
+      for(int i=0; i<gnlmax; i++)
       {
 
          fixed_param = i;
@@ -286,6 +335,8 @@ double AbstractFitter::ErrMinFcn(double x)
       xs *= -1;
    fixed_value_cur = fixed_value_initial + xs; 
 
+   int nl = model->nl;
+
    int nmp = (n-l) * s - nl - s * l;
    //int nmp = n * s - nl - s * l;
 
@@ -338,7 +389,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    int ignore_cols = 0;
 
    int idx = 0;
-   for(int i=0; i<nl; i++)
+   for(int i=0; i<model->nl; i++)
    {
       if (i==fixed_param)
          params[i] = fixed_value_cur; 
@@ -346,8 +397,8 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
          params[i] = alf[idx++];
    }
 
-   double* a = a_ + omp_thread * nmax * (l+1);
-   double* b = b_ + omp_thread * ndim * ( p_full + 3 );
+   double* a = a_ + omp_thread * a_size;
+   double* b = b_ + omp_thread * b_size;
 
    model->CalculateModel(a, b, kap, params, irf_idx, isel, thread * n_thread + omp_thread);
 
@@ -364,7 +415,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
 
       double* src = b + ndim * (valid_cols + ignore_cols);
       double* dest = b + ndim * valid_cols;
-      int size = ndim * (p_full - (valid_cols + ignore_cols)) * sizeof(double);
+      int size = ndim * (pmax - (valid_cols + ignore_cols)) * sizeof(double);
 
       memmove(dest, src, size);
       
@@ -397,16 +448,4 @@ int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_para
 void AbstractFitter::ReleaseResidualMemory()
 {
    ClearVariable(r);
-}
-
-AbstractFitter::~AbstractFitter()
-{
-   ClearVariable(r);
-   ClearVariable(a_);
-   ClearVariable(b_);
-   ClearVariable(kap);
-
-   ClearVariable(params);
-   ClearVariable(alf_err);
-   ClearVariable(alf_buf);
 }

@@ -35,13 +35,13 @@
 
 
 
-double norm_chi2(FLIMGlobalFitController* gc, double chi2, int s, bool fixed_param)
+double norm_chi2(DecayModel* gc, double chi2, int s, bool fixed_param)
 {
    return chi2 * chi2 / (gc->n_meas * s - (gc->nl-(int)fixed_param) - s*gc->l);
 }
 
 
-FitStatus::FitStatus(FLIMGlobalFitController* gc, int n_thread, int (*callback)()) : 
+FitStatus::FitStatus(DecayModel* gc, int n_thread, int (*callback)()) : 
    gc(gc), n_thread(n_thread), callback(callback), n_region(0),
    progress(0), threads_running(0),  terminate(0), has_fit(0), running(0)
 {
