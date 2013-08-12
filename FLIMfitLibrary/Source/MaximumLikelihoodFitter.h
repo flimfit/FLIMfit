@@ -61,7 +61,6 @@ private:
    double norm;
 
    int nfunc;
-   int nvar;
 
    friend void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa);
    friend void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa);

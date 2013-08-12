@@ -29,6 +29,7 @@
 
 #include "DecayModel.h"
 #include "IRFConvolution.h"
+#include "ModelADA.h"
 
 #include <xmmintrin.h>
 #include <cfloat>
@@ -42,7 +43,7 @@ int DecayModel::check_alf_mod(int thread, const double* new_alf, int irf_idx)
    if (nl == 0)
       return true;
 
-   if ((image_irf || t0_image != NULL) && irf_idx != cur_irf_idx)
+   if (irf.variable_irf && irf_idx != cur_irf_idx)
    {
       cur_irf_idx = irf_idx;
       return true;
@@ -84,7 +85,7 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
          rate = 1/tau[tau_idx] + inv_theta;
          
          // IRF exponential factor
-         e0 = exp( (irf.t_irf[0] + t0_guess) * rate ); // * t_g;
+         e0 = exp( (irf.t_irf_buf[0] + t0_guess) * rate ); // * t_g;
          de = exp( + irf.timebin_width * rate );
 
          

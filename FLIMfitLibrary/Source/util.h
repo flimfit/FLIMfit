@@ -43,6 +43,34 @@ void ClearVariable(T*& var)
    }
 };
 
+template<typename T>
+void AlignedClearVariable(T*& var)
+{
+   if (var!=NULL)
+   {
+#ifdef _WINDOWS
+      _aligned_free(var);
+#else
+      delete[] var;
+      var = NULL;
+#endif
+   }
+};
+
+
+template<typename T>
+void AlignedAllocate(int size, T*& ptr)
+{
+   const int alignment = 16;
+#ifdef _WINDOWS
+   ptr = (T*) _aligned_malloc(size*sizeof(T), alignment);
+#else
+   ptr  = new T[size]; 
+#endif
+};
+
+
+
 void SetNaN(double* var, int n);
 void SetNaN(float* var, int n);
 

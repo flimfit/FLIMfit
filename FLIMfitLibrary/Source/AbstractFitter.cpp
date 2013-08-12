@@ -40,8 +40,8 @@
 
 using namespace std;
 
-AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int gnl, int ndim, int p_full, int variable_phi, int n_thread, int* terminate) : 
-    model(model), smax(smax), l(l), gnl(gnl), gnlmax(gnl), ndim(ndim), pmax(p_full),  variable_phi(variable_phi), n_thread(n_thread), terminate(terminate)
+AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size, int n_thread, int* terminate) : 
+    model(model), n_param(n_param), max_region_size(max_region_size), n_thread(n_thread), terminate(terminate)
 {
    err = 0;
 
@@ -49,6 +49,9 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int gnl, int nd
    r   = NULL;
    b_   = NULL;
    kap = NULL;
+   alf = NULL;
+   err_upper = NULL;
+   err_lower = NULL;
    alf_buf = NULL;
    alf_err = NULL;
 
@@ -76,15 +79,15 @@ AbstractFitter::AbstractFitter(FitModel* model, int smax, int l, int gnl, int nd
    b_size = ndim * ( pmax + 3 );
 
    a_      = new double[ a_size * n_thread ]; //free ok
-   r       = new double[ nmax * smax ];
+   r       = new double[ nmax * max_region_size ];
    b_      = new double[ ndim * ( pmax + 3 ) * n_thread ]; //free ok
    kap     = new double[ model->nl + 1 ];
    params  = new double[ model->nl ];
    alf_err = new double[ model->nl ];
    alf_buf = new double[ model->nl ];
-   alf     = new double[ nl ];
-   err_upper = new double[ nl ];
-   err_lower = new double[ nl ];
+   alf     = new double[ n_param ];
+   err_upper = new double[ n_param ];
+   err_lower = new double[ n_param ];
 
    y            = new float[ y_dim * n_meas ]; //free ok 
    irf_idx      = new int[ y_dim ];
@@ -186,7 +189,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf_idx, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(RegionData* region_data, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2)
 {
 
    if (err != 0)
@@ -197,11 +200,14 @@ int AbstractFitter::Fit(int s, int n, int lmax, float* y, float *avg_y, int* irf
 
    Init();
 
+   this->s = region_data->GetDataPtr(y, irf_idx);
+
+   region_data->GetAverageDecay(avg_y);
+   
 
    this->n          = n;
    this->s          = s;
    this->lmax       = lmax;
-   this->avg_y      = avg_y;
    this->lin_params = lin_params;
    this->irf_idx    = irf_idx;
    this->chi2       = chi2;
@@ -338,7 +344,6 @@ double AbstractFitter::ErrMinFcn(double x)
    int nl = model->nl;
 
    int nmp = (n-l) * s - nl - s * l;
-   //int nmp = n * s - nl - s * l;
 
    fisher_f dist(1, nmp);
    F_crit = quantile(complement(dist, conf_limit/2));

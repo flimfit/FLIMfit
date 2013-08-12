@@ -54,15 +54,15 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int r_idx = data->GetRegionIndex(g,region);
 
-   float  *local_decay     = this->local_decay + thread * n_meas;
 /*
+   float  *local_decay     = this->local_decay + thread * n_meas;
    double *alf_local       = this->alf_local + thread * nl * 3;
    double *err_lower_local = this->alf_local + thread * nl * 3 +   nl;
    double *err_upper_local = this->alf_local + thread * nl * 3 + 2*nl;
 */
 
    int start = data->GetRegionPos(g,region) + px;
-
+/*
    float* lin_params = this->lin_params + start * lmax;
    float* chi2       = this->chi2       + start;
    float* I          = this->I          + start;
@@ -70,7 +70,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    float* acceptor   = this->acceptor   + start;
    float* w_mean_tau = this->w_mean_tau + start;
    float* mean_tau   = this->mean_tau   + start;
-
+   */
 
    float *y, *alf, *alf_err_lower, *alf_err_upper;
    int   *irf_idx;
@@ -80,25 +80,16 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_mode == MODE_PIXELWISE)
    {
-      y             = this->y             + px * n_meas;
-      irf_idx       = this->irf_idx       + px;
-      alf           = this->alf           + start * nl; 
-      alf_err_lower = this->alf_err_lower + start * nl; 
-      alf_err_upper = this->alf_err_upper + start * nl; 
-
-      memcpy(local_decay,y,n_meas*sizeof(float));
+      // TODO: Get sub region (??)
+      
       data->DetermineAutoSampling(thread, local_decay, nl+1);
       s_thresh = 1;
    }
    else
    {
-      y             = this->y             + thread * y_dim * n_meas;
-      irf_idx       = this->irf_idx       + thread * y_dim;
-      alf           = this->alf           + nl * r_idx;
-      alf_err_lower = this->alf_err_lower + nl * r_idx; 
-      alf_err_upper = this->alf_err_upper + nl * r_idx; 
+      region_data[thread].Clear();
 
-      s_thresh = data->GetRegionData(thread, g, region, 0, y, I, r_ss, acceptor, irf_idx, local_decay, n_omp_thread);
+      s_thresh = data->GetRegionData(thread, g, region, region_data[thread], *results, n_omp_thread);
    }
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
@@ -129,7 +120,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       y_fit = y;
    }
 
-   projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, lin_params, chi2, thread, itmax, 
+   // TODO: propogate n_meas_res through region data.... or just remove autoresampling?
+
+   projectors[thread].Fit(region_data[thread], lin_params, chi2, thread, itmax, 
                           photons_per_count, status->iter[thread], ierr_local, status->chi2[thread]);
    //TODO: get alf
 

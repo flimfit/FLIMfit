@@ -31,19 +31,61 @@
 
 #include <algorithm>
 #include <cmath>
+#include "util.h"
 
 using std::max;
 using std::min;
 
-InstrumentResponseFunction::InstrumentResponseFunction(int n_irf, int n_chan, double* t_irf, double* irf) :
-   n_irf(n_irf),
-   t_irf(t_irf),
-   n_chan(n_chan),
+InstrumentResponseFunction::InstrumentResponseFunction() :
+   image_irf(false),
+   t0_image(false),
+   n_irf_rep(1),
+   t_irf_buf(NULL),
+   irf_buf(NULL),
+   variable_irf(false)
 {
-   CopyIRF(irf);
+   int n_irf_    = 4;
 
+   AllocateBuffer(n_irf_);
+
+   t_irf_buf[0] = -2.0;
+   t_irf_buf[1] =  0.0;
+   t_irf_buf[3] =  2.0;
+   t_irf_buf[0] =  4.0;
+
+   irf_buf[0] = 0.0; 
+   irf_buf[1] = 1.0; 
+   irf_buf[2] = 0.0; 
+   irf_buf[3] = 0.0; 
+}
+   
+InstrumentResponseFunction::~InstrumentResponseFunction()
+{
+   FreeBuffer();
+}
+
+void InstrumentResponseFunction::FreeBuffer()
+{
+   AlignedClearVariable(t_irf_buf);
+   AlignedClearVariable(irf_buf);
+}
+
+void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double* t_irf, double* irf)
+{
+   n_chan       = n_chan_;
+   n_irf_rep    = 1;
+   image_irf    = false;
+   t0_image     = false;
+   variable_irf = false;
+
+   CopyIRF(n_t, t_irf, irf);
+   CalculateTimebinWidth();
+}
+
+void InstrumentResponseFunction::CalculateTimebinWidth()
+{
    if (n_irf > 2)
-      timebin_width = t_irf[1] - t_irf[0];
+      timebin_width = t_irf_buf[1] - t_irf_buf[0];
    else
       timebin_width = 1;
 
@@ -89,56 +131,89 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
 
 }
 
-void InstrumentResponseFunction::CopyIRF()
+void InstrumentResponseFunction::AllocateBuffer(int n_irf_raw)
 {
-   // Copy IRF, padding to ensure we have an even number of points so we can 
-   // use SSE primatives in convolution
-   //------------------------------
-   int n_irf_rep;
-   
-   if (image_irf) 
-      n_irf_rep =  data->n_px;
-   else if (t0_image)
-      n_irf_rep = 1 + n_thread;
-   else 
-      n_irf_rep = 1;
+   FreeBuffer();
 
-   int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
-   int irf_size = a_n_irf * n_chan * n_irf_rep;
-   #ifdef _WINDOWS
+   int n_irf = (int) ( ceil(n_irf_raw / 2.0) * 2 );
+   int irf_size = n_irf * n_chan * n_irf_rep;
+   
+   AlignedAllocate(irf_size, irf_buf);
+   AlignedAllocate(n_irf,    t_irf_buf);
+/*
+#ifdef _WINDOWS
       irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
-      t_irf_buf = (double*) _aligned_malloc(a_n_irf*sizeof(double), 16);
+      t_irf_buf = (double*) _aligned_malloc(n_irf*sizeof(double), 16);
    #else
       irf_buf  = new double[irf_size]; 
       t_irf_buf  = new double[a_n_irf]; 
    #endif
-      
+   */
+}
 
+void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* t_irf, double* irf)
+{
+   // Copy IRF, padding to ensure we have an even number of points so we can 
+   // use SSE primatives in convolution
+   //------------------------------
+
+
+   AllocateBuffer(n_irf_raw);
+      
    double dt = t_irf[1]-t_irf[0];
 
    for(int j=0; j<n_irf_rep; j++)
    {
       int i;
-      for(i=0; i<n_irf; i++)
+      for(i=0; i<n_irf_raw; i++)
       {
          t_irf_buf[i] = t_irf[i];
          for(int k=0; k<n_chan; k++)
-             irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf[j*n_irf*n_chan+k*n_irf+i];
+             irf_buf[(j*n_chan+k)*n_irf+i] = irf[(j*n_chan+k)*n_irf_raw+i];
       }
-      for(; i<a_n_irf; i++)
+      for(; i<n_irf; i++)
       {
          t_irf_buf[i] = t_irf_buf[i-1] + dt;
          for(int k=0; k<n_chan; k++)
-            irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i] = irf_buf[j*a_n_irf*n_chan+k*a_n_irf+i-1];
+            irf_buf[(j*n_chan+k)*n_irf+i] = irf_buf[(j*n_chan+k)*n_irf+i-1];
       }
    }
 
-   n_irf = a_n_irf;
-
 }
 
+/** 
+ * Calculate g factor for polarisation resolved data
+ *
+ * g factor gives relative sensitivity of parallel and perpendicular channels, 
+ * and so can be determined from the ratio of the IRF's for the two channels 
+*/
+double InstrumentResponseFunction::CalculateGFactor()
+{
+   int g_factor; 
+
+   if (n_chan == 2)
+   {
+      double perp = 0;
+      double para = 0;
+      for(int i=0; i<n_irf; i++)
+      {
+         para += irf_buf[i];
+         perp += irf_buf[i+n_irf];
+      }
+
+      g_factor = para / perp;
+   }
+   else
+   {
+      g_factor = 1;
+   }
+
+   return g_factor;
+}
+
+
 // http://paulbourke.net/miscellaneous/interpolation/
-double CubicInterpolate(double  y[], double mu)
+double InstrumentResponseFunction::CubicInterpolate(double  y[], double mu)
 {
    // mu - distance between y1 and y2
    double a0,a1,a2,a3,mu2;

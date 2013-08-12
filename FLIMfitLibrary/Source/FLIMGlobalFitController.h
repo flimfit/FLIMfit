@@ -42,6 +42,7 @@
 #include "DecayModel.h"
 #include "ModelADA.h"
 #include "FLIMData.h"
+#include "RegionData.h"
 #include "FitResults.h"
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
@@ -109,8 +110,9 @@ public:
    DecayModel* model;
    FLIMData* data;
    FitResults* results;
+   
 
-   tthread::thread **thread_handle;
+   
 
    //int* irf_idx;
    
@@ -150,8 +152,7 @@ public:
 
 
    void SetData(FLIMData* data);
-   void SetPolarisationMode(int mode);
-
+   
    void Init();
    int RunWorkers();
    int  GetErrorCode();
@@ -217,7 +218,10 @@ private:
 
 
 
-   boost::ptr_vector<AbstractFitter> projectors;
+   ptr_vector<AbstractFitter> projectors;
+   ptr_vector<RegionData> region_data;
+
+   ptr_vector<tthread::thread> thread_handle;
 
    int cur_region;
    int next_pixel;

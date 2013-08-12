@@ -39,7 +39,7 @@ class VariableProjector : public AbstractFitter
 {
 
 public:
-   VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate);
+   VariableProjector(FitModel* model, int max_region_size, int n_thread, int* terminate);
    ~VariableProjector();
 
    int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr);

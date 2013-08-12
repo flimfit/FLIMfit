@@ -27,42 +27,60 @@
 //
 //=========================================================================
 
-#include "FitModel.h"
+#include "RegionData.h"
+#include <algorithm>
 
-#ifndef _FITRESULTS_H
-#define _FITRESULTS_H
-
-class FLIMData;
-
-class FitResults
+RegionData::RegionData(int n_px, int n_meas) :
+   n_px_max(n_px_max),
+   n_px_cur(0),
+   n_meas(n_meas)
 {
-public:
-   FitResults(FitModel* model, FLIMData* data, int calculate_errors);
-   ~FitResults();
+   data = new float[n_px_max * n_meas];
+   irf_idx = new int[n_px];
+}
 
-   void GetAssociatedResults(int im, int r, float*& I, float*& r_ss, float*& acceptor);
-   
+RegionData::~RegionData()
+{
+   delete[] data;
+   delete[] irf_idx;
+}
 
-private:
-   FLIMData* data;
+void RegionData::Clear()
+{
+   n_px_cur = 0;
+}
 
-   float *alf; 
-   float *alf_err_lower;
-   float *alf_err_upper;
-   float *lin_params; 
-   float *chi2; 
-   float *I; 
-   float *r_ss; 
-   float *acceptor;
-   float *w_mean_tau; 
-   float *mean_tau;
+void RegionData::GetPointersForInsertion(int n, float*& y_, int*& irf_idx_)
+{
+   assert( n + n_px_cur <= n_px_max );
 
-   int *ierr; 
-   float *success; 
+   data_    = data + n_px_cur * n_meas;
+   irf_idx_ = irf_idx  + n_px_cur;
+
+   n_px_cur += n;
+}
 
 
-   int calculate_errors;
+void RegionData::GetPointersForArbitaryInsertion(int pos, int n, float*& y_, int*& irf_idx_)
+{
+   assert( n + pos <= n_px_max );
 
-};
+   data_    = data + pos * n_meas;
+   irf_idx_ = irf_idx  + pos;
 
-#endif
+   n_px_cur = std::max(n_px_cur, pos + n);
+}
+
+void RegionData::GetAverageDecay(float* average_decay)
+{
+   memset(average_decay, 0, n_meas * sizeof(float));
+
+   for(int i=0; i<n_px_cur; i++)
+      for(int j=0; j<n_meas; j++)
+         average_decay[j] += data[i*n_meas + j];
+      
+   for(int j=0; j<n_meas; j++)
+      average_decay[j] /= n_px_cur;
+}
+
+int RegionData::GetPointers(float*& y, int*& irf_idx);

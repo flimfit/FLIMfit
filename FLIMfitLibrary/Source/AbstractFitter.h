@@ -31,7 +31,7 @@
 #define _ABSTRACTFITTER_H
 
 #include "FitModel.h"
-
+#include "RegionData.h"
 #include "omp_stub.h"
 #include "levmar.h"
 
@@ -44,12 +44,12 @@ class AbstractFitter
 public:
 
 
-   AbstractFitter(FitModel* model, int smax, int l, int nl, int gnl, int nmax, int ndim, int p, int variable_phi, int n_thread, int* terminate);
+   AbstractFitter(FitModel* model, int n_param, int max_region_size, int n_thread, int* terminate);
    virtual ~AbstractFitter();
    virtual int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr) = 0;
    virtual int GetLinearParams(int s, float* y, double* alf) = 0;
    
-   int Fit(int n, int s, int lmax, float* y, float *avg_y, int* irf_idx, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2);
+   int Fit(int n, int s, int lmax, RegionData* region_data, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2);
    int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
    double ErrMinFcn(double x);
    int CalculateErrors(double conf_limit);
@@ -91,19 +91,18 @@ protected:
    int a_size;
    int b_size;
 
-   int     n;
-   int     s;
-   int     l;
-   int     lmax;
-   int     gnl;
-   int     gnlmax;
-   int     p;
-   int     pmax;
+   //int     n;
+   //int     s;
+   //int     l;
+   //int     lmax;
+   int     n_param;
+   //int     p;
+   //int     pmax;
 
-   int     smax;
-   int     ndim;
+   int     max_region_size;
+   //int     ndim;
 
-   int     lp1;
+   //int     lp1;
 
    float  *y;
    float  *avg_y;

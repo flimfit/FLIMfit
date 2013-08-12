@@ -36,16 +36,13 @@ class FitModel
 
       int l; 
       int nl;
-      int gnl;
       
       int n; 
       int nmax; 
       int ndim; 
       
-      int lmax; 
       int p; 
-      //int n_v;
-
+      
       virtual void SetupIncMatrix(int* inc) = 0;
       virtual int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
       virtual void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread) = 0;

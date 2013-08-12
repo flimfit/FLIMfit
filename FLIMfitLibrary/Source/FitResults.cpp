@@ -30,28 +30,28 @@
 #include "FitResults.h"
 #include "util.h"
 
-FitResults::FitResults(FitModel& model, FLIMData& data, int calculate_errors) :
-   calculate_errors(calculate_errors)
+FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
+   data(data), calculate_errors(calculate_errors)
 {
-   int alf_size = (data.global_mode == MODE_PIXELWISE) ? data.n_masked_px : data.n_regions_total;
-   alf_size *= model.nl;
+   int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
+   alf_size *= model->nl;
 
-   int lin_size = data.n_masked_px * model.lmax;
+   int lin_size = data->n_masked_px * model->lmax;
 
    try
    {
       lin_params   = new float[ lin_size ]; //ok
-      chi2         = new float[ data.n_masked_px ]; //ok
-      I            = new float[ data.n_masked_px ];
+      chi2         = new float[ data->n_masked_px ]; //ok
+      I            = new float[ data->n_masked_px ];
 
-      if (model.polarisation_resolved)
-         r_ss      = new float[ data.n_masked_px ];
+      if (model->polarisation_resolved)
+         r_ss      = new float[ data->n_masked_px ];
 
-      if (data.has_acceptor)
-         acceptor  = new float[ data.n_masked_px ];
+      if (data->has_acceptor)
+         acceptor  = new float[ data->n_masked_px ];
 
-      ierr         = new int[ data.n_regions_total ];
-      success      = new float[ data.n_regions_total ];
+      ierr         = new int[ data->n_regions_total ];
+      success      = new float[ data->n_regions_total ];
       alf          = new float[ alf_size ]; //ok
 
       if (calculate_errors)
@@ -67,8 +67,8 @@ FitResults::FitResults(FitModel& model, FLIMData& data, int calculate_errors) :
       
       if (calculate_mean_lifetimes)
       {
-         w_mean_tau   = new float[ data.n_masked_px ];  
-         mean_tau     = new float[ data.n_masked_px ];  
+         w_mean_tau   = new float[ data->n_masked_px ];  
+         mean_tau     = new float[ data->n_masked_px ];  
       }
    }
    catch(std::exception e)
@@ -79,12 +79,12 @@ FitResults::FitResults(FitModel& model, FLIMData& data, int calculate_errors) :
    }
 
    SetNaN(alf, alf_size );
-   SetNaN(chi2, data.n_masked_px );
-   SetNaN(I, data.n_masked_px );
-   SetNaN(r_ss, data.n_masked_px );
+   SetNaN(chi2, data->n_masked_px );
+   SetNaN(I, data->n_masked_px );
+   SetNaN(r_ss, data->n_masked_px );
    SetNaN(lin_params, lin_size);
 
-   for(int i=0; i<data.n_regions_total; i++)
+   for(int i=0; i<data->n_regions_total; i++)
    {
       success[i] = 0;
       ierr[i] = 0;
@@ -92,6 +92,15 @@ FitResults::FitResults(FitModel& model, FLIMData& data, int calculate_errors) :
 
 
 
+}
+
+void FitResults::GetAssociatedResults(int im, float*& r, float*& I_, float*& r_ss_, float*& acceptor_)
+{
+   int pos =  data->GetRegionPos(im,r);
+
+   I_       = I        + pos;
+   r_ss_    = r_ss     + pos;
+   acceptor = acceptor + pos;
 }
 
 FitResults::~FitResults()

@@ -53,13 +53,12 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 
 
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int* terminate) : 
-    AbstractFitter(model, 1, model->l, model->nl, model->nl-l, model->nmax, model->ndim, model->p, false, 1, terminate)
+    AbstractFitter(model, model->nl+1, 1, 1, terminate)
 {
    nfunc = model->nmax + 1; // +1 for kappa
-   nvar = nl;
 
    dy = new double[nfunc];
-   work = new double[ LM_DER_WORKSZ(nvar, nfunc) ];
+   work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];
    expA = new double[nfunc];
 }
 
@@ -96,7 +95,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
 
     
     double* err = new double[nfunc];
-    dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
+    dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, n_param, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
     
@@ -131,10 +130,10 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
    {
 #if CONSTRAIN_FRACTIONS
       for(int i=0; i<l; i++)
-         lin_params[i] = (float) (exp(alf[nvar-l+i]));
+         lin_params[i] = (float) (exp(alf[n_param-l+i]));
 #else
       for(int i=0; i<l; i++)
-         lin_params[i] = (float) (alf[nvar-l+i]); 
+         lin_params[i] = (float) (alf[n_param-l+i]); 
 #endif
       chi2[0] = (float) *cur_chi2;
    }
@@ -164,7 +163,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
    GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->GetConstantAdjustment();
    
-   double* A = alf+gnl;
+   double* A = alf+nl;
 
 #if CONSTRAIN_FRACTIONS
    for(i=0; i<l; i++)
@@ -202,7 +201,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
 
    int m = 0;
    int k_sub = 0;
-   for (k=0; k<gnl; k++)
+   for (k=0; k<nl; k++)
    {
          for(j=0; j<l; j++)
          {

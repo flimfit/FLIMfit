@@ -116,8 +116,6 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, DecayMode
    lin_local = NULL;
    */
 
-   thread_handle = NULL;
-
    cur_im = NULL;
 
 }
@@ -153,13 +151,19 @@ int FLIMGlobalFitController::RunWorkers()
          params[thread].controller = this;
          params[thread].thread = thread;
       
-         thread_handle[thread] = new tthread::thread(StartWorkerThread,(void*)(params+thread)); // ok
+         thread_handle.push_back(
+               new tthread::thread(StartWorkerThread,(void*)(params+thread))
+            ); // ok
       }
 
       if (!runAsync)
       {
-         for(int thread = 0; thread < n_fitters; thread++)
-            thread_handle[thread]->join();
+         boost::ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
+         while (iter != projectors.end())
+         {
+            iter->join();
+            iter++;
+         }
 
          data->StopStreaming();
 
@@ -235,14 +239,10 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   while (  threads_active > 0 ||                           // there are threads running
                           (threads_started < n_active_thread && cur_region >= 0) ) // not all threads have yet started up
                      active_lock.wait(region_mutex);
-  
-                  int pos =  data->GetRegionPos(im,r);
+                    
+                  region_data[0].Clear();
 
-                  float* I_local        = I        + pos;
-                  float* r_ss_local     = r_ss     + pos;
-                  float* acceptor_local = acceptor + pos;
-                  
-                  data->GetMaskedData(0, im, r, y, I_local, r_ss_local, acceptor_local, irf_idx);
+                  data->GetRegionData(0, im, r, region_data[0], *results, 1);
                   data->ImageDataFinished(im);
 
                   next_pixel = 0;
@@ -394,11 +394,18 @@ terminated:
    int threads_running = status->RemoveThread();
 
    // If we're the last thread running cleanup temporary variables
+   
+   tthread::thread::id cur_id = tthread::this_thread::get_id();
+
    if (threads_running == 0 && runAsync)
    {
-      for(int i = 0; i < n_fitters; i++)
-         if(i != thread && thread_handle[i]->joinable())
-            thread_handle[i]->join();
+      boost::ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
+         while (iter != projectors.end())
+         {
+            if ( iter->joinable() && iter->get_id() != cur_id )
+               iter->join();
+            iter++;
+         }
 
       data->StopStreaming();
       CleanupTempVars();
@@ -409,49 +416,11 @@ terminated:
 void FLIMGlobalFitController::SetData(FLIMData* data)
 {
    this->data = data;
-
-   n_t = data->n_t;
-   t = data->GetT();
 }
 
-
-void FLIMGlobalFitController::SetPolarisationMode(int mode)
-{
-   if (mode == MODE_STANDARD)
-      this->polarisation_resolved = false;
-   else
-      this->polarisation_resolved = true;
-}
 
 
  
-/** 
- * Calculate g factor for polarisation resolved data
- *
- * g factor gives relative sensitivity of parallel and perpendicular channels, 
- * and so can be determined from the ratio of the IRF's for the two channels 
-*/
-double FLIMGlobalFitController::CalculateGFactor()
-{
-   if (polarisation_resolved)
-   {
-      double perp = 0;
-      double para = 0;
-      for(int i=0; i<n_irf; i++)
-      {
-         para += irf[i];
-         perp += irf[i+n_irf];
-      }
-
-      g_factor = para / perp;
-   }
-   else
-   {
-      g_factor = 1;
-   }
-
-   return g_factor;
-}
 
 
 void FLIMGlobalFitController::Init()
@@ -475,7 +444,6 @@ void FLIMGlobalFitController::Init()
 
    photons_per_count = data->GetPhotonsPerCount();
 
-   
    
    if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && data->n_px > 1))
       algorithm = ALG_LM;
@@ -509,38 +477,41 @@ void FLIMGlobalFitController::Init()
    else
       n_omp_thread = 1;
 
-   thread_handle = new tthread::thread*[ n_fitters ];
-   for(int i=0; i<n_fitters; i++)
-      thread_handle[i] = NULL;
-
    // Supplied t_rep in seconds, convert to ps
-   this->t_rep = t_rep * 1e12;
+   // TODO: make sure we convert this properly... this->t_rep = t_rep * 1e12;
    
 
+   int max_region_size;
+
    if (data->global_mode == MODE_GLOBAL)
-      s = data->n_masked_px;                              // (varp) Number of pixels (right hand sides)
+      max_region_size = data->n_masked_px;                              // (varp) Number of pixels (right hand sides)
    else if (data->global_mode == MODE_IMAGEWISE)
-      s = data->n_px;
+      max_region_size = data->n_px;
    else
-      s = 1;
+      max_region_size = 1;
 
-   y_dim = max(s,data->n_px);
+   y_dim = max(max_region_size,data->n_px);
 
+
+   /*
    int max_dim = max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
    exp_dim = max_dim * n_chan;
+   */
 
-   nl = model->nl; //TODO
-   p = model->p; //TODO
+
+   //nl = model->nl;
+   //p = model->p; 
 
 
    // If using MLE, need an extra non-linear scaling factor
-   if (algorithm == ALG_ML)
-   {
-      nl += l;
-   }
+   // TODO
+   //if (algorithm == ALG_ML)
+   //{
+   //   nl += l;
+   //}
 
 
 
@@ -560,7 +531,7 @@ void FLIMGlobalFitController::Init()
    }
 
    // TODO: add exception handling here
-   results = new FitResults(model, data);
+   results = new FitResults(model, data, calculate_errors);
 
 
 
@@ -570,13 +541,17 @@ void FLIMGlobalFitController::Init()
 
    // Create fitting objects
    projectors.reserve(n_fitters);
+   region_data.reserve(n_fitters);
 
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
-         projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, n, ndim, p, t, &(status->terminate)) );
+         projectors.push_back( new MaximumLikelihoodFitter(model, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
+//         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(model, max_region_size, n_omp_thread, &(status->terminate)) );
+
+      region_data.push_back( new RegionData(max_region_size, data->n_meas) );
    }
 
    for(int i=0; i<n_fitters; i++)
@@ -626,7 +601,7 @@ void FLIMGlobalFitController::CleanupTempVars()
 
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
-   ClearVariable(y);
+   region_data.clear();
 
    boost::ptr_vector<AbstractFitter>::iterator iter = projectors.begin();
    while (iter != projectors.end())
@@ -701,17 +676,6 @@ void FLIMGlobalFitController::CleanupResults()
          delete data;
          data = NULL;
       }
-
-   if (thread_handle != NULL)
-   {
-      for(int i=0; i<n_fitters; i++)
-      {
-         if (thread_handle[i] != NULL)
-            delete thread_handle[i];
-      }
-      delete[] thread_handle;
-      thread_handle = NULL;
-   }
 
      _ASSERTE(_CrtCheckMemory());
 }

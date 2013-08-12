@@ -29,8 +29,8 @@
 
 using namespace std;
 
-VariableProjector::VariableProjector(FitModel* model, int smax, int l, int nl, int nmax, int ndim, int p, double *t, int variable_phi, int weighting, int n_thread, int* terminate) : 
-    AbstractFitter(model, smax, l, nl, nl, nmax, ndim, p, t, variable_phi, n_thread, terminate)
+VariableProjector::VariableProjector(FitModel* model, int max_region_size, int n_thread, int* terminate) : 
+    AbstractFitter(model, max_region_size, model->nl, n_thread, terminate)
 {
    this->weighting = weighting;
 

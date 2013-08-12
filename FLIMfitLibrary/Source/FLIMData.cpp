@@ -27,7 +27,6 @@
 //
 //=========================================================================
 
-
 #include "FLIMData.h"
 #include <cmath>
 //#include "hdf5.h"
@@ -556,13 +555,22 @@ void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
 }
 
 
-int FLIMData::GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay, int n_thread)
+int FLIMData::GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results)
 {
    int s = 0;
-
+   
+   float* masked_data;
+   int* irf_idx;
+   
+   float* intensity;
+   float* acceptor;
+   float* r_ss;
+   
    if ( global_mode == MODE_IMAGEWISE )
    {
-      s = GetMaskedData(thread, group, region, region_data, intensity_data, r_ss_data, acceptor_data, irf_idx);
+      region_data.GetPointersForInsertion(s, masked_data, irf_idx);
+
+      s = GetMaskedData(thread, group, region, masked_data, irf_idx, results);
    }
    else if ( global_mode == MODE_GLOBAL )
    {
@@ -584,31 +592,28 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
                r_thread = omp_get_thread_num();
 
             int pos = GetRegionPos(i, region) - start;
-            s += GetMaskedData(r_thread, i, region, region_data + pos*n_meas, intensity_data + pos, r_ss_data + pos, acceptor_data + pos, irf_idx + pos);
+            
+            region_data.GetPointersForArbitaryInsertion(pos, s, masked_data, irf_idx);
+            s += GetMaskedData(r_thread, i, region, masked_data, irf_idx, results);
             ImageDataFinished(i);
          }
       }
    }
 
-   memset(local_decay,0, n_meas * sizeof(float));
-
-   for(int i=0; i<s; i++)
-      for(int j=0; j<n_meas; j++)
-         local_decay[j] += region_data[i*n_meas + j];
-      
-   for(int j=0; j<n_meas; j++)
-      local_decay[j] /= s;
-
    return s;
 }
 
 
-int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx)
+int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, int* irf_idx, FitResults& results)
 {
-   
    int iml = im;
    if (use_im != NULL)
       iml = use_im[im];
+
+   int s = GetRegionCount(im, region);
+
+   float* masked_intensity, *masked_r_ss, *masked_acceptor;
+   results.GetAssociatedResults(im, region, masked_intensity, masked_r_ss, masked_acceptor);
 
    uint8_t* im_mask = mask + iml*n_x*n_y;
    float*   tr_data   = tr_data_ + thread * n_p;
@@ -625,28 +630,30 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
       masked_data[i] = 0;
 
    // Store masked values
-   int s = 0;
+   int idx = 0;
 
    for(int p=0; p<n_px; p++)
    {
       if (region < 0 || im_mask[p] == region)
       {
-         masked_intensity[s] = intensity[p];
+         masked_intensity[idx] = intensity[p];
    
          if (polarisation_resolved)
-            masked_r_ss[s] = r_ss[p];
+            masked_r_ss[idx] = r_ss[p];
 
          if (has_acceptor)
-            masked_acceptor[s] = acceptor[p];
+            masked_acceptor[idx] = acceptor[p];
             
          for(int i=0; i<n_meas; i++)
-            masked_data[s*n_meas+i] = tr_data[p*n_meas+i];
+            masked_data[idx*n_meas+i] = tr_data[p*n_meas+i];
 
 
-         irf_idx[s] = p;
-         s++;
+         irf_idx[idx] = p;
+         idx++;
       }
    }
+
+   assert(s == idx);
 
    return s;
 }

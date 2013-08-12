@@ -31,6 +31,8 @@
 #include "IRFConvolution.h"
 #include "ModelADA.h"
 
+#include "util.h"
+
 void DecayModel::Init()
 {
    use_kappa      = true;
@@ -95,6 +97,11 @@ void DecayModel::Init()
                               (fit_offset == FIX)  ? (float) offset_guess  : 0, 
                               (fit_tvb == FIX)     ? (float) tvb_guess     : 0);
 
+}
+
+DecayModel::~DecayModel()
+{
+   AlignedClearVariable(exp_buf);
 }
 
 void DecayModel::SetupDecayGroups()
@@ -168,12 +175,14 @@ void DecayModel::AllocateBuffers()
    try
    {
       cur_alf      = new double[ nl ]; //ok
-
+      /*
       #ifdef _WINDOWS
          exp_buf   = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
        #else
          exp_buf   = new double[n_thread * n_fret_group * exp_buf_size];
        #endif
+       */
+      AlignedAllocate( n_thread * n_fret_group * exp_buf_size, exp_buf ); 
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
       beta_buf     = new double[ n_thread * n_exp ]; //free ok

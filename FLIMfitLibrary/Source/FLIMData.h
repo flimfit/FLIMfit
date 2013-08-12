@@ -30,13 +30,16 @@
 #ifndef _FLIMDATA_
 #define _FLIMDATA_
 
+#include "RegionData.h"
+#include "FitResults.h"
+#include "FitStatus.h"
+
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <stdint.h>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include "tinythread.h"
-#include "FitStatus.h"
 
 #include "FlagDefinitions.h"
 #include "ConcurrencyAnalysis.h"
@@ -73,8 +76,8 @@ public:
    int GetRegionPos(int im, int region);
    int GetRegionCount(int im, int region);
 
-   int GetRegionData(int thread, int group, int region, int px, float* region_data, float* intensity_data, float* r_ss_data, float* acceptor_data, int* irf_idx, float* local_decay, int n_thread);
-   int GetMaskedData(int thread, int im, int region, float* masked_data, float* masked_intensity, float* masked_r_ss, float* masked_acceptor, int* irf_idx);
+   int GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread);
+
 
    
    int GetImLoc(int im);
@@ -147,6 +150,9 @@ public:
    int has_acceptor;
 
 private:
+
+   int GetMaskedData(int thread, int im, int region, float* masked_data, int* irf_idx, FitResults& results);
+
 
    template <typename T>
    T* GetDataPointer(int thread, int im);

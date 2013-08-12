@@ -50,6 +50,10 @@ class DecayModel : public FitModel,
                    public ModelParameters
 {
 public:
+
+   DecayModel();
+   ~DecayModel();
+
    void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[]);
    int check_alf_mod(int thread, const double* new_alf, int irf_idx);
 

@@ -27,42 +27,30 @@
 //
 //=========================================================================
 
-#include "FitModel.h"
+#ifndef _REGIONDATA_H_
+#define _REGIONDATA_H_
 
-#ifndef _FITRESULTS_H
-#define _FITRESULTS_H
-
-class FLIMData;
-
-class FitResults
+class RegionData
 {
 public:
-   FitResults(FitModel* model, FLIMData* data, int calculate_errors);
-   ~FitResults();
+   RegionData(int n_px, int n_meas);
+   ~RegionData();
+   void Clear();
+   void GetPointersForInsertion(int n, float*& y, int*& irf_idx);
+   void GetPointersForArbitaryInsertion(int pos, int n, float*& y, int*& irf_idx);
+   int  GetPointers(float*& y, int*& irf_idx);
 
-   void GetAssociatedResults(int im, int r, float*& I, float*& r_ss, float*& acceptor);
-   
+   void GetAverageDecay(float* average_decay);
+
 
 private:
-   FLIMData* data;
+   int n_px_max;
+   int n_px_cur;
+   int n_meas;
 
-   float *alf; 
-   float *alf_err_lower;
-   float *alf_err_upper;
-   float *lin_params; 
-   float *chi2; 
-   float *I; 
-   float *r_ss; 
-   float *acceptor;
-   float *w_mean_tau; 
-   float *mean_tau;
-
-   int *ierr; 
-   float *success; 
-
-
-   int calculate_errors;
-
+   float* data;
+   int* irf_idx;
 };
+
 
 #endif

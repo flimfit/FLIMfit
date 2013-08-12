@@ -33,14 +33,21 @@
 class InstrumentResponseFunction
 {
 public:
-   InstrumentResponseFunction(int n_t, int n_chan, double* t_irf, double* irf);
+   InstrumentResponseFunction();
+   ~InstrumentResponseFunction();
+
+   void SetIRF(int n_t, int n_chan, double* t_irf, double* irf);
+   void SetImageIRF(int n_t, int n_chan, int n_irf_rep, double t_irf, double* irf);
+   void SetIRFShiftMap(double* t0);
+   double CalculateGFactor();
 
    double timebin_width;
 
+   bool variable_irf;
+
    int n_irf;
    int n_chan;
-   double* t_irf;
-   //double* irf;
+   int n_irf_rep;
 
    double* irf_buf;
    double* t_irf_buf;
@@ -48,8 +55,15 @@ public:
    double* GetIRF(int irf_idx, double* storage);
 
 private:
-   void CopyIRF(double* irf);
+   void CopyIRF(int n_irf_raw, double* t_irf, double* irf);
    void ShiftIRF(double shift, double storage[]);
+
+   void AllocateBuffer(int n_irf_raw);
+   void FreeBuffer();
+
+   void CalculateTimebinWidth();
+   static double CubicInterpolate(double  y[], double mu);
+
 
    int     image_irf;
    double* t0_image;
