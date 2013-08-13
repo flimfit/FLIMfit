@@ -101,7 +101,8 @@ class FLIMGlobalFitController
 public:
 
    int algorithm;
-   int n_thread; int (*callback)();
+   int n_thread; 
+   int (*callback)();
    int error;
 
    int n_fitters;
@@ -111,17 +112,8 @@ public:
    FLIMData* data;
    FitResults* results;
    
-
-   
-
-   //int* irf_idx;
-   
    int y_dim;
-   //double *theta, *theta_err, *r;
-
-
-   //float *y; float *w; 
-
+   
    int runAsync;
    int init;
    bool has_fit;
@@ -129,18 +121,11 @@ public:
    FitStatus *status;
    WorkerParams* params;
 
-   double t_g;
-
+   
    bool getting_fit;
    int calculate_errors;
    double conf_interval;
    double conf_factor;
-
-   float* lin_params_err;
-   float* alf_err_lower;
-   float* alf_err_upper;
-
-   //float* alf_local;
 
 
    FLIMGlobalFitController(int global_algorithm, DecayModel* params, int algorithm,
@@ -158,16 +143,8 @@ public:
    int  GetErrorCode();
 
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int& n_valid);
-   int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[]);   
-
-   int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
-
-   double CalculateGFactor();
-
-   void SetupIncMatrix(int* inc);
-   int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread);
+   
    void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
-   float* GetConstantAdjustment();
 
 
 private:
@@ -181,18 +158,12 @@ private:
    void CleanupTempVars();
 
 
-   int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
-   void NormaliseLinearParams(int s, float volatile lin_params[], float volatile norm_params[]);
-   void DenormaliseLinearParams(int s, float volatile norm_params[], float volatile lin_params[]);
-
-   int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
-   float GetNonLinearParam(int param, float alf[]);
    
    void CalculateMeanLifetime(int s, float lin_params[], float alf[], float mean_tau[], float w_mean_tau[]);
 
    double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
 
-   void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
+//   void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
    
    int ProcessRegion(int g, int r, int px, int thread);
    
@@ -208,7 +179,6 @@ private:
 
 
    int ma_start;
-   float* local_decay;
    double g_factor;
 
    double photons_per_count;

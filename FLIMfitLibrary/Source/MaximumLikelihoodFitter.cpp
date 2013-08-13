@@ -55,7 +55,7 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int* terminate) : 
     AbstractFitter(model, model->nl+1, 1, 1, terminate)
 {
-   nfunc = model->nmax + 1; // +1 for kappa
+   nfunc = nmax + 1; // +1 for kappa
 
    dy = new double[nfunc];
    work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];
@@ -149,7 +149,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
 
 
 
-int MaximumLikelihoodFitter::GetLinearParams(int s, float* y, double* alf) 
+int MaximumLikelihoodFitter::GetLinearParams(RegionData& region_data) 
 {
    return 0;
 }

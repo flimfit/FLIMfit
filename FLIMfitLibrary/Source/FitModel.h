@@ -30,6 +30,11 @@
 #ifndef _FITMODEL_H
 #define _FITMODEL_H
 
+#include <vector>
+#include <string>
+
+using namespace std;
+
 class FitModel
 {
    public: 
@@ -39,16 +44,26 @@ class FitModel
       int nl;
       
       int n; 
-      int nmax; 
-      int ndim; 
       
       int p; 
       
+      int n_output_params;
+      int n_nl_output_params;
+      const char** param_names_ptr;
+      vector<string> param_names;
+
       virtual void SetupIncMatrix(int* inc) = 0;
-      virtual int CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
+      virtual int CalculateModel(double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel, int thread) = 0;
       virtual void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread) = 0;
       virtual float* GetConstantAdjustment() = 0;
       virtual void SetInitialParameters(double param[], double mean_arrival_time) = 0;
+
+      virtual void NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[]) = 0;
+      virtual void DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[]) = 0;
+
+      virtual int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]) = 0;
+      virtual float GetNonLinearParam(int param, float alf[]) = 0;
+
 
 };
 

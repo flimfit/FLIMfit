@@ -46,7 +46,7 @@ public:
 
    int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
 
-   int GetLinearParams(int s, float* y, double* alf); 
+   int GetLinearParams(RegionData& results); 
 
 private:
 

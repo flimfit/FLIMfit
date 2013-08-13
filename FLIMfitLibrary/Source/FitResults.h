@@ -28,6 +28,7 @@
 //=========================================================================
 
 #include "FitModel.h"
+#include <cstdint>
 
 #ifndef _FITRESULTS_H
 #define _FITRESULTS_H
@@ -45,12 +46,25 @@ public:
    const FitResultsRegion GetRegion(int image, int region);
    const FitResultsRegion GetPixel(int image, int region, int pixel);
 
+   double t_g;
+   
+   int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread);   
+
+   int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
+
+
 private:
 
    void CalculateMeanLifetime();
 
+   int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
+   void NormaliseLinearParams(float volatile lin_params[], float volatile norm_params[]);
+   void DenormaliseLinearParams(float volatile norm_params[], float volatile lin_params[]);
+
+   int n_output_params;
    
    FLIMData* data;
+   FitModel* model;
 
    int n_px;
    int lmax;
@@ -79,7 +93,7 @@ class FitResultsRegion
 {
 public:
    FitResultsRegion() : 
-      results(NULL), image(0), region(0), is_pixel(false) {};
+      results(0), image(0), region(0), is_pixel(false) {};
 
    FitResultsRegion(FitResults* results, int image, int region) : 
       results(results), image(image), region(region), is_pixel(false) {};

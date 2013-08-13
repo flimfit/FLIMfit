@@ -28,6 +28,9 @@
 //=========================================================================
 
 #include "ModelParameters.h"
+#include "FlagDefinitions.h"
+
+#include <algorithm>
 
 void ModelParameters::Validate()
 {
@@ -50,5 +53,5 @@ void ModelParameters::Validate()
       inc_donor = true;
    }
    else
-      n_fret_fix = min(n_fret_fix,n_fret);
+      n_fret_fix = std::min(n_fret_fix,n_fret);
 }

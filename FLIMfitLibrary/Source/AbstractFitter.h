@@ -92,24 +92,26 @@ protected:
    int a_size;
    int b_size;
 
-   //int     n;
-   //int     s;
-   //int     l;
-   //int     lmax;
+   int     n;
+   int     nl;
+   int     ndim;
+   int     nmax;
+   int     s;
+   int     l;
+   int     lmax;
    int     n_param;
-   //int     p;
-   //int     pmax;
+   int     p;
+   int     pmax;
 
    int     max_region_size;
-   //int     ndim;
 
    //int     lp1;
 
    float  *y;
+   float  *w;
    float  *avg_y;
    float *lin_params;
    float *chi2;
-   //double *t;
    int    *irf_idx;
 
    double chi2_norm;

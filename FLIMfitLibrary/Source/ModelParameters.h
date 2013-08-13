@@ -41,6 +41,7 @@ protected:
    // Timegates
    int     n_t; 
    double *t;
+   double *t_int;
    
    int data_type;
    
@@ -49,7 +50,10 @@ protected:
    double *t_irf; 
    double *irf; 
    double  pulse_pileup;
-   
+
+   int     photons_per_count;
+
+
    // Intensity decay
    int     n_exp; 
    int     n_fix; 
@@ -57,6 +61,8 @@ protected:
    double *tau_max;
    double *tau_guess;
  
+
+
    int     estimate_initial_tau; 
   
    // FRET model

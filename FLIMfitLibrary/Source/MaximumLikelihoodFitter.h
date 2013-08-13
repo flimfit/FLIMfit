@@ -44,7 +44,7 @@ public:
    int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr);
 
    int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
-   int GetLinearParams(int s, float* y, double* alf) ;
+   int GetLinearParams(RegionData& results) ;
 private:
 
    int Init();

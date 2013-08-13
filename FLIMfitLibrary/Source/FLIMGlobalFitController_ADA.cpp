@@ -147,7 +147,7 @@ void DecayModel::SetupIncMatrix(int* inc)
 
 
 /* ============================================================== */
-int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *alf, int irf_idx, int isel, int thread)
+int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel, int thread)
 {
 
    int i,j,k, d_offset, total_n_exp, idx;
@@ -161,9 +161,6 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
 
 
    double t0;
-
-   int n_meas = data->GetResampleNumMeas(thread);
-   int N = n_meas;
                                
    double *tau_buf   = this->tau_buf + thread * n_exp * (n_fret + 1);
    double *beta_buf  = this->beta_buf + thread * n_exp;
@@ -180,10 +177,7 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
       ref_lifetime = ref_lifetime_guess;
 
    total_n_exp = n_exp * n_fret_group;
-        
-
-   int* resample_idx = data->GetResampleIdx(thread);
-      
+             
 
    switch(isel)
    {
@@ -197,44 +191,42 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
          // set constant phi value for offset
          if( fit_offset == FIT_LOCALLY )
          {
-            for(i=0; i<N; i++)
-               a[N*a_col+i]=0;
+            for(i=0; i<n_meas; i++)
+               a[adim*a_col+i]=0;
             idx = 0;
             for(k=0; k<n_chan; k++)
             {
                for(i=0; i<n_t; i++)
                {
-                  a[idx+N*a_col] += 1;
-                  idx += resample_idx[i];
+                  a[idx+adim*a_col] += 1;
+                  idx++;
                }
-               idx++;
             }
             a_col++;
          }
 
          // set constant phi value for scatterer
-         if( fit_scatter == FIT_LOCALLY  )
+         if( fit_scatter == FIT_LOCALLY )
          {
-            for(i=0; i<N; i++)
-               a[N*a_col+i]=0;
-            add_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
+            for(i=0; i<n_meas; i++)
+               a[adim*a_col+i]=0;
+            add_irf(thread, irf_idx, a+adim*a_col,n_r,scale_fact);
             a_col++;
          }
 
          // set constant phi value for tvb
          if( fit_tvb == FIT_LOCALLY )
          {
-            for(i=0; i<N; i++)
-               a[N*a_col+i]=0;
+            for(i=0; i<n_meas; i++)
+               a[adim*a_col+i]=0;
             idx = 0;
             for(k=0; k<n_chan; k++)
             {
                for(i=0; i<n_t; i++)
                {
-                  a[idx+N*a_col] += tvb_profile[k*n_t+i];
-                  idx += resample_idx[i];
+                  a[idx+adim*a_col] += tvb_profile[k*n_t+i];
+                  idx++;
                }
-               idx++;
             }
             a_col++;
          }
@@ -312,21 +304,21 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
          if (check_alf_mod(thread, alf, irf_idx))
             calculate_exponentials(thread, irf_idx, tau_buf, theta_buf);
 
-         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, isel == 1, a+a_col*N);
+         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, isel == 1, a+a_col*adim, adim);
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
          //----------------------------------------------
          
-         for(i=0; i<N; i++)
-            a[ i + N*a_col ] = 0;
+         for(i=0; i<n_meas; i++)
+            a[ i + adim*a_col ] = 0;
             
          // Add scatter
          if (fit_scatter == FIT_GLOBALLY)
          {
-            add_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
-            for(i=0; i<N; i++)
-               a[ i + N*a_col ] = a[ i + N*a_col ] * alf[alf_scatter_idx];
+            add_irf(thread, irf_idx, a+adim*a_col,n_r,scale_fact);
+            for(i=0; i<n_meas; i++)
+               a[ i + adim*a_col ] = a[ i + adim*a_col ] * alf[alf_scatter_idx];
          }
 
          // Add tvb
@@ -337,10 +329,9 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
             {
                for(i=0; i<n_t; i++)
                {
-                  a[idx+N*a_col] += tvb_profile[k*n_t+i] * alf[alf_tvb_idx];
-                  idx += resample_idx[i];
+                  a[idx+adim*a_col] += tvb_profile[k*n_t+i] * alf[alf_tvb_idx];
+                  idx++;
                }
-               idx++;
             }
          }
 
@@ -353,10 +344,9 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
             {
                for(i=0; i<n_t; i++)
                {
-                  a[idx+N*a_col] += alf[alf_offset_idx];
-                  idx += resample_idx[i];
+                  a[idx+adim*a_col] += alf[alf_offset_idx];
+                  idx++;
                }
-               idx++;
             }
          }
 
@@ -387,7 +377,7 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
          }
          */
 
-         for(i=0; i<N*(a_col+1); i++)
+         for(i=0; i<adim*(a_col+1); i++)
             a[i] *= photons_per_count; 
          
          if (isel==2 || getting_fit)
@@ -397,16 +387,16 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
       
          int col = 0;
          
-         col += tau_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*ndim);
+         col += tau_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
          
          if (fit_beta == FIT_GLOBALLY)
-            col += beta_derivatives(thread, tau_buf, alf+alf_beta_idx, theta_buf, ref_lifetime, b+col*ndim);
+            col += beta_derivatives(thread, tau_buf, alf+alf_beta_idx, theta_buf, ref_lifetime, b+col*bdim, bdim);
          
-         col += E_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*ndim);
-         col += theta_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*ndim);
+         col += E_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
+         col += theta_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
 
          if (ref_reconvolution == FIT_GLOBALLY)
-            col += ref_lifetime_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*ndim);
+            col += ref_lifetime_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
                   
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
@@ -425,12 +415,12 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
          */
 
 
-         d_offset = ndim * col;
+         d_offset = bdim * col;
 
           // Set derivatives for offset 
          if(fit_offset == FIT_GLOBALLY)
          {
-            for(i=0; i<N; i++)
+            for(i=0; i<n_meas; i++)
                b[d_offset+i]=0;
             idx = 0;
             for(k=0; k<n_chan; k++)
@@ -438,28 +428,27 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
                for(i=0; i<n_t; i++)
                {
                   b[d_offset + idx] += 1;
-                  idx += resample_idx[i];
+                  idx++;
                }
-               idx++;
             }
-            d_offset += ndim;
+            d_offset += bdim;
             col++;
          }
          
          // Set derivatives for scatter 
          if(fit_scatter == FIT_GLOBALLY)
          {
-            for(i=0; i<N; i++)
+            for(i=0; i<n_meas; i++)
                b[d_offset+i]=0;
             add_irf(thread, irf_idx, b+d_offset,n_r,scale_fact);
-            d_offset += ndim;
+            d_offset += bdim;
             col++;
          }
 
          // Set derivatives for tvb 
          if(fit_tvb == FIT_GLOBALLY)
          {
-            for(i=0; i<N; i++)
+            for(i=0; i<n_meas; i++)
                b[d_offset+i]=0;
             idx = 0;
             for(k=0; k<n_chan; k++)
@@ -467,15 +456,14 @@ int DecayModel::CalculateModel(double *a, double *b, double *kap, const double *
                for(i=0; i<n_t; i++)
                {
                   b[ d_offset + idx ] += tvb_profile[k*n_t+i];
-                  idx += resample_idx[i];
+                  idx ++;
                }
-               idx++;
             }
-            d_offset += ndim;
+            d_offset += bdim;
             col++;
          }
 
-        for(i=0; i<col*ndim; i++)
+        for(i=0; i<col*bdim; i++)
             b[i] *= photons_per_count; 
 
          if (use_kappa && kap != NULL)
@@ -510,8 +498,6 @@ void DecayModel::GetWeights(float* y, double* a, const double *alf, float* lin_p
 {
    int i, l_start;
    double F0, ref_lifetime;
-
-   n_meas = data->GetResampleNumMeas(thread);
 
    if ( ref_reconvolution && lin_params != NULL)
    {

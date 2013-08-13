@@ -38,7 +38,7 @@ VariableProjector::VariableProjector(FitModel* model, int max_region_size, int n
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
 
-   n_jac_group = ceil(1024.0 / (nmax-l));
+   n_jac_group = (int) ceil(1024.0 / (nmax-l));
 
    work_ = new double[nmax * n_thread];
 
@@ -64,9 +64,9 @@ VariableProjector::VariableProjector(FitModel* model, int max_region_size, int n
 
    if (use_numerical_derv)
    {
-      fjac = new double[nmax * smax * n];
-      wa4  = new double[nmax * smax]; 
-      fvec = new double[nmax * smax];
+      fjac = new double[nmax * max_region_size * n];
+      wa4  = new double[nmax * max_region_size]; 
+      fvec = new double[nmax * max_region_size];
    }
    else
    {
@@ -236,7 +236,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
    if (use_numerical_derv)
       info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf, fvec,
                   ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
-                  &nfev, fjac, nmax*smax, ipvt, qtf, wa1, wa2, wa3, wa4 );
+                  &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4 );
    else
    {
    
@@ -281,12 +281,11 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int*
 }
 
 
-int VariableProjector::GetLinearParams(int s, float* y, double* alf) 
+int VariableProjector::GetLinearParams(RegionData& results) 
 {
+   s = results.GetPointers(y, irf_idx);
    int nsls1 = (n-l) * s;
-   this->y   = y;
-   this->s   = s;
-
+   
    varproj(nsls1, nl, 1, alf, fvec, fjac, -1, 0);
    varproj(nsls1, nl, 1, alf, fvec, fjac, -2, 0);
    
@@ -627,6 +626,8 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
 
 void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
+   int lp1 = l+1;
+
    float*  y = this->y + px * nmax;
    double* wp = wp_ + omp_thread * nmax;
    
@@ -677,6 +678,8 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
 
 void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firstca, int firstcb)
 {
+   int lp1 = l+1;
+
    int a_dim1 = n;
    int b_dim1 = ndim;
    

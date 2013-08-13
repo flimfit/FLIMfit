@@ -53,7 +53,7 @@ void DecayModel::Init()
 
    // Select correct convolution function for data type
    //-------------------------------------------------
-   if (data->data_type == DATA_TYPE_TCSPC)
+   if (data_type == DATA_TYPE_TCSPC)
    {
       Convolve = conv_irf_tcspc;
       ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
@@ -107,6 +107,9 @@ void DecayModel::CalculateParameterCounts()
    n_beta = (fit_beta == FIT_GLOBALLY) ? n_exp - n_decay_group : 0;
 
    n_meas = n_t * n_chan;
+
+   n_stray = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+   
 
 }
 
@@ -282,6 +285,93 @@ void DecayModel::SetParameterIndices()
      alf_ref_idx = idx++;
 
 
+}
+
+
+void DecayModel::NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[])
+{
+   if (polarisation_resolved)
+   {
+      for(int j=0; j<n_stray; j++)
+         norm_params[j] = lin_params[j];
+
+      lin_params  += n_stray;
+      norm_params += n_stray;
+
+      float I0 = lin_params[0];
+      float r0 = 0;
+
+      for(int j=1; j<n_r+1; j++)
+      {
+         norm_params[j] = lin_params[j] / I0;
+         r0 += norm_params[j];
+      }
+
+      norm_params[0]     = r0;
+      norm_params[n_r+1] = I0;
+   }
+   else
+   {
+      int n_j = fit_fret ? n_fret_group : n_exp_phi;
+
+      for(int j=0; j<n_stray; j++)
+        norm_params[j] = lin_params[j]; 
+
+      lin_params  += n_stray;
+      norm_params += n_stray;
+
+      float I0 = 0;
+      for(int j=0; j<n_j; j++)
+         I0 += lin_params[j];
+
+      if (n_j > 1)
+      {
+         for (int j=0; j<n_j; j++)
+            norm_params[j] = lin_params[j] / I0;
+         norm_params[n_j] = I0; 
+      }
+
+   }
+}
+
+void DecayModel::DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[])
+{
+   float I0;
+   
+   for(int i=0; i<n_stray; i++)
+      lin_params[i] = norm_params[i]; 
+
+   lin_params += n_stray;
+   norm_params += n_stray;
+
+   if (polarisation_resolved)
+   {
+      I0 = norm_params[n_r+1]; 
+
+      lin_params[0] = I0;
+         
+      for(int j=1; j<n_r+1; j++)
+         lin_params[j] = norm_params[j] * I0;
+
+         
+      norm_params += lmax;
+      lin_params += lmax;
+   }
+   else
+   {
+      int n_j = fit_fret ? n_fret_group : n_exp_phi;
+
+      I0 = norm_params[n_j];
+
+      if (n_j > 1)
+         for (int j=0; j<n_j; j++)
+            lin_params[j] = norm_params[j] * I0;
+      else
+         lin_params[0] = norm_params[0];
+             
+      lin_params += lmax;
+      norm_params += lmax;
+   }
 }
 
 
@@ -503,12 +593,9 @@ int DecayModel::DetermineMAStartPosition(int idx)
    int j_last = 0;
    int start = 0;
    
-
-   // Get reference to timepoints
-   double* t = data->GetT();
-   
+  
    // Get IRF for the pixel position idx
-   double *irf = this->irf_buf + idx * n_irf * n_chan;
+   double *irf = this->irf.irf_buf + idx * n_irf * n_chan; // TODO
 
    //===================================================
    // If we have a scatter IRF use data after cumulative sum of IRF is
@@ -530,7 +617,7 @@ int DecayModel::DetermineMAStartPosition(int idx)
          c += irf[i];
          if (c >= irf_95)
          {
-            for (int j=j_last; j<data->n_t; j++)
+            for (int j=j_last; j<n_t; j++)
                if (t[j] > t_irf[i])
                {
                   start = j;
@@ -556,7 +643,7 @@ int DecayModel::DetermineMAStartPosition(int idx)
          if (irf[i] > c)
          {
             c = irf[i];
-            for (int j=j_last; j<data->n_t; j++)
+            for (int j=j_last; j<n_t; j++)
                if (t[j] > t_irf[i])
                {
                   start = j;
@@ -632,83 +719,6 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
       param[idx++] = ref_lifetime_guess;
 }
 
-
-/**
- * Determine which data should be used when we're calculating the average lifetime for an initial guess.
- * Since we won't take the IRF into account we need to only use data after the gate is mostly closed.
- *
- * \param idx The pixel index, used if we have a spatially varying IRF
-*/
-int DecayModel::DetermineMAStartPosition(int idx)
-{
-   double c;
-   int j_last = 0;
-   int start = 0;
-
-
-   // Get IRF for the pixel position idx
-   double *irf = this->irf_buf + idx * n_irf * n_chan;
-
-   //===================================================
-   // If we have a scatter IRF use data after cumulative sum of IRF is
-   // 95% of total sum (so we ignore any potential tail etc)
-   //===================================================
-   if (!ref_reconvolution)
-   {
-      // Determine 95% of IRF
-      double irf_95 = 0;
-      for(int i=0; i<n_irf; i++)
-         irf_95 += irf[i];
-      irf_95 *= 0.95;
-
-      // Cycle through IRF to find time at which cumulative IRF is 95% of sum.
-      // Once we get there, find the time gate in the data immediately after this time
-      c = 0;
-      for(int i=0; i<n_irf; i++)
-      {
-         c += irf[i];
-         if (c >= irf_95)
-         {
-            for (int j=j_last; j<n_t; j++)
-               if (t[j] > t_irf[i])
-               {
-                  start = j;
-                  j_last = j;
-                  break;
-               }
-            break;
-         }
-      }
-   }
-
-   //===================================================
-   // If we have reference IRF, use data after peak of reference which should roughly
-   // correspond to end of gate
-   //===================================================
-   else
-   {
-      // Cycle through IRF, if IRF is larger then previously seen find the find the
-      // time gate in the data immediately after this time. Repeat until end of IRF.
-      c = 0;
-      for(int i=0; i<n_irf; i++)
-      {
-         if (irf[i] > c)
-         {
-            c = irf[i];
-            for (int j=j_last; j<n_t; j++)
-               if (t[j] > t_irf[i])
-               {
-                  start = j;
-                  j_last = j;
-                  break;
-               }
-         }
-      }
-   }
-
-
-   return start;
-}
 
 /**
  * Estimate average lifetime of a decay as an intial guess
@@ -788,7 +798,6 @@ double DecayModel::EstimateAverageLifetime(float decay[], int p)
       int    N;
 
       double log_di;
-      double* t_int = data->t_int;
 
       N = n_t-start;
 

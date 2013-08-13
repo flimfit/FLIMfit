@@ -32,21 +32,26 @@
 //
 
 
-#include "FLIMGlobalFitController.h"
-#include "IRFConvolution.h"
 #include "util.h"
+#include "FLIMGlobalFitController.h"
+#include "FitResults.h"
+#include "FLIMData.h"
+#include "DecayModel.h"
+#include "IRFConvolution.h"
 
+#include <vector>
 #include <cmath>
 #include <algorithm>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include "omp_stub.h"
+#include "TrimmedMean.h"
 
 #include "ConcurrencyAnalysis.h"
 
 using namespace boost::interprocess;
-#include "TrimmedMean.h"
+using namespace std;
 
 
 int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageStats<float>& stats, int region, double conf_factor, float buf[])
@@ -70,7 +75,7 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageSta
 
 
 
-float FLIMGlobalFitController::GetNonLinearParam(int param, float alf[])
+float DecayModel::GetNonLinearParam(int param, float alf[])
 {
    #define GET_PARAM(param,n,p)  {if (p < n) return ((float)(param)[p]); else (p-=n);}
 
@@ -136,7 +141,8 @@ float FLIMGlobalFitController::GetNonLinearParam(int param, float alf[])
    return (float) NaN();
 }
 
-int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[])
+
+int DecayModel::ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[])
 {
    #define SET_PARAM(i) {param[idx] = alf[i]; err_lower[idx] = alf_err_lower[i]; err_upper[idx] = alf_err_upper[i]; idx++;}
    #define SET_FIXED(p) {param[idx] = p; err_lower[idx] = NaN(); err_upper[idx] = NaN(); idx++;}
@@ -212,11 +218,15 @@ int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float alf_err_l
 }
 
 
-int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[])
+int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread)
 {
    INIT_CONCURRENCY;
    
    int n_px = data->n_px;
+
+   int n_nl_output_params = model->n_nl_output_params;
+   int n_output_params = model->n_output_params;
+   int nl = model->nl;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    START_SPAN("Calculating Result Statistics");
@@ -298,14 +308,14 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
                   alf_err_upper_group = alf_err_upper + start * nl; 
 
                   for(int i=0; i<s_local; i++)
-                     ProcessNonLinearParams(alf_group + i*nl, alf_err_lower_group + i*nl, alf_err_upper_group + i*nl, 
+                     model->ProcessNonLinearParams(alf_group + i*nl, alf_err_lower_group + i*nl, alf_err_upper_group + i*nl, 
                                             nl_output + i*n_nl_output_params, err_lower_output + i*n_nl_output_params, err_upper_output + i*n_nl_output_params);
                }
                else
                {
 
                   for(int i=0; i<s_local; i++)
-                     ProcessNonLinearParams(alf_group + i*nl, nan_buf, nan_buf, 
+                     model->ProcessNonLinearParams(alf_group + i*nl, nan_buf, nan_buf, 
                                             nl_output + i*n_nl_output_params, err_lower_output + i*n_nl_output_params, err_upper_output + i*n_nl_output_params);
                }
 
@@ -321,7 +331,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
                   alf_err_lower_group = alf_err_lower + nl * r_idx; 
                   alf_err_upper_group = alf_err_upper + nl * r_idx; 
             
-                  ProcessNonLinearParams(alf_group, alf_err_lower_group, alf_err_upper_group, 
+                  model->ProcessNonLinearParams(alf_group, alf_err_lower_group, alf_err_upper_group, 
                                          param_buf, err_lower_buf, err_upper_buf);
 
                   for(int i=0; i<n_nl_output_params; i++)
@@ -329,7 +339,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
                }
                else
                {
-                  ProcessNonLinearParams(alf_group, nan_buf, nan_buf, 
+                  model->ProcessNonLinearParams(alf_group, nan_buf, nan_buf, 
                                       param_buf, err_lower_buf, err_upper_buf);
 
                   for(int i=0; i<n_nl_output_params; i++)
@@ -384,13 +394,15 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
 }
 
 
-int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[])
+int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[])
 {
 
    int start, s_local;
    int r_idx;
 
    int n_px =  data->n_px;
+   int n_nl_output_params = model->n_nl_output_params;
+   int nl = model->nl;
 
    float* param_data = NULL;
    int span;
@@ -435,7 +447,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
                for(int i=0; i<n_px; i++)
                   if(im_mask[i] == rg)
                   {
-                     image_data[i] = GetNonLinearParam(r_param, param_data + j*nl);
+                     image_data[i] = model->GetNonLinearParam(r_param, param_data + j*nl);
                      j++;
                   }
 
@@ -443,7 +455,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
             else
             {
                param_data = alf + r_idx * nl;
-               float p = GetNonLinearParam(r_param, param_data);
+               float p = model->GetNonLinearParam(r_param, param_data);
                
                for(int i=0; i<n_px; i++)
                   if(im_mask[i] == rg)
@@ -522,7 +534,8 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       return ERR_FIT_IN_PROGRESS;
 
    int start, s_local;
-   int n_px = data->n_px;;
+   int n_px = data->n_px;
+   int n_meas = model->n_meas;
 
    uint8_t* mask = data->mask + im*n_px;
 
@@ -538,25 +551,6 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
 
    float *alf_group;
    float *lin_group;
-
-   int n_t_buf = this->n_t;
-   double* t_buf = this->t;
-   
-   this->n_t = n_t;
-   this->n_meas = n_t*n_chan;
-   this->n = n_meas;
-   this->nmax = this->n_meas;
-   this->t = t;
-
-   int* resample_idx  = new int[ n_t ]; //ok
-
-   for(int i=0; i<n_t-1; i++)
-      resample_idx[i] = 1;
-   resample_idx[n_t-1] = 0;
-
-   data->SetExternalResampleIdx(n_meas, resample_idx);
-
-   CalculateIRFMax(n_t,t);
    
    getting_fit = true;
 
@@ -609,16 +603,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
       }
    }
 
-
    getting_fit = false;
-
-   this->n_t = n_t_buf;
-   this->n_meas = this->n_t * n_chan;
-   this->nmax = n_meas;
-   this->t = t_buf;
-   this->n = this->n_meas;
-   
-   delete[] resample_idx;
 
    return 0;
 }

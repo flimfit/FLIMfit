@@ -57,7 +57,22 @@ AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size
 
    params = NULL;
    alf_err = NULL;
-   
+
+   nl   = model->nl;
+   l    = model->l;
+   n    = model->n;
+   nmax = model->n;
+
+   pmax  = model->p;
+
+   ndim = ...;
+
+
+   int lp1 = l+1;
+
+
+
+
 
    // Check for valid input
    //----------------------------------
@@ -70,10 +85,6 @@ AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size
       return;
    }
    
-   lp1 = l+1;
-
-   int nmax = model->nmax;
-   int nl   = model->nl;
 
    a_size = nmax * lp1;
    b_size = ndim * ( pmax + 3 );
@@ -89,12 +100,10 @@ AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size
    err_upper = new double[ n_param ];
    err_lower = new double[ n_param ];
 
-   y            = new float[ y_dim * n_meas ]; //free ok 
-   irf_idx      = new int[ y_dim ];
+   y            = new float[ max_region_size * nmax ]; //free ok 
+   irf_idx      = new int[ max_region_size ];
 
-   local_decay  = new float[ n_meas ]; //ok
-   lin_local    = new float[ lmax ]; //ok
-   w            = new float[ n_meas ]; //free ok
+   w            = new float[ nmax ]; //free ok
     
    
 
@@ -104,7 +113,7 @@ AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size
 
    Init();
 
-   if (p_full != p)
+   if (pmax != p)
       err = ERR_INVALID_INPUT;
 
 }
@@ -132,10 +141,9 @@ int AbstractFitter::Init()
    // Determine number of constant functions
    //------------------------------------------
 
-   int nl = model->nl;
-   int l  = model->l;
+   int lp1 = lp1;
 
-   nconp1 = l+1;
+   nconp1 = lp1;
    philp1 = l == 0;
    p = 0;
 
@@ -200,7 +208,7 @@ int AbstractFitter::Fit(RegionData* region_data, float *lin_params, float *chi2,
 
    Init();
 
-   this->s = region_data->GetDataPtr(y, irf_idx);
+   s = region_data->GetPointers(y, irf_idx);
 
    region_data->GetAverageDecay(avg_y);
    
@@ -214,8 +222,6 @@ int AbstractFitter::Fit(RegionData* region_data, float *lin_params, float *chi2,
    this->cur_chi2   = &c2;
    this->thread     = thread;
    this->photons_per_count  = photons_per_count;
-
-   gnl = gnlmax;
 
    int max_jacb = 65536; 
 
@@ -273,13 +279,12 @@ int AbstractFitter::CalculateErrors(double conf_limit)
 
    getting_errs = true;
 
-   gnl = gnlmax - 1;
-
+  
    // Get lower (lim=0) and upper (lim=1) limit
    for(int lim=0; lim<2; lim++)
    {
 
-      for(int i=0; i<gnlmax; i++)
+      for(int i=0; i<nl; i++)
       {
 
          fixed_param = i;
@@ -405,7 +410,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    double* a = a_ + omp_thread * a_size;
    double* b = b_ + omp_thread * b_size;
 
-   model->CalculateModel(a, b, kap, params, irf_idx, isel, thread * n_thread + omp_thread);
+   model->CalculateModel(a, n, b, ndim, kap, params, irf_idx, isel, thread * n_thread + omp_thread);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)
@@ -434,7 +439,7 @@ int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_para
    if (err != 0)
       return err;
 
-   model->CalculateModel(a_, b_, kap, alf, irf_idx, 1, 0);
+   model->CalculateModel(a_, n, b_, ndim, kap, alf, irf_idx, 1, 0);
 
    int idx = 0;
    for(int i=0; i<n_meas; i++)

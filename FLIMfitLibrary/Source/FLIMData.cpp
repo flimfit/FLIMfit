@@ -448,10 +448,6 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
    float* masked_data;
    int* irf_idx;
    
-   float* intensity;
-   float* acceptor;
-   float* r_ss;
-
    region_data.Clear();
 
    

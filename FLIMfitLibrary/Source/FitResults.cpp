@@ -32,15 +32,19 @@
 #include "util.h"
 
 FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
-   data(data), calculate_errors(calculate_errors)
+   model(model), data(data), calculate_errors(calculate_errors)
 {
    n_px = data->n_masked_px;
    lmax = model->lmax;
+
+   n_output_params = model->n_output_params;
 
    int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
    alf_size *= model->nl;
 
    int lin_size = n_px * lmax;
+
+
 
    try
    {
@@ -152,6 +156,30 @@ void FitResults::CalculateMeanLifetime()
    }
 }
 
+
+void FitResults::NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[])
+{
+   #pragma omp parallel for
+   for(int i=0; i<n_px; i++)
+   {
+      volatile float* lin_local = lin_params + lmax * i;
+      volatile float* norm_local = norm_params + lmax * i;
+
+      model->NormaliseLinearParams(lin_local, norm_local);
+   }
+}
+
+void FitResults::DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[])
+{
+   #pragma omp parallel for
+   for(int i=0; i<n_px; i++)
+   {
+      volatile float* lin_local = lin_params + lmax * i;
+      volatile float* norm_local = norm_params + lmax * i;
+
+      model->DenormaliseLinearParams(norm_local, lin_local);
+   }
+}
 
 
 
