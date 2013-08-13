@@ -82,10 +82,6 @@ public:
    
    int GetImLoc(int im);
 
-   void SetExternalResampleIdx(int ext_n_meas_res, int* ext_resample_idx);
-   int* GetResampleIdx(int thread);
-   int GetResampleNumMeas(int thread);
-
    double* GetT();  
 
    double GetPhotonsPerCount();
@@ -204,12 +200,6 @@ private:
 
    int data_class;
 
-   int* resample_idx;
-   int* n_meas_res;
-
-   bool use_ext_resample_idx;
-   int* ext_resample_idx;
-   int ext_n_meas_res;
 
    int polarisation_resolved;
    double g_factor;

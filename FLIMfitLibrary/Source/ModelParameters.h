@@ -42,6 +42,8 @@ protected:
    int     n_t; 
    double *t;
    
+   int data_type;
+   
    // Instrument response function
    int     n_irf; 
    double *t_irf; 

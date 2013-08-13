@@ -33,14 +33,23 @@
 class RegionData
 {
 public:
+   RegionData();
    RegionData(int n_px, int n_meas);
+   RegionData(RegionData* region, int px);
    ~RegionData();
+
+   RegionData& RegionData::operator=( const RegionData& other );
+
    void Clear();
    void GetPointersForInsertion(int n, float*& y, int*& irf_idx);
    void GetPointersForArbitaryInsertion(int pos, int n, float*& y, int*& irf_idx);
    int  GetPointers(float*& y, int*& irf_idx);
+   const RegionData GetBinnedRegion();
+
 
    void GetAverageDecay(float* average_decay);
+
+   const RegionData RegionData::GetPixel(int px);
 
 
 private:
@@ -50,6 +59,8 @@ private:
 
    float* data;
    int* irf_idx;
+
+   bool is_shallow_ptr;
 };
 
 

@@ -33,6 +33,7 @@
 #define _FITRESULTS_H
 
 class FLIMData;
+class FitResultsRegion;
 
 class FitResults
 {
@@ -40,11 +41,19 @@ public:
    FitResults(FitModel* model, FLIMData* data, int calculate_errors);
    ~FitResults();
 
-   void GetAssociatedResults(int im, int r, float*& I, float*& r_ss, float*& acceptor);
-   
+   void  GetAssociatedResults(int im, int r, float*& I, float*& r_ss, float*& acceptor);
+   const FitResultsRegion GetRegion(int image, int region);
+   const FitResultsRegion GetPixel(int image, int region, int pixel);
 
 private:
+
+   void CalculateMeanLifetime();
+
+   
    FLIMData* data;
+
+   int n_px;
+   int lmax;
 
    float *alf; 
    float *alf_err_lower;
@@ -62,7 +71,28 @@ private:
 
 
    int calculate_errors;
+   int calculate_mean_lifetimes;
 
+};
+
+class FitResultsRegion
+{
+public:
+   FitResultsRegion() : 
+      results(NULL), image(0), region(0), is_pixel(false) {};
+
+   FitResultsRegion(FitResults* results, int image, int region) : 
+      results(results), image(image), region(region), is_pixel(false) {};
+
+  FitResultsRegion(FitResults* results, int image, int region, int pixel) : 
+      results(results), image(image), region(region), pixel(pixel), is_pixel(true) {};
+
+private:
+   FitResults* results;
+   int image;
+   int region;
+   int pixel;
+   bool is_pixel;
 };
 
 #endif

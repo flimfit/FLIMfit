@@ -31,13 +31,13 @@
 #define _ABSTRACTFITTER_H
 
 #include "FitModel.h"
+#include "FitResults.h"
 #include "RegionData.h"
+
 #include "omp_stub.h"
 #include "levmar.h"
 
 #include <cstdio>
-
-
 
 class AbstractFitter
 {
@@ -46,10 +46,11 @@ public:
 
    AbstractFitter(FitModel* model, int n_param, int max_region_size, int n_thread, int* terminate);
    virtual ~AbstractFitter();
+
    virtual int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr) = 0;
-   virtual int GetLinearParams(int s, float* y, double* alf) = 0;
+   virtual int GetLinearParams(RegionData& results) = 0;
    
-   int Fit(int n, int s, int lmax, RegionData* region_data, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2);
+   int Fit(RegionData& region_data, FitResultsRegion& results, int thread, int itmax, int& niter, int &ierr, double& c2);
    int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
    double ErrMinFcn(double x);
    int CalculateErrors(double conf_limit);

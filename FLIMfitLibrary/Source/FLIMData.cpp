@@ -182,23 +182,6 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
 
    smoothing_area = (2*this->smoothing_factor+1)*(2*this->smoothing_factor+1);
 
-   resample_idx = new int[n_t * n_thread]; //ok
-   n_meas_res = new int[n_thread]; //ok
-
-   use_ext_resample_idx = 0;
-   ext_resample_idx = NULL;
-   ext_n_meas_res = 0;
-   
-   for(int j=0; j<n_thread; j++)
-   {
-      for(int i=0; i<n_t-1; i++)
-         resample_idx[j*n_t+i] = 1;
-      
-      resample_idx[j*n_t+n_t-1] = 0;
-
-      n_meas_res[j] = n_t * n_chan;
-   }
-
 
 }
 
@@ -458,104 +441,7 @@ double* FLIMData::GetT()
    return t + t_skip[0];
 }
 
-void FLIMData::SetExternalResampleIdx(int ext_n_meas_res, int* ext_resample_idx)
-{
-   use_ext_resample_idx = true;
-   this->ext_n_meas_res = ext_n_meas_res;
-   this->ext_resample_idx = ext_resample_idx;
-}
-
-
-int* FLIMData::GetResampleIdx(int thread)
-{
-   if (use_ext_resample_idx)
-      return ext_resample_idx;
-   else
-      return resample_idx + thread * n_t;
-}
-
-int FLIMData::GetResampleNumMeas(int thread)
-{
-   if (use_ext_resample_idx)
-      return ext_n_meas_res;
-   else
-      return n_meas_res[thread];
-}
-
-void FLIMData::DetermineAutoSampling(int thread, float decay[], int n_bin_min)
-{
-   float buf;
-   int idx;
-
-   if (n_chan > 1 || !use_autosampling || use_ext_resample_idx)
-   //if (data_type != DATA_TYPE_TCSPC || n_chan > 1 || !use_autosampling || use_ext_resample_idx)
-      return;
-
-   int* resample_idx = this->resample_idx + n_t * thread;
-
-   int   max_w = n_t / 5;
-   double min_c = 20.0 / smoothing_area;
-   
-   double total_count = 0;
-   
-   int last = -1;
-   for(int i=0; i<n_t; i++)
-   {
-      resample_idx[i] = 0;
-      total_count += decay[i];
-   }
-      
-   if (total_count < n_bin_min*min_c)
-   {
-      min_c = total_count / n_bin_min;
-   }
-
-   resample_idx[n_t-1] = 0;
-   float c = decay[n_t-1];
-   int w = 0;
-   int n_bin = 1;
-   for (int i=n_t-2; i>=0; i--)
-   {
-      if ( c < min_c && w < max_w )
-      {
-         c += decay[i];
-         w++;
-      }
-      else
-      {
-         c = decay[i];
-         resample_idx[i] = 1;
-         last = i;
-         w = 1;
-         n_bin++;
-      }
-   }
-
-   if ((c < min_c) && (n_bin > n_bin_min))
-      resample_idx[last] = 0;
-
-   n_meas_res[thread] = n_bin * n_chan;
-
-
-   // Now resample data provided
-   idx = 0;
-   for(int k=0; k<n_chan; k++)
-   {
-      for(int i=0; i<n_t; i++)
-      {
-         buf = decay[k*n_t + i];
-         decay[k*n_t + i] = 0;
-         decay[idx] += buf;
-         idx += resample_idx[i];
-      }
-      idx++;
-   }
-
-
-}
-
-
-int FLIMData::GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results)
+int FLIMData::GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread)
 {
    int s = 0;
    
@@ -565,6 +451,9 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
    float* intensity;
    float* acceptor;
    float* r_ss;
+
+   region_data.Clear();
+
    
    if ( global_mode == MODE_IMAGEWISE )
    {
@@ -680,9 +569,7 @@ FLIMData::~FLIMData()
    delete[] intensity_;
 
    delete[] cur_transformed;
-   delete[] resample_idx;
    delete[] data_map_view;
-   delete[] n_meas_res;
  
    delete[] data_used;
    delete[] data_loaded;

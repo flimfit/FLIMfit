@@ -234,8 +234,6 @@ void DecayModel::add_decay(int threadi, int tau_idx, int theta_idx, int fret_gro
    int fret_tau_idx = tau_idx + (fret_group_idx+tau_start)*n_exp;
 
    double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
-
-   int* resample_idx = data->GetResampleIdx(threadi);
    
    
 
@@ -258,9 +256,8 @@ void DecayModel::add_decay(int threadi, int tau_idx, int theta_idx, int fret_gro
          
          Convolve(this, rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, c);
          a[idx] += exp_model_buf[k*n_t+i] * c * fact;
-         idx += resample_idx[i];
+         idx++;
       }
-      idx++;
    }
 }
 
@@ -275,9 +272,7 @@ void DecayModel::add_derivative(int thread, int tau_idx, int theta_idx, int fret
    double* exp_irf_tirf_buf      = local_exp_buf + (row+2)*exp_dim;
    double* exp_irf_cum_buf       = local_exp_buf + (row+3)*exp_dim;
    double* exp_irf_buf           = local_exp_buf + (row+4)*exp_dim;
-   
-   int* resample_idx = data->GetResampleIdx(thread);
-   
+      
    int fret_tau_idx = tau_idx + (fret_group_idx+tau_start)*n_exp;
            
    double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
@@ -292,21 +287,19 @@ void DecayModel::add_derivative(int thread, int tau_idx, int theta_idx, int fret
       {
          ConvolveDerivative(this, t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, pulse_fact, ref_fact, c);
          b[idx] += exp_model_buf[k*n_t+i] * c * fact;
-         idx += resample_idx[i];
+         idx++;
       }
-      idx++;
    }
 }
 
 
 int DecayModel::flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[])
 {
-   int n_meas_res = data->GetResampleNumMeas(thread);
 
    // Total number of columns 
    int n_col = n_fret_group * n_pol_group * n_exp_phi;
 
-   memset(a, 0, n_meas_res*n_col*sizeof(double));
+   memset(a, 0, n_meas*n_col*sizeof(double));
 
    int idx = 0;
    for(int p=0; p<n_pol_group; p++)
@@ -318,7 +311,7 @@ int DecayModel::flim_model(int thread, int irf_idx, double tau[], double beta[],
          {
             if (beta_global && decay_group_buf[j] > cur_decay_group)
             {
-               idx += n_meas_res;
+               idx += n_meas;
                cur_decay_group++;
 
                if (ref_reconvolution)
@@ -335,11 +328,11 @@ int DecayModel::flim_model(int thread, int irf_idx, double tau[], double beta[],
             add_decay(thread, j, p, g, tau, theta, fact, ref_lifetime, a+idx);
 
             if (!beta_global)
-               idx += n_meas_res;
+               idx += n_meas;
          }
 
          if (beta_global)
-            idx += n_meas_res;
+            idx += n_meas;
       }
    }
 
@@ -348,19 +341,17 @@ int DecayModel::flim_model(int thread, int irf_idx, double tau[], double beta[],
 
 int DecayModel::ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
-   int n_meas_res = data->GetResampleNumMeas(thread);
-
    double fact;
   
    int n_col = n_pol_group * (beta_global ? 1 : n_exp);
    for(int i=0; i<n_col; i++)
-      memset(b+i*ndim, 0, n_meas_res*sizeof(*b)); 
+      memset(b+i*ndim, 0, n_meas*sizeof(*b)); 
 
    for(int p=0; p<n_pol_group; p++)
    {
       for(int g=0; g<n_fret_group; g++)
       {
-         int idx = (g+p*n_fret_group)*n_meas_res;
+         int idx = (g+p*n_fret_group)*n_meas;
          int cur_decay_group = 0;
 
          for(int j=0; j<n_exp ; j++)
@@ -387,7 +378,6 @@ int DecayModel::ref_lifetime_derivatives(int thread, double tau[], double beta[]
 
 int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
-   int n_meas_res = data->GetResampleNumMeas(thread);
 
    double fact;
 
@@ -402,7 +392,7 @@ int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double 
       {
          for(int p=0; p<n_pol_group; p++)
          {
-            memset(b+idx, 0, n_meas_res*sizeof(*b));
+            memset(b+idx, 0, n_meas*sizeof(*b));
 
             fact  = 1 / (tau[j] * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
             fact *= beta_global ? beta[j] : 1;
@@ -420,7 +410,7 @@ int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double 
          int g = i + inc_donor;
          double fret_tau = tau[j + n_exp * (i+1)];
          
-         memset(b+idx, 0, n_meas_res*sizeof(*b));
+         memset(b+idx, 0, n_meas*sizeof(*b));
       
          fact = beta[j] / (fret_tau * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
          
@@ -437,7 +427,6 @@ int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double 
 
 int DecayModel::beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[])
 {
-   int n_meas_res = data->GetResampleNumMeas(thread);
    
    double fact;
   
@@ -463,7 +452,7 @@ int DecayModel::beta_derivatives(int thread, double tau[], const double alf[], d
          for(int p=0; p<n_pol_group; p++)
             for(int g=0; g<n_fret_group; g++)
             {
-               memset(b+idx, 0, n_meas_res*sizeof(*b)); 
+               memset(b+idx, 0, n_meas*sizeof(*b)); 
 
                for(int k=j; k<group_end; k++)
                {
@@ -482,7 +471,6 @@ int DecayModel::beta_derivatives(int thread, double tau[], const double alf[], d
 
 int DecayModel::theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
-   int n_meas_res = data->GetResampleNumMeas(thread);
    
    double fact;
 
@@ -491,7 +479,7 @@ int DecayModel::theta_derivatives(int thread, double tau[], double beta[], doubl
 
    for(int p=n_theta_fix; p<n_theta; p++)
    {
-      memset(b+idx, 0, n_meas_res*sizeof(*b));
+      memset(b+idx, 0, n_meas*sizeof(*b));
 
       for(int j=0; j<n_exp; j++)
       {      
@@ -509,7 +497,6 @@ int DecayModel::theta_derivatives(int thread, double tau[], double beta[], doubl
 
 int DecayModel::E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])
 {
-   int n_meas_res = data->GetResampleNumMeas(thread);
    
    double fact, E, Ej, dE;
    
@@ -520,7 +507,7 @@ int DecayModel::E_derivatives(int thread, double tau[], double beta[], double th
    {
       int g = i + n_fret_fix + inc_donor;
 
-      memset(b+idx, 0, n_meas_res*sizeof(*b));
+      memset(b+idx, 0, n_meas*sizeof(*b));
       double* fret_tau = tau + n_exp * (g+tau_start);
       
       for(int j=0; j<n_exp; j++)

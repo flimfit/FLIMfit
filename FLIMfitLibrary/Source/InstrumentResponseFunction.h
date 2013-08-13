@@ -49,6 +49,8 @@ public:
    int n_chan;
    int n_irf_rep;
 
+   double g_factor;
+
    double* irf_buf;
    double* t_irf_buf;
 

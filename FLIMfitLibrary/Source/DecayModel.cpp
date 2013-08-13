@@ -37,37 +37,7 @@ void DecayModel::Init()
 {
    use_kappa      = true;
 
- 
-      
-   tau_start = inc_donor ? 0 : 1;
-
-   beta_global = (fit_beta != FIT_LOCALLY);
-
-   if (polarisation_resolved)
-   {
-      n_chan = 2;
-      n_r = n_theta + inc_rinf;
-      n_pol_group = n_r + 1;
-   }
-   else
-   {
-      n_chan = 1;
-      n_pol_group = 1;
-      n_r = 0;
-   }
-
-   n_theta_v = n_theta - n_theta_fix;
-
-   n_fret_v = n_fret - n_fret_fix;
-   n_fret_group = n_fret + inc_donor;        // Number of decay 'groups', i.e. FRETing species + no FRET
-
-   n_v = n_exp - n_fix;                      // Number of unfixed exponentials
-   
-   n_exp_phi = (beta_global ? n_decay_group : n_exp);
-   
-   n_beta = (fit_beta == FIT_GLOBALLY) ? n_exp - n_decay_group : 0;
-
-   n_meas = n_t * n_chan;
+   CalculateParameterCounts();      
 
 
 
@@ -78,6 +48,8 @@ void DecayModel::Init()
    SetParameterIndices();
    SetOutputParamNames();
 
+   CalculateIRFMax(n_t,t);
+   ma_start = DetermineMAStartPosition(0);
 
    // Select correct convolution function for data type
    //-------------------------------------------------
@@ -102,6 +74,40 @@ void DecayModel::Init()
 DecayModel::~DecayModel()
 {
    AlignedClearVariable(exp_buf);
+}
+
+void DecayModel::CalculateParameterCounts()
+{
+   tau_start = inc_donor ? 0 : 1;
+
+   beta_global = (fit_beta != FIT_LOCALLY);
+
+   if (polarisation_resolved)
+   {
+      n_chan = 2;
+      n_pol_group = n_r + 1;
+      n_r = n_theta + inc_rinf;
+   }
+   else
+   {
+      n_chan = 1;
+      n_pol_group = 1;
+      n_r = 0;
+   }
+
+   n_theta_v = n_theta - n_theta_fix;
+
+   n_fret_v = n_fret - n_fret_fix;
+   n_fret_group = n_fret + inc_donor;        // Number of decay 'groups', i.e. FRETing species + no FRET
+
+   n_v = n_exp - n_fix;                      // Number of unfixed exponentials
+   
+   n_exp_phi = (beta_global ? n_decay_group : n_exp);
+   
+   n_beta = (fit_beta == FIT_GLOBALLY) ? n_exp - n_decay_group : 0;
+
+   n_meas = n_t * n_chan;
+
 }
 
 void DecayModel::SetupDecayGroups()
@@ -175,13 +181,7 @@ void DecayModel::AllocateBuffers()
    try
    {
       cur_alf      = new double[ nl ]; //ok
-      /*
-      #ifdef _WINDOWS
-         exp_buf   = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
-       #else
-         exp_buf   = new double[n_thread * n_fret_group * exp_buf_size];
-       #endif
-       */
+
       AlignedAllocate( n_thread * n_fret_group * exp_buf_size, exp_buf ); 
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -192,9 +192,10 @@ void DecayModel::AllocateBuffers()
    }
    catch(std::exception e)
    {
-      error =  ERR_OUT_OF_MEMORY;
-      CleanupTempVars();
-      CleanupResults();
+      // TODO
+      //error =  ERR_OUT_OF_MEMORY;
+      //CleanupTempVars();
+      //CleanupResults();
       return;
    }
 }
@@ -471,6 +472,8 @@ void DecayModel::CalculateParameterCount()
 */
 void DecayModel::CalculateIRFMax(int n_t, double t[])
 {
+   irf_max.reserve(n_meas);
+
    for(int j=0; j<n_chan; j++)
    {
       for(int i=0; i<n_t; i++)
@@ -627,4 +630,190 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
 
    if(ref_reconvolution == FIT_GLOBALLY)
       param[idx++] = ref_lifetime_guess;
+}
+
+
+/**
+ * Determine which data should be used when we're calculating the average lifetime for an initial guess.
+ * Since we won't take the IRF into account we need to only use data after the gate is mostly closed.
+ *
+ * \param idx The pixel index, used if we have a spatially varying IRF
+*/
+int DecayModel::DetermineMAStartPosition(int idx)
+{
+   double c;
+   int j_last = 0;
+   int start = 0;
+
+
+   // Get IRF for the pixel position idx
+   double *irf = this->irf_buf + idx * n_irf * n_chan;
+
+   //===================================================
+   // If we have a scatter IRF use data after cumulative sum of IRF is
+   // 95% of total sum (so we ignore any potential tail etc)
+   //===================================================
+   if (!ref_reconvolution)
+   {
+      // Determine 95% of IRF
+      double irf_95 = 0;
+      for(int i=0; i<n_irf; i++)
+         irf_95 += irf[i];
+      irf_95 *= 0.95;
+
+      // Cycle through IRF to find time at which cumulative IRF is 95% of sum.
+      // Once we get there, find the time gate in the data immediately after this time
+      c = 0;
+      for(int i=0; i<n_irf; i++)
+      {
+         c += irf[i];
+         if (c >= irf_95)
+         {
+            for (int j=j_last; j<n_t; j++)
+               if (t[j] > t_irf[i])
+               {
+                  start = j;
+                  j_last = j;
+                  break;
+               }
+            break;
+         }
+      }
+   }
+
+   //===================================================
+   // If we have reference IRF, use data after peak of reference which should roughly
+   // correspond to end of gate
+   //===================================================
+   else
+   {
+      // Cycle through IRF, if IRF is larger then previously seen find the find the
+      // time gate in the data immediately after this time. Repeat until end of IRF.
+      c = 0;
+      for(int i=0; i<n_irf; i++)
+      {
+         if (irf[i] > c)
+         {
+            c = irf[i];
+            for (int j=j_last; j<n_t; j++)
+               if (t[j] > t_irf[i])
+               {
+                  start = j;
+                  j_last = j;
+                  break;
+               }
+         }
+      }
+   }
+
+
+   return start;
+}
+
+/**
+ * Estimate average lifetime of a decay as an intial guess
+ */
+double DecayModel::EstimateAverageLifetime(float decay[], int p)
+{
+   double  tau = 0;
+   int     start;
+
+   //if (image_irf)
+   //   start = DetermineMAStartPosition(p);
+   //else
+      start = ma_start;
+
+   //===================================================
+   // For TCSPC data, calculate the mean arrival time and apply a correction for
+   // the data censoring (i.e. finite measurement window)
+   //===================================================
+
+   if (data_type == DATA_TYPE_TCSPC)
+   {
+      double t_mean = 0;
+      double  n  = 0;
+      double c;
+
+      for(int i=start; i<n_t; i++)
+      {
+         c = decay[i]-adjust_buf[i];
+         t_mean += c * (t[i] - t[start]);
+         n   += c;
+      }
+
+      // If polarisation resolevd add perp decay using I = para + 2*g*perp
+      if (polarisation_resolved)
+      {
+         for(int i=start; i<n_t; i++)
+         {
+            t_mean += 2 * irf.g_factor * decay[i+n_t] * (t[i] - t[start]);
+            n   += 2 * irf.g_factor * decay[i+n_t];
+         }
+      }
+
+      t_mean = t_mean / n;
+
+      // Apply correction for measurement window
+      double T = t[n_t-1]-t[start];
+
+      // Older iterative correction; tends to same value more slowly
+      //tau = t_mean;
+      //for(int i=0; i<10; i++)
+      //   tau = t_mean + T / (exp(T/tau)-1);
+
+      t_mean /= T;
+      tau = t_mean;
+
+      // Newton-Raphson update
+      for(int i=0; i<3; i++)
+      {
+         double e = exp(1/tau);
+         double iem1 = 1/(e-1);
+         tau = tau - ( - tau + t_mean + iem1 ) / ( e * iem1 * iem1 / (tau*tau) - 1 );
+      }
+      tau *= T;
+   }
+
+   //===================================================
+   // For widefield data, apply linearised model
+   //===================================================
+
+   else
+   {
+      double sum_t  = 0;
+      double sum_t2 = 0;
+      double sum_tlnI = 0;
+      double sum_lnI = 0;
+      double dt;
+      int    N;
+
+      double log_di;
+      double* t_int = data->t_int;
+
+      N = n_t-start;
+
+      for(int i=start; i<n_t; i++)
+      {
+         dt = t[i]-t[start];
+
+         sum_t += dt;
+         sum_t2 += dt * dt;
+
+         if ((decay[i]-adjust_buf[i]) > 0)
+            log_di = log((decay[i]-adjust_buf[i])/t_int[i]);
+         else
+            log_di = 0;
+
+         sum_tlnI += dt * log_di;
+         sum_lnI  += log_di;
+
+      }
+
+      tau  = - (N * sum_t2   - sum_t * sum_t);
+      tau /=   (N * sum_tlnI - sum_t * sum_lnI);
+
+   }
+
+   return tau;
+
 }

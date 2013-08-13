@@ -35,6 +35,7 @@ class FitModel
    public: 
 
       int l; 
+      int lmax;
       int nl;
       
       int n; 

@@ -79,7 +79,9 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double* t_irf, dou
    variable_irf = false;
 
    CopyIRF(n_t, t_irf, irf);
+
    CalculateTimebinWidth();
+   CalculateGFactor();
 }
 
 void InstrumentResponseFunction::CalculateTimebinWidth()
@@ -189,7 +191,6 @@ void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* t_irf, double* i
 */
 double InstrumentResponseFunction::CalculateGFactor()
 {
-   int g_factor; 
 
    if (n_chan == 2)
    {

@@ -28,30 +28,34 @@
 //=========================================================================
 
 #include "FitResults.h"
+#include "FLIMData.h"
 #include "util.h"
 
 FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
    data(data), calculate_errors(calculate_errors)
 {
+   n_px = data->n_masked_px;
+   lmax = model->lmax;
+
    int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
    alf_size *= model->nl;
 
-   int lin_size = data->n_masked_px * model->lmax;
+   int lin_size = n_px * lmax;
 
    try
    {
       lin_params   = new float[ lin_size ]; //ok
-      chi2         = new float[ data->n_masked_px ]; //ok
-      I            = new float[ data->n_masked_px ];
+      chi2         = new float[ n_px ]; //ok
+      I            = new float[ n_px ];
 
       if (model->polarisation_resolved)
-         r_ss      = new float[ data->n_masked_px ];
+         r_ss      = new float[ n_px ];
 
       if (data->has_acceptor)
-         acceptor  = new float[ data->n_masked_px ];
+         acceptor  = new float[ n_px ];
 
-      ierr         = new int[ data->n_regions_total ];
-      success      = new float[ data->n_regions_total ];
+      ierr         = new int[ n_px ];
+      success      = new float[ n_px ];
       alf          = new float[ alf_size ]; //ok
 
       if (calculate_errors)
@@ -67,8 +71,8 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
       
       if (calculate_mean_lifetimes)
       {
-         w_mean_tau   = new float[ data->n_masked_px ];  
-         mean_tau     = new float[ data->n_masked_px ];  
+         w_mean_tau   = new float[ n_px ];  
+         mean_tau     = new float[ n_px ];  
       }
    }
    catch(std::exception e)
@@ -78,12 +82,12 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
       //return;
    }
 
-   SetNaN(alf, alf_size );
-   SetNaN(chi2, data->n_masked_px );
-   SetNaN(I, data->n_masked_px );
-   SetNaN(r_ss, data->n_masked_px );
-   SetNaN(lin_params, lin_size);
-
+   SetNaN(alf,        alf_size );
+   SetNaN(lin_params, lin_size );
+   SetNaN(chi2,       n_px );
+   SetNaN(I,          n_px );
+   SetNaN(r_ss,       n_px );
+   
    for(int i=0; i<data->n_regions_total; i++)
    {
       success[i] = 0;
@@ -94,14 +98,62 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
 
 }
 
-void FitResults::GetAssociatedResults(int im, float*& r, float*& I_, float*& r_ss_, float*& acceptor_)
+const FitResultsRegion FitResults::GetRegion(int image, int region)
 {
-   int pos =  data->GetRegionPos(im,r);
+   return FitResultsRegion(this, image, region);
+}
+
+const FitResultsRegion FitResults::GetPixel(int image, int region, int pixel)
+{
+   return FitResultsRegion(this, image, region, pixel);
+}
+
+
+void FitResults::GetAssociatedResults(int image, int region, float*& I_, float*& r_ss_, float*& acceptor_)
+{
+   int pos =  data->GetRegionPos(image,region);
 
    I_       = I        + pos;
    r_ss_    = r_ss     + pos;
    acceptor = acceptor + pos;
 }
+
+
+
+
+void FitResults::CalculateMeanLifetime()
+{
+   if (calculate_mean_lifetimes)
+   {
+      int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
+      lin_params += lin_idx;
+
+      #pragma omp parallel for
+      for (int j=0; j<n_px; j++)
+      {
+         w_mean_tau[j] = 0;
+         mean_tau[j]   = 0;
+
+         for (int i=0; i<n_fix; i++)
+         {
+            w_mean_tau[j] += (float) (tau_guess[i] * tau_guess[i] * lin_params[i+lmax*j]);
+            mean_tau[j]   += (float) (               tau_guess[i] * lin_params[i+lmax*j]);
+         }
+
+         for (int i=0; i<n_v; i++)
+         {
+            w_mean_tau[j] += (float) (alf[i] * alf[i] * lin_params[i+n_fix+lmax*j]);
+            mean_tau[j]   += (float) (         alf[i] * lin_params[i+n_fix+lmax*j]); 
+         }
+
+         w_mean_tau[j] /= mean_tau[j];
+      }
+    
+   }
+}
+
+
+
 
 FitResults::~FitResults()
 {

@@ -124,7 +124,7 @@ private:
 
    double *chan_fact;
 
-   int *irf_max;
+   vector<int> irf_max;
 
 
    double *exp_buf;
@@ -136,8 +136,9 @@ private:
    int n_output_params;
    int n_nl_output_params;
    const char** param_names_ptr;
-   std::vector<std::string> param_names;
+   vector<string> param_names;
 
+   int ma_start;
 
    void SetupDecayGroups();
    void SetupPolarisationChannelFactors();
@@ -146,7 +147,11 @@ private:
    void SetParameterIndices();
    void SetOutputParamNames();
 
+   void CalculateParameterCounts();
+
    int DetermineMAStartPosition(int idx);
+   double EstimateAverageLifetime(float decay[], int p);
+
    void CalculateIRFMax(int n_t, double t[]);
 
    friend void calc_exps(DecayModel *gc, int n_t, double t[], int total_n_exp, double tau[], int n_theta, double theta[], float exp_buf[]);

@@ -240,8 +240,6 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                           (threads_started < n_active_thread && cur_region >= 0) ) // not all threads have yet started up
                      active_lock.wait(region_mutex);
                     
-                  region_data[0].Clear();
-
                   data->GetRegionData(0, im, r, region_data[0], *results, 1);
                   data->ImageDataFinished(im);
 
@@ -419,7 +417,6 @@ void FLIMGlobalFitController::SetData(FLIMData* data)
 }
 
 
-
  
 
 
@@ -514,30 +511,9 @@ void FLIMGlobalFitController::Init()
    //}
 
 
-
-   try
-   {
-    
-      irf_max      = new int[n_meas]; //free ok
-
-      init = true;
-   }
-   catch(std::exception e)
-   {
-      error =  ERR_OUT_OF_MEMORY;
-      CleanupTempVars();
-      CleanupResults();
-      return;
-   }
-
    // TODO: add exception handling here
    results = new FitResults(model, data, calculate_errors);
 
-
-
-
-   CalculateIRFMax(n_t,t);
-   ma_start = DetermineMAStartPosition(0);
 
    // Create fitting objects
    projectors.reserve(n_fitters);
