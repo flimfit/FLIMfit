@@ -64,7 +64,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int* terminate
 
 
 
-int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr)
+int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
 {
 
    for(int i=0; i<n; i++)

@@ -111,9 +111,7 @@ public:
    DecayModel* model;
    FLIMData* data;
    FitResults* results;
-   
-   int y_dim;
-   
+     
    int runAsync;
    int init;
    bool has_fit;
@@ -158,13 +156,7 @@ private:
    void CleanupTempVars();
 
 
-   
-   void CalculateMeanLifetime(int s, float lin_params[], float alf[], float mean_tau[], float w_mean_tau[]);
 
-   double* GetDataPointer(int g, boost::interprocess::mapped_region& data_map_view);
-
-//   void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
-   
    int ProcessRegion(int g, int r, int px, int thread);
    
 
@@ -176,16 +168,6 @@ private:
 
    int DetermineMAStartPosition(int p);
    double EstimateAverageLifetime(float decay[], int p);
-
-
-   int ma_start;
-   double g_factor;
-
-   double photons_per_count;
-   
-
-   int calculate_mean_lifetimes;
-
 
 
    ptr_vector<AbstractFitter> projectors;

@@ -147,7 +147,7 @@ void DecayModel::SetupIncMatrix(int* inc)
 
 
 /* ============================================================== */
-int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel, int thread)
+int DecayModel::CalculateModel(DecayModelWorkingBuffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel)
 {
 
    int i,j,k, d_offset, total_n_exp, idx;
@@ -161,10 +161,6 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
 
 
    double t0;
-                               
-   double *tau_buf   = this->tau_buf + thread * n_exp * (n_fret + 1);
-   double *beta_buf  = this->beta_buf + thread * n_exp;
-   double *theta_buf = this->theta_buf + thread * n_theta;
    
    if ( fit_t0 )
       t0 = alf[alf_t0_idx];
@@ -210,7 +206,7 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
          {
             for(i=0; i<n_meas; i++)
                a[adim*a_col+i]=0;
-            add_irf(thread, irf_idx, a+adim*a_col,n_r,scale_fact);
+            add_irf(wb.irf_buf, irf_idx, a+adim*a_col,n_r,scale_fact);
             a_col++;
          }
 
@@ -234,19 +230,19 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
          // Set tau's
          double buf; 
          for(j=0; j<n_fix; j++)
-            tau_buf[j] = tau_guess[j];
+            wb.tau_buf[j] = tau_guess[j];
          for(j=0; j<n_v; j++)
          {
             buf = InverseTransformRange(alf[j],tau_min[j+n_fix],tau_max[j+n_fix]);
-            tau_buf[j+n_fix] = max(buf,60.0);
+            wb.tau_buf[j+n_fix] = max(buf,60.0);
          }
          // Set theta's
          for(j=0; j<n_theta_fix; j++)
-            theta_buf[j] = theta_guess[j];
+            wb.theta_buf[j] = theta_guess[j];
          for(j=0; j<n_theta_v; j++)
          {
             buf = InverseTransformRange(alf[alf_theta_idx+j],0,1000000);
-            theta_buf[j+n_theta_fix] = max(buf,60.0);
+            wb.theta_buf[j+n_theta_fix] = max(buf,60.0);
          }
 
 
@@ -267,7 +263,7 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
                   n_group++;
                   group_end++;
                }
-               alf2beta(n_group,alf+alf_beta_idx+group_start-d,beta_buf+group_start);
+               alf2beta(n_group,alf+alf_beta_idx+group_start-d,wb.beta_buf+group_start);
                
                group_start = group_end;
 
@@ -277,7 +273,7 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
          else if (fit_beta == FIX) 
          {
             for(j=0; j<n_exp; j++)
-               beta_buf[j] = fixed_beta[j];
+               wb.beta_buf[j] = fixed_beta[j];
          }
          
          // Set tau's for FRET
@@ -293,18 +289,18 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
             }
             for(j=0; j<n_exp; j++)
             {
-               double Ej = tau_buf[j]/tau_buf[0]*E;
+               double Ej = wb.tau_buf[j]/wb.tau_buf[0]*E;
                Ej = Ej / (1-E+Ej);
 
-                tau_buf[idx++] = tau_buf[j] * (1-Ej);
+                wb.tau_buf[idx++] = wb.tau_buf[j] * (1-Ej);
             }
          }
 
          // Precalculate exponentials
-         if (check_alf_mod(thread, alf, irf_idx))
-            calculate_exponentials(thread, irf_idx, tau_buf, theta_buf);
+         if (check_alf_mod(wb, alf, irf_idx))
+            calculate_exponentials(wb, irf_idx);
 
-         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, isel == 1, a+a_col*adim, adim);
+         a_col += flim_model(wb, irf_idx, ref_lifetime, isel == 1, a+a_col*adim, adim);
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
@@ -316,7 +312,7 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
          // Add scatter
          if (fit_scatter == FIT_GLOBALLY)
          {
-            add_irf(thread, irf_idx, a+adim*a_col,n_r,scale_fact);
+            add_irf(wb.irf_buf, irf_idx, a+adim*a_col,n_r,scale_fact);
             for(i=0; i<n_meas; i++)
                a[ i + adim*a_col ] = a[ i + adim*a_col ] * alf[alf_scatter_idx];
          }
@@ -387,16 +383,16 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
       
          int col = 0;
          
-         col += tau_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
+         col += tau_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
          
          if (fit_beta == FIT_GLOBALLY)
-            col += beta_derivatives(thread, tau_buf, alf+alf_beta_idx, theta_buf, ref_lifetime, b+col*bdim, bdim);
+            col += beta_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
          
-         col += E_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
-         col += theta_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
+         col += E_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
+         col += theta_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
 
          if (ref_reconvolution == FIT_GLOBALLY)
-            col += ref_lifetime_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*bdim, bdim);
+            col += ref_lifetime_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
                   
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
@@ -440,7 +436,7 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
          {
             for(i=0; i<n_meas; i++)
                b[d_offset+i]=0;
-            add_irf(thread, irf_idx, b+d_offset,n_r,scale_fact);
+            add_irf(wb.irf_buf, irf_idx, b+d_offset,n_r,scale_fact);
             d_offset += bdim;
             col++;
          }
@@ -475,15 +471,15 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
 
             for(i=0; i<n_v; i++)
             {
-               kap_derv[i] = -kappa_lim(tau_buf[n_fix+i]);
+               kap_derv[i] = -kappa_lim(wb.tau_buf[n_fix+i]);
                if (i<n_v-1)
-                  kap_derv[i] += kappa_spacer(tau_buf[n_fix+i+1],tau_buf[n_fix+i]);
+                  kap_derv[i] += kappa_spacer(wb.tau_buf[n_fix+i+1],wb.tau_buf[n_fix+i]);
                if (i>0)
-                  kap_derv[i] -= kappa_spacer(tau_buf[n_fix+i],tau_buf[n_fix+i-1]);
+                  kap_derv[i] -= kappa_spacer(wb.tau_buf[n_fix+i],wb.tau_buf[n_fix+i-1]);
             }
             for(i=0; i<n_theta_v; i++)
             {
-               kap_derv[alf_theta_idx+i] =  -kappa_lim(theta_buf[n_theta_fix+i]);
+               kap_derv[alf_theta_idx+i] =  -kappa_lim(wb.theta_buf[n_theta_fix+i]);
             }
 
             
@@ -494,7 +490,7 @@ int DecayModel::CalculateModel(double *a, int adim, double *b, int bdim, double 
 }
 
 
-void DecayModel::GetWeights(float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx, int thread)
+void DecayModel::GetWeights(DecayModelWorkingBuffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx)
 {
    int i, l_start;
    double F0, ref_lifetime;
@@ -519,7 +515,7 @@ void DecayModel::GetWeights(float* y, double* a, const double *alf, float* lin_p
       for(i=0; i<n_meas; i++)
          w[i] /= ref_lifetime;
 
-      add_irf(thread, irf_idx, w, n_r, &F0);
+      add_irf(wb.irf_buf, irf_idx, w, n_r, &F0);
      
       // Variance = (D + F0 * D_r);
 

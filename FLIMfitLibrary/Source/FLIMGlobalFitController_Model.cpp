@@ -38,51 +38,50 @@
 
 using namespace std;
 
-int DecayModel::check_alf_mod(int thread, const double* new_alf, int irf_idx)
+int DecayModel::check_alf_mod(DecayModelWorkingBuffers& wb, const double* new_alf, int irf_idx)
 {
    if (nl == 0)
       return true;
 
-   if (irf.variable_irf && irf_idx != cur_irf_idx)
+   if (irf.variable_irf && irf_idx != wb.cur_irf_idx)
    {
-      cur_irf_idx = irf_idx;
+      wb.cur_irf_idx = irf_idx;
       return true;
    }
 
    int changed = false;
    for(int i=0; i<nl; i++)
    {
-      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN);
-      cur_alf[i] = new_alf[i];
+      changed = changed | (abs((wb.cur_alf[i] - new_alf[i])) > DBL_MIN);
+      wb.cur_alf[i] = new_alf[i];
    }
 
    return changed;
 }
 
-void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], double theta[])
+void DecayModel::calculate_exponentials(DecayModelWorkingBuffers& wb, int irf_idx)
 {
 
    double e0, de, ej, cum, fact, inv_theta, rate;
    int i, j, k, m, idx, next_idx, tau_idx;
    __m128d *dest_, *src_, *irf_, *t_irf_;
 
-   double* local_exp_buf = exp_buf + thread * n_fret_group * exp_buf_size;
    int row = n_pol_group*n_fret_group*n_exp*N_EXP_BUF_ROWS;
    
 
-   double* lirf = irf.GetIRF(irf_idx, storage);
+   double* lirf = irf.GetIRF(irf_idx, wb.irf_buf);
 
    for(m=n_pol_group-1; m>=0; m--)
    {
 
-      inv_theta = m>0 ? 1/theta[m-1] : 0; 
+      inv_theta = m>0 ? 1/wb.theta_buf[m-1] : 0; 
 
       for(i=n_fret_group*n_exp-1; i>=0; i--)
       {
          row--;
 
          tau_idx = i + n_exp * tau_start; 
-         rate = 1/tau[tau_idx] + inv_theta;
+         rate = 1/wb.tau_buf[tau_idx] + inv_theta;
          
          // IRF exponential factor
          e0 = exp( (irf.t_irf_buf[0] + t0_guess) * rate ); // * t_g;
@@ -92,7 +91,7 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
          __m128d  ej_ = _mm_setr_pd(e0, e0*de);
          __m128d  de_ = _mm_set1_pd(de*de);
 
-         dest_ = (__m128d*) (local_exp_buf + row*exp_dim);
+         dest_ = (__m128d*) (wb.exp_buf + row*exp_dim);
          irf_  = (__m128d*) lirf;
 
          int n_loop = n_irf/2;
@@ -124,11 +123,11 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
          {
             next_idx = row*exp_dim + k*n_irf;
             idx = next_idx + exp_dim;
-            cum = local_exp_buf[idx++];
+            cum = wb.exp_buf[idx++];
             for(j=0; j<n_irf; j++)
             {
-               local_exp_buf[next_idx++] = cum;
-               cum += local_exp_buf[idx++];
+               wb.exp_buf[next_idx++] = cum;
+               cum += wb.exp_buf[idx++];
             }
          }
 
@@ -140,8 +139,8 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
          
          for(k=0; k<n_chan; k++)
          {
-            dest_  = (__m128d*) (local_exp_buf + row*exp_dim + k*n_irf);
-            src_   = (__m128d*) (local_exp_buf + (row+2)*exp_dim + k*n_irf);
+            dest_  = (__m128d*) (wb.exp_buf + row*exp_dim + k*n_irf);
+            src_   = (__m128d*) (wb.exp_buf + (row+2)*exp_dim + k*n_irf);
             t_irf_ = (__m128d*) irf.t_irf_buf;
 
             for(j=0; j<n_loop; j++)
@@ -172,11 +171,11 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
          {
             next_idx = row*exp_dim + k*n_irf;
             idx = next_idx + exp_dim;
-            cum = local_exp_buf[idx++];
+            cum = wb.exp_buf[idx++];
             for(j=0; j<n_irf; j++)
             {
-               local_exp_buf[next_idx++] = cum;
-               cum += local_exp_buf[idx++];
+               wb.exp_buf[next_idx++] = cum;
+               cum += wb.exp_buf[idx++];
             }
          }
 
@@ -203,7 +202,7 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
                ej = e0;
                for(j=0; j<n_t; j++)
                {
-                  local_exp_buf[j+k*n_t+row*exp_dim] = fact * ej * chan_fact[m*n_chan+k] * t_int[j];
+                  wb.exp_buf[j+k*n_t+row*exp_dim] = fact * ej * chan_fact[m*n_chan+k] * t_int[j];
                   ej *= de;
                }
             }
@@ -213,7 +212,7 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
             for(k=0; k<n_chan; k++)
             {
                for(j=0; j<n_t; j++)
-                  local_exp_buf[j+k*n_t+row*exp_dim] = fact * exp( - t[j] * rate ) * chan_fact[m*n_chan+k] * t_int[j];
+                  wb.exp_buf[j+k*n_t+row*exp_dim] = fact * exp( - t[j] * rate ) * chan_fact[m*n_chan+k] * t_int[j];
             }
          }
       }
@@ -221,10 +220,10 @@ void DecayModel::calculate_exponentials(int thread, int irf_idx, double tau[], d
 }
 
 
-void DecayModel::add_decay(int threadi, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[])
+void DecayModel::add_decay(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[])
 {   
    double c;
-   double* local_exp_buf = exp_buf + threadi * n_fret_group * exp_buf_size;
+   double* local_exp_buf = wb.exp_buf + n_fret_group * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
    
    double* exp_model_buf         = local_exp_buf +  row   *exp_dim;
@@ -233,7 +232,7 @@ void DecayModel::add_decay(int threadi, int tau_idx, int theta_idx, int fret_gro
             
    int fret_tau_idx = tau_idx + (fret_group_idx+tau_start)*n_exp;
 
-   double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
+   double rate = 1/wb.tau_buf[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/wb.theta_buf[theta_idx-1]);
    
    
 
@@ -261,10 +260,10 @@ void DecayModel::add_decay(int threadi, int tau_idx, int theta_idx, int fret_gro
    }
 }
 
-void DecayModel::add_derivative(int thread, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double b[])
+void DecayModel::add_derivative(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[])
 {   
    double c;
-   double* local_exp_buf = exp_buf + thread * n_fret_group * exp_buf_size;
+   double* local_exp_buf = wb.exp_buf + n_fret_group * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
 
    double* exp_model_buf         = local_exp_buf + (row+0)*exp_dim;
@@ -275,7 +274,7 @@ void DecayModel::add_derivative(int thread, int tau_idx, int theta_idx, int fret
       
    int fret_tau_idx = tau_idx + (fret_group_idx+tau_start)*n_exp;
            
-   double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
+   double rate = 1/wb.tau_buf[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/wb.theta_buf[theta_idx-1]);
 
    double ref_fact = (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
    double pulse_fact = exp( t_rep * rate ) - 1; 
@@ -293,7 +292,7 @@ void DecayModel::add_derivative(int thread, int tau_idx, int theta_idx, int fret
 }
 
 
-int DecayModel::flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[], int adim)
+int DecayModel::flim_model(DecayModelWorkingBuffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim)
 {
 
    // Total number of columns 
@@ -315,17 +314,17 @@ int DecayModel::flim_model(int thread, int irf_idx, double tau[], double beta[],
                cur_decay_group++;
 
                if (ref_reconvolution)
-                  add_irf(thread, irf_idx, a+idx, p);
+                  add_irf(wb.irf_buf, irf_idx, a+idx, p);
             }
 
             // If we're doing delta-function reconvolution add contribution from reference
             // -> but only add once if beta is global (i.e. if we add up all the decays)
             if (ref_reconvolution && (!beta_global || j==0))
-               add_irf(thread, irf_idx, a+idx, p);
+               add_irf(wb.irf_buf, irf_idx, a+idx, p);
 
-            double fact = beta_global ? beta[j] : 1;
+            double fact = beta_global ? wb.beta_buf[j] : 1;
 
-            add_decay(thread, j, p, g, tau, theta, fact, ref_lifetime, a+idx);
+            add_decay(wb, j, p, g, fact, ref_lifetime, a+idx);
 
             if (!beta_global)
                idx += adim;
@@ -339,7 +338,7 @@ int DecayModel::flim_model(int thread, int irf_idx, double tau[], double beta[],
    return n_col;
 }
 
-int DecayModel::ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim)
+int DecayModel::ref_lifetime_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
 {
    double fact;
   
@@ -363,9 +362,9 @@ int DecayModel::ref_lifetime_derivatives(int thread, double tau[], double beta[]
             }
 
             fact  = - 1 / (ref_lifetime * ref_lifetime);
-            fact *= beta_global ? beta[j] : 1;
+            fact *= beta_global ? wb.beta_buf[j] : 1;
 
-            add_decay(thread, j, p, g, tau, theta, fact, 0, b+idx);
+            add_decay(wb, j, p, g, fact, 0, b+idx);
 
             if (!beta_global)
                idx += bdim;
@@ -376,7 +375,7 @@ int DecayModel::ref_lifetime_derivatives(int thread, double tau[], double beta[]
    return n_col;
 }
 
-int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim)
+int DecayModel::tau_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
 {
 
    double fact;
@@ -394,10 +393,10 @@ int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double 
          {
             memset(b+idx, 0, n_meas*sizeof(*b));
 
-            fact  = 1 / (tau[j] * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
-            fact *= beta_global ? beta[j] : 1;
+            fact  = 1 / (wb.tau_buf[j] * wb.tau_buf[j]) * TransformRangeDerivative(wb.tau_buf[j],tau_min[j],tau_max[j]);
+            fact *= beta_global ? wb.beta_buf[j] : 1;
 
-            add_derivative(thread, j, p, 0, tau, theta, fact, ref_lifetime, b+idx);
+            add_derivative(wb, j, p, 0, fact, ref_lifetime, b+idx);
 
             col++;
             idx += bdim;
@@ -408,13 +407,13 @@ int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double 
       for(int i=0; i<n_fret; i++)
       {
          int g = i + inc_donor;
-         double fret_tau = tau[j + n_exp * (i+1)];
+         double fret_tau = wb.tau_buf[j + n_exp * (i+1)];
          
          memset(b+idx, 0, n_meas*sizeof(*b));
       
-         fact = beta[j] / (fret_tau * tau[j]) * TransformRangeDerivative(tau[j],tau_min[j],tau_max[j]);
+         fact = wb.beta_buf[j] / (fret_tau * wb.tau_buf[j]) * TransformRangeDerivative(wb.tau_buf[j],tau_min[j],tau_max[j]);
          
-         add_derivative(thread, j, 0, g, tau, theta, fact, ref_lifetime, b+idx);
+         add_derivative(wb, j, 0, g, fact, ref_lifetime, b+idx);
 
          col++;
          idx += bdim;
@@ -425,7 +424,7 @@ int DecayModel::tau_derivatives(int thread, double tau[], double beta[], double 
 
 }
 
-int DecayModel::beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[], int bdim)
+int DecayModel::beta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact;
@@ -456,8 +455,8 @@ int DecayModel::beta_derivatives(int thread, double tau[], const double alf[], d
 
                for(int k=j; k<group_end; k++)
                {
-                  fact = beta_derv(n_group, j-group_start, k-group_start, alf);
-                  add_decay(thread, k, p, g, tau, theta, fact, ref_lifetime, b+idx);
+                  fact = beta_derv(n_group, j-group_start, k-group_start, wb.beta_buf);
+                  add_decay(wb, k, p, g, fact, ref_lifetime, b+idx);
                }
 
                idx += bdim;
@@ -469,7 +468,7 @@ int DecayModel::beta_derivatives(int thread, double tau[], const double alf[], d
    return col;
 }
 
-int DecayModel::theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim)
+int DecayModel::theta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact;
@@ -483,8 +482,8 @@ int DecayModel::theta_derivatives(int thread, double tau[], double beta[], doubl
 
       for(int j=0; j<n_exp; j++)
       {      
-         fact  = beta[j] / theta[p] / theta[p] * TransformRangeDerivative(theta[p],0,1000000);
-         add_derivative(thread, j, p+1, 0, tau, theta, fact, ref_lifetime, b+idx);
+         fact  = wb.beta_buf[j] / wb.theta_buf[p] / wb.theta_buf[p] * TransformRangeDerivative(wb.theta_buf[p],0,1000000);
+         add_derivative(wb, j, p+1, 0, fact, ref_lifetime, b+idx);
       }
 
       idx += bdim;
@@ -495,7 +494,7 @@ int DecayModel::theta_derivatives(int thread, double tau[], double beta[], doubl
 
 }
 
-int DecayModel::E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim)
+int DecayModel::E_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact, E, Ej, dE;
@@ -508,20 +507,20 @@ int DecayModel::E_derivatives(int thread, double tau[], double beta[], double th
       int g = i + n_fret_fix + inc_donor;
 
       memset(b+idx, 0, n_meas*sizeof(*b));
-      double* fret_tau = tau + n_exp * (g+tau_start);
+      double* fret_tau = wb.tau_buf + n_exp * (g+tau_start);
       
       for(int j=0; j<n_exp; j++)
       {
-         E  = 1-fret_tau[0]/tau[0];
-         Ej = 1-fret_tau[j]/tau[j];
+         E  = 1-fret_tau[0]/wb.tau_buf[0];
+         Ej = 1-fret_tau[j]/wb.tau_buf[j];
         
          dE = Ej/E;
          dE *= dE;
-         dE *= tau[0]/tau[j];
+         dE *= wb.tau_buf[0]/wb.tau_buf[j];
                  
           
-         fact  = - beta[j] * tau[j] / (fret_tau[j] * fret_tau[j]) * dE;
-         add_derivative(thread, j, 0, g, tau, theta, fact, ref_lifetime, b+idx);
+         fact  = - wb.beta_buf[j] * wb.tau_buf[j] / (fret_tau[j] * fret_tau[j]) * dE;
+         add_derivative(wb, j, 0, g, fact, ref_lifetime, b+idx);
       }
 
       col++;

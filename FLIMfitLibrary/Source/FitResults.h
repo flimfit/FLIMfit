@@ -42,15 +42,19 @@ public:
    FitResults(FitModel* model, FLIMData* data, int calculate_errors);
    ~FitResults();
 
-   void  GetAssociatedResults(int im, int r, float*& I, float*& r_ss, float*& acceptor);
+   float* GetAuxDataPtr(int image, int region);
+   
    const FitResultsRegion GetRegion(int image, int region);
    const FitResultsRegion GetPixel(int image, int region, int pixel);
+  
+   void GetNonLinearParams(int image, int region, int pixel, double* params);
+   void GetLinearParams(int image, int region, int pixel, float* params);
 
-   double t_g;
-   
    int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread);   
 
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
+
+   double t_g;
 
 
 private:
@@ -69,14 +73,14 @@ private:
    int n_px;
    int lmax;
 
+   int n_aux;
+
    float *alf; 
    float *alf_err_lower;
    float *alf_err_upper;
    float *lin_params; 
    float *chi2; 
-   float *I; 
-   float *r_ss; 
-   float *acceptor;
+   float *aux_data;
    float *w_mean_tau; 
    float *mean_tau;
 

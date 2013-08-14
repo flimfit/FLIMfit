@@ -41,6 +41,7 @@
 using namespace std;
 
 class DecayModel;
+class DecayModelWorkingBuffers;
 
 typedef void (* conv_func)(DecayModel *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
 typedef void (* conv_deriv_func)(DecayModel *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
@@ -57,22 +58,18 @@ public:
  
    void NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[]);
    void DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[]);
-   
-   void ShiftIRF(double shift, double s_irf[]);
-
 
    void Init();
 
    int alf_t0_idx, alf_offset_idx, alf_scatter_idx, alf_E_idx, alf_beta_idx, alf_theta_idx, alf_tvb_idx, alf_ref_idx;
 
-   void   SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
    void   SetupIncMatrix(int* inc);
-   int    CalculateModel(double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel, int thread);
-   void   GetWeights(float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx, int thread);
+   int    CalculateModel(DecayModelWorkingBuffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel);
+   void   GetWeights(DecayModelWorkingBuffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx);
    float* GetConstantAdjustment();
 
-   int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
-   float GetNonLinearParam(int param, float alf[]);
+   int ProcessNonLinearParams(DecayModelWorkingBuffers& wb, float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
+   float GetNonLinearParam(DecayModelWorkingBuffers& wb, int param, float alf[]);
 
 
    void SetInitialParameters(double* params, double mean_arrival_time);
@@ -90,10 +87,6 @@ public:
 
    int eq_spaced_data;
 
-   double* cur_alf;
-   int     cur_irf_idx;
-
-
 private:
 
    InstrumentResponseFunction irf;
@@ -109,14 +102,10 @@ private:
 
    double *chan_fact;
 
-   vector<int> irf_max;
-
-
-   double *exp_buf;
-   double *tau_buf;
-   double *beta_buf;
-   double *theta_buf;
    float  *adjust_buf;
+
+
+   vector<int> irf_max;
 
    int ma_start;
    
@@ -131,6 +120,7 @@ private:
    void CheckGateSpacing();
    void SetParameterIndices();
    void SetOutputParamNames();
+   void SetupAdjust();
 
    void CalculateParameterCounts();
 
@@ -143,24 +133,24 @@ private:
    void CalculateParameterCount();
 
    template <typename T>
-   void add_irf(int thread, int irf_idx, T a[],int pol_group, double* scale_fact = NULL);
+   void add_irf(double* irf_buf, int irf_idx, T a[], int pol_group, double* scale_fact = NULL);
 
 
 
 
-   void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[]);
-   int check_alf_mod(int thread, const double* new_alf, int irf_idx);
+   void calculate_exponentials(DecayModelWorkingBuffers& wb, int irf_idx);
+   int check_alf_mod(DecayModelWorkingBuffers& wb, const double* new_alf, int irf_idx);
 
-   int flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[], int adim);
-   int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim);
-   int tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim);
-   int beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[], int bdim);
-   int theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim);
-   int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim);
-   int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[], int bdim);
+   int flim_model(DecayModelWorkingBuffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim);
+   int ref_lifetime_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
+   int tau_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
+   int beta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
+   int theta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
+   int E_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
+   int FMM_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
    
-   void add_decay(int thread, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
-   void add_derivative(int thread, int tau_idx, int theta_idx, int fret_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double b[]);
+   void add_decay(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[]);
+   void add_derivative(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[]);
 
 
 
@@ -178,26 +168,40 @@ private:
    friend void conv_irf_ref(DecayModel *gc, int n_t, double t[], double exp_buf[], int total_n_exp, double tau[], double beta[], int dim, double a[], int add_components = 0, int inc_beta_fact = 0);
    friend void conv_irf_diff_ref(DecayModel *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int dim, double b[], int inc_tau = 1);
 
-
+   friend DecayModelWorkingBuffers;
 
 };
 
 
-template <typename T>
-void DecayModel::add_irf(int thread, int irf_idx, T a[], int pol_group, double* scale_fact)
+class DecayModelWorkingBuffers
 {
+   friend DecayModel;
 
-   double* lirf = this->irf_buf;
-   
-   if (image_irf)
-   {
-      lirf += irf_idx * n_irf * n_chan; 
-   }
-   else if (t0_image)
-   {
-      lirf += (thread + 1) * n_irf * n_chan;
-      ShiftIRF(t0_image[irf_idx], lirf);
-   }
+public:
+   DecayModelWorkingBuffers(DecayModel& model);
+   ~DecayModelWorkingBuffers();
+
+private:
+
+   int cur_irf_idx;
+
+   double *exp_buf;
+   double *tau_buf;
+   double *beta_buf;
+   double *theta_buf;
+   double *irf_buf;
+   double *cur_alf;
+
+};
+
+
+
+
+
+template <typename T>
+void DecayModel::add_irf(double* irf_buf, int irf_idx, T a[], int pol_group, double* scale_fact)
+{   
+   double* lirf = irf.GetIRF(irf_idx, irf_buf);
 
    int idx = 0;
    int ii;
@@ -210,9 +214,8 @@ void DecayModel::add_irf(int thread, int irf_idx, T a[], int pol_group, double* 
 
          if (ii>=0 && ii<n_irf)
             a[idx] += (T) (lirf[k*n_irf+ii] * chan_fact[pol_group*n_chan+k] * scale);
-         idx += resample_idx[i];
+         idx++;
       }
-      idx++;
    }
 }
 

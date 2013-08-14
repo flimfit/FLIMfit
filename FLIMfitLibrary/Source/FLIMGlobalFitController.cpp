@@ -438,9 +438,6 @@ void FLIMGlobalFitController::Init()
    if (n_thread < 1)
       n_thread = 1;
 
-
-   photons_per_count = data->GetPhotonsPerCount();
-
    
    if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && data->n_px > 1))
       algorithm = ALG_LM;

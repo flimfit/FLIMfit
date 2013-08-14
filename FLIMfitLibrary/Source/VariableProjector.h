@@ -42,7 +42,7 @@ public:
    VariableProjector(FitModel* model, int max_region_size, int n_thread, int* terminate);
    ~VariableProjector();
 
-   int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr);
+   int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr);
 
    int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
 

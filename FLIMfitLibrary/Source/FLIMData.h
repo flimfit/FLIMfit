@@ -78,7 +78,7 @@ public:
 
    int GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread);
 
-
+   int GetNumAuxillary();
    
    int GetImLoc(int im);
 

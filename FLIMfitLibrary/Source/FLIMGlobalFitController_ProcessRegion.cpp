@@ -140,8 +140,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    // Normalise to get beta/gamma/r and I0 and determine mean lifetimes
    //--------------------------------------
-   NormaliseLinearParams(s_thresh, lin_params, lin_params);
-   CalculateMeanLifetime(s_thresh, lin_params, alf, mean_tau, w_mean_tau);
+   //NormaliseLinearParams(s_thresh, lin_params, lin_params);
+   //CalculateMeanLifetime(s_thresh, lin_params, alf, mean_tau, w_mean_tau);
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;

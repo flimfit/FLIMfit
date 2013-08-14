@@ -144,7 +144,7 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-int VariableProjector::FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr)
+int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
 {
    INIT_CONCURRENCY;
 

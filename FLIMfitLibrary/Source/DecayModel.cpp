@@ -65,15 +65,13 @@ void DecayModel::Init()
    }
 
    // Setup adjust buffer which will be subtracted from the data
-   SetupAdjust(0, adjust_buf, (fit_scatter == FIX) ? (float) scatter_guess : 0, 
-                              (fit_offset == FIX)  ? (float) offset_guess  : 0, 
-                              (fit_tvb == FIX)     ? (float) tvb_guess     : 0);
+   SetupAdjust();
 
 }
 
 DecayModel::~DecayModel()
 {
-   AlignedClearVariable(exp_buf);
+   ClearVariable(adjust_buf);
 }
 
 void DecayModel::CalculateParameterCounts()
@@ -181,26 +179,7 @@ void DecayModel::SetupPolarisationChannelFactors()
 
 void DecayModel::AllocateBuffers()
 {
-   try
-   {
-      cur_alf      = new double[ nl ]; //ok
-
-      AlignedAllocate( n_thread * n_fret_group * exp_buf_size, exp_buf ); 
-      
-      tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
-      beta_buf     = new double[ n_thread * n_exp ]; //free ok
-      theta_buf    = new double[ n_thread * n_theta ]; //free ok 
-      adjust_buf   = new float[ n_meas ]; // free ok 
-
-   }
-   catch(std::exception e)
-   {
-      // TODO
-      //error =  ERR_OUT_OF_MEMORY;
-      //CleanupTempVars();
-      //CleanupResults();
-      return;
-   }
+   adjust_buf   = new float[ n_meas ];
 }
 
 void DecayModel::CheckGateSpacing()
@@ -221,29 +200,34 @@ void DecayModel::CheckGateSpacing()
    }
 }
 
-void DecayModel::SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj)
+void DecayModel::SetupAdjust()
 {
-
+   float scatter_adj = (fit_scatter == FIX) ? (float) scatter_guess : 0;
+   float offset_adj  = (fit_offset == FIX)  ? (float) offset_guess  : 0; 
+   float tvb_adj     = (fit_tvb == FIX)     ? (float) tvb_guess     : 0;
+                              
    double scale_fact[2];
    scale_fact[0] = 1;
    scale_fact[1] = 0;
 
    for(int i=0; i<n_meas; i++)
-      adjust[i] = 0;
+      adjust_buf[i] = 0;
 
-   add_irf(thread, 0, adjust, n_r, scale_fact);
+   vector<double> irf_buf( n_irf * n_meas );
+
+   add_irf(&irf_buf[0], 0, adjust_buf, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
-      adjust[i] = adjust[i] * scatter_adj + offset_adj;
+      adjust_buf[i] = adjust_buf[i] * scatter_adj + offset_adj;
 
    if (tvb_profile != NULL)
    {
       for(int i=0; i<n_meas; i++)
-         adjust[i] += (float) (tvb_profile[i] * tvb_adj);
+         adjust_buf[i] += (float) (tvb_profile[i] * tvb_adj);
    }
 
    for(int i=0; i<n_meas; i++)
-      adjust[i] = adjust[i] *= photons_per_count;
+      adjust_buf[i] *= photons_per_count;
 }
 
 
@@ -825,4 +809,29 @@ double DecayModel::EstimateAverageLifetime(float decay[], int p)
 
    return tau;
 
+}
+
+
+DecayModelWorkingBuffers::DecayModelWorkingBuffers(DecayModel& model)
+{
+   cur_alf      = new double[ model.nl ]; //ok
+
+   AlignedAllocate( model.n_fret_group * model.exp_buf_size, exp_buf ); 
+      
+   tau_buf   = new double[ (model.n_fret+1) * model.n_exp ]; //free ok 
+   beta_buf  = new double[ model.n_exp ]; //free ok
+   theta_buf = new double[ model.n_theta ]; //free ok 
+   irf_buf   = new double[ model.n_irf * model.n_chan ];
+
+}
+
+DecayModelWorkingBuffers::~DecayModelWorkingBuffers()
+{
+   delete[] cur_alf;
+   delete[] tau_buf;
+   delete[] beta_buf;
+   delete[] theta_buf;
+   delete[] irf_buf;
+
+   AlignedClearVariable(exp_buf);
 }

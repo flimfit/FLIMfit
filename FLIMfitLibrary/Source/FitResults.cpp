@@ -44,19 +44,15 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
 
    int lin_size = n_px * lmax;
 
+   n_aux = data->GetNumAuxillary();
+   int aux_size = n_aux * n_px;
 
 
    try
    {
       lin_params   = new float[ lin_size ]; //ok
       chi2         = new float[ n_px ]; //ok
-      I            = new float[ n_px ];
-
-      if (model->polarisation_resolved)
-         r_ss      = new float[ n_px ];
-
-      if (data->has_acceptor)
-         acceptor  = new float[ n_px ];
+      aux_data     = new float[ aux_size ];
 
       ierr         = new int[ n_px ];
       success      = new float[ n_px ];
@@ -89,8 +85,7 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
    SetNaN(alf,        alf_size );
    SetNaN(lin_params, lin_size );
    SetNaN(chi2,       n_px );
-   SetNaN(I,          n_px );
-   SetNaN(r_ss,       n_px );
+   SetNaN(aux_data,   aux_size );
    
    for(int i=0; i<data->n_regions_total; i++)
    {
@@ -113,16 +108,20 @@ const FitResultsRegion FitResults::GetPixel(int image, int region, int pixel)
 }
 
 
-void FitResults::GetAssociatedResults(int image, int region, float*& I_, float*& r_ss_, float*& acceptor_)
+float* FitResults::GetAuxDataPtr(int image, int region)
 {
    int pos =  data->GetRegionPos(image,region);
-
-   I_       = I        + pos;
-   r_ss_    = r_ss     + pos;
-   acceptor = acceptor + pos;
+   return aux_data + pos * n_aux;
 }
 
+void FitResults::GetNonLinearParams(int image, int region, int pixel, double* params)
+{
+   int pos = data->GetRegionPos(image, region);
+}
 
+void FitResults::GetLinearParams(int image, int region, int pixel, float* params)
+{
+}
 
 
 void FitResults::CalculateMeanLifetime()
@@ -185,7 +184,6 @@ void FitResults::DenormaliseLinearParams(volatile float norm_params[], volatile 
 
 FitResults::~FitResults()
 {
-   ClearVariable(I);
    ClearVariable(chi2);
    ClearVariable(alf);
    ClearVariable(alf_err_lower);
@@ -195,6 +193,4 @@ FitResults::~FitResults()
    ClearVariable(success);
    ClearVariable(w_mean_tau);
    ClearVariable(mean_tau);
-   ClearVariable(r_ss);
-   ClearVariable(acceptor);
 }

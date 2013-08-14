@@ -258,6 +258,19 @@ void FLIMData::MarkCompleted(int slot)
 }
 */
 
+int FLIMData::GetNumAuxillary()
+{
+   int num_aux = 1;  // intensity
+
+   if (has_acceptor)
+      num_aux++;
+
+   if (polarisation_resolved)
+      num_aux++;     // r_ss
+
+   return num_aux;
+}
+
 int FLIMData::SetAcceptor(float acceptor[])
 {
    this->acceptor_ = acceptor;
@@ -497,8 +510,18 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
 
    int s = GetRegionCount(im, region);
 
-   float* masked_intensity, *masked_r_ss, *masked_acceptor;
-   results.GetAssociatedResults(im, region, masked_intensity, masked_r_ss, masked_acceptor);
+   float *masked_intensity, *masked_r_ss, *masked_acceptor;
+   float *aux_data = results.GetAuxDataPtr(im, region);
+
+   int n_aux = GetNumAuxillary();
+
+   masked_intensity = aux_data++;
+
+   if (has_acceptor)
+      masked_acceptor = aux_data++;
+
+   if (polarisation_resolved)
+      masked_r_ss = aux_data++;
 
    uint8_t* im_mask = mask + iml*n_x*n_y;
    float*   tr_data   = tr_data_ + thread * n_p;
@@ -521,13 +544,13 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
    {
       if (region < 0 || im_mask[p] == region)
       {
-         masked_intensity[idx] = intensity[p];
+         masked_intensity[idx*n_aux] = intensity[p];
    
          if (polarisation_resolved)
-            masked_r_ss[idx] = r_ss[p];
+            masked_r_ss[idx*n_aux] = r_ss[p];
 
          if (has_acceptor)
-            masked_acceptor[idx] = acceptor[p];
+            masked_acceptor[idx*n_aux] = acceptor[p];
             
          for(int i=0; i<n_meas; i++)
             masked_data[idx*n_meas+i] = tr_data[p*n_meas+i];

@@ -197,7 +197,7 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(RegionData* region_data, float *lin_params, float *chi2, int thread, int itmax, double photons_per_count, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int thread, int itmax, int& niter, int &ierr, double& c2)
 {
 
    if (err != 0)
@@ -208,9 +208,9 @@ int AbstractFitter::Fit(RegionData* region_data, float *lin_params, float *chi2,
 
    Init();
 
-   s = region_data->GetPointers(y, irf_idx);
+   s = region_data.GetPointers(y, irf_idx);
 
-   region_data->GetAverageDecay(avg_y);
+   region_data.GetAverageDecay(avg_y);
    
 
    this->n          = n;
@@ -223,8 +223,6 @@ int AbstractFitter::Fit(RegionData* region_data, float *lin_params, float *chi2,
    this->thread     = thread;
    this->photons_per_count  = photons_per_count;
 
-   int max_jacb = 65536; 
-
    chi2_norm = n - ((double)(model->nl))/s - l;
 
    // Assign initial guesses to nonlinear variables
@@ -236,7 +234,7 @@ int AbstractFitter::Fit(RegionData* region_data, float *lin_params, float *chi2,
    model->SetInitialParameters(alf, tau_ma);
 
 
-   int ret = FitFcn(model->nl, alf, itmax, max_jacb, &niter, &ierr);
+   int ret = FitFcn(model->nl, alf, itmax, &niter, &ierr);
 
    chi2_final = *cur_chi2;
 
@@ -361,10 +359,7 @@ double AbstractFitter::ErrMinFcn(double x)
       if (j!=fixed_param)
          alf_err[idx++] = alf_buf[j];
 
-
-   int max_jacb = 65536;
-
-   FitFcn(nl-1,alf_err,itmax,max_jacb,&niter,&ierr);
+   FitFcn(nl-1,alf_err,itmax,&niter,&ierr);
             
    F = (*cur_chi2-chi2_final)/chi2_final * nmp ;
    
@@ -434,21 +429,22 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    return params;
 }
 
-int AbstractFitter::GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double* fit)
+int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, double* fit)
 {
    if (err != 0)
       return err;
 
+   float* adjust = model->GetConstantAdjustment();
    model->CalculateModel(a_, n, b_, ndim, kap, alf, irf_idx, 1, 0);
 
    int idx = 0;
-   for(int i=0; i<n_meas; i++)
+   for(int i=0; i<n; i++)
    {
       fit[idx] = adjust[i];
       for(int j=0; j<l; j++)
-         fit[idx] += a_[n_meas*j+i] * lin_params[j];
+         fit[idx] += a_[nmax*j+i] * lin_params[j];
 
-      fit[idx] += a_[n_meas*l+i];
+      fit[idx] += a_[nmax*l+i];
       fit[idx++] /= photons_per_count;
    }
 

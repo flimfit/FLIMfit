@@ -47,11 +47,11 @@ public:
    AbstractFitter(FitModel* model, int n_param, int max_region_size, int n_thread, int* terminate);
    virtual ~AbstractFitter();
 
-   virtual int FitFcn(int nl, double *alf, int itmax, int max_jacb, int* niter, int* ierr) = 0;
+   virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr) = 0;
    virtual int GetLinearParams(RegionData& results) = 0;
    
    int Fit(RegionData& region_data, FitResultsRegion& results, int thread, int itmax, int& niter, int &ierr, double& c2);
-   int GetFit(int n_meas, int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
+   int GetFit(int irf_idx, double* alf, float* lin_params, double* fit);
    double ErrMinFcn(double x);
    int CalculateErrors(double conf_limit);
 
