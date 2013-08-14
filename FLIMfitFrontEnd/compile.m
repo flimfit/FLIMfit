@@ -157,6 +157,8 @@ function compile(v)
             if strcmp(platform,'WIN')
                 copyfile(installer_file,[distrib_folder 'FLIMfit_' v filesep installer_file_name]);
             end
+            
+            copyfile('..\changelog.md',[distrib_folder 'Changelog.txt'])
 
             
 
