@@ -81,8 +81,13 @@ function ret = get_FLIM_params_from_metadata(session, image)
         if isfield(modlo.ATTRIBUTE,'Start')
             start = modlo.ATTRIBUTE.Start;
             step = modlo.ATTRIBUTE.Step;
-            e = modlo.ATTRIBUTE.End;                
-            ret.delays = start:step:e;
+            e = modlo.ATTRIBUTE.End; 
+            nsteps = round((e - start)/step);
+            delays = 0:nsteps;
+            delays = delays .* step;
+            ret.delays = delays + start;
+           
+            
         else
             if isnumeric(modlo.Label)
                 ret.delays = modlo.Label;
