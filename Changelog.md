@@ -1,6 +1,11 @@
 FLIMfit Changelog
 =================
 
+v4.5.11
+-------
+- Add gamma scaling factor for intensity merged images to preferences
+- Enable use of a 'library' scatter IRF when generating a t0 map 
+
 v4.5.10
 -------
 - Enabled OMERO connection in PC version
