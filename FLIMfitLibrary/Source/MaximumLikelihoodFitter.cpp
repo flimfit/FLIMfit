@@ -29,6 +29,7 @@
 
 
 #include "MaximumLikelihoodFitter.h"
+#include "FlagDefinitions.h"
 
 #include <cfloat>
 #include <cmath>
@@ -53,7 +54,7 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 
 
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int* terminate) : 
-    AbstractFitter(model, model->nl+1, 1, 1, terminate)
+    AbstractFitter(model, model->nl+1, 1, MODE_GLOBAL_BINNING, 1, terminate)
 {
    nfunc = nmax + 1; // +1 for kappa
 
@@ -149,7 +150,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
 
 
 
-int MaximumLikelihoodFitter::GetLinearParams(RegionData& region_data) 
+int MaximumLikelihoodFitter::GetLinearParams() 
 {
    return 0;
 }

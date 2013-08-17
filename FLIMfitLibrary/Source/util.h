@@ -30,7 +30,6 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
-#define NOMINMAX
 #include <cstring>
 
 template<typename T>

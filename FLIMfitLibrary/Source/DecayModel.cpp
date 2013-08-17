@@ -46,7 +46,6 @@ void DecayModel::Init()
    CheckGateSpacing();
 
    SetParameterIndices();
-   SetOutputParamNames();
 
    CalculateIRFMax(n_t,t);
    ma_start = DetermineMAStartPosition(0);
@@ -272,8 +271,10 @@ void DecayModel::SetParameterIndices()
 }
 
 
-void DecayModel::NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[])
+void DecayModel::NormaliseLinearParams(volatile float lin_params[], float non_linear_params[], volatile float norm_params[])
 {
+   int idx;
+
    if (polarisation_resolved)
    {
       for(int j=0; j<n_stray; j++)
@@ -293,6 +294,8 @@ void DecayModel::NormaliseLinearParams(volatile float lin_params[], volatile flo
 
       norm_params[0]     = r0;
       norm_params[n_r+1] = I0;
+
+      idx = n_r + 2;
    }
    else
    {
@@ -315,7 +318,11 @@ void DecayModel::NormaliseLinearParams(volatile float lin_params[], volatile flo
          norm_params[n_j] = I0; 
       }
 
+      idx = n_j + 1;
+
    }
+
+   CalculateMeanLifetime(lin_params, non_linear_params, norm_params + idx);
 }
 
 void DecayModel::DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[])
@@ -356,10 +363,41 @@ void DecayModel::DenormaliseLinearParams(volatile float norm_params[], volatile 
       lin_params += lmax;
       norm_params += lmax;
    }
+
+   calculate_mean_lifetimes = !beta_global && n_exp > 1;
 }
 
 
-void DecayModel::SetOutputParamNames()
+
+void DecayModel::CalculateMeanLifetime(volatile float lin_params[], float tau[], volatile float mean_lifetimes[])
+{
+   if (calculate_mean_lifetimes)
+   {
+      float mean_tau   = 0;
+      float w_mean_tau = 0;
+      
+      for (int i=0; i<n_fix; i++)
+      {
+         w_mean_tau += (float) (tau_guess[i] * tau_guess[i] * lin_params[i]);
+         mean_tau   += (float) (               tau_guess[i] * lin_params[i]);
+      }
+
+      for (int i=0; i<n_v; i++)
+      {
+         w_mean_tau += (float) (tau[i] * tau[i] * lin_params[i+n_fix]);
+         mean_tau   += (float) (         tau[i] * lin_params[i+n_fix]); 
+      }
+
+      w_mean_tau /= mean_tau;  
+
+      mean_lifetimes[0] = mean_tau;
+      mean_lifetimes[1] = w_mean_tau;
+   }
+
+}
+
+
+void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params)
 {
    char buf[1024];
 
@@ -453,16 +491,6 @@ void DecayModel::SetOutputParamNames()
 
    param_names.push_back("I0");
    
-   // Parameters we manually calculate at the end
-   
-   param_names.push_back("I");
-
-   if ( acceptor != NULL )
-      param_names.push_back("acceptor");
-
-   if (polarisation_resolved)
-      param_names.push_back("r_ss");
-
 
    if (calculate_mean_lifetimes)
    {
@@ -471,13 +499,6 @@ void DecayModel::SetOutputParamNames()
    }
 
    param_names.push_back("chi2");
-
-   n_output_params = (int) param_names.size();
-
-   param_names_ptr = new const char*[n_output_params];
-
-   for(int i=0; i<n_output_params; i++)
-      param_names_ptr[i] = param_names[i].c_str();
 
 }
 
@@ -534,6 +555,14 @@ void DecayModel::CalculateParameterCount()
    {
       l++;
    }
+
+   lmax = l + 1; // intensity
+
+   if (polarisation_resolved)
+      lmax++;
+
+   if (calculate_mean_lifetimes)
+      lmax += 2;
 
 }
 
@@ -812,16 +841,28 @@ double DecayModel::EstimateAverageLifetime(float decay[], int p)
 }
 
 
-DecayModelWorkingBuffers::DecayModelWorkingBuffers(DecayModel& model)
+WorkingBuffers* DecayModel::CreateBuffer()
 {
-   cur_alf      = new double[ model.nl ]; //ok
+   return (WorkingBuffers*) new DecayModelWorkingBuffers(this);
+}
 
-   AlignedAllocate( model.n_fret_group * model.exp_buf_size, exp_buf ); 
+void DecayModel::DisposeBuffer(WorkingBuffers* wb)
+{
+   delete (DecayModelWorkingBuffers*) wb;
+}
+
+
+
+DecayModelWorkingBuffers::DecayModelWorkingBuffers(DecayModel* model)
+{
+   cur_alf      = new double[ model->nl ]; //ok
+
+   AlignedAllocate( model->n_fret_group * model->exp_buf_size, exp_buf ); 
       
-   tau_buf   = new double[ (model.n_fret+1) * model.n_exp ]; //free ok 
-   beta_buf  = new double[ model.n_exp ]; //free ok
-   theta_buf = new double[ model.n_theta ]; //free ok 
-   irf_buf   = new double[ model.n_irf * model.n_chan ];
+   tau_buf   = new double[ (model->n_fret+1) * model->n_exp ]; //free ok 
+   beta_buf  = new double[ model->n_exp ]; //free ok
+   theta_buf = new double[ model->n_theta ]; //free ok 
+   irf_buf   = new double[ model->n_irf * model->n_chan ];
 
 }
 

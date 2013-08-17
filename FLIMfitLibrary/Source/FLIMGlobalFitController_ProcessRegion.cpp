@@ -45,35 +45,18 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 {
    INIT_CONCURRENCY;
 
-   int i, j, s_thresh, itmax;
+   int i, j, itmax;
    double tau_ma;
 
    int ierr_local = 0;
 
    _ASSERT( _CrtCheckMemory( ) );
 
-   int r_idx = data->GetRegionIndex(g,region);
+//   int r_idx = data->GetRegionIndex(g,region);
+//   int start = data->GetRegionPos(g,region) + px;
 
-/*
-   float  *local_decay     = this->local_decay + thread * n_meas;
-   double *alf_local       = this->alf_local + thread * nl * 3;
-   double *err_lower_local = this->alf_local + thread * nl * 3 +   nl;
-   double *err_upper_local = this->alf_local + thread * nl * 3 + 2*nl;
-*/
-
-   int start = data->GetRegionPos(g,region) + px;
-/*
-   float* lin_params = this->lin_params + start * lmax;
-   float* chi2       = this->chi2       + start;
-   float* I          = this->I          + start;
-   float* r_ss       = this->r_ss       + start;
-   float* acceptor   = this->acceptor   + start;
-   float* w_mean_tau = this->w_mean_tau + start;
-   float* mean_tau   = this->mean_tau   + start;
-   */
-
-   float *y, *alf, *alf_err_lower, *alf_err_upper;
-   int   *irf_idx;
+//   float *y, *alf, *alf_err_lower, *alf_err_upper;
+//   int   *irf_idx;
 
    FitResultsRegion region_results;
    RegionData local_region_data;
@@ -82,11 +65,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    START_SPAN("Processing Data");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_mode == MODE_PIXELWISE)
-   {
-      // TODO: Get sub region (??)
-      
-      s_thresh = 1;
-
+   {      
       local_region_data = region_data[thread].GetPixel(px);
 
       region_results = results->GetPixel(g, region, px);
@@ -106,7 +85,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------
-   if (s_thresh == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
+   if (local_region_data.GetSize() == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;
    
 
@@ -114,17 +93,14 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    itmax = 100;
 
 
-   if (global_algorithm == MODE_GLOBAL_BINNING)
-      local_region_data = local_region_data.GetBinnedRegion();
+   //if (global_algorithm == MODE_GLOBAL_BINNING)
+   //   local_region_data = local_region_data.GetBinnedRegion();
 
-   // TODO: propogate n_meas_res through region data.... or just remove autoresampling?
-
-   projectors[thread].Fit(local_region_data, region_results, thread, itmax, status->iter[thread], ierr_local, status->chi2[thread]);
-   //TODO: get alf
+   projectors[thread].Fit(local_region_data, region_results, itmax, status->iter[thread], ierr_local, status->chi2[thread]);
 
    // If we're fitting globally using global binning now retrieve the linear parameters
-   if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
-      projectors[thread].GetLinearParams(region_data[thread]);
+   //if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
+   //   projectors[thread].GetLinearParams(region_data[thread]);
    
    if (calculate_errors)
    {
@@ -146,20 +122,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   if (data->global_mode == MODE_PIXELWISE)
-   {
-      if (ierr_local >= 0)
-      {
-         success[r_idx] += 1;
-         ierr[r_idx] += ierr_local;
-      }
-   }
-   else
-   {
-      ierr[r_idx] = ierr_local;
-      success[r_idx] = (float) min(0, ierr_local);
-   }
   
    status->FinishedRegion(thread);
 

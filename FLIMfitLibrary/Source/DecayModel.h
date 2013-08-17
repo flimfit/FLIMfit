@@ -56,7 +56,7 @@ public:
    ~DecayModel();
 
  
-   void NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[]);
+   void NormaliseLinearParams(volatile float lin_params[], float non_linear_params[], volatile float norm_params[]);
    void DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[]);
 
    void Init();
@@ -64,15 +64,20 @@ public:
    int alf_t0_idx, alf_offset_idx, alf_scatter_idx, alf_E_idx, alf_beta_idx, alf_theta_idx, alf_tvb_idx, alf_ref_idx;
 
    void   SetupIncMatrix(int* inc);
-   int    CalculateModel(DecayModelWorkingBuffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel);
-   void   GetWeights(DecayModelWorkingBuffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx);
+   int    CalculateModel(WorkingBuffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel);
+   void   GetWeights(WorkingBuffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx);
    float* GetConstantAdjustment();
 
-   int ProcessNonLinearParams(DecayModelWorkingBuffers& wb, float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
-   float GetNonLinearParam(DecayModelWorkingBuffers& wb, int param, float alf[]);
+   int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
+   float GetNonLinearParam(int param, float alf[]);
 
+   void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params);
 
    void SetInitialParameters(double* params, double mean_arrival_time);
+
+   WorkingBuffers* CreateBuffer();
+   void DisposeBuffer(WorkingBuffers* wb);
+
 
    int n_v;
    int n_chan, n_meas, n_pol_group;
@@ -90,6 +95,11 @@ public:
 private:
 
    InstrumentResponseFunction irf;
+
+
+   double t_g; // TODO: check this is set somewhere
+
+   int calculate_mean_lifetimes;
 
 
    int n_decay_group;
@@ -119,10 +129,13 @@ private:
    void AllocateBuffers();
    void CheckGateSpacing();
    void SetParameterIndices();
-   void SetOutputParamNames();
    void SetupAdjust();
 
+   // TODO: combine these two!
    void CalculateParameterCounts();
+   void CalculateParameterCount();
+
+   void CalculateMeanLifetime(volatile float lin_params[], float non_linear_params[], volatile float mean_lifetimes[]);
 
    int DetermineMAStartPosition(int idx);
    double EstimateAverageLifetime(float decay[], int p);
@@ -130,7 +143,6 @@ private:
    void CalculateIRFMax(int n_t, double t[]);
 
 
-   void CalculateParameterCount();
 
    template <typename T>
    void add_irf(double* irf_buf, int irf_idx, T a[], int pol_group, double* scale_fact = NULL);
@@ -178,7 +190,7 @@ class DecayModelWorkingBuffers
    friend DecayModel;
 
 public:
-   DecayModelWorkingBuffers(DecayModel& model);
+   DecayModelWorkingBuffers(DecayModel* model);
    ~DecayModelWorkingBuffers();
 
 private:

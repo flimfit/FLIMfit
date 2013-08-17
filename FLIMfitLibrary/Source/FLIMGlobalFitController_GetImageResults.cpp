@@ -80,7 +80,7 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], int inte
 
 
 
-float DecayModel::GetNonLinearParam(DecayModelWorkingBuffers& wb, int param, float alf[])
+float DecayModel::GetNonLinearParam(int param, float alf[])
 {
    #define GET_PARAM(param,n,p)  {if (p < n) return ((float)(param)[p]); else (p-=n);}
 
@@ -111,17 +111,15 @@ float DecayModel::GetNonLinearParam(DecayModelWorkingBuffers& wb, int param, flo
                n_group++;
                group_end++;
             }
-            alf2beta(n_group,alf+alf_beta_idx+group_start-d,wb.beta_buf+group_start);
-               
+            for(int j=0; j<n_group; j++)
+            {
+               double beta = alf2beta(n_group,alf+alf_beta_idx+group_start-d,j);
+               GET_PARAM( &beta, 1, p );
+            }
             group_start = group_end;
 
          }
 
-         double norm = 0;
-         for(int j=0; j<n_exp; j++)
-            norm += wb.beta_buf[j];
-
-         GET_PARAM(wb.beta_buf,n_exp,p);
       }
    }
 
@@ -147,7 +145,7 @@ float DecayModel::GetNonLinearParam(DecayModelWorkingBuffers& wb, int param, flo
 }
 
 
-int DecayModel::ProcessNonLinearParams(DecayModelWorkingBuffers& wb, float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[])
+int DecayModel::ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[])
 {
    #define SET_PARAM(i) {param[idx] = alf[i]; err_lower[idx] = alf_err_lower[i]; err_upper[idx] = alf_err_upper[i]; idx++;}
    #define SET_FIXED(p) {param[idx] = p; err_lower[idx] = NaN(); err_upper[idx] = NaN(); idx++;}
@@ -184,14 +182,16 @@ int DecayModel::ProcessNonLinearParams(DecayModelWorkingBuffers& wb, float alf[]
                n_group++;
                group_end++;
             }
-            alf2beta(n_group,alf+alf_beta_idx+group_start-d,wb.beta_buf+group_start);
-               
+            for(j=0; j<n_group; j++)
+            {
+               double beta = alf2beta(n_group,alf+alf_beta_idx+group_start-d,j);
+               SET_FIXED( (float) beta );
+            }
             group_start = group_end;
 
          }
 
-         for(j=0; j<n_exp; j++)
-            SET_FIXED( (float) wb.beta_buf[j] );
+         
       }
    }
 
@@ -229,8 +229,6 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
    
    int n_px = data->n_px;
 
-   int n_nl_output_params = model->n_nl_output_params;
-   int n_output_params = model->n_output_params;
    int nl = model->nl;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -356,27 +354,7 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
             lin_group    = lin_params + start * lmax;
 
             CalculateRegionStats(lmax, s_local, lin_group, intensity, n_aux, stats, idx, conf_factor, param_buf);
-
             CalculateRegionStats(n_aux, s_local, aux_data, intensity, n_aux, stats, idx, conf_factor, param_buf);
-
-            /*
-            CalculateRegionStats(1, s_local, I+start, intensity, stats, idx, conf_factor, param_buf);
-
-            if (data->has_acceptor)
-               CalculateRegionStats(1, s_local, acceptor+start, intensity, stats, idx, conf_factor, param_buf);
-
-           if (polarisation_resolved)
-               CalculateRegionStats(1, s_local, r_ss+start, intensity, stats, idx, conf_factor, param_buf);         
-               */
-
-            if (calculate_mean_lifetimes)
-            {
-               CalculateRegionStats(1, s_local, mean_tau+start,   intensity, n_aux, stats, idx, conf_factor, param_buf);         
-               CalculateRegionStats(1, s_local, w_mean_tau+start, intensity, n_aux, stats, idx, conf_factor, param_buf);
-            }
-            
-
-
             CalculateRegionStats(1, s_local, chi2+start, intensity, n_aux, stats, idx, conf_factor, param_buf);
          
          }
@@ -412,7 +390,6 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
    int r_idx;
 
    int n_px =  data->n_px;
-   int n_nl_output_params = model->n_nl_output_params;
    int nl = model->nl;
 
    float* param_data = NULL;
@@ -493,18 +470,6 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
                span = n_aux;
             } r_param-=n_aux;
 
-
-            if (calculate_mean_lifetimes)
-            {
-               if (r_param == 0)
-                  param_data = mean_tau + start;
-               r_param-=1;
-            
-               if (r_param == 0) 
-                  param_data = w_mean_tau + start;
-               r_param-=1;
-            }
-
             if (r_param == 0)
                param_data = chi2 + start;
             r_param-=1;
@@ -566,8 +531,8 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
             int idx = fit_loc[i];
             if (mask[idx] == rg)
             {
-               results->GetNonLinearParams(im, rg, lin_idx, &nl_params[0]);
-               results->GetLinearParams(im, rg, lin_idx, &l_params[0]);
+               results->GetNonLinearParams(im, rg, lin_idx, nl_params);
+               results->GetLinearParams(im, rg, lin_idx, l_params);
 
                projectors[thread].GetFit(idx, &nl_params[0], &l_params[0], fit+n_meas*i);
                n_valid++;

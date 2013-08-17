@@ -96,9 +96,15 @@ void RegionData::GetAverageDecay(float* average_decay)
       average_decay[j] /= n_px_cur;
 }
 
-int RegionData::GetPointers(float*& y, int*& irf_idx)
+void RegionData::GetPointers(float*& data, int*& irf_idx)
 {
-   // TODO
+   data = this->data;
+   irf_idx = this->irf_idx;
+}
+
+int RegionData::GetSize()
+{
+   return n_px_cur;
 }
 
 const RegionData RegionData::GetPixel(int px)

@@ -44,13 +44,13 @@ class AbstractFitter
 public:
 
 
-   AbstractFitter(FitModel* model, int n_param, int max_region_size, int n_thread, int* terminate);
+   AbstractFitter(FitModel* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate);
    virtual ~AbstractFitter();
 
    virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr) = 0;
-   virtual int GetLinearParams(RegionData& results) = 0;
+   virtual int GetLinearParams() = 0;
    
-   int Fit(RegionData& region_data, FitResultsRegion& results, int thread, int itmax, int& niter, int &ierr, double& c2);
+   int Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
    int GetFit(int irf_idx, double* alf, float* lin_params, double* fit);
    double ErrMinFcn(double x);
    int CalculateErrors(double conf_limit);
@@ -89,9 +89,6 @@ protected:
    double *alf_err;
    double *alf_buf;
 
-   int a_size;
-   int b_size;
-
    int     n;
    int     nl;
    int     ndim;
@@ -104,8 +101,6 @@ protected:
    int     pmax;
 
    int     max_region_size;
-
-   //int     lp1;
 
    float  *y;
    float  *w;
@@ -121,7 +116,7 @@ protected:
    int n_thread;
    int variable_phi;
 
-   int thread;
+   //int thread;
 
    int    fixed_param;
    double fixed_value_initial;
@@ -129,11 +124,21 @@ protected:
    double chi2_final;
 
    bool getting_errs;
+
+private:
+
+   vector<WorkingBuffers*> model_buffer;
+
+   int global_algorithm;
    double conf_limit;
 
    int search_dir;
 
    FILE* f_debug;
+
+   int a_size;
+   int b_size;
+
 
 };
 

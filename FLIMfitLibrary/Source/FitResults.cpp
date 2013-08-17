@@ -36,11 +36,19 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
 {
    n_px = data->n_masked_px;
    lmax = model->lmax;
+   nl   = model->nl;
 
-   n_output_params = model->n_output_params;
+   pixelwise = (data->global_mode == MODE_PIXELWISE);
 
-   int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
-   alf_size *= model->nl;
+   GetParamNames();
+
+   int alf_size;
+   
+   if (pixelwise)
+      alf_size = n_px;
+   else
+      alf_size = data->n_regions_total;
+   alf_size *= nl;
 
    int lin_size = n_px * lmax;
 
@@ -48,38 +56,23 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
    int aux_size = n_aux * n_px;
 
 
-   try
+   lin_params   = new float[ lin_size ]; //ok
+   chi2         = new float[ n_px ]; //ok
+   aux_data     = new float[ aux_size ];
+
+   ierr         = new int[ n_px ];
+   success      = new float[ n_px ];
+   alf          = new float[ alf_size ]; //ok
+
+   if (calculate_errors)
    {
-      lin_params   = new float[ lin_size ]; //ok
-      chi2         = new float[ n_px ]; //ok
-      aux_data     = new float[ aux_size ];
-
-      ierr         = new int[ n_px ];
-      success      = new float[ n_px ];
-      alf          = new float[ alf_size ]; //ok
-
-      if (calculate_errors)
-      {
-         alf_err_lower = new float[ alf_size ];
-         alf_err_upper = new float[ alf_size ];
-      }
-      else
-      {
-         alf_err_lower = NULL;
-         alf_err_upper = NULL;
-      }
-      
-      if (calculate_mean_lifetimes)
-      {
-         w_mean_tau   = new float[ n_px ];  
-         mean_tau     = new float[ n_px ];  
-      }
+      alf_err_lower = new float[ alf_size ];
+      alf_err_upper = new float[ alf_size ];
    }
-   catch(std::exception e)
+   else
    {
-      //error =  ERR_OUT_OF_MEMORY;
-      //CleanupResults();
-      //return;
+      alf_err_lower = NULL;
+      alf_err_upper = NULL;
    }
 
    SetNaN(alf,        alf_size );
@@ -93,8 +86,17 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
       ierr[i] = 0;
    }
 
+}
 
-
+FitResults::~FitResults()
+{
+   ClearVariable(chi2);
+   ClearVariable(alf);
+   ClearVariable(alf_err_lower);
+   ClearVariable(alf_err_upper);
+   ClearVariable(lin_params);
+   ClearVariable(ierr);
+   ClearVariable(success);
 }
 
 const FitResultsRegion FitResults::GetRegion(int image, int region)
@@ -108,53 +110,79 @@ const FitResultsRegion FitResults::GetPixel(int image, int region, int pixel)
 }
 
 
+void FitResults::GetNonLinearParams(int image, int region, int pixel, vector<double>& params)
+{
+   int idx;
+   if (pixelwise)
+      idx = data->GetRegionPos(image, region) + pixel;
+   else
+      idx = data->GetRegionIndex(image, region);
+
+   float* alf_local = alf + idx * nl; 
+
+   params.reserve(nl);
+
+   for(int i=0; i<nl; i++)
+      params[i] = alf_local[i];
+}
+
+void FitResults::GetLinearParams(int image, int region, int pixel, vector<float>& params)
+{
+   int start = data->GetRegionPos(image, region) + pixel;
+   float* lin_local = lin_params + start * lmax;
+
+   params.reserve(lmax);
+   DenormaliseLinearParams(lin_local, &params[0]);
+}
+
+
 float* FitResults::GetAuxDataPtr(int image, int region)
 {
    int pos =  data->GetRegionPos(image,region);
    return aux_data + pos * n_aux;
 }
 
-void FitResults::GetNonLinearParams(int image, int region, int pixel, double* params)
+void FitResults::GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2)
 {
-   int pos = data->GetRegionPos(image, region);
+
+   int start = data->GetRegionPos(image, region) + pixel;
+
+   int idx;
+   if (pixelwise)
+      idx = start;
+   else
+      idx = data->GetRegionIndex(image, region);
+
+   non_linear_params = alf        + idx   * nl;
+   linear_params     = lin_params + start * lmax;
+   chi2              = this->chi2 + start;
+
 }
 
-void FitResults::GetLinearParams(int image, int region, int pixel, float* params)
+void FitResults::SetFitStatus(int image, int region, int code)
 {
-}
+   int r_idx = data->GetRegionIndex(image, region);
 
-
-void FitResults::CalculateMeanLifetime()
-{
-   if (calculate_mean_lifetimes)
+   if (pixelwise)
    {
-      int lin_idx = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
-      lin_params += lin_idx;
-
-      #pragma omp parallel for
-      for (int j=0; j<n_px; j++)
+      if (code >= 0)
       {
-         w_mean_tau[j] = 0;
-         mean_tau[j]   = 0;
-
-         for (int i=0; i<n_fix; i++)
-         {
-            w_mean_tau[j] += (float) (tau_guess[i] * tau_guess[i] * lin_params[i+lmax*j]);
-            mean_tau[j]   += (float) (               tau_guess[i] * lin_params[i+lmax*j]);
-         }
-
-         for (int i=0; i<n_v; i++)
-         {
-            w_mean_tau[j] += (float) (alf[i] * alf[i] * lin_params[i+n_fix+lmax*j]);
-            mean_tau[j]   += (float) (         alf[i] * lin_params[i+n_fix+lmax*j]); 
-         }
-
-         w_mean_tau[j] /= mean_tau[j];
+         success[r_idx] += 1;
+         ierr[r_idx] += code;
       }
-    
    }
+   else
+   {
+      ierr[r_idx] = code;
+      success[r_idx] = (float) min(0, code);
+   }
+
 }
 
+void FitResults::FitFinished(int image, int region, int pixel)
+{
+
+}
 
 void FitResults::NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[])
 {
@@ -180,17 +208,28 @@ void FitResults::DenormaliseLinearParams(volatile float norm_params[], volatile 
    }
 }
 
-
-
-FitResults::~FitResults()
+void FitResults::GetParamNames()
 {
-   ClearVariable(chi2);
-   ClearVariable(alf);
-   ClearVariable(alf_err_lower);
-   ClearVariable(alf_err_upper);
-   ClearVariable(lin_params);
-   ClearVariable(ierr);
-   ClearVariable(success);
-   ClearVariable(w_mean_tau);
-   ClearVariable(mean_tau);
+   model->GetOutputParamNames(param_names, n_nl_output_params);
+   data->GetAuxParamNames(param_names);
+
+   n_output_params = (int) param_names.size();
+
+   param_names_ptr = new const char*[n_output_params];
+
+   for(int i=0; i<n_output_params; i++)
+      param_names_ptr[i] = param_names[i].c_str();
+}
+
+
+
+
+void FitResultsRegion::GetPointers(float*& linear_params, float*& non_linear_params, float*& chi2)
+{
+   results->GetPointers(image, region, pixel, non_linear_params, linear_params, chi2);
+}
+
+void FitResultsRegion::SetFitStatus(int code)
+{
+   results->SetFitStatus(image, region, code);
 }

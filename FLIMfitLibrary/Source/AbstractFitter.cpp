@@ -40,8 +40,8 @@
 
 using namespace std;
 
-AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size, int n_thread, int* terminate) : 
-    model(model), n_param(n_param), max_region_size(max_region_size), n_thread(n_thread), terminate(terminate)
+AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
+    model(model), n_param(n_param), max_region_size(max_region_size), global_algorithm(global_algorithm), n_thread(n_thread), terminate(terminate)
 {
    err = 0;
 
@@ -65,13 +65,14 @@ AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size
 
    pmax  = model->p;
 
-   ndim = ...;
-
+   ndim       = max( n, 2*nl+3 );
+   nmax       = n + 16; // pad to prevent false sharing  
 
    int lp1 = l+1;
 
 
-
+   for (int i=0; i<n_thread; i++)
+      model_buffer.push_back( model->CreateBuffer() );
 
 
    // Check for valid input
@@ -105,8 +106,6 @@ AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size
 
    w            = new float[ nmax ]; //free ok
     
-   
-
    fixed_param = -1;
 
    getting_errs = false;
@@ -120,6 +119,9 @@ AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size
 
 AbstractFitter::~AbstractFitter()
 {
+   for (vector<WorkingBuffers*>::iterator it = model_buffer.begin(); it != model_buffer.end(); ++it)
+      model->DisposeBuffer( *it );
+
    ClearVariable(r);
    ClearVariable(a_);
    ClearVariable(b_);
@@ -141,7 +143,7 @@ int AbstractFitter::Init()
    // Determine number of constant functions
    //------------------------------------------
 
-   int lp1 = lp1;
+   int lp1 = l+1;
 
    nconp1 = lp1;
    philp1 = l == 0;
@@ -197,33 +199,40 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int thread, int itmax, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2)
 {
-
    if (err != 0)
       return err;
+
+   cur_chi2   = &c2;
 
    fixed_param = -1;
    getting_errs = false;
 
    Init();
 
-   s = region_data.GetPointers(y, irf_idx);
-
    region_data.GetAverageDecay(avg_y);
-   
 
-   this->n          = n;
-   this->s          = s;
-   this->lmax       = lmax;
-   this->lin_params = lin_params;
-   this->irf_idx    = irf_idx;
-   this->chi2       = chi2;
-   this->cur_chi2   = &c2;
-   this->thread     = thread;
-   this->photons_per_count  = photons_per_count;
+   if (global_algorithm = MODE_GLOBAL_ANALYSIS)
+   {
+      s = region_data.GetSize();
+      region_data.GetPointers(y, irf_idx);
+   }
+   else
+   {
+      s = 1;
+      y = avg_y;
+      irf_idx[0] = 0;
+   }
+
+
+   float *alf_results;
+   results.GetPointers(alf_results, lin_params, chi2);
+
 
    chi2_norm = n - ((double)(model->nl))/s - l;
+
+
 
    // Assign initial guesses to nonlinear variables
    //------------------------------   
@@ -238,8 +247,23 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
    chi2_final = *cur_chi2;
 
+
+   if (global_algorithm == MODE_GLOBAL_BINNING)
+   {
+      s = region_data.GetSize();
+      region_data.GetPointers(y, irf_idx);
+
+      GetLinearParams();
+   }
+
+
+   results.SetFitStatus(ierr);
+
    return ret;
 }
+
+
+
 
 double tol(double a, double b)
 {
@@ -405,7 +429,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    double* a = a_ + omp_thread * a_size;
    double* b = b_ + omp_thread * b_size;
 
-   model->CalculateModel(a, n, b, ndim, kap, params, irf_idx, isel, thread * n_thread + omp_thread);
+   model->CalculateModel(model_buffer[omp_thread], a, n, b, ndim, kap, params, irf_idx, isel);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)
@@ -435,7 +459,7 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, double* 
       return err;
 
    float* adjust = model->GetConstantAdjustment();
-   model->CalculateModel(a_, n, b_, ndim, kap, alf, irf_idx, 1, 0);
+   model->CalculateModel(model_buffer[0], a_, n, b_, ndim, kap, alf, irf_idx, 1);
 
    int idx = 0;
    for(int i=0; i<n; i++)

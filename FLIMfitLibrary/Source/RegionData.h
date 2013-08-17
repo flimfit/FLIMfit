@@ -43,8 +43,9 @@ public:
    void Clear();
    void GetPointersForInsertion(int n, float*& y, int*& irf_idx);
    void GetPointersForArbitaryInsertion(int pos, int n, float*& y, int*& irf_idx);
-   int  GetPointers(float*& y, int*& irf_idx);
+   void  GetPointers(float*& y, int*& irf_idx);
    const RegionData GetBinnedRegion();
+   int GetSize();
 
 
    void GetAverageDecay(float* average_decay);

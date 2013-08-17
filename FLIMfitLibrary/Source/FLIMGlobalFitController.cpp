@@ -484,7 +484,7 @@ void FLIMGlobalFitController::Init()
    else
       max_region_size = 1;
 
-   y_dim = max(max_region_size,data->n_px);
+   //y_dim = max(max_region_size,data->n_px);
 
 
    /*
@@ -494,10 +494,6 @@ void FLIMGlobalFitController::Init()
 
    exp_dim = max_dim * n_chan;
    */
-
-
-   //nl = model->nl;
-   //p = model->p; 
 
 
    // If using MLE, need an extra non-linear scaling factor
@@ -521,18 +517,19 @@ void FLIMGlobalFitController::Init()
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(model, &(status->terminate)) );
       else
-//         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
-         projectors.push_back( new VariableProjector(model, max_region_size, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(model, max_region_size, global_algorithm, n_omp_thread, &(status->terminate)) );
 
       region_data.push_back( new RegionData(max_region_size, data->n_meas) );
    }
 
+   /*
+   TODO: replace this
    for(int i=0; i<n_fitters; i++)
    {
       if (projectors[i].err != 0)
          error = projectors[i].err;
    }
-
+   */
 
    
 

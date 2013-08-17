@@ -147,8 +147,10 @@ void DecayModel::SetupIncMatrix(int* inc)
 
 
 /* ============================================================== */
-int DecayModel::CalculateModel(DecayModelWorkingBuffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel)
+int DecayModel::CalculateModel(WorkingBuffers& wbb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel)
 {
+
+   DecayModelWorkingBuffers& wb = (DecayModelWorkingBuffers&) wbb;
 
    int i,j,k, d_offset, total_n_exp, idx;
    int a_col;
@@ -490,8 +492,10 @@ int DecayModel::CalculateModel(DecayModelWorkingBuffers& wb, double *a, int adim
 }
 
 
-void DecayModel::GetWeights(DecayModelWorkingBuffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx)
+void DecayModel::GetWeights(WorkingBuffers& wbb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx)
 {
+   DecayModelWorkingBuffers& wb = (DecayModelWorkingBuffers&) wbb;
+
    int i, l_start;
    double F0, ref_lifetime;
 

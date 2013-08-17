@@ -33,8 +33,12 @@
 #ifndef _FITRESULTS_H
 #define _FITRESULTS_H
 
+#include <vector>
+
 class FLIMData;
 class FitResultsRegion;
+
+using namespace std;
 
 class FitResults
 {
@@ -47,31 +51,34 @@ public:
    const FitResultsRegion GetRegion(int image, int region);
    const FitResultsRegion GetPixel(int image, int region, int pixel);
   
-   void GetNonLinearParams(int image, int region, int pixel, double* params);
-   void GetLinearParams(int image, int region, int pixel, float* params);
+   void GetNonLinearParams(int image, int region, int pixel, vector<double>& params);
+   void GetLinearParams(int image, int region, int pixel, vector<float>& params);
+
 
    int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread);   
 
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
-   double t_g;
-
 
 private:
 
    void CalculateMeanLifetime();
+   void GetParamNames();
 
    int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
    void NormaliseLinearParams(float volatile lin_params[], float volatile norm_params[]);
    void DenormaliseLinearParams(float volatile norm_params[], float volatile lin_params[]);
-
-   int n_output_params;
    
+   void GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2);
+   void SetFitStatus(int image, int region, int code);
+
    FLIMData* data;
    FitModel* model;
 
+   bool pixelwise;
    int n_px;
    int lmax;
+   int nl;
 
    int n_aux;
 
@@ -81,20 +88,25 @@ private:
    float *lin_params; 
    float *chi2; 
    float *aux_data;
-   float *w_mean_tau; 
-   float *mean_tau;
 
    int *ierr; 
    float *success; 
 
 
    int calculate_errors;
-   int calculate_mean_lifetimes;
+   
+   int n_output_params;
+   int n_nl_output_params;
+   const char** param_names_ptr;
+   vector<string> param_names;
 
+   friend FitResultsRegion;
 };
 
 class FitResultsRegion
 {
+   friend FitResults;
+
 public:
    FitResultsRegion() : 
       results(0), image(0), region(0), is_pixel(false) {};
@@ -105,12 +117,18 @@ public:
   FitResultsRegion(FitResults* results, int image, int region, int pixel) : 
       results(results), image(image), region(region), pixel(pixel), is_pixel(true) {};
 
+  void GetPointers(float*& linear_params, float*& non_linear_params, float*& chi2);
+  void SetFitStatus(int code);
+
 private:
    FitResults* results;
    int image;
    int region;
    int pixel;
    bool is_pixel;
+
+
+
 };
 
 #endif

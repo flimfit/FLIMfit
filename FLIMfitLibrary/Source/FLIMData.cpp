@@ -577,6 +577,18 @@ void FLIMData::ClearMapping()
 }
 
 
+void FLIMData::GetAuxParamNames(vector<string>& param_names)
+{   
+   param_names.push_back("I");
+
+   if ( has_acceptor )
+      param_names.push_back("acceptor");
+
+   if ( polarisation_resolved )
+      param_names.push_back("r_ss");
+
+}
+
 
 FLIMData::~FLIMData()
 {

@@ -29,8 +29,8 @@
 
 using namespace std;
 
-VariableProjector::VariableProjector(FitModel* model, int max_region_size, int n_thread, int* terminate) : 
-    AbstractFitter(model, max_region_size, model->nl, n_thread, terminate)
+VariableProjector::VariableProjector(FitModel* model, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
+    AbstractFitter(model, max_region_size, model->nl, global_algorithm, n_thread, terminate)
 {
    this->weighting = weighting;
 
@@ -281,9 +281,8 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
 }
 
 
-int VariableProjector::GetLinearParams(RegionData& results) 
+int VariableProjector::GetLinearParams() 
 {
-   s = results.GetPointers(y, irf_idx);
    int nsls1 = (n-l) * s;
    
    varproj(nsls1, nl, 1, alf, fvec, fjac, -1, 0);
