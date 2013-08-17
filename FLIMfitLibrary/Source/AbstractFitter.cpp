@@ -40,84 +40,8 @@
 
 using namespace std;
 
-AbstractFitter::AbstractFitter(FitModel* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
-    model(model), n_param(n_param), max_region_size(max_region_size), global_algorithm(global_algorithm), n_thread(n_thread), terminate(terminate)
-{
-   err = 0;
-
-   a_   = NULL;
-   r   = NULL;
-   b_   = NULL;
-   kap = NULL;
-   alf = NULL;
-   err_upper = NULL;
-   err_lower = NULL;
-   alf_buf = NULL;
-   alf_err = NULL;
-
-   params = NULL;
-   alf_err = NULL;
-
-   nl   = model->nl;
-   l    = model->l;
-   n    = model->n;
-   nmax = model->n;
-
-   pmax  = model->p;
-
-   ndim       = max( n, 2*nl+3 );
-   nmax       = n + 16; // pad to prevent false sharing  
-
-   int lp1 = l+1;
-
-
-   for (int i=0; i<n_thread; i++)
-      model_buffer.push_back( model->CreateBuffer() );
-
-
-   // Check for valid input
-   //----------------------------------
-   if  (!(             l >= 0
-          &&          nl >= 0
-          && (nl<<1) + 3 <= ndim
-          && !(nl == 0 && l == 0)))
-   {
-      err = ERR_INVALID_INPUT;
-      return;
-   }
-   
-
-   a_size = nmax * lp1;
-   b_size = ndim * ( pmax + 3 );
-
-   a_      = new double[ a_size * n_thread ]; //free ok
-   r       = new double[ nmax * max_region_size ];
-   b_      = new double[ ndim * ( pmax + 3 ) * n_thread ]; //free ok
-   kap     = new double[ model->nl + 1 ];
-   params  = new double[ model->nl ];
-   alf_err = new double[ model->nl ];
-   alf_buf = new double[ model->nl ];
-   alf     = new double[ n_param ];
-   err_upper = new double[ n_param ];
-   err_lower = new double[ n_param ];
-
-   y            = new float[ max_region_size * nmax ]; //free ok 
-   irf_idx      = new int[ max_region_size ];
-
-   w            = new float[ nmax ]; //free ok
-    
-   fixed_param = -1;
-
-   getting_errs = false;
-
-   Init();
-
-   if (pmax != p)
-      err = ERR_INVALID_INPUT;
-
-}
-
-AbstractFitter::~AbstractFitter()
+template <class T>
+AbstractFitter<T>::~AbstractFitter()
 {
    for (vector<WorkingBuffers*>::iterator it = model_buffer.begin(); it != model_buffer.end(); ++it)
       model->DisposeBuffer( *it );
@@ -135,7 +59,8 @@ AbstractFitter::~AbstractFitter()
    ClearVariable(err_upper);
 }
 
-int AbstractFitter::Init()
+template <class T>
+int AbstractFitter<T>::Init()
 {
    int j, k, inckj;
 
@@ -199,7 +124,8 @@ int AbstractFitter::Init()
    return 0;
 }
 
-int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2)
+template <class T>
+int AbstractFitter<T>::Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2)
 {
    if (err != 0)
       return err;
@@ -271,8 +197,8 @@ double tol(double a, double b)
 }
 
 
-
-int AbstractFitter::CalculateErrors(double conf_limit)
+template <class T>
+int AbstractFitter<T>::CalculateErrors(double conf_limit)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
@@ -323,12 +249,12 @@ int AbstractFitter::CalculateErrors(double conf_limit)
          uintmax_t max = 20;
 
          errno = 0;
-         ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
+         ans = toms748_solve(boost::bind(&AbstractFitter<T>::ErrMinFcn,this,_1), 
                      0.0, 0.1*fixed_value_initial, tol, max, c_policy());    
          
          if (errno != 0)
          {
-            ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
+            ans = toms748_solve(boost::bind(&AbstractFitter<T>::ErrMinFcn,this,_1), 
                      0.1*fixed_value_initial, 0.8*fixed_value_initial, tol, max, c_policy());    
          }
 
@@ -353,8 +279,8 @@ int AbstractFitter::CalculateErrors(double conf_limit)
 
 }
 
-
-double AbstractFitter::ErrMinFcn(double x)
+template <class T>
+double AbstractFitter<T>::ErrMinFcn(double x)
 {
    using namespace boost::math;
    
@@ -400,7 +326,8 @@ double AbstractFitter::ErrMinFcn(double x)
 }
 
 
-void AbstractFitter::GetParams(int nl, const double* alf)
+template <class T>
+void AbstractFitter<T>::GetParams(int nl, const double* alf)
 {
    int idx = 0;
    for(int i=0; i<nl; i++)
@@ -412,7 +339,8 @@ void AbstractFitter::GetParams(int nl, const double* alf)
    }
 }
 
-double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
+template <class T>
+double* AbstractFitter<T>::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
 {
    int valid_cols  = 0;
    int ignore_cols = 0;
@@ -453,7 +381,8 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    return params;
 }
 
-int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, double* fit)
+template <class T>
+int AbstractFitter<T>::GetFit(int irf_idx, double* alf, float* lin_params, double* fit)
 {
    if (err != 0)
       return err;
@@ -475,7 +404,8 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, double* 
    return 0;
 }
 
-void AbstractFitter::ReleaseResidualMemory()
+template <class T>
+void AbstractFitter<T>::ReleaseResidualMemory()
 {
    ClearVariable(r);
 }

@@ -38,7 +38,7 @@
 
 using namespace std;
 
-int DecayModel::check_alf_mod(DecayModelWorkingBuffers& wb, const double* new_alf, int irf_idx)
+int DecayModel::check_alf_mod(Buffers& wb, const double* new_alf, int irf_idx)
 {
    if (nl == 0)
       return true;
@@ -59,7 +59,7 @@ int DecayModel::check_alf_mod(DecayModelWorkingBuffers& wb, const double* new_al
    return changed;
 }
 
-void DecayModel::calculate_exponentials(DecayModelWorkingBuffers& wb, int irf_idx)
+void DecayModel::calculate_exponentials(Buffers& wb, int irf_idx)
 {
 
    double e0, de, ej, cum, fact, inv_theta, rate;
@@ -220,7 +220,7 @@ void DecayModel::calculate_exponentials(DecayModelWorkingBuffers& wb, int irf_id
 }
 
 
-void DecayModel::add_decay(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[])
+void DecayModel::add_decay(Buffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[])
 {   
    double c;
    double* local_exp_buf = wb.exp_buf + n_fret_group * exp_buf_size;
@@ -260,7 +260,7 @@ void DecayModel::add_decay(DecayModelWorkingBuffers& wb, int tau_idx, int theta_
    }
 }
 
-void DecayModel::add_derivative(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[])
+void DecayModel::add_derivative(Buffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[])
 {   
    double c;
    double* local_exp_buf = wb.exp_buf + n_fret_group * exp_buf_size;
@@ -292,7 +292,7 @@ void DecayModel::add_derivative(DecayModelWorkingBuffers& wb, int tau_idx, int t
 }
 
 
-int DecayModel::flim_model(DecayModelWorkingBuffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim)
+int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim)
 {
 
    // Total number of columns 
@@ -338,7 +338,7 @@ int DecayModel::flim_model(DecayModelWorkingBuffers& wb, int irf_idx, double ref
    return n_col;
 }
 
-int DecayModel::ref_lifetime_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    double fact;
   
@@ -375,7 +375,7 @@ int DecayModel::ref_lifetime_derivatives(DecayModelWorkingBuffers& wb, double re
    return n_col;
 }
 
-int DecayModel::tau_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::tau_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
 
    double fact;
@@ -424,7 +424,7 @@ int DecayModel::tau_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetim
 
 }
 
-int DecayModel::beta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::beta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact;
@@ -468,7 +468,7 @@ int DecayModel::beta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifeti
    return col;
 }
 
-int DecayModel::theta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::theta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact;
@@ -494,7 +494,7 @@ int DecayModel::theta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifet
 
 }
 
-int DecayModel::E_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::E_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact, E, Ej, dE;

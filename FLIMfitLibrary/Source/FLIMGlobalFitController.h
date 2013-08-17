@@ -36,7 +36,6 @@
 #  pragma warning(disable: 4610) // can never be instantiated - user defined constructor required.
 #endif
 
-#define NOMINMAX
 #include <boost/interprocess/file_mapping.hpp>
 
 #include "FitStatus.h"
@@ -171,7 +170,7 @@ private:
    double EstimateAverageLifetime(float decay[], int p);
 
 
-   ptr_vector<AbstractFitter> projectors;
+   ptr_vector<AbstractFitter<DecayModel>> projectors;
    ptr_vector<RegionData> region_data;
 
    ptr_vector<tthread::thread> thread_handle;

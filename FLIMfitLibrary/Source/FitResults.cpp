@@ -184,6 +184,12 @@ void FitResults::FitFinished(int image, int region, int pixel)
 
 }
 
+void FitResults::FitFinished(int image, int region)
+{
+   
+}
+
+
 void FitResults::NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[])
 {
    #pragma omp parallel for

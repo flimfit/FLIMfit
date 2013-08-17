@@ -39,33 +39,22 @@
 #include "levmar.h"
 #include "util.h"
 
-
+template <class T>
 void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa)
 {
-   MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
+   MaximumLikelihoodFitter<T>* f = (MaximumLikelihoodFitter<T>*) pa;
    f->mle_funcs(alf,fvec,nl,nfunc);
 }
 
+template <class T>
 void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 {
-   MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
+   MaximumLikelihoodFitter<T>* f = (MaximumLikelihoodFitter<T>*) pa;
    f->mle_jacb(alf,fjac,nl,nfunc);
 }
 
-
-MaximumLikelihoodFitter::MaximumLikelihoodFitter(FitModel* model, int* terminate) : 
-    AbstractFitter(model, model->nl+1, 1, MODE_GLOBAL_BINNING, 1, terminate)
-{
-   nfunc = nmax + 1; // +1 for kappa
-
-   dy = new double[nfunc];
-   work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];
-   expA = new double[nfunc];
-}
-
-
-
-int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
+template <class T>
+int MaximumLikelihoodFitter<T>::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
 {
 
    for(int i=0; i<n; i++)
@@ -149,14 +138,16 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
 }
 
 
+template <class T>
 
-int MaximumLikelihoodFitter::GetLinearParams() 
+int MaximumLikelihoodFitter<T>::GetLinearParams() 
 {
    return 0;
 }
 
 
-void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int nfunc)
+template <class T>
+void MaximumLikelihoodFitter<T>::mle_funcs(double *alf, double *fvec, int nl, int nfunc)
 {
    int i,j;
    float* adjust;
@@ -189,8 +180,8 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
    fvec[n] = kap[0]+1;
 }
 
-
-void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nfunc)
+template <class T>
+void MaximumLikelihoodFitter<T>::mle_jacb(double *alf, double *fjac, int nl, int nfunc)
 {
    int i,j,k;
    float* adjust;
@@ -237,8 +228,8 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    }
 }
 
-
-MaximumLikelihoodFitter::~MaximumLikelihoodFitter()
+template <class T>
+MaximumLikelihoodFitter<T>::~MaximumLikelihoodFitter()
 {
    delete[] dy;
    delete[] work;

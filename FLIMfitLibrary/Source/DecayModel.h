@@ -55,7 +55,8 @@ public:
    DecayModel();
    ~DecayModel();
 
- 
+   typedef DecayModelWorkingBuffers Buffers;
+
    void NormaliseLinearParams(volatile float lin_params[], float non_linear_params[], volatile float norm_params[]);
    void DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[]);
 
@@ -64,8 +65,8 @@ public:
    int alf_t0_idx, alf_offset_idx, alf_scatter_idx, alf_E_idx, alf_beta_idx, alf_theta_idx, alf_tvb_idx, alf_ref_idx;
 
    void   SetupIncMatrix(int* inc);
-   int    CalculateModel(WorkingBuffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel);
-   void   GetWeights(WorkingBuffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx);
+   int    CalculateModel(Buffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel);
+   void   GetWeights(Buffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx);
    float* GetConstantAdjustment();
 
    int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
@@ -74,9 +75,6 @@ public:
    void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params);
 
    void SetInitialParameters(double* params, double mean_arrival_time);
-
-   WorkingBuffers* CreateBuffer();
-   void DisposeBuffer(WorkingBuffers* wb);
 
 
    int n_v;
@@ -150,19 +148,19 @@ private:
 
 
 
-   void calculate_exponentials(DecayModelWorkingBuffers& wb, int irf_idx);
-   int check_alf_mod(DecayModelWorkingBuffers& wb, const double* new_alf, int irf_idx);
+   void calculate_exponentials(Buffers& wb, int irf_idx);
+   int check_alf_mod(Buffers& wb, const double* new_alf, int irf_idx);
 
-   int flim_model(DecayModelWorkingBuffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim);
-   int ref_lifetime_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
-   int tau_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
-   int beta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
-   int theta_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
-   int E_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
-   int FMM_derivatives(DecayModelWorkingBuffers& wb, double ref_lifetime, double b[], int bdim);
+   int flim_model(Buffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim);
+   int ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int tau_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int beta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int theta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int E_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int FMM_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
    
-   void add_decay(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[]);
-   void add_derivative(DecayModelWorkingBuffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[]);
+   void add_decay(Buffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[]);
+   void add_derivative(Buffers& wb, int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[]);
 
 
 

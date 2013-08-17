@@ -158,7 +158,7 @@ int FLIMGlobalFitController::RunWorkers()
 
       if (!runAsync)
       {
-         boost::ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
+         ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
          while (iter != projectors.end())
          {
             iter->join();
@@ -397,7 +397,7 @@ terminated:
 
    if (threads_running == 0 && runAsync)
    {
-      boost::ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
+      ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
          while (iter != projectors.end())
          {
             if ( iter->joinable() && iter->get_id() != cur_id )
@@ -515,9 +515,9 @@ void FLIMGlobalFitController::Init()
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
-         projectors.push_back( new MaximumLikelihoodFitter(model, &(status->terminate)) );
+         projectors.push_back( new MaximumLikelihoodFitter<DecayModel>(model, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(model, max_region_size, global_algorithm, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector<DecayModel>(model, max_region_size, global_algorithm, n_omp_thread, &(status->terminate)) );
 
       region_data.push_back( new RegionData(max_region_size, data->n_meas) );
    }
@@ -573,7 +573,7 @@ void FLIMGlobalFitController::CleanupTempVars()
    
    region_data.clear();
 
-   boost::ptr_vector<AbstractFitter>::iterator iter = projectors.begin();
+   ptr_vector<AbstractFitter<DecayModel>>::iterator iter = projectors.begin();
    while (iter != projectors.end())
    {
         iter->ReleaseResidualMemory();

@@ -29,58 +29,8 @@
 
 using namespace std;
 
-VariableProjector::VariableProjector(FitModel* model, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
-    AbstractFitter(model, max_region_size, model->nl, global_algorithm, n_thread, terminate)
-{
-   this->weighting = weighting;
-
-   use_numerical_derv = false;
-
-   iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
-
-   n_jac_group = (int) ceil(1024.0 / (nmax-l));
-
-   work_ = new double[nmax * n_thread];
-
-   aw_   = new double[ nmax * (l+1) * n_thread ]; //free ok
-   bw_   = new double[ ndim * ( pmax + 3 ) * n_thread ]; //free ok
-   wp_   = new double[ nmax * n_thread ];
-   u_    = new double[ nmax * n_thread ];
-   w     = new double[ nmax ];
-
-   r_buf_ = new double[ nmax * n_thread ];
-   norm_buf_ = new double[ nmax * n_thread ];
-
-   // Set up buffers for levmar algorithm
-   //---------------------------------------------------
-   int buf_dim = max(16,nl);
-   
-   diag = new double[buf_dim * n_thread];
-   qtf  = new double[buf_dim * n_thread];
-   wa1  = new double[buf_dim * n_thread];
-   wa2  = new double[buf_dim * n_thread];
-   wa3  = new double[buf_dim * n_thread * nmax * n_jac_group];
-   ipvt = new int[buf_dim * n_thread];
-
-   if (use_numerical_derv)
-   {
-      fjac = new double[nmax * max_region_size * n];
-      wa4  = new double[nmax * max_region_size]; 
-      fvec = new double[nmax * max_region_size];
-   }
-   else
-   {
-      fjac = new double[buf_dim * buf_dim * n_thread];
-      wa4 = new double[buf_dim *  n_thread];
-      fvec = new double[nmax * n_thread * n_jac_group];
-   }
-
-   for(int i=0; i<nl; i++)
-      diag[i] = 1;
-
-}
-
-VariableProjector::~VariableProjector()
+template <class T>
+VariableProjector<T>::~VariableProjector()
 {
    delete[] work_;
    delete[] aw_;
@@ -103,15 +53,17 @@ VariableProjector::~VariableProjector()
 }
 
 
+template <class T>
 int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread)
 {
-   VariableProjector *vp = (VariableProjector*) p;
+   VariableProjector<T> *vp = (VariableProjector<T>*) p;
    return vp->varproj(m, n, s_red, x, fnorm, fjrow, iflag, thread);
 }
 
+template <class T>
 int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fvec, int iflag)
 {
-   VariableProjector *vp = (VariableProjector*) p;
+   VariableProjector<T> *vp = (VariableProjector<T>*) p;
    return vp->varproj(m, n, 1, x, fvec, NULL, iflag, 0);
 }
 
@@ -144,7 +96,8 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
+template <class T>
+int VariableProjector<T>::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
 {
    INIT_CONCURRENCY;
 
@@ -280,8 +233,8 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
 
 }
 
-
-int VariableProjector::GetLinearParams() 
+template <class T>
+int VariableProjector<T>::GetLinearParams() 
 {
    int nsls1 = (n-l) * s;
    
@@ -292,7 +245,8 @@ int VariableProjector::GetLinearParams()
 
 }
 
-double VariableProjector::d_sign(double *a, double *b)
+template <class T>
+double VariableProjector<T>::d_sign(double *a, double *b)
 {
    double x;
    x = (*a >= 0 ? *a : - *a);
@@ -301,8 +255,8 @@ double VariableProjector::d_sign(double *a, double *b)
 
 
 
-
-int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread)
+template <class T>
+int VariableProjector<T>::varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread)
 {
 
    int firstca, firstcb;
@@ -622,8 +576,8 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    return iflag;
 }
 
-
-void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
+template <class T>
+void VariableProjector<T>::CalculateWeights(int px, const double* alf, int omp_thread)
 {
    int lp1 = l+1;
 
@@ -674,8 +628,8 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    }
 }
 
-
-void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firstca, int firstcb)
+template <class T>
+void VariableProjector<T>::transform_ab(int& isel, int px, int omp_thread, int firstca, int firstcb)
 {
    int lp1 = l+1;
 
@@ -771,8 +725,8 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 
 
 
-
-void VariableProjector::get_linear_params(int idx, double* a, double* u, double* x)
+template <class T>
+void VariableProjector<T>::get_linear_params(int idx, double* a, double* u, double* x)
 {
    // Get linear parameters
    // Overwrite rj unless x is specified (length n)
@@ -808,8 +762,8 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    }
 }
 
-
-int VariableProjector::bacsub(int idx, double *a, volatile double *x)
+template <class T>
+int VariableProjector<T>::bacsub(int idx, double *a, volatile double *x)
 {
 /*
    int a_dim1;
@@ -823,8 +777,8 @@ int VariableProjector::bacsub(int idx, double *a, volatile double *x)
    return 0;
 }
 
-
-int VariableProjector::bacsub(volatile double *rj, double *a, volatile double *x)
+template <class T>
+int VariableProjector<T>::bacsub(volatile double *rj, double *a, volatile double *x)
 {
    int a_dim1;
    int i, j, iback;

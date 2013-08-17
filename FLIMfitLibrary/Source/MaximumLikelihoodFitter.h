@@ -34,11 +34,12 @@
 
 #include "AbstractFitter.h"
 
-class MaximumLikelihoodFitter : public AbstractFitter
+template <class T>
+class MaximumLikelihoodFitter : public AbstractFitter<T>
 {
 public:
 
-   MaximumLikelihoodFitter(FitModel* model, int* terminate);
+   MaximumLikelihoodFitter(T* model, int* terminate);
    ~MaximumLikelihoodFitter();
 
    int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr);
@@ -62,8 +63,24 @@ private:
 
    int nfunc;
 
+   template <class T>
    friend void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa);
+   
+   template <class T>
    friend void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa);
 };
+
+
+template <class T>
+MaximumLikelihoodFitter<T>::MaximumLikelihoodFitter(T* model, int* terminate) : 
+    AbstractFitter(model, model->nl+1, 1, MODE_GLOBAL_BINNING, 1, terminate)
+{
+   nfunc = nmax + 1; // +1 for kappa
+
+   dy = new double[nfunc];
+   work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];
+   expA = new double[nfunc];
+}
+
 
 #endif

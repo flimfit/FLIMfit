@@ -841,17 +841,6 @@ double DecayModel::EstimateAverageLifetime(float decay[], int p)
 }
 
 
-WorkingBuffers* DecayModel::CreateBuffer()
-{
-   return (WorkingBuffers*) new DecayModelWorkingBuffers(this);
-}
-
-void DecayModel::DisposeBuffer(WorkingBuffers* wb)
-{
-   delete (DecayModelWorkingBuffers*) wb;
-}
-
-
 
 DecayModelWorkingBuffers::DecayModelWorkingBuffers(DecayModel* model)
 {
