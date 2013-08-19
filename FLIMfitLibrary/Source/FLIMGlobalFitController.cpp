@@ -901,7 +901,7 @@ void FLIMGlobalFitController::Init()
 
    y_dim = max(s,data->n_px);
 
-   max_dim = max(n_irf,n_t);
+    max_dim = max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
@@ -964,7 +964,7 @@ void FLIMGlobalFitController::Init()
    else
       n = n_meas;
 
-   ndim       = max( n, 2*nl+3 );
+    ndim       = max( n, 2*nl+3 );
    nmax       = n + 16; // pad to prevent false sharing   
 
    calculate_mean_lifetimes = !beta_global && n_exp > 1;
