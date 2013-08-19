@@ -6,10 +6,10 @@
 #define MyAppCopyright "(c) Imperial College London"
 
 
-; These options need to be set on the commandline, eg. > iscc \dMyAppVersion=4.2.8 \dMyAppSystem=64 \dRepositoryRoot="C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev" "InstallerScript.iss"
-;#define MyAppVersion "4.2.8"
-;#define MyAppSystem 64 / 32 
-;#define RepositoryRoot "C:\Users\scw09\Documents\Repositories\FLIMGlobalProcessingDev"
+; These options need to be set on the commandline, eg. > iscc \dMyAppVersion=x.x.x \dMyAppSystem=64 \dRepositoryRoot="...\Imperial-FLIMfit" "InstallerScript.iss"
+;#define MyAppVersion "x.x.x"
+;#define MyAppSystem 64 or 32 
+;#define RepositoryRoot "...\Imperial-FLIMfit"
 
 ; Define Matlab compiler runtime download and required version
 #define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win32_installer.exe"
@@ -67,12 +67,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#RepositoryRoot}\FLIMfitStandalone\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "{#RepositoryRoot}\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+Source: "{#RepositoryRoot}\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit_{#MyAppSystem}.bat"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppComputer}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "{#RepositoryRoot}\FLIMfitFrontEnd\DeployFiles\microscope.ico"; DestDir: "{app}"
+Source: "{#RepositoryRoot}\InstallerSupport\microscope.ico"; DestDir: "{app}"
 [Icons]
 Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; IconFilename: "{app}\microscope.ico"
 Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
