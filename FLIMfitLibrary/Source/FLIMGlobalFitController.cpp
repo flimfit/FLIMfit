@@ -573,7 +573,7 @@ void FLIMGlobalFitController::CleanupTempVars()
    
    region_data.clear();
 
-   ptr_vector<AbstractFitter<DecayModel>>::iterator iter = projectors.begin();
+   ptr_vector< AbstractFitter<DecayModel> >::iterator iter = projectors.begin();
    while (iter != projectors.end())
    {
         iter->ReleaseResidualMemory();

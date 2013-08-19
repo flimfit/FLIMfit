@@ -170,7 +170,7 @@ private:
    double EstimateAverageLifetime(float decay[], int p);
 
 
-   ptr_vector<AbstractFitter<DecayModel>> projectors;
+   ptr_vector< AbstractFitter<DecayModel> > projectors;
    ptr_vector<RegionData> region_data;
 
    ptr_vector<tthread::thread> thread_handle;

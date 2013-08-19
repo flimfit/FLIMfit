@@ -71,6 +71,8 @@ public:
 
 protected:
 
+   typedef typename T::Buffers Buffers;
+
    int Init();
 
    T* model;
@@ -132,7 +134,7 @@ protected:
 
    bool getting_errs;
 
-   ptr_vector<typename T::Buffers> model_buffer;
+   ptr_vector<Buffers> model_buffer;
 
 
 private:
@@ -149,84 +151,5 @@ private:
 
 
 };
-
-
-template <class T>
-AbstractFitter<T>::AbstractFitter(T* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
-    model(model), n_param(n_param), max_region_size(max_region_size), global_algorithm(global_algorithm), n_thread(n_thread), terminate(terminate)
-{
-   err = 0;
-
-   a_   = NULL;
-   r   = NULL;
-   b_   = NULL;
-   kap = NULL;
-   alf = NULL;
-   err_upper = NULL;
-   err_lower = NULL;
-   alf_buf = NULL;
-   alf_err = NULL;
-
-   params = NULL;
-   alf_err = NULL;
-
-   nl   = model->nl;
-   l    = model->l;
-   n    = model->n;
-   nmax = model->n;
-
-   pmax  = model->p;
-
-   ndim       = max( n, 2*nl+3 );
-   nmax       = n + 16; // pad to prevent false sharing  
-
-   int lp1 = l+1;
-
-
-   for (int i=0; i<n_thread; i++)
-      model_buffer.push_back( new T::Buffers(model) );
-
-
-   // Check for valid input
-   //----------------------------------
-   if  (!(             l >= 0
-          &&          nl >= 0
-          && (nl<<1) + 3 <= ndim
-          && !(nl == 0 && l == 0)))
-   {
-      err = ERR_INVALID_INPUT;
-      return;
-   }
-   
-
-   a_size = nmax * lp1;
-   b_size = ndim * ( pmax + 3 );
-
-   a_      = new double[ a_size * n_thread ]; //free ok
-   r       = new double[ nmax * max_region_size ];
-   b_      = new double[ ndim * ( pmax + 3 ) * n_thread ]; //free ok
-   kap     = new double[ model->nl + 1 ];
-   params  = new double[ model->nl ];
-   alf_err = new double[ model->nl ];
-   alf_buf = new double[ model->nl ];
-   alf     = new double[ n_param ];
-   err_upper = new double[ n_param ];
-   err_lower = new double[ n_param ];
-
-   y            = new float[ max_region_size * nmax ]; //free ok 
-   irf_idx      = new int[ max_region_size ];
-
-   w            = new float[ nmax ]; //free ok
-    
-   fixed_param = -1;
-
-   getting_errs = false;
-
-   Init();
-
-   if (pmax != p)
-      err = ERR_INVALID_INPUT;
-
-}
 
 #endif

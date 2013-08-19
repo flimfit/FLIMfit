@@ -32,6 +32,60 @@ using namespace std;
 
 template VariableProjector<DecayModel>;
 
+
+template <class T>
+VariableProjector<T>::VariableProjector(T* model, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
+    AbstractFitter<T>(model, max_region_size, model->nl, global_algorithm, n_thread, terminate)
+{
+   this->weighting = weighting;
+
+   use_numerical_derv = false;
+
+   iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
+
+   n_jac_group = (int) ceil(1024.0 / (nmax-l));
+
+   work_ = new double[nmax * n_thread];
+
+   aw_   = new double[ nmax * (l+1) * n_thread ]; //free ok
+   bw_   = new double[ ndim * ( pmax + 3 ) * n_thread ]; //free ok
+   wp_   = new double[ nmax * n_thread ];
+   u_    = new double[ nmax * n_thread ];
+   w     = new double[ nmax ];
+
+   r_buf_ = new double[ nmax * n_thread ];
+   norm_buf_ = new double[ nmax * n_thread ];
+
+   // Set up buffers for levmar algorithm
+   //---------------------------------------------------
+   int buf_dim = max(16,nl);
+   
+   diag = new double[buf_dim * n_thread];
+   qtf  = new double[buf_dim * n_thread];
+   wa1  = new double[buf_dim * n_thread];
+   wa2  = new double[buf_dim * n_thread];
+   wa3  = new double[buf_dim * n_thread * nmax * n_jac_group];
+   ipvt = new int[buf_dim * n_thread];
+
+   if (use_numerical_derv)
+   {
+      fjac = new double[nmax * max_region_size * n];
+      wa4  = new double[nmax * max_region_size]; 
+      fvec = new double[nmax * max_region_size];
+   }
+   else
+   {
+      fjac = new double[buf_dim * buf_dim * n_thread];
+      wa4 = new double[buf_dim *  n_thread];
+      fvec = new double[nmax * n_thread * n_jac_group];
+   }
+
+   for(int i=0; i<nl; i++)
+      diag[i] = 1;
+
+};
+
+
 template <class T>
 VariableProjector<T>::~VariableProjector()
 {

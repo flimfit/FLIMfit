@@ -28,7 +28,7 @@
 //=========================================================================
 
 #include "FitModel.h"
-#include <cstdint>
+#include <stdint.h>
 
 #ifndef _FITRESULTS_H
 #define _FITRESULTS_H
@@ -100,12 +100,12 @@ private:
    const char** param_names_ptr;
    vector<string> param_names;
 
-   friend FitResultsRegion;
+   friend class FitResultsRegion;
 };
 
 class FitResultsRegion
 {
-   friend FitResults;
+   friend class FitResults;
 
 public:
    FitResultsRegion() : 

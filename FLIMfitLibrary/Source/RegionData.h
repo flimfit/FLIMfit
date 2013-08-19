@@ -38,7 +38,7 @@ public:
    RegionData(RegionData* region, int px);
    ~RegionData();
 
-   RegionData& RegionData::operator=( const RegionData& other );
+   RegionData& operator=( const RegionData& other );
 
    void Clear();
    void GetPointersForInsertion(int n, float*& y, int*& irf_idx);
@@ -50,7 +50,7 @@ public:
 
    void GetAverageDecay(float* average_decay);
 
-   const RegionData RegionData::GetPixel(int px);
+   const RegionData GetPixel(int px);
 
 
 private:

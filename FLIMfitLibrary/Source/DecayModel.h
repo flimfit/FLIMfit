@@ -178,14 +178,14 @@ private:
    friend void conv_irf_ref(DecayModel *gc, int n_t, double t[], double exp_buf[], int total_n_exp, double tau[], double beta[], int dim, double a[], int add_components = 0, int inc_beta_fact = 0);
    friend void conv_irf_diff_ref(DecayModel *gc, int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int dim, double b[], int inc_tau = 1);
 
-   friend DecayModelWorkingBuffers;
+   friend class DecayModelWorkingBuffers;
 
 };
 
 
 class DecayModelWorkingBuffers
 {
-   friend DecayModel;
+   friend class DecayModel;
 
 public:
    DecayModelWorkingBuffers(DecayModel* model);
