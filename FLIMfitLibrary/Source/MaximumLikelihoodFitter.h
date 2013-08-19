@@ -44,11 +44,8 @@ public:
 
    int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr);
 
-   int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
    int GetLinearParams() ;
 private:
-
-   int Init();
 
    void mle_funcs(double *alf, double *fvec, int nl, int nfunc);
    void mle_jacb(double *alf, double *fjac, int nl, int nfunc);

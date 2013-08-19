@@ -12,6 +12,7 @@
 
 #include "FlagDefinitions.h"
 #include "VariableProjector.h"
+#include "DecayModel.h"
 
 #define CMINPACK_NO_DLL
 
@@ -28,6 +29,8 @@
 #include "ConcurrencyAnalysis.h"
 
 using namespace std;
+
+template VariableProjector<DecayModel>;
 
 template <class T>
 VariableProjector<T>::~VariableProjector()
@@ -183,17 +186,17 @@ int VariableProjector<T>::FitFcn(int nl, double *alf, int itmax, int* niter, int
       float* adjust = model->GetConstantAdjustment();
       for(int j=0; j<s; j++)
          for (int i=0; i < n; ++i)
-               y[i + j * nmax] = (y[i + j * nmax]-adjust[i]) * w[i];
+               y[i + j * nmax] = (y[i + j * nmax]-adjust[i]) * (float) w[i];
    }
 
    if (use_numerical_derv)
-      info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf, fvec,
+      info = lmdif(VariableProjectorDiffCallback<T>, (void*) this, nsls1, nl, alf, fvec,
                   ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
                   &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4 );
    else
    {
    
-      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, n_jac_group, alf, fvec, fjac, nl,
+      info = lmstx(VariableProjectorCallback<T>, (void*) this, nsls1, nl, s_red, n_jac_group, alf, fvec, fjac, nl,
                     ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
                     &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
    }
@@ -616,7 +619,7 @@ void VariableProjector<T>::CalculateWeights(int px, const double* alf, int omp_t
    }
 
    if (n_call != 0)
-      model->GetWeights(y, a, alf, lin_params+px*lmax, wp, irf_idx[px], thread);
+      model->GetWeights(model_buffer[omp_thread], y, a, alf, lin_params+px*lmax, wp, irf_idx[px]);
 
    for(int i=0; i<n; i++)
    {

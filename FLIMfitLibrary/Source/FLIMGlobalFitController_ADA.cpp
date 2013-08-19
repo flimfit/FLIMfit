@@ -159,6 +159,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
    scale_fact[0] = 1;
    scale_fact[1] = 0;
 
+   int getting_fit = false; //TODO
 
    double t0;
    

@@ -33,6 +33,7 @@
 #include "FitModel.h"
 #include "FitResults.h"
 #include "RegionData.h"
+#include "FlagDefinitions.h"
 
 #include "omp_stub.h"
 #include "levmar.h"
@@ -115,7 +116,7 @@ protected:
    float *chi2;
    int    *irf_idx;
 
-   double chi2_norm;
+   float chi2_norm;
    double photons_per_count;
    double* cur_chi2;
 
@@ -131,9 +132,10 @@ protected:
 
    bool getting_errs;
 
-private:
-
    ptr_vector<typename T::Buffers> model_buffer;
+
+
+private:
 
    int global_algorithm;
    double conf_limit;

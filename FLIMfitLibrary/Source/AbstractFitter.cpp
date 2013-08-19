@@ -27,6 +27,7 @@
 //
 //=========================================================================
 #include "AbstractFitter.h"
+#include "DecayModel.h"
 
 #include "boost/math/distributions/fisher_f.hpp"
 #include "boost/math/tools/minima.hpp"
@@ -40,12 +41,12 @@
 
 using namespace std;
 
+
+template AbstractFitter<DecayModel>;
+
 template <class T>
 AbstractFitter<T>::~AbstractFitter()
 {
-   for (vector<WorkingBuffers*>::iterator it = model_buffer.begin(); it != model_buffer.end(); ++it)
-      model->DisposeBuffer( *it );
-
    ClearVariable(r);
    ClearVariable(a_);
    ClearVariable(b_);
@@ -156,7 +157,7 @@ int AbstractFitter<T>::Fit(RegionData& region_data, FitResultsRegion& results, i
    results.GetPointers(alf_results, lin_params, chi2);
 
 
-   chi2_norm = n - ((double)(model->nl))/s - l;
+   chi2_norm = n - ((float)(model->nl))/s - l;
 
 
 

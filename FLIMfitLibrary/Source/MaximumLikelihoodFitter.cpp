@@ -30,6 +30,7 @@
 
 #include "MaximumLikelihoodFitter.h"
 #include "FlagDefinitions.h"
+#include "DecayModel.h"
 
 #include <cfloat>
 #include <cmath>
@@ -38,6 +39,11 @@
 #include "omp_stub.h"
 #include "levmar.h"
 #include "util.h"
+
+
+
+template MaximumLikelihoodFitter<DecayModel>;
+
 
 template <class T>
 void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa)
@@ -85,7 +91,7 @@ int MaximumLikelihoodFitter<T>::FitFcn(int nl, double *alf, int itmax, int* nite
 
     
     double* err = new double[nfunc];
-    dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, n_param, nfunc, this, err);
+    dlevmar_chkjac(MLEfuncsCallback<T>, MLEjacbCallback<T>, alf, n_param, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
     
@@ -97,7 +103,7 @@ int MaximumLikelihoodFitter<T>::FitFcn(int nl, double *alf, int itmax, int* nite
    opt[3] = DBL_EPSILON;
    */
 
-   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, nl, n+1, itmax, NULL, info, work, NULL, this);
+   int ret = dlevmar_der(MLEfuncsCallback<T>, MLEjacbCallback<T>, alf, dy, nl, n+1, itmax, NULL, info, work, NULL, this);
    
    					           /* O: information regarding the minimization. Set to NULL if don't care
                       * info[0]= ||e||_2 at initial p.

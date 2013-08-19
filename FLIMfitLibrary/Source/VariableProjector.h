@@ -45,13 +45,9 @@ public:
 
    int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr);
 
-   int GetFit(int irf_idx, double* alf, float* lin_params, float* adjust, double* fit);
-
    int GetLinearParams(); 
 
 private:
-
-   void Cleanup();
 
    int varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread);   
    
@@ -89,7 +85,10 @@ private:
    int use_numerical_derv;
    int using_gamma_weighting;
 
+   template <class T>
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
+   
+   template <class T>
    friend int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
 };
 
