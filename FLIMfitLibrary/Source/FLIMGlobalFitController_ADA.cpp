@@ -31,12 +31,12 @@
 #include "DecayModel.h"
 #include "IRFConvolution.h"
 
-
-
 #include <cmath>
 #include <algorithm>
 
-using namespace std;
+using std::min;
+using std::max;
+
 
 void DecayModel::SetupIncMatrix(int* inc)
 {

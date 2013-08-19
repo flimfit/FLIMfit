@@ -50,7 +50,8 @@
 
 #define STREAM_DATA  true
 
-using namespace boost;
+using std::vector;
+using std::string;
 
 class FLIMData
 {

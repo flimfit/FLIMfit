@@ -30,7 +30,7 @@
 #ifndef _ABSTRACTFITTER_H
 #define _ABSTRACTFITTER_H
 
-#include "FitModel.h"
+#include "DecayModel.h"
 #include "FitResults.h"
 #include "RegionData.h"
 #include "FlagDefinitions.h"
@@ -42,15 +42,13 @@
 
 #include <cstdio>
 
-using namespace boost;
+using boost::ptr_vector;
 
-template <class T>
 class AbstractFitter
 {
 public:
 
-
-   AbstractFitter(T* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate);
+   AbstractFitter(DecayModel* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate);
 
    virtual ~AbstractFitter();
 
@@ -71,11 +69,11 @@ public:
 
 protected:
 
-   typedef typename T::Buffers Buffers;
+   typedef DecayModel::Buffers Buffers;
 
    int Init();
 
-   T* model;
+   DecayModel* model;
 
    int* terminate;
 

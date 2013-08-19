@@ -30,6 +30,7 @@
 #include "RegionData.h"
 #include <algorithm>
 #include <cassert>
+#include <string.h>
 
 RegionData::RegionData() :
    n_px_max(0),

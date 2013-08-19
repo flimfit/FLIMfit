@@ -39,14 +39,14 @@
 #include "FlagDefinitions.h"
 #include "util.h"
 
-using namespace std;
+//using namespace std;
+using std::min;
+using std::max;
+using std::pair;
 
 
-template AbstractFitter<DecayModel>;
 
-
-template <class T>
-AbstractFitter<T>::AbstractFitter(T* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
+AbstractFitter::AbstractFitter(DecayModel* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
     model(model), n_param(n_param), max_region_size(max_region_size), global_algorithm(global_algorithm), n_thread(n_thread), terminate(terminate)
 {
    err = 0;
@@ -123,8 +123,7 @@ AbstractFitter<T>::AbstractFitter(T* model, int n_param, int max_region_size, in
 }
 
 
-template <class T>
-AbstractFitter<T>::~AbstractFitter()
+AbstractFitter::~AbstractFitter()
 {
    ClearVariable(r);
    ClearVariable(a_);
@@ -139,8 +138,7 @@ AbstractFitter<T>::~AbstractFitter()
    ClearVariable(err_upper);
 }
 
-template <class T>
-int AbstractFitter<T>::Init()
+int AbstractFitter::Init()
 {
    int j, k, inckj;
 
@@ -204,8 +202,7 @@ int AbstractFitter<T>::Init()
    return 0;
 }
 
-template <class T>
-int AbstractFitter<T>::Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2)
+int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2)
 {
    if (err != 0)
       return err;
@@ -277,8 +274,7 @@ double tol(double a, double b)
 }
 
 
-template <class T>
-int AbstractFitter<T>::CalculateErrors(double conf_limit)
+int AbstractFitter::CalculateErrors(double conf_limit)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
@@ -329,12 +325,12 @@ int AbstractFitter<T>::CalculateErrors(double conf_limit)
          uintmax_t max = 20;
 
          errno = 0;
-         ans = toms748_solve(boost::bind(&AbstractFitter<T>::ErrMinFcn,this,_1), 
+         ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
                      0.0, 0.1*fixed_value_initial, tol, max, c_policy());    
          
          if (errno != 0)
          {
-            ans = toms748_solve(boost::bind(&AbstractFitter<T>::ErrMinFcn,this,_1), 
+            ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
                      0.1*fixed_value_initial, 0.8*fixed_value_initial, tol, max, c_policy());    
          }
 
@@ -359,8 +355,7 @@ int AbstractFitter<T>::CalculateErrors(double conf_limit)
 
 }
 
-template <class T>
-double AbstractFitter<T>::ErrMinFcn(double x)
+double AbstractFitter::ErrMinFcn(double x)
 {
    using namespace boost::math;
    
@@ -406,8 +401,7 @@ double AbstractFitter<T>::ErrMinFcn(double x)
 }
 
 
-template <class T>
-void AbstractFitter<T>::GetParams(int nl, const double* alf)
+void AbstractFitter::GetParams(int nl, const double* alf)
 {
    int idx = 0;
    for(int i=0; i<nl; i++)
@@ -419,8 +413,7 @@ void AbstractFitter<T>::GetParams(int nl, const double* alf)
    }
 }
 
-template <class T>
-double* AbstractFitter<T>::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
+double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
 {
    int valid_cols  = 0;
    int ignore_cols = 0;
@@ -461,8 +454,7 @@ double* AbstractFitter<T>::GetModel(const double* alf, int irf_idx, int isel, in
    return params;
 }
 
-template <class T>
-int AbstractFitter<T>::GetFit(int irf_idx, double* alf, float* lin_params, double* fit)
+int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, double* fit)
 {
    if (err != 0)
       return err;
@@ -484,8 +476,7 @@ int AbstractFitter<T>::GetFit(int irf_idx, double* alf, float* lin_params, doubl
    return 0;
 }
 
-template <class T>
-void AbstractFitter<T>::ReleaseResidualMemory()
+void AbstractFitter::ReleaseResidualMemory()
 {
    ClearVariable(r);
 }

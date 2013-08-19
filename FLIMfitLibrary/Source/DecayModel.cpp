@@ -31,7 +31,12 @@
 #include "IRFConvolution.h"
 #include "ModelADA.h"
 
+#include <stdio.h>
 #include "util.h"
+
+#include <complex>
+
+using std::abs;
 
 void DecayModel::Init()
 {

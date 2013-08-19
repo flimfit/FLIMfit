@@ -10,8 +10,9 @@
 
 #define INVALID_INPUT -1
 
-#include "FlagDefinitions.h"
+
 #include "VariableProjector.h"
+#include "FlagDefinitions.h"
 #include "DecayModel.h"
 
 #define CMINPACK_NO_DLL
@@ -28,14 +29,14 @@
 
 #include "ConcurrencyAnalysis.h"
 
+
+
+
 using namespace std;
 
-template VariableProjector<DecayModel>;
 
-
-template <class T>
-VariableProjector<T>::VariableProjector(T* model, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
-    AbstractFitter<T>(model, max_region_size, model->nl, global_algorithm, n_thread, terminate)
+VariableProjector::VariableProjector(DecayModel* model, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
+    AbstractFitter(model, max_region_size, model->nl, global_algorithm, n_thread, terminate)
 {
    this->weighting = weighting;
 
@@ -83,11 +84,10 @@ VariableProjector<T>::VariableProjector(T* model, int max_region_size, int globa
    for(int i=0; i<nl; i++)
       diag[i] = 1;
 
-};
+}
 
 
-template <class T>
-VariableProjector<T>::~VariableProjector()
+VariableProjector::~VariableProjector()
 {
    delete[] work_;
    delete[] aw_;
@@ -110,17 +110,15 @@ VariableProjector<T>::~VariableProjector()
 }
 
 
-template <class T>
 int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread)
 {
-   VariableProjector<T> *vp = (VariableProjector<T>*) p;
+   VariableProjector *vp = (VariableProjector*) p;
    return vp->varproj(m, n, s_red, x, fnorm, fjrow, iflag, thread);
 }
 
-template <class T>
 int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fvec, int iflag)
 {
-   VariableProjector<T> *vp = (VariableProjector<T>*) p;
+   VariableProjector *vp = (VariableProjector*) p;
    return vp->varproj(m, n, 1, x, fvec, NULL, iflag, 0);
 }
 
@@ -153,8 +151,7 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-template <class T>
-int VariableProjector<T>::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
+int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
 {
    INIT_CONCURRENCY;
 
@@ -244,13 +241,13 @@ int VariableProjector<T>::FitFcn(int nl, double *alf, int itmax, int* niter, int
    }
 
    if (use_numerical_derv)
-      info = lmdif(VariableProjectorDiffCallback<T>, (void*) this, nsls1, nl, alf, fvec,
+      info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf, fvec,
                   ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
                   &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4 );
    else
    {
    
-      info = lmstx(VariableProjectorCallback<T>, (void*) this, nsls1, nl, s_red, n_jac_group, alf, fvec, fjac, nl,
+      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, n_jac_group, alf, fvec, fjac, nl,
                     ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
                     &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
    }
@@ -290,8 +287,7 @@ int VariableProjector<T>::FitFcn(int nl, double *alf, int itmax, int* niter, int
 
 }
 
-template <class T>
-int VariableProjector<T>::GetLinearParams() 
+int VariableProjector::GetLinearParams() 
 {
    int nsls1 = (n-l) * s;
    
@@ -302,8 +298,7 @@ int VariableProjector<T>::GetLinearParams()
 
 }
 
-template <class T>
-double VariableProjector<T>::d_sign(double *a, double *b)
+double VariableProjector::d_sign(double *a, double *b)
 {
    double x;
    x = (*a >= 0 ? *a : - *a);
@@ -312,8 +307,7 @@ double VariableProjector<T>::d_sign(double *a, double *b)
 
 
 
-template <class T>
-int VariableProjector<T>::varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread)
+int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread)
 {
 
    int firstca, firstcb;
@@ -633,8 +627,7 @@ int VariableProjector<T>::varproj(int nsls1, int nls, int s_red, const double *a
    return iflag;
 }
 
-template <class T>
-void VariableProjector<T>::CalculateWeights(int px, const double* alf, int omp_thread)
+void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
    int lp1 = l+1;
 
@@ -685,8 +678,7 @@ void VariableProjector<T>::CalculateWeights(int px, const double* alf, int omp_t
    }
 }
 
-template <class T>
-void VariableProjector<T>::transform_ab(int& isel, int px, int omp_thread, int firstca, int firstcb)
+void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firstca, int firstcb)
 {
    int lp1 = l+1;
 
@@ -782,8 +774,7 @@ void VariableProjector<T>::transform_ab(int& isel, int px, int omp_thread, int f
 
 
 
-template <class T>
-void VariableProjector<T>::get_linear_params(int idx, double* a, double* u, double* x)
+void VariableProjector::get_linear_params(int idx, double* a, double* u, double* x)
 {
    // Get linear parameters
    // Overwrite rj unless x is specified (length n)
@@ -819,8 +810,7 @@ void VariableProjector<T>::get_linear_params(int idx, double* a, double* u, doub
    }
 }
 
-template <class T>
-int VariableProjector<T>::bacsub(int idx, double *a, volatile double *x)
+int VariableProjector::bacsub(int idx, double *a, volatile double *x)
 {
 /*
    int a_dim1;
@@ -834,8 +824,7 @@ int VariableProjector<T>::bacsub(int idx, double *a, volatile double *x)
    return 0;
 }
 
-template <class T>
-int VariableProjector<T>::bacsub(volatile double *rj, double *a, volatile double *x)
+int VariableProjector::bacsub(volatile double *rj, double *a, volatile double *x)
 {
    int a_dim1;
    int i, j, iback;
@@ -864,3 +853,7 @@ int VariableProjector<T>::bacsub(volatile double *rj, double *a, volatile double
 
    return 0;
 }
+
+
+
+//template VariableProjector<DecayModel>;

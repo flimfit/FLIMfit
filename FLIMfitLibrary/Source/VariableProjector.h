@@ -35,12 +35,11 @@
 #define ANALYTICAL_DERV 0
 #define NUMERICAL_DERV  1
 
-template <class T>
-class VariableProjector : public AbstractFitter<T>
+class VariableProjector : public AbstractFitter
 {
 
 public:
-   VariableProjector(T* model, int max_region_size, int global_algorithm, int n_thread, int* terminate);
+   VariableProjector(DecayModel* model, int max_region_size, int global_algorithm, int n_thread, int* terminate);
    ~VariableProjector();
 
    int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr);
@@ -85,10 +84,7 @@ private:
    int use_numerical_derv;
    int using_gamma_weighting;
 
-   template <class U>
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
-   
-   template <class U>
    friend int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
 };
 

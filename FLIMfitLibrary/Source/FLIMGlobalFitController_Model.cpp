@@ -36,7 +36,9 @@
 #include <cmath>
 #include <algorithm>
 
-using namespace std;
+#include <string.h>
+
+//using namespace std;
 
 int DecayModel::check_alf_mod(Buffers& wb, const double* new_alf, int irf_idx)
 {

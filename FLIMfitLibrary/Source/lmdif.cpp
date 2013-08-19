@@ -7,7 +7,8 @@
 #include <algorithm>
 #include "cminpack.h"
 
-using namespace std;
+using std::max;
+using std::min;
 
 #define TRUE_ (1)
 #define FALSE_ (0)

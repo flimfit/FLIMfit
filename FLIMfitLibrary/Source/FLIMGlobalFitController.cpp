@@ -46,8 +46,10 @@
 #include <cmath>
 #include <algorithm>
 
-using namespace std;
+//using namespace std;
 using namespace boost::interprocess;
+
+using std::min;
 
 #ifdef USE_CONCURRENCY_ANALYSIS
 marker_series* writer;
@@ -515,9 +517,9 @@ void FLIMGlobalFitController::Init()
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
-         projectors.push_back( new MaximumLikelihoodFitter<DecayModel>(model, &(status->terminate)) );
+         projectors.push_back( new MaximumLikelihoodFitter(model, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector<DecayModel>(model, max_region_size, global_algorithm, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(model, max_region_size, global_algorithm, n_omp_thread, &(status->terminate)) );
 
       region_data.push_back( new RegionData(max_region_size, data->n_meas) );
    }
@@ -573,7 +575,7 @@ void FLIMGlobalFitController::CleanupTempVars()
    
    region_data.clear();
 
-   ptr_vector< AbstractFitter<DecayModel> >::iterator iter = projectors.begin();
+   ptr_vector<AbstractFitter>::iterator iter = projectors.begin();
    while (iter != projectors.end())
    {
         iter->ReleaseResidualMemory();

@@ -31,6 +31,11 @@
 #include "FLIMData.h"
 #include "util.h"
 
+#include <algorithm>
+
+using std::max;
+using std::min;
+
 FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
    model(model), data(data), calculate_errors(calculate_errors)
 {

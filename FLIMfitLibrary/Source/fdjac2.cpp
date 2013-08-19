@@ -7,7 +7,7 @@
 #include <algorithm>
 #include "cminpack.h"
 
-using namespace std;
+using std::max;
 
 /* Subroutine */ int fdjac2(minpack_func_mn fcn, void *p, int m, int n, double *x, 
 	const double *fvec, double *fjac, int ldfjac,

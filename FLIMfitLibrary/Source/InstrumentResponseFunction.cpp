@@ -38,7 +38,7 @@ using std::min;
 
 InstrumentResponseFunction::InstrumentResponseFunction() :
    image_irf(false),
-   t0_image(false),
+   t0_image(NULL),
    n_irf_rep(1),
    t_irf_buf(NULL),
    irf_buf(NULL),
@@ -75,7 +75,7 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double* t_irf, dou
    n_chan       = n_chan_;
    n_irf_rep    = 1;
    image_irf    = false;
-   t0_image     = false;
+   t0_image     = NULL;
    variable_irf = false;
 
    CopyIRF(n_t, t_irf, irf);

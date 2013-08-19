@@ -51,12 +51,11 @@
 #include "ConcurrencyAnalysis.h"
 
 using namespace boost::interprocess;
-using namespace std;
 
 
 int CalculateRegionStats(int n, int s, float data[], float intensity[], int intensity_stride, ImageStats<float>& stats, int region, double conf_factor, float buf[])
 {
-   using namespace boost::math;
+   //using namespace boost::math;
    float* I_buf = buf + s;
 
    for(int i=0; i<n; i++)
@@ -65,7 +64,7 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], int inte
       for(int j=0; j<s; j++)
       {
          // Only include finite numbers
-         if ( isfinite(data[i+j*n]) && isfinite(data[i+j*n]*data[i+j*n]) )
+         if ( boost::math::isfinite(data[i+j*n]) && boost::math::isfinite(data[i+j*n]*data[i+j*n]) )
          {
             buf[idx] = data[i+j*n];
             I_buf[idx] = intensity[i+j*intensity_stride];
@@ -226,6 +225,8 @@ int DecayModel::ProcessNonLinearParams(float alf[], float alf_err_lower[], float
 int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread)
 {
    INIT_CONCURRENCY;
+
+   using namespace std;
    
    int n_px = data->n_px;
 

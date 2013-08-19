@@ -38,7 +38,7 @@
 class FLIMData;
 class FitResultsRegion;
 
-using namespace std;
+//using namespace std;
 
 class FitResults
 {

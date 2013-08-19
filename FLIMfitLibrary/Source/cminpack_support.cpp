@@ -5,8 +5,8 @@
 #include "omp_stub.h"
 #include "xmmintrin.h"
 
-using namespace std;
-
+using std::max;
+using std::min;
 
 /* Subroutine */ void qrsolv(int n, double *r, int ldr, 
 	const int *ipvt, const double *diag, const double *qtb, double *x, 
