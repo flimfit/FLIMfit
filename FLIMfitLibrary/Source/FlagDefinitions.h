@@ -100,6 +100,7 @@ enum GlobalMode { MODE_GLOBAL_ANALYSIS, MODE_GLOBAL_BINNING };
 #define ERR_FOUND_NO_REGIONS           -1008
 #define ERR_FAILED_TO_MAP_DATA         -1009
 #define ERR_INVALID_INPUT              -1010
+#define ERR_INVALID_IDX                -1012
 
 /*
 #define _CRTDBG_MAP_ALLOC

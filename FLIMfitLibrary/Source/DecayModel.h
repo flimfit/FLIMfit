@@ -74,6 +74,7 @@ public:
 
    void SetInitialParameters(double* params, double mean_arrival_time);
 
+   InstrumentResponseFunction* irf;
 
    int n_v;
    int n_chan, n_meas, n_pol_group;
@@ -90,7 +91,16 @@ public:
 
 private:
 
-   InstrumentResponseFunction irf;
+
+   /// TODO?
+   int     n_t; 
+   double *t;
+   double *t_int;
+   int data_type;
+   int     photons_per_count;
+   ///
+
+   int estimate_initial_tau;  // TODO: Best place for this?
 
 
    double t_g; // TODO: check this is set somewhere

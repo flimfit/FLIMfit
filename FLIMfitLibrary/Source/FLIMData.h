@@ -33,6 +33,7 @@
 #include "RegionData.h"
 #include "FitResults.h"
 #include "FitStatus.h"
+#include "InstrumentResponseFunction.h"
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -58,7 +59,7 @@ class FLIMData
 
 public:
 
-   FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
+   FLIMData(int polarisation_resolved, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
             int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status);
 
    int  SetData(float data[]);
@@ -102,7 +103,7 @@ public:
    template <typename T>
    void DataLoaderThread();
 
-
+   InstrumentResponseFunction* irf;
 
    ~FLIMData();
 
@@ -204,7 +205,6 @@ private:
 
 
    int polarisation_resolved;
-   double g_factor;
 
    int* region_idx;
    int* output_region_idx;
@@ -707,11 +707,9 @@ void FLIMData::TransformImage(int thread, int im)
             perp += tr_data_ptr[i];
          tr_data_ptr += n_t;
 
-         perp *= (float) g_factor;
+         perp *= (float) irf->g_factor;
 
          *r_ptr = (para - perp) / (para + 2 * perp);
-
-
          r_ptr++;
       }
    }

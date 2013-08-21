@@ -70,53 +70,9 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, DecayMode
 
    params = new WorkerParams[this->n_thread]; //ok
    status = new FitStatus(model,this->n_thread,NULL); //ok
-  /*
-   alf          = NULL;
-   chi2         = NULL;
-   I            = NULL;
-   r_ss         = NULL;
-   w_mean_tau   = NULL;
-   mean_tau     = NULL;
-   cur_alf      = NULL;
-   cur_irf_idx  = NULL;
-   acceptor     = NULL;
-   */
-   /*
-   ierr         = NULL;
-   success      = NULL;
 
-   y            = NULL;
-   lin_params   = NULL;
-
-   w            = NULL;
-
-   irf_buf      = NULL;
-   t_irf_buf    = NULL;
-   exp_buf      = NULL;
-   tau_buf      = NULL;
-   beta_buf     = NULL;
-   theta_buf    = NULL;
-   adjust_buf   = NULL;
-   decay_group_buf = NULL;
-
-   irf_max      = NULL;
-   
-   lin_params_err = NULL;
-   alf_err_lower  = NULL;
-   alf_err_upper  = NULL;
-
-   chan_fact      = NULL;
-   irf_idx        = NULL;
-
-   param_names_ptr = NULL;
-   */
-   //local_decay = NULL;
    data = NULL;
    model = NULL;
-   /*
-   alf_local = NULL;
-   lin_local = NULL;
-   */
 
    cur_im = NULL;
 
@@ -135,6 +91,9 @@ int FLIMGlobalFitController::RunWorkers()
       return 0;
 
    omp_set_num_threads(n_omp_thread);
+
+   data->irf = irf;
+   model->irf = irf;
 
    data->StartStreaming();
    status->AddConditionVariable(&active_lock);
@@ -415,6 +374,9 @@ terminated:
 
 void FLIMGlobalFitController::SetData(FLIMData* data)
 {
+   if (data != NULL)
+      delete data;
+
    this->data = data;
 }
 

@@ -59,11 +59,12 @@ public:
 
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
+   void GetCParamNames(int& n_params, const char**& param_names);
 
 private:
 
    void CalculateMeanLifetime();
-   void GetParamNames();
+   void DetermineParamNames();
 
    int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
    void NormaliseLinearParams(float volatile lin_params[], float volatile norm_params[]);

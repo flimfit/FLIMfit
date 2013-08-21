@@ -219,7 +219,7 @@ void FitResults::DenormaliseLinearParams(volatile float norm_params[], volatile 
    }
 }
 
-void FitResults::GetParamNames()
+void FitResults::DetermineParamNames()
 {
    model->GetOutputParamNames(param_names, n_nl_output_params);
    data->GetAuxParamNames(param_names);
@@ -232,7 +232,11 @@ void FitResults::GetParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 }
 
-
+void FitResults::GetCParamNames(int& n_params, const char**& param_names)
+{
+   n_params = n_output_params;
+   param_names = param_names_ptr;
+}
 
 
 void FitResultsRegion::GetPointers(float*& linear_params, float*& non_linear_params, float*& chi2)

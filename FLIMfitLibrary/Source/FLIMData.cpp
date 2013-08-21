@@ -31,10 +31,9 @@
 #include <cmath>
 //#include "hdf5.h"
 
-FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
+FLIMData::FLIMData(int polarisation_resolved, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
                    int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
    polarisation_resolved(polarisation_resolved),
-   g_factor(g_factor),
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),

@@ -32,6 +32,49 @@
 
 #include <algorithm>
 
+
+ModelParameters::ModelParameters()
+{
+   // Decay
+   n_exp = 1;
+   n_fix = 1;
+
+   tau_min[0]   = 0;
+   tau_max[0]   = 10e4;
+   tau_guess[0] = 2000;
+
+   fit_beta    = FIT_LOCALLY; 
+   fixed_beta  = NULL;
+
+   // FRET 
+   fit_fret    = false;
+   n_fret      = 0;
+   n_fret_fix  = 0;
+   inc_donor   = false;
+     
+   // Anisotropy 
+   n_theta     = 0; 
+   n_theta_fix = 0; 
+   inc_rinf    = false;
+
+   // Stray light
+   fit_offset  = FIX;
+   fit_scatter = FIX;
+   fit_tvb     = FIX;
+   
+   offset_guess  = 0;
+   scatter_guess = 0;
+   tvb_guess     = 0;
+
+   pulsetrain_correction = true;
+   t_rep         = 12.5e-12;
+   
+    int ref_reconvolution; 
+   double ref_lifetime_guess;
+
+}
+
+
 void ModelParameters::Validate()
 {
    if (polarisation_resolved)

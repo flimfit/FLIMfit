@@ -137,7 +137,7 @@ float DecayModel::GetNonLinearParam(int param, float alf[])
    if (fit_tvb == FIT_GLOBALLY)
       GET_PARAM(alf+alf_tvb_idx,1,p);
    
-   if (ref_reconvolution == FIT_GLOBALLY)
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
       GET_PARAM(alf+alf_ref_idx,1,p);
 
    return (float) NaN();
@@ -493,7 +493,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
   GetFit
   ===============================================*/
 
-int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int fit_loc[], double fit[], int& n_valid)
+int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit[], int& n_valid)
 {   
    if (!status->HasFit())
       return ERR_FIT_IN_PROGRESS;

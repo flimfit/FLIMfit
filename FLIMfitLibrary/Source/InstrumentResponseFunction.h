@@ -39,7 +39,8 @@ public:
    void SetIRF(int n_t, int n_chan, double* t_irf, double* irf);
    void SetImageIRF(int n_t, int n_chan, int n_irf_rep, double t_irf, double* irf);
    void SetIRFShiftMap(double* t0);
-   double CalculateGFactor();
+
+   double* GetIRF(int irf_idx, double* storage);
 
    double timebin_width;
 
@@ -50,15 +51,15 @@ public:
    int n_irf_rep;
 
    double g_factor;
+   
+   int    ref_reconvolution; 
+   double ref_lifetime_guess;
 
-   double* irf_buf;
-   double* t_irf_buf;
-
-   double* GetIRF(int irf_idx, double* storage);
 
 private:
    void CopyIRF(int n_irf_raw, double* t_irf, double* irf);
    void ShiftIRF(double shift, double storage[]);
+   double CalculateGFactor();
 
    void AllocateBuffer(int n_irf_raw);
    void FreeBuffer();
@@ -66,9 +67,13 @@ private:
    void CalculateTimebinWidth();
    static double CubicInterpolate(double  y[], double mu);
 
+   double* irf_buf;
+   double* t_irf_buf;
+
 
    int     image_irf;
    double* t0_image;
+
 
 };
 

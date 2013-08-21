@@ -107,7 +107,7 @@ void DecayModel::SetupIncMatrix(int* inc)
       inc_row++;
    }
 
-   if (ref_reconvolution == FIT_GLOBALLY)
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
    {
       // Set elements of inc for ref lifetime derivatives
       for(i=0; i<( n_pol_group* n_fret_group * n_exp_phi ); i++)
@@ -161,17 +161,12 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
 
    int getting_fit = false; //TODO
 
-   double t0;
-   
-   if ( fit_t0 )
-      t0 = alf[alf_t0_idx];
-   else
-      t0 = t0_guess;
+   double t0 = irf->t0;
 
-   if (ref_reconvolution == FIT_GLOBALLY)
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
       ref_lifetime = alf[alf_ref_idx];
    else
-      ref_lifetime = ref_lifetime_guess;
+      ref_lifetime = irf->ref_lifetime_guess;
 
    total_n_exp = n_exp * n_fret_group;
              
@@ -326,7 +321,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
             {
                for(i=0; i<n_t; i++)
                {
-                  a[idx+adim*a_col] += tvb_profile[k*n_t+i] * alf[alf_tvb_idx];
+                  a[idx+adim*a_col] += data->tvb_profile[k*n_t+i] * alf[alf_tvb_idx];
                   idx++;
                }
             }
@@ -497,12 +492,12 @@ void DecayModel::GetWeights(Buffers& wb, float* y, double* a, const double *alf,
    int i, l_start;
    double F0, ref_lifetime;
 
-   if ( ref_reconvolution && lin_params != NULL)
+   if ( irf->ref_reconvolution && lin_params != NULL)
    {
-      if (ref_reconvolution == FIT_GLOBALLY)
+      if (irf->ref_reconvolution == FIT_GLOBALLY)
          ref_lifetime = alf[alf_ref_idx];
       else
-         ref_lifetime = ref_lifetime_guess;
+         ref_lifetime = irf->ref_lifetime_guess;
 
 
       // Don't include stray light in weighting

@@ -45,7 +45,7 @@ int DecayModel::check_alf_mod(Buffers& wb, const double* new_alf, int irf_idx)
    if (nl == 0)
       return true;
 
-   if (irf.variable_irf && irf_idx != wb.cur_irf_idx)
+   if (irf->variable_irf && irf_idx != wb.cur_irf_idx)
    {
       wb.cur_irf_idx = irf_idx;
       return true;
@@ -71,7 +71,8 @@ void DecayModel::calculate_exponentials(Buffers& wb, int irf_idx)
    int row = n_pol_group*n_fret_group*n_exp*N_EXP_BUF_ROWS;
    
 
-   double* lirf = irf.GetIRF(irf_idx, wb.irf_buf);
+   double* lirf = irf->GetIRF(irf_idx, wb.irf_buf);
+   int n_irf = irf->n_irf;
 
    for(m=n_pol_group-1; m>=0; m--)
    {

@@ -44,6 +44,7 @@
 #include "FLIMData.h"
 #include "RegionData.h"
 #include "FitResults.h"
+#include "InstrumentResponseFunction.h"
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
 
@@ -108,6 +109,7 @@ public:
    int n_fitters;
    int n_omp_thread;
 
+   InstrumentResponseFunction* irf;
    DecayModel* model;
    FLIMData* data;
    FitResults* results;
@@ -125,6 +127,7 @@ public:
    double conf_interval;
    double conf_factor;
 
+   FLIMGlobalFitController(); // TODO
 
    FLIMGlobalFitController(int global_algorithm, DecayModel* params, int algorithm,
                            int weighting, int calculate_errors, double conf_interval,
@@ -140,16 +143,16 @@ public:
    int RunWorkers();
    int  GetErrorCode();
 
-   int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int& n_valid);
+   int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
    
    void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
 
+   void CleanupResults();
 
 private:
 
-   void SetOutputParamNames();
    void CalculateIRFMax(int n_t, double t[]);
-   void CleanupResults();
+
    
    void WorkerThread(int thread);
    
@@ -166,8 +169,8 @@ private:
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;
 
-   int DetermineMAStartPosition(int p);
-   double EstimateAverageLifetime(float decay[], int p);
+//   int DetermineMAStartPosition(int p);
+//   double EstimateAverageLifetime(float decay[], int p);
 
 
    ptr_vector<AbstractFitter> projectors;
