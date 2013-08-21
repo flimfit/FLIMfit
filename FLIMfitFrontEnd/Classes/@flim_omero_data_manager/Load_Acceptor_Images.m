@@ -30,7 +30,17 @@ function Load_Acceptor_Images(obj,data_series,~)
         3) load images with Acceptor prefix
     %}
 
-    if 0 == data_series.n_datasets, errordlg('no images loaded'), return, end; 
+    if isempty(obj.dataset) 
+            if ~isempty(obj.plate)
+                errormsg = 'This option is currently only supported for Datasets';
+            else
+                errormsg = 'Working Dataset was not set - can not continue';
+            end
+        errordlg(errormsg);
+        return;        
+    end 
+    
+    if isempty(data_series.n_datasets), errordlg('no images loaded, can not continue'), return, end; 
     
     choice = questdlg('Do you want to load Acceptor Images from current or another Dataset', ' ', ...
                         'Current Dataset', ...
@@ -39,11 +49,9 @@ function Load_Acceptor_Images(obj,data_series,~)
     acceptor_dataset = [];                    
                         switch choice
                             case 'Current Dataset'
-                                if ~isempty(obj.dataset)
-                                    acceptor_dataset = obj.dataset;
-                                end;
+                                acceptor_dataset = obj.dataset;
                             case 'Another Dataset'
-                                    acceptor_dataset = select_Dataset(obj.session,obj.userid,'Select Acceptor Dataset:'); 
+                                acceptor_dataset = select_Dataset(obj.session,obj.userid,'Select Acceptor Dataset:'); 
                         end % switch           
 
     if isempty(acceptor_dataset), return, end;
@@ -84,11 +92,11 @@ function Load_Acceptor_Images(obj,data_series,~)
     %
     if data_series.n_datasets == numel(acceptor_ids)
         if data_series.load_acceptor_images(acceptor_ids);
-            message = 'Acceptor Images were successfully loaded';
+            msg = 'Acceptor Images were successfully loaded';
         else
-            message = 'Acceptor Images were not loaded';
+            msg = 'Acceptor Images were not loaded';
         end
-        msgbox(message);
+        msgbox(msg);
         return;
     end
         
@@ -133,13 +141,14 @@ function Load_Acceptor_Images(obj,data_series,~)
         end                                                
     end                    
 
-    if data_series.n_datasets == numel(acceptor_ids) && data_series.load_acceptor_images(acceptor_ids)
-            message = 'Acceptor Images were successfully loaded';
-        else
-            message = 'Acceptor Images were not loaded';
+    msg = 'Acceptor Images were not loaded';    
+    if data_series.n_datasets == numel(acceptor_ids)
+        if data_series.load_acceptor_images(acceptor_ids);
+            msg = 'Acceptor Images were successfully loaded';
+        end    
     end
-    msgbox(message);
-              
+    msgbox(msg);        
+                  
 end
 
 

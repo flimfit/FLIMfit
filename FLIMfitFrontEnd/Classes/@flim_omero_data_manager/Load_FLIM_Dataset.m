@@ -34,6 +34,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %
             if ~isempty(obj.plate) 
             %
+                list_load_acceptor = [];
+                %
                 z = 0;       
                 imageids_unsorted = [];
                 str = char(256,256);
