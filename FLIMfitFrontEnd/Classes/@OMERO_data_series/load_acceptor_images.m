@@ -1,4 +1,4 @@
-function load_acceptor_images(obj,id_list,~)                        
+function ret = load_acceptor_images(obj,id_list,~)                        
     % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
         
         
@@ -25,6 +25,8 @@ function load_acceptor_images(obj,id_list,~)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+    ret = false;
+    
     imageList = getImages(obj.omero_data_manager.session,id_list);
 
     image = imageList(1);
@@ -56,6 +58,8 @@ function load_acceptor_images(obj,id_list,~)
         obj.acceptor(:,:,k) = plane';                        
     end
             
+    ret  = true;
+    
 end            
 
 

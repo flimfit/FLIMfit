@@ -57,7 +57,7 @@ function [ Plate Screen ] = select_Plate(session,userId,prompt)
             end
             %
             if ~exist('str','var')
-                errordlg('Sorry no platess available for this user','Plate error!');
+                errordlg('No plates available for this user','Plate error!');
                 return; 
             end
             %

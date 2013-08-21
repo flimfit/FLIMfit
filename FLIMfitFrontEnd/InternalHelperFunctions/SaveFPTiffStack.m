@@ -47,7 +47,7 @@ function SaveFPTiffStack(file,images,names,description)
         
 %    t.setTag(global_tag);
     
-    for i=1:10 %length(names)
+    for i=1:length(names)
     
         if (i > 1)
             t.writeDirectory();

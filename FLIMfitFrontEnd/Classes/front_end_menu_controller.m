@@ -72,6 +72,8 @@ classdef front_end_menu_controller < handle
         
         omero_data_manager;     
         
+        menu_OMERO_load_acceptor;
+        %menu_OMERO_export_acceptor;
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
                         
@@ -481,7 +483,15 @@ classdef front_end_menu_controller < handle
                 set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
             end;            
         end                                    
-        
+        %------------------------------------------------------------------                
+        function menu_OMERO_load_acceptor_callback(obj,~,~)
+            obj.omero_data_manager.Load_Acceptor_Images(obj.data_series_controller.data_series);
+        end
+        %------------------------------------------------------------------                
+        function menu_OMERO_export_acceptor_callback(obj,~,~)
+            obj.omero_data_manager.Export_Acceptor_Images(obj.data_series_controller.data_series);
+        end
+                
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
