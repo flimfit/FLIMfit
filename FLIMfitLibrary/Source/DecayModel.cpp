@@ -35,8 +35,10 @@
 #include "util.h"
 
 #include <complex>
+#include <algorithm>
 
 using std::abs;
+using std::max;
 
 void DecayModel::Init()
 {
@@ -54,19 +56,6 @@ void DecayModel::Init()
 
    CalculateIRFMax(n_t,t);
    ma_start = DetermineMAStartPosition(0);
-
-   // Select correct convolution function for data type
-   //-------------------------------------------------
-   if (data_type == DATA_TYPE_TCSPC)
-   {
-      Convolve = conv_irf_tcspc;
-      ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
-   }
-   else
-   {
-      Convolve = conv_irf_timegate;
-      ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_timegate : conv_irf_deriv_timegate;
-   }
 
    // Setup adjust buffer which will be subtracted from the data
    SetupAdjust();
@@ -256,9 +245,9 @@ void DecayModel::SetParameterIndices()
 
    alf_theta_idx = idx; 
    idx += n_theta_v;
-
+/*
    if (fit_t0)
-      alf_t0_idx = idx++;
+  */    alf_t0_idx = idx++;
 
    if (fit_offset == FIT_GLOBALLY)
       alf_offset_idx = idx++;
@@ -269,7 +258,7 @@ void DecayModel::SetParameterIndices()
   if (fit_tvb == FIT_GLOBALLY)
       alf_tvb_idx = idx++;
 
-  if (ref_reconvolution == FIT_GLOBALLY)
+  if (irf->ref_reconvolution == FIT_GLOBALLY)
      alf_ref_idx = idx++;
 
 
@@ -442,7 +431,7 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
    if (fit_tvb == FIT_GLOBALLY)
       param_names.push_back("tvb");
 
-   if (ref_reconvolution == FIT_GLOBALLY)
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
       param_names.push_back("tau_ref");
 
    n_nl_output_params = (int) param_names.size();
@@ -515,18 +504,20 @@ void DecayModel::CalculateParameterCount()
    l   = n_exp_phi * n_fret_group * n_pol_group;          // (varp) Number of linear parameters
 
 
-   if (ref_reconvolution == FIT_GLOBALLY) // fitting reference lifetime
+   if (irf->ref_reconvolution == FIT_GLOBALLY) // fitting reference lifetime
    {
       nl++;
       p += l;
    }
 
+   /*
    // Check whether t0 has been specified
    if (fit_t0)
    {
       nl++;
       p += l;
    }
+   */
 
    if (fit_offset == FIT_GLOBALLY)
    {
@@ -582,13 +573,16 @@ void DecayModel::CalculateIRFMax(int n_t, double t[])
 {
    irf_max.reserve(n_meas);
 
+   double t0 = irf->GetT();
+   double dt_irf = irf->timebin_width;
+
    for(int j=0; j<n_chan; j++)
    {
       for(int i=0; i<n_t; i++)
       {
          irf_max[j*n_t+i] = 0;
          int k=0;
-         while(k < n_irf && (t[i] - t_irf[k] - t0_guess) >= -1.0)
+         while(k < n_irf && (t[i] - t0 - k*dt_irf) >= -1.0)
          {
             irf_max[j*n_t+i] = k + j*n_irf;
             k++;
@@ -610,21 +604,22 @@ int DecayModel::DetermineMAStartPosition(int idx)
    double c;
    int j_last = 0;
    int start = 0;
-   
-  
-   // Get IRF for the pixel position idx
-   double *irf = this->irf.irf_buf + idx * n_irf * n_chan; // TODO
+
+   vector<double> storage(n_irf * n_meas);
+   double *lirf = irf->GetIRF(idx, &(storage[0]));
+   double t_irf0 = irf->GetT();
+   double dt_irf = irf->timebin_width;
 
    //===================================================
    // If we have a scatter IRF use data after cumulative sum of IRF is
    // 95% of total sum (so we ignore any potential tail etc)
    //===================================================
-   if (!ref_reconvolution)
+   if (!irf->ref_reconvolution)
    {      
       // Determine 95% of IRF
       double irf_95 = 0;
       for(int i=0; i<n_irf; i++)
-         irf_95 += irf[i];
+         irf_95 += lirf[i];
       irf_95 *= 0.95;
    
       // Cycle through IRF to find time at which cumulative IRF is 95% of sum.
@@ -632,11 +627,11 @@ int DecayModel::DetermineMAStartPosition(int idx)
       c = 0;
       for(int i=0; i<n_irf; i++)
       {
-         c += irf[i];
+         c += lirf[i];
          if (c >= irf_95)
          {
             for (int j=j_last; j<n_t; j++)
-               if (t[j] > t_irf[i])
+               if (t[j] > t_irf0 + i*dt_irf)
                {
                   start = j;
                   j_last = j;
@@ -658,11 +653,11 @@ int DecayModel::DetermineMAStartPosition(int idx)
       c = 0;
       for(int i=0; i<n_irf; i++)
       {
-         if (irf[i] > c)
+         if (lirf[i] > c)
          {
-            c = irf[i];
+            c = lirf[i];
             for (int j=j_last; j<n_t; j++)
-               if (t[j] > t_irf[i])
+               if (t[j] > t_irf0 + i*dt_irf)
                {
                   start = j;
                   j_last = j;
@@ -720,10 +715,10 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
 
    for(int j=0; j<n_theta_v; j++)
       param[idx++] = TransformRange(theta_guess[j+n_theta_fix],0,1000000);
-
+   /*
    if(fit_t0)
       param[idx++] = t0_guess;
-
+      */
    if(fit_offset == FIT_GLOBALLY)
       param[idx++] = offset_guess;
 
@@ -733,8 +728,8 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
    if(fit_tvb == FIT_GLOBALLY) 
       param[idx++] = tvb_guess;
 
-   if(ref_reconvolution == FIT_GLOBALLY)
-      param[idx++] = ref_lifetime_guess;
+   if(irf->ref_reconvolution == FIT_GLOBALLY)
+      param[idx++] = irf->ref_lifetime_guess;
 }
 
 
@@ -774,8 +769,8 @@ double DecayModel::EstimateAverageLifetime(float decay[], int p)
       {
          for(int i=start; i<n_t; i++)
          {
-            t_mean += 2 * irf.g_factor * decay[i+n_t] * (t[i] - t[start]);
-            n   += 2 * irf.g_factor * decay[i+n_t];
+            t_mean += 2 * irf->g_factor * decay[i+n_t] * (t[i] - t[start]);
+            n   += 2 * irf->g_factor * decay[i+n_t];
          }
       }
 
@@ -849,14 +844,46 @@ double DecayModel::EstimateAverageLifetime(float decay[], int p)
 
 DecayModelWorkingBuffers::DecayModelWorkingBuffers(DecayModel* model)
 {
-   cur_alf      = new double[ model->nl ]; //ok
 
-   AlignedAllocate( model->n_fret_group * model->exp_buf_size, exp_buf ); 
+   int max_dim, exp_buf_size;
+
+   max_dim = max(n_irf,n_t);
+   max_dim = (int) (ceil(max_dim/4.0) * 4);
+
+   exp_dim = max_dim * n_chan;
+   
+   exp_buf_size = n_exp * model->n_fret_group * model->n_pol_group * exp_dim * N_EXP_BUF_ROWS;
+
+   AlignedAllocate( exp_buf_size, exp_buf ); 
       
    tau_buf   = new double[ (model->n_fret+1) * model->n_exp ]; //free ok 
    beta_buf  = new double[ model->n_exp ]; //free ok
    theta_buf = new double[ model->n_theta ]; //free ok 
    irf_buf   = new double[ model->n_irf * model->n_chan ];
+   cur_alf   = new double[ model->nl ]; //ok
+
+   irf_max = &(model->irf_max[0]);
+
+   pulsetrain_correction = model->pulsetrain_correction;
+   n_pol_group = model->n_pol_group;
+   n_fret_group = model->n_fret_group;
+
+   this->model = model;
+
+
+      // Select correct convolution function for data type
+   //-------------------------------------------------
+   if (model->data_type == DATA_TYPE_TCSPC)
+   {
+      Convolve = conv_irf_tcspc;
+      ConvolveDerivative = irf->ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
+   }
+   else
+   {
+      Convolve = conv_irf_timegate;
+      ConvolveDerivative = irf->ref_reconvolution ? conv_irf_deriv_ref_timegate : conv_irf_deriv_timegate;
+   }
+
 
 }
 

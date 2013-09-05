@@ -262,8 +262,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
    params.SetDecay(n_exp, n_fix, tau_min, tau_max, tau_guess, fit_beta, fixed_beta);
    params.SetStrayLight(fit_offset, offset_guess, fit_scatter, scatter_guess, fit_tvb, tvb_guess);
    
-   if (n_fret > 0)
-      params.SetAnisotropy(n_theta, n_theta_fix, inf_rinf, theta_guess);
+   params.SetAnisotropy(n_theta, n_theta_fix, inc_rinf, theta_guess);
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
@@ -484,11 +483,11 @@ FITDLL_API int FLIMGetFitStatus(int c_idx, int *group, int *n_completed, int *it
 
 FITDLL_API int FLIMGlobalTerminateFit(int c_idx)
 {
-   int valid = ValidControllerIdx(c_idx);
-   if (!valid)
-      return ERR_NOT_INIT;
+   FLIMGlobalFitController *c;
+   if ( c != GetController(c_idx) )
+      return NULL; 
 
-   controller[c_idx]->status->Terminate();
+   c->status->Terminate();
    return SUCCESS;
 }
 

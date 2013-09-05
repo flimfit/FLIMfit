@@ -161,8 +161,6 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
 
    int getting_fit = false; //TODO
 
-   double t0 = irf->t0;
-
    if (irf->ref_reconvolution == FIT_GLOBALLY)
       ref_lifetime = alf[alf_ref_idx];
    else
@@ -293,8 +291,8 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
          }
 
          // Precalculate exponentials
-         if (check_alf_mod(wb, alf, irf_idx))
-            calculate_exponentials(wb, irf_idx);
+         if (wb.check_alf_mod(alf, irf_idx))
+            wb.calculate_exponentials(irf_idx);
 
          a_col += flim_model(wb, irf_idx, ref_lifetime, isel == 1, a+a_col*adim, adim);
 
@@ -321,7 +319,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
             {
                for(i=0; i<n_t; i++)
                {
-                  a[idx+adim*a_col] += data->tvb_profile[k*n_t+i] * alf[alf_tvb_idx];
+                  a[idx+adim*a_col] += tvb_profile[k*n_t+i] * alf[alf_tvb_idx];
                   idx++;
                }
             }
@@ -387,7 +385,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
          col += E_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
          col += theta_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
 
-         if (ref_reconvolution == FIT_GLOBALLY)
+         if (irf->ref_reconvolution == FIT_GLOBALLY)
             col += ref_lifetime_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
                   
          /*

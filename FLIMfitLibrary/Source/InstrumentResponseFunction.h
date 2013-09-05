@@ -41,6 +41,8 @@ public:
    void SetIRFShiftMap(double* t0);
 
    double* GetIRF(int irf_idx, double* storage);
+   double GetT();
+
 
    double timebin_width;
 
@@ -73,6 +75,8 @@ private:
 
    int     image_irf;
    double* t0_image;
+
+   double t0;
 
 
 };

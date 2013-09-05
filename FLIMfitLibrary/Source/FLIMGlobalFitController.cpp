@@ -452,8 +452,6 @@ void FLIMGlobalFitController::Init()
 
 
    /*
-   int max_dim = max(n_irf,n_t);
-   max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
    exp_dim = max_dim * n_chan;

@@ -215,7 +215,7 @@ int DecayModel::ProcessNonLinearParams(float alf[], float alf_err_lower[], float
    if (fit_tvb == FIT_GLOBALLY)
       SET_PARAM( alf_tvb_idx );
 
-   if (ref_reconvolution == FIT_GLOBALLY)
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
       SET_PARAM( alf_ref_idx );
 
    return idx;

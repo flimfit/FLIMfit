@@ -93,6 +93,11 @@ void InstrumentResponseFunction::CalculateTimebinWidth()
 
 }
 
+double InstrumentResponseFunction::GetT()
+{
+   return t_irf_buf[0] + t0;
+}
+
 double* InstrumentResponseFunction::GetIRF(int irf_idx, double* storage)
 {
 

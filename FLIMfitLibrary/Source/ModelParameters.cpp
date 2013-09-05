@@ -67,11 +67,8 @@ ModelParameters::ModelParameters()
    tvb_guess     = 0;
 
    pulsetrain_correction = true;
-   t_rep         = 12.5e-12;
+//   t_rep         = 12.5e-12;
    
-    int ref_reconvolution; 
-   double ref_lifetime_guess;
-
 }
 
 
