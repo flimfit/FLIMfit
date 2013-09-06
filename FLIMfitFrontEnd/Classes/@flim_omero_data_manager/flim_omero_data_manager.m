@@ -427,8 +427,8 @@ classdef flim_omero_data_manager < handle
         %------------------------------------------------------------------
         function Export_Fitting_Results(obj,fit_controller,data_series,fittingparamscontroller)
             %
-            if ~fit_controller.has_fit
-                 errordlg('There are no analysis results - nothing to Export');
+            if ~fit_controller.has_fit || isempty(data_series.ZCT)
+                 errordlg('There are no analysis results (or not freshly fitted) - nothing to Export');
                  return;
             end
             %
