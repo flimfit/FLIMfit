@@ -36,14 +36,11 @@ function save_segmentation_OMERO(obj)
     end;
 
     size_filt_mask = size(obj.filtered_mask);
-    if numel(size_filt_mask) < 3 
+    if isempty(size_filt_mask) || ... 
+            ( numel(size_filt_mask) == 2 && size_filt_mask(1) == 0 && size_filt_mask(2) == 0 )
         errordlg('nothnig was segmented? cannot continue..'), return, 
     end;
         
-%     if userid ~= logon_userid 
-%         errordlg('you can transfer ROI only to the images you own, cannot continue..'), return, 
-%     end;
-
             delete_previous_ROIs = false;
 
             choice = questdlg('Do you want to delete all previous ROIs, or append? (..attention..)', ' ', ...
