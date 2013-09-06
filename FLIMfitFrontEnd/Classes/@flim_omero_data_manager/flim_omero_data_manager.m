@@ -182,9 +182,12 @@ classdef flim_omero_data_manager < handle
                 return; 
             end;
             %
+            data_series.image_ids = [];
+            %
             if ~isempty(image) 
                 try
                     obj.selected_channel = obj.get_single_channel_FLIM_FOV(image,data_series);
+                    data_series.image_ids(1) = image.getId.getValue;
                 catch err
                     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
                 end
