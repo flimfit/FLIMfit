@@ -29,6 +29,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
     properties
        colorbar_axes; 
        plate_mode_popupmenu;
+       %plate_merge_popupmenu
     end
     
     methods
