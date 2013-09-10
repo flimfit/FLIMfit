@@ -33,6 +33,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         graph_display_popupmenu;
     end
     
+    
+    
     methods
         function obj = flim_fit_graph_controller(handles)
                        
@@ -75,6 +77,21 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             end
         end
         
+        function txt = myupdatefcn(empt, event_obj)
+            %Customised data tip text
+
+            pos = get(event_obj,'Position');
+
+            Dx = get(get(event_obj,'Target'),'XData');
+            Dy = get(get(event_obj,'Target'),'YData');
+
+            idx = ( (Dx==pos(1)) & (Dy==pos(2)) );
+            ind = find(idx,1,'first');
+
+            txt = {['Dx: ', num2str(pos(1))],...
+                ['Dy: ', num2str(pos(2))],...
+                };
+        end
         
         function draw_plot(obj,ax)
             
@@ -146,6 +163,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                 y_scatter = [];
                 x_scatter = [];
+                f_scatter = [];
                 err = [];
                 for i=1:length(x_data)
                     y = 0; yv = 0; yn = 0; e = 0; ym = [];
@@ -169,14 +187,16 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         n = r.image_size{j};
                         if n > 0
 
-                            if grouping == 1 || grouping == 3
+                            if grouping == 1 || grouping == 3 || grouping == 4
                                 ym(idx) = r.image_stats{j}.('w_mean')(param);
                                 ys(idx) = r.image_stats{j}.('w_std')(param);
                                 yn(idx) = n;
-                            else                                
+                                yf(idx) = r.metadata.FOV(x_sel(idx));
+                            else
                                 ym = [ym r.region_stats{j}.('w_mean')(param,:)];
                                 ys = [ys r.region_stats{j}.('w_std')(param,:)];
                                 yn = [yn r.region_size{j}];
+%                                 yf = ???
                             end
                             
                             idx = idx + 1;
@@ -191,9 +211,32 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     ys = ys(yfinite);
                     yn = yn(yfinite);
                     
+                    %Combine FOVwise stats wellwise, replace ym so that
+                    %scatter is displayed according to well.  
+                    if grouping == 4
+                       
+                        wm = [];
+                        ws = [];
+                        wn = [];
+                        
+                        widx = 1;
+                        for w = unique(r.metadata.Well(x_sel))
+                           [wm(widx),ws(widx),wn(widx)] = combine_stats(ym(strcmp(w{1},r.metadata.Well(x_sel))),...
+                               ys(strcmp(w{1},r.metadata.Well(x_sel))),yn(strcmp(w{1},r.metadata.Well(x_sel))));
+                           yw(widx) = w;
+                           widx = widx+1;
+                        end
+                        
+                        ym = wm; 
+                        ys = ws;
+                        yn = wn;
+                        yf = yw;
+                        
+                    end
                     
                     y_scatter = [y_scatter ym];
                     x_scatter = [x_scatter ones(size(ym))*i];
+                    f_scatter = [f_scatter yf];
                                         
                     [M, S, N] = combine_stats(ym,ys,yn);
                     
@@ -233,11 +276,11 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 if var_is_numeric
                     
                     if display == 1 || display == 2
-                        errorbar(ax,x_data,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                        he = errorbar(ax,x_data,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
 
                         if display == 2
                             hold(ax,'on');
-                            plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
+                            hs = plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
                         end
                         
                         hold(ax,'off');
@@ -250,11 +293,11 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 else
                     
                     if display == 1 || display == 2
-                        errorbar(ax,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                        he = errorbar(ax,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
                     
                         if display == 2
                             hold(ax,'on');
-                            plot(ax,x_scatter,y_scatter,'x','MarkerSize',5);
+                            hs = plot(ax,x_scatter,y_scatter,'x','MarkerSize',5);
                         end
                     else
                         boxplot(ax,y_scatter,x_scatter,'labels',x_data);
@@ -266,6 +309,14 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     cell_x_data = x_data;
                 end
 
+                if display == 1 || display == 2
+                    fig = obj.window;
+                    dcm_obj = datacursormode(fig);
+                    set(dcm_obj,'Enable','on','DisplayStyle','window');
+%                     disp(['he=' num2str(he)]);
+%                     disp(['hs=' num2str(hs)]);
+                    set(dcm_obj,'UpdateFcn',{@interactive_plot_update,obj,y_scatter,f_scatter,grouping,x_data,hs});                
+                end
                 %{
                 fig = obj.window;
                 
@@ -305,6 +356,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         g = 'region';
                     case 3
                         g = 'FOV';
+                    case 4
+                        g = 'well';
                 end
                
                 
@@ -319,10 +372,52 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             
         end
 
-
+    
+    
         
     end
     
     
+    
+end
+
+function txt = interactive_plot_update(~,event_obj,obj,y_scatter,f_scatter,grouping,x_data,hs)
+    %TODO - expand for arbitrary metadata parameters
+    %TODO - think of sensible way to handle regions
+    %TODO - turn on and off using contextmenu
+    
+    try
+        pos = get(event_obj,'Position');
+        T = get(event_obj,'Target');
+%         hs
+
+        if T == hs
+            md = obj.fit_controller.fit_result.metadata;
+
+            if grouping == 1 || grouping == 3
+                FOV = f_scatter(y_scatter == pos(2));
+                Well = md.Well(FOV{1} == [f_scatter{:}]);
+                txt = {[obj.ind_param  ': ' x_data{pos(1)}],...
+                    [obj.fit_controller.fit_result.latex_params{obj.cur_param} ': ' num2str(pos(2))],...
+                    ['Well: ' Well{:}],...
+                    ['FOV:' num2str(FOV{:})],...
+%                     ['Target: ' num2str(T)]};
+                };
+            elseif grouping == 4
+                Well = f_scatter{y_scatter == pos(2)};
+                txt = {[obj.ind_param ': ', x_data{pos(1)}],...
+                    [obj.fit_controller.fit_result.latex_params{obj.cur_param} ': ' num2str(pos(2))],...
+                    ['Well: ' Well],...
+%                     ['Target: ' num2str(T)]};
+                };
+            end
+        else    
+            txt = {['Mean ' obj.ind_param  ': ' num2str(pos(1))], ...
+                [obj.fit_controller.fit_result.latex_params{obj.cur_param} ': ' num2str(pos(2))]};
+        end
+    catch err
+        txt = {['Error in generating datapoint:  ' err]};
+    end
+
 end
 
