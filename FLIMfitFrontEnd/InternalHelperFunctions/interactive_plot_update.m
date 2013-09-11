@@ -6,6 +6,7 @@ function txt = interactive_plot_update(~,event_obj,obj,y_scatter,f_scatter,r_sca
         
         dcm_obj = datacursormode(obj.window);
         dtip = dcm_obj.CurrentDataCursor;
+%         set(dtip, 'uicontextmenu',obj.contextmenu)
         set(dtip,'Marker','o','MarkerFaceColor','none','MarkerEdgeColor','g');
 
         if iscell(x_data)
@@ -31,7 +32,11 @@ function txt = interactive_plot_update(~,event_obj,obj,y_scatter,f_scatter,r_sca
                 };
             elseif grouping == 1 || grouping == 3
                 FOV = f_scatter(y_scatter == pos(2));
-                Well = md.Well(FOV == [md.FOV{:}]);
+                if isfield(md,'Well')
+                    Well = md.Well(FOV == [md.FOV{:}]);
+                else
+                    Well = {'-'};
+                end
                 txt = {[obj.ind_param  ': ' x],...
                     [obj.fit_controller.fit_result.latex_params{obj.cur_param} ': ' sprintf('%6.0f',pos(2))],...
                     ['Well: ' Well{:}],...
