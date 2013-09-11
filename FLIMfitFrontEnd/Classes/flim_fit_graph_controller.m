@@ -31,7 +31,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         error_type_popupmenu;
         graph_grouping_popupmenu;
         graph_display_popupmenu;
-%         graph_dcm_popupmenu;
+        graph_dcm_popupmenu;
     end
     
     
@@ -47,7 +47,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             set(obj.error_type_popupmenu,'Callback',@(~,~,~) obj.update_display);
             set(obj.graph_grouping_popupmenu,'Callback',@(~,~,~) obj.update_display);
             set(obj.graph_display_popupmenu,'Callback',@(~,~,~) obj.update_display);
-%             set(obj.graph_dcm_popupmenu,'Callback',@(~,~,~) obj.update_display)
+            set(obj.graph_dcm_popupmenu,'Callback',@(~,~,~) obj.update_display)
             
             obj.register_tab_function('Plotter');
             obj.update_display();
@@ -107,7 +107,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             error_type = get(obj.error_type_popupmenu,'Value');
             grouping = get(obj.graph_grouping_popupmenu,'Value');
             display = get(obj.graph_display_popupmenu,'Value');
-%             dcm_toggle = get(obj.graph_dcm_popupmenu,'Value')-1;
+            dcm_toggle = get(obj.graph_dcm_popupmenu,'Value')-1;
 
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param) && obj.cur_param > 0
 
@@ -325,15 +325,15 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 fig = obj.window;
                 dcm_obj = datacursormode(fig);
                 dcm_style = {'datatip' 'window'};
-%                 if (display == 1 || display == 2) && dcm_toggle
-                if (display == 1 || display == 2)
-%                     set(dcm_obj,'Enable','on','DisplayStyle',dcm_style(dcm_toggle));
-                    set(dcm_obj,'Enable','on','DisplayStyle',dcm_style{1});
+                if (display == 1 || display == 2) && dcm_toggle
+%                 if (display == 1 || display == 2)
+                    set(dcm_obj,'Enable','on','DisplayStyle',dcm_style{dcm_toggle});
+%                     set(dcm_obj,'Enable','on','DisplayStyle',dcm_style{1});
                     set(dcm_obj,'UpdateFcn',{@interactive_plot_update,obj,y_scatter,f_scatter,r_scatter,grouping,x_data,hs});
 %                     set(get(get(dcm_obj,'UIContextMenu'),'Children'),'Visible','on')
                     set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
-%                 else
-%                     set(dcm_obj,'Enable','off');
+                else
+                    set(dcm_obj,'Enable','off');
                 end
                 
                 hold(ax,'off');
