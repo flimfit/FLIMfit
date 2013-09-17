@@ -276,7 +276,8 @@ end
     end
     
     obj.compute_tr_data(false);                
-    obj.init_dataset();            
+    obj.init_dataset();           
+    obj.background_value = 0;
                                                        
             f.selected = (1:n_FOVs);            
             f.fit_result.image = (1:n_FOVs);
