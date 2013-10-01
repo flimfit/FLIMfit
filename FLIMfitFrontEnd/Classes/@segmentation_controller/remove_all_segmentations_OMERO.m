@@ -43,22 +43,15 @@ function remove_all_segmentations_OMERO(obj)
     hw = waitbar(0, 'Deleting segmentations, please wait....');
     drawnow;
         
-    for i=1:d.n_datasets
-       
-        L = obj.filtered_mask(:,:,i);
-        
-        if ~isempty(L)            
-            myimages = getImages(session,d.image_ids(i));             
-            delete_FOV_shapes( d.omero_data_manager.session,myimages(1) );
-        end
-     
+    for i=1:d.n_datasets       
+        myimages = getImages(session,d.image_ids(i));             
+        delete_FOV_shapes( d.omero_data_manager.session,myimages(1) );     
+        %
         waitbar(i/d.n_datasets,hw);
-        drawnow;
-                
+        drawnow;                
     end
     
     delete(hw);
     drawnow;
     
-
 end
