@@ -1,6 +1,19 @@
 FLIMfit Changelog
 =================
 
+v4.5.13
+-------
+- Bug fix: Fix intermittent crash when using hyperthreading processor
+- Updated bugtracker to Github 
+- Various OMERO bug fixes
+
+v4.5.12
+-------
+- Enable tooltips on plotter
+- Enable well/FOV merge options for platemap
+- Improved support for .asc files
+- Various OMERO enhancements
+
 v4.5.11
 -------
 - Add gamma scaling factor for intensity merged images to preferences
