@@ -128,11 +128,11 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
          {
             next_idx = row*exp_dim + k*n_irf;
             idx = next_idx + exp_dim;
-            cum = exp_buf[idx++];
+            cum = 0;
             for(j=0; j<n_irf; j++)
             {
-               exp_buf[next_idx++] = cum;
                cum += exp_buf[idx++];
+               exp_buf[next_idx++] = cum;
             }
          }
 
@@ -177,11 +177,11 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
          {
             next_idx = row*exp_dim + k*n_irf;
             idx = next_idx + exp_dim;
-            cum = exp_buf[idx++];
+            cum = 0;
             for(j=0; j<n_irf; j++)
             {
-               exp_buf[next_idx++] = cum;
                cum += exp_buf[idx++];
+               exp_buf[next_idx++] = cum;
             }
          }
 
