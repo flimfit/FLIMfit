@@ -1134,13 +1134,13 @@ classdef front_end_menu_controller < handle
 
         function menu_help_tracker_callback(obj, ~, ~)
             
-            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues');
-            %web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
+            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues');
+            
         end
 
         function menu_help_bugs_callback(obj, ~, ~)
-            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues/new');
-            %web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
+            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues/new');
+            
         end
         
         function open_browser(~, url_str)

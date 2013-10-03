@@ -56,9 +56,6 @@ function remove_segmentation_OMERO(obj)
         
     for i=1:d.n_datasets
        
-        L = obj.filtered_mask(:,:,i);
-        
-        if ~isempty(L)            
             myimages = getImages(session,d.image_ids(i));             
             image = myimages(1);
 
@@ -78,7 +75,6 @@ function remove_segmentation_OMERO(obj)
                 %Update the roi.
                 roi = iUpdate.saveAndReturnObject(roi);
             end    
-        end
         %
         waitbar(i/d.n_datasets,hw);
         drawnow;
