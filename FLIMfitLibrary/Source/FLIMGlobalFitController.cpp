@@ -1103,7 +1103,7 @@ void FLIMGlobalFitController::Init()
 
    // Select correct convolution function for data type
    //-------------------------------------------------
-   if (data->data_type == DATA_TYPE_TCSPC)
+   if (false && data->data_type == DATA_TYPE_TCSPC)
    {
       Convolve = conv_irf_tcspc;
       ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
