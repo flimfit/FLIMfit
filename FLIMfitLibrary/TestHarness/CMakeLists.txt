@@ -46,11 +46,12 @@ include_directories( "../Boost" )
 #===================================================
 set(SOURCE
    TestHarness.cpp
+   FLIMSimulation.cpp
 )
 
-#set(HEADERS
-#  
-#)
+set(HEADERS
+   FLIMSimulation.h
+)
 
 # Add _32/_64 appendix to library
 #===================================================
