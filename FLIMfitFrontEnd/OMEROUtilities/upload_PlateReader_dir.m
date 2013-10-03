@@ -199,7 +199,6 @@ function objId = upload_PlateReader_dir(session, parent, folder, modulo)
                         well.setColumn( omero.rtypes.rint(col) );
                         well.setRow( omero.rtypes.rint(row) );
                         well.setPlate( omero.model.PlateI(objId,false) );
-                        well = updateService.saveAndReturnObject(well);        
                         %ws = omero.model.WellSampleI();
                         
                         for k = 1:numel(imgnameslist)
@@ -262,10 +261,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, modulo)
                             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                                                        
                             
                             ws.setImage( omero.model.ImageI(new_imageId,false) );                            
-                            %
-                            ws.setWell( well );        
                             well.addWellSample(ws);
-                            ws = updateService.saveAndReturnObject(ws);
                             %
                             % annotations
                                 %get image without gateway;
@@ -327,6 +323,7 @@ function objId = upload_PlateReader_dir(session, parent, folder, modulo)
                             % annotations
                                                         
                         end
+                        updateService.saveObject(well);
 %                         %
 %                         ws.setWell( well );        
 %                         well.addWellSample(ws);

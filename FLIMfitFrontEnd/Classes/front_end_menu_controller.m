@@ -72,6 +72,8 @@ classdef front_end_menu_controller < handle
         
         omero_data_manager;     
         
+        menu_OMERO_load_acceptor;
+        %menu_OMERO_export_acceptor;
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
                         
@@ -481,7 +483,15 @@ classdef front_end_menu_controller < handle
                 set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
             end;            
         end                                    
-        
+        %------------------------------------------------------------------                
+        function menu_OMERO_load_acceptor_callback(obj,~,~)
+            obj.omero_data_manager.Load_Acceptor_Images(obj.data_series_controller.data_series);
+        end
+        %------------------------------------------------------------------                
+        function menu_OMERO_export_acceptor_callback(obj,~,~)
+            obj.omero_data_manager.Export_Acceptor_Images(obj.data_series_controller.data_series);
+        end
+                
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------                                
@@ -1124,13 +1134,13 @@ classdef front_end_menu_controller < handle
 
         function menu_help_tracker_callback(obj, ~, ~)
             
-            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues');
-            %web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
+            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues');
+            
         end
 
         function menu_help_bugs_callback(obj, ~, ~)
-            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues/new');
-            %web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
+            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues/new');
+            
         end
         
         function open_browser(~, url_str)

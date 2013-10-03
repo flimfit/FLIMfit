@@ -23,8 +23,10 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
-    if ~plot_controller.fit_controller.has_fit || (~isempty(plot_controller.fit_controller.fit_result.binned) && plot_controller.fit_controller.fit_result.binned == 1)
-        errordlg('..mmmm.. nothing to Export..');
+    if ~plot_controller.fit_controller.has_fit || ... 
+            (~isempty(plot_controller.fit_controller.fit_result.binned) && plot_controller.fit_controller.fit_result.binned == 1) || ...
+            isempty(data_series.ZCT)
+        errordlg('..mmm.. can not continue - or no data, or reloaded data. Presently FLIM maps might be transferred only from freshly fitted data)..');
         return;
     end
     

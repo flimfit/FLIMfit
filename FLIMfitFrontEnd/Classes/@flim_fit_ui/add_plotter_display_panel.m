@@ -47,23 +47,27 @@ function handles = add_plotter_display_panel(obj,handles,parent)
                'HorizontalAlignment', 'right' );
     
     handles.graph_grouping_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'By Pixel' 'By Region' 'By FOV'}, 'Parent', param_layout );       
+            'String', {'By Pixel' 'By Region' 'By FOV' 'By Well'}, 'Parent', param_layout );       
     handles.error_type_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Standard Deviation', 'Standard Error', '95% Confidence'}, 'Parent', param_layout );
         
     uicontrol( 'Style', 'text', 'String', 'Display  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
-    uiextras.Empty( 'Parent', param_layout );
+%     uiextras.Empty( 'Parent', param_layout );
+    uicontrol( 'Style', 'text', 'String', 'Data cursor  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
            
     handles.graph_display_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Line' 'Line with Scatter' 'Box Plot'}, 'Parent', param_layout );       
-    uiextras.Empty( 'Parent', param_layout );
+%     uiextras.Empty( 'Parent', param_layout );
+    handles.graph_dcm_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Off' 'Datatip' 'Window'}, 'Parent', param_layout ); 
     
         
     set( param_layout, 'RowSizes', [22,22] );
     set( param_layout, 'ColumnSizes', [90,90,90,90,90,90] );
     
-    set( layout, 'Sizes', [-1 70])
+    set( layout, 'Sizes', [-1 70]) 
     
     
     plate_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
@@ -81,9 +85,14 @@ function handles = add_plotter_display_panel(obj,handles,parent)
             'String', {''}, 'Parent', param_layout );
     handles.plate_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Well Average','First Image'}, 'Parent', param_layout );
+    uicontrol( 'Style', 'text', 'String', 'Intensity merge  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
+    uiextras.Empty( 'Parent', param_layout);
+    handles.plate_merge_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'No','Yes'}, 'Parent', param_layout );
     
-    set( param_layout, 'RowSizes', [22 22] );
-    set( param_layout, 'ColumnSizes', [100,100] );
+    set( param_layout, 'RowSizes', [22,22] );
+    set( param_layout, 'ColumnSizes', [100,100,100,100] );
     
     set( plate_layout, 'Sizes', [-1 70])
     

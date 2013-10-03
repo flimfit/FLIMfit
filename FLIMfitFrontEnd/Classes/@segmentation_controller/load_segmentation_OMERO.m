@@ -36,6 +36,8 @@ function load_segmentation_OMERO(obj)
     segmentation_description = [];    
     ROI_descriptions_list = get_ROI_descriptions( session, d.image_ids  );
     
+    if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
+    
     if numel(ROI_descriptions_list) > 1        
         [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
                         'SelectionMode','single',...

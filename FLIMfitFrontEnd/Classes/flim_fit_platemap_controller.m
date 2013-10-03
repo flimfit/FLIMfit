@@ -29,6 +29,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
     properties
        colorbar_axes; 
        plate_mode_popupmenu;
+       plate_merge_popupmenu
     end
     
     methods
@@ -39,6 +40,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
 
             obj.register_tab_function('Plate');
             set(obj.plate_mode_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.plate_merge_popupmenu,'Callback',@(~,~)obj.update_display);
         
             obj.update_display();
         end
@@ -53,6 +55,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             param = obj.cur_param;
 
             create_im_plate = get(obj.plate_mode_popupmenu,'Value')-1;
+            merge = get(obj.plate_merge_popupmenu,'Value')-1;
             
             plate_size = 0;
             
@@ -105,6 +108,10 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                      
                      gw = imw * n_col; gh = imh * n_row;
                      im_plate = NaN([gh gw]);
+                     
+                     if merge
+                         im_plate_I = zeros([gh gw]);
+                     end
                 end
                
                 for row_idx = 1:n_row
@@ -124,7 +131,13 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                             im = f.get_image(sel_well(1),param,'result');
                             im = imresize(im,[imh imw],'nearest');
                             
-                            im_plate(ri:ri+imh-1,ci:ci+imw-1) = im;         
+                            im_plate(ri:ri+imh-1,ci:ci+imw-1) = im;   
+                            
+                            if merge
+                                im_I = f.get_intensity(sel_well(1),'result');
+                                im_I = imresize(im_I,[imh imw],'nearest');
+                                im_plate_I(ri:ri+imh-1,ci:ci+imw-1) = im_I;
+                            end
                         end
                             
                         for i=sel_well
@@ -161,7 +174,12 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 end
                
                 if create_im_plate
-                    im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale);
+                    if ~merge
+                        im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale);
+                    else
+                        I_lims = f.get_cur_intensity_lims;
+                        im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale,[],im_plate_I,I_lims);
+                    end
                     c = 'w';
                     f = 0.5;
                 else

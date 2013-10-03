@@ -31,7 +31,10 @@ classdef flim_fit_graph_controller < abstract_plot_controller
         error_type_popupmenu;
         graph_grouping_popupmenu;
         graph_display_popupmenu;
+        graph_dcm_popupmenu;
     end
+    
+    
     
     methods
         function obj = flim_fit_graph_controller(handles)
@@ -44,6 +47,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             set(obj.error_type_popupmenu,'Callback',@(~,~,~) obj.update_display);
             set(obj.graph_grouping_popupmenu,'Callback',@(~,~,~) obj.update_display);
             set(obj.graph_display_popupmenu,'Callback',@(~,~,~) obj.update_display);
+            set(obj.graph_dcm_popupmenu,'Callback',@(~,~,~) obj.update_display)
             
             obj.register_tab_function('Plotter');
             obj.update_display();
@@ -75,7 +79,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             end
         end
         
-        
+       
         function draw_plot(obj,ax)
             
             prof = get_profile();
@@ -103,6 +107,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             error_type = get(obj.error_type_popupmenu,'Value');
             grouping = get(obj.graph_grouping_popupmenu,'Value');
             display = get(obj.graph_display_popupmenu,'Value');
+            dcm_toggle = get(obj.graph_dcm_popupmenu,'Value')-1;
 
             if obj.fit_controller.has_fit && ~isempty(obj.ind_param) && obj.cur_param > 0
 
@@ -115,14 +120,13 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 if ~any(strcmp(obj.param_list,err_name))
                     err_name = [];
                 end               
-                
+                                
                 % Get values for the selected parameter
                 md = r.metadata.(obj.ind_param);
 
                 % Reject images which don't have metadata for this parameter
                 empty = cellfun(@isempty,md(sel));
                 sel = sel(~empty);
-                
                 
                 md = md(sel);
                    
@@ -146,6 +150,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
 
                 y_scatter = [];
                 x_scatter = [];
+                f_scatter = [];
+                r_scatter = [];
                 err = [];
                 for i=1:length(x_data)
                     y = 0; yv = 0; yn = 0; e = 0; ym = [];
@@ -162,6 +168,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     ym = [];
                     ys = [];
                     yn = [];
+                    yf = [];
+                    yr = [];
                     
                     idx = 1;
                     for j=x_sel
@@ -169,14 +177,27 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         n = r.image_size{j};
                         if n > 0
 
-                            if grouping == 1 || grouping == 3
+                            if grouping == 1 || grouping == 3 || grouping == 4
                                 ym(idx) = r.image_stats{j}.('w_mean')(param);
                                 ys(idx) = r.image_stats{j}.('w_std')(param);
                                 yn(idx) = n;
-                            else                                
+                                if isfield(r.metadata,'FOV')
+                                    yf(idx) = cell2mat(r.metadata.FOV(x_sel(idx)));
+                                    yr = yf;
+                                else
+                                    yf(idx) = NaN;
+                                    yr(idx) = NaN;
+                                end
+                            else
                                 ym = [ym r.region_stats{j}.('w_mean')(param,:)];
                                 ys = [ys r.region_stats{j}.('w_std')(param,:)];
                                 yn = [yn r.region_size{j}];
+                                if isfield(r.metadata,'FOV')
+                                    yf = [yf repmat(r.metadata.FOV(x_sel(idx)),1,length(r.regions{j}))];
+                                else
+                                    yf = [yf NaN(1,length(r.regions{j}))];
+                                end
+                                yr = [yr r.regions{j}];
                             end
                             
                             idx = idx + 1;
@@ -190,10 +211,44 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     ym = ym(yfinite);
                     ys = ys(yfinite);
                     yn = yn(yfinite);
+                    yf = yf(yfinite);
+                    yr = yr(yfinite);
                     
+                    %Combine FOVwise stats wellwise, replace ym so that
+                    %scatter is displayed according to well.  
+                    if grouping == 4
+                        if isfield(r.metadata,'Well')
+                            wm = [];
+                            ws = [];
+                            wn = [];
+
+                            widx = 1;
+                            for w = unique(r.metadata.Well(x_sel))
+                               [wm(widx),ws(widx),wn(widx)] = combine_stats(ym(strcmp(w{1},r.metadata.Well(x_sel))),...
+                                   ys(strcmp(w{1},r.metadata.Well(x_sel))),yn(strcmp(w{1},r.metadata.Well(x_sel))));
+                               yw(widx) = w;
+                               widx = widx+1;
+                            end
+
+                            ym = wm; 
+                            ys = ws;
+                            yn = wn;
+                            yf = yw;
+                        
+                        else
+                            %Workaround to block user from selecting combine by
+                            %well if none exist...
+                            %Alternative: disable/grey out this option, but
+                            %problem of where to check.  
+                            grouping = 3;                
+                            set(obj.graph_grouping_popupmenu,'Value',grouping);   
+                        end
+                    end
                     
                     y_scatter = [y_scatter ym];
                     x_scatter = [x_scatter ones(size(ym))*i];
+                    f_scatter = [f_scatter yf];
+                    r_scatter = [r_scatter yr];
                                         
                     [M, S, N] = combine_stats(ym,ys,yn);
                     
@@ -230,14 +285,15 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         y_err_disp = y_conf;
                 end
                 
+                hs = 0;
                 if var_is_numeric
                     
                     if display == 1 || display == 2
-                        errorbar(ax,x_data,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                        he = errorbar(ax,x_data,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
 
                         if display == 2
                             hold(ax,'on');
-                            plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
+                            hs = plot(ax,x_data(x_scatter),y_scatter,'x','MarkerSize',5);
                         end
                         
                         hold(ax,'off');
@@ -250,11 +306,11 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 else
                     
                     if display == 1 || display == 2
-                        errorbar(ax,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
+                        he = errorbar(ax,y_mean,y_err_disp,'or-','LineWidth',2,'MarkerSize',6,'MarkerFaceColor','r');
                     
                         if display == 2
                             hold(ax,'on');
-                            plot(ax,x_scatter,y_scatter,'x','MarkerSize',5);
+                            hs = plot(ax,x_scatter,y_scatter,'x','MarkerSize',5);
                         end
                     else
                         boxplot(ax,y_scatter,x_scatter,'labels',x_data);
@@ -266,16 +322,19 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                     cell_x_data = x_data;
                 end
 
-                %{
                 fig = obj.window;
-                
-                data = struct('graph_axes',ax,'x_data',x_data,'y_data',y_data);
-                
-                datacursormode(fig,'on');
                 dcm_obj = datacursormode(fig);
-                set(dcm_obj,'UpdateFcn',@(p1,p2) data_cursor(data,p1,p2))
-                datacursormode(fig,'on');
-                %}
+                dcm_style = {'datatip' 'window'};
+                if (display == 1 || display == 2) && dcm_toggle
+%                 if (display == 1 || display == 2)
+                    set(dcm_obj,'Enable','on','DisplayStyle',dcm_style{dcm_toggle});
+%                     set(dcm_obj,'Enable','on','DisplayStyle',dcm_style{1});
+                    set(dcm_obj,'UpdateFcn',{@interactive_plot_update,obj,y_scatter,f_scatter,r_scatter,grouping,x_data,hs});
+%                     set(get(get(dcm_obj,'UIContextMenu'),'Children'),'Visible','on')
+                    set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
+                else
+                    set(dcm_obj,'Enable','off');
+                end
                 
                 hold(ax,'off');
 
@@ -305,6 +364,8 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                         g = 'region';
                     case 3
                         g = 'FOV';
+                    case 4
+                        g = 'well';
                 end
                
                 
@@ -313,16 +374,23 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 ylabel(ax,r.latex_params{param});
                 xlabel(ax,obj.ind_param);
   
+%                 chandles = allchild(ax);
+%                 set(chandles,'uicontextmenu',obj.contextmenu);
+%                 set(obj.plot_handle,'uicontextmenu',obj.contextmenu)
+%                 set(allchild(obj.plot_handle),'uicontextmenu',obj.contextmenu);
+               
+                
             else
                 cla(ax);
             end
             
         end
 
-
+    
+    
         
     end
     
     
+    
 end
-

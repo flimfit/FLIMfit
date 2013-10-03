@@ -22,7 +22,7 @@ function varargout = segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 16-Jul-2013 13:47:13
+% Last Modified by GUIDE v2.5 06-Sep-2013 16:13:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -345,3 +345,19 @@ function OMERO_Save_Segmentation_Images_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.segmentation_controller.save_segmentation_OMERO;
+
+
+% --------------------------------------------------------------------
+function OMERO_Remove_Segmentation_Callback(hObject, eventdata, handles)
+% hObject    handle to OMERO_Remove_Segmentation (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.segmentation_controller.remove_segmentation_OMERO;
+
+% --------------------------------------------------------------------
+function OMERO_Remove_All_Segmentations_Callback(hObject, eventdata, handles)
+% hObject    handle to OMERO_Remove_All_Segmentations (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.segmentation_controller.remove_all_segmentations_OMERO;
+

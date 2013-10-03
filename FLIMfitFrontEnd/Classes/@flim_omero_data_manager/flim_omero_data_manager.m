@@ -182,9 +182,12 @@ classdef flim_omero_data_manager < handle
                 return; 
             end;
             %
+            data_series.image_ids = [];
+            %
             if ~isempty(image) 
                 try
                     obj.selected_channel = obj.get_single_channel_FLIM_FOV(image,data_series);
+                    data_series.image_ids(1) = image.getId.getValue;
                 catch err
                     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
                 end
@@ -427,8 +430,8 @@ classdef flim_omero_data_manager < handle
         %------------------------------------------------------------------
         function Export_Fitting_Results(obj,fit_controller,data_series,fittingparamscontroller)
             %
-            if ~fit_controller.has_fit
-                 errordlg('There are no analysis results - nothing to Export');
+            if ~fit_controller.has_fit || isempty(data_series.ZCT)
+                 errordlg('There are no analysis results (or not freshly fitted) - nothing to Export');
                  return;
             end
             %

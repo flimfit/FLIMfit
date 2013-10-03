@@ -174,10 +174,11 @@ global buf buf_name
                  
              
                 % 1d data
-                if siz(2) == 1
+                if siz(2) == 1 | siz(1) == 1
                
                      % if up to 1024 data points then assume a single-point
                      % decay & 12.5ns
+                
                      if length(dataUnShaped) <  1025
                          nbins = length(dataUnShaped);
                           im_data = reshape(dataUnShaped,nbins,1,1);
@@ -185,7 +186,7 @@ global buf buf_name
                      else
                      % too long for a single-point decay so assume a square
                      % image res by res & assume 64 time bins ???
-                         res = sqrt(length(dataUnShaped)/64)
+                         res = sqrt(length(dataUnShaped)/64);
                          im_data = reshape(dataUnShaped, 64, res, res);
                          delays = (0:63)*12500.0/64;
                      
