@@ -84,17 +84,7 @@ classdef flim_omero_data_manager < handle
             
             data_series.mode = mdta.FLIM_type;
             
-            % set name
-            extensions{1} = '.ome.tiff';
-            extensions{2} = '.ome.tif';
-            extensions{3} = '.tif';
-            extensions{4} = '.tiff';
-            extensions{5} = '.sdt';                        
-            extensions{5} = '.txt';                                    
-                for extind = 1:numel(extensions)    
-                    name = strrep(name,extensions{extind},'');
-                end  
-            %
+            
             if ~isempty(obj.dataset)
                 data_series.names{1} = name;            
             else % SPW image - treated differently at results import
@@ -407,7 +397,7 @@ classdef flim_omero_data_manager < handle
                 mdta.modulo = 'ModuloAlongC';
                 mdta.delays = 1;
                 
-                [ data_cube, name ] =  obj.OMERO_fetch(  image, ZCT, mdta);
+                [ data_cube, ~ ] =  obj.OMERO_fetch(  image, ZCT, mdta);
                             
                 data = double(squeeze(data_cube));
                 %

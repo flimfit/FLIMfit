@@ -215,21 +215,13 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %            
             data_series.n_datasets = n_datasets;
             data_series.names = cell(1,n_datasets);
-            %
-            % set names
-            extensions{1} = '.ome.tiff';
-            extensions{2} = '.ome.tif';
-            extensions{3} = '.tif';
-            extensions{4} = '.tiff';
-            extensions{5} = '.sdt';                        
-                for j=1:n_datasets
-                    string = folder_names{j};
-                    for extind = 1:numel(extensions)    
-                        string = strrep(string,extensions{extind},'');
-                    end
-                    data_series.names{j} = string;
-                end
-            %                
+            
+            %split names into components at full-stops & discard extensions                     
+            for j=1:n_datasets
+                strings = regexp(folder_names{j}, '\.', 'split');
+                data_series.names{j} = strings{1};
+            end
+                           
             if 0==numel(image_ids), return, end;
                                                                                                                  
             myimages = getImages(obj.session,image_ids(1)); image = myimages(1);

@@ -4,6 +4,11 @@ data_cube = [];
 
 name = char(image.getName.getValue());
 
+% split the name into it's components separated by full-stops
+components =  regexp(name, '\.', 'split');
+name = components{1};      % discard the extension or extensions
+
+
 FLIM_type   = mdta.FLIM_type;
 modulo      = mdta.modulo;
 delays      = mdta.delays';
