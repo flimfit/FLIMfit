@@ -350,7 +350,21 @@ classdef flim_omero_data_manager < handle
             %
             if isempty(str)
                 return;
-            end;            
+            elseif -1 == str
+                % try to look for annotations of data_series' first image..                
+                if ~isempty(data_series.image_ids)
+                    myimages = getImages(obj.session,data_series.image_ids(1));
+                    image = myimages(1);
+                    [str, fname] = select_Annotation(obj.session,obj.userid,image,'Choose image(1) IRF');
+                end
+            end;       
+            %
+            if isempty(str)                
+                return;
+            elseif -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
+                return;
+            end            
             %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
@@ -736,9 +750,13 @@ classdef flim_omero_data_manager < handle
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose fitting settings file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
                 fwrite(fid,str,'*uint8');
@@ -889,10 +907,13 @@ classdef flim_omero_data_manager < handle
             %    
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose metadata xlsx file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;        
-            %            
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');                
             fwrite(fid,str,'int8');                        
@@ -989,9 +1010,12 @@ classdef flim_omero_data_manager < handle
             %    
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose TVB file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;            
+            elseif isempty(str)                
+                return;       
+            end            
             %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');                
@@ -1052,9 +1076,13 @@ classdef flim_omero_data_manager < handle
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose data settings file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
                 fwrite(fid,str,'*uint8');
