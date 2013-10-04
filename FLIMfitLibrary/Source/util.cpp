@@ -54,12 +54,14 @@ void SetNaN(float* var, int n)
          var[i] = nan;
 }
 
+/*
 double NaN()
 {
    unsigned long nan_l[2]={0xffffffff, 0x7fffffff};
    return *((double*)nan_l);
 
 }
+*/
 
 int _CrtCheckMemory( )
 { return 0; };

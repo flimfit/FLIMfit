@@ -39,9 +39,10 @@ public:
    void SetIRF(int n_t, int n_chan, double* t_irf, double* irf);
    void SetImageIRF(int n_t, int n_chan, int n_irf_rep, double t_irf, double* irf);
    void SetIRFShiftMap(double* t0);
+   void SetReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
    double* GetIRF(int irf_idx, double* storage);
-   double GetT();
+   double GetT0();
 
 
    double timebin_width;

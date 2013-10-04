@@ -39,14 +39,13 @@
 #include "FlagDefinitions.h"
 #include "util.h"
 
-//using namespace std;
 using std::min;
 using std::max;
 using std::pair;
 
 
 
-AbstractFitter::AbstractFitter(DecayModel* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
+AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
     model(model), n_param(n_param), max_region_size(max_region_size), global_algorithm(global_algorithm), n_thread(n_thread), terminate(terminate)
 {
    err = 0;
@@ -60,14 +59,17 @@ AbstractFitter::AbstractFitter(DecayModel* model, int n_param, int max_region_si
    err_lower = NULL;
    alf_buf = NULL;
    alf_err = NULL;
+   avg_y = NULL;
+   //y = NULL;
+   //irf_idx = NULL;
 
    params = NULL;
    alf_err = NULL;
 
    nl   = model->nl;
    l    = model->l;
-   n    = model->n;
-   nmax = model->n;
+   n    = model->n_meas;
+   nmax = model->n_meas;
 
    pmax  = model->p;
 
@@ -106,8 +108,9 @@ AbstractFitter::AbstractFitter(DecayModel* model, int n_param, int max_region_si
    err_upper = new double[ n_param ];
    err_lower = new double[ n_param ];
 
-   y            = new float[ max_region_size * nmax ]; //free ok 
-   irf_idx      = new int[ max_region_size ];
+   avg_y        = new float[ nmax ];
+   //y            = new float[ max_region_size * nmax ]; //free ok 
+   //irf_idx      = new int[ max_region_size ];
 
    w            = new float[ nmax ]; //free ok
     
@@ -136,6 +139,15 @@ AbstractFitter::~AbstractFitter()
    ClearVariable(alf);
    ClearVariable(err_lower);
    ClearVariable(err_upper);
+
+   ClearVariable(avg_y);
+//   ClearVariable(y);
+//   ClearVariable(irf_idx);
+}
+
+AbstractFitter* new_clone(AbstractFitter const& other)
+{
+   return other.clone();
 }
 
 int AbstractFitter::Init()
@@ -239,16 +251,17 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
    // Assign initial guesses to nonlinear variables
    //------------------------------   
-   //TODO: decide best place for average lifetime estimation
-   //tau_ma = EstimateAverageLifetime(average_y, 0);
-   double tau_ma = 0;
-
+   double tau_ma = model->EstimateAverageLifetime(avg_y, region_data.data_type);
+   
    model->SetInitialParameters(alf, tau_ma);
-
 
    int ret = FitFcn(model->nl, alf, itmax, &niter, &ierr);
 
    chi2_final = *cur_chi2;
+
+
+   for(int i=0; i<nl; i++)
+      alf_results[i] = alf[i];
 
 
    if (global_algorithm == MODE_GLOBAL_BINNING)
@@ -470,7 +483,7 @@ int AbstractFitter::GetFit(int irf_idx, double* alf, float* lin_params, double* 
          fit[idx] += a_[nmax*j+i] * lin_params[j];
 
       fit[idx] += a_[nmax*l+i];
-      fit[idx++] /= photons_per_count;
+      fit[idx++] *= model->counts_per_photon;
    }
 
    return 0;

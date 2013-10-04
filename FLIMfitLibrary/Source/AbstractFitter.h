@@ -38,19 +38,22 @@
 #include "omp_stub.h"
 #include "levmar.h"
 
-#include <boost/ptr_container/ptr_vector.hpp>
-
 #include <cstdio>
 
+#include <boost/shared_ptr.hpp>
+#include <boost/ptr_container/ptr_vector.hpp>
+
 using boost::ptr_vector;
+using boost::shared_ptr;
 
 class AbstractFitter
 {
 public:
 
-   AbstractFitter(DecayModel* model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate);
+   AbstractFitter(shared_ptr<DecayModel> model, int n_param, int max_region_size, int global_algorithm, int n_thread, int* terminate);
 
    virtual ~AbstractFitter();
+   virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
 
    virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr) = 0;
    virtual int GetLinearParams() = 0;
@@ -73,7 +76,7 @@ protected:
 
    int Init();
 
-   DecayModel* model;
+   shared_ptr<DecayModel> model;
 
    int* terminate;
 
@@ -117,7 +120,7 @@ protected:
    int    *irf_idx;
 
    float chi2_norm;
-   double photons_per_count;
+   //double photons_per_count;
    double* cur_chi2;
 
    int n_thread;
@@ -149,5 +152,7 @@ private:
 
 
 };
+
+AbstractFitter* new_clone(AbstractFitter const& other);
 
 #endif

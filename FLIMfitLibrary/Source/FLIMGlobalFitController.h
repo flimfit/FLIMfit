@@ -36,7 +36,6 @@
 #  pragma warning(disable: 4610) // can never be instantiated - user defined constructor required.
 #endif
 
-#include <boost/interprocess/file_mapping.hpp>
 
 #include "FitStatus.h"
 #include "DecayModel.h"
@@ -48,9 +47,6 @@
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
 
-#include <boost/ptr_container/ptr_vector.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-
 #include "AbstractFitter.h"
 #include "ImageStats.h"
 
@@ -59,13 +55,20 @@
 
 #include "ConcurrencyAnalysis.h"
 
+#include <boost/interprocess/file_mapping.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+
+#include <boost/ptr_container/ptr_vector.hpp>
+#include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
+
 typedef double* DoublePtr;  
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 #define _CRTDBG_MAPALLOC
 
-
-
+using boost::scoped_ptr;
+using boost::shared_ptr;
 
 class ErrMinParams;
 class FLIMGlobalFitController;
@@ -109,17 +112,23 @@ public:
    int n_fitters;
    int n_omp_thread;
 
-   InstrumentResponseFunction* irf;
-   DecayModel* model;
-   FLIMData* data;
-   FitResults* results;
+   shared_ptr<InstrumentResponseFunction> irf;
+   shared_ptr<DecayModel> model;
+   shared_ptr<FLIMData> data;
+
+   scoped_ptr<FitResults> results;
+   
+   ModelParameters model_params;
+   
+   
+   int polarisation_resolved; // this is here because of legacy calling structure
      
    int runAsync;
    int init;
    bool has_fit;
 
    FitStatus *status;
-   WorkerParams* params;
+   WorkerParams* worker_params;
 
    
    bool getting_fit;
@@ -127,9 +136,9 @@ public:
    double conf_interval;
    double conf_factor;
 
-   FLIMGlobalFitController(); // TODO
+   FLIMGlobalFitController();
 
-   FLIMGlobalFitController(int global_algorithm, DecayModel* params, int algorithm,
+   FLIMGlobalFitController(int polarisation_resolved, int global_algorithm, ModelParameters& params, int algorithm,
                            int weighting, int calculate_errors, double conf_interval,
                            int n_thread, int runAsync, int (*callback)());
   
@@ -137,8 +146,9 @@ public:
    ~FLIMGlobalFitController();
 
 
-   void SetData(FLIMData* data);
-   
+   void SetData(shared_ptr<FLIMData> data);
+   void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
+
    void Init();
    int RunWorkers();
    int  GetErrorCode();
@@ -148,6 +158,8 @@ public:
    void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
 
    void CleanupResults();
+
+   bool Busy();
 
 private:
 
@@ -169,10 +181,6 @@ private:
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;
 
-//   int DetermineMAStartPosition(int p);
-//   double EstimateAverageLifetime(float decay[], int p);
-
-
    ptr_vector<AbstractFitter> projectors;
    ptr_vector<RegionData> region_data;
 
@@ -183,7 +191,7 @@ private:
    int next_region;
    int threads_active;
    int threads_started;
-   int* cur_im;
+   vector<int> cur_im;
 
    tthread::mutex region_mutex;
    tthread::mutex pixel_mutex;

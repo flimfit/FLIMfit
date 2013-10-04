@@ -29,13 +29,7 @@
 
 #include "ConcurrencyAnalysis.h"
 
-
-
-
-using namespace std;
-
-
-VariableProjector::VariableProjector(DecayModel* model, int max_region_size, int global_algorithm, int n_thread, int* terminate) : 
+VariableProjector::VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, int* terminate) : 
     AbstractFitter(model, max_region_size, model->nl, global_algorithm, n_thread, terminate)
 {
    this->weighting = weighting;

@@ -83,6 +83,7 @@ set(SOURCE
    VariableProjector.cpp
    MaximumLikelihoodFitter.cpp
    AbstractFitter.cpp
+   AcquisitionParameters.cpp
    tinythread.cpp
    lmstr.cpp
    lmstx.cpp
@@ -105,7 +106,6 @@ set(HEADERS
    RegionData.h
    DecayModel.h
    ModelParameters.h
-   FitModel.h
    VariableProjector.h
    AbstractFitter.h
    MaximumLikelihoodFitter.h
@@ -116,6 +116,7 @@ set(HEADERS
    TrimmedMean.h
    omp_stub.h
    ImageStats.h
+   AcquisitionParameters.h
    ConcurrencyAnalysis.h
 )
 
@@ -178,10 +179,14 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 # Make library
 #===================================================
-add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} )
+add_library(${LIB_NAME}_lib STATIC ${SOURCE} ${HEADERS} )
+
+add_library(${LIB_NAME} SHARED FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
 
 
-target_link_libraries(${LIB_NAME} levmar)
+target_link_libraries(${LIB_NAME})
+
+target_link_libraries(${LIB_NAME} ${LIB_NAME}_lib levmar)
 
 
 

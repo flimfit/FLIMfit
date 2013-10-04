@@ -40,18 +40,20 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
    image_irf(false),
    t0_image(NULL),
    n_irf_rep(1),
+   n_chan(1),
    t_irf_buf(NULL),
    irf_buf(NULL),
-   variable_irf(false)
+   variable_irf(false),
+   t0(0)
 {
-   int n_irf_    = 4;
+   int n_irf_ = 4;
 
    AllocateBuffer(n_irf_);
 
    t_irf_buf[0] = -2.0;
    t_irf_buf[1] =  0.0;
-   t_irf_buf[3] =  2.0;
-   t_irf_buf[0] =  4.0;
+   t_irf_buf[2] =  2.0;
+   t_irf_buf[3] =  4.0;
 
    irf_buf[0] = 0.0; 
    irf_buf[1] = 1.0; 
@@ -84,6 +86,12 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double* t_irf, dou
    CalculateGFactor();
 }
 
+void InstrumentResponseFunction::SetReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess)
+{
+   this->ref_reconvolution = ref_reconvolution;
+   this->ref_lifetime_guess = ref_lifetime_guess;
+}
+
 void InstrumentResponseFunction::CalculateTimebinWidth()
 {
    if (n_irf > 2)
@@ -93,7 +101,7 @@ void InstrumentResponseFunction::CalculateTimebinWidth()
 
 }
 
-double InstrumentResponseFunction::GetT()
+double InstrumentResponseFunction::GetT0()
 {
    return t_irf_buf[0] + t0;
 }
@@ -142,7 +150,7 @@ void InstrumentResponseFunction::AllocateBuffer(int n_irf_raw)
 {
    FreeBuffer();
 
-   int n_irf = (int) ( ceil(n_irf_raw / 2.0) * 2 );
+   n_irf = (int) ( ceil(n_irf_raw / 2.0) * 2 );
    int irf_size = n_irf * n_chan * n_irf_rep;
    
    AlignedAllocate(irf_size, irf_buf);

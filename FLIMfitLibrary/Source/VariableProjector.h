@@ -39,8 +39,9 @@ class VariableProjector : public AbstractFitter
 {
 
 public:
-   VariableProjector(DecayModel* model, int max_region_size, int global_algorithm, int n_thread, int* terminate);
+   VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, int* terminate);
    ~VariableProjector();
+   VariableProjector* clone() const { return new VariableProjector(*this); };
 
    int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr);
 

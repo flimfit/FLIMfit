@@ -34,12 +34,15 @@
 #include "FitResults.h"
 #include "FitStatus.h"
 #include "InstrumentResponseFunction.h"
+#include "AcquisitionParameters.h"
+
+#include <stdint.h>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <stdint.h>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+
 #include "tinythread.h"
 
 #include "FlagDefinitions.h"
@@ -54,13 +57,14 @@
 using std::vector;
 using std::string;
 
-class FLIMData
+
+class FLIMData : public AcquisitionParameters
 {
 
 public:
 
-   FLIMData(int polarisation_resolved, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-            int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status);
+   FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
+            int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status);
 
    int  SetData(float data[]);
    int  SetData(uint16_t data[]);
@@ -103,17 +107,15 @@ public:
    template <typename T>
    void DataLoaderThread();
 
-   InstrumentResponseFunction* irf;
+   shared_ptr<InstrumentResponseFunction> irf;
 
    ~FLIMData();
 
    int n_im;
    int n_x;
    int n_y;
-   int n_t;
    int n_buf;
 
-   int n_chan;
    int n_meas;
 
    int n_px;
@@ -121,7 +123,6 @@ public:
 
    int n_regions_total;
    int n_output_regions_total;
-   int data_type;
 
    int data_skip;
 
@@ -134,15 +135,15 @@ public:
    int global_mode;
 
    int smoothing_factor;
-   double smoothing_area;
+   float smoothing_area;
 
+   /*
    int* t_skip;
-
    double* t;
    double* t_int;
 
    double counts_per_photon;
-
+   */
    int* use_im;
    int n_im_used;
 
@@ -194,7 +195,6 @@ private:
 
    int n_meas_full;
 
-   int n_t_full;
 
    int threshold;
    int limit;
@@ -202,9 +202,6 @@ private:
    int* cur_transformed;
 
    int data_class;
-
-
-   int polarisation_resolved;
 
    int* region_idx;
    int* output_region_idx;
@@ -586,7 +583,7 @@ void FLIMData::TransformImage(int thread, int im)
 
       float* y_smoothed_buf = intensity; // use intensity as a buffer
 
-      float sa = 2*s+1;
+      float sa = (float) 2*s+1;
 
       for(int c=0; c<n_chan; c++)
       {

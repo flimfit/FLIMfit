@@ -31,23 +31,16 @@
 #include <cmath>
 //#include "hdf5.h"
 
-FLIMData::FLIMData(int polarisation_resolved, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
-                   int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
-   polarisation_resolved(polarisation_resolved),
+FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
+                   int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
+   AcquisitionParameters(acq),   
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
-   n_chan(n_chan),
-   n_t_full(n_t_full),
-   t(t),
-   t_int(t_int),
-   n_t(n_t),
-   data_type(data_type),
    use_im(use_im),
    mask(mask),
    threshold(threshold),
    limit(limit),
-   counts_per_photon(counts_per_photon),
    smoothing_factor(smoothing_factor),
    use_autosampling(use_autosampling),
    n_thread(n_thread),
@@ -125,17 +118,7 @@ FLIMData::FLIMData(int polarisation_resolved, int n_im, int n_x, int n_y, int n_
    n_px = n_x * n_y;
    n_p  = n_x * n_y * n_meas_full;
 
-   this->t_skip = new int[n_chan]; //ok
-   if (t_skip == NULL)
-   {
-      for(int i=0; i<n_chan; i++)
-         this->t_skip[i] = 0;
-   }
-   else
-   {
-      for(int i=0; i<n_chan; i++)
-         this->t_skip[i] = t_skip[i];
-   }
+
 
    tr_data_    = new float[ n_thread * n_p ]; //ok
    tr_buf_     = new float[ n_thread * n_p ]; //ok
@@ -179,7 +162,7 @@ FLIMData::FLIMData(int polarisation_resolved, int n_im, int n_x, int n_y, int n_
    if (n_x < dim_required || n_y < dim_required)
       this->smoothing_factor = 0;
 
-   smoothing_area = (2*this->smoothing_factor+1)*(2*this->smoothing_factor+1);
+   smoothing_area = (float) (2*this->smoothing_factor+1)*(2*this->smoothing_factor+1);
 
 
 }
@@ -448,11 +431,6 @@ int FLIMData::GetImLoc(int im)
    return -1;
 }
 
-double* FLIMData::GetT()
-{
-   return t + t_skip[0];
-}
-
 int FLIMData::GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread)
 {
    int s = 0;
@@ -604,7 +582,6 @@ FLIMData::~FLIMData()
    delete[] data_used;
    delete[] data_loaded;
 
-   delete[] t_skip;
    delete[] region_count;
    delete[] region_pos;
    delete[] region_idx;

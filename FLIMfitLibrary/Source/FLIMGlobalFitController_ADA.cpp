@@ -71,7 +71,7 @@ void DecayModel::SetupIncMatrix(int* inc)
    cur_col = beta_global ? 0 : n_fix;
    for(i=n_fix; i<n_exp; i++)
    {
-      if (decay_group_buf[i] > cur_col)
+      if (decay_group[i] > cur_col)
          cur_col++;
       for(j=0; j<(n_pol_group*n_fret_group); j++)
          inc[inc_row + (inc_col+j*n_exp_phi+cur_col)*12] = 1;
@@ -84,7 +84,7 @@ void DecayModel::SetupIncMatrix(int* inc)
    cur_col = 0;
    for(i=0; i<n_beta; i++)
    {
-      if (decay_group_buf[i+1+cur_col] > cur_col)
+      if (decay_group[i+1+cur_col] > cur_col)
          cur_col++;    
       for(j=0; j<(n_pol_group*n_fret_group); j++)
          inc[inc_row + (inc_col+j*n_exp_phi+cur_col)*12] = 1;
@@ -251,7 +251,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
             for(int d=0; d<n_decay_group; d++)
             {
                int n_group = 0;
-               while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+               while(d_idx < n_exp && decay_group[d_idx]==d)
                {
                   d_idx++;
                   n_group++;
@@ -520,5 +520,5 @@ void DecayModel::GetWeights(Buffers& wb, float* y, double* a, const double *alf,
 
 float* DecayModel::GetConstantAdjustment()
 {
-   return adjust_buf;
+   return &adjust_buf[0];
 }

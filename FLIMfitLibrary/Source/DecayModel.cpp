@@ -40,13 +40,18 @@
 using std::abs;
 using std::max;
 
+DecayModel::DecayModel(const ModelParameters& params, const AcquisitionParameters& acq, shared_ptr<InstrumentResponseFunction> irf) : 
+   ModelParameters(params), AcquisitionParameters(acq), irf(irf), init(false)
+{
+}
+
 void DecayModel::Init()
 {
    use_kappa      = true;
+   
+   n_irf = irf->n_irf;
 
    CalculateParameterCounts();      
-
-
 
    SetupPolarisationChannelFactors();
    SetupDecayGroups();
@@ -54,17 +59,18 @@ void DecayModel::Init()
 
    SetParameterIndices();
 
-   CalculateIRFMax(n_t,t);
+   CalculateIRFMax();
    ma_start = DetermineMAStartPosition(0);
 
    // Setup adjust buffer which will be subtracted from the data
    SetupAdjust();
 
+   photons_per_count = (float) (1.0/counts_per_photon); // we use this quite a lot
+
 }
 
 DecayModel::~DecayModel()
 {
-   ClearVariable(adjust_buf);
 }
 
 void DecayModel::CalculateParameterCounts()
@@ -72,18 +78,20 @@ void DecayModel::CalculateParameterCounts()
    tau_start = inc_donor ? 0 : 1;
 
    beta_global = (fit_beta != FIT_LOCALLY);
+   calculate_mean_lifetimes = !beta_global && n_exp > 1;
+
 
    if (polarisation_resolved)
    {
       n_chan = 2;
-      n_pol_group = n_r + 1;
       n_r = n_theta + inc_rinf;
+      n_pol_group = n_r + 1;
    }
    else
    {
       n_chan = 1;
-      n_pol_group = 1;
       n_r = 0;
+      n_pol_group = 1;
    }
 
    n_theta_v = n_theta - n_theta_fix;
@@ -102,46 +110,70 @@ void DecayModel::CalculateParameterCounts()
    n_stray = (fit_offset == FIT_LOCALLY) + (fit_scatter == FIT_LOCALLY) + (fit_tvb == FIT_LOCALLY);
    
 
+
+   nl  = n_v + n_fret_v + n_beta + n_theta_v;                                // (varp) Number of non-linear parameters to fit
+   p   = (n_v + n_beta)*n_fret_group*n_pol_group + n_exp_phi * n_fret_v + n_theta_v;    // (varp) Number of elements in INC matrix 
+   l   = n_exp_phi * n_fret_group * n_pol_group;          // (varp) Number of linear parameters
+
+
+   if (irf->ref_reconvolution == FIT_GLOBALLY) // fitting reference lifetime
+   {
+      nl++;
+      p += l;
+   }
+
+   /*
+   // Check whether t0 has been specified
+   if (fit_t0)
+   {
+      nl++;
+      p += l;
+   }
+   */
+
+   if (fit_offset == FIT_GLOBALLY)
+   {
+      nl++;
+      p++;
+   }
+
+   if (fit_scatter == FIT_GLOBALLY)
+   {
+      nl++;
+      p++;
+   }
+
+   if (fit_tvb == FIT_GLOBALLY)
+   {
+      nl++;
+      p++;
+   }
+
+   if (fit_offset == FIT_LOCALLY)
+   {
+      l++;
+   }
+
+   if (fit_scatter == FIT_LOCALLY)
+   {
+      l++;
+   }
+
+   if (fit_tvb == FIT_LOCALLY)
+   {
+      l++;
+   }
+
+   lmax = l;
+
+   if (calculate_mean_lifetimes)
+      lmax += 2;
+
+
 }
 
 void DecayModel::SetupDecayGroups()
 {
-   decay_group_buf = new int[n_exp];
-
-   if (beta_global)
-   {
-
-      // Check to make sure that decay groups increase
-      // contiguously from zero
-      int cur_group = 0;
-      if (decay_group != NULL)
-      {
-         for(int i=0; i<n_exp; i++)
-         {
-            if (decay_group[i] == (cur_group + 1))
-            {
-               cur_group++;
-            }
-            else if (decay_group[i] != cur_group)
-            {
-               decay_group = NULL;
-               break;
-            }
-         }
-      }
-   }
-   else
-   {
-      decay_group = NULL;
-      n_decay_group = 1;
-   }
-
-   if (decay_group == NULL)
-      for(int i=0; i<n_exp; i++)
-         decay_group_buf[i] = 0;
-   else
-      for(int i=0; i<n_exp; i++)
-         decay_group_buf[i] = decay_group[i];
 }
 
 void DecayModel::SetupPolarisationChannelFactors()
@@ -167,12 +199,6 @@ void DecayModel::SetupPolarisationChannelFactors()
       chan_fact = new double[1]; //free ok
       chan_fact[0] = 1;
    }
-}
-
-
-void DecayModel::AllocateBuffers()
-{
-   adjust_buf   = new float[ n_meas ];
 }
 
 void DecayModel::CheckGateSpacing()
@@ -203,17 +229,16 @@ void DecayModel::SetupAdjust()
    scale_fact[0] = 1;
    scale_fact[1] = 0;
 
-   for(int i=0; i<n_meas; i++)
-      adjust_buf[i] = 0;
+   adjust_buf.assign(n_meas, 0);
 
    vector<double> irf_buf( n_irf * n_meas );
 
-   add_irf(&irf_buf[0], 0, adjust_buf, n_r, scale_fact);
+   add_irf(&irf_buf[0], 0, &adjust_buf[0], n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust_buf[i] = adjust_buf[i] * scatter_adj + offset_adj;
 
-   if (tvb_profile != NULL)
+   if (!tvb_profile.empty())
    {
       for(int i=0; i<n_meas; i++)
          adjust_buf[i] += (float) (tvb_profile[i] * tvb_adj);
@@ -357,8 +382,6 @@ void DecayModel::DenormaliseLinearParams(volatile float norm_params[], volatile 
       lin_params += lmax;
       norm_params += lmax;
    }
-
-   calculate_mean_lifetimes = !beta_global && n_exp > 1;
 }
 
 
@@ -497,90 +520,25 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
 }
 
 
-void DecayModel::CalculateParameterCount()
-{
-   nl  = n_v + n_fret_v + n_beta + n_theta_v;                                // (varp) Number of non-linear parameters to fit
-   p   = (n_v + n_beta)*n_fret_group*n_pol_group + n_exp_phi * n_fret_v + n_theta_v;    // (varp) Number of elements in INC matrix 
-   l   = n_exp_phi * n_fret_group * n_pol_group;          // (varp) Number of linear parameters
-
-
-   if (irf->ref_reconvolution == FIT_GLOBALLY) // fitting reference lifetime
-   {
-      nl++;
-      p += l;
-   }
-
-   /*
-   // Check whether t0 has been specified
-   if (fit_t0)
-   {
-      nl++;
-      p += l;
-   }
-   */
-
-   if (fit_offset == FIT_GLOBALLY)
-   {
-      nl++;
-      p++;
-   }
-
-   if (fit_scatter == FIT_GLOBALLY)
-   {
-      nl++;
-      p++;
-   }
-
-   if (fit_tvb == FIT_GLOBALLY)
-   {
-      nl++;
-      p++;
-   }
-
-   if (fit_offset == FIT_LOCALLY)
-   {
-      l++;
-   }
-
-   if (fit_scatter == FIT_LOCALLY)
-   {
-      l++;
-   }
-
-   if (fit_tvb == FIT_LOCALLY)
-   {
-      l++;
-   }
-
-   lmax = l + 1; // intensity
-
-   if (polarisation_resolved)
-      lmax++;
-
-   if (calculate_mean_lifetimes)
-      lmax += 2;
-
-}
-
-
 
 /** 
  * Calculate IRF values to include in convolution for each time point
  *
  * Accounts for the step function in the model - we don't want to convolve before the decay starts
 */
-void DecayModel::CalculateIRFMax(int n_t, double t[])
+void DecayModel::CalculateIRFMax()
 {
-   irf_max.reserve(n_meas);
+   double* t = GetT();
 
-   double t0 = irf->GetT();
+   irf_max.assign(n_meas, 0);
+
+   double t0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
 
    for(int j=0; j<n_chan; j++)
    {
       for(int i=0; i<n_t; i++)
       {
-         irf_max[j*n_t+i] = 0;
          int k=0;
          while(k < n_irf && (t[i] - t0 - k*dt_irf) >= -1.0)
          {
@@ -605,9 +563,9 @@ int DecayModel::DetermineMAStartPosition(int idx)
    int j_last = 0;
    int start = 0;
 
-   vector<double> storage(n_irf * n_meas);
+   vector<double> storage(n_meas);
    double *lirf = irf->GetIRF(idx, &(storage[0]));
-   double t_irf0 = irf->GetT();
+   double t_irf0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
 
    //===================================================
@@ -675,7 +633,7 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
 {
    int idx = 0;
 
-      // Estimate lifetime from mean arrival time if requested
+   // Estimate lifetime from mean arrival time if requested
    //------------------------------
    if (estimate_initial_tau)
    {
@@ -700,14 +658,12 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
          param[i] = tau_guess[n_fix+i];
    }
 
-   idx = n_v;
-
    for(int j=0; j<n_v; j++)
       param[idx++] = TransformRange(param[j],tau_min[j+n_fix],tau_max[j+n_fix]);
 
    if(fit_beta == FIT_GLOBALLY)
       for(int j=0; j<n_exp-1; j++)
-         if (decay_group_buf[j+1] == decay_group_buf[j])
+         if (decay_group[j+1] == decay_group[j])
             param[idx++] = fixed_beta[j];
 
    for(int j=0; j<n_fret_v; j++)
@@ -736,7 +692,7 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
 /**
  * Estimate average lifetime of a decay as an intial guess
  */
-double DecayModel::EstimateAverageLifetime(float decay[], int p)
+double DecayModel::EstimateAverageLifetime(float decay[], int data_type)
 {
    double  tau = 0;
    int     start;
@@ -842,14 +798,24 @@ double DecayModel::EstimateAverageLifetime(float decay[], int p)
 
 
 
-DecayModelWorkingBuffers::DecayModelWorkingBuffers(DecayModel* model)
+DecayModelWorkingBuffers::DecayModelWorkingBuffers(shared_ptr<DecayModel> model) :
+   AcquisitionParameters(*model), first_eval(true)
 {
 
    int max_dim, exp_buf_size;
 
+   irf = model->irf;
+
+   pulsetrain_correction = model->pulsetrain_correction;
+   n_pol_group = model->n_pol_group;
+   n_fret_group = model->n_fret_group;
+   irf_max = &(model->irf_max[0]);
+   n_irf = irf->n_irf;
+
    max_dim = max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
+   n_exp = model->n_exp;
    exp_dim = max_dim * n_chan;
    
    exp_buf_size = n_exp * model->n_fret_group * model->n_pol_group * exp_dim * N_EXP_BUF_ROWS;
@@ -862,28 +828,9 @@ DecayModelWorkingBuffers::DecayModelWorkingBuffers(DecayModel* model)
    irf_buf   = new double[ model->n_irf * model->n_chan ];
    cur_alf   = new double[ model->nl ]; //ok
 
-   irf_max = &(model->irf_max[0]);
 
-   pulsetrain_correction = model->pulsetrain_correction;
-   n_pol_group = model->n_pol_group;
-   n_fret_group = model->n_fret_group;
 
    this->model = model;
-
-
-      // Select correct convolution function for data type
-   //-------------------------------------------------
-   if (model->data_type == DATA_TYPE_TCSPC)
-   {
-      Convolve = conv_irf_tcspc;
-      ConvolveDerivative = irf->ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
-   }
-   else
-   {
-      Convolve = conv_irf_timegate;
-      ConvolveDerivative = irf->ref_reconvolution ? conv_irf_deriv_ref_timegate : conv_irf_deriv_timegate;
-   }
-
 
 }
 

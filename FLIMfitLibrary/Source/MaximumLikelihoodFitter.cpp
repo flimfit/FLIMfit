@@ -54,7 +54,7 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
    f->mle_jacb(alf,fjac,nl,nfunc);
 }
 
-MaximumLikelihoodFitter::MaximumLikelihoodFitter(DecayModel* model, int* terminate) : 
+MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, int* terminate) : 
     AbstractFitter(model, model->nl+1, 1, MODE_GLOBAL_BINNING, 1, terminate)
 {
    nfunc = nmax + 1; // +1 for kappa
@@ -82,11 +82,11 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
             mx = dy[j]; 
       }
 
-      mx /= photons_per_count; 
+      mx *= model->counts_per_photon; 
 
 #if CONSTRAIN_FRACTIONS
       for(int j=0; j<l; j++)
-         alf[nl-l+j] = log(mx/l);
+         alf[nl+j] = log(mx/l);
 #else
       for(int j=0; j<l; j++)
          alf[nl-l+j] = mx/l;

@@ -63,7 +63,10 @@ struct ModelParametersStruct
    int data_type;
 
    int     photons_per_count;
+
+   bool polarisation_resolved;
    */
+
 
    // Intensity decay
    int     n_exp; 
@@ -72,6 +75,9 @@ struct ModelParametersStruct
    double  tau_max[N_PARAM_MAX];
    double  tau_guess[N_PARAM_MAX];
  
+   int     n_decay_group;
+   int     decay_group[N_PARAM_MAX];
+
 
 
    int     estimate_initial_tau; 
@@ -85,7 +91,7 @@ struct ModelParametersStruct
 
    
    int     fit_beta; 
-   double *fixed_beta;
+   double  fixed_beta[N_PARAM_MAX];
    
    // Stray light parameters
    int     fit_offset; 
@@ -101,7 +107,7 @@ struct ModelParametersStruct
    */
   
    int    pulsetrain_correction; 
-   //double t_rep;
+   double t_rep;
    
    // Anisotropy model
    int    n_theta; 

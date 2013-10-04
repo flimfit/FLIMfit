@@ -42,6 +42,12 @@ public:
    void Validate();
    ModelParametersStruct GetStruct();
 
+   int SetDecay(int n_exp, int n_fix, double tau_min[], double tau_max[], double tau_guess[], int fit_beta, double fixed_beta[]);
+   int SetDecayGroups(int decay_group[]);
+   int SetStrayLight(int fit_offset, double offset_guess, int fit_scatter, double scatter_guess, int fit_tvb, double tvb_guess);
+   int SetFRET(int n_fret, int n_fret_fix, int inc_donor, double E_guess[]);
+   int SetAnisotropy(int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[]);
+   int SetPulseTrainCorrection(int pulsetrain_correction, double t_rep);
 };
 
 #endif

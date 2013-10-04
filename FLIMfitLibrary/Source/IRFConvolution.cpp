@@ -102,14 +102,7 @@ for(j=i; j<n_tau;     j++)
 // TODO: can we eliminate requirement for irf_max?
 
 
-void DecayModelWorkingBuffers::conv_irf_tcspc(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c)
-{
-   c = exp_irf_cum_buf[irf_max[k*n_t+i]];
-   if (pulsetrain_correction && pulse_fact > 0)
-      c += exp_irf_cum_buf[(k+1)*n_irf-1] / pulse_fact;
-}
-
-void DecayModelWorkingBuffers::conv_irf_timegate(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c)
+void DecayModelWorkingBuffers::Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c)
 {
    int j = k*n_t+i;
    c = exp_irf_cum_buf[irf_max[j]] - 0.5*exp_irf_buf[irf_max[j]];
@@ -118,72 +111,22 @@ void DecayModelWorkingBuffers::conv_irf_timegate(double rate, double exp_irf_buf
       c += (exp_irf_cum_buf[(k+1)*n_irf-1] - 0.5*exp_irf_buf[(k+1)*n_irf-1])  / pulse_fact;
 }
 
-void DecayModelWorkingBuffers::conv_irf_deriv_tcspc(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c)
-{
-   int j = k*n_t+i;
-   int irf_end = (k+1)*n_irf-1;
-   
-   c = t * exp_irf_cum_buf[irf_max[j]] - exp_irf_tirf_cum_buf[irf_max[j]];
-   
-   if (pulsetrain_correction && pulse_fact > 0)
-   {
-      double c_rep = (t+t_rep) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] ;
-      c_rep /= pulse_fact;
-      c += c_rep; 
-   }
-   
-}
 
-void DecayModelWorkingBuffers::conv_irf_deriv_timegate(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c)
-{
-   double c_rep;
-   int j = k*n_t+i;
-   int irf_end = (k+1)*n_irf-1;
 
-   c  =        t * exp_irf_cum_buf[irf_max[j]] - exp_irf_tirf_cum_buf[irf_max[j]];
-   c -= 0.5 * (t * exp_irf_buf[irf_max[j]] - exp_irf_tirf_buf[irf_max[j]]);
-   
-   if (pulsetrain_correction && pulse_fact > 0)
-   {
-      c_rep  =        (t+t_rep) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end];
-      c_rep -= 0.5 * ((t+t_rep) * exp_irf_buf[irf_end] -  exp_irf_tirf_buf[irf_end]);
-      
-      c     += c_rep / pulse_fact;
-   }
-   
-}
-
-void DecayModelWorkingBuffers::conv_irf_deriv_ref_tcspc(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c)
-{
-   double c_rep;
-   int j = k*n_t+i;
-   int irf_end = (k+1)*n_irf-1;
-
-   c = ( t * ref_fact + 1 ) * exp_irf_cum_buf[irf_max[j]] - exp_irf_tirf_cum_buf[irf_max[j]] * ref_fact;
-   
-   
-   if (pulsetrain_correction && pulse_fact > 0)
-   {
-      c_rep = ( (t+t_rep) * ref_fact + 1 ) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact;
-      c += c_rep / pulse_fact;
-   } 
-   
-}
-
-void DecayModelWorkingBuffers::conv_irf_deriv_ref_timegate(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c)
+void DecayModelWorkingBuffers::ConvolveDerivative(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c)
 {
    double c_rep;
    int j = k*n_t+i;
    int irf_end = (k+1)*n_irf-1;
    
-   c  =        ( t * ref_fact + 1 ) * exp_irf_cum_buf[irf_max[j]] - exp_irf_tirf_cum_buf[irf_max[j]] * ref_fact;
-   c -= 0.5 * (( t * ref_fact +  1 ) * exp_irf_buf[irf_max[j]] - exp_irf_tirf_buf[irf_max[j]] * ref_fact);
+   c  =        ( t * ref_fact_a + ref_fact_b ) * exp_irf_cum_buf[irf_max[j]] - exp_irf_tirf_cum_buf[irf_max[j]] * ref_fact_a;
+   c -= 0.5 * (( t * ref_fact_a +  ref_fact_b ) * exp_irf_buf[irf_max[j]] - exp_irf_tirf_buf[irf_max[j]] * ref_fact_a);
    
    
    if (pulsetrain_correction && pulse_fact > 0)
    {
-      c_rep  =        ( (t+t_rep) * ref_fact + 1 ) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact;
-      c_rep -= 0.5 * (( (t+t_rep) * ref_fact + 1 ) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact);
+      c_rep  =        ( (t+t_rep) * ref_fact_a + ref_fact_b ) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact_a;
+      c_rep -= 0.5 * (( (t+t_rep) * ref_fact_a + ref_fact_b ) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact_a);
       c_rep /= pulse_fact;
       c += c_rep;
    }

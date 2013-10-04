@@ -73,7 +73,7 @@ void AlignedAllocate(int size, T*& ptr)
 void SetNaN(double* var, int n);
 void SetNaN(float* var, int n);
 
-double NaN();
+//double NaN();
 
 
 #ifndef _MSVC

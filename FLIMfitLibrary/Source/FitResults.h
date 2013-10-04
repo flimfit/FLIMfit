@@ -27,7 +27,7 @@
 //
 //=========================================================================
 
-#include "FitModel.h"
+#include "DecayModel.h"
 #include <stdint.h>
 
 #ifndef _FITRESULTS_H
@@ -35,15 +35,24 @@
 
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
+
+using std::max;
+using std::min;
+
+using boost::shared_ptr;
+
+using std::vector;
+using std::string;
+
 class FLIMData;
 class FitResultsRegion;
 
-//using namespace std;
 
 class FitResults
 {
 public:
-   FitResults(FitModel* model, FLIMData* data, int calculate_errors);
+   FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, int calculate_errors);
    ~FitResults();
 
    float* GetAuxDataPtr(int image, int region);
@@ -67,14 +76,14 @@ private:
    void DetermineParamNames();
 
    int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
-   void NormaliseLinearParams(float volatile lin_params[], float volatile norm_params[]);
+   void NormaliseLinearParams(volatile float lin_params[], float non_lin_params[], volatile float norm_params[]);
    void DenormaliseLinearParams(float volatile norm_params[], float volatile lin_params[]);
    
    void GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2);
    void SetFitStatus(int image, int region, int code);
 
-   FLIMData* data;
-   FitModel* model;
+   shared_ptr<FLIMData> data;
+   shared_ptr<DecayModel> model;
 
    bool pixelwise;
    int n_px;
@@ -110,10 +119,10 @@ class FitResultsRegion
 
 public:
    FitResultsRegion() : 
-      results(0), image(0), region(0), is_pixel(false) {};
+      results(0), image(0), region(0), pixel(0), is_pixel(false) {};
 
    FitResultsRegion(FitResults* results, int image, int region) : 
-      results(results), image(image), region(region), is_pixel(false) {};
+      results(results), image(image), region(region), pixel(0), is_pixel(false) {};
 
   FitResultsRegion(FitResults* results, int image, int region, int pixel) : 
       results(results), image(image), region(region), pixel(pixel), is_pixel(true) {};

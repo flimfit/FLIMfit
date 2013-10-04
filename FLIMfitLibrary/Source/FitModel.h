@@ -45,16 +45,12 @@ class FitModel
 {
    public: 
 
-      int l; 
-      int lmax;
-      int nl;
-      
-      int n; 
-      
-      int p; 
+
       
       virtual void SetupIncMatrix(int* inc) = 0;
       virtual int CalculateModel(WorkingBuffers* wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel) = 0;
+      int                CalculateModel(Buffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel);
+   
       virtual void GetWeights(WorkingBuffers* wb, float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx) = 0;
       virtual float* GetConstantAdjustment() = 0;
       virtual void SetInitialParameters(double param[], double mean_arrival_time) = 0;

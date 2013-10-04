@@ -35,8 +35,6 @@
 #include <cmath>
 #include <algorithm>
 
-//using namespace std;
-
 /*===============================================
   ProcessRegion
   ===============================================*/
@@ -46,7 +44,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    INIT_CONCURRENCY;
 
    int itmax;
-   double tau_ma;
+//   double tau_ma;
 
    int ierr_local = 0;
 

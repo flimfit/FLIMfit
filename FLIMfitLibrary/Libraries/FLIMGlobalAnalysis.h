@@ -33,7 +33,6 @@
 #define _CRTDBG_MAPALLOC  
 
 #include "FlagDefinitions.h"
-#include <stdint.h>
 
 #ifdef _WINDOWS
 #define FITDLL_API __declspec(dllexport)
@@ -46,9 +45,81 @@ extern "C" {
 #endif
 
 typedef unsigned short uint16_t;
+typedef unsigned char  uint8_t;
 
 FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
+
+#define N_PARAM_MAX 10
+
+struct ModelParametersStruct
+{
+   // Timegates
+/*
+   int     n_t; 
+   double *t;
+   double *t_int;
+   
+   int data_type;
+
+   int     photons_per_count;
+
+   bool polarisation_resolved;
+   */
+
+
+   // Intensity decay
+   int     n_exp; 
+   int     n_fix; 
+   double  tau_min[N_PARAM_MAX]; 
+   double  tau_max[N_PARAM_MAX];
+   double  tau_guess[N_PARAM_MAX];
+ 
+   int     n_decay_group;
+   int     decay_group[N_PARAM_MAX];
+
+
+
+   int     estimate_initial_tau; 
+  
+   // FRET model
+   int fit_fret; 
+   int n_fret; 
+   int n_fret_fix;
+   int inc_donor; 
+   double E_guess[N_PARAM_MAX]; 
+
+   
+   int     fit_beta; 
+   double  fixed_beta[N_PARAM_MAX];
+   
+   // Stray light parameters
+   int     fit_offset; 
+   int     fit_scatter;
+   int     fit_tvb;  
+   double  offset_guess; 
+   double  scatter_guess;
+   double  tvb_guess;
+   
+   /*
+   double *tvb_profile;
+   int     fit_t0; double t0_guess; 
+   */
+  
+   int    pulsetrain_correction; 
+   double t_rep;
+   
+   // Anisotropy model
+   int    n_theta; 
+   int    n_theta_fix; 
+   int    inc_rinf;
+   double theta_guess[N_PARAM_MAX];
+
+//   bool polarisation_resolved;
+
+
+};
+
 
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,

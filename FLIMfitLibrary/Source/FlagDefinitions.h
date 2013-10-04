@@ -102,6 +102,8 @@ enum GlobalMode { MODE_GLOBAL_ANALYSIS, MODE_GLOBAL_BINNING };
 #define ERR_INVALID_INPUT              -1010
 #define ERR_INVALID_IDX                -1012
 
+#define WARN_DECAY_GROUPS_NOT_CONSISTENT -2001
+
 /*
 #define _CRTDBG_MAP_ALLOC
 #ifdef _DEBUG   

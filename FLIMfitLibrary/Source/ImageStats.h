@@ -11,6 +11,7 @@
 #ifndef IMAGE_STATS_H
 #define IMAGE_STATS_H
 
+#include <boost\math\special_functions\fpclassify.hpp>
 #include "util.h"
 
 enum PARAM_IDX { PARAM_MEAN, PARAM_W_MEAN, PARAM_STD, PARAM_W_STD, PARAM_MEDIAN, 
@@ -75,22 +76,22 @@ public:
     */
    void SetNextParam(int region, T mean)
    {
-      _ASSERT( param_idx[region] < n_params );
+      assert( param_idx[region] < n_params );
 
       T* next_param = params + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
-      next_param[PARAM_STD] = NaN(); 
-      next_param[PARAM_W_STD] = NaN(); 
+      next_param[PARAM_STD] = (T) FP_NAN; 
+      next_param[PARAM_W_STD] = (T) FP_NAN; 
       next_param[PARAM_MEDIAN] = mean; 
       next_param[PARAM_Q1] = mean; 
       next_param[PARAM_Q2] = mean; 
       next_param[PARAM_01] = 0.99f*mean;  // These parameters are used for setting inital limits 
       next_param[PARAM_99] = 1.01f*mean;  // so must be different to mean for correct display
 
-      next_param[PARAM_ERR_LOWER] = NaN();
-      next_param[PARAM_ERR_UPPER] = NaN();
+      next_param[PARAM_ERR_LOWER] = (T) FP_NAN;
+      next_param[PARAM_ERR_UPPER] = (T) FP_NAN;
 
       param_idx[region]++;
 
@@ -107,8 +108,8 @@ public:
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
-      next_param[PARAM_STD] = NaN(); 
-      next_param[PARAM_W_STD] = NaN(); 
+      next_param[PARAM_STD] = (T) FP_NAN; 
+      next_param[PARAM_W_STD] = (T) FP_NAN; 
       next_param[PARAM_MEDIAN] = mean; 
       next_param[PARAM_Q1] = mean; 
       next_param[PARAM_Q2] = mean; 

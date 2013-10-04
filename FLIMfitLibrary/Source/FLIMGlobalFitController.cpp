@@ -46,8 +46,7 @@
 #include <cmath>
 #include <algorithm>
 
-//using namespace std;
-using namespace boost::interprocess;
+//using namespace boost::interprocess;
 
 using std::min;
 
@@ -56,27 +55,37 @@ marker_series* writer;
 #endif
 
 
-FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, DecayModel* model, int algorithm,
+FLIMGlobalFitController::FLIMGlobalFitController() :
+   error(0),init(false), has_fit(false), model(NULL), 
+   worker_params(NULL), status(NULL)
+
+{
+}
+
+FLIMGlobalFitController::FLIMGlobalFitController(int polarisation_resolved, int global_algorithm, ModelParameters& model_params, int algorithm,
                                                  int weighting, int calculate_errors, double conf_interval,
                                                  int n_thread, int runAsync, int (*callback)()) :
-   global_algorithm(global_algorithm), 
+   polarisation_resolved(polarisation_resolved), global_algorithm(global_algorithm), model_params(model_params),
    n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
    weighting(weighting), calculate_errors(calculate_errors), conf_interval(conf_interval),
-   error(0), init(false), has_fit(false), model(model)
+   error(0),init(false), has_fit(false)
 {
-
    if (this->n_thread < 1)
       this->n_thread = 1;
 
-   params = new WorkerParams[this->n_thread]; //ok
-   status = new FitStatus(model,this->n_thread,NULL); //ok
-
-   data = NULL;
-   model = NULL;
-
-   cur_im = NULL;
+   worker_params = new WorkerParams[this->n_thread]; //ok
+   status = new FitStatus(this->n_thread,NULL); //ok
 
 }
+
+bool FLIMGlobalFitController::Busy()
+{
+   if (!init)
+      return false;
+   else
+      return status->IsRunning();
+}
+
 
 int FLIMGlobalFitController::RunWorkers()
 {
@@ -100,20 +109,20 @@ int FLIMGlobalFitController::RunWorkers()
 
    if (n_fitters == 1 && !runAsync)
    {
-      params[0].controller = this;
-      params[0].thread = 0;
+      worker_params[0].controller = this;
+      worker_params[0].thread = 0;
 
-      StartWorkerThread((void*)(params));
+      StartWorkerThread((void*)(worker_params));
    }
    else
    {
       for(int thread = 0; thread < n_fitters; thread++)
       {
-         params[thread].controller = this;
-         params[thread].thread = thread;
+         worker_params[thread].controller = this;
+         worker_params[thread].thread = thread;
       
          thread_handle.push_back(
-               new tthread::thread(StartWorkerThread,(void*)(params+thread))
+               new tthread::thread(StartWorkerThread,(void*)(worker_params+thread))
             ); // ok
       }
 
@@ -220,7 +229,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
 
                region_count = data->GetRegionCount(im,r);
 
-               int regions_per_thread = ceil((double)region_count / n_thread);
+               int regions_per_thread = (int) ceil((double)region_count / n_thread);
                int j_max = min( regions_per_thread * (thread + 1), region_count );
 
                for(int j=regions_per_thread*thread; j<j_max; j++)
@@ -372,15 +381,15 @@ terminated:
 }
 
 
-void FLIMGlobalFitController::SetData(FLIMData* data)
+void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
 {
-   if (data != NULL)
-      delete data;
-
-   this->data = data;
+   data = data_;
 }
 
-
+void FLIMGlobalFitController::SetIRF(shared_ptr<InstrumentResponseFunction> irf_)
+{
+   irf = irf_;
+}
  
 
 
@@ -393,11 +402,12 @@ void FLIMGlobalFitController::Init()
    threads_active = 0;
    threads_started = 0;
 
-   cur_im = new int[n_thread];
-   memset(cur_im,0,n_thread*sizeof(int));
+   cur_im.assign(n_thread, 0);
 
    getting_fit    = false;
-   
+
+   model.reset( new DecayModel(model_params, *data, irf) );
+   model->Init();
 
    if (n_thread < 1)
       n_thread = 1;
@@ -434,9 +444,6 @@ void FLIMGlobalFitController::Init()
       n_omp_thread = n_thread;
    else
       n_omp_thread = 1;
-
-   // Supplied t_rep in seconds, convert to ps
-   // TODO: make sure we convert this properly... this->t_rep = t_rep * 1e12;
    
 
    int max_region_size;
@@ -458,16 +465,8 @@ void FLIMGlobalFitController::Init()
    */
 
 
-   // If using MLE, need an extra non-linear scaling factor
-   // TODO
-   //if (algorithm == ALG_ML)
-   //{
-   //   nl += l;
-   //}
-
-
    // TODO: add exception handling here
-   results = new FitResults(model, data, calculate_errors);
+   results.reset( new FitResults(model, data, calculate_errors) );
 
 
    // Create fitting objects
@@ -479,9 +478,9 @@ void FLIMGlobalFitController::Init()
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(model, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(model, max_region_size, global_algorithm, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(model, max_region_size, weighting, global_algorithm, n_omp_thread, &(status->terminate)) );
 
-      region_data.push_back( new RegionData(max_region_size, data->n_meas) );
+      region_data.push_back( new RegionData(data->data_type, max_region_size, data->n_meas) );
    }
 
    /*
@@ -501,21 +500,25 @@ void FLIMGlobalFitController::Init()
    conf_factor = quantile(complement(norm, 0.5*conf_interval));
 
 
+   init = true;
+
 }
 
 
 
 FLIMGlobalFitController::~FLIMGlobalFitController()
 {
-   status->Terminate();
-
-   while (status->IsRunning()) {}
+   if (status != NULL)
+   {
+      status->Terminate();
+      while (status->IsRunning()) {}
+   }
 
    CleanupResults();
    CleanupTempVars();
 
    delete status;
-   delete[] params;
+   delete[] worker_params;
 
 }
 
@@ -601,14 +604,7 @@ void FLIMGlobalFitController::CleanupResults()
       
       ClearVariable(param_names_ptr);
       */
-      ClearVariable(cur_im);
       
-      if (data != NULL)
-      {
-         delete data;
-         data = NULL;
-      }
-
      _ASSERTE(_CrtCheckMemory());
 }
 

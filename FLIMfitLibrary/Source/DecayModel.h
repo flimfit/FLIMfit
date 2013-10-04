@@ -30,27 +30,31 @@
 #ifndef _DECAYMODEL_H
 #define _DECAYMODEL_H
 
-#include "FitModel.h"
+//#include "FitModel.h"
 #include "ModelParameters.h"
 #include "FlagDefinitions.h"
 #include "InstrumentResponseFunction.h"
+#include "AcquisitionParameters.h"
 
 #include <cmath>
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
+
+using boost::shared_ptr;
+
+using std::string;
+using std::vector;
+
 class DecayModel;
 class DecayModelWorkingBuffers;
 
-typedef void (* conv_func)(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
-typedef void (* conv_deriv_func)(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
-
-
-class DecayModel : public FitModel,
-                   public ModelParameters
+class DecayModel : public ModelParameters, 
+                   public AcquisitionParameters
 {
 public:
 
-   DecayModel();
+   DecayModel(const ModelParameters& params, const AcquisitionParameters& acq, shared_ptr<InstrumentResponseFunction> irf);
    ~DecayModel();
 
    typedef DecayModelWorkingBuffers Buffers;
@@ -74,10 +78,21 @@ public:
 
    void SetInitialParameters(double* params, double mean_arrival_time);
 
-   InstrumentResponseFunction* irf;
+   double EstimateAverageLifetime(float decay[], int data_type);
+
+
+   
+
+   int l; 
+   int lmax;
+   int nl;
+          
+   int p; 
+
+   shared_ptr<InstrumentResponseFunction> irf;
 
    int n_v;
-   int n_chan, n_meas, n_pol_group;
+   int n_pol_group;
    int n_theta_v;
    int n_r; 
    int n_exp_phi, n_fret_group, exp_buf_size, tau_start;
@@ -91,25 +106,24 @@ public:
 
 private:
 
-
+   int init;
+/*
    /// These shouldn't really be here 
    int     n_t; 
    double *t;
    double *t_int;
-   int     photons_per_count;
-   int n_irf;
-   double t_rep;
-   int polarisation_resolved;
+   double  photons_per_count;
+   int     n_irf;
+   double  t_rep;
    double* tvb_profile;
    ///
-
+   */
    int estimate_initial_tau;  // TODO: Best place for this?
 
    int calculate_mean_lifetimes;
 
+   float photons_per_count;
 
-   int n_decay_group;
-   int* decay_group;
    int* decay_group_buf;
 
    int n_stray;
@@ -118,8 +132,9 @@ private:
 
    double *chan_fact;
 
-   float  *adjust_buf;
+   vector<float> adjust_buf;
 
+   int n_irf;
 
    vector<int> irf_max;
 
@@ -129,21 +144,17 @@ private:
 
    void SetupDecayGroups();
    void SetupPolarisationChannelFactors();
-   void AllocateBuffers();
    void CheckGateSpacing();
    void SetParameterIndices();
    void SetupAdjust();
 
-   // TODO: combine these two!
    void CalculateParameterCounts();
-   void CalculateParameterCount();
-
+   
    void CalculateMeanLifetime(volatile float lin_params[], float non_linear_params[], volatile float mean_lifetimes[]);
 
    int DetermineMAStartPosition(int idx);
-   double EstimateAverageLifetime(float decay[], int p);
 
-   void CalculateIRFMax(int n_t, double t[]);
+   void CalculateIRFMax();
 
 
 
@@ -164,12 +175,12 @@ private:
 };
 
 
-class DecayModelWorkingBuffers
+class DecayModelWorkingBuffers : public AcquisitionParameters
 {
    friend class DecayModel;
 
 public:
-   DecayModelWorkingBuffers(DecayModel* model);
+   DecayModelWorkingBuffers(shared_ptr<DecayModel> model);
    ~DecayModelWorkingBuffers();
 
    void add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[]);
@@ -178,12 +189,12 @@ public:
 
 private:
 
-   DecayModel* model;
+   shared_ptr<DecayModel> model;
 
 
-   int n_t;
    int n_irf;
-   int n_chan;
+   
+
    int n_exp;
    int exp_dim;
 
@@ -197,27 +208,14 @@ private:
 
    double t_rep;
 
-   int nl;
-   InstrumentResponseFunction* irf;
+   //int nl;
+   shared_ptr<InstrumentResponseFunction> irf;
 
    void calculate_exponentials(int irf_idx);
    int check_alf_mod(const double* new_alf, int irf_idx);
 
-   conv_func Convolve;
-   conv_deriv_func ConvolveDerivative;
-
-
-   void conv_irf_tcspc(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
-   void conv_irf_timegate(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
-
-   void conv_irf_deriv_tcspc(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
-   void conv_irf_deriv_timegate(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
-
-   void conv_irf_deriv_ref_tcspc(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
-   void conv_irf_deriv_ref_timegate(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
-
-   void conv_irf_ref(int n_t, double t[], double exp_buf[], int total_n_exp, double tau[], double beta[], int dim, double a[], int add_components, int inc_beta_fact);
-   void conv_irf_diff_ref(int n_t, double t[], double exp_buf[], int n_tau, double tau[], double beta[], int dim, double b[], int inc_tau);
+   void Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
+   void ConvolveDerivative(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c);
 
 
    int cur_irf_idx;
@@ -229,19 +227,21 @@ private:
    double *irf_buf;
    double *cur_alf;
 
+   bool first_eval;
 
 };
 
 
 
 
-
+// TODO: move this to InstrumentResponseFunction
 template <typename T>
 void DecayModel::add_irf(double* irf_buf, int irf_idx, T a[], int pol_group, double* scale_fact)
 {   
    double* lirf = irf->GetIRF(irf_idx, irf_buf);
-   double t_irf0 = irf->GetT();
+   double t_irf0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
+   int n_irf = irf->n_irf;
 
    int idx = 0;
    int ii;

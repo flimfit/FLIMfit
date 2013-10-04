@@ -33,9 +33,11 @@
 #include "tinythread.h"
 #include <list>
 
-class DecayModel;
+//class DecayModel;
 
-double norm_chi2(DecayModel* gc, double chi2, int s, bool fixed = false);
+using std::list;
+
+//double norm_chi2(DecayModel* gc, double chi2, int s, bool fixed = false);
 
 class FitStatus
 {
@@ -60,9 +62,7 @@ public:
    bool running;
    bool started;
 
-   DecayModel* gc;
-
-   FitStatus(DecayModel* gc, int n_thread, int (*callback)());
+   FitStatus(int n_thread, int (*callback)());
    ~FitStatus();
 
    void SetNumRegion(int n_region);
@@ -77,7 +77,7 @@ public:
    bool IsRunning();
    void AddConditionVariable(tthread::condition_variable* cond);
 
-   std::list<tthread::condition_variable*> cond_list;
+   list<tthread::condition_variable*> cond_list;
 };
 
 

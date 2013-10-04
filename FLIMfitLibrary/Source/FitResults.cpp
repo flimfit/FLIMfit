@@ -36,7 +36,7 @@
 using std::max;
 using std::min;
 
-FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
+FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, int calculate_errors) :
    model(model), data(data), calculate_errors(calculate_errors)
 {
    n_px = data->n_masked_px;
@@ -45,7 +45,7 @@ FitResults::FitResults(FitModel* model, FLIMData* data, int calculate_errors) :
 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
 
-   GetParamNames();
+   DetermineParamNames();
 
    int alf_size;
    
@@ -147,7 +147,7 @@ float* FitResults::GetAuxDataPtr(int image, int region)
    return aux_data + pos * n_aux;
 }
 
-void FitResults::GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2)
+void FitResults::GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2_)
 {
 
    int start = data->GetRegionPos(image, region) + pixel;
@@ -160,7 +160,7 @@ void FitResults::GetPointers(int image, int region, int pixel, float*& non_linea
 
    non_linear_params = alf        + idx   * nl;
    linear_params     = lin_params + start * lmax;
-   chi2              = this->chi2 + start;
+   chi2_             = chi2 + start;
 
 }
 
@@ -195,7 +195,7 @@ void FitResults::FitFinished(int image, int region)
 }
 */
 
-void FitResults::NormaliseLinearParams(volatile float lin_params[], volatile float norm_params[])
+void FitResults::NormaliseLinearParams(volatile float lin_params[], float non_lin_params[], volatile float norm_params[])
 {
    #pragma omp parallel for
    for(int i=0; i<n_px; i++)
@@ -203,7 +203,7 @@ void FitResults::NormaliseLinearParams(volatile float lin_params[], volatile flo
       volatile float* lin_local = lin_params + lmax * i;
       volatile float* norm_local = norm_params + lmax * i;
 
-      model->NormaliseLinearParams(lin_local, norm_local);
+      model->NormaliseLinearParams(lin_local, non_lin_params, norm_local);
    }
 }
 

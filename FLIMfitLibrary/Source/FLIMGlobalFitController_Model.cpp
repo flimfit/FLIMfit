@@ -38,11 +38,11 @@
 
 #include <string.h>
 
-//using namespace std;
-
 int DecayModelWorkingBuffers::check_alf_mod(const double* new_alf, int irf_idx)
 {
-   if (nl == 0)
+   int nl = model->nl;
+
+   if (nl == 0 || first_eval)
       return true;
 
    if (irf->variable_irf && irf_idx != cur_irf_idx)
@@ -72,9 +72,10 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
    
 
    double* lirf = irf->GetIRF(irf_idx, irf_buf);
-   double t0 = irf->GetT();
+   double t0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
-   int n_irf = irf->n_irf;
+  
+   first_eval = false;
 
    for(m=n_pol_group-1; m>=0; m--)
    {
@@ -199,7 +200,7 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
          else
             fact *= 1;
 
-         double* t = model->t;
+         double* t = GetT();
 
          if (model->eq_spaced_data)
          {
@@ -282,7 +283,8 @@ void DecayModelWorkingBuffers::add_derivative(int tau_idx, int theta_idx, int fr
            
    double rate = 1/tau_buf[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta_buf[theta_idx-1]);
 
-   double ref_fact = (irf->ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
+   double ref_fact_a = (irf->ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
+   double ref_fact_b = (irf->ref_reconvolution && ref_lifetime > 0) ? 1 : 0;
    double pulse_fact = exp( t_rep * rate ) - 1; 
 
    int idx = 0;
@@ -290,7 +292,7 @@ void DecayModelWorkingBuffers::add_derivative(int tau_idx, int theta_idx, int fr
    {
       for(int i=0; i<n_t; i++)
       {
-         ConvolveDerivative(model->t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, pulse_fact, ref_fact, c);
+         ConvolveDerivative(model->t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, pulse_fact, ref_fact_a, ref_fact_b, c);
          b[idx] += exp_model_buf[k*n_t+i] * c * fact;
          idx++;
       }
@@ -314,7 +316,7 @@ int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, bool i
          int cur_decay_group = 0;
          for(int j=0; j<n_exp; j++)
          {
-            if (beta_global && decay_group_buf[j] > cur_decay_group)
+            if (beta_global && decay_group[j] > cur_decay_group)
             {
                idx += adim;
                cur_decay_group++;
@@ -361,7 +363,7 @@ int DecayModel::ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, doubl
 
          for(int j=0; j<n_exp ; j++)
          {
-            if (beta_global && decay_group_buf[j] > cur_decay_group)
+            if (beta_global && decay_group[j] > cur_decay_group)
             {
                idx += bdim;
                cur_decay_group++;
@@ -445,7 +447,7 @@ int DecayModel::beta_derivatives(Buffers& wb, double ref_lifetime, double b[], i
    for(int d=0; d<n_decay_group; d++)
    {
       int n_group = 0;
-      while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+      while(d_idx < n_exp && decay_group[d_idx]==d)
       {
          d_idx++;
          n_group++;

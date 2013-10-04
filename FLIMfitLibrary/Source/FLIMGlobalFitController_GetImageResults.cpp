@@ -104,7 +104,7 @@ float DecayModel::GetNonLinearParam(int param, float alf[])
          for(int d=0; d<n_decay_group; d++)
          {
             int n_group = 0;
-            while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+            while(d_idx < n_exp && decay_group[d_idx]==d)
             {
                d_idx++;
                n_group++;
@@ -140,14 +140,14 @@ float DecayModel::GetNonLinearParam(int param, float alf[])
    if (irf->ref_reconvolution == FIT_GLOBALLY)
       GET_PARAM(alf+alf_ref_idx,1,p);
 
-   return (float) NaN();
+   return FP_NAN;
 }
 
 
 int DecayModel::ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[])
 {
    #define SET_PARAM(i) {param[idx] = alf[i]; err_lower[idx] = alf_err_lower[i]; err_upper[idx] = alf_err_upper[i]; idx++;}
-   #define SET_FIXED(p) {param[idx] = p; err_lower[idx] = NaN(); err_upper[idx] = NaN(); idx++;}
+   #define SET_FIXED(p) {param[idx] = p; err_lower[idx] = FP_NAN; err_upper[idx] = FP_NAN; idx++;}
 
    int idx = 0;
 
@@ -175,7 +175,7 @@ int DecayModel::ProcessNonLinearParams(float alf[], float alf_err_lower[], float
          for(int d=0; d<n_decay_group; d++)
          {
             int n_group = 0;
-            while(d_idx < n_exp && decay_group_buf[d_idx]==d)
+            while(d_idx < n_exp && decay_group[d_idx]==d)
             {
                d_idx++;
                n_group++;
@@ -263,7 +263,7 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
    
 
 
-   #pragma omp parallel for
+   //#pragma omp parallel for
    for(int im=0; im<data->n_im_used; im++)
    {
       int thread = omp_get_thread_num();
@@ -364,8 +364,7 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
 
    _ASSERTE( _CrtCheckMemory( ) );
 
-
-   //n_regions = idx;
+   n_regions = data->n_output_regions_total;
 
    ClearVariable(nl_output_);
    ClearVariable(err_lower_output_);

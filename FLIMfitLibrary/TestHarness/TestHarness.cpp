@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    vector<double> t;
    vector<double> t_int;
 
-   int N = 10e6;
+   int N = 10000;
    double tau = 2000;
    
    
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    double tau_max[1]   = {1e6};
    double tau_guess[1] = {1000};
    
-   int algorithm = ALG_ML;
+   int algorithm = ALG_LM;
    
    // Start Fit
    //===========================
@@ -156,11 +156,12 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    vector<int>   iterations( (n_regions_total) );
    vector<float> stats( (n_output_params * n_regions_total * n_stats) );
    
-   
+   BOOST_ASSERT( n_regions_total > 0 );
+
    e=GetImageStats(id, &n_regions, &image[0], &regions[0], &region_size[0], &success[0], &iterations[0], &stats[0]);
    BOOST_CHECK_EQUAL( e, 0 );
    
-   BOOST_CHECK( CheckResult( n_stats, n_output_params, n_regions, names, stats, "tau_1", 0, tau, 0.01 ) );
+   BOOST_CHECK( CheckResult( n_stats, n_output_params, n_regions, names, stats, "tau_1", 0, (float) tau, 0.01f ) );
    //e=FLIMGlobalGetFit(id, 0, n_t, t, 1, &i0, fit, &n_valid);
 
    FLIMGlobalClearFit(id);
@@ -168,7 +169,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
 
 }
 
-
+/*
 BOOST_AUTO_TEST_CASE( FLIMTest )
 {
    const int n_t   = 11;
@@ -214,8 +215,8 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
 
    double tau_guess[n_tau] = {2000, 4000};
    float tau_est[n_tau * n_x] = {0, 0, 0, 0};
-   float beta_est[n_tau * n_x];
-   float I0_est[n_tau * n_x];
+//   float beta_est[n_tau * n_x];
+//   float I0_est[n_tau * n_x];
 
    int e;
    int i0= 0;
@@ -254,7 +255,7 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
    FLIMGlobalClearFit(id);
     
 }
-
+*/
 
 /*
 int main()

@@ -33,16 +33,18 @@
 
 
 
-
+/*
 
 double norm_chi2(DecayModel* gc, double chi2, int s, bool fixed_param)
 {
    return chi2 * chi2 / (gc->n_meas * s - (gc->nl-(int)fixed_param) - s*gc->l);
 }
 
+*/
 
-FitStatus::FitStatus(DecayModel* gc, int n_thread, int (*callback)()) : 
-   gc(gc), n_thread(n_thread), callback(callback), n_region(0),
+
+FitStatus::FitStatus(int n_thread, int (*callback)()) : 
+   n_thread(n_thread), callback(callback), n_region(0),
    progress(0), threads_running(0),  terminate(0), has_fit(0), running(0)
 {
    group = new int[n_thread];
@@ -120,7 +122,7 @@ int FitStatus::UpdateStatus(int thread, int t_group, int t_iter, double t_chi2)
    if (t_group >= 0)
       group[thread] = t_group;
    iter[thread] = t_iter;
-   chi2[thread] = norm_chi2(gc, t_chi2, 1);
+   chi2[thread] = t_chi2; // TODO: norm_chi2(gc, t_chi2, 1);
 
    for(int i=0; i<n_thread; i++)
    {

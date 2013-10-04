@@ -33,6 +33,7 @@
 #include <string.h>
 
 RegionData::RegionData() :
+   data_type(0),
    n_px_max(0),
    n_px_cur(0),
    n_meas(0),
@@ -40,14 +41,15 @@ RegionData::RegionData() :
 {
 }
 
-RegionData::RegionData(int n_px, int n_meas) :
+RegionData::RegionData(int data_type, int n_px_max, int n_meas) :
    n_px_max(n_px_max),
    n_px_cur(0),
    n_meas(n_meas),
+   data_type(data_type),
    is_shallow_ptr(false)
 {
    data = new float[n_px_max * n_meas];
-   irf_idx = new int[n_px];
+   irf_idx = new int[n_px_max];
 }
 
 RegionData::~RegionData()
@@ -121,12 +123,14 @@ RegionData::RegionData(RegionData* region, int px) :
 {
    data    = region->data + px * n_meas;
    irf_idx = region->irf_idx + px;
+
    n_meas  = region->n_meas;
+   data_type = region->data_type;
 }
 
 const RegionData RegionData::GetBinnedRegion()
 {
-   RegionData binned_region(1, n_meas);
+   RegionData binned_region(data_type, 1, n_meas);
 
    float* binned_data;
    int*   binned_irf_idx;
@@ -148,6 +152,9 @@ RegionData& RegionData::operator=( const RegionData& other )
       
    data     = other.data;
    irf_idx  = other.irf_idx;
+
+   data_type = other.data_type;
+   n_meas    = other.n_meas;
    
    return *this;
 }

@@ -27,44 +27,39 @@
 //
 //=========================================================================
 
-#ifndef _REGIONDATA_H_
-#define _REGIONDATA_H_
+#ifndef _ACQUISITIONPARAMETERS_H
+#define _ACQUISITIONPARAMETERS_H
 
-class RegionData
+#include <vector>
+
+using std::vector;
+
+class AcquisitionParameters
 {
 public:
-   RegionData();
-   RegionData(int data_type, int n_px, int n_meas);
-   RegionData(RegionData* region, int px);
-   ~RegionData();
 
-   RegionData& operator=( const RegionData& other );
-
-   void Clear();
-   void GetPointersForInsertion(int n, float*& y, int*& irf_idx);
-   void GetPointersForArbitaryInsertion(int pos, int n, float*& y, int*& irf_idx);
-   void  GetPointers(float*& y, int*& irf_idx);
-   const RegionData GetBinnedRegion();
-   int GetSize();
-
-
-   void GetAverageDecay(float* average_decay);
-
-   const RegionData GetPixel(int px);
+   AcquisitionParameters(int data_type, int polarisation_resolved, int n_chan, int n_t_full, int n_t, double t[], double t_int[], int t_skip[],  double counts_per_photon);
 
    int data_type;
+   int polarisation_resolved;
 
-private:
-   int n_px_max;
-   int n_px_cur;
+   int n_t;
+   int n_t_full;
+   int n_chan;
+   
+   double  counts_per_photon;
+   double  t_rep;
+   
+   vector<int> t_skip;
+   vector<double> t;
+   vector<double> t_int;
+   vector<double> tvb_profile;
+
+   double* GetT();
+
+   // Computed parameters
    int n_meas;
 
-   float* data;
-   int* irf_idx;
-
-   bool is_shallow_ptr;
-
 };
-
 
 #endif

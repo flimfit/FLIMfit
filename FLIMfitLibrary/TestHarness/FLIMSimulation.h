@@ -71,7 +71,7 @@ void FLIMSimulation::GenerateDecay(double tau, int N, vector<U>& decay)
       double t_arrival = t_decay + t_irf;
       
       // Determine which bin the sample falls in
-      int idx = floor(t_arrival/dt);
+      int idx = (int) floor(t_arrival/dt);
       
       // Make sure we're not outside of the sample window
       if (idx >= 0 && idx<n_t)
