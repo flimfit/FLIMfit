@@ -90,12 +90,13 @@ void FLIMSimulation::GenerateDecay(double tau, int N, U* decay)
       double t_irf   = SampleIRF();
       double t_arrival = t_decay + t_irf;
       
+      // Wrap around to account for after pulsing
+      t_arrival = fmod(t_arrival, T); 
+
       // Determine which bin the sample falls in
       int idx = (int) floor(t_arrival/dt);
       
-      // Make sure we're not outside of the sample window
-      if (idx >= 0 && idx<n_t)
-         decay[idx]++;
+      decay[idx]++;
       
    }
    

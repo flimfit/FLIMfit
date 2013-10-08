@@ -99,9 +99,9 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    vector<double> t_int;
 
    int n_x = 512;
-   int n_y = 512;
+   int n_y = 2;
 
-   int N = 100;
+   int N = 10000;
    double tau = 2000;
    
    
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    // Data Parameters
    //===========================
    int use_im = 1;
-   int t_skip = 30;
+   int t_skip = 0;
    int n_trim_end = 0;
    int n_regions_expected = 1;
 
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    //===========================
    int id = FLIMGlobalGetUniqueID();
    
-   e=SetupGlobalFit(id, MODE_GLOBAL_ANALYSIS, use_image_irf, n_irf, &(t[0]), &(irf[0]), 0, NULL, 1, 0, 1, NULL, tau_min, tau_max, 1, tau_guess, 1, NULL, 0, t0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0, 1e-6/80.0, 0, 0, algorithm, 0, 0, 0.95, 0, 0, 0, NULL);
+   e=SetupGlobalFit(id, MODE_GLOBAL_ANALYSIS, use_image_irf, n_irf, &(t[0]), &(irf[0]), 0, NULL, 1, 0, 1, NULL, tau_min, tau_max, 1, tau_guess, 1, NULL, 0, t0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 1, 12.5e3, 0, 0, algorithm, 0, 0, 0.95, 0, 0, 0, NULL);
    BOOST_CHECK_EQUAL( e, 0 );
     
    e=SetDataParams(id, 1, n_x, n_y, 1, n_t, &(t[0]), &(t_int[0]), &t_skip, n_t-t_skip-n_trim_end, DATA_TYPE_TIMEGATED, &use_im, NULL, 0, 0, 1, global_mode, 0, 0);
