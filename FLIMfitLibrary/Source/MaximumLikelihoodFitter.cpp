@@ -57,7 +57,7 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, int* terminate) : 
     AbstractFitter(model, model->nl+1, 1, MODE_GLOBAL_BINNING, 1, terminate)
 {
-   nfunc = nmax + 1; // +1 for kappa
+   nfunc = n + 1; // +1 for kappa
 
    dy = new double[nfunc];
    work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];

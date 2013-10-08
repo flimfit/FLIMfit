@@ -127,7 +127,7 @@ public:
   FitResultsRegion(FitResults* results, int image, int region, int pixel) : 
       results(results), image(image), region(region), pixel(pixel), is_pixel(true) {};
 
-  void GetPointers(float*& linear_params, float*& non_linear_params, float*& chi2);
+  void GetPointers(float*& non_linear_params, float*& linear_params, float*& chi2);
   void SetFitStatus(int code);
 
 private:

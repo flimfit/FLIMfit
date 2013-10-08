@@ -239,7 +239,7 @@ void FitResults::GetCParamNames(int& n_params, const char**& param_names)
 }
 
 
-void FitResultsRegion::GetPointers(float*& linear_params, float*& non_linear_params, float*& chi2)
+void FitResultsRegion::GetPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)
 {
    results->GetPointers(image, region, pixel, non_linear_params, linear_params, chi2);
 }

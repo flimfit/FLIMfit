@@ -112,6 +112,7 @@ int RegionData::GetSize()
 
 const RegionData RegionData::GetPixel(int px)
 {
+   assert(px < n_px_cur);
    return RegionData(this, px);
 }
 
@@ -121,11 +122,11 @@ RegionData::RegionData(RegionData* region, int px) :
    n_px_cur(1),
    is_shallow_ptr(true)
 {
-   data    = region->data + px * n_meas;
-   irf_idx = region->irf_idx + px;
-
    n_meas  = region->n_meas;
    data_type = region->data_type;
+
+   data    = region->data + px * n_meas;
+   irf_idx = region->irf_idx + px;
 }
 
 const RegionData RegionData::GetBinnedRegion()

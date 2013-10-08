@@ -13,11 +13,7 @@
 
 #include <boost\math\special_functions\fpclassify.hpp>
 #include "util.h"
-
-enum PARAM_IDX { PARAM_MEAN, PARAM_W_MEAN, PARAM_STD, PARAM_W_STD, PARAM_MEDIAN, 
-                 PARAM_Q1, PARAM_Q2, PARAM_01, PARAM_99, PARAM_ERR_LOWER, PARAM_ERR_UPPER };
-
-const int N_STATS = 11;
+#include "FlagDefinitions.h"
 
 /**
  * Convenience class to encapsulate returned results for a dataset

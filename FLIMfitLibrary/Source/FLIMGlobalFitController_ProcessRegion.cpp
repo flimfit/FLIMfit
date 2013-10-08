@@ -64,14 +64,12 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_mode == MODE_PIXELWISE)
    {      
-      local_region_data = region_data[thread].GetPixel(px);
+      local_region_data = region_data[0].GetPixel(px);
 
       region_results = results->GetPixel(g, region, px);
    }
    else
    {
-
-
       data->GetRegionData(thread, g, region, region_data[thread], *results, n_omp_thread);
       local_region_data = region_data[thread];
 

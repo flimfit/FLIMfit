@@ -30,7 +30,7 @@
 #include "ConcurrencyAnalysis.h"
 
 VariableProjector::VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, int* terminate) : 
-    AbstractFitter(model, max_region_size, model->nl, global_algorithm, n_thread, terminate)
+    AbstractFitter(model, model->nl, max_region_size, global_algorithm, n_thread, terminate)
 {
    this->weighting = weighting;
 
@@ -193,7 +193,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
       
       for(int j=0; j<s; j++)
          for (int i=0; i < n; ++i)
-               y[i + j * nmax] += min(y[i + j * nmax], 1.0f);
+               y[i + j * n] += min(y[i + j * n], 1.0f);
    }
    else if (weighting == MODEL_WEIGHTING)
    {
@@ -231,7 +231,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
       float* adjust = model->GetConstantAdjustment();
       for(int j=0; j<s; j++)
          for (int i=0; i < n; ++i)
-               y[i + j * nmax] = (y[i + j * nmax]-adjust[i]) * (float) w[i];
+               y[i + j * n] = (y[i + j * n]-adjust[i]) * (float) w[i];
    }
 
    if (use_numerical_derv)
@@ -313,9 +313,9 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    int nml  = n - l;
 
    // Matrix dimensions
-   int r_dim1 = n;
-   int y_dim1 = nmax;
-   int a_dim1 = n;
+   int r_dim1 = nmax;
+   int y_dim1 = n;
+   int a_dim1 = nmax;
    int b_dim1 = ndim;
    
    double r_sq, rj_norm, acum;
@@ -364,8 +364,8 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
 
          for(int j=0; j<s; j++)
             for (int i=0; i < n; ++i)
-              if (y[i+j*nmax] > 0)
-                  y[i+j*nmax] -= 1;
+              if (y[i+j*n] > 0)
+                  y[i+j*n] -= 1;
       }
 
       isel = 2;
@@ -552,7 +552,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
          if (!philp1)
          {
             for (int i=0; i < n; i++)
-               rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i];
+               rj[i] = (yj[i]-adjust[i]) * wp[i];
          }
          else
          {
@@ -625,7 +625,7 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
 {
    int lp1 = l+1;
 
-   float*  y = this->y + px * nmax;
+   float*  y = this->y + px * n;
    double* wp = wp_ + omp_thread * nmax;
    
    double *a;
@@ -676,7 +676,7 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 {
    int lp1 = l+1;
 
-   int a_dim1 = n;
+   int a_dim1 = nmax;
    int b_dim1 = ndim;
    
    double beta, acum;
@@ -776,7 +776,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    int i, k, kback;
    double acum;
 
-   int a_dim1 = n;
+   int a_dim1 = nmax;
    
    double* rj = r + idx * n;
 
@@ -827,7 +827,7 @@ int VariableProjector::bacsub(volatile double *rj, double *a, volatile double *x
    // BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*RJ = B. 
    // THE SOLUTION IS STORED IN X (X MAY OVERWRITE RJ IF SPECIFIED)
 
-   a_dim1 = n;
+   a_dim1 = nmax;
 
    x[l-1] = rj[l-1] / a[l-1 + (l-1) * a_dim1];
    if (l > 1) 

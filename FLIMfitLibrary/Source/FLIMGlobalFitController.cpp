@@ -446,12 +446,20 @@ void FLIMGlobalFitController::Init()
       n_omp_thread = 1;
    
 
+   int max_fit_size;
    int max_region_size;
 
    if (data->global_mode == MODE_GLOBAL)
-      max_region_size = data->n_masked_px;                              // (varp) Number of pixels (right hand sides)
+      max_fit_size = data->n_masked_px;                              // (varp) Number of pixels (right hand sides)
    else if (data->global_mode == MODE_IMAGEWISE)
-      max_region_size = data->n_px;
+      max_fit_size = data->n_px;
+   else
+      max_fit_size = 1;
+
+   if (data->global_mode == MODE_PIXELWISE)
+      max_region_size = data->n_px;                             // We retrieve whole images at a time
+   else if (data->global_mode == MODE_IMAGEWISE)
+      max_region_size = max_fit_size;
    else
       max_region_size = 1;
 
@@ -478,7 +486,7 @@ void FLIMGlobalFitController::Init()
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(model, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(model, max_region_size, weighting, global_algorithm, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(model, max_fit_size, weighting, global_algorithm, n_omp_thread, &(status->terminate)) );
 
       region_data.push_back( new RegionData(data->data_type, max_region_size, data->n_meas) );
    }

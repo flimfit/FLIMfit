@@ -21,10 +21,11 @@ FLIMSimulation::FLIMSimulation() :
    norm_dist = boost::random::normal_distribution<double>(irf_mu, irf_sigma);
    
    dt = T / n_t;
+
+   gen.seed( time(NULL) );
+
    
 }
-
-
 
 void FLIMSimulation::GenerateIRF(int N, vector<double>& decay)
 {

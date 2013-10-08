@@ -68,9 +68,9 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param, int ma
 
    nl   = model->nl;
    l    = model->l;
+   lmax = model->lmax;
    n    = model->n_meas;
-   nmax = model->n_meas;
-
+   
    pmax  = model->p;
 
    ndim       = max( n, 2*nl+3 );
@@ -108,11 +108,11 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param, int ma
    err_upper = new double[ n_param ];
    err_lower = new double[ n_param ];
 
-   avg_y        = new float[ nmax ];
+   avg_y        = new float[ n ];
    //y            = new float[ max_region_size * nmax ]; //free ok 
    //irf_idx      = new int[ max_region_size ];
 
-   w            = new float[ nmax ]; //free ok
+   w            = new float[ n ]; //free ok
     
    fixed_param = -1;
 
@@ -253,6 +253,9 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
    //------------------------------   
    double tau_ma = model->EstimateAverageLifetime(avg_y, region_data.data_type);
    
+   tau_ma = 1000;
+
+
    model->SetInitialParameters(alf, tau_ma);
 
    int ret = FitFcn(model->nl, alf, itmax, &niter, &ierr);

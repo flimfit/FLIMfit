@@ -434,6 +434,7 @@ int FLIMData::GetImLoc(int im)
 int FLIMData::GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread)
 {
    int s = 0;
+   int s_expected;
    
    float* masked_data;
    int* irf_idx;
@@ -441,11 +442,14 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
    region_data.Clear();
 
    
-   if ( global_mode == MODE_IMAGEWISE )
+   if ( global_mode == MODE_PIXELWISE || global_mode == MODE_IMAGEWISE )
    {
-      region_data.GetPointersForInsertion(s, masked_data, irf_idx);
+      s_expected = this->GetRegionCount(group, region);
+      region_data.GetPointersForInsertion(s_expected, masked_data, irf_idx);
 
       s = GetMaskedData(thread, group, region, masked_data, irf_idx, results);
+
+      assert( s == s_expected );
    }
    else if ( global_mode == MODE_GLOBAL )
    {
