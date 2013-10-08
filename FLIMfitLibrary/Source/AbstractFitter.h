@@ -120,13 +120,10 @@ protected:
    int    *irf_idx;
 
    float chi2_norm;
-   //double photons_per_count;
    double* cur_chi2;
 
    int n_thread;
    int variable_phi;
-
-   //int thread;
 
    int    fixed_param;
    double fixed_value_initial;

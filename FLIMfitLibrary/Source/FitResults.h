@@ -107,7 +107,7 @@ private:
    
    int n_output_params;
    int n_nl_output_params;
-   const char** param_names_ptr;
+   vector<const char*> param_names_ptr;
    vector<string> param_names;
 
    friend class FitResultsRegion;

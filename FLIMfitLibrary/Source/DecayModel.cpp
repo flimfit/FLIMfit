@@ -41,7 +41,7 @@ using std::abs;
 using std::max;
 
 DecayModel::DecayModel(const ModelParameters& params, const AcquisitionParameters& acq, shared_ptr<InstrumentResponseFunction> irf) : 
-   ModelParameters(params), AcquisitionParameters(acq), irf(irf), init(false)
+   ModelParameters(params), AcquisitionParameters(acq), irf(irf), init(false), chan_fact(NULL)
 {
 }
 
@@ -71,6 +71,7 @@ void DecayModel::Init()
 
 DecayModel::~DecayModel()
 {
+   ClearVariable(chan_fact);
 }
 
 void DecayModel::CalculateParameterCounts()

@@ -107,17 +107,7 @@ public:
 private:
 
    int init;
-/*
-   /// These shouldn't really be here 
-   int     n_t; 
-   double *t;
-   double *t_int;
-   double  photons_per_count;
-   int     n_irf;
-   double  t_rep;
-   double* tvb_profile;
-   ///
-   */
+
    int estimate_initial_tau;  // TODO: Best place for this?
 
    int calculate_mean_lifetimes;
@@ -127,8 +117,6 @@ private:
    int* decay_group_buf;
 
    int n_stray;
-
-   //int exp_dim;
 
    double *chan_fact;
 
@@ -206,9 +194,6 @@ private:
 
    int* irf_max;
 
-   //double t_rep;
-
-   //int nl;
    shared_ptr<InstrumentResponseFunction> irf;
 
    void calculate_exponentials(int irf_idx);

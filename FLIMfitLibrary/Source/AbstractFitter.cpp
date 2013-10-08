@@ -62,8 +62,6 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param, int ma
    alf_buf = NULL;
    alf_err = NULL;
    avg_y = NULL;
-   //y = NULL;
-   //irf_idx = NULL;
 
    params = NULL;
    alf_err = NULL;
@@ -110,11 +108,8 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param, int ma
    err_upper = new double[ n_param ];
    err_lower = new double[ n_param ];
 
-   avg_y        = new float[ n ];
-   //y            = new float[ max_region_size * nmax ]; //free ok 
-   //irf_idx      = new int[ max_region_size ];
-
-   w            = new float[ n ]; //free ok
+   avg_y   = new float[ n ];
+   w       = new float[ n ]; //free ok
     
    fixed_param = -1;
 
@@ -143,8 +138,7 @@ AbstractFitter::~AbstractFitter()
    ClearVariable(err_upper);
 
    ClearVariable(avg_y);
-//   ClearVariable(y);
-//   ClearVariable(irf_idx);
+   ClearVariable(w);
 }
 
 AbstractFitter* new_clone(AbstractFitter const& other)

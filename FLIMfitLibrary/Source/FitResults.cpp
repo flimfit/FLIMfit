@@ -102,6 +102,7 @@ FitResults::~FitResults()
    ClearVariable(lin_params);
    ClearVariable(ierr);
    ClearVariable(success);
+   ClearVariable(aux_data);
 }
 
 const FitResultsRegion FitResults::GetRegion(int image, int region)
@@ -226,7 +227,7 @@ void FitResults::DetermineParamNames()
 
    n_output_params = (int) param_names.size();
 
-   param_names_ptr = new const char*[n_output_params];
+   param_names_ptr.assign(n_output_params,0);
 
    for(int i=0; i<n_output_params; i++)
       param_names_ptr[i] = param_names[i].c_str();
@@ -235,7 +236,7 @@ void FitResults::DetermineParamNames()
 void FitResults::GetCParamNames(int& n_params, const char**& param_names)
 {
    n_params = n_output_params;
-   param_names = param_names_ptr;
+   param_names = &param_names_ptr[0];
 }
 
 
