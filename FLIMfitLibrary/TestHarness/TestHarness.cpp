@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    // Data Parameters
    //===========================
    int use_im = 1;
-   int t_skip = 30;
+   int t_skip = 0;
    int n_trim_end = 0;
    int n_regions_expected = 1;
 

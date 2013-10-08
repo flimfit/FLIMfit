@@ -34,6 +34,7 @@
 
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
+#include "FlagDefinitions.h"
 #include "util.h"
 
 #include <cmath>

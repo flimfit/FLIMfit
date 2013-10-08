@@ -166,10 +166,13 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 # Make library
 #===================================================
-add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} )
+set(STATIC_NAME "${LIB_NAME}_lib")
+add_library(${STATIC_NAME} STATIC ${SOURCE} ${HEADERS} )
+
+add_library(${LIB_NAME} SHARED FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
 
 
-target_link_libraries(${LIB_NAME} levmar)
+target_link_libraries(${LIB_NAME} ${STATIC_NAME} levmar)
 
 
 
@@ -183,6 +186,6 @@ add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E cop
                                                  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h" ${OUT_DIR})
 
 set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
-set( FGP_LIB ${LIB_NAME} CACHE STRING "Include dir for GlobalProcessing." FORCE )
+set( FGP_LIB ${STATIC_NAME} CACHE STRING "Include dir for GlobalProcessing." FORCE )
 set( FGP_LIB_DIR ${OUT_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
 
