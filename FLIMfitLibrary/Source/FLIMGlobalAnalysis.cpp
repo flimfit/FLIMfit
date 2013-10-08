@@ -228,7 +228,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
 
    ModelParameters params;
    params.SetDecay(n_exp, n_fix, tau_min, tau_max, tau_guess, fit_beta, fixed_beta);
-   params.SetPulseTrainCorrection(pulsetrain_correction, t_rep);
+   params.SetPulseTrainCorrection(pulsetrain_correction);
    
    if (decay_group != NULL)
       params.SetDecayGroups(decay_group);
@@ -239,7 +239,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
       params.SetFRET(n_fret, n_fret_fix, inc_donor, E_guess);
 
    controller.insert( c_idx,
-      new FLIMGlobalFitController(polarisation_resolved, global_algorithm, params, algorithm, weighting, calculate_errors, conf_interval, n_thread, runAsync, callback)
+      new FLIMGlobalFitController(polarisation_resolved, t_rep, global_algorithm, params, algorithm, weighting, calculate_errors, conf_interval, n_thread, runAsync, callback)
    );
            
    controller[c_idx].SetIRF(IRF);
@@ -294,13 +294,13 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
 
    ModelParameters params;
    params.SetDecay(n_exp, n_fix, tau_min, tau_max, tau_guess, fit_beta, fixed_beta);
-   params.SetPulseTrainCorrection(pulsetrain_correction, t_rep);
+   params.SetPulseTrainCorrection(pulsetrain_correction);
    params.SetStrayLight(fit_offset, offset_guess, fit_scatter, scatter_guess, fit_tvb, tvb_guess);
    
    params.SetAnisotropy(n_theta, n_theta_fix, inc_rinf, theta_guess);
 
    controller.insert( c_idx,
-      new FLIMGlobalFitController(polarisation_resolved, global_algorithm, params, algorithm, weighting, calculate_errors, conf_interval, n_thread, runAsync, callback)
+      new FLIMGlobalFitController(polarisation_resolved, t_rep, global_algorithm, params, algorithm, weighting, calculate_errors, conf_interval, n_thread, runAsync, callback)
    );
            
    controller[c_idx].SetIRF(IRF);
@@ -372,9 +372,10 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 
    int        n_thread              = c->n_thread;
    int        polarisation_resolved = c->polarisation_resolved;
+   double     t_rep                 = c->t_rep;
    FitStatus* status                = c->status;
 
-   AcquisitionParameters acq = AcquisitionParameters(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, counts_per_photon);
+   AcquisitionParameters acq = AcquisitionParameters(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, t_rep, counts_per_photon);
 
    shared_ptr<FLIMData> d ( new FLIMData(acq, n_im, n_x, n_y,  use_im,  
                                          mask, threshold, limit, global_mode, smoothing_factor, use_autosampling, n_thread, status) );

@@ -50,8 +50,10 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param, int ma
 {
    err = 0;
 
+   irf_idx_0 = 0;
+
    a_   = NULL;
-   r   = NULL;
+   r    = NULL;
    b_   = NULL;
    kap = NULL;
    alf = NULL;
@@ -228,7 +230,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
    region_data.GetAverageDecay(avg_y);
 
-   if (global_algorithm = MODE_GLOBAL_ANALYSIS)
+   if (global_algorithm == MODE_GLOBAL_ANALYSIS)
    {
       s = region_data.GetSize();
       region_data.GetPointers(y, irf_idx);
@@ -237,7 +239,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
    {
       s = 1;
       y = avg_y;
-      irf_idx[0] = 0;
+      irf_idx = &irf_idx_0;
    }
 
 
@@ -253,9 +255,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
    //------------------------------   
    double tau_ma = model->EstimateAverageLifetime(avg_y, region_data.data_type);
    
-   tau_ma = 1000;
-
-
+   
    model->SetInitialParameters(alf, tau_ma);
 
    int ret = FitFcn(model->nl, alf, itmax, &niter, &ierr);
@@ -446,7 +446,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    double* a = a_ + omp_thread * a_size;
    double* b = b_ + omp_thread * b_size;
 
-   model->CalculateModel(model_buffer[omp_thread], a, n, b, ndim, kap, params, irf_idx, isel);
+   model->CalculateModel(model_buffer[omp_thread], a, nmax, b, ndim, kap, params, irf_idx, isel);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)

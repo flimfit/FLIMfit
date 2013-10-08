@@ -56,19 +56,19 @@ marker_series* writer;
 
 
 FLIMGlobalFitController::FLIMGlobalFitController() :
-   error(0),init(false), has_fit(false), model(NULL), 
+   error(0), init(false), has_fit(false), model(NULL), 
    worker_params(NULL), status(NULL)
 
 {
 }
 
-FLIMGlobalFitController::FLIMGlobalFitController(int polarisation_resolved, int global_algorithm, ModelParameters& model_params, int algorithm,
+FLIMGlobalFitController::FLIMGlobalFitController(int polarisation_resolved, double t_rep, int global_algorithm, ModelParameters& model_params, int algorithm,
                                                  int weighting, int calculate_errors, double conf_interval,
                                                  int n_thread, int runAsync, int (*callback)()) :
-   polarisation_resolved(polarisation_resolved), global_algorithm(global_algorithm), model_params(model_params),
+   polarisation_resolved(polarisation_resolved), t_rep(t_rep), global_algorithm(global_algorithm), model_params(model_params),
    n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
    weighting(weighting), calculate_errors(calculate_errors), conf_interval(conf_interval),
-   error(0),init(false), has_fit(false)
+   error(0), init(false), has_fit(false)
 {
    if (this->n_thread < 1)
       this->n_thread = 1;
@@ -458,10 +458,9 @@ void FLIMGlobalFitController::Init()
 
    if (data->global_mode == MODE_PIXELWISE)
       max_region_size = data->n_px;                             // We retrieve whole images at a time
-   else if (data->global_mode == MODE_IMAGEWISE)
-      max_region_size = max_fit_size;
    else
-      max_region_size = 1;
+      max_region_size = max_fit_size;
+
 
    //y_dim = max(max_region_size,data->n_px);
 

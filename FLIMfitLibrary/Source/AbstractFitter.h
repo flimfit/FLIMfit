@@ -150,6 +150,8 @@ private:
    int a_size;
    int b_size;
 
+   int irf_idx_0;
+
 
 };
 

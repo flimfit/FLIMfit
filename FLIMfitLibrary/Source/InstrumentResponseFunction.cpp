@@ -44,6 +44,7 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
    t_irf_buf(NULL),
    irf_buf(NULL),
    variable_irf(false),
+   ref_reconvolution(false),
    t0(0)
 {
    int n_irf_ = 4;

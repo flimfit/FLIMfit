@@ -206,7 +206,7 @@ private:
 
    int* irf_max;
 
-   double t_rep;
+   //double t_rep;
 
    //int nl;
    shared_ptr<InstrumentResponseFunction> irf;

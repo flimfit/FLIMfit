@@ -453,7 +453,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
    }
    else if ( global_mode == MODE_GLOBAL )
    {
-      s = 0;
+      
       int start = GetRegionPos(0, region);
        
      // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
@@ -472,7 +472,9 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
 
             int pos = GetRegionPos(i, region) - start;
             
-            region_data.GetPointersForArbitaryInsertion(pos, s, masked_data, irf_idx);
+            int s_expected = this->GetRegionCount(i, region);
+
+            region_data.GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
             s += GetMaskedData(r_thread, i, region, masked_data, irf_idx, results);
             ImageDataFinished(i);
          }

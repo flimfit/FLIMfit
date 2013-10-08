@@ -122,7 +122,8 @@ public:
    
    
    int polarisation_resolved; // this is here because of legacy calling structure
-     
+   double t_rep;              // ditto
+
    int runAsync;
    int init;
    bool has_fit;
@@ -138,7 +139,7 @@ public:
 
    FLIMGlobalFitController();
 
-   FLIMGlobalFitController(int polarisation_resolved, int global_algorithm, ModelParameters& params, int algorithm,
+   FLIMGlobalFitController(int polarisation_resolved, double t_rep, int global_algorithm, ModelParameters& params, int algorithm,
                            int weighting, int calculate_errors, double conf_interval,
                            int n_thread, int runAsync, int (*callback)());
   

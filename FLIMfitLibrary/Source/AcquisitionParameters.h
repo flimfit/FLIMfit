@@ -38,7 +38,7 @@ class AcquisitionParameters
 {
 public:
 
-   AcquisitionParameters(int data_type, int polarisation_resolved, int n_chan, int n_t_full, int n_t, double t[], double t_int[], int t_skip[],  double counts_per_photon);
+   AcquisitionParameters(int data_type, int polarisation_resolved, int n_chan, int n_t_full, int n_t, double t[], double t_int[], int t_skip[], double t_rep, double counts_per_photon);
 
    int data_type;
    int polarisation_resolved;

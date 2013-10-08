@@ -67,7 +67,6 @@ ModelParameters::ModelParameters()
    tvb_guess     = 0;
 
    pulsetrain_correction = false;
-   t_rep         = 12.5e3;
    
 }
 
@@ -199,10 +198,9 @@ int ModelParameters::SetAnisotropy(int n_theta, int n_theta_fix, int inc_rinf, d
    return SUCCESS;
 }
 
-int ModelParameters::SetPulseTrainCorrection(int pulsetrain_correction, double t_rep)
+int ModelParameters::SetPulseTrainCorrection(int pulsetrain_correction_)
 {
-   this->pulsetrain_correction = pulsetrain_correction;
-   this->t_rep = t_rep;
+   pulsetrain_correction = pulsetrain_correction_;
 
    return SUCCESS;
 }

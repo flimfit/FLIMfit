@@ -1,12 +1,13 @@
 #include "AcquisitionParameters.h"
 
 
-AcquisitionParameters::AcquisitionParameters(int data_type, int polarisation_resolved, int n_chan, int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[],  double counts_per_photon) :
+AcquisitionParameters::AcquisitionParameters(int data_type, int polarisation_resolved, int n_chan, int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[], double t_rep, double counts_per_photon) :
    data_type(data_type),
    polarisation_resolved(polarisation_resolved),
    n_chan(n_chan),
    n_t_full(n_t_full),
    n_t(n_t),
+   t_rep(t_rep),
    counts_per_photon(counts_per_photon)
 {
    t_skip.assign(n_chan, 0);

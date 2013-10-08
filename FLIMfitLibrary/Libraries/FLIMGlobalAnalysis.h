@@ -107,7 +107,6 @@ struct ModelParametersStruct
    */
   
    int    pulsetrain_correction; 
-   double t_rep;
    
    // Anisotropy model
    int    n_theta; 

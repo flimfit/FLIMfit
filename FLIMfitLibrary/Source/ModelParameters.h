@@ -47,7 +47,7 @@ public:
    int SetStrayLight(int fit_offset, double offset_guess, int fit_scatter, double scatter_guess, int fit_tvb, double tvb_guess);
    int SetFRET(int n_fret, int n_fret_fix, int inc_donor, double E_guess[]);
    int SetAnisotropy(int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[]);
-   int SetPulseTrainCorrection(int pulsetrain_correction, double t_rep);
+   int SetPulseTrainCorrection(int pulsetrain_correction);
 };
 
 #endif
