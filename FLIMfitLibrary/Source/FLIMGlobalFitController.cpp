@@ -56,25 +56,19 @@ marker_series* writer;
 
 
 FLIMGlobalFitController::FLIMGlobalFitController() :
-   error(0), init(false), has_fit(false), model(NULL), 
-   worker_params(NULL), status(NULL)
-
+   error(0), init(false), has_fit(false), model(NULL)
 {
 }
 
-FLIMGlobalFitController::FLIMGlobalFitController(int polarisation_resolved, double t_rep, int global_algorithm, ModelParameters& model_params, int algorithm,
-                                                 int weighting, int calculate_errors, double conf_interval,
-                                                 int n_thread, int runAsync, int (*callback)()) :
-   polarisation_resolved(polarisation_resolved), t_rep(t_rep), global_algorithm(global_algorithm), model_params(model_params),
-   n_thread(n_thread), runAsync(runAsync), callback(callback), algorithm(algorithm),
-   weighting(weighting), calculate_errors(calculate_errors), conf_interval(conf_interval),
+FLIMGlobalFitController::FLIMGlobalFitController(ModelParameters& model_params, FitSettings& fit_settings, int polarisation_resolved, double t_rep) :
+   FitSettings(fit_settings), polarisation_resolved(polarisation_resolved), t_rep(t_rep), model_params(model_params),
    error(0), init(false), has_fit(false)
 {
    if (this->n_thread < 1)
       this->n_thread = 1;
 
-   worker_params = new WorkerParams[this->n_thread]; //ok
-   status = new FitStatus(this->n_thread,NULL); //ok
+   worker_params.assign(this->n_thread, WorkerParams());
+   status = shared_ptr<FitStatus>(new FitStatus(this->n_thread,NULL)); //ok
 
 }
 
@@ -112,7 +106,7 @@ int FLIMGlobalFitController::RunWorkers()
       worker_params[0].controller = this;
       worker_params[0].thread = 0;
 
-      StartWorkerThread((void*)(worker_params));
+      StartWorkerThread((void*)(&worker_params[0]));
    }
    else
    {
@@ -122,7 +116,7 @@ int FLIMGlobalFitController::RunWorkers()
          worker_params[thread].thread = thread;
       
          thread_handle.push_back(
-               new tthread::thread(StartWorkerThread,(void*)(worker_params+thread))
+               new tthread::thread(StartWorkerThread,(void*)(&worker_params[thread]))
             ); // ok
       }
 
@@ -368,7 +362,7 @@ terminated:
    if (threads_running == 0 && runAsync)
    {
       ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
-         while (iter != projectors.end())
+         while (iter != thread_handle.end())
          {
             if ( iter->joinable() && iter->get_id() != cur_id )
                iter->join();
@@ -524,9 +518,6 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
    CleanupResults();
    CleanupTempVars();
 
-   delete status;
-   delete[] worker_params;
-
 }
 
 
@@ -557,62 +548,7 @@ void FLIMGlobalFitController::CleanupTempVars()
 
 void FLIMGlobalFitController::CleanupResults()
 {
-
-   tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
-
    init = false;
-      /*
-   ClearVariable(lin_local);
-   ClearVariable(alf_local);
-   ClearVariable(tau_buf);
-   ClearVariable(beta_buf);
-   ClearVariable(theta_buf);
-   ClearVariable(chan_fact);
-   ClearVariable(cur_alf);
-   ClearVariable(cur_irf_idx);
-
-
-   #ifdef _WINDOWS
-   
-      if (exp_buf != NULL)
-      {
-         _aligned_free(exp_buf);
-         exp_buf = NULL;
-      }
-      if (irf_buf != NULL)
-      {
-         _aligned_free(irf_buf);
-         irf_buf = NULL;
-      }
-      if (t_irf_buf != NULL)
-      {
-         _aligned_free(t_irf_buf);
-         t_irf_buf = NULL;
-      }
-   
-   #else
-   
-      ClearVariable(exp_buf);
-      ClearVariable(irf_buf);
-      ClearVariable(t_irf_buf);
-   
-   #endif
-
-
-      ClearVariable(irf_max);
-      ClearVariable(adjust_buf);
-      ClearVariable(local_decay);
-      ClearVariable(decay_group_buf);
-
-      ClearVariable(irf_idx);
-
-      ClearVariable(y);
-      ClearVariable(w);
-      
-      ClearVariable(param_names_ptr);
-      */
-      
-     _ASSERTE(_CrtCheckMemory());
 }
 
 #endif

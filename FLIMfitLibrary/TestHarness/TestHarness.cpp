@@ -28,9 +28,11 @@
 //
 //=========================================================================
 
-#define BOOST_TEST_MODULE FLIMGlobalProcessingTest
+#define BOOST_TEST_MODULE FLIMfitTest
 #define BOOST_TEST_SHOW_PROGRESS yes
+#define BOOST_TEST_LOG_LEVEL all
 #define BOOST_TEST_AUTO_START_DBG yes
+#define BOOST_TEST_RESULT_CODE no
 
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
@@ -44,11 +46,10 @@
 
 using namespace boost::unit_test;
 
-
 void add_decay(int n_t, double* t, double tau, double I, float* decay)
 {
    for(int i=0; i<n_t; i++)
-      decay[i] += I * exp(-t[i]/tau);
+      decay[i] += (float) (I * exp(-t[i]/tau));
 }
 
 bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_names, vector<float>& data, const char* param, int region, float expected_value, float rel_tol )
@@ -69,7 +70,7 @@ bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_n
          printf( "Compare %s, Region %d:\n", param, region );
          printf( "   | Expected  : %f\n", expected_value );
          printf( "   | Fitted    : %f\n", fitted );
-         printf( "     | Std D.  : %f\n", std );
+         printf( "   | Std D.    : %f\n", std );
          printf( "   | Rel Error : %f\n", rel );
          
          if (pass)
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
 {
    int e;
 
-   FLIMSimulation sim;
+   FLIMSimulationTCSPC sim;
    
    
    vector<double> irf;
@@ -175,9 +176,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    BOOST_CHECK( CheckResult( n_stats, n_output_params, n_regions, names, stats, "tau_1", 0, (float) tau, 0.01f ) );
    //e=FLIMGlobalGetFit(id, 0, n_t, t, 1, &i0, fit, &n_valid);
 
-   FLIMGlobalClearFit(id);
-
-
+   FLIMGlobalClearFit(-1);
 }
 
 /*

@@ -27,28 +27,38 @@
 //
 //=========================================================================
 
-#ifndef _MODELPARAMETERS_H
-#define _MODELPARAMETERS_H
+#include "FitSettings.h"
+#include "FlagDefinitions.h"
 
-#include "FLIMGlobalAnalysis.h"
+#include <cstring>
 
-class ModelParameters : public ModelParametersStruct
+
+FitSettings::FitSettings(int algorithm_, int global_algorithm_, int weighting_, int n_thread_, int runAsync_, int (*callback_)())
 {
+   algorithm = algorithm_;
+   global_algorithm = global_algorithm_;
+   weighting = weighting_;
 
-public:
+   n_thread = n_thread_;
+   runAsync = runAsync_;
+   callback = callback_;
 
-   ModelParameters();
-   ModelParameters(ModelParametersStruct& params_);
+   calculate_errors = false;
+   conf_interval = 0.05;
 
-   void Validate();
-   ModelParametersStruct GetStruct();
+}
 
-   int SetDecay(int n_exp, int n_fix, double tau_min[], double tau_max[], double tau_guess[], int fit_beta, double fixed_beta[]);
-   int SetDecayGroups(int decay_group[]);
-   int SetStrayLight(int fit_offset, double offset_guess, int fit_scatter, double scatter_guess, int fit_tvb, double tvb_guess);
-   int SetFRET(int n_fret, int n_fret_fix, int inc_donor, double E_guess[]);
-   int SetAnisotropy(int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[]);
-   int SetPulseTrainCorrection(int pulsetrain_correction);
-};
+FitSettings::FitSettings(FitSettingsStruct& settings_) : 
+   FitSettingsStruct(settings_)
+{}
 
-#endif
+void FitSettings::CalculateErrors(int calculate_errors_, double conf_interval_)
+{
+   calculate_errors = calculate_errors_;
+   conf_interval = conf_interval_;
+}
+
+FitSettingsStruct FitSettings::GetStruct()
+{
+   return (FitSettingsStruct) *this;
+}

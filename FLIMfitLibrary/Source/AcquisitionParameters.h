@@ -34,11 +34,23 @@
 
 using std::vector;
 
+
+
 class AcquisitionParameters
 {
 public:
 
    AcquisitionParameters(int data_type, int polarisation_resolved, int n_chan, int n_t_full, int n_t, double t[], double t_int[], int t_skip[], double t_rep, double counts_per_photon);
+   AcquisitionParameters(int data_type, int polarisation_resolved, int n_chan, double t_rep, double counts_per_photon);
+
+   
+   void SetT(int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[]);
+   
+   void SetT(vector<double>& t_, double t_min, double t_max);
+   void SetT(vector<double>& t_);
+   void SetIntegrationTimes(vector<double>& t_int_);
+   
+   double* GetT();
 
    int data_type;
    int polarisation_resolved;
@@ -50,15 +62,15 @@ public:
    double  counts_per_photon;
    double  t_rep;
    
-   vector<int> t_skip;
+   vector<int>    t_skip;
    vector<double> t;
    vector<double> t_int;
    vector<double> tvb_profile;
 
-   double* GetT();
 
    // Computed parameters
    int n_meas;
+   int n_meas_full;
 
 };
 

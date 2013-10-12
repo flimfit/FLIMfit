@@ -258,7 +258,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
 
    for(int i=0; i<nl; i++)
-      alf_results[i] = alf[i];
+      alf_results[i] = (float) alf[i];
 
 
    if (global_algorithm == MODE_GLOBAL_BINNING)

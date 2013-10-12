@@ -54,20 +54,6 @@ FITDLL_API void FLIMGlobalRelinquishID(int id);
 
 struct ModelParametersStruct
 {
-   // Timegates
-/*
-   int     n_t; 
-   double *t;
-   double *t_int;
-   
-   int data_type;
-
-   int     photons_per_count;
-
-   bool polarisation_resolved;
-   */
-
-
    // Intensity decay
    int     n_exp; 
    int     n_fix; 
@@ -78,18 +64,14 @@ struct ModelParametersStruct
    int     n_decay_group;
    int     decay_group[N_PARAM_MAX];
 
-
-
-   int     estimate_initial_tau; 
-  
    // FRET model
-   int fit_fret; 
-   int n_fret; 
-   int n_fret_fix;
-   int inc_donor; 
-   double E_guess[N_PARAM_MAX]; 
+   int     fit_fret; 
+   int     n_fret; 
+   int     n_fret_fix;
+   int     inc_donor; 
+   double  E_guess[N_PARAM_MAX]; 
 
-   
+   // Beta Parameters
    int     fit_beta; 
    double  fixed_beta[N_PARAM_MAX];
    
@@ -101,11 +83,6 @@ struct ModelParametersStruct
    double  scatter_guess;
    double  tvb_guess;
    
-   /*
-   double *tvb_profile;
-   int     fit_t0; double t0_guess; 
-   */
-  
    int    pulsetrain_correction; 
    
    // Anisotropy model
@@ -114,12 +91,24 @@ struct ModelParametersStruct
    int    inc_rinf;
    double theta_guess[N_PARAM_MAX];
 
-//   bool polarisation_resolved;
-
+   int    estimate_initial_tau; 
+  
 
 };
 
+struct FitSettingsStruct
+{
+   int    algorithm;
+   int    global_algorithm;
+   int    weighting;
 
+   int    calculate_errors;
+   double conf_interval;
+
+   int    n_thread; 
+   int    runAsync;
+   int    (*callback)();
+};
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],

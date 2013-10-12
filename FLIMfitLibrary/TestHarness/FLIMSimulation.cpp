@@ -7,27 +7,151 @@
 //
 
 #include "FLIMSimulation.h"
-
+#include "FlagDefinitions.h"
 
 using std::vector;
 
-FLIMSimulation::FLIMSimulation() :
+FLIMSimulationTCSPC::FLIMSimulationTCSPC() :
+   FLIMSimulation(DATA_TYPE_TCSPC)
+{
+   n_t = 128;
+   dt = t_rep / n_t;
+
+
+   vector<double> t_;
+   vector<double> t_int_;
+
+   t_.assign(n_t, 0);
+
+   for(int i=0; i<n_t; i++)
+      t_[i] = i * dt;
+
+   // Equal integration times
+   t_int_.assign(n_t, 1);
+
+   SetT(t_);
+   SetIntegrationTimes(t_int_);
+
+}
+
+FLIMSimulationWF::FLIMSimulationWF() :
+   FLIMSimulation(DATA_TYPE_TIMEGATED),
+   gate_width( 1000 )
+{
+   n_t = 5;
+
+   dt = 25;
+   n_t_irf = ceil( (gate_width + irf_mu + 4 * irf_sigma) / dt ); // make sure we record enough of the IRF  
+
+   vector<double> t_;
+   vector<double> t_int_;
+
+   t_.assign(n_t, 0);
+
+   for(int i=0; i<n_t; i++)
+      t_[i] = i * 1000;
+
+   // Equal integration times
+   t_int_.assign(n_t, 1);
+
+   SetT(t_);
+   SetIntegrationTimes(t_int_);
+
+}
+
+
+FLIMSimulation::FLIMSimulation(int data_type) :
    irf_mu( 1000 ),
    irf_sigma( 150 ),
-   n_t( 128 ),
-   T( 12500 )
+   AcquisitionParameters(data_type, MODE_STANDARD, 1, t_rep_default, 1.0)
 {
    // Generate the IRF distribution
    norm_dist = boost::random::normal_distribution<double>(irf_mu, irf_sigma);
    
-   dt = T / n_t;
+   gen.seed( (uint32_t) time(NULL) );   
+}
 
-   gen.seed( time(NULL) );
 
+
+void FLIMSimulationTCSPC::GenerateDecay(double tau, int N, vector<int>& decay)
+{
+   boost::random::exponential_distribution<double> exp_dist(1/tau);
+   
+   // Generate decay histogram
+   for(int i=0; i<N; i++)
+   {
+      double t_decay = exp_dist(gen);
+      double t_irf   = SampleIRF();
+      double t_arrival = t_decay + t_irf;
+      
+      // Wrap around to account for after pulsing
+      t_arrival = fmod(t_arrival, t_rep); 
+
+      // Determine which bin the sample falls in
+      int idx = (int) floor(t_arrival/dt);
+      
+      decay[idx]++;
+      
+   }
    
 }
 
-void FLIMSimulation::GenerateIRF(int N, vector<double>& decay)
+
+void FLIMSimulationWF::GenerateDecay(double tau, int N, vector<int>& decay)
+{
+   boost::random::exponential_distribution<double> exp_dist(1/tau);
+   
+   
+   // Calculate number of photons in each gate acquisition (note these will not necessarily fall in the gate)
+   double total_integration = 0;
+   for(int i=0; i<n_t; i++)
+      total_integration += t_int[i];
+
+   for(int g=0; g<n_t; g++)
+   {
+      double gate_N_avg = N * t_int[g] / total_integration;
+      boost::random::poisson_distribution<int> poisson_dist(gate_N_avg);
+      int gate_N = poisson_dist(gen);
+
+      for(int i=0; i<gate_N; i++)
+      {
+         double t_decay = exp_dist(gen);
+         double t_irf   = SampleIRF();
+         double t_arrival = t_decay + t_irf;
+
+         // Wrap around to account for after pulsing
+         t_arrival = fmod(t_arrival, t_rep); 
+
+         if (t_decay >= t[g] && t_decay <= t[g] + gate_width)
+            decay[g]++;
+      }
+
+   }
+   
+}
+
+
+InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
+{
+   vector<double> irf_data;
+
+   GenerateIRF(N, irf_data);
+
+   // Normalise IRF
+   double sum = 0;
+   for(int i=0; i<n_t; i++)
+       sum += irf_data[i];
+   for(int i=0; i<n_t; i++)
+       irf_data[i] /= sum;
+
+   InstrumentResponseFunction irf;
+   irf.SetIRF(n_t, n_chan, dt, 0.0, &irf_data[0]);
+
+   return irf;
+
+}
+
+void FLIMSimulationTCSPC::GenerateIRF(int N, vector<double>& decay)
 {
    decay.assign(n_t, 0);
    
@@ -37,7 +161,7 @@ void FLIMSimulation::GenerateIRF(int N, vector<double>& decay)
       double t_arrival = SampleIRF();
       
       // Determine which bin the sample falls in
-      int idx = floor(t_arrival/dt);
+      int idx = (int) floor(t_arrival/dt);
       
       // Make sure we're not outside of the sample window
       if (idx >= 0 && idx<n_t)
@@ -54,12 +178,45 @@ void FLIMSimulation::GenerateIRF(int N, vector<double>& decay)
    
 }
 
+
+void FLIMSimulationWF::GenerateIRF(int N, vector<double>& decay)
+{
+
+   // Calculate number of photons in each gate acquisition (note these will not necessarily fall in the gate)
+   double total_integration = 0;
+   for(int i=0; i<n_t; i++)
+      total_integration += t_int[i];
+
+   for(int g=0; g<n_t_irf; g++)
+   {
+      double gate_N_avg = N * t_int[g] / total_integration;
+      boost::random::poisson_distribution<int> poisson_dist(gate_N_avg);
+      int gate_N = poisson_dist(gen);
+
+      for(int i=0; i<gate_N; i++)
+      {
+         double t_irf   = SampleIRF();
+
+         // Wrap around to account for after pulsing
+         t_irf = fmod(t_irf, t_rep); 
+
+         double t = g * dt;
+
+         if (t_irf >= t && t_irf <= t + gate_width)
+            decay[g]++;
+      }
+
+   }
+   
+}
+
+
 double FLIMSimulation::SampleIRF()
 {  
    return norm_dist(gen);
 }
 
-int FLIMSimulation::GetTimePoints(vector<double>& t, vector<double>& t_int)
+int FLIMSimulationTCSPC::GetTimePoints(vector<double>& t, vector<double>& t_int)
 {
    t.assign(n_t, 0);
    for (int i=0; i<n_t; i++) {

@@ -27,28 +27,17 @@
 //
 //=========================================================================
 
-#ifndef _MODELPARAMETERS_H
-#define _MODELPARAMETERS_H
-
+#include "FlagDefinitions.h"
 #include "FLIMGlobalAnalysis.h"
+#include <cstring>
 
-class ModelParameters : public ModelParametersStruct
+class FitSettings : public FitSettingsStruct
 {
-
 public:
+   FitSettings(int algorithm = ALG_ML, int global_algorithm = MODE_PIXELWISE, int weighting = AVERAGE_WEIGHTING, int n_thread = 1, int runAsync = false, int (*callback)() = NULL);
+   FitSettings(FitSettingsStruct& settings_);
 
-   ModelParameters();
-   ModelParameters(ModelParametersStruct& params_);
+   void CalculateErrors(int calculate_errors, double conf_interval = 0.05);
 
-   void Validate();
-   ModelParametersStruct GetStruct();
-
-   int SetDecay(int n_exp, int n_fix, double tau_min[], double tau_max[], double tau_guess[], int fit_beta, double fixed_beta[]);
-   int SetDecayGroups(int decay_group[]);
-   int SetStrayLight(int fit_offset, double offset_guess, int fit_scatter, double scatter_guess, int fit_tvb, double tvb_guess);
-   int SetFRET(int n_fret, int n_fret_fix, int inc_donor, double E_guess[]);
-   int SetAnisotropy(int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[]);
-   int SetPulseTrainCorrection(int pulsetrain_correction);
+   FitSettingsStruct GetStruct();
 };
-
-#endif

@@ -64,7 +64,7 @@ class FLIMData : public AcquisitionParameters
 public:
 
    FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
-            int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status);
+            int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status);
 
    int  SetData(float data[]);
    int  SetData(uint16_t data[]);
@@ -116,8 +116,6 @@ public:
    int n_y;
    int n_buf;
 
-   int n_meas;
-
    int n_px;
    int n_p;
 
@@ -125,8 +123,6 @@ public:
    int n_output_regions_total;
 
    int data_skip;
-
-   int use_autosampling;
 
    uint8_t* mask;
    int n_masked_px;
@@ -137,13 +133,6 @@ public:
    int smoothing_factor;
    float smoothing_area;
 
-   /*
-   int* t_skip;
-   double* t;
-   double* t_int;
-
-   double counts_per_photon;
-   */
    int* use_im;
    int n_im_used;
 
@@ -193,8 +182,6 @@ private:
 
    int n_thread;
 
-   int n_meas_full;
-
 
    int threshold;
    int limit;
@@ -218,7 +205,7 @@ private:
    tthread::condition_variable data_avail_cond;
    tthread::condition_variable data_used_cond;
 
-   FitStatus *status;
+   shared_ptr<FitStatus> status;
 
    friend void StartDataLoaderThread(void* wparams);
 
@@ -235,9 +222,9 @@ T* FLIMData::GetDataPointer(int thread, int im)
 
    if (use_im != NULL)
       im = use_im[im];
-   unsigned long long offset, buf_size;
+   unsigned long long offset, buf_size; // size_t?
 
-   unsigned long long int im_size = n_t_full * n_chan * n_x * n_y;
+   unsigned long long int im_size = n_t_full * n_chan * n_x * n_y; // size_t?
 
    int data_size = sizeof(T);
 

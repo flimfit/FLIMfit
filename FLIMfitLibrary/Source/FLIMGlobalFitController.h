@@ -41,34 +41,30 @@
 #include "DecayModel.h"
 #include "ModelADA.h"
 #include "FLIMData.h"
-#include "RegionData.h"
 #include "FitResults.h"
 #include "InstrumentResponseFunction.h"
 #include "FLIMGlobalAnalysis.h"
-#include "tinythread.h"
+#include "FitSettings.h"
 
 #include "AbstractFitter.h"
-#include "ImageStats.h"
 
 #include "FlagDefinitions.h"
-#include <cmath>
 
 #include "ConcurrencyAnalysis.h"
 
-#include <boost/interprocess/file_mapping.hpp>
-#include <boost/interprocess/mapped_region.hpp>
 
 #include <boost/ptr_container/ptr_vector.hpp>
-#include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
+#include <memory>
 
-typedef double* DoublePtr;  
+#include "tinythread.h"
+
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 #define _CRTDBG_MAPALLOC
 
-using boost::scoped_ptr;
 using boost::shared_ptr;
+using std::unique_ptr;
 
 class ErrMinParams;
 class FLIMGlobalFitController;
@@ -100,58 +96,39 @@ public:
 class FLIMGlobalFitController;
 
 
-class FLIMGlobalFitController
+class FLIMGlobalFitController : public FitSettings
+
 {
 public:
 
-   int algorithm;
-   int n_thread; 
-   int (*callback)();
-   int error;
+   FLIMGlobalFitController(ModelParameters& model_params, FitSettings& fit_settings, int polarisation_resolved = false, double t_rep = 0.0);
+   FLIMGlobalFitController();
+   ~FLIMGlobalFitController();
 
-   int n_fitters;
-   int n_omp_thread;
 
    shared_ptr<InstrumentResponseFunction> irf;
    shared_ptr<DecayModel> model;
    shared_ptr<FLIMData> data;
+   shared_ptr<FitStatus> status;
 
-   scoped_ptr<FitResults> results;
-   
+   unique_ptr<FitResults> results;
+
    ModelParameters model_params;
    
    
-   int polarisation_resolved; // this is here because of legacy calling structure
-   double t_rep;              // ditto
-
-   int runAsync;
    int init;
    bool has_fit;
-
-   FitStatus *status;
-   WorkerParams* worker_params;
-
-   
    bool getting_fit;
-   int calculate_errors;
-   double conf_interval;
-   double conf_factor;
+   int error;
 
-   FLIMGlobalFitController();
 
-   FLIMGlobalFitController(int polarisation_resolved, double t_rep, int global_algorithm, ModelParameters& params, int algorithm,
-                           int weighting, int calculate_errors, double conf_interval,
-                           int n_thread, int runAsync, int (*callback)());
-  
-
-   ~FLIMGlobalFitController();
 
 
    void SetData(shared_ptr<FLIMData> data);
    void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
 
    void Init();
-   int RunWorkers();
+   int  RunWorkers();
    int  GetErrorCode();
 
    int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
@@ -160,7 +137,13 @@ public:
 
    void CleanupResults();
 
+
    bool Busy();
+
+
+   int polarisation_resolved; // this is here because of legacy calling structure
+   double t_rep;              // ditto
+
 
 private:
 
@@ -171,22 +154,18 @@ private:
    
    void CleanupTempVars();
 
-
-
    int ProcessRegion(int g, int r, int px, int thread);
-   
 
-   int global_algorithm;
-   int weighting;
 
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;
 
    ptr_vector<AbstractFitter> projectors;
    ptr_vector<RegionData> region_data;
-
    ptr_vector<tthread::thread> thread_handle;
 
+   vector<WorkerParams> worker_params;
+   
    int cur_region;
    int next_pixel;
    int next_region;
@@ -199,6 +178,12 @@ private:
    tthread::mutex data_mutex;
    tthread::condition_variable active_lock;
    tthread::condition_variable data_lock;
+
+   int n_fitters;
+   int n_omp_thread;
+
+   double conf_factor;
+
 
    friend void StartWorkerThread(void* wparams);
 };

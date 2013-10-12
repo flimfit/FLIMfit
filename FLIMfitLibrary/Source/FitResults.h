@@ -36,11 +36,13 @@
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 
 using std::max;
 using std::min;
 
 using boost::shared_ptr;
+using boost::weak_ptr;
 
 using std::vector;
 using std::string;

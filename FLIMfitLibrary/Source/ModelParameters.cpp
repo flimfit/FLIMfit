@@ -70,6 +70,12 @@ ModelParameters::ModelParameters()
    
 }
 
+ModelParameters::ModelParameters(ModelParametersStruct& params_) :
+   ModelParametersStruct(params_)
+{
+   Validate();
+}
+
 // TODO: real validation here
 
 void ModelParameters::Validate()
@@ -203,4 +209,10 @@ int ModelParameters::SetPulseTrainCorrection(int pulsetrain_correction_)
    pulsetrain_correction = pulsetrain_correction_;
 
    return SUCCESS;
+}
+
+
+ModelParametersStruct ModelParameters::GetStruct()
+{
+   return (ModelParametersStruct) *this;
 }

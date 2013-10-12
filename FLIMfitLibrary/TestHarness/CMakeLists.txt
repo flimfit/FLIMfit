@@ -68,4 +68,8 @@ message(${FGP_LIB})
 
 target_link_libraries(TestHarness ${FGP_LIB}_lib levmar)
 
+# Run tests after compile
+#===================================================
+#add_custom_command(TARGET TestHarness POST_BUILD
+#				   COMMAND $<TARGET_FILE:TestHarness> --result_code=no --report_level=no)
 

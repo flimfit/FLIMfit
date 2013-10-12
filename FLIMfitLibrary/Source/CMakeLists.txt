@@ -79,6 +79,7 @@ set(SOURCE
    DecayModel.cpp
    ModelParameters.cpp
    FitResults.cpp
+   FitSettings.cpp
    RegionData.cpp
    VariableProjector.cpp
    MaximumLikelihoodFitter.cpp
@@ -104,6 +105,7 @@ set(HEADERS
    FitResults.h
    ModelADA.h
    RegionData.h
+   FitSettings.h
    DecayModel.h
    ModelParameters.h
    VariableProjector.h

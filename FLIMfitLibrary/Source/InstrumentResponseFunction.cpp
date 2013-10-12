@@ -41,7 +41,6 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
    t0_image(NULL),
    n_irf_rep(1),
    n_chan(1),
-   t_irf_buf(NULL),
    irf_buf(NULL),
    variable_irf(false),
    ref_reconvolution(false),
@@ -51,10 +50,8 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
 
    AllocateBuffer(n_irf_);
 
-   t_irf_buf[0] = -2.0;
-   t_irf_buf[1] =  0.0;
-   t_irf_buf[2] =  2.0;
-   t_irf_buf[3] =  4.0;
+   timebin_t0    = -1.0;
+   timebin_width =  1.0;
 
    irf_buf[0] = 0.0; 
    irf_buf[1] = 1.0; 
@@ -69,11 +66,10 @@ InstrumentResponseFunction::~InstrumentResponseFunction()
 
 void InstrumentResponseFunction::FreeBuffer()
 {
-   AlignedClearVariable(t_irf_buf);
    AlignedClearVariable(irf_buf);
 }
 
-void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double* t_irf, double* irf)
+void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, double* irf)
 {
    n_chan       = n_chan_;
    n_irf_rep    = 1;
@@ -81,9 +77,11 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double* t_irf, dou
    t0_image     = NULL;
    variable_irf = false;
 
-   CopyIRF(n_t, t_irf, irf);
+   timebin_t0    = timebin_t0_;
+   timebin_width = timebin_width_; 
 
-   CalculateTimebinWidth();
+   CopyIRF(n_t, irf);
+
    CalculateGFactor();
 }
 
@@ -93,18 +91,9 @@ void InstrumentResponseFunction::SetReferenceReconvolution(int ref_reconvolution
    this->ref_lifetime_guess = ref_lifetime_guess;
 }
 
-void InstrumentResponseFunction::CalculateTimebinWidth()
-{
-   if (n_irf > 2)
-      timebin_width = t_irf_buf[1] - t_irf_buf[0];
-   else
-      timebin_width = 1;
-
-}
-
 double InstrumentResponseFunction::GetT0()
 {
-   return t_irf_buf[0] + t0;
+   return timebin_t0 + t0;
 }
 
 double* InstrumentResponseFunction::GetIRF(int irf_idx, double* storage)
@@ -155,7 +144,6 @@ void InstrumentResponseFunction::AllocateBuffer(int n_irf_raw)
    int irf_size = n_irf * n_chan * n_irf_rep;
    
    AlignedAllocate(irf_size, irf_buf);
-   AlignedAllocate(n_irf,    t_irf_buf);
 /*
 #ifdef _WINDOWS
       irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
@@ -167,7 +155,7 @@ void InstrumentResponseFunction::AllocateBuffer(int n_irf_raw)
    */
 }
 
-void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* t_irf, double* irf)
+void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* irf)
 {
    // Copy IRF, padding to ensure we have an even number of points so we can 
    // use SSE primatives in convolution
@@ -176,23 +164,15 @@ void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* t_irf, double* i
 
    AllocateBuffer(n_irf_raw);
       
-   double dt = t_irf[1]-t_irf[0];
-
    for(int j=0; j<n_irf_rep; j++)
    {
       int i;
       for(i=0; i<n_irf_raw; i++)
-      {
-         t_irf_buf[i] = t_irf[i];
          for(int k=0; k<n_chan; k++)
              irf_buf[(j*n_chan+k)*n_irf+i] = irf[(j*n_chan+k)*n_irf_raw+i];
-      }
       for(; i<n_irf; i++)
-      {
-         t_irf_buf[i] = t_irf_buf[i-1] + dt;
          for(int k=0; k<n_chan; k++)
             irf_buf[(j*n_chan+k)*n_irf+i] = irf_buf[(j*n_chan+k)*n_irf+i-1];
-      }
    }
 
 }

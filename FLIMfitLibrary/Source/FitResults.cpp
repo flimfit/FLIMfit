@@ -65,8 +65,8 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    chi2         = new float[ n_px ]; //ok
    aux_data     = new float[ aux_size ];
 
-   ierr         = new int[ n_px ];
-   success      = new float[ n_px ];
+   ierr         = new int[ n_px ]; //  TODO: is this allocation right?
+   success      = new float[ n_px ]; // TODO: is this allocation right?
    alf          = new float[ alf_size ]; //ok
 
    if (calculate_errors)

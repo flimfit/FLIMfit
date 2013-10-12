@@ -32,7 +32,7 @@
 //#include "hdf5.h"
 
 FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
-                   int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
+                   int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status) :
    AcquisitionParameters(acq),   
    n_im(n_im), 
    n_x(n_x),
@@ -42,7 +42,6 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
    threshold(threshold),
    limit(limit),
    smoothing_factor(smoothing_factor),
-   use_autosampling(use_autosampling),
    n_thread(n_thread),
    status(status)
 {
@@ -106,9 +105,6 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
       n_im_used = n_im;
    }
 
-   n_meas = n_chan * n_t;
-   n_meas_full = n_chan * n_t_full;
-
    background_value = 0;
    background_type = BG_NONE;
 
@@ -117,7 +113,6 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
 
    n_px = n_x * n_y;
    n_p  = n_x * n_y * n_meas_full;
-
 
 
    tr_data_    = new float[ n_thread * n_p ]; //ok

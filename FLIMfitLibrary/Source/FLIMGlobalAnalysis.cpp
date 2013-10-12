@@ -116,12 +116,6 @@ FITDLL_API void FLIMGlobalRelinquishID(int id)
    controller.erase(id);
 }
 
-
-int ValidControllerIdx(int c_idx)
-{
-   return (controller.find(c_idx) != controller.end() );
-}
-
 FLIMGlobalFitController* GetController(int c_idx)
 {
    ControllerMap::iterator iter = controller.find(c_idx);
@@ -133,10 +127,8 @@ FLIMGlobalFitController* GetController(int c_idx)
 
 }
 
-
 bool ClearController(int c_idx)
 {
-
    ControllerMap::iterator iter = controller.find(c_idx);
 
    if ( iter != controller.end() )
@@ -154,41 +146,49 @@ bool ClearController(int c_idx)
 
 }
 
-
-int InitControllerIdx(int c_idx)
+FITDLL_API ModelParametersStruct GetDefaultModelParameters()
 {
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c = GetController(c_idx) )
-      return c->init;
-   else
-      return false;
+   ModelParameters params;
+   return params.GetStruct();
+}
 
+FITDLL_API FitSettingsStruct GetDefaultFitSettings()
+{
+   FitSettings settings;
+   return settings.GetStruct();
+}
+
+
+FITDLL_API int SetupFit(int c_idx, ModelParametersStruct params_, FitSettingsStruct settings_)
+{
+
+   if ( !ClearController(c_idx) )
+      return ERR_FIT_IN_PROGRESS;
+
+   ModelParameters params(params_);
+   FitSettings     settings(settings_);
+   
+   controller.insert( c_idx,
+      new FLIMGlobalFitController(params, settings)
+   );
+           
+   return controller[c_idx].GetErrorCode();
    
 }
 
-int CheckControllerIdx(int c_idx)
+FITDLL_API int SetIRF(int c_idx, int n_chan, int n_irf, int image_irf, double timebin_t0, double timebin_width, double irf[], int ref_reconvolution, double ref_lifetime_guess)
 {
    FLIMGlobalFitController *c = GetController(c_idx);
    if ( c == NULL )
-      return ERR_COULD_NOT_START_FIT;
+      return ERR_INVALID_IDX;
 
-   if (c->status->IsRunning())
-      return ERR_FIT_IN_PROGRESS;
+   shared_ptr<InstrumentResponseFunction> IRF( new InstrumentResponseFunction() );
+   IRF->SetIRF(n_irf, n_chan, timebin_t0, timebin_width, irf);
+   if (ref_reconvolution)
+      IRF->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
 
    return SUCCESS;
 }
-
-/*
-FITDLL_API int SetIRF(int c_idx, int image_irf, int n_irf, double t_irf[], double irf[], double t0_image[])
-{
-
-}
-
-FITDLL_API int SetFitParameters(int c_idx, ModelParamsStruct* params)
-{
-
-}
-*/
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
@@ -222,7 +222,7 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
       callback = NULL;
 
    shared_ptr<InstrumentResponseFunction> IRF( new InstrumentResponseFunction() );
-   IRF->SetIRF(n_irf, n_chan, t_irf, irf);
+   IRF->SetIRF(n_irf, n_chan, t_irf[0], t_irf[1]-t_irf[0], irf);
    if (ref_reconvolution)
       IRF->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
 
@@ -238,8 +238,11 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
    if (n_fret > 0)
       params.SetFRET(n_fret, n_fret_fix, inc_donor, E_guess);
 
+   FitSettings settings(algorithm, global_algorithm, weighting, n_thread, runAsync, callback);
+   settings.CalculateErrors(calculate_errors, conf_interval);
+
    controller.insert( c_idx,
-      new FLIMGlobalFitController(polarisation_resolved, t_rep, global_algorithm, params, algorithm, weighting, calculate_errors, conf_interval, n_thread, runAsync, callback)
+      new FLIMGlobalFitController(params, settings, polarisation_resolved, t_rep)
    );
            
    controller[c_idx].SetIRF(IRF);
@@ -288,7 +291,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
    int n_chan = 2; 
 
    shared_ptr<InstrumentResponseFunction> IRF( new InstrumentResponseFunction() );
-   IRF->SetIRF(n_irf, n_chan, t_irf, irf);
+   IRF->SetIRF(n_irf, n_chan, t_irf[0], t_irf[1]-t_irf[0], irf);
    if (ref_reconvolution)
       IRF->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
 
@@ -299,9 +302,13 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
    
    params.SetAnisotropy(n_theta, n_theta_fix, inc_rinf, theta_guess);
 
+   FitSettings settings(algorithm, global_algorithm, weighting, n_thread, runAsync, callback);
+   settings.CalculateErrors(calculate_errors, conf_interval);
+
    controller.insert( c_idx,
-      new FLIMGlobalFitController(polarisation_resolved, t_rep, global_algorithm, params, algorithm, weighting, calculate_errors, conf_interval, n_thread, runAsync, callback)
+      new FLIMGlobalFitController(params, settings, polarisation_resolved, t_rep)
    );
+   
            
    controller[c_idx].SetIRF(IRF);
 
@@ -313,6 +320,42 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
 
 }
 
+
+
+FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
+                             int use_im[], uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
+{
+   INIT_CONCURRENCY;
+
+   FLIMGlobalFitController *c = GetController(c_idx);
+   if ( c == NULL )
+      return ERR_INVALID_IDX;
+
+   //TODO: check controller is init
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   START_SPAN("Setting up data object");
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   int        n_thread              = c->n_thread;
+   int        polarisation_resolved = c->polarisation_resolved;
+   double     t_rep                 = c->t_rep;
+   shared_ptr<FitStatus> status     = c->status;
+
+   AcquisitionParameters acq = AcquisitionParameters(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, t_rep, counts_per_photon);
+
+   shared_ptr<FLIMData> d ( new FLIMData(acq, n_im, n_x, n_y,  use_im,  
+                                         mask, threshold, limit, global_mode, smoothing_factor, n_thread, status) );
+   
+   c->SetData(d);
+
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   END_SPAN;
+   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   return SUCCESS;
+
+}
 
 FITDLL_API int SetDataFloat(int c_idx, float* data)
 {
@@ -353,42 +396,6 @@ FITDLL_API int SetAcceptor(int c_idx, float* acceptor)
    return SUCCESS;
 }
 
-
-
-FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-                             int use_im[], uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
-{
-   INIT_CONCURRENCY;
-
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-
-   //TODO: check controller is init
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   START_SPAN("Setting up data object");
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   int        n_thread              = c->n_thread;
-   int        polarisation_resolved = c->polarisation_resolved;
-   double     t_rep                 = c->t_rep;
-   FitStatus* status                = c->status;
-
-   AcquisitionParameters acq = AcquisitionParameters(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, t_rep, counts_per_photon);
-
-   shared_ptr<FLIMData> d ( new FLIMData(acq, n_im, n_x, n_y,  use_im,  
-                                         mask, threshold, limit, global_mode, smoothing_factor, use_autosampling, n_thread, status) );
-   
-   c->SetData(d);
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   END_SPAN;
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   return SUCCESS;
-
-}
 
 
 FITDLL_API int SetBackgroundImage(int c_idx, float* background_image)
@@ -491,12 +498,14 @@ FITDLL_API int FLIMGlobalGetFit(int c_idx, int im, int n_t, double t[], int n_fi
 
 FITDLL_API int FLIMGlobalClearFit(int c_idx)
 {
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return NULL; 
-   
-   c->CleanupResults();
-
+   if (c_idx == -1)
+   {
+      controller.erase(controller.begin(), controller.end());
+   }
+   else
+   {
+      ClearController(c_idx);
+   }
    return SUCCESS;
 }
 
