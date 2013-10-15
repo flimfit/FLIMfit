@@ -5,7 +5,7 @@
 	<key>AcceptsFiles</key>
 	<true/>
 	<key>AcceptsText</key>
-	<false/>
+	<true/>
 	<key>Authentication</key>
 	<false/>
 	<key>Author</key>
@@ -31,7 +31,7 @@
 	<key>DocIcon</key>
 	<string></string>
 	<key>Droppable</key>
-	<false/>
+	<true/>
 	<key>ExecutablePath</key>
 	<string>/usr/local/share/platypus/ScriptExec</string>
 	<key>IconPath</key>
