@@ -43,13 +43,7 @@ export PATH;
 echo DYLD_LIBRARY_PATH is ${DYLD_LIBRARY_PATH};
 echo PATH is ${PATH};
 
-echo "first parameter is $1"
 
-echo "first parameter is $2"
-
-
-
-shift 1
   args=
   while [ $# -gt 0 ]; do
       token=$1
