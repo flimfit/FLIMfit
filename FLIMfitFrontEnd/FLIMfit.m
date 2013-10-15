@@ -1,4 +1,4 @@
-function FLIMfit(varargin)
+function FLIMfit()
 
 
 % Copyright (C) 2013 Imperial College London.
@@ -24,22 +24,14 @@ function FLIMfit(varargin)
 % and The Wellcome Trust through a grant entitled 
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-
 % Author : Sean Warren
 
-    noOfArguments = nargin
 
-    for a = 1:nargin 
-        arglist{a} = varargin{a}
-    end
 
-   
+addpath_global_analysis();
 
-    addpath_global_analysis();
 
-    disp('starting')
-    obj = flim_fit_ui(false)
-    disp('started')
+flim_fit_ui(false);
 
     
 end
