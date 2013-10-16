@@ -40,7 +40,8 @@ function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_fil
             'mimetype', file_mime_type, 'description', description,...
             'namespace', namespace);
         whos_object = whos_Object(session, object.getId().getValue());
-        linkAnnotation(fa, lower(whos_object), object.getId().getValue());
+        linkAnnotation(session, fa, lower(whos_object),...
+            object.getId().getValue());
         %
 %     catch ME
 %         disp(ME);
