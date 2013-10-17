@@ -50,7 +50,7 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     obj.root_path = ensure_trailing_slash(path);    
     
     % Determine which channels we need to load 
-    if (strcmp(ext,'.sdt') || strcmp(ext,'.txt')) && isempty(channel)
+    if (strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.csv')) && isempty(channel)
         if polarisation_resolved
             channel = obj.request_channels(polarisation_resolved);
         else
@@ -68,7 +68,7 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     [obj.t,data,obj.t_int] = load_flim_file(file,channel);
     
     if ~strcmp(ext,'.raw')
-        if strcmp(ext,'.sdt') || strcmp(ext,'.txt') ||  strcmp(ext,'.asc') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif')
+        if strcmp(ext,'.csv') || strcmp(ext,'.sdt') || strcmp(ext,'.txt') ||  strcmp(ext,'.asc') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif')
             obj.mode = 'TCSPC';
         else
             obj.mode = 'widefield';
