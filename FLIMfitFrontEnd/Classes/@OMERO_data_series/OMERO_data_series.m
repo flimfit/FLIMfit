@@ -63,7 +63,7 @@ classdef OMERO_data_series < flim_data_series
         image_ids;
         mdta;
        
-        ZCT; % cell array containing missing OME dimensions Z,C,T (in that order)  
+        ZCT = []; % cell array containing missing OME dimensions Z,C,T (in that order)  
         verbose;        % flag to switch waitbar in OMERO_fetch on or off
         
         omero_data_manager;
