@@ -22,7 +22,13 @@ classdef ic_importer_impl < handle
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-                 
+        
+    %{
+    issues: 
+        1) warning, see http://slf4j.org/codes.html
+        2) close_request_fcn : cleaning issue
+    %}
+    
     properties
         
         window;
@@ -113,27 +119,23 @@ classdef ic_importer_impl < handle
     
     methods
 %-------------------------------------------------------------------------%      
-        function obj = ic_importer_impl(wait)
-                        
-            if nargin < 1
-                wait = false;
-            end
+        function obj = ic_importer_impl()
+                                    
+            wait = false;
             
-            if ~isdeployed
-                addpath_global_analysis()
-            else
+            if isdeployed
                 wait = true;
             end
-                                              
+
             profile = profile_controller();
             profile.load_profile();
             
-%            obj.Extension = '???';
+%           obj.Extension = '???';
             obj.bckg_color = [.8 .8 .8]; 
             obj.DefaultDataDirectory = 'C:\';
             
             obj.window = figure( ...
-                'Name', 'ic_importer', ...
+                'Name', 'Imperial College Omero importer', ...
                 'NumberTitle', 'off', ...
                 'MenuBar', 'none', ...
                 'Position', [0 0 970 120], ...                
@@ -156,16 +158,7 @@ classdef ic_importer_impl < handle
                         
             guidata(obj.window,handles);
             obj.gui = guidata(obj.window);
-            
-            close all;
-            
-            set(obj.window,'Visible','on');
-            set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                         
-            if wait
-                waitfor(obj.window);
-            end
-            
             if exist([pwd filesep 'ic_importer_settings.xml'],'file') 
                 [ settings, ~ ] = xml_read ('ic_importer_settings.xml');    
                 %
@@ -206,6 +199,14 @@ classdef ic_importer_impl < handle
             obj.enable_Attr_ZCT_management;            
             %
             obj.load_omero;                                                
+            %
+            close all;            
+            set(obj.window,'Visible','on');
+            set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);                        
+            if wait
+                waitfor(obj.window);
+            end
+            %
         end
 %-------------------------------------------------------------------------%
         function handles = setup_menu(obj,handles)
@@ -444,11 +445,15 @@ classdef ic_importer_impl < handle
                 
                 switch obj.LoadMode,
                     case 'single-Image'
+                        hw = waitbar(0, 'transerring data, please wait...');                                        
                         try obj.upload_file_as_Omero_Image(obj.Dst,obj.Src), catch err, errordlg(err.message), end;                                    
+                        delete(hw); drawnow;
                     case 'multiple-Image'
                         try obj.create_new_Dataset_and_load_FOVs_into_it(@obj.upload_file_as_Omero_Image), catch err, errordlg(err.message), end;                                                            
                     case 'single-Image single-point'
+                        hw = waitbar(0, 'transerring data, please wait...');                                                                
                         try obj.upload_Image_single_Pix(obj.Dst,obj.Src), catch err, errordlg(err.message), end;
+                        delete(hw); drawnow;                        
                     case 'multiple-Image single-point'
                         try obj.create_new_Dataset_and_load_FOVs_into_it(@obj.upload_Image_single_Pix), catch err, errordlg(err.message), end;                    
                     case 'single-Image from directory'
@@ -460,7 +465,7 @@ classdef ic_importer_impl < handle
                     case 'multiple-Image from directory SPW (multi-channel)'
                         try obj.upload_Plate, catch err, errordlg(err.message), end;                                                                                        
                 end;
-                
+                                
             end
                 
             obj.EnableEverythingExceptCancel('on');  
