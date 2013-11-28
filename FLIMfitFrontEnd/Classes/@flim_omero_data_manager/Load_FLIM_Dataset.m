@@ -80,7 +80,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 end
                 %
                 modalities = unique(modalities,'legacy');
-                if ~isempty(modalities)
+                if ~isempty(modalities)                                       
                     % first, run the chooser
                     [s,v] = listdlg('PromptString','Please choose modality',...
                                                 'SelectionMode','single',...
@@ -88,6 +88,9 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                                 'ListString',modalities);
                     if ~v, return, end;                    
                     chosenmodality = modalities{s};                    
+                    %
+                    data_series.FLIM_modality = chosenmodality;
+                    %
                     % then, redefine variables "str" and "imageids_unsorted"                                        
                     imageids_unsorted2 = [];
                     str2 = [];

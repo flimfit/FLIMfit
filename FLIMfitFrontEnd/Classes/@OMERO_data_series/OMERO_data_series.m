@@ -71,6 +71,8 @@ classdef OMERO_data_series < flim_data_series
         
         fit_result;
         
+        FLIM_modality;
+        
     end
     
     events
@@ -86,19 +88,20 @@ classdef OMERO_data_series < flim_data_series
      function obj = OMERO_data_series(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
-            verbose = true;
+            obj.verbose = true;
             
-            polarisation_resolved = false;  % defaults
-            load_multiple_channels = false;
+            obj.polarisation_resolved = false;  % defaults
+            obj.load_multiple_channels = false;
             
             obj.fitted_data = [];
             obj.fit_result = [];
-            
+            obj.FLIM_modality = [];             
         end
                                         
         function delete(obj)
             obj.fitted_data = [];
             obj.fit_result = []; 
+            obj.FLIM_modality = [];            
             obj.clear_memory_mapping();
         end   
         
