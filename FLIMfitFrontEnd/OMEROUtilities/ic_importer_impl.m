@@ -22,13 +22,7 @@ classdef ic_importer_impl < handle
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-        
-    %{
-    issues: 
-        1) warning, see http://slf4j.org/codes.html
-        2) close_request_fcn : cleaning issue
-    %}
-    
+            
     properties
         
         window;
@@ -114,19 +108,19 @@ classdef ic_importer_impl < handle
         SrcList = [];
         
         FOV_names_list; % source - full files or directoreis names ??
-               
+                       
     end
     
     methods
 %-------------------------------------------------------------------------%      
         function obj = ic_importer_impl()
-                                    
+                                               
             wait = false;
             
             if isdeployed
                 wait = true;
             end
-
+    
             profile = profile_controller();
             profile.load_profile();
             
@@ -251,12 +245,14 @@ classdef ic_importer_impl < handle
             %            
             delete(handles.window);   
             %
-% looks like the correct cleaning... but causes warnings            
-%             clear('handles');
-%             clear('i');
-%             clear('names');
-%             clear('obj');
-%             unloadOmero;
+            % still not sure.. but something like this
+            obj.client = [];
+            obj.session = [];
+            clear('handles');
+            clear('i');
+            clear('names');                                        
+            clear('obj');
+            unloadOmero;
         end        
 %-------------------------------------------------------------------------%
         function handles = setup_layout(obj, handles)
