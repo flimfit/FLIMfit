@@ -115,12 +115,7 @@
             
              hostname = getenv('COMPUTERNAME');
             
-            % I want it on my second monitor!
-            if strcmp(hostname,'PH-SCW09') && size(coords,1)==2
-                monitor = 2;
-            else
-                monitor = 1;
-            end                         
+            monitor = 1;                       
             coords = coords(monitor,:);
             
             % Allow for taskbar if we're on windows
