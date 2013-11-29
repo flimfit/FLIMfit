@@ -36,11 +36,13 @@
 #include <boost/test/unit_test.hpp>
 
 #include "FLIMSimulation.h"
+#include "QR_test.h"
 
 #include <iostream>
 #include <string>
 #include <cmath>
 #include "FLIMGlobalAnalysis.h"
+#include <stdio.h>
 
 using namespace boost::unit_test;
 
@@ -85,6 +87,49 @@ bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_n
    
    return false;
 }
+
+/*
+BOOST_AUTO_TEST_CASE( COMPARE_QR )
+{
+   int n, m, rep;
+   
+   double times[5];
+
+   n = 4;
+   m = 128;
+
+   int m_step = 2;
+   int steps  = 15; 
+
+   int m_max  = 16*1048576; 
+
+   FILE* f=fopen("c:\\users\\scw09\\documents\\FLIMFit Testing\\QR Factorisation\\qr_test.csv","w");
+
+   fprintf(f,"rep, n, m, Householder, Givens, Combined\n");
+
+   for(int s=0; s<steps; s++)
+   {
+
+      rep = ceil(((double)m_max)/m);
+      rep = min(rep,50000);
+
+      QR_test(n,m,rep,times);
+      printf("\n%d %d %d\n",n,m,rep);
+      printf("%3.3f\t%3.3f\t%3.3f\n",times[0],times[1],times[2]);
+
+      fprintf(f,"%d, %d, %d, %f, %f, %f, %f, %f\n",rep,n,m,times[0],times[1],times[2],times[3],times[4]);
+
+      m*=m_step;
+
+   }
+
+   fclose(f);
+}
+*/
+
+
+
+
 
 BOOST_AUTO_TEST_CASE( TCSPC_Single )
 {
