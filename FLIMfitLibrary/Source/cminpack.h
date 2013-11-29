@@ -204,6 +204,11 @@ int CMINPACK_EXPORT lmstr1 ( minpack_funcderstr_mn fcn, void *p, int m, int n,
 	       double *x, double *fvec, double *fjac, int ldfjac,
 	       double tol, int *ipvt, double *wa, int lwa );
 
+
+int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_group, double *x, 
+	double *fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread);
+
+
 /* minimize the sum of the squares of nonlinear functions in N
    variables by a modification of the Levenberg-Marquardt algorithm
    (user-supplied Jacobian, minimal storage, more general) */
