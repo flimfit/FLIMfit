@@ -976,6 +976,9 @@ void FLIMGlobalFitController::Init()
    else
       lmax = l+1; // for I, which we will compute afterwards
 
+   if (polarisation_resolved && n_theta == 2)
+      lmax += 2; // for cluster size, f_cluster
+
    exp_buf_size = n_exp * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
 
    int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
@@ -1258,6 +1261,12 @@ void FLIMGlobalFitController::SetOutputParamNames()
 
    param_names.push_back("I0");
    
+   if (polarisation_resolved && n_theta == 2)
+   {
+      param_names.push_back("N_cluster");
+      param_names.push_back("f_cluster");
+   }
+
    // Parameters we manually calculate at the end
    
    param_names.push_back("I");

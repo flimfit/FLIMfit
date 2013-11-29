@@ -306,6 +306,13 @@ void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_pa
 
          norm_local[0]     = r0;
          norm_local[n_r+1] = I0;
+        
+         if (n_theta == 2)
+         {
+            norm_local[n_r+2] = 1.0 + norm_local[2] / (norm_local[1]-0.016); // N_cluster
+            norm_local[n_r+3] = 2.0 * norm_local[2] / (norm_local[0]-0.016); // f_cluster
+         }  
+
 
       }
    }
@@ -362,7 +369,6 @@ void FLIMGlobalFitController::DenormaliseLinearParams(int s, volatile float norm
          
          for(int j=1; j<n_r+1; j++)
             lin_params[j] = norm_params[j] * I0;
-
          
          norm_params += lmax;
          lin_params += lmax;
