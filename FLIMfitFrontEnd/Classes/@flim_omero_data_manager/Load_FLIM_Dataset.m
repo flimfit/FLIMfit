@@ -32,7 +32,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             if ~isempty(obj.plate) 
             %
                 list_load_acceptor = [];
-                %
+                %            
                 z = 0;       
                 imageids_unsorted = [];
                 str = char(256,256);
@@ -82,7 +82,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 modalities = unique(modalities,'legacy');
                 if ~isempty(modalities)                                       
                     % first, run the chooser
-                    [s,v] = listdlg('PromptString','Please choose modality',...
+                    [s,v] = listdlg('PromptString','Please choose FLIM modality',...
                                                 'SelectionMode','single',...
                                                 'ListSize',[300 80],...                                
                                                 'ListString',modalities);
@@ -181,7 +181,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                     end;
 
                 end
-
+                
                 if possible_acceptor_images 
 
                     str = { prefixes{1}...
