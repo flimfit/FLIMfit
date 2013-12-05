@@ -86,7 +86,7 @@ classdef ic_importer_impl < handle
         
         %                     
         Modulo_popupmenu_str = {'ModuloAlongZ','ModuloAlongC','ModuloAlongT','none'};
-        Variable_popupmenu_str = {'lifetime', 'Angle', 'Yvar', 'Xvar', 'Wavelength','none'};
+        Variable_popupmenu_str = {'lifetime', 'angle', 'Yvar', 'Xvar', 'wavelength','none'};
         Units_popupmenu_str = {'ps','ns','degree','radian','nm','pixel','none'};
         FLIM_mode_popupmenu_str = {'TCSPC', 'TCSPC non-imaging', 'Time Gated', 'Time Gated non-imaging','none'};        
         Extension_popupmenu_str = {'tif','OME.tiff','sdt','txt','jpg','png','bmp','gif'};         
@@ -390,7 +390,7 @@ classdef ic_importer_impl < handle
                    extensions = srclist(:,6);
                end
                 
-               hw = waitbar(0, 'transerring data, please wait...');
+               hw = waitbar(0, 'transferring data, please wait...');
                for d = 1:numdir                    
                     obj.Src = char(dirs{d});                     
                     % other settings
@@ -1266,12 +1266,38 @@ classdef ic_importer_impl < handle
                 type_description = 'Spectrum';
             end
             %
-            [delays,im_data,~] = load_flim_file(lower(full_filename),1);
+            try
+                D = load(lower(full_filename),'ascii');
+            catch err, display(err.message), return, 
+            end;
+            %
+            [~,n_ch1] = size(D);
+            chnls = (2:n_ch1)-1;    
+            [delays,im_data,~] = load_flim_file(lower(full_filename),chnls);
+            %
             pixeltype = get_num_type(im_data);
             %
             str = split(filesep,full_filename);
             fname = char(str(numel(str)));
-            imgId = mat2omeroImage(obj.session, im_data, pixeltype, fname,'',[],char(obj.Modulo));   
+            if chnls == 1
+                imgId = mat2omeroImage(obj.session, im_data, pixeltype, fname,'',[],char(obj.Modulo));
+            else
+                %
+                [sizeT,sizeC] = size(im_data);
+                %
+                sizeX = 1;
+                sizeY = 1;
+                sizeZ = 1;
+                %
+                nativedata = zeros(sizeX,sizeY,sizeZ,sizeC,sizeT);
+                %
+                for c = 1 : sizeC,
+                    nativedata(1,1,1,c,:) = im_data(:,c);
+                end
+                %
+                imgId = mat2omeroImage_native(obj.session, nativedata, pixeltype, fname,'',[]);                                
+                %
+            end
             %
             link = omero.model.DatasetImageLinkI;
             link.setChild(omero.model.ImageI(imgId, false));
