@@ -914,7 +914,7 @@ void FLIMGlobalFitController::Init()
    }
 
    // Check whether t0 has been specified
-   if (fit_t0)
+   if (fit_t0 == FIT)
    {
       nl++;
       p += l;
@@ -1106,16 +1106,8 @@ void FLIMGlobalFitController::Init()
 
    // Select correct convolution function for data type
    //-------------------------------------------------
-   if (false && data->data_type == DATA_TYPE_TCSPC)
-   {
-      Convolve = conv_irf_tcspc;
-      ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
-   }
-   else
-   {
-      Convolve = conv_irf_timegate;
-      ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_timegate : conv_irf_deriv_timegate;
-   }
+   Convolve = conv_irf;
+   ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref : conv_irf_deriv;
 
    // Setup adjust buffer which will be subtracted from the data
    SetupAdjust(0, adjust_buf, (fit_scatter == FIX) ? (float) scatter_guess : 0, 
@@ -1141,7 +1133,10 @@ void FLIMGlobalFitController::Init()
    alf_theta_idx = idx; 
    idx += n_theta_v;
 
-   if (fit_t0)
+   if (ref_reconvolution == FIT_GLOBALLY)
+     alf_ref_idx = idx++;
+
+   if (fit_t0 == FIT)
       alf_t0_idx = idx++;
 
    if (fit_offset == FIT_GLOBALLY)
@@ -1153,8 +1148,6 @@ void FLIMGlobalFitController::Init()
   if (fit_tvb == FIT_GLOBALLY)
       alf_tvb_idx = idx++;
 
-  if (ref_reconvolution == FIT_GLOBALLY)
-     alf_ref_idx = idx++;
 
    SetOutputParamNames();
 
@@ -1209,6 +1202,10 @@ void FLIMGlobalFitController::SetOutputParamNames()
 
    if (ref_reconvolution == FIT_GLOBALLY)
       param_names.push_back("tau_ref");
+
+   if (fit_t0 == FIT)
+      param_names.push_back("t0");
+
 
    n_nl_output_params = (int) param_names.size();
 
@@ -1349,7 +1346,7 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
 
-   add_irf(thread, 0, adjust, n_r, scale_fact);
+   add_irf(thread, 0, 0, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + offset_adj;
