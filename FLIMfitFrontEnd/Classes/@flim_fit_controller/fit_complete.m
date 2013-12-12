@@ -44,10 +44,14 @@ function fit_complete(obj,~,~)
     
     obj.update_progress([],[]);
     
+    [~, ~, ~, ~, chi2] = obj.dll_interface.get_progress();
+    
     t_exec = toc(obj.start_time);    
     disp(['Total execution time: ' num2str(t_exec)]);
+    disp(['Overall Chi2: ' num2str(chi2,6)]);
     
     obj.selected = 1:obj.fit_result.n_results;
+    
     
     obj.update_filter_table();
     obj.update_list();
