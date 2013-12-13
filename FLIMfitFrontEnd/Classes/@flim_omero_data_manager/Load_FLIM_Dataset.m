@@ -1,7 +1,6 @@
 function Load_FLIM_Dataset(obj,data_series,~)                        
     % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
-        
-        
+                
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
     %
@@ -24,9 +23,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-            
-              
+                          
             if isempty(obj.plate) && isempty(obj.dataset)
                 errordlg('Please set Dataset or Plate before trying to load images'); 
                 return;                 
@@ -35,7 +32,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             if ~isempty(obj.plate) 
             %
                 list_load_acceptor = [];
-                %
+                %            
                 z = 0;       
                 imageids_unsorted = [];
                 str = char(256,256);
@@ -65,10 +62,52 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                     str(z,1:length(image_name)) = image_name;
                                     imageids_unsorted(z) = iid;
                                 end
-                            end                  
+                            end      
+                folder_names_unsorted = cellstr(str);                                            
                 %
-                folder_names_unsorted = cellstr(str);
+                % THIS BLOCK SELECTS NEEDED FLIM MODALITY - STARTS
+                z = 0;
+                modalities  = [];
+                allfovnames = cellstr(str);
+                for k=1:numel(allfovnames) % define modalities
+                    curname = char(allfovnames{k});
+                    startind = strfind(curname,'MODALITY = ') + length('MODALITY = ');
+                    if ~isempty(startind)
+                        z = z + 1;
+                        s1 = split(' ',curname(startind:length(curname)));
+                        modalities{z} = char(s1{1});
+                    end
+                end
                 %
+                modalities = unique(modalities,'legacy');
+                if ~isempty(modalities)                                       
+                    % first, run the chooser
+                    [s,v] = listdlg('PromptString','Please choose FLIM modality',...
+                                                'SelectionMode','single',...
+                                                'ListSize',[300 80],...                                
+                                                'ListString',modalities);
+                    if ~v, return, end;                    
+                    chosenmodality = modalities{s};                    
+                    %
+                    data_series.FLIM_modality = chosenmodality;
+                    %
+                    % then, redefine variables "str" and "imageids_unsorted"                                        
+                    imageids_unsorted2 = [];
+                    str2 = [];
+                    z = 0;
+                    for k=1:numel(imageids_unsorted)
+                        if ~isempty(strfind(char(allfovnames{k}),chosenmodality))
+                            z = z + 1;
+                            imageids_unsorted2(z) = imageids_unsorted(k);
+                            str2{z} = allfovnames{k};
+                        end
+                    end
+                    %
+                    imageids_unsorted = imageids_unsorted2;
+                    folder_names_unsorted = str2;
+                end                
+                % THIS BLOCK SELECTS NEEDED FLIM MODALITY - ENDS
+                                                                                
                 folder_names = sort_nat(folder_names_unsorted); % sorted
                 [folder_names, ~, data_series.lazy_loading] = dataset_selection(folder_names);   
                 %
@@ -142,7 +181,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                     end;
 
                 end
-
+                
                 if possible_acceptor_images 
 
                     str = { prefixes{1}...
@@ -150,7 +189,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                             ['no Acceptor: load as FLIM "' prefixes{1} '" only']...
                             ['no Acceptor: load as FLIM "' prefixes{2} '" only']...
                             'load all as FLIM'};
-                                [s,v] = listdlg('PromptString','Please choose posibble Acceptor images',...
+                                [s,v] = listdlg('PromptString','Please choose posible Acceptor images',...
                                                 'SelectionMode','single',...
                                                 'ListSize',[300 80],...                                
                                                 'ListString',str);
@@ -314,6 +353,5 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                 
                 data_series.init_dataset();            
                 
-            end % if length(delays) > 0
-            
+            end % if length(delays) > 0            
 end            

@@ -31,14 +31,102 @@ function Load_Acceptor_Images(obj,data_series,~)
     %}
 
     if isempty(obj.dataset) 
+        
             if ~isempty(obj.plate)
-                errormsg = 'This option is currently only supported for Datasets';
-            else
-                errormsg = 'Working Dataset was not set - can not continue';
-            end
-        errordlg(errormsg);
-        return;        
-    end 
+                %
+                if isempty(data_series.n_datasets), errordlg('no images loaded, can not continue'), return, end;                 
+                %
+                choice = questdlg('Do you want to load Acceptor Images from current or another Plate', ' ', ...
+                        'Current Plate', ...
+                        'Another Plate','Cancel','Cancel');
+                %
+                acceptor_Plate = [];                    
+                        switch choice
+                            case 'Current Plate'
+                                acceptor_Plate = obj.plate;
+                            case 'Another Plate'
+                                acceptor_Plate = select_Plate(obj.session,obj.userid,'Select Acceptor Plate:'); 
+                        end 
+                %
+                wellList = obj.session.getQueryService().findAllByQuery(['select well from Well as well '...
+                            'left outer join fetch well.plate as pt '...
+                            'left outer join fetch well.wellSamples as ws '...
+                            'left outer join fetch ws.plateAcquisition as pa '...
+                            'left outer join fetch ws.image as img '...
+                            'left outer join fetch img.pixels as pix '...
+                            'left outer join fetch pix.pixelsType as pt '...
+                            'where well.plate.id = ', num2str(acceptor_Plate.getId().getValue())],[]);
+                %        
+                acceptor_ids = [];
+                %
+                allfovnames = []; 
+                %
+                z = 0;
+                plate_image_ids = [];                
+                            for j = 0:wellList.size()-1,
+                                well = wellList.get(j);
+                                wellsSampleList = well.copyWellSamples();
+                                well.getId().getValue();
+                                for i = 0:wellsSampleList.size()-1,
+                                    ws = wellsSampleList.get(i);
+                                    z = z + 1;
+                                    plate_image_ids(z) = ws.getImage().getId().getValue();
+                                    allfovnames{z} = char(java.lang.String(ws.getImage().getName().getValue()));
+                                end
+                            end                    
+                %
+                % THIS BLOCK SELECTS NEEDED ACCEPTOR MODALITY - STARTS
+                z = 0;
+                modalities  = [];
+                for k=1:numel(allfovnames) % define modalities
+                    curname = char(allfovnames{k});
+                    startind = strfind(curname,'MODALITY = ') + length('MODALITY = ');
+                    if ~isempty(startind)
+                        z = z + 1;
+                        s1 = split(' ',curname(startind:length(curname)));
+                        modalities{z} = char(s1{1});
+                    end
+                end
+                %
+                modalities = unique(modalities,'legacy');
+                if ~isempty(modalities)                                                           
+                    [s,v] = listdlg('PromptString','Please choose Acceptor modality',...
+                                                'SelectionMode','single',...
+                                                'ListSize',[300 80],...                                
+                                                'ListString',modalities);
+                    if ~v, return, end;                    
+                    acceptormodality = modalities{s};                                        
+                end  
+                %
+                z = 0;
+                for k = 1:data_series.n_datasets  
+                     flim_name_k = data_series.names{k};
+                        for m=1:numel(allfovnames)
+                            plate_image_name_m = allfovnames{m};
+                            ind_k = strfind(flim_name_k,data_series.FLIM_modality) + length(data_series.FLIM_modality);
+                            ind_m = strfind(plate_image_name_m,acceptormodality) + length(acceptormodality);
+                            if ~isempty(ind_m) && strcmp(flim_name_k(ind_k:length(flim_name_k)),plate_image_name_m(ind_m:length(plate_image_name_m)))
+                                z = z + 1;
+                                acceptor_ids(z) = plate_image_ids(m); 
+                            end
+                        end
+                end
+                %
+                if data_series.n_datasets == numel(acceptor_ids)
+                    if data_series.load_acceptor_images(acceptor_ids);
+                        msg = 'Acceptor Images were successfully loaded';
+                    else
+                        msg = 'Acceptor Images were not loaded';
+                    end
+                    msgbox(msg);
+                    return;
+                end                
+                %                                 
+            else errordlg('Working Data was not set - can not continue'), 
+                return, 
+            end;
+            
+    else % work with dataset
     
     if isempty(data_series.n_datasets), errordlg('no images loaded, can not continue'), return, end; 
     
@@ -68,7 +156,7 @@ function Load_Acceptor_Images(obj,data_series,~)
     %
     acceptor_ids = [];
     %
-    % if FLIM and Acceptor Images have the same names - we are do ne!    
+    % if FLIM and Acceptor Images have the same names - we are done!    
     for k = 1:data_series.n_datasets
         flim_name_k = data_series.names{k};
             for m = 0:imageList.size()-1,                       
@@ -149,6 +237,8 @@ function Load_Acceptor_Images(obj,data_series,~)
     end
     msgbox(msg);        
                   
+    end
+
 end
 
 
