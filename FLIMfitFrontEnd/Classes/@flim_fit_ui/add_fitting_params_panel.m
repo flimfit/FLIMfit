@@ -54,6 +54,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('main','n_fix','popupmenu','No. Fixed', {'0', '1', '2', '3', '4', '5'});
     add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally' 'Fitted Globally (Grouped)'});
     add_fitting_param_control('main','fit_reference','popupmenu','Fit Reference', {'Fixed','Fitted'});
+    add_fitting_param_control('main','fit_t0','popupmenu','Fit IRF Shift', {'Fixed','Fitted'});
     
     set(fit_params_main_layout,'Sizes',[120 120 300])
     set(fit_params_main_extra_layout,'Sizes',[22, -1])
