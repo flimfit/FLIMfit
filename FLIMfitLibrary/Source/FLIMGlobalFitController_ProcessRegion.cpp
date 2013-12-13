@@ -154,8 +154,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    for(j=0; j<n_theta_v; j++)
       alf_local[i++] = TransformRange(theta_guess[j+n_theta_fix],0,1000000);
 
-   if(fit_t0)
-      alf_local[i++] = t0_guess;
+   if(fit_t0 == FIT)
+      alf_local[i++] = 0; //t0_guess;
 
    if(fit_offset == FIT_GLOBALLY)
       alf_local[i++] = offset_guess;

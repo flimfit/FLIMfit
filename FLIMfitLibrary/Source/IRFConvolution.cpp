@@ -101,6 +101,12 @@ void conv_irf(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], do
 {
    int j = k*gc->n_t+i;
    int idx = gc->irf_max[j] + bin_shift;
+
+   if (idx < 0)
+      idx = 0;
+   if (idx >= gc->n_irf)
+      idx = gc->n_irf - 1;
+
    c = exp_irf_cum_buf[idx] - 0.5*exp_irf_buf[idx];
 
    if (gc->pulsetrain_correction && pulse_fact > 0)

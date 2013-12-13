@@ -803,13 +803,13 @@ void FLIMGlobalFitController::Init()
    
    if (image_irf) 
       n_irf_rep =  data->n_px;
-   else if (t0_image)
-      n_irf_rep = 1 + n_thread;
-   else 
+   else
       n_irf_rep = 1;
 
+   int n_irf_buf = 1 + n_thread;
+   
    int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
-   int irf_size = a_n_irf * n_chan * n_irf_rep;
+   int irf_size = a_n_irf * n_chan * n_irf_buf;
    #ifdef _WINDOWS
       irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
       t_irf_buf = (double*) _aligned_malloc(a_n_irf*sizeof(double), 16);

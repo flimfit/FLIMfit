@@ -42,9 +42,9 @@ int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf, in
    double *cur_alf = this->cur_alf + thread * nl;
    int cur_irf_idx = this->cur_irf_idx[thread];
 
-   if (nl == 0)
+   if (nl == 0 || fit_t0 == FIT)
       return true;
-
+   
    if ((image_irf || t0_image != NULL) && irf_idx != cur_irf_idx)
    {
       cur_irf_idx = irf_idx;
@@ -254,6 +254,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
             }
          }
 
+         row--;
       }
 
 
@@ -296,7 +297,7 @@ void FLIMGlobalFitController::add_decay(int threadi, int tau_idx, int theta_idx,
       for(int i=0; i<n_t; i++)
       {
          
-         Convolve(this, rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, 0, c);
+         Convolve(this, rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, bin_shift, c);
          a[idx] += exp_model_buf[k*n_t+i] * c * fact;
          idx += resample_idx[i];
       }
@@ -339,7 +340,7 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
 }
 
 
-int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, double t0_shift, bool include_fixed, int bin_shift, double a[])
+int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, double t0_shift, bool include_fixed, int bin_shift, double a[], int adim)
 {
    int n_meas_res = data->GetResampleNumMeas(thread);
 
@@ -347,7 +348,7 @@ int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], d
    int n_col = n_fret_group * n_pol_group * n_exp_phi;
 
    if (bin_shift != 1) // otherwise we're doing numerical derivatives for t0 and want to add
-      memset(a, 0, n_meas_res*n_col*sizeof(double));
+      memset(a, 0, adim*n_col*sizeof(double));
 
 
    int idx = 0;
@@ -360,7 +361,7 @@ int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], d
          {
             if (beta_global && decay_group_buf[j] > cur_decay_group)
             {
-               idx += n_meas_res;
+               idx += adim;
                cur_decay_group++;
 
                if (ref_reconvolution)
@@ -377,11 +378,11 @@ int FLIMGlobalFitController::flim_model(int thread, int irf_idx, double tau[], d
             add_decay(thread, j, p, g, tau, theta, fact, ref_lifetime, a+idx, bin_shift);
 
             if (!beta_global)
-               idx += n_meas_res;
+               idx += adim;
          }
 
          if (beta_global)
-            idx += n_meas_res;
+            idx += adim;
       }
    }
 
@@ -436,13 +437,16 @@ int FLIMGlobalFitController::t0_derivatives(int thread, int irf_idx, double tau[
    int n_col = n_fret_group * n_pol_group * n_exp_phi;
 
    
-   flim_model(thread, irf_idx, tau, beta, theta, ref_lifetime, t0_shift, true, -1, b);
+   flim_model(thread, irf_idx, tau, beta, theta, ref_lifetime, t0_shift, false, -1, b, ndim);
 
    for(int i=0; i<n_meas_res*n_col; i++)
       b[i] *= -1;
    
-   flim_model(thread, irf_idx, tau, beta, theta, ref_lifetime, t0_shift, true, 1, b);
+   flim_model(thread, irf_idx, tau, beta, theta, ref_lifetime, t0_shift, false, 1, b, ndim);
 
+   double idt = 0.5/(t_irf[1]-t_irf[0]);
+   for(int i=0; i<n_meas_res*n_col; i++)
+      b[i] *= idt;
 
    return n_col;
 }
@@ -635,14 +639,17 @@ void FLIMGlobalFitController::ShiftIRF(double shift, double s_irf[])
    int c_shift = (int) floor(shift); 
    double f_shift = shift-c_shift;
 
-   int start = max(0,-c_shift)+1;
-   int end   = min(n_irf-1,n_irf-c_shift)-1;
+   int start = max(0,1-c_shift);
+   int end   = min(n_irf,n_irf-c_shift-3);
 
    for(i=0; i<start; i++)
       s_irf[i] = irf_buf[0];
 
-   for(i=start; i<n_irf; i++)
+
+   for(i=start; i<end; i++)
+   {
       s_irf[i] = CubicInterpolate(irf_buf+i+c_shift-1,f_shift);
+   }
 
    for(i=end; i<n_irf; i++)
       s_irf[i] = irf_buf[n_irf-1];

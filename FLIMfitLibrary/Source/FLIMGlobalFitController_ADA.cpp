@@ -107,6 +107,7 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
       inc_row++;
    }
 
+
    if (ref_reconvolution == FIT_GLOBALLY)
    {
       // Set elements of inc for ref lifetime derivatives
@@ -151,6 +152,7 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
    }
 
 
+
 }
 
 
@@ -177,7 +179,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    double *beta_buf  = this->beta_buf + thread * n_exp;
    double *theta_buf = this->theta_buf + thread * n_theta;
    
-   if ( fit_t0 )
+   if ( fit_t0 == FIT)
       t0_shift = alf[alf_t0_idx];
    else
       t0_shift = t0_guess;
@@ -320,7 +322,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          if (check_alf_mod(thread, alf, irf_idx))
             calculate_exponentials(thread, irf_idx, tau_buf, theta_buf, t0_shift);
 
-         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, t0_shift, isel == 1, 0, a+a_col*N);
+         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, t0_shift, isel == 1, 0, a+a_col*N, N);
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
