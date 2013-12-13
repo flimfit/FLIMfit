@@ -127,7 +127,7 @@ try
     if length(new_strings) > 1
         use_filenames = false;
         for i=1:length(new_strings)
-            new_strings{i} = strrep(new_strings{i},common_substring,'');
+            %new_strings{i} = strrep(new_strings{i},common_substring,'');
             if ~strcmp(new_strings{i},'')
                 use_filenames = true;
             end
