@@ -79,6 +79,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'tvb','edit');
             obj.bind_control(handles,'pulsetrain_correction','popupmenu');
             obj.bind_control(handles,'fit_reference','popupmenu');
+            obj.bind_control(handles,'fit_t0','popupmenu');
             obj.bind_control(handles,'n_thread','edit');
             obj.bind_control(handles,'fitting_algorithm','popupmenu');
             obj.bind_control(handles,'n_fret','popupmenu');

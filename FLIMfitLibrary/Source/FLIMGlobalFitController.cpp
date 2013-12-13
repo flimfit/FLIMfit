@@ -821,7 +821,7 @@ void FLIMGlobalFitController::Init()
 
    double dt = t_irf[1]-t_irf[0];
 
-   for(int j=0; j<n_irf_rep; j++)
+    for(int j=0; j<n_irf_rep; j++)
    {
       int i;
       for(i=0; i<n_irf; i++)
@@ -901,7 +901,7 @@ void FLIMGlobalFitController::Init()
 
    y_dim = max(s,data->n_px);
 
-    max_dim = max(n_irf,n_t);
+   max_dim = max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
@@ -964,7 +964,7 @@ void FLIMGlobalFitController::Init()
    else
       n = n_meas;
 
-    ndim       = max( n, 2*nl+3 );
+   ndim       = max( n, 2*nl+3 );
    nmax       = n + 16; // pad to prevent false sharing   
 
    calculate_mean_lifetimes = !beta_global && n_exp > 1;
@@ -1020,8 +1020,8 @@ void FLIMGlobalFitController::Init()
       lin_local    = new float[ n_fitters * lmax ]; //ok
       w            = new float[ n_fitters * n_meas ]; //free ok
 
-      cur_alf      = new double[ n_fitters * nl ]; //ok
-      cur_irf_idx  = new int[ n_fitters ];
+      cur_alf      = new double[ n_thread * nl ]; //ok
+      cur_irf_idx  = new int[ n_thread ];
 
       #ifdef _WINDOWS
          exp_buf   = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
@@ -1089,12 +1089,14 @@ void FLIMGlobalFitController::Init()
    // Create fitting objects
    projectors.reserve(n_fitters);
 
+   int variable_phi = (image_irf || t0_image != NULL || data->image_t0_shift != NULL);
+
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, n, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, variable_phi, weighting, n_omp_thread, &(status->terminate)) );
    }
 
    for(int i=0; i<n_fitters; i++)

@@ -376,6 +376,13 @@ FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_
    return 0;
 }
 
+FITDLL_API int SetImageT0Shift(int c_idx, double* image_t0_shift)
+{
+   controller[c_idx]->data->SetImageT0Shift(image_t0_shift);
+   return 0;
+}
+
+
 
 FITDLL_API int StartFit(int c_idx)
 {

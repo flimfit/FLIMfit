@@ -63,6 +63,8 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    loader_thread = NULL;
 
 
+   image_t0_shift = NULL;
+
    // Make sure waiting threads are notified when we terminate
    status->AddConditionVariable(&data_avail_cond);
    status->AddConditionVariable(&data_used_cond);
@@ -416,6 +418,12 @@ void FLIMData::SetTVBackground(float* tvb_profile, float* tvb_I_map, float const
    this->background_type = BG_TV_IMAGE;
 }
 
+void FLIMData::SetImageT0Shift(double* image_t0_shift)
+{
+   this->image_t0_shift = image_t0_shift;
+}
+
+
 int FLIMData::GetRegionIndex(int im, int region)
 {
    // If fitting globally, set im=-1 to get index of region for all datasets
@@ -643,7 +651,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
             masked_data[s*n_meas+i] = tr_data[p*n_meas+i];
 
 
-         irf_idx[s] = p;
+         irf_idx[s] = iml*n_px+p;
          s++;
       }
    }

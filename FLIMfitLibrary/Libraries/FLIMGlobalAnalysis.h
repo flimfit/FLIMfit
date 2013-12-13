@@ -96,6 +96,8 @@ FITDLL_API int SetBackgroundImage(int c_idx, float* background_image);
 FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
 FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_map, float const_background);
 
+FITDLL_API int SetImageT0Shift(int c_idx, double* image_t0_shift);
+
 FITDLL_API int StartFit(int c_idx);
 
 FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params);

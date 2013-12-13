@@ -90,7 +90,7 @@ public:
    void SetBackground(float* background_image);
    void SetBackground(float background);
    void SetTVBackground(float* tvb_profile, float* tvb_I_map, float const_background);
-
+   void SetImageT0Shift(double* image_t0_shift);
    void ClearMapping();
    
    void ImageDataFinished(int im);
@@ -127,6 +127,8 @@ public:
 
    uint8_t* mask;
    int n_masked_px;
+
+   double* image_t0_shift;
 
 
    int global_mode;

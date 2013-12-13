@@ -85,7 +85,8 @@ function load_irf(obj,file,load_as_image)
     obj.t_irf_min = min(obj.t_irf);
     obj.t_irf_max = max(obj.t_irf);
     
-    if prof.Data.Automatically_Estimate_IRF_Background
+    if prof.Data.Automatically_Estimate_IRF_Background && ~strcmp(ext,'.xml')
+        % Don't estimate background when we load from xml - should be correct!
         obj.estimate_irf_background();
     end
     

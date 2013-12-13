@@ -50,7 +50,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int ierr_local = 0;
 
-   _ASSERT( _CrtCheckMemory( ) );
+   //_ASSERT( _CrtCheckMemory( ) );
 
    int r_idx = data->GetRegionIndex(g,region);
 
@@ -186,13 +186,20 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       y_fit = y;
    }
 
+   //_ASSERT( _CrtCheckMemory( ) );
+
+
    projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
                           photons_per_count, status->iter[thread], ierr_local, status->chi2[thread]);
-   
+
+   //_ASSERT( _CrtCheckMemory( ) );
+
    // If we're fitting globally using global binning now retrieve the linear parameters
    if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
       projectors[thread].GetLinearParams(s_thresh, y, alf_local);
-   
+ 
+  // _ASSERT( _CrtCheckMemory( ) );
+
    if (calculate_errors)
    {
 
@@ -207,6 +214,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    for(int i=0; i<nl; i++)
       alf[i] = (float) alf_local[i];
+
+   //_ASSERT( _CrtCheckMemory( ) );
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    START_SPAN("Processing Results");
@@ -237,7 +246,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
   
    status->FinishedRegion(thread);
 
-   _ASSERT( _CrtCheckMemory( ) );
+  // _ASSERT( _CrtCheckMemory( ) );
 
    return 0;
 }

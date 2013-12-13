@@ -73,14 +73,17 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
    
    double *lirf = irf_buf; 
    
-   if (image_irf)
-      lirf += irf_idx * n_irf * n_chan;
-   else if (t0_image)
-   {
-      lirf += (thread + 1) * n_irf * n_chan;
-      t0_shift += t0_image[irf_idx];
-   }
+   int irf_px = irf_idx % data->n_px;
+   int irf_im = irf_idx / data->n_px;
 
+   if (data->image_t0_shift)
+      t0_shift += data->image_t0_shift[irf_im];
+
+   if (image_irf)
+      lirf += irf_px * n_irf * n_chan;
+   else if (t0_image)
+      t0_shift += t0_image[irf_px];
+   
    if (t0_shift != 0)
    {
       lirf = irf_buf + (thread + 1) * n_irf * n_chan;

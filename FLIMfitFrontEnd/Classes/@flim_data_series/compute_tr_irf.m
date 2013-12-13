@@ -182,12 +182,12 @@ function compute_tr_irf(obj)
         % Shift by t0
         t0_shift = obj.t0-t0_correction;
         
-        %{
-        dt_irf = obj.tr_t_irf(2)-obj.tr_t_irf(1);
+        
+        dt_irf = obj.t_irf(2)-obj.t_irf(1);
         coarse_shift = round(t0_shift/dt_irf)*dt_irf;
-        obj.tr_t_irf = obj.tr_t_irf + coarse_shift;
-        %}        
-        coarse_shift = 0;
+        obj.tr_t_irf = obj.t_irf + coarse_shift;
+              
+        %coarse_shift = 0;
         
         remaining_shift = t0_shift-coarse_shift;
         

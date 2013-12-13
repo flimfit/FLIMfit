@@ -267,7 +267,7 @@ private:
    void add_derivative(int thread, int tau_idx, int theta_idx, int fret_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    
    template <typename T>
-   void add_irf(int thread, int irf_idx, int t0_shift, T a[],int pol_group, double* scale_fact = NULL);
+   void add_irf(int thread, int irf_idx, double t0_shift, T a[],int pol_group, double* scale_fact = NULL);
 
 
    conv_func Convolve;
@@ -335,19 +335,22 @@ private:
 
 
 template <typename T>
-void FLIMGlobalFitController::add_irf(int thread, int irf_idx, int t0_shift, T a[], int pol_group, double* scale_fact)
+void FLIMGlobalFitController::add_irf(int thread, int irf_idx, double t0_shift, T a[], int pol_group, double* scale_fact)
 {
    int* resample_idx = data->GetResampleIdx(thread);
 
    double* lirf = this->irf_buf;
 
+   int irf_px = irf_idx % data->n_px;
+   int irf_im = irf_idx / data->n_px;
+
+   if (data->image_t0_shift)
+      t0_shift += data->image_t0_shift[irf_im];
+
    if (image_irf)
-      lirf += irf_idx * n_irf * n_chan;
+      lirf += irf_px * n_irf * n_chan;
    else if (t0_image)
-   {
-      lirf += (thread + 1) * n_irf * n_chan;
-      t0_shift += t0_image[irf_idx];
-   }
+      t0_shift += t0_image[irf_px];
 
    if (t0_shift != 0)
    {

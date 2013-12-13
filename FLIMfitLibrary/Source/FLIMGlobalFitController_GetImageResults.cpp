@@ -230,7 +230,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
 
    ImageStats<float> stats(data->n_output_regions_total, n_output_params, params);
 
-   _ASSERTE( _CrtCheckMemory( ) );
+//   _ASSERTE( _CrtCheckMemory( ) );
 
     int buf_size = std::max(n_px, n_nl_output_params);
 
@@ -368,7 +368,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
       }
    }  
 
-   _ASSERTE( _CrtCheckMemory( ) );
+ //  _ASSERTE( _CrtCheckMemory( ) );
 
 
    n_regions = data->n_output_regions_total;
