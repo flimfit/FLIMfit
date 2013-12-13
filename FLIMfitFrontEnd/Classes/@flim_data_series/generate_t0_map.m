@@ -34,7 +34,7 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     decay = mean(decay,3);
     decay(decay<0) = 0;
 
-    n = 32; %downsampling;
+    n = downsampling;
     nt = 5;
     
     diff = zeros(obj.height/n,obj.width/n);
@@ -112,14 +112,14 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     %plot(obj.tr_t,decay);
     %title('Decay Shape');
     
-    subplot(1,3,1);
+    subplot(2,1,1);
     imagesc(diff);
     daspect([1,1,1]);
     colorbar
     set(gca,'YTick',[],'XTick',[])
     title('IRF Shift (ps)')
 
-    subplot(1,3,2);
+    subplot(2,1,2);
     imagesc(sim/max(sim(:)));
     daspect([1,1,1]);
     colorbar
@@ -128,7 +128,7 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     title('Degree of correlation (Normalised)');
 
     
-    figure()
+    %figure()
     
     %subplot(1,2,1);
    
@@ -145,14 +145,14 @@ function irf_data = generate_t0_map(obj, mask, dataset)
    
     subplot(1,2,2)
     %}
-    
+    %{
     shifted = [padding; shifted; padding];
     
     patchline(tx,shifted,'FaceColor','none','EdgeAlpha',0.02)
     ylim([0 1.1*max(shifted(:))])
     xlabel('Time (ps)');
     ylabel('Normalised Response')
-   
+   %}
     %{
     subplot(2,2,4);
     imagesc(intensity);
