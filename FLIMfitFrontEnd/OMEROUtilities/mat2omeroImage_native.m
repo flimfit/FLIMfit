@@ -66,23 +66,37 @@ maxVal = max(data(:));
                         rawPixelsStore.setPlane(bytear, int32(z-1), int32(c-1), int32(t-1));                
                     end
                 end
-            pixelsService.setChannelGlobalMinMax(pixelsId, c-1, minVal, maxVal);                                
-            end                         
+            end
 
-if ~isempty(channels_names) && sizeC == numel(channels_names)
-    %
-    pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
-    channels = pixelsDesc.copyChannels();
-    %         
-    for c = 1:sizeC
-        ch = channels.get(c-1);
-        ch.getLogicalChannel().setName(omero.rtypes.rstring(char(channels_names{c})));
-        factory.getUpdateService().saveAndReturnObject(ch.getLogicalChannel());
-    end                                                        
-end;    
 %
 rawPixelsStore.save();
 rawPixelsStore.close();
+
+pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
+channels = pixelsDesc.copyChannels();
+objects = java.util.ArrayList();
+%
+for c = 1:sizeC
+    ch = channels.get(c-1);
+    if ~isempty(channels_names) && sizeC == numel(channels_names)
+        ch.getLogicalChannel().setName(omero.rtypes.rstring(char(channels_names{c})));
+    end
+    
+    stats = ch.getStatsInfo();
+    if isempty(stats),
+        stats = omero.model.StatsInfoI();
+        ch.setStatsInfo(stats);
+    end
+
+    stats.setGlobalMax(rdouble(maxVal));
+    stats.setGlobalMin(rdouble(minVal));
+    objects.add(ch);
+
+end
+
+
+factory.getUpdateService().saveAndReturnArray(objects);
+
 %
 RENDER = true;
 
