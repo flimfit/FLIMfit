@@ -93,7 +93,7 @@ public:
 
 class FLIMGlobalFitController;
 
-typedef void (* conv_func)(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
+typedef void (* conv_func)(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, int bin_shift, double& c);
 typedef void (* conv_deriv_func)(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c);
 
 
@@ -249,24 +249,25 @@ private:
    void SetupAdjust(int thread, float adjust[], float scatter_adj, float offset_adj, float tvb_adj);
    
 
-   int flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, bool include_fixed, double a[]);
+   int flim_model(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, double t0_shift, bool include_fixed, int bin_shift, double a[], int adim);
    int ref_lifetime_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int beta_derivatives(int thread, double tau[], const double alf[], double theta[], double ref_lifetime, double b[]);
    int theta_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int E_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
    int FMM_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[]);
+   int t0_derivatives(int thread, int irf_idx, double tau[], double beta[], double theta[], double ref_lifetime, double t0_shift, double b[]);
 
    int ProcessRegion(int g, int r, int px, int thread);
 
-   void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[]);
+   void calculate_exponentials(int thread, int irf_idx, double tau[], double theta[], double t0_shift);
    int check_alf_mod(int thread, const double* new_alf, int irf_idx);
 
-   void add_decay(int thread, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[]);
+   void add_decay(int thread, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[], int bin_shift = 0);
    void add_derivative(int thread, int tau_idx, int theta_idx, int fret_group_idx,  double tau[], double theta[], double fact, double ref_lifetime, double a[]);
    
    template <typename T>
-   void add_irf(int thread, int irf_idx, T a[],int pol_group, double* scale_fact = NULL);
+   void add_irf(int thread, int irf_idx, int t0_shift, T a[],int pol_group, double* scale_fact = NULL);
 
 
    conv_func Convolve;
@@ -334,20 +335,24 @@ private:
 
 
 template <typename T>
-void FLIMGlobalFitController::add_irf(int thread, int irf_idx, T a[], int pol_group, double* scale_fact)
+void FLIMGlobalFitController::add_irf(int thread, int irf_idx, int t0_shift, T a[], int pol_group, double* scale_fact)
 {
    int* resample_idx = data->GetResampleIdx(thread);
 
    double* lirf = this->irf_buf;
-   
+
    if (image_irf)
-   {
-      lirf += irf_idx * n_irf * n_chan; 
-   }
+      lirf += irf_idx * n_irf * n_chan;
    else if (t0_image)
    {
       lirf += (thread + 1) * n_irf * n_chan;
-      ShiftIRF(t0_image[irf_idx], lirf);
+      t0_shift += t0_image[irf_idx];
+   }
+
+   if (t0_shift != 0)
+   {
+      lirf = irf_buf + (thread + 1) * n_irf * n_chan;
+      ShiftIRF(t0_shift, lirf);
    }
 
    int idx = 0;
