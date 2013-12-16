@@ -10,9 +10,17 @@
 #include "omp_stub.h"
 #include <algorithm>
 
+
+#ifdef _WINDOWS
 #undef WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
+#else
 //#include <boost/timer/timer.hpp>
+#include <iostream>
+#endif
+
+
 
 using std::vector;
 using boost::random::normal_distribution;
@@ -62,8 +70,10 @@ void QR_test(int n, int m, int rep, double times[])
    for(int i=0; i<m; i++)
       f[i] = norm_dist(gen);
 
-
+#ifdef _WINDOWS
    t = GetTickCount();
+#endif
+    
    vector<double> rb(rep+1); // to prevent optimisation out
 
    for(int k=0; k<rep; k++)
@@ -74,7 +84,10 @@ void QR_test(int n, int m, int rep, double times[])
       //rb[k] = J1[k % m];
       //rb[k+1] = f1[k % m];
    }
-   long dt_0 = GetTickCount()-t;
+    
+#ifdef _WINDOWS
+    long dt_0 = GetTickCount()-t;
+#endif
 
    // Householder
    //==================================================
@@ -85,7 +98,9 @@ void QR_test(int n, int m, int rep, double times[])
    vector<double> qtf(n);
    vector<int> pvt(n);
 
+#ifdef _WINDOWS
    t = GetTickCount();
+#endif
 
    for(int k=0; k<rep; k++)
    {
@@ -110,7 +125,10 @@ void QR_test(int n, int m, int rep, double times[])
         
    }
    
-   long dt_h = GetTickCount()-t-dt_0;
+    long dt_h;
+#ifdef _WINDOWS
+   dt_h = GetTickCount()-t-dt_0;
+#endif
 
 //   printf("\n\nHouseholder: %d s\n",dt_h);
 
@@ -127,7 +145,10 @@ void QR_test(int n, int m, int rep, double times[])
    vector<double> r(n*n);
    double alpha;
 
-   t = GetTickCount() ;
+#ifdef _WINDOWS
+   t = GetTickCount();
+#endif
+    
    for(int k=0; k<rep; k++)
    {
       memcpy(J1, J.data(), m*n*sizeof(double));
@@ -140,7 +161,11 @@ void QR_test(int n, int m, int rep, double times[])
          rwupdt(n, r.data(), n, w, b.data(), &alpha, cos.data(), sin.data());
       }
    }
-   long dt_g = GetTickCount()-t-dt_0;
+    long dt_g;
+    
+#ifdef _WINDOWS
+    dt_g = GetTickCount()-t-dt_0;
+#endif
 
 //   printf("Givens     : %d s\n",dt_g);
 
@@ -152,12 +177,12 @@ void QR_test(int n, int m, int rep, double times[])
    {
    
       int ldfjac = n;
-      int n_jac_group = min(m/n_thread,1024);
+       int n_jac_group = std::min(m/n_thread,1024);
 
-      n_jac_group = max(n_jac_group,4);
+       n_jac_group = std::max(n_jac_group,4);
       //n_jac_group = 1024;
    
-      int dim = max(16,n);
+       int dim = std::max(16,n);
 
       omp_set_num_threads(n_thread);
       qtf.assign(n_thread*dim,0);
@@ -168,7 +193,9 @@ void QR_test(int n, int m, int rep, double times[])
       vector<double> fjac(dim * dim * n_thread);
       vector<double> fvec(n * n_thread * n_jac_group);
 
+#ifdef _WINDOWS
       t = GetTickCount();
+#endif
 
       for(int k=0; k<rep; k++)
       {
@@ -184,7 +211,9 @@ void QR_test(int n, int m, int rep, double times[])
       }
 
 
+#ifdef _WINDOWS
       dt_hg[n_thread] = GetTickCount()-t-dt_0;
+#endif
    }
 //   printf("Combined   : %d s\n",dt_hg);
 
