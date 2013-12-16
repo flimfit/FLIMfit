@@ -1,6 +1,8 @@
 #ifndef _QRTEST_
 #define _QRTEST_
 
+#ifdef _WINDOWS
+
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include "cminpack.h"
@@ -195,5 +197,7 @@ void QR_test(int n, int m, int rep, double times[])
 
 }
 
+
+#endif
 
 #endif
