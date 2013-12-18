@@ -27,58 +27,60 @@ function handles = setup_menu(obj,handles)
     % Author : Sean Warren
 
 
-   
+    % OMERO MEGA MENU
+    %=================================
+    
+    menu_OMERO = uimenu(obj.window,'Label','OMERO');
 
-    %if ~isempty(handles.omero_data_manager.session)
-        
-        menu_OMERO = uimenu(obj.window,'Label','OMERO');
-        
-        handles.menu_login = uimenu(menu_OMERO,'Label','Log in to OMERO');
-   
-        handles.menu_OMERO_Working_Data_Info = uimenu(menu_OMERO,'Label','Working Data have not been set up','ForegroundColor','red','Enable','off');
-        
-        menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set Working Data');
-        handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO_Set_Data,'Label','Dataset','Enable','off');
-        handles.menu_OMERO_Set_Plate = uimenu(menu_OMERO_Set_Data,'Label','SPW Plate','Enable','off');
-        handles.menu_OMERO_Switch_User = uimenu(menu_OMERO_Set_Data,'Label','Switch User...','Separator','on','Enable','off');    
-        
-        handles.menu_OMERO_Connect_To_Another_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to another user...','Enable','off');    
-        handles.menu_OMERO_Connect_To_Logon_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to logon user...','Enable','off');    
-        
-        handles.menu_OMERO_Reset_Logon = uimenu(menu_OMERO_Set_Data,'Label','Restore Logon','Separator','on','Enable','off');                
-        %
-        handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM data: Single FOV','Separator','on','Enable','off');
-        handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM data: Multiple FOVs','Enable','off');
-        
-        handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load FLIM data: Multiple FOVs - Polarization','Enable','off');        
-        %
-        handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)','Separator','on','Enable','off');    
-        handles.menu_OMERO_Load_IRF_WF_gated = uimenu(menu_OMERO,'Label','Load IRF (Dataset Images to average)','Enable','off'); 
-        handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)','Enable','off');                    
-        handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
-        handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background (single plane: Image)','Separator','on','Enable','off');    
-        handles.menu_OMERO_Load_Background_form_Dataset = uimenu(menu_OMERO,'Label','Load Background (single plane: Dataset Images to smooth)','Enable','off');            
-        handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)','Enable','off');    
-        handles.menu_OMERO_Load_tvb_from_Dataset = uimenu(menu_OMERO,'Label','Load Time Varying Background (Dataset Images)','Enable','off');                    
-        handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)','Enable','off');                            
-        handles.menu_OMERO_Export_tvb_Annotation = uimenu(menu_OMERO,'Label','Export Time Varying Background (Annotation)','Enable','off');  
-        %
-        handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
-        %handles.menu_OMERO_export_acceptor = uimenu(menu_OMERO,'Label','Export Acceptor Images...','Enable','off');
-        %
-        handles.menu_OMERO_Load_Pate_Metadata = uimenu(menu_OMERO,'Label','Load Plate Metadata','Separator','on','Enable','off');                            
-        %
-        handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings','Separator','on','Enable','off');            
-        handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings','Enable','off');    
-        %
-        handles.menu_OMERO_Export_Data_Settings = uimenu(menu_OMERO,'Label','Export Data Settings','Separator','on','Enable','off');            
-        handles.menu_OMERO_Import_Data_Settings = uimenu(menu_OMERO,'Label','Import Data Settings','Enable','off');    
-        %
-        handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
-        handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
-        handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps','Separator','on','Enable','off');        
-        
-    %end
+    handles.menu_login = uimenu(menu_OMERO,'Label','Log in to OMERO');
+
+    handles.menu_OMERO_Working_Data_Info = uimenu(menu_OMERO,'Label','Working Data have not been set up','ForegroundColor','red','Enable','off');
+
+    menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set Working Data');
+    handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO_Set_Data,'Label','Dataset','Enable','off');
+    handles.menu_OMERO_Set_Plate = uimenu(menu_OMERO_Set_Data,'Label','SPW Plate','Enable','off');
+    handles.menu_OMERO_Switch_User = uimenu(menu_OMERO_Set_Data,'Label','Switch User...','Separator','on','Enable','off');    
+
+    handles.menu_OMERO_Connect_To_Another_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to another user...','Enable','off');    
+    handles.menu_OMERO_Connect_To_Logon_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to logon user...','Enable','off');    
+
+    handles.menu_OMERO_Reset_Logon = uimenu(menu_OMERO_Set_Data,'Label','Restore Logon','Separator','on','Enable','off');                
+    %
+    handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM data: Single FOV','Separator','on','Enable','off');
+    handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM data: Multiple FOVs','Enable','off');
+
+    handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load FLIM data: Multiple FOVs - Polarization','Enable','off');        
+    %
+    handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)','Separator','on','Enable','off');    
+    handles.menu_OMERO_Load_IRF_WF_gated = uimenu(menu_OMERO,'Label','Load IRF (Dataset Images to average)','Enable','off'); 
+    handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)','Enable','off');                    
+    handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
+    handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background (single plane: Image)','Separator','on','Enable','off');    
+    handles.menu_OMERO_Load_Background_form_Dataset = uimenu(menu_OMERO,'Label','Load Background (single plane: Dataset Images to smooth)','Enable','off');            
+    handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)','Enable','off');    
+    handles.menu_OMERO_Load_tvb_from_Dataset = uimenu(menu_OMERO,'Label','Load Time Varying Background (Dataset Images)','Enable','off');                    
+    handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)','Enable','off');                            
+    handles.menu_OMERO_Export_tvb_Annotation = uimenu(menu_OMERO,'Label','Export Time Varying Background (Annotation)','Enable','off');  
+    %
+    handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
+    %handles.menu_OMERO_export_acceptor = uimenu(menu_OMERO,'Label','Export Acceptor Images...','Enable','off');
+    %
+    handles.menu_OMERO_Load_Pate_Metadata = uimenu(menu_OMERO,'Label','Load Plate Metadata','Separator','on','Enable','off');                            
+    %
+    handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings','Separator','on','Enable','off');            
+    handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings','Enable','off');    
+    %
+    handles.menu_OMERO_Export_Data_Settings = uimenu(menu_OMERO,'Label','Export Data Settings','Separator','on','Enable','off');            
+    handles.menu_OMERO_Import_Data_Settings = uimenu(menu_OMERO,'Label','Import Data Settings','Enable','off');    
+    %
+    handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
+    handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
+    handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps','Separator','on','Enable','off');        
+
+    %===============================
+
+
+    
 
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
@@ -87,25 +89,24 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','Y');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
     
-            
-   
-        menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
-        handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
-        handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
     
-        
-        menu_file_acceptor = uimenu(menu_file,'Label','Acceptor Images...');
-        handles.menu_file_load_acceptor = uimenu(menu_file_acceptor,'Label','Load Accceptor Images...');
-        handles.menu_file_export_acceptor = uimenu(menu_file_acceptor,'Label','Export Acceptor Images...','Separator','on');
-        handles.menu_file_import_acceptor = uimenu(menu_file_acceptor,'Label','Import Saved Acceptor Images...');
-        
-        
-        handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
-    
-        %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
-        handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
-        handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
-   
+    menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
+    handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
+    handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
+
+
+    menu_file_acceptor = uimenu(menu_file,'Label','Acceptor Images...');
+    handles.menu_file_load_acceptor = uimenu(menu_file_acceptor,'Label','Load Accceptor Images...');
+    handles.menu_file_export_acceptor = uimenu(menu_file_acceptor,'Label','Export Acceptor Images...','Separator','on');
+    handles.menu_file_import_acceptor = uimenu(menu_file_acceptor,'Label','Import Saved Acceptor Images...');
+
+
+    handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
+
+    %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
+    handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
+    handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
+
 
     handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
     handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
@@ -156,21 +157,21 @@ function handles = setup_menu(obj,handles)
     
    
 
-        menu_tools = uimenu(obj.window,'Label','Tools');
-        handles.menu_tools_photon_stats = uimenu(menu_tools,'Label','Determine Photon Statistics');
-        handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
-        handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
-        handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
-        
-        handles.menu_tools_preferences = uimenu(menu_tools,'Label','Preferences...','Separator','on');
-       
+    menu_tools = uimenu(obj.window,'Label','Tools');
+    handles.menu_tools_photon_stats = uimenu(menu_tools,'Label','Determine Photon Statistics');
+    handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
+    handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
+    handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
 
-        menu_test = uimenu(obj.window,'Label','Test');
-        handles.menu_test_test1 = uimenu(menu_test,'Label','Start Regression Tests','Accelerator','X');
-        handles.menu_test_test2 = uimenu(menu_test,'Label','Test Fcn 2');
-        handles.menu_test_test3 = uimenu(menu_test,'Label','Test Fcn 3');
-        handles.menu_test_unload_dll = uimenu(menu_test,'Label','Unload DLL','Accelerator','U');
-   
+    handles.menu_tools_preferences = uimenu(menu_tools,'Label','Preferences...','Separator','on');
+
+
+    menu_test = uimenu(obj.window,'Label','Test');
+    handles.menu_test_test1 = uimenu(menu_test,'Label','Start Regression Tests','Accelerator','X');
+    handles.menu_test_test2 = uimenu(menu_test,'Label','Test Fcn 2');
+    handles.menu_test_test3 = uimenu(menu_test,'Label','Test Fcn 3');
+    handles.menu_test_unload_dll = uimenu(menu_test,'Label','Unload DLL','Accelerator','U');
+
     
     menu_help = uimenu(obj.window,'Label','Help');
     handles.menu_help_about = uimenu(menu_help,'Label','About...');

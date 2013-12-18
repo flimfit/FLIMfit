@@ -102,9 +102,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end
     
     conf_interval = prof.Fitting.Confidence_Interval;
-    
-%    p.fit_t0 = 1;
-    
+       
     if p.polarisation_resolved
         
         err = calllib(obj.lib_name,'SetupGlobalPolarisationFit', ...
@@ -182,7 +180,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end
     
     if ~isempty(obj.p_image_t0_shift)
-        calllib(obj.lib_name,'SetImageT0Shift',obj.dll_id,obj.p_image_t0_shift);
+       % calllib(obj.lib_name,'SetImageT0Shift',obj.dll_id,obj.p_image_t0_shift);
     end
         
     if err ~= 0

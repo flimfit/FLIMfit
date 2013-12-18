@@ -94,6 +94,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'use_memory_mapping','checkbox');
             obj.bind_control(handles,'use_autosampling','popupmenu');
             obj.bind_control(handles,'image_irf_mode','popupmenu');
+            obj.bind_control(handles,'use_image_t0_correction','checkbox');
             
             obj.bound_all_controls = true;
             

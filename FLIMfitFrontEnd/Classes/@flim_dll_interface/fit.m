@@ -148,7 +148,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
         obj.p_irf = libpointer('doublePtr', d.tr_irf);
     end
     
-    if isfield(d.metadata,'t0') && all(cellfun(@isnumeric,d.metadata.t0))
+    if isfield(d.metadata,'t0') && all(cellfun(@isnumeric,d.metadata.t0)) && p.use_image_t0_correction && ~obj.bin
         obj.p_image_t0_shift = libpointer('doublePtr', cell2mat(d.metadata.t0));
     else 
         obj.p_image_t0_shift = [];
