@@ -91,7 +91,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
                                 
                 obj.fit_controller.fit(true);
                 while obj.fit_controller.has_fit == 0
-                    pause(0.001);
+                    drawnow
                 end
 
                 %%% Get the fit results
@@ -109,9 +109,9 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             
             opt = optimset('PlotFcns',{@optimplotfval}); %,'TolX',0.05);
             t0_min = fminsearch(@f,obj.data_series.t0,opt);
-            
+
             obj.data_series.t0 = t0_min;
-            
+
             
             
         end
