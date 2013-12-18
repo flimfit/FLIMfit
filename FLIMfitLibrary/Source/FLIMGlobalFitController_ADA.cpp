@@ -179,15 +179,15 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    double *beta_buf  = this->beta_buf + thread * n_exp;
    double *theta_buf = this->theta_buf + thread * n_theta;
    
-   if ( fit_t0 == FIT)
-      t0_shift = alf[alf_t0_idx];
-   else
-      t0_shift = t0_guess;
-
    if (ref_reconvolution == FIT_GLOBALLY)
       ref_lifetime = alf[alf_ref_idx];
    else
       ref_lifetime = ref_lifetime_guess;
+
+   if (fit_t0 == FIT)
+      t0_shift = alf[alf_t0_idx];
+   else
+      t0_shift = t0_guess;
 
    total_n_exp = n_exp * n_fret_group;
         

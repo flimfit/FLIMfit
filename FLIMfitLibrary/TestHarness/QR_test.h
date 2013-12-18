@@ -14,7 +14,8 @@
 #ifdef _WINDOWS
 #undef WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-
+#undef min
+#undef max
 #else
 //#include <boost/timer/timer.hpp>
 #include <iostream>

@@ -198,7 +198,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
             }
          }
 
-         row -= 2; // we're going to put the t0 shifte model in first
+         row -= 2; // we're going to put the t0 shift model in first
         
          fact = 1;
       
