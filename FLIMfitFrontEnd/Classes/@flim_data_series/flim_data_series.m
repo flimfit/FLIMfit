@@ -76,6 +76,11 @@ classdef flim_data_series < handle & h5_serializer
         
         background_image = 0;
         
+        use_t_calibration = false;
+        cal_t_nominal = 0:10:20e3;
+        cal_t_meas = 0:10:20e3;
+        cal_dt = 10;
+        
     end
     
     properties(Dependent)
@@ -152,7 +157,7 @@ classdef flim_data_series < handle & h5_serializer
         mask = [];
         thresh_mask = [];
                 
-        
+        tr_t_all;
         tr_t_irf;
         tr_t_int;
         tr_irf;
@@ -319,6 +324,18 @@ classdef flim_data_series < handle & h5_serializer
                 
                 
             end
+        end
+        
+        function load_t_calibriation(obj,file)
+           
+            data = csvread(file,2,0);
+            obj.use_t_calibration = true;
+            obj.cal_t_nominal = data(:,1);
+            obj.cal_t_meas = data(:,2);
+            
+            obj.compute_tr_data();
+            notify(obj,'data_updated');  
+            
         end
         
         function reload_data(obj)

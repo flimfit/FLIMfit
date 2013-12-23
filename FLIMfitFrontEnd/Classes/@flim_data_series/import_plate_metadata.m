@@ -43,31 +43,33 @@ function import_plate_metadata(obj,file)
         
         [num,txt,raw]=xlsread(file,sheet);
 
-        sheet = strrep(sheet,'-','_');
-        sheet = strrep(sheet,'.','_');
-        sheet = strrep(sheet,' ','_');
-        
-        rows = size(raw,1)-1;
-        cols = size(raw,2)-1;
+        if ~strcmp(sheet,'Sheet1') && ~strcmp(sheet,'Sheet2') && ~strcmp(sheet,'Sheet3')
+            sheet = strrep(sheet,'-','_');
+            sheet = strrep(sheet,'.','_');
+            sheet = strrep(sheet,' ','_');
 
-        new_md = cell(size(md_well));
+            rows = size(raw,1)-1;
+            cols = size(raw,2)-1;
 
-        for row_idx = 1:rows
-            row = char(row_idx+64);
-            for col = 1:cols
+            new_md = cell(size(md_well));
 
-                well = [row num2str(col)];
-                sel = strcmp(md_well,well);
-                new_md(sel) = raw(row_idx+1,col+1);
+            for row_idx = 1:rows
+                row = char(row_idx+64);
+                for col = 1:cols
 
-               
+                    well = [row num2str(col)];
+                    sel = strcmp(md_well,well);
+                    new_md(sel) = raw(row_idx+1,col+1);
+
+
+                end
             end
+
+
+
+            obj.metadata.(sheet) = new_md;
         end
         
-
-        
-        obj.metadata.(sheet) = new_md;
-
     end
     
     notify(obj,'data_updated');

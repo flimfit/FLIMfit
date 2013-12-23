@@ -32,7 +32,7 @@ function compute_tr_tvb_profile(obj)
         % Downsample
         sel = 0:(length(obj.t)-1);
         sel = mod(sel,obj.downsampling) == 0;
-        tr_t = obj.t(sel);
+        tr_t = obj.tr_t_all(sel);
         
         % Crop based on limits
         t_inc = tr_t >= obj.t_min & tr_t <= obj.t_max;
