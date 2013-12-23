@@ -110,6 +110,8 @@ function handles = setup_menu(obj,handles)
 
     handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
     handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
+    
+    handles.menu_file_load_t_calibration = uimenu(menu_file,'Label','Load Time Point Calbration File...','Separator','on');
 
     
     handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
