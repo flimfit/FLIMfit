@@ -53,7 +53,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         if obj.use_t_calibration && length(obj.t) > 1
         
             t_cor = interp1(obj.cal_t_nominal,obj.cal_t_meas,obj.t,'cubic');
-            dt = obj.tr_t_irf(2)-obj.tr_t_irf(1);
+            dt = obj.cal_dt;
             
             t_cor_round = t_cor/dt;
             t_cor_round = round(t_cor_round)*dt;
@@ -114,7 +114,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         obj.t_skip = [find(t_inc,1,'first') find(t_inc_perp,1,'first')]-1;
         
         % Apply all the masking above
-        obj.tr_t = obj.t(t_inc);
+        obj.tr_t = obj.tr_t_all(t_inc);
         obj.tr_t_int = obj.t_int(t_inc);
         
         obj.tr_t_int = obj.tr_t_int / min(obj.tr_t_int);

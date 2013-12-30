@@ -86,6 +86,8 @@ classdef flim_fitting_params < handle & h5_serializer
         
         weighting_mode = 0;
         
+        merge_regions = false;
+        
         n_thread = 8;
     end
    

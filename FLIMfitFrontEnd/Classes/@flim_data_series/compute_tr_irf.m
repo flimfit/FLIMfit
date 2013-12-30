@@ -182,12 +182,19 @@ function compute_tr_irf(obj)
         % use t calibration
         if obj.use_t_calibration && length(obj.tr_t_irf) > 3
 
+            
             t_cor = interp1(obj.cal_t_nominal,obj.cal_t_meas,obj.tr_t_irf,'cubic',0);
 
+            obj.tr_t_irf = obj.tr_t_irf(1):obj.cal_dt:obj.tr_t_irf(end);
+
+            irf_cor = [];
+            
             for i=1:size(obj.tr_irf,2) 
-                irf_cor = interp1(t_cor,obj.tr_irf(:,i),obj.tr_t_irf,'cubic',0);
-                obj.tr_irf(:,i) = irf_cor;
+                ic = interp1(t_cor,obj.tr_irf(:,i),obj.tr_t_irf,'cubic',0);
+                irf_cor(:,i) = ic;
             end
+            
+            obj.tr_irf = irf_cor;
 
         end
         
@@ -197,7 +204,7 @@ function compute_tr_irf(obj)
         
         dt_irf = obj.t_irf(2)-obj.t_irf(1);
         coarse_shift = round(t0_shift/dt_irf)*dt_irf;
-        obj.tr_t_irf = obj.t_irf + coarse_shift;
+        obj.tr_t_irf = obj.tr_t_irf + coarse_shift;
                       
         remaining_shift = t0_shift-coarse_shift;
         

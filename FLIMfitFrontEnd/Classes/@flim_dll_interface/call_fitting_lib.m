@@ -154,11 +154,10 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         thresh_min = d.thresh_min;
     end
     
-    merge_regions = false;
     
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, obj.p_t_int, t_skip, length(d.tr_t),...
-            data_type, obj.p_use, obj.p_mask, merge_regions, thresh_min, d.gate_max, counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
+            data_type, obj.p_use, obj.p_mask, p.merge_regions, thresh_min, d.gate_max, counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
  
     if ~isempty(d.acceptor)
         obj.p_acceptor = libpointer('singlePtr', d.acceptor);
