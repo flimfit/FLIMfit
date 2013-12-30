@@ -330,13 +330,13 @@ processed:
 
          region_mutex.lock();
          if (next_region >= data->n_regions_total)
-            process_idx = -1;
+            process_idx = data->n_regions_total;
          else
             process_idx = next_region++;
          region_mutex.unlock();
 
          // Cycle through every region in every image
-         if (process_idx >= 0)
+         if (process_idx < data->n_regions_total)
          {
             for(int im=im0; im<data->n_im_used; im++)
             {
