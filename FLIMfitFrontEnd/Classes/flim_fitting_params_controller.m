@@ -73,7 +73,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'fit_offset','popupmenu');
             obj.bind_control(handles,'fit_scatter','popupmenu');
             obj.bind_control(handles,'fit_tvb','popupmenu');
-            obj.bind_control(handles,'t0','edit');
+            %obj.bind_control(handles,'t0','edit');
             obj.bind_control(handles,'offset','edit');
             obj.bind_control(handles,'scatter','edit');
             obj.bind_control(handles,'tvb','edit');
