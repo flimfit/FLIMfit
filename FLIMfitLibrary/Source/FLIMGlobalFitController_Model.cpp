@@ -34,8 +34,10 @@
 #include <cfloat>
 #include <cmath>
 #include <algorithm>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
+using boost::math::isnan;
 
 int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf, int irf_idx)
 {
@@ -58,10 +60,11 @@ int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf, in
       return true;
    }
 
+
    int changed = false;
    for(int i=0; i<nl; i++)
    {
-      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN);
+      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN) | isnan(cur_alf[i]);
       cur_alf[i] = new_alf[i];
    }
 
