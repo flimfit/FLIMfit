@@ -1047,7 +1047,10 @@ void FLIMGlobalFitController::Init()
       return;
    }
 
-
+   SetNaN( cur_alf, n_thread * nl );
+   
+   for(int i=0; i<n_thread; i++)
+      cur_irf_idx[i] = -1;
 
    SetNaN(alf, alf_size * nl );
    SetNaN(chi2, data->n_masked_px );

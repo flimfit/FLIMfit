@@ -638,7 +638,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
 
    for(int p=0; p<n_px; p++)
    {
-      if (region < 0 || im_mask[p] == region)
+      if (region < 0 || im_mask[p] == region || (merge_regions && im_mask[p] > 0))
       {
          masked_intensity[s] = intensity[p];
    

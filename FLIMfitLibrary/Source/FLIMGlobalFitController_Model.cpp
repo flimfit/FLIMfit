@@ -40,14 +40,21 @@ using namespace std;
 int FLIMGlobalFitController::check_alf_mod(int thread, const double* new_alf, int irf_idx)
 {
    double *cur_alf = this->cur_alf + thread * nl;
-   int cur_irf_idx = this->cur_irf_idx[thread];
+   int* cur_irf_idx = this->cur_irf_idx + thread;
 
    if (nl == 0 || fit_t0 == FIT)
       return true;
    
-   if ((image_irf || t0_image != NULL) && irf_idx != cur_irf_idx)
+
+   if ((image_irf || t0_image != NULL) && (irf_idx != *cur_irf_idx || *cur_irf_idx == -1))
    {
-      cur_irf_idx = irf_idx;
+      *cur_irf_idx = irf_idx;
+      return true;
+   }
+
+   if ( data->image_t0_shift && (irf_idx / data->n_px != *cur_irf_idx / data->n_px || *cur_irf_idx == -1))
+   {
+      *cur_irf_idx = irf_idx;
       return true;
    }
 
@@ -647,6 +654,7 @@ void FLIMGlobalFitController::ShiftIRF(double shift, double s_irf[])
 
    start = min(start, n_irf-1);
    end   = max(end, 1);
+
 
 
    for(i=0; i<start; i++)
