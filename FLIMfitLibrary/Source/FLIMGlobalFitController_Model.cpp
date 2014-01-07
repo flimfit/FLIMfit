@@ -31,8 +31,6 @@
 #include "IRFConvolution.h"
 
 #include <xmmintrin.h>
-#include <cfloat>
-#include <cmath>
 #include <algorithm>
 #include <boost/math/special_functions/fpclassify.hpp>
 
