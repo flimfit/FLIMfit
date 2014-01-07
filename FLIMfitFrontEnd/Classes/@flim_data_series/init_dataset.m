@@ -58,8 +58,8 @@ function init_dataset(obj,setting_file_name)
     obj.gate_max = 2^16-1;
     
     obj.t_min = min(obj.t);
-    obj.t_max = max(obj.t);   
-    
+    obj.t_max = max(obj.t);  
+   
     obj.t0 = 0;
     
     obj.t_irf_min = min(obj.t_irf);

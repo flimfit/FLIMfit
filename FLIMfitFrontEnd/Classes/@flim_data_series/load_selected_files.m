@@ -80,10 +80,12 @@ function load_selected_files(obj,selected)
                 try
                     if obj.load_multiple_channels
                         filename = obj.file_names{1};
-                        [~,data] = load_flim_file(filename,obj.channels(selected(j)),obj.block);
+                        data = obj.load_FLIM_cube(filename);
+                       % [~,data] = load_flim_file(filename,obj.channels(selected(j)),obj.block);
                     else
                         filename = obj.file_names{selected(j)};
-                        [~,data] = load_flim_file(filename,obj.channels,obj.block);
+                        data = obj.load_FLIM_cube(filename);
+                       % [~,data] = load_flim_file(filename,obj.channels,obj.block);
                     end
                 catch
                     disp(['Warning: could not load dataset ' filename ', replacing with blank']);
@@ -152,10 +154,12 @@ function load_selected_files(obj,selected)
 
                 if obj.load_multiple_channels
                     filename = obj.file_names{1};
-                    [~,data] = load_flim_file(filename,obj.channels(selected(j)));
+                    data = obj.load_flim_cube(filename);
+                    % [~,data] = load_flim_file(filename,obj.channels(selected(j)));
                 else
                     filename = obj.file_names{selected(j)};
-                    [~,data] = load_flim_file(filename,obj.channels);
+                    data = obj.load_flim_cube(filename);
+                    % [~,data] = load_flim_file(filename,obj.channels);
                 end
                 
                 
