@@ -85,19 +85,12 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     
     
     obj.n_datasets = length(obj.names);
-    
     obj.polarisation_resolved = polarisation_resolved;
-    
     data_size = [length(dims.delays) obj.n_datasets dims.sizeXY length(obj.ZCT{2}) ];
-     
     obj.data_size = data_size;
     
-    
-  
     obj.metadata = extract_metadata(obj.names);
-    
-    obj.load_selected_files();
-        
+    obj.load_selected_files();  
     obj.init_dataset(data_setting_file);
 
 end

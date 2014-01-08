@@ -45,21 +45,12 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     root_path = ensure_trailing_slash(root_path);
 
     obj.root_path = root_path;
-    obj.mode = mode;
     obj.polarisation_resolved = polarisation_resolved;
     
     if strcmp(mode,'TCSPC')
 
-        if isempty(channel)
-            [channel,block] = obj.request_channels(polarisation_resolved);
-        end
-        obj.channels = channel;
-        if isempty(block)
-            block = 1;
-        end
-        obj.block = block;
-       
-        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif'])];            
+        
+        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif']); [dir([root_path '*.msr']; [dir([root_path '*.asc']););];            
         n_datasets = length(files);
         
         file_names = cell(1,n_datasets);
@@ -84,18 +75,26 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             obj.file_names{i} = [root_path obj.file_names{i}];
         end
         
-        % open first file
-        [obj.t,data,obj.t_int] = load_flim_file(obj.file_names{1},channel,block);         
-        data_size = size(data);
+        %------------------------------------
+        % get dimensions from first file
+        dims = obj.get_image_dimensions(obj.filenames{1});
+    
+        obj.modulo = dims.modulo;
+    
+        obj.mode = dims.FLIM_type;
+    
+        % Determine which channels we need to load 
+        obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
         
-        % if only one channel reshape to include singleton dimension
-        if length(data_size) == 3
-            data_size = [data_size(1) 1 data_size(2:3)];
+        % NB we need to sort out blocks here ASAP
+    
+        obj.t = dims.delays;
+        obj.channels = obj.ZCT{2};
+    
+        if size(obj.channels) > 1
+            obj.load_multiple_channels = true;
         end
         
-        clear data;
-        
-        obj.data_size = data_size;
         obj.n_datasets = n_datasets;
         
         %set names
@@ -104,6 +103,12 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             [~,name,~] = fileparts(obj.file_names{j});
             obj.names{j} = name;
         end
+        
+        
+        data_size = [length(dims.delays) obj.n_datasets dims.sizeXY length(obj.ZCT{2}) ];
+        obj.data_size = data_size;
+        
+        
         
     else % widefield
 

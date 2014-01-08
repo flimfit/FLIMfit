@@ -168,7 +168,7 @@ function[data_cube] = load_flim_cube(obj, file)
                         for t = 0:sizet -1
                             index = r.getIndex(Z, chan ,T + t);
                             plane = bfGetPlane(r,index + 1);
-                            data_cube(t +1,c,:,:,1) = plane;
+                            data_cube(t +1,1,:,:,c) = plane;
                         end
                         
                     case 'ModuloAlongZ'
@@ -176,7 +176,7 @@ function[data_cube] = load_flim_cube(obj, file)
                         for t = 0:sizet -1
                             index = r.getIndex(Z + t, chan ,T);
                             plane = bfGetPlane(r,index + 1);
-                            data_cube(t+1,c,:,:,1) = plane;
+                            data_cube(t+1,1,:,:,c) = plane;
                         end
                 end
                 
@@ -196,7 +196,7 @@ function[data_cube] = load_flim_cube(obj, file)
         % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.asc','.csv','.txt', '.irf'}
               
-              [delays,data_cube(:,1,:,:),t_int] = load_flim_file(file);
+              [delays,data_cube(:,1,:,:,1),t_int] = load_flim_file(file);
               
               
                 
