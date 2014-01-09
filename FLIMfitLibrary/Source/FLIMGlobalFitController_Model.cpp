@@ -77,7 +77,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
    int i, j, k, m, idx, next_idx, tau_idx;
    __m128d *dest_, *src_, *irf_, *t_irf_;
 
-   double* local_exp_buf = exp_buf + thread * n_fret_group * exp_buf_size;
+   double* local_exp_buf = exp_buf + thread * exp_buf_size;
    int row = n_pol_group*n_fret_group*n_exp*N_EXP_BUF_ROWS;
    
    double *lirf = irf_buf; 
@@ -112,7 +112,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
          rate = 1/tau[tau_idx] + inv_theta;
          
          // IRF exponential factor
-         e0 = exp( (t_irf[0] + t0_guess) * rate ); // * t_g;
+         e0 = exp( t_irf[0] * rate ); // * t_g;
          de = exp( + t_g * rate );
 
          
@@ -161,8 +161,6 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
 
          row--;
 
-         __m128d t0_ = _mm_set1_pd(t0_guess);
-
          // IRF exponential factor * t_irf
          
          for(k=0; k<n_chan; k++)
@@ -173,8 +171,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
 
             for(j=0; j<n_loop; j++)
             {
-               __m128d t_ = _mm_add_pd(*(t_irf_++), t0_);
-               *(dest_++) = _mm_mul_pd(*(src_++),t_);
+               *(dest_++) = _mm_mul_pd(*(src_++),*(t_irf_++));
             }
          }
          
@@ -277,7 +274,7 @@ void FLIMGlobalFitController::calculate_exponentials(int thread, int irf_idx, do
 void FLIMGlobalFitController::add_decay(int threadi, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double a[], int bin_shift)
 {   
    double c;
-   double* local_exp_buf = exp_buf + threadi * n_fret_group * exp_buf_size;
+   double* local_exp_buf = exp_buf + threadi * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
    
    double* exp_model_buf         = local_exp_buf + (row+1+bin_shift)*exp_dim;
@@ -320,7 +317,7 @@ void FLIMGlobalFitController::add_decay(int threadi, int tau_idx, int theta_idx,
 void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_idx, int fret_group_idx, double tau[], double theta[], double fact, double ref_lifetime, double b[])
 {   
    double c;
-   double* local_exp_buf = exp_buf + thread * n_fret_group * exp_buf_size;
+   double* local_exp_buf = exp_buf + thread * exp_buf_size;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
 
    double* exp_model_buf         = local_exp_buf + (row+1)*exp_dim;
@@ -460,7 +457,7 @@ int FLIMGlobalFitController::t0_derivatives(int thread, int irf_idx, double tau[
    for(int i=0; i<n_meas_res*n_col; i++)
       b[i] *= idt;
 
-   return n_col;
+      return n_col;
 }
 
 int FLIMGlobalFitController::tau_derivatives(int thread, double tau[], double beta[], double theta[], double ref_lifetime, double b[])

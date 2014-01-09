@@ -979,7 +979,7 @@ void FLIMGlobalFitController::Init()
    if (polarisation_resolved && n_theta == 2)
       lmax += 2; // for cluster size, f_cluster
 
-   exp_buf_size = n_exp * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
+   exp_buf_size = n_exp * n_fret_group * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
 
    int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
 
@@ -1024,9 +1024,9 @@ void FLIMGlobalFitController::Init()
       cur_irf_idx  = new int[ n_thread ];
 
       #ifdef _WINDOWS
-         exp_buf   = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
+         exp_buf   = (double*) _aligned_malloc( n_thread * exp_buf_size * sizeof(double), 16 ); //ok
        #else
-         exp_buf   = new double[n_thread * n_fret_group * exp_buf_size];
+         exp_buf   = new double[n_thread * exp_buf_size];
        #endif
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -1325,7 +1325,7 @@ void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
       {
          irf_max[j*n_t+i] = 0;
          int k=0;
-         while(k < n_irf && (t[i] - t_irf[k] - t0_guess) >= -1.0)
+         while(k < n_irf && (t[i] - t_irf[k]) >= -1.0)
          {
             irf_max[j*n_t+i] = k + j*n_irf;
             k++;

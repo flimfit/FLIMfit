@@ -91,7 +91,6 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         
         if ~isempty(d.seg_mask)        
             m = d.seg_mask;
-            %m(m>0) = 1;
             obj.p_mask = libpointer('uint8Ptr', uint8(m));
         else
             obj.p_mask = [];
