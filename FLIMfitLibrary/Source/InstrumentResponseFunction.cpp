@@ -96,8 +96,14 @@ double InstrumentResponseFunction::GetT0()
    return timebin_t0 + t0;
 }
 
-double* InstrumentResponseFunction::GetIRF(int irf_idx, double* storage)
+double* InstrumentResponseFunction::GetIRF(int irf_idx, double t0_shift, double* storage)
 {
+    
+   int irf_px = irf_idx % n_px;
+   int irf_im = irf_idx / n_px;
+
+   if (image_t0_shift)
+      t0_shift += data->image_t0_shift[irf_im];
 
    if (image_irf)
       return irf_buf + irf_idx * n_irf * n_chan;
@@ -122,14 +128,24 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
    int c_shift = (int) floor(shift); 
    double f_shift = shift-c_shift;
 
-   int start = max(0,-c_shift)+1;
-   int end   = min(n_irf-1,n_irf-c_shift)-1;
+   int start = max(0,1-c_shift);
+   int end   = min(n_irf,n_irf-c_shift-3);
+
+   start = min(start, n_irf-1);
+   end   = max(end, 1);
+
 
    for(i=0; i<start; i++)
-      storage[i] = irf_buf[0];
+       storage[i] = irf_buf[0];
 
-   for(i=start; i<n_irf; i++)
+
+   for(i=start; i<end; i++)
+   {
+      // will read y[0]...y[3]
+      _ASSERT(i+c_shift-1 < (n_irf-3));
+      _ASSERT(i+c_shift-1 >= 0);
       storage[i] = CubicInterpolate(irf_buf+i+c_shift-1,f_shift);
+   }
 
    for(i=end; i<n_irf; i++)
       storage[i] = irf_buf[n_irf-1];

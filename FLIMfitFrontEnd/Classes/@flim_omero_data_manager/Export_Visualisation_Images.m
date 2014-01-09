@@ -235,6 +235,8 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
                     ' T ' T_str ' ' ...
                     datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
                 end
+                
+            if ~isempty(data_series.FLIM_modality), newplate_name = [ data_series.FLIM_modality ' ' newplate_name ]; end;
                         
             newplate = omero.model.PlateI();
             newplate.setName(omero.rtypes.rstring(newplate_name));    

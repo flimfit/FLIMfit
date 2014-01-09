@@ -323,7 +323,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
 
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-                             int use_im[], uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
+                             int use_im[], uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
 {
    INIT_CONCURRENCY;
 
@@ -345,7 +345,7 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
    AcquisitionParameters acq = AcquisitionParameters(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, t_rep, counts_per_photon);
 
    shared_ptr<FLIMData> d ( new FLIMData(acq, n_im, n_x, n_y,  use_im,  
-                                         mask, threshold, limit, global_mode, smoothing_factor, n_thread, status) );
+                                         mask, merge_regions, threshold, limit, global_mode, smoothing_factor, n_thread, status) );
    
    c->SetData(d);
 
@@ -425,6 +425,16 @@ FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_
    c->data->SetTVBackground(tvb_profile, tvb_I_map, const_background);
    return 0;
 }
+
+FITDLL_API int SetImageT0Shift(int c_idx, double* image_t0_shift)
+{
+   FLIMGlobalFitController *c = GetController(c_idx);
+   if ( c == NULL )
+      return ERR_INVALID_IDX;
+   c->data->SetImageT0Shift(image_t0_shift);
+   return 0;
+}
+
 
 
 FITDLL_API int StartFit(int c_idx)

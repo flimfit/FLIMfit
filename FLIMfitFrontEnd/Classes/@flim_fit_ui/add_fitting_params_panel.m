@@ -54,6 +54,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('main','n_fix','popupmenu','No. Fixed', {'0', '1', '2', '3', '4', '5'});
     add_fitting_param_control('main','fit_beta','popupmenu','Fit Contributions', {'Fixed', 'Fitted Locally', 'Fitted Globally' 'Fitted Globally (Grouped)'});
     add_fitting_param_control('main','fit_reference','popupmenu','Fit Reference', {'Fixed','Fitted'});
+    add_fitting_param_control('main','fit_t0','popupmenu','Fit IRF Shift', {'Fixed','Fitted'});
     
     set(fit_params_main_layout,'Sizes',[120 120 300])
     set(fit_params_main_extra_layout,'Sizes',[22, -1])
@@ -130,6 +131,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         %add_fitting_param_control('adv_col2','split_fit','checkbox','', 'Split Fit');
         %add_fitting_param_control('adv_col2','use_memory_mapping','checkbox','', 'Memory Map Results');
         add_fitting_param_control('adv_col2','calculate_errs','checkbox','', 'Calculate Errors');
+        add_fitting_param_control('adv_col2','use_image_t0_correction','checkbox','', 'Use FOV IRF shift');
         
         set(fit_params_adv_layout,'Sizes',[120 120 300])
         set(fit_params_adv_col2_layout,'Sizes',[20 -1])

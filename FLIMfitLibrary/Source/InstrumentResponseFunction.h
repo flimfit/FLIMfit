@@ -41,7 +41,7 @@ public:
    void SetIRFShiftMap(double* t0);
    void SetReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
-   double* GetIRF(int irf_idx, double* storage);
+   double* GetIRF(int irf_idx, double t0_shift, double* storage);
    double GetT0();
 
 

@@ -147,17 +147,18 @@ private:
 
 
    template <typename T>
-   void add_irf(double* irf_buf, int irf_idx, T a[], int pol_group, double* scale_fact = NULL);
+   void add_irf(double* irf_buf, int irf_idx, double t0_shift, T a[], int pol_group, double* scale_fact = NULL);
 
 
-   int flim_model(Buffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim);
+   int flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, bool include_fixed, int bin_shift, double a[], int adim);
    int ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
    int tau_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
    int beta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
    int theta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
    int E_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
    int FMM_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
-   
+   int t0_derivatives(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, double b[], int bdim);
+
    friend class DecayModelWorkingBuffers;
 
 };
@@ -171,7 +172,7 @@ public:
    DecayModelWorkingBuffers(shared_ptr<DecayModel> model);
    ~DecayModelWorkingBuffers();
 
-   void add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[]);
+   void add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[], int bin_shift = 0);
    void add_derivative(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[]);
 
 
@@ -196,10 +197,10 @@ private:
 
    shared_ptr<InstrumentResponseFunction> irf;
 
-   void calculate_exponentials(int irf_idx);
+   void calculate_exponentials(int irf_idx, double t0_shift);
    int check_alf_mod(const double* new_alf, int irf_idx);
 
-   void Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c);
+   void Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, int bin_shift, double& c);
    void ConvolveDerivative(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c);
 
 
@@ -221,9 +222,9 @@ private:
 
 // TODO: move this to InstrumentResponseFunction
 template <typename T>
-void DecayModel::add_irf(double* irf_buf, int irf_idx, T a[], int pol_group, double* scale_fact)
+void DecayModel::add_irf(double* irf_buf, int irf_idx, double t0_shift, T a[], int pol_group, double* scale_fact)
 {   
-   double* lirf = irf->GetIRF(irf_idx, irf_buf);
+   double* lirf = irf->GetIRF(irf_idx, t0_shift, irf_buf);
    double t_irf0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
    int n_irf = irf->n_irf;

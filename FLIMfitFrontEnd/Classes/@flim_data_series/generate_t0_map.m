@@ -42,10 +42,13 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     intensity = zeros(obj.height/n,obj.width/n);
     
     ti = obj.tr_t;
-    tii = min(ti):nt:max(ti);
+    tii = (min(ti)-max_shift):nt:(max(ti)+max_shift);
     
-    decayi = interp1(ti,decay,tii);
+    decayi = interp1(ti,decay,tii,'linear',0);
     decayi = decayi/sum(decayi);
+    
+    shifted = [];
+    original = [];
     
     h=waitbar(0,'Calculating offsets');
     for i=1:(obj.width/n)
@@ -63,7 +66,7 @@ function irf_data = generate_t0_map(obj, mask, dataset)
                 
             else
                 
-                decayiji = interp1(ti,decayij,tii);
+                decayiji = interp1(ti,decayij,tii,'linear',0);
 
                 intensity(j,i) = sum(decayiji);
 
@@ -73,9 +76,26 @@ function irf_data = generate_t0_map(obj, mask, dataset)
                 [m,idx] = max(a);
                 sim(j,i) = m;
                 diff(j,i) = lags(idx)*nt;
+               
+                
+                decayx = interp1(ti,decayij,ti-diff(j,i),'linear',0)';
+                
+                
+                m = decay \ decayx;
+
+                
+                shifted(:,end+1) = decayx / m;
+                original(:,end+1) = decayij / m;
+                
+                r = decay - decayx / m;
+                r = r(isfinite(r));
+                sim(j,i) = norm(r)/length(r);
+                
                 
             end
         end
+        
+        
         if mod(i,20)
             waitbar(i/obj.width*n,h);
         end
@@ -88,27 +108,60 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     p(2:4) = [200,400,600];
     set(f,'Position',p);
     
-    subplot(2,2,1);
-    plot(obj.tr_t,decay);
-    title('Decay Shape');
+    %subplot(1,3,1);
+    %plot(obj.tr_t,decay);
+    %title('Decay Shape');
     
-    subplot(2,2,2);
+    subplot(2,1,1);
     imagesc(diff);
     daspect([1,1,1]);
     colorbar
+    set(gca,'YTick',[],'XTick',[])
     title('IRF Shift (ps)')
 
-    subplot(2,2,3);
+    subplot(2,1,2);
     imagesc(sim/max(sim(:)));
     daspect([1,1,1]);
     colorbar
+    colormap('hot');
+    set(gca,'YTick',[],'XTick',[])
     title('Degree of correlation (Normalised)');
 
+    
+    %figure()
+    
+    %subplot(1,2,1);
+   
+    s2 = size(shifted,2);
+    t = obj.tr_t';
+    t = [t(1); t; t(end)];
+    tx = repmat(t,[1, size(shifted,2)]);
+    
+    padding = -100*ones(1,s2);
+    original = [padding; original; padding];
+    %{
+    patchline(tx,original,'FaceColor','none','EdgeAlpha',0.02)
+    ylim([0 1.1*max(original(:))])
+   
+    subplot(1,2,2)
+    %}
+    %{
+    shifted = [padding; shifted; padding];
+    
+    patchline(tx,shifted,'FaceColor','none','EdgeAlpha',0.02)
+    ylim([0 1.1*max(shifted(:))])
+    xlabel('Time (ps)');
+    ylabel('Normalised Response')
+   %}
+    %{
     subplot(2,2,4);
     imagesc(intensity);
     daspect([1,1,1]);
     colorbar
     title('Intensity (DN)');
+    %}
+    avg_diff = nanmean(diff(:));
+    diff(~isfinite(diff)) = avg_diff;
     
     % If we don't have an IRF loaded, use the decay.
     % Otherwise use the loaded IRF.

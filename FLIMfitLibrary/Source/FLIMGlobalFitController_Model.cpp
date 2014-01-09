@@ -32,18 +32,23 @@
 #include "ModelADA.h"
 
 #include <xmmintrin.h>
-#include <cfloat>
-#include <cmath>
 #include <algorithm>
+#include <boost/math/special_functions/fpclassify.hpp>
 
-#include <string.h>
+using boost::math::isnan;
+using std::min;
+using std::max;
 
 int DecayModelWorkingBuffers::check_alf_mod(const double* new_alf, int irf_idx)
 {
    int nl = model->nl;
 
-   if (nl == 0 || first_eval)
+   if (nl == 0 || model->fit_t0 == FIT)
       return true;
+   
+
+   if (nl == 0 || first_eval)
+		return true;
 
    if (irf->variable_irf && irf_idx != cur_irf_idx)
    {
@@ -51,17 +56,19 @@ int DecayModelWorkingBuffers::check_alf_mod(const double* new_alf, int irf_idx)
       return true;
    }
 
-   int changed = false;
+// TODO: add a test like this: data->image_t0_shift && (irf_idx / data->n_px != *cur_irf_idx / data->n_px || *cur_irf_idx == -1)
+
+   bool changed = false;
    for(int i=0; i<nl; i++)
    {
-      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN);
+      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN) | isnan(cur_alf[i]);
       cur_alf[i] = new_alf[i];
    }
 
    return changed;
 }
 
-void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
+void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx, double t0_shift)
 {
 
    double e0, de, ej, cum, fact, inv_theta, rate;
@@ -69,9 +76,8 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
    __m128d *dest_, *src_, *irf_;
 
    int row = n_pol_group*n_fret_group*n_exp*N_EXP_BUF_ROWS;
-   
 
-   double* lirf = irf->GetIRF(irf_idx, irf_buf);
+   double* lirf = irf->GetIRF(irf_idx, t0_shift, irf_buf); // TODO: add image irf shifting to GetIRF
    double t0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
   
@@ -152,7 +158,7 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
             for(j=0; j<n_loop; j++)
             {
 
-               *(dest_++) = _mm_mul_pd(*(src_++),t_irf_);
+               *(dest_++) = _mm_mul_pd(*(src_++),t_irf_); // TODO: CHECK THIS
             }
             t_irf_ = _mm_add_pd(t_irf_, dt_irf_);
          }
@@ -186,14 +192,9 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
             }
          }
 
-         row--;
+         row -= 2; // we're going to put the t0 shift model in first
         
-         //double tg = t[1] - t[0];
-         // Actual decay
-         //if (data->data_type == DATA_TYPE_TCSPC && !ref_reconvolution)
-         //   fact = ( 1 - exp( - tg * rate ) ) / rate;
-         //else
-              fact = 1;
+         fact = 1;
       
          if (irf->ref_reconvolution)
             fact *= dt_irf;
@@ -202,10 +203,11 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
 
          double* t = GetT();
 
+         de = exp( (t[0]-t[1]) * rate );
+
          if (model->eq_spaced_data)
          {
-            e0 = exp( -t[0] * rate );
-            de = exp( (t[0]-t[1]) * rate );
+            e0 = exp( -t[0] * rate );   
             for(k=0; k<n_chan; k++)
             {
                ej = e0;
@@ -224,19 +226,48 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx)
                   exp_buf[j+k*n_t+row*exp_dim] = fact * exp( - t[j] * rate ) * model->chan_fact[m*n_chan+k] * model->t_int[j];
             }
          }
+
+         // Calculated shifted model functions
+         if (model->fit_t0 == FIT)
+         {
+            for(k=0; k<n_chan; k++)
+            {
+               idx = row*exp_dim + k*n_irf;
+               next_idx = idx + exp_dim;
+               for(j=0; j<n_irf; j++)
+               {
+                  exp_buf[next_idx++] = exp_buf[idx++] * de;
+               }
+            }
+
+            de = 1/de;
+            for(k=0; k<n_chan; k++)
+            {
+               idx = row*exp_dim + k*n_irf;
+               next_idx = idx - exp_dim;
+               for(j=0; j<n_irf; j++)
+               {
+                  exp_buf[next_idx++] = exp_buf[idx++] * de;
+               }
+            }
+         }
+
+         row--;
       }
+
+
    }
 }
 
 
-void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[])
+void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[], int bin_shift )
 {   
    double c;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
    
-   double* exp_model_buf         = exp_buf +  row   *exp_dim;
-   double* exp_irf_cum_buf       = exp_buf + (row+3)*exp_dim;
-   double* exp_irf_buf           = exp_buf + (row+4)*exp_dim;
+   double* exp_model_buf         = exp_buf + (row+1+bin_shift)*exp_dim;
+   double* exp_irf_cum_buf       = exp_buf + (row+5)*exp_dim;
+   double* exp_irf_buf           = exp_buf + (row+6)*exp_dim;
             
    int fret_tau_idx = tau_idx + (fret_group_idx+model->tau_start)*n_exp;
 
@@ -261,7 +292,7 @@ void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_gr
       for(int i=0; i<n_t; i++)
       {
          
-         Convolve(rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, c);
+         Convolve(rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, bin_shift, c);
          a[idx] += exp_model_buf[k*n_t+i] * c * fact;
          idx++;
       }
@@ -273,11 +304,11 @@ void DecayModelWorkingBuffers::add_derivative(int tau_idx, int theta_idx, int fr
    double c;
    int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
 
-   double* exp_model_buf         = exp_buf + (row+0)*exp_dim;
-   double* exp_irf_tirf_cum_buf  = exp_buf + (row+1)*exp_dim;
-   double* exp_irf_tirf_buf      = exp_buf + (row+2)*exp_dim;
-   double* exp_irf_cum_buf       = exp_buf + (row+3)*exp_dim;
-   double* exp_irf_buf           = exp_buf + (row+4)*exp_dim;
+   double* exp_model_buf         = exp_buf + (row+1)*exp_dim;
+   double* exp_irf_tirf_cum_buf  = exp_buf + (row+3)*exp_dim;
+   double* exp_irf_tirf_buf      = exp_buf + (row+4)*exp_dim;
+   double* exp_irf_cum_buf       = exp_buf + (row+5)*exp_dim;
+   double* exp_irf_buf           = exp_buf + (row+6)*exp_dim;
       
    int fret_tau_idx = tau_idx + (fret_group_idx+model->tau_start)*n_exp;
            
@@ -300,13 +331,16 @@ void DecayModelWorkingBuffers::add_derivative(int tau_idx, int theta_idx, int fr
 }
 
 
-int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, bool include_fixed, double a[], int adim)
+int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, bool include_fixed, int bin_shift, double a[], int adim)
 {
 
    // Total number of columns 
    int n_col = n_fret_group * n_pol_group * n_exp_phi;
 
    memset(a, 0, adim*n_col*sizeof(double));
+   if (bin_shift != 1) // otherwise we're doing numerical derivatives for t0 and want to add
+      memset(a, 0, adim*n_col*sizeof(double));
+
 
    int idx = 0;
    for(int p=0; p<n_pol_group; p++)
@@ -322,17 +356,17 @@ int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, bool i
                cur_decay_group++;
 
                if (irf->ref_reconvolution)
-                  add_irf(wb.irf_buf, irf_idx, a+idx, p);
+                  add_irf(wb.irf_buf, irf_idx, t0_shift, a+idx, p);
             }
 
             // If we're doing delta-function reconvolution add contribution from reference
             // -> but only add once if beta is global (i.e. if we add up all the decays)
             if (irf->ref_reconvolution && (!beta_global || j==0))
-               add_irf(wb.irf_buf, irf_idx, a+idx, p);
+               add_irf(wb.irf_buf, irf_idx, t0_shift, a+idx, p);
 
             double fact = beta_global ? wb.beta_buf[j] : 1;
 
-            wb.add_decay(j, p, g, fact, ref_lifetime, a+idx);
+            wb.add_decay(j, p, g, fact, ref_lifetime, a+idx, bin_shift);
 
             if (!beta_global)
                idx += adim;
@@ -381,6 +415,28 @@ int DecayModel::ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, doubl
    }
 
    return n_col;
+}
+
+
+
+int DecayModel::t0_derivatives(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, double b[], int bdim)
+{
+   // Total number of columns 
+   int n_col = n_fret_group * n_pol_group * n_exp_phi;
+
+   
+   flim_model(wb, irf_idx, ref_lifetime, t0_shift, false, -1, b, bdim);
+
+   for(int i=0; i<bdim*n_col; i++)
+      b[i] *= -1;
+   
+   flim_model(wb, irf_idx, ref_lifetime, t0_shift, false, -1, b, bdim);
+ 
+   double idt = 0.5/irf->timebin_width;
+   for(int i=0; i<bdim*n_col; i++)
+      b[i] *= idt;
+
+      return n_col;
 }
 
 int DecayModel::tau_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
@@ -540,5 +596,4 @@ int DecayModel::E_derivatives(Buffers& wb, double ref_lifetime, double b[], int 
    return col;
 
 }
-
 

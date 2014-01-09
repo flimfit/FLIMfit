@@ -39,6 +39,9 @@ function load_segmentation(obj,folder)
                     'SelectionMode','single',...
                     'ListString',str);
     
+    matching = questdlg('Use full file name or only FOV number when matching masks to images?','Image Matching','Full Match','Only FOV','Full Match');
+                
+                
     if ~ok
         return
     end
@@ -55,8 +58,14 @@ function load_segmentation(obj,folder)
     
     for i=1:d.n_datasets
 
-        matching_files = dir([folder '*' d.names{i} '*.tif*']);
+        if strcmp(matching,'Only FOV')
+            match_string = ['FOV' num2str(d.metadata.FOV{i},'%05i')];
+        else
+            match_string = d.names{i};
+        end
         
+        matching_files = dir([folder '*' match_string '*.tif*']);
+            
         if ~isempty(matching_files)
             mask = uint8(imread([folder matching_files(1).name]));
             mask(mask>254) = 1;

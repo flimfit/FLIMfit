@@ -84,17 +84,7 @@ classdef flim_omero_data_manager < handle
             
             data_series.mode = mdta.FLIM_type;
             
-            % set name
-            extensions{1} = '.ome.tiff';
-            extensions{2} = '.ome.tif';
-            extensions{3} = '.tif';
-            extensions{4} = '.tiff';
-            extensions{5} = '.sdt';                        
-            extensions{5} = '.txt';                                    
-                for extind = 1:numel(extensions)    
-                    name = strrep(name,extensions{extind},'');
-                end  
-            %
+            
             if ~isempty(obj.dataset)
                 data_series.names{1} = name;            
             else % SPW image - treated differently at results import
@@ -360,7 +350,21 @@ classdef flim_omero_data_manager < handle
             %
             if isempty(str)
                 return;
-            end;            
+            elseif -1 == str
+                % try to look for annotations of data_series' first image..                
+                if ~isempty(data_series.image_ids)
+                    myimages = getImages(obj.session,data_series.image_ids(1));
+                    image = myimages(1);
+                    [str, fname] = select_Annotation(obj.session,obj.userid,image,'Choose image(1) IRF');
+                end
+            end;       
+            %
+            if isempty(str)                
+                return;
+            elseif -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
+                return;
+            end            
             %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
@@ -407,7 +411,7 @@ classdef flim_omero_data_manager < handle
                 mdta.modulo = 'ModuloAlongC';
                 mdta.delays = 1;
                 
-                [ data_cube, name ] =  obj.OMERO_fetch(  image, ZCT, mdta);
+                [ data_cube, ~ ] =  obj.OMERO_fetch(  image, ZCT, mdta);
                             
                 data = double(squeeze(data_cube));
                 %
@@ -577,8 +581,10 @@ classdef flim_omero_data_manager < handle
                                                         ' Z ' Z_str ...
                                                         ' C ' C_str ...
                                                         ' T ' T_str ' ' ...
-                                                        datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
+                                                        datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                                                     
                                                     end
+                                                    %
+                                                    if ~isempty(data_series.FLIM_modality), newplate_name = [ data_series.FLIM_modality ' ' newplate_name ]; end;                                                                                                       
                                                     %
                                                             newplate = omero.model.PlateI();
                                                             newplate.setName(omero.rtypes.rstring(newplate_name));    
@@ -746,9 +752,13 @@ classdef flim_omero_data_manager < handle
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose fitting settings file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
                 fwrite(fid,str,'*uint8');
@@ -899,10 +909,13 @@ classdef flim_omero_data_manager < handle
             %    
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose metadata xlsx file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;        
-            %            
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');                
             fwrite(fid,str,'int8');                        
@@ -999,9 +1012,12 @@ classdef flim_omero_data_manager < handle
             %    
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose TVB file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;            
+            elseif isempty(str)                
+                return;       
+            end            
             %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');                
@@ -1062,9 +1078,13 @@ classdef flim_omero_data_manager < handle
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose data settings file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
                 fwrite(fid,str,'*uint8');

@@ -33,6 +33,23 @@ project(TestHarness)
 
 include_directories( ${FGP_INCLUDE_DIRS} )
 
+# Enable OpenMP support, disable for XCode
+#===================================================
+if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
+else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
+   find_package("OpenMP")
+   if (OPENMP_FOUND)
+      option(USE_OMP "Use OpenMP" ON)
+      if (USE_OMP)
+         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+         message("Using OpenMP")
+      endif()
+   endif()
+endif()
+
+
 # Include the BOOST header files
 #===================================================
 FIND_PACKAGE(Boost)
@@ -51,6 +68,7 @@ set(SOURCE
 
 set(HEADERS
    FLIMSimulation.h
+   QR_test.h
 )
 
 # Add _32/_64 appendix to library
@@ -63,8 +81,6 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
-
-message(${FGP_LIB})
 
 target_link_libraries(TestHarness ${FGP_LIB}_lib levmar)
 

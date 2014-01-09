@@ -73,12 +73,13 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'fit_offset','popupmenu');
             obj.bind_control(handles,'fit_scatter','popupmenu');
             obj.bind_control(handles,'fit_tvb','popupmenu');
-            obj.bind_control(handles,'t0','edit');
+            %obj.bind_control(handles,'t0','edit');
             obj.bind_control(handles,'offset','edit');
             obj.bind_control(handles,'scatter','edit');
             obj.bind_control(handles,'tvb','edit');
             obj.bind_control(handles,'pulsetrain_correction','popupmenu');
             obj.bind_control(handles,'fit_reference','popupmenu');
+            obj.bind_control(handles,'fit_t0','popupmenu');
             obj.bind_control(handles,'n_thread','edit');
             obj.bind_control(handles,'fitting_algorithm','popupmenu');
             obj.bind_control(handles,'n_fret','popupmenu');
@@ -93,6 +94,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'use_memory_mapping','checkbox');
             obj.bind_control(handles,'use_autosampling','popupmenu');
             obj.bind_control(handles,'image_irf_mode','popupmenu');
+            obj.bind_control(handles,'use_image_t0_correction','checkbox');
             
             obj.bound_all_controls = true;
             

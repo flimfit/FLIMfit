@@ -142,7 +142,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t,
-                             int data_type, int* use_im, uint8_t *mask, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling);
+                             int data_type, int* use_im, uint8_t *mask, int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling);
 
 FITDLL_API int SetDataFloat(int c_idx, float* data);
 FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);
@@ -154,6 +154,8 @@ FITDLL_API int SetAcceptor(int c_idx, float* acceptor);
 FITDLL_API int SetBackgroundImage(int c_idx, float* background_image);
 FITDLL_API int SetBackgroundValue(int c_idx, float background_value);
 FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_map, float const_background);
+
+FITDLL_API int SetImageT0Shift(int c_idx, double* image_t0_shift);
 
 FITDLL_API int StartFit(int c_idx);
 

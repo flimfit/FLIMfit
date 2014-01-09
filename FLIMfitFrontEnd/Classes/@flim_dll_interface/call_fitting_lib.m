@@ -81,7 +81,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         
         t_skip = d.t_skip;
         n_t = length(d.t);
-        obj.p_t = libpointer('doublePtr',d.t);
+        obj.p_t = libpointer('doublePtr',d.tr_t_all);
         
         if obj.use_image_irf
             obj.p_irf = libpointer('doublePtr', d.tr_image_irf);
@@ -91,7 +91,6 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         
         if ~isempty(d.seg_mask)        
             m = d.seg_mask;
-            %m(m>0) = 1;
             obj.p_mask = libpointer('uint8Ptr', uint8(m));
         else
             obj.p_mask = [];
@@ -102,7 +101,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end
     
     conf_interval = prof.Fitting.Confidence_Interval;
-    
+       
     if p.polarisation_resolved
         
         err = calllib(obj.lib_name,'SetupGlobalPolarisationFit', ...
@@ -154,9 +153,10 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         thresh_min = d.thresh_min;
     end
     
+    
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, obj.p_t_int, t_skip, length(d.tr_t),...
-            data_type, obj.p_use, obj.p_mask, thresh_min, d.gate_max, counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
+            data_type, obj.p_use, obj.p_mask, p.merge_regions, thresh_min, d.gate_max, counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
  
     if ~isempty(d.acceptor)
         obj.p_acceptor = libpointer('singlePtr', d.acceptor);
@@ -179,6 +179,10 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         end
     end
     
+    if ~isempty(obj.p_image_t0_shift)
+        calllib(obj.lib_name,'SetImageT0Shift',obj.dll_id,obj.p_image_t0_shift);
+    end
+        
     if err ~= 0
         return;
     end    

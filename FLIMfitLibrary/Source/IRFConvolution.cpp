@@ -102,9 +102,18 @@ for(j=i; j<n_tau;     j++)
 // TODO: can we eliminate requirement for irf_max?
 
 
-void DecayModelWorkingBuffers::Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, double& c)
+void DecayModelWorkingBuffers::Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, int bin_shift, double& c)
 {
+   int irf0 = k*n_irf;
+
    int j = k*n_t+i;
+   int idx = irf_max[j] + bin_shift;
+
+   if (idx < irf0)
+      idx = irf0;
+   if (idx >= irf0+n_irf)
+      idx = irf0+n_irf-1;
+
    c = exp_irf_cum_buf[irf_max[j]] - 0.5*exp_irf_buf[irf_max[j]];
 
    if (pulsetrain_correction && pulse_fact > 0)

@@ -82,8 +82,11 @@ classdef flim_fitting_params < handle & h5_serializer
         use_autosampling = false;
         
         image_irf_mode = 0;
+        use_image_t0_correction = 0;
         
         weighting_mode = 0;
+        
+        merge_regions = false;
         
         n_thread = 8;
     end

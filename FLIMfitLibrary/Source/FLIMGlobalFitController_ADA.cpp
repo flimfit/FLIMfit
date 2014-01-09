@@ -110,15 +110,26 @@ void DecayModel::SetupIncMatrix(int* inc)
    if (irf->ref_reconvolution == FIT_GLOBALLY)
    {
       // Set elements of inc for ref lifetime derivatives
-      for(i=0; i<( n_pol_group* n_fret_group * n_exp_phi ); i++)
+      for(i=0; i<( n_pol_group * n_fret_group * n_exp_phi ); i++)
       {
          inc[inc_row+(inc_col+i)*12] = 1;
       }
       inc_row++;
    }
 
+   if (fit_t0 == FIT)
+   {
+      for(i=0; i<( n_pol_group * n_fret_group * n_exp_phi ); i++)
+      {
+         inc[inc_row + i*12]++;
+      }
+      inc_row++;
+   }
+
    inc_col += n_pol_group * n_fret_group * n_exp_phi;
-              
+     
+
+
    // Both global offset and scatter are in col L+1
 
    if( fit_offset == FIT_GLOBALLY )
@@ -140,6 +151,7 @@ void DecayModel::SetupIncMatrix(int* inc)
    }
 
 
+
 }
 
 
@@ -153,7 +165,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
    int i,j,k, d_offset, total_n_exp, idx;
    int a_col;
    
-   double ref_lifetime;
+   double ref_lifetime, t0_shift;
    
    double scale_fact[2];
    scale_fact[0] = 1;
@@ -165,6 +177,11 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
       ref_lifetime = alf[alf_ref_idx];
    else
       ref_lifetime = irf->ref_lifetime_guess;
+
+   if (fit_t0 == FIT)
+      t0_shift = alf[alf_t0_idx];
+   else
+      t0_shift = t0_guess;
 
    total_n_exp = n_exp * n_fret_group;
              
@@ -200,7 +217,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
          {
             for(i=0; i<n_meas; i++)
                a[adim*a_col+i]=0;
-            add_irf(wb.irf_buf, irf_idx, a+adim*a_col,n_r,scale_fact);
+            add_irf(wb.irf_buf, irf_idx, 0, a+adim*a_col,n_r,scale_fact);
             a_col++;
          }
 
@@ -292,9 +309,9 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
 
          // Precalculate exponentials
          if (wb.check_alf_mod(alf, irf_idx))
-            wb.calculate_exponentials(irf_idx);
+            wb.calculate_exponentials(irf_idx, t0_shift);
 
-         a_col += flim_model(wb, irf_idx, ref_lifetime, isel == 1, a+a_col*adim, adim);
+         a_col += flim_model(wb, irf_idx, ref_lifetime, t0_shift, isel == 1, 0, a+a_col*adim, adim);
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
@@ -306,7 +323,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
          // Add scatter
          if (fit_scatter == FIT_GLOBALLY)
          {
-            add_irf(wb.irf_buf, irf_idx, a+adim*a_col,n_r,scale_fact);
+            add_irf(wb.irf_buf, irf_idx, t0_shift, a+adim*a_col,n_r,scale_fact);
             for(i=0; i<n_meas; i++)
                a[ i + adim*a_col ] = a[ i + adim*a_col ] * alf[alf_scatter_idx];
          }
@@ -387,6 +404,10 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
 
          if (irf->ref_reconvolution == FIT_GLOBALLY)
             col += ref_lifetime_derivatives(wb, ref_lifetime, b+col*bdim, bdim);
+
+         if (fit_t0 == FIT)
+            col += t0_derivatives(wb, irf_idx, ref_lifetime, t0_shift, b+col*bdim, bdim);
+
                   
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
@@ -430,7 +451,7 @@ int DecayModel::CalculateModel(Buffers& wb, double *a, int adim, double *b, int 
          {
             for(i=0; i<n_meas; i++)
                b[d_offset+i]=0;
-            add_irf(wb.irf_buf, irf_idx, b+d_offset,n_r,scale_fact);
+            add_irf(wb.irf_buf, irf_idx, t0_shift, b+d_offset,n_r,scale_fact);
             d_offset += bdim;
             col++;
          }
@@ -510,7 +531,7 @@ void DecayModel::GetWeights(Buffers& wb, float* y, double* a, const double *alf,
       for(i=0; i<n_meas; i++)
          w[i] /= ref_lifetime;
 
-      add_irf(wb.irf_buf, irf_idx, w, n_r, &F0);
+      add_irf(wb.irf_buf, irf_idx, 0, w, n_r, &F0); // TODO: t0_shift?
      
       // Variance = (D + F0 * D_r);
 

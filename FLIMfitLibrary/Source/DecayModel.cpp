@@ -234,7 +234,7 @@ void DecayModel::SetupAdjust()
 
    vector<double> irf_buf( n_irf * n_meas );
 
-   add_irf(&irf_buf[0], 0, &adjust_buf[0], n_r, scale_fact);
+   add_irf(&irf_buf[0], 0, 0, &adjust_buf[0], n_r, scale_fact); // irf_shift?
 
    for(int i=0; i<n_meas; i++)
       adjust_buf[i] = adjust_buf[i] * scatter_adj + offset_adj;
@@ -565,7 +565,7 @@ int DecayModel::DetermineMAStartPosition(int idx)
    int start = 0;
 
    vector<double> storage(n_meas);
-   double *lirf = irf->GetIRF(idx, &(storage[0]));
+   double *lirf = irf->GetIRF(idx, 0, &(storage[0]));
    double t_irf0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
 

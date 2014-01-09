@@ -107,6 +107,8 @@ classdef front_end_menu_controller < handle
         menu_file_load_data_settings;
         menu_file_save_data_settings;
         
+        menu_file_load_t_calibration;
+        
         menu_file_open_fit;
         menu_file_save_fit;
         
@@ -588,6 +590,13 @@ classdef front_end_menu_controller < handle
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.load_data_settings([pathname filename]);         
+            end
+        end
+        
+        function menu_file_load_t_calibration_callback(obj,~,~)
+            [filename, pathname] = uigetfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
+            if filename ~= 0
+                obj.data_series_controller.data_series.load_t_calibriation([pathname filename]);         
             end
         end
 

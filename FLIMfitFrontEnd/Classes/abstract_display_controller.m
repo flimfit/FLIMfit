@@ -169,37 +169,42 @@ classdef abstract_display_controller < handle
             end
         end
         
-        function export_to_ppt(obj)
+        function export_to_ppt(obj,varargin)
            
             [f,ref] = obj.make_hidden_fig([400,300]);
             
             obj.draw_plot(ref);
             if length(get(ref,'children')) <= 2 % if only one axis use pptfigure, gives better plots
-                saveppt2('current','currentslide','figure',f,'stretch',false,'driver','bitmap','scale',false);
+                saveppt2('current','currentslide','figure',f,'stretch',false,'driver','bitmap','scale',false,varargin{:});
             else
-                saveppt2('current','currentslide','figure',f,'stretch',false);
+                saveppt2('current','currentslide','figure',f,'stretch',false,varargin{:});
             end
             close(f);
         end
             
         
-        function export_data(obj)   
+        function export_data(obj,filename)   
             
-            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+            if nargin < 2
             
-            [filename, pathname, ~] = uiputfile( ...
-                        {'*.csv', 'Comma Separated  Values (*.csv)'},...
-                         'Select file name',[default_path filesep]);
+                default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
 
-            if filename ~= 0
-               
-                file = [pathname filesep filename];
-                
-                if obj.export(file) % returns true if it wants us to autoexport
-                    cell2csv(file,obj.raw_data);
+                [file, pathname, ~] = uiputfile( ...
+                            {'*.csv', 'Comma Separated  Values (*.csv)'},...
+                             'Select file name',[default_path filesep]);
+                         
+                if file ~= 0
+                    filename = [pathname filesep file];
+                else 
+                    return
                 end
                 
             end
+                 
+            if obj.export(filename) % returns true if it wants us to autoexport
+                cell2csv(filename,obj.raw_data);
+            end
+                
         end
         
         function plot_fit_update(obj) 

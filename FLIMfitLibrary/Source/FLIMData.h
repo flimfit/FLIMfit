@@ -64,7 +64,7 @@ class FLIMData : public AcquisitionParameters
 public:
 
    FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
-            int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status);
+            int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status);
 
    int  SetData(float data[]);
    int  SetData(uint16_t data[]);
@@ -96,7 +96,7 @@ public:
    void SetBackground(float* background_image);
    void SetBackground(float background);
    void SetTVBackground(float* tvb_profile, float* tvb_I_map, float const_background);
-
+   void SetImageT0Shift(double* image_t0_shift);
    void ClearMapping();
    
    void ImageDataFinished(int im);
@@ -126,6 +126,9 @@ public:
 
    uint8_t* mask;
    int n_masked_px;
+   int merge_regions;
+
+   double* image_t0_shift;
 
 
    int global_mode;
@@ -347,8 +350,17 @@ int FLIMData::CalculateRegions()
 
       memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
       
-      for(int p=0; p<n_px; p++)
-         region_count_ptr[*(mask_ptr++)]++;
+
+      if (merge_regions)
+      {
+         for(int p=0; p<n_px; p++)
+            region_count_ptr[(*(mask_ptr++)>0)]++;
+      }
+      else
+      {
+         for(int p=0; p<n_px; p++)
+            region_count_ptr[*(mask_ptr++)]++;  
+      }
 
       // Calculate region indexes
       for(int r=1; r<MAX_REGION; r++)

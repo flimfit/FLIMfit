@@ -1,4 +1,4 @@
-function FLIMfit()
+function ui = FLIMfit()
 
 
 % Copyright (C) 2013 Imperial College London.
@@ -31,7 +31,7 @@ function FLIMfit()
 addpath_global_analysis();
 
 
-flim_fit_ui(false);
+ui = flim_fit_ui(false);
 
     
 end

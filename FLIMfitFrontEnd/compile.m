@@ -194,7 +194,8 @@ function compile(v)
             % environment 
             % examples are included for:
             % Macports GCC 4.7 [FLIMfit_GCC47MP.platypus]
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47HB.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
+            % Homebrew GCC 4.7 [FLIMfit_GCC47HB.platypus]
+            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
             
             
             system(cmd);

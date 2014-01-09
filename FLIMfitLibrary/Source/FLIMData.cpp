@@ -32,13 +32,14 @@
 //#include "hdf5.h"
 
 FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
-                   int* use_im, uint8_t mask[], int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status) :
+                   int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status) :
    AcquisitionParameters(acq),   
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
    use_im(use_im),
    mask(mask),
+   merge_regions(merge_regions),
    threshold(threshold),
    limit(limit),
    smoothing_factor(smoothing_factor),
@@ -52,6 +53,8 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
    acceptor_  = NULL;
    loader_thread = NULL;
 
+
+   image_t0_shift = NULL;
 
    // Make sure waiting threads are notified when we terminate
    status->AddConditionVariable(&data_avail_cond);
@@ -388,6 +391,12 @@ void FLIMData::SetTVBackground(float* tvb_profile, float* tvb_I_map, float const
    this->background_type = BG_TV_IMAGE;
 }
 
+void FLIMData::SetImageT0Shift(double* image_t0_shift)
+{
+   this->image_t0_shift = image_t0_shift;
+}
+
+
 int FLIMData::GetRegionIndex(int im, int region)
 {
    // If fitting globally, set im=-1 to get index of region for all datasets
@@ -451,7 +460,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
       
       int start = GetRegionPos(0, region);
        
-     // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
+      // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
       #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
       for(int i=0; i<n_im_used; i++)
       {
@@ -512,15 +521,12 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
    else
       TransformImage<uint16_t>(thread, im);
 
-   for(int i=0; i<n_meas; i++)
-      masked_data[i] = 0;
-
    // Store masked values
    int idx = 0;
 
    for(int p=0; p<n_px; p++)
    {
-      if (region < 0 || im_mask[p] == region)
+      if (region < 0 || im_mask[p] == region || (merge_regions && im_mask[p] > 0))
       {
          masked_intensity[idx*n_aux] = intensity[p];
    
@@ -534,7 +540,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
             masked_data[idx*n_meas+i] = tr_data[p*n_meas+i];
 
 
-         irf_idx[idx] = p;
+         irf_idx[idx] = iml*n_px+p;
          idx++;
       }
    }

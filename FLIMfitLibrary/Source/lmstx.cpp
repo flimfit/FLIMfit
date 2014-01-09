@@ -25,9 +25,6 @@ using std::min;
 #define FALSE_ (0)
 
 
-int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_group, double *x, 
-	double *fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread);
-
 void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *b2);
 
 /* Subroutine */ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_group, double *x, 
@@ -383,7 +380,7 @@ void combine_givens(int n, double *r1, double *r2, int ldr, double *b1, double *
             if (delta == 0.) {
                 delta = factor;
             }
-        }
+        } 
 
 /*        compute the norm of the scaled gradient. */
 
@@ -632,48 +629,61 @@ double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, d
 
    int sm = ceil((double)s/n_jac_group);
 
-   #pragma omp parallel for num_threads(n_thread) schedule(dynamic, 10)
-   for (int i = 0; i<sm; i++)
+   if ( sm == 1 )
    {
-      int thread = omp_get_thread_num();
+      for(int j=0; j<s; j++)
+         (*fcn)(p, m, n, s, x, fvec+m*j, wa3+m*n*j, j+3, 0);
 
-      double* fjac_ = fjac + dim * ldfjac * thread;
-      double* qtf_  = qtf + dim * thread;
-      double* fvec_ = fvec + m * thread * n_jac_group; 
-      double* wa3_  = wa3 + m * dim * thread * n_jac_group;
-      double* wa1_  = wa1 + dim * thread;
-      double* wa2_  = wa2 + dim * thread;
+         qrfac2( m*s, n, wa3, ldfjac, fvec, qtf, wa2);
+         memcpy(fjac,wa3,n*n*sizeof(double));
+   }
+   else
+   {
+      #pragma omp parallel for num_threads(n_thread)
+      for (int i = 0; i<sm; i++)
+      {
+         int thread = omp_get_thread_num();
+
+         double* fjac_ = fjac + dim * ldfjac * thread;
+         double* qtf_  = qtf + dim * thread;
+         double* fvec_ = fvec + m * thread * n_jac_group; 
+         double* wa3_  = wa3 + m * dim * thread * n_jac_group;
+         double* wa1_  = wa1 + dim * thread;
+         double* wa2_  = wa2 + dim * thread;
       
-      int j_max = min(s,(i+1)*n_jac_group) - i*n_jac_group;
-      for(int j=0; j<j_max; j++)
-         (*fcn)(p, m, n, s, x, fvec_+m*j, wa3_+m*n*j, i*n_jac_group+j+3, thread);
+         int j_max = min(s,(i+1)*n_jac_group) - i*n_jac_group;
+      
+         for(int j=0; j<j_max; j++)
+            (*fcn)(p, m, n, s, x, fvec_+m*j, wa3_+m*n*j, i*n_jac_group+j+3, thread);
 
-      // Givens transforms
-      //for(int j=0; j<m; j++)
-      //   rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, fvec_+j, wa1_, wa2_);
+         // Givens transforms
+         //for(int j=0; j<m; j++)
+         //   rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, fvec_+j, wa1_, wa2_);
 
-      // Householder / Givens hybrid
-      qrfac2( m*j_max, n, wa3_, ldfjac, fvec_, wa1_, wa2_);
-      for(int j=0; j<n; j++)
-         rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, wa1_+j, wa2_, fvec_); // here we just use fvec_ as a buffer
-   }
-   
+         // Householder / Givens hybrid
+         qrfac2( m*j_max, n, wa3_, ldfjac, fvec_, wa1_, wa2_);
+         for(int j=0; j<n; j++)
+            rwupdt(n, fjac_, ldfjac, wa3_+n*j, qtf_, wa1_+j, wa2_, fvec_); // here we just use fvec_ as a buffer
+      }
+ 
+      int n_thread_used = min(n_thread, sm);
+      for(int i=1; i<n_thread_used; i++)
+      {
+         double* fjac_ = fjac + dim * ldfjac * i;
+         double* qtf_  = qtf + dim * i;
 
-   for(int i=1; i<n_thread; i++)
-   {
-      double* fjac_ = fjac + dim * ldfjac * i;
-      double* qtf_  = qtf + dim * i;
+         for(int j=0; j<n; j++)
+            for(int k=0; k<j; k++)
+            {
+               fjac_[k * n + j] = fjac_[j * n + k] ;
+               fjac_[j * n + k] = 0; 
+            }
 
-      for(int j=0; j<n; j++)
-         for(int k=0; k<j; k++)
-         {
-            fjac_[k * n + j] = fjac_[j * n + k] ;
-            fjac_[j * n + k] = 0; 
-         }
+         for(int j=0; j<n; j++)
+            rwupdt(n, fjac, ldfjac, fjac_ + n*j, qtf, qtf_+j, wa1, wa2);
+      }
 
-      for(int j=0; j<n; j++)
-         rwupdt(n, fjac, ldfjac, fjac_ + n*j, qtf, qtf_+j, wa1, wa2);
-   }
+   }   
   
 #ifdef TEST_FACTORISATION
    delete[] qtf_true;

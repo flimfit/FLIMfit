@@ -28,9 +28,9 @@ function handles = setup_layout(obj, handles)
 
     % Start layout
     %---------------------------------------
-    main_layout = uiextras.VBoxFlex( 'Parent', obj.window, 'Spacing', 3 );
-    top_layout = uiextras.HBoxFlex( 'Parent', main_layout, 'Spacing', 3 );
-    left_layout = uiextras.VBoxFlex( 'Parent', top_layout, 'Spacing', 3 );
+    %main_layout = uiextras.VBoxFlex( 'Parent', obj.window, 'Spacing', 5, 'Padding', 0, 'ShowMarkings', 'on' );
+    top_layout = uiextras.HBoxFlex( 'Parent', obj.window, 'Spacing', 5, 'Padding', 0, 'ShowMarkings', 'on', 'Enable', 'on' );
+    left_layout = uiextras.VBoxFlex( 'Parent', top_layout, 'Spacing', 5, 'Padding', 0, 'ShowMarkings', 'on' );
     
 
     % Decay Display
@@ -99,7 +99,7 @@ function handles = setup_layout(obj, handles)
     %---------------------------------------
         
     dataset_panel = uiextras.BoxPanel( 'Parent', left_layout, 'Title', 'Dataset' );
-    dataset_layout = uiextras.HBox( 'Parent', dataset_panel, 'Padding', 3 );
+    dataset_layout = uiextras.HBoxFlex( 'Parent', dataset_panel, 'Padding', 3, 'Spacing', 5 );
 
     dataset_layout_left = uiextras.VBox( 'Parent', dataset_layout, 'Padding', 3 );
     handles.data_series_table = uitable( 'Parent', dataset_layout_left );
@@ -126,7 +126,7 @@ function handles = setup_layout(obj, handles)
     handles.intensity_axes = axes( 'Parent', intensity_container );
     
     set( intensity_layout, 'Sizes', [22,-1] );
-    set( dataset_layout, 'Sizes', [150,-1] );
+    set( dataset_layout, 'Sizes', [-1,-2], 'MinimumSizes', [150 0] );
 
     
     % Data Transformation Panel
@@ -148,10 +148,11 @@ function handles = setup_layout(obj, handles)
 
     set(fit_button_layout,'Sizes',[-1,-2]);
     
-    set(left_layout,'Sizes',[-1,125,186,30])
+    set(left_layout,'Sizes',[-1,125,208,30])
     
         
-    set(top_layout,'Sizes',[550,-1]);
+    set(top_layout,'Sizes',[-1,-2],'MinimumSizes',[500 0]);
+    
 
 %    dragzoom([handles.highlight_axes handles.residuals_axes])
        

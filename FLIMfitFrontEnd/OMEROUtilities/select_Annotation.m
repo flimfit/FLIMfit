@@ -51,7 +51,7 @@ function [ret fname] = select_Annotation(session, userId, object, prompt)
         annotations = map.get(objId);
         %
         if 0 == annotations.size()
-            errordlg('select_Annotation: no annotations - ret is empty');
+            ret = -1;
             return;
         end                
         %        

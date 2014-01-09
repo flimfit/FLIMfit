@@ -63,13 +63,15 @@ classdef OMERO_data_series < flim_data_series
         image_ids;
         mdta;
        
-        ZCT; % cell array containing missing OME dimensions Z,C,T (in that order)  
+        ZCT = []; % cell array containing missing OME dimensions Z,C,T (in that order)  
         verbose;        % flag to switch waitbar in OMERO_fetch on or off
         
         omero_data_manager;
         fitted_data;
         
         fit_result;
+        
+        FLIM_modality;
         
     end
     
@@ -86,19 +88,20 @@ classdef OMERO_data_series < flim_data_series
      function obj = OMERO_data_series(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
-            verbose = true;
+            obj.verbose = true;
             
-            polarisation_resolved = false;  % defaults
-            load_multiple_channels = false;
+            obj.polarisation_resolved = false;  % defaults
+            obj.load_multiple_channels = false;
             
             obj.fitted_data = [];
             obj.fit_result = [];
-            
+            obj.FLIM_modality = [];             
         end
                                         
         function delete(obj)
             obj.fitted_data = [];
             obj.fit_result = []; 
+            obj.FLIM_modality = [];            
             obj.clear_memory_mapping();
         end   
         
