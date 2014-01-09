@@ -15,8 +15,6 @@
 		<string>/usr/gcc-4.7.3/lib/libgomp.1.dylib</string>
 		<string>/usr/gcc-4.7.3/lib/libstdc++.6.dylib</string>
 		<string>/usr/gcc-4.7.3/lib/libgcc_s.1.dylib</string>
-		<string>/usr/local/Cellar/ghostscript/9.07/bin/gs</string>
-		<string>/usr/local/Cellar/little-cms2/2.5/lib/liblcms2.2.dylib</string>
 		<string>./DeployFiles/FLIMfit_MACI64.app</string>
 	</array>
 	<key>Creator</key>
