@@ -233,9 +233,9 @@ function savefig(fname, varargin)
 	switch(computer)													% Get gs command.
 		case {'MAC','MACI64'},			
             if isdeployed
-                gs= 'gs-noX11';
+                gs= 'gs';
             else
-                gs= '/usr/local/bin/gs-noX11';
+                gs= '/usr/local/bin/gs';
             end
 		case {'PCWIN','PCWIN64'},		gs= '"C:\Program Files\gs\gs8.71\bin\gswin32c.exe"';
 		otherwise,						gs= 'gs';
