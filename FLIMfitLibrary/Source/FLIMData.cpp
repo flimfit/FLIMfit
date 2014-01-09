@@ -578,7 +578,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
       s = 0;
       int start = GetRegionPos(0, region);
        
-     // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
+      // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
       #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
       for(int i=0; i<n_im_used; i++)
       {
@@ -629,9 +629,6 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
       TransformImage<float>(thread, im);
    else
       TransformImage<uint16_t>(thread, im);
-
-   for(int i=0; i<n_meas; i++)
-      masked_data[i] = 0;
 
    // Store masked values
    int s = 0;
