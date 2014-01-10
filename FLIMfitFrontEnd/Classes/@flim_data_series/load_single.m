@@ -60,18 +60,6 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
                 obj.load_multiple_channels = true;
             else 
                 channel = 1;
-                try % might be headerless multi-channel
-                    D = load(lower(file),'ascii');
-                catch err, 
-                    display(err.message), 
-                end;
-                %
-                if exist('D','var')
-                    [~,n_ch1] = size(D);                                     
-                    if n_ch1 > 2
-                        [channel,~] = obj.request_channels(false);
-                    end
-                end                                
             end
         end
     end
