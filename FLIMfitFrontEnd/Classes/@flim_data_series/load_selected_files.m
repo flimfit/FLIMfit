@@ -152,16 +152,14 @@ function load_selected_files(obj,selected)
            
             for j=1:num_sel
 
-                if obj.load_multiple_channels
-                    filename = obj.file_names{1};
-                    data = obj.load_flim_cube(filename);
-                    % [~,data] = load_flim_file(filename,obj.channels(selected(j)));
-                else
+                if length(obj.file_names) > 1
                     filename = obj.file_names{selected(j)};
-                    data = obj.load_flim_cube(filename);
-                    % [~,data] = load_flim_file(filename,obj.channels);
+                else
+                    filename = obj.file_names{1};
+                    
                 end
                 
+               [data] = obj.load_flim_cube(filename,j);
                 
                  if false && ~isdeployed
                    
@@ -230,6 +228,8 @@ function load_selected_files(obj,selected)
         end
 
     end
+    
+    
         
             
     if using_popup

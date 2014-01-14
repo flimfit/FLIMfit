@@ -44,6 +44,8 @@ function[dims,t_int] = get_image_dimensions(obj, file)
              ext = '.ome';
          end
     end
+    
+    dims.chan_info = { [ ext ' data']};     %default
         
     
     switch ext
@@ -152,8 +154,73 @@ function[dims,t_int] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
 
 
-          % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-          case {'.asc','.csv','.txt', '.irf'}
+            
+          % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+          case {'.csv','.txt'} 
+              
+              
+              if strcmp(ext,'.txt')
+                 dlm = '\t';
+             else
+                 dlm = ',';
+             end
+              
+            fid = fopen(file);
+            
+            header_data = cell(0,0);     
+            textl = fgetl(fid);
+            
+            if strcmp(textl,'TRFA_IC_1.0')
+                fclose(fid_);
+                throw(MException('FLIM:CannotOpenTRFA','Cannot open TRFA formatted files'));
+            else
+            
+                while ~isempty(textl)
+                    first = sscanf(textl,['%f' dlm]);
+                     if isempty(first)
+                         header_data{end+1} =  textl;
+                         textl = fgetl(fid);
+                     else 
+                         textl = [];
+                     end                 
+                end
+                
+                fclose(fid);
+                
+                nchans = length(first) -1
+                
+                n_header_lines = length(header_data);
+                header_info = cell(1,n_header_lines);
+             
+               
+                for i=1:n_header_lines
+                    parts = regexp(header_data{i},'\s*\t\s*','split');
+                    header_info{i} = parts(2:end);
+                end
+                
+                chan_info = cell(1,nchans);
+                for i=1:nchans
+                    chan_info{i} = header_info{1}{i};
+                end
+                
+               [dims.delays,im_data] = load_flim_file(file,1);
+                
+                dims.chan_info = chan_info;
+                dims.FLIM_type = 'TCSPC';
+                dims.sizeZCT = [1 nchans 1];
+                dims.sizeXY = [ 1 1 ];
+                dims.modulo = [];
+            end
+                 
+                 
+            
+                 
+                 
+
+            
+          %  more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+          case {'.asc', '.irf'}
+             
               
               [dims.delays,im_data,t_int] = load_flim_file(file);
               

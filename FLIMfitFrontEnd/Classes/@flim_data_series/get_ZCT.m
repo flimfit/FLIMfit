@@ -23,7 +23,7 @@
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
  
-            if nargin < 5
+            if nargin < 3
                 polarisation_resolved = false;
             end
 
@@ -50,10 +50,7 @@
             end 
             
              
-            
             if polarisation_resolved == true
-                
-                
                 
                 if (sizeZ + sizeT) > 2
                     maxx = [ 1  1];   % select one from each 
@@ -88,10 +85,15 @@
             else
             
                 if (sizeZ + sizeC + sizeT) > 3
+                    
+                    minn = [ 1 1 1 ];   % select one from each 
+                    
+                    if length(obj.file_names) == 1      % single file in data set
+                        maxx = [ sizeZ sizeC sizeT ];                 % so allow any selection
+                    else
+                        maxx = minn;
+                    end
                 
-                    maxx = [ 1 1 1];   % select one from each 
-                    minn = maxx;      % no subset selection allowed
-            
                     ZCT = ZCT_selection([sizeZ sizeC sizeT], maxx, minn);
                 end
             

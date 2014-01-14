@@ -50,7 +50,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     if strcmp(mode,'TCSPC')
 
         
-        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif']); [dir([root_path '*.msr']; [dir([root_path '*.asc']););];            
+        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif']); dir([root_path '*.msr']); dir([root_path '*.asc'])];            
         n_datasets = length(files);
         
         file_names = cell(1,n_datasets);
@@ -77,7 +77,9 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         
         %------------------------------------
         % get dimensions from first file
-        dims = obj.get_image_dimensions(obj.filenames{1});
+        
+        
+        dims = obj.get_image_dimensions(obj.file_names{1});
     
         obj.modulo = dims.modulo;
     
@@ -87,14 +89,11 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
         
         % NB we need to sort out blocks here ASAP
-    
+  
         obj.t = dims.delays;
         obj.channels = obj.ZCT{2};
     
-        if size(obj.channels) > 1
-            obj.load_multiple_channels = true;
-        end
-        
+       
         obj.n_datasets = n_datasets;
         
         %set names
@@ -104,8 +103,12 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             obj.names{j} = name;
         end
         
+        psize = 1;
+        if obj.polarisation_resolved
+            psize = 2;
+        end
         
-        data_size = [length(dims.delays) obj.n_datasets dims.sizeXY length(obj.ZCT{2}) ];
+        data_size = [length(dims.delays) psize dims.sizeXY obj.n_datasets) ];
         obj.data_size = data_size;
         
         

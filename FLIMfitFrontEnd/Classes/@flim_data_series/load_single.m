@@ -48,10 +48,10 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     end
     
     obj.root_path = ensure_trailing_slash(path);  
+    obj.file_names = {file};
     
     
-    
-    dims = obj.get_image_dimensions(file);
+    dims = obj.get_image_dimensions(obj.file_names{1});
     
     obj.modulo = dims.modulo;
     
@@ -60,17 +60,34 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     % Determine which channels we need to load 
     obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
     
+    % for the time being assume only 1 dimension can be > 1 
+    % otherwise this will go horribly wrong !
+    Z = obj.ZCT{1}
+    if length(Z)> 1
+        for z = 1:length(Z)
+            obj.names{z} = [ 'Z ' num2str(Z(z))];
+        end
+    end
+    
+    C = obj.ZCT{2}
+    if length(C)> 1 & ~obj.polarisation_resolved
+        for c = 1:length(C)
+            obj.names{c} = [ 'C ' num2str(C(c))];
+        end
+    end
+    
+   T = obj.ZCT{3}
+    if length(T)> 1
+        for t = 1:length(T)
+            obj.names{t} = [ 'T ' num2str(T(t))];
+        end
+    end 
+    
+   
     obj.t = dims.delays;
     obj.channels = obj.ZCT{2};
     
-    if size(obj.channels) > 1
-        obj.load_multiple_channels = true;
-    end
-    
-    
-    obj.file_names = {file};
-    
-    
+
     if isempty(obj.names)
         % Set names from file names
         if strcmp(ext,'.tif') | strcmp(ext,'.tiff') & isempty(strfind(file,'ome.'))
@@ -84,9 +101,14 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     end
     
     
-    obj.n_datasets = length(obj.names);
+    obj.n_datasets = length(obj.names)
     obj.polarisation_resolved = polarisation_resolved;
-    data_size = [length(dims.delays) obj.n_datasets dims.sizeXY length(obj.ZCT{2}) ];
+    psize = 1;
+    if obj.polarisation_resolved
+        psize = 2;
+    end
+    
+    data_size = [length(dims.delays) psize dims.sizeXY obj.n_datasets ];
     obj.data_size = data_size;
     
     obj.metadata = extract_metadata(obj.names);
