@@ -50,8 +50,25 @@
             end 
             
              
-            if polarisation_resolved == true
+            if polarisation_resolved == true  & sizeC > 1
                 
+                
+                chans = -1;
+                    
+                while max(chans) > sizeC  | chans == -1
+                     
+                    % copied from request_channels in flim_data_series
+                    dlgTitle = 'Select channels';
+                    prompt = {'Parallel Channel';'Perpendicular Channel'};
+                    defaultvalues = {'1','2'};
+                    numLines = 1;
+                    inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                    chans = str2double(inputdata);
+                end
+                    
+                ZCT{2} = chans;
+                    
+                    
                 if (sizeZ + sizeT) > 2
                     maxx = [ 1  1];   % select one from each 
                     minn = maxx;      % no subset selection allowed
@@ -61,35 +78,16 @@
                     ZCT{3} = ZT{2}
                      
                 end
-                
-                if sizeC  > 1
                     
-                    chans = -1;
-                    
-                    while max(chans) > sizeC  | chans == -1
-                     
-                        % copied from request_channels in flim_data_series
-                        dlgTitle = 'Select channels';
-                        prompt = {'Parallel Channel';'Perpendicular Channel'};
-                        defaultvalues = {'1','2'};
-                        numLines = 1;
-                        inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                        chans = str2double(inputdata);
-                    end
-                    
-                    ZCT{2} = chans;
-
-                end
-                
-                
+  
             else
             
                 if (sizeZ + sizeC + sizeT) > 3
                     
                     minn = [ 1 1 1 ];   % select one from each 
                     
-                    if length(obj.file_names) == 1      % single file in data set
-                        maxx = [ sizeZ sizeC sizeT ];                 % so allow any selection
+                    if length(obj.file_names) == 1          % single file in data set
+                        maxx = [ sizeZ sizeC sizeT ];       % so allow any selection
                     else
                         maxx = minn;
                     end

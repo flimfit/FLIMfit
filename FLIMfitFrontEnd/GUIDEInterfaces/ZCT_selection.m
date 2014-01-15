@@ -140,7 +140,7 @@ if eventdata.EditData % if the checkbox was set to true
         data(first,2) = num2cell(false);  
     end   
 else
-    if sum(sett) <= handles.minZ
+    if sum(sett) < handles.minZ
         sett(eventdata.Indices(1) ) = 1;  %eliminate the box just unticked from enquiries
         first = squeeze(find(sett==0,1));
         if isempty(first)
@@ -175,7 +175,7 @@ if eventdata.EditData % if the checkbox was set to true
         data(first,2) = num2cell(false);  
     end   
  else
-    if sum(sett) <= handles.minC
+    if sum(sett) < handles.minC
         sett(eventdata.Indices(1) ) = 1;  %eliminate the box just unticked from enquiries
         first = squeeze(find(sett==0,1));
         if isempty(first)
@@ -210,7 +210,7 @@ if eventdata.EditData % if the checkbox was set to true
         data(first,2) = num2cell(false);  
     end   
 else
-    if sum(sett) <= handles.minT
+    if sum(sett) < handles.minT
         sett(eventdata.Indices(1) ) = 1;  %eliminate the box just unticked from enquiries
         first = squeeze(find(sett == 0,1));
         if isempty(first)

@@ -77,8 +77,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         
         %------------------------------------
         % get dimensions from first file
-        
-        
+       
         dims = obj.get_image_dimensions(obj.file_names{1});
     
         obj.modulo = dims.modulo;
@@ -108,7 +107,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             psize = 2;
         end
         
-        data_size = [length(dims.delays) psize dims.sizeXY obj.n_datasets) ];
+        data_size = [length(dims.delays) psize dims.sizeXY obj.n_datasets ];
         obj.data_size = data_size;
         
         

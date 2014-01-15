@@ -62,28 +62,23 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     
     % for the time being assume only 1 dimension can be > 1 
     % otherwise this will go horribly wrong !
-    Z = obj.ZCT{1}
-    if length(Z)> 1
-        for z = 1:length(Z)
-            obj.names{z} = [ 'Z ' num2str(Z(z))];
+    allowed = [ 1 1 1];   % allowed max no of planes in each dimension ZCT
+    if polarisation_resolved
+        allowed = [ 1 2 1 ];
+    end
+    prefix = [ 'Z' 'C' 'T'];
+    
+    for dim = 1:3
+        D = obj.ZCT{dim};
+        if length(D) > allowed(dim)
+            for d = 1:length(D)
+                obj.names{d} = [ prefix(dim) ' ' num2str(D(d))];
+            end
         end
     end
-    
-    C = obj.ZCT{2}
-    if length(C)> 1 & ~obj.polarisation_resolved
-        for c = 1:length(C)
-            obj.names{c} = [ 'C ' num2str(C(c))];
-        end
-    end
-    
-   T = obj.ZCT{3}
-    if length(T)> 1
-        for t = 1:length(T)
-            obj.names{t} = [ 'T ' num2str(T(t))];
-        end
-    end 
-    
-   
+        
+        
+       
     obj.t = dims.delays;
     obj.channels = obj.ZCT{2};
     

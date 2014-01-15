@@ -1,5 +1,5 @@
 
-function[data_cube] = load_flim_cube(obj, file, selected)
+function[success] = load_flim_cube(obj, file, selected)
 
 
 %  Loads FLIM_data from a file or set of files
@@ -31,6 +31,8 @@ function[data_cube] = load_flim_cube(obj, file, selected)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
+    
+    success = true;     % always return success for now
 
     sizet = length(obj.t);
     Z = obj.ZCT(1);
@@ -56,9 +58,7 @@ function[data_cube] = load_flim_cube(obj, file, selected)
     end
     
  
-    data_cube = single(zeros(sizet, npol, sizeX, sizeY )); 
-   
-    
+ 
     ctr = 1;       %  Count of FLIM_cubes loaded so far
     pctr= 1;       % polarised counter (should only go up to 2)
  
@@ -147,6 +147,7 @@ function[data_cube] = load_flim_cube(obj, file, selected)
                 if ~strcmp(modulo,'ModuloAlongC') && ~strcmp(modulo,'ModuloAlongT') && ~strcmp(modulo,'ModuloAlongZ')
                     [ST,I] = dbstack('-completenames');
                     errordlg(['No acceptable ModuloAlong* in the function ' ST.name]);
+                    success = false
                     return;
                 end;    
 
@@ -158,6 +159,7 @@ function[data_cube] = load_flim_cube(obj, file, selected)
            
                 for c = 1:nchans
                     chan = Carr(c);
+                   
                     
                     if ctr == selected        % check that we are supposed to load this FLIM cube
                     
@@ -168,7 +170,7 @@ function[data_cube] = load_flim_cube(obj, file, selected)
                                 for t = 0:sizet -1
                                     index = r.getIndex(Z, chan ,T + t);
                                     plane = bfGetPlane(r,index + 1);
-                                    data_cube(t +1,pctr,:,:) = plane;
+                                    obj.data_series_mem(t +1,pctr,:,:,selected) = plane;
                                 end
 
                             case 'ModuloAlongZ'
@@ -176,17 +178,19 @@ function[data_cube] = load_flim_cube(obj, file, selected)
                                 for t = 0:sizet -1
                                     index = r.getIndex(Z + t, chan ,T);
                                     plane = bfGetPlane(r,index + 1);
-                                    data_cube(t+1,pctr,:,:) = plane;
+                                    obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
                                 end
                         end  % end switch
-                        
-                        if obj.polarisation_resolved
-                            pctr = pctr + 1;
-                        else
-                            ctr = ctr + 1;
-                        end
-                        
+                     
                     end
+                    
+                    if obj.polarisation_resolved
+                        pctr = pctr + 1;
+                    else
+                        ctr = ctr + 1;
+                    end
+                        
+                    
 
                 end
 
@@ -194,7 +198,7 @@ function[data_cube] = load_flim_cube(obj, file, selected)
 
                 %Bodge to suppress bright line artefact on RHS in BH .sdt files
                 if strfind(file,'.sdt')
-                    data_cube(:,:,:,end,:) = 0;
+                    obj.data_series_mem(:,:,:,end,:) = 0;
                 end
 
 
