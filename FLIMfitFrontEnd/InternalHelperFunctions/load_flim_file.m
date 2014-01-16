@@ -96,7 +96,7 @@ global buf buf_name
                 first = [path filesep dirStruct(1).name];
                 im = imread(first,'tif');
 
-                im_data = zeros([noOfFiles size(im)],'uint16');
+                im_data = zeros([noOfFiles size(im)]);
                 delays = zeros([1,noOfFiles]);
                 
                 im_data(1,:,:) = im;
