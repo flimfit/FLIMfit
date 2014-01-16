@@ -112,7 +112,8 @@ function[dims,t_int] = get_image_dimensions(obj, file)
                 'to the static Java path or add it to the Matlab path.']);
 
             % initialize logging
-            loci.common.DebugTools.enableLogging('INFO');
+            %loci.common.DebugTools.enableLogging('INFO');
+            loci.common.DebugTools.enableLogging('ERROR');
 
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
