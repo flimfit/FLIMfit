@@ -96,16 +96,16 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     end
     
     
-    obj.n_datasets = length(obj.names)
+    obj.n_datasets = length(obj.names);
     obj.polarisation_resolved = polarisation_resolved;
     psize = 1;
     if obj.polarisation_resolved
-        psize = 2;
+        obj.data_size = [length(dims.delays) 2 dims.sizeXY obj.n_datasets ];
+    else
+        obj.data_size = [length(dims.delays) 1 dims.sizeXY obj.n_datasets ];
     end
     
-    data_size = [length(dims.delays) psize dims.sizeXY obj.n_datasets ];
-    obj.data_size = data_size;
-    
+  
     obj.metadata = extract_metadata(obj.names);
     obj.load_selected_files();  
     obj.init_dataset(data_setting_file);

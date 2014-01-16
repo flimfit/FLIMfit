@@ -92,7 +92,7 @@
                     maxx = [ 1 1 1];   % select one from each 
                     minn = maxx;      % no subset selection allowed
             
-                    dims = ZCT_selection([Z C T], maxx, minn);
+                    dims = ZCT_selection([Z C T], maxx, minn, polarisation_resolved);
                 end
             
             end

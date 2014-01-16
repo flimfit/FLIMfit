@@ -51,16 +51,12 @@ function[success] = load_flim_cube(obj, file, selected)
     
     nchans = length(Carr);
     
-    npol = 1;       % default no of polarised channels
-    
-    if obj.polarisation_resolved
-        npol = 2;
-    end
-    
+    polarisation_resolved =  obj.polarisation_resolved;
+ 
  
  
     ctr = 1;       %  Count of FLIM_cubes loaded so far
-    pctr= 1;       % polarised counter (should only go up to 2)
+    pctr = 1;       % polarised counter (should only go up to 2)
  
 
         [path,fname,ext] = fileparts(file);
@@ -125,19 +121,13 @@ function[success] = load_flim_cube(obj, file, selected)
 
                  s = [];
 
-                 autoloadBioFormats = 1;
-
+                 % bio-Formats should already be loaded by
+                 % get_image_dimensions
+                 
+              
                 % Toggle the stitchFiles flag to control grouping of similarly
                 % named files into a single dataset based on file numbering.
                 stitchFiles = 0;
-
-                % load the Bio-Formats library into the MATLAB environment
-                status = bfCheckJavaPath(autoloadBioFormats);
-                assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
-                    'to the static Java path or add it to the Matlab path.']);
-
-                % initialize logging
-                loci.common.DebugTools.enableLogging('INFO');
 
                 % Get the channel filler
                 r = bfGetReader(file, stitchFiles);
@@ -160,9 +150,10 @@ function[success] = load_flim_cube(obj, file, selected)
                 for c = 1:nchans
                     chan = Carr(c);
                    
-                    
-                    if ctr == selected        % check that we are supposed to load this FLIM cube
-                    
+                    % check that we are supposed to load this FLIM cube 
+                    if ctr == selected  |  polarisation_resolved  | nfiles >1 
+                        
+                     
                         % NB moduloAlongC not currently supported!
                         switch modulo
                             case 'ModuloAlongT'
@@ -184,7 +175,7 @@ function[success] = load_flim_cube(obj, file, selected)
                      
                     end
                     
-                    if obj.polarisation_resolved
+                    if polarisation_resolved
                         pctr = pctr + 1;
                     else
                         ctr = ctr + 1;

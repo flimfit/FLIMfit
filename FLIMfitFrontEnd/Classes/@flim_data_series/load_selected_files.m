@@ -68,8 +68,8 @@ function load_selected_files(obj,selected)
     
     else
         
-        % dont understand why data_size is not a row here ! ?
-        obj.data_series_mem = single(zeros(obj.data_size'));
+       
+        obj.data_series_mem = single(zeros([obj.data_size' num_sel]));
     
         if obj.use_memory_mapping
             
@@ -79,26 +79,20 @@ function load_selected_files(obj,selected)
             mapfile = fopen(mapfile_name,'w');
 
             for j=1:num_sel
-
-                filename = '';
-                try
-                    if obj.load_multiple_channels
-                        filename = obj.file_names{1};
-                        data = obj.load_FLIM_cube(filename);
-                       % [~,data] = load_flim_file(filename,obj.channels(selected(j)),obj.block);
-                    else
-                        filename = obj.file_names{selected(j)};
-                        data = obj.load_FLIM_cube(filename);
-                       % [~,data] = load_flim_file(filename,obj.channels,obj.block);
-                    end
-                catch
-                    disp(['Warning: could not load dataset ' filename ', replacing with blank']);
-                    data = zeros(obj.data_size(1:4)');
+                
+                if length(obj.file_names) > 1
+                    filename = obj.file_names{selected(j)};
+                else
+                    filename = obj.file_names{1}; 
                 end
-                    
+                
+               obj.load_flim_cube(filename,j);
+
+                data = obj.data_series_mem(:,:,:,:,j);
+                
                
-                if isempty(data) || size(data,1) ~= obj.n_t || numel(data)~=prod(obj.data_size)
-                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size is (' num2str(size(data)), '), expected (' num2str(obj.data_size') ')'])
+                if isempty(data) || size(data,1) ~= obj.n_t || numel(data)~=prod(obj.data_size(1:4))
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size is (' num2str(size(data)), '), expected (' num2str(obj.data_size(1:4)') ')'])
                     data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
 
@@ -123,7 +117,7 @@ function load_selected_files(obj,selected)
                     filename = obj.file_names{1};  
                 end
                 
-               [data] = obj.load_flim_cube(filename,j);
+               obj.load_flim_cube(filename,j);
                 
                 if using_popup
                     waitbar(j/num_sel,wait_handle)
