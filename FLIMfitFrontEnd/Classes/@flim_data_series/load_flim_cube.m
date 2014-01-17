@@ -134,12 +134,6 @@ function[success] = load_flim_cube(obj, file, selected)
 
                 modulo = obj.modulo;
 
-                if ~strcmp(modulo,'ModuloAlongC') && ~strcmp(modulo,'ModuloAlongT') && ~strcmp(modulo,'ModuloAlongZ')
-                    [ST,I] = dbstack('-completenames');
-                    errordlg(['No acceptable ModuloAlong* in the function ' ST.name]);
-                    success = false
-                    return;
-                end;    
 
                 % TBD add loops for Z & T. For the time being just assume
                 % only C > 1

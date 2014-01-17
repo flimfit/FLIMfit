@@ -86,15 +86,13 @@ function load_selected_files(obj,selected)
                     filename = obj.file_names{1}; 
                 end
                 
-               obj.load_flim_cube(filename,j);
+                success = obj.load_flim_cube(filename,j);
+                
+                if ~success
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
+                end
 
                 data = obj.data_series_mem(:,:,:,:,j);
-                
-               
-                if isempty(data) || size(data,1) ~= obj.n_t || numel(data)~=prod(obj.data_size(1:4))
-                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size is (' num2str(size(data)), '), expected (' num2str(obj.data_size(1:4)') ')'])
-                    data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
-                end
 
                 c1=fwrite(mapfile,data,'single');
 
@@ -117,8 +115,12 @@ function load_selected_files(obj,selected)
                     filename = obj.file_names{1};  
                 end
                 
-               obj.load_flim_cube(filename,j);
+                success = obj.load_flim_cube(filename,j);
                 
+                if ~success
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
+                end
+
                 if using_popup
                     waitbar(j/num_sel,wait_handle)
                 end
