@@ -188,7 +188,7 @@ function[dims,t_int] = get_image_dimensions(obj, file)
                 
                 fclose(fid);
                 
-                nchans = length(first) -1
+                nchans = length(first) -1;
                 
                 n_header_lines = length(header_data);
                 header_info = cell(1,n_header_lines);

@@ -203,10 +203,27 @@ function[success] = load_flim_cube(obj, file, selected)
             % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             case {'.asc','.csv','.txt', '.irf'}
 
-                   block = 1;       % deprecated retained for compatibility with old load_flim_files
-                  [delays,data_cube(:,1,:,:,1),t_int] = load_flim_file(file,obj.channels,block);
-
-
+                block = 1;       % deprecated retained for compatibility with old load_flim_files
+                
+                for c = 1:nchans
+                    chan = Carr(c);
+                   
+                    % check that we are supposed to load this FLIM cube 
+                    if ctr == selected  ||  polarisation_resolved  || nfiles >1 
+                  
+                        [delays,data_cube,t_int] = load_flim_file(file, chan,block);
+                         obj.data_series_mem(:,pctr,:,:,selected) = data_cube;
+                    end
+                         
+                   if polarisation_resolved
+                        pctr = pctr + 1;
+                   else
+                        ctr = ctr + 1;
+                   end
+                         
+                end
+                        
+  
 
 
         end         % end switch
