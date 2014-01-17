@@ -79,7 +79,7 @@ function load_selected_files(obj,selected)
             mapfile = fopen(mapfile_name,'w');
 
             for j=1:num_sel
-                
+               
                 if length(obj.file_names) > 1
                     filename = obj.file_names{selected(j)};
                 else

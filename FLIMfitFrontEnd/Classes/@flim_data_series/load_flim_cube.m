@@ -32,9 +32,11 @@ function[success] = load_flim_cube(obj, file, selected)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
-    success = true;     % always return success for now
-
-    sizet = length(obj.t);
+    success = true; 
+    
+    delays = obj.t;
+    sizet = length(delays);
+    
     Z = obj.ZCT(1);
     C = obj.ZCT(2);
     T = obj.ZCT(3);
@@ -60,6 +62,7 @@ function[success] = load_flim_cube(obj, file, selected)
  
 
         [path,fname,ext] = fileparts(file);
+        
 
         if strcmp(ext,'.tiff')
             ext = '.tif';
@@ -78,13 +81,12 @@ function[success] = load_flim_cube(obj, file, selected)
             % No need to allow for multiple Z,C or T as this format can't store them
             case '.tif'
                 
+               
                 dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
-
-                delays = obj.t;
-
+                
                 if length(dirStruct) ~= sizet
-                    data_cube = [];
-                    return
+                    success = false
+                    return;
                 end
 
                 for t = 1:sizet
@@ -95,35 +97,37 @@ function[success] = load_flim_cube(obj, file, selected)
                     while isempty(strfind(dirStruct(ff).name, str))
                         ff = ff + 1;
                         if ff > sizet 
+                            success = false;
                             return;
                         end
                     end
 
                     filename = [path filesep dirStruct(ff).name];
-                    [~,name] = fileparts(filename);
+                    
 
                     try
                         plane = imread(filename,'tif');
-                        data_cube(t,1,:,:,file_count) = plane';
+                        
+                        obj.data_series_mem(t,1,:,:,selected) = plane';
                     catch error
                         throw(error);
                     end
 
                 end
-
-                if min(data_cube(:)) > 32500
-                    data_cube = data_cube - 32768;    % clear the sign bit which is set by labview
+                
+                if min(obj.data_series_mem(:,1,:,:,selected)) > 32500
+                    obj.data_series_mem(:,1,:,:,selected) = obj.data_series_mem(:,1,:,:,selected) - 32768;    % clear the sign bit which is set by labview
                 end
+
+                
 
 
              % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
              case {'.sdt','.msr','.ome'}
 
-                 s = [];
 
                  % bio-Formats should already be loaded by
                  % get_image_dimensions
-                 
               
                 % Toggle the stitchFiles flag to control grouping of similarly
                 % named files into a single dataset based on file numbering.
@@ -131,6 +135,16 @@ function[success] = load_flim_cube(obj, file, selected)
 
                 % Get the channel filler
                 r = bfGetReader(file, stitchFiles);
+                
+                %check that image dimensions match those read from first
+                %file
+                omeMeta = r.getMetadataStore();
+
+                if sizeX ~= omeMeta.getPixelsSizeX(0).getValue() ||sizeY ~= omeMeta.getPixelsSizeY(0).getValue()
+                    success = false;
+                    return;
+                end
+                
 
                 modulo = obj.modulo;
 
@@ -145,7 +159,7 @@ function[success] = load_flim_cube(obj, file, selected)
                     chan = Carr(c);
                    
                     % check that we are supposed to load this FLIM cube 
-                    if ctr == selected  |  polarisation_resolved  | nfiles >1 
+                    if ctr == selected  ||  polarisation_resolved  || nfiles >1 
                         
                      
                         % NB moduloAlongC not currently supported!
@@ -175,10 +189,8 @@ function[success] = load_flim_cube(obj, file, selected)
                         ctr = ctr + 1;
                     end
                         
-                    
-
+                   
                 end
-
 
 
                 %Bodge to suppress bright line artefact on RHS in BH .sdt files

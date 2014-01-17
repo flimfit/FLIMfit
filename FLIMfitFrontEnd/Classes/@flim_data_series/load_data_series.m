@@ -78,6 +78,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         %------------------------------------
         % get dimensions from first file
        
+       
         dims = obj.get_image_dimensions(obj.file_names{1});
     
         obj.modulo = dims.modulo;
@@ -144,19 +145,28 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         obj.file_names = file_names;
         
-        [obj.t,data,obj.t_int] = load_flim_file(first_file); 
-        data_size = size(data);
-
-        % if only one channel reshape to include singleton dimension
-        if length(data_size) == 3
-            data_size = [data_size(1) 1 data_size(2:3)];
-        end
+         %------------------------------------
+        % get dimensions from first file
+       
+        dims = obj.get_image_dimensions(obj.file_names{1});
+    
+        obj.modulo = dims.modulo;
+    
+        obj.mode = dims.FLIM_type;
+    
+        % Determine which channels we need to load 
+        obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
+  
+        obj.t = dims.delays;
+        obj.channels = obj.ZCT{2};
+    
+       
+        obj.n_datasets = n_datasets;
         
-        clear data;
-
+        data_size = [length(dims.delays) 1 dims.sizeXY 1 ];
         obj.data_size = data_size;
-        obj.n_datasets = n_datasets;       
 
+        
         %set names
         obj.names = cell(1,n_datasets);
 
