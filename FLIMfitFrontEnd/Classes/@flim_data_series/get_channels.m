@@ -95,7 +95,7 @@ function [n_chan, chan_info] = get_channels(file)
                  first = sscanf(textl,'%f\t');
                  if strncmp(textl,'TRFA',4) || isempty(strtrim(textl))
                      textl = fgetl(fid);
-                 elseif isempty(first) % if it's not a number skip line
+                 elseif isempty(first) || isnan(first(1)) % if it's not a number skip line
                      header_data{end+1} =  textl;
                      textl = fgetl(fid);
                  else 

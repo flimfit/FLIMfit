@@ -99,13 +99,16 @@ for(j=i; j<n_tau;     j++)
 
 void conv_irf(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, int bin_shift, double& c)
 {
+   int n_irf =gc->n_irf;
+   int irf0 = k*n_irf;
+
    int j = k*gc->n_t+i;
    int idx = gc->irf_max[j] + bin_shift;
 
-   if (idx < 0)
-      idx = 0;
-   if (idx >= gc->n_irf)
-      idx = gc->n_irf - 1;
+   if (idx < irf0)
+      idx = irf0;
+   if (idx >= irf0+n_irf)
+      idx = irf0+n_irf-1;
 
    c = exp_irf_cum_buf[idx] - 0.5*exp_irf_buf[idx];
 

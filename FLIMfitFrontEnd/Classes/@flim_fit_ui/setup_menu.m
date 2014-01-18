@@ -25,9 +25,58 @@ function handles = setup_menu(obj,handles)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
+    
+    %=================================
+
+    menu_file      = uimenu(obj.window,'Label','File');
+    handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
+    handles.menu_file_load_single = uimenu(menu_file,'Label','Load FLIM Data...','Accelerator','O','Separator','on');
+    menu_file_load = uimenu(menu_file,'Label','Load FLIM Dataset');
+    handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','Y');
+    handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
+    
+    
+    menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
+    handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
+    handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
 
 
-    % OMERO MEGA MENU
+    menu_file_acceptor = uimenu(menu_file,'Label','Acceptor Images...');
+    handles.menu_file_load_acceptor = uimenu(menu_file_acceptor,'Label','Load Accceptor Images...');
+    handles.menu_file_export_acceptor = uimenu(menu_file_acceptor,'Label','Export Acceptor Images...','Separator','on');
+    handles.menu_file_import_acceptor = uimenu(menu_file_acceptor,'Label','Import Saved Acceptor Images...');
+
+
+    handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
+
+    %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
+    handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
+    handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
+
+
+    handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
+    handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
+    
+    handles.menu_file_load_t_calibration = uimenu(menu_file,'Label','Load Time Point Calbration File...','Separator','on');
+
+    
+    handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
+    handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');
+    
+    handles.menu_file_import_plate_metadata = uimenu(menu_file,'Label','Import Plate Metadata...','Separator','on');
+    handles.menu_file_export_exclusion_list = uimenu(menu_file,'Label','Export Exclusion List...');
+    handles.menu_file_import_exclusion_list = uimenu(menu_file,'Label','Import Exclusion List...');    
+    
+    handles.menu_file_export_fit_params = uimenu(menu_file,'Label','Export Initial Fit Parameters...','Separator','on');
+    handles.menu_file_import_fit_params = uimenu(menu_file,'Label','Import Initial Fit Parameters...');
+    %handles.menu_file_export_fit_results = uimenu(menu_file,'Label','Export Fit Results as HDF...','Separator','on');    
+    %handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
+    
+    handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...','Separator','on');
+    handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
+    handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
+
+    % OMERO MEGA MENU    
     %=================================
     
     menu_OMERO = uimenu(obj.window,'Label','OMERO');
@@ -78,58 +127,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps','Separator','on','Enable','off');        
 
     %===============================
-
-
-    
-
-    menu_file      = uimenu(obj.window,'Label','File');
-    handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
-    handles.menu_file_load_single = uimenu(menu_file,'Label','Load FLIM Data...','Accelerator','O','Separator','on');
-    menu_file_load = uimenu(menu_file,'Label','Load FLIM Dataset');
-    handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','Y');
-    handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
-    
-    
-    menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
-    handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
-    handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
-
-
-    menu_file_acceptor = uimenu(menu_file,'Label','Acceptor Images...');
-    handles.menu_file_load_acceptor = uimenu(menu_file_acceptor,'Label','Load Accceptor Images...');
-    handles.menu_file_export_acceptor = uimenu(menu_file_acceptor,'Label','Export Acceptor Images...','Separator','on');
-    handles.menu_file_import_acceptor = uimenu(menu_file_acceptor,'Label','Import Saved Acceptor Images...');
-
-
-    handles.menu_file_reload_data = uimenu(menu_file,'Label','Reload Data...','Accelerator','R');
-
-    %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
-    handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
-    handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
-
-
-    handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
-    handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
-    
-    handles.menu_file_load_t_calibration = uimenu(menu_file,'Label','Load Time Point Calbration File...','Separator','on');
-
-    
-    handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
-    handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');
-    
-    handles.menu_file_import_plate_metadata = uimenu(menu_file,'Label','Import Plate Metadata...','Separator','on');
-    handles.menu_file_export_exclusion_list = uimenu(menu_file,'Label','Export Exclusion List...');
-    handles.menu_file_import_exclusion_list = uimenu(menu_file,'Label','Import Exclusion List...');    
-    
-    handles.menu_file_export_fit_params = uimenu(menu_file,'Label','Export Initial Fit Parameters...','Separator','on');
-    handles.menu_file_import_fit_params = uimenu(menu_file,'Label','Import Initial Fit Parameters...');
-    %handles.menu_file_export_fit_results = uimenu(menu_file,'Label','Export Fit Results as HDF...','Separator','on');    
-    %handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
-    
-    handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...','Separator','on');
-    handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
-    handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
-    
+       
     menu_irf       = uimenu(obj.window,'Label','IRF');
     handles.menu_irf_load = uimenu(menu_irf,'Label','Load IRF...');
    
