@@ -31,6 +31,7 @@ function[dims,t_int] = get_image_dimensions(obj, file)
 
     
     t_int = [];
+    dims.delays = [];
   
 
     [path,fname,ext] = fileparts(file);
@@ -96,7 +97,7 @@ function[dims,t_int] = get_image_dimensions(obj, file)
              dims.modulo = []; 
                 
          % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-         case {'.sdt','.msr','.ome'}
+         case {'.sdt','.msr','.ome', '.ics'}
              
              s = [];
              
@@ -178,7 +179,7 @@ function[dims,t_int] = get_image_dimensions(obj, file)
             
                 while ~isempty(textl)
                     first = sscanf(textl,['%f' dlm]);
-                     if isempty(first)
+                     if isempty(first) || isnan(first(1))
                          header_data{end+1} =  textl;
                          textl = fgetl(fid);
                      else 

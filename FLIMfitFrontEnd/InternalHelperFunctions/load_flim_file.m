@@ -227,7 +227,7 @@ global buf buf_name
                  textl = fgetl(fid);
                  while ~isempty(textl)
                      first = sscanf(textl,['%f' dlm]);
-                     if isempty(first)
+                     if isempty(first)  || isnan(first(1))
                          header_lines = header_lines + 1;
                          textl = fgetl(fid);
                      else 
