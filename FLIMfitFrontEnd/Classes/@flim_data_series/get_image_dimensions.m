@@ -1,5 +1,5 @@
 
-function[dims,t_int] = get_image_dimensions(obj, file)
+function[dims,t_int ] = get_image_dimensions(obj, file)
 
 
 %Finds the dimensions of an image file or set of files including 
@@ -118,9 +118,12 @@ function[dims,t_int] = get_image_dimensions(obj, file)
 
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
-            
+          
             
             omeMeta = r.getMetadataStore();
+            obj.omeMeta = omeMeta;  % set for use in loading data
+            obj.bfReader = r;
+            
 
 
             sizeZCT(1) = omeMeta.getPixelsSizeZ(0).getValue();

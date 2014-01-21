@@ -32,15 +32,14 @@ function[success] = load_flim_cube(obj, file, selected)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
+    
+    
     success = true; 
     
     delays = obj.t;
     sizet = length(delays);
     
-    Z = obj.ZCT(1);
-    C = obj.ZCT(2);
-    T = obj.ZCT(3);
-    
+   
     sizeX = obj.data_size(3);
     sizeY = obj.data_size(4);
     
@@ -124,21 +123,34 @@ function[success] = load_flim_cube(obj, file, selected)
 
              % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
              case {'.sdt','.msr','.ome'}
+                 
+                  % timing debug
+                  tstart = tic;  
 
 
                  % bio-Formats should already be loaded by
                  % get_image_dimensions
               
-                % Toggle the stitchFiles flag to control grouping of similarly
-                % named files into a single dataset based on file numbering.
-                stitchFiles = 0;
+               
+                 % if this is the same file from which we got the image
+                 % dimensions
+                if strcmp(file,obj.file_names(1) )
+                    r = obj.bfReader;
+                    omeMeta = obj.omeMeta;
+                else
+                    % Toggle the stitchFiles flag to control grouping of similarly
+                    % named files into a single dataset based on file numbering.
+                    stitchFiles = 0;
 
-                % Get the channel filler
-                r = bfGetReader(file, stitchFiles);
+                    % Get the channel filler
+                    r = bfGetReader(file, stitchFiles);
+                     omeMeta = r.getMetadataStore();
+                end
+                    
                 
                 %check that image dimensions match those read from first
                 %file
-                omeMeta = r.getMetadataStore();
+               
 
                 if sizeX ~= omeMeta.getPixelsSizeX(0).getValue() ||sizeY ~= omeMeta.getPixelsSizeY(0).getValue()
                     success = false;
@@ -148,6 +160,26 @@ function[success] = load_flim_cube(obj, file, selected)
 
                 modulo = obj.modulo;
 
+                % Get pixel type
+                pixelType = r.getPixelType();
+                bpp = loci.formats.FormatTools.getBytesPerPixel(pixelType);
+                fp = loci.formats.FormatTools.isFloatingPoint(pixelType);
+                sgn = loci.formats.FormatTools.isSigned(pixelType);
+                % asume for now all our data is unsigned (see bfgetPlane for examples of signed) 
+                little = r.isLittleEndian();
+                
+                switch bpp
+                    case 1
+                        type = 'uint8';
+                     case 2
+                        type = 'uint16';
+                     case 4
+                        type = 'uint32';
+                    case 8
+                        type = 'uint64';
+                end
+                
+                        
 
                 % TBD add loops for Z & T. For the time being just assume
                 % only C > 1
@@ -155,7 +187,11 @@ function[success] = load_flim_cube(obj, file, selected)
                 Z = Zarr(1);
                 T = Tarr(1);
            
-                for c = 1:nchans
+                %DEBUG try pre-allocating a buffer for openBytes
+                rawPlane = uint8(zeros(sizeX * sizeY * bpp, 1));
+                
+                c = 1;
+               % for c = 1:nchans
                     chan = Carr(c);
                    
                     % check that we are supposed to load this FLIM cube 
@@ -167,15 +203,19 @@ function[success] = load_flim_cube(obj, file, selected)
                             case 'ModuloAlongT'
                                 T = T * sizet;
                                 for t = 0:sizet -1
+                                    % 2nd & 3rd args are x,y offsets
                                     index = r.getIndex(Z, chan ,T + t);
-                                    plane = bfGetPlane(r,index + 1);
-                                    obj.data_series_mem(t +1,pctr,:,:,selected) = plane;
+                                    rawPlane = r.openBytes(index);
+                                   
+                                    I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
+                                    I = typecast(I,type);
+                                    obj.data_series_mem(t +1,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
                                 end
 
                             case 'ModuloAlongZ'
                                 Z = Z * sizet;
                                 for t = 0:sizet -1
-                                    index = r.getIndex(Z + t, chan ,T);
+                                    index = r.getIndex(Z + t, chan ,T)
                                     plane = bfGetPlane(r,index + 1);
                                     obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
                                 end
@@ -190,8 +230,11 @@ function[success] = load_flim_cube(obj, file, selected)
                     end
                         
                    
-                end
+              %  end
 
+                % DEBUG timing
+                tElapsed = toc(tstart)
+                
 
                 %Bodge to suppress bright line artefact on RHS in BH .sdt files
                 if strfind(file,'.sdt')
