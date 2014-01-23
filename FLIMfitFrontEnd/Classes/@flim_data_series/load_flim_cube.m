@@ -103,11 +103,9 @@ function[success] = load_flim_cube(obj, file, selected)
 
                     filename = [path filesep dirStruct(ff).name];
                     
-
                     try
-                        plane = imread(filename,'tif');
-                        
-                        obj.data_series_mem(t,1,:,:,selected) = plane';
+                        plane = imread(filename,'tif');   
+                        obj.data_series_mem(t,1,:,:,selected) = plane;
                     catch error
                         throw(error);
                     end
@@ -121,135 +119,194 @@ function[success] = load_flim_cube(obj, file, selected)
                 
 
 
-             % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-             case {'.sdt','.msr','.ome'}
-                 
-                  % timing debug
-                  tstart = tic;  
-
-
-                 % bio-Formats should already be loaded by
-                 % get_image_dimensions
-              
-               
-                 % if this is the same file from which we got the image
-                 % dimensions
-                if strcmp(file,obj.file_names(1) )
+                % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            case {'.sdt','.msr','.ome'}
+                
+                % timing debug
+                tstart = tic;
+                
+                % bio-Formats should already be loaded by
+                % get_image_dimensions
+                
+                % if this is the same file from which we got the image
+                % dimensions
+                if strcmp(file,obj.file_names(1) )  && ~isempty(obj.bfReader)
                     r = obj.bfReader;
-                    omeMeta = obj.omeMeta;
+                    omeMeta = obj.bfOmeMeta;
                 else
                     % Toggle the stitchFiles flag to control grouping of similarly
                     % named files into a single dataset based on file numbering.
                     stitchFiles = 0;
-
+                    
                     % Get the channel filler
                     r = bfGetReader(file, stitchFiles);
-                     omeMeta = r.getMetadataStore();
+                    omeMeta = r.getMetadataStore();
                 end
-                    
+                
                 
                 %check that image dimensions match those read from first
                 %file
-               
-
+                
+                
                 if sizeX ~= omeMeta.getPixelsSizeX(0).getValue() ||sizeY ~= omeMeta.getPixelsSizeY(0).getValue()
                     success = false;
                     return;
                 end
                 
-
+                
                 modulo = obj.modulo;
-
+                
                 % Get pixel type
                 pixelType = r.getPixelType();
                 bpp = loci.formats.FormatTools.getBytesPerPixel(pixelType);
                 fp = loci.formats.FormatTools.isFloatingPoint(pixelType);
                 sgn = loci.formats.FormatTools.isSigned(pixelType);
-                % asume for now all our data is unsigned (see bfgetPlane for examples of signed) 
+                % asume for now all our data is unsigned (see bfgetPlane for examples of signed)
                 little = r.isLittleEndian();
                 
                 switch bpp
                     case 1
                         type = 'uint8';
-                     case 2
+                    case 2
                         type = 'uint16';
-                     case 4
+                    case 4
                         type = 'uint32';
                     case 8
                         type = 'uint64';
                 end
                 
-                        
-
+                
+                
                 % TBD add loops for Z & T. For the time being just assume
                 % only C > 1
                 
                 Z = Zarr(1);
                 T = Tarr(1);
-           
-                %DEBUG try pre-allocating a buffer for openBytes
-                rawPlane = uint8(zeros(sizeX * sizeY * bpp, 1));
                 
-                c = 1;
-               % for c = 1:nchans
+                
+                
+                for c = 1:nchans
                     chan = Carr(c);
-                   
-                    % check that we are supposed to load this FLIM cube 
-                    if ctr == selected  ||  polarisation_resolved  || nfiles >1 
-                        
-                     
-                        % NB moduloAlongC not currently supported!
-                        switch modulo
-                            case 'ModuloAlongT'
-                                T = T * sizet;
-                                for t = 0:sizet -1
-                                    % 2nd & 3rd args are x,y offsets
-                                    index = r.getIndex(Z, chan ,T + t);
-                                    rawPlane = r.openBytes(index);
-                                   
-                                    I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
-                                    I = typecast(I,type);
-                                    obj.data_series_mem(t +1,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
-                                end
-
-                            case 'ModuloAlongZ'
-                                Z = Z * sizet;
-                                for t = 0:sizet -1
-                                    index = r.getIndex(Z + t, chan ,T)
-                                    plane = bfGetPlane(r,index + 1);
-                                    obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
-                                end
-                        end  % end switch
-                     
-                    end
                     
+                    % check that we are supposed to load this FLIM cube
+                    if ctr == selected  ||  polarisation_resolved  || nfiles >1
+                        
+                        if ~sgn     % unsigned data
+                            
+                            % NB moduloAlongC not currently supported!
+                            switch modulo
+                                case 'ModuloAlongT'
+                                    T = T * sizet;
+                                    for t = 0:sizet -1
+                                        % this is the loop that needs to be
+                                        % optimised for speed
+                                        index = r.getIndex(Z, chan ,T + t);
+                                        rawPlane = r.openBytes(index);
+                                        I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
+                                        I = typecast(I,type);
+                                        obj.data_series_mem(t +1,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
+                                    end
+                                    
+                                case 'ModuloAlongZ'
+                                    Z = Z * sizet;
+                                    for t = 0:sizet -1
+                                        index = r.getIndex(Z + t, chan ,T);
+                                        plane = bfGetPlane(r,index + 1);
+                                        obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                    end
+                            end  % end switch
+                            
+                            % signed data. May never be used so no attempt to optimise
+                        else
+                            
+                            % NB moduloAlongC not currently supported!
+                            switch modulo
+                                case 'ModuloAlongT'
+                                    T = T * sizet;
+                                    for t = 0:sizet -1
+                                        index = r.getIndex(Z, chan ,T + t);
+                                        plane = bfGetPlane(r,index + 1);
+                                        obj.data_series_mem(t +1,pctr,:,:,selected) = plane;
+                                    end
+                                    
+                                case 'ModuloAlongZ'
+                                    Z = Z * sizet;
+                                    for t = 0:sizet -1
+                                        index = r.getIndex(Z + t, chan ,T);
+                                        plane = bfGetPlane(r,index + 1);
+                                        obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                    end
+                            end  % end switch
+                            
+                        end     % end signed/unsigned
+                    end     % end if selected
+                        
+                        
                     if polarisation_resolved
                         pctr = pctr + 1;
                     else
                         ctr = ctr + 1;
                     end
                         
-                   
-              %  end
-
+                end     % nchans
+                
+                
                 % DEBUG timing
                 tElapsed = toc(tstart)
                 
-
+                
                 %Bodge to suppress bright line artefact on RHS in BH .sdt files
                 if strfind(file,'.sdt')
                     obj.data_series_mem(:,:,:,end,:) = 0;
                 end
 
 
+                
+          % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+          case {'.csv','.txt'} 
+                  
+                 % if this is the same file from which we got the image
+                 % dimensions
+                if strcmp(file,obj.file_names(1) )  && ~isempty(obj.txtInfoRead)
+                    ir = obj.txtInfoRead;
+                else
+                    % decode the header & load the data
+                    
+                     header_data = obj.parse_csv_txt_header(file);
+                     if isempty(header_data) 
+                         success = false;
+                         return;
+                     end
+                     n_header_lines = length(header_data);
+                     ir = dlmread(file,dlm,n_header_lines,0); 
+                end
+               
+                for c = 1:nchans
+                    chan = Carr(c) +2;
+                   
+                    % check that we are supposed to load this FLIM cube 
+                    if ctr == selected  ||  polarisation_resolved  || nfiles >1 
+                          obj.data_series_mem(:,pctr,:,:,selected) = ir(:,chan); 
+                    end
+                         
+                   if polarisation_resolved
+                        pctr = pctr + 1;
+                   else
+                        ctr = ctr + 1;
+                   end
+                         
+                end
+                
+                
+                
 
-            % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            case {'.asc','.csv','.txt', '.irf'}
+            % more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            case {'.asc', '.irf'}
 
                 block = 1;       % deprecated retained for compatibility with old load_flim_files
                 
                 for c = 1:nchans
-                    chan = Carr(c);
+                    chan = Carr(c) +1;
                    
                     % check that we are supposed to load this FLIM cube 
                     if ctr == selected  ||  polarisation_resolved  || nfiles >1 

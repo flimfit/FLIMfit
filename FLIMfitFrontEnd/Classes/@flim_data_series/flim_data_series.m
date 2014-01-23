@@ -189,8 +189,10 @@ classdef flim_data_series < handle & h5_serializer
         
         ZCT = []; % cell array containing missing OME dimensions Z,C,T (in that order)  
         modulo = [];
-        omeMeta = [];
+        bfOmeMeta = [];
         bfReader = [];
+        
+        txtInfoRead = [];
         
     end
     

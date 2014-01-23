@@ -91,7 +91,10 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 
             end
             
-             dims.sizeXY = [ info.Width info.Height ];
+             %NB dimensions reversed to retain compatibility with raelier
+             %code
+             dims.sizeXY = [  info.Height   info.Width ];
+             %dims.sizeXY = [ info.Width info.Height ];
              dims.FLIM_type = 'Gated';  
              dims.sizeZCT = [1, 1, 1];
              dims.modulo = []; 
@@ -118,10 +121,16 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
 
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
+            
+            %DEBUG 
+            channelDims = char(r.getChannelDimTypes)
+            class(channelDims)
           
             
             omeMeta = r.getMetadataStore();
-            obj.omeMeta = omeMeta;  % set for use in loading data
+            cMeta = class(omeMeta)
+            
+            obj.bfOmeMeta = omeMeta;  % set for use in loading data
             obj.bfReader = r;
             
 
@@ -131,6 +140,10 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             sizeZCT(3) = omeMeta.getPixelsSizeT(0).getValue();
             sizeXY(1) = omeMeta.getPixelsSizeX(0).getValue();
             sizeXY(2) = omeMeta.getPixelsSizeY(0).getValue();
+            
+            for c = 1:sizeZCT(2)
+                chanName{c} = omeMeta.getChannelName( 0 ,  c -1 )
+            end
             
 
 
@@ -163,66 +176,54 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
           % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
           case {'.csv','.txt'} 
               
-              
               if strcmp(ext,'.txt')
-                 dlm = '\t';
-             else
-                 dlm = ',';
-             end
+                  dlm = '\t';
+              else
+                  dlm = ',';
+              end
               
-            fid = fopen(file);
-            
-            header_data = cell(0,0);     
-            textl = fgetl(fid);
-            
-            if strcmp(textl,'TRFA_IC_1.0')
-                fclose(fid_);
-                throw(MException('FLIM:CannotOpenTRFA','Cannot open TRFA formatted files'));
-            else
-            
-                while ~isempty(textl)
-                    first = sscanf(textl,['%f' dlm]);
-                     if isempty(first) || isnan(first(1))
-                         header_data{end+1} =  textl;
-                         textl = fgetl(fid);
-                     else 
-                         textl = [];
-                     end                 
-                end
-                
-                fclose(fid);
-                
-                nchans = length(first) -1;
-                
-                n_header_lines = length(header_data);
-                header_info = cell(1,n_header_lines);
+              
+              header_data = obj.parse_csv_txt_header(file);
              
-               
-                for i=1:n_header_lines
-                    parts = regexp(header_data{i},'\s*\t\s*','split');
-                    header_info{i} = parts(2:end);
-                end
-                
-                chan_info = cell(1,nchans);
-                for i=1:nchans
-                    chan_info{i} = header_info{1}{i};
-                end
-                
-               [dims.delays,im_data] = load_flim_file(file,1);
-                
-                dims.chan_info = chan_info;
-                dims.FLIM_type = 'TCSPC';
-                dims.sizeZCT = [1 nchans 1];
-                dims.sizeXY = [ 1 1 ];
-                dims.modulo = [];
-            end
+              n_header_lines = length(header_data);
+              
+              header_info = cell(1,n_header_lines);
+              
+              n_chan = 0;
+              for i=1:n_header_lines
+                  parts = regexp(header_data{i},[ '\s*' dlm '\s*' ],'split');
+                  header_info{i} = parts(2:end);
+                  n_chan = max(length(header_info{i}),n_chan);
+              end
+              
+              chan_info = cell(1,n_chan);
+              
+              for i=1:n_chan
+                  chan_info{i} = header_info{1}{i};
+              end
+              
+              
+              ir = dlmread(file,dlm,n_header_lines,0);
+              obj.txtInfoRead = ir;    % save ir into class
+              
+              delays(1,:) = ir(:,1);
+              
+              delays = delays(~isnan(delays));
+              
+              if max(delays) < 1000
+                  delays = delays * 1000;
+              end
+              
+              dims.delays = delays;
+             
+              dims.chan_info = chan_info;
+              dims.FLIM_type = 'TCSPC';
+              dims.sizeZCT = [1 n_chan 1];
+              dims.sizeXY = [ 1 1 ];
+              dims.modulo = [];
+              
+    
                  
-                 
-            
-                 
-                 
-
-            
           %  more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           case {'.asc', '.irf'}
              

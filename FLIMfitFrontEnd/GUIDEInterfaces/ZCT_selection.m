@@ -100,17 +100,17 @@ end
 
 dataZ(:,1) = num2cell(1:sizeZ);
 dataZ(:,2)= num2cell( false(sizeZ,1));
-dataZ(1:maxZ,2) = num2cell(true);
+dataZ(1:handles.minZ,2) = num2cell(true);
 set(handles.uitableZ,'Data',dataZ);
 
 dataC(:,1) = num2cell(1:sizeC);
 dataC(:,2)= num2cell( false(sizeC,1));
-dataC(1:maxC,2) = num2cell(true);
+dataC(1:handles.minC,2) = num2cell(true);
 set(handles.uitableC,'Data',dataC);
 
 dataT(:,1) = num2cell(1:sizeT);
 dataT(:,2)= num2cell( false(sizeT,1));
-dataT(1:maxT,2) = num2cell(true);
+dataT(1:handles.minT,2) = num2cell(true);
 set(handles.uitableT,'Data',dataT);
 
 
