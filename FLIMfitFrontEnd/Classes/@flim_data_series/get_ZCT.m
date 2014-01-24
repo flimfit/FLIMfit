@@ -1,4 +1,4 @@
- function ZCT = get_ZCT( obj, dims, polarisation_resolved )
+ function ZCT = get_ZCT( obj, dims, polarisation_resolved, chan_info )
  
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -25,6 +25,10 @@
  
             if nargin < 3
                 polarisation_resolved = false;
+            end
+            
+            if nargin < 4
+                chan_info = [];
             end
 
          
@@ -61,12 +65,9 @@
                     maxx = minn;
                 end
                 
-                if polarisation_resolved 
-                    maxx(2) = 2;
-                    minn(2) = 2;
-                end
                 
-                ZCT = ZCT_selection([sizeZ sizeC sizeT], maxx, minn, polarisation_resolved);
+                
+                ZCT = ZCT_selection([sizeZ sizeC sizeT], maxx, minn, polarisation_resolved, chan_info);
             end
             
            

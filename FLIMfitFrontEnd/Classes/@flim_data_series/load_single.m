@@ -53,12 +53,22 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     
     dims = obj.get_image_dimensions(obj.file_names{1});
     
-    obj.modulo = dims.modulo;
+    if isempty(dims.delays)
+        return;
+    end;
     
+    obj.modulo = dims.modulo;
     obj.mode = dims.FLIM_type;
+    chan_info = dims.chan_info;
     
     % Determine which channels we need to load 
-    obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
+    ZCT = obj.get_ZCT( dims, polarisation_resolved ,chan_info);
+    
+    if isempty(ZCT)
+        return;
+    end;
+    
+    obj.ZCT = ZCT;
     
     % for the time being assume only 1 dimension can be > 1 
     % otherwise this will go horribly wrong !
@@ -68,14 +78,22 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     end
     prefix = [ 'Z' 'C' 'T'];
     
+    
     for dim = 1:3
         D = obj.ZCT{dim};
         if length(D) > allowed(dim)
-            for d = 1:length(D)
-                obj.names{d} = [ prefix(dim) ' ' num2str(D(d))];
+            if isempty(chan_info{1})
+                for d = 1:length(D)
+                    obj.names{d} = [ prefix(dim) ' '  num2str(D(d)) ];
+                end
+            else
+                for d = 1:length(D)
+                    obj.names{d} = [ prefix(dim) ' '  num2str(D(d)) '-' chan_info{d}];
+                end
             end
         end
     end
+    
         
         
        

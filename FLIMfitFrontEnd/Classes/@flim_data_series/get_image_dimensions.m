@@ -32,6 +32,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     
     t_int = [];
     dims.delays = [];
+    dims.modulo = [];
+    dims.FLIM_type = [];
+    dims.sizeZCT = [];
   
 
     [path,fname,ext] = fileparts(file);
@@ -136,11 +139,6 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             sizeXY(2) = omeMeta.getPixelsSizeY(0).getValue();
             
             
-            % get channel_names
-            for c = 1:sizeZCT(2)
-                chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
-            end
-           
             
             % check for presence of an Xml modulo Annotation  containing 'Lifetime'
             na = omeMeta.getXMLAnnotationCount;
@@ -158,14 +156,36 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             if isempty(s)
                 if findstr(file,'ome.tif')
                     physZ = omeMeta.getPixelsPhysicalSizeZ(0).getValue();
-                    dims = obj.parseModuloAnnotation([], sizeZCT, physZ);
+                    if ~isempty(physZ)
+                        dims = obj.parseModuloAnnotation([], sizeZCT, physZ);
+                    end
                 end
+                
+                % support for .ics files lacking a Modulo annotation
+                if findstr(file,'.ics')
+                    text = r.getMetadataValue('history extents');
+                    text = strrep(text,'?','');
+                    decay_range  = str2num(text) * 1e12;  % convert to ps
+                    delays = 0:sizeZCT(2) -1;
+                    step = decay_range/sizeZCT(2);
+                    dims.delays = delays .* step;
+                    dims.modulo = 'ModuloAlongC';
+                    dims.sizeZCT = [ 1 1 1 ];
+                    dims.FLIM_type = 'TCSPC';
+                end
+                
             else
                 dims = obj.parseModuloAnnotation(s, sizeZCT, []);
+                 % get channel_names
+                for c = 1:sizeZCT(2)
+                    chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
+                    dims.chan_info = chan_info;
+                end
             end
 
+            
             dims.sizeXY = sizeXY;
-            dims.chan_info = chan_info;
+           
 
 
             

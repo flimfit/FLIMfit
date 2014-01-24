@@ -120,7 +120,7 @@ function[success] = load_flim_cube(obj, file, selected)
 
 
                 % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            case {'.sdt','.msr','.ome'}
+            case {'.sdt','.msr','.ome', '.ics'}
                 
                 % timing debug
                 tstart = tic;
@@ -193,7 +193,6 @@ function[success] = load_flim_cube(obj, file, selected)
                         
                         if ~sgn     % unsigned data
                             
-                            % NB moduloAlongC not currently supported!
                             switch modulo
                                 case 'ModuloAlongT'
                                     T = T * sizet;
@@ -214,12 +213,21 @@ function[success] = load_flim_cube(obj, file, selected)
                                         plane = bfGetPlane(r,index + 1);
                                         obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
                                     end
+                                    
+                                case 'ModuloAlongC'
+                                    C = chan * sizet;
+                                    for t = 0:sizet -1
+                                        index = r.getIndex(Z, C + t ,T);
+                                        plane = bfGetPlane(r,index + 1);
+                                        obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                    end
+                                    
+                                    
                             end  % end switch
                             
-                            % signed data. May never be used so no attempt to optimise
+                            % signed data. Rarely  used so no attempt to optimise
                         else
                             
-                            % NB moduloAlongC not currently supported!
                             switch modulo
                                 case 'ModuloAlongT'
                                     T = T * sizet;
@@ -236,6 +244,17 @@ function[success] = load_flim_cube(obj, file, selected)
                                         plane = bfGetPlane(r,index + 1);
                                         obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
                                     end
+                                    
+                                    
+                                case 'ModuloAlongC'
+                                    C = chan * sizet
+                                    for t = 0:sizet -1
+                                        index = r.getIndex(Z, C + t ,T);
+                                        plane = bfGetPlane(r,index + 1);
+                                        obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                    end
+                                    
+                                    
                             end  % end switch
                             
                         end     % end signed/unsigned
