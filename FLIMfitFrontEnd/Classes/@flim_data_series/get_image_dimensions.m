@@ -46,7 +46,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
          end
     end
     
-    dims.chan_info = { [ ext ' data']};     %default
+    dims.chan_info = [];
         
     
     switch ext
@@ -96,7 +96,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
              dims.sizeXY = [  info.Height   info.Width ];
              %dims.sizeXY = [ info.Width info.Height ];
              dims.FLIM_type = 'Gated';  
-             dims.sizeZCT = [1, 1, 1];
+             dims.sizeZCT = [1 1 1];
              dims.modulo = []; 
                 
          % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
@@ -122,18 +122,12 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
             
-            %DEBUG 
-            channelDims = char(r.getChannelDimTypes)
-            class(channelDims)
-          
-            
             omeMeta = r.getMetadataStore();
-            cMeta = class(omeMeta)
+            
             
             obj.bfOmeMeta = omeMeta;  % set for use in loading data
             obj.bfReader = r;
             
-
 
             sizeZCT(1) = omeMeta.getPixelsSizeZ(0).getValue();
             sizeZCT(2) = omeMeta.getPixelsSizeC(0).getValue();
@@ -141,12 +135,13 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             sizeXY(1) = omeMeta.getPixelsSizeX(0).getValue();
             sizeXY(2) = omeMeta.getPixelsSizeY(0).getValue();
             
-            for c = 1:sizeZCT(2)
-                chanName{c} = omeMeta.getChannelName( 0 ,  c -1 )
-            end
             
-
-
+            % get channel_names
+            for c = 1:sizeZCT(2)
+                chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
+            end
+           
+            
             % check for presence of an Xml modulo Annotation  containing 'Lifetime'
             na = omeMeta.getXMLAnnotationCount;
             for a = 1:na
@@ -170,6 +165,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             end
 
             dims.sizeXY = sizeXY;
+            dims.chan_info = chan_info;
 
 
             
