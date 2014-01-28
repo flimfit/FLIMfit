@@ -125,18 +125,40 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
             
+            seriesCount = r.getSeriesCount;
+            if seriesCount > 1
+                block = [];
+                while isempty(block) ||  block > seriesCount ||  block < 1 
+                    prompt = {['This file holds ' num2str(seriesCount) ' images. Please select one']};
+                    dlgTitle = 'Multiple images in File! ';
+                    defaultvalues = {'1'};
+                    numLines = 1;
+                    inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                    block = str2double(inputdata);
+                    
+                end
+                
+                obj.block = block;
+                
+            else
+                obj.block = 1;
+            end
+            
+            r.setSeries(obj.block - 1);
+            
             omeMeta = r.getMetadataStore();
             
             
             obj.bfOmeMeta = omeMeta;  % set for use in loading data
             obj.bfReader = r;
             
-
-            sizeZCT(1) = omeMeta.getPixelsSizeZ(0).getValue();
-            sizeZCT(2) = omeMeta.getPixelsSizeC(0).getValue();
-            sizeZCT(3) = omeMeta.getPixelsSizeT(0).getValue();
-            sizeXY(1) = omeMeta.getPixelsSizeX(0).getValue();
-            sizeXY(2) = omeMeta.getPixelsSizeY(0).getValue();
+            
+            
+            sizeZCT(1) = r.getSizeZ;
+            sizeZCT(2) = r.getSizeC;
+            sizeZCT(3) = r.getSizeT;
+            sizeXY(1) = r.getSizeX;
+            sizeXY(2) = r.getSizeY;
             
             
             

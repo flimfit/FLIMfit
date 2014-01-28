@@ -141,14 +141,18 @@ function[success] = load_flim_cube(obj, file, selected)
                     % Get the channel filler
                     r = bfGetReader(file, stitchFiles);
                     omeMeta = r.getMetadataStore();
+                    r.setSeries(obj.block - 1);
+                    
                 end
                 
                 
                 %check that image dimensions match those read from first
                 %file
                 
+                block = obj.block;
                 
-                if sizeX ~= omeMeta.getPixelsSizeX(0).getValue() ||sizeY ~= omeMeta.getPixelsSizeY(0).getValue()
+                
+                if sizeX ~= r.getSizeX ||sizeY ~= r.getSizeY
                     success = false;
                     return;
                 end
@@ -216,11 +220,39 @@ function[success] = load_flim_cube(obj, file, selected)
                                     
                                 case 'ModuloAlongC'
                                     C = chan * sizet;
+                                   
+                                    im = zeros(128); 
+                                   
+                                    half = 1;
+                                    line = 1;
                                     for t = 0:sizet -1
                                         index = r.getIndex(Z, C + t ,T);
                                         plane = bfGetPlane(r,index + 1);
-                                        obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                        %obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                        
+                                        plane = reshape(plane,64,256);
+                                        points = sum(plane,2);
+                                        if half ==1
+                                            im(1:64,line) = points;
+                                            half = 2;
+                                        else
+                                            im(65:128,line) = points;
+                                            half = 1;
+                                            line = line +1;
+                                        end
+                                        
+                                        
+                                        %obj.data_series_mem(:,pctr,t+1,:,selected) = plane;
+                                        
                                     end
+                                    
+                                    disp('printing')
+                                    
+                                    imagesc(im);
+                                    
+                                    dbgstop;
+                                   
+                                   
                                     
                                     
                             end  % end switch
