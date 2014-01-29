@@ -720,7 +720,9 @@ classdef flim_omero_data_manager < handle
                     [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end                        
+            end
+            %
+            if ~exist('object','var') || isempty(object), return, end;
             %                        
             fname = [tempdir 'fitting settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
             fitting_params_controller.save_fitting_params(fname);         

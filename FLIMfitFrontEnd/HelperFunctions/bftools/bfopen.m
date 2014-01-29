@@ -1,10 +1,29 @@
-function [result] = bfopen(id)
-% A script for opening microscopy images in MATLAB using Bio-Formats.
+function [result] = bfopen(id, varargin)
+% Open microscopy images using Bio-Formats.
 %
-% The function returns a list of image series; i.e., a cell array of cell
-% arrays of (matrix, label) pairs, with each matrix representing a single
-% image plane, and each inner list of matrices representing an image
-% series. See below for examples of usage.
+% SYNOPSIS r = bfopen(id)
+%          r = bfopen(id, x, y, w, h)
+%
+% Input
+%    r - the reader object (e.g. the output bfGetReader)
+%
+%    x - (Optional) A scalar giving the x-origin of the tile.
+%    Default: 1
+%
+%    y - (Optional) A scalar giving the y-origin of the tile.
+%    Default: 1
+%
+%    w - (Optional) A scalar giving the width of the tile. 
+%    Set to the width of the plane by default.
+%
+%    h - (Optional) A scalar giving the height of the tile.
+%    Set to the height of the plane by default.
+%
+% Output
+%
+%    result - a cell array of cell arrays of (matrix, label) pairs, 
+%    with each matrix representing a single image plane, and each inner 
+%    list of matrices representing an image series.
 %
 % Portions of this code were adapted from:
 % http://www.mathworks.com/support/solutions/en/data/1-2WPAYR/
@@ -27,6 +46,27 @@ function [result] = bfopen(id)
 %
 % For many examples of how to use the bfopen function, please see:
 %     http://trac.openmicroscopy.org.uk/ome/wiki/BioFormats-Matlab
+
+% OME Bio-Formats package for reading and converting biological file formats.
+%
+% Copyright (C) 2007 - 2013 Open Microscopy Environment:
+%   - Board of Regents of the University of Wisconsin-Madison
+%   - Glencoe Software, Inc.
+%   - University of Dundee
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as
+% published by the Free Software Foundation, either version 2 of the
+% License, or (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License along
+% with this program; if not, write to the Free Software Foundation, Inc.,
+% 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 % -- Configuration - customize this section to your liking --
 
@@ -72,6 +112,19 @@ loci.common.DebugTools.enableLogging('INFO');
 % Get the channel filler
 r = bfGetReader(id, stitchFiles);
 
+% Test plane size
+if nargin >=4
+    planeSize = loci.formats.FormatTools.getPlaneSize(r, varargin{3}, varargin{4});
+else
+    planeSize = loci.formats.FormatTools.getPlaneSize(r);
+end
+
+if planeSize/(1024)^3 >= 2,
+    error(['Image plane too large. Only 2GB of data can be extracted '...
+        'at one time. You can workaround the problem by opening '...
+        'the plane in tiles.']);
+end
+
 numSeries = r.getSeriesCount();
 result = cell(numSeries, 2);
 for s = 1:numSeries
@@ -88,7 +141,7 @@ for s = 1:numSeries
             fprintf('\n    ');
         end
         fprintf('.');
-        arr = bfGetPlane(r, i);
+        arr = bfGetPlane(r, i, varargin{:});
 
         % retrieve color map data
         if bpp == 1
@@ -109,8 +162,13 @@ for s = 1:numSeries
         % build an informative title for our figure
         label = id;
         if numSeries > 1
-            qs = int2str(s);
-            label = [label, '; series ', qs, '/', int2str(numSeries)];
+            seriesName = char(r.getMetadataStore().getImageName(s - 1));
+            if ~isempty(seriesName)
+                label = [label, '; ', seriesName];
+            else
+                qs = int2str(s);
+                label = [label, '; series ', qs, '/', int2str(numSeries)];
+            end
         end
         if numImages > 1
             qi = int2str(i);
@@ -147,15 +205,13 @@ for s = 1:numSeries
         imageList{i, 2} = label;
     end
 
-    % extract metadata table for this series
-    metadataList = r.getMetadata();
-
     % save images and metadata into our master series list
     result{s, 1} = imageList;
-    result{s, 2} = metadataList;
+
+    % extract metadata table for this series
+    result{s, 2} = r.getSeriesMetadata();
     result{s, 3} = colorMaps;
     result{s, 4} = r.getMetadataStore();
     fprintf('\n');
 end
 r.close();
-
