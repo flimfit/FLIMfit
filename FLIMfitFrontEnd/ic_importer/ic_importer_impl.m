@@ -797,7 +797,8 @@ classdef ic_importer_impl < handle
 %-------------------------------------------------------------------------%    
         function onSetImageFile(obj,~,~)
                 obj.SrcList = [];            
-                [filename, pathname] = uigetfile({'*.tif';'*.tiff';'*.sdt';'*.txt'},'Select Image File',obj.DefaultDataDirectory);            
+                extensions = [ ['*.' char(obj.Extension)];{'*.OME.tiff';'*.tif';'*.tiff';'*.sdt';'*.txt'}];
+                [filename, pathname] = uigetfile(extensions,'Select Image File',obj.DefaultDataDirectory);            
                 if isequal(filename,0), return, end;
                 %
                 obj.Src = [pathname filesep filename];
