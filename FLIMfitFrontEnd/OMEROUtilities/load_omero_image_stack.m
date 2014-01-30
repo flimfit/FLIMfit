@@ -121,6 +121,113 @@ end
     delete(w);
     drawnow;    
     
-    rawPixelsStore.close();              
+    rawPixelsStore.close();           
+    
+    function out = parse_string_for_attribute_value(string,specs)
+
+    out = [];
+
+    NN = length(string);
+
+        for kk = 1 : numel(specs)
+
+            tok = specs{kk};
+            toklen = length(tok); 
+
+            startind = strfind(string,tok) + toklen;
+
+            %fr000Rot325_0000.tif
+            vallen = 0;
+            for mm = startind : NN    
+                if ~isempty(regexp(string(mm),'\d','once'))
+                    vallen = vallen + 1;
+                else
+                    break, 
+                end;            
+            end
+
+            endind = startind + vallen - 1; 
+
+            try
+                val = str2num(string(startind:endind));
+            catch
+            end;
+
+            out{kk} = [];
+            if exist('val','var') && ~isempty(val)
+                out{kk}.attribute = tok;
+                out{kk}.value = val;
+                clear('val');
+            end
+
+        end
+
+    end
     
 end
+
+% USAGE EXAMPLE - 
+%{
+
+clear all;
+
+addpath_global_analysis();     
+
+if exist('omero_settings.xml','file') 
+    [ settings, ~ ] = xml_read ('omero_settings.xml');    
+    logon = settings.logon;
+else
+    logon = OMERO_logon();
+end
+    client = loadOmero(logon{1});
+    %client.enableKeepAlive(60); 
+                
+    try 
+        session = client.createSession(logon{2},logon{3});
+    catch ME
+        client = [];
+        session = [];
+        disp(ME);
+        errordlg('Error creating OMERO session');
+    end            
+    
+%[imdata, ATTRIBUTES, VALUES] = load_omero_image_stack(session,'Angle','Rot','_','fr');
+
+% % OPT SINOGRAM DATA
+% 
+% [imdata, ATTRIBUTES, VALUES] = load_omero_image_stack(session,'Angle');
+% if ~isempty(imdata)
+%     [sizeY, sizeX, sizerot] = size(imdata);
+%     ANGLES_USED = 360/sizerot;
+%     for i=1:sizeY    
+%         Sinogram = squeeze(imdata(i,:,:));
+%         %imagesc(Sinogram) % shows the sinogram data
+%         Reconstruction = iradon(Sinogram,ANGLES_USED,'linear','Ram-Lak');
+%         imagesc(Reconstruction) % shows the reconstructed plane
+%         drawnow
+%     end
+% end
+
+% OPT RAW DATA
+
+[imdata, ATTRIBUTES, VALUES] = load_omero_image_stack(session,'Rot');
+if ~isempty(imdata)
+    [n_angles,sizeX,sizeY] = size(imdata);
+    for i=1:n_angles    
+        Image = squeeze(imdata(i,:,:)) - 32768;
+        imagesc(Image) % shows the reconstructed plane
+        drawnow
+    end
+end
+% 
+% if ~exist('omero_settings.xml','file') 
+%     omero_settings = [];
+%     omero_settings.logon = logon;
+%     xml_write('omero_settings.xml',omero_settings);
+% end
+
+client.closeSession();
+clear all;
+unloadOmero();
+
+%}   

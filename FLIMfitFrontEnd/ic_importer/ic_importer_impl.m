@@ -1119,9 +1119,8 @@ classdef ic_importer_impl < handle
             ModuloAlong.setAttribute('Type',obj.Variable);
             ModuloAlong.setAttribute('Unit',obj.Units);                              
             %                        
-            %transpose_planes = false;
-            transpose_planes = true; % :)
-            
+            transpose_planes = false;
+            %
                   if strcmp(char(obj.Variable),'lifetime') && ~strcmp(char(obj.FLIM_mode),'none') % FLIM!
                       transpose_planes = true;
                       namespace = 'http://www.openmicroscopy.org/Schemas/Additions/2011-09';
