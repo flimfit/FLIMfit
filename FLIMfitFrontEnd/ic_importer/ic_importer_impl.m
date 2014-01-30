@@ -1066,7 +1066,6 @@ classdef ic_importer_impl < handle
 %-------------------------------------------------------------------------%         
         function imageId = upload_dir_as_Omero_Image(obj,dataset,folder,~)
             %
-            session = obj.session;
             modulo = char(obj.Modulo);
             extension = char(obj.Extension);            
             %
@@ -1108,10 +1107,10 @@ classdef ic_importer_impl < handle
                     errordlg('wrong modulo specification'), return;
             end
             %
-            queryService = session.getQueryService();
-            pixelsService = session.getPixelsService();
-            rawPixelsStore = session.createRawPixelsStore(); 
-            containerService = session.getContainerService();
+            queryService = obj.session.getQueryService();
+            pixelsService = obj.session.getPixelsService();
+            rawPixelsStore = obj.session.createRawPixelsStore(); 
+            containerService = obj.session.getContainerService();
             %
             node = com.mathworks.xml.XMLUtils.createDocument('Modulo');
             Modulo = node.getDocumentElement;
@@ -1167,13 +1166,15 @@ classdef ic_importer_impl < handle
                   %
                   Modulo.appendChild(ModuloAlong);
                   
+            all_image_data = []; % needed to calculate min, max
+            %      
             hw = waitbar(0, 'Loading images...');
             for i = 1 : num_files    
- 
+            %
             if ~strcmp(obj.status,'importing'), break, end;                
-                
+            %    
             U = imread([folder filesep file_names{i}],extension);
-                                                  
+                        %                          
                         if isempty(SizeX)
                             [w,h] = size(U);
                             if ~transpose_planes
@@ -1187,7 +1188,8 @@ classdef ic_importer_impl < handle
                             strings1 = strrep(folder,filesep,'/');
                             str = split('/',strings1);                            
                             imageName = str(length(str));                                                        
-                            %                            
+                            %   
+                            img_description = '';
                             % add OME-XML to image Description - starts                            
                             metadata = loci.formats.MetadataTools.createOMEXMLMetadata();
                             metadata.createRoot();
@@ -1202,7 +1204,7 @@ classdef ic_importer_impl < handle
                             %
                             % Set pixels type
                             pixelTypeEnumHandler = ome.xml.model.enums.handlers.PixelTypeEnumHandler();
-                            if strcmp(class(U), 'single')
+                            if isa(U,'single')
                                 pixelsType = pixelTypeEnumHandler.getEnumeration('float');
                             else
                                 pixelsType = pixelTypeEnumHandler.getEnumeration(class(U));
@@ -1272,27 +1274,43 @@ classdef ic_importer_impl < handle
                         end        
                         %                                                
                         waitbar(i/num_files,hw); drawnow;
-            end                    
-            delete(hw); drawnow;                 
-                  
-                  if strcmp(obj.status,'not set up'), obj.updateInterface, return, end;
-                                  
-                  link = omero.model.DatasetImageLinkI;
-                  link.setChild(omero.model.ImageI(imageId, false));
-                  link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
-                  session.getUpdateService().saveAndReturnObject(link);                                                                             
-                  %                    
-                  rawPixelsStore.close();     
-                  %  
-                  id = java.util.ArrayList();
-                  id.add(java.lang.Long(imageId)); %id of the image
-                  containerService = session.getContainerService();
-                  list = containerService.getImages('Image', id, omero.sys.ParametersI());
-                  image = list.get(0);
-                  % 
-                  add_XmlAnnotation(session,[],image,node);
-                                    
-                  obj.attach_image_annotations(image,folder); 
+                        %
+                        if isempty(all_image_data)
+                            all_image_data = zeros(num_files,SizeX,SizeY);
+                        end
+                        %
+                        all_image_data(i,:,:) = plane;                        
+                        %
+            end  % for i = 1 : num_files                    
+            delete(hw); drawnow;    
+            %
+            % visuals
+            minVal = min(all_image_data(:));
+            maxVal = max(all_image_data(:));
+            for c = 1:SizeC
+                pixelsService.setChannelGlobalMinMax(pixelsId, c-1, minVal, maxVal);                
+            end                                   
+            clear('all_image_data');
+            % visuals - ends   
+            %
+            if strcmp(obj.status,'not set up'), obj.updateInterface, return, end;
+            %                    
+            link = omero.model.DatasetImageLinkI;
+            link.setChild(omero.model.ImageI(imageId, false));
+            link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
+            obj.session.getUpdateService().saveAndReturnObject(link);                                                                             
+            %                    
+            rawPixelsStore.close();     
+            %  
+            id = java.util.ArrayList();
+            id.add(java.lang.Long(imageId)); %id of the image
+            containerService = obj.session.getContainerService();
+            list = containerService.getImages('Image', id, omero.sys.ParametersI());
+            image = list.get(0);
+            % 
+            add_XmlAnnotation(obj.session,[],image,node);
+            %                        
+            obj.attach_image_annotations(image,folder); 
         end                     
 %-------------------------------------------------------------------------%       
         function imgId = upload_Image_single_Pix(obj,dataset,full_filename,~)
