@@ -122,8 +122,7 @@ function[success] = load_flim_cube(obj, file, selected)
                 % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             case {'.sdt','.msr','.ome', '.ics'}
                 
-                % timing debug
-                tstart = tic;
+                
                 
                 % bio-Formats should already be loaded by
                 % get_image_dimensions
@@ -139,6 +138,7 @@ function[success] = load_flim_cube(obj, file, selected)
                     stitchFiles = 0;
                     
                     % Get the channel filler
+                    disp('starting a new reader')
                     r = bfGetReader(file, stitchFiles);
                     omeMeta = r.getMetadataStore();
                     r.setSeries(obj.block - 1);
@@ -159,6 +159,11 @@ function[success] = load_flim_cube(obj, file, selected)
                 
                 
                 modulo = obj.modulo;
+                
+                % timing debug
+                tstart = tic;
+                
+               
                 
                 % Get pixel type
                 pixelType = r.getPixelType();

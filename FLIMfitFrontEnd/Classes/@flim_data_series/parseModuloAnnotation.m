@@ -34,6 +34,7 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT, physSizeZ)
         [parseResult,~] = xmlreadstring(s);
         tree = xml_read(parseResult);
         
+        
              
         modlo = [];
         if isfield(tree,'ModuloAlongC')
@@ -47,6 +48,11 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT, physSizeZ)
             ret.modulo = 'ModuloAlongZ';
         end;  
         
+        
+        if isempty(modlo)       % should never happen
+            ret = [];
+            return;
+        end
         
         if isfield(modlo.ATTRIBUTE,'Type')
             if isempty(strfind(modlo.ATTRIBUTE.Type,'lifetime'))

@@ -94,7 +94,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 
             end
             
-             %NB dimensions reversed to retain compatibility with raelier
+             %NB dimensions reversed to retain compatibility with earlier
              %code
              dims.sizeXY = [  info.Height   info.Width ];
              %dims.sizeXY = [ info.Width info.Height ];
@@ -121,6 +121,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
+           
 
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
@@ -197,7 +198,13 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 end
                 
             else
-                dims = obj.parseModuloAnnotation(s, sizeZCT, []);
+                rdims = obj.parseModuloAnnotation(s, sizeZCT, []);
+                if ~isempty(rdims)
+                    dims = rdims;
+                end
+                
+                
+                
                  % get channel_names
                 for c = 1:sizeZCT(2)
                     chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
