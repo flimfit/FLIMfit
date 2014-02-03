@@ -83,6 +83,30 @@ handles.minT = ZCTMin(3);
 pol_resolved = varargin{4};
 handles.pol_resolved = pol_resolved;
 
+
+dataZ(:,1) = num2cell(1:sizeZ);
+dataZ(:,2)= num2cell( false(sizeZ,1));
+dataZ(1:handles.minZ,2) = num2cell(true);
+set(handles.uitableZ,'Data',dataZ);
+
+dataC(:,1) = num2cell(1:sizeC);
+dataC(:,2)= num2cell( false(sizeC,1));
+dataC(1:handles.minC,2) = num2cell(true);
+
+if nargin > 7
+    chan_info = varargin{5};
+    if length(chan_info) == sizeC
+        dataC(:,3) = chan_info;
+    end
+end
+set(handles.uitableC,'Data',dataC);
+
+dataT(:,1) = num2cell(1:sizeT);
+dataT(:,2)= num2cell( false(sizeT,1));
+dataT(1:handles.minT,2) = num2cell(true);
+set(handles.uitableT,'Data',dataT);
+
+
 if pol_resolved
     maxC = 1;
     handles.maxC = 1;
@@ -97,26 +121,6 @@ if pol_resolved
     set(handles.uitablePerp,'Data',dataPerp);
     
 end
-
-dataZ(:,1) = num2cell(1:sizeZ);
-dataZ(:,2)= num2cell( false(sizeZ,1));
-dataZ(1:handles.minZ,2) = num2cell(true);
-set(handles.uitableZ,'Data',dataZ);
-
-dataC(:,1) = num2cell(1:sizeC);
-dataC(:,2)= num2cell( false(sizeC,1));
-dataC(1:handles.minC,2) = num2cell(true);
-set(handles.uitableC,'Data',dataC);
-
-dataT(:,1) = num2cell(1:sizeT);
-dataT(:,2)= num2cell( false(sizeT,1));
-dataT(1:handles.minT,2) = num2cell(true);
-set(handles.uitableT,'Data',dataT);
-
-
-
-
-
 
 % Update handles structure
 guidata(hObject, handles);
