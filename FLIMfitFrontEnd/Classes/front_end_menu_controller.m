@@ -694,7 +694,7 @@ classdef front_end_menu_controller < handle
         
         
         function menu_file_import_plate_metadata_callback(obj,~,~)
-            [file,path] = uigetfile({'*.xls;*.xlsx','Excel Files'},'Select the metadata file',obj.default_path);
+            [file,path] = uigetfile({'*.xls;*.xlsx;*.csv','All Compatible Files';'*.xls;*.xlsx','Excel Files';'*.csv','CSV File'},'Select the metadata file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.import_plate_metadata([path file]);
             end
