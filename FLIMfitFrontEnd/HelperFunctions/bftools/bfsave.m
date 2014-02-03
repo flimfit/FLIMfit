@@ -1,20 +1,48 @@
 function bfsave(I, outputPath, varargin)
-% Save a 5D matrix into an OME-TIFF using Bio-Formats library
+% BFSAVE Save a 5D matrix into an OME-TIFF using Bio-Formats library
 %
-% SYNOPSIS bfsave(I, outputPath)
-%          bfsave(I, outputPath, dimensionsOrder)
+%    bfsave(I, outputPath) writes the input 5D matrix into a new file
+%    specified by outputPath.
 %
-% INPUT:
-%       I - a 5D matrix containing the pixels data
+%    bfsave(I, outputPath, dimensionOrder) specifies the dimension order of
+%    the input matrix. Default valuse is XYZCT.
 %
-%       outputPath - a string containing the location of the path where to
-%       save the resulting OME-TIFF
+%    bfsave(I, outputPath, 'Compression', compression) specifies the
+%    compression to use when writing the OME-TIFF file.
 %
-%       dimensionOrder - optional. A string representing the dimension 
-%       order, Default: XYZCT.
+%    bfsave(I, outputPath, 'BigTiff', true) allows to save the file using
+%    64-bit offsets
 %
-% OUTPUT
-% 
+%    Examples:
+%
+%        bfsave(zeros(100, 100), outputPath)
+%        bfsave(zeros(100, 100, 2, 3, 4), outputPath)
+%        bfsave(zeros(100, 100, 20), outputPath, 'dimensionOrder', 'XYTZC')
+%        bfsave(zeros(100, 100), outputPath, 'Compression', 'LZW')
+%        bfsave(zeros(100, 100), outputPath, 'BigTiff', true)
+%
+% See also: BFGETREADER
+
+% OME Bio-Formats package for reading and converting biological file formats.
+%
+% Copyright (C) 2012 - 2013 Open Microscopy Environment:
+%   - Board of Regents of the University of Wisconsin-Madison
+%   - Glencoe Software, Inc.
+%   - University of Dundee
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as
+% published by the Free Software Foundation, either version 2 of the
+% License, or (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License along
+% with this program; if not, write to the Free Software Foundation, Inc.,
+% 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 % Check loci-tools jar is in the Java path
 bfCheckJavaPath();
@@ -25,9 +53,9 @@ assert(isnumeric(I), 'First argument must be numeric');
 % Input check
 ip = inputParser;
 ip.addRequired('outputPath', @ischar);
-allDimensions = ome.xml.model.enums.DimensionOrder.values();
-validator = @(x) ismember(x, arrayfun(@char, allDimensions, 'Unif', false));
-ip.addOptional('dimensionOrder', 'XYZCT', validator);
+ip.addOptional('dimensionOrder', 'XYZCT', @(x) ismember(x, getDimensionOrders()));
+ip.addParamValue('Compression', '',  @(x) ismember(x, getCompressionTypes()));
+ip.addParamValue('BigTiff', false , @islogical);
 ip.parse(outputPath, varargin{:});
 
 % Create metadata
@@ -82,6 +110,12 @@ end
 writer = loci.formats.ImageWriter();
 writer.setWriteSequentially(true);
 writer.setMetadataRetrieve(metadata);
+if ~isempty(ip.Results.Compression)
+    writer.setCompression(ip.Results.Compression)
+end
+if ip.Results.BigTiff
+    writer.getWriter(outputPath).setBigTiff(ip.Results.BigTiff)
+end
 writer.setId(outputPath);
 
 % Load conversion tools for saving planes
@@ -97,14 +131,32 @@ switch class(I)
     case 'double'
         getBytes = @(x) loci.common.DataTools.doublesToBytes(x(:), 0);
 end
-        
+
 % Save planes to the writer
 nPlanes = sizeZ * sizeC * sizeT;
-for index = 1 : nPlanes 
+for index = 1 : nPlanes
     [i, j, k] = ind2sub([size(I, 3) size(I, 4) size(I, 5)],index);
     plane = I(:, :, i, j, k)';
     writer.saveBytes(index-1, getBytes(plane));
 end
 writer.close();
 
+end
+
+function dimensionOrders = getDimensionOrders()
+
+% List all values of DimensionOrder
+dimensionOrderValues = ome.xml.model.enums.DimensionOrder.values();
+dimensionOrders = cell(numel(dimensionOrderValues), 1);
+for i = 1 :numel(dimensionOrderValues),
+    dimensionOrders{i} = char(dimensionOrderValues(i).toString());
+end
+end
+
+function compressionTypes = getCompressionTypes()
+
+% List all values of Compression
+writer = loci.formats.ImageWriter();
+compressionTypes = arrayfun(@char, writer.getCompressionTypes(),...
+    'UniformOutput', false);
 end
