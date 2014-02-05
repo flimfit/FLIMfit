@@ -126,6 +126,8 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
             
+            
+            
             seriesCount = r.getSeriesCount;
             if seriesCount > 1
                 block = [];
