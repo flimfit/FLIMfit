@@ -189,6 +189,8 @@ function[success] = load_flim_cube(obj, file, selected)
             % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.sdt','.msr','.ome', '.ics'}
             
+            selected
+            
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
@@ -222,7 +224,7 @@ function[success] = load_flim_cube(obj, file, selected)
                 realReader = r.getReader();
                 realReader = realReader.getReader();
                 realReader = realReader.getReader();
-                realReader.setPreLoad(true);        % switch on pre-loading
+                %realReader.setPreLoad(true);        % switch on pre-loading
             end
             
             

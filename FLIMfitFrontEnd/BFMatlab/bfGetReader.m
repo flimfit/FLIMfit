@@ -46,9 +46,12 @@ ip.addOptional('stitchFiles', false, @isscalar);
 ip.parse(varargin{:});
 id = ip.Results.id;
 
+% verify that enough memory is allocated
+bfCheckJavaMemory();
+
 % load the Bio-Formats library into the MATLAB environment
 status = bfCheckJavaPath();
-assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
+assert(status, ['Missing Bio-Formats library. Either add bioformats_package.jar '...
     'to the static Java path or add it to the Matlab path.']);
 
 % Prompt for a file if not input
@@ -76,5 +79,6 @@ if ip.Results.stitchFiles
     r = loci.formats.FileStitcher(r);
 end
 
-r.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata());
+OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
+r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
 r.setId(id);
