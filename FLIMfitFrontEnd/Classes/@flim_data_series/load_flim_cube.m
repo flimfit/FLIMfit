@@ -283,93 +283,85 @@ function[success] = load_flim_cube(obj, file, selected)
                     for block = 0:nblocks - 1
                         nplanes = nplanesInBlock(block + 1);
                         
-                        % unsigned moduloAlongT is most of our cases so
-                        % optimised d for speed
-                        if ~sgn  && strcmp(modulo,'ModuloAlongT')
-                           
-                            
-                            T = T * sizet;
-                            for p = 1:nplanes
-                                % this is the loop that needs to be
-                                % optimised for speed
-                                index = r.getIndex(Z, chan ,T + t);
-                                t = t + 1;
-                                rawPlane = r.openBytes(index);
-                                I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
-                                I = typecast(I,type);
-                                obj.data_series_mem(t +1,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
-                            end
-                        else  % signed ModuloAlongT & other modulos
-                            
-                            switch modulo
-                                case 'ModuloAlongT'
-                                    T = T * sizet;
+                        switch modulo
+                            case 'ModuloAlongT'
+                                T = T * sizet;
+                                if ~sgn
+                                    for p = 1:nplanes
+                                        % unsigned moduloAlongT
+                                        % this is the loop that needs to be
+                                        % optimised for speed
+                                       
+                                        index = r.getIndex(Z, chan ,T + t);
+                                        t = t + 1;
+                                        rawPlane = r.openBytes(index);
+                                        I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
+                                        I = typecast(I,type);
+                                        obj.data_series_mem(t +1,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
+                                    end
+                                else  % signed
                                     for p = 1:nplanes
                                         index = r.getIndex(Z, chan ,T + t);
                                         t = t + 1;
                                         plane = bfGetPlane(r,index + 1);
                                         obj.data_series_mem(t +1,pctr,:,:,selected) = plane;
                                     end
-                                    
-                                case 'ModuloAlongZ'
-                                    Z = Z * sizet;
-                                    for p = 1:nplanes
-                                        index = r.getIndex(Z + t, chan ,T);
-                                        t = t + 1;
-                                        plane = bfGetPlane(r,index + 1);
-                                        obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
-                                    end
-                                    
-                                case 'ModuloAlongC'
-                                    C = chan * sizet;
-                                    for p = 1:nplanes
-                                        index = r.getIndex(Z, C + t ,T);
-                                        t = t + 1;
-                                        plane = bfGetPlane(r,index + 1);
-                                        obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
-                                    end
-                                    
-                            end  % end switch
-                        end     %if signed & Modulo
-                        
+                                end
+                                
+                            case 'ModuloAlongZ'
+                                Z = Z * sizet;
+                                for p = 1:nplanes
+                                    index = r.getIndex(Z + t, chan ,T);
+                                    t = t + 1;
+                                    plane = bfGetPlane(r,index + 1);
+                                    obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                end
+                                
+                            case 'ModuloAlongC'
+                                C = chan * sizet;
+                                for p = 1:nplanes
+                                    index = r.getIndex(Z, C + t ,T);
+                                    t = t + 1;
+                                    plane = bfGetPlane(r,index + 1);
+                                    obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                end
+                                
+                        end  % end switch
+                  
+                    
                         if verbose
                             totalPlane = totalPlane + nplanes;
                             waitbar(totalPlane /totalPlanes,w);
                             drawnow;
                         end
-                        
-                        
-                        
+
                     end    % end nblocks
-                    
                 end     % end if selected
-                
-                
+
                 if polarisation_resolved
                     pctr = pctr + 1;
                 else
                     ctr = ctr + 1;
                 end
-                
+
             end     % nchans
-            
-            
+
             % DEBUG timing
             tElapsed = toc(tstart)
-            
+
             if verbose
                 delete(w);
                 drawnow;
             end
-            
-            
-            
+
+
+
             %Bodge to suppress bright line artefact on RHS in BH .sdt files
             if strfind(file,'.sdt')
                 obj.data_series_mem(:,:,:,end,:) = 0;
             end
-            
-            
+    
+    
             
             % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.csv','.txt'}
