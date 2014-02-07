@@ -150,7 +150,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             r.setSeries(obj.block - 1);
             
             omeMeta = r.getMetadataStore();
-            
+           
             
             obj.bfOmeMeta = omeMeta;  % set for use in loading data
             obj.bfReader = r;
@@ -270,19 +270,30 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               dims.modulo = [];
               
     
-                 
           %  more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-          case {'.asc', '.irf'}
+          case {'.asc'}  
+         
              
-              
               [dims.delays,im_data,t_int] = load_flim_file(file);
               
               
-              dims.FLIM_type = 'Gated';  
+              dims.FLIM_type = 'TCSPC';  
               dims.sizeZCT = [1, 1, 1];
               dims.modulo = []; 
               siz = size(im_data);
               dims.sizeXY = siz(end-1: end);
+              
+              
+          case {'.irf'}
+              
+              ir = load(file);
+              obj.txtInfoRead = ir;    % save ir into class
+              
+              dims.delays(1,:) = ir(:,1);
+              dims.FLIM_type = 'TCSPC';  
+              dims.sizeZCT = [1, 1, 1];
+              dims.modulo = []; 
+              dims.sizeXY = [ 1 1 ];
               
             
 

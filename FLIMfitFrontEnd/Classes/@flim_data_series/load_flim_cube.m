@@ -188,9 +188,7 @@ function[success] = load_flim_cube(obj, file, selected)
             
             % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.sdt','.msr','.ome', '.ics'}
-            
-            selected
-            
+           
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
@@ -221,10 +219,7 @@ function[success] = load_flim_cube(obj, file, selected)
             if strcmp(ext,'.sdt')
                 % burrow down through all the bio-formats wrappers to
                 % get to the SDTReader class
-                realReader = r.getReader();
-                realReader = realReader.getReader();
-                realReader = realReader.getReader();
-                %realReader.setPreLoad(true);        % switch on pre-loading
+                r.unwrap.setPreLoad(true);      % switch on pre-loading    
             end
             
             
@@ -365,7 +360,7 @@ function[success] = load_flim_cube(obj, file, selected)
     
     
             
-            % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.csv','.txt'}
             
             % if this is the same file from which we got the image
@@ -403,8 +398,8 @@ function[success] = load_flim_cube(obj, file, selected)
             
             
             
-            % more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.asc', '.irf'}
+         % more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        case {'.asc'}
             
             block = 1;       % deprecated retained for compatibility with old load_flim_files
             
@@ -425,6 +420,26 @@ function[success] = load_flim_cube(obj, file, selected)
                 end
                 
             end
+            
+          case {'.irf'}
+              
+            % if this is the same file from which we got the image
+            % dimensions
+            if strcmp(file,obj.file_names(1) )  && ~isempty(obj.txtInfoRead)
+                ir = obj.txtInfoRead;
+            else
+                ir = load(file);
+            end
+            
+            % this format can ony hold 1 channel
+            obj.data_series_mem(:,pctr,:,:,selected) = ir(:,2);
+           
+            if polarisation_resolved
+                pctr = pctr + 1;
+            else
+                ctr = ctr + 1;
+            end
+            
             
             
             
