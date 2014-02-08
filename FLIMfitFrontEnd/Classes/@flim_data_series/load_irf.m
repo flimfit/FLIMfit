@@ -67,14 +67,18 @@ function load_irf(obj,file,load_as_image)
         
         irf_image_data = squeeze(irf_image_data);
        
-        % if irf is not single pixel then reshape & average over pixels
-        if (sizeX + sizeY) > 2
-            irf = reshape(irf_image_data,[ sizet sizeX * sizeY ]);
+       
+        
+        % Sum over pixels
+        s = size(irf_image_data);
+        if length(s) == 3       
+            irf = reshape(irf_image_data,[s(1) s(2)*s(3)]);
             irf = mean(irf,2);
-        else
-            irf = irf_image_data;
-      
+        elseif length(s) == 4       %polarised
+            irf = reshape(irf_image_data,[s(1) s(2) s(3)*s(4)]);
+            irf = mean(irf,3);
         end
+
             
 
         % export may be in ns not ps.

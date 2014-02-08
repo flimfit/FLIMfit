@@ -57,14 +57,15 @@ function load_tvb(obj,file)
         [success , tvb_image_data] = obj.load_flim_cube(tvb_image_data, file,1);
         
         tvb_image_data = squeeze(tvb_image_data);
-       
-        % if irf is not single pixel then reshape & average over pixels
-        if (sizeX + sizeY) > 2
-            tvb_data = reshape(tvb_image_data,[ sizet sizeX * sizeY ]);
-            tvb = mean(tvb,2);
-        else
-            tvb_data = tvb_image_data;
-      
+        
+        % Sum over pixels
+        s = size(tvb_image_data);
+        if length(s) == 3       
+            tvb_data = reshape(tvb_image_data,[s(1) s(2)*s(3)]);
+            tvb_data = mean(tvb_data,2);
+        elseif length(s) == 4       %polarised
+            tvb_data = reshape(tvb_image_data,[s(1) s(2) s(3)*s(4)]);
+            tvb_data = mean(tvb_data,3);
         end
        
 
