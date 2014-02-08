@@ -34,31 +34,48 @@ function load_irf(obj,file,load_as_image)
         marshal_object(file,'flim_data_series',obj);
    
     else
+        
+        dims = obj.get_image_dimensions(file);
+        
+        if isempty(dims.delays)
+            return;
+        end;
+  
+        chan_info = dims.chan_info;
+       
+        % Determine which channels we need to load 
+        ZCT = obj.get_ZCT( dims, obj.polarisation_resolved ,chan_info);
+    
+        if isempty(ZCT)
+            return;
+        end;
 
-        if strcmp(obj.mode,'TCSPC')
-            channel = obj.request_channels(obj.polarisation_resolved);
-        else
-            channel = 1;
-        end
 
         if nargin < 3
             load_as_image = false;
         end
-
-        [t_irf,irf_image_data] = load_flim_file(file,channel);    
-        irf_image_data = double(irf_image_data);
-
-        % Sum over pixels
-        s = size(irf_image_data);
-        if length(s) == 3
-            irf = reshape(irf_image_data,[s(1) s(2)*s(3)]);
+        
+        t_irf = dims.delays;
+        sizet = length(t_irf);
+        sizeX = dims.sizeXY(1);
+        sizeY = dims.sizeXY(2);
+        
+       
+        irf_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
+       
+        [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1);
+        
+        irf_image_data = squeeze(irf_image_data);
+       
+        % if irf is not single pixel then reshape & average over pixels
+        if (sizeX + sizeY) > 2
+            irf = reshape(irf_image_data,[ sizet sizeX * sizeY ]);
             irf = mean(irf,2);
-        elseif length(s) == 4
-            irf = reshape(irf_image_data,[s(1) s(2) s(3)*s(4)]);
-            irf = mean(irf,3);
         else
             irf = irf_image_data;
+      
         end
+            
 
         % export may be in ns not ps.
         if max(t_irf) < 300

@@ -1,5 +1,5 @@
 
-function[success] = load_flim_cube(obj, file, selected)
+function[success, target] = load_flim_cube(obj, target, file, selected)
 
 
 %  Loads FLIM_data from a file or set of files
@@ -116,6 +116,8 @@ function[success] = load_flim_cube(obj, file, selected)
 
     end
     
+   
+    
     
     
     
@@ -159,7 +161,7 @@ function[success] = load_flim_cube(obj, file, selected)
                     
                     try
                         plane = imread(filename,'tif');
-                        obj.data_series_mem(t,1,:,:,selected) = plane;
+                        target(t,1,:,:,selected) = plane;
                     catch error
                         throw(error);
                     end
@@ -176,8 +178,8 @@ function[success] = load_flim_cube(obj, file, selected)
                 
             end
             
-            if min(obj.data_series_mem(:,1,:,:,selected)) > 32500
-                obj.data_series_mem(:,1,:,:,selected) = obj.data_series_mem(:,1,:,:,selected) - 32768;    % clear the sign bit which is set by labview
+            if min(target(:,1,:,:,selected)) > 32500
+                target(:,1,:,:,selected) = target(:,1,:,:,selected) - 32768;    % clear the sign bit which is set by labview
             end
             
             if verbose
@@ -294,14 +296,14 @@ function[success] = load_flim_cube(obj, file, selected)
                                         rawPlane = r.openBytes(index);
                                         I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
                                         I = typecast(I,type);
-                                        obj.data_series_mem(t +1,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
+                                        target(t,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
                                     end
                                 else  % signed
                                     for p = 1:nplanes
                                         index = r.getIndex(Z, chan ,T + t);
                                         t = t + 1;
                                         plane = bfGetPlane(r,index + 1);
-                                        obj.data_series_mem(t +1,pctr,:,:,selected) = plane;
+                                        target(t,pctr,:,:,selected) = plane;
                                     end
                                 end
                                 
@@ -311,7 +313,7 @@ function[success] = load_flim_cube(obj, file, selected)
                                     index = r.getIndex(Z + t, chan ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                    target(t,pctr,:,:,selected) = plane;
                                 end
                                 
                             case 'ModuloAlongC'
@@ -320,7 +322,7 @@ function[success] = load_flim_cube(obj, file, selected)
                                     index = r.getIndex(Z, C + t ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    obj.data_series_mem(t+1,pctr,:,:,selected) = plane;
+                                    target(t,pctr,:,:,selected) = plane;
                                 end
                                 
                         end  % end switch
@@ -355,7 +357,7 @@ function[success] = load_flim_cube(obj, file, selected)
 
             %Bodge to suppress bright line artefact on RHS in BH .sdt files
             if strfind(file,'.sdt')
-                obj.data_series_mem(:,:,:,end,:) = 0;
+                target(:,:,:,end,:) = 0;
             end
     
     
@@ -384,7 +386,7 @@ function[success] = load_flim_cube(obj, file, selected)
                 
                 % check that we are supposed to load this FLIM cube
                 if ctr == selected  ||  polarisation_resolved  || nfiles >1
-                    obj.data_series_mem(:,pctr,:,:,selected) = ir(:,chan);
+                    target(:,pctr,:,:,selected) = ir(:,chan);
                 end
                 
                 if polarisation_resolved
@@ -410,7 +412,7 @@ function[success] = load_flim_cube(obj, file, selected)
                 if ctr == selected  ||  polarisation_resolved  || nfiles >1
                     
                     [delays,data_cube,t_int] = load_flim_file(file, chan,block);
-                    obj.data_series_mem(:,pctr,:,:,selected) = data_cube;
+                    target(:,pctr,:,:,selected) = data_cube;
                 end
                 
                 if polarisation_resolved
@@ -432,7 +434,7 @@ function[success] = load_flim_cube(obj, file, selected)
             end
             
             % this format can ony hold 1 channel
-            obj.data_series_mem(:,pctr,:,:,selected) = ir(:,2);
+            target(:,pctr,:,:,selected) = ir(:,2);
            
             if polarisation_resolved
                 pctr = pctr + 1;
