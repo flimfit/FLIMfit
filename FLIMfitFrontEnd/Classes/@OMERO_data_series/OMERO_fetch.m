@@ -26,7 +26,7 @@ else
     if strcmp('TCSPC',FLIM_type)
     
         %Bodge to suppress bright line artefact on RHS in BH .sdt files
-        if strfind(fullname,'.sdt')
+        if ~isempty(strfind(fullname,'.sdt'))
            data_cube(:,:,:,end,:) = 0;
         end
     else    % Not TCSPC
