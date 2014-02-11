@@ -740,19 +740,13 @@ classdef ic_importer_impl < handle
         end
 %-------------------------------------------------------------------------%
         function load_omero(obj,~,~)
-            try                
-                ports = [4064 14064 24064];
-                for k=1:numel(ports)
-                    success = true;
-                    try
-                        obj.client = loadOmero(obj.logon{1},ports(k));
-                    catch err
-                        success = false;
-                    end
-                    if true == success && ~isempty(obj.client), break, end;                  
-                end                                
-                obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
-            catch
+            try                                
+                port = obj.logon{2};
+                if ischar(port), port = str2num(port); end;
+                obj.client = loadOmero(obj.logon{1},port);                
+                obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
+            catch err
+                display(err.message);
                 obj.client = [];
                 obj.session = [];
                 errordlg('Error creating OMERO session');           
