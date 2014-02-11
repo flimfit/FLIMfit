@@ -36,9 +36,9 @@
             %
             pName = char(java.lang.String(Parent.getName().getValue()));
             
-            parent_is = whos_Object(session,Parent.getId().getValue());
+            parent_is = class(Parent);
             
-            if strcmp(parent_is,'Dataset') % load images from Dataset
+            if strfind(parent_is,'Dataset') % load images from Dataset
 
                 imageList = Parent.linkedImageList;
                 %       
@@ -68,7 +68,7 @@
                     ret = imageList.get(s-1);
                 end            
                 
-            elseif strcmp(parent_is,'Plate') % load images from plate
+            elseif strfind(parent_is,'Plate') % load images from plate
 
                  z = 0;       
                  images = [];
