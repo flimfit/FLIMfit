@@ -2,10 +2,10 @@ function [ data_cube, name ] =  OMERO_fetch( obj, image, ZCT, mdta )
     
 data_cube = [];
 
-name = char(image.getName.getValue());
+fullname = char(image.getName.getValue());
 
 % split the name into it's components separated by full-stops
-components =  regexp(name, '\.', 'split');
+components =  regexp(fullname, '\.', 'split');
 name = components{1};      % discard the extension or extensions
 
 
@@ -26,7 +26,7 @@ else
     if strcmp('TCSPC',FLIM_type)
     
         %Bodge to suppress bright line artefact on RHS in BH .sdt files
-        if strfind(name,'.sdt')
+        if ~isempty(strfind(fullname,'.sdt'))
            data_cube(:,:,:,end,:) = 0;
         end
     else    % Not TCSPC

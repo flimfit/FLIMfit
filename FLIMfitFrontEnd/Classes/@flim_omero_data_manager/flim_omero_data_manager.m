@@ -720,7 +720,9 @@ classdef flim_omero_data_manager < handle
                     [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end                        
+            end
+            %
+            if ~exist('object','var') || isempty(object), return, end;
             %                        
             fname = [tempdir 'fitting settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
             fitting_params_controller.save_fitting_params(fname);         
@@ -818,9 +820,16 @@ classdef flim_omero_data_manager < handle
             
                 keeptrying = false;     % only try again in the event of failure to logon
           
-
-                obj.client = loadOmero(obj.logon{1});
-
+                ports = [4064 14064 24064];
+                for k=1:numel(ports)
+                    success = true;
+                    try
+                        obj.client = loadOmero(obj.logon{1},ports(k));
+                    catch err
+                        success = false;
+                    end
+                    if true == success && ~isempty(obj.client), break, end;                  
+                end
 
                 try 
                     obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
@@ -942,7 +951,9 @@ classdef flim_omero_data_manager < handle
                     [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end                        
+            end 
+            %
+            if ~exist('object','var') || isempty(object), return, end;            
             %                        
             ext = '.irf';   
             irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
@@ -1047,6 +1058,8 @@ classdef flim_omero_data_manager < handle
                 case 'Cancel', 
                     return;
             end                        
+            %
+            if ~exist('object','var') || isempty(object), return, end;            
             %                        
             fname = [tempdir 'data settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
             data_series.save_data_settings(fname);         
