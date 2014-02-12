@@ -62,6 +62,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             obj.bind_control(handles,'irf_type','popupmenu');
             obj.bind_control(handles,'t0','edit');
             obj.bind_control(handles,'counts_per_photon','edit')
+            obj.bind_control(handles,'use_image_t0_correction','checkbox');
             
             obj.bind_control(handles,'data_subsampling','edit')
             obj.bind_control(handles,'irf_subsampling','edit')

@@ -81,6 +81,8 @@ classdef flim_data_series < handle & h5_serializer
         cal_t_meas = 0:10:20e3;
         cal_dt = 10;
         
+        use_image_t0_correction = 0;
+        
     end
     
     properties(Dependent)
@@ -733,6 +735,15 @@ classdef flim_data_series < handle & h5_serializer
             obj.afterpulsing_correction = afterpulsing_correction;
             obj.compute_tr_irf();
             notify(obj,'data_updated');
+        end
+        
+        function set.use_image_t0_correction(obj,use_image_t0_correction)
+           if ~isfield(obj.metadata,'t0') || ~all(cellfun(@isnumeric,obj.metadata.t0))
+               use_image_t0_correction = false;
+           end
+           obj.use_image_t0_correction = use_image_t0_correction;
+           obj.compute_tr_irf();
+           notify(obj,'data_updated');
         end
         
         
