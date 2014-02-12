@@ -22,7 +22,7 @@ function varargout = OMERO_logon(varargin)
 
 % Edit the above text to modify the response to help OMERO_logon
 
-% Last Modified by GUIDE v2.5 28-Jul-2013 19:52:38
+% Last Modified by GUIDE v2.5 10-Feb-2014 15:16:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,24 +56,30 @@ function OMERO_logon_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 handles.server = '??';
+handles.port = [];
 handles.userName = '??';
 handles.passwd = [];
 
-handles.output = {'??', '??', '??'};
+handles.output = {'??', '??', '??', '??'};
 
 try
     login_details = getpref('GlobalAnalysisFrontEnd','OMEROlogin');
     handles.server = login_details{1};
-    handles.userName = login_details{2};
+    handles.port = login_details{2};        
+    handles.userName = login_details{3};
     
     set(handles.Server,'string',login_details{1});
-    set(handles.UserName,'string',login_details{2});
+    set(handles.Port,'string',login_details{2});    
+    set(handles.UserName,'string',login_details{3});
     
     % Set focus to password
     uicontrol(handles.Passwd);
     
-catch 
-    addpref('GlobalAnalysisFrontEnd','OMEROlogin',{'',''})
+catch err
+    display(err.message);
+    if ~ispref('GlobalAnalysisFrontEnd','OMEROlogin')
+        addpref('GlobalAnalysisFrontEnd','OMEROlogin',{'','',''});
+    end
 end
 
 % Update handles structure
@@ -198,15 +204,15 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 server = handles.server;
+port = handles.port;
 userName = handles.userName;
 passwd = handles.passwd;
 
-handles.output = {server, userName, passwd};
+handles.output = {server, port, userName, passwd};
 
-setpref('GlobalAnalysisFrontEnd','OMEROlogin',{server,userName});
+setpref('GlobalAnalysisFrontEnd','OMEROlogin',{server,port,userName});
 
 guidata(hObject,handles);
-
 
 uiresume(handles.figure1);
 
@@ -253,14 +259,42 @@ function cancel_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 server = '??';
+port = [];
 userName = '??';
 passwd = [];
 
-handles.output = {server, userName, passwd};
+handles.output = { server, port, userName, passwd };
 
 guidata(hObject,handles);
-
 
 uiresume(handles.figure1);
 
 
+
+
+
+function Port_Callback(hObject, eventdata, handles)
+% hObject    handle to Port (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Port as text
+%        str2double(get(hObject,'String')) returns contents of Port as a double
+port = get(hObject,'String');
+
+% Save the new  value
+handles.port = port;
+guidata(hObject,handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function Port_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Port (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

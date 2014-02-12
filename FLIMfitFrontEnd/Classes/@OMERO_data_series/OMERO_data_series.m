@@ -118,18 +118,18 @@ classdef OMERO_data_series < flim_data_series
         end;
         
         %------------------------------------------------------------------
-        function table_data = read_analysis_stats_data_from_annotation(obj,object_id)
+        function table_data = read_analysis_stats_data_from_annotation(obj,object)
             %
             table_data = [];
             %
             session = obj.omero_data_manager.session;
             %           
-            whosobject = whos_Object(session,object_id);
+            whosobject = class(object);
             %
-            if strcmp('Plate',whosobject)
-                annotations = getPlateFileAnnotations(session, object_id);
-            elseif strcmp('Dataset',whosobject)
-                annotations = getDatasetFileAnnotations(session, object_id);               
+            if strfind(whosobject,'Plate')
+                annotations = getPlateFileAnnotations(session, object.getId().getValue());
+            elseif strfind(whosobject,'Dataset')
+                annotations = getDatasetFileAnnotations(session, object.getId().getValue());               
             else
                 return;
             end

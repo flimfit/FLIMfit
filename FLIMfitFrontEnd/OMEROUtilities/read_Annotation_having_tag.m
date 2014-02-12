@@ -26,16 +26,18 @@ function str = read_Annotation_having_tag(session, object, ome_model_annotation_
         %
         str = [];
         %
-        switch whos_Object(session ,object.getId().getValue())
-            case 'Project'
+        object_is = class(object);
+        
+        switch object_is
+            case 'omero.model.ProjectI'
                 specifier = 'omero.model.Project';
-            case 'Dataset'
+            case 'omero.model.DatasetI'
                 specifier = 'omero.model.Dataset';
-            case 'Image'
+            case 'omero.model.ImageI'
                 specifier = 'omero.model.Image';
-            case 'Plate'
+            case 'omero.model.PlateI'
                 specifier = 'omero.model.Plate';
-            case 'Screen'
+            case 'omero.model.ScreenI'
                 specifier = 'omero.model.Screen';                
         end;
         %
