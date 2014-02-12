@@ -25,7 +25,7 @@ function ret = get_FLIM_params_from_metadata(session, image)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
 
-    
+        
     ret = [];    
     
      s = [];
@@ -48,8 +48,7 @@ function ret = get_FLIM_params_from_metadata(session, image)
      ret.sizeY = pixels.getSizeX().getValue(); 
     
     s = read_XmlAnnotation_havingNS(session,image,'openmicroscopy.org/omero/dimension/modulo'); 
-    
-        
+          
     if ~isempty(s)      % found correct ModuloAlong XmlAnnotation
         
         [parseResult,~] = xmlreadstring(s);

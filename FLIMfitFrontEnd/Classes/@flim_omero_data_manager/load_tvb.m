@@ -26,9 +26,8 @@ function load_tvb(obj,data_series,object)
     t_tvb = [];
     tvb_data = [];
     
-    switch whos_Object(obj.session, object.getId().getValue());
-        case 'Image'
-            
+    if strfind(class(object),'Image')    
+                
             metadata = get_FLIM_params_from_metadata(obj.session,object);
                         
             channel = [];
@@ -50,10 +49,12 @@ function load_tvb(obj,data_series,object)
                  [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
             end      
                                     
-        case 'Dataset'
+    elseif strfind(class(object),'Dataset')
+        
             [t_tvb tvb_data] = obj.load_FLIM_data_from_Dataset(object);
             t_tvb = t_tvb';
-        otherwise
+            
+    else
             return;
     end
             
