@@ -1,4 +1,4 @@
- function ZCT = get_ZCT( obj, dims, polarisation_resolved, chan_info )
+ function ZCT = get_ZCT( obj, dims, polarisation_resolved, chan_info, multiple_planes )
  
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -30,6 +30,11 @@
             if nargin < 4
                 chan_info = [];
             end
+            
+            % allow selection of multiple planes by default
+            if nargin < 5 
+                multiple_planes = true
+            end
 
          
             sizeZCT = dims.sizeZCT;
@@ -59,7 +64,7 @@
                     
                 minn = [ 1 1 1 ];   % select one from each 
                     
-                if length(obj.file_names) == 1          % single file in data set
+                if length(obj.file_names) == 1   && multiple_planes      % single file in data set
                     maxx = [ sizeZ sizeC sizeT ];       % so allow any selection
                 else
                     maxx = minn;
