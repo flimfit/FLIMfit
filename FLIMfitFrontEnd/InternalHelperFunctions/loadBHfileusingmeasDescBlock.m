@@ -276,8 +276,8 @@ fid=fopen(filename);
         case 1
 
             chanLength = datacount;
-            xdim = chanLength/(adc_res * scany);   %calculate the limited dimensiom
-            ImData = reshape(a(1:chanLength), adc_res, xdim , chanLength/(adc_res * xdim));
+            %xdim = chanLength/(adc_res * scany);   %calculate the limited dimensiom
+            ImData = reshape(a(1:chanLength), adc_res, scanx , chanLength/(adc_res * scanx));
             ImData = ImData(:,1:scanx,:);
             % clear ridiculously bright pixels at bottom (RH side?? ) of image
             if scanx > 1 && scany > 1
