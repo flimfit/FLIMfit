@@ -33,7 +33,7 @@
             
             % allow selection of multiple planes by default
             if nargin < 5 
-                multiple_planes = true
+                multiple_planes = true;
             end
 
          

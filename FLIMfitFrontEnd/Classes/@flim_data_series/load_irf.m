@@ -43,8 +43,9 @@ function load_irf(obj,file,load_as_image)
   
         chan_info = dims.chan_info;
        
-        % Determine which channels we need to load 
-        ZCT = obj.get_ZCT( dims, obj.polarisation_resolved ,chan_info);
+        % Determine which channels we need to load (param 5 disallows the
+        % selection of multiple planes )
+        ZCT = obj.get_ZCT( dims, obj.polarisation_resolved ,chan_info, false);
     
         if isempty(ZCT)
             return;
@@ -61,25 +62,19 @@ function load_irf(obj,file,load_as_image)
         sizeY = dims.sizeXY(2);
         
        
-        irf_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
-       
-        [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1);
-        
-        irf_image_data = squeeze(irf_image_data);
-       
-       
-        
-        % Sum over pixels
-        s = size(irf_image_data);
-        if length(s) == 3       
-            irf = reshape(irf_image_data,[s(1) s(2)*s(3)]);
-            irf = mean(irf,2);
-        elseif length(s) == 4       %polarised
-            irf = reshape(irf_image_data,[s(1) s(2) s(3)*s(4)]);
+        if obj.polarisation_resolved
+            irf_image_data = zeros(sizet, 2, sizeX, sizeY, 1);
+            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1);
+            irf = reshape(irf_image_data,[sizet 2 sizeX * sizeY]);
             irf = mean(irf,3);
+        else
+            irf_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
+            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1);
+            irf = reshape(irf_image_data,[sizet  sizeX * sizeY]);
+            irf = mean(irf,2);
         end
-
-            
+       
+         
 
         % export may be in ns not ps.
         if max(t_irf) < 300

@@ -240,7 +240,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
             modulo = obj.modulo;
             
             % timing debug
-            tstart = tic;
+            %tstart = tic;
             
             
             
@@ -346,7 +346,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
             end     % nchans
 
             % DEBUG timing
-            tElapsed = toc(tstart)
+           % tElapsed = toc(tstart)
 
             if verbose
                 delete(w);
