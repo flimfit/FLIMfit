@@ -198,8 +198,14 @@ function compute_tr_irf(obj)
 
         end
         
+        if obj.use_image_t0_correction
+            t0_shift = -obj.metadata.t0{obj.active};
+        else
+            t0_shift = 0;
+        end
+        
         % Shift by t0
-        t0_shift = obj.t0-t0_correction;
+        t0_shift = t0_shift+obj.t0-t0_correction;
         
         
         dt_irf = obj.t_irf(2)-obj.t_irf(1);

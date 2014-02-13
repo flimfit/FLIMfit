@@ -806,9 +806,8 @@ classdef flim_omero_data_manager < handle
             if isempty(settings)
                 obj.logon = OMERO_logon();
             end
-           
-                                    
-           if isempty(obj.logon{3})
+                                               
+           if isempty(obj.logon{4})
                if neverTriedLog == true
                    ret_string = questdlg('Respond "Yes" ONLY if you intend NEVER to use FLIMfit with OMERO on this machine!');
                    if strcmp(ret_string,'Yes')
@@ -819,17 +818,16 @@ classdef flim_omero_data_manager < handle
            end
             
                 keeptrying = false;     % only try again in the event of failure to logon
-          
-
-                obj.client = loadOmero(obj.logon{1});
-
-
+                
                 try 
-                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                    port = obj.logon{2};
+                    if ischar(port), port = str2num(port); end;
+                    obj.client = loadOmero(obj.logon{1},port);                                    
+                    obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
                 catch err
+                    display(err.message);
                     obj.client = [];
                     obj.session = [];
-
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
@@ -837,12 +835,9 @@ classdef flim_omero_data_manager < handle
                     % Handle response
                     switch choice
                         case 'Try again to logon'
-                            keeptrying = true;
-                      
-                            
+                            keeptrying = true;                                                  
                         case 'Run FLIMfit in non-OMERO mode'
-                            % no action keeptrying is already false
-                       
+                            % no action keeptrying is already false                       
                     end    % end switch           
                 end   % end catch
                 if ~isempty(obj.session)
@@ -867,14 +862,15 @@ classdef flim_omero_data_manager < handle
             
                 keeptrying = false;     % only try again in the event of failure to logon
           
-                obj.client = loadOmero(obj.logon{1});
-
                 try 
-                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                    port = obj.logon{2};
+                    if ischar(port), port = str2num(port); end;
+                    obj.client = loadOmero(obj.logon{1},port);                                    
+                    obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
                 catch err
+                    display(err.message);
                     obj.client = [];
                     obj.session = [];
-
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
@@ -882,12 +878,9 @@ classdef flim_omero_data_manager < handle
                     % Handle response
                     switch choice
                         case 'Try again to logon'
-                            keeptrying = true;
-                      
-                            
+                            keeptrying = true;                                                  
                         case 'Run FLIMfit in non-OMERO mode'
-                            % no action keeptrying is already false
-                       
+                            % no action keeptrying is already false                       
                     end    % end switch           
                 end   % end catch
                 if ~isempty(obj.session)

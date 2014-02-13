@@ -55,6 +55,8 @@ function [imdata, ATTRIBUTES, VALUES] = load_omero_image_stack(session, varargin
 % end
 
     imdata = [];
+    ATTRIBUTES = []; 
+    VALUES = [];    
     
     userid = session.getAdminService().getEventContext().userId;
 

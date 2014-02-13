@@ -39,8 +39,13 @@ function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_fil
         fa = writeFileAnnotation(session, full_file_name,...
             'mimetype', file_mime_type, 'description', description,...
             'namespace', namespace);
-        whos_object = whos_Object(session, object.getId().getValue());
-        linkAnnotation(session, fa, lower(whos_object),...
+                        
+        class_names = {'Dataset','Project','Plate','Screen','Image'};        
+        for k = 1:numel(class_names)
+            if strfind(class(object),class_names{k}), break, end;
+        end
+                                
+        linkAnnotation(session, fa, lower(class_names{k}),...
             object.getId().getValue());
         %
 %     catch ME

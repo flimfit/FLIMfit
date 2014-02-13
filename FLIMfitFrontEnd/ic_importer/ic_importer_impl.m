@@ -505,9 +505,9 @@ classdef ic_importer_impl < handle
             %
             single_file = false;
             %
-            whos_Dst = whos_Object(obj.session,obj.Dst.getId().getValue());
+            whos_Dst = class(obj.Dst);
             %
-            if strcmp(whos_Dst,'Dataset'), single_file = true; end;
+            if strfind(whos_Dst,'Dataset'), single_file = true; end;
             %
             if single_file
                 if exist(obj.Src,'file') && ~isdir(obj.Src) % only files
@@ -544,10 +544,10 @@ classdef ic_importer_impl < handle
                     %
                 end
             else % many images
-                if ~exist(obj.Src,'dir') || ~(strcmp(whos_Dst,'Project') || strcmp(whos_Dst,'Screen')), 
+                if ~exist(obj.Src,'dir') || ~(strfind(whos_Dst,'Project') || strfind(whos_Dst,'Screen')), 
                     obj.updateInterface, return, end;   
                 %
-                if strcmp(whos_Dst,'Project')                
+                if strfind(whos_Dst,'Project')                
                     files = dir([char(obj.Src) filesep '*.' char(obj.Extension)]);
                     num_files = length(files);
                     if 0 ~= num_files
@@ -740,10 +740,13 @@ classdef ic_importer_impl < handle
         end
 %-------------------------------------------------------------------------%
         function load_omero(obj,~,~)
-            try
-                obj.client = loadOmero(obj.logon{1});
-                obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
-            catch
+            try                                
+                port = obj.logon{2};
+                if ischar(port), port = str2num(port); end;
+                obj.client = loadOmero(obj.logon{1},port);                
+                obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
+            catch err
+                display(err.message);
                 obj.client = [];
                 obj.session = [];
                 errordlg('Error creating OMERO session');           
@@ -1497,7 +1500,6 @@ classdef ic_importer_impl < handle
 %-------------------------------------------------------------------------%                 
         function upload_Plate(obj,~,~)
             
-            session = obj.session;
             parent = obj.Dst;            
             folder = obj.Src;
             modulo = obj.Modulo;
@@ -1510,7 +1512,7 @@ classdef ic_importer_impl < handle
                 try PlateSetups = obj.parse_MultiChannel_WP_format(folder); catch err, errordlg(err.message), return, end;                                
             end;
                         
-            updateService = session.getUpdateService();        
+            updateService = obj.session.getUpdateService();        
             newdata = omero.model.PlateI();
             newdata.setName(omero.rtypes.rstring(newdataname));    
             newdata.setColumnNamingConvention(omero.rtypes.rstring(PlateSetups.columnNamingConvention));
@@ -1604,7 +1606,7 @@ classdef ic_importer_impl < handle
                                     drawnow;                                        
                                     %
                                     new_image_name = char(strings(length(strings)));
-                                    new_imageId = mat2omeroImage(session, Z, pixeltype, new_image_name, ' ', channels_names, modulo);                                                            
+                                    new_imageId = mat2omeroImage(obj.session, Z, pixeltype, new_image_name, ' ', channels_names, modulo);                                                            
 % loading FOV image - ends %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                     ws.setImage( omero.model.ImageI(new_imageId,false) );                            
                                     well.addWellSample(ws);
@@ -1620,7 +1622,7 @@ classdef ic_importer_impl < handle
                                     end
                                     %
                                     xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'Gated');
-                                    add_XmlAnnotation(session,[],image,xmlnode);
+                                    add_XmlAnnotation(obj.session,[],image,xmlnode);
                                     %                                
                             end
                             updateService.saveObject(well);
@@ -1724,7 +1726,7 @@ classdef ic_importer_impl < handle
                                     drawnow;                                        
                                     %
                                     new_image_name = ['MODALITY = ' PlateSetups.high_dirs{K} ' FOVNAME = ' imgnameslist{m}];
-                                    new_imageId = mat2omeroImage(session, Z, pixeltype, new_image_name, ' ', channels_names, modulo);
+                                    new_imageId = mat2omeroImage(obj.session, Z, pixeltype, new_image_name, ' ', channels_names, modulo);
                                     %
 % loading FOV image - ends %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                                     ws.setImage( omero.model.ImageI(new_imageId,false) );                            
@@ -1744,7 +1746,7 @@ classdef ic_importer_impl < handle
                                         end
                                         %
                                         xmlnode = create_ModuloAlongDOM(delaynums, [], modulo, 'Gated');
-                                        add_XmlAnnotation(session,[],image,xmlnode);
+                                        add_XmlAnnotation(obj.session,[],image,xmlnode);
                                     end
                             end % for K = 1 : numel(PlateSetups.high_dirs)                             
                             %

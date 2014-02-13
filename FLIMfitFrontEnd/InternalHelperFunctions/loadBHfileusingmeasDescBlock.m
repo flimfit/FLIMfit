@@ -176,6 +176,12 @@ fid=fopen(filename);
     
      if channel < -1             % deliberately choosing a -ve channel of -2 or less indicates that no data is to be returned
         
+         if meas_mode == 13
+             noOfChannels = no_of_data_blocks;
+             return;
+         end
+         
+         
         if meas_mode == 0        % single point data     
             noOfChannels = 1;     
         else

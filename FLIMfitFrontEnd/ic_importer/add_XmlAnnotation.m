@@ -40,7 +40,6 @@ function ret = add_XmlAnnotation(session,userId,object,Xml)
             return;
         end;
 
-
         namespace  = 'openmicroscopy.org/omero/dimension/modulo';
                                     
         iUpdate = session.getUpdateService(); % service used to write object
@@ -54,30 +53,26 @@ function ret = add_XmlAnnotation(session,userId,object,Xml)
         link.setChild(term);
         link.setParent(object);
         
-                                           
-        whos_object = whos_Object(session,object.getId().getValue());
-        switch whos_object
-            case 'Project'
+        whos_object = class(object);
+
+            if strfind(whos_object,'Project')
                 link = omero.model.ProjectAnnotationLinkI;
-            case 'Dataset'
+            elseif strfind(whos_object,'Dataset')
                 link = omero.model.DatasetAnnotationLinkI;
-            case 'Image'
+            elseif strfind(whos_object,'Image')
                 link = omero.model.ImageAnnotationLinkI;                
-            case 'Screen'
+            elseif strfind(whos_object,'Screen')
                 link = omero.model.ScreenAnnotationLinkI;                
-            case 'Plate'
+            elseif strfind(whos_object,'Plate')                
                 link = omero.model.PlateAnnotationLinkI;                                
-        end;
-        %
-        if strcmp('unknown',whos_object)
-            link = omero.model.ImageAnnotationLinkI;
-        end;
-        %
+            else 
+                link = omero.model.ImageAnnotationLinkI;
+            end;
+        
         link.setChild(term);
         link.setParent(object);
         % save the link back to the server.
         iUpdate.saveAndReturnObject(link);
         
-
         ret = true;    
 end
