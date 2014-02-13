@@ -178,7 +178,6 @@ fid=fopen(filename);
         
          if meas_mode == 13
              noOfChannels = no_of_data_blocks;
-             im_size = scanx * scany * adc_res; 
              return;
          end
          
