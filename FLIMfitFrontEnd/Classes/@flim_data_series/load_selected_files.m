@@ -69,8 +69,10 @@ function load_selected_files(obj,selected)
     else
         
        
+       
         obj.data_series_mem = single(zeros([obj.data_size' num_sel]));
-    
+        
+       
         if obj.use_memory_mapping
             
             obj.data_type = 'single';
@@ -93,7 +95,7 @@ function load_selected_files(obj,selected)
                 end
 
                 data = obj.data_series_mem(:,:,:,:,j);
-
+              
                 c1=fwrite(mapfile,data,'single');
 
                 if using_popup
@@ -116,7 +118,8 @@ function load_selected_files(obj,selected)
                 end
                 
                 [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,j);
-              
+                
+               
                 if ~success
                     disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
                 end

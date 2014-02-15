@@ -272,16 +272,20 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     
           %  more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           case {'.asc'}  
+              
+              [obj.txtInfoRead,delays] = obj.parse_asc_txt(file);
          
-             
-              [dims.delays,im_data,t_int] = load_flim_file(file);
-              
-              
+              siz = size(obj.txtInfoRead);
+              if length(siz) == 2 % single pixel data 1xn or nx1
+                dims.sizeXY = [1 1];
+              else
+                dims.sizeXY = siz(end -1 : end);
+              end
+              dims.delays = delays;
               dims.FLIM_type = 'TCSPC';  
               dims.sizeZCT = [1, 1, 1];
               dims.modulo = []; 
-              siz = size(im_data);
-              dims.sizeXY = siz(end-1: end);
+              
               
               
           case {'.irf'}

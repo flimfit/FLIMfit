@@ -398,31 +398,24 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
             end
             
             
-            
-            
          % more txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.asc'}
             
-            block = 1;       % deprecated retained for compatibility with old load_flim_files
-            
-            for c = 1:nchans
-                chan = Carr(c) +1;
-                
-                % check that we are supposed to load this FLIM cube
-                if ctr == selected  ||  polarisation_resolved  || nfiles >1
-                    
-                    [delays,data_cube,t_int] = load_flim_file(file, chan,block);
-                    target(:,pctr,:,:,selected) = data_cube;
-                end
-                
-                if polarisation_resolved
-                    pctr = pctr + 1;
-                else
-                    ctr = ctr + 1;
-                end
-                
+            % if this is the same file from which we got the image
+            % dimensions
+            if strcmp(file,obj.file_names(1) )  && ~isempty(obj.txtInfoRead)
+                data = obj.txtInfoRead;
+            else
+                [data, delays] = obj.parse_asc_txt(file);
             end
-            
+                 
+            % this format can't do multi-plane/channel
+            if size(data,1) == 1 || size(data,2) == 1
+                target(:,1,1,1,selected) = data;
+            else
+                target(:,1,:,:,selected) = data;
+            end
+          
           case {'.irf'}
               
             % if this is the same file from which we got the image
@@ -433,7 +426,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
                 ir = load(file);
             end
             
-            % this format can ony hold 1 channel
+            
             target(:,pctr,:,:,selected) = ir(:,2);
            
             if polarisation_resolved
