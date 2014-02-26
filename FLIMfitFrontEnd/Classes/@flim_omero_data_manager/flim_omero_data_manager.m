@@ -3,10 +3,10 @@ classdef flim_omero_data_manager < handle
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
-    %
-    % This program is free software; you can redistribute it and/or modify
+    %and/or modify
     % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 2 of the License, or
+    % the Free Software Foundation; either version 2 of the
+    % This program is free software; you can redistribute it  License, or
     % (at your option) any later version.
     %
     % This program is distributed in the hope that it will be useful,
@@ -96,6 +96,35 @@ classdef flim_omero_data_manager < handle
             data_series.n_datasets = 1;  
             data_series.file_names = {'file'};                
             data_series.metadata = extract_metadata(data_series.names);
+            
+            % specific case - set up possible single-pix metadata - start
+                pixelsList = image.copyPixels();
+                pixels = pixelsList.get(0);
+                    sizeX = pixels.getSizeX().getValue();
+                    sizeY = pixels.getSizeY().getValue();
+                try 
+                    if 1==sizeX && 1 == sizeY && strcmp(data_series.names{1},data_series.metadata.FileName)
+                        %
+                        pixelsService = obj.session.getPixelsService();
+                        pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
+                        channels = pixelsDesc.copyChannels();
+                        %                             
+                        token = char(channels.get(channel-1).getLogicalChannel().getName().getValue());
+                        token_num = str2num(token);
+                        if ~isempty(token_num)
+                            % fix if possible
+                            if 0 == mod(token_num,fix(token_num))
+                                data_series.metadata.Channel{1} = fix(token_num);
+                            end
+                        else
+                            data_series.metadata.Channel{1} = token;
+                        end                                                            
+                    end
+                catch err
+                    disp(err.message);
+                end
+            % specific case - set up possible single-pix metadata - ends
+                                    
             data_series.polarisation_resolved = polarisation_resolved;
             data_series.t = delays;
             data_series.use_memory_mapping = false;
@@ -104,7 +133,6 @@ classdef flim_omero_data_manager < handle
             
             data_series.tr_data_series_mem = single(data_cube); 
              
-    
             data_series.load_multiple_channels = false;
             data_series.loaded = ones([1 data_series.n_datasets]);
             data_series.switch_active_dataset(1);    
@@ -1141,8 +1169,7 @@ classdef flim_omero_data_manager < handle
             obj.screen = [];
             obj.plate = [];
             %
-        end          
-            
+        end                           
     end
 end
 

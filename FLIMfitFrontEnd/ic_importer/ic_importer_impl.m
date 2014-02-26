@@ -1213,18 +1213,21 @@ classdef ic_importer_impl < handle
                             end
                             metadata.setPixelsType(pixelsType, 0);
                             %
-                            toInt = @(x) ome.xml.model.primitives.PositiveInteger(java.lang.Integer(x));
+                            toPosI = @(x) ome.xml.model.primitives.PositiveInteger(java.lang.Integer(x));
+                            toNNI = @(x) ome.xml.model.primitives.NonNegativeInteger(java.lang.Integer(x));
+                            %
                             % Read pixels size from image and set it to the metadata
-                            metadata.setPixelsSizeX(toInt(SizeX), 0);
-                            metadata.setPixelsSizeY(toInt(SizeY), 0);
-                            metadata.setPixelsSizeZ(toInt(SizeZ), 0);
-                            metadata.setPixelsSizeC(toInt(SizeC), 0);
-                            metadata.setPixelsSizeT(toInt(SizeT), 0);
+                            metadata.setPixelsSizeX(toPosI(SizeX), 0);
+                            metadata.setPixelsSizeY(toPosI(SizeY), 0);
+                            metadata.setPixelsSizeZ(toPosI(SizeZ), 0);
+                            metadata.setPixelsSizeC(toPosI(SizeC), 0);
+                            metadata.setPixelsSizeT(toPosI(SizeT), 0);
                             %
                             for ii = 1:num_files
-                                z = 1;
-                                c = 1;
-                                t = 1;
+                                    z = 1;
+                                    c = 1;
+                                    t = 1;
+                                    %
                                     switch modulo
                                         case 'ModuloAlongC'
                                             c = ii;
@@ -1233,10 +1236,15 @@ classdef ic_importer_impl < handle
                                         case 'ModuloAlongT'
                                             t = ii;
                                     end
-                                metadata.setPlaneTheC(toInt(c),0,ii-1);
-                                metadata.setPlaneTheT(toInt(t),0,ii-1);
-                                metadata.setPlaneTheZ(toInt(z),0,ii-1);                        
-                                metadata.setPlaneHashSHA1(sprintf(char(file_names{ii})),0,ii-1); % no better place..                               
+                                    %
+                                    metadata.setUUIDFileName(sprintf(char(file_names{ii})),0,ii-1);   
+                                    metadata.setUUIDValue(sprintf(dicomuid),0,ii-1);                                   
+                                    metadata.setTiffDataPlaneCount(toPosI(z),0,ii-1);                                
+                                    % 0-based ?
+                                    metadata.setTiffDataIFD(toNNI(z-1),0,ii-1);
+                                    metadata.setTiffDataFirstZ(toNNI(z-1),0,ii-1);
+                                    metadata.setTiffDataFirstC(toNNI(c-1),0,ii-1);
+                                    metadata.setTiffDataFirstT(toNNI(t-1),0,ii-1);                                                                
                             end                                                                                      
                             %
                             img_description = char(loci.formats.MetadataTools.getOMEXML(metadata));                                                        
@@ -1348,8 +1356,12 @@ classdef ic_importer_impl < handle
             %
             str = split(filesep,full_filename);
             fname = char(str(numel(str)));
+                        
+            [n_channels_present channel_info] = get_channels(full_filename);
+            % us channels info to compose channels names? 
+                        
             if chnls == 1
-                imgId = mat2omeroImage(obj.session, im_data, pixeltype, fname,'',[],char(obj.Modulo));
+                imgId = mat2omeroImage(obj.session, im_data, pixeltype, fname,'',channel_info,char(obj.Modulo));
             else
                 %
                 [sizeT,sizeC] = size(im_data);
@@ -1364,7 +1376,7 @@ classdef ic_importer_impl < handle
                     nativedata(1,1,1,c,:) = im_data(:,c);
                 end
                 %
-                imgId = mat2omeroImage_native(obj.session, nativedata, pixeltype, fname,'',[]);                                
+                imgId = mat2omeroImage_native(obj.session, nativedata, pixeltype, fname,'',channel_info);                                
                 %
             end
             %
@@ -1394,7 +1406,7 @@ classdef ic_importer_impl < handle
             image = list.get(0);            
             add_XmlAnnotation(obj.session,[],image,node);
             %
-            obj.attach_image_annotations(image,full_filename);            
+            obj.attach_image_annotations(image,full_filename);
         end        
 %-------------------------------------------------------------------------%         
         function extension = get_valid_file_extension(obj,filename,~)

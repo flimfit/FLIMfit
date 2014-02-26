@@ -108,7 +108,7 @@ re.lookupPixels(pixelsId)
         re.resetDefaults();  
     end;
     if ~re.lookupRenderingDef(pixelsId)
-        errordlg('mat2omeroImage_Channels: can not render properly');
+        errordlg('fit_results2omeroImage_Channels: can not render properly');
         RENDER = false;
     end
 %

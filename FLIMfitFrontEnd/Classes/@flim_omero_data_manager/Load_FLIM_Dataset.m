@@ -301,8 +301,37 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 catch err
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
-                                
-                
+
+                % specific case - set up possible single-pix metadata - start
+                    pixelsList = image.copyPixels();
+                    pixels = pixelsList.get(0);
+                    if 1 == pixels.getSizeX().getValue() && 1 == pixels.getSizeY().getValue()                         
+                        try 
+                            pixelsService = obj.session.getPixelsService();
+                            pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
+                            channels = pixelsDesc.copyChannels();
+                            % 
+                            channel = cell2mat(obj.selected_channel);
+                            token = char(channels.get(channel-1).getLogicalChannel().getName().getValue());
+                            token_num = str2num(token);
+                            if ~isempty(token_num)
+                                % fix if possible
+                                if 0 == mod(token_num,fix(token_num))
+                                    for kk = 1:numel(data_series.names)
+                                        data_series.metadata.Channel{kk} = fix(token_num);
+                                    end
+                                end
+                            else
+                                    for kk = 1:numel(data_series.names)                            
+                                        data_series.metadata.Channel{kk} = token;
+                                    end
+                            end                                                            
+                        catch err
+                            disp(err.message);
+                        end                            
+                    end
+                % specific case - set up possible single-pix metadata - ends
+                                                
                 data_series.t = delays;
                 
                 if strcmp(data_series.mode,'TCSPC')
