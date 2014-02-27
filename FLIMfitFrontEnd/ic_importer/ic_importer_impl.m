@@ -209,7 +209,8 @@ classdef ic_importer_impl < handle
             handles. m1 = uimenu( menu_file, 'Label','Set data directory', 'Callback', @obj.onSetDirectory );        
             handles. m2 = uimenu( menu_file, 'Label','Set list of data directories', 'Callback', @obj.onSetDirectoryList );        
             handles. m3 = uimenu( menu_file,'Label','Set Image','Callback', @obj.onSetImageFile);                      
-            handles. m4 = uimenu( menu_file, 'Label', 'Exit', 'Callback', @obj.close_request_fcn );        
+            handles. m4 = uimenu( menu_file, 'Label', 'Save as OME.tiff', 'Callback', @obj.OnSaveAsOMEtiff,'Separator','on');                    
+            handles. m4 = uimenu( menu_file, 'Label', 'Exit', 'Callback', @obj.close_request_fcn,'Separator','on');        
             % + Omero menu
             menu_omero = uimenu( obj.window, 'Label', 'OMERO' );
             handles. m5 = uimenu( menu_omero, 'Label', 'Set logon default', 'Callback', @obj.onLogon );        
@@ -2239,6 +2240,105 @@ classdef ic_importer_impl < handle
                 %
         end
 %-------------------------------------------------------------------------%
+    function OnSaveAsOMEtiff(obj,~,~)
+            
+            %{ 
+             2 cases - 
+                1) source directory contains single-plane images with korrect extension etc
+                2) source contains several sub-directories of the type described in p. 1)
+            %}
+                                    
+            if isempty(obj.Src), errordlg('Source has not been set up - can not continue'), return, end;
+            
+            modulo = [];
+            switch char(obj.Modulo)
+                case 'ModuloAlongZ'
+                  modulo = 'Z';
+                case 'ModuloAlongC'
+                  modulo = 'C';
+                case 'ModuloAlongT'                
+                  modulo = 'T';                
+            end
+            
+            if isempty(modulo), errordlg('dimension not specified, can not continue'), return, end;
+
+            files = dir([char(obj.Src) filesep '*.' char(obj.Extension)]);
+            num_files = length(files);
+            
+            save_mode = [];
+            
+            if 0 ~= num_files
+                names_list = cell(1,num_files);
+                for k = 1:num_files
+                    names_list{k} = char(files(k).name);
+                end
+                save_mode = 'single dir';
+            else                
+                % analyze if directory contains stack directories                
+                dir_names = [];
+                z = 0;
+                FLSRAW = dir(char(obj.Src));                
+                for k = 1:numel(FLSRAW)
+                    name_k = char(FLSRAW(k).name);
+                    if FLSRAW(k).isdir && ~strcmp(name_k,'.') && ~strcmp(name_k,'..')                        
+                        z = z + 1;
+                        dir_names{z} = name_k;
+                    end
+                end
+                %
+                nonemptydir_names = [];
+                z = 0;
+                for k=1:numel(dir_names)
+                    files_k = dir([char(obj.Src) filesep dir_names{k} filesep '*.' char(obj.Extension)]);
+                    if 0 ~= numel(files_k)
+                        z = z + 1;
+                        nonemptydir_names{z} = dir_names{k};
+                    end
+                end
+                %
+                if ~isempty(nonemptydir_names), save_mode = 'multiple dirs'; end;
+            end
+                
+            if isempty(save_mode), errordlg('no image files found - can not continue'), return, end;
+            
+            savedir = uigetdir(obj.DefaultDataDirectory,'Select the folder where to save OME.tiffs');                     
+                
+            if strcmp(save_mode,'single dir')
+                %
+                names_list = sort_nat(names_list);
+                    strings1 = strrep(obj.Src,filesep,'/'); 
+                    strng = split('/',strings1);
+                    imageName = char(strng(length(strng)));    
+                ometiffilename = [savedir filesep imageName '.OME.tiff'];
+                %
+                set(obj.gui.Indi_name,'BackgroundColor','green');
+                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, modulo, ometiffilename);
+                set(obj.gui.Indi_name,'BackgroundColor','red');            
+                %
+            elseif strcmp(save_mode,'multiple dirs')
+                %
+                set(obj.gui.Indi_name,'BackgroundColor','green');
+                hw = waitbar(0, 'transferring data, please wait...');                
+                for k=1:numel(nonemptydir_names)
+                    files_k = dir([char(obj.Src) filesep nonemptydir_names{k} filesep '*.' char(obj.Extension)]);
+                        num_files_k = numel(files_k);
+                        names_list_k = cell(1,num_files_k);
+                        for m = 1:num_files_k
+                            names_list_k{m} = char(files_k(m).name);
+                        end
+                        names_list_k = sort_nat(names_list_k);
+                        ometiffilename = [savedir filesep nonemptydir_names{k} '.OME.tiff'];          
+                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, obj.Extension, modulo, ometiffilename);                        
+                    waitbar(k/numel(nonemptydir_names),hw);
+                    drawnow
+                end
+                delete(hw);
+                drawnow;
+                set(obj.gui.Indi_name,'BackgroundColor','red');
+                %
+            end                                                
+    end
+%-------------------------------------------------------------------------%                                                        
     end % methods
     %    
 end
