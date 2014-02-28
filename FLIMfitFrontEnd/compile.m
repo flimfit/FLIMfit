@@ -25,7 +25,7 @@ function compile(v)
 
 % Author : Sean Warren
 
-    disp( 'Starting Matlab compilation!  ' );
+    disp( 'Starting Matlab compilation! ' );
 
     if nargin >= 1
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
@@ -110,9 +110,9 @@ function compile(v)
     %------------------------------------------------
     deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer]
 
-    disp( ['creating folder at  ' deploy_folder '] );
+    disp( ['creating folder at  ' deploy_folder ] );
     mkdir(deploy_folder);
-   disp( ['creating folder successfully! ] );
+   disp( 'created folder successfully! ' );
     
    
 
