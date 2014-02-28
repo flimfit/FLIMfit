@@ -108,7 +108,10 @@ function compile(v)
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
     deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer]
+
+    disp( ['creating folder at  ' deploy_folder '] );
     mkdir(deploy_folder);
+   disp( ['creating folder successfully! ] );
     
    
 
