@@ -25,6 +25,7 @@ function compile(v)
 
 % Author : Sean Warren
 
+    disp( 'Starting Matlab compilation!  ' );
 
     if nargin >= 1
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
