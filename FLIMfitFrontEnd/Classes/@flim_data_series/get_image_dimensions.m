@@ -1,9 +1,8 @@
 
 function[dims,t_int ] = get_image_dimensions(obj, file)
 
-
-%Finds the dimensions of an image file or set of files including 
-% the units alonf the time dimension (delays)
+% Finds the dimensions of an image file or set of files including 
+% the units along the time dimension (delays)
 
 
     % Copyright (C) 2013 Imperial College London.
@@ -181,10 +180,15 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             if isempty(s)
                 if findstr(file,'ome.tif')
                     physZ = omeMeta.getPixelsPhysicalSizeZ(0).getValue();
-                    if ~isempty(physZ)
-                        dims = obj.parseModuloAnnotation([], sizeZCT, physZ);
+                    if 1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
+                        physSizeZ = physZ.*1000;     % assume this is in ns so convert to ps
+                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                        dims.modulo = 'ModuloAlongZ';
+                        dims.FLIM_type = 'TCSPC';
+                        sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
                     end
                 end
+                
                 
                 % support for .ics files lacking a Modulo annotation
                 if findstr(file,'.ics')
