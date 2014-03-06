@@ -1,4 +1,4 @@
- function save_stack_as_OMEtiff(folder, file_names, extension, modulo, ometiffilename)
+ function save_stack_as_OMEtiff(folder, file_names, extension, dimension, ometiffilename)
             %
             num_files = numel(file_names);
             %
@@ -8,9 +8,9 @@
             SizeX = [];
             SizeY = [];            
             %
-            if strcmp(modulo,'none'), modulo = 'C'; end; % default
+            if strcmp(dimension,'none'), dimension = 'C'; end; % default
             %
-            switch modulo
+            switch dimension
                 case 'C'
                     SizeC = num_files;
                 case 'Z'
@@ -18,7 +18,7 @@
                 case 'T'
                     SizeT = num_files;
                 otherwise
-                    errordlg('wrong modulo specification'), return;
+                    errordlg('wrong dimension specification'), return;
             end
             %                        
             all_image_data = []; % needed to calculate min, max
@@ -53,7 +53,7 @@
                         z = 1;
                         c = 1;
                         t = 1;
-                        switch modulo
+                        switch dimension
                             case 'C'
                                 c = i;
                             case 'Z'
@@ -71,7 +71,6 @@
             end  % for i = 1 : num_files                    
             delete(hw); drawnow;    
             
-                        img_description = '';
                         % add OME-XML to image Description - starts                            
                         metadata = loci.formats.MetadataTools.createOMEXMLMetadata();
                         metadata.createRoot();
@@ -108,7 +107,7 @@
                                 c = 1;
                                 t = 1;
                                 %
-                                switch modulo
+                                switch dimension
                                     case 'C'
                                         c = i;
                                     case 'Z'
