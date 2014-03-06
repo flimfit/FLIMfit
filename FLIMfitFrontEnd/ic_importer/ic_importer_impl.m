@@ -2250,17 +2250,17 @@ classdef ic_importer_impl < handle
                                     
             if isempty(obj.Src), errordlg('Source has not been set up - can not continue'), return, end;
             
-            modulo = [];
+            dimension = [];
             switch char(obj.Modulo)
                 case 'ModuloAlongZ'
-                  modulo = 'Z';
+                  dimension = 'Z';
                 case 'ModuloAlongC'
-                  modulo = 'C';
+                  dimension = 'C';
                 case 'ModuloAlongT'                
-                  modulo = 'T';                
+                  dimension = 'T';                
             end
             
-            if isempty(modulo), errordlg('dimension not specified, can not continue'), return, end;
+            if isempty(dimension), errordlg('dimension not specified, can not continue'), return, end;
 
             files = dir([char(obj.Src) filesep '*.' char(obj.Extension)]);
             num_files = length(files);
@@ -2312,7 +2312,7 @@ classdef ic_importer_impl < handle
                 ometiffilename = [savedir filesep imageName '.OME.tiff'];
                 %
                 set(obj.gui.Indi_name,'BackgroundColor','green');
-                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, modulo, ometiffilename);
+                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, ometiffilename);
                 set(obj.gui.Indi_name,'BackgroundColor','red');            
                 %
             elseif strcmp(save_mode,'multiple dirs')
@@ -2328,7 +2328,7 @@ classdef ic_importer_impl < handle
                         end
                         names_list_k = sort_nat(names_list_k);
                         ometiffilename = [savedir filesep nonemptydir_names{k} '.OME.tiff'];          
-                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, obj.Extension, modulo, ometiffilename);                        
+                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, ometiffilename);                        
                     waitbar(k/numel(nonemptydir_names),hw);
                     drawnow
                 end
