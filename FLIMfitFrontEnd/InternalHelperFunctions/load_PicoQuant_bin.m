@@ -8,7 +8,7 @@ function [U, Delays, PixResol ] = load_PicoQuant_bin(filename,precision)
     TCSPCChannels = fread(fid,1, 'uint32');
     TimeResol = fread(fid,1, 'single');
 
-    U = zeros(PixX,PixX,TCSPCChannels);
+    U = zeros(TCSPCChannels,PixX,PixX);
 
         switch precision
             case {'int8', 'uint8'}
@@ -23,12 +23,14 @@ function [U, Delays, PixResol ] = load_PicoQuant_bin(filename,precision)
 
     for y = 1:PixY
         for x = 1:PixX
-            U(x,y,:) = fread(fid,TCSPCChannels,precision);
-        end;
-    end; 
+            U(:,x,y) = fread(fid,TCSPCChannels,precision);
+        end
+    end;
 
     Delays = ((1:TCSPCChannels)-1)*TimeResol;
 
-    if TimeResol < 1 Delays = Delays*1e3; end; %to picoseconds
+    if TimeResol < 1 
+        Delays = Delays*1e3; 
+    end; %to picoseconds
 
 end

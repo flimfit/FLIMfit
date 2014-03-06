@@ -280,19 +280,8 @@ global buf buf_name
             
         case '.bin'        %       
             tcspc = 1;            
-            [D, delays, ~ ] = load_PicoQuant_bin(file,'uint32');
+            [im_data, delays, ~ ] = load_PicoQuant_bin(file,'uint32');
             
-            figure();            
-            imshow(uint8(map(sum(D,3),0,255)));  
-            
-             [W H Nbins] = size(D);
-%                         
-%             im_data = zeros(Nbins,1,W,H);
-%             for b=1:Nbins
-%                 im_data(b,1,:,:) = double(D(:,:,b));
-%             end
-            im_data = reshape(D,[Nbins 1 W H]);
-
     end
     
     s = size(im_data);
