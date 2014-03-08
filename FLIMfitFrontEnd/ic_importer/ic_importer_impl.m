@@ -89,7 +89,7 @@ classdef ic_importer_impl < handle
         Variable_popupmenu_str = {'lifetime', 'angle', 'Yvar', 'Xvar', 'wavelength','none'};
         Units_popupmenu_str = {'ps','ns','degree','radian','nm','pixel','none'};
         FLIM_mode_popupmenu_str = {'TCSPC', 'TCSPC non-imaging', 'Time Gated', 'Time Gated non-imaging','none'};        
-        Extension_popupmenu_str = {'tif','OME.tiff','sdt','txt','jpg','png','bmp','gif'};         
+        Extension_popupmenu_str = {'tif','OME.tiff','sdt','txt','jpg','png','bmp','gif','bin'};         
         
         Annotation_FIle_Extensions = {'irf','txt','pdf','doc','docx','rtf','ppt','pptx','xls','xlsx','csv','m','xml'};
         %
@@ -524,7 +524,8 @@ classdef ic_importer_impl < handle
                                strcmp(obj.Extension,'jpg') || ...                               
                                strcmp(obj.Extension,'png') || ...
                                strcmp(obj.Extension,'bmp') || ...
-                               strcmp(obj.Extension,'gif')
+                               strcmp(obj.Extension,'gif') || ...
+                               strcmp(obj.Extension,'bin')
                         obj.LoadMode = 'single-Image';                        
                     else % unsuitable extension
                         obj.updateInterface, return; 
@@ -565,7 +566,8 @@ classdef ic_importer_impl < handle
                                strcmp(obj.Extension,'jpg') || ...                               
                                strcmp(obj.Extension,'png') || ...
                                strcmp(obj.Extension,'bmp') || ...
-                               strcmp(obj.Extension,'gif')
+                               strcmp(obj.Extension,'gif') || ...
+                               strcmp(obj.Extension,'bin')
                             obj.LoadMode = 'multiple-Image';      
                         else % unsuitable extension
                             obj.updateInterface, return; 
@@ -1452,6 +1454,8 @@ classdef ic_importer_impl < handle
                             obj.upload_Image_OME_tif(dataset,fullfilename);  
                         elseif strcmp('sdt',obj.Extension)
                             obj.upload_Image_BH(dataset,fullfilename);
+                        elseif strcmp('bin',obj.Extension)
+                            obj.upload_Image_bin(dataset,fullfilename); % PicoQuant
                         else
                             U = imread(fullfilename,char(obj.Extension));
                             %
@@ -2338,7 +2342,33 @@ classdef ic_importer_impl < handle
                 %
             end                                                
     end
-%-------------------------------------------------------------------------%                                                        
+%-------------------------------------------------------------------------%
+        function upload_Image_bin(obj, dataset, full_filename, ~)
+            %
+            [U, Delays, PixResol ] = load_PicoQuant_bin(full_filename,'uint32');
+            %
+            pixeltype = get_num_type(U); % NOT CHECKED!!!
+            %            
+            strings1 = strrep(full_filename,filesep,'/');
+            str = split('/',strings1);            
+            filename = str(length(str));                
+            %                        
+            imgId = mat2omeroImage(obj.session, U, pixeltype, filename,' ',[], char(obj.Modulo));                        
+            %
+            link = omero.model.DatasetImageLinkI;
+            link.setChild(omero.model.ImageI(imgId, false));
+            link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
+            obj.session.getUpdateService().saveAndReturnObject(link);     
+            %
+            myimages = getImages(obj.session,imgId); image = myimages(1);        
+            %        
+            xmlnode = create_ModuloAlongDOM(Delays, [], char(obj.Modulo), 'TCSPC');
+            add_XmlAnnotation(obj.session,[],image,xmlnode);
+            %
+            add_Original_Metadata_Annotation(obj.session,[],image,full_filename);
+            %
+        end
+%-------------------------------------------------------------------------%
     end % methods
     %    
 end
