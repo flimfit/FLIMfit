@@ -2363,10 +2363,7 @@ classdef ic_importer_impl < handle
             myimages = getImages(obj.session,imgId); image = myimages(1);        
             %        
             xmlnode = create_ModuloAlongDOM(Delays, [], char(obj.Modulo), 'TCSPC');
-            add_XmlAnnotation(obj.session,[],image,xmlnode);
-            %
-            add_Original_Metadata_Annotation(obj.session,[],image,full_filename);
-            %
+            add_XmlAnnotation(obj.session,[],image,xmlnode);            
         end
 %-------------------------------------------------------------------------%
     end % methods
