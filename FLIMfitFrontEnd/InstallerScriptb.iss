@@ -12,8 +12,8 @@
 ;#define RepositoryRoot "...\Imperial-FLIMfit"
 
 ; Define Matlab compiler runtime download and required version
-#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013b/MCR_R2013b_win32_installer.exe"
-#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013b/MCR_R2013b_win64_installer.exe"
+#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/downloads/R2013b/deployment_files/R2013b/MCR_Runtime/R2013b/MCR_R2013b_win32_installer.exe"
+#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/downloads/R2013b/deployment_files/R2013b/installers/win64/MCR_R2013b_win64_installer.exe"
 #define McrVersionRequired "8.2"
 
 ; Define Ghostscript download urls and required version
