@@ -141,13 +141,9 @@ function compile(v)
 
             root = [cd '\..'];
             
-            Matlabver = version;
             
-            if strfind(Matlabver,'2013b')
-                 cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScriptb.iss"']
-            else    % assume 2013a
-                cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"']
-            end
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
+            
             system(cmd);
 
             installer_file_name = ['FLIMfit ' v ' Setup ' arch '.exe'];

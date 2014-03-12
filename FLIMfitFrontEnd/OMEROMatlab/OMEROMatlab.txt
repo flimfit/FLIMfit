@@ -1,3 +1,0 @@
-
-Add a copy of the OMERO Matlab utilities to this directory. 
-
