@@ -27,7 +27,7 @@ function addpath_global_analysis()
 
     if ~isdeployed
         
-        omero_file = ['OMEROMatlab' filesep 'OMEROVersionToUse.txt'];
+        omero_file = ['GeneratedFiles' filesep 'OMEROVersionToUse.txt'];
         
         use_omero = exist(omero_file,'file');
         if use_omero
