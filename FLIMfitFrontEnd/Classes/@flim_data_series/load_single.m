@@ -64,11 +64,13 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
         end
     end
     
+    if strcmp(ext,'.bin'), channel = 1; end; % hack
+    
     % Load data file
     [obj.t,data,obj.t_int] = load_flim_file(file,channel);
     
     if ~strcmp(ext,'.raw')
-        if strcmp(ext,'.csv') || strcmp(ext,'.sdt') || strcmp(ext,'.txt') ||  strcmp(ext,'.asc') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif')
+        if strcmp(ext,'.csv') || strcmp(ext,'.sdt') || strcmp(ext,'.txt') ||  strcmp(ext,'.asc') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif') ||  strcmp(ext,'.bin')
             obj.mode = 'TCSPC';
         else
             obj.mode = 'widefield';
@@ -80,7 +82,7 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     
     if isempty(obj.names)
         % Set names from file names
-        if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') 
+        if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') ||  strcmp(ext,'.bin')
             if isempty(obj.names)    
                 obj.names{1} = name;
             end

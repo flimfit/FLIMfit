@@ -43,9 +43,10 @@ function ret = OME_tif2Omero_Image(factory,filename)
     SizeC = tree.Image.Pixels.ATTRIBUTE.SizeC;
     SizeT = tree.Image.Pixels.ATTRIBUTE.SizeT;
     SizeZ = tree.Image.Pixels.ATTRIBUTE.SizeZ;
+    
     SizeX = tree.Image.Pixels.ATTRIBUTE.SizeX;
     SizeY = tree.Image.Pixels.ATTRIBUTE.SizeY;
-    
+
     counter = 0;
     max_counter = SizeC*SizeT*SizeZ;
     w = waitbar(0, [ 'Loading ' filename ]);
@@ -206,13 +207,14 @@ ret.description = description;
 
     function set_plane(c,z,t,l1,l2,l3,L2,L3)
                         ind = l3 + L3*( (l2-1) + L2*(l1-1) );                         
-                        plane = imread(filename,'Index',ind); 
+                        plane = imread(filename,'Index',ind);              
                         cur_min_val = double(min(plane(:)));
                         cur_max_val = double(max(plane(:)));
                             if cur_min_val < min_val, min_val = cur_min_val; end;
                             if cur_max_val > max_val, max_val = cur_max_val; end;
-                        if isBigEndian, plane = swapbytes(plane); end;                        
+                        %if isBigEndian, plane = swapbytes(plane); end; % ???                        
                         bytear = ConvertClientToServer(pixels, plane');
+                        
                         rawPixelsStore.setPlane(bytear, int32(z-1),int32(c-1),int32(t-1));                        
                         %disp([ind t-1 z-1 c-1]);                        
                         waitbar(counter/max_counter, w);

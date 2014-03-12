@@ -277,6 +277,11 @@ global buf buf_name
 
             im_data(:,1,1) = ir(:,2);    
             delays(1,:) = ir(:,1);  %.*1000;
+            
+        case '.bin'        %       
+            tcspc = 1;            
+            [im_data, delays, ~ ] = load_PicoQuant_bin(file,'uint32');
+            
     end
     
     s = size(im_data);
