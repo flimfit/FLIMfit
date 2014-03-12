@@ -219,7 +219,7 @@ function compile(v)
             
     end
     
-    exit
+   
    
     
 %    try
