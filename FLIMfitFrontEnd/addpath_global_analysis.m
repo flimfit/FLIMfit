@@ -26,6 +26,24 @@ function addpath_global_analysis()
 % Author : Sean Warren
 
     if ~isdeployed
+        
+        omero_file = ['OMEROMatlab' filesep 'OMEROVersionToUse.txt'];
+        
+        use_omero = exist(omero_file,'file');
+        if use_omero
+            f=fopen(omero_file,'r');
+            omero_path = fgetl(f);
+            fclose(f);
+            omero_path = ['OMEROMatlab' filesep omero_path];
+            use_omero = exist(omero_path,'dir');
+        end
+        
+        if use_omero
+            disp(['Using ' omero_path]);
+        else
+            disp('Specified OMERO version not found');
+        end
+        
         thisdir = fileparts( mfilename( 'fullpath' ) );
         addpath( thisdir,...
                 [thisdir filesep 'Classes'],...
@@ -40,27 +58,32 @@ function addpath_global_analysis()
                 [thisdir filesep 'HelperFunctions' filesep 'xml_io_toos'],...
                 [thisdir filesep 'HelperFunctions' filesep 'bftools'],...
                 [thisdir filesep '..' filesep 'FLIMfitLibrary' filesep 'Libraries'],...
-                [thisdir filesep 'OMEROMatlab'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'helper'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'io'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'libs'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'roi'],... 
                 [thisdir filesep 'OMEROUtilities'],...
                 [thisdir filesep 'ic_importer'],...                
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
             
-            % Test genops
+        if use_omero
+            addpath( ...
+                [thisdir filesep omero_path],... 
+                [thisdir filesep omero_path filesep 'helper'],... 
+                [thisdir filesep omero_path filesep 'io'],... 
+                [thisdir filesep omero_path filesep 'libs'],... 
+                [thisdir filesep omero_path filesep 'roi']);
+        end
+                
+            
+        % Test genops
+        genops(1);
+
+        a = ones(1,10);
+        b = ones(10,1);
+
+        try 
+            c = a.*b;
+        catch
+            makegenops;
             genops(1);
-            
-            a = ones(1,10);
-            b = ones(10,1);
-            
-            try 
-                c = a.*b;
-            catch
-                makegenops;
-                genops(1);
-            end
+        end
             
             
     end
