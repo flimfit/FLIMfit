@@ -60,14 +60,17 @@ function bg_data = generate_tvb_I_map(obj, mask, dataset)
     set(f,'Position',p);
     
     subplot(2,2,1);
-    plot(obj.tr_t,decay);
+    plot(obj.tr_t/1000,decay,'ko');
     title('TVB Profile');
+    set(gca,'box','off','TickDir','out','TickLength',[0.02, 0.02]);
+    ylabel('Intensity'); xlabel('Time (ns)')
     
     subplot(2,2,2);
     imagesc(I);
     daspect([1,1,1]);
     colorbar
     title('TVB Intensity Scale Factor')
+    set(gca,'box','off','TickDir','out','TickLength',[0.02, 0.02],'YTick',[],'XTick',[]);
     
     subplot(2,2,3);
     imagesc(dI);
@@ -75,6 +78,7 @@ function bg_data = generate_tvb_I_map(obj, mask, dataset)
     colorbar
     caxis([0 2e5]);
     title('Corrected Residual')
+    set(gca,'box','off','TickDir','out','TickLength',[0.02, 0.02],'YTick',[],'XTick',[]);
 
     
     subplot(2,2,4);
@@ -84,6 +88,7 @@ function bg_data = generate_tvb_I_map(obj, mask, dataset)
     caxis([0 2e5]);
     title('Uncorrected Residual')
     bg_data = struct('t_bg',obj.tr_t,'tvb_profile',decay,'tvb_I_image',I,'background_value',obj.background_value);
+    set(gca,'box','off','TickDir','out','TickLength',[0.02, 0.02],'YTick',[],'XTick',[]);
     
 
     
