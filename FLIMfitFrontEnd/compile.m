@@ -25,7 +25,7 @@ function compile(v)
 
 % Author : Sean Warren
 
-    disp( 'Starting Matlab compilation! ' );
+    disp( 'Starting Matlab compilation.' );
 
     if nargin >= 1
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
@@ -80,7 +80,7 @@ function compile(v)
     
     % Build compiled Matlab project
     %------------------------------------------------
-    exe = ['DeployFiles' filesep 'FLIMfit_' computer exe_ext];
+    exe = ['DeployFiles' filesep 'src' filesep 'FLIMfit_' computer exe_ext];
 
     if(true)
 
@@ -215,8 +215,6 @@ function compile(v)
             
     end
     
-    exit
-   
     
 %    try
 %        rmdir(['FLIMfit_' sys]);
