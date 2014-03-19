@@ -91,7 +91,7 @@
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>/Applications/MATLAB_R2013a.app</root>
+      <root>/Applications/MATLAB_R2013b.app</root>
       <toolboxes>
         <toolbox name="fixedpoint" />
       </toolboxes>
