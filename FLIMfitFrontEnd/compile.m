@@ -80,7 +80,7 @@ function compile(v)
     
     % Build compiled Matlab project
     %------------------------------------------------
-    exe = ['DeployFiles' filesep 'src' filesep 'FLIMfit_' computer exe_ext];
+    exe = ['DeployFiles' filesep filesep 'FLIMfit_' computer exe_ext];
 
     if(true)
 
@@ -112,7 +112,7 @@ function compile(v)
 
     disp( ['creating folder at  ' deploy_folder ] );
     mkdir(deploy_folder);
-   disp( 'created folder successfully! ' );
+    disp( 'created folder successfully! ' );
     
    
 
