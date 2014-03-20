@@ -111,7 +111,7 @@ begin
   
   // Install Ghostscript if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\Ghostscript.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
-  Exec(expandconstant('{tmp}\setupgs.exe'), expandconstant('"{pf}\gs\gs8.71"'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
+  Exec(expandconstant('{tmp}\setupgs.exe'), expandconstant('"{pf}\gs"'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
  end;
 end;
 
@@ -141,19 +141,13 @@ begin
       Log('Adding MCR Download: ' + url);
       itd_addfile(url,expandconstant('{tmp}\MatlabMCR.zip'));  
     end;  
-
-  if GhostscriptInstalled = true then
-      Log('Required Ghostscript version already installed')
-  else
-   begin
-      Log('Required Ghostscript version not installed')
-      if {#MyAppSystem} = 64 then
-        url := '{#GhostscriptUrl64}'
-      else
-        url := '{#GhostscriptUrl32}';
-      Log('Adding Ghostscript Download: ' + url);
-      itd_addfile(url,expandconstant('{tmp}\Ghostscript.exe'));  
-    end;    
+    
+    if {#MyAppSystem} = 64 then
+       url := '{#GhostscriptUrl64}'
+    else
+       url := '{#GhostscriptUrl32}';
+    Log('Adding Ghostscript Download: ' + url);
+    itd_addfile(url,expandconstant('{tmp}\Ghostscript.exe'));    
     
   Result := true;
 end;
