@@ -1,0 +1,4 @@
+Add a copy of the OMERO Matlab plugin  to this directory
+Download from: http://www.openmicroscoy.org.uk
+
+
