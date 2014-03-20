@@ -2211,7 +2211,7 @@ classdef ic_importer_impl < handle
                     for c = 1:sizeC 
                         for z = 1:sizeZ
                             for t = 1:sizeT
-                                switch modulo
+                                switch char(modulo)
                                     case 'ModuloAlongT'
                                         k = t;
                                     case 'ModuloAlongZ'
