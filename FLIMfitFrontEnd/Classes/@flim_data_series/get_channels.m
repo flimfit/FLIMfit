@@ -82,6 +82,11 @@ function [n_chan, chan_info] = get_channels(file)
              n_chan = 1;
              chan_info = {'asc data'};
 
+         % .bin files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
+         case '.bin'
+
+             n_chan = 1;
+             chan_info = {'bin data'};             
 
           % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           case '.txt'
