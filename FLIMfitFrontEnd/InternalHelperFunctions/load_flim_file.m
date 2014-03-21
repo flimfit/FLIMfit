@@ -55,6 +55,8 @@ global buf buf_name
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case '.tif'
             
+            tcspc = 0;
+            
             if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')
                 
                 info = imfinfo(file);
@@ -280,22 +282,24 @@ global buf buf_name
             
         case '.bin'        %       
             
-            [pcq_data, delays, ~ ] = load_PicoQuant_bin(file,'uint32');
-                         
+            [im_data, delays, ~ ] = load_PicoQuant_bin(file,'uint32');
+            
+            %{
             pcq_data = cast(pcq_data,'double');   
             [nbins,ww,hh] = size(pcq_data);
             im_data = zeros(nbins,1,ww,hh);
             for i=1:nbins,
                 im_data(i,1,:,:) = squeeze(pcq_data(i,:,:));
             end
-            
+            %}
             tcspc = 1;                                    
             
             % debug
+            %{
             figure();
             D = squeeze(sum(im_data,1));
             imshow(uint8(map(D,0,255)));
-                        
+              %}          
     end
     
     s = size(im_data);

@@ -64,13 +64,13 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
         end
     end
     
-    if strcmp(ext,'.bin'), channel = 1; end; % hack
+%    if strcmp(ext,'.bin'), channel = 1; end; % hack
     
     % Load data file
-    [obj.t,data,obj.t_int] = load_flim_file(file,channel);
+    [obj.t,data,obj.t_int,tcspc] = load_flim_file(file,channel);
     
     if ~strcmp(ext,'.raw')
-        if strcmp(ext,'.csv') || strcmp(ext,'.sdt') || strcmp(ext,'.txt') ||  strcmp(ext,'.asc') || strcmp(ext,'.irf') || strcmp(file(end-7:end),'.ome.tif') ||  strcmp(ext,'.bin')
+        if tcspc == 1
             obj.mode = 'TCSPC';
         else
             obj.mode = 'widefield';
