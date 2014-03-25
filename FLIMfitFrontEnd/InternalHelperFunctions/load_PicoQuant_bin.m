@@ -27,6 +27,8 @@ function [U, Delays, PixResol ] = load_PicoQuant_bin(filename,precision)
         end
     end;
 
+    fclose(fid);
+    
     Delays = ((1:TCSPCChannels)-1)*TimeResol;
 
     if TimeResol < 1 
