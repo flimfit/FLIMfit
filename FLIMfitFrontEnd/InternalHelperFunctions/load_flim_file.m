@@ -283,7 +283,11 @@ global buf buf_name
         case '.bin'        % this as well..       
             
             [im_data, delays, ~ ] = load_PicoQuant_bin(file,'uint32');
-            tcspc = 1;                                    
+            tcspc = 1; 
+            
+        otherwise 
+
+            throw(MException('FLIM:UnknownExtension', 'Unknown Extension')); % thnx Marcus
             
     end
     
