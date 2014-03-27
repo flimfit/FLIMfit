@@ -39,7 +39,7 @@ function data_cube = get_FLIM_cube( obj,  image, sizet , modulo, ZCT , verbose)
     
     
     
-    if verbose
+    if verbose || sizet > 400 % hack
     
         w = waitbar(0, 'Loading FLIMage....');
         drawnow;
@@ -198,7 +198,7 @@ function data_cube = get_FLIM_cube( obj,  image, sizet , modulo, ZCT , verbose)
     
     store.close();
     
-    if verbose
+    if verbose || sizet > 400 % hack
         delete(w);
         drawnow;
     end
