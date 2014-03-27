@@ -39,49 +39,60 @@ function data_cube = get_FLIM_cube( obj,  image, sizet , modulo, ZCT , verbose)
     
     
     
-    if verbose || sizet > 400 % hack
+    if verbose
     
         w = waitbar(0, 'Loading FLIMage....');
         drawnow;
         totalPlanes = sizet * nchans;
         
-        % ideally load data in 4 block
-         nblocks = 4;
-        
          if sizet < 4
             nblocks = 1;
+            nplanesInBlock = sizet;
+         else
+             % ideally load data in 4 blocks
+            nblocks = 4; 
          end
             
-           
-         number_planes = round(sizet/nblocks);
-         nplanesInBlock = ones(1,nblocks) .* number_planes;
-
-         overshoot = squeeze(sum(nplanesInBlock)) - sizet;
-
-         nplanesInBlock(end) = nplanesInBlock(end) - overshoot;
-         if nplanesInBlock(end) == 0;
-            nplanesInBlock = nplanesInBlock(1:end -1);
-            nblocks = nblocks - 1;
-         end
-        
-        
-         
+     
          
     else        % not verbose
-        
+
         
         %when not displaying 
-        % just use one block
-        nblocks = 1;
-        nplanesInBlock = sizet;
-       
-    
+        % just use one block unless there are a huge no of planes
+        if sizet < 400
+            nblocks = 1;
+            nplanesInBlock = sizet;
+        else
+            nblocks = 4
+        end
+
+ 
     end  % not verbose
-    
-    
-   
-   
-    store = obj.omero_data_manager.session.createRawPixelsStore(); 
+
+    % multi-block download
+    if nblocks == 4
+
+        number_planes = round(sizet/nblocks);
+        nplanesInBlock = ones(1,nblocks) .* number_planes;
+
+        overshoot = squeeze(sum(nplanesInBlock)) - sizet;
+
+        nplanesInBlock(end) = nplanesInBlock(end) - overshoot;
+
+        if nplanesInBlock(end) == 0;
+            nplanesInBlock = nplanesInBlock(1:end -1);
+            nblocks = nblocks - 1;
+        end
+
+
+    end
+
+
+
+
+
+    store = obj.omero_data_manager.session.createRawPixelsStore();
     store.setPixelsId(pixelsId, false); 
     
     % returns type single
@@ -198,7 +209,7 @@ function data_cube = get_FLIM_cube( obj,  image, sizet , modulo, ZCT , verbose)
     
     store.close();
     
-    if verbose || sizet > 400 % hack
+    if verbose
         delete(w);
         drawnow;
     end
