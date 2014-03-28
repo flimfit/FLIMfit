@@ -136,7 +136,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 end;                                    
                     
                 str = char(512,256); % ?????
-                for k = 1:imageList.size()                                                                             
+                for k = 1:length(imageList)                                                                             
                     iName = char(java.lang.String(imageList(k).getName().getValue()));                                                                
                    % A = split('.',iName);
                    % if true % strcmp(extension,A(length(A))) 
@@ -239,7 +239,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 image_ids = zeros(1,n_datasets);
                 for m = 1:n_datasets
                     iName_m = folder_names{m};
-                    for k = 1:imageList.size()                       
+                    for k = 1:length(imageList)                      
                              iName_k = char(java.lang.String(imageList(k).getName().getValue()));
                              if strcmp(iName_m,iName_k)
                                 image_ids(1,m) = imageList(k).getId().getValue();

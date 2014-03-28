@@ -48,7 +48,7 @@
                 end;                                    
                              
                  str = char(256,256);
-                 for k = 1:imageList.size() 
+                 for k = 1:length(imageList) 
                          iName = char(java.lang.String(imageList(k).getName().getValue()));                                                                
                          idName = num2str(imageList(k).getId().getValue());
                          image_name = [ idName ' : ' iName ]; 
