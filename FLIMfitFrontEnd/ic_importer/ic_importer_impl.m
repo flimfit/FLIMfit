@@ -546,7 +546,7 @@ classdef ic_importer_impl < handle
                     %
                 end
             else % many images
-                if ~exist(obj.Src,'dir') || ~(strfind(whos_Dst,'Project') || strfind(whos_Dst,'Screen')), 
+                if ~exist(obj.Src,'dir') || ~( ~isempty(strfind(whos_Dst,'Project')) || ~isempty(strfind(whos_Dst,'Screen')) ), 
                     obj.updateInterface, return, end;   
                 %
                 if strfind(whos_Dst,'Project')                
