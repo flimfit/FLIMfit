@@ -30,7 +30,6 @@ function clear_memory_mapping(obj)
         obj.memmap = []; 
        
         if exist(obj.mapfile_name,'file') && ~obj.raw
-            obj.mapfile_name
             delete(obj.mapfile_name);
         end
 
