@@ -77,7 +77,7 @@
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\matlab\R2013a</root>
+      <root>C:\matlab\R2013b</root>
       <toolboxes>
         <toolbox name="fixedpoint" />
       </toolboxes>

@@ -10,7 +10,7 @@ exe_dir=`dirname "$0"`
 echo $exe_dir
   
 
-MCRROOT="/Applications/MATLAB/MATLAB_Compiler_Runtime/v81"
+MCRROOT="/Applications/MATLAB/MATLAB_Compiler_Runtime/v82"
 echo ----
 
 FILE=${MCRROOT}/bin/maci64/libmwlaunchermain.dylib
@@ -57,7 +57,7 @@ echo PATH is ${PATH};
 else
 echo
 echo "FLIMfit was unable to locate the Matlab MCR "
-echo "Please install Matlab MCR v8.1 to /Applications/MATLAB/MATLAB_Compiler_Runtime/v81 "
+echo "Please install Matlab MCR v8.2 to /Applications/MATLAB/MATLAB_Compiler_Runtime/v82 "
 echo  "then try FLIMfit again "
 echo "this is available from http://www.mathworks.co.uk/products/compiler/mcr/ "
 fi

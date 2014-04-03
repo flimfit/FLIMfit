@@ -127,22 +127,20 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 end                                
                 %
             elseif ~isempty(obj.dataset) 
-                %
-                imageList = obj.dataset.linkedImageList;
-                %       
+                
+                imageList = getImages(obj.session, 'dataset', obj.dataset.getId().getValue());
+                
                 if 0==imageList.size()
                     errordlg('Dataset has no images - please choose a Dataset with images');
                     return;
                 end;                                    
-                %        
-                z = 0;       
+                    
                 str = char(512,256); % ?????
-                for k = 0:imageList.size()-1,                       
-                    z = z + 1;                                                       
-                    iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
+                for k = 1:length(imageList)                                                                             
+                    iName = char(java.lang.String(imageList(k).getName().getValue()));                                                                
                    % A = split('.',iName);
                    % if true % strcmp(extension,A(length(A))) 
-                        str(z,1:length(iName)) = iName;
+                        str(k,1:length(iName)) = iName;
                    %end;
                  end 
                 %
@@ -241,10 +239,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 image_ids = zeros(1,n_datasets);
                 for m = 1:n_datasets
                     iName_m = folder_names{m};
-                    for k = 0:imageList.size()-1,                       
-                             iName_k = char(java.lang.String(imageList.get(k).getName().getValue()));
+                    for k = 1:length(imageList)                      
+                             iName_k = char(java.lang.String(imageList(k).getName().getValue()));
                              if strcmp(iName_m,iName_k)
-                                image_ids(1,m) = imageList.get(k).getId().getValue();
+                                image_ids(1,m) = imageList(k).getId().getValue();
                                 break;
                              end;
                     end 
@@ -301,8 +299,37 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 catch err
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
-                                
-                
+
+                % specific case - set up possible single-pix metadata - start
+                    pixelsList = image.copyPixels();
+                    pixels = pixelsList.get(0);
+                    if 1 == pixels.getSizeX().getValue() && 1 == pixels.getSizeY().getValue()                         
+                        try 
+                            pixelsService = obj.session.getPixelsService();
+                            pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
+                            channels = pixelsDesc.copyChannels();
+                            % 
+                            channel = cell2mat(obj.selected_channel);
+                            token = char(channels.get(channel-1).getLogicalChannel().getName().getValue());
+                            token_num = str2num(token);
+                            if ~isempty(token_num)
+                                % fix if possible
+                                if 0 == mod(token_num,fix(token_num))
+                                    for kk = 1:numel(data_series.names)
+                                        data_series.metadata.Channel{kk} = fix(token_num);
+                                    end
+                                end
+                            else
+                                    for kk = 1:numel(data_series.names)                            
+                                        data_series.metadata.Channel{kk} = token;
+                                    end
+                            end                                                            
+                        catch err
+                            disp(err.message);
+                        end                            
+                    end
+                % specific case - set up possible single-pix metadata - ends
+                                                
                 data_series.t = delays;
                 
                 if strcmp(data_series.mode,'TCSPC')

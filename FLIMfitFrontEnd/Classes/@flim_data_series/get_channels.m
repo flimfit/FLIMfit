@@ -1,4 +1,4 @@
-function [n_chan, chan_info] = get_channels(file)
+function [n_chan, chan_info, tcspc] = get_channels(file)
 
     %> Determine what channels are available in a file
     
@@ -49,19 +49,20 @@ function [n_chan, chan_info] = get_channels(file)
 
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case '.tif'
+            tcspc = 0;
             n_chan = 1;
             chan_info = {'tif data'};
 
          % .png files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
          case '.png'
-
+            tcspc = 0;
             n_chan = 1;
             chan_info = {'png data'};
 
          % .sdt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
          case '.sdt'
             %passing -2 for the channel stops data being returned
-            [ImData Delays n_chan] = loadBHfileusingmeasDescBlock(file, -2);
+            [ImData, Delays, n_chan] = loadBHfileusingmeasDescBlock(file, -2);
 
             if n_chan == 1
 
@@ -82,6 +83,11 @@ function [n_chan, chan_info] = get_channels(file)
              n_chan = 1;
              chan_info = {'asc data'};
 
+         % .bin files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
+         case '.bin'
+             tcspc = 1;
+             n_chan = 1;
+             chan_info = {'bin data'};             
 
           % .txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
           case '.txt'
@@ -131,12 +137,13 @@ function [n_chan, chan_info] = get_channels(file)
         case '.irf'        % Yet another F%^^ing format (for Labview this time)
             n_chan = 1;
             chan_info = {'irf data'};
+            tcspc = 0;
 
 
 
 
         otherwise 
-
+            
             errordlg('Not a .recognised file type!','File Error');
     end
     

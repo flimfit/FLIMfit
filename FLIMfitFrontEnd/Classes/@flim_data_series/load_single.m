@@ -78,6 +78,7 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     end
     prefix = [ 'Z' 'C' 'T'];
     
+<<<<<<< HEAD
     
     for dim = 1:3
         D = obj.ZCT{dim};
@@ -91,6 +92,18 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
                     obj.names{d} = [ prefix(dim) ' '  num2str(D(d)) '-' chan_info{d}];
                 end
             end
+=======
+%    if strcmp(ext,'.bin'), channel = 1; end; % hack
+    
+    % Load data file
+    [obj.t,data,obj.t_int,tcspc] = load_flim_file(file,channel);
+    
+    if ~strcmp(ext,'.raw')
+        if tcspc == 1
+            obj.mode = 'TCSPC';
+        else
+            obj.mode = 'widefield';
+>>>>>>> 277bd5bad780551c38de1a684cc11f5159524d89
         end
     end
     
@@ -103,10 +116,14 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
 
     if isempty(obj.names)
         % Set names from file names
+<<<<<<< HEAD
         if strcmp(ext,'.tif') | strcmp(ext,'.tiff') & isempty(strfind(file,'ome.'))
             path_parts = split(filesep,path);
             obj.names{1} = path_parts{end};
         else
+=======
+        if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') ||  strcmp(ext,'.bin')
+>>>>>>> 277bd5bad780551c38de1a684cc11f5159524d89
             if isempty(obj.names)    
                 obj.names{1} = name;
             end

@@ -395,7 +395,7 @@ classdef flim_data_series < handle & h5_serializer
                 irf = mean(irf,3);
             elseif ~isempty(obj.t0_image)
                 offset = mean(obj.t0_image(roi_mask));
-                irf = interp1(obj.tr_t_irf,obj.tr_irf,obj.tr_t_irf+offset,'cubic','extrap');
+                irf = interp1(obj.tr_t_irf,obj.tr_irf,obj.tr_t_irf+offset,'pchip','extrap');
             else
                 irf = obj.tr_irf;
             end

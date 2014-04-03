@@ -33,8 +33,7 @@
             proxy = session.getContainerService();
             %
             param = omero.sys.ParametersI();
-            param.leaves();
-            %            
+                                  
             param.exp(omero.rtypes.rlong(userId));
             projectsList = proxy.loadContainerHierarchy('omero.model.Project', [], param);
             %

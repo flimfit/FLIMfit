@@ -89,7 +89,7 @@ classdef ic_importer_impl < handle
         Variable_popupmenu_str = {'lifetime', 'angle', 'Yvar', 'Xvar', 'wavelength','none'};
         Units_popupmenu_str = {'ps','ns','degree','radian','nm','pixel','none'};
         FLIM_mode_popupmenu_str = {'TCSPC', 'TCSPC non-imaging', 'Time Gated', 'Time Gated non-imaging','none'};        
-        Extension_popupmenu_str = {'tif','OME.tiff','sdt','txt','jpg','png','bmp','gif'};         
+        Extension_popupmenu_str = {'tif','OME.tiff','sdt','txt','jpg','png','bmp','gif','bin'};         
         
         Annotation_FIle_Extensions = {'irf','txt','pdf','doc','docx','rtf','ppt','pptx','xls','xlsx','csv','m','xml'};
         %
@@ -209,7 +209,8 @@ classdef ic_importer_impl < handle
             handles. m1 = uimenu( menu_file, 'Label','Set data directory', 'Callback', @obj.onSetDirectory );        
             handles. m2 = uimenu( menu_file, 'Label','Set list of data directories', 'Callback', @obj.onSetDirectoryList );        
             handles. m3 = uimenu( menu_file,'Label','Set Image','Callback', @obj.onSetImageFile);                      
-            handles. m4 = uimenu( menu_file, 'Label', 'Exit', 'Callback', @obj.close_request_fcn );        
+            handles. m4 = uimenu( menu_file, 'Label', 'Save as OME.tiff', 'Callback', @obj.OnSaveAsOMEtiff,'Separator','on');                    
+            handles. m4 = uimenu( menu_file, 'Label', 'Exit', 'Callback', @obj.close_request_fcn,'Separator','on');        
             % + Omero menu
             menu_omero = uimenu( obj.window, 'Label', 'OMERO' );
             handles. m5 = uimenu( menu_omero, 'Label', 'Set logon default', 'Callback', @obj.onLogon );        
@@ -523,7 +524,8 @@ classdef ic_importer_impl < handle
                                strcmp(obj.Extension,'jpg') || ...                               
                                strcmp(obj.Extension,'png') || ...
                                strcmp(obj.Extension,'bmp') || ...
-                               strcmp(obj.Extension,'gif')
+                               strcmp(obj.Extension,'gif') || ...
+                               strcmp(obj.Extension,'bin')
                         obj.LoadMode = 'single-Image';                        
                     else % unsuitable extension
                         obj.updateInterface, return; 
@@ -544,7 +546,7 @@ classdef ic_importer_impl < handle
                     %
                 end
             else % many images
-                if ~exist(obj.Src,'dir') || ~(strfind(whos_Dst,'Project') || strfind(whos_Dst,'Screen')), 
+                if ~exist(obj.Src,'dir') || ~( ~isempty(strfind(whos_Dst,'Project')) || ~isempty(strfind(whos_Dst,'Screen')) ), 
                     obj.updateInterface, return, end;   
                 %
                 if strfind(whos_Dst,'Project')                
@@ -564,7 +566,8 @@ classdef ic_importer_impl < handle
                                strcmp(obj.Extension,'jpg') || ...                               
                                strcmp(obj.Extension,'png') || ...
                                strcmp(obj.Extension,'bmp') || ...
-                               strcmp(obj.Extension,'gif')
+                               strcmp(obj.Extension,'gif') || ...
+                               strcmp(obj.Extension,'bin')
                             obj.LoadMode = 'multiple-Image';      
                         else % unsuitable extension
                             obj.updateInterface, return; 
@@ -1213,18 +1216,21 @@ classdef ic_importer_impl < handle
                             end
                             metadata.setPixelsType(pixelsType, 0);
                             %
-                            toInt = @(x) ome.xml.model.primitives.PositiveInteger(java.lang.Integer(x));
+                            toPosI = @(x) ome.xml.model.primitives.PositiveInteger(java.lang.Integer(x));
+                            toNNI = @(x) ome.xml.model.primitives.NonNegativeInteger(java.lang.Integer(x));
+                            %
                             % Read pixels size from image and set it to the metadata
-                            metadata.setPixelsSizeX(toInt(SizeX), 0);
-                            metadata.setPixelsSizeY(toInt(SizeY), 0);
-                            metadata.setPixelsSizeZ(toInt(SizeZ), 0);
-                            metadata.setPixelsSizeC(toInt(SizeC), 0);
-                            metadata.setPixelsSizeT(toInt(SizeT), 0);
+                            metadata.setPixelsSizeX(toPosI(SizeX), 0);
+                            metadata.setPixelsSizeY(toPosI(SizeY), 0);
+                            metadata.setPixelsSizeZ(toPosI(SizeZ), 0);
+                            metadata.setPixelsSizeC(toPosI(SizeC), 0);
+                            metadata.setPixelsSizeT(toPosI(SizeT), 0);
                             %
                             for ii = 1:num_files
-                                z = 1;
-                                c = 1;
-                                t = 1;
+                                    z = 1;
+                                    c = 1;
+                                    t = 1;
+                                    %
                                     switch modulo
                                         case 'ModuloAlongC'
                                             c = ii;
@@ -1233,10 +1239,15 @@ classdef ic_importer_impl < handle
                                         case 'ModuloAlongT'
                                             t = ii;
                                     end
-                                metadata.setPlaneTheC(toInt(c),0,ii-1);
-                                metadata.setPlaneTheT(toInt(t),0,ii-1);
-                                metadata.setPlaneTheZ(toInt(z),0,ii-1);                        
-                                metadata.setPlaneHashSHA1(sprintf(char(file_names{ii})),0,ii-1); % no better place..                               
+                                    %
+                                    metadata.setUUIDFileName(sprintf(char(file_names{ii})),0,ii-1);   
+                                    metadata.setUUIDValue(sprintf(dicomuid),0,ii-1);                                   
+                                    metadata.setTiffDataPlaneCount(toPosI(z),0,ii-1);                                
+                                    % 0-based ?
+                                    metadata.setTiffDataIFD(toNNI(z-1),0,ii-1);
+                                    metadata.setTiffDataFirstZ(toNNI(z-1),0,ii-1);
+                                    metadata.setTiffDataFirstC(toNNI(c-1),0,ii-1);
+                                    metadata.setTiffDataFirstT(toNNI(t-1),0,ii-1);                                                                
                             end                                                                                      
                             %
                             img_description = char(loci.formats.MetadataTools.getOMEXML(metadata));                                                        
@@ -1348,8 +1359,12 @@ classdef ic_importer_impl < handle
             %
             str = split(filesep,full_filename);
             fname = char(str(numel(str)));
+                        
+            [n_channels_present channel_info] = get_channels(full_filename);
+            % us channels info to compose channels names? 
+                        
             if chnls == 1
-                imgId = mat2omeroImage(obj.session, im_data, pixeltype, fname,'',[],char(obj.Modulo));
+                imgId = mat2omeroImage(obj.session, im_data, pixeltype, fname,'',channel_info,char(obj.Modulo));
             else
                 %
                 [sizeT,sizeC] = size(im_data);
@@ -1364,7 +1379,7 @@ classdef ic_importer_impl < handle
                     nativedata(1,1,1,c,:) = im_data(:,c);
                 end
                 %
-                imgId = mat2omeroImage_native(obj.session, nativedata, pixeltype, fname,'',[]);                                
+                imgId = mat2omeroImage_native(obj.session, nativedata, pixeltype, fname,'',channel_info);                                
                 %
             end
             %
@@ -1394,7 +1409,7 @@ classdef ic_importer_impl < handle
             image = list.get(0);            
             add_XmlAnnotation(obj.session,[],image,node);
             %
-            obj.attach_image_annotations(image,full_filename);            
+            obj.attach_image_annotations(image,full_filename);
         end        
 %-------------------------------------------------------------------------%         
         function extension = get_valid_file_extension(obj,filename,~)
@@ -1439,6 +1454,8 @@ classdef ic_importer_impl < handle
                             obj.upload_Image_OME_tif(dataset,fullfilename);  
                         elseif strcmp('sdt',obj.Extension)
                             obj.upload_Image_BH(dataset,fullfilename);
+                        elseif strcmp('bin',obj.Extension)
+                            obj.upload_Image_bin(dataset,fullfilename); % PicoQuant
                         else
                             U = imread(fullfilename,char(obj.Extension));
                             %
@@ -2194,7 +2211,7 @@ classdef ic_importer_impl < handle
                     for c = 1:sizeC 
                         for z = 1:sizeZ
                             for t = 1:sizeT
-                                switch modulo
+                                switch char(modulo)
                                     case 'ModuloAlongT'
                                         k = t;
                                     case 'ModuloAlongZ'
@@ -2225,6 +2242,128 @@ classdef ic_importer_impl < handle
                 %
                 add_Original_Metadata_Annotation(obj.session,[],image,full_filename);
                 %
+        end
+%-------------------------------------------------------------------------%
+    function OnSaveAsOMEtiff(obj,~,~)
+            
+            %{ 
+             2 cases - 
+                1) source directory contains single-plane images with korrect extension etc
+                2) source contains several sub-directories of the type described in p. 1)
+            %}
+                                    
+            if isempty(obj.Src), errordlg('Source has not been set up - can not continue'), return, end;
+            
+            dimension = [];
+            switch char(obj.Modulo)
+                case 'ModuloAlongZ'
+                  dimension = 'Z';
+                case 'ModuloAlongC'
+                  dimension = 'C';
+                case 'ModuloAlongT'                
+                  dimension = 'T';                
+            end
+            
+            if isempty(dimension), errordlg('dimension not specified, can not continue'), return, end;
+
+            files = dir([char(obj.Src) filesep '*.' char(obj.Extension)]);
+            num_files = length(files);
+            
+            save_mode = [];
+            
+            if 0 ~= num_files
+                names_list = cell(1,num_files);
+                for k = 1:num_files
+                    names_list{k} = char(files(k).name);
+                end
+                save_mode = 'single dir';
+            else                
+                % analyze if directory contains stack directories                
+                dir_names = [];
+                z = 0;
+                FLSRAW = dir(char(obj.Src));                
+                for k = 1:numel(FLSRAW)
+                    name_k = char(FLSRAW(k).name);
+                    if FLSRAW(k).isdir && ~strcmp(name_k,'.') && ~strcmp(name_k,'..')                        
+                        z = z + 1;
+                        dir_names{z} = name_k;
+                    end
+                end
+                %
+                nonemptydir_names = [];
+                z = 0;
+                for k=1:numel(dir_names)
+                    files_k = dir([char(obj.Src) filesep dir_names{k} filesep '*.' char(obj.Extension)]);
+                    if 0 ~= numel(files_k)
+                        z = z + 1;
+                        nonemptydir_names{z} = dir_names{k};
+                    end
+                end
+                %
+                if ~isempty(nonemptydir_names), save_mode = 'multiple dirs'; end;
+            end
+                
+            if isempty(save_mode), errordlg('no image files found - can not continue'), return, end;
+            
+            savedir = uigetdir(obj.DefaultDataDirectory,'Select the folder where to save OME.tiffs');                     
+                
+            if strcmp(save_mode,'single dir')
+                %
+                names_list = sort_nat(names_list);
+                    strings1 = strrep(obj.Src,filesep,'/'); 
+                    strng = split('/',strings1);
+                    imageName = char(strng(length(strng)));    
+                ometiffilename = [savedir filesep imageName '.OME.tiff'];
+                %
+                set(obj.gui.Indi_name,'BackgroundColor','green');
+                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, ometiffilename);
+                set(obj.gui.Indi_name,'BackgroundColor','red');            
+                %
+            elseif strcmp(save_mode,'multiple dirs')
+                %
+                set(obj.gui.Indi_name,'BackgroundColor','green');
+                hw = waitbar(0, 'transferring data, please wait...');                
+                for k=1:numel(nonemptydir_names)
+                    files_k = dir([char(obj.Src) filesep nonemptydir_names{k} filesep '*.' char(obj.Extension)]);
+                        num_files_k = numel(files_k);
+                        names_list_k = cell(1,num_files_k);
+                        for m = 1:num_files_k
+                            names_list_k{m} = char(files_k(m).name);
+                        end
+                        names_list_k = sort_nat(names_list_k);
+                        ometiffilename = [savedir filesep nonemptydir_names{k} '.OME.tiff'];          
+                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, ometiffilename);                        
+                    waitbar(k/numel(nonemptydir_names),hw);
+                    drawnow
+                end
+                delete(hw);
+                drawnow;
+                set(obj.gui.Indi_name,'BackgroundColor','red');
+                %
+            end                                                
+    end
+%-------------------------------------------------------------------------%
+        function upload_Image_bin(obj, dataset, full_filename, ~)
+            %
+            [U, Delays, PixResol ] = load_PicoQuant_bin(full_filename,'uint32');
+            %
+            pixeltype = get_num_type(U); % NOT CHECKED!!!
+            %            
+            strings1 = strrep(full_filename,filesep,'/');
+            str = split('/',strings1);            
+            filename = str(length(str));                
+            %   
+            imgId = mat2omeroImage(obj.session, permute(U,[1,3,2]), pixeltype, filename,' ',[], char(obj.Modulo));                        
+            %
+            link = omero.model.DatasetImageLinkI;
+            link.setChild(omero.model.ImageI(imgId, false));
+            link.setParent(omero.model.DatasetI(dataset.getId().getValue(), false));
+            obj.session.getUpdateService().saveAndReturnObject(link);     
+            %
+            myimages = getImages(obj.session,imgId); image = myimages(1);        
+            %        
+            xmlnode = create_ModuloAlongDOM(Delays, [], char(obj.Modulo), 'TCSPC');
+            add_XmlAnnotation(obj.session,[],image,xmlnode);            
         end
 %-------------------------------------------------------------------------%
     end % methods

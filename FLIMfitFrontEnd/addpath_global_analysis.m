@@ -26,6 +26,7 @@ function addpath_global_analysis()
 % Author : Sean Warren
 
     if ~isdeployed
+        
         thisdir = fileparts( mfilename( 'fullpath' ) );
         addpath( thisdir,...
                 [thisdir filesep 'Classes'],...
@@ -39,27 +40,34 @@ function addpath_global_analysis()
                 [thisdir filesep 'HelperFunctions' filesep 'GUILayout' filesep 'layoutHelp'],...
                 [thisdir filesep 'HelperFunctions' filesep 'xml_io_toos'],...
                 [thisdir filesep '..' filesep 'FLIMfitLibrary' filesep 'Libraries'],...
-                [thisdir filesep 'OMEROMatlab'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'helper'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'io'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'libs'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'roi'],... 
                 [thisdir filesep 'OMEROUtilities'],...
                 [thisdir filesep 'BFMatlab'],...
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
             
-            % Test genops
-            genops(1);
+            addpath( ...
+                [thisdir filesep 'OMEROMatlab'],... 
+                [thisdir filesep 'OMEROMatlab' filesep 'helper'],... 
+                [thisdir filesep 'OMEROMatlab' filesep 'io'],... 
+                [thisdir filesep 'OMEROMatlab' filesep 'libs'],... 
+                [thisdir filesep 'OMEROMatlab' filesep 'roi']);
+                
             
-            a = ones(1,10);
-            b = ones(10,1);
-            
-            try 
-                c = a.*b;
-            catch
+        % Test genops
+        genops(1);
+
+        a = ones(10,10);
+        b = ones(10,1);
+
+        try 
+            c = a.*b;
+            if ~all(size(c)==[10,10])
                 makegenops;
-                genops(1);
+                genops(1);    
             end
+        catch
+            makegenops;
+            genops(1);
+        end
             
             
     end
