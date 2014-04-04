@@ -233,7 +233,7 @@ function savefig(fname, varargin)
 	switch(computer)													% Get gs command.
 		case {'MAC','MACI64'},			
             if isdeployed
-                gs= 'gs';
+                gs= 'gs-noX11';
             else
                 gs= '/usr/local/bin/gs';
             end

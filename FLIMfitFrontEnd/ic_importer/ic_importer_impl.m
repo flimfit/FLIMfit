@@ -546,7 +546,7 @@ classdef ic_importer_impl < handle
                     %
                 end
             else % many images
-                if ~exist(obj.Src,'dir') || ~(strfind(whos_Dst,'Project') || strfind(whos_Dst,'Screen')), 
+                if ~exist(obj.Src,'dir') || ~( ~isempty(strfind(whos_Dst,'Project')) || ~isempty(strfind(whos_Dst,'Screen')) ), 
                     obj.updateInterface, return, end;   
                 %
                 if strfind(whos_Dst,'Project')                
@@ -2352,8 +2352,8 @@ classdef ic_importer_impl < handle
             strings1 = strrep(full_filename,filesep,'/');
             str = split('/',strings1);            
             filename = str(length(str));                
-            %                        
-            imgId = mat2omeroImage(obj.session, U, pixeltype, filename,' ',[], char(obj.Modulo));                        
+            %   
+            imgId = mat2omeroImage(obj.session, permute(U,[1,3,2]), pixeltype, filename,' ',[], char(obj.Modulo));                        
             %
             link = omero.model.DatasetImageLinkI;
             link.setChild(omero.model.ImageI(imgId, false));

@@ -127,22 +127,20 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 end                                
                 %
             elseif ~isempty(obj.dataset) 
-                %
-                imageList = obj.dataset.linkedImageList;
-                %       
+                
+                imageList = getImages(obj.session, 'dataset', obj.dataset.getId().getValue());
+                
                 if 0==imageList.size()
                     errordlg('Dataset has no images - please choose a Dataset with images');
                     return;
                 end;                                    
-                %        
-                z = 0;       
+                    
                 str = char(512,256); % ?????
-                for k = 0:imageList.size()-1,                       
-                    z = z + 1;                                                       
-                    iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
+                for k = 1:length(imageList)                                                                             
+                    iName = char(java.lang.String(imageList(k).getName().getValue()));                                                                
                    % A = split('.',iName);
                    % if true % strcmp(extension,A(length(A))) 
-                        str(z,1:length(iName)) = iName;
+                        str(k,1:length(iName)) = iName;
                    %end;
                  end 
                 %
@@ -241,10 +239,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 image_ids = zeros(1,n_datasets);
                 for m = 1:n_datasets
                     iName_m = folder_names{m};
-                    for k = 0:imageList.size()-1,                       
-                             iName_k = char(java.lang.String(imageList.get(k).getName().getValue()));
+                    for k = 1:length(imageList)                      
+                             iName_k = char(java.lang.String(imageList(k).getName().getValue()));
                              if strcmp(iName_m,iName_k)
-                                image_ids(1,m) = imageList.get(k).getId().getValue();
+                                image_ids(1,m) = imageList(k).getId().getValue();
                                 break;
                              end;
                     end 
