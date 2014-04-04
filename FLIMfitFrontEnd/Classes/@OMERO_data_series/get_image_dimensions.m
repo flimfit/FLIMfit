@@ -123,7 +123,7 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
         
         
     else
-        rdims = obj.parseModuloAnnotation(s, sizeZCT, []);
+        rdims = obj.parse_modulo_annotation(s, sizeZCT, []);
         if ~isempty(rdims)
             dims = rdims;
         end
