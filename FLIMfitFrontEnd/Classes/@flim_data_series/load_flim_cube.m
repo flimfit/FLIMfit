@@ -1,5 +1,5 @@
 
-function[success, target] = load_flim_cube(obj, target, file, selected)
+function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZCT)
 
 
 %  Loads FLIM_data from a file or set of files
@@ -32,24 +32,32 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
-    
+   
+    if nargin < 6        % dims/ZCT have not  been passed so get dimensions from data_series obj
+        delays = obj.t;
+        sizet = length(delays);
+        nfiles = length(obj.file_names);
+        sizeX = obj.data_size(3);
+        sizeY = obj.data_size(4);
+        ZCT = obj.ZCT;
+        total_files = length(obj.names);
+    else
+        nfiles = length(selected);
+        sizet = length(dims.delays);
+        sizeX = dims.sizeXY(1);
+        sizeY = dims.sizeXY(2);
+        total_files = nfiles;
+    end
     
     success = true; 
     
-    delays = obj.t;
-    sizet = length(delays);
-    
-    
-    sizeX = obj.data_size(3);
-    sizeY = obj.data_size(4);
     
     % convert to java/c++ numbering from 0
-    Zarr  = obj.ZCT{1}-1;
-    Carr = obj.ZCT{2}-1;
-    Tarr = obj.ZCT{3}-1;
+    Zarr  = ZCT{1}-1;
+    Carr = ZCT{2}-1;
+    Tarr = ZCT{3}-1;
     
-    nfiles = length(obj.file_names);
-    
+   
     nZ = length(Zarr);
     nchans = length(Carr);
     nT = length(Tarr);
@@ -82,7 +90,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
     verbose = false;
     
     % display a wait bar when required
-    if nfiles == 1  && length(obj.names) == 1 
+    if nfiles == 1  && total_files == 1 
         
         verbose = true;
       
@@ -93,7 +101,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
             
             totalPlanes = sizet;
        
-            % ideally load data in 4 block
+            % ideally load data in 4 blocks
             nblocks = 4;
 
             if sizet < 4
@@ -365,20 +373,32 @@ function[success, target] = load_flim_cube(obj, target, file, selected)
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.csv','.txt'}
             
+            if strcmp(ext,'.txt')
+                 dlm = '\t';
+             else
+                 dlm = ',';
+             end
+            
+            ir = [];
+            
             % if this is the same file from which we got the image
             % dimensions
-            if strcmp(file,obj.file_names(1) )  && ~isempty(obj.txtInfoRead)
-                ir = obj.txtInfoRead;
-            else
+            if ~isempty(obj.file_names)  && ~isempty(obj.txtInfoRead)
+                if strcmp(file,obj.file_names(1) )
+                    ir = obj.txtInfoRead;
+                end
+            end
+            
+            if isempty(ir)
                 % decode the header & load the data
-                
                 header_data = obj.parse_csv_txt_header(file);
                 if isempty(header_data)
-                    success = false;
-                    return;
+                    n_header_lines = 0;
+                else
+                    n_header_lines = length(header_data);
                 end
-                n_header_lines = length(header_data);
                 ir = dlmread(file,dlm,n_header_lines,0);
+               
             end
             
             for c = 1:nchans

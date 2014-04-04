@@ -64,12 +64,12 @@ function load_irf(obj,file,load_as_image)
        
         if obj.polarisation_resolved
             irf_image_data = zeros(sizet, 2, sizeX, sizeY, 1);
-            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1);
+            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1,dims, ZCT);
             irf = reshape(irf_image_data,[sizet 2 sizeX * sizeY]);
             irf = mean(irf,3);
         else
             irf_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
-            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1);
+            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file,1,dims, ZCT);
             irf = reshape(irf_image_data,[sizet  sizeX * sizeY]);
             irf = mean(irf,2);
         end
