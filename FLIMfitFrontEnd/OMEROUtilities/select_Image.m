@@ -42,7 +42,7 @@
 
                 imageList = getImages(session, 'dataset', Parent.getId().getValue());
                        
-                if 0==imageList.size()
+                if length(imageList) == 0
                     errordlg(['Dataset ' pName ' have no images'])
                     return;
                 end;                                    

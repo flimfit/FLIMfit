@@ -41,12 +41,14 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
         total_files = length(obj.names);
+        modulo = obj.modulo;
     else
         nfiles = length(selected);
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);
         sizeY = dims.sizeXY(2);
         total_files = nfiles;
+        modulo = dims.modulo;
     end
     
     success = true; 
@@ -243,9 +245,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                 success = false;
                 return;
             end
-            
-            
-            modulo = obj.modulo;
+         
             
             % timing debug
             %tstart = tic;
