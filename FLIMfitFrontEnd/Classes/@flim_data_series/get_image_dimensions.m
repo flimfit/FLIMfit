@@ -158,9 +158,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             
             sizeZCT(1) = r.getSizeZ;
             sizeZCT(2) = r.getSizeC;
-            sizeZCT(3) = r.getSizeT;
+            sizeZCT(3) = r.getSizeT
             sizeXY(1) = r.getSizeX;
-            sizeXY(2) = r.getSizeY;
+            sizeXY(2) = r.getSizeY
             
             
             
@@ -186,6 +186,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                         dims.modulo = 'ModuloAlongZ';
                         dims.FLIM_type = 'TCSPC';
                         sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
+                        dims.sizeZCT = sizeZCT;
                     end
                 end
                 

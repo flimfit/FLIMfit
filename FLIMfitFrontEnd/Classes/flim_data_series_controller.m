@@ -157,7 +157,7 @@ classdef flim_data_series_controller < handle
 
             % load new dataset
             obj.data_series = flim_data_series();
-            obj.data_series.load_single(file,polarisation_resolved,setting_file_name,channels);
+            obj.data_series.load_single(file,polarisation_resolved);
             
             %{
             if nargin < 4

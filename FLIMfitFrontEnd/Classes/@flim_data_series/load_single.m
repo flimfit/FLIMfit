@@ -1,4 +1,4 @@
-function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
+function load_single(obj,file_or_image,polarisation_resolved)
     %> Load a single FLIM dataset
     
     % Copyright (C) 2013 Imperial College London.
@@ -26,12 +26,14 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
 
     % Author : Sean Warren
     
+    if strcmp(class(file_or_image),'char')
+        file = file_or_image;
+    else
+        file = char(file_or_image.getName().getValue());
+    end
+    
     [path,name,ext] = fileparts(file);
 
-    if strcmp(ext,'.raw')
-        obj.load_raw_data(file);
-        return;
-    end
     
     if is64
         obj.use_memory_mapping = false;
@@ -48,10 +50,15 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     end
     
     obj.root_path = ensure_trailing_slash(path);  
-    obj.file_names = {file};
+    obj.file_names = {file_or_image};
+    
+    if strcmp(ext,'.raw')
+        obj.load_raw_data(file);
+        return;
+    end
     
     
-    dims = obj.get_image_dimensions(obj.file_names{1});
+    dims = obj.get_image_dimensions(file_or_image);
     
     if isempty(dims.delays)
         return;
