@@ -1,0 +1,4 @@
+Add a copy of the Bio-Formats Matlab toolbox to this directory
+Download from: downloads.openmicroscoy.org/bio-formats
+
+
