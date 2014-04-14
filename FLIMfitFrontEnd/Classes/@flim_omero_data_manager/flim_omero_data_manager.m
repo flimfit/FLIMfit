@@ -205,6 +205,10 @@ classdef flim_omero_data_manager < handle
             if ~isempty(image) 
                 %try
                     polarisation_resolved = false;
+                    if isempty(obj.dataset)         % pre-set names for an SPW plate (verbatim from earler FLIMfit)
+                        idStr = num2str(image.getId().getValue());
+                        data_series.names{1} = [ idStr ' : ' name ];                
+                    end  
                     data_series.load_single(image, polarisation_resolved );
                     data_series.image_ids(1) = image.getId.getValue;
                 %catch err
