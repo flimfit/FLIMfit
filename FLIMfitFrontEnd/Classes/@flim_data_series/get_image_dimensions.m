@@ -215,6 +215,13 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                  % get channel_names
                 for c = 1:sizeZCT(2)
                     chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
+                    if isempty(chan_info{c})
+                        chan_info{c} = omeMeta.getChannelEmissionWavelength(0, c -1);
+                    end
+                    if isempty(chan_info{c})
+                        chan_info{c} = omeMeta.getChannelID(0, c -1);
+                    end
+                        
                     dims.chan_info = chan_info;
                 end
             end

@@ -203,13 +203,13 @@ classdef flim_omero_data_manager < handle
             data_series.image_ids = [];
             %
             if ~isempty(image) 
-                try
+                %try
                     polarisation_resolved = false;
                     data_series.load_single(image, polarisation_resolved );
                     data_series.image_ids(1) = image.getId.getValue;
-                catch err
-                    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
-                end
+                %catch err
+                %    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
+                %end
             end
             %
         end                          

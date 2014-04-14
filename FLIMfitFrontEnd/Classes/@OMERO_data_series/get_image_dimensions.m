@@ -49,8 +49,12 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     sizeZCT(1) = pixels.getSizeZ.getValue();
     sizeZCT(2) = pixels.getSizeC.getValue();
     sizeZCT(3) = pixels.getSizeT.getValue();
-    sizeXY(1) = pixels.getSizeX.getValue();
-    sizeXY(2) = pixels.getSizeY.getValue();
+    % NB This is nasty! sizeX & Y are reversed here as we want to retain
+    % compatibilty with earlier versions of FLIMfit
+    % TBD rotate display rather than transposing all data o import from
+    % OMERO !
+    sizeXY(1) = pixels.getSizeY.getValue();
+    sizeXY(2) = pixels.getSizeX.getValue();
     
     session = obj.omero_data_manager.session;
         

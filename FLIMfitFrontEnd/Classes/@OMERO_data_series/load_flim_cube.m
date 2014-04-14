@@ -106,7 +106,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
     
     
  
-    if sizeX ~= pixels.getSizeX.getValue ||sizeY ~= pixels.getSizeY.getValue
+    if sizeX .* sizeY  ~= pixels.getSizeX.getValue * pixels.getSizeY.getValue
         success = false;
         return;
     end
@@ -138,8 +138,8 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
      offset.add(java.lang.Integer(0));
         
     siz = java.util.ArrayList;      % by default load one plane at a time
-    siz.add(java.lang.Integer(sizeX));
     siz.add(java.lang.Integer(sizeY));
+    siz.add(java.lang.Integer(sizeX));
     siz.add(java.lang.Integer(1));      % sizeZ
     siz.add(java.lang.Integer(1));   %sizeC load 
     siz.add(java.lang.Integer(1));   %sizeT
@@ -199,16 +199,15 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
                     %for speed
 
                     plane = cube(((p -1)*imSize)+ 1: (p * imSize));
-                    plane = reshape(plane, sizeX, sizeY);
+                    plane = reshape(plane, sizeY, sizeX);
                     plane  = swapbytes(plane);
 
                     t = t + 1;
-                    target(t,pctr,:,:,selected) = plane';
-                    
+                   
+                
+                    target(t,pctr,:,:,selected) = plane';                 
                 
                 end
-            
-           
             
                 if verbose
 
@@ -224,11 +223,10 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
         else
             ctr = ctr + 1;
         end
-
-           
+      
     end % end nchans
 
-     
+    
     
     store.close();
     
