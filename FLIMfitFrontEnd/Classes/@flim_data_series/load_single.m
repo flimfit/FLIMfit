@@ -69,14 +69,8 @@ function load_single(obj,file_or_image,polarisation_resolved)
     chan_info = dims.chan_info;
     
     % Determine which channels we need to load 
-    ZCT = obj.get_ZCT( dims, polarisation_resolved ,chan_info);
-    
-    if isempty(ZCT)
-        return;
-    end;
-    
-    obj.ZCT = ZCT;
-    
+    obj.ZCT = obj.get_ZCT( dims, polarisation_resolved ,chan_info);
+   
     % for the time being assume only 1 dimension can be > 1 
     % otherwise this will go horribly wrong !
     allowed = [ 1 1 1];   % allowed max no of planes in each dimension ZCT
@@ -85,23 +79,24 @@ function load_single(obj,file_or_image,polarisation_resolved)
     end
     prefix = [ 'Z' 'C' 'T'];
     
+    names = [];
+    
     for dim = 1:3
         D = obj.ZCT{dim};
         if length(D) > allowed(dim)
             if isempty(chan_info{1})
                 for d = 1:length(D)
-                    obj.names{d} = [ prefix(dim) ' '  num2str(D(d)) ];
+                    names{d} = [ prefix(dim) ' '  num2str(D(d)) ];
                 end
             else
                 for d = 1:length(D)
-                    obj.names{d} = [ prefix(dim) ' '  num2str(D(d)) '-' chan_info{d}];
+                    names{d} = [ prefix(dim) ' '  num2str(D(d)) '-' chan_info{d}];
                 end
             end
         end
     end
     
-        
-        
+          
        
     obj.t = dims.delays;
     obj.channels = obj.ZCT{2};
@@ -111,18 +106,19 @@ function load_single(obj,file_or_image,polarisation_resolved)
         % Set names from file names
         if strcmp(ext,'.tif') | strcmp(ext,'.tiff') & isempty(strfind(file,'ome.'))
             path_parts = split(filesep,path);
-            obj.names{1} = path_parts{end};
+            names{1} = path_parts{end};
         else
             if isempty(obj.names)    
-                obj.names{1} = name;
+                names{1} = name;
             end
         end
+        obj.names = names;
     end
     
     
     obj.n_datasets = length(obj.names);
     obj.polarisation_resolved = polarisation_resolved;
-    psize = 1;
+    
     if obj.polarisation_resolved
         obj.data_size = [length(dims.delays) 2 dims.sizeXY obj.n_datasets ];
     else
