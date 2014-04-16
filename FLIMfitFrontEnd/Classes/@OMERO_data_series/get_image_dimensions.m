@@ -51,7 +51,7 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     sizeZCT(3) = pixels.getSizeT.getValue();
     % NB This is nasty! sizeX & Y are reversed here as we want to retain
     % compatibilty with earlier versions of FLIMfit
-    % TBD rotate display rather than transposing all data o import from
+    % TBD rotate display rather than transposing all data on import from
     % OMERO !
     sizeXY(1) = pixels.getSizeY.getValue();
     sizeXY(2) = pixels.getSizeX.getValue();
@@ -82,12 +82,25 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
             dims = rdims;
         end
       
-        % get channel_names  TBD for OMERO
+        % get channel_names 
+        pixelsService = session.getPixelsService();
+        pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
+        channels = pixelsDesc.copyChannels();
+       
         dims.chan_info = [];
-        % for c = 1:sizeZCT(2)
-        %    chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
-        %    dims.chan_info = chan_info;
-        % end
+        for c = 1:sizeZCT(2)
+             name = channels.get(c -1).getLogicalChannel().getName();
+             if ~isempty(name)
+                dims.chan_info{c} = char(name.getValue());
+             else
+                 wave = channels.get(c -1).getLogicalChannel().getEmissionWave();
+                 if ~isempty(wave)
+                    dims.chan_info{c} = wave.getValue();
+                 end
+             end
+         end
+         
+       
     end
         
         

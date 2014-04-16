@@ -52,93 +52,7 @@ classdef flim_omero_data_manager < handle
                                         
         function delete(obj)
         end
-                
-        %------------------------------------------------------------------                        
-        function channel = get_single_channel_FLIM_FOV(obj,image,data_series)
-        % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION                                    
-            polarisation_resolved = false;
-            %
-            channel = [];
-            %
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
-            if isempty(mdta) || isempty(mdta.delays)
-                errordlg('can not load: data have no FLIM specification');
-                return;
-            end
-           
-            delays = mdta.delays;
-           
-            data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays) );
-            
-            channel = data_series.ZCT{2};       % not sure why we need this?
-            
-            data_series.verbose = true;     % loading a single image            
-            
-            try
-                [data_cube, name] = data_series.OMERO_fetch(image, data_series.ZCT, mdta);
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end      
-            data_size = size(data_cube);
-            
-            
-            data_series.mode = mdta.FLIM_type;
-            
-            
-            if ~isempty(obj.dataset)
-                data_series.names{1} = name;            
-            else % SPW image - treated differently at results import
-                idStr = num2str(image.getId().getValue());
-                data_series.names{1} = [ idStr ' : ' name ];                
-            end;                
-            %
-            data_series.data_size = [ data_size 1];
-            data_series.n_datasets = 1;  
-            data_series.file_names = {'file'};                
-            data_series.metadata = extract_metadata(data_series.names);
-            
-            % specific case - set up possible single-pix metadata - start
-                pixelsList = image.copyPixels();
-                pixels = pixelsList.get(0);
-                    sizeX = pixels.getSizeX().getValue();
-                    sizeY = pixels.getSizeY().getValue();
-                try 
-                    if 1==sizeX && 1 == sizeY && strcmp(data_series.names{1},data_series.metadata.FileName)
-                        %
-                        pixelsService = obj.session.getPixelsService();
-                        pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
-                        channels = pixelsDesc.copyChannels();
-                        %                             
-                        token = char(channels.get(channel-1).getLogicalChannel().getName().getValue());
-                        token_num = str2num(token);
-                        if ~isempty(token_num)
-                            % fix if possible
-                            if 0 == mod(token_num,fix(token_num))
-                                data_series.metadata.Channel{1} = fix(token_num);
-                            end
-                        else
-                            data_series.metadata.Channel{1} = token;
-                        end                                                            
-                    end
-                catch err
-                    disp(err.message);
-                end
-            % specific case - set up possible single-pix metadata - ends
-                                    
-            data_series.polarisation_resolved = polarisation_resolved;
-            data_series.t = delays;
-            data_series.use_memory_mapping = false;
-            
-            data_series.data_series_mem = single(data_cube);
-            
-            data_series.tr_data_series_mem = single(data_cube); 
-             
-            data_series.load_multiple_channels = false;
-            data_series.loaded = ones([1 data_series.n_datasets]);
-            data_series.switch_active_dataset(1);    
-            data_series.init_dataset();                        
-        end
-                                
+                  
         %------------------------------------------------------------------                
         function infostring = Set_Dataset(obj,~,~)
             %
@@ -207,10 +121,11 @@ classdef flim_omero_data_manager < handle
                     polarisation_resolved = false;
                     if isempty(obj.dataset)         % pre-set names for an SPW plate (verbatim from earler FLIMfit)
                         idStr = num2str(image.getId().getValue());
-                        data_series.names{1} = [ idStr ' : ' name ];                
+                        name = char(image.getName().getValue());
+                        data_series.names{1} = [ idStr ' : ' name ];             
                     end  
                     data_series.load_single(image, polarisation_resolved );
-                    data_series.image_ids(1) = image.getId.getValue;
+                  
                 %catch err
                 %    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
                 %end

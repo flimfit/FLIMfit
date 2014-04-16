@@ -65,7 +65,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
          
     else        % not verbose
 
-        
+        verbose = false;
         %when not displaying 
         % just use one block unless there are a huge no of planes
         if sizet < 400
@@ -162,7 +162,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
         chan = Carr(c);
         
         % check that we are supposed to load this FLIM cube
-        if ctr == selected || polaristion_resolved || nfiles > 1
+        if ctr == selected || polarisation_resolved || nfiles > 1
             
             t = 0;
             offset.set(3,java.lang.Integer(chan)); % set channel offset
@@ -237,10 +237,20 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
     
     file = char(image.getName().getValue());
     
-    %Bodge to suppress bright line artefact on RHS in BH .sdt files
-    if strfind(file,'.sdt')
-        target(:,:,:,end,:) = 0;
+    if strcmp('TCSPC',obj.mode)
+        %Bodge to suppress bright line artefact on RHS in BH .sdt files
+        if strfind(file,'.sdt')
+            target(:,:,:,end,:) = 0;
+        end
+        
+    else    % Not TCSPC
+        if min(target(:)) > 32500
+            target = target - 32768;    % clear the sign bit which is set by labview
+        end
     end
+    
+    
+    
 
 end
 

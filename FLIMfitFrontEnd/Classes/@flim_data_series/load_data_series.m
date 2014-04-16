@@ -72,44 +72,17 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         n_datasets = length(obj.file_names);
 
         for i=1:n_datasets
-            obj.file_names{i} = [root_path obj.file_names{i}];
+            file_names{i} = [root_path obj.file_names{i}];
         end
-        
-        %------------------------------------
-        % get dimensions from first file
-       
-       
-        dims = obj.get_image_dimensions(obj.file_names{1});
-    
-        obj.modulo = dims.modulo;
-    
-        obj.mode = dims.FLIM_type;
-    
-        % Determine which channels we need to load 
-        obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
-        
-        % NB we need to sort out blocks here ASAP
-  
-        obj.t = dims.delays;
-        obj.channels = obj.ZCT{2};
-    
-       
-        obj.n_datasets = n_datasets;
         
         %set names
         obj.names = cell(1,n_datasets);
         for j=1:n_datasets
-            [~,name,~] = fileparts(obj.file_names{j});
+            [~,name,~] = fileparts(file_names{j});
             obj.names{j} = name;
         end
         
-        psize = 1;
-        if obj.polarisation_resolved
-            psize = 2;
-        end
-        
-        data_size = [length(dims.delays) psize dims.sizeXY 1 ];
-        obj.data_size = data_size;
+       
         
         
         
@@ -143,39 +116,38 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         for i=1:length(folder_names)
             file_names{i} = [root_path folder_names{i} filesep first_file_name ext];
         end
-        obj.file_names = file_names;
-        
-         %------------------------------------
-        % get dimensions from first file
-       
-        dims = obj.get_image_dimensions(obj.file_names{1});
-    
-        obj.modulo = dims.modulo;
-    
-        obj.mode = dims.FLIM_type;
-    
-        % Determine which channels we need to load 
-        obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
-  
-        obj.t = dims.delays;
-        obj.channels = obj.ZCT{2};
-    
-       
-        obj.n_datasets = n_datasets;
-        
-        data_size = [length(dims.delays) 1 dims.sizeXY 1 ];
-        obj.data_size = data_size;
-
-        
+      
         %set names
         obj.names = cell(1,n_datasets);
-
-        
         for j=1:n_datasets  
             obj.names{j} = safe_folder_names{j};
         end
-    end    
-   
+     
+    end   
+    
+    % get dimensions from first file
+    obj.file_names = file_names;
+    dims = obj.get_image_dimensions(obj.file_names{1});
+
+    obj.modulo = dims.modulo;
+
+    obj.mode = dims.FLIM_type;
+
+    % Determine which channels we need to load 
+    obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
+
+    obj.t = dims.delays;
+    obj.channels = obj.ZCT{2};
+
+    obj.n_datasets = n_datasets;
+
+    if obj.polarisation_resolved
+         obj.data_size = [length(dims.delays) 2 dims.sizeXY 1 ];
+    else
+        obj.data_size = [length(dims.delays) 1 dims.sizeXY 1 ];
+    end
+
+ 
     obj.metadata = extract_metadata(obj.names);
        
     if obj.lazy_loading
