@@ -117,7 +117,10 @@ fid=fopen(filename);
     overfl = fread (fid, 1, 'uint8=>char');
     dummy = fread(fid,2, 'uint16');     %use_motor , steps
     offset = fread(fid,1, 'float');  
-    dummy = fread(fid,3, 'uint16');     % dither , inc , mem_bank
+    dummy = fread(fid,1, 'uint16');     % dither , inc , mem_bank
+    incr = fread(fid,1, 'uint16');     % dither , inc , mem_bank
+    dummy = fread(fid,1, 'uint16');     % dither , inc , mem_bank
+    
     mod_type = fread (fid, 16, 'uint8=>char');
     syn_th = fread(fid,1, 'float');
     dummy = fread(fid,6, 'uint16'); % dead_time_comp ...accumulate
@@ -334,6 +337,9 @@ fid=fopen(filename);
 
 Delays= (0:timerange/adc_res:timerange-timerange/adc_res);
 
+if isfinite(incr) && incr > 0 
+    ImData = ImData / incr; % account for count increment
+end
 
 fclose(fid);
 
