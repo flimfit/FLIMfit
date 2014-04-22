@@ -34,6 +34,7 @@
 
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
+#include "FlagDefinitions.h"
 #include "util.h"
 
 #include <cmath>
@@ -121,6 +122,12 @@ float FLIMGlobalFitController::GetNonLinearParam(int param, float alf[])
    GET_PARAM(E_guess,n_fret_fix,p);
    GET_PARAM(alf+alf_E_idx,n_fret_v,p);
 
+   if (ref_reconvolution == FIT_GLOBALLY)
+      GET_PARAM(alf+alf_ref_idx,1,p);
+
+  if (fit_t0 == FIT)
+      GET_PARAM(alf+alf_t0_idx,1,p);
+
    if (fit_offset == FIT_GLOBALLY)
       GET_PARAM(alf+alf_offset_idx,1,p);
    
@@ -130,9 +137,6 @@ float FLIMGlobalFitController::GetNonLinearParam(int param, float alf[])
    if (fit_tvb == FIT_GLOBALLY)
       GET_PARAM(alf+alf_tvb_idx,1,p);
    
-   if (ref_reconvolution == FIT_GLOBALLY)
-      GET_PARAM(alf+alf_ref_idx,1,p);
-
    return (float) NaN();
 }
 
@@ -195,6 +199,11 @@ int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float alf_err_l
    for(j=0; j<n_fret_v; j++)
       SET_PARAM( alf_E_idx+j );
 
+   if (ref_reconvolution == FIT_GLOBALLY)
+      SET_PARAM( alf_ref_idx );
+
+   if (fit_t0 == FIT)
+      SET_PARAM( alf_t0_idx );
 
    if (fit_offset == FIT_GLOBALLY)
       SET_PARAM( alf_offset_idx );
@@ -204,9 +213,6 @@ int FLIMGlobalFitController::ProcessNonLinearParams(float alf[], float alf_err_l
 
    if (fit_tvb == FIT_GLOBALLY)
       SET_PARAM( alf_tvb_idx );
-
-   if (ref_reconvolution == FIT_GLOBALLY)
-      SET_PARAM( alf_ref_idx );
 
    return idx;
 }
@@ -224,7 +230,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
 
    ImageStats<float> stats(data->n_output_regions_total, n_output_params, params);
 
-   _ASSERTE( _CrtCheckMemory( ) );
+//   _ASSERTE( _CrtCheckMemory( ) );
 
     int buf_size = std::max(n_px, n_nl_output_params);
 
@@ -362,10 +368,10 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
       }
    }  
 
-   _ASSERTE( _CrtCheckMemory( ) );
+ //  _ASSERTE( _CrtCheckMemory( ) );
 
 
-   //n_regions = idx;
+   n_regions = data->n_output_regions_total;
 
    ClearVariable(nl_output_);
    ClearVariable(err_lower_output_);
@@ -405,6 +411,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
    if (ret_mask)
       memcpy(ret_mask, im_mask, n_px * sizeof(uint8_t));
 
+   int merge_regions = data->merge_regions;
    int iml = data->GetImLoc(im);
    im = iml;
    if (iml == -1)
@@ -433,7 +440,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
                
                int j = 0;
                for(int i=0; i<n_px; i++)
-                  if(im_mask[i] == rg)
+                  if(im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
                   {
                      image_data[i] = GetNonLinearParam(r_param, param_data + j*nl);
                      j++;
@@ -446,7 +453,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
                float p = GetNonLinearParam(r_param, param_data);
                
                for(int i=0; i<n_px; i++)
-                  if(im_mask[i] == rg)
+                  if(im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
                      image_data[i] = p;
 
             }
@@ -500,7 +507,7 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
             int j = 0;
             if (param_data != NULL)
                for(int i=0; i<n_px; i++)
-                  if(im_mask[i] == rg)
+                  if(im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
                      image_data[i] = param_data[span*(j++)];
           }
 

@@ -107,6 +107,8 @@ classdef front_end_menu_controller < handle
         menu_file_load_data_settings;
         menu_file_save_data_settings;
         
+        menu_file_load_t_calibration;
+        
         menu_file_open_fit;
         menu_file_save_fit;
         
@@ -590,6 +592,13 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.load_data_settings([pathname filename]);         
             end
         end
+        
+        function menu_file_load_t_calibration_callback(obj,~,~)
+            [filename, pathname] = uigetfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
+            if filename ~= 0
+                obj.data_series_controller.data_series.load_t_calibriation([pathname filename]);         
+            end
+        end
 
         %------------------------------------------------------------------
         % Export Data
@@ -685,7 +694,7 @@ classdef front_end_menu_controller < handle
         
         
         function menu_file_import_plate_metadata_callback(obj,~,~)
-            [file,path] = uigetfile({'*.xls;*.xlsx','Excel Files'},'Select the metadata file',obj.default_path);
+            [file,path] = uigetfile({'*.xls;*.xlsx;*.csv','All Compatible Files';'*.xls;*.xlsx','Excel Files';'*.csv','CSV File'},'Select the metadata file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.import_plate_metadata([path file]);
             end
@@ -1092,7 +1101,7 @@ classdef front_end_menu_controller < handle
                          '*.eps','EPS level 1 image (*.eps)';...
                          '*.fig','Matlab figure (*.fig)';...
                          '*.*',  'All Files (*.*)'},...
-                         'Select root file name',[obj.default_path '\fit']);
+                         'Select root file name',[obj.default_path filesep 'fit']);
 
             if ~isempty(filename)
                 obj.plot_controller.update_plots([pathname filename])
@@ -1112,7 +1121,7 @@ classdef front_end_menu_controller < handle
                          '*.eps','EPS level 1 image (*.eps)';...
                          '*.fig','Matlab figure (*.fig)';...
                          '*.*',  'All Files (*.*)'},...
-                         'Select root file name',[obj.default_path '\fit']);
+                         'Select root file name',[obj.default_path filesep 'fit']);
 
             if ~isempty(filename)
                 obj.plot_controller.update_gallery([pathname filename])
@@ -1134,13 +1143,13 @@ classdef front_end_menu_controller < handle
 
         function menu_help_tracker_callback(obj, ~, ~)
             
-            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues');
-            %web('https://bitbucket.org/scw09/globalprocessing/issues','-browser');
+            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues');
+            
         end
 
         function menu_help_bugs_callback(obj, ~, ~)
-            obj.open_browser('https://bitbucket.org/scw09/globalprocessing/issues/new');
-            %web('https://bitbucket.org/scw09/globalprocessing/issues/new','-browser');
+            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues/new');
+            
         end
         
         function open_browser(~, url_str)

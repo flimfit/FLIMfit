@@ -1,13 +1,14 @@
 function set_splash(splash_image_filename)
 
-try
+%try
 
 % create a figure that is not visible yet, and has minimal titlebar properties
 fh = figure('Visible','off','MenuBar','none','NumberTitle','off');
 
 % put an axes in it
 ah = axes('Parent',fh,'Visible','off');
-ih = imshow(splash_image_filename);
+dat = imread(splash_image_filename);
+ih = imagesc(dat); daspect([1,1,1]); set(ah,'XTick',[],'YTick',[]);
 
 % set the figure size to be just big enough for the image, and centered at
 % the center of the screen
@@ -24,9 +25,9 @@ movegui(fh,'center')
 set(fh,'Visible','on');
 set(fh,'Name','Loading...');
 
-catch err
-    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-end
+%catch err
+%    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+%end
 
 end
 

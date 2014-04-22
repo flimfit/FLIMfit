@@ -3,10 +3,10 @@ classdef flim_omero_data_manager < handle
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
-    %
-    % This program is free software; you can redistribute it and/or modify
+    %and/or modify
     % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 2 of the License, or
+    % the Free Software Foundation; either version 2 of the
+    % This program is free software; you can redistribute it  License, or
     % (at your option) any later version.
     %
     % This program is distributed in the hope that it will be useful,
@@ -84,17 +84,7 @@ classdef flim_omero_data_manager < handle
             
             data_series.mode = mdta.FLIM_type;
             
-            % set name
-            extensions{1} = '.ome.tiff';
-            extensions{2} = '.ome.tif';
-            extensions{3} = '.tif';
-            extensions{4} = '.tiff';
-            extensions{5} = '.sdt';                        
-            extensions{5} = '.txt';                                    
-                for extind = 1:numel(extensions)    
-                    name = strrep(name,extensions{extind},'');
-                end  
-            %
+            
             if ~isempty(obj.dataset)
                 data_series.names{1} = name;            
             else % SPW image - treated differently at results import
@@ -106,6 +96,35 @@ classdef flim_omero_data_manager < handle
             data_series.n_datasets = 1;  
             data_series.file_names = {'file'};                
             data_series.metadata = extract_metadata(data_series.names);
+            
+            % specific case - set up possible single-pix metadata - start
+                pixelsList = image.copyPixels();
+                pixels = pixelsList.get(0);
+                    sizeX = pixels.getSizeX().getValue();
+                    sizeY = pixels.getSizeY().getValue();
+                try 
+                    if 1==sizeX && 1 == sizeY && strcmp(data_series.names{1},data_series.metadata.FileName)
+                        %
+                        pixelsService = obj.session.getPixelsService();
+                        pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
+                        channels = pixelsDesc.copyChannels();
+                        %                             
+                        token = char(channels.get(channel-1).getLogicalChannel().getName().getValue());
+                        token_num = str2num(token);
+                        if ~isempty(token_num)
+                            % fix if possible
+                            if 0 == mod(token_num,fix(token_num))
+                                data_series.metadata.Channel{1} = fix(token_num);
+                            end
+                        else
+                            data_series.metadata.Channel{1} = token;
+                        end                                                            
+                    end
+                catch err
+                    disp(err.message);
+                end
+            % specific case - set up possible single-pix metadata - ends
+                                    
             data_series.polarisation_resolved = polarisation_resolved;
             data_series.t = delays;
             data_series.use_memory_mapping = false;
@@ -114,7 +133,6 @@ classdef flim_omero_data_manager < handle
             
             data_series.tr_data_series_mem = single(data_cube); 
              
-    
             data_series.load_multiple_channels = false;
             data_series.loaded = ones([1 data_series.n_datasets]);
             data_series.switch_active_dataset(1);    
@@ -360,7 +378,21 @@ classdef flim_omero_data_manager < handle
             %
             if isempty(str)
                 return;
-            end;            
+            elseif -1 == str
+                % try to look for annotations of data_series' first image..                
+                if ~isempty(data_series.image_ids)
+                    myimages = getImages(obj.session,data_series.image_ids(1));
+                    image = myimages(1);
+                    [str, fname] = select_Annotation(obj.session,obj.userid,image,'Choose image(1) IRF');
+                end
+            end;       
+            %
+            if isempty(str)                
+                return;
+            elseif -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
+                return;
+            end            
             %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
@@ -407,7 +439,7 @@ classdef flim_omero_data_manager < handle
                 mdta.modulo = 'ModuloAlongC';
                 mdta.delays = 1;
                 
-                [ data_cube, name ] =  obj.OMERO_fetch(  image, ZCT, mdta);
+                [ data_cube, ~ ] =  obj.OMERO_fetch(  image, ZCT, mdta);
                             
                 data = double(squeeze(data_cube));
                 %
@@ -577,8 +609,10 @@ classdef flim_omero_data_manager < handle
                                                         ' Z ' Z_str ...
                                                         ' C ' C_str ...
                                                         ' T ' T_str ' ' ...
-                                                        datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
+                                                        datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                                                     
                                                     end
+                                                    %
+                                                    if ~isempty(data_series.FLIM_modality), newplate_name = [ data_series.FLIM_modality ' ' newplate_name ]; end;                                                                                                       
                                                     %
                                                             newplate = omero.model.PlateI();
                                                             newplate.setName(omero.rtypes.rstring(newplate_name));    
@@ -714,7 +748,9 @@ classdef flim_omero_data_manager < handle
                     [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end                        
+            end
+            %
+            if ~exist('object','var') || isempty(object), return, end;
             %                        
             fname = [tempdir 'fitting settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
             fitting_params_controller.save_fitting_params(fname);         
@@ -746,9 +782,13 @@ classdef flim_omero_data_manager < handle
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose fitting settings file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
                 fwrite(fid,str,'*uint8');
@@ -794,9 +834,8 @@ classdef flim_omero_data_manager < handle
             if isempty(settings)
                 obj.logon = OMERO_logon();
             end
-           
-                                    
-           if isempty(obj.logon{3})
+                                               
+           if isempty(obj.logon{4})
                if neverTriedLog == true
                    ret_string = questdlg('Respond "Yes" ONLY if you intend NEVER to use FLIMfit with OMERO on this machine!');
                    if strcmp(ret_string,'Yes')
@@ -807,17 +846,16 @@ classdef flim_omero_data_manager < handle
            end
             
                 keeptrying = false;     % only try again in the event of failure to logon
-          
-
-                obj.client = loadOmero(obj.logon{1});
-
-
+                
                 try 
-                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                    port = obj.logon{2};
+                    if ischar(port), port = str2num(port); end;
+                    obj.client = loadOmero(obj.logon{1},port);                                    
+                    obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
                 catch err
+                    display(err.message);
                     obj.client = [];
                     obj.session = [];
-
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
@@ -825,12 +863,9 @@ classdef flim_omero_data_manager < handle
                     % Handle response
                     switch choice
                         case 'Try again to logon'
-                            keeptrying = true;
-                      
-                            
+                            keeptrying = true;                                                  
                         case 'Run FLIMfit in non-OMERO mode'
-                            % no action keeptrying is already false
-                       
+                            % no action keeptrying is already false                       
                     end    % end switch           
                 end   % end catch
                 if ~isempty(obj.session)
@@ -855,14 +890,15 @@ classdef flim_omero_data_manager < handle
             
                 keeptrying = false;     % only try again in the event of failure to logon
           
-                obj.client = loadOmero(obj.logon{1});
-
                 try 
-                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                    port = obj.logon{2};
+                    if ischar(port), port = str2num(port); end;
+                    obj.client = loadOmero(obj.logon{1},port);                                    
+                    obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
                 catch err
+                    display(err.message);
                     obj.client = [];
                     obj.session = [];
-
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
@@ -870,12 +906,9 @@ classdef flim_omero_data_manager < handle
                     % Handle response
                     switch choice
                         case 'Try again to logon'
-                            keeptrying = true;
-                      
-                            
+                            keeptrying = true;                                                  
                         case 'Run FLIMfit in non-OMERO mode'
-                            % no action keeptrying is already false
-                       
+                            % no action keeptrying is already false                       
                     end    % end switch           
                 end   % end catch
                 if ~isempty(obj.session)
@@ -899,10 +932,13 @@ classdef flim_omero_data_manager < handle
             %    
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose metadata xlsx file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;        
-            %            
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');                
             fwrite(fid,str,'int8');                        
@@ -929,7 +965,9 @@ classdef flim_omero_data_manager < handle
                     [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end                        
+            end 
+            %
+            if ~exist('object','var') || isempty(object), return, end;            
             %                        
             ext = '.irf';   
             irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
@@ -999,9 +1037,12 @@ classdef flim_omero_data_manager < handle
             %    
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose TVB file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;            
+            elseif isempty(str)                
+                return;       
+            end            
             %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');                
@@ -1031,6 +1072,8 @@ classdef flim_omero_data_manager < handle
                 case 'Cancel', 
                     return;
             end                        
+            %
+            if ~exist('object','var') || isempty(object), return, end;            
             %                        
             fname = [tempdir 'data settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
             data_series.save_data_settings(fname);         
@@ -1062,9 +1105,13 @@ classdef flim_omero_data_manager < handle
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose data settings file');
             %
-            if isempty(str)
+            if -1 == str
+                errordlg('select_Annotation: no annotations - ret is empty');
                 return;
-            end;
+            elseif isempty(str)                
+                return;       
+            end            
+            %
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
                 fwrite(fid,str,'*uint8');
@@ -1122,8 +1169,7 @@ classdef flim_omero_data_manager < handle
             obj.screen = [];
             obj.plate = [];
             %
-        end          
-            
+        end                           
     end
 end
 

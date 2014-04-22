@@ -62,6 +62,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             obj.bind_control(handles,'irf_type','popupmenu');
             obj.bind_control(handles,'t0','edit');
             obj.bind_control(handles,'counts_per_photon','edit')
+            obj.bind_control(handles,'use_image_t0_correction','checkbox');
             
             obj.bind_control(handles,'data_subsampling','edit')
             obj.bind_control(handles,'irf_subsampling','edit')
@@ -91,7 +92,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
                                 
                 obj.fit_controller.fit(true);
                 while obj.fit_controller.has_fit == 0
-                    pause(0.001);
+                    drawnow
                 end
 
                 %%% Get the fit results
@@ -109,9 +110,9 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             
             opt = optimset('PlotFcns',{@optimplotfval}); %,'TolX',0.05);
             t0_min = fminsearch(@f,obj.data_series.t0,opt);
-            
+
             obj.data_series.t0 = t0_min;
-            
+
             
             
         end

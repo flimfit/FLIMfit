@@ -26,6 +26,7 @@ function addpath_global_analysis()
 % Author : Sean Warren
 
     if ~isdeployed
+        
         thisdir = fileparts( mfilename( 'fullpath' ) );
         addpath( thisdir,...
                 [thisdir filesep 'Classes'],...
@@ -38,28 +39,36 @@ function addpath_global_analysis()
                 [thisdir filesep 'HelperFunctions' filesep 'GUILayout' filesep 'Patch'],...
                 [thisdir filesep 'HelperFunctions' filesep 'GUILayout' filesep 'layoutHelp'],...
                 [thisdir filesep 'HelperFunctions' filesep 'xml_io_toos'],...
-                [thisdir filesep 'HelperFunctions' filesep 'bftools'],...
+                [thisdir filesep 'HelperFunctions' filesep 'BFMatlab'],...
                 [thisdir filesep '..' filesep 'FLIMfitLibrary' filesep 'Libraries'],...
+                [thisdir filesep 'OMEROUtilities'],...
+                [thisdir filesep 'ic_importer'],...                
+                [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
+            
+            addpath( ...
                 [thisdir filesep 'OMEROMatlab'],... 
                 [thisdir filesep 'OMEROMatlab' filesep 'helper'],... 
                 [thisdir filesep 'OMEROMatlab' filesep 'io'],... 
                 [thisdir filesep 'OMEROMatlab' filesep 'libs'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'roi'],... 
-                [thisdir filesep 'OMEROUtilities'],...
-                [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
+                [thisdir filesep 'OMEROMatlab' filesep 'roi']);
+                
             
-            % Test genops
-            genops(1);
-            
-            a = ones(1,10);
-            b = ones(10,1);
-            
-            try 
-                c = a.*b;
-            catch
+        % Test genops
+        genops(1);
+
+        a = ones(10,10);
+        b = ones(10,1);
+
+        try 
+            c = a.*b;
+            if ~all(size(c)==[10,10])
                 makegenops;
-                genops(1);
+                genops(1);    
             end
+        catch
+            makegenops;
+            genops(1);
+        end
             
             
     end

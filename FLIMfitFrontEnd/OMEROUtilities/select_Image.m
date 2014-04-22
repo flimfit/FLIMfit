@@ -36,39 +36,37 @@
             %
             pName = char(java.lang.String(Parent.getName().getValue()));
             
-            parent_is = whos_Object(session,Parent.getId().getValue());
+            parent_is = class(Parent);
             
-            if strcmp(parent_is,'Dataset') % load images from Dataset
+            if strfind(parent_is,'Dataset') % load images from Dataset
 
-                imageList = Parent.linkedImageList;
-                %       
-                if 0==imageList.size()
+                imageList = getImages(session, 'dataset', Parent.getId().getValue());
+                       
+                if length(imageList) == 0
                     errordlg(['Dataset ' pName ' have no images'])
                     return;
                 end;                                    
-                %        
-                 z = 0;       
+                             
                  str = char(256,256);
-                 for k = 0:imageList.size()-1,                       
-                         z = z + 1;                                                       
-                         iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
-                         idName = num2str(imageList.get(k).getId().getValue());
+                 for k = 1:length(imageList) 
+                         iName = char(java.lang.String(imageList(k).getName().getValue()));                                                                
+                         idName = num2str(imageList(k).getId().getValue());
                          image_name = [ idName ' : ' iName ]; 
-                         str(z,1:length(image_name)) = image_name;
+                         str(k,1:length(image_name)) = image_name;
                   end 
 
                 str = str(1:imageList.size(),:);
-                %
+                
                 [s,v] = listdlg('PromptString',['Select an Image in ' pName ' Dataset'],...
                                 'SelectionMode','single',...
                                 'ListSize',[300 300],...                                
                                 'ListString',str);
-                %
+               
                 if(v)
-                    ret = imageList.get(s-1);
+                    ret = imageList(s);
                 end            
                 
-            elseif strcmp(parent_is,'Plate') % load images from plate
+            elseif strfind(parent_is,'Plate') % load images from plate
 
                  z = 0;       
                  images = [];

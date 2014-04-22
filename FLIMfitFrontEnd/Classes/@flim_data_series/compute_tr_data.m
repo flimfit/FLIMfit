@@ -49,14 +49,29 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
 
         calculated = true;
 
+        % use t calibration
+        if obj.use_t_calibration && length(obj.t) > 1
+        
+            t_cor = interp1(obj.cal_t_nominal,obj.cal_t_meas,obj.t,'pchip');
+            dt = obj.cal_dt;
+            
+            t_cor_round = t_cor/dt;
+            t_cor_round = round(t_cor_round)*dt;
+            
+            obj.tr_t_all = t_cor_round;
+        else
+            obj.tr_t_all = obj.t;     
+        end
+        
+        
         % Crop timegates
-        t_inc = obj.t >= obj.t_min & obj.t <= obj.t_max;
+        t_inc = obj.tr_t_all >= obj.t_min & obj.tr_t_all <= obj.t_max;
         
 
         % If there is a IRF ensure that we don't have data points before the IRF
-        if ~isempty(obj.tr_t_irf)
-            t_inc = t_inc & obj.t >= min(obj.tr_t_irf);
-        end
+        %if ~isempty(obj.tr_t_irf)
+        %    t_inc = t_inc & obj.t >= min(obj.tr_t_irf);
+        %end
         
         % For polarisation resolved data, attempt to line up the two
         % polarisation channels to within a timegate. This allows the user
@@ -95,10 +110,11 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             t_inc = t_inc & subs;
         end
         
+        
         obj.t_skip = [find(t_inc,1,'first') find(t_inc_perp,1,'first')]-1;
         
         % Apply all the masking above
-        obj.tr_t = obj.t(t_inc);
+        obj.tr_t = obj.tr_t_all(t_inc);
         obj.tr_t_int = obj.t_int(t_inc);
         
         obj.tr_t_int = obj.tr_t_int / min(obj.tr_t_int);
@@ -159,6 +175,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             tmp(:,2,:,:) = obj.cur_tr_data(t_inc_perp,2,:,:);
         end
         obj.cur_tr_data = tmp;
+
 
         %{
         figure(4);
@@ -232,11 +249,17 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             obj.cur_tr_data = obj.smooth_flim_data(obj.cur_tr_data,obj.binning);
         end
 
-        %obj.cur_tr_data(obj.cur_tr_data<0) = 0;
-        
+       
         obj.cur_smoothed = ~no_smoothing;
         
         obj.compute_tr_irf();
+        
+                
+
+        
+        
+        
+        
         obj.compute_intensity();
         obj.compute_tr_tvb_profile();        
         if notify_update

@@ -55,6 +55,8 @@ global buf buf_name
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case '.tif'
             
+            tcspc = 0;
+            
             if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')
                 
                 info = imfinfo(file);
@@ -96,7 +98,7 @@ global buf buf_name
                 first = [path filesep dirStruct(1).name];
                 im = imread(first,'tif');
 
-                im_data = zeros([noOfFiles size(im)],'uint16');
+                im_data = zeros([noOfFiles size(im)]);
                 delays = zeros([1,noOfFiles]);
                 
                 im_data(1,:,:) = im;
@@ -227,7 +229,7 @@ global buf buf_name
                  textl = fgetl(fid);
                  while ~isempty(textl)
                      first = sscanf(textl,['%f' dlm]);
-                     if isempty(first)
+                     if isempty(first) || isnan(first(1))
                          header_lines = header_lines + 1;
                          textl = fgetl(fid);
                      else 
@@ -277,6 +279,16 @@ global buf buf_name
 
             im_data(:,1,1) = ir(:,2);    
             delays(1,:) = ir(:,1);  %.*1000;
+            
+        case '.bin'        % this as well..       
+            
+            [im_data, delays, ~ ] = load_PicoQuant_bin(file,'uint32');
+            tcspc = 1; 
+            
+        otherwise 
+
+            throw(MException('FLIM:UnknownExtension', 'Unknown Extension')); % thnx Marcus
+            
     end
     
     s = size(im_data);

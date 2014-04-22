@@ -32,14 +32,14 @@ function compute_tr_tvb_profile(obj)
         % Downsample
         sel = 0:(length(obj.t)-1);
         sel = mod(sel,obj.downsampling) == 0;
-        tr_t = obj.t(sel);
+        tr_t = obj.tr_t_all(sel);
         
         % Crop based on limits
         t_inc = tr_t >= obj.t_min & tr_t <= obj.t_max;
 
-        if ~isempty(obj.tr_t_irf)
-            t_inc = t_inc & tr_t >= min(obj.tr_t_irf);
-        end
+        %if ~isempty(obj.tr_t_irf)
+        %    t_inc = t_inc & tr_t >= min(obj.tr_t_irf);
+        %end
         
         if size(obj.tvb_profile,1) ~= obj.n_t
             obj.tvb_profile = zeros(obj.n_t, obj.n_chan);

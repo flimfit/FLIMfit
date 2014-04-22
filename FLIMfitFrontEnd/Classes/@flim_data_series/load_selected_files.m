@@ -98,7 +98,7 @@ function load_selected_files(obj,selected)
                         data = data * 100;
 
                         if j==1
-                            
+
                             intensity = squeeze(sum(data,1));
                             para = squeeze(intensity(1,:,:));
                             perp = squeeze(intensity(2,:,:));
@@ -130,7 +130,8 @@ function load_selected_files(obj,selected)
                 end
                 
                 
-                if isempty(data) || size(data,1) ~= obj.n_t
+                if isempty(data) || size(data,1) ~= obj.n_t || numel(data)~=prod(obj.data_size)
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size is (' num2str(size(data)), '), expected (' num2str(obj.data_size') ')'])
                     data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
                 end
 

@@ -33,7 +33,7 @@
 //#include "hdf5.h"
 
 FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
-                   int* use_im, uint8_t mask[], int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
+                   int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
    polarisation_resolved(polarisation_resolved),
    g_factor(g_factor),
    n_im(n_im), 
@@ -47,6 +47,7 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    data_type(data_type),
    use_im(use_im),
    mask(mask),
+   merge_regions(merge_regions),
    threshold(threshold),
    limit(limit),
    counts_per_photon(counts_per_photon),
@@ -62,6 +63,8 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    acceptor_  = NULL;
    loader_thread = NULL;
 
+
+   image_t0_shift = NULL;
 
    // Make sure waiting threads are notified when we terminate
    status->AddConditionVariable(&data_avail_cond);
@@ -416,6 +419,12 @@ void FLIMData::SetTVBackground(float* tvb_profile, float* tvb_I_map, float const
    this->background_type = BG_TV_IMAGE;
 }
 
+void FLIMData::SetImageT0Shift(double* image_t0_shift)
+{
+   this->image_t0_shift = image_t0_shift;
+}
+
+
 int FLIMData::GetRegionIndex(int im, int region)
 {
    // If fitting globally, set im=-1 to get index of region for all datasets
@@ -569,7 +578,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
       s = 0;
       int start = GetRegionPos(0, region);
        
-     // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
+      // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
       #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
       for(int i=0; i<n_im_used; i++)
       {
@@ -621,15 +630,12 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
    else
       TransformImage<uint16_t>(thread, im);
 
-   for(int i=0; i<n_meas; i++)
-      masked_data[i] = 0;
-
    // Store masked values
    int s = 0;
 
    for(int p=0; p<n_px; p++)
    {
-      if (region < 0 || im_mask[p] == region)
+      if (region < 0 || im_mask[p] == region || (merge_regions && im_mask[p] > 0))
       {
          masked_intensity[s] = intensity[p];
    
@@ -643,7 +649,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
             masked_data[s*n_meas+i] = tr_data[p*n_meas+i];
 
 
-         irf_idx[s] = p;
+         irf_idx[s] = iml*n_px+p;
          s++;
       }
    }

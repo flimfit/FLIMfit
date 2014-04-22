@@ -1,3 +1,4 @@
+
 //=========================================================================
 //
 // Copyright (C) 2013 Imperial College London.
@@ -34,14 +35,16 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 
-using namespace boost::unit_test;
-
+#include "FLIMSimulation.h"
+#include "QR_test.h"
 
 #include <iostream>
 #include <string>
 #include <cmath>
 #include "FLIMGlobalAnalysis.h"
+#include <stdio.h>
 
+using namespace boost::unit_test;
 
 
 void add_decay(int n_t, double* t, double tau, double I, float* decay)
@@ -50,7 +53,181 @@ void add_decay(int n_t, double* t, double tau, double I, float* decay)
       decay[i] += I * exp(-t[i]/tau);
 }
 
+bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_names, vector<float>& data, const char* param, int region, float expected_value, float rel_tol )
+{
+   if (region >= n_regions)
+      return false;
+   
+   for (int i=0; i<n_params; i++)
+   {
+      if (strcmp(param_names[i], param))
+      {
+         float fitted = data[ n_stats * n_params * region + i + PARAM_MEAN ];
+         float std = data[ n_stats * n_params * region + i + PARAM_STD ];
+         float diff   = fitted - expected_value;
+         float rel    = fabs( diff ) / expected_value;
+         bool pass = (rel <= rel_tol);
+         
+         printf( "Compare %s, Region %d:\n", param, region );
+         printf( "   | Expected  : %f\n", expected_value );
+         printf( "   | Fitted    : %f\n", fitted );
+         printf( "     | Std D.  : %f\n", std );
+         printf( "   | Rel Error : %f\n", rel );
+         
+         if (pass)
+            printf( "   | PASS\n");
+         else
+            printf( "   | FAIL\n");
+         
+         return ( pass );
+      }
+   }
+   
+   printf("FAIL: Expected parameter %s not found", param);
+   
+   return false;
+}
 
+/*
+BOOST_AUTO_TEST_CASE( COMPARE_QR )
+{
+   int n, m, rep;
+   
+   double times[5];
+
+   n = 4;
+   m = 128;
+
+   int m_step = 2;
+   int steps  = 15; 
+
+   int m_max  = 16*1048576; 
+
+   FILE* f=fopen("c:\\users\\scw09\\documents\\FLIMFit Testing\\QR Factorisation\\qr_test.csv","w");
+
+   fprintf(f,"rep, n, m, Householder, Givens, Combined\n");
+
+   for(int s=0; s<steps; s++)
+   {
+
+      rep = ceil(((double)m_max)/m);
+      rep = min(rep,50000);
+
+      QR_test(n,m,rep,times);
+      printf("\n%d %d %d\n",n,m,rep);
+      printf("%3.3f\t%3.3f\t%3.3f\n",times[0],times[1],times[2]);
+
+      fprintf(f,"%d, %d, %d, %f, %f, %f, %f, %f\n",rep,n,m,times[0],times[1],times[2],times[3],times[4]);
+
+      m*=m_step;
+
+   }
+
+   fclose(f);
+}
+*/
+
+
+
+
+
+BOOST_AUTO_TEST_CASE( TCSPC_Single )
+{
+   int e;
+
+   FLIMSimulation sim;
+   
+   
+   vector<double> irf;
+  vector<float>  image_data;
+   vector<double> t;
+   vector<double> t_int;
+
+   int n_x = 512;
+   int n_y = 512;
+
+   int N = 100;
+   double tau = 2000;
+   
+   
+   sim.GenerateIRF(N, irf);
+   sim.GenerateImage(tau, N, n_x, n_y, image_data);
+
+   int n_t = sim.GetTimePoints(t, t_int);
+   int n_irf = n_t;
+   
+   // Data Parameters
+   //===========================
+   int use_im = 1;
+   int t_skip = 0;
+   int n_trim_end = 0;
+   int n_regions_expected = 1;
+
+
+   int use_image_irf = false;
+   
+   
+   // Parameters for fitting
+   //===========================
+   double tau_min[1]   = {0.0};
+   double tau_max[1]   = {1e6};
+   double tau_guess[1] = {1000};
+   
+   double t0 = 0;
+
+   int algorithm = ALG_LM;
+   int global_mode = MODE_IMAGEWISE;
+
+   // Start Fit
+   //===========================
+   int id = FLIMGlobalGetUniqueID();
+   
+   int fit_t0 = true;
+
+   e=SetupGlobalFit(id, MODE_GLOBAL_ANALYSIS, use_image_irf, n_irf, &(t[0]), &(irf[0]), 0, NULL, 1, 0, 1, NULL, tau_min, tau_max, 1, tau_guess, 1, NULL, fit_t0, t0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0, 1e-6/80.0, 0, 0, algorithm, 0, 0, 0.95, 0, 0, 0, NULL);
+   BOOST_CHECK_EQUAL( e, 0 );
+    
+   e=SetDataParams(id, 1, n_x, n_y, 1, n_t, &(t[0]), &(t_int[0]), &t_skip, n_t-t_skip-n_trim_end, DATA_TYPE_TIMEGATED, &use_im, NULL, 0, 0, 0, 1, global_mode, 0, 0);
+   BOOST_CHECK_EQUAL( e, 0 );
+   
+   e=SetDataFloat(id, &image_data[0]);
+   BOOST_CHECK_EQUAL( e, 0 );
+   
+   e=StartFit(id);
+   BOOST_CHECK_EQUAL( e, 0 );
+   
+   
+   int n_regions_total = GetTotalNumOutputRegions(id);
+   BOOST_CHECK_EQUAL( n_regions_total, n_regions_expected );
+   
+   int n_output_params;
+   const char** names = GetOutputParamNames(id, &n_output_params);
+   
+   int n_stats = 11;
+   
+   // Result storage
+   int n_regions;
+   vector<int>   image( (n_regions_total) );
+   vector<int>   regions( (n_regions_total) );
+   vector<int>   region_size( (n_regions_total) );
+   vector<float> success( (n_regions_total) );
+   vector<int>   iterations( (n_regions_total) );
+   vector<float> stats( (n_output_params * n_regions_total * n_stats) );
+   
+   BOOST_ASSERT( n_regions_total > 0 );
+
+   e=GetImageStats(id, &n_regions, &image[0], &regions[0], &region_size[0], &success[0], &iterations[0], &stats[0]);
+   BOOST_CHECK_EQUAL( e, 0 );
+   
+   BOOST_CHECK( CheckResult( n_stats, n_output_params, n_regions, names, stats, "tau_1", 0, (float) tau, 0.01f ) );
+   //e=FLIMGlobalGetFit(id, 0, n_t, t, 1, &i0, fit, &n_valid);
+
+   FLIMGlobalClearFit(id);
+
+
+}
+
+/*
 BOOST_AUTO_TEST_CASE( FLIMTest )
 {
    const int n_t   = 11;
@@ -96,8 +273,8 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
 
    double tau_guess[n_tau] = {2000, 4000};
    float tau_est[n_tau * n_x] = {0, 0, 0, 0};
-   float beta_est[n_tau * n_x];
-   float I0_est[n_tau * n_x];
+//   float beta_est[n_tau * n_x];
+//   float I0_est[n_tau * n_x];
 
    int e;
    int i0= 0;
@@ -107,7 +284,8 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
    {
       int use_im = 1;
       
-      e=SetupGlobalFit(id, 1, 1, n_irf, t_irf, irf, 0, NULL, 2, 0, 1, NULL, tau_min, tau_max, 1, tau_guess, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0, 1e-6/80.0, 0, 0, 0, 0, 1, 0.95, 0, 0, 0, NULL);
+      e=SetupGlobalFit(id, 1, 1, n_irf, t_irf, irf, 0, NULL, 2, 0, 1, NULL, tau_min, tau_max, 1, tau_guess, 1, NULL, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 0,
+                       1e-6/80.0, 0, 0, 0, 0, 1, 0.95, 0, 0, 0, NULL);
       BOOST_CHECK_EQUAL( e, 0 );
       
       e=SetDataParams(id, 1, n_x, n_y, 1, n_t, t, t_int, &t_skip, n_t, 0, &use_im, NULL, 0, 0, 1, 1, 0, 0);
@@ -135,7 +313,7 @@ BOOST_AUTO_TEST_CASE( FLIMTest )
    FLIMGlobalClearFit(id);
     
 }
-
+*/
 
 /*
 int main()

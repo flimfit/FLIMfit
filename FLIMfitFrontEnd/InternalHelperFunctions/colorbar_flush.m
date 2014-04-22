@@ -106,39 +106,46 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim,gamma)
 
     end
     
+    % Draw main image
+    %=========================================
     im(1)=image(mapped_data,'Parent',h);    
-    
-    if ~isempty(hc)
-        im(2)=image(cbar,'Parent',hc);
-    end
-    
     set(h,'XTick',[],'YTick',[]);
-    set(hc,'XTick',[],'YTick',[]);
- 
+    
     daspect(h,[1 1 1]);
     
     set(h,'Units','pixels');
     pos=plotboxpos(h);
+    set(h,'Units','normalized');
     
+    % Draw colourbar and labels
+    %=========================================
+    if ~isempty(hc)
+        im(2)=image(cbar,'Parent',hc);
+        set(hc,'XTick',[],'YTick',[]);
     
-        
-    
-    ht1=text(pos(3), 2, num2str(lim(1)), 'Units','pixels','Parent',h,...
-         'Color','w','BackgroundColor','k','Margin',1,...
-         'FontUnits','points','FontSize',10,...
-         'HorizontalAlignment','right','VerticalAlignment','bottom');
+        ht1=text(pos(3), 2, num2str(lim(1)), 'Units','pixels','Parent',h,...
+             'Color','w','BackgroundColor','k','Margin',1,...
+             'FontUnits','points','FontSize',10,...
+             'HorizontalAlignment','right','VerticalAlignment','bottom');
 
-    ht2=text(pos(3), pos(4)-1, num2str(lim(2)), 'Units','pixels','Parent',h,...
-         'Color','w','BackgroundColor','k','Margin',1,...
-         'FontUnits','points','FontSize',10,...
-         'HorizontalAlignment','right','VerticalAlignment','top');
+        ht2=text(pos(3), pos(4)-1, num2str(lim(2)), 'Units','pixels','Parent',h,...
+             'Color','w','BackgroundColor','k','Margin',1,...
+             'FontUnits','points','FontSize',10,...
+             'HorizontalAlignment','right','VerticalAlignment','top');
 
-    set(ht1,'Units','normalized');
-    set(ht2,'Units','normalized');
+        set(ht1,'Units','normalized');
+        set(ht2,'Units','normalized');
+
+        bar_pos = [pos(1)+pos(3) pos(2) 20 pos(4)];
+        set(hc,'Units','pixels','Position',bar_pos);
     
-    bar_pos = [pos(1)+pos(3) pos(2) 20 pos(4)];
-    set(hc,'Units','pixels','Position',bar_pos);
+        set(hc,'Units','normalized');
+
+    end
     
+    
+    % Draw text labels
+    %=========================================
     if ~isempty(t) && ~strcmp(t,'')
         ht3=text(3, pos(4), t, 'Units','pixels','Parent',h,...
          'Color','w','BackgroundColor','k','Margin',1,...
@@ -147,7 +154,5 @@ function im=colorbar_flush(h,hc,data,mask,lim,cscale,t,intensity,int_lim,gamma)
         set(ht3,'Units','normalized');
     end
     
-    set(h,'Units','normalized');
-    set(hc,'Units','normalized');
-
+    
 end

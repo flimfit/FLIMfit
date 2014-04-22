@@ -35,8 +35,17 @@ function init_dataset(obj,setting_file_name)
         obj.background_value = 0;
         obj.background_type = 0;
     else
-        obj.background_value = prof.Data.Default_Camera_Background;
-        obj.background_type = 1;
+        background_val = prof.Data.Default_Camera_Background;
+        
+        % Check that setting background isn't going to completely mask out
+        % data
+        if min(obj.cur_tr_data(:)) <= background_val
+            obj.background_value = 0;
+            obj.background_type = 0;
+        else
+            obj.background_value = background_val;
+            obj.background_type = 1;
+        end
     end
     
     obj.rep_rate = prof.Data.Default_Rep_Rate;

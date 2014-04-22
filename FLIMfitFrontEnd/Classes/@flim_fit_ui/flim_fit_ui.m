@@ -34,7 +34,7 @@
       
         function obj = flim_fit_ui(wait,require_auth)
             
-            set_splash('FLIMfit_splash1.tif');
+
                     
             obj.check_prefs();
             
@@ -53,6 +53,7 @@
             end
             
             
+            set_splash('FLIMfit_splash1.tif');
            
            
             profile = profile_controller();
@@ -115,12 +116,7 @@
             
              hostname = getenv('COMPUTERNAME');
             
-            % I want it on my second monitor!
-            if strcmp(hostname,'PH-SCW09') && size(coords,1)==2
-                monitor = 2;
-            else
-                monitor = 1;
-            end                         
+            monitor = 1;                       
             coords = coords(monitor,:);
             
             % Allow for taskbar if we're on windows

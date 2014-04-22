@@ -330,13 +330,13 @@ processed:
 
          region_mutex.lock();
          if (next_region >= data->n_regions_total)
-            process_idx = -1;
+            process_idx = data->n_regions_total;
          else
             process_idx = next_region++;
          region_mutex.unlock();
 
          // Cycle through every region in every image
-         if (process_idx >= 0)
+         if (process_idx < data->n_regions_total)
          {
             for(int im=im0; im<data->n_im_used; im++)
             {
@@ -382,12 +382,12 @@ imagewise_terminated:
 
 		   // When thread detaches make sure we release correctly
 		   region_mutex.lock();
-         cur_im[thread] = -1;
+         cur_im[thread] = data->n_regions_total;
 
          int release_im = cur_im[0];
          for(int i=1; i<n_thread; i++)
          {
-         if (cur_im[i] >= 0 && cur_im[i] < release_im)
+         if (cur_im[i] < release_im)
             release_im = cur_im[i];
          }            
          data->AllImageLowerDataFinished(release_im-1);
@@ -803,13 +803,13 @@ void FLIMGlobalFitController::Init()
    
    if (image_irf) 
       n_irf_rep =  data->n_px;
-   else if (t0_image)
-      n_irf_rep = 1 + n_thread;
-   else 
+   else
       n_irf_rep = 1;
 
+   int n_irf_buf = 1 + n_thread;
+   
    int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
-   int irf_size = a_n_irf * n_chan * n_irf_rep;
+   int irf_size = a_n_irf * n_chan * n_irf_buf;
    #ifdef _WINDOWS
       irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
       t_irf_buf = (double*) _aligned_malloc(a_n_irf*sizeof(double), 16);
@@ -821,7 +821,7 @@ void FLIMGlobalFitController::Init()
 
    double dt = t_irf[1]-t_irf[0];
 
-   for(int j=0; j<n_irf_rep; j++)
+    for(int j=0; j<n_irf_rep; j++)
    {
       int i;
       for(i=0; i<n_irf; i++)
@@ -901,7 +901,7 @@ void FLIMGlobalFitController::Init()
 
    y_dim = max(s,data->n_px);
 
-    max_dim = max(n_irf,n_t);
+   max_dim = max(n_irf,n_t);
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
 
@@ -914,7 +914,7 @@ void FLIMGlobalFitController::Init()
    }
 
    // Check whether t0 has been specified
-   if (fit_t0)
+   if (fit_t0 == FIT)
    {
       nl++;
       p += l;
@@ -964,7 +964,7 @@ void FLIMGlobalFitController::Init()
    else
       n = n_meas;
 
-    ndim       = max( n, 2*nl+3 );
+   ndim       = max( n, 2*nl+3 );
    nmax       = n + 16; // pad to prevent false sharing   
 
    calculate_mean_lifetimes = !beta_global && n_exp > 1;
@@ -976,7 +976,10 @@ void FLIMGlobalFitController::Init()
    else
       lmax = l+1; // for I, which we will compute afterwards
 
-   exp_buf_size = n_exp * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
+   if (polarisation_resolved && n_theta == 2)
+      lmax += 2; // for cluster size, f_cluster
+
+   exp_buf_size = n_exp * n_fret_group * n_pol_group * exp_dim * N_EXP_BUF_ROWS;
 
    int alf_size = (data->global_mode == MODE_PIXELWISE) ? data->n_masked_px : data->n_regions_total;
 
@@ -1017,13 +1020,13 @@ void FLIMGlobalFitController::Init()
       lin_local    = new float[ n_fitters * lmax ]; //ok
       w            = new float[ n_fitters * n_meas ]; //free ok
 
-      cur_alf      = new double[ n_fitters * nl ]; //ok
-      cur_irf_idx  = new int[ n_fitters ];
+      cur_alf      = new double[ n_thread * nl ]; //ok
+      cur_irf_idx  = new int[ n_thread ];
 
       #ifdef _WINDOWS
-         exp_buf   = (double*) _aligned_malloc( n_thread * n_fret_group * exp_buf_size * sizeof(double), 16 ); //ok
+         exp_buf   = (double*) _aligned_malloc( n_thread * exp_buf_size * sizeof(double), 16 ); //ok
        #else
-         exp_buf   = new double[n_thread * n_fret_group * exp_buf_size];
+         exp_buf   = new double[n_thread * exp_buf_size];
        #endif
       
       tau_buf      = new double[ n_thread * (n_fret+1) * n_exp ]; //free ok 
@@ -1044,7 +1047,10 @@ void FLIMGlobalFitController::Init()
       return;
    }
 
-
+   SetNaN( cur_alf, n_thread * nl );
+   
+   for(int i=0; i<n_thread; i++)
+      cur_irf_idx[i] = -1;
 
    SetNaN(alf, alf_size * nl );
    SetNaN(chi2, data->n_masked_px );
@@ -1086,12 +1092,14 @@ void FLIMGlobalFitController::Init()
    // Create fitting objects
    projectors.reserve(n_fitters);
 
+   int variable_phi = (image_irf || t0_image != NULL || data->image_t0_shift != NULL);
+
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
          projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, n, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, image_irf | (t0_image != NULL), weighting, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, variable_phi, weighting, n_omp_thread, &(status->terminate)) );
    }
 
    for(int i=0; i<n_fitters; i++)
@@ -1103,16 +1111,8 @@ void FLIMGlobalFitController::Init()
 
    // Select correct convolution function for data type
    //-------------------------------------------------
-   if (data->data_type == DATA_TYPE_TCSPC)
-   {
-      Convolve = conv_irf_tcspc;
-      ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_tcspc : conv_irf_deriv_tcspc;
-   }
-   else
-   {
-      Convolve = conv_irf_timegate;
-      ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref_timegate : conv_irf_deriv_timegate;
-   }
+   Convolve = conv_irf;
+   ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref : conv_irf_deriv;
 
    // Setup adjust buffer which will be subtracted from the data
    SetupAdjust(0, adjust_buf, (fit_scatter == FIX) ? (float) scatter_guess : 0, 
@@ -1138,7 +1138,10 @@ void FLIMGlobalFitController::Init()
    alf_theta_idx = idx; 
    idx += n_theta_v;
 
-   if (fit_t0)
+   if (ref_reconvolution == FIT_GLOBALLY)
+     alf_ref_idx = idx++;
+
+   if (fit_t0 == FIT)
       alf_t0_idx = idx++;
 
    if (fit_offset == FIT_GLOBALLY)
@@ -1150,8 +1153,6 @@ void FLIMGlobalFitController::Init()
   if (fit_tvb == FIT_GLOBALLY)
       alf_tvb_idx = idx++;
 
-  if (ref_reconvolution == FIT_GLOBALLY)
-     alf_ref_idx = idx++;
 
    SetOutputParamNames();
 
@@ -1207,6 +1208,10 @@ void FLIMGlobalFitController::SetOutputParamNames()
    if (ref_reconvolution == FIT_GLOBALLY)
       param_names.push_back("tau_ref");
 
+   if (fit_t0 == FIT)
+      param_names.push_back("t0");
+
+
    n_nl_output_params = (int) param_names.size();
 
    if (fit_offset == FIT_LOCALLY)
@@ -1258,6 +1263,12 @@ void FLIMGlobalFitController::SetOutputParamNames()
 
    param_names.push_back("I0");
    
+   if (polarisation_resolved && n_theta == 2)
+   {
+      param_names.push_back("N_cluster");
+      param_names.push_back("f_cluster");
+   }
+
    // Parameters we manually calculate at the end
    
    param_names.push_back("I");
@@ -1314,7 +1325,7 @@ void FLIMGlobalFitController::CalculateIRFMax(int n_t, double t[])
       {
          irf_max[j*n_t+i] = 0;
          int k=0;
-         while(k < n_irf && (t[i] - t_irf[k] - t0_guess) >= -1.0)
+         while(k < n_irf && (t[i] - t_irf[k]) >= -1.0)
          {
             irf_max[j*n_t+i] = k + j*n_irf;
             k++;
@@ -1340,7 +1351,7 @@ void FLIMGlobalFitController::SetupAdjust(int thread, float adjust[], float scat
    for(int i=0; i<n_meas; i++)
       adjust[i] = 0;
 
-   add_irf(thread, 0, adjust, n_r, scale_fact);
+   add_irf(thread, 0, 0, adjust, n_r, scale_fact);
 
    for(int i=0; i<n_meas; i++)
       adjust[i] = adjust[i] * scatter_adj + offset_adj;

@@ -117,7 +117,10 @@ fid=fopen(filename);
     overfl = fread (fid, 1, 'uint8=>char');
     dummy = fread(fid,2, 'uint16');     %use_motor , steps
     offset = fread(fid,1, 'float');  
-    dummy = fread(fid,3, 'uint16');     % dither , inc , mem_bank
+    dummy = fread(fid,1, 'uint16');     % dither , inc , mem_bank
+    incr = fread(fid,1, 'uint16');     % dither , inc , mem_bank
+    dummy = fread(fid,1, 'uint16');     % dither , inc , mem_bank
+    
     mod_type = fread (fid, 16, 'uint8=>char');
     syn_th = fread(fid,1, 'float');
     dummy = fread(fid,6, 'uint16'); % dead_time_comp ...accumulate
@@ -176,6 +179,12 @@ fid=fopen(filename);
     
      if channel < -1             % deliberately choosing a -ve channel of -2 or less indicates that no data is to be returned
         
+         if meas_mode == 13
+             noOfChannels = no_of_data_blocks;
+             return;
+         end
+         
+         
         if meas_mode == 0        % single point data     
             noOfChannels = 1;     
         else
@@ -269,8 +278,8 @@ fid=fopen(filename);
         case 1
 
             chanLength = datacount;
-            xdim = chanLength/(adc_res * scany);   %calculate the limited dimensiom
-            ImData = reshape(a(1:chanLength), adc_res, xdim , chanLength/(adc_res * xdim));
+            %xdim = chanLength/(adc_res * scany);   %calculate the limited dimensiom
+            ImData = reshape(a(1:chanLength), adc_res, scanx , chanLength/(adc_res * scanx));
             ImData = ImData(:,1:scanx,:);
             % clear ridiculously bright pixels at bottom (RH side?? ) of image
             if scanx > 1 && scany > 1
@@ -328,6 +337,9 @@ fid=fopen(filename);
 
 Delays= (0:timerange/adc_res:timerange-timerange/adc_res);
 
+if isfinite(incr) && incr > 0 
+    ImData = ImData / incr; % account for count increment
+end
 
 fclose(fid);
 

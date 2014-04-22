@@ -107,18 +107,30 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
       inc_row++;
    }
 
+
    if (ref_reconvolution == FIT_GLOBALLY)
    {
       // Set elements of inc for ref lifetime derivatives
-      for(i=0; i<( n_pol_group* n_fret_group * n_exp_phi ); i++)
+      for(i=0; i<( n_pol_group * n_fret_group * n_exp_phi ); i++)
       {
          inc[inc_row+(inc_col+i)*12] = 1;
       }
       inc_row++;
    }
 
+   if (fit_t0 == FIT)
+   {
+      for(i=0; i<( n_pol_group * n_fret_group * n_exp_phi ); i++)
+      {
+         inc[inc_row + i*12]++;
+      }
+      inc_row++;
+   }
+
    inc_col += n_pol_group * n_fret_group * n_exp_phi;
-              
+     
+
+
    // Both global offset and scatter are in col L+1
 
    if( fit_offset == FIT_GLOBALLY )
@@ -140,6 +152,7 @@ void FLIMGlobalFitController::SetupIncMatrix(int* inc)
    }
 
 
+
 }
 
 
@@ -153,14 +166,11 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    int i,j,k, d_offset, total_n_exp, idx;
    int a_col;
    
-   double ref_lifetime;
+   double ref_lifetime, t0_shift;
    
    double scale_fact[2];
    scale_fact[0] = 1;
    scale_fact[1] = 0;
-
-
-   double t0;
 
    int n_meas = data->GetResampleNumMeas(thread);
    int N = n_meas;
@@ -169,15 +179,15 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
    double *beta_buf  = this->beta_buf + thread * n_exp;
    double *theta_buf = this->theta_buf + thread * n_theta;
    
-   if ( fit_t0 )
-      t0 = alf[alf_t0_idx];
-   else
-      t0 = t0_guess;
-
    if (ref_reconvolution == FIT_GLOBALLY)
       ref_lifetime = alf[alf_ref_idx];
    else
       ref_lifetime = ref_lifetime_guess;
+
+   if (fit_t0 == FIT)
+      t0_shift = alf[alf_t0_idx];
+   else
+      t0_shift = t0_guess;
 
    total_n_exp = n_exp * n_fret_group;
         
@@ -217,7 +227,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          {
             for(i=0; i<N; i++)
                a[N*a_col+i]=0;
-            add_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
+            add_irf(thread, irf_idx, 0, a+N*a_col,n_r,scale_fact);
             a_col++;
          }
 
@@ -310,9 +320,9 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
 
          // Precalculate exponentials
          if (check_alf_mod(thread, alf, irf_idx))
-            calculate_exponentials(thread, irf_idx, tau_buf, theta_buf);
+            calculate_exponentials(thread, irf_idx, tau_buf, theta_buf, t0_shift);
 
-         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, isel == 1, a+a_col*N);
+         a_col += flim_model(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, t0_shift, isel == 1, 0, a+a_col*N, N);
 
 
          // Set L+1 phi value (without associated beta), to include global offset/scatter
@@ -324,7 +334,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          // Add scatter
          if (fit_scatter == FIT_GLOBALLY)
          {
-            add_irf(thread, irf_idx, a+N*a_col,n_r,scale_fact);
+            add_irf(thread, irf_idx, 0, a+N*a_col,n_r,scale_fact);
             for(i=0; i<N; i++)
                a[ i + N*a_col ] = a[ i + N*a_col ] * alf[alf_scatter_idx];
          }
@@ -407,6 +417,10 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
 
          if (ref_reconvolution == FIT_GLOBALLY)
             col += ref_lifetime_derivatives(thread, tau_buf, beta_buf, theta_buf, ref_lifetime, b+col*ndim);
+
+         if (fit_t0 == FIT)
+            col += t0_derivatives(thread, irf_idx, tau_buf, beta_buf, theta_buf, ref_lifetime, t0_shift, b+col*ndim);
+
                   
          /*
          FILE* fx = fopen("c:\\users\\scw09\\Documents\\dump-b.txt","w");
@@ -451,7 +465,7 @@ int FLIMGlobalFitController::CalculateModel(double *a, double *b, double *kap, c
          {
             for(i=0; i<N; i++)
                b[d_offset+i]=0;
-            add_irf(thread, irf_idx, b+d_offset,n_r,scale_fact);
+            add_irf(thread, irf_idx, 0, b+d_offset,n_r,scale_fact);
             d_offset += ndim;
             col++;
          }
@@ -533,7 +547,7 @@ void FLIMGlobalFitController::GetWeights(float* y, double* a, const double *alf,
       for(i=0; i<n_meas; i++)
          w[i] /= ref_lifetime;
 
-      add_irf(thread, irf_idx, w, n_r, &F0);
+      add_irf(thread, irf_idx, 0, w, n_r, &F0);
      
       // Variance = (D + F0 * D_r);
 

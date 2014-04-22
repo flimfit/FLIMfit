@@ -1,7 +1,6 @@
 function Load_FLIM_Dataset(obj,data_series,~)                        
     % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
-        
-        
+                
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
     %
@@ -24,9 +23,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-            
-              
+                          
             if isempty(obj.plate) && isempty(obj.dataset)
                 errordlg('Please set Dataset or Plate before trying to load images'); 
                 return;                 
@@ -35,7 +32,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
             if ~isempty(obj.plate) 
             %
                 list_load_acceptor = [];
-                %
+                %            
                 z = 0;       
                 imageids_unsorted = [];
                 str = char(256,256);
@@ -65,10 +62,52 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                     str(z,1:length(image_name)) = image_name;
                                     imageids_unsorted(z) = iid;
                                 end
-                            end                  
+                            end      
+                folder_names_unsorted = cellstr(str);                                            
                 %
-                folder_names_unsorted = cellstr(str);
+                % THIS BLOCK SELECTS NEEDED FLIM MODALITY - STARTS
+                z = 0;
+                modalities  = [];
+                allfovnames = cellstr(str);
+                for k=1:numel(allfovnames) % define modalities
+                    curname = char(allfovnames{k});
+                    startind = strfind(curname,'MODALITY = ') + length('MODALITY = ');
+                    if ~isempty(startind)
+                        z = z + 1;
+                        s1 = split(' ',curname(startind:length(curname)));
+                        modalities{z} = char(s1{1});
+                    end
+                end
                 %
+                modalities = unique(modalities,'legacy');
+                if ~isempty(modalities)                                       
+                    % first, run the chooser
+                    [s,v] = listdlg('PromptString','Please choose FLIM modality',...
+                                                'SelectionMode','single',...
+                                                'ListSize',[300 80],...                                
+                                                'ListString',modalities);
+                    if ~v, return, end;                    
+                    chosenmodality = modalities{s};                    
+                    %
+                    data_series.FLIM_modality = chosenmodality;
+                    %
+                    % then, redefine variables "str" and "imageids_unsorted"                                        
+                    imageids_unsorted2 = [];
+                    str2 = [];
+                    z = 0;
+                    for k=1:numel(imageids_unsorted)
+                        if ~isempty(strfind(char(allfovnames{k}),chosenmodality))
+                            z = z + 1;
+                            imageids_unsorted2(z) = imageids_unsorted(k);
+                            str2{z} = allfovnames{k};
+                        end
+                    end
+                    %
+                    imageids_unsorted = imageids_unsorted2;
+                    folder_names_unsorted = str2;
+                end                
+                % THIS BLOCK SELECTS NEEDED FLIM MODALITY - ENDS
+                                                                                
                 folder_names = sort_nat(folder_names_unsorted); % sorted
                 [folder_names, ~, data_series.lazy_loading] = dataset_selection(folder_names);   
                 %
@@ -88,22 +127,20 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 end                                
                 %
             elseif ~isempty(obj.dataset) 
-                %
-                imageList = obj.dataset.linkedImageList;
-                %       
+                
+                imageList = getImages(obj.session, 'dataset', obj.dataset.getId().getValue());
+                
                 if 0==imageList.size()
                     errordlg('Dataset has no images - please choose a Dataset with images');
                     return;
                 end;                                    
-                %        
-                z = 0;       
+                    
                 str = char(512,256); % ?????
-                for k = 0:imageList.size()-1,                       
-                    z = z + 1;                                                       
-                    iName = char(java.lang.String(imageList.get(k).getName().getValue()));                                                                
+                for k = 1:length(imageList)                                                                             
+                    iName = char(java.lang.String(imageList(k).getName().getValue()));                                                                
                    % A = split('.',iName);
                    % if true % strcmp(extension,A(length(A))) 
-                        str(z,1:length(iName)) = iName;
+                        str(k,1:length(iName)) = iName;
                    %end;
                  end 
                 %
@@ -142,7 +179,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                     end;
 
                 end
-
+                
                 if possible_acceptor_images 
 
                     str = { prefixes{1}...
@@ -150,7 +187,7 @@ function Load_FLIM_Dataset(obj,data_series,~)
                             ['no Acceptor: load as FLIM "' prefixes{1} '" only']...
                             ['no Acceptor: load as FLIM "' prefixes{2} '" only']...
                             'load all as FLIM'};
-                                [s,v] = listdlg('PromptString','Please choose posibble Acceptor images',...
+                                [s,v] = listdlg('PromptString','Please choose posible Acceptor images',...
                                                 'SelectionMode','single',...
                                                 'ListSize',[300 80],...                                
                                                 'ListString',str);
@@ -202,10 +239,10 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 image_ids = zeros(1,n_datasets);
                 for m = 1:n_datasets
                     iName_m = folder_names{m};
-                    for k = 0:imageList.size()-1,                       
-                             iName_k = char(java.lang.String(imageList.get(k).getName().getValue()));
+                    for k = 1:length(imageList)                      
+                             iName_k = char(java.lang.String(imageList(k).getName().getValue()));
                              if strcmp(iName_m,iName_k)
-                                image_ids(1,m) = imageList.get(k).getId().getValue();
+                                image_ids(1,m) = imageList(k).getId().getValue();
                                 break;
                              end;
                     end 
@@ -215,21 +252,13 @@ function Load_FLIM_Dataset(obj,data_series,~)
             %            
             data_series.n_datasets = n_datasets;
             data_series.names = cell(1,n_datasets);
-            %
-            % set names
-            extensions{1} = '.ome.tiff';
-            extensions{2} = '.ome.tif';
-            extensions{3} = '.tif';
-            extensions{4} = '.tiff';
-            extensions{5} = '.sdt';                        
-                for j=1:n_datasets
-                    string = folder_names{j};
-                    for extind = 1:numel(extensions)    
-                        string = strrep(string,extensions{extind},'');
-                    end
-                    data_series.names{j} = string;
-                end
-            %                
+            
+            %split names into components at full-stops & discard extensions                     
+            for j=1:n_datasets
+                strings = regexp(folder_names{j}, '\.', 'split');
+                data_series.names{j} = strings{1};
+            end
+                           
             if 0==numel(image_ids), return, end;
                                                                                                                  
             myimages = getImages(obj.session,image_ids(1)); image = myimages(1);
@@ -270,8 +299,37 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 catch err
                     [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);  
                 end
-                                
-                
+
+                % specific case - set up possible single-pix metadata - start
+                    pixelsList = image.copyPixels();
+                    pixels = pixelsList.get(0);
+                    if 1 == pixels.getSizeX().getValue() && 1 == pixels.getSizeY().getValue()                         
+                        try 
+                            pixelsService = obj.session.getPixelsService();
+                            pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
+                            channels = pixelsDesc.copyChannels();
+                            % 
+                            channel = cell2mat(obj.selected_channel);
+                            token = char(channels.get(channel-1).getLogicalChannel().getName().getValue());
+                            token_num = str2num(token);
+                            if ~isempty(token_num)
+                                % fix if possible
+                                if 0 == mod(token_num,fix(token_num))
+                                    for kk = 1:numel(data_series.names)
+                                        data_series.metadata.Channel{kk} = fix(token_num);
+                                    end
+                                end
+                            else
+                                    for kk = 1:numel(data_series.names)                            
+                                        data_series.metadata.Channel{kk} = token;
+                                    end
+                            end                                                            
+                        catch err
+                            disp(err.message);
+                        end                            
+                    end
+                % specific case - set up possible single-pix metadata - ends
+                                                
                 data_series.t = delays;
                 
                 if strcmp(data_series.mode,'TCSPC')
@@ -322,6 +380,5 @@ function Load_FLIM_Dataset(obj,data_series,~)
                                 
                 data_series.init_dataset();            
                 
-            end % if length(delays) > 0
-            
+            end % if length(delays) > 0            
 end            

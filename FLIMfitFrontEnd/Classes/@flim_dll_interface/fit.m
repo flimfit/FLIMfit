@@ -148,8 +148,18 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
         obj.p_irf = libpointer('doublePtr', d.tr_irf);
     end
     
-    if ~obj.bin && ~isempty(d.t0_image) && p.image_irf_mode == 2
-        obj.p_t0_image = libpointer('doublePtr', d.t0_image);
+    if d.use_image_t0_correction && ~obj.bin
+        obj.p_image_t0_shift = libpointer('doublePtr', cell2mat(d.metadata.t0)-d.metadata.t0{d.active});
+    else 
+        obj.p_image_t0_shift = [];
+    end
+    
+    if ~isempty(d.t0_image) && p.image_irf_mode == 2
+        if bin
+            obj.p_t0_image = libpointer('doublePtr', d.t0_image(selected));
+        else
+            obj.p_t0_image = libpointer('doublePtr', d.t0_image);
+        end
     else
         obj.p_t0_image = [];
     end

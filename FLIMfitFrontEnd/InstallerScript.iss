@@ -12,9 +12,13 @@
 ;#define RepositoryRoot "...\Imperial-FLIMfit"
 
 ; Define Matlab compiler runtime download and required version
-#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win32_installer.exe"
-#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win64_installer.exe"
-#define McrVersionRequired "8.1"
+; #define McrUrl32 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win32_installer.exe"
+;#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/MCR_Runtime/R2013a/MCR_R2013a_win64_installer.exe"
+;#define McrVersionRequired "8.1"
+
+#define McrUrl32 "http://www.mathworks.co.uk/supportfiles/downloads/R2013b/deployment_files/R2013b/installers/win32/MCR_R2013b_win32_installer.exe"
+#define McrUrl64 "http://www.mathworks.co.uk/supportfiles/downloads/R2013b/deployment_files/R2013b/installers/win64/MCR_R2013b_win64_installer.exe"
+#define McrVersionRequired "8.2"
 
 ; Define Ghostscript download urls and required version
 #define GhostscriptUrl32 "http://ghostscript.googlecode.com/files/gs871w32.exe"
@@ -107,7 +111,7 @@ begin
   
   // Install Ghostscript if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\Ghostscript.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
-  Exec(expandconstant('{tmp}\setupgs.exe'), expandconstant('"{pf}\gs\gs8.71"'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
+  Exec(expandconstant('{tmp}\setupgs.exe'), expandconstant('"{pf}\gs"'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
  end;
 end;
 
@@ -137,19 +141,13 @@ begin
       Log('Adding MCR Download: ' + url);
       itd_addfile(url,expandconstant('{tmp}\MatlabMCR.zip'));  
     end;  
-
-  if GhostscriptInstalled = true then
-      Log('Required Ghostscript version already installed')
-  else
-   begin
-      Log('Required Ghostscript version not installed')
-      if {#MyAppSystem} = 64 then
-        url := '{#GhostscriptUrl64}'
-      else
-        url := '{#GhostscriptUrl32}';
-      Log('Adding Ghostscript Download: ' + url);
-      itd_addfile(url,expandconstant('{tmp}\Ghostscript.exe'));  
-    end;    
+    
+    if {#MyAppSystem} = 64 then
+       url := '{#GhostscriptUrl64}'
+    else
+       url := '{#GhostscriptUrl32}';
+    Log('Adding Ghostscript Download: ' + url);
+    itd_addfile(url,expandconstant('{tmp}\Ghostscript.exe'));    
     
   Result := true;
 end;

@@ -132,7 +132,7 @@ function compute_tr_irf(obj)
                 obj.tr_irf = zeros([length(interp_t_irf) obj.n_chan]);
 
                 for i=1:size(obj.tr_irf,2)
-                    obj.tr_irf(:,i) = interp1(obj.tr_t_irf,temp_tr_irf(:,i),interp_t_irf,'cubic',0);
+                    obj.tr_irf(:,i) = interp1(obj.tr_t_irf,temp_tr_irf(:,i),interp_t_irf,'pchip',0);
                 end
                 obj.tr_t_irf = interp_t_irf;
 
@@ -179,15 +179,65 @@ function compute_tr_irf(obj)
             t0_correction = 0;
         end
            
+        % use t calibration
+        if obj.use_t_calibration && length(obj.tr_t_irf) > 3
+
+            
+            t_cor = interp1(obj.cal_t_nominal,obj.cal_t_meas,obj.tr_t_irf,'pchip',0);
+
+            obj.tr_t_irf = obj.tr_t_irf(1):obj.cal_dt:obj.tr_t_irf(end);
+
+            irf_cor = [];
+            
+            for i=1:size(obj.tr_irf,2) 
+                ic = interp1(t_cor,obj.tr_irf(:,i),obj.tr_t_irf,'pchip',0);
+                irf_cor(:,i) = ic;
+            end
+            
+            obj.tr_irf = irf_cor;
+
+        end
+        
+        if obj.use_image_t0_correction
+            t0_shift = -obj.metadata.t0{obj.active};
+        else
+            t0_shift = 0;
+        end
+        
         % Shift by t0
+        t0_shift = t0_shift+obj.t0-t0_correction;
+        
+        
+        dt_irf = obj.t_irf(2)-obj.t_irf(1);
+        coarse_shift = round(t0_shift/dt_irf)*dt_irf;
+        obj.tr_t_irf = obj.tr_t_irf + coarse_shift;
+                      
+        remaining_shift = t0_shift-coarse_shift;
+        
+        % ensure we have IRF before the data
+        if min(obj.tr_t_irf) > min(obj.t) %|| min(obj.tr_t_irf) > min(obj.tr_t_all)
+            dt = obj.tr_t_irf(2)-obj.tr_t_irf(1);
+            
+            diff = obj.tr_t_irf(1) - obj.t(1);
+            n = ceil(diff/dt) + 1;
+            
+            padding = (-n:-1:-1)*dt + obj.tr_t_irf(1);
+            
+            new_t = [padding; obj.tr_t_irf];
+            
+        else
+            new_t = obj.tr_t_irf;
+        end
+            
+        
         for i=1:size(obj.tr_irf,2)
-            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),obj.tr_t_irf-obj.t0-t0_correction,'cubic',0);
+            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),new_t-remaining_shift,'pchip',0);
         end
         obj.tr_irf(isnan(obj.tr_irf)) = 0;
-
+        obj.tr_t_irf = new_t;
         
         % Normalise irf so it sums to unity
-        if true && size(obj.tr_irf,1) > 0 %obj.normalise_irf
+        if size(obj.tr_irf,1) > 0
             for i=1:size(obj.tr_irf,2) 
                 sm = sum(obj.tr_irf(:,i));
                 if sm > 0;
@@ -195,6 +245,9 @@ function compute_tr_irf(obj)
                 end
             end
         end
+        
+
+        
         
         %figure(3);
         

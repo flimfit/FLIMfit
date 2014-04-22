@@ -50,7 +50,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int ierr_local = 0;
 
-   _ASSERT( _CrtCheckMemory( ) );
+   //_ASSERT( _CrtCheckMemory( ) );
 
    int r_idx = data->GetRegionIndex(g,region);
 
@@ -154,7 +154,10 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    for(j=0; j<n_theta_v; j++)
       alf_local[i++] = TransformRange(theta_guess[j+n_theta_fix],0,1000000);
 
-   if(fit_t0)
+   if(ref_reconvolution == FIT_GLOBALLY)
+      alf_local[i++] = ref_lifetime_guess;
+
+   if(fit_t0 == FIT)
       alf_local[i++] = t0_guess;
 
    if(fit_offset == FIT_GLOBALLY)
@@ -165,9 +168,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    if(fit_tvb == FIT_GLOBALLY) 
       alf_local[i++] = tvb_guess;
-
-   if(ref_reconvolution == FIT_GLOBALLY)
-      alf_local[i++] = ref_lifetime_guess;
 
 
    itmax = 100;
@@ -186,13 +186,20 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
       y_fit = y;
    }
 
+   _ASSERT( _CrtCheckMemory( ) );
+
+
    projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
                           photons_per_count, status->iter[thread], ierr_local, status->chi2[thread]);
-   
+
+   _ASSERT( _CrtCheckMemory( ) );
+
    // If we're fitting globally using global binning now retrieve the linear parameters
    if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
       projectors[thread].GetLinearParams(s_thresh, y, alf_local);
-   
+ 
+   _ASSERT( _CrtCheckMemory( ) );
+
    if (calculate_errors)
    {
 
@@ -207,6 +214,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    for(int i=0; i<nl; i++)
       alf[i] = (float) alf_local[i];
+
+   //_ASSERT( _CrtCheckMemory( ) );
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    START_SPAN("Processing Results");
@@ -237,7 +246,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
   
    status->FinishedRegion(thread);
 
-   _ASSERT( _CrtCheckMemory( ) );
+  // _ASSERT( _CrtCheckMemory( ) );
 
    return 0;
 }
@@ -306,6 +315,13 @@ void FLIMGlobalFitController::NormaliseLinearParams(int s, volatile float lin_pa
 
          norm_local[0]     = r0;
          norm_local[n_r+1] = I0;
+        
+         if (n_theta == 2)
+         {
+            norm_local[n_r+2] = 1.0 + norm_local[2] / (norm_local[1]-0.016); // N_cluster
+            norm_local[n_r+3] = 2.0 * norm_local[2] / (norm_local[0]-0.016); // f_cluster
+         }  
+
 
       }
    }
@@ -362,7 +378,6 @@ void FLIMGlobalFitController::DenormaliseLinearParams(int s, volatile float norm
          
          for(int j=1; j<n_r+1; j++)
             lin_params[j] = norm_params[j] * I0;
-
          
          norm_params += lmax;
          lin_params += lmax;
