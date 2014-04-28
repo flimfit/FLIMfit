@@ -125,38 +125,11 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
      
     end   
     
-    % get dimensions from first file
+   
     obj.file_names = file_names;
-    dims = obj.get_image_dimensions(obj.file_names{1});
-
-    obj.modulo = dims.modulo;
-
-    obj.mode = dims.FLIM_type;
-
-    % Determine which channels we need to load 
-    obj.ZCT = obj.get_ZCT( dims, polarisation_resolved );
-
-    obj.t = dims.delays;
-    obj.channels = obj.ZCT{2};
-
     obj.n_datasets = n_datasets;
-
-    if obj.polarisation_resolved
-         obj.data_size = [length(dims.delays) 2 dims.sizeXY 1 ];
-    else
-        obj.data_size = [length(dims.delays) 1 dims.sizeXY 1 ];
-    end
-
- 
-    obj.metadata = extract_metadata(obj.names);
-       
-    if obj.lazy_loading
-        obj.load_selected_files(1);
-    else
-        obj.load_selected_files(1:obj.n_datasets);
-    end
     
+    obj.load_multiple(polarisation_resolved, data_setting_file);
     
-    obj.init_dataset(data_setting_file);
     
 end

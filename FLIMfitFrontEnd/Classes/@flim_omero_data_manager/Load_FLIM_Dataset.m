@@ -88,6 +88,8 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 %
             elseif ~isempty(obj.dataset) 
                 
+                selected_images = [];
+                
                 imageList = getImages(obj.session, 'dataset', obj.dataset.getId().getValue());
                 
                 if 0==imageList.size()
@@ -137,14 +139,15 @@ function Load_FLIM_Dataset(obj,data_series,~)
                 data_series.names{j} = strings{1};
             end
                            
-            if length(selected_images) == 0
+            if length(selected_images) == 0 
                 return;
             end
            
-         
+            data_series.file_names = selected_images;
+            data_series.n_datasets = length(selected_images);
             
             data_series.polarisation_resolved = false;
-            data_series.load_data_series(selected_images, data_series.polarisation_resolved, []);
+            data_series.load_multiple(data_series.polarisation_resolved, []);
             
             
 end            
