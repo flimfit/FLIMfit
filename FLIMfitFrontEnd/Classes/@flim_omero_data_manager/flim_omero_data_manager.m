@@ -397,7 +397,7 @@ classdef flim_omero_data_manager < handle
             full_temp_file_name = [tempdir fname];
             fid = fopen(full_temp_file_name,'w');    
             %
-            if strcmp('sdt',fname(numel(fname)-2:numel(fname)))
+            if strfind('.sdt',fname)
                 fwrite(fid,typecast(str,'uint16'),'uint16');
             else                
                 fwrite(fid,str,'*uint8');
