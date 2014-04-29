@@ -35,13 +35,13 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
         tree = xml_read(parseResult);
         
         
-             
+        % look for ModuloAlong field (works for everything but ome-tiffs!)
         modlo = [];
         if isfield(tree,'ModuloAlongC')
             modlo = tree.ModuloAlongC;
             ret.modulo = 'ModuloAlongC';
         elseif isfield(tree,'ModuloAlongT')
-            modlo = tree.ModuloAlongT;
+            modlo = tree.ModuloAlongT
             ret.modulo = 'ModuloAlongT';
         elseif  isfield(tree,'ModuloAlongZ')
             modlo = tree.ModuloAlongZ;
@@ -49,9 +49,26 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
         end;  
         
         
-        if isempty(modlo)       % should never happen
-            ret = [];
-            return;
+        if isempty(modlo)       % failed to find so assume an ome-tiff & 'drill' down 
+            sa = tree.StructuredAnnotations;
+            xm = sa.XMLAnnotation;
+            val = xm.Value;
+            mo = val.Modulo;
+            if isfield(mo,'ModuloAlongC')
+                modlo = mo.ModuloAlongC;
+                ret.modulo = 'ModuloAlongC'
+            elseif isfield(mo,'ModuloAlongT')
+                modlo = mo.ModuloAlongT;
+                ret.modulo = 'ModuloAlongT';
+            elseif  isfield(mo,'ModuloAlongZ')
+                modlo = mo.ModuloAlongZ;
+                ret.modulo = 'ModuloAlongZ';
+            end;  
+            
+            if isempty(modlo) 
+                ret = [];
+                return;
+            end
         end
         
         if isfield(modlo.ATTRIBUTE,'Type')

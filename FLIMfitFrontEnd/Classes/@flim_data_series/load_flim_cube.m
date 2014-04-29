@@ -311,7 +311,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                         index = r.getIndex(Z, chan ,T + t);
                                         t = t + 1;
                                         plane = bfGetPlane(r,index + 1);
-                                        target(t,pctr,:,:,selected) = plane;
+                                        target(t,pctr,:,:,selected) = plane';
                                     end
                                 end
                                 
@@ -321,7 +321,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                     index = r.getIndex(Z + t, chan ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = plane;
+                                    target(t,pctr,:,:,selected) = plane';
                                 end
                                 
                             case 'ModuloAlongC'
@@ -330,7 +330,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                     index = r.getIndex(Z, C + t ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = plane;
+                                    target(t,pctr,:,:,selected) = plane';
                                 end
                                 
                         end  % end switch
