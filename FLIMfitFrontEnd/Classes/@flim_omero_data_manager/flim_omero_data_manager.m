@@ -136,7 +136,7 @@ classdef flim_omero_data_manager < handle
                                                               
         %------------------------------------------------------------------        
         function Load_IRF_WF_gated(obj,data_series,~)
-            [ Dataset ~ ] = select_Dataset(obj.session,obj.userid,'Select IRF Dataset:');             
+            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select IRF Dataset:');             
             if isempty(Dataset), return, end;            
             load_as_image = false;
             try
@@ -149,7 +149,7 @@ classdef flim_omero_data_manager < handle
 
         %------------------------------------------------------------------                
         function Load_Background_form_Dataset(obj,data_series,~)
-            [ Dataset ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
+            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
             if isempty(Dataset), return, end;            
             try
                 obj.load_background_from_Dataset(data_series,Dataset);                
