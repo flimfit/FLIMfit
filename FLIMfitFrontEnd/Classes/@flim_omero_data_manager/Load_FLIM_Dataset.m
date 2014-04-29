@@ -146,7 +146,6 @@ function Load_FLIM_Dataset(obj,data_series,~)
             data_series.file_names = selected_images;
             data_series.n_datasets = length(selected_images);
             
-            data_series.polarisation_resolved = false;
             data_series.load_multiple(data_series.polarisation_resolved, []);
             
             
