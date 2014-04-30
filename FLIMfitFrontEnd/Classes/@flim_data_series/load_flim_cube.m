@@ -304,14 +304,14 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                         rawPlane = r.openBytes(index);
                                         I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
                                         I = typecast(I,type);
-                                        target(t,pctr,:,:,selected) = reshape(I, sizeX, sizeY)';
+                                        target(t,pctr,:,:,selected) = reshape(I, sizeY, sizeX);
                                     end
                                 else  % signed
                                     for p = 1:nplanes
                                         index = r.getIndex(Z, chan ,T + t);
                                         t = t + 1;
                                         plane = bfGetPlane(r,index + 1);
-                                        target(t,pctr,:,:,selected) = plane';
+                                        target(t,pctr,:,:,selected) = rot90(plane);
                                     end
                                 end
                                 
@@ -321,7 +321,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                     index = r.getIndex(Z + t, chan ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = plane';
+                                    target(t,pctr,:,:,selected) = rot90(plane);
                                 end
                                 
                             case 'ModuloAlongC'
@@ -330,7 +330,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                     index = r.getIndex(Z, C + t ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = plane';
+                                    target(t,pctr,:,:,selected) = rot90(plane);
                                 end
                                 
                         end  % end switch
