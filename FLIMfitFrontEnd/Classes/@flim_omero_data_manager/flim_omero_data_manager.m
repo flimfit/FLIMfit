@@ -171,11 +171,11 @@ classdef flim_omero_data_manager < handle
             Image = select_Image(obj.session,obj.userid,Dataset);                       
             if isempty(image), return, end;
             %   
-            try
-               obj.load_tvb(data_series,Image); 
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
-            end
+            %try
+               data_series.load_tvb(Image); 
+            %catch err
+            %     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
+            %end
             %            
         end
         

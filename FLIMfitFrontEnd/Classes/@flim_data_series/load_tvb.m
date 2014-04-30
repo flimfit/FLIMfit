@@ -1,4 +1,4 @@
-function load_tvb(obj,file)
+function load_tvb(obj,file_or_image)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -24,7 +24,14 @@ function load_tvb(obj,file)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-
+    
+    if strcmp(class(file_or_image),'char')
+        file = file_or_image;
+    else
+        file = char(file_or_image.getName().getValue());
+    end
+    
+    
     [~,~,ext] = fileparts(file);
     if strcmp(ext,'.xml')
        
@@ -32,7 +39,7 @@ function load_tvb(obj,file)
     
     else
         
-         dims = obj.get_image_dimensions(file);
+         dims = obj.get_image_dimensions(file_or_image);
         
         if isempty(dims.delays)
             return;
@@ -55,14 +62,14 @@ function load_tvb(obj,file)
         
         if obj.polarisation_resolved
             tvb_image_data = zeros(sizet, 2, sizeX, sizeY, 1);
-            [success , tvb_image_data] = obj.load_flim_cube(tvb_image_data, file,1);
+            [success , tvb_image_data] = obj.load_flim_cube(tvb_image_data, file_or_image,1);
             tvb_data = reshape(tvb_image_data,[sizet 2 sizeX * sizeY]);
-            tvb_data = mean(irf,3);
+            tvb_data = mean(tvb_data,3);
         else
-            irf_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
-            [success , tvb_image_data] = obj.load_flim_cube(tvb_image_data, file,1);
+            tvb_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
+            [success , tvb_image_data] = obj.load_flim_cube(tvb_image_data, file_or_image,1);
             tvb_data = reshape(tvb_image_data,[sizet  sizeX * sizeY]);
-            tvb_data = mean(irf,2);
+            tvb_data = mean(tvb_data,2);
         end
        
         

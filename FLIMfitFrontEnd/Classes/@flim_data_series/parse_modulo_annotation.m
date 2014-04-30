@@ -41,7 +41,7 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
             modlo = tree.ModuloAlongC;
             ret.modulo = 'ModuloAlongC';
         elseif isfield(tree,'ModuloAlongT')
-            modlo = tree.ModuloAlongT
+            modlo = tree.ModuloAlongT;
             ret.modulo = 'ModuloAlongT';
         elseif  isfield(tree,'ModuloAlongZ')
             modlo = tree.ModuloAlongZ;
