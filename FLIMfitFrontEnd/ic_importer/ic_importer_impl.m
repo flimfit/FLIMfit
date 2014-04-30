@@ -1250,7 +1250,13 @@ classdef ic_importer_impl < handle
                                     metadata.setTiffDataFirstT(toNNI(t-1),0,ii-1);                                                                
                             end                                                                                      
                             %
-                            img_description = char(loci.formats.MetadataTools.getOMEXML(metadata));                                                        
+                            % 5.0
+                            OMEXMLservice = loci.formats.services.OMEXMLServiceImpl();
+                            img_description = char(OMEXMLservice.getOMEXML(metadata)); 
+                            %                                                
+                            % 4.0
+                            %img_description = char(loci.formats.MetadataTools.getOMEXML(metadata));
+                            %
                             % add OM-XML to image Description - end
                             %                            
                             % Lookup the appropriate PixelsType, depending on the type of data
