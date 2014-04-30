@@ -130,10 +130,15 @@
                         for i = 1: SizeC
                             metadata.setChannelID(['Channel:0:' num2str(i-1)], 0, i-1);
                             metadata.setChannelSamplesPerPixel(toPosI(1), 0, i-1);
-                        end
-                        
+                        end                       
                         %
-                        img_description = char(loci.formats.MetadataTools.getOMEXML(metadata));                                                        
+                        % 5.0
+                        OMEXMLservice = loci.formats.services.OMEXMLServiceImpl();
+                        img_description = char(OMEXMLservice.getOMEXML(metadata)); 
+                        %                                                
+                        % 4.0
+                        %img_description = char(loci.formats.MetadataTools.getOMEXML(metadata));
+                        %
                         % add OM-XML to image Description - end
             %
             bfsave_with_description_and_UUIDFileNames(all_image_data, ometiffilename, 'XYZCT', img_description, dimension, file_names);
