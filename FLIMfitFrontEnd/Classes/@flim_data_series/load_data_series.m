@@ -36,8 +36,6 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         data_setting_file = [];
     end
     
-    block = [];
-    
     if ~exist(root_path,'dir')
         throw(MException('GlobalAnalysis:PathDoesNotExist','Path does not exist'));
     end
@@ -71,6 +69,8 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         
         n_datasets = length(obj.file_names);
 
+        file_names = [];
+        
         for i=1:n_datasets
             file_names{i} = [root_path obj.file_names{i}];
         end
@@ -83,7 +83,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         
        
-        
+      
         
         
     else % widefield
@@ -106,7 +106,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         
         n_datasets = length(folder_names);
         
-        % Load first folder to get sizes etc.
+       
         first_root = [root_path folder_names{1}];
         first_file = get_first_file(first_root);
 
@@ -124,8 +124,8 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
      
     end   
-    
    
+  
     obj.file_names = file_names;
     obj.n_datasets = n_datasets;
     
