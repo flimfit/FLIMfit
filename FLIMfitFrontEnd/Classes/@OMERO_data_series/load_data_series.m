@@ -60,8 +60,6 @@ function load_data_series(obj,images, polarisation_resolved, data_setting_file)
         obj.data_size = [length(dims.delays) 1 dims.sizeXY 1 ];
     end
 
- 
-    obj.metadata = extract_metadata(obj.names);
        
     if obj.lazy_loading
         obj.load_selected_files(1);

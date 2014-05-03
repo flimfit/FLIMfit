@@ -92,7 +92,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
     verbose = false;
     
     % display a wait bar when required
-    if nfiles == 1  && total_files == 1 
+    if nfiles == 1  && total_files == 1  || obj.lazy_loading
         
         verbose = true;
       

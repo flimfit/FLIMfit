@@ -118,13 +118,22 @@ classdef flim_omero_data_manager < handle
             %
             if ~isempty(image) 
                 %try
-                    polarisation_resolved = false;
                     if isempty(obj.dataset)         % pre-set names for an SPW plate (verbatim from earler FLIMfit)
                         idStr = num2str(image.getId().getValue());
                         name = char(image.getName().getValue());
                         data_series.names{1} = [ idStr ' : ' name ];             
                     end  
-                    data_series.load_single(image, polarisation_resolved );
+                    if is64
+                        data_series.use_memory_mapping = false;
+                    end
+                    
+                    data_series.file_names{1} = image;
+                    file = char(image.getName.getValue());
+                    [path,name,ext] = fileparts(file);
+                    data_series.names{1} = name;
+                    
+                    data_series.n_datasets = 1;
+                    data_series.load_multiple(data_series.polarisation_resolved, [] );
                   
                 %catch err
                 %    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    

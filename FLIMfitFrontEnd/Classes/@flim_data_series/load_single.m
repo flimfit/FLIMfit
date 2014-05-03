@@ -1,4 +1,4 @@
-function load_single(obj,file_or_image,polarisation_resolved)
+function load_single(obj,file,polarisation_resolved)
     %> Load a single FLIM dataset
     
     % Copyright (C) 2013 Imperial College London.
@@ -26,14 +26,6 @@ function load_single(obj,file_or_image,polarisation_resolved)
 
     % Author : Sean Warren
     
-    if strcmp(class(file_or_image),'char')
-        file = file_or_image;
-    else
-        file = char(file_or_image.getName().getValue());
-    end
-    
-    [path,name,ext] = fileparts(file);
-
     
     if is64
         obj.use_memory_mapping = false;
@@ -49,8 +41,16 @@ function load_single(obj,file_or_image,polarisation_resolved)
         channel = [];
     end
     
-    obj.root_path = ensure_trailing_slash(path);  
-    obj.file_names = {file_or_image};
+    
+    [path,name,ext] = fileparts(file);
+
+  
+    obj.root_path = ensure_trailing_slash(path); 
+    obj.polarisation_resolved = polarisation_resolved;
+    
+    obj.n_datasets = 1;
+    obj.file_names = {file};
+    obj.lazy_loading = false;
     
     if strcmp(ext,'.raw')
         obj.load_raw_data(file);
@@ -58,50 +58,6 @@ function load_single(obj,file_or_image,polarisation_resolved)
     end
     
     
-    dims = obj.get_image_dimensions(file_or_image);
-    
-    if isempty(dims.delays)
-        return;
-    end;
-    
-    obj.modulo = dims.modulo;
-    obj.mode = dims.FLIM_type;
-    chan_info = dims.chan_info;
-    
-    % Determine which channels we need to load 
-    obj.ZCT = obj.get_ZCT( dims, polarisation_resolved ,chan_info);
-   
-    % for the time being assume only 1 dimension can be > 1 
-    % otherwise this will go horribly wrong !
-    allowed = [ 1 1 1];   % allowed max no of planes in each dimension ZCT
-    if polarisation_resolved
-        allowed = [ 1 2 1 ];
-    end
-    prefix = [ 'Z' 'C' 'T'];
-    
-    names = [];
-    
-    for dim = 1:3
-        D = obj.ZCT{dim};
-        if length(D) > allowed(dim)
-            if isempty(chan_info{1})
-                for d = 1:length(D)
-                    names{d} = [ prefix(dim) ' '  num2str(D(d)) ];
-                end
-            else
-                for d = 1:length(D)
-                    names{d} = [ prefix(dim) ' '  num2str(D(d)) '-' chan_info{d}];
-                end
-            end
-        end
-    end
-    
-          
-       
-    obj.t = dims.delays;
-    obj.channels = obj.ZCT{2};
-    
-
     if isempty(obj.names)
         % Set names from file names
         if strcmp(ext,'.tif') | strcmp(ext,'.tiff') & isempty(strfind(file,'ome.'))
@@ -115,19 +71,7 @@ function load_single(obj,file_or_image,polarisation_resolved)
         obj.names = names;
     end
     
-    
-    obj.n_datasets = length(obj.names);
-    obj.polarisation_resolved = polarisation_resolved;
-    
-    if obj.polarisation_resolved
-        obj.data_size = [length(dims.delays) 2 dims.sizeXY obj.n_datasets ];
-    else
-        obj.data_size = [length(dims.delays) 1 dims.sizeXY obj.n_datasets ];
-    end
+    obj.load_multiple(polarisation_resolved, data_setting_file);
     
   
-    obj.metadata = extract_metadata(obj.names);
-    obj.load_selected_files();  
-    obj.init_dataset(data_setting_file);
-
 end

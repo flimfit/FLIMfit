@@ -46,7 +46,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
     pctr = 1;       % polarised counter (should only go up to 2)
     
      % display a wait bar when required
-    if nfiles == 1  && total_files == 1 
+    if nfiles == 1  && total_files == 1 || obj.lazy_loading
         verbose = true;
    
         w = waitbar(0, 'Loading FLIMage....');
