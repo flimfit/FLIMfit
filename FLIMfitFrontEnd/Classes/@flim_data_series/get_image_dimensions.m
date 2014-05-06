@@ -112,19 +112,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             % named files into a single dataset based on file numbering.
             stitchFiles = 0;
 
-            % load the Bio-Formats library into the MATLAB environment
-            status = bfCheckJavaPath(autoloadBioFormats);
-            assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
-                'to the static Java path or add it to the Matlab path.']);
-
-            % initialize logging
-            loci.common.DebugTools.enableLogging('INFO');
-            %loci.common.DebugTools.enableLogging('ERROR');
-           
 
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
-            
             
             
             seriesCount = r.getSeriesCount;
@@ -311,6 +301,10 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               dims.modulo = []; 
               dims.sizeXY = [ 1 1 ];
               
+              
+              
+          otherwise 
+            throw(MException('FLIM:UnknownExtension', 'Unknown Extension')); % thnx Marcus
             
 
     end

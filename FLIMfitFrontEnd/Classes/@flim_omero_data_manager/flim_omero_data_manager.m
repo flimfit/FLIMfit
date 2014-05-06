@@ -265,11 +265,11 @@ classdef flim_omero_data_manager < handle
             %
             fclose(fid);
             %
-            try
+            %try
                 data_series.load_irf(full_temp_file_name);
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end
+            %catch err
+            %     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            %end
             %
             delete(full_temp_file_name); %??
         end            

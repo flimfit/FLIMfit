@@ -166,6 +166,22 @@
 
             guidata(obj.window,handles);
             
+            % load both bioformats & OMERO
+            autoloadBioFormats = 1;
+
+            % load the Bio-Formats library into the MATLAB environment
+            status = bfCheckJavaPath(autoloadBioFormats);
+            assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
+                'to the static Java path or add it to the Matlab path.']);
+
+            % initialize logging
+            loci.common.DebugTools.enableLogging('INFO');
+            %loci.common.DebugTools.enableLogging('ERROR');
+            
+            loadOmero();
+            
+            
+            
             close all;
             
             set(obj.window,'Visible','on');
