@@ -28,6 +28,12 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+    % if image is in fact a filename then call the superclass method
+    % instead
+    if findstr(class(image),'char')
+        [dims,t_int ] = get_image_dimensions@flim_data_series(obj, image);
+        return;
+    end
     
     t_int = [];
     dims.delays = [];

@@ -6,6 +6,8 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
 % If there is only one filename by contrast then only the selected planes
 % are to be loaded.
 
+    
+
 
     if nargin < 6        % dims/ZCT have not  been passed so get dimensions from data_series obj
         delays = obj.t;
@@ -17,6 +19,13 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
         total_files = length(obj.names);
         modulo = obj.modulo;
     else
+        % if image is in fact a filename then call the superclass method
+        % instead
+        if findstr(class(image),'char')
+            [success, target] = load_flim_cube@flim_data_series(obj, target, image, selected, dims, ZCT);
+            return;
+        end
+        
         nfiles = length(selected);
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);
