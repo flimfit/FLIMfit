@@ -43,6 +43,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
         total_files = length(obj.names);
         modulo = obj.modulo;
     else
+        delays = dims.delays;
         nfiles = length(selected);
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);

@@ -47,7 +47,7 @@ function load_irf(obj,file_or_image,load_as_image)
   
         chan_info = dims.chan_info;
        
-        % Determine which channels we need to load (param 5 disallows the
+        % Determine which channels we need to load (param 4 disallows the
         % selection of multiple planes )
         ZCT = obj.get_ZCT( dims, obj.polarisation_resolved ,chan_info, false);
     

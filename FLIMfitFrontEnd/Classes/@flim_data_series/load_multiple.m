@@ -31,7 +31,8 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     dims = obj.get_image_dimensions(obj.file_names{1});
     
     % this routine should load only FLIM data
-    if isempty(dims.delays)
+    if length(dims.delays) < 2
+        errordlg('Data does not appear to be time-resolved. Unable to load!');
         return;
     end;
     
