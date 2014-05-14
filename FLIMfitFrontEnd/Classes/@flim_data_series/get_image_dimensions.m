@@ -106,8 +106,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
              
              s = [];
              
-             autoloadBioFormats = 1;
-
+        
             % Toggle the stitchFiles flag to control grouping of similarly
             % named files into a single dataset based on file numbering.
             stitchFiles = 0;
@@ -115,8 +114,8 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
 
             % Get the channel filler
             r = bfGetReader(file, stitchFiles);
-            
-            
+           
+           
             seriesCount = r.getSeriesCount;
             if seriesCount > 1
                 block = [];
@@ -148,27 +147,62 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             
             sizeZCT(1) = r.getSizeZ;
             sizeZCT(2) = r.getSizeC;
-            sizeZCT(3) = r.getSizeT
+            sizeZCT(3) = r.getSizeT;
             sizeXY(1) = r.getSizeX;
-            sizeXY(2) = r.getSizeY
+            sizeXY(2) = r.getSizeY;
             
-            
-            
-            % check for presence of an Xml modulo Annotation  containing 'Lifetime'
-            na = omeMeta.getXMLAnnotationCount;
-            for a = 1:na
-                str = omeMeta.getXMLAnnotationNamespace(a - 1);
-                if findstr(str,'openmicroscopy.org/omero/dimension/modulo');
-                    s = char(omeMeta.getXMLAnnotationValue(a-1));
-                    break;
+          
+            % check for presence of an Xml modulo Annotation  containing 'lifetime'
+            modlo = [];
+            mod = r.getModuloT();
+          
+            % NB uses 'ifetime' as sometimes L is lower case
+            if strfind(mod.type,'ifetime')
+                modlo = mod;
+                dims.modulo = 'ModuloAlongT';
+            else
+                mod = r.getModuloC();
+                if strfind(mod.type,'ifetime')
+                    modlo = mod;
+                    dims.modulo = 'ModuloAlongC';
+                else
+                    mod = r.getModuloZ();
+                    if strfind(mod.type,'ifetime')
+                        modlo = mod;
+                        dims.modulo = 'ModuloAlongZ';
+                    end
                 end
-
             end
-
-
+                
+            if ~isempty(modlo)
+                
+                 if ~isempty(modlo.labels)
+                     %NB needs to be tested 
+                     % no appropriate gated files exist for testing at time
+                     % of writing
+                     dims.delays = cell2mat(modlo.labels);
+                 end
+                
+                 if ~isempty(modlo.start)
+                    nsteps = round((modlo.end - modlo.start)/modlo.step);
+                    delays = 0:nsteps;
+                    delays = delays .* modlo.step;
+                    dims.delays = delays + modlo.start;
+                 end
+                 
+                
+                if ~isempty(strfind(modlo.unit,'NS')) || ~isempty(strfind(modlo.unit,'ns'))
+                    dims.delays = ret.delays.* 1000;
+                end
+                
+                dims.FLIM_type = char(modlo.typeDescription);
+                
+                dims.sizeZCT = sizeZCT;
+                
+       
+            else
             % if no modulo annotation check for Imspector produced ome-tiffs.
-            if isempty(s)
-                if findstr(file,'ome.tif')
+                if strfind(file,'ome.tif')
                     physZ = omeMeta.getPixelsPhysicalSizeZ(0).getValue();
                     if 1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
                         physSizeZ = physZ.*1000;     % assume this is in ns so convert to ps
@@ -182,7 +216,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 
                 
                 % support for .ics files lacking a Modulo annotation
-                if findstr(file,'.ics')
+                if strfind(file,'.ics')
                     text = r.getMetadataValue('history extents');
                     text = strrep(text,'?','');
                     decay_range  = str2num(text) * 1e12;  % convert to ps
@@ -194,27 +228,23 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                     dims.FLIM_type = 'TCSPC';
                 end
                 
-            else
-                rdims = obj.parse_modulo_annotation(s, sizeZCT );
-                if ~isempty(rdims)
-                    dims = rdims;
-                end
-                
-                
-                
-                 % get channel_names
-                for c = 1:sizeZCT(2)
-                    chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
-                    if isempty(chan_info{c})
-                        chan_info{c} = omeMeta.getChannelEmissionWavelength(0, c -1);
-                    end
-                    if isempty(chan_info{c})
-                        chan_info{c} = char(omeMeta.getChannelID(0, c -1));
-                    end
-                        
-                    dims.chan_info = chan_info;
-                end
             end
+            
+            
+
+             % get channel_names
+            for c = 1:sizeZCT(2)
+                chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
+                if isempty(chan_info{c})
+                    chan_info{c} = omeMeta.getChannelEmissionWavelength(0, c -1);
+                end
+                if isempty(chan_info{c})
+                    chan_info{c} = char(omeMeta.getChannelID(0, c -1));
+                end
+
+                dims.chan_info = chan_info;
+            end
+          
 
             
             dims.sizeXY = sizeXY;
