@@ -216,13 +216,10 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                 r = obj.bfReader;
                 omeMeta = obj.bfOmeMeta;
             else
-                % Toggle the stitchFiles flag to control grouping of similarly
-                % named files into a single dataset based on file numbering.
-                stitchFiles = 0;
-                
+              
                 % Get the channel filler
                 disp('starting a new reader')
-                r = bfGetReader(file, stitchFiles);
+                r = bfGetReaderMinimal(file);
                 omeMeta = r.getMetadataStore();
                 r.setSeries(obj.block - 1);
                 

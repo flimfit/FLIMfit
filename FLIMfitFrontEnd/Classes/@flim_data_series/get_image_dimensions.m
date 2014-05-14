@@ -106,16 +106,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
              
              s = [];
              
-        
-            % Toggle the stitchFiles flag to control grouping of similarly
-            % named files into a single dataset based on file numbering.
-            stitchFiles = 0;
-
-
             % Get the channel filler
-            r = bfGetReader(file, stitchFiles);
-           
-           
+            r = bfGetReaderMinimal(file);
+            
             seriesCount = r.getSeriesCount;
             if seriesCount > 1
                 block = [];
