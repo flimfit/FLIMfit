@@ -89,7 +89,6 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
             delays = delays .* step;
             ret.delays = delays + start;
            
-            
         else
             if isnumeric(modlo.Label)
                 ret.delays = modlo.Label;
