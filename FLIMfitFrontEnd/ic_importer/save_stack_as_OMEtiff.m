@@ -141,5 +141,6 @@
                         %
                         % add OM-XML to image Description - end
             %
-            bfsave_with_description_and_UUIDFileNames(all_image_data, ometiffilename, 'XYZCT', img_description, dimension, file_names);
+            bfsave_with_description_and_UUIDFileNames(all_image_data, ... 
+                ometiffilename, img_description, file_names, 'dimensionOrder', 'XYZCT', 'BigTiff', true);
 end
