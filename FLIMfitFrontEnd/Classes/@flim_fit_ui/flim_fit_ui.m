@@ -166,12 +166,12 @@
 
             guidata(obj.window,handles);
             
-            % attempt to set the java heap space (avoid use of java.opts)
+            % attempt to set the java heap space (avoiding use of java.opts)
             com.mathworks.services.Prefs.setIntegerPref('JavaMemHeapMax',512);
             
             % verify that enough memory is allocated
             bfCheckJavaMemory();
-            
+          
             % load both bioformats & OMERO
             autoloadBioFormats = 1;
 
