@@ -166,6 +166,8 @@
 
             guidata(obj.window,handles);
             
+            
+            loadOmero();
            
             % verify that enough memory is allocated
             bfCheckJavaMemory();
@@ -179,12 +181,8 @@
                 'to the static Java path or add it to the Matlab path.']);
 
             % initialize logging
-            loci.common.DebugTools.enableLogging('INFO');
-            %loci.common.DebugTools.enableLogging('ERROR');
-            
-            loadOmero();
-            
-            
+            %loci.common.DebugTools.enableLogging('INFO');
+            loci.common.DebugTools.enableLogging('ERROR');
             
             close all;
             
