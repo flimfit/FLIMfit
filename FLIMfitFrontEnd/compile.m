@@ -128,10 +128,14 @@ function compile(v)
             fprintf(f,['set MCR_CACHE_ROOT=%%APPDATADIR%%\\FLIMfit_' v '_' computer '_MCR_cache\r\n']);
             fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" echo Decompressing files for first run, please wait this may take a few minutes\r\n');
             fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" mkdir "%%MCR_CACHE_ROOT%%"\r\n');
-            fprintf(f,['FLIMfit_' computer '.exe \r\n pause']);
+            % create a java.opts file for the duration of running FLIMfit
+            fprintf(f,['echo -Xm512m > java.opts \r\n ']);
+            fprintf(f,['FLIMfit_' computer '.exe \r\n del java.opts \r\n pause']);
             fclose(f);
             
             copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
+            
+            
 
             if strcmp(sys,'64')
                 arch = 'x64';
