@@ -218,8 +218,13 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             else
               
                 % Get the channel filler
-                disp('starting a new reader')
-                r = bfGetReaderMinimal(file);
+                r = loci.formats.ChannelFiller();
+                r = loci.formats.ChannelSeparator(r);
+
+                OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
+                r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
+                r.setId(file);
+           
                 omeMeta = r.getMetadataStore();
                 r.setSeries(obj.block - 1);
                 

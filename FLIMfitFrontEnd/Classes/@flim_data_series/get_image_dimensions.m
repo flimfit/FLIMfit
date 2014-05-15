@@ -106,8 +106,16 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
              
              s = [];
              
+             
             % Get the channel filler
-            r = bfGetReaderMinimal(file);
+            r = loci.formats.ChannelFiller();
+            r = loci.formats.ChannelSeparator(r);
+
+            OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
+            r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
+            r.setId(file);
+           
+            
             
             seriesCount = r.getSeriesCount;
             if seriesCount > 1
