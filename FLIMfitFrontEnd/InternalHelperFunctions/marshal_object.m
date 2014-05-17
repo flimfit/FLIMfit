@@ -81,7 +81,7 @@ function obj = marshal_object(file,type,obj)
              end
          end
     catch
-       warning('GlobalProcessing:LoadDataSettingsFailed','Failed to load data settings file'); 
+       warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
     end
          
 end
