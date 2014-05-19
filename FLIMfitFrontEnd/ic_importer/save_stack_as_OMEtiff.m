@@ -1,4 +1,4 @@
- function save_stack_as_OMEtiff(folder, file_names, extension, dimension, ometiffilename)
+ function save_stack_as_OMEtiff(folder, file_names, extension, dimension, FLIM_mode, ometiffilename)
             %
             num_files = numel(file_names);
             %
@@ -142,5 +142,5 @@
                         % add OM-XML to image Description - end
             %
             bfsave_with_description_and_UUIDFileNames(all_image_data, ... 
-                ometiffilename, img_description, file_names, 'dimensionOrder', 'XYZCT', 'BigTiff', true);
+                ometiffilename, img_description, file_names, FLIM_mode, 'dimensionOrder', 'XYZCT', 'BigTiff', true);
 end

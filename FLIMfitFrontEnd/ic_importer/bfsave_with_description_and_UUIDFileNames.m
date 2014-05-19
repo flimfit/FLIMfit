@@ -1,4 +1,4 @@
-function bfsave_with_description_and_UUIDFileNames(I, outputPath, description, file_names,   varargin)
+function bfsave_with_description_and_UUIDFileNames(I, outputPath, description, file_names, FLIM_mode, varargin)
 % % % % % % % % % % Save a 5D matrix into an OME-TIFF using Bio-Formats library
 % % % % % % % % % %
 % % % % % % % % % % SYNOPSIS bfsave(I, outputPath)
@@ -69,11 +69,12 @@ metadata.setPixelsSizeC(toInt(sizeC), 0);
 metadata.setPixelsSizeT(toInt(sizeT), 0);
 
 % IC SPECIFIC - STARTS
-dimension = 'Z';
+
+dimension = 'ModuloAlongZ';
 if sizeC > 1
-    dimension = 'C';    
+    dimension = 'ModuloAlongC';
 elseif sizeT > 1
-    dimension = 'T';
+    dimension = 'ModuloAlongT';
 end
 
 if ~isempty(description)
@@ -94,11 +95,11 @@ if ~isempty(file_names)
                                 t = 1;
                                 %
                                 switch dimension
-                                    case 'C'
+                                    case 'ModuloAlongC'
                                         c = i;
-                                    case 'Z'
+                                    case 'ModuloAlongZ'
                                         z = i;
-                                    case 'T'
+                                    case 'ModuloAlongT'
                                         t = i;
                                 end
                                 %
@@ -128,6 +129,64 @@ end
 %
 % For future versions of this function, we plan to support passing metadata as
 % parameter/key value pairs
+
+% check if FLIM Modulo specification is available
+if ~isempty(file_names)    
+    
+                      channels_names = cell(1,num_files);
+                      for i = 1 : num_files
+                          fnamestruct = parse_DIFN_format1(file_names{i});
+                          channels_names{i} = fnamestruct.delaystr;
+                      end
+                      %  
+                      delays = zeros(1,numel(channels_names));
+                      for f=1:numel(channels_names)
+                        delays(f) = str2num(channels_names{f});
+                      end                    
+                      %
+                      modlo = loci.formats.CoreMetadata();
+
+                      if strcmp(FLIM_mode,'Time Gated') || strcmp(FLIM_mode,'Time Gated non-imaging')                      
+                      
+                          switch dimension
+                              
+                              case 'ModuloAlongZ'
+                                  modlo.moduloZ.type = loci.formats.FormatTools.LIFETIME;
+                                  modlo.moduloZ.unit = 'ps';
+                                  modlo.moduloZ.typeDescription = 'Gated';
+                                  %  
+                                  modlo.moduloZ.labels = javaArray('java.lang.String',length(delays));                                  
+                                  for i=1:length(delays)
+                                    modlo.moduloT.labels(i)= java.lang.String(num2str(delays(i)));
+                                  end                                                      
+                                    
+                              case 'ModuloAlongC'
+                                  modlo.moduloC.type = loci.formats.FormatTools.LIFETIME;
+                                  modlo.moduloC.unit = 'ps';
+                                  modlo.moduloC.typeDescription = 'Gated';                     
+                                  %
+                                  modlo.moduloC.labels = javaArray('java.lang.String',length(delays));                                  
+                                  for i=1:length(delays)
+                                    modlo.moduloC.labels(i)= java.lang.String(num2str(delays(i)));
+                                  end                                                      
+
+                              case 'ModuloAlongT'
+                                  modlo.moduloT.type = loci.formats.FormatTools.LIFETIME;
+                                  modlo.moduloT.unit = 'ps';
+                                  modlo.moduloT.typeDescription = 'Gated';                              
+                                  %
+                                  modlo.moduloT.labels = javaArray('java.lang.String',length(delays));                                  
+                                  for i=1:length(delays)
+                                    modlo.moduloT.labels(i)= java.lang.String(num2str(delays(i)));
+                                  end                                                      
+                          end
+                                                    
+                      end
+                                                
+                      % in a loop over the number of Images ??
+                      OMEXMLService.addModuloAlong(metadata, modlo, 0);
+                      
+end
 
 % Create ImageWriter
 writer = loci.formats.ImageWriter();

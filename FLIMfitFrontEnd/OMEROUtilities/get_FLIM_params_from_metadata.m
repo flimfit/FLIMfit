@@ -68,6 +68,18 @@ function ret = get_FLIM_params_from_metadata(session, image)
         end;  
         
         
+        if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC')
+            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC;
+            ret.modulo = 'ModuloAlongC';
+        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT')
+            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT;
+            ret.modulo = 'ModuloAlongT';
+        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
+            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ;
+            ret.modulo = 'ModuloAlongZ';            
+        end
+        
+        
         if isfield(modlo.ATTRIBUTE,'Type')
             if isempty(strfind(modlo.ATTRIBUTE.Type,'lifetime'))
                 ret = [];
@@ -75,7 +87,6 @@ function ret = get_FLIM_params_from_metadata(session, image)
             end
         end
         
-            
         
         if isfield(modlo.ATTRIBUTE,'Start')
             start = modlo.ATTRIBUTE.Start;

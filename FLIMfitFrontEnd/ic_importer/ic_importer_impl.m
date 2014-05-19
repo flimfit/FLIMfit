@@ -2138,38 +2138,38 @@ classdef ic_importer_impl < handle
             end
 
         end
-%-------------------------------------------------------------------------%
-        function ret = parse_DIFN_format1(obj, DelayedImageFileName, ~)
-
-        ret = [];
-
-            try
-
-                str = split(' ',DelayedImageFileName);                            
-
-                if 1 == numel(str)
-
-                    str1 = split('_',DelayedImageFileName);                            
-                    str2 = char(str1(2));
-                    str3 = split('.',str2);
-                        ret.delaystr = num2str(str2num(char(str3(1))));    
-
-                elseif 2 == numel(str)
-
-                     str = split(' ',DelayedImageFileName);                            
-                     str1 = char(str(2));     
-                     str2 = split('_',str1);                            
-                     str3 = char(str2(2));
-                     str4 = split('.',str3);
-                        ret.delaystr = num2str(str2num(char(str4(1))));
-                     str5 = split('_',char(str(1)));
-                        ret.integrationtimestr = num2str(str2num(char(str5(2))));                
-                end
-
-            catch err
-                disp(err.message);
-            end
-        end
+% %-------------------------------------------------------------------------%
+%         function ret = parse_DIFN_format1(obj, DelayedImageFileName, ~)
+% 
+%         ret = [];
+% 
+%             try
+% 
+%                 str = split(' ',DelayedImageFileName);                            
+% 
+%                 if 1 == numel(str)
+% 
+%                     str1 = split('_',DelayedImageFileName);                            
+%                     str2 = char(str1(2));
+%                     str3 = split('.',str2);
+%                         ret.delaystr = num2str(str2num(char(str3(1))));    
+% 
+%                 elseif 2 == numel(str)
+% 
+%                      str = split(' ',DelayedImageFileName);                            
+%                      str1 = char(str(2));     
+%                      str2 = split('_',str1);                            
+%                      str3 = char(str2(2));
+%                      str4 = split('.',str3);
+%                         ret.delaystr = num2str(str2num(char(str4(1))));
+%                      str5 = split('_',char(str(1)));
+%                         ret.integrationtimestr = num2str(str2num(char(str5(2))));                
+%                 end
+% 
+%             catch err
+%                 disp(err.message);
+%             end
+%         end
 %-------------------------------------------------------------------------%
         function upload_Image_BH(obj, dataset, full_filename, ~)
             
@@ -2322,7 +2322,7 @@ classdef ic_importer_impl < handle
                 ometiffilename = [savedir filesep imageName '.OME.tiff'];
                 %
                 set(obj.gui.Indi_name,'BackgroundColor','green');
-                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, ometiffilename);
+                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, obj.FLIM_mode, ometiffilename);
                 set(obj.gui.Indi_name,'BackgroundColor','red');            
                 %
             elseif strcmp(save_mode,'multiple dirs')
@@ -2338,7 +2338,7 @@ classdef ic_importer_impl < handle
                         end
                         names_list_k = sort_nat(names_list_k);
                         ometiffilename = [savedir filesep nonemptydir_names{k} '.OME.tiff'];          
-                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, ometiffilename);                        
+                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, obj.FLIM_mode, ometiffilename);                        
                     waitbar(k/numel(nonemptydir_names),hw);
                     drawnow
                 end
