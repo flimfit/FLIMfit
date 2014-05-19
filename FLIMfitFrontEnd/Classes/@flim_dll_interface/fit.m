@@ -155,7 +155,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
     end
     
     if ~isempty(d.t0_image) && p.image_irf_mode == 2
-        if bin
+        if obj.bin
             obj.p_t0_image = libpointer('doublePtr', d.t0_image(selected));
         else
             obj.p_t0_image = libpointer('doublePtr', d.t0_image);
