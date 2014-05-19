@@ -61,7 +61,7 @@ if size(data,2) > size(data,1)
     data = data';
 end
 
-exclude_strings = {'irf' 'background' 'phc' 'mask' 'scatter' 'acceptor'};
+exclude_strings = {'irf' 'background' 'phc' 'mask' 'scatter' 'acceptor' 'brightfield'};
 
 use = true(size(data));
 

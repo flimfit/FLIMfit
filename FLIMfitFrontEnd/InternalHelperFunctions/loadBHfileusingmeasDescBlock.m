@@ -337,7 +337,7 @@ fid=fopen(filename);
 
 Delays= (0:timerange/adc_res:timerange-timerange/adc_res);
 
-if isfinite(incr) && incr > 0 
+if isfinite(incr) && incr > 1 
     ImData = ImData / incr; % account for count increment
 end
 
