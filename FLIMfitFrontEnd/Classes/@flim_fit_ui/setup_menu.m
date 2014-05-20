@@ -32,7 +32,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
     handles.menu_file_load_single = uimenu(menu_file,'Label','Load FLIM Data...','Accelerator','O','Separator','on');
     menu_file_load = uimenu(menu_file,'Label','Load FLIM Dataset');
-    handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Widefield Dataset...','Accelerator','Y');
+    handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load Legacy Dataset...','Accelerator','Y');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load TCSPC Dataset...','Accelerator','T');
     
     
