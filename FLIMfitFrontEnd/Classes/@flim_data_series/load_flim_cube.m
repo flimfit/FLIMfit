@@ -246,9 +246,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             
             % timing debug
             %tstart = tic;
-            
-            
-            
+          
             % Get pixel type
             pixelType = r.getPixelType();
             bpp = loci.formats.FormatTools.getBytesPerPixel(pixelType);
@@ -256,6 +254,8 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             sgn = loci.formats.FormatTools.isSigned(pixelType);
             % asume for now all our data is unsigned (see bfgetPlane for examples of signed)
             little = r.isLittleEndian();
+            
+           
             
             switch bpp
                 case 1
@@ -292,16 +292,16 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                 T = T * sizet;
                                 if ~sgn
                                     for p = 1:nplanes
-                                        % unsigned moduloAlongT
+                                        % unsigned moduloAlongT little endian
                                         % this is the loop that needs to be
                                         % optimised for speed
-                                       
                                         index = r.getIndex(Z, chan ,T + t);
                                         t = t + 1;
                                         rawPlane = r.openBytes(index);
                                         I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
-                                        I = typecast(I,type);
-                                        target(t,pctr,:,:,selected) = reshape(I, sizeY, sizeX);
+                                        I = typecast(I, type);
+                                        target(t,pctr,:,:,selected) = reshape(I, sizeX, sizeY);
+                                      
                                     end
                                 else  % signed
                                     for p = 1:nplanes

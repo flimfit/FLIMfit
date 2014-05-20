@@ -178,7 +178,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             if ~isempty(modlo)
                 
                  if ~isempty(modlo.labels)
-                     dims.delays = str2num(modlo.labels);
+                     dims.delays = str2num(modlo.labels)';
                  end
                 
                  if ~isempty(modlo.start)
@@ -187,6 +187,8 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                         delays = 0:nsteps;
                         delays = delays .* modlo.step;
                         dims.delays = delays + modlo.start;
+                        
+                       
                      end
                  end
                  
@@ -195,6 +197,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                     dims.delays = ret.delays.* 1000;
                 end
                 
+         
                 dims.FLIM_type = char(modlo.typeDescription);
                 
                 dims.sizeZCT = sizeZCT;
