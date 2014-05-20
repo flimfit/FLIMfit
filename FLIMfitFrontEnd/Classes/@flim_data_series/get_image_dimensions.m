@@ -178,8 +178,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             if ~isempty(modlo)
                 
                  if ~isempty(modlo.labels)
-                     test = str2num(modlo.labels)
-                     dims.delays = str2num(modlo.labels)
+                     dims.delays = str2num(modlo.labels);
                  end
                 
                  if ~isempty(modlo.start)
