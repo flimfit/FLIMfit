@@ -81,7 +81,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
     end
     
     if strcmp(ext,'.tif')
-        if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')
+        if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')  || strcmp(fname(end-3:end),'.OME')
             ext = '.ome';
         end
     end
@@ -231,13 +231,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             end
             
             
-            if strcmp(ext,'.sdt')
-                % burrow down through all the bio-formats wrappers to
-                % get to the SDTReader class
-                r.unwrap.setPreLoad(true);      % switch on pre-loading    
-            end
-            
-            
+          
             %check that image dimensions match those read from first
             %file
             

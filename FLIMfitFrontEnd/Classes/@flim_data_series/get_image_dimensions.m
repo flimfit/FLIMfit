@@ -43,7 +43,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     end
     
     if strcmp(ext,'.tif')
-         if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')
+         if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')  || strcmp(fname(end-3:end),'.OME')
              ext = '.ome';
          end
     end
@@ -178,17 +178,17 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             if ~isempty(modlo)
                 
                  if ~isempty(modlo.labels)
-                     %NB needs to be tested 
-                     % no appropriate gated files exist for testing at time
-                     % of writing
-                     dims.delays = cell2mat(modlo.labels);
+                     test = str2num(modlo.labels)
+                     dims.delays = str2num(modlo.labels)
                  end
                 
                  if ~isempty(modlo.start)
-                    nsteps = round((modlo.end - modlo.start)/modlo.step);
-                    delays = 0:nsteps;
-                    delays = delays .* modlo.step;
-                    dims.delays = delays + modlo.start;
+                     if modlo.end > modlo.start
+                        nsteps = round((modlo.end - modlo.start)/modlo.step);
+                        delays = 0:nsteps;
+                        delays = delays .* modlo.step;
+                        dims.delays = delays + modlo.start;
+                     end
                  end
                  
                 
