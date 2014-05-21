@@ -80,10 +80,13 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
         ext = '.tif';
     end
     
-    if strcmp(ext,'.tif')
-        if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')  || strcmp(fname(end-3:end),'.OME')
-            ext = '.ome';
-        end
+   if strcmp(ext,'.tif')
+         if length(fname)
+             tail = (fname(end-3:end));
+             if strcmpi(tail,'.ome')  || strcmpi(tail,'.o.e')
+                ext = '.ome';
+             end
+         end
     end
     
     

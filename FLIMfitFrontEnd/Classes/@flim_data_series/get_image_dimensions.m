@@ -42,9 +42,13 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
         ext = '.tif';
     end
     
+    
     if strcmp(ext,'.tif')
-         if length(fname) > 5 && strcmp(fname(end-3:end),'.ome')  || strcmp(fname(end-3:end),'.OME')
-             ext = '.ome';
+         if length(fname)
+             tail = (fname(end-3:end));
+             if strcmpi(tail,'.ome')  || strcmpi(tail,'.o.e')
+                ext = '.ome';
+             end
          end
     end
     
