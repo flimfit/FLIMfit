@@ -35,7 +35,7 @@ function load_tvb(obj,file_or_image)
     [~,~,ext] = fileparts(file);
     if strcmp(ext,'.xml')
        
-        marshal_object(file,'flim_data_series',obj);
+        obj.marshal_object(file);
     
     else
         

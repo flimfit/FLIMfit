@@ -130,10 +130,15 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
         end
         
         function load_fitting_params(obj,file)
-            obj.fit_params = marshal_object(file,'flim_fitting_params',obj.fit_params);
+            try 
+                doc_node = xmlread(file);
+                obj.fit_params = marshal_object(doc_node,'flim_fitting_params',obj.fit_params);
+                obj.update_controls();
+                notify(obj,'fit_params_update');
+            catch
+                warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
+            end
             
-            obj.update_controls();
-            notify(obj,'fit_params_update');
         end
         
         function save_fitting_params(obj,file)

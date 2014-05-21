@@ -309,7 +309,7 @@ classdef flim_data_series < handle & h5_serializer
         function load_data_settings(obj,file)
             %> Load data setting file 
             obj.suspend_transformation = true;
-            marshal_object(file,'flim_data_series',obj);
+            obj.marshal_object(file);
             notify(obj,'masking_updated');
             obj.suspend_transformation = false;
         end
@@ -322,9 +322,9 @@ classdef flim_data_series < handle & h5_serializer
             if obj.init
                 if isempty(file)
                     pol_idx = obj.polarisation_resolved + 1;
-                    if ~isempty(obj.root_path)      % data opened from OMERO so no root_path
-                        file = [obj.root_path obj.data_settings_filename{pol_idx}];
-                    end
+                   
+                    file = [obj.root_path obj.data_settings_filename{pol_idx}];
+                    
                 end
                 
                 if ~isempty(file)
