@@ -29,25 +29,8 @@
                 U = imread([folder filesep file_names{i}],extension);
                         %                          
                         if isempty(SizeX) % then set it up
-                            [w,h] = size(U);
-                            SizeX = w;
-                            SizeY = h;
-                            %
-                            D = zeros(SizeX,SizeY,SizeZ,SizeC,SizeT);
-                            
-                            all_image_data = D;                            
-                                switch class(U)
-                                    case {'int8', 'uint8'}
-                                        all_image_data = uint8(D);
-                                    case {'uint16','int16'}
-                                        all_image_data = uint16(D);
-                                    case {'uint32','int32'}
-                                        all_image_data = uint32(D);
-                                    case {'single'}
-                                        all_image_data = float(D);
-                                    case 'double'
-                                        all_image_data = D;
-                                end                                
+                            [SizeX,SizeY] = size(U);                            
+                            all_image_data = zeros(SizeX,SizeY,SizeZ,SizeC,SizeT,class(U));
                         end % if isempty(SizeX) % then set it up
                         %
                         z = 1;
@@ -68,6 +51,9 @@
                         %                        
                         waitbar(i/num_files,hw); drawnow;
                         %
+                        if min(all_image_data(:)) > 32500
+                            all_image_data = all_image_data - 32768;    % clear the sign bit which is set by labview
+                        end                                                
             end  % for i = 1 : num_files                    
             delete(hw); drawnow;    
             
