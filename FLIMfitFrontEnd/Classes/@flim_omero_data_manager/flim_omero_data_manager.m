@@ -920,36 +920,19 @@ classdef flim_omero_data_manager < handle
     %
         %------------------------------------------------------------------        
         function Export_Data_Settings(obj,data_series,~)
-            %
-            choice = questdlg('Do you want to Export data settings to Dataset or Plate?', ' ', ...
-                                    'Dataset' , ...
-                                    'Plate','Cancel','Cancel');              
-            switch choice
-                case 'Dataset',
-                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
-                case 'Plate', 
-                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
-                case 'Cancel', 
-                    return;
-            end                        
-            %
-            if ~exist('object','var') || isempty(object), return, end;            
-            %                        
-            fname = [tempdir 'data settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
-            data_series.save_data_settings(fname);         
-            %            
-            namespace = 'IC_PHOTONICS';
-            description = ' ';            
-            sha1 = char('pending');
-            file_mime_type = char('application/octet-stream');
-            %
-            add_Annotation(obj.session, obj.userid, ...
-                            object, ...
-                            sha1, ...
-                            file_mime_type, ...
-                            fname, ...
-                            description, ...
-                            namespace);               
+            
+            
+           prompt = {'Please Enter File Annotation name'};
+           dlg_title = 'Input name';
+           num_lines = 1;
+           def = {'FLIMfit_settings.xml'};
+           file = inputdlg(prompt,dlg_title, num_lines,def);
+           file = file{1};
+          
+           data_series.save_data_settings(file);  
+            
+                       
+                       
         end            
         
         %------------------------------------------------------------------

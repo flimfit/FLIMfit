@@ -29,47 +29,50 @@ function obj = marshal_object(obj,file)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-
-
-   try 
-       if ~isempty(obj.dataset)
-           parent = obj.dataset;
+    
+   %try 
+   
+       if ~isempty(obj.omero_data_manager.dataset)
+           parent = obj.omero_data_manager.dataset;
+            specifier = 'omero.model.Dataset';    
        elseif ~isempty(obj.plate)
-           parent = obj.plate;
+           parent = obj.omero_data_manager.plate;
+           specifier = 'omero.model.Plate';    
        else
            return;
        end
        
        parentId = java.lang.Long(parent.getId().getValue());
-       session = obj.session;
+       session = obj.omero_data_manager.session;
        
        annotators = java.util.ArrayList;
        metadataService = session.getMetadataService();
-       map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
-       annotations = map.get(objId);
+       map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(parentId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
+       annotations = map.get(parentId);
         %
         if 0 == annotations.size()
             ret = -1;
             return;
         end
         
-        ann = []
+        
+        ann = [];
         
         for j = 0:annotations.size()-1
             anno_name = char(java.lang.String(annotations.get(j).getFile().getName().getValue()));
             if strcmp(anno_name, file) 
-                ann = annotation.get(j);
+                ann = annotations.get(j);
                  originalFile = ann.getFile();        
                  rawFileStore = session.createRawFileStore();
                  rawFileStore.setFileId(originalFile.getId().getValue());
                  %
                  byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
                  
-                 str = byteArr;
+                 str = char(byteArr);
                  
-                 doc_node = readxmlstring(str)
+                 doc_node = xmlreadstring(str);
                  
-                 obj = marshal_object(doc_node,'flim_data_series',obj);
+                 obj = marshal_object(doc_node,'OMERO_data_series',obj);
               
                  rawFileStore.close();
                 
@@ -82,8 +85,8 @@ function obj = marshal_object(obj,file)
        
        
         
-    catch
-       warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
-    end
+    %catch
+    %   warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
+    %end
          
 end

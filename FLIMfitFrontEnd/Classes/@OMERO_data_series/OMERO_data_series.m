@@ -63,8 +63,6 @@ classdef OMERO_data_series < flim_data_series
         image_ids;
         mdta;
        
-        
-        
         omero_data_manager;
         fitted_data;
         
@@ -72,7 +70,6 @@ classdef OMERO_data_series < flim_data_series
         
         FLIM_modality;
         
-        verbose;
         
     end
     
@@ -89,8 +86,7 @@ classdef OMERO_data_series < flim_data_series
      function obj = OMERO_data_series(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
-            obj.verbose = true;
-            
+           
             obj.polarisation_resolved = false;  % defaults
             obj.load_multiple_channels = false;
             
