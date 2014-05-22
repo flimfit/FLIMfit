@@ -1980,8 +1980,19 @@ classdef ic_importer_impl < handle
                         modulo = 'ModuloAlongT';
                     elseif  isfield(tree,'ModuloAlongZ')
                         modlo = tree.ModuloAlongZ;
-                        modulo = 'ModuloAlongZ';
+                        modulo = 'ModuloAlongZ';                        
                     end   
+                    %   
+                        if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC')
+                            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC;                            
+                                                    modulo = 'ModuloAlongC';
+                        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT')
+                            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT;                            
+                                                    modulo = 'ModuloAlongT';
+                        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
+                            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ;
+                                                    modulo = 'ModuloAlongZ';
+                        end                    
                     %
                     if ~isempty(modlo)
                         if isfield(modlo.ATTRIBUTE,'Start')
@@ -1989,14 +2000,20 @@ classdef ic_importer_impl < handle
                             step = modlo.ATTRIBUTE.Step;
                             e = modlo.ATTRIBUTE.End;                
                             Delays = start:step:e;
-                        elseif isfield(modlo.Label)
-                            str_delays = modlo.Label;
-                            Delays = cell2mat(str_delays);
+                        else
+                            if isnumeric(modlo.Label)
+                                Delays = modlo.Label;
+                            else
+                                Delays = cell2mat(modlo.Label);
+                            end
                         end
                         %    
                         if isfield(modlo.ATTRIBUTE,'Description')
                             FLIM_type = modlo.ATTRIBUTE.Description;
+                        elseif isfield(modlo.ATTRIBUTE,'TypeDescription')
+                            FLIM_type = modlo.ATTRIBUTE.TypeDescription;
                         end
+                        
                     end
 
                     if isfield(tree,'SA_COLON_StructuredAnnotations') % supposed to be here...
