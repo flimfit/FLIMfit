@@ -304,7 +304,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                         I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
                                         I = typecast(I, type);
                                         target(t,pctr,:,:,selected) = reshape(I, sizeX, sizeY);
-                                      
+                                        
                                     end
                                 else  % signed
                                     for p = 1:nplanes
@@ -361,15 +361,18 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                 drawnow;
             end
 
-
-
-            %Bodge to suppress bright line artefact on RHS in BH .sdt files
-            if strfind(file,'.sdt')
-                target(:,:,:,end,:) = 0;
+            if strcmp('TCSPC',obj.mode)
+                %Kludge to suppress bright line artefact on RHS in BH .sdt files
+                if strfind(file,'.sdt')  && (sizeX * sizeY) > 1
+                    target(:,:,:,end,:) = 0;
+                end
+                
+            else    % Not TCSPC
+                if min(target(:)) > 32500
+                    target = target - 32768;    % clear the sign bit which is set by labview
+                end
             end
-    
-    
-            
+
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.csv','.txt'}
             
@@ -460,6 +463,8 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             
             
     end         % end switch
+    
+  
     
     
     

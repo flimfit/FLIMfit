@@ -246,9 +246,10 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
     
     file = char(image.getName().getValue());
     
+   
     if strcmp('TCSPC',obj.mode)
-        %Bodge to suppress bright line artefact on RHS in BH .sdt files
-        if strfind(file,'.sdt')
+        %Kludge to suppress bright line artefact on RHS in BH .sdt files
+        if strfind(file,'.sdt')  && (sizeX * sizeY) > 1
             target(:,:,:,end,:) = 0;
         end
         
