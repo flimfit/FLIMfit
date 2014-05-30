@@ -2248,11 +2248,11 @@ classdef ic_importer_impl < handle
             dimension = [];
             switch char(obj.Modulo)
                 case 'ModuloAlongZ'
-                  dimension = 'Z';
+                  dimension = 'ModuloAlongZ';
                 case 'ModuloAlongC'
-                  dimension = 'C';
+                  dimension = 'ModuloAlongC';
                 case 'ModuloAlongT'                
-                  dimension = 'T';                
+                  dimension = 'ModuloAlongT';                
             end
             
             if isempty(dimension), errordlg('dimension not specified, can not continue'), return, end;
