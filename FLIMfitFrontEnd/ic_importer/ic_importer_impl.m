@@ -1133,7 +1133,7 @@ classdef ic_importer_impl < handle
                       % try to deduce the delays
                       channels_names = cell(1,num_files);
                       for i = 1 : num_files
-                          fnamestruct = obj.parse_DIFN_format1(file_names{i});
+                          fnamestruct = parse_DIFN_format1(file_names{i});
                           channels_names{i} = fnamestruct.delaystr;
                       end
                       %  
@@ -1619,7 +1619,7 @@ classdef ic_importer_impl < handle
                                             %
                                             Z(i,:,:) = squeeze(U(:,:,1))';                            
                                             %
-                                            fnamestruct = obj.parse_DIFN_format1(file_names{i});
+                                            fnamestruct = parse_DIFN_format1(file_names{i});
                                             channels_names{i} = fnamestruct.delaystr; % delay [ps] in string format
                                             %
                                             waitbar(i/num_files, hw);
@@ -1713,7 +1713,7 @@ classdef ic_importer_impl < handle
                                     %                                                            
                                     Z = [];
                                     %
-                                    fnamestruct = obj.parse_DIFN_format1(file_names{i});
+                                    fnamestruct = parse_DIFN_format1(file_names{i});
                                     if ~isempty(fnamestruct)                                    
                                         channels_names = cell(1,num_files);
                                     else
@@ -1737,7 +1737,7 @@ classdef ic_importer_impl < handle
                                             %
                                             Z(i,:,:) = squeeze(U(:,:,1))';                            
                                             %
-                                            fnamestruct = obj.parse_DIFN_format1(file_names{i});
+                                            fnamestruct = parse_DIFN_format1(file_names{i});
                                             if ~isempty(fnamestruct)
                                                 channels_names{i} = fnamestruct.delaystr; % delay [ps] in string format
                                             end
@@ -1980,8 +1980,19 @@ classdef ic_importer_impl < handle
                         modulo = 'ModuloAlongT';
                     elseif  isfield(tree,'ModuloAlongZ')
                         modlo = tree.ModuloAlongZ;
-                        modulo = 'ModuloAlongZ';
+                        modulo = 'ModuloAlongZ';                        
                     end   
+                    %   
+                        if isfield(tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongC')
+                            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongC;                            
+                                                    modulo = 'ModuloAlongC';
+                        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongT')
+                            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongT;                            
+                                                    modulo = 'ModuloAlongT';
+                        elseif isfield(tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo,'ModuloAlongZ')
+                            modlo = tree.StructuredAnnotations.XMLAnnotation.Value.OME.StructuredAnnotations.XMLAnnotation.Value.Modulo.ModuloAlongZ;
+                                                    modulo = 'ModuloAlongZ';
+                        end                    
                     %
                     if ~isempty(modlo)
                         if isfield(modlo.ATTRIBUTE,'Start')
@@ -1989,14 +2000,20 @@ classdef ic_importer_impl < handle
                             step = modlo.ATTRIBUTE.Step;
                             e = modlo.ATTRIBUTE.End;                
                             Delays = start:step:e;
-                        elseif isfield(modlo.Label)
-                            str_delays = modlo.Label;
-                            Delays = cell2mat(str_delays);
+                        else
+                            if isnumeric(modlo.Label)
+                                Delays = modlo.Label;
+                            else
+                                Delays = cell2mat(modlo.Label);
+                            end
                         end
                         %    
                         if isfield(modlo.ATTRIBUTE,'Description')
                             FLIM_type = modlo.ATTRIBUTE.Description;
+                        elseif isfield(modlo.ATTRIBUTE,'TypeDescription')
+                            FLIM_type = modlo.ATTRIBUTE.TypeDescription;
                         end
+                        
                     end
 
                     if isfield(tree,'SA_COLON_StructuredAnnotations') % supposed to be here...
@@ -2139,38 +2156,6 @@ classdef ic_importer_impl < handle
 
         end
 %-------------------------------------------------------------------------%
-        function ret = parse_DIFN_format1(obj, DelayedImageFileName, ~)
-
-        ret = [];
-
-            try
-
-                str = split(' ',DelayedImageFileName);                            
-
-                if 1 == numel(str)
-
-                    str1 = split('_',DelayedImageFileName);                            
-                    str2 = char(str1(2));
-                    str3 = split('.',str2);
-                        ret.delaystr = num2str(str2num(char(str3(1))));    
-
-                elseif 2 == numel(str)
-
-                     str = split(' ',DelayedImageFileName);                            
-                     str1 = char(str(2));     
-                     str2 = split('_',str1);                            
-                     str3 = char(str2(2));
-                     str4 = split('.',str3);
-                        ret.delaystr = num2str(str2num(char(str4(1))));
-                     str5 = split('_',char(str(1)));
-                        ret.integrationtimestr = num2str(str2num(char(str5(2))));                
-                end
-
-            catch err
-                disp(err.message);
-            end
-        end
-%-------------------------------------------------------------------------%
         function upload_Image_BH(obj, dataset, full_filename, ~)
             
             modulo = obj.Modulo;
@@ -2263,11 +2248,11 @@ classdef ic_importer_impl < handle
             dimension = [];
             switch char(obj.Modulo)
                 case 'ModuloAlongZ'
-                  dimension = 'Z';
+                  dimension = 'ModuloAlongZ';
                 case 'ModuloAlongC'
-                  dimension = 'C';
+                  dimension = 'ModuloAlongC';
                 case 'ModuloAlongT'                
-                  dimension = 'T';                
+                  dimension = 'ModuloAlongT';                
             end
             
             if isempty(dimension), errordlg('dimension not specified, can not continue'), return, end;
@@ -2322,7 +2307,7 @@ classdef ic_importer_impl < handle
                 ometiffilename = [savedir filesep imageName '.OME.tiff'];
                 %
                 set(obj.gui.Indi_name,'BackgroundColor','green');
-                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, ometiffilename);
+                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, obj.FLIM_mode, ometiffilename);
                 set(obj.gui.Indi_name,'BackgroundColor','red');            
                 %
             elseif strcmp(save_mode,'multiple dirs')
@@ -2338,7 +2323,7 @@ classdef ic_importer_impl < handle
                         end
                         names_list_k = sort_nat(names_list_k);
                         ometiffilename = [savedir filesep nonemptydir_names{k} '.OME.tiff'];          
-                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, ometiffilename);                        
+                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, obj.FLIM_mode, ometiffilename);                        
                     waitbar(k/numel(nonemptydir_names),hw);
                     drawnow
                 end
