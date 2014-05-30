@@ -25,12 +25,7 @@ function load_single(obj,file,polarisation_resolved)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-    
-    
-    if is64
-        obj.use_memory_mapping = false;
-    end
-    
+   
     if nargin < 3
         polarisation_resolved = false;
     end
@@ -43,6 +38,16 @@ function load_single(obj,file,polarisation_resolved)
     
     
     [path,name,ext] = fileparts(file);
+    
+    if strcmp(ext,'.raw')
+        obj.load_raw_data(file);
+        return;
+    end
+    
+    % must be done after test for .raw as load_raw_data requires mem mapping
+    if is64
+        obj.use_memory_mapping = false;
+    end
 
   
     obj.root_path = ensure_trailing_slash(path); 
@@ -52,10 +57,6 @@ function load_single(obj,file,polarisation_resolved)
     obj.file_names = {file};
     obj.lazy_loading = false;
     
-    if strcmp(ext,'.raw')
-        obj.load_raw_data(file);
-        return;
-    end
     
     
     if isempty(obj.names)
