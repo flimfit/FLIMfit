@@ -229,7 +229,7 @@
                 handles.omero_data_manager.session = [];
                 handles.omero_data_manager.client = [];
             end
-
+            
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
                       
@@ -241,7 +241,7 @@
                 end
             end
             
-            % Finally actaully close window
+            % Finally actually close window
             delete(handles.window);
             
         end
