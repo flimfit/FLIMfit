@@ -28,7 +28,8 @@
         file = [];
     end
     
-    if obj.init
+    if obj.init  && ~isempty(obj.omero_data_manager.session)
+
     
         if ~isempty(obj.omero_data_manager.dataset)
             parent = obj.omero_data_manager.dataset; 
