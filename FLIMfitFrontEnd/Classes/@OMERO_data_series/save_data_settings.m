@@ -28,82 +28,89 @@
         file = [];
     end
     
-    if ~isempty(obj.omero_data_manager.dataset)
-        parent = obj.omero_data_manager.dataset; 
-        parentType = 'omero.model.Dataset';
-    elseif ~isempty(obj.plate)
-        parent = obj.omero_data_manager.plate; 
-        parentType = 'omero.model.Plate';
-    else
-        return;
-    end
-
-    parentId = java.lang.Long(parent.getId().getValue());
-    
-    % check whether an annotation of this name already exists
-    session = obj.omero_data_manager.session;
-       
-    annotators = java.util.ArrayList;
-    metadataService = session.getMetadataService();
-    map = metadataService.loadAnnotations(parentType, java.util.Arrays.asList(parentId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
-    annotations = map.get(parentId);
-    
-    ann = [];
-    
-    if isempty(file)
-        pol_idx = obj.polarisation_resolved + 1;
-        file  = [ obj.data_settings_filename{pol_idx}];
-    end
-    
-    tmpfile = [tempdir file ];
-    
-    
-    if annotations.size() > 0
-        for j = 0:annotations.size()-1
-            anno_name = char(java.lang.String(annotations.get(j).getFile().getName().getValue()));
-            if strcmp(anno_name, file)
-                ann = annotations.get(j);
-                break;
-            end
-        end
-    end
-    
-   
     if obj.init
-        
-        % write data to a temp file
-        
-        if ~isempty(tmpfile)
-            serialise_object(obj,tmpfile);
-            
-            % then upload this to the server
-            namespace = 'IC_PHOTONICS';
-            mimetype = char('application/octet-stream');
-            
-            if isempty(ann)
-                namespace = 'IC_PHOTONICS';
-                description = ' ';            
-                sha1 = char('pending');
-                file_mime_type = char('application/octet-stream');
-            
-                add_Annotation(session, obj.omero_data_manager.userid, ...
-                            parent, ...
-                            sha1, ...
-                            file_mime_type, ...
-                            tmpfile, ...
-                            description, ...
-                            namespace);    
-               
-            else
-                updateFileAnnotation(session, ann, tmpfile); 
-                
+    
+        if ~isempty(obj.omero_data_manager.dataset)
+            parent = obj.omero_data_manager.dataset; 
+            parentType = 'omero.model.Dataset';
+        elseif ~isempty(obj.plate)
+            parent = obj.omero_data_manager.plate; 
+            parentType = 'omero.model.Plate';
+        else
+            return;
+        end
+
+        parentId = java.lang.Long(parent.getId().getValue());
+
+        % check whether an annotation of this name already exists
+        session = obj.omero_data_manager.session;
+
+        annotators = java.util.ArrayList;
+        metadataService = session.getMetadataService();
+        map = metadataService.loadAnnotations(parentType, java.util.Arrays.asList(parentId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
+        annotations = map.get(parentId);
+
+        ann = [];
+
+        if isempty(file)
+            txt = strsplit(parentType,'.');
+            title = char(strcat({'Save Data Settings as a File annotaion to the current '}, txt(end)));
+            choice = questdlg('Would you like to save the current settings?', title ,'Yes','No','No');
+            if strcmp(choice,'Yes')
+                    pol_idx = obj.polarisation_resolved + 1;
+                    file = [obj.root_path obj.data_settings_filename{pol_idx}];
             end
-                
         end
         
-        
-    end
+        if ~isempty(file)
     
+            tmpfile = [tempdir file ];
+
+
+            if annotations.size() > 0
+                for j = 0:annotations.size()-1
+                    anno_name = char(java.lang.String(annotations.get(j).getFile().getName().getValue()));
+                    if strcmp(anno_name, file)
+                        ann = annotations.get(j);
+                        break;
+                    end
+                end
+            end
+
+
+            % write data to a temp file
+
+            if ~isempty(tmpfile)
+                serialise_object(obj,tmpfile);
+
+                % then upload this to the server
+                namespace = 'IC_PHOTONICS';
+                mimetype = char('application/octet-stream');
+
+                if isempty(ann)
+                    namespace = 'IC_PHOTONICS';
+                    description = ' ';            
+                    sha1 = char('pending');
+                    file_mime_type = char('application/octet-stream');
+
+                    add_Annotation(session, obj.omero_data_manager.userid, ...
+                                parent, ...
+                                sha1, ...
+                                file_mime_type, ...
+                                tmpfile, ...
+                                description, ...
+                                namespace);    
+
+                else
+                    updateFileAnnotation(session, ann, tmpfile); 
+
+                end
+
+            end
+
+
+        end
+    end
   
     
     

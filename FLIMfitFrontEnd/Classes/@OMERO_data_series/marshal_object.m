@@ -30,7 +30,7 @@ function obj = marshal_object(obj,file)
 
     % Author : Sean Warren
     
-   %try 
+   try 
    
        if ~isempty(obj.omero_data_manager.dataset)
            parent = obj.omero_data_manager.dataset;
@@ -65,7 +65,7 @@ function obj = marshal_object(obj,file)
                  originalFile = ann.getFile();        
                  rawFileStore = session.createRawFileStore();
                  rawFileStore.setFileId(originalFile.getId().getValue());
-                 %
+                 
                  byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
                  
                  str = char(byteArr);
@@ -85,8 +85,8 @@ function obj = marshal_object(obj,file)
        
        
         
-    %catch
-    %   warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
-    %end
+    catch
+       warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
+    end
          
 end

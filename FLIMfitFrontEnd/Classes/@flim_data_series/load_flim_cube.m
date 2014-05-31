@@ -362,8 +362,9 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             end
 
             if strcmp('TCSPC',obj.mode)
+                
                 %Kludge to suppress bright line artefact on RHS in BH .sdt files
-                if strfind(file,'.sdt')  && (sizeX * sizeY) > 1
+                if strcmp(ext,'.sdt')  && sizeX > 1 && sizeY > 1
                     target(:,:,:,end,:) = 0;
                 end
                 
