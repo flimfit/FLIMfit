@@ -55,11 +55,11 @@
 
         if isempty(file)
             txt = strsplit(parentType,'.');
-            title = char(strcat({'Save Data Settings as a File annotaion to the current '}, txt(end)));
+            title = char(strcat({'As an annotation to  '}, txt(end)));
             choice = questdlg('Would you like to save the current settings?', title ,'Yes','No','No');
             if strcmp(choice,'Yes')
                     pol_idx = obj.polarisation_resolved + 1;
-                    file = [obj.root_path obj.data_settings_filename{pol_idx}];
+                    file = [obj.data_settings_filename{pol_idx}];
             end
         end
         

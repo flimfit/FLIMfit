@@ -47,7 +47,7 @@
             end
             
             if ~isdeployed
-                addpath_global_analysis()
+                addpath_global_analysis();
             else
                 wait = true;
             end
