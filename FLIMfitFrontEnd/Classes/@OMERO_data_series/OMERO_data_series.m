@@ -99,7 +99,6 @@ classdef OMERO_data_series < flim_data_series
             obj.fitted_data = [];
             obj.fit_result = []; 
             obj.FLIM_modality = [];            
-            obj.clear_memory_mapping();
         end   
         
         %------------------------------------------------------------------

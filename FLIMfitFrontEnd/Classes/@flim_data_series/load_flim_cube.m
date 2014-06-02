@@ -369,7 +369,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                 end
                 
             else    % Not TCSPC
-                if min(target(:)) > 32500
+                if min(target(target > 0)) > 32500
                     target = target - 32768;    % clear the sign bit which is set by labview
                 end
             end

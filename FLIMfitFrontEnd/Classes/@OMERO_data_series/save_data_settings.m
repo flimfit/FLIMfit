@@ -28,8 +28,6 @@
         file = [];
     end
     
-    obj.init
-    obj.omero_data_manager.session
     
     if obj.init  && ~isempty(obj.omero_data_manager.session)
 
