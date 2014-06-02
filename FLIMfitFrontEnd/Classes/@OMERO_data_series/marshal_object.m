@@ -35,7 +35,7 @@ function obj = marshal_object(obj,file)
        if ~isempty(obj.omero_data_manager.dataset)
            parent = obj.omero_data_manager.dataset;
             specifier = 'omero.model.Dataset';    
-       elseif ~isempty(obj.plate)
+       elseif ~isempty(obj.omero_data_manager.plate)
            parent = obj.omero_data_manager.plate;
            specifier = 'omero.model.Plate';    
        else

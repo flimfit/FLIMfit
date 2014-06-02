@@ -286,10 +286,12 @@ classdef flim_data_series < handle & h5_serializer
         
         function load_data_settings(obj,file)
             %> Load data setting file 
-            obj.suspend_transformation = true;
-            obj.marshal_object(file);
-            notify(obj,'masking_updated');
-            obj.suspend_transformation = false;
+            if exist(file,'file')         
+                obj.suspend_transformation = true;
+                obj.marshal_object(file);
+                notify(obj,'masking_updated');
+                obj.suspend_transformation = false;
+            end
         end
         
         function file = save_data_settings(obj,file)
@@ -929,8 +931,8 @@ classdef flim_data_series < handle & h5_serializer
         %===============================================================
         
         function delete(obj)
-           % On object deletion, clear mapped data 
            obj.save_data_settings();
+           % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
            
         end

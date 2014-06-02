@@ -28,13 +28,16 @@
         file = [];
     end
     
+    obj.init
+    obj.omero_data_manager.session
+    
     if obj.init  && ~isempty(obj.omero_data_manager.session)
 
     
         if ~isempty(obj.omero_data_manager.dataset)
             parent = obj.omero_data_manager.dataset; 
             parentType = 'omero.model.Dataset';
-        elseif ~isempty(obj.plate)
+        elseif ~isempty(obj.omero_data_manager.plate)
             parent = obj.omero_data_manager.plate; 
             parentType = 'omero.model.Plate';
         else
