@@ -76,6 +76,7 @@ Source: "{#RepositoryRoot}\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir:
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit_{#MyAppSystem}.bat"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppComputer}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "C:\Program Files\MATLAB\R2013b\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\InstallerSupport\microscope.ico"; DestDir: "{app}"
 [Icons]
 Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; IconFilename: "{app}\microscope.ico"
