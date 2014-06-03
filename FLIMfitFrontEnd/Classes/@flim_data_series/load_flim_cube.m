@@ -240,8 +240,8 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             
             block = obj.block;
             
-            
-            if sizeX ~= r.getSizeX ||sizeY ~= r.getSizeY
+            % note the dimension inversion here
+            if sizeX ~= r.getSizeY ||sizeY ~= r.getSizeX
                 success = false;
                 return;
             end
@@ -295,7 +295,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                 T = T * sizet;
                                 if ~sgn
                                     for p = 1:nplanes
-                                        % unsigned moduloAlongT little endian
+                                        % unsigned moduloAlongT 
                                         % this is the loop that needs to be
                                         % optimised for speed
                                         index = r.getIndex(Z, chan ,T + t);
@@ -303,7 +303,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                         rawPlane = r.openBytes(index);
                                         I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
                                         I = typecast(I, type);
-                                        target(t,pctr,:,:,selected) = reshape(I, sizeX, sizeY);
+                                        target(t,pctr,:,:,selected) = reshape(I, sizeY, sizeX)';
                                         
                                     end
                                 else  % signed
@@ -311,7 +311,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                         index = r.getIndex(Z, chan ,T + t);
                                         t = t + 1;
                                         plane = bfGetPlane(r,index + 1);
-                                        target(t,pctr,:,:,selected) = rot90(plane);
+                                        target(t,pctr,:,:,selected) = plane;
                                     end
                                 end
                                 
@@ -321,7 +321,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                     index = r.getIndex(Z + t, chan ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = rot90(plane);
+                                    target(t,pctr,:,:,selected) = plane;
                                 end
                                 
                             case 'ModuloAlongC'
@@ -330,7 +330,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                                     index = r.getIndex(Z, C + t ,T);
                                     t = t + 1;
                                     plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = rot90(plane);
+                                    target(t,pctr,:,:,selected) = plane;
                                 end
                                 
                         end  % end switch

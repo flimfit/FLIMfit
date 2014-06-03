@@ -153,8 +153,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             sizeZCT(1) = r.getSizeZ;
             sizeZCT(2) = r.getSizeC;
             sizeZCT(3) = r.getSizeT;
-            sizeXY(1) = r.getSizeX;
-            sizeXY(2) = r.getSizeY;
+            % NB note the inversion of X & Y here 
+            sizeXY(1) = r.getSizeY;
+            sizeXY(2) = r.getSizeX;
             
           
             % check for presence of an Xml modulo Annotation  containing 'lifetime'
