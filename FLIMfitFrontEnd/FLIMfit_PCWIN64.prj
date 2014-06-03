@@ -353,11 +353,6 @@
         <directory>${MATLAB_ROOT}\toolbox\images\iptutils</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\imagesci</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\imdemos</directory>
-        <directory>${MATLAB_ROOT}\toolbox\imaq\imaq</directory>
-        <directory>${MATLAB_ROOT}\toolbox\imaq\imaqblks\imaqblks</directory>
-        <directory>${MATLAB_ROOT}\toolbox\imaq\imaqblks\imaqmasks</directory>
-        <directory>${MATLAB_ROOT}\toolbox\imaq\imaqblks\imaqmex</directory>
-        <directory>${MATLAB_ROOT}\toolbox\imaq\imaqdemos</directory>
         <directory>${MATLAB_ROOT}\toolbox\instrument\instrument</directory>
         <directory>${MATLAB_ROOT}\toolbox\instrument\instrumentblks\instrumentblks</directory>
         <directory>${MATLAB_ROOT}\toolbox\instrument\instrumentblks\instrumentmex</directory>
