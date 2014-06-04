@@ -1,4 +1,4 @@
-    classdef flim_fit_ui
+classdef flim_fit_ui
         
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -114,7 +114,7 @@
             coords = get(0,'MonitorPositions');             
             %position only in main monitor
             
-             hostname = getenv('COMPUTERNAME');
+            hostname = getenv('COMPUTERNAME');
             
             monitor = 1;                       
             coords = coords(monitor,:);
@@ -125,8 +125,12 @@
                 coords(4) = coords(4) - 30;
                 coords(2) = coords(2) + 30;
             end
-            set(obj.window,'Units','Pixels','OuterPosition',coords);
-           
+            
+            try 
+                set(obj.window,'Units','Pixels','OuterPosition',coords);
+            catch e %#ok
+               disp('Warning: could not maximise window'); 
+            end
             handles = guidata(obj.window); 
                                                 
         
