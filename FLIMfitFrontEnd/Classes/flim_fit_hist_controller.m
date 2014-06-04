@@ -203,7 +203,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 
                 % add colour to histogram
                 addcolour = get(obj.hist_addcolour_popupmenu,'Value');
-                if addcolour > 1
+                if addcolour < 2
                 
                     nbins = length(x);
                     cscale = obj.colourscale(param);
