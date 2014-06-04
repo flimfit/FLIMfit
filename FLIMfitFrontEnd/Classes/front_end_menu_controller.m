@@ -350,6 +350,7 @@ classdef front_end_menu_controller < handle
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
+            delete(obj.data_series_controller.data_series);    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series();
             obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
             obj.omero_data_manager.Load_FLIM_Data(obj.data_series_controller.data_series);
@@ -357,7 +358,8 @@ classdef front_end_menu_controller < handle
         end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
-             
+            
+            delete(obj.data_series_controller.data_series);    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series();   
             obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;            
             obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
@@ -443,7 +445,8 @@ classdef front_end_menu_controller < handle
             obj.omero_data_manager.Export_TVB_annot(obj.data_series_controller.data_series);
         end    
         %------------------------------------------------------------------        
-        function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~) 
+        function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~)
+            delete(obj.data_series_controller.data_series);    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series(); 
             obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;                        
              obj.data_series_controller.data_series.polarisation_resolved = true;
@@ -477,7 +480,8 @@ classdef front_end_menu_controller < handle
             set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------                
-        function menu_OMERO_Import_Fitting_Results_callback(obj,~,~)            
+        function menu_OMERO_Import_Fitting_Results_callback(obj,~,~)  
+            delete(obj.data_series_controller.data_series);    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series();
             obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
             infostring = obj.data_series_controller.data_series.load_fitted_data(obj.fit_controller);
@@ -502,6 +506,8 @@ classdef front_end_menu_controller < handle
         % Load Data
         %------------------------------------------------------------------
         function menu_file_load_single_callback(obj,~,~)
+            % delete existing data series 
+            delete(obj.data_series_controller.data_series);
             [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.load_single([path file]); 
@@ -512,6 +518,8 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_file_load_widefield_callback(obj,~,~)
+            % delete existing data series 
+            delete(obj.data_series_controller.data_series);
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
                 obj.data_series_controller.load_data_series(folder,'widefield'); 
@@ -522,6 +530,8 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_file_load_tcspc_callback(obj,~,~)
+            % delete existing data series 
+            delete(obj.data_series_controller.data_series);
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
                 obj.data_series_controller.load_data_series(folder,'TCSPC');
@@ -532,6 +542,8 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_file_load_single_pol_callback(obj,~,~)
+            % delete existing data series 
+             delete(obj.data_series_controller.data_series);
             [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.load_single([path file],true); 
@@ -542,6 +554,8 @@ classdef front_end_menu_controller < handle
                 end
         
         function menu_file_load_tcspc_pol_callback(obj,~,~)
+            % delete existing data series 
+            delete(obj.data_series_controller.data_series);
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
                 obj.data_series_controller.load_data_series(folder,'TCSPC',true);
