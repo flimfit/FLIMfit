@@ -375,13 +375,7 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
-            tempfilename = obj.omero_data_manager.load_imagefile();
-            if isempty(tempfilename), return, end;                                    
-            try 
-                obj.data_series_controller.data_series.load_background(tempfilename);                          
-            catch e, 
-                errordlg([e.identifier ' : ' e.message]), 
-            end                        
+            obj.omero_data_manager.Load_Background(obj.data_series_controller.data_series);                      
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
