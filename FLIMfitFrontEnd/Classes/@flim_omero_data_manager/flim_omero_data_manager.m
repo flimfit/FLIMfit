@@ -156,7 +156,25 @@ classdef flim_omero_data_manager < handle
             end
         end            
 
-        %------------------------------------------------------------------                
+        %------------------------------------------------------------------  
+        function Load_Background(obj,data_series,~)
+            if ~isempty(obj.plate)                
+                image = select_Image(obj.session,obj.userid,obj.plate);                
+            elseif ~isempty(obj.dataset)
+                image = select_Image(obj.session,obj.userid,obj.dataset);
+            else
+                errordlg('Please set Dataset or Plate before trying to load images'); 
+                return; 
+            end;
+                                 
+            if ~isempty(image)
+                data_series.load_background(image)
+            end
+                               
+        end
+        
+         %------------------------------------------------------------------ 
+        
         function Load_Background_form_Dataset(obj,data_series,~)
             [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
             if isempty(Dataset), return, end;            
