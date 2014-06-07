@@ -45,6 +45,11 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     % Determine which channels we need to load 
     obj.ZCT = obj.get_ZCT( dims, polarisation_resolved, dims.chan_info );
     
+    if isempty(obj.ZCT)
+        return;
+    end
+    
+    
     % handle exception where there is only one file or image 
     % so multiple Z, C ot T are allowed
     if length(obj.file_names) == 1
