@@ -931,6 +931,9 @@ classdef flim_data_series < handle & h5_serializer
         %===============================================================
         
         function delete(obj)
+           % clear intensity display
+           obj.intensity(:) = 0;
+           notify(obj,'data_updated');
            obj.save_data_settings();
            % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
