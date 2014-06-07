@@ -201,7 +201,18 @@ if eventdata.EditData % if the checkbox was set to true
         sett(eventdata.Indices(1) ) = 0;  %eliminate the box just ticked from enquiries
         first = squeeze(find(sett,1));
         data(first,2) = num2cell(false);  
-    end   
+    end 
+    % if polarisation check for clashes between channels
+    if handles.pol_resolved
+        dataPerp = get(handles.uitablePerp,'Data');
+        settPerp = cell2mat(squeeze(dataPerp(:,2)));
+        firstPerp = squeeze(find(settPerp,1));
+        if firstPerp == eventdata.Indices(1)
+            dataPerp(eventdata.Indices(1),2) = num2cell(false);
+            set(handles.uitablePerp,'Data',dataPerp);
+        end
+    end
+    
  else
     if sum(sett) < handles.minC
         sett(eventdata.Indices(1) ) = 1;  %eliminate the box just unticked from enquiries
@@ -267,11 +278,19 @@ function uitablePerp_CellEditCallback(hObject, eventdata, handles)
 data=get(hObject,'Data'); % get the data cell array of the table
 sett = cell2mat(squeeze(data(:,2)));
 if eventdata.EditData % if the checkbox was set to true
-    if sum(sett) > handles.maxC
-        sett(eventdata.Indices(1) ) = 0;  %eliminate the box just ticked from enquiries
-        first = squeeze(find(sett,1));
-        data(first,2) = num2cell(false);  
-    end   
+    % check whether this clashes with parallel chan
+    dataC = get(handles.uitableC,'Data');
+    settC = cell2mat(squeeze(dataC(:,2)));
+    firstC = squeeze(find(settC,1));
+    if firstC == eventdata.Indices(1)
+        data(eventdata.Indices(1),2) = num2cell(false);
+    else
+        if sum(sett) > handles.maxC
+            sett(eventdata.Indices(1) ) = 0;  %eliminate the box just ticked from enquiries
+            first = squeeze(find(sett,1));
+            data(first,2) = num2cell(false);  
+        end 
+    end
  else
     if sum(sett) < handles.minC
         sett(eventdata.Indices(1) ) = 1;  %eliminate the box just unticked from enquiries
