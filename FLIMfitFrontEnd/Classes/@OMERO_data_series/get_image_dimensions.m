@@ -37,7 +37,7 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     
     t_int = [];
     dims.delays = [];
-    dims.modulo = [];
+    dims.modulo = 'none';
     dims.FLIM_type = [];
     dims.sizeZCT = [];
     

@@ -36,6 +36,10 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
     
     success = true; 
     
+    if strcmp(modulo,'none')
+        sizet = 1;
+    end
+    
     
     % convert to java/c++ numbering from 0
     Zarr  = ZCT{1}-1;
@@ -61,8 +65,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
         w = waitbar(0, 'Loading FLIMage....');
         drawnow;
         totalPlanes = sizet * nchans;
-        
-         if sizet < 4
+                 if sizet < 4
             nblocks = 1;
             nplanesInBlock = sizet;
          else
@@ -166,6 +169,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
  
     imSize = sizeX * sizeY;
     
+   
     for c = 1:nchans
         
         chan = Carr(c);
@@ -186,6 +190,10 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
                 case 'ModuloAlongT' 
                     tt = T .* sizet; 
                     modNo = 4;
+                 otherwise      % not time-resolved 
+                    tt = T;
+                    modNo = 4;  % default to T 
+                    
              end
         
    
@@ -195,8 +203,6 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
                 siz.set(modNo,java.lang.Integer(nplanes));
                 source = tt + t;
                 offset.set(modNo,java.lang.Integer(source));
-            
-        
                 rawCube = store.getHypercube(offset, siz, step);
 
                 cube = typecast(rawCube, type);

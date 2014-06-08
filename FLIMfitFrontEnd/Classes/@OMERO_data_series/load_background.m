@@ -48,7 +48,7 @@ function load_background(obj, image)
     end;
         
     image_data = zeros(1, 1, dims.sizeXY(1), dims.sizeXY(2), 1);
-    [success ,image_data] = obj.load_flim_cube(image_data, file_or_image,1);
+    [success ,image_data] = obj.load_flim_cube(image_data,image,1, dims,ZCT);
     im = squeeze(image_data);
    
     % correct for labview broken tiffs
