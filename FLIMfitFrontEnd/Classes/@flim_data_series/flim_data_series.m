@@ -227,6 +227,8 @@ classdef flim_data_series < handle & h5_serializer
 
         function obj = flim_data_series()
             
+            use_memory_mapping = true;
+            
             del_files = dir([tempdir 'GPTEMP*']);
             
             warning('off','MATLAB:DELETE:Permission');
@@ -928,12 +930,20 @@ classdef flim_data_series < handle & h5_serializer
 
         end
         
+        function clear(obj)
+            if ~isempty(obj.intensity)
+                % clear intensity display
+                obj.intensity(:) = 0;
+                notify(obj,'data_updated');
+                obj.delete();
+            end
+        end
+            
+        
         %===============================================================
         
         function delete(obj)
-           % clear intensity display
-           obj.intensity(:) = 0;
-           notify(obj,'data_updated');
+           
            obj.save_data_settings();
            % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
