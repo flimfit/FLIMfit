@@ -170,7 +170,7 @@ classdef flim_omero_data_manager < handle
             if ~isempty(image)
                 data_series.load_background(image)
             end
-                               
+       
         end
         
          %------------------------------------------------------------------ 
@@ -291,51 +291,7 @@ classdef flim_omero_data_manager < handle
             %
             delete(full_temp_file_name); %??
         end            
-                        
-        %------------------------------------------------------------------
-        function tempfilename = load_imagefile(obj,~,~)    
-            %
-            tempfilename = [];            
-            %
-            if isempty(obj.dataset)
-                [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select a Dataset:');             
-                if isempty(Dataset), return, end;                
-            else
-                Dataset = obj.dataset;
-            end;
-            %    
-            image = select_Image(obj.session,obj.userid,Dataset);                       
-            if isempty(image), return, end;
-            %   
-            try
-                % single plane (not time-resolved) so set sizet to 1
-                ZCT = get_ZCT(image,'ModuloAlongC',1);
-                
-                %create a dummy metadata in order to get data via
-                %OMERO_fetch
-                mdta.FLIM_type = '?';
-                mdta.modulo = 'ModuloAlongC';
-                mdta.delays = 1;
-                
-                [ data_cube, ~ ] =  obj.OMERO_fetch(  image, ZCT, mdta);
-                            
-                data = double(squeeze(data_cube));
-                %
-                tempfilename = [tempname '.tif'];
-                if 2 == numel(size(data))
-                    imwrite(data,tempfilename,'tif');           
-                else
-                   sz = size(data); 
-                   nimg = sz(1);
-                     for ind = 1:nimg,
-                        imwrite( data(:,:,ind),tempfilename,'WriteMode','append');
-                     end             
-                end
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
-            end
-            %
-        end            
+                         
         
         %------------------------------------------------------------------
         function Export_Fitting_Results(obj,fit_controller,data_series,fittingparamscontroller)
