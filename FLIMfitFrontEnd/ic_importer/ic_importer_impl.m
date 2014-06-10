@@ -2323,7 +2323,7 @@ classdef ic_importer_impl < handle
                         end
                         names_list_k = sort_nat(names_list_k);
                         ometiffilename = [savedir filesep nonemptydir_names{k} '.OME.tiff'];          
-                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, obj.FLIM_mode, ometiffilename);                        
+                    save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, obj.FLIM_mode, ometiffilename);
                     waitbar(k/numel(nonemptydir_names),hw);
                     drawnow
                 end
