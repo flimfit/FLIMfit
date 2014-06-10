@@ -68,6 +68,9 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         
         n_datasets = length(obj.file_names);
+        if n_datasets == 0
+            return;
+        end
 
         file_names = [];
         
@@ -106,7 +109,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         
         n_datasets = length(folder_names);
         
-       
+        
         first_root = [root_path folder_names{1}];
         first_file = get_first_file(first_root);
 
