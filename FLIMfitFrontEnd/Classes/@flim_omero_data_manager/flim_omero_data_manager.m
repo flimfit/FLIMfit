@@ -129,7 +129,7 @@ classdef flim_omero_data_manager < handle
                     
                     data_series.file_names{1} = image;
                     file = char(image.getName.getValue());
-                    [path,name,ext] = fileparts(file);
+                    [path,name,ext] = fileparts_inc_OME(file);
                     data_series.names{1} = name;
                     
                     data_series.n_datasets = 1;
