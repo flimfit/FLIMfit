@@ -33,7 +33,7 @@ function load_irf(obj,file_or_image,load_as_image)
         file = char(file_or_image.getName().getValue());
      end
     
-     [path,name,ext] = fileparts(file);
+     [path,name,ext] = fileparts_inc_OME(file);
         
     if strcmp(ext,'.xml')
         obj.marshal_object(file);

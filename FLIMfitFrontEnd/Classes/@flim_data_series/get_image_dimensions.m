@@ -36,21 +36,8 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     dims.sizeZCT = [];
   
 
-    [path,fname,ext] = fileparts(file);
+    [path,name,ext] = fileparts_inc_OME(file);
 
-    if strcmp(ext,'.tiff')
-        ext = '.tif';
-    end
-    
-    
-    if strcmp(ext,'.tif')
-         if length(fname)
-             tail = (fname(end-3:end));
-             if strcmpi(tail,'.ome')  || strcmpi(tail,'.o.e')
-                ext = '.ome';
-             end
-         end
-    end
     
     dims.chan_info = [];
         

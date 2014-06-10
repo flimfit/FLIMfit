@@ -32,7 +32,7 @@ function load_tvb(obj,file_or_image)
     end
     
     
-    [~,~,ext] = fileparts(file);
+    [~,~,ext] = fileparts_inc_OME(file);
     if strcmp(ext,'.xml')
        
         obj.marshal_object(file);

@@ -37,7 +37,7 @@ function load_single(obj,file,polarisation_resolved)
     end
     
     
-    [path,name,ext] = fileparts(file);
+    [path,name,ext] = fileparts_inc_OME(file);
     
     if strcmp(ext,'.raw')
         obj.load_raw_data(file);
@@ -48,7 +48,7 @@ function load_single(obj,file,polarisation_resolved)
     if is64
         obj.use_memory_mapping = false;
     end
-
+    
   
     obj.root_path = ensure_trailing_slash(path); 
     obj.polarisation_resolved = polarisation_resolved;
@@ -61,7 +61,7 @@ function load_single(obj,file,polarisation_resolved)
     
     if isempty(obj.names)
         % Set names from file names
-        if strcmp(ext,'.tif') | strcmp(ext,'.tiff') & isempty(strfind(file,'ome.'))
+        if strcmp(ext,'.tif')
             path_parts = split(filesep,path);
             names{1} = path_parts{end};
         else

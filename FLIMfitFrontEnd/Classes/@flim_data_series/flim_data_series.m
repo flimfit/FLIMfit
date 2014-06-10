@@ -207,7 +207,7 @@ classdef flim_data_series < handle & h5_serializer
     methods(Static)
         
         data = smooth_flim_data(data,extent,mode)
-        [n_chan, chan_info] = get_channels(FileName)
+       
              
         function data = ensure_correct_dimensionality(data)
             %> Ensure that data has singleton dimension for polarisation

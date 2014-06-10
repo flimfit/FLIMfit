@@ -73,21 +73,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
     pctr = 1;       % polarised counter (should only go up to 2)
     
     
-    [path,fname,ext] = fileparts(file);
-    
-    
-    if strcmp(ext,'.tiff')
-        ext = '.tif';
-    end
-    
-   if strcmp(ext,'.tif')
-         if length(fname)
-             tail = (fname(end-3:end));
-             if strcmpi(tail,'.ome')  || strcmpi(tail,'.o.e')
-                ext = '.ome';
-             end
-         end
-    end
+    [path,fname,ext] = fileparts_inc_OME(file);
     
     
     % default do not display a waitbar

@@ -45,10 +45,9 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     obj.root_path = root_path;
     obj.polarisation_resolved = polarisation_resolved;
     
-    if strcmp(mode,'TCSPC')
+    if strcmp(mode,'bio-formats')
 
-        
-        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif']); dir([root_path '*.msr']); dir([root_path '*.asc'])];            
+        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.tif']); dir([root_path '*.tiff']); dir([root_path '*.msr']); dir([root_path '*.asc'])];            
         n_datasets = length(files);
         
         file_names = cell(1,n_datasets);
@@ -85,11 +84,9 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
             obj.names{j} = name;
         end
         
-       
-      
+     
         
-        
-    else % widefield
+    else % tif-stack
 
         folder_names = get_folders_recursive(root_path);
             
