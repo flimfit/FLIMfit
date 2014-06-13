@@ -67,31 +67,32 @@ toNNI = @(x) ome.xml.model.primitives.NonNegativeInteger(java.lang.Integer(x));
     num_files = numel(file_names);
                         %
                         for i = 1:num_files
-                                z = 1;
-                                c = 1;
-                                t = 1;
-                                %
-                                switch dimension
-                                    case 'ModuloAlongC'
-                                        c = i;
-                                    case 'ModuloAlongZ'
-                                        z = i;
-                                    case 'ModuloAlongT'
-                                        t = i;
-                                end
-                                %                                
-% if this block is uncommented, file becomes not importable by Insight ... also if FLIM - not readable by FLIMfit
-%                                 metadata.setCommentAnnotationID('Annotation:0',i-1);
-%                                 metadata.setCommentAnnotationValue(char(file_names{i}),i-1);
+% THIS WORKS BUT THIS SPECIFICATION IS PRESENTLY NOT USED                            
+%                                 z = 1;
+%                                 c = 1;
+%                                 t = 1;
+%                                 %
+%                                 switch dimension
+%                                     case 'ModuloAlongC'
+%                                         c = i;
+%                                     case 'ModuloAlongZ'
+%                                         z = i;
+%                                     case 'ModuloAlongT'
+%                                         t = i;
+%                                 end
 %                                 metadata.setPlaneTheZ(toNNI(z-1),0,i-1);
 %                                 metadata.setPlaneTheC(toNNI(c-1),0,i-1);
 %                                 metadata.setPlaneTheT(toNNI(t-1),0,i-1);
-%                                 metadata.setPlaneAnnotationRef('Annotation:0',0,i-1,0);  
-
-                                metadata.setTiffDataIFD(toNNI(z-1),0,i-1);
-                                metadata.setTiffDataFirstZ(toNNI(z-1),0,i-1);
-                                metadata.setTiffDataFirstC(toNNI(c-1),0,i-1);
-                                metadata.setTiffDataFirstT(toNNI(t-1),0,i-1);                                                                
+%                                 % metadata.setPlaneAnnotationRef(['Annotation:' num2str(i-1)],0,i-1,0); %excessive + causes error  
+%                                 metadata.setTiffDataIFD(toNNI(z-1),0,i-1);
+%                                 metadata.setTiffDataFirstZ(toNNI(z-1),0,i-1);
+%                                 metadata.setTiffDataFirstC(toNNI(c-1),0,i-1);
+%                                 metadata.setTiffDataFirstT(toNNI(t-1),0,i-1);                                                                                                
+                                %                                                                
+                                if ~(strcmp(FLIM_mode,'Time Gated') || strcmp(FLIM_mode,'Time Gated non-imaging'))                                                      
+                                    metadata.setCommentAnnotationID(['Annotation:' num2str(i-1)],i-1);
+                                    metadata.setCommentAnnotationValue(char(file_names{i}),i-1);
+                                end                                
                         end                                                                                      
                         %                                        
                         % MODULO   
@@ -208,5 +209,9 @@ end
 delete(hw); drawnow;
 
 writer.close();
+
+xmlValidate = loci.formats.tools.XMLValidate();
+comment = loci.formats.tiff.TiffParser(ometiffilename).getComment()
+xmlValidate.process(ometiffilename, java.io.BufferedReader(java.io.StringReader(comment)));
 
 end
