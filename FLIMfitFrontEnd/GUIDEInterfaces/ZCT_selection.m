@@ -120,7 +120,20 @@ if pol_resolved
     dataPerp(2,2) = num2cell(true);
     set(handles.uitablePerp,'Data',dataPerp);
     
+else
+    % if not polarised resize box and re-position button (cf Sean's OCD)
+    figSize = get(handles.figure1,'Position');
+    perpSize = get(handles.uitablePerp,'Position');
+    figSize(3) = figSize(3) - perpSize(3);
+    set(handles.figure1,'Position',figSize);
+    buttonSize = get(handles.selectButton,'Position');
+    buttonSize(1) = buttonSize(1) - perpSize(3);
+    set(handles.selectButton,'Position',buttonSize)
+
+    
 end
+
+
 
 % Update handles structure
 guidata(hObject, handles);
