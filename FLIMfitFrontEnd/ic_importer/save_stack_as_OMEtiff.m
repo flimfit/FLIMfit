@@ -1,12 +1,31 @@
-function save_stack_as_OMEtiff(folder, file_names, extension, dimension, FLIM_mode, ometiffilename)
+function save_stack_as_OMEtiff(folder, ometiffilename,  file_names, extension, dimension, FLIM_mode)
 
-            if isempty(file_names) || 0 == numel(file_names), return, end;
+
+                            
+             % replace path for your own machine 
+             addpath('/Users/imunro/FLIMfit/FLIMfitFrontEnd/BFMatlab')
+
+
+            if nargin == 2 
+                
+                fnames = dir([folder filesep '*.tif']);
+                for f = 1:length(fnames)
+                    file_names{f} = char(fnames(f).name);
+                end
+                extension = 'tif';
+                dimension = 'ModuloAlongT';
+                FLIM_mode = 'Time Gated';      
+            else
+                if isempty(file_names) || 0 == numel(file_names), return, end;
+            end
+            
             
             num_files = numel(file_names);
             %
             sizeC = 1;
             sizeZ = 1;
-            sizeT = 1;            
+            sizeT = 1;       
+            
 
             try I = imread([folder filesep file_names{1}],extension); catch err, msgbox(err.mesasge), return, end;
             I = I';
@@ -99,7 +118,7 @@ metadata.setPixelsSizeT(toInt(sizeT), 0);
                           % check if FLIM Modulo specification is available    
                           channels_names = cell(1,num_files);
                           for i = 1 : num_files
-                              fnamestruct = parse_DIFN_format1(file_names{i});
+                              fnamestruct = parse_DIFN_format1(file_names{i})
                               channels_names{i} = fnamestruct.delaystr;
                           end
                           %  
