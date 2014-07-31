@@ -210,14 +210,15 @@ classdef ic_importer_impl < handle
             handles. m2 = uimenu( menu_file, 'Label','Set list of data directories', 'Callback', @obj.onSetDirectoryList );        
             handles. m3 = uimenu( menu_file,'Label','Set Image','Callback', @obj.onSetImageFile);                      
             handles. m4 = uimenu( menu_file, 'Label', 'Save as OME.tiff', 'Callback', @obj.OnSaveAsOMEtiff,'Separator','on');                    
-            handles. m4 = uimenu( menu_file, 'Label', 'Exit', 'Callback', @obj.close_request_fcn,'Separator','on');        
+            handles. m5 = uimenu( menu_file, 'Label', 'Set list of data directories for saving as OME.tiff', 'Callback', @obj.OnSetDirListforSavingAsOMEtiff);
+            handles. m6 = uimenu( menu_file, 'Label', 'Exit', 'Callback', @obj.close_request_fcn,'Separator','on');        
             % + Omero menu
             menu_omero = uimenu( obj.window, 'Label', 'OMERO' );
-            handles. m5 = uimenu( menu_omero, 'Label', 'Set logon default', 'Callback', @obj.onLogon );        
-            handles. m6 = uimenu( menu_omero, 'Label', 'Restore logon', 'Callback', @obj.onRestoreLogon );        
-            handles. m7 = uimenu( menu_omero, 'Label','Set Project', 'Callback', @obj.onSetProject,'Separator','on' );
-            handles. m8 = uimenu( menu_omero, 'Label','Set Dataset', 'Callback', @obj.onSetDataset );
-            handles. m9 = uimenu( menu_omero, 'Label','Set Screen', 'Callback', @obj.onSetScreen );                    
+            handles. m7 = uimenu( menu_omero, 'Label', 'Set logon default', 'Callback', @obj.onLogon );        
+            handles. m8 = uimenu( menu_omero, 'Label', 'Restore logon', 'Callback', @obj.onRestoreLogon );        
+            handles. m9 = uimenu( menu_omero, 'Label','Set Project', 'Callback', @obj.onSetProject,'Separator','on' );
+            handles. m10 = uimenu( menu_omero, 'Label','Set Dataset', 'Callback', @obj.onSetDataset );
+            handles. m11 = uimenu( menu_omero, 'Label','Set Screen', 'Callback', @obj.onSetScreen );                    
         end
 %-------------------------------------------------------------------------%                
         function close_request_fcn(obj,~,~)            
@@ -661,6 +662,79 @@ classdef ic_importer_impl < handle
             end        
         end 
 %-------------------------------------------------------------------------%                                                   
+        function OnSetDirListforSavingAsOMEtiff(obj,~,~)
+            %
+           [file,path] = uigetfile('*.xlsx;*.xls','Select a text file containing list of data directories',obj.DefaultDataDirectory);            
+            
+           if file == 0, return, end;
+
+           obj.SrcList = [];
+           obj.status = 'not set up';                               
+           obj.Src = [];           
+           obj.updateInterface;                                   
+                      
+           try [~,srclist,~] = xlsread([path file]); catch err, errordlg(err.message), return, end;
+           
+           [numdir, numsettings] = size(srclist);
+                dirs = srclist(:,1);
+                      
+           for d=1:numel(dirs)                    
+               if ~isdir(char(dirs{d}))
+                   errordlg(['Directory list has not been set: ' char(dirs{d}) ' not a directory']);
+                   return;
+               end
+           end           
+
+           if numsettings > 1
+               modulos =    srclist(:,2);
+               variables =  srclist(:,3);
+               unitss =     srclist(:,4);
+               flim_modes = srclist(:,5);               
+               extensions = srclist(:,6);
+           end
+                      
+                hw = waitbar(0, 'checking Directory List, please wait...');
+                for d = 1:numdir                    
+                    obj.Src = char(dirs{d}); 
+                    %
+                    % other settings
+                    if numsettings > 1
+                        obj.Modulo = char(modulos{d});
+                        obj.Variable = char(variables{d});
+                        obj.Units = char(unitss{d});
+                        obj.FLIM_mode = char(flim_modes{d});                                                    
+                        obj.Extension = char(extensions{d});
+                        %
+                        obj.set_gui_string_item('Modulo_popupmenu',obj.Modulo);
+                        obj.set_gui_string_item('Variable_popupmenu',obj.Variable);
+                        obj.set_gui_string_item('Units_popupmenu',obj.Units);
+                        obj.set_gui_string_item('FLIM_mode_popupmenu',obj.FLIM_mode);
+                        obj.set_gui_string_item('Extension_popupmenu',obj.Extension);                            
+                    end                    
+                    %
+%                     obj.onCheckOut;                      
+%                     if strcmp(obj.status,'not set up')
+%                         errordlg(['Bad settings for data directory: ' char(dirs{d,1}) ' , batch is not set!']);
+%                         obj.Src = [];
+%                         delete(hw);
+%                         drawnow;                        
+%                         obj.updateInterface;
+%                         return;
+%                     end
+                    waitbar(d/numel(dirs), hw);
+                    drawnow;                    
+                end;                                             
+                delete(hw);
+                drawnow;
+                
+                obj.DefaultDataDirectory = path;                                                                
+                obj.status = 'ready';
+                obj.SrcList = srclist;
+                obj.Src = [];
+                obj.updateInterface;                       
+            %
+        end
+%-------------------------------------------------------------------------%                                                           
         function onSetDirectoryList(obj,~,~)
             
            [file,path] = uigetfile('*.xlsx;*.xls','Select a text file containing list of data directories',obj.DefaultDataDirectory);            
@@ -711,7 +785,7 @@ classdef ic_importer_impl < handle
                         obj.set_gui_string_item('Extension_popupmenu',obj.Extension);                            
                     end                    
                     %
-                    obj.onCheckOut;  
+                    obj.onCheckOut;                      
                     if strcmp(obj.status,'not set up')
                         errordlg(['Bad settings for data directory: ' char(dirs{d,1}) ' , batch is not set!']);
                         obj.Src = [];
@@ -983,6 +1057,8 @@ classdef ic_importer_impl < handle
                                   set(obj.gui.m7,'Enable',mode);
                                   set(obj.gui.m8,'Enable',mode);
                                   set(obj.gui.m9,'Enable',mode);
+                                  set(obj.gui.m10,'Enable',mode);
+                                  set(obj.gui.m11,'Enable',mode);                                  
             set(obj.gui.onCheckOut_button,'Enable',mode);
             set(obj.gui.onGo_button,'Enable',mode); 
             %
@@ -1416,8 +1492,8 @@ classdef ic_importer_impl < handle
             add_XmlAnnotation(obj.session,[],image,node);
             %
             obj.attach_image_annotations(image,full_filename);
-        end        
-%-------------------------------------------------------------------------%         
+        end                               
+%-------------------------------------------------------------------------%
         function extension = get_valid_file_extension(obj,filename,~)
             valid_extensions = obj.Extension_popupmenu_str;
             str = lower(filename);
@@ -2243,6 +2319,57 @@ classdef ic_importer_impl < handle
                 2) source contains several sub-directories of the type described in p. 1)
             %}
 
+            if ~isempty(obj.SrcList) && isempty(obj.Src) % BATCH
+                
+               srclist = obj.SrcList; 
+               [numdir, numsettings] = size(srclist);
+               
+               dirs = srclist(:,1);      
+                              
+               if numsettings > 1
+                   modulos =    srclist(:,2);
+                   variables =  srclist(:,3);
+                   unitss =     srclist(:,4);
+                   flim_modes = srclist(:,5);               
+                   extensions = srclist(:,6);
+               end
+                
+               hw = waitbar(0, 'transferring data, please wait...');
+               for d = 1:numdir                    
+                    obj.Src = char(dirs{d});                     
+                    % other settings
+                    if numsettings > 1
+                        obj.Modulo = char(modulos{d});
+                        obj.Variable = char(variables{d});
+                        obj.Units = char(unitss{d});
+                        obj.FLIM_mode = char(flim_modes{d});                                                    
+                        obj.Extension = char(extensions{d});
+                        %
+                        obj.set_gui_string_item('Modulo_popupmenu',obj.Modulo);
+                        obj.set_gui_string_item('Variable_popupmenu',obj.Variable);
+                        obj.set_gui_string_item('Units_popupmenu',obj.Units);
+                        obj.set_gui_string_item('FLIM_mode_popupmenu',obj.FLIM_mode);
+                        obj.set_gui_string_item('Extension_popupmenu',obj.Extension);                            
+                    end                    
+                    %
+                    obj.onCheckOut;
+                    obj.status = 'importing';
+                    %
+                    % JOB                    
+                    %    
+                    % TODO 
+                    %
+                    % JOB                    
+                    waitbar(d/numel(dirs), hw);
+                    drawnow;                    
+               end;                                             
+               delete(hw);
+               drawnow;
+               
+               return;
+                                            
+            end
+        
             whos_Dst = class(obj.Dst);        
         
             if isempty(obj.Src), errordlg('Source has not been set up - can not continue'), return, end;
@@ -2313,8 +2440,14 @@ classdef ic_importer_impl < handle
                     imageName = char(strng(length(strng)));    
                 ometiffilename = [savedir filesep imageName '.OME.tiff'];
                 %
-                set(obj.gui.Indi_name,'BackgroundColor','green');                 
-                save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, obj.FLIM_mode, ometiffilename);
+                set(obj.gui.Indi_name,'BackgroundColor','green');                     
+                
+                if strcmp(obj.Extension,'txt')
+                    % % ?? WRONG obj.Save_Single_Pix_as_OMEtiff(names_list,savedir);
+                else
+                    save_stack_as_OMEtiff(obj.Src, names_list, obj.Extension, dimension, obj.FLIM_mode, ometiffilename);
+                end
+                
                 set(obj.gui.Indi_name,'BackgroundColor','red');            
                 %
             elseif strcmp(save_mode,'multiple dirs')
@@ -2330,7 +2463,13 @@ classdef ic_importer_impl < handle
                         end
                         names_list_k = sort_nat(names_list_k);
                         ometiffilename = [savedir filesep nonemptydir_names{k} '.OME.tiff'];                                  
-                        save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, obj.FLIM_mode, ometiffilename);
+                        %
+                        if strcmp(obj.Extension,'txt')
+                            obj.Save_Single_Pix_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}],ometiffilename);
+                        else    
+                            save_stack_as_OMEtiff([char(obj.Src) filesep nonemptydir_names{k}], names_list_k, char(obj.Extension), dimension, obj.FLIM_mode, ometiffilename);
+                        end
+                        %                        
                     waitbar(k/numel(nonemptydir_names),hw);
                     drawnow
                 end
@@ -2366,7 +2505,7 @@ classdef ic_importer_impl < handle
             add_XmlAnnotation(obj.session,[],image,xmlnode);            
         end
 %-------------------------------------------------------------------------%
-function save_directories_as_SPW_OMEtiff_bunch(obj,savedir,~)
+function save_directories_as_SPW_OMEtiff_bunch(obj,savedir,~) % this doesn't work properly
 
 % verify that enough memory is allocated
 bfCheckJavaMemory();
@@ -2745,6 +2884,115 @@ else % try new multichannel
 end % if ~isempty(PlateSetups) % old plate format
 
 end
+%-------------------------------------------------------------------------%       
+        function Save_Single_Pix_as_OMEtiff(obj,file_names,output_dir)
+            %  
+            if strcmp(obj.Modulo,'none') || ~strcmp(obj.Extension,'txt')        
+                errordlg('Incompatible settings'),
+                return,
+            end;
+            %
+            if strcmp(obj.Variable,'lifetime') && ~strcmp(obj.FLIM_mode,'none') && ... 
+                    ~strcmp(obj.FLIM_mode,'TCSPC') && ~ strcmp(obj.FLIM_mode,'Time Gated')...
+                    && ( strcmp(obj.Units,'ps') || strcmp(obj.Units,'ns') )   
+                % this is FLIM..
+                if strcmp(obj.FLIM_mode,'TCSPC non-imaging')
+                    type_description = 'TCSPC';
+                else
+                    type_description = 'Gated';
+                end
+            else % still using Modulo..
+                type_description = 'Spectrum';
+            end
+            %
+            num_files = length(file_names);            
+
+                % verify that enough memory is allocated
+                bfCheckJavaMemory();
+                autoloadBioFormats = 1;
+
+                % load the Bio-Formats library into the MATLAB environment
+                status = bfCheckJavaPath(autoloadBioFormats);
+                assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
+                            'to the static Java path or add it to the Matlab path.']);
+
+                % initialize logging
+                loci.common.DebugTools.enableLogging('ERROR');
+
+                java.lang.System.setProperty('javax.xml.transform.TransformerFactory', 'com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl');
+                           
+            hw = waitbar(0, 'Upoading images...');                
+            for k=1:num_files
+                
+                waitbar(k/num_files,hw); drawnow;             
+            
+                full_filename = [obj.Src filesep char(file_names{k})];
+                
+                try
+                    D = load(lower(full_filename),'ascii');
+                catch err, display(err.message), return, 
+                end;
+                %
+                [~,n_ch1] = size(D);
+                chnls = (2:n_ch1)-1;    
+                [delays,im_data,~] = load_flim_file(lower(full_filename),chnls);
+                %
+                [sizeT,sizeC] = size(im_data);
+                %
+                sizeX = 1;
+                sizeY = 1;
+                sizeZ = 1;
+                %
+                data = zeros(sizeX,sizeY,sizeZ,sizeC,sizeT,class(im_data));
+                %
+                for c = 1 : sizeC,
+                    data(1,1,1,c,:) = im_data(:,c);
+                end
+                %                                               
+                metadata = createMinimalOMEXMLMetadata(data);
+
+                modlo = loci.formats.CoreMetadata();        
+
+                % Set channels ID and samples per pixel
+                toInt = @(x) ome.xml.model.primitives.PositiveInteger(java.lang.Integer(x));
+                for i = 1: sizeC
+                    metadata.setChannelID(['Channel:0:' num2str(i-1)], 0, i-1);
+                    metadata.setChannelSamplesPerPixel(toInt(1), 0, i-1);
+                end
+
+                if strcmp(type_description,'Gated')
+                        modlo.moduloT.type = loci.formats.FormatTools.LIFETIME;
+                        modlo.moduloT.unit = obj.Units;
+                        modlo.moduloT.typeDescription = type_description;
+                        modlo.moduloT.labels = javaArray('java.lang.String',length(delays));
+                        for i=1:length(delays)
+                            modlo.moduloT.labels(i)= java.lang.String(num2str(delays(i)));
+                        end                    
+                elseif strcmp(type_description,'TCSPC')
+                        modlo.moduloT.type = loci.formats.FormatTools.LIFETIME;
+                        modlo.moduloT.unit = obj.Units;
+                        modlo.moduloT.typeDescription = type_description;
+                        modlo.moduloT.start = delays(1);
+                        modlo.moduloT.end = delays(end);
+                        modlo.moduloT.step = (delays(end) - delays(1))./(length(delays)-1);
+                elseif strcmp(type_description,'Spectrum')
+                        % ?
+                end
+
+                OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
+
+                OMEXMLService.addModuloAlong(metadata,modlo,0);
+
+                cutfname = [output_dir filesep char(file_names{k})];
+                L = length(cutfname);
+                cutfname = cutfname(1:L-3);
+                full_output_filename = [cutfname 'OME.tiff'];            
+                bfsave(data, full_output_filename, 'metadata', metadata);
+            
+            end % for k = num_files     
+            delete(hw); drawnow;
+        end
+
     end % methods
     %    
 end

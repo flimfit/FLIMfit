@@ -31,6 +31,8 @@ bfCheckJavaMemory();
 % Check for required jars in the Java path
 bfCheckJavaPath();
                         
+java.lang.System.setProperty('javax.xml.transform.TransformerFactory','com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl');
+
 % Create metadata
 toInt = @(x) ome.xml.model.primitives.PositiveInteger(java.lang.Integer(x));
 OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
@@ -210,8 +212,8 @@ delete(hw); drawnow;
 
 writer.close();
 
-xmlValidate = loci.formats.tools.XMLValidate();
-comment = loci.formats.tiff.TiffParser(ometiffilename).getComment()
-xmlValidate.process(ometiffilename, java.io.BufferedReader(java.io.StringReader(comment)));
+% xmlValidate = loci.formats.tools.XMLValidate();
+% comment = loci.formats.tiff.TiffParser(ometiffilename).getComment()
+% xmlValidate.process(ometiffilename, java.io.BufferedReader(java.io.StringReader(comment)));
 
 end
