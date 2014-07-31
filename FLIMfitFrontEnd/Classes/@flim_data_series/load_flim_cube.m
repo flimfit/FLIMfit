@@ -189,7 +189,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
             
             
             % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.sdt','.msr','.ome', '.ics'}
+        case {'.sdt','.msr','.ome', '.ics', '.bin'}
            
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
