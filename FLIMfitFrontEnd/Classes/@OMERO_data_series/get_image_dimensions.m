@@ -72,8 +72,8 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     % NB no support for FLIM .ics files in OMERO
     if isempty(s)
         if findstr(char(image.getName.getValue() ),'ome.tif')
-            physZ = pixels.getPhysicalSizeZ().getValue();
             if 1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
+                physZ = pixels.getPhysicalSizeZ().getValue();
                 physSizeZ = physZ.*1000;     % assume this is in ns so convert to ps
                 dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
                 dims.modulo = 'ModuloAlongZ';
