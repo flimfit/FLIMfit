@@ -328,8 +328,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               
               
               
-          otherwise 
-            throw(MException('FLIM:UnknownExtension', 'Unknown Extension')); % thnx Marcus
+        otherwise 
+              errordlg('Error: Unknown File Extension!');
+              return; 
             
 
     end
