@@ -1,4 +1,4 @@
-Add a copy of the bio-formats Matlab toolbox  to this directory
+Add a copy of the bio-formats Matlab toolbox to this directory
 Download from: http://www.openmicroscoy.org.uk
 
 
