@@ -1,4 +1,4 @@
- function file = save_data_settings(obj,file)
+ function file = save_data_settings(obj,file,parent)
 
 
     % Copyright (C) 2013 Imperial College London.
@@ -28,23 +28,33 @@
         file = [];
     end
     
+    if nargin < 3
+        parent = [];
+    end
+    
     
     if obj.init  && ~isempty(obj.omero_data_manager.session)
 
-    
-        if ~isempty(obj.omero_data_manager.dataset)
-            parent = obj.omero_data_manager.dataset; 
+        if isempty(parent)    % parent not passed in 
+            if ~isempty(obj.omero_data_manager.dataset)
+                parent = obj.omero_data_manager.dataset; 
+            elseif ~isempty(obj.omero_data_manager.plate)
+                parent = obj.omero_data_manager.plate;   
+            else
+                return;
+            end
+        end  
+        if strfind(class(parent),'ataset')
             parentType = 'omero.model.Dataset';
-        elseif ~isempty(obj.omero_data_manager.plate)
-            parent = obj.omero_data_manager.plate; 
-            parentType = 'omero.model.Plate';
-        else
-            return;
         end
+        if strfind(class(parent),'late')
+            parentType = 'omero.model.Plate';
+        end
+        
 
         parentId = java.lang.Long(parent.getId().getValue());
 
-        % check whether an annotation of this name already exists
+       
         session = obj.omero_data_manager.session;
 
         annotators = java.util.ArrayList;

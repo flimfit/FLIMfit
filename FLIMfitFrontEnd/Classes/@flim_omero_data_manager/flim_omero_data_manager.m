@@ -391,7 +391,7 @@ classdef flim_omero_data_manager < handle
                 
                  str = split(':',data_series.names{1});
                  if 2 ~= numel(str)
-                    errordlg('names of FOVs are inconistent - ensure data were loaded from SPW Plate');
+                    errordlg('names of FOVs are inconsistent - ensure data were loaded from SPW Plate');
                     return;
                  end
                  %
@@ -547,14 +547,8 @@ classdef flim_omero_data_manager < handle
                 %
                 % data settings
                 data_settings_name = [' data settings ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
-                data_series.save_data_settings([root data_settings_name]);
-                add_Annotation(obj.session, obj.userid, ...
-                                object, ...
-                                sha1, ...
-                                file_mime_type, ...
-                                [root data_settings_name], ...
-                                description, ...
-                                namespace);               
+                data_series.save_data_settings(data_settings_name, object);
+                        
 
                 % fitting settings
                 fitting_settings_name = [' fitting settings ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
