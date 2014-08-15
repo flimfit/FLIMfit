@@ -346,7 +346,7 @@ function Export_Visualisation_Images(obj,plot_controller,data_series,flimfitpara
             %
             % data settings
             data_settings_name = [' data settings ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
-            data_series.save_data_settings(data_settings_name);
+            data_series.save_data_settings(data_settings_name, object);
                           
             
             % fitting settings
