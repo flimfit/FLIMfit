@@ -52,6 +52,8 @@
                 wait = true;
             end
             
+            % DEBUG for Goeroge's issue
+            opengl software
             
             set_splash('FLIMfit_splash1.tif');
            
