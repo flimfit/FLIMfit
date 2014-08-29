@@ -52,8 +52,11 @@
                 wait = true;
             end
             
-            % DEBUG for Goeroge's issue
-            opengl software
+            % Fix for inverted text in segmentation on one PC
+            % use software to do graphics where available
+            if ~isempty(strfind(computer,'PCWIN'))
+                opengl software;
+            end
             
             set_splash('FLIMfit_splash1.tif');
            
