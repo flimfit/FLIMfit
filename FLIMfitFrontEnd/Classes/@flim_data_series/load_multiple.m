@@ -42,7 +42,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
 
     obj.mode = dims.FLIM_type;
 
-    % Determine which channels we need to load 
+    % Determine which planes we need to load 
     obj.ZCT = obj.get_ZCT( dims, polarisation_resolved, dims.chan_info );
     
     if isempty(obj.ZCT)
