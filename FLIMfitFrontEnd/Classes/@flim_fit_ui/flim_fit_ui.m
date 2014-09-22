@@ -47,11 +47,16 @@ classdef flim_fit_ui
             end
             
             if ~isdeployed
-                addpath_global_analysis()
+                addpath_global_analysis();
             else
                 wait = true;
             end
             
+            % Fix for inverted text in segmentation on one PC
+            % use software to do graphics where available
+            if ~isempty(strfind(computer,'PCWIN'))
+                opengl software;
+            end
             
             set_splash('FLIMfit_splash1.tif');
            
@@ -170,6 +175,24 @@ classdef flim_fit_ui
 
             guidata(obj.window,handles);
             
+            
+            loadOmero();
+           
+            % verify that enough memory is allocated
+            bfCheckJavaMemory();
+          
+            % load both bioformats & OMERO
+            autoloadBioFormats = 1;
+
+            % load the Bio-Formats library into the MATLAB environment
+            status = bfCheckJavaPath(autoloadBioFormats);
+            assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
+                'to the static Java path or add it to the Matlab path.']);
+
+            % initialize logging
+            %loci.common.DebugTools.enableLogging('INFO');
+            loci.common.DebugTools.enableLogging('ERROR');
+            
             close all;
             
             set(obj.window,'Visible','on');
@@ -215,7 +238,7 @@ classdef flim_fit_ui
                 handles.omero_data_manager.session = [];
                 handles.omero_data_manager.client = [];
             end
-
+            
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
                       
@@ -227,7 +250,7 @@ classdef flim_fit_ui
                 end
             end
             
-            % Finally actaully close window
+            % Finally actually close window
             delete(handles.window);
             
         end

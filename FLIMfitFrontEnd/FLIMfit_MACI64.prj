@@ -75,6 +75,7 @@
       <file>${PROJECT_ROOT}/LicenseFiles</file>
       <file>${PROJECT_ROOT}/LicenseFiles/Third Party Licenses.txt</file>
       <file>${PROJECT_ROOT}/OMEROMatlab</file>
+      <file>${PROJECT_ROOT}\BFMatlab</file>
       <file>${PROJECT_ROOT}/OMEROUtilities</file>
       <file>${PROJECT_ROOT}/SegmentationFunctions</file>
       <file>${PROJECT_ROOT}/SegmentationFunctions/Support</file>

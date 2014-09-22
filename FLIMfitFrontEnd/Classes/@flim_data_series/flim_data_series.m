@@ -189,6 +189,13 @@ classdef flim_data_series < handle & h5_serializer
         
         active = 1;
         
+        ZCT = []; % cell array containing missing OME dimensions Z,C,T (in that order)  
+        modulo = [];
+        bfOmeMeta = [];
+        bfReader = [];
+        
+        txtInfoRead = [];
+        
     end
     
     events
@@ -200,7 +207,7 @@ classdef flim_data_series < handle & h5_serializer
     methods(Static)
         
         data = smooth_flim_data(data,extent,mode)
-        [n_chan, chan_info] = get_channels(FileName)
+       
              
         function data = ensure_correct_dimensionality(data)
             %> Ensure that data has singleton dimension for polarisation
@@ -210,28 +217,6 @@ classdef flim_data_series < handle & h5_serializer
             end
         end
         
-        function [channel,block] = request_channels(polarisation_resolved)
-            %> Request which channels to use from dataset via dialog box
-            if polarisation_resolved
-                dlgTitle = 'Select channels';
-                prompt = {'Parallel Channel ';'Perpendicular Channel ';'Block '};
-                defaultvalues = {'1','2','0'};
-                numLines = 1;
-                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                ret = str2double(inputdata);
-                channel = uint32(ret(1:2));
-                block = ret(3);
-            else
-                dlgTitle = 'Select channel';
-                prompt = {'Channel ','Block '};
-                defaultvalues = {'1','0'};
-                numLines = 1;
-                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                ret = str2double(inputdata);
-                channel = uint32(ret(1));
-                block = ret(2);
-            end
-       end
         
     end
     
@@ -241,6 +226,8 @@ classdef flim_data_series < handle & h5_serializer
         %===============================================================
 
         function obj = flim_data_series()
+            
+            use_memory_mapping = true;
             
             del_files = dir([tempdir 'GPTEMP*']);
             
@@ -301,10 +288,12 @@ classdef flim_data_series < handle & h5_serializer
         
         function load_data_settings(obj,file)
             %> Load data setting file 
-            obj.suspend_transformation = true;
-            marshal_object(file,'flim_data_series',obj);
-            notify(obj,'masking_updated');
-            obj.suspend_transformation = false;
+            if exist(file,'file')         
+                obj.suspend_transformation = true;
+                obj.marshal_object(file);
+                notify(obj,'masking_updated');
+                obj.suspend_transformation = false;
+            end
         end
         
         function file = save_data_settings(obj,file)
@@ -313,10 +302,14 @@ classdef flim_data_series < handle & h5_serializer
                 file = [];
             end
             if obj.init
+                
                 if isempty(file)
-                    pol_idx = obj.polarisation_resolved + 1;
-                    if ~isempty(obj.root_path)      % data opened from OMERO so no root_path
-                        file = [obj.root_path obj.data_settings_filename{pol_idx}];
+                    choice = questdlg('Would you like to save the current settings?', ...
+                    'Save Data Settings in the current directory', ...
+                    'Yes','No','No');
+                    if strcmp(choice,'Yes')
+                        pol_idx = obj.polarisation_resolved + 1;
+                        file = [obj.root_path obj.data_settings_filename{pol_idx}];     
                     end
                 end
                 
@@ -937,11 +930,22 @@ classdef flim_data_series < handle & h5_serializer
 
         end
         
+        function clear(obj)
+            if ~isempty(obj.intensity)
+                % clear intensity display
+                obj.intensity(:) = 0;
+                notify(obj,'data_updated');
+                obj.delete();
+            end
+        end
+            
+        
         %===============================================================
         
         function delete(obj)
-           % On object deletion, clear mapped data 
+           
            obj.save_data_settings();
+           % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
            
         end

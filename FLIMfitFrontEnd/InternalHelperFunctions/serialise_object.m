@@ -1,4 +1,4 @@
-function serialise_object(obj,file,name)
+function DOMnode = serialise_object(obj,file,name)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -24,8 +24,8 @@ function serialise_object(obj,file,name)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-
-
+    
+   
     if isstruct(obj)
         if nargin < 3
             name = 'data';
@@ -67,7 +67,13 @@ function serialise_object(obj,file,name)
             end
         end
     
-        xmlwrite(file,docNode);
+        if isempty(file)
+            % if no file specified simply return the DOM
+            DOMnode = xmlwrite(file,docNode);
+        else
+            xmlwrite(file,docNode);
+        end
+        
     catch e
         warning('GlobalAnalysis:CouldNotWriteFile','Could not write serialised file');
     end

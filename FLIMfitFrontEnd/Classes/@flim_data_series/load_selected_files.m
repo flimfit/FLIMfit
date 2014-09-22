@@ -67,7 +67,11 @@ function load_selected_files(obj,selected)
         obj.init_memory_mapping(obj.data_size(1:4), num_sel, obj.mapfile_name);
     
     else
+        
+     
         if obj.use_memory_mapping
+            
+            obj.data_series_mem = single(zeros([obj.data_size' 1]));
             
             obj.data_type = 'single';
             
@@ -75,66 +79,21 @@ function load_selected_files(obj,selected)
             mapfile = fopen(mapfile_name,'w');
 
             for j=1:num_sel
-
-                filename = '';
-                try
-                    if obj.load_multiple_channels
-                        filename = obj.file_names{1};
-                        [~,data] = load_flim_file(filename,obj.channels(selected(j)),obj.block);
-                    else
-                        filename = obj.file_names{selected(j)};
-                        [~,data] = load_flim_file(filename,obj.channels,obj.block);
-                    end
-                catch
-                    disp(['Warning: could not load dataset ' filename ', replacing with blank']);
-                    data = zeros(obj.data_size(1:4)');
+               
+                if length(obj.file_names) > 1
+                    filename = obj.file_names{selected(j)};
+                else
+                    filename = obj.file_names{1}; 
                 end
-                    
+               
+                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,1);
                 
-                if false && ~isdeployed
-                   
-                    if obj.polarisation_resolved
-                        
-                        data = data * 100;
-
-                        if j==1
-
-                            intensity = squeeze(sum(data,1));
-                            para = squeeze(intensity(1,:,:));
-                            perp = squeeze(intensity(2,:,:));
-
-                            
-                            [opt,metric] = imregconfig('monomodal'); 
-                            [perp2,tx] = imregister2(perp,para,'rigid',opt,metric);
-                            
-                             figure(56)
-                            subplot(1,2,1);
-                            imagesc((para-perp)./(para+2*perp));
-                            subplot(1,2,2);
-                            imagesc((para-perp2)./(para+2*perp2));
-                            
-                            disp('Warning! Realigning perpendicular channel')
-                        end
-                        
-                       
-                    
-                        for i=1:size(data,1)
-                            
-                            plane = squeeze(data(i,2,:,:));
-                            plane = imtransform(plane,tx,'XData',[1 size(plane,2)],'YData',[1 size(plane,1)]);
-                            data(i,2,:,:) = plane;
-                        end
-                        
-                    end
-                    
-                end
-                
-                
-                if isempty(data) || size(data,1) ~= obj.n_t || numel(data)~=prod(obj.data_size)
-                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size is (' num2str(size(data)), '), expected (' num2str(obj.data_size') ')'])
-                    data = zeros([obj.n_t obj.n_chan obj.height obj.width]);
+                if ~success
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
                 end
 
+                data = obj.data_series_mem(:,:,:,:,1);
+              
                 c1=fwrite(mapfile,data,'single');
 
                 if using_popup
@@ -147,72 +106,23 @@ function load_selected_files(obj,selected)
             
             obj.init_memory_mapping(obj.data_size(1:4), num_sel, mapfile_name);    
         else
+            
+             obj.data_series_mem = single(zeros([obj.data_size' num_sel]));
            
             for j=1:num_sel
 
-                if obj.load_multiple_channels
-                    filename = obj.file_names{1};
-                    [~,data] = load_flim_file(filename,obj.channels(selected(j)));
-                else
+                if length(obj.file_names) > 1
                     filename = obj.file_names{selected(j)};
-                    [~,data] = load_flim_file(filename,obj.channels);
+                else
+                    filename = obj.file_names{1};  
                 end
                 
+                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,j);
                 
-                 if false && ~isdeployed
-                   
-                    if obj.polarisation_resolved && ndims(data) > 3
-                        
-                        data = data * 100;
-
-                        if j==1 
-                            
-                            intensity = squeeze(sum(data,1));
-                            para = squeeze(intensity(1,:,:));
-                            perp = squeeze(intensity(2,:,:));
-
-                            
-                            mask = (perp+para) < 20000;
-                            
-                            
-                            [opt,metric] = imregconfig('multimodal'); 
-                            [perp2,tx] = imregister2(perp,para,'rigid',opt,metric);
-                            
-                            a1 = (para-perp)./(para+2*perp);
-                            a2 = (para-perp2)./(para+2*perp2);
-                            
-                            a1(mask) = 0;
-                            a2(mask) = 0;
-                            
-                            
-                            figure(56)
-                            subplot(1,2,1);
-                            imagesc(a1);
-                            caxis([0.2 0.5])
-                            subplot(1,2,2);
-                            imagesc(a2);
-                            caxis([0.2 0.5]);
-                            disp('Warning! Realigning perpendicular channel')
-                        end
-                        
-                       
-                    
-                        for i=1:size(data,1)
-                            
-                            plane = squeeze(data(i,2,:,:));
-                            plane = imtransform(plane,tx,'XData',[1 size(plane,2)],'YData',[1 size(plane,1)]);
-                            data(i,2,:,:) = plane;
-                        end
-                        
-                    end
-                    
+               
+                if ~success
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
                 end
-                
-                
-                
-                
-                obj.data_series_mem(:,:,:,:,j) = single(data);
-                
 
                 if using_popup
                     waitbar(j/num_sel,wait_handle)
@@ -226,8 +136,9 @@ function load_selected_files(obj,selected)
         end
 
     end
-        
-            
+    
+    
+               
     if using_popup
         close(wait_handle)
     end

@@ -1,4 +1,4 @@
-function load_irf(obj,file,load_as_image)
+function load_irf(obj,file_or_image,load_as_image)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -27,38 +27,58 @@ function load_irf(obj,file,load_as_image)
 
      prof = get_profile();    
    
+     if strcmp(class(file_or_image),'char')
+        file = file_or_image;
+     else
+        file = char(file_or_image.getName().getValue());
+     end
     
-    [path,name,ext] = fileparts(file);
+     [path,name,ext] = fileparts_inc_OME(file);
+        
     if strcmp(ext,'.xml')
-       
-        marshal_object(file,'flim_data_series',obj);
-   
+        obj.marshal_object(file);
     else
+        
+        dims = obj.get_image_dimensions(file_or_image);
+        
+        if isempty(dims.delays)
+            return;
+        end;
+  
+        chan_info = dims.chan_info;
+       
+        % Determine which channels we need to load (param 4 disallows the
+        % selection of multiple planes )
+        ZCT = obj.get_ZCT( dims, obj.polarisation_resolved ,chan_info, false);
+    
+        if isempty(ZCT)
+            return;
+        end;
 
-        if strcmp(obj.mode,'TCSPC')
-            channel = obj.request_channels(obj.polarisation_resolved);
-        else
-            channel = 1;
-        end
 
         if nargin < 3
             load_as_image = false;
         end
-
-        [t_irf,irf_image_data] = load_flim_file(file,channel);    
-        irf_image_data = double(irf_image_data);
-
-        % Sum over pixels
-        s = size(irf_image_data);
-        if length(s) == 3
-            irf = reshape(irf_image_data,[s(1) s(2)*s(3)]);
-            irf = mean(irf,2);
-        elseif length(s) == 4
-            irf = reshape(irf_image_data,[s(1) s(2) s(3)*s(4)]);
+        
+        t_irf = dims.delays;
+        sizet = length(t_irf);
+        sizeX = dims.sizeXY(1);
+        sizeY = dims.sizeXY(2);
+        
+       
+        if obj.polarisation_resolved
+            irf_image_data = zeros(sizet, 2, sizeX, sizeY, 1);
+            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file_or_image,1,dims, ZCT);
+            irf = reshape(irf_image_data,[sizet 2 sizeX * sizeY]);
             irf = mean(irf,3);
         else
-            irf = irf_image_data;
+            irf_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
+            [success , irf_image_data] = obj.load_flim_cube(irf_image_data, file_or_image,1,dims, ZCT);
+            irf = reshape(irf_image_data,[sizet  sizeX * sizeY]);
+            irf = mean(irf,2);
         end
+       
+         
 
         % export may be in ns not ps.
         if max(t_irf) < 300

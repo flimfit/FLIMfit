@@ -60,7 +60,7 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     uiextras.Empty( 'Parent', opt_layout );
         
     handles.hist_addcolour_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Off' 'On'}, 'Parent', opt_layout );
+            'String', {'On' 'Off'}, 'Parent', opt_layout );
    uiextras.Empty( 'Parent', opt_layout );
     
     set( hist_layout, 'Sizes', [-1,70] );

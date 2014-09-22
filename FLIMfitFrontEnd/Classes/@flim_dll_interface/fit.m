@@ -47,6 +47,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
    
     % If called without arguments we're continuing a fit
     if nargin > 1
+        
         obj.data_series = data_series;
         obj.fit_params = fit_params;
         obj.fit_round = 1;

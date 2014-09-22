@@ -64,7 +64,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         end
         
         
-        % Crop timegates
+        % Crop timegates  
         t_inc = obj.tr_t_all >= obj.t_min & obj.tr_t_all <= obj.t_max;
         
 
@@ -254,11 +254,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         obj.compute_tr_irf();
         
-                
-
-        
-        
-        
+ 
         
         obj.compute_intensity();
         obj.compute_tr_tvb_profile();        

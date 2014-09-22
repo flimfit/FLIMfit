@@ -132,6 +132,8 @@ function compile(v)
             fclose(f);
             
             copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
+            
+            
 
             if strcmp(sys,'64')
                 arch = 'x64';
@@ -205,7 +207,7 @@ function compile(v)
             disp( 'NB Currently uses GCC as configured at University of  Dundee!! ');
             disp ('If building elewhere use the appropriate ,platypus file!');
             
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
+            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47HB.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
             
             
             system(cmd);

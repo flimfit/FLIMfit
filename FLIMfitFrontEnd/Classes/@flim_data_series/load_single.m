@@ -1,4 +1,4 @@
-function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
+function load_single(obj,file,polarisation_resolved)
     %> Load a single FLIM dataset
     
     % Copyright (C) 2013 Imperial College London.
@@ -25,18 +25,7 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-    
-    [path,name,ext] = fileparts(file);
-
-    if strcmp(ext,'.raw')
-        obj.load_raw_data(file);
-        return;
-    end
-    
-    if is64
-        obj.use_memory_mapping = false;
-    end
-    
+   
     if nargin < 3
         polarisation_resolved = false;
     end
@@ -47,68 +36,43 @@ function load_single(obj,file,polarisation_resolved,data_setting_file,channel)
         channel = [];
     end
     
-    obj.root_path = ensure_trailing_slash(path);    
     
-    % Determine which channels we need to load 
-    if (strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.csv')) && isempty(channel)
-        if polarisation_resolved
-            channel = obj.request_channels(polarisation_resolved);
-        else
-            [n_channels_present channel_info] = obj.get_channels(file);
-            if n_channels_present > 1
-                [obj.names,channel] = dataset_selection(channel_info);
-                obj.load_multiple_channels = true;
-            else 
-                channel = 1;
-            end
-        end
+    [path,name,ext] = fileparts_inc_OME(file);
+    
+    if strcmp(ext,'.raw')
+        obj.load_raw_data(file);
+        return;
     end
     
-%    if strcmp(ext,'.bin'), channel = 1; end; % hack
-    
-    % Load data file
-    [obj.t,data,obj.t_int,tcspc] = load_flim_file(file,channel);
-    
-    if ~strcmp(ext,'.raw')
-        if tcspc == 1
-            obj.mode = 'TCSPC';
-        else
-            obj.mode = 'widefield';
-        end
+    % must be done after test for .raw as load_raw_data requires mem mapping
+    if is64
+        obj.use_memory_mapping = false;
     end
     
+  
+    obj.root_path = ensure_trailing_slash(path); 
+    obj.polarisation_resolved = polarisation_resolved;
+    
+    obj.n_datasets = 1;
     obj.file_names = {file};
-    obj.channels = channel;
+    obj.lazy_loading = false;
+    
+    
     
     if isempty(obj.names)
         % Set names from file names
-        if strcmp(ext,'.sdt') || strcmp(ext,'.txt') || strcmp(ext,'.irf') ||  strcmp(ext,'.bin')
-            if isempty(obj.names)    
-                obj.names{1} = name;
-            end
-        else
+        if strcmp(ext,'.tif')
             path_parts = split(filesep,path);
-            obj.names{1} = path_parts{end};
+            names{1} = path_parts{end};
+        else
+            if isempty(obj.names)    
+                names{1} = name;
+            end
         end
+        obj.names = names;
     end
     
-    obj.n_datasets = length(obj.names);
+    obj.load_multiple(polarisation_resolved, data_setting_file);
     
-    obj.polarisation_resolved = polarisation_resolved;
-   
-    data = obj.ensure_correct_dimensionality(data);
-    obj.data_size = size(data);
-    
-    if obj.load_multiple_channels
-        obj.data_size(5) = obj.data_size(2);
-        obj.data_size(2) = 1;
-    end
-    
-       
-    obj.metadata = extract_metadata(obj.names);
-    
-    obj.load_selected_files();
-        
-    obj.init_dataset(data_setting_file);
-
+  
 end
