@@ -72,9 +72,13 @@ function update_plots(obj,file_root)
     end
     
     for cur_im = ims
-
+        
         if save
-            name_root = [root ' ' r.names{cur_im}];
+            % replace any full-stops in name with an underscore 
+            % full stops seem to be interpreted as start of an extension
+             name = r.names{cur_im};
+             name = strrep(name,'.','_');
+             name_root = [root ' ' name];
         end
 
         subplot_idx = 1;
