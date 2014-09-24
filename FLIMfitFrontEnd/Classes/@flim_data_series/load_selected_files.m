@@ -68,10 +68,12 @@ function load_selected_files(obj,selected)
     
     else
         
+         mem_size = obj.data_size(1:4);
      
         if obj.use_memory_mapping
             
-            obj.data_series_mem = single(zeros([obj.data_size' 1]));
+          
+            obj.data_series_mem = single(zeros([mem_size' 1]));
             
             obj.data_type = 'single';
             
@@ -104,10 +106,10 @@ function load_selected_files(obj,selected)
 
             fclose(mapfile);
             
-            obj.init_memory_mapping(obj.data_size(1:4), num_sel, mapfile_name);    
+            obj.init_memory_mapping(mem_size, num_sel, mapfile_name);    
         else
             
-             obj.data_series_mem = single(zeros([obj.data_size' num_sel]));
+             obj.data_series_mem = single(zeros([mem_size' num_sel]));
            
             for j=1:num_sel
 
