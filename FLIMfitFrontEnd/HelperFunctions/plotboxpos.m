@@ -105,6 +105,11 @@ else
     end
 end
 
+if ~(pos(1)>0), pos(1) = 1e-10; end;
+if ~(pos(2)>0), pos(2) = 1e-10; end;
+if ~(pos(3)>0), pos(3) = 1e-10; end;
+if ~(pos(4)>0), pos(4) = 1e-10; end;
+
 global f_temp
 if isempty(f_temp) || ~ishandle(f_temp)
     f_temp = figure('Visible','off');
