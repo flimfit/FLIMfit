@@ -95,6 +95,7 @@ WinVersionTooHighError=This will install [name/ver] on your computer.%n%nIt is r
 procedure InitializeWizard();
 begin
  itd_init;
+ itd_setstring('UI_AllowContinue', 1); // allow downloads to fail
  //Start the download after the "Ready to install" screen is shown
  itd_downloadafter(wpReady);
 end;
@@ -144,13 +145,18 @@ begin
       itd_addfile(url,expandconstant('{tmp}\MatlabMCR.zip'));  
     end;  
     
-    if {#MyAppSystem} = 64 then
-       url := '{#GhostscriptUrl64}'
-    else
-       url := '{#GhostscriptUrl32}';
-    Log('Adding Ghostscript Download: ' + url);
-    itd_addfile(url,expandconstant('{tmp}\Ghostscript.exe'));    
-    
+  if GhostscriptInstalled = true then
+      Log('Required MCR version already installed')
+  else
+    begin
+      if {#MyAppSystem} = 64 then
+        url := '{#GhostscriptUrl64}'
+      else
+        url := '{#GhostscriptUrl32}';
+      Log('Adding Ghostscript Download: ' + url);
+      itd_addfile(url,expandconstant('{tmp}\Ghostscript.exe'));    
+    end;
+
   Result := true;
 end;
 
