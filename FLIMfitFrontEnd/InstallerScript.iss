@@ -95,7 +95,7 @@ WinVersionTooHighError=This will install [name/ver] on your computer.%n%nIt is r
 procedure InitializeWizard();
 begin
  itd_init;
- itd_setstring('UI_AllowContinue', 1); // allow downloads to fail
+ itd_setoption('UI_AllowContinue', '1'); // allow downloads to fail
  //Start the download after the "Ready to install" screen is shown
  itd_downloadafter(wpReady);
 end;
