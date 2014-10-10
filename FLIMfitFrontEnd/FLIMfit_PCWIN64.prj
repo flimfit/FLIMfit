@@ -114,6 +114,8 @@
         <directory>${PROJECT_ROOT}\OMEROMatlab\roi</directory>
         <directory>${PROJECT_ROOT}\OMEROUtilities</directory>
         <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
+        <directory>${MATLAB_ROOT}\toolbox\images\images</directory>
+        <directory>${MATLAB_ROOT}\toolbox\images\images\private</directory>
         <directory>${PROJECT_ROOT}\HelperFunctions\doubleops_PCWIN64</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\testframework</directory>
         <directory>${MATLAB_ROOT}\toolbox\matlab\demos</directory>
