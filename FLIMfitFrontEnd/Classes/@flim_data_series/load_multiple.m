@@ -51,7 +51,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     
     % handle exception where there is only one file or image 
-    % so multiple Z, C ot T are allowed
+    % so multiple Z, C or T are allowed
     if length(obj.file_names) == 1
         % for the time being assume only 1 dimension can be > 1 
         % otherwise this will go horribly wrong !

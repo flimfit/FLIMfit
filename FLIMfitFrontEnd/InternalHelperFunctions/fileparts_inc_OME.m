@@ -35,6 +35,7 @@ function [ path,name,ext ] = fileparts_inc_OME( file )
              tail = (name(end-3:end));
              if strcmpi(tail,'.ome')  || strcmpi(tail,'.o.e')
                 ext = '.ome';
+                name = name(1:end-4);
              end
          end
     end
