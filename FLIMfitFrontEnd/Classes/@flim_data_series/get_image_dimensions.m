@@ -184,7 +184,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                  
                 
                 if ~isempty(strfind(modlo.unit,'NS')) || ~isempty(strfind(modlo.unit,'ns'))
-                    dims.delays = ret.delays.* 1000;
+                    dims.delays = dims.delays.* 1000;
                 end
                 
          
