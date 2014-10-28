@@ -38,7 +38,7 @@ function handles = setup_menu(obj,handles)
     
     menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
     handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
-    handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load TCSPC Dataset...','Separator','on','Accelerator','Y');
+    handles.menu_file_load_tcspc_pol = uimenu(menu_file_load_pol,'Label','Load FLIM Dataset...','Separator','on','Accelerator','Y');
 
 
     menu_file_acceptor = uimenu(menu_file,'Label','Acceptor Images...');

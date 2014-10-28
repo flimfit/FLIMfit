@@ -567,7 +567,7 @@ classdef front_end_menu_controller < handle
             end
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
-                obj.data_series_controller.load_data_series(folder,'TCSPC',true);
+                obj.data_series_controller.load_data_series(folder,'bio-formats',true);
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
                 end
