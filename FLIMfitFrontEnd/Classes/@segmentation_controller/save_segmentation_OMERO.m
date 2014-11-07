@@ -38,7 +38,7 @@ function save_segmentation_OMERO(obj)
     size_filt_mask = size(obj.filtered_mask);
     if isempty(size_filt_mask) || ... 
             ( numel(size_filt_mask) == 2 && size_filt_mask(1) == 0 && size_filt_mask(2) == 0 )
-        errordlg('nothnig was segmented? cannot continue..'), return, 
+        errordlg('nothing was segmented? cannot continue..'), return, 
     end;
         
             delete_previous_ROIs = false;
@@ -60,18 +60,16 @@ function save_segmentation_OMERO(obj)
     hw = waitbar(0, 'Transferring ROIs to OMERO, please wait....');
     drawnow;
         
-    for i=1:d.n_datasets
+    for i=1:length(d.file_names)
        
         L = obj.filtered_mask(:,:,i);
         
         if ~isempty(L)
-            %
-            myimages = getImages(session,d.image_ids(i)); 
-            image = myimages(1);                        
-            %
-            if (delete_previous_ROIs) delete_FOV_shapes( d.omero_data_manager.session,image ), end;
-            %
-            save_segmented_labelled_FOV_as_Omero_ROI_masks( d.omero_data_manager.session, L, image, text_label );            
+    
+            image = d.file_names{i};
+            if (delete_previous_ROIs) delete_FOV_shapes( session,image ), end;
+            
+            save_segmented_labelled_FOV_as_Omero_ROI_masks( session, L, image, text_label );            
         end
      
         waitbar(i/d.n_datasets,hw);
