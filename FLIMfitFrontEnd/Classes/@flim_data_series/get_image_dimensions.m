@@ -112,9 +112,8 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             if seriesCount > 1
                 block = [];
                 nimages = num2str(seriesCount);
-                while isempty(block) ||  block > seriesCount  ||  block < 1 
-                    
-                    prompt = {sprintf(['This file holds ' nimages ' images. Numbered 0-' (nimages -1) '\n Please select one'])};
+                while isempty(block) ||  block > seriesCount  ||  block < 1   
+                    prompt = {sprintf(['This file holds ' nimages ' images. Numbered 0-' num2str(seriesCount -1) '\n Please select one'])};
                     dlgTitle = 'Multiple images in File! ';
                     defaultvalues = {'0'};
                     numLines = 1;
