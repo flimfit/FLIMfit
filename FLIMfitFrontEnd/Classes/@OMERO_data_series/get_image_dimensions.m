@@ -101,7 +101,7 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
              else
                  wave = channels.get(c -1).getLogicalChannel().getEmissionWave();
                  if ~isempty(wave)
-                    dims.chan_info{c} = wave.getValue();
+                    dims.chan_info{c} = char(wave.getValue());
                  end
              end
          end
