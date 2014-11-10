@@ -50,6 +50,17 @@ for thisROI  = 1:n
                 W = shape.getWidth().getValue;
                 H = shape.getHeight().getValue;
                 bytes = shape.getBytes();
+                
+                % code to convert byte mask to double
+                dvec = zeros(1,length(bytes).*8);
+                outputctr = 1;
+                for b = 1:length(bytes)
+                    dvec(outputctr:outputctr + 7) = bitget(bytes(b),8:-1:1);
+                    outputctr = outputctr + 8;
+                end
+                %truncate double vector to size of original mask
+                dvec = dvec(1:H.*W);
+                
                 mask = reshape(bytes,[H,W]);
 
                 for x=1:W
