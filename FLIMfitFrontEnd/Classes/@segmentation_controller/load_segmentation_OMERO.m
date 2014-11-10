@@ -34,7 +34,7 @@ function load_segmentation_OMERO(obj)
     session = d.omero_data_manager.session;    
     
     segmentation_description = [];    
-    ROI_descriptions_list = get_ROI_descriptions( session, d.image_ids  );
+    ROI_descriptions_list = get_ROI_descriptions( session, d.file_names  );
     
     if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
     
@@ -62,10 +62,9 @@ function load_segmentation_OMERO(obj)
     
     h = waitbar(0,'Loading segmentation images');
         
-    for i=1:d.n_datasets
+    for i=1:length(d.file_names)
 
-        myimages = getImages(session,d.image_ids(i)); 
-        image = myimages(1);           
+        image = d.file_names{i};
         mask = get_FOV_masks(session, image, segmentation_description);
         
         mask(mask>255)=0;

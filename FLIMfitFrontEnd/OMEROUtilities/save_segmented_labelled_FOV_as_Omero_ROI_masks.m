@@ -43,7 +43,8 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                         m(x,y) = 1;                        
                     end
                     %
-                    mask = createMask(x0,y0,m);
+                    % mask = createMask(x0,y0,m); % OMEROMAtlab
+                    mask = create_mask(x0,y0,m); % hack                    
                     % mask.setTextValue(omero.rtypes.rstring(text_label));                    
                     setShapeCoordinates(mask, 0, 0, 0);
                     %
@@ -54,5 +55,32 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                     roi.setImage(omero.model.ImageI(image.getId.getValue, false));
                     roi = iUpdate.saveAndReturnObject(roi);
             end    
+            
+    function msk = create_mask(x, y, m)
+        
+        if nargin == 1,
+            msk = create_mask(0, 0, x);
+            return
+        end
+
+        % Check input
+        isvalidmaskinput = @(x) (isnumeric(x) || islogical(x)) && numel(x) > 0;
+        ip = inputParser;
+        ip.addRequired('x', @isscalar);
+        ip.addRequired('y', @isscalar);
+        ip.addRequired('m', isvalidmaskinput);
+        ip.parse(x, y, m);
+                
+        % Create Mask shape
+        msk = omero.model.MaskI;
+        msk.setX(rdouble(x));
+        msk.setY(rdouble(y));
+        msk.setWidth(rdouble(size(m, 2)));
+        msk.setHeight(rdouble(size(m, 1)));        
+            x_bytes = cast(m,'uint8');        
+        msk.setBytes(x_bytes(:));
+                        
+    end
+            
 end
 

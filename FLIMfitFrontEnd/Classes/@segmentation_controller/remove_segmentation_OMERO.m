@@ -34,7 +34,7 @@ function remove_segmentation_OMERO(obj)
     session = d.omero_data_manager.session;    
     
     segmentation_description = [];    
-    ROI_descriptions_list = get_ROI_descriptions( session, d.image_ids  );
+    ROI_descriptions_list = get_ROI_descriptions( session, d.file_names  );
     
     if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
     
@@ -54,10 +54,9 @@ function remove_segmentation_OMERO(obj)
     hw = waitbar(0, ['Deleting segmentation "' segmentation_description '", please wait....']);
     drawnow;
         
-    for i=1:d.n_datasets
+    for i=1:length(d.file_names)
        
-            myimages = getImages(session,d.image_ids(i));             
-            image = myimages(1);
+            image = d.file_names{i};
 
             roiResult = service.findByImage(image.getId.getValue, []);
             rois = roiResult.rois;

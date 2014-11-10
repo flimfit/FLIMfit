@@ -27,12 +27,11 @@ str = [];
 
 service = session.getRoiService();
 
-  for i=1:numel(images)
+  for i=1:length(images)
 
-        myimages = getImages(session,images(i)); 
-        image = myimages(1);           
+%        image = images{i};
         
-        roiResult = service.findByImage(image.getId.getValue, []);
+        roiResult = service.findByImage(images{i}.getId.getValue, []);
         rois = roiResult.rois;
         n = rois.size;
         

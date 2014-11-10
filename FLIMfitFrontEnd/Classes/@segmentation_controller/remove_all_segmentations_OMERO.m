@@ -28,7 +28,6 @@ function remove_all_segmentations_OMERO(obj)
     disp('remove_all_segmentations_OMERO');
     
     d = obj.data_series_controller.data_series;
-    session = d.omero_data_manager.session;
     
     if ~isa(d,'OMERO_data_series')
         errordlg('images are not originated from OMERO, cannot continue..'), return, 
@@ -43,9 +42,8 @@ function remove_all_segmentations_OMERO(obj)
     hw = waitbar(0, 'Deleting segmentations, please wait....');
     drawnow;
         
-    for i=1:d.n_datasets       
-        myimages = getImages(session,d.image_ids(i));             
-        delete_FOV_shapes( d.omero_data_manager.session,myimages(1) );     
+    for i=1:length(d.file_names)
+        delete_FOV_shapes( d.omero_data_manager.session,d.file_names{i} );     
         %
         waitbar(i/d.n_datasets,hw);
         drawnow;                
