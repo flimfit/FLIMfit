@@ -43,8 +43,7 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                         m(x,y) = 1;                        
                     end
                     %
-                    % mask = createMask(x0,y0,m); % OMEROMAtlab
-                    mask = create_mask(x0,y0,m); % hack                    
+                    mask = createMask(x0,y0,m); % OMEROMAtlab                  
                     % mask.setTextValue(omero.rtypes.rstring(text_label));                    
                     setShapeCoordinates(mask, 0, 0, 0);
                     %
