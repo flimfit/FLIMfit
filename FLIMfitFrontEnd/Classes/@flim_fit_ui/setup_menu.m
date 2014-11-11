@@ -159,18 +159,19 @@ function handles = setup_menu(obj,handles)
 
     menu_tools = uimenu(obj.window,'Label','Tools');
     handles.menu_tools_photon_stats = uimenu(menu_tools,'Label','Determine Photon Statistics');
-    handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
+    % experimental feature 
+    %handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
     handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
     handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
 
     handles.menu_tools_preferences = uimenu(menu_tools,'Label','Preferences...','Separator','on');
 
-
-    menu_test = uimenu(obj.window,'Label','Test');
-    handles.menu_test_test1 = uimenu(menu_test,'Label','Start Regression Tests','Accelerator','X');
-    handles.menu_test_test2 = uimenu(menu_test,'Label','Test Fcn 2');
-    handles.menu_test_test3 = uimenu(menu_test,'Label','Test Fcn 3');
-    handles.menu_test_unload_dll = uimenu(menu_test,'Label','Unload DLL','Accelerator','U');
+    % Test items need work - temporarily removed form GUI
+    %menu_test = uimenu(obj.window,'Label','Test');
+    %handles.menu_test_test1 = uimenu(menu_test,'Label','Start Regression Tests','Accelerator','X');
+    %handles.menu_test_test2 = uimenu(menu_test,'Label','Test Fcn 2');
+    %handles.menu_test_test3 = uimenu(menu_test,'Label','Test Fcn 3');
+    %handles.menu_test_unload_dll = uimenu(menu_test,'Label','Unload DLL','Accelerator','U');
 
     
     menu_help = uimenu(obj.window,'Label','Help');
