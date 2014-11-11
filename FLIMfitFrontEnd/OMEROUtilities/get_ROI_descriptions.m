@@ -38,10 +38,11 @@ service = session.getRoiService();
         for thisROI  = 1:n
                 
             roi = rois.get(thisROI-1);
-            dscr = char(roi.getDescription().getValue());
-                
-            str = [str {dscr}];
-            
+            dsc = roi.getDescription();
+            if ~isempty(dsc)
+                dscr = char(dsc.getValue());
+                str = [str {dscr}];
+            end       
         end
                         
   end

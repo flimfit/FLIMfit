@@ -45,10 +45,11 @@ for thisROI  = 1:n
             shape = roi.getShape(ns-1); % the shape
 
              if (isa(shape, 'omero.model.Mask'))
-                y0 = shape.getX().getValue - 1;
-                x0 = shape.getY().getValue - 1;
+                x0 = shape.getX().getValue - 1;
+                y0 = shape.getY().getValue - 1;
                 W = shape.getWidth().getValue;
                 H = shape.getHeight().getValue;
+                % retrieve the mask data
                 bytes = shape.getBytes();
                 
                 % code to convert byte mask to double
@@ -61,12 +62,12 @@ for thisROI  = 1:n
                 %truncate double vector to size of original mask
                 dvec = dvec(1:H.*W);
                 
-                mask = reshape(dvec,W,H)';
+                mask = reshape(dvec,W,H);
                 
                 for x=1:W
                     for y=1:H
-                        if(0~=mask(y,x))
-                            segmmask_restored(x0+x,y0+y) = 1;
+                        if(0~=mask(x,y))
+                            segmmask_restored(y0+y,x0+x) = 1;
                         end                    
                     end
                 end

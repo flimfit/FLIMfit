@@ -36,17 +36,21 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                     W = max(X) - x0 + 1;
                     H = max(Y) - y0 + 1;
                     %
-                    m = zeros(W,H);
+                    m = zeros(H,W);
                     for j = 1 : numel(X),
                         x = X(j) - x0 + 1;
                         y = Y(j) - y0 + 1;
-                        m(x,y) = 1;                        
+                        m(y,x) = 1;                        
                     end
                     %
                     mask = createMask(x0,y0,m); % OMEROMAtlab                  
                     % mask.setTextValue(omero.rtypes.rstring(text_label));                    
                     setShapeCoordinates(mask, 0, 0, 0);
-                    %
+                    % colour ROI fro display in insight
+                    mask.setFillColor(rint(2113863680));    %7DFF0000 - 50% red
+                    mask.setStrokeColor(rint(2113863680));  %7DFF0000 - 50% red
+                   
+                    
                     roi = omero.model.RoiI;
                     roi.setDescription(omero.rtypes.rstring(text_label));
                     roi.addShape(mask);                    
