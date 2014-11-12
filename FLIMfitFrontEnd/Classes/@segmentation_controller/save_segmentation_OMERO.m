@@ -59,17 +59,34 @@ function save_segmentation_OMERO(obj)
 
     hw = waitbar(0, 'Transferring ROIs to OMERO, please wait....');
     drawnow;
-        
-    for i=1:length(d.file_names)
-       
-        L = obj.filtered_mask(:,:,i);
-        
-        if ~isempty(L)
     
-            image = d.file_names{i};
-            if (delete_previous_ROIs) delete_FOV_shapes( session,image ), end;
-            
-            save_segmented_labelled_FOV_as_Omero_ROI_masks( session, L, image, text_label );            
+    
+    zct  = [0 0 0];
+   
+    
+    if d.load_multiple_planes ~= 0     % special case where multiple planes are loaded as datasets from a single file
+        image = d.file_names{1};
+        if (delete_previous_ROIs) delete_FOV_shapes( session,image ), end;
+        for i=1:length(d.n_datasets)
+            L = obj.filtered_mask(:,:,i);
+            if ~isempty(L)
+                zct(load_multiple_planes) = i;
+                save_segmented_labelled_FOV_as_Omero_ROI_masks( session, L, image, text_label, zct );   
+            end
+        end
+     
+        waitbar(i/d.n_datasets,hw);
+        drawnow;
+                
+    else
+        
+        for i=1:length(d.n_datasets)
+            L = obj.filtered_mask(:,:,i);
+            if ~isempty(L)
+                image = d.file_names{i};
+                if (delete_previous_ROIs) delete_FOV_shapes( session,image ), end;
+                save_segmented_labelled_FOV_as_Omero_ROI_masks( session, L, image, text_label, zct );   
+            end
         end
      
         waitbar(i/d.n_datasets,hw);
