@@ -1,4 +1,4 @@
-function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, image, text_label ) % L - source
+function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, image, text_label , zct) % L - source
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -45,10 +45,10 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                     %
                     mask = createMask(x0,y0,m); % OMEROMAtlab                  
                     % mask.setTextValue(omero.rtypes.rstring(text_label));                    
-                    setShapeCoordinates(mask, 0, 0, 0);
+                    setShapeCoordinates(mask, zct(1), zct(2), zct(3));
                     % colour ROI fro display in insight
                     mask.setFillColor(rint(2113863680));    %7DFF0000 - 50% red
-                    mask.setStrokeColor(rint(2113863680));  %7DFF0000 - 50% red
+                    %mask.setStrokeColor(rint(2113863680));  %7DFF0000 - 50% red
                    
                     
                     roi = omero.model.RoiI;
