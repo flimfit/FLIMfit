@@ -31,8 +31,8 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                     X = stats(k).PixelList(:,1);
                     Y = stats(k).PixelList(:,2);
                     %
-                    x0 = min(X);
-                    y0 = min(Y);
+                    x0 = min(X) - 1;
+                    y0 = min(Y) - 1;
                     W = max(X) - x0 + 1;
                     H = max(Y) - y0 + 1;
                     %

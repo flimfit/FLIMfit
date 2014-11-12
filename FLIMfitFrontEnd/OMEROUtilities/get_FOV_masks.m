@@ -45,8 +45,8 @@ for thisROI  = 1:n
             shape = roi.getShape(ns-1); % the shape
 
              if (isa(shape, 'omero.model.Mask'))
-                x0 = shape.getX().getValue - 1;
-                y0 = shape.getY().getValue - 1;
+                x0 = shape.getX().getValue;
+                y0 = shape.getY().getValue;
                 W = shape.getWidth().getValue;
                 H = shape.getHeight().getValue;
                 % retrieve the mask data
