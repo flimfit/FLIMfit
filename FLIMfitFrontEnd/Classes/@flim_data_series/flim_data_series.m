@@ -139,7 +139,10 @@ classdef flim_data_series < handle & h5_serializer
         hdf5 = false;
         
         use_memory_mapping = true;
-        load_multiple_channels = false;
+        
+         % semaphore replaces load_multiple_channels. 
+         % 0 ==1 plane per image 1,2 or == multiple Z,C or T respectively
+        load_multiple_planes = 0;      
         
         tr_data_series_mem = single([]);
         data_series_mem = single([]);
