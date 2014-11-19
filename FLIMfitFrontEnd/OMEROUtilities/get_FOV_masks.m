@@ -1,4 +1,4 @@
-function L = get_FOV_masks( session,image, description )
+function L = get_FOV_masks( session,image, description, zct )
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -42,33 +42,39 @@ for thisROI  = 1:n
         
         numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
         for ns = 1:numShapes
-            shape = roi.getShape(ns-1); % the shape
-
+            shape = roi.getShape(ns-1); % the shape 
+           
              if (isa(shape, 'omero.model.Mask'))
-                x0 = shape.getX().getValue;
-                y0 = shape.getY().getValue;
-                W = shape.getWidth().getValue;
-                H = shape.getHeight().getValue;
-                % retrieve the mask data
-                bytes = shape.getBytes();
+                 
+                thiszct = [ shape.getTheZ.getValue() shape.getTheC.getValue() shape.getTheT.getValue()];
                 
-                % code to convert byte mask to double
-                dvec = zeros(1,length(bytes) .* 8);
-                outputctr = 1;
-                for b = 1:length(bytes)
-                    dvec(outputctr:outputctr + 7) = bitget(bytes(b),8:-1:1);
-                    outputctr = outputctr + 8;
-                end
-                %truncate double vector to size of original mask
-                dvec = dvec(1:H.*W);
-                
-                mask = reshape(dvec,W,H);
-                
-                for x=1:W
-                    for y=1:H
-                        if(0~=mask(x,y))
-                            segmmask_restored(y0+y,x0+x) = 1;
-                        end                    
+                if thiszct == zct
+                 
+                    x0 = shape.getX().getValue;
+                    y0 = shape.getY().getValue;
+                    W = shape.getWidth().getValue;
+                    H = shape.getHeight().getValue;
+                    % retrieve the mask data
+                    bytes = shape.getBytes();
+
+                    % code to convert byte mask to double
+                    dvec = zeros(1,length(bytes) .* 8);
+                    outputctr = 1;
+                    for b = 1:length(bytes)
+                        dvec(outputctr:outputctr + 7) = bitget(bytes(b),8:-1:1);
+                        outputctr = outputctr + 8;
+                    end
+                    %truncate double vector to size of original mask
+                    dvec = dvec(1:H.*W);
+
+                    mask = reshape(dvec,W,H);
+
+                    for x=1:W
+                        for y=1:H
+                            if(0~=mask(x,y))
+                                segmmask_restored(y0+y,x0+x) = 1;
+                            end                    
+                        end
                     end
                 end
 

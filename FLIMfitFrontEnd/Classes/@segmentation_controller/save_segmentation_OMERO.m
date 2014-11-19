@@ -60,38 +60,39 @@ function save_segmentation_OMERO(obj)
     hw = waitbar(0, 'Transferring ROIs to OMERO, please wait....');
     drawnow;
     
+    sizet = d.n_t;
+    zct = [d.ZCT{1}(1)-1 d.ZCT{2}(1)-1 d.ZCT{3}(1)-1];
+    zct(3) = zct(3).*sizet; % first time-bin in the real-time point
     
-    zct  = [0 0 0];
-   
-    
-    if d.load_multiple_planes ~= 0     % special case where multiple planes are loaded as datasets from a single file
+    if d.load_multiple_planes ~= 0     % special case where multiple 3d FOVs are loaded as datasets from a single image
+        load_multiple_planes = d.load_multiple_planes;
         image = d.file_names{1};
         if (delete_previous_ROIs) delete_FOV_shapes( session,image ), end;
-        for i=1:length(d.n_datasets)
+        fmasksize = size(obj.filtered_mask);
+        for i=1:d.n_datasets
             L = obj.filtered_mask(:,:,i);
             if ~isempty(L)
-                zct(load_multiple_planes) = i;
+                zct(load_multiple_planes) = d.ZCT{load_multiple_planes}(i) -1;
+                zct(3) = zct(3).*sizet;
                 save_segmented_labelled_FOV_as_Omero_ROI_masks( session, L, image, text_label, zct );   
             end
+            waitbar(i/d.n_datasets,hw);
+            drawnow;
         end
-     
-        waitbar(i/d.n_datasets,hw);
-        drawnow;
-                
-    else
+               
+    else        % normal mode where 1 3d FOV is loaded per image
         
-        for i=1:length(d.n_datasets)
+        for i=1:d.n_datasets
+            
             L = obj.filtered_mask(:,:,i);
             if ~isempty(L)
                 image = d.file_names{i};
                 if (delete_previous_ROIs) delete_FOV_shapes( session,image ), end;
                 save_segmented_labelled_FOV_as_Omero_ROI_masks( session, L, image, text_label, zct );   
             end
-        end
-     
-        waitbar(i/d.n_datasets,hw);
-        drawnow;
-                
+            waitbar(i/d.n_datasets,hw);
+            drawnow;
+        end            
     end
     
     delete(hw);
