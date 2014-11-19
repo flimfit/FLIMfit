@@ -125,7 +125,7 @@ function compile(v)
             f = fopen([deploy_folder '\Start_FLIMfit_' sys '.bat'],'w');
             fprintf(f,'@echo off\r\necho Starting FLIMfit...\r\n');
             fprintf(f,'if "%%LOCALAPPDATA%%"=="" (set APPDATADIR=%%APPDATA%%) else (set APPDATADIR=%%LOCALAPPDATA%%)\r\n');
-            fprintf(f,'set MCR_CACHE_ROOT=1');
+            % fprintf(f,'set MCR_CACHE_VERBOSE=1');
             fprintf(f,['set MCR_CACHE_ROOT=%%APPDATADIR%%\\FLIMfit_' v '_' computer '_MCR_cache\r\n']);
             fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" echo Decompressing files for first run, please wait this may take a few minutes\r\n');
             fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" mkdir "%%MCR_CACHE_ROOT%%"\r\n');
