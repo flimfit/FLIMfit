@@ -1,4 +1,6 @@
-function remove_segmentation_OMERO(obj)
+function remove_segmentation_OMERO(obj, delete_all )
+
+
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -24,6 +26,11 @@ function remove_segmentation_OMERO(obj)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
+    
+    if nargin < 2 
+        delete_all = false;
+    end
+        
 
     d = obj.data_series_controller.data_series;    
     
@@ -38,47 +45,65 @@ function remove_segmentation_OMERO(obj)
     
     if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
     
-    if numel(ROI_descriptions_list) > 0        
-        [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
-                        'SelectionMode','single',...
-                        'ListString',ROI_descriptions_list);
-        if ~ok, return, end
-        segmentation_description = ROI_descriptions_list{choice};        
-        if isempty(segmentation_description), return, end; %?
-    end
-    %
+    choice = 1;
+    
+    
     
     iUpdate = session.getUpdateService();
     service = session.getRoiService();
-
-    hw = waitbar(0, [' Deleting segmentation  ' segmentation_description ' please wait.... ']);
-    drawnow;
+    
+    if delete_all
+         choice = 1;
+         n_segs = length(ROI_descriptions_list);
+         hw = waitbar(0, [' Deleting segmentation  ' segmentation_description ' please wait.... ']);
+    else
+        if numel(ROI_descriptions_list) > 0        
+            [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
+                        'SelectionMode','single',...
+                        'ListString',ROI_descriptions_list);
+            if ~ok, return, end
+                   
+        end
+        n_segs = 1;
+        hw = waitbar(0, [' Deleting segmentation  ' segmentation_description ' please wait.... ']);
+    end
         
-    for i=1:length(d.file_names)
-       
-            image = d.file_names{i};
+    drawnow;
+    nfiles = length(d.file_names);
+    total = (n_segs * nfiles);
+    
+    for seg = 1:n_segs
+        
+        segmentation_description = ROI_descriptions_list{choice}; 
+        
+        for i=1:nfiles
 
-            roiResult = service.findByImage(image.getId.getValue, []);
-            rois = roiResult.rois;
-            n = rois.size;
-            for thisROI  = 1:n
-                roi = rois.get(thisROI-1);
-                numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
-                for ns = 1:numShapes
-                    shape = roi.getShape(ns-1); % the shape
-                    % remove the shape
-                    if  strcmp(char(roi.getDescription().getValue()),segmentation_description)
-                        roi.removeShape(shape);
-                    end;
-                end
-                %Update the roi.
-                roi = iUpdate.saveAndReturnObject(roi);
-            end    
-        %
-        waitbar(i/d.n_datasets,hw);
-        drawnow;
-        %
-    end        
+                image = d.file_names{i};
+
+                roiResult = service.findByImage(image.getId.getValue, []);
+                rois = roiResult.rois;
+                n = rois.size;
+                for thisROI  = 1:n
+                    roi = rois.get(thisROI-1);
+                    numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
+                    for ns = 1:numShapes
+                        shape = roi.getShape(ns-1); % the shape
+                        % remove the shape
+                        if  strcmp(char(roi.getDescription().getValue()),segmentation_description)
+                            roi.removeShape(shape);
+                        end;
+                    end
+                    %Update the roi.
+                    roi = iUpdate.saveAndReturnObject(roi);
+                end    
+            
+            top = i + ((seg-1) * nfiles));
+            waitbar(top/total,hw);
+            drawnow;
+        end
+            
+        choice = choice + 1;   
+    end
     %
     delete(hw);
     drawnow;   
