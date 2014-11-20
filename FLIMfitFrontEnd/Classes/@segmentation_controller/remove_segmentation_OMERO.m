@@ -25,7 +25,7 @@ function remove_segmentation_OMERO(obj)
 
     % Author : Sean Warren
 
- d = obj.data_series_controller.data_series;    
+    d = obj.data_series_controller.data_series;    
     
     if ~isa(d,'OMERO_data_series')
         errordlg('images are not originated from OMERO, cannot continue..'), return, 
@@ -34,11 +34,11 @@ function remove_segmentation_OMERO(obj)
     session = d.omero_data_manager.session;    
     
     segmentation_description = [];    
-    ROI_descriptions_list = get_ROI_descriptions( session, d.file_names  );
+    ROI_descriptions_list = get_ROI_descriptions( session, d );
     
     if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
     
-    if numel(ROI_descriptions_list) > 1        
+    if numel(ROI_descriptions_list) > 0        
         [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
                         'SelectionMode','single',...
                         'ListString',ROI_descriptions_list);
@@ -51,7 +51,7 @@ function remove_segmentation_OMERO(obj)
     iUpdate = session.getUpdateService();
     service = session.getRoiService();
 
-    hw = waitbar(0, ['Deleting segmentation "' segmentation_description '", please wait....']);
+    hw = waitbar(0, [' Deleting segmentation  ' segmentation_description ' please wait.... ']);
     drawnow;
         
     for i=1:length(d.file_names)
