@@ -43,13 +43,13 @@ roiResult = service.findByImage(image.getId.getValue, []);
 rois = roiResult.rois;
 n = rois.size;
 
-for thisROI  = 1:n 
+for thisROI  = 1:n
     roi = rois.get(thisROI-1);
     dsc = roi.getDescription();
     if ~isempty(dsc)
         numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
         if numShapes > 0
-            shape = roi.getShape(0); % first shape 
+            shape = roi.getShape(0); % first shape
             thiszct = [shape.getTheZ().getValue() shape.getTheC().getValue() shape.getTheT().getValue() ];
             if thiszct == zct
                 dscr = char(dsc.getValue());
@@ -64,49 +64,44 @@ if d.load_multiple_planes == 0        % normal case where 1 3D 'plane' per image
     
     % go through all the remaining images getting all the ROI descriptions
     str = unique(str);
-
+    
     for i=2:d.n_datasets
-
-        image = d.file_names{i};  
+        
+        image = d.file_names{i};
         roiResult = service.findByImage(image.getId.getValue, []);
         rois = roiResult.rois;
         n = rois.size;
         
         for thisROI  = 1:n
-                
+            
             roi = rois.get(thisROI-1);
             dsc = roi.getDescription();
             if ~isempty(dsc)
                 dscr = char(dsc.getValue());
                 thisFOVstr = [thisFOVstr {dscr}];
-            end       
+            end
         end
         
         str = [ str unique(thisFOVstr) ];
         thisFOVstr = [];
         
-                        
+        
     end
-  
-  % str is a list of all the ROI decriptions in the current images
-  t = tabulate(str);
-  % return only  decriptions  that occur n_datasets times (ie match the
-  % current FOV list)
-  descs = str(cell2mat(t(:,2)) == d.n_datasets);
-
+    
+    
 else     %  % special case where multiple ZC or T from one image
     
-   % str contains those descrisptions that match the first FOV 
-   str = unique(str);
-   load_multiple_planes = d.load_multiple_planes;
-   
-   % match all other FOVs
-   
-   for i=2:d.n_datasets
-
+    % str contains those descrisptions that match the first FOV
+    str = unique(str);
+    load_multiple_planes = d.load_multiple_planes;
+    
+    % match all other FOVs
+    
+    for i=2:d.n_datasets
+        
         zct(load_multiple_planes) = d.ZCT{load_multiple_planes}(i) -1;
         zct(3) = zct(3).*sizet;
-   
+        
         for thisROI  = 1:n
             roi = rois.get(thisROI-1);
             dsc = roi.getDescription();
@@ -124,16 +119,18 @@ else     %  % special case where multiple ZC or T from one image
         end
         str = [ str unique(thisFOVstr) ];
         thisFOVstr = [];
-   end
+    end
     
-  % str is a list of  the ROI decriptions that match each FOV
-  t = tabulate(str);
-  % return only  decriptions  that occur n_datasets times (ie match the
-  % current FOV list)
-  descs = str(cell2mat(t(:,2)) == d.n_datasets);
-   
-  
- 
+    
+end
+
+if ~isempty(str)
+    
+    % str is a list of  the ROI decriptions that match each FOV
+    t = tabulate(str);
+    % return only  decriptions  that occur n_datasets times (ie match the
+    % current FOV list)
+    descs = str(cell2mat(t(:,2)) == d.n_datasets);
 end
 
 
