@@ -41,71 +41,69 @@ function remove_segmentation_OMERO(obj, delete_all )
     session = d.omero_data_manager.session;    
     
     segmentation_description = [];    
-    ROI_descriptions_list = get_ROI_descriptions( session, d );
-    
-    if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
+   
     
     choice = 1;
-    
-    
     
     iUpdate = session.getUpdateService();
     service = session.getRoiService();
     
     if delete_all
-         choice = 1;
-         n_segs = length(ROI_descriptions_list);
-         hw = waitbar(0, [' Deleting segmentation  ' segmentation_description ' please wait.... ']);
+        prompt = {sprintf(['This will delete ALL ROIs attached to the selected images! \n' ...
+            'This may render segmentations for overlapping sets of images unuseable! \n' ...
+            'If in doubt please remove segmentations one by one. ' ' Continue?'])};
+        button = questdlg(prompt, 'Delete ALL ROIs? - Use with care!','Yes','No','No');
+        if ~strcmp(button,'Yes')
+            return;
+        end
+           
+        hw = waitbar(0, [' Deleting all  please wait.... ']);
     else
+         ROI_descriptions_list = get_ROI_descriptions( session, d );
+    
+        if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
+        
         if numel(ROI_descriptions_list) > 0        
             [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
                         'SelectionMode','single',...
                         'ListString',ROI_descriptions_list);
             if ~ok, return, end
-                   
+            segmentation_description = ROI_descriptions_list{choice};       
         end
-        n_segs = 1;
         hw = waitbar(0, [' Deleting segmentation  ' segmentation_description ' please wait.... ']);
     end
         
     drawnow;
     nfiles = length(d.file_names);
-    total = (n_segs * nfiles);
     
-    for seg = 1:n_segs
+      
+    for i=1:nfiles
         
-        segmentation_description = ROI_descriptions_list{choice}; 
+        image = d.file_names{i};
         
-        for i=1:nfiles
-
-                image = d.file_names{i};
-
-                roiResult = service.findByImage(image.getId.getValue, []);
-                rois = roiResult.rois;
-                n = rois.size;
-                for thisROI  = 1:n
-                    roi = rois.get(thisROI-1);
-                    numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
-                    for ns = 1:numShapes
-                        shape = roi.getShape(ns-1); % the shape
-                        % remove the shape
-                        if  strcmp(char(roi.getDescription().getValue()),segmentation_description)
-                            roi.removeShape(shape);
-                        end;
-                    end
-                    %Update the roi.
-                    roi = iUpdate.saveAndReturnObject(roi);
-                end    
-            
-            top = i + ((seg-1) * nfiles));
-            waitbar(top/total,hw);
-            drawnow;
+        roiResult = service.findByImage(image.getId.getValue, []);
+        rois = roiResult.rois;
+        n = rois.size;
+        for thisROI  = 1:n
+            roi = rois.get(thisROI-1);
+            numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
+            for ns = 1:numShapes
+                shape = roi.getShape(ns-1); % the shape
+                % remove the shape
+                if delete_all || strcmp(char(roi.getDescription().getValue()),segmentation_description)
+                    roi.removeShape(shape);
+                end;
+            end
+            %Update the roi.
+            roi = iUpdate.saveAndReturnObject(roi);
         end
-            
-        choice = choice + 1;   
+        
+        waitbar(i/nfiles,hw);
+        drawnow;
     end
-    %
+            
+  
     delete(hw);
     drawnow;   
-    %    
+       
 end
