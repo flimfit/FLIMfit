@@ -30,15 +30,17 @@ function remove_segmentation_OMERO(obj, delete_all )
     if nargin < 2 
         delete_all = false;
     end
-        
-
-    d = obj.data_series_controller.data_series;    
     
+    d = obj.data_series_controller.data_series; 
+    
+    session = d.omero_data_manager.session; 
+        
+     
     if ~isa(d,'OMERO_data_series')
         errordlg('images are not originated from OMERO, cannot continue..'), return, 
     end;
     
-    session = d.omero_data_manager.session;    
+       
     
     segmentation_description = [];    
    
@@ -56,8 +58,10 @@ function remove_segmentation_OMERO(obj, delete_all )
         if ~strcmp(button,'Yes')
             return;
         end
+        
+        waitbar_prompt = [' Deleting all  please wait.... '];
            
-        hw = waitbar(0, [' Deleting all  please wait.... ']);
+       
     else
          ROI_descriptions_list = get_ROI_descriptions( session, d );
     
@@ -70,13 +74,20 @@ function remove_segmentation_OMERO(obj, delete_all )
             if ~ok, return, end
             segmentation_description = ROI_descriptions_list{choice};       
         end
-        hw = waitbar(0, [' Deleting segmentation  ' segmentation_description ' please wait.... ']);
+        
+       
+        waitbar_prompt = {sprintf(['  Deleting segmentation  ' segmentation_description ' \n Please Wait ... '])};
+    
     end
         
     drawnow;
     nfiles = length(d.file_names);
     
-      
+    deleteList = []; 
+    
+    
+    failFlag = false;
+    
     for i=1:nfiles
         
         image = d.file_names{i};
@@ -86,24 +97,53 @@ function remove_segmentation_OMERO(obj, delete_all )
         n = rois.size;
         for thisROI  = 1:n
             roi = rois.get(thisROI-1);
+            if delete_all || strcmp(char(roi.getDescription().getValue()), segmentation_description)
+                if roi.getDetails().getPermissions().canDelete()
+                    deleteList{end + 1} = roi;
+                else
+                    deleteList  = [];
+                    failFlag = true;
+                    errordlg('You do not have permission to delete all the selected ROIs!');
+                    break;
+                end
+            end
+            
+        end
+        if failFlag
+            break;
+        end
+        
+    end
+    
+   
+    roisToDelete = length(deleteList);
+    if roisToDelete >0
+        hw = waitbar(0, waitbar_prompt);
+        barstep = 1.0./roisToDelete;
+        barval = 0.0;
+        
+        for i = 1:roisToDelete
+            
+            roi = deleteList{i};
+            
             numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
             for ns = 1:numShapes
                 shape = roi.getShape(ns-1); % the shape
-                % remove the shape
-                if delete_all || strcmp(char(roi.getDescription().getValue()),segmentation_description)
-                    roi.removeShape(shape);
-                end;
+                roi.removeShape(shape); 
             end
             %Update the roi.
             roi = iUpdate.saveAndReturnObject(roi);
+            
+            barval = barval + barstep;
+            waitbar(barval,hw);
+            drawnow;
+            
         end
         
-        waitbar(i/nfiles,hw);
+        delete(hw);
         drawnow;
     end
-            
-  
-    delete(hw);
-    drawnow;   
+    
+    
        
 end

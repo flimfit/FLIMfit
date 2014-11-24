@@ -41,6 +41,12 @@ function save_segmentation_OMERO(obj)
         errordlg('nothing was segmented? cannot continue..'), return, 
     end;
         
+    
+    if ~d.file_names{1}.getDetails().getPermissions().canAnnotate()
+        errordlg('No permission to Annotate images!');
+        return;
+    end
+        
            
             
     data_time = datestr(now,'yyyy-mm-dd-T-HH-MM-SS');
