@@ -213,7 +213,6 @@ classdef segmentation_controller < flim_data_series_observer
             d = obj.data_series;
             obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
             obj.update_display();
-            obj.filter_masks(1:obj.data_series.n_datasets);
             obj.n_regions = 0;
         end
         
