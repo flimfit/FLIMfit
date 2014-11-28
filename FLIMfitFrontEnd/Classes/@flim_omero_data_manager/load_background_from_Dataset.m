@@ -83,7 +83,7 @@ function load_background_from_Dataset(obj,data_series,dataset)
     %}
     
     extent = 3;
-    im = medfilt2(im,[extent extent], 'symmetric');
+    im = medfilt2_noPPL(im,[extent extent], 'symmetric');
         
     if any(size(im) ~= [data_series.height data_series.width])
         throw(MException('GlobalAnalysis:BackgroundIncorrectShape','Error loading background, file has different dimensions to the data'));

@@ -60,7 +60,7 @@ mn = mn / length(img);
 %kernel = ones(3,3);
 %kernel = kernel / sum(kernel(:));
 
-mns = medfilt2(mn,[3 3]);   
+mns = medfilt2_noPPL(mn,[3 3]);   
 
 imagesc(mns)
 
