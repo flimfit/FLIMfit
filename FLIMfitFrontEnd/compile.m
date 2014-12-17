@@ -122,6 +122,11 @@ function compile(v)
 
             copyfile(exe,deploy_folder);
             
+             ctf = ['DeployFiles' filesep 'FLIMfit_' computer '.ctf'];
+             
+             copyfile(ctf,deploy_folder);
+            
+            
             f = fopen([deploy_folder '\Start_FLIMfit_' sys '.bat'],'w');
             fprintf(f,'@echo off\r\necho Starting FLIMfit...\r\n');
             fprintf(f,'if "%%LOCALAPPDATA%%"=="" (set APPDATADIR=%%APPDATA%%) else (set APPDATADIR=%%LOCALAPPDATA%%)\r\n');
@@ -174,12 +179,19 @@ function compile(v)
 
         case 'MAC'
            
-             pause(3);
+            % wait for the build to complete
+            MacOS_folder = [ './' exe filesep 'Contents' filesep 'MacOS']
+            filename = [ MacOS_folder '/FLIMfit_' computer]
+            while ~exist(filename,'file')
+                pause(3);
+            end
              
              
             % change icon by overwriting matlab membrane.icns
             deployFiles_folder = ['.' filesep 'DeployFiles']
             resource_folder = [ './' exe filesep 'Contents' filesep 'Resources']
+            
+            
  
             
             filename = [resource_folder '/membrane.icns']
@@ -208,12 +220,14 @@ function compile(v)
             disp( 'NB Currently uses GCC as configured at University of  Dundee!! ');
             disp ('If building elewhere use the appropriate ,platypus file!');
             
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47HB.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
+            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name]
             
-            
-            system(cmd);
-            movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
+           
             pause(3)
+            system(cmd);
+            pause(3)
+            movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
+            
             
             
     end
