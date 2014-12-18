@@ -150,7 +150,7 @@ function compile(v)
             root = [cd '\..'];
             
             
-            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /LOG="inno_log" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
             
             system(cmd);
 
