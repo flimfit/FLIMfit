@@ -19,7 +19,7 @@ Warren SC, Margineanu A, Alibhai D, Kelly DJ, Talbot C, et al. (2013) Rapid Glob
     <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
     <param.logo />
     <param.install.notes />
-    <param.intermediate>${PROJECT_ROOT}\DeployFiles</param.intermediate>
+    <param.intermediate>${PROJECT_ROOT}\DeployFiles\Intermediate</param.intermediate>
     <param.output>${PROJECT_ROOT}\DeployFiles</param.output>
     <param.embed.ctf>true</param.embed.ctf>
     <param.target.type>subtarget.standalone</param.target.type>
