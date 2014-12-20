@@ -120,11 +120,11 @@ function compile(v)
         case 'WIN'
             % Make installer using Inno Setup
 
-            %copyfile(exe,deploy_folder);
+            copyfile(exe,deploy_folder);
             
              ctf = ['DeployFiles' filesep 'FLIMfit_' computer '.ctf'];
              
-            % copyfile(ctf,deploy_folder);
+             copyfile(ctf,deploy_folder);
             
             
             f = fopen([deploy_folder '\Start_FLIMfit_' sys '.bat'],'w');
@@ -137,7 +137,7 @@ function compile(v)
             fprintf(f,['FLIMfit_' computer '.exe \r\n pause']);
             fclose(f);
             
-           % copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
+            copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
             
             
 
@@ -150,7 +150,7 @@ function compile(v)
             root = [cd '\..'];
             
             
-          %  cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
             
             system(cmd);
 
