@@ -122,11 +122,6 @@ function compile(v)
 
             copyfile(exe,deploy_folder);
             
-             ctf = ['DeployFiles' filesep 'FLIMfit_' computer '.ctf'];
-             
-             copyfile(ctf,deploy_folder);
-            
-            
             f = fopen([deploy_folder '\Start_FLIMfit_' sys '.bat'],'w');
             fprintf(f,'@echo off\r\necho Starting FLIMfit...\r\n');
             fprintf(f,'if "%%LOCALAPPDATA%%"=="" (set APPDATADIR=%%APPDATA%%) else (set APPDATADIR=%%LOCALAPPDATA%%)\r\n');
