@@ -74,7 +74,7 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 Source: "{#RepositoryRoot}\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit_{#MyAppSystem}.bat"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppComputer}.ctf”; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppSystem}.ctf”; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit_{#MyAppComputer}.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "C:\Program Files\MATLAB\R2013b\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
