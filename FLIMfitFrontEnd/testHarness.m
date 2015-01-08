@@ -28,7 +28,7 @@ function [ output_args ] = testHarness()
      
     tst = int32(0);
      
-    chooser = OMEImageChooser(client, tst);
+    chooser = OMEROUtils.OMEImageChooser(client, tst);
     
     returned = chooser.getSelectedImages()
    
