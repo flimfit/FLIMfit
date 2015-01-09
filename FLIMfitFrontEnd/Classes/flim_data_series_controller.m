@@ -102,8 +102,6 @@ classdef flim_data_series_controller < handle
                 selected = [];
             end
             
-            
-            obj.data_series = flim_data_series();
             obj.data_series.load_data_series(root_path,mode,polarisation_resolved,setting_file_name,selected,channels);
             
 %            obj.fitting_params_controller.set_polarisation_mode(polarisation_resolved);
@@ -157,7 +155,6 @@ classdef flim_data_series_controller < handle
             end
 
             % load new dataset
-            obj.data_series = flim_data_series();
             obj.data_series.load_single(file,polarisation_resolved);
             
             %{
