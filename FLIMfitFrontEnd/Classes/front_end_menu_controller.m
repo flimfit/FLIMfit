@@ -509,8 +509,10 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
+            
             [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
             if file ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file]); 
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -523,8 +525,10 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
+             
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -539,6 +543,7 @@ classdef front_end_menu_controller < handle
             end
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -553,6 +558,7 @@ classdef front_end_menu_controller < handle
             end
             [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
             if file ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -567,6 +573,7 @@ classdef front_end_menu_controller < handle
             end
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
