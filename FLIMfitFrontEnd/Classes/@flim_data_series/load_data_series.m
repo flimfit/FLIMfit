@@ -41,6 +41,8 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     end
    
     root_path = ensure_trailing_slash(root_path);
+    
+    obj.header_text = root_path;
 
     obj.root_path = root_path;
     obj.polarisation_resolved = polarisation_resolved;

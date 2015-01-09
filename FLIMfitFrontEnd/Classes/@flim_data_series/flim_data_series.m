@@ -135,6 +135,8 @@ classdef flim_data_series < handle & h5_serializer
         % Properties that won't be saved to a data_settings_file or to 
         % a project file
         
+        header_text = ' ';  % text to be displayed on top bar in GUI
+        
         raw = false;
         hdf5 = false;
         

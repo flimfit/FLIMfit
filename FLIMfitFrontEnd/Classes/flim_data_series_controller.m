@@ -107,7 +107,7 @@ classdef flim_data_series_controller < handle
 %            obj.fitting_params_controller.set_polarisation_mode(polarisation_resolved);
             
             if ~isempty(obj.window)
-                set(obj.window,'Name',[root_path ' (' obj.version ')']);
+                set(obj.window,'Name',[ obj.data_series.header_text ' (' obj.version ')']);
             end
 
             notify(obj,'new_dataset');
@@ -169,7 +169,7 @@ classdef flim_data_series_controller < handle
             %}
             
             if ~isempty(obj.window)
-                set(obj.window,'Name',[file ' (' obj.version ')']);
+                set(obj.window,'Name',[obj.data_series.header_text ' (' obj.version ')']);
             end
                         
             notify(obj,'new_dataset');

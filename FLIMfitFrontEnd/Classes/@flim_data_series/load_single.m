@@ -36,6 +36,8 @@ function load_single(obj,file,polarisation_resolved)
         channel = [];
     end
     
+    obj.header_text = file;
+    
     
     [path,name,ext] = fileparts_inc_OME(file);
     
