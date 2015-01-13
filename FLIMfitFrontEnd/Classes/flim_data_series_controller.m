@@ -138,6 +138,7 @@ classdef flim_data_series_controller < handle
             notify(obj,'new_dataset');
         end
         
+        
         function load_single(obj,file,polarisation_resolved,setting_file_name,channels)
             % save settings from previous dataset if it exists
             saved_setting_file_name = obj.data_settings_filename{1};
