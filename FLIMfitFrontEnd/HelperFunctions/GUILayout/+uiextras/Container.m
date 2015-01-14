@@ -32,6 +32,11 @@ classdef Container < hgsetget
         Visible         % is the layout visible on-screen [on|off]
     end % dependent properties
     
+    % These properties are provided to aid migration to GLT2
+    properties( Dependent, Hidden, Transient )
+        Contents
+    end % GLT2 compatibility properties
+    
     properties( Access = protected, Hidden, Transient )
         Listeners = cell( 0, 1 ) % array of listeners
     end % protected properties
@@ -142,6 +147,42 @@ classdef Container < hgsetget
             p = ancestor( obj.UIContainer, varargin{:} );
         end %ancestor
         
+        function setappdata( h, name, value )
+            %setappdata  Set application-defined data. 
+            %  setappdata(H, NAME, VALUE)
+            if isa(h, 'uiextras.Container')
+                h = h.UIContainer;
+            end
+            builtin( 'setappdata', h, name, value );
+        end % setappdata
+        
+        function value = getappdata( h, name )
+            %getappdata  Get value of application-defined data.
+            %  VALUE = getappdata(H, NAME)
+            if isa(h, 'uiextras.Container')
+                h = h.UIContainer;
+            end
+            value = builtin( 'getappdata', h, name );
+        end % getappdata
+        
+        function value = isappdata( h, name )
+            %isappdata  True if application-defined data exists.
+            %  isappdata(H, NAME)
+            if isa(h, 'uiextras.Container')
+                h = h.UIContainer;
+            end
+            value = builtin( 'isappdata', h, name );
+        end % isappdata
+        
+        function rmappdata( h, name )
+            %rmappdata  Remove application-defined data.
+            %  rmappdata(H, NAME)
+            if isa(h, 'uiextras.Container')
+                h = h.UIContainer;
+            end
+            builtin( 'rmappdata', h, name );
+        end % rmappdata
+        
         function delete( obj )
             %delete  destroy this layout
             %
@@ -192,6 +233,16 @@ classdef Container < hgsetget
             value = obj.Children_;
         end % get.Children
         
+        function set.Contents( obj, value )
+            % Contents is just a GLT2 synonym for GLT1 "Children"
+            obj.Children = value;
+        end % set.Contents
+        
+        function value = get.Contents( obj )
+            % Contents is just a GLT2 synonym for GLT1 "Children"
+            value = obj.Children;
+        end % get.Contents
+
         function set.Enable( obj, value )
             % Check
             if ~ischar( value ) || ~ismember( lower( value ), {'on','off'} )
@@ -275,7 +326,7 @@ classdef Container < hgsetget
         function value = get.BackgroundColor( obj )
             value = get( obj.UIContainer, 'BackgroundColor' );
         end % get.BackgroundColor
-        
+ 
     end % accessor methods
     
     methods( Access = protected )
@@ -306,11 +357,11 @@ classdef Container < hgsetget
             obj.redraw();
         end % onChildRemoved
         
-        function onBackgroundColorChanged( obj, source, eventData ) %#ok<INUSD,MANU>
+        function onBackgroundColorChanged( obj, source, eventData ) %#ok<INUSD>
             %onBackgroundColorChanged  Callback that fires when the container background color is changed
         end % onChildRemoved
         
-        function onEnable( obj, source, eventData ) %#ok<INUSD,MANU>
+        function onEnable( obj, source, eventData ) %#ok<INUSD>
             %onEnable  Callback that fires when the enable state is changed
         end % onChildRemoved
         
@@ -320,7 +371,7 @@ classdef Container < hgsetget
             c( strcmpi( get( c, 'BeingDeleted' ), 'on' ) ) = [];
         end % getValidChildren
         
-        function repositionChild( obj, child, position )
+        function repositionChild( obj, child, position ) %#ok<INUSL>
             %repositionChild  adjust the position and visibility of a child
 
             % First determine whether to use "Position" or "OuterPosition"
@@ -331,7 +382,7 @@ classdef Container < hgsetget
             end
             if position(3)<=0 || position(4)<=0
                 % Not enough space, so move offscreen instead
-                position = [-100 -100 10 10];
+                position = [-10000 -10000 100 100];
             end
             % Now set the position in pixels, changing the units first if
             % necessary
@@ -350,7 +401,7 @@ classdef Container < hgsetget
             %getPropertyDefault  Retrieve a default property value. If the
             %value is not found in the parent or any of its ancestors the
             %supplied defValue is used.
-            error( nargchk( 2, 2, nargin ) );
+            error( nargchk( 2, 2, nargin ) ); %#ok<NCHKN>
             
             parent = get( obj.UIContainer, 'Parent' );
             myClass = class(obj);
@@ -371,6 +422,10 @@ classdef Container < hgsetget
         
         function helpSetChildEnable( ~, child, state )
             % Set the enabled state of one child widget
+            
+            % We need to take a great deal of care to preserve the old
+            % enable state and to deal properly with children that are
+            % layouts in their own right.
             if strcmpi( get( child, 'Type' ), 'uipanel' )
                 % Might be another layout
                 if isappdata( child, 'Container' )
@@ -421,8 +476,8 @@ classdef Container < hgsetget
             %onChildAddedEvent  Callback that fires when a child is added to a container.
             
             % Find child in Children
-            child = double(eventData.Child);
-            if ismember( child, obj.Children_ )
+            child = eventData.Child;
+            if ismember( double( child ), obj.Children_ )
                 return % not *really* being added
             end
             
@@ -443,8 +498,7 @@ classdef Container < hgsetget
             
             % We also need to ignore legends as they are positioned by
             % their associated axes.
-            if isa( eventData.Child, 'axes' ) ...
-                    && strcmpi( get( child, 'Tag' ), 'legend' )
+            if isLegendOrColorbar( eventData.Child )
                 return;
             end
             
@@ -484,12 +538,8 @@ classdef Container < hgsetget
         function onChildBeingDestroyedEvent( obj, source, eventData ) %#ok<INUSD>
             %onChildBeingDestroyedEvent  Callback that fires when a container child is destroyed.
             
-            % Guard against comparing HG objects with doubles (the
-            % Children_ array contains doubles).
-            source = double(source);
-
             % Find child in Children
-            [dummy, loc] = ismember( source, obj.Children_ ); %#ok<ASGLU>
+            [dummy, loc] = ismember( double( source ), obj.Children_ ); %#ok<ASGLU>
             
             % Remove element from Children
             obj.Children_(loc,:) = [];
@@ -515,7 +565,7 @@ classdef Container < hgsetget
             end
             
             % Find child in Children
-            [dummy, loc] = ismember( source, obj.Children_ ); %#ok<ASGLU>
+            [dummy, loc] = ismember( double( source ), obj.Children_ ); %#ok<ASGLU>
             
             % Remove element from Children
             obj.Children_(loc,:) = [];
@@ -535,6 +585,13 @@ end % classdef
 
 % -------------------------------------------------------------------------
 
+function result = isLegendOrColorbar( child )
+% Determine whether an object is a legend or colorbar
+tag = lower(get( child, 'Tag' ));
+result = (isa( child, 'axes' ) && ismember(tag, {'legend', 'colorbar'}) );
+end % isLegendOrColorbar
+
+
 % Helper functions to work around a bug in R2009a and earlier
 
 function ok = isBeforeR2009b()
@@ -547,7 +604,6 @@ end
 ok = ( matlabVersionDate <= datenum( '15-Jan-2009', 'dd-mmm-yyyy' ) );
 end
 
-
 function helpDeleteChild( src, evt, obj )
 obj.onChildBeingDestroyedEvent( src, evt );
 end % helpDeleteChild
@@ -555,6 +611,3 @@ end % helpDeleteChild
 function helpReparentChild( src, evt, obj )
 obj.onChildParentChangedEvent( src, evt );
 end % helpReparentChild
-
-
-        

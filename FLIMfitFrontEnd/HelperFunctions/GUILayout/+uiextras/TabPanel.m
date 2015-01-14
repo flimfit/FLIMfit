@@ -22,8 +22,8 @@ classdef TabPanel < uiextras.CardPanel & uiextras.DecoratedPanel
     %             uiextras.BoxPanel
     
     %   Copyright 2009-2010 The MathWorks, Inc.
-    %   $Revision: 373 $
-    %   $Date: 2011-07-14 13:24:10 +0100 (Thu, 14 Jul 2011) $
+    %   $Revision: 893 $
+    %   $Date: 2013-12-18 10:23:50 +0000 (Wed, 18 Dec 2013) $
     
     properties
         TabSize = 50
@@ -156,10 +156,13 @@ classdef TabPanel < uiextras.CardPanel & uiextras.DecoratedPanel
             nT = numel(T);
             
             if nC==0 || nT~=nC
+                % With no tabs, blank the image. Note that we must leave
+                % non-emoty cdata otherwise the checkbox re-appears!
+                set( obj.TabImage_, 'CData', reshape(obj.BackgroundColor, [1 1 3]) );
                 return
             end
-            pos = getpixelposition( obj.UIContainer );
             
+            pos = getpixelposition( obj.UIContainer );
             pad = obj.Padding;
             
             % Calculate the required height from the font size
@@ -262,19 +265,9 @@ classdef TabPanel < uiextras.CardPanel & uiextras.DecoratedPanel
                 if strcmpi( obj.TabPosition, 'Top' )
                     set( obj.TabImage_, 'CData', tabCData );
                 else
-                    set( obj.TabImage_, 'CData', flipdim( tabCData, 1 ) );
+                    set( obj.TabImage_, 'CData', flipdim( tabCData, 1 ) ); %#ok<DFLIPDIM>
                 end
             end
-            
-            
-            % Make sure the text labels are top of the stack
-            %             ch = get( obj.TabContainer_, 'Children' );
-            %             if numel( ch ) > 1
-            %                 labs = ismember( get(ch,'Style'), 'text' );
-            %             else
-            %                 labs = strcmpi( get(ch,'Style'), 'text' );
-            %             end
-            %             set( obj.TabContainer_, 'Children', [flipud(ch(labs));ch(~labs)] ); % Note the flip is needed so that the text always redraws
         end % redraw
         
         function onChildAdded( obj, source, eventData ) %#ok<INUSD>
@@ -297,8 +290,8 @@ classdef TabPanel < uiextras.CardPanel & uiextras.DecoratedPanel
                 'FontWeight', obj.FontWeight, ...
                 'ForegroundColor', obj.ForegroundColor, ...
                 'parent', obj.UIContainer, ...
-                'HandleVisibility', 'off', ...
-                'ButtonDownFcn', {@iTabClicked, obj, N});
+                'HandleVisibility', 'off');
+            iResetTabCallbacks( obj )
             obj.PageEnable_{1,end+1} = 'on';
             if strcmpi( obj.Enable, 'off' )
                 set( obj.PageLabels(end), 'Enable', 'off' );
@@ -309,20 +302,30 @@ classdef TabPanel < uiextras.CardPanel & uiextras.DecoratedPanel
         function onChildRemoved( obj, source, eventData ) %#ok<INUSL>
             %onChildAdded: Callback that fires when a container child is destroyed or reparented.
             % If the missing child is the selected one, select something else
+            
+            % Deal with empty explicitly since we need to clear everything
+            if isempty(obj.Children)
+                obj.TabNames = {};
+                obj.PageEnable_ = {};
+                delete(obj.PageLabels);
+                obj.PageLabels = [];
+                obj.SelectedChild = [];
+                obj.redraw()
+                return;
+            end
+            
+            % Clear one entry, maybe selecting a different one
             obj.TabNames( eventData.ChildIndex ) = [];
             obj.PageEnable_( eventData.ChildIndex ) = [];
-            delete( obj.PageLabels(end) );
-            obj.PageLabels(end) = [];
+            delete( obj.PageLabels(eventData.ChildIndex) );
+            obj.PageLabels(eventData.ChildIndex) = [];
+            iResetTabCallbacks( obj );
             if obj.SelectedChild >= eventData.ChildIndex
-                % Changing the selection will force a redraw
-                if isempty( obj.Children )
-                    obj.SelectedChild = [];
-                else
-                    obj.SelectedChild = max( 1, obj.SelectedChild - 1 );
-                end
+                % We need to change the selection. This will force a redraw
+                obj.SelectedChild = max( 1, obj.SelectedChild - 1 );
             else
-                % We don't need to change the selection, so explicitly
-                % redraw
+                % We don't need to change the selection, so need to
+                % explicitly redraw
                 obj.redraw();
             end
         end % onChildRemoved
@@ -418,7 +421,7 @@ function im = iLoadIcon(imagefilename, backgroundcolor, highlightcolor, shadowco
 % Special image loader that turns various primary colours into background
 % colours.
 
-error( nargchk( 4, 4, nargin, 'struct' ) );
+error( nargchk( 4, 4, nargin, 'struct' ) ); %#ok<NCHKN>
 
 % Load an icon and set the transparent color
 this_dir = fileparts( mfilename( 'fullpath' ) );
@@ -479,3 +482,12 @@ uiextras.callCallback( obj.Callback, obj, evt );
 obj.SelectedChild = idx;
 
 end % iTabClicked
+
+%-------------------------------------------------------------------------%
+
+function iResetTabCallbacks( obj )
+% Helper to setup the callback functions on each tab label
+for N=1:numel(obj.PageLabels)
+   set(obj.PageLabels(N), 'ButtonDownFcn', {@iTabClicked, obj, N});
+end
+end % iResetTabCallbacks

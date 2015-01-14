@@ -32,8 +32,8 @@ classdef BoxPanel < uiextras.CardPanel & uiextras.DecoratedPanel
     %             uiextras.HBoxFlex
     
     %   Copyright 2009-2010 The MathWorks, Inc.
-    %   $Revision: 301 $
-    %   $Date: 2010-07-22 16:40:01 +0100 (Thu, 22 Jul 2010) $
+    %   $Revision: 383 $
+    %   $Date: 2013-04-29 11:44:48 +0100 (Mon, 29 Apr 2013) $
     
     properties
         IsMinimized = false
@@ -45,6 +45,7 @@ classdef BoxPanel < uiextras.CardPanel & uiextras.DecoratedPanel
         HelpFcn
         MinimizeFcn
         DockFcn
+        BorderType
         Title
         TitleColor
         TooltipString
@@ -137,6 +138,7 @@ classdef BoxPanel < uiextras.CardPanel & uiextras.DecoratedPanel
             
             % Get some defaults
             obj.setPropertyFromDefault( 'TitleColor' );
+            obj.setPropertyFromDefault( 'BorderType' );
             
             % Parse any input arguments
             if nargin>0
@@ -149,9 +151,17 @@ classdef BoxPanel < uiextras.CardPanel & uiextras.DecoratedPanel
     
     methods
         
+        function set.BorderType( obj, value )
+            set( obj.UIContainer, 'BorderType', value );
+            set( obj.HGWidgets_.TitlePanel, 'BorderType', value );
+        end % set.BorderType
+        
+        function value = get.BorderType( obj )
+            value = get( obj.UIContainer, 'BorderType' );
+        end % get.BorderType
+        
         function set.Title( obj, value )
             set( obj.HGWidgets_.TitleText, 'String', value );
-            obj.redraw();
         end % set.Title
         
         function value = get.Title( obj )
@@ -233,17 +243,18 @@ classdef BoxPanel < uiextras.CardPanel & uiextras.DecoratedPanel
         end % get.DockFcn
         
         function set.TitleColor( obj, value )
-            if isfield( obj.HGWidgets_, 'TitleText' )
-                set( obj.HGWidgets_.TitleText, 'BackgroundColor', value );
-            end
-            if isfield( obj.HGWidgets_, 'TitlePanel' )
-                set( obj.HGWidgets_.TitlePanel, 'BackgroundColor', value );
-            end
-            if isfield( obj.HGWidgets_, 'HelpButton' )
-                set( obj.HGWidgets_.HelpButton, 'BackgroundColor', value );
-            end
-            if isfield( obj.HGWidgets_, 'CloseButton' )
-                set( obj.HGWidgets_.CloseButton, 'BackgroundColor', value );
+            widgets = {
+                'TitleText'
+                'TitlePanel'
+                'HelpButton'
+                'CloseButton'
+                'MinimizeButton'
+                'DockButton'
+                };
+            for ww=1:numel(widgets)
+                if isfield( obj.HGWidgets_, widgets{ww} )
+                    set( obj.HGWidgets_.(widgets{ww}), 'BackgroundColor', value );
+                end
             end
         end % set.TitleColor
         

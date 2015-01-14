@@ -9,9 +9,9 @@ function install()
 %
 %   See also: uninstall
 
-%   Copyright 2008-2010 The MathWorks Ltd.
-%   $Revision: 269 $
-%   $Date: 2010-07-07 08:50:47 +0100 (Wed, 07 Jul 2010) $
+%   Copyright 2008-2013 The MathWorks Ltd.
+%   $Revision: 901 $
+%   $Date: 2014-03-04 09:31:29 +0000 (Tue, 04 Mar 2014) $
 
 % Check the version
 minVersionDate = '25-Jan-2010';
@@ -25,6 +25,7 @@ thisdir = fileparts( mfilename( 'fullpath' ) );
 
 dirs = {
     thisdir
+    fullfile( thisdir, 'layout' )
     fullfile( thisdir, 'Patch' )
     fullfile( thisdir, 'layoutHelp' )
     };

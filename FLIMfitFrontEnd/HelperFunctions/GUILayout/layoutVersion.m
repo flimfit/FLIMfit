@@ -15,50 +15,10 @@ function [version, versionDate] = layoutVersion()
 
 %   Copyright 2009-2013 The MathWorks Ltd.
 
-version = '1.12';
-versionDate = '2013-02-18';
-
-% version = '1.11';
-% versionDate = '2012-12-14';
-
-% version = '1.10';
-% versionDate = '2011-07-14';
-
-% version = '1.9';
-% versionDate = '2011-02-10';
-
-% version = '1.8';
-% versionDate = '2010-11-02';
-
-% version = '1.7';
-% versionDate = '2010-10-22';
-
-% version = '1.6';
-% versionDate = '2010-09-24';
-
-% version = '1.5';
-% versionDate = '2010-07-22';
-
-% version = '1.4';
-% versionDate = '2010-07-15';
-
-% version = '1.3';
-% versionDate = '2010-06-28';
-
-% version = '1.2';
-% versionDate = '2010-06-18';
-
-% version = '1.1';
-% versionDate = '2010-06-09';
-
-% version = '1.0';
-% versionDate = '2010-05-28';
-
-% version = '0.4';
-% versionDate = '2010-05-19';
-
-% version = '0.3';
-% versionDate = '2010-03-10';
-
-% version = '0.2';
-% versionDate = '2010-01-06';
+% True version number comes from layout/Contents.m
+v = ver('layout');
+if isempty(v)
+    error('Layouts:NotInstalled', 'GUI Layout Toolbox is not installed.');
+end
+version = v.Version;
+versionDate = datestr(datenum(v.Date), 'yyyy-mm-dd'); % Convert to ISO standard format
