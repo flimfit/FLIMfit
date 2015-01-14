@@ -1,4 +1,6 @@
-function remove_segmentation_OMERO(obj)
+function remove_segmentation_OMERO(obj, delete_all )
+
+
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -24,64 +26,124 @@ function remove_segmentation_OMERO(obj)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     % Author : Sean Warren
-
- d = obj.data_series_controller.data_series;    
     
+    if nargin < 2 
+        delete_all = false;
+    end
+    
+    d = obj.data_series_controller.data_series; 
+    
+    session = d.omero_data_manager.session; 
+        
+     
     if ~isa(d,'OMERO_data_series')
         errordlg('images are not originated from OMERO, cannot continue..'), return, 
     end;
     
-    session = d.omero_data_manager.session;    
+       
     
     segmentation_description = [];    
-    ROI_descriptions_list = get_ROI_descriptions( session, d.image_ids  );
+   
     
-    if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
-    
-    if numel(ROI_descriptions_list) > 1        
-        [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
-                        'SelectionMode','single',...
-                        'ListString',ROI_descriptions_list);
-        if ~ok, return, end
-        segmentation_description = ROI_descriptions_list{choice};        
-        if isempty(segmentation_description), return, end; %?
-    end
-    %
+    choice = 1;
     
     iUpdate = session.getUpdateService();
     service = session.getRoiService();
-
-    hw = waitbar(0, ['Deleting segmentation "' segmentation_description '", please wait....']);
-    drawnow;
+    
+    if delete_all
+        prompt = {sprintf(['This will delete ALL ROIs attached to the selected images! \n' ...
+            'This may render segmentations for overlapping sets of images unuseable! \n' ...
+            'If in doubt please remove segmentations one by one. ' ' Continue?'])};
+        button = questdlg(prompt, 'Delete ALL ROIs? - Use with care!','Yes','No','No');
+        if ~strcmp(button,'Yes')
+            return;
+        end
         
-    for i=1:d.n_datasets
+        waitbar_prompt = [' Deleting all  please wait.... '];
+           
        
-            myimages = getImages(session,d.image_ids(i));             
-            image = myimages(1);
-
-            roiResult = service.findByImage(image.getId.getValue, []);
-            rois = roiResult.rois;
-            n = rois.size;
-            for thisROI  = 1:n
-                roi = rois.get(thisROI-1);
-                numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
-                for ns = 1:numShapes
-                    shape = roi.getShape(ns-1); % the shape
-                    % remove the shape
-                    if  strcmp(char(roi.getDescription().getValue()),segmentation_description)
-                        roi.removeShape(shape);
-                    end;
+    else
+         ROI_descriptions_list = get_ROI_descriptions( session, d );
+    
+        if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
+        
+        if numel(ROI_descriptions_list) > 0        
+            [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
+                        'SelectionMode','single',...
+                        'ListString',ROI_descriptions_list);
+            if ~ok, return, end
+            segmentation_description = ROI_descriptions_list{choice};       
+        end
+        
+       
+        waitbar_prompt = {sprintf(['  Deleting segmentation  ' segmentation_description ' \n Please Wait ... '])};
+    
+    end
+        
+    drawnow;
+    nfiles = length(d.file_names);
+    
+    deleteList = []; 
+    
+    
+    failFlag = false;
+    
+    for i=1:nfiles
+        
+        image = d.file_names{i};
+        
+        roiResult = service.findByImage(image.getId.getValue, []);
+        rois = roiResult.rois;
+        n = rois.size;
+        for thisROI  = 1:n
+            roi = rois.get(thisROI-1);
+            if delete_all || strcmp(char(roi.getDescription().getValue()), segmentation_description)
+                if roi.getDetails().getPermissions().canDelete()
+                    deleteList{end + 1} = roi;
+                else
+                    deleteList  = [];
+                    failFlag = true;
+                    errordlg('You do not have permission to delete all the selected ROIs!');
+                    break;
                 end
-                %Update the roi.
-                roi = iUpdate.saveAndReturnObject(roi);
-            end    
-        %
-        waitbar(i/d.n_datasets,hw);
+            end
+            
+        end
+        if failFlag
+            break;
+        end
+        
+    end
+    
+   
+    roisToDelete = length(deleteList);
+    if roisToDelete >0
+        hw = waitbar(0, waitbar_prompt);
+        barstep = 1.0./roisToDelete;
+        barval = 0.0;
+        
+        for i = 1:roisToDelete
+            
+            roi = deleteList{i};
+            
+            numShapes = roi.sizeOfShapes; % an ROI can have multiple shapes.
+            for ns = 1:numShapes
+                shape = roi.getShape(ns-1); % the shape
+                roi.removeShape(shape); 
+            end
+            %Update the roi.
+            roi = iUpdate.saveAndReturnObject(roi);
+            
+            barval = barval + barstep;
+            waitbar(barval,hw);
+            drawnow;
+            
+        end
+        
+        delete(hw);
         drawnow;
-        %
-    end        
-    %
-    delete(hw);
-    drawnow;   
-    %    
+    end
+    
+    
+       
 end

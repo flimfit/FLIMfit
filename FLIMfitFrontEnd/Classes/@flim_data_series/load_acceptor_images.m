@@ -64,13 +64,14 @@ function load_acceptor_images(obj,path)
             return;
         end
         
-   
+        file_names = [];
+        
         % first check that we can find a matching name for each dataset
         for i=1:obj.n_datasets  
            
             items =  dir([path '*' obj.names{i} '*']);
-            
-            if length(items) == 1
+         
+            if numel(items) == 1
                 item = items(1);
                 if item.isdir  % assuming a dir containing a single .tif
                     tifname = dir([path item.name filesep  '*' '.tif']);
@@ -113,7 +114,7 @@ function load_acceptor_images(obj,path)
                 im = squeeze(acc_data);
             end
                 
-            im = medfilt2(im,[7 7]);
+            im = medfilt2_noPPL(im,[7 7]);
 
             if bg == 0
                 im = im - min(im(:));

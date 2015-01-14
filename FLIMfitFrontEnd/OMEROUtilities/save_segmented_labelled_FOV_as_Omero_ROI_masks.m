@@ -1,4 +1,4 @@
-function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, image, text_label ) % L - source
+function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, image, text_label , zct) % L - source
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -31,22 +31,26 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                     X = stats(k).PixelList(:,1);
                     Y = stats(k).PixelList(:,2);
                     %
-                    x0 = min(X);
-                    y0 = min(Y);
+                    x0 = min(X) - 1;
+                    y0 = min(Y) - 1;
                     W = max(X) - x0 + 1;
                     H = max(Y) - y0 + 1;
                     %
-                    m = zeros(W,H);
+                    m = zeros(H,W);
                     for j = 1 : numel(X),
                         x = X(j) - x0 + 1;
                         y = Y(j) - y0 + 1;
-                        m(x,y) = 1;                        
+                        m(y,x) = 1;                        
                     end
                     %
-                    mask = createMask(x0,y0,m);
+                    mask = createMask(x0,y0,m); % OMEROMAtlab                  
                     % mask.setTextValue(omero.rtypes.rstring(text_label));                    
-                    setShapeCoordinates(mask, 0, 0, 0);
-                    %
+                    setShapeCoordinates(mask, zct(1), zct(2), zct(3));
+                    % colour ROI for display in insight
+                    mask.setFillColor(rint(2113863680));    %7DFF0000 - 50% red
+                    %mask.setStrokeColor(rint(2113863680));  %7DFF0000 - 50% red
+                   
+                    
                     roi = omero.model.RoiI;
                     roi.setDescription(omero.rtypes.rstring(text_label));
                     roi.addShape(mask);                    
@@ -54,5 +58,8 @@ function save_segmented_labelled_FOV_as_Omero_ROI_masks( session, segmmask, imag
                     roi.setImage(omero.model.ImageI(image.getId.getValue, false));
                     roi = iUpdate.saveAndReturnObject(roi);
             end    
+            
+   
+            
 end
 

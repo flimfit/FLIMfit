@@ -71,7 +71,7 @@ function load_background(obj, file)
         %}
 
         extent = 3;
-        im = medfilt2(im,[extent extent],'symmetric');
+        im = medfilt2_noPPL(im,[extent extent],'symmetric');
 
 
         if any(size(im) ~= [obj.height obj.width])

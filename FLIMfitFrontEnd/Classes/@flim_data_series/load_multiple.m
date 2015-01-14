@@ -51,7 +51,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     
     % handle exception where there is only one file or image 
-    % so multiple Z, C ot T are allowed
+    % so multiple Z, C or T are allowed
     if length(obj.file_names) == 1
         % for the time being assume only 1 dimension can be > 1 
         % otherwise this will go horribly wrong !
@@ -66,7 +66,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
         for dim = 1:3
             D = obj.ZCT{dim};
             if length(D) > allowed(dim)
-                if dim == 2 && ~isempty(chan_info{1}) 
+                if dim == 2 && ~isempty(chan_info) 
                     for d = 1:length(D)
                         names{d} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{d}];
                     end
@@ -75,6 +75,8 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
                         names{d} = [ prefix(dim)   num2str(D(d) -1) ];
                     end
                 end
+                obj.load_multiple_planes = dim;
+                break;
             end
         end
         if ~isempty(names) 

@@ -111,13 +111,14 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             seriesCount = r.getSeriesCount;
             if seriesCount > 1
                 block = [];
-                while isempty(block) ||  block > seriesCount ||  block < 1 
-                    prompt = {['This file holds ' num2str(seriesCount) ' images. Please select one']};
+                nimages = num2str(seriesCount);
+                while isempty(block) ||  block > seriesCount  ||  block < 1   
+                    prompt = {sprintf(['This file holds ' nimages ' images. Numbered 0-' num2str(seriesCount -1) '\n Please select one'])};
                     dlgTitle = 'Multiple images in File! ';
-                    defaultvalues = {'1'};
+                    defaultvalues = {'0'};
                     numLines = 1;
                     inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                    block = str2double(inputdata);
+                    block = str2double(inputdata) + 1;
                     
                 end
                 
@@ -184,7 +185,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                  
                 
                 if ~isempty(strfind(modlo.unit,'NS')) || ~isempty(strfind(modlo.unit,'ns'))
-                    dims.delays = ret.delays.* 1000;
+                    dims.delays = dims.delays.* 1000;
                 end
                 
          
@@ -227,9 +228,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
 
              % get channel_names
             for c = 1:sizeZCT(2)
-                chan_info{c} = omeMeta.getChannelName( 0 ,  c -1 );
+                chan_info{c} = char(omeMeta.getChannelName( 0 ,  c -1 ));
                 if isempty(chan_info{c})
-                    chan_info{c} = omeMeta.getChannelEmissionWavelength(0, c -1);
+                    chan_info{c} = char(omeMeta.getChannelEmissionWavelength(0, c -1));
                 end
                 if isempty(chan_info{c})
                     chan_info{c} = char(omeMeta.getChannelID(0, c -1));

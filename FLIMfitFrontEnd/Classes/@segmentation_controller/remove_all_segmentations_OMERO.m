@@ -25,33 +25,8 @@ function remove_all_segmentations_OMERO(obj)
 
     % Author : Sean Warren
 
-    disp('remove_all_segmentations_OMERO');
+   % disp('remove_all_segmentations_OMERO');
     
-    d = obj.data_series_controller.data_series;
-    session = d.omero_data_manager.session;
-    
-    if ~isa(d,'OMERO_data_series')
-        errordlg('images are not originated from OMERO, cannot continue..'), return, 
-    end;
-
-    size_filt_mask = size(obj.filtered_mask);
-    if isempty(size_filt_mask) || ... 
-            ( numel(size_filt_mask) == 2 && size_filt_mask(1) == 0 && size_filt_mask(2) == 0 )
-        errordlg('nothnig was segmented? cannot continue..'), return, 
-    end;
-    
-    hw = waitbar(0, 'Deleting segmentations, please wait....');
-    drawnow;
-        
-    for i=1:d.n_datasets       
-        myimages = getImages(session,d.image_ids(i));             
-        delete_FOV_shapes( d.omero_data_manager.session,myimages(1) );     
-        %
-        waitbar(i/d.n_datasets,hw);
-        drawnow;                
-    end
-    
-    delete(hw);
-    drawnow;
+   obj.remove_segmentation_OMERO(true);
     
 end

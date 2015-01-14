@@ -88,7 +88,7 @@ classdef OMERO_data_series < flim_data_series
             assign_handles(obj,handles);
            
             obj.polarisation_resolved = false;  % defaults
-            obj.load_multiple_channels = false;
+            obj.load_multiple_planes = 0;
             
             obj.fitted_data = [];
             obj.fit_result = [];

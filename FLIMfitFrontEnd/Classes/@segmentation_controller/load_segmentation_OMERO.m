@@ -34,9 +34,9 @@ function load_segmentation_OMERO(obj)
     session = d.omero_data_manager.session;    
     
     segmentation_description = [];    
-    ROI_descriptions_list = get_ROI_descriptions( session, d.image_ids  );
+    ROI_descriptions_list = get_ROI_descriptions( session, d );
     
-    if isempty(ROI_descriptions_list), errordlg('there are no segmentations for these images'), return, end;
+    if isempty(ROI_descriptions_list), errordlg('there are no segmentations matching the selected FOVs'), return, end;
     
     if numel(ROI_descriptions_list) > 1        
         [choice,ok] = listdlg('PromptString','Please choose the ROI group',...
@@ -61,12 +61,25 @@ function load_segmentation_OMERO(obj)
     end
     
     h = waitbar(0,'Loading segmentation images');
+    
+    sizet = d.n_t;
+    zct = [d.ZCT{1}(1)-1 d.ZCT{2}(1)-1 d.ZCT{3}(1)-1];
+    zct(3) = zct(3).*sizet; % first time-bin in the real-time point
+    
+    image = d.file_names{1};        % default image
         
     for i=1:d.n_datasets
 
-        myimages = getImages(session,d.image_ids(i)); 
-        image = myimages(1);           
-        mask = get_FOV_masks(session, image, segmentation_description);
+        if d.load_multiple_planes == 0        % normal case where 1 3D 'plane' per image
+            image = d.file_names{i};
+        else
+            load_multiple_planes = d.load_multiple_planes;
+             % special case where multiple ZC or T from one image
+            zct(load_multiple_planes) = d.ZCT{load_multiple_planes}(i) -1;
+            zct(3) = zct(3).*sizet;
+        end
+        
+        mask = get_FOV_masks(session, image, segmentation_description, zct );
         
         mask(mask>255)=0;
         mask = uint8(mask);
