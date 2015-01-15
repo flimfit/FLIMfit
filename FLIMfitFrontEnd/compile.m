@@ -1,4 +1,4 @@
-function compile_new(v)
+function compile(v)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -84,7 +84,7 @@ function compile_new(v)
             case 'WIN'
                 mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
             case 'MAC'
-                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_MAC64.m -a FLIMGlobalAnalysis_64_thunk_mac64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
+                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_MACI64.m -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
         end
         
         while ~exist(exe,'file')
@@ -163,10 +163,9 @@ function compile_new(v)
             % Please use an appropriate configuration for your build
             % environment 
             % examples are included for:
-            % Macports GCC 4.7 [FLIMfit_GCC47MP.platypus]
             % Homebrew GCC 4.7 [FLIMfit_GCC47HB.platypus]
             disp( 'NB Currently uses GCC as configured at University of  Dundee!! ');
-            disp ('If building elewhere use the appropriate ,platypus file!');
+            disp ('If building elewhere use the appropriate .platypus file!');
             
             cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name]
             
