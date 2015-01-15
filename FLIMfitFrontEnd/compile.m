@@ -1,4 +1,4 @@
-function compile(v)
+function compile_new(v)
 
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
@@ -41,24 +41,10 @@ function compile(v)
         platform = 'WIN';
         lib_ext = '.dll';
         exe_ext = '.exe';
-        server = '\\ph-nas-02.ph.ic.ac.uk\';
-        
-        
-        % setup compiler on windows
-        if strcmp(computer,'PCWIN64')
-            mex_setup_dir = [matlabroot '\bin\win64'];
-        else
-            mex_setup_dir = [matlabroot '\bin\win32'];
-        end
-        f = [mex_setup_dir '\mexopts\msvc110opts.bat'];
-        %copyfile(f,'mexopts.bat');
-        
-        
     elseif ~isempty(strfind(computer,'MAC'))
         platform = 'MAC';
         lib_ext = '.dylib';
         exe_ext = '.app';
-        server = '/Volumes/';
     else
         platform = 'LINUX';
         lib_ext = '.so';
@@ -72,22 +58,16 @@ function compile(v)
     dll_interface.unload_global_library();
     dll_interface.load_global_library();
 
-    if is64
-        sys = '64';
-    else
-        sys = '32';
-    end    
+    sys = '64'; % depreciate support for 32 bit
+    arch = 'x64';
     
     % Build compiled Matlab project
     %------------------------------------------------
-    exe = ['DeployFiles' filesep filesep 'FLIMfit_' computer exe_ext];
+    exe = ['DeployFiles' filesep 'FLIMfit' exe_ext];
 
     if(true)
 
         % Try and delete executable if it already exists
-        %------------------------------------------------
-
-
         switch platform
             case 'WIN'
                 if exist(exe,'file')
@@ -98,9 +78,15 @@ function compile(v)
                     rmdir(exe,'s');
                 end
         end
-
-        eval(['deploytool -build FLIMfit_' computer '.prj']);
-
+        
+        % Build executable
+        switch platform
+            case 'WIN'
+                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
+            case 'MAC'
+                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_MAC64.m -a FLIMGlobalAnalysis_64_thunk_mac64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
+        end
+        
         while ~exist(exe,'file')
            pause(3);
         end
@@ -122,61 +108,28 @@ function compile(v)
 
             copyfile(exe,deploy_folder);
             
-            f = fopen([deploy_folder '\Start_FLIMfit_' sys '.bat'],'w');
+            f = fopen([deploy_folder '\Start_FLIMfit.bat'],'w');
             fprintf(f,'@echo off\r\necho Starting FLIMfit...\r\n');
             fprintf(f,'if "%%LOCALAPPDATA%%"=="" (set APPDATADIR=%%APPDATA%%) else (set APPDATADIR=%%LOCALAPPDATA%%)\r\n');
             % fprintf(f,'set MCR_CACHE_VERBOSE=1');
             fprintf(f,['set MCR_CACHE_ROOT=%%APPDATADIR%%\\FLIMfit_' v '_' computer '_MCR_cache\r\n']);
             fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" echo Decompressing files for first run, please wait this may take a few minutes\r\n');
             fprintf(f,'if not exist "%%MCR_CACHE_ROOT%%" mkdir "%%MCR_CACHE_ROOT%%"\r\n');
-            fprintf(f,['FLIMfit_' computer '.exe \r\n pause']);
+            fprintf(f,'FLIMfit.exe \r\n pause');
             fclose(f);
             
             copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
-            
-            
-
-            if strcmp(sys,'64')
-                arch = 'x64';
-            else
-                arch = 'x86';
-            end
 
             root = [cd '\..'];
-            
-            
             cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
             
             system(cmd);
-
-            installer_file_name = ['FLIMfit ' v ' Setup ' arch '.exe'];
-            installer_file = ['..\FLIMfitStandalone\Installer\' installer_file_name];
-            
-            
-             % Try and copy files to Imperial server
-            %------------------------------------------------
-            distrib_folder = [server 'fogim_datastore' filesep 'Group' filesep 'Software' filesep 'Global Analysis' filesep];
-
-
-            mkdir([distrib_folder 'FLIMfit_' v]);
-
-            new_distrib_folder = [distrib_folder 'FLIMfit_' v filesep 'FLIMfit_' v '_' computer filesep];
-            copyfile(deploy_folder,new_distrib_folder);   
-
-
-            if strcmp(platform,'WIN')
-                copyfile(installer_file,[distrib_folder 'FLIMfit_' v filesep installer_file_name]);
-            end
-            
-            copyfile('..\changelog.md',[distrib_folder 'Changelog.txt'])
-
-            
-
+           
         case 'MAC'
            
             % wait for the build to complete
             MacOS_folder = [ './' exe filesep 'Contents' filesep 'MacOS']
-            filename = [ MacOS_folder '/FLIMfit_' computer]
+            filename = [ MacOS_folder '/FLIMfit']
             while ~exist(filename,'file')
                 pause(3);
             end
@@ -226,12 +179,6 @@ function compile(v)
             
             
     end
-    
-    
-%    try
-%        rmdir(['FLIMfit_' sys]);
-%    catch e %#ok
-%    end
     
     
 end

@@ -1,17 +1,18 @@
 function folder = layoutRoot()
-%layoutRoot  returns the folder containing the layout toolbox
+%layoutRoot  Folder containing the GUI Layout Toolbox
 %
 %   folder = layoutRoot() returns the full path to the folder containing
-%   the layout toolbox.
+%   the GUI Layout Toolbox.
 %
 %   Examples:
 %   >> folder = layoutRoot()
-%   folder = 'C:\Temp\LayoutToolbox1.0'
+%   folder = 'C:\tools\layouts2\layout'
 %
 %   See also: layoutVersion
 
-%   Copyright 2009-2010 The MathWorks Ltd.
-%   $Revision: 199 $    
-%   $Date: 2010-06-18 15:55:16 +0100 (Fri, 18 Jun 2010) $
+%  Copyright 2009-2014 The MathWorks, Inc.
+%  $Revision: 980 $ $Date: 2014-09-28 14:27:26 -0400 (Sun, 28 Sep 2014) $
 
 folder = fileparts( mfilename( 'fullpath' ) );
+
+end % layoutRoot
