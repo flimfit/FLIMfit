@@ -58,7 +58,7 @@ function compile(v)
     dll_interface.unload_global_library();
     dll_interface.load_global_library();
 
-    sys = '64'; % depreciate support for 32 bit
+    sys = '64'; % deprecate support for 32 bit
     arch = 'x64';
     
     % Build compiled Matlab project
@@ -84,7 +84,7 @@ function compile(v)
             case 'WIN'
                 mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
             case 'MAC'
-                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_MACI64.m -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
+                mcc -m  -v FLIMfit.m -d DeployFiles  -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a FLIMGlobalAnalysisProto_MACI64.m  -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
         end
         
         while ~exist(exe,'file')
