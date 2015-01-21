@@ -124,6 +124,9 @@ function compile(v)
             cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
             
             system(cmd);
+                                                                                                                                                                                            disp
+            disp('Inno Setup completed!');                                                                                                                                                                
+                                                                                                                                                                                                   
            
         case 'MAC'
            
