@@ -82,7 +82,8 @@ function compile(v)
         % Build executable
         switch platform
             case 'WIN'
-                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
+                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config  -a OMEROMatlab/*.config -a GeneratedFiles/version.txt
+        end
             case 'MAC'
                 mcc -m  -v FLIMfit.m -d DeployFiles  -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a FLIMGlobalAnalysisProto_MACI64.m  -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt
         end
