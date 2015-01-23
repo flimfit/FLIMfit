@@ -29,6 +29,7 @@ function compile(v)
 
     if nargin >= 1
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
+        oldv = fgetl(fid);      % repo version for passing to inno setup
         fwrite(fid,v);
         fclose(fid);
     else
@@ -123,7 +124,7 @@ function compile(v)
             copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
             root = [cd '\..'];
-            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' oldv '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
             
             system(cmd);
                                                                                                                                                                                                                          
