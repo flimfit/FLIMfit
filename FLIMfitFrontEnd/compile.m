@@ -28,8 +28,10 @@ function compile(v)
     disp( 'Starting Matlab compilation.' );
 
     if nargin >= 1
-        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
+        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'r');
         oldv = fgetl(fid);      % repo version for passing to inno setup
+        fclose(fid)
+        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
         fwrite(fid,v);
         fclose(fid);
     else
@@ -97,7 +99,7 @@ function compile(v)
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
-    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer]
+    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' oldv '_' computer]
 
     disp( ['creating folder at  ' deploy_folder ] );
     mkdir(deploy_folder);
