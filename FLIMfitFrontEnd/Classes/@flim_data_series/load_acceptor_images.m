@@ -114,7 +114,7 @@ function load_acceptor_images(obj,path)
                 im = squeeze(acc_data);
             end
                 
-            im = medfilt2_noPPL(im,[7 7]);
+            im = medfilt2(im,[7 7]);
 
             if bg == 0
                 im = im - min(im(:));
