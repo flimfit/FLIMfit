@@ -38,6 +38,15 @@ function path_ = xpdf_path
 % Start with the currently set path
 
 path_ = user_string('pdftops')
+
+if strcmp(path,'')
+    debug = [pwd filesep 'HelperFunctions' filesep 'altmany-export_fig' filesep 'pdftops']
+        
+    % add path to pdftops for use by altmany-export_fig functions
+    fs = user_string('pdftops',[pwd filesep 'HelperFunctions' filesep 'altmany-export_fig' filesep 'pdftops'])
+end
+    
+
 % Check the path works
 if check_xpdf_path(path_)
     return
