@@ -108,12 +108,9 @@ classdef abstract_display_controller < handle
                 [filename, pathname, ~] = uiputfile( ...
                         {'*.tiff', 'TIFF image (*.tiff)';...
                          '*.pdf','PDF document (*.pdf)';...
-                         
                          '*.png','PNG image (*.png)';...
-                         '*.eps','EPS level 1 image (*.eps)';...
-                         '*.fig','Matlab figure (*.fig)';...
-                         '*.emf','Windows metafile (*.emf)';...
-                         '*.*',  'All Files (*.*)'},...
+                         '*.eps','EPS level 3 image (*.eps)';...
+                         '*.fig','Matlab figure (*.fig)'},...
                          'Select root file name',[default_path filesep]);
 
                 if filename~=0
@@ -121,15 +118,16 @@ classdef abstract_display_controller < handle
                     [~,name,ext] = fileparts(filename);
                     ext = ext(2:end);
                 
-                
-                
                     [f,ref] = obj.make_hidden_fig();
-                
                     obj.draw_plot(ref);
-                    if strcmp(ext,'emf')
-                        print(f,'-dmeta',[pathname filesep name ' ' param_name '.' ext])
-                    else
-                        savefig([pathname filesep name ' ' param_name],f,ext);
+                    
+                    filename = [pathname filesep name ' ' param_name '.' ext];
+
+                    switch ext
+                        case 'fig'
+                            savefig(f,filename); 
+                        otherwise
+                            export_fig(f, filename );
                     end
                     close(f);
                 end
