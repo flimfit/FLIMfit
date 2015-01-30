@@ -75,8 +75,10 @@ function addpath_global_analysis()
             genops(1);
         end
         
+        debug = [pwd filesep 'HelperFunctions' filesep 'altmany-export_fig' filesep 'pdftops']
+        
         % add path to pdftops for use by altmany-export_fig functions
-        fs = user_string('pdftops',[pwd filesep 'HelperFunctions' filesep 'altmany-export_fig' filesep 'pdftops']);
+        fs = user_string('pdftops',[pwd filesep 'HelperFunctions' filesep 'altmany-export_fig' filesep 'pdftops'])
             
             
     end
