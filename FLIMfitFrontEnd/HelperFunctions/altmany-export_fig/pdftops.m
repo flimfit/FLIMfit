@@ -39,13 +39,7 @@ function path_ = xpdf_path
 
 path_ = user_string('pdftops')
 
-if strcmp(path_,'')
-    path_ = [pwd filesep 'HelperFunctions' filesep 'altmany-export_fig' filesep 'pdftops']
-        
-    % add path to pdftops for use by altmany-export_fig functions
-    fs = user_string('pdftops',[pwd filesep 'HelperFunctions' filesep 'altmany-export_fig' filesep 'pdftops'])
-end
-    
+
 
 % Check the path works
 if check_xpdf_path(path_)
@@ -62,10 +56,14 @@ if check_store_xpdf_path(bin)
     return
 end
 % Search the obvious places
-if ispc
-    path_ = 'C:\Program Files\xpdf\pdftops.exe';
+if isdeployed
+    path_ = ctfroot
 else
-    path_ = '/usr/local/bin/pdftops';
+    if ispc
+        path_ = 'C:\Program Files\xpdf\pdftops.exe';
+    else
+        path_ = '/usr/local/bin/pdftops';
+    end
 end
 
 
