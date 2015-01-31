@@ -46,8 +46,9 @@ end
 % Check whether the binary is on the path
 if ispc
     bin = 'pdftops.exe';
-else
-    bin = 'pdftops';
+end
+if ismac
+    bin = 'pdftops.bin';
 end
 if check_store_xpdf_path(bin)
     path_ = bin;
@@ -61,7 +62,7 @@ if isdeployed
         path_ = [ctfroot '\pdftops.exe'];
     end
     if ismac
-        path_ = [ctfroot '/pdftops.bin'];
+        path_ = [ctfroot '/pdftops.bin']
     end
 else
     if ispc
