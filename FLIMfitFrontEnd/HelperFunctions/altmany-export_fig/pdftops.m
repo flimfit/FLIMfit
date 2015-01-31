@@ -37,9 +37,7 @@ function path_ = xpdf_path
 % Return a valid path
 % Start with the currently set path
 
-path_ = user_string('pdftops')
-
-
+path_ = user_string('pdftops');
 
 % Check the path works
 if check_xpdf_path(path_)
@@ -55,16 +53,22 @@ if check_store_xpdf_path(bin)
     path_ = bin;
     return
 end
-% Search the obvious places
+
+% Try to use the version included with FLIMfit
+pwd
 if isdeployed
+    if ispc
+        path_ = [ctfroot '\pdftops.exe'];
+    end
     if ismac
-        path_ = 'ctfroot/pdftops.bin'
+        path_ = [ctfroot '/pdftops.bin'];
     end
 else
     if ispc
-        path_ = 'C:\Program Files\xpdf\pdftops.exe';
-    else
-        path_ = '/usr/local/bin/pdftops';
+        path_ = [pwd '\pdftops.exe'];
+    end
+    if ismac
+        path_ = [pwd '/pdftops.bin'];
     end
 end
 
