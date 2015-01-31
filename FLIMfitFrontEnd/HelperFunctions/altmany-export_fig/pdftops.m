@@ -57,7 +57,9 @@ if check_store_xpdf_path(bin)
 end
 % Search the obvious places
 if isdeployed
-    path_ = ctfroot
+    if ismac
+        path_ = 'ctfroot/pdftops.bin'
+    end
 else
     if ispc
         path_ = 'C:\Program Files\xpdf\pdftops.exe';
