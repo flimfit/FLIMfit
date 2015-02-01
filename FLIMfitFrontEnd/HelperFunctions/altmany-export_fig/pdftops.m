@@ -59,10 +59,10 @@ end
 pwd
 if isdeployed
     if ispc
-        path_ = [ctfroot '\pdftops.exe'];
+        path_ = [ctfroot '\FLIMfit\pdftops.exe'];
     end
     if ismac
-        path_ = [ctfroot '/pdftops.bin']
+        path_ = [ctfroot '/FLIMfit/pdftops.bin']
     end
 else
     if ispc
