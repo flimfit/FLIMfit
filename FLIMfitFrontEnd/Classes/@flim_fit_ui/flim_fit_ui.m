@@ -34,10 +34,12 @@ classdef flim_fit_ui
       
         function obj = flim_fit_ui(wait,require_auth)
             
-
+            set_splash('FLIMfit_splash1.tif');
+            
+            pause(0.1);
                     
             obj.check_prefs();
-            
+           
             if nargin < 1
                 wait = false;
             end
@@ -75,7 +77,7 @@ classdef flim_fit_ui
                 opengl software;
             end
             
-            set_splash('FLIMfit_splash1.tif');
+           
            
            
             profile = profile_controller();
@@ -209,6 +211,8 @@ classdef flim_fit_ui
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
+            
+          
             
             close all;
             
