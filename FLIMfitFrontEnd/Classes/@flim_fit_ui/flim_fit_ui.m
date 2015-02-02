@@ -48,9 +48,24 @@ classdef flim_fit_ui
             
             if ~isdeployed
                 addpath_global_analysis();
+                if ispc
+                    path_ = [ctfroot '\FLIMfit\pdftops.exe'];
+                end
+                if ismac
+                    path_ = [ctfroot '/FLIMfit/pdftops.bin']
+                end
             else
                 wait = true;
+                if ispc
+                    path_ = [pwd '\pdftops.exe'];
+                end
+                if ismac
+                    path_ = [pwd '/pdftops.bin'];
+                end
             end
+            
+            % set up pdftops path
+            user_string('pdftops',path_);
             
             % Fix for inverted text in segmentation on one PC
             % use software to do graphics where available
