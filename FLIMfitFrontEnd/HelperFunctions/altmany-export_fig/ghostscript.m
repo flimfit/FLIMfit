@@ -90,18 +90,11 @@ if ispc
         return
     end
 else
-    if isdeployed
-         path_= 'gs-noX11';
-         if check_store_gs_path(path_)
-                return
-         end
-    else
-        executable = {'/usr/bin/gs', '/usr/local/bin/gs'};
-        for a = 1:numel(executable)
-            path_ = executable{a};
-            if check_store_gs_path(path_)
-                return
-            end
+    executable = {'/usr/bin/gs', '/usr/local/bin/gs'};
+    for a = 1:numel(executable)
+        path_ = executable{a};
+        if check_store_gs_path(path_)
+            return
         end
     end
 end

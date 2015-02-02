@@ -60,6 +60,7 @@ classdef flim_fit_ui
                     path_ = [ctfroot '\FLIMfit\pdftops.exe'];
                 end
                 if ismac
+                    user_string('ghostscript','gs-noX11');
                     path_ = [ctfroot '/FLIMfit/pdftops.bin']
                 end
                 
