@@ -806,7 +806,7 @@ void FLIMGlobalFitController::Init()
    else
       n_irf_rep = 1;
 
-   int n_irf_buf = 1 + n_thread;
+   int n_irf_buf = max(1 + n_thread, n_irf_rep);
    
    int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
    int irf_size = a_n_irf * n_chan * n_irf_buf;
