@@ -100,7 +100,7 @@ function update_plots(obj,file_root)
                     
                     subplot_idx = subplot_idx + 1;
                     if save
-                        savefig([name_root ' ' r.params{plot_idx}],ext)
+                        export_fig([name_root ' ' r.params{plot_idx} '.' ext]);
                         SaveFPTiff(im_data,[name_root ' ' r.params{plot_idx} ' raw.tiff'])
                     end
                 end
@@ -118,7 +118,7 @@ function update_plots(obj,file_root)
                   
                     subplot_idx = subplot_idx + 1;
                     if save
-                        savefig([name_root ' ' r.params{plot_idx} ' merge'],ext)
+                        export_fig([name_root ' ' r.params{plot_idx} ' merge.' ext]);
                     end
                 end
                 

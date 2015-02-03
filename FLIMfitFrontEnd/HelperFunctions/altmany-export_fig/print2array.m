@@ -168,7 +168,7 @@ if isequal(res, round(res))
     px = [px([4 3])*res 3];
     if ~isequal(size(A), px)
         % Correct the output size
-        A = A(1:min(end,px(1)),1:min(end,px(2)),:);
+        A = A(1:min(end,fix(px(1))),1:min(end,fix(px(2))),:);
     end
 end
 end
