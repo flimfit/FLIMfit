@@ -2386,13 +2386,16 @@ Initialize(varargin{:})
         
         % Lock x axes
         % kluge to prevent intermittent fails in deployed version
-        if all(~isnan(xLim)) && length(xLim) ==2 && xLim(2) > xLim(1)
-            for i=1:length(hAxes)
-                set(hAxes(i), 'XLim', xLim);
+        % when xlim is 1x1 
+        if all(~isnan(xLim)) && length(xLim) ==2 
+            if xLim(2) > xLim(1)
+                for i=1:length(hAxes)
+                    set(hAxes(i), 'XLim', xLim);
+                end
             end
         end
         
-        if all(~isnan(yLim)) && length(yLim) ==2 && yLim(2) > yLim(1)
+        if all(~isnan(yLim)) && length(yLim)==2 && yLim(2) > yLim(1)
             set(hAx, 'YLim', yLim);
         end
     end
