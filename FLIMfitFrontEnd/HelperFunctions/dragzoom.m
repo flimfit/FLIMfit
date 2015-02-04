@@ -2385,12 +2385,14 @@ Initialize(varargin{:})
         %SetAxesLimits
         
         % Lock x axes
-        for i=1:length(hAxes)
-            xlim        % debug 
-            set(hAxes(i), 'XLim', xLim);
+        % kluge to prevent intermittent fails in deployed version
+        if all(~isnan(xLim)) && length(xLim) ==2 && xLim(2) > xLim(1)
+            for i=1:length(hAxes)
+                set(hAxes(i), 'XLim', xLim);
+            end
         end
         
-        if all(~isnan(yLim)) && yLim(2) > yLim(1)
+        if all(~isnan(yLim)) && length(yLim) ==2 && yLim(2) > yLim(1)
             set(hAx, 'YLim', yLim);
         end
     end
