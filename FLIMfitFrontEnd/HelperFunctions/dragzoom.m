@@ -2395,8 +2395,10 @@ Initialize(varargin{:})
             end
         end
         
-        if all(~isnan(yLim)) && length(yLim)==2 && yLim(2) > yLim(1)
-            set(hAx, 'YLim', yLim);
+        if all(~isnan(yLim)) && length(yLim)==2
+            if yLim(2) > yLim(1)
+                set(hAx, 'YLim', yLim);
+            end
         end
     end
 %--------------------------------------------------------------------------
