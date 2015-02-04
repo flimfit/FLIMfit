@@ -2386,6 +2386,7 @@ Initialize(varargin{:})
         
         % Lock x axes
         for i=1:length(hAxes)
+            xlim        % debug 
             set(hAxes(i), 'XLim', xLim);
         end
         
