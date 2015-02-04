@@ -243,6 +243,8 @@ classdef flim_fit_ui
             handles = guidata(obj.window);
             client = handles.omero_data_manager.client;
             
+            delete(handles.data_series_controller.data_series)
+            
             if ~isempty(client)                
                 % save logon anyway                
                 %logon = handles.omero_data_manager.logon;
@@ -258,8 +260,10 @@ classdef flim_fit_ui
                 %
                 handles.omero_data_manager.session = [];
                 handles.omero_data_manager.client = [];
+                
             end
             
+        
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
                       
@@ -271,8 +275,17 @@ classdef flim_fit_ui
                 end
             end
             
+       
             % Finally actually close window
             delete(handles.window);
+           
+            % close the left over figure
+            h = get(0,'Children');
+            close(h);
+             
+             
+           
+            
             
         end
         
