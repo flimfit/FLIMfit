@@ -68,12 +68,12 @@ classdef abstract_display_controller < handle
             
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
                 @(~,~,~) obj.save_as() );
-            if strfind(computer, 'PCWIN') 
-                uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
-                    @(~,~,~) obj.save_as_ppt() );
-                uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
-                    @(~,~,~) obj.export_to_ppt() );
-            end
+            %if strfind(computer, 'PCWIN') 
+            %   uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
+            %        @(~,~,~) obj.save_as_ppt() );
+            %    uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
+            %        @(~,~,~) obj.export_to_ppt() );
+            %end
             if exports_data
                 uimenu(obj.contextmenu,'Label','Export Data...','Callback',...
                 @(~,~,~) obj.export_data() );
@@ -136,6 +136,23 @@ classdef abstract_display_controller < handle
         end
         
         function save_as_ppt(obj)
+            
+            if strcmp(obj.registered_tab, 'Decay')
+                param_name = 'Decay';
+            else
+                if  obj.fit_controller.has_fit == 0
+                    param_name = [];
+                else
+                    param_name = obj.fit_controller.fit_result.params{obj.cur_param};
+                end
+            end
+            
+            if isempty(param_name)
+                errordlg('Sorry! No image available.');
+                return;
+            end
+            
+            
             if ispref('GlobalAnalysisFrontEnd','LastFigureExportFolder')
                 default_path = getpref('GlobalAnalysisFrontEnd','LastFigureExportFolder');
             else
@@ -153,7 +170,7 @@ classdef abstract_display_controller < handle
                 obj.draw_plot(ref);
                 
                 [~,name,ext] = fileparts(filename);
-                file = [pathname filesep name ' ' obj.cur_param ext];
+                file = [pathname filesep name ' ' param_name '.' ext];
                 if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
                     ppt=saveppt2(file,'init');
                     pptfigure(f,'ppt',ppt);
