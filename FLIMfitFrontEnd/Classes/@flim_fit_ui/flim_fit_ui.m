@@ -36,6 +36,7 @@ classdef flim_fit_ui
             
             set_splash('FLIMfit_splash1.tif');
             
+            % pause to allow splash screen to display
             pause(0.1);
                     
             obj.check_prefs();

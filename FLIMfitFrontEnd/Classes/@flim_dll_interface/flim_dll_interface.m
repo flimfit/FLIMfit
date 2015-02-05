@@ -106,7 +106,7 @@ classdef flim_dll_interface < handle
             if ~libisloaded(obj.lib_name)
                 warning('off','MATLAB:loadlibrary:TypeNotFound');
                 if ~isdeployed
-                    [~,warnings] = loadlibrary(obj.lib_name,'FLIMGlobalAnalysis.h','mfilename',proto_file)
+                    [~,warnings] = loadlibrary(obj.lib_name,'FLIMGlobalAnalysis.h','mfilename',proto_file);
                 else
                     loadlibrary(obj.lib_name,proto_ref);
                 end
