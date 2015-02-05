@@ -63,7 +63,7 @@ classdef flim_fit_ui
                 end
                 if ismac
                     user_string('ghostscript','gs-noX11');
-                    path_ = [ctfroot '/FLIMfit/pdftops.bin']
+                    path_ = [ctfroot '/FLIMfit/pdftops.bin'];
                 end
                 
             end
@@ -224,6 +224,7 @@ classdef flim_fit_ui
             end
             
             
+            
         end
         
         function vx = split_ver(obj,ver)
@@ -279,12 +280,14 @@ classdef flim_fit_ui
             % Finally actually close window
             delete(handles.window);
            
-            % close the left over figure
+            % kluge to close the left over figure 
+            %- TBD work out what's leaving it open
             h = get(0,'Children');
-            close(h);
+            if ~isempty(h)
+                close(h);
+            end
              
-             
-           
+          
             
             
         end
