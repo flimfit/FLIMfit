@@ -51,7 +51,7 @@ function handles = setup_menu(obj,handles)
 
     %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
     handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
-    handles.menu_file_save_OME_tiff = uimenu(menu_file,'Label','Save as OME tiff stack...');
+    %handles.menu_file_save_OME_tiff = uimenu(menu_file,'Label','Save as OME tiff stack...');
     handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
 
 
