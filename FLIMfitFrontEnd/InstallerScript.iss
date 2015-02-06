@@ -72,12 +72,12 @@ Source: "{#RepositoryRoot}\InstallerSupport\vcredist_{#MyAppArch}.exe"; DestDir:
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\Start_FLIMfit.bat"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMGlobalAnalysis_{#MyAppSystem}.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}_{#MyAppComputer}\FLIMfit.exe"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
-Source: "C:\Program Files\MATLAB\R2013b\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
+Source: "C:\Program Files\MATLAB\R2014b\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion {#MyAppSystem}bit
 Source: "{#RepositoryRoot}\InstallerSupport\microscope.ico"; DestDir: "{app}"
 Source: "{#RepositoryRoot}\FLIMfitFrontEnd\java.opts"; DestDir: "{app}";
 [Icons]
 Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; IconFilename: "{app}\microscope.ico"
-Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
+Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
 
 ;[Run]

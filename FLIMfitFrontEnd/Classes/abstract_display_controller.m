@@ -68,12 +68,12 @@ classdef abstract_display_controller < handle
             
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
                 @(~,~,~) obj.save_as() );
-            if strfind(computer, 'PCWIN') 
-                uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
-                    @(~,~,~) obj.save_as_ppt() );
-                uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
-                    @(~,~,~) obj.export_to_ppt() );
-            end
+            %if strfind(computer, 'PCWIN') 
+            %   uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
+            %        @(~,~,~) obj.save_as_ppt() );
+            %    uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
+            %        @(~,~,~) obj.export_to_ppt() );
+            %end
             if exports_data
                 uimenu(obj.contextmenu,'Label','Export Data...','Callback',...
                 @(~,~,~) obj.export_data() );
@@ -108,12 +108,9 @@ classdef abstract_display_controller < handle
                 [filename, pathname, ~] = uiputfile( ...
                         {'*.tiff', 'TIFF image (*.tiff)';...
                          '*.pdf','PDF document (*.pdf)';...
-                         
                          '*.png','PNG image (*.png)';...
-                         '*.eps','EPS level 1 image (*.eps)';...
-                         '*.fig','Matlab figure (*.fig)';...
-                         '*.emf','Windows metafile (*.emf)';...
-                         '*.*',  'All Files (*.*)'},...
+                         '*.eps','EPS image (*.eps)';...
+                         '*.fig','Matlab figure (*.fig)'},...
                          'Select root file name',[default_path filesep]);
 
                 if filename~=0
@@ -121,15 +118,16 @@ classdef abstract_display_controller < handle
                     [~,name,ext] = fileparts(filename);
                     ext = ext(2:end);
                 
-                
-                
                     [f,ref] = obj.make_hidden_fig();
-                
                     obj.draw_plot(ref);
-                    if strcmp(ext,'emf')
-                        print(f,'-dmeta',[pathname filesep name ' ' param_name '.' ext])
-                    else
-                        savefig([pathname filesep name ' ' param_name],f,ext);
+                    
+                    filename = [pathname filesep name ' ' param_name '.' ext];
+
+                    switch ext
+                        case 'fig'
+                            savefig(f,filename); 
+                        otherwise
+                            export_fig(f, filename );
                     end
                     close(f);
                 end
@@ -138,6 +136,23 @@ classdef abstract_display_controller < handle
         end
         
         function save_as_ppt(obj)
+            
+            if strcmp(obj.registered_tab, 'Decay')
+                param_name = 'Decay';
+            else
+                if  obj.fit_controller.has_fit == 0
+                    param_name = [];
+                else
+                    param_name = obj.fit_controller.fit_result.params{obj.cur_param};
+                end
+            end
+            
+            if isempty(param_name)
+                errordlg('Sorry! No image available.');
+                return;
+            end
+            
+            
             if ispref('GlobalAnalysisFrontEnd','LastFigureExportFolder')
                 default_path = getpref('GlobalAnalysisFrontEnd','LastFigureExportFolder');
             else
@@ -155,7 +170,7 @@ classdef abstract_display_controller < handle
                 obj.draw_plot(ref);
                 
                 [~,name,ext] = fileparts(filename);
-                file = [pathname filesep name ' ' obj.cur_param ext];
+                file = [pathname filesep name ' ' param_name '.' ext];
                 if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
                     ppt=saveppt2(file,'init');
                     pptfigure(f,'ppt',ppt);

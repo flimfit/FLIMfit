@@ -28,6 +28,9 @@ function compile(v)
     disp( 'Starting Matlab compilation.' );
 
     if nargin >= 1
+        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'r');
+        oldv = fgetl(fid);      % repo version for passing to inno setup
+        fclose(fid)
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
         fwrite(fid,v);
         fclose(fid);
@@ -58,7 +61,7 @@ function compile(v)
     dll_interface.unload_global_library();
     dll_interface.load_global_library();
 
-    sys = '64'; % depreciate support for 32 bit
+    sys = '64'; % deprecate support for 32 bit
     arch = 'x64';
     
     % Build compiled Matlab project
@@ -82,19 +85,21 @@ function compile(v)
         % Build executable
         switch platform
             case 'WIN'
-                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
+                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a pdftops.exe -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a LicenseFiles/*.txt 
+                
             case 'MAC'
-                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_MACI64.m -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config
+                mcc -m  -v FLIMfit.m -d DeployFiles  -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a FLIMGlobalAnalysisProto_MACI64.m  -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a HelperFunctions/GUILayout/+uix/Resources/* -a pdftops.bin -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a LicenseFiles/*.txt 
+        end
+
+        while ~exist(exe,'file')
+            pause(3);
         end
         
-        while ~exist(exe,'file')
-           pause(3);
-        end
-    end
+    
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
-    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v '_' computer]
+    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' oldv '_' computer]
 
     disp( ['creating folder at  ' deploy_folder ] );
     mkdir(deploy_folder);
@@ -121,10 +126,11 @@ function compile(v)
             copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
             root = [cd '\..'];
-            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' v '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' oldv '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
             
             system(cmd);
-           
+                                                                                                                                                                                                                         
+                                                                                                                                                                                                      
         case 'MAC'
            
             % wait for the build to complete

@@ -12,9 +12,9 @@
 	<string>Imperial College, London Photonics</string>
 	<key>BundledFiles</key>
 	<array>
-		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.3.0/4.7.3/libgomp.1.dylib</string>
-		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.3.0/4.7.3/libstdc++.6.dylib</string>
-		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.3.0/4.7.3/libgcc_s.1.dylib</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.0.2/4.7.3/libgomp.1.dylib</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.0.2/4.7.3/libstdc++.6.dylib</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.0.2/4.7.3/libgcc_s.1.dylib</string>
 		<string>./DeployFiles/gs-noX11</string>
 		<string>./DeployFiles/FLIMfit.app</string>
 	</array>

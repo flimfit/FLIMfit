@@ -31,21 +31,7 @@ function save_raw_data(obj, folder)
     
     folder = ensure_trailing_slash(folder);
     
-    % Get Bioformats going
-    bfCheckJavaMemory();
     
-    % load the Bio-Formats library into the MATLAB environment
-    autoloadBioFormats = 1;
-    status = bfCheckJavaPath(autoloadBioFormats);
-
-    assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
-                'to the static Java path or add it to the Matlab path.']);
-
-    % initialize logging
-    loci.common.DebugTools.enableLogging('ERROR');
-    java.lang.System.setProperty('javax.xml.transform.TransformerFactory', 'com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl');
-
-   
     % Setup metadata
     data = permute_to_OME(obj.cur_data);
     metadata = createMinimalOMEXMLMetadata(data);

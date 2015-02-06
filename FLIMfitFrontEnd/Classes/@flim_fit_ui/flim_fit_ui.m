@@ -34,10 +34,13 @@ classdef flim_fit_ui
       
         function obj = flim_fit_ui(wait,require_auth)
             
-
+            set_splash('FLIMfit_splash1.tif');
+            
+            % pause to allow splash screen to display
+            pause(0.1);
                     
             obj.check_prefs();
-            
+           
             if nargin < 1
                 wait = false;
             end
@@ -48,9 +51,26 @@ classdef flim_fit_ui
             
             if ~isdeployed
                 addpath_global_analysis();
+                if ispc
+                    path_ = [pwd '\pdftops.exe'];
+                end
+                if ismac
+                    path_ = [pwd '/pdftops.bin'];
+                end
             else
                 wait = true;
+                if ispc
+                    path_ = [ctfroot '\FLIMfit\pdftops.exe'];
+                end
+                if ismac
+                    user_string('ghostscript','gs-noX11');
+                    path_ = [ctfroot '/FLIMfit/pdftops.bin'];
+                end
+                
             end
+            
+            % set up pdftops path
+            user_string('pdftops',path_);
             
             % Fix for inverted text in segmentation on one PC
             % use software to do graphics where available
@@ -58,7 +78,7 @@ classdef flim_fit_ui
                 opengl software;
             end
             
-            set_splash('FLIMfit_splash1.tif');
+           
            
            
             profile = profile_controller();
@@ -193,6 +213,8 @@ classdef flim_fit_ui
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
             
+          
+            
             close all;
             
             set(obj.window,'Visible','on');
@@ -201,6 +223,7 @@ classdef flim_fit_ui
             if wait
                 waitfor(obj.window);
             end
+            
             
             
         end
@@ -222,6 +245,8 @@ classdef flim_fit_ui
             handles = guidata(obj.window);
             client = handles.omero_data_manager.client;
             
+            delete(handles.data_series_controller.data_series)
+            
             if ~isempty(client)                
                 % save logon anyway                
                 %logon = handles.omero_data_manager.logon;
@@ -237,8 +262,10 @@ classdef flim_fit_ui
                 %
                 handles.omero_data_manager.session = [];
                 handles.omero_data_manager.client = [];
+                
             end
             
+        
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
                       
@@ -250,8 +277,19 @@ classdef flim_fit_ui
                 end
             end
             
+       
             % Finally actually close window
             delete(handles.window);
+           
+            % kluge to close the left over figure 
+            %- TBD work out what's leaving it open
+            h = get(0,'Children');
+            if ~isempty(h)
+                close(h);
+            end
+             
+          
+            
             
         end
         
