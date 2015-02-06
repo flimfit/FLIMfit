@@ -158,7 +158,7 @@ function [hPropsPane,parameters] = propertiesGUI(hParent, parameters, cur_values
   propsArray = propsList.toArray();
   for propsIdx = 1 : length(propsArray)
       thisProp = propsArray(propsIdx);
-      propName = get(thisProp, 'UserData');
+      propName = get(thisProp, 'Description');
       propsHash.put(propName, thisProp);
   end
   warning(oldWarn);
@@ -427,7 +427,7 @@ function prop = newProperty(dataStruct, propName, label, isEditable, dataType, c
       prop.setValue(thisProp);
       prop.setEditable(isEditable);
   end
-  set(prop,'UserData',propName);
+  set(prop,'Description',propName);
 
   % Set property editor, renderer and alignment
   if iscell(dataType)
@@ -491,11 +491,12 @@ function prop = newProperty(dataStruct, propName, label, isEditable, dataType, c
       end
   end  % for all possible data types
 
-  prop.setDescription(description);
-  if ~isempty(description)
-      renderer = com.jidesoft.grid.CellRendererManager.getRenderer(prop.getType, prop.getEditorContext);
-      renderer.setToolTipText(description);
-  end
+  %description
+  %prop.setDescription(description);
+  %if ~isempty(description)
+  %    renderer = com.jidesoft.grid.CellRendererManager.getRenderer(prop.getType, prop.getEditorContext);
+  %    renderer.setToolTipText(description);
+  %end
 
   % Set the property's editability state
   if prop.isEditable
@@ -603,7 +604,7 @@ function propUpdatedCallback(prop, eventData, propName, hid)
       try prop = java(prop); catch, end
       while isa(prop,'com.jidesoft.grid.Property')
           prop = get(prop,'Parent');
-          newName = get(prop,'UserData');
+          newName = get(prop,'Description');
           if isempty(newName), break; end
           propName = [newName '.' propName]; %#ok<AGROW>
       end
@@ -661,7 +662,7 @@ function isOk = checkProp(prop)
   isOk = true;
   oldWarn = warning('off','MATLAB:hg:JavaSetHGProperty');
   warning off MATLAB:hg:PossibleDeprecatedJavaSetHGProperty
-  propName = get(prop, 'UserData');
+  propName = get(prop, 'Description');
   renderer = com.jidesoft.grid.CellRendererManager.getRenderer(get(prop,'Type'), get(prop,'EditorContext'));
   warning(oldWarn);
   mandatoryFields = {};  % TODO - add the mandatory field-names here
