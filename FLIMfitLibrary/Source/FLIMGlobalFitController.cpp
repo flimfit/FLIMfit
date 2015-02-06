@@ -258,8 +258,8 @@ void FLIMGlobalFitController::WorkerThread(int thread)
 
                   region_mutex.lock();
                   
-                  while (  threads_active > 0 ||                           // there are threads running
-                          (threads_started < n_active_thread && cur_region >= 0) ) // not all threads have yet started up
+                  while ( (threads_active > 0) ||                                  // there are threads running
+                          ((threads_started < n_active_thread) && (cur_region >= 0)) ) // not all threads have yet started up
                      active_lock.wait(region_mutex);
   
                   int pos =  data->GetRegionPos(im,r);
