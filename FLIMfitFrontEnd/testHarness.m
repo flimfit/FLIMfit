@@ -25,12 +25,25 @@ function [ output_args ] = testHarness()
     
     import OMEROUtils.*;
        
-     
-    tst = int32(0);
-     
-    chooser = OMEROUtils.OMEImageChooser(client, tst);
     
-    returned = chooser.getSelectedImages()
+    
+   
+    tst = int32(0);
+    
+    go = 1;
+    
+    while go == 1
+    
+        chooser = OMEROUtils.OMEImageChooser(client, tst);
+    
+        returned = chooser.getSelectedImages()
+        
+        if returned.length > 0
+            go = 0;
+        end
+        
+    end 
+     
    
  
 
