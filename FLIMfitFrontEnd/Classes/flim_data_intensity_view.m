@@ -43,7 +43,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
             assign_handles(obj,handles);
             
             parent = get(obj.intensity_axes,'Parent');
-            addlistener(parent,'Position','PostSet',@obj.update_figure);
+            set(parent,'ResizeFcn',@obj.update_figure);
             
             set(obj.intensity_mode_popupmenu,'Callback',@obj.update_figure);
             if ~isempty(obj.data_series_list)

@@ -258,8 +258,8 @@ void FLIMGlobalFitController::WorkerThread(int thread)
 
                   region_mutex.lock();
                   
-                  while (  threads_active > 0 ||                           // there are threads running
-                          (threads_started < n_active_thread && cur_region >= 0) ) // not all threads have yet started up
+                  while ( (threads_active > 0) ||                                  // there are threads running
+                          ((threads_started < n_active_thread) && (cur_region >= 0)) ) // not all threads have yet started up
                      active_lock.wait(region_mutex);
   
                   int pos =  data->GetRegionPos(im,r);
@@ -806,7 +806,7 @@ void FLIMGlobalFitController::Init()
    else
       n_irf_rep = 1;
 
-   int n_irf_buf = 1 + n_thread;
+   int n_irf_buf = max(1 + n_thread, n_irf_rep);
    
    int a_n_irf = (int) ( ceil(n_irf / 2.0) * 2 );
    int irf_size = a_n_irf * n_chan * n_irf_buf;

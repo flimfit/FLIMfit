@@ -15,10 +15,10 @@
 function h = progressbar(h, r, msg, usejavactrl)
 
 if nargin >= 1 && ~isempty(h)
-    validateattributes(h, {'numeric'}, {'scalar'});
-    assert(h ~= 0 && ishandle(h), ...
-        'gui:waitdialog:ArgumentTypeMismatch', ...
-        'First argument is expected to be a graphics handle.');
+    %validateattributes(h, {'numeric'}, {'scalar'});
+    %assert(h ~= 0 && ishandle(h), ...
+    %    'gui:waitdialog:ArgumentTypeMismatch', ...
+    %    'First argument is expected to be a graphics handle.');
 else
     h = [];
 end

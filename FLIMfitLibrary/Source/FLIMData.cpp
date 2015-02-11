@@ -212,13 +212,15 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
  */
 void StartDataLoaderThread(void* wparams)
 {
-   FLIMData* data = (FLIMData*) wparams;
+   DataLoaderThreadParams* params = (DataLoaderThreadParams*) wparams;
+   FLIMData* data = params->data;
   
    if (data->data_class == DATA_UINT16)
-      data->DataLoaderThread<uint16_t>();
+      data->DataLoaderThread<uint16_t>(params->only_load_non_empty_images);
    else
-      data->DataLoaderThread<float>();
+      data->DataLoaderThread<float>(params->only_load_non_empty_images);
 
+   delete params;
 }
 
 void FLIMData::MarkCompleted(int slot)
@@ -381,10 +383,16 @@ void FLIMData::AllImageLowerDataFinished(int im)
    }
 }
 
-void FLIMData::StartStreaming()
+void FLIMData::StartStreaming(bool only_load_non_empty_images)
 {
    if (stream_data && loader_thread == NULL)
-      loader_thread = new tthread::thread(StartDataLoaderThread,(void*)this); // ok
+   {
+      DataLoaderThreadParams* params = new DataLoaderThreadParams;
+      params->data = this;
+      params->only_load_non_empty_images = only_load_non_empty_images;
+
+      loader_thread = new tthread::thread(StartDataLoaderThread,(void*)params); // ok
+   }
 }
 
 void FLIMData::StopStreaming()

@@ -51,7 +51,7 @@
             
             assign_handles(obj,handles);
             
-            addlistener(obj.plot_panel,'Position','PostSet',@obj.panel_resized);
+            set(obj.plot_panel,'ResizeFcn',@obj.panel_resized);
             addlistener(obj.data_series_list,'selection_updated',@obj.dataset_selected_update);
             
         end

@@ -44,7 +44,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             assign_handles(obj,handles);
             
            
-            addlistener(obj.plot_handle,'Position','PostSet',@(~,~,~) obj.update_display);
+            set(obj.plot_handle,'ResizeFcn',@(~,~,~) obj.update_display);
 
             set(obj.plot_handle,'Units','Pixels');
              

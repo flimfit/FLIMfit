@@ -47,19 +47,20 @@ try
     for i=1:n
         s = strings{i};
         % Look for Well= indicator
-        location = strfind(s,'Well=');
-        if ~isempty(location);
+        [tokens,match] = regexp(s,'Well=([A-Za-z])(\d+)','tokens','match');
+        if ~isempty(tokens)
+            
+            token = tokens{1};
+            
             add_class('Well');
             add_class('Row');
             add_class('Column');
             
-            location = location + 5;
-            metadata.Well{i} = s(location:location + 2);
-            metadata.Row{i} = s(location);
-            metadata.Column{i} = s(location + 1:location + 2);
+            metadata.Well{i} = [token{1} token{2}];
+            metadata.Row{i} = token{1};
+            metadata.Column{i} = token{2};
             
-            s = [s(1:location-5) s(location+2:end) ];
-
+            strrep(s,match{1},'');
             
         else
         

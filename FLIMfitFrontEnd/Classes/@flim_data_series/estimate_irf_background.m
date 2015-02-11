@@ -41,7 +41,7 @@ function estimate_irf_background(obj)
         if sum(ir==0) > 0.5 * length(ir)
             bg(i) = 0;
         else
-            gauss_fit = gmdistribution.fit(ir,2,'Replicates',10);
+            gauss_fit = fitgmdist(ir,2,'Replicates',10);
             bg(i) = min(gauss_fit.mu); %#ok
         end
         

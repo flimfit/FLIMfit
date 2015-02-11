@@ -94,6 +94,7 @@ classdef front_end_menu_controller < handle
         
         menu_file_save_dataset;
         menu_file_save_raw;
+        %menu_file_save_OME_tiff;
         menu_file_save_magic_angle_raw;
         
         menu_file_export_decay;
@@ -141,6 +142,7 @@ classdef front_end_menu_controller < handle
         menu_irf_recent;
         
         menu_background_background_load;
+        menu_background_background_load_average;
         menu_background_background_load_series;
         
         menu_background_tvb_load;
@@ -658,6 +660,14 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        %function menu_file_save_OME_tiff_callback(obj,~,~)
+        %    pathname = uigetdir(obj.default_path,'Select folder');
+        %    if pathname ~= 0
+        %        obj.data_series_controller.data_series.save_OME_tiff(pathname);         
+        %    end
+        %end
+        
+        
         function menu_file_save_magic_angle_raw_callback(obj,~,~)
             [filename, pathname] = uiputfile({'*.raw', 'Raw File (*.raw)'},'Select file name',obj.default_path);
             if filename ~= 0
@@ -810,6 +820,13 @@ classdef front_end_menu_controller < handle
             [file,path] = uigetfile('*.tif','Select a background image file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_background([path file]);    
+            end
+        end
+        
+        function menu_background_background_load_average_callback(obj,~,~)
+            [file,path] = uigetfile('*.*','Select an image file to smooth',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.load_background_average([path file]);    
             end
         end
         
@@ -1139,9 +1156,8 @@ classdef front_end_menu_controller < handle
                         {'*.tiff', 'TIFF image (*.tiff)';...
                          '*.pdf','PDF document (*.pdf)';...
                          '*.png','PNG image (*.png)';...
-                         '*.eps','EPS level 1 image (*.eps)';...
-                         '*.fig','Matlab figure (*.fig)';...
-                         '*.*',  'All Files (*.*)'},...
+                         '*.eps','EPS image (*.eps)';...
+                         '*.fig','Matlab figure (*.fig)'},...
                          'Select root file name',[obj.default_path filesep 'fit']);
 
             if ~isempty(filename)

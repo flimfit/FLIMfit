@@ -51,6 +51,7 @@ function handles = setup_menu(obj,handles)
 
     %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
     handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
+    %handles.menu_file_save_OME_tiff = uimenu(menu_file,'Label','Save as OME tiff stack...');
     handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
 
 
@@ -147,7 +148,8 @@ function handles = setup_menu(obj,handles)
     
     menu_background = uimenu(obj.window,'Label','Background');
     handles.menu_background_background_load = uimenu(menu_background,'Label','Load background image...');
-    handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load series of background image to smooth...');
+    handles.menu_background_background_load_average = uimenu(menu_background,'Label','Load background by time-averaging a time-resolved image ...');
+    handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load series of background images to smooth...');
     
     handles.menu_background_tvb_load = uimenu(menu_background,'Label','Load Time Varying Background...','Separator','on');
     handles.menu_background_tvb_use_selected = uimenu(menu_background,'Label','Use Selected Region as Time Varying Background');

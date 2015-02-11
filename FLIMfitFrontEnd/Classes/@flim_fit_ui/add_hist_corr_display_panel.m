@@ -107,7 +107,6 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     uiextras.Empty( 'Parent', param_layout);
         
     set( corr_layout, 'Sizes', [-1,70] );
-    set( param_layout, 'ColumnSizes', [90 90 90 90 90 90] );
     set( param_layout, 'RowSizes', [22 22] );
 
 
