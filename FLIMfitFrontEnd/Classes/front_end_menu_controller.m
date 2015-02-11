@@ -357,9 +357,11 @@ classdef front_end_menu_controller < handle
             end
             obj.data_series_controller.data_series = OMERO_data_series();
             obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, int32(0), true);
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, true);
             images = chooser.getSelectedImages();
             if images.length > 0
+                % NB misnomer load_single retained for compatibility with
+                % file-side
                 obj.data_series_controller.load_single(images)
             end
             notify(obj.data_series_controller,'new_dataset');
@@ -375,7 +377,6 @@ classdef front_end_menu_controller < handle
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, int32(1));
             dataset = chooser.getSelectedDataset();
             if ~isempty(dataset)
-                
                 obj.data_series_controller.load_data_series(dataset,''); 
                 notify(obj.data_series_controller,'new_dataset');
             end
@@ -383,7 +384,17 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
-            obj.omero_data_manager.Load_IRF_FOV(obj.data_series_controller.data_series);
+            %obj.omero_data_manager.Load_IRF_FOV(obj.data_series_controller.data_series);
+            pname = obj.data_series_controller.data_series.project_name;
+            dname = obj.data_series_controller.data_series.dataset_name;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, pname, dname);
+            images = chooser.getSelectedImages();
+            if images.length == 1
+                load_as_image = false;
+                obj.data_series_controller.data_series.load_irf(images(1),load_as_image)
+            end
+            notify(obj.data_series_controller,'new_dataset');
+            clear chooser;
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
