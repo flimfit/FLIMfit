@@ -61,7 +61,6 @@ function load_single(obj,images,polarisation_resolved)
             project = getProjects(session, project.getId().getValue());
             obj.omero_data_manager.project = project;
             pname = char(project.getName.getValue() );
-            obj.project_name = pname;
         end
     end
     

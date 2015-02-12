@@ -70,7 +70,7 @@ classdef OMERO_data_series < flim_data_series
         
         FLIM_modality;
         
-        project_name = 'x';
+       
         dataset_name = 'x';
         
         
