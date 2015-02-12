@@ -64,6 +64,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
         obj.lazy_loading = false;
     end
     
+   
     n_datasets = length(image_names);
     
     
@@ -72,31 +73,27 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     end
    
     
-    pname = ' ';
-    dname = ' ';
+    session = obj.omero_data_manager.session;
     
-   
-    omero_dataset = getDatasets(session, omero_dataset.getId().getValue());
-    obj.omero_data_manager.dataset = omero_dataset;
-    dname = char(dataset.getName.getValue());
-    list = service.findAllByQuery(['select l from ProjectDatasetLink as l where l.child.id = ', num2str(dataset.getId.getValue())], []);
+    pname = ' ';
+    dname = char(omero_dataset.getName.getValue());
+    
+    service = session.getQueryService();
+    
+    list = service.findAllByQuery(['select l from ProjectDatasetLink as l where l.child.id = ', num2str(omero_dataset.getId.getValue())], []);
     if (list.size > 0)
         project = list.get(0).getParent();
         project = getProjects(session, project.getId().getValue());
         obj.omero_data_manager.project = project;
         pname = char(project.getName.getValue() );
     end
-   
     
+ 
     obj.header_text = [ pname ' ' dname];
     obj.n_datasets = n_datasets;
-  
+ 
    
-  
-    obj.names = cell(1,n_datasets);
-    
     % find corresponding Image list...
-    images = zeros(1,n_datasets);
     for m = 1:n_datasets
         iName_m = image_names{m};
         [~,name,~] = fileparts_inc_OME(iName_m);
@@ -111,8 +108,6 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     end
     
     obj.file_names = selected_images;
-
-    obj.n_datasets = length(selected_images);
 
     obj.load_multiple(polarisation_resolved, []);
 

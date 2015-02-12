@@ -66,7 +66,7 @@ function load_single(obj,images,polarisation_resolved)
     
     
     if length(images) == 1 
-        obj.header_text = [ pname ' ' dname ' ' char(image.getName.getValue())];
+        obj.header_text = [ pname ' ' dname ' ' char(images(1).getName.getValue())];
         obj.n_datasets = 1;
     else
         obj.header_text = [ pname ' ' dname];
