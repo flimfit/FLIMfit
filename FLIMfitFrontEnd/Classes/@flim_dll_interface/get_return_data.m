@@ -54,8 +54,6 @@ function get_return_data(obj)
     end
 
     r.set_param_names(param_names);
-    r.names = d.names(obj.datasets);
-
     
     n_regions_total = calllib(obj.lib_name,'GetTotalNumOutputRegions',obj.dll_id);
 
@@ -126,8 +124,10 @@ function get_return_data(obj)
         f = md.(fields{i});
         md.(fields{i}) = f(obj.datasets);
     end
-    
     obj.fit_result.metadata = md;
+
+    r.names = d.names(obj.datasets);
+
     
     obj.progress_bar = [];
     
