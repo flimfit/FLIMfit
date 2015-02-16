@@ -71,7 +71,7 @@ classdef OMERO_data_series < flim_data_series
         FLIM_modality;
         
        
-        dataset_name = 'x';
+        datasetId = java.lang.Long(-1);
         
         
     end

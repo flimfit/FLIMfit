@@ -54,7 +54,7 @@ function load_single(obj,images,polarisation_resolved)
         dataset = getDatasets(session, dataset.getId().getValue());
         obj.omero_data_manager.dataset = dataset;
         dname = char(dataset.getName.getValue());
-        obj.dataset_name = dname;
+        obj.datasetId= dataset.getId().getValue();
         list = service.findAllByQuery(['select l from ProjectDatasetLink as l where l.child.id = ', num2str(dataset.getId.getValue())], []);
         if (list.size > 0)
             project = list.get(0).getParent();

@@ -386,8 +386,8 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
-            dname = obj.data_series_controller.data_series.dataset_name;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, dname);
+            dId = obj.data_series_controller.data_series.datasetId;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client,java.lang.Long(dId) );
             images = chooser.getSelectedImages();
             if images.length == 1
                 load_as_image = false;
