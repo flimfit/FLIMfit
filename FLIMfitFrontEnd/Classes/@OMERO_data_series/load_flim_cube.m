@@ -135,12 +135,6 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
          type = 'single';
     end
     
-     % TBD add loops for Z & T. For the time being just assume
-    % only C > 1
-    
-    Z = Zarr(1);
-    T = Tarr(1);
-    
      % offset values in each dimension XYZCT
      offset = java.util.ArrayList;
      offset.add(java.lang.Integer(0));
@@ -169,10 +163,17 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
  
     imSize = sizeX * sizeY;
     
+   for zplane = 1:nZ
+                Z = Zarr(zplane);
+                
+                for c = 1:nchans
+                    chan = Carr(c);
+                    
+                    for time = 1:nT
+                        T = Tarr(time);
+    
+    
    
-    for c = 1:nchans
-        
-        chan = Carr(c);
         
         % check that we are supposed to load this FLIM cube
         if ctr == selected || polarisation_resolved || nfiles > 1
@@ -238,9 +239,9 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
         else
             ctr = ctr + 1;
         end
-      
+    end
     end % end nchans
-
+   end
     
     
     store.close();
