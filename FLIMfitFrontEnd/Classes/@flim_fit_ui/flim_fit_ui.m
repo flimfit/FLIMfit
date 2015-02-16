@@ -197,6 +197,9 @@ classdef flim_fit_ui
             
             
             loadOmero();
+            
+            utils_jar = fullfile(pwd,[ filesep 'OMEuiUtils' filesep 'OMEuiUtils.jar']);
+            javaaddpath(utils_jar);
            
             % verify that enough memory is allocated
             bfCheckJavaMemory();

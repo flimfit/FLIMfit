@@ -355,24 +355,46 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            obj.data_series_controller.data_series = OMERO_data_series();
-            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
-            obj.omero_data_manager.Load_FLIM_Data(obj.data_series_controller.data_series);
+            
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, true);
+            images = chooser.getSelectedImages();
+            if images.length > 0
+                % NB misnomer load_single retained for compatibility with
+                % file-side
+                obj.data_series_controller.data_series = OMERO_data_series();
+                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
+                obj.data_series_controller.load_single(images)
+            end
             notify(obj.data_series_controller,'new_dataset');
+            clear chooser;
         end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
+            % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            obj.data_series_controller.data_series = OMERO_data_series();   
-            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;            
-            obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, int32(1));
+            dataset = chooser.getSelectedDataset();
+            if ~isempty(dataset)
+                obj.data_series_controller.data_series = OMERO_data_series();   
+                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
+                obj.data_series_controller.load_data_series(dataset,''); 
+            end
             notify(obj.data_series_controller,'new_dataset');
+            clear chooser;
         end                    
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
-            obj.omero_data_manager.Load_IRF_FOV(obj.data_series_controller.data_series);
+            dId = obj.data_series_controller.data_series.datasetId;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client,java.lang.Long(dId) );
+            images = chooser.getSelectedImages();
+            if images.length == 1
+                load_as_image = false;
+                obj.data_series_controller.data_series.load_irf(images(1),load_as_image)
+            end
+            notify(obj.data_series_controller,'new_dataset');
+            clear chooser;
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
@@ -511,8 +533,10 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
+            
             [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
             if file ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file]); 
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -525,8 +549,10 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
+             
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -541,6 +567,7 @@ classdef front_end_menu_controller < handle
             end
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -555,6 +582,7 @@ classdef front_end_menu_controller < handle
             end
             [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
             if file ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
@@ -569,6 +597,7 @@ classdef front_end_menu_controller < handle
             end
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
