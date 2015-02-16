@@ -198,9 +198,21 @@ classdef flim_fit_ui
             
             loadOmero();
             
-            utils_jar = fullfile(pwd,[ filesep 'OMEuiUtils' filesep 'OMEuiUtils.jar']);
-            javaaddpath(utils_jar);
-           
+            % find path to OMEuiUtils.jar - approach copied from
+            % bfCheckJavaPath
+            path = which('OMEuiUtils.jar');
+            if isempty(path)
+                path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+            end
+            if ~isempty(path) && exist(path, 'file') == 2
+                path % debug
+                javaaddpath(path);
+            else 
+                 assert('Cannot automatically locate an OMEuiUtils JAR file');
+            end
+            
+            
+   
             % verify that enough memory is allocated
             bfCheckJavaMemory();
           
