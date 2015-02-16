@@ -22,7 +22,7 @@ function varargout = ZCT_selection(varargin)
 
 % Edit the above text to modify the response to help ZCT_selection
 
-% Last Modified by GUIDE v2.5 15-Jan-2014 19:52:37
+% Last Modified by GUIDE v2.5 12-Feb-2015 16:18:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -357,3 +357,19 @@ handles.output = {Z,C,T};
 guidata(hObject,handles);
 
 uiresume(handles.figure1);
+
+
+% --- Executes on button press in pushbutton2.
+function pushbutton2_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+dataZ = get(handles.uitableZ,'Data');
+sizeZ = handles.sizeZ;
+
+dataZ(:,2)= num2cell( true(sizeZ,1));
+set(handles.uitableZ,'Data',dataZ);
+
+
+

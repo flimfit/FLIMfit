@@ -256,88 +256,87 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                 case 8
                     type = 'uint64';
             end
-            
-            
-            
-            % TBD add loops for Z & T. For the time being just assume
-            % only C > 1
-            
-            Z = Zarr(1);
-            T = Tarr(1);
-            
-            
-            for c = 1:nchans
-                chan = Carr(c);
+          
+            for zplane = 1:nZ
+                Z = Zarr(zplane);
                 
-                % check that we are supposed to load this FLIM cube
-                if ctr == selected  ||  polarisation_resolved  || nfiles >1
+                for c = 1:nchans
+                    chan = Carr(c);
                     
-                    t = 0;
-                    for block = 0:nblocks - 1
-                        nplanes = nplanesInBlock(block + 1);
+                    for time = 1:nT
+                        T = Tarr(time);
                         
-                        switch modulo
-                            case 'ModuloAlongT'
-                                T = T * sizet;
-                                if ~sgn
-                                    for p = 1:nplanes
-                                        % unsigned moduloAlongT 
-                                        % this is the loop that needs to be
-                                        % optimised for speed
-                                        index = r.getIndex(Z, chan ,T + t);
-                                        t = t + 1;
-                                        rawPlane = r.openBytes(index);
-                                        I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
-                                        I = typecast(I, type);
-                                        target(t,pctr,:,:,selected) = reshape(I, sizeY, sizeX)';
+                        % check that we are supposed to load this FLIM cube
+                        if ctr == selected  ||  polarisation_resolved  || nfiles >1
+                            
+                            t = 0;
+                            for block = 0:nblocks - 1
+                                nplanes = nplanesInBlock(block + 1);
+                                
+                                switch modulo
+                                    case 'ModuloAlongT'
+                                        T = T * sizet;
+                                        if ~sgn
+                                            for p = 1:nplanes
+                                                % unsigned moduloAlongT
+                                                % this is the loop that needs to be
+                                                % optimised for speed
+                                                index = r.getIndex(Z, chan ,T + t);
+                                                t = t + 1;
+                                                rawPlane = r.openBytes(index);
+                                                I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
+                                                I = typecast(I, type);
+                                                target(t,pctr,:,:,selected) = reshape(I, sizeY, sizeX)';
+                                                
+                                            end
+                                        else  % signed
+                                            for p = 1:nplanes
+                                                index = r.getIndex(Z, chan ,T + t);
+                                                t = t + 1;
+                                                plane = bfGetPlane(r,index + 1);
+                                                target(t,pctr,:,:,selected) = plane;
+                                            end
+                                        end
                                         
-                                    end
-                                else  % signed
-                                    for p = 1:nplanes
-                                        index = r.getIndex(Z, chan ,T + t);
-                                        t = t + 1;
-                                        plane = bfGetPlane(r,index + 1);
-                                        target(t,pctr,:,:,selected) = plane;
-                                    end
+                                    case 'ModuloAlongZ'
+                                        Z = Z * sizet;
+                                        for p = 1:nplanes
+                                            index = r.getIndex(Z + t, chan ,T);
+                                            t = t + 1;
+                                            plane = bfGetPlane(r,index + 1);
+                                            target(t,pctr,:,:,selected) = plane;
+                                        end
+                                        
+                                    case 'ModuloAlongC'
+                                        C = chan * sizet;
+                                        for p = 1:nplanes
+                                            index = r.getIndex(Z, C + t ,T);
+                                            t = t + 1;
+                                            plane = bfGetPlane(r,index + 1);
+                                            target(t,pctr,:,:,selected) = plane;
+                                        end
+                                        
+                                end  % end switch
+                                
+                                
+                                if verbose
+                                    totalPlane = totalPlane + nplanes;
+                                    waitbar(totalPlane /totalPlanes,w);
+                                    drawnow;
                                 end
                                 
-                            case 'ModuloAlongZ'
-                                Z = Z * sizet;
-                                for p = 1:nplanes
-                                    index = r.getIndex(Z + t, chan ,T);
-                                    t = t + 1;
-                                    plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = plane;
-                                end
-                                
-                            case 'ModuloAlongC'
-                                C = chan * sizet;
-                                for p = 1:nplanes
-                                    index = r.getIndex(Z, C + t ,T);
-                                    t = t + 1;
-                                    plane = bfGetPlane(r,index + 1);
-                                    target(t,pctr,:,:,selected) = plane;
-                                end
-                                
-                        end  % end switch
-                  
-                    
-                        if verbose
-                            totalPlane = totalPlane + nplanes;
-                            waitbar(totalPlane /totalPlanes,w);
-                            drawnow;
+                            end    % end nblocks
+                        end     % end if selected
+                        
+                        if polarisation_resolved
+                            pctr = pctr + 1;
+                        else
+                            ctr = ctr + 1;
                         end
-
-                    end    % end nblocks
-                end     % end if selected
-
-                if polarisation_resolved
-                    pctr = pctr + 1;
-                else
-                    ctr = ctr + 1;
-                end
-
-            end     % nchans
+                        
+                    end
+                end     % nchans
+            end
 
             % DEBUG timing
            % tElapsed = toc(tstart)
