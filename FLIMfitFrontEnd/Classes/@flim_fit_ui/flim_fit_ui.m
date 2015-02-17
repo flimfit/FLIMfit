@@ -205,15 +205,13 @@ classdef flim_fit_ui
                 path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
             end
             if ~isempty(path) && exist(path, 'file') == 2
-                path % debug
                 javaaddpath(path);
             else 
                  assert('Cannot automatically locate an OMEuiUtils JAR file');
             end
             
-            
    
-            % verify that enough memory is allocated
+            % verify that enough memory is allocated for bio-formats
             bfCheckJavaMemory();
           
             % load both bioformats & OMERO
