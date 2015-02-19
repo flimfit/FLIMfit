@@ -393,7 +393,6 @@ classdef front_end_menu_controller < handle
                 load_as_image = false;
                 obj.data_series_controller.data_series.load_irf(images(1),load_as_image)
             end
-            notify(obj.data_series_controller,'new_dataset');
             clear chooser;
         end                    
         %------------------------------------------------------------------
@@ -402,7 +401,13 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
-            obj.omero_data_manager.Load_Background(obj.data_series_controller.data_series);                      
+            dId = obj.data_series_controller.data_series.datasetId;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client,java.lang.Long(dId) );
+            images = chooser.getSelectedImages();
+            if images.length == 1
+                obj.data_series_controller.data_series.load_background(images(1))
+            end
+            clear chooser;                     
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
@@ -432,12 +437,18 @@ classdef front_end_menu_controller < handle
             obj.omero_data_manager.Load_IRF_WF_gated(obj.data_series_controller.data_series);
         end
         %------------------------------------------------------------------        
-        function menu_OMERO_Load_Background_form_Dataset_callback(obj,~,~)
-            obj.omero_data_manager.Load_Background_form_Dataset(obj.data_series_controller.data_series);
-        end
+       % function menu_OMERO_Load_Background_form_Dataset_callback(obj,~,~)
+       %     obj.omero_data_manager.Load_Background_form_Dataset(obj.data_series_controller.data_series);
+       % end
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
-            obj.omero_data_manager.Load_tvb_from_Image(obj.data_series_controller.data_series);
+            dId = obj.data_series_controller.data_series.datasetId;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client,java.lang.Long(dId) );
+            images = chooser.getSelectedImages();
+            if images.length == 1
+                obj.data_series_controller.data_series.load_tvb(images(1))
+            end
+            clear chooser;   
         end
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Dataset_callback(obj,~,~)
@@ -828,23 +839,17 @@ classdef front_end_menu_controller < handle
         % Background
         %------------------------------------------------------------------
         function menu_background_background_load_callback(obj,~,~)
-            [file,path] = uigetfile('*.tif','Select a background image file',obj.default_path);
+            [file,path] = uigetfile('*.*','Select a background image file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_background([path file]);    
             end
         end
         
-        function menu_background_background_load_average_callback(obj,~,~)
-            [file,path] = uigetfile('*.*','Select an image file to smooth',obj.default_path);
-            if file ~= 0
-                obj.data_series_controller.data_series.load_background_average([path file]);    
-            end
-        end
-        
+      
         function menu_background_background_load_series_callback(obj,~,~)
-            [path] = uigetdir(obj.default_path,'Select a folder of background images');
-            if path ~= 0
-                obj.data_series_controller.data_series.load_background(path);    
+            [file,path] = uigetfile('*.tif','Select a background .tif',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series.load_background_single_tif([path file]);    
             end
         end
         

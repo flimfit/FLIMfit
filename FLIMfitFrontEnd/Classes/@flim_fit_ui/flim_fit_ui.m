@@ -38,6 +38,7 @@ classdef flim_fit_ui
             
             % pause to allow splash screen to display
             pause(0.1);
+            
                     
             obj.check_prefs();
            
@@ -300,6 +301,9 @@ classdef flim_fit_ui
             if ~isempty(h)
                 close(h);
             end
+            
+            clear all;
+
              
           
             
