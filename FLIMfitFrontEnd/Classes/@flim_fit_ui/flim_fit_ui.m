@@ -199,6 +199,10 @@ classdef flim_fit_ui
             
             loadOmero();
             
+            disp('classpath before = ');
+            
+            javaclasspath
+            
             % find path to OMEuiUtils.jar - approach copied from
             % bfCheckJavaPath
             path = which('OMEuiUtils.jar');
@@ -211,6 +215,10 @@ classdef flim_fit_ui
                  assert('Cannot automatically locate an OMEuiUtils JAR file');
             end
             
+            
+            disp('classpath ater ui utils = ');
+            
+            javaclasspath
    
             % verify that enough memory is allocated for bio-formats
             bfCheckJavaMemory();
@@ -227,6 +235,9 @@ classdef flim_fit_ui
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
             
+            
+            disp('final classpath = ');
+            javaclasspath
           
             
             close all;
