@@ -206,7 +206,7 @@ classdef flim_fit_ui
             jPath = javaclasspath('-dynamic')
             utilJarInPath = false
             for i = 1:length(jPath)
-                if strcmp(jPath{i},'OMEuiUtils.jar');
+                if strfind(jPath{i},'OMEuiUtils.jar');
                     utilJarInPath = true
                     break;
                 end
