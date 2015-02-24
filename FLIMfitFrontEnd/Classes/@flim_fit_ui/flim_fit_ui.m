@@ -198,27 +198,33 @@ classdef flim_fit_ui
             
             
             loadOmero();
-            
-            disp('classpath before = ');
-            
-            javaclasspath
-            
+              
             % find path to OMEuiUtils.jar - approach copied from
             % bfCheckJavaPath
-            path = which('OMEuiUtils.jar');
-            if isempty(path)
-                path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+            
+            % first check it isn't already in the dynamic path
+            jPath = javaclasspath('-dynamic');
+            utilJarInPath = false
+            for i = 1:length(jPath)
+                if strcmp(jPath{i},'OMEuiUtils.jar');
+                    utilJarInPath = true
+                    break;
+                end
             end
-            if ~isempty(path) && exist(path, 'file') == 2
-                javaaddpath(path);
-            else 
-                 assert('Cannot automatically locate an OMEuiUtils JAR file');
+                
+            if ~utilJarInPath
+                path = which('OMEuiUtils.jar');
+                if isempty(path)
+                    path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+                end
+                if ~isempty(path) && exist(path, 'file') == 2
+                    javaaddpath(path);
+                else 
+                     assert('Cannot automatically locate an OMEuiUtils JAR file');
+                end
             end
             
             
-            disp('classpath ater ui utils = ');
-            
-            javaclasspath
    
             % verify that enough memory is allocated for bio-formats
             bfCheckJavaMemory();
@@ -235,11 +241,8 @@ classdef flim_fit_ui
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
             
-            
-            disp('final classpath = ');
-            javaclasspath
+         
           
-            
             close all;
             
             set(obj.window,'Visible','on');
