@@ -203,11 +203,11 @@ classdef flim_fit_ui
             % bfCheckJavaPath
             
             % first check it isn't already in the dynamic path
-            jPath = javaclasspath('-dynamic')
-            utilJarInPath = false
+            jPath = javaclasspath('-dynamic');
+            utilJarInPath = false;
             for i = 1:length(jPath)
                 if strfind(jPath{i},'OMEuiUtils.jar');
-                    utilJarInPath = true
+                    utilJarInPath = true;
                     break;
                 end
             end
