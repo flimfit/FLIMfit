@@ -363,9 +363,10 @@ classdef front_end_menu_controller < handle
                 % file-side
                 obj.data_series_controller.data_series = OMERO_data_series();
                 obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
-                obj.data_series_controller.load_single(images)
+                obj.data_series_controller.load_single(images);
+                notify(obj.data_series_controller,'new_dataset');
             end
-            notify(obj.data_series_controller,'new_dataset');
+            
             clear chooser;
         end                                  
         %------------------------------------------------------------------        
@@ -380,8 +381,9 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series = OMERO_data_series();   
                 obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
                 obj.data_series_controller.load_data_series(dataset,''); 
+                notify(obj.data_series_controller,'new_dataset');
             end
-            notify(obj.data_series_controller,'new_dataset');
+            
             clear chooser;
         end                    
         %------------------------------------------------------------------ 
@@ -481,12 +483,17 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            obj.data_series_controller.data_series = OMERO_data_series(); 
-            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;                        
-             obj.data_series_controller.data_series.polarisation_resolved = true;
-            obj.data_series_controller.data_series.load_multiple_planess = 0;
-            obj.omero_data_manager.Load_FLIM_Dataset(obj.data_series_controller.data_series);
-        end                            
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, int32(1));
+            dataset = chooser.getSelectedDataset();
+            if ~isempty(dataset)
+                obj.data_series_controller.data_series = OMERO_data_series();   
+                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
+                obj.data_series_controller.load_data_series(dataset,'',true); 
+                notify(obj.data_series_controller,'new_dataset');
+            end
+            
+            clear chooser;
+        end             
         %------------------------------------------------------------------        
         function menu_OMERO_Export_Data_Settings_callback(obj,~,~)
             obj.omero_data_manager.Export_Data_Settings(obj.data_series_controller.data_series);
