@@ -179,7 +179,10 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
         if ctr == selected || polarisation_resolved || nfiles > 1
             
             t = 0;
+            
+            offset.set(2,java.lang.Integer(Z)); % set Z offset
             offset.set(3,java.lang.Integer(chan)); % set channel offset
+            offset.set(4,java.lang.Integer(T)); % set T offset
 
              switch modulo
                 case 'ModuloAlongZ'
