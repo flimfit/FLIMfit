@@ -356,7 +356,7 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.clear();
             end
             
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, true);
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, true);
             images = chooser.getSelectedImages();
             if images.length > 0
                 % NB misnomer load_single retained for compatibility with
@@ -375,7 +375,7 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, int32(1));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
             if ~isempty(dataset)
                 obj.data_series_controller.data_series = OMERO_data_series();   
@@ -389,7 +389,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client,java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
             images = chooser.getSelectedImages();
             if images.length == 1
                 load_as_image = false;
@@ -404,7 +404,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client,java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
             images = chooser.getSelectedImages();
             if images.length == 1
                 obj.data_series_controller.data_series.load_background(images(1))
@@ -445,7 +445,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client,java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
             images = chooser.getSelectedImages();
             if images.length == 1
                 obj.data_series_controller.data_series.load_tvb(images(1))
@@ -483,7 +483,7 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, int32(1));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
             if ~isempty(dataset)
                 obj.data_series_controller.data_series = OMERO_data_series();   
@@ -509,7 +509,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Another_User_callback(obj,~,~)
             obj.omero_data_manager.Select_Another_User();
-            set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
+            %set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Logon_User_callback(obj,~,~)            
@@ -518,7 +518,7 @@ classdef front_end_menu_controller < handle
             obj.omero_data_manager.dataset = [];
             obj.omero_data_manager.screen = [];
             obj.omero_data_manager.plate = [];
-            set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
+            %set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------                
         function menu_OMERO_Import_Fitting_Results_callback(obj,~,~)  
@@ -526,9 +526,9 @@ classdef front_end_menu_controller < handle
             obj.data_series_controller.data_series = OMERO_data_series();
             obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
             infostring = obj.data_series_controller.data_series.load_fitted_data(obj.fit_controller);
-            if ~isempty(infostring)
-                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
-            end;            
+            %if ~isempty(infostring)
+            %    set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
+            %end;            
         end                                    
         %------------------------------------------------------------------                
         function menu_OMERO_load_acceptor_callback(obj,~,~)
