@@ -1195,7 +1195,13 @@ void FLIMGlobalFitController::SetOutputParamNames()
       sprintf(buf,"theta_%i",i+1);
       param_names.push_back(buf);
    }
-   
+
+   if (ref_reconvolution == FIT_GLOBALLY)
+      param_names.push_back("tau_ref");
+
+   if (fit_t0 == FIT)
+      param_names.push_back("t0");
+
    if (fit_offset == FIT_GLOBALLY)
       param_names.push_back("offset");
 
@@ -1204,12 +1210,6 @@ void FLIMGlobalFitController::SetOutputParamNames()
 
    if (fit_tvb == FIT_GLOBALLY)
       param_names.push_back("tvb");
-
-   if (ref_reconvolution == FIT_GLOBALLY)
-      param_names.push_back("tau_ref");
-
-   if (fit_t0 == FIT)
-      param_names.push_back("t0");
 
 
    n_nl_output_params = (int) param_names.size();
