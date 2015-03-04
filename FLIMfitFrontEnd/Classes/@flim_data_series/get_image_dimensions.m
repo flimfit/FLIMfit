@@ -178,6 +178,14 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                      if modlo.end > modlo.start
                         nsteps = round((modlo.end - modlo.start)/modlo.step);
                         delays = 0:nsteps;
+                         % This code block is Just to fix temp problem with
+                        % timebase in PicoQuant .bin files
+                        % Only until bio-formats 5.1 !!
+                        % To be removed ASAP
+                        if strcmp(ext,'.bin')
+                            modlo.step = modlo.step .* nsteps;
+                        end
+                        %%%%%%%%%%%%%%%%%%%%%%%%%
                         delays = delays .* modlo.step;
                         dims.delays = delays + modlo.start;
                      end
