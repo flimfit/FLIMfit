@@ -27,7 +27,15 @@ function load_raw_data(obj,file)
 
     mapfile = fopen(file,'r');
     
+    % retained for compatibility with old .raw files
     ser_len = fread(mapfile,1,'uint16');
+    
+    % new style raw file so length is now 64 bits
+    if ser_len == 0
+        ser_len = fread(mapfile,1,'uint64');
+    end
+    
+    
     ser_info = fread(mapfile,ser_len,'uint8');
 
     fname = [global_tempname '.mat'];
