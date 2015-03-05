@@ -262,12 +262,13 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               
               header_info = cell(1,n_header_lines);
               
-              n_chan = 0;
+              n_chan = zeros(1,n_header_lines);
               for i=1:n_header_lines
                   parts = regexp(header_data{i},[ '\s*' dlm '\s*' ],'split');
                   header_info{i} = parts(2:end);
-                  n_chan = min(length(header_info{i}),n_chan);
+                  n_chan(i) = length(header_info{i});
               end
+              n_chan = min(n_chan);
               
               chan_info = cell(1,n_chan);
               
