@@ -241,7 +241,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                     chan_info{c} = char(omeMeta.getChannelEmissionWavelength(0, c -1));
                 end
                 if isempty(chan_info{c})
-                    chan_info{c} = char(omeMeta.getChannelID(0, c -1));
+                    chan_info{c} = ['Channel:0:' num2str(c-1)];
                 end
 
                 dims.chan_info = chan_info;
@@ -280,8 +280,17 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               
               chan_info = cell(1,n_chan);
               
+              % by default use well for chan_info
               for i=1:n_chan
                   chan_info{i} = header_info{1}{i};
+              end
+              
+              % if all wells appear to be the same 
+              % then use wavelength instead
+              if strcmp(chan_info{1} ,chan_info{end})
+                for i=1:n_chan
+                  chan_info{i} = header_info{3}{i};
+                end
               end
               
               
