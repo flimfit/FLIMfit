@@ -76,12 +76,12 @@ Source: "C:\Program Files\MATLAB\R2014b\bin\win64\tbb.dll"; DestDir: "{app}"; Fl
 Source: "{#RepositoryRoot}\InstallerSupport\microscope.ico"; DestDir: "{app}"
 Source: "{#RepositoryRoot}\FLIMfitFrontEnd\java.opts"; DestDir: "{app}";
 [Icons]
-Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; IconFilename: "{app}\microscope.ico"
+Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_.bat"; IconFilename: "{app}\microscope.ico"
 Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
 
 ;[Run]
-;Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+;Filename: "{app}\Start_FLIMfit_.bat"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 
 [Messages]
