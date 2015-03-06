@@ -92,6 +92,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     obj.header_text = [ pname ' ' dname];
     obj.n_datasets = n_datasets;
     obj.datasetId = omero_dataset.getId.getValue();
+    obj.omero_data_manager.dataset = omero_dataset;
     obj.polarisation_resolved = polarisation_resolved;
  
    
