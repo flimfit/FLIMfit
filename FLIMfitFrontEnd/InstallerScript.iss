@@ -78,7 +78,7 @@ Source: "{#RepositoryRoot}\FLIMfitFrontEnd\java.opts"; DestDir: "{app}";
 [Icons]
 Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_.bat"; IconFilename: "{app}\microscope.ico"
 Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit_{#MyAppSystem}.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
 
 ;[Run]
 ;Filename: "{app}\Start_FLIMfit_.bat"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
