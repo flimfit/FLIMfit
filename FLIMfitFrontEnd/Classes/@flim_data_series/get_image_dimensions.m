@@ -241,7 +241,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                     chan_info{c} = char(omeMeta.getChannelEmissionWavelength(0, c -1));
                 end
                 if isempty(chan_info{c})
-                    chan_info{c} = ['Channel:0:' num2str(c-1)];
+                    chan_info{c} = ['Channel:' num2str(c-1)];
                 end
 
                 dims.chan_info = chan_info;
