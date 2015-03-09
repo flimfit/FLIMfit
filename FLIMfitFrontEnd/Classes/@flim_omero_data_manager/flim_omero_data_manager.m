@@ -273,16 +273,28 @@ classdef flim_omero_data_manager < handle
             end            
             %
             full_temp_file_name = [tempdir fname];
-            fid = fopen(full_temp_file_name,'w');    
+            fid = fopen(full_temp_file_name,'w');  
+            
+            [path,name,ext] = fileparts_inc_OME(fname);
+            
+            % NB marshal-object is overloaded in OMERO_data_series &
+            % load_irf uses marshal_object for .xml files so simply call
+            % directly
+            if strcmp(ext,'.xml') 
+                data_series.load_irf(fname);
+                return;
+            end;
+            
             %
-            if strfind(fname,'.sdt')
+            if strcmp(ext,'.sdt')
                 fwrite(fid,typecast(str,'uint16'),'uint16');
             else                
                 fwrite(fid,str,'*uint8');
             end
             %
             fclose(fid);
-            %
+            
+           
             %try
                 data_series.load_irf(full_temp_file_name);
             %catch err
@@ -331,7 +343,8 @@ classdef flim_omero_data_manager < handle
 %                                         'Export','Cancel','Cancel');              
 %                 if strcmp(choice,'Cancel'), return, end;
 %                 %
-                current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
+                current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));
+                current_dataset_id = num2str(obj.dataset.getId().getValue());
 
                 if ~data_series.polarisation_resolved
                     new_dataset_name = [current_dataset_name ' FLIM fitting channel ' ...
@@ -347,7 +360,11 @@ classdef flim_omero_data_manager < handle
                     datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
                 end
 
-                description  = ['analysis of the ' current_dataset_name ' at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
+                description  = ['Results from fitting of Dataset '  current_dataset_name  '(' current_dataset_id ') Plane' ...
+                    ' Z ' Z_str ...
+                    ' C ' C_str ...
+                    ' T ' T_str ' ' ...    
+                    '. Created at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
                 newdataset = create_new_Dataset(obj.session,obj.project,new_dataset_name,description);                                                                                                    
                 %
                 if isempty(newdataset)
