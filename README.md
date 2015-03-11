@@ -27,9 +27,9 @@ at  < http://lists.openmicroscopy.org.uk/mailman/listinfo/flimfit-users>
 Compling and running FLIMfit
 ------------------------------------------ 
 
-This software has been extensively tested on Windows 7 with Matlab 2013b using
+This software has been extensively tested on Windows 7 with Matlab 2014b using
 Visual Studio 2012, It has been shown to compile under MacOS X with both XCode 4 and
-Honebrew GCC4.7 and under Linux with GCC 4.7.
+Homebrew GCC4.7 and under Linux with GCC 4.7.
 
 If you wish to compile the package from source please follow these instructions 
 which assume a Windows platform.
@@ -38,7 +38,7 @@ Required Packages
 --------------------
 - CMake 2.8.10    	<http://www.cmake.org/>
 - Visual Studio 2012	<http://www.microsoft.com/visualstudio/eng/downloads>
-- MATLAB 2013b		<http://www.mathworks.co.uk/products/matlab/>
+- MATLAB 2014b		<http://www.mathworks.co.uk/products/matlab/>
 - Boost 1.5.1		<http://www.boost.org/users/history/version_1_51_0.html>
 
 Compiling
