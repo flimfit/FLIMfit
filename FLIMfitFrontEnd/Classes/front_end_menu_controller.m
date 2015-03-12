@@ -130,6 +130,9 @@ classdef front_end_menu_controller < handle
         menu_file_import_exclusion_list;
         menu_file_export_exclusion_list;
         
+        % icy..
+        menu_file_export_volume_to_icy        
+        
         menu_irf_load;
         menu_irf_image_load;
         menu_irf_set_delta;
@@ -1254,10 +1257,39 @@ classdef front_end_menu_controller < handle
                 errordlg(horzcat('Failed to open browser! Please direct a browser to ', url_str ),'Browser Error');
                 
             end
+                        
+        end
+        
+        function menu_file_export_volume_to_icy_callback(obj,~,~)
+                        
+            n_planes = obj.data_series_controller.data_series.n_datasets;
             
+            params = obj.fit_controller.fit_result.fit_param_list();                        
+            
+            param_array(:,:) = obj.fit_controller.get_image(1, params{1});                                    
+            sizeY = size(param_array,1);
+            sizeX = size(param_array,2);                            
+            volm = zeros(sizeX,sizeY,n_planes,'single');
+            
+            [param,v] = listdlg('PromptString','Choose fitted parameter',...
+                'SelectionMode','single',...
+                'ListSize',[100 200],...                                        
+                'ListString',params);                                    
+            if (~v), return, end;
+            
+            for p = 1 : n_planes                
+                plane = obj.fit_controller.get_image(p,params{param})';
+                % plane(isnan(plane)) = 0; % mmmmm
+                volm(:,:,p) = cast(plane,'single');
+            end
+                                                
+            try
+                icy_im3show(volm); % where to get data filename from?..           
+            catch
+                errordlg('error - Icy might be not running');
+            end
             
         end
-
 
     end
     
