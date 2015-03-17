@@ -58,9 +58,12 @@ function addpath_global_analysis()
                 [thisdir filesep 'OMEROMatlab' filesep 'libs'],... 
                 [thisdir filesep 'OMEROMatlab' filesep 'roi']);
             
+        nicyDirs = dir([thisdir filesep 'ICY_Matlab']); 
+        if length(nicyDirs) > 3
             addpath( ...
                 [thisdir filesep 'ICY_Matlab' filesep 'matlabcommunicator'],... 
-                [thisdir filesep 'ICY_Matlab' filesep 'matlabxserver']);                  
+                [thisdir filesep 'ICY_Matlab' filesep 'matlabxserver']);  
+        end
                                         
         % Test genops
         genops(1);
