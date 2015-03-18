@@ -76,7 +76,7 @@ classdef flim_data_series_controller < handle
         
         function load_data_series(obj,root_path,mode,polarisation_resolved,setting_file_name,selected,channels)
             % save settings from previous dataset if it exists
-            saved_setting_file_name = obj.save_settings();
+            saved_setting_file_name = obj.data_settings_filename{1};
             
             if nargin < 6
                 channels = [];
@@ -102,14 +102,12 @@ classdef flim_data_series_controller < handle
                 selected = [];
             end
             
-            
-            obj.data_series = flim_data_series();
             obj.data_series.load_data_series(root_path,mode,polarisation_resolved,setting_file_name,selected,channels);
             
 %            obj.fitting_params_controller.set_polarisation_mode(polarisation_resolved);
             
             if ~isempty(obj.window)
-                set(obj.window,'Name',[root_path ' (' obj.version ')']);
+                set(obj.window,'Name',[ obj.data_series.header_text ' (' obj.version ')']);
             end
 
             notify(obj,'new_dataset');
@@ -117,7 +115,7 @@ classdef flim_data_series_controller < handle
         
         function load_raw(obj,file,setting_file_name)
             % save settings from previous dataset if it exists
-            saved_setting_file_name = obj.save_settings();
+            saved_setting_file_name = obj.data_settings_filename{1}
             
             obj.data_series = flim_data_series();
             obj.data_series.load_raw_data(file);
@@ -131,6 +129,7 @@ classdef flim_data_series_controller < handle
                 % if setting file was specified use that
                 obj.data_series.load_data_settings(setting_file_name);
             end
+           
                        
             if ~isempty(obj.window)
                 set(obj.window,'Name',[file ' (' obj.version ')']);
@@ -139,9 +138,10 @@ classdef flim_data_series_controller < handle
             notify(obj,'new_dataset');
         end
         
+        
         function load_single(obj,file,polarisation_resolved,setting_file_name,channels)
             % save settings from previous dataset if it exists
-            saved_setting_file_name = obj.save_settings();
+            saved_setting_file_name = obj.data_settings_filename{1};
  
             if nargin < 5
                 channels = [];
@@ -156,8 +156,7 @@ classdef flim_data_series_controller < handle
             end
 
             % load new dataset
-            obj.data_series = flim_data_series();
-            obj.data_series.load_single(file,polarisation_resolved,setting_file_name,channels);
+            obj.data_series.load_single(file,polarisation_resolved);
             
             %{
             if nargin < 4
@@ -171,7 +170,7 @@ classdef flim_data_series_controller < handle
             %}
             
             if ~isempty(obj.window)
-                set(obj.window,'Name',[file ' (' obj.version ')']);
+                set(obj.window,'Name',[obj.data_series.header_text ' (' obj.version ')']);
             end
                         
             notify(obj,'new_dataset');

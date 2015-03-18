@@ -90,8 +90,9 @@ end
 %
 if ~strcmp(modulo,'ModuloAlongC')
     pixelsService.setChannelGlobalMinMax(pixelsId, 0, minVal, maxVal);                
-else %set channels names
-if nargin == 7 && ~isempty(channels_names) && sizeC == numel(channels_names)
+end;
+%
+if nargin == 7 && ~isempty(channels_names) && sizeC == numel(channels_names) %set channels names
     %
     pixelsDesc = pixelsService.retrievePixDescription(pixels.getId().getValue());
     channels = pixelsDesc.copyChannels();
@@ -101,9 +102,7 @@ if nargin == 7 && ~isempty(channels_names) && sizeC == numel(channels_names)
         ch.getLogicalChannel().setName(omero.rtypes.rstring(char(channels_names{c})));
         factory.getUpdateService().saveAndReturnObject(ch.getLogicalChannel());
     end                                                        
-end;
-    
-end
+end;    
 %
 rawPixelsStore.save();
 rawPixelsStore.close();

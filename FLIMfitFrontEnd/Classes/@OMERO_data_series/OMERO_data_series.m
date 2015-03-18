@@ -63,15 +63,16 @@ classdef OMERO_data_series < flim_data_series
         image_ids;
         mdta;
        
-        ZCT = []; % cell array containing missing OME dimensions Z,C,T (in that order)  
-        verbose;        % flag to switch waitbar in OMERO_fetch on or off
-        
         omero_data_manager;
         fitted_data;
         
         fit_result;
         
         FLIM_modality;
+        
+       
+        datasetId = java.lang.Long(-1);
+        
         
     end
     
@@ -88,10 +89,9 @@ classdef OMERO_data_series < flim_data_series
      function obj = OMERO_data_series(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
-            obj.verbose = true;
-            
+           
             obj.polarisation_resolved = false;  % defaults
-            obj.load_multiple_channels = false;
+            obj.load_multiple_planes = 0;
             
             obj.fitted_data = [];
             obj.fit_result = [];
@@ -102,7 +102,6 @@ classdef OMERO_data_series < flim_data_series
             obj.fitted_data = [];
             obj.fit_result = []; 
             obj.FLIM_modality = [];            
-            obj.clear_memory_mapping();
         end   
         
         %------------------------------------------------------------------
@@ -118,18 +117,18 @@ classdef OMERO_data_series < flim_data_series
         end;
         
         %------------------------------------------------------------------
-        function table_data = read_analysis_stats_data_from_annotation(obj,object_id)
+        function table_data = read_analysis_stats_data_from_annotation(obj,object)
             %
             table_data = [];
             %
             session = obj.omero_data_manager.session;
             %           
-            whosobject = whos_Object(session,object_id);
+            whosobject = class(object);
             %
-            if strcmp('Plate',whosobject)
-                annotations = getPlateFileAnnotations(session, object_id);
-            elseif strcmp('Dataset',whosobject)
-                annotations = getDatasetFileAnnotations(session, object_id);               
+            if strfind(whosobject,'Plate')
+                annotations = getPlateFileAnnotations(session, object.getId().getValue());
+            elseif strfind(whosobject,'Dataset')
+                annotations = getDatasetFileAnnotations(session, object.getId().getValue());               
             else
                 return;
             end

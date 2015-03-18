@@ -101,11 +101,11 @@ public:
    
    void ImageDataFinished(int im);
    void AllImageLowerDataFinished(int im);
-   void StartStreaming();
+   void StartStreaming(bool only_load_non_empty_images = true);
    void StopStreaming();
 
    template <typename T>
-   void DataLoaderThread();
+   void DataLoaderThread(bool only_load_non_empty_images);
 
    shared_ptr<InstrumentResponseFunction> irf;
 
@@ -215,6 +215,12 @@ private:
 };
 
 
+struct DataLoaderThreadParams
+{
+   FLIMData* data;
+   bool only_load_non_empty_images;
+};
+
 void StartDataLoaderThread(void* wparams);
 
 
@@ -287,7 +293,7 @@ int FLIMData::CalculateRegions()
    START_SPAN("Loading Data");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   StartStreaming();
+   StartStreaming(false);
 
    #pragma omp parallel for schedule(dynamic, 1)
    for(int i=0; i<n_im_used; i++)
@@ -423,7 +429,7 @@ int FLIMData::CalculateRegions()
 }
 
 template <typename T>
-void FLIMData::DataLoaderThread()
+void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
 {
    for(int i=0; i<n_thread; i++)
    {
@@ -432,47 +438,67 @@ void FLIMData::DataLoaderThread()
    }
 
    int free_slot;
+   bool load_image;
 
    for(int im=0; im<n_im_used; im++)
    {
-      data_mutex.lock();
-
-      // wait for some space to become free
-      do
+      if (only_load_non_empty_images)
       {
-         free_slot = -1;
-         for(int j=0; j<n_thread; j++)
+         load_image = false;
+         for (int r = 0; r < MAX_REGION; r++ )
          {
-            if (data_used[j])
+            if (GetRegionIndex(im, r) > -1)
             {
-               free_slot = j;
+               load_image = true;
                break;
             }
-         }   
-
-         if (status->terminate)
-            free_slot = -2;
-
-         if (free_slot == -1)
-            data_used_cond.wait(data_mutex);
-                  
+         }
       }
-      while( free_slot == -1 );
+      else
+      {
+         load_image = true;
+      }
+      if (load_image) // don't try and load data if there are no regions
+      {
+         data_mutex.lock();
 
-      if (free_slot >= 0)
-         data_used[free_slot] = 0;
+         // wait for some space to become free
+         do
+         {
+            free_slot = -1;
+            for(int j=0; j<n_thread; j++)
+            {
+               if (data_used[j])
+               {
+                  free_slot = j;
+                  break;
+               }
+            }   
 
-      data_mutex.unlock();
+            if (status->terminate)
+               free_slot = -2;
 
-      if (free_slot == -2)
-         return;
+            if (free_slot == -1)
+               data_used_cond.wait(data_mutex);
+                  
+         }
+         while( free_slot == -1 );
 
-      T* tr_buf = (T*) this->tr_buf_  + free_slot * n_p;
-      T* data_ptr = GetDataPointer<T>(free_slot, im);
-      memcpy(tr_buf, data_ptr, n_p * sizeof(T));
-      data_loaded[free_slot] = im;
+         if (free_slot >= 0)
+            data_used[free_slot] = 0;
 
-      data_avail_cond.notify_all();
+         data_mutex.unlock();
+
+         if (free_slot == -2)
+            return;
+
+         T* tr_buf = (T*) this->tr_buf_  + free_slot * n_p;
+         T* data_ptr = GetDataPointer<T>(free_slot, im);
+         memcpy(tr_buf, data_ptr, n_p * sizeof(T));
+         data_loaded[free_slot] = im;
+
+         data_avail_cond.notify_all();
+      }
    }
 
 

@@ -132,7 +132,7 @@ function compute_tr_irf(obj)
                 obj.tr_irf = zeros([length(interp_t_irf) obj.n_chan]);
 
                 for i=1:size(obj.tr_irf,2)
-                    obj.tr_irf(:,i) = interp1(obj.tr_t_irf,temp_tr_irf(:,i),interp_t_irf,'cubic',0);
+                    obj.tr_irf(:,i) = interp1(obj.tr_t_irf,temp_tr_irf(:,i),interp_t_irf,'pchip',0);
                 end
                 obj.tr_t_irf = interp_t_irf;
 
@@ -183,14 +183,14 @@ function compute_tr_irf(obj)
         if obj.use_t_calibration && length(obj.tr_t_irf) > 3
 
             
-            t_cor = interp1(obj.cal_t_nominal,obj.cal_t_meas,obj.tr_t_irf,'cubic',0);
+            t_cor = interp1(obj.cal_t_nominal,obj.cal_t_meas,obj.tr_t_irf,'pchip',0);
 
             obj.tr_t_irf = obj.tr_t_irf(1):obj.cal_dt:obj.tr_t_irf(end);
 
             irf_cor = [];
             
             for i=1:size(obj.tr_irf,2) 
-                ic = interp1(t_cor,obj.tr_irf(:,i),obj.tr_t_irf,'cubic',0);
+                ic = interp1(t_cor,obj.tr_irf(:,i),obj.tr_t_irf,'pchip',0);
                 irf_cor(:,i) = ic;
             end
             
@@ -198,8 +198,14 @@ function compute_tr_irf(obj)
 
         end
         
+        if obj.use_image_t0_correction
+            t0_shift = -obj.metadata.t0{obj.active};
+        else
+            t0_shift = 0;
+        end
+        
         % Shift by t0
-        t0_shift = obj.t0-t0_correction;
+        t0_shift = t0_shift+obj.t0-t0_correction;
         
         
         dt_irf = obj.t_irf(2)-obj.t_irf(1);
@@ -225,7 +231,7 @@ function compute_tr_irf(obj)
             
         
         for i=1:size(obj.tr_irf,2)
-            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),new_t-remaining_shift,'cubic',0);
+            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),new_t-remaining_shift,'pchip',0);
         end
         obj.tr_irf(isnan(obj.tr_irf)) = 0;
         obj.tr_t_irf = new_t;

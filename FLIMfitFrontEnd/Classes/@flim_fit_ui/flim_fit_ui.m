@@ -1,4 +1,4 @@
-    classdef flim_fit_ui
+classdef flim_fit_ui
         
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -35,9 +35,13 @@
         function obj = flim_fit_ui(wait,require_auth)
             
             set_splash('FLIMfit_splash1.tif');
+            
+            % pause to allow splash screen to display
+            pause(0.1);
+            
                     
             obj.check_prefs();
-            
+           
             if nargin < 1
                 wait = false;
             end
@@ -47,12 +51,35 @@
             end
             
             if ~isdeployed
-                addpath_global_analysis()
+                addpath_global_analysis();
+                if ispc
+                    path_ = [pwd '\pdftops.exe'];
+                end
+                if ismac
+                    path_ = [pwd '/pdftops.bin'];
+                end
             else
                 wait = true;
+                if ispc
+                    path_ = [ctfroot '\FLIMfit\pdftops.exe'];
+                end
+                if ismac
+                    user_string('ghostscript','gs-noX11');
+                    path_ = [ctfroot '/FLIMfit/pdftops.bin'];
+                end
+                
             end
             
+            % set up pdftops path
+            user_string('pdftops',path_);
             
+            % Fix for inverted text in segmentation on one PC
+            % use software to do graphics where available
+            if ~isempty(strfind(computer,'PCWIN'))
+                opengl software;
+            end
+            
+           
            
            
             profile = profile_controller();
@@ -113,7 +140,7 @@
             coords = get(0,'MonitorPositions');             
             %position only in main monitor
             
-             hostname = getenv('COMPUTERNAME');
+            hostname = getenv('COMPUTERNAME');
             
             monitor = 1;                       
             coords = coords(monitor,:);
@@ -124,8 +151,12 @@
                 coords(4) = coords(4) - 30;
                 coords(2) = coords(2) + 30;
             end
-            set(obj.window,'Units','Pixels','OuterPosition',coords);
-           
+            
+            try 
+                set(obj.window,'Units','Pixels','OuterPosition',coords);
+            catch e %#ok
+               disp('Warning: could not maximise window'); 
+            end
             handles = guidata(obj.window); 
                                                 
         
@@ -165,6 +196,53 @@
 
             guidata(obj.window,handles);
             
+            
+            loadOmero();
+              
+            % find path to OMEuiUtils.jar - approach copied from
+            % bfCheckJavaPath
+            
+            % first check it isn't already in the dynamic path
+            jPath = javaclasspath('-dynamic');
+            utilJarInPath = false;
+            for i = 1:length(jPath)
+                if strfind(jPath{i},'OMEuiUtils.jar');
+                    utilJarInPath = true;
+                    break;
+                end
+            end
+                
+            if ~utilJarInPath
+                path = which('OMEuiUtils.jar');
+                if isempty(path)
+                    path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+                end
+                if ~isempty(path) && exist(path, 'file') == 2
+                    javaaddpath(path);
+                else 
+                     assert('Cannot automatically locate an OMEuiUtils JAR file');
+                end
+            end
+            
+            
+   
+            % verify that enough memory is allocated for bio-formats
+            bfCheckJavaMemory();
+          
+            % load both bioformats & OMERO
+            autoloadBioFormats = 1;
+
+            % load the Bio-Formats library into the MATLAB environment
+            status = bfCheckJavaPath(autoloadBioFormats);
+            assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
+                'to the static Java path or add it to the Matlab path.']);
+
+            % initialize logging
+            %loci.common.DebugTools.enableLogging('INFO');
+            loci.common.DebugTools.enableLogging('ERROR');
+            
+         
+          
             close all;
             
             set(obj.window,'Visible','on');
@@ -173,6 +251,7 @@
             if wait
                 waitfor(obj.window);
             end
+            
             
             
         end
@@ -194,6 +273,8 @@
             handles = guidata(obj.window);
             client = handles.omero_data_manager.client;
             
+            delete(handles.data_series_controller.data_series)
+            
             if ~isempty(client)                
                 % save logon anyway                
                 %logon = handles.omero_data_manager.logon;
@@ -209,8 +290,10 @@
                 %
                 handles.omero_data_manager.session = [];
                 handles.omero_data_manager.client = [];
+                
             end
-
+            
+        
             % Make sure we clean up all the left over classes
             names = fieldnames(handles);
                       
@@ -222,8 +305,22 @@
                 end
             end
             
-            % Finally actaully close window
+       
+            % Finally actually close window
             delete(handles.window);
+           
+            % kluge to close the left over figure 
+            %- TBD work out what's leaving it open
+            h = get(0,'Children');
+            if ~isempty(h)
+                close(h);
+            end
+            
+            clear all;
+
+             
+          
+            
             
         end
         

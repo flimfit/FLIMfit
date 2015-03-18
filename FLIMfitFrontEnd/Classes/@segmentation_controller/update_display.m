@@ -131,13 +131,11 @@ function update_display(obj)
 
     if ishandle(obj.seg_results_table)
         table = {};
-        for i=1:obj.n_regions
-
+        for i=1:obj.n_regions 
             m = obj.filtered_mask(:,:,obj.data_series_list.selected) == i;
             size_region = sum(m(:));
             row = {i size_region false};
             table = [table; row];
-
         end
 
         set(obj.seg_results_table,'Data',table);

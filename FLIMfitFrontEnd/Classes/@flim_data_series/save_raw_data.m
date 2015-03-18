@@ -64,9 +64,14 @@ function save_raw_data(obj,mapfile_name)
     fclose(fid);
     delete(fname);
               
-    mapfile = fopen(mapfile_name,'w');      
+    mapfile = fopen(mapfile_name,'w');   
+    
+    % previous versions used a uint16 to record the length
+    % write a zero to allow backwards compatibility
+    fwrite(mapfile,0,'uint16');
 
-    fwrite(mapfile,length(byteData),'uint16');
+    % now write the actual length into the next 64 bits
+    fwrite(mapfile,length(byteData),'uint64');
     fwrite(mapfile,byteData,'uint8');
     
     obj.suspend_transformation(true);

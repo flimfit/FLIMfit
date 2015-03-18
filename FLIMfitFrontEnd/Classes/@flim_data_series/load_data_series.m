@@ -36,30 +36,20 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         data_setting_file = [];
     end
     
-    block = [];
-    
     if ~exist(root_path,'dir')
         throw(MException('GlobalAnalysis:PathDoesNotExist','Path does not exist'));
     end
    
     root_path = ensure_trailing_slash(root_path);
+    
+    obj.header_text = root_path;
 
     obj.root_path = root_path;
-    obj.mode = mode;
     obj.polarisation_resolved = polarisation_resolved;
     
-    if strcmp(mode,'TCSPC')
+    if strcmp(mode,'bio-formats')
 
-        if isempty(channel)
-            [channel,block] = obj.request_channels(polarisation_resolved);
-        end
-        obj.channels = channel;
-        if isempty(block)
-            block = 1;
-        end
-        obj.block = block;
-       
-        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.ome.tif'])];            
+        files = [dir([root_path '*.sdt']); dir([root_path '*.txt']); dir([root_path '*.tif']); dir([root_path '*.tiff']); dir([root_path '*.msr']); dir([root_path '*.asc']); dir([root_path '*.bin'])];            
         n_datasets = length(files);
         
         file_names = cell(1,n_datasets);
@@ -79,33 +69,26 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         end
         
         n_datasets = length(obj.file_names);
+        if n_datasets == 0
+            return;
+        end
 
+        file_names = [];
+        
         for i=1:n_datasets
-            obj.file_names{i} = [root_path obj.file_names{i}];
+            file_names{i} = [root_path obj.file_names{i}];
         end
-        
-        % open first file
-        [obj.t,data,obj.t_int] = load_flim_file(obj.file_names{1},channel,block);         
-        data_size = size(data);
-        
-        % if only one channel reshape to include singleton dimension
-        if length(data_size) == 3
-            data_size = [data_size(1) 1 data_size(2:3)];
-        end
-        
-        clear data;
-        
-        obj.data_size = data_size;
-        obj.n_datasets = n_datasets;
         
         %set names
         obj.names = cell(1,n_datasets);
         for j=1:n_datasets
-            [~,name,~] = fileparts(obj.file_names{j});
+            [~,name,~] = fileparts(file_names{j});
             obj.names{j} = name;
         end
         
-    else % widefield
+     
+        
+    else % tif-stack
 
         folder_names = get_folders_recursive(root_path);
             
@@ -125,7 +108,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         
         n_datasets = length(folder_names);
         
-        % Load first folder to get sizes etc.
+        
         first_root = [root_path folder_names{1}];
         first_file = get_first_file(first_root);
 
@@ -135,39 +118,20 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
         for i=1:length(folder_names)
             file_names{i} = [root_path folder_names{i} filesep first_file_name ext];
         end
-        obj.file_names = file_names;
-        
-        [obj.t,data,obj.t_int] = load_flim_file(first_file); 
-        data_size = size(data);
-
-        % if only one channel reshape to include singleton dimension
-        if length(data_size) == 3
-            data_size = [data_size(1) 1 data_size(2:3)];
-        end
-        
-        clear data;
-
-        obj.data_size = data_size;
-        obj.n_datasets = n_datasets;       
-
+      
         %set names
         obj.names = cell(1,n_datasets);
-
-        
         for j=1:n_datasets  
             obj.names{j} = safe_folder_names{j};
         end
-    end    
+     
+    end   
    
-    obj.metadata = extract_metadata(obj.names);
-       
-    if obj.lazy_loading
-        obj.load_selected_files(1);
-    else
-        obj.load_selected_files(1:obj.n_datasets);
-    end
+  
+    obj.file_names = file_names;
+    obj.n_datasets = n_datasets;
     
+    obj.load_multiple(polarisation_resolved, data_setting_file);
     
-    obj.init_dataset(data_setting_file);
     
 end

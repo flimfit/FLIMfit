@@ -9,7 +9,7 @@ Warren SC, Margineanu A, Alibhai D, Kelly DJ, Talbot C, et al. (2013) Rapid Glob
 Latest versions and binary executables
 --------------------------------------
 
-For the lastest version, binary executables and further documentation please visit 
+For the latest version, binary executables and further documentation please visit 
 <http://www.openmicroscopy.org/site/products/partner/flimfit>
 
 The binary executables do not require MATLAB. 
@@ -20,17 +20,16 @@ The source code repository is available at: <https://github.com/openmicroscopy/I
 Support
 ------------------------------------------ 
 
-If you have issues installing or running this software, please contact 
-    Sean Warren at <sean.warren09@imperial.ac.uk>
-    or <FLIMfit@imperial.ac.uk>
+If you have issues installing or running this software, please contact us via the  FLIMfit users mailing list
+at  < http://lists.openmicroscopy.org.uk/mailman/listinfo/flimfit-users>
 
 
 Compling and running FLIMfit
 ------------------------------------------ 
 
-This software has been extensively tested on Windows 7 with Matlab 2013a using
+This software has been extensively tested on Windows 7 with Matlab 2014b using
 Visual Studio 2012, It has been shown to compile under MacOS X with both XCode 4 and
-macports GCC4.7 and under Linux with GCC 4.7.
+Homebrew GCC4.7 and under Linux with GCC 4.7.
 
 If you wish to compile the package from source please follow these instructions 
 which assume a Windows platform.
@@ -39,7 +38,7 @@ Required Packages
 --------------------
 - CMake 2.8.10    	<http://www.cmake.org/>
 - Visual Studio 2012	<http://www.microsoft.com/visualstudio/eng/downloads>
-- MATLAB 2013a		<http://www.mathworks.co.uk/products/matlab/>
+- MATLAB 2014b		<http://www.mathworks.co.uk/products/matlab/>
 - Boost 1.5.1		<http://www.boost.org/users/history/version_1_51_0.html>
 
 Compiling

@@ -35,8 +35,17 @@ function init_dataset(obj,setting_file_name)
         obj.background_value = 0;
         obj.background_type = 0;
     else
-        obj.background_value = prof.Data.Default_Camera_Background;
-        obj.background_type = 1;
+        background_val = prof.Data.Default_Camera_Background;
+        
+        % Check that setting background isn't going to completely mask out
+        % data
+        if min(obj.cur_tr_data(:)) <= background_val
+            obj.background_value = 0;
+            obj.background_type = 0;
+        else
+            obj.background_value = background_val;
+            obj.background_type = 1;
+        end
     end
     
     obj.rep_rate = prof.Data.Default_Rep_Rate;
@@ -58,8 +67,8 @@ function init_dataset(obj,setting_file_name)
     obj.gate_max = 2^16-1;
     
     obj.t_min = min(obj.t);
-    obj.t_max = max(obj.t);   
-    
+    obj.t_max = max(obj.t);  
+   
     obj.t0 = 0;
     
     obj.t_irf_min = min(obj.t_irf);
@@ -93,10 +102,16 @@ function init_dataset(obj,setting_file_name)
     end
     
     
-    if nargin >= 2 && exist(setting_file_name,'file')
+    if nargin >= 2
        obj.load_data_settings(setting_file_name); 
     else
         obj.set_delta_irf();
+    end
+    
+    % if single-pixel image then force no smoothing
+    if obj.data_size(3) == 1 & obj.data_size(4) == 1
+        obj.binning = 0;
+        notify(obj,'masking_updated');
     end
     
     obj.init = true;

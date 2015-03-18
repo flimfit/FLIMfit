@@ -35,6 +35,8 @@
 #include <algorithm>
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <cfloat>
+
 using boost::math::isnan;
 using std::min;
 using std::max;

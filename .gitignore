@@ -21,5 +21,6 @@ FLIMFitFrontEnd/FLIMGlobalAnalysis_64_thunk_*
 GlobalProcessingFrontEnd/FLIMfit_32/*
 GlobalProcessingFrontEnd/FLIMfit_64/*
 FLIMFitFrontEnd/OMEROMatlab/*
+FLIMFitFrontEnd/BFMatlab/*
 FLIMFitFrontEndStandalone/*
 FLIMfitStandalone/*

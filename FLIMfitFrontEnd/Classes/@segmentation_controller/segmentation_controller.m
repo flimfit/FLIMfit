@@ -213,6 +213,7 @@ classdef segmentation_controller < flim_data_series_observer
             d = obj.data_series;
             obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
             obj.update_display();
+            obj.n_regions = 0;
         end
         
         function segment_pressed(obj,~,~)

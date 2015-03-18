@@ -12,11 +12,11 @@
 	<string>Imperial College, London Photonics</string>
 	<key>BundledFiles</key>
 	<array>
-		<string>/usr/local/Cellar/gcc47/4.7.3/gcc/lib/libgomp.1.dylib</string>
-		<string>/usr/local/Cellar/gcc47/4.7.3/gcc/lib/libstdc++.6.dylib</string>
-		<string>/usr/local/Cellar/gcc47/4.7.3/gcc/lib/libgcc_s.1.dylib</string>
-		<string>/usr/local/bin/gs-noX11</string>
-		<string>./DeployFiles/FLIMfit_MACI64.app</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.0.2/4.7.3/libgomp.1.dylib</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.0.2/4.7.3/libstdc++.6.dylib</string>
+		<string>/usr/local/Cellar/gcc47/4.7.3/lib/gcc/x86_64-apple-darwin13.0.2/4.7.3/libgcc_s.1.dylib</string>
+		<string>./DeployFiles/gs-noX11</string>
+		<string>./DeployFiles/FLIMfit.app</string>
 	</array>
 	<key>Creator</key>
 	<string>Platypus-4.8</string>
@@ -33,7 +33,7 @@
 	<key>Droppable</key>
 	<false/>
 	<key>ExecutablePath</key>
-	<string>/usr/local/share/platypus/ScriptExec</string>
+	<string>/usr/local/Cellar/platypus/4.8/share/platypus/ScriptExec</string>
 	<key>IconPath</key>
 	<string>./DeployFiles/microscopeGrey.icns</string>
 	<key>Identifier</key>
@@ -45,7 +45,7 @@
 	<key>Name</key>
 	<string>Flimfit</string>
 	<key>NibPath</key>
-	<string>/usr/local/share/platypus/MainMenu.nib</string>
+	<string>/usr/local/Cellar/platypus/4.8/share/platypus/MainMenu.nib</string>
 	<key>OptimizeApplication</key>
 	<true/>
 	<key>Output</key>

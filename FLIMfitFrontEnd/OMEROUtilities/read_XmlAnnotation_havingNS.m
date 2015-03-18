@@ -24,22 +24,14 @@ function str = read_XmlAnnotation_havingNS(session, object, tag)
 % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
         %
-        str = [];
-        
-       
+        str = [];               
         %
-        switch whos_Object(session ,object.getId().getValue())
-            case 'Project'
-                specifier = 'omero.model.Project';
-            case 'Dataset'
-                specifier = 'omero.model.Dataset';
-            case 'Image'
-                specifier = 'omero.model.Image';
-            case 'Plate'
-                specifier = 'omero.model.Plate';
-            case 'Screen'
-                specifier = 'omero.model.Screen';                
-        end;
+        class_names = {'Dataset','Project','Plate','Screen','Image'};        
+        for k = 1:numel(class_names)
+            if strfind(class(object),class_names{k}), break, end;
+        end
+        %
+        specifier = ['omero.model.' class_names{k}];
         %
         objId = java.lang.Long(object.getId().getValue());
         %
@@ -47,9 +39,7 @@ function str = read_XmlAnnotation_havingNS(session, object, tag)
         metadataService = session.getMetadataService();
         map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList( 'ome.model.annotations.XmlAnnotation'), annotators, omero.sys.ParametersI());
         annotations = map.get(objId);
-        
-  
-                                  
+                                            
         for j = 0:annotations.size()-1
             s = annotations.get(j).getNs().getValue();
             curr_str = char(s);

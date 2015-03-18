@@ -22,7 +22,7 @@ function varargout = dataset_selection(varargin)
 
 % Edit the above text to modify the response to help dataset_selection
 
-% Last Modified by GUIDE v2.5 11-May-2012 12:33:51
+% Last Modified by GUIDE v2.5 01-Sep-2014 13:23:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,7 +61,16 @@ if size(data,2) > size(data,1)
     data = data';
 end
 
-exclude_strings = {'irf' 'background' 'phc' 'mask' 'scatter' 'acceptor'};
+
+% override Column header if requested
+if nargin > 4
+    headers = get(handles.dataset_table,'ColumnName');
+    headers{2} = varargin{2};
+    set(handles.dataset_table,'ColumnName', headers);
+end
+
+
+exclude_strings = {'irf' 'background' 'phc' 'mask' 'scatter' 'acceptor' 'brightfield'};
 
 use = true(size(data));
 

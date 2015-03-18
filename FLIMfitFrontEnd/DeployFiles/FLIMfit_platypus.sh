@@ -10,7 +10,7 @@ exe_dir=`dirname "$0"`
 echo $exe_dir
   
 
-MCRROOT="/Applications/MATLAB/MATLAB_Compiler_Runtime/v81"
+MCRROOT="/Applications/MATLAB/MATLAB_Compiler_Runtime/v84"
 echo ----
 
 FILE=${MCRROOT}/bin/maci64/libmwlaunchermain.dylib
@@ -50,16 +50,17 @@ echo PATH is ${PATH};
       args="${args} \"${token}\"" 
       shift
   done
-  eval "\"${exe_dir}/FLIMfit_MACI64.app/Contents/MacOS/FLIMfit_MACI64\"" $args
+  eval "\"${exe_dir}/FLIMfit.app/Contents/MacOS/FLIMfit\"" $args
 
 
 
 else
 echo
 echo "FLIMfit was unable to locate the Matlab MCR "
-echo "Please install Matlab MCR v8.1 to /Applications/MATLAB/MATLAB_Compiler_Runtime/v81 "
-echo  "then try FLIMfit again "
+echo "Please install Matlab MCR v8.4 to /Applications/MATLAB/MATLAB_Compiler_Runtime/v84 "
 echo "this is available from http://www.mathworks.co.uk/products/compiler/mcr/ "
+echo  "then try FLIMfit again "
+
 fi
 
 

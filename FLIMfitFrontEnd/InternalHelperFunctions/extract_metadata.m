@@ -46,33 +46,52 @@ try
  
     for i=1:n
         s = strings{i};
-        
-        % Look for FOV indicator
-        [match,tokens] = regexp(s,'([A-Z])-(\d)+ - FOV=?(\d{1,6})','match','tokens','once');
-        if ~isempty(match)
+        % Look for Well= indicator
+        [tokens,match] = regexp(s,'Well=([A-Za-z])(\d+)','tokens','match');
+        if ~isempty(tokens)
+            
+            token = tokens{1};
+            
             add_class('Well');
-            add_class('FOV');
-
-            metadata.Well{i} = [tokens{1} tokens{2}];
-            metadata.Row{i} = tokens{1};
-            metadata.Column{i} = tokens{2};
-            metadata.FOV{i} = tokens{3};
-            metadata.Well_FOV{i} = [tokens{1} tokens{2} '-' tokens{3}];
+            add_class('Row');
+            add_class('Column');
             
-            s = strrep(s,match,'');
+            metadata.Well{i} = [token{1} token{2}];
+            metadata.Row{i} = token{1};
+            metadata.Column{i} = token{2};
+            
+            strrep(s,match{1},'');
+            
         else
-            [match,tokens] = regexp(s,'^([A-Z]{1,2})(\d){1,2}$','match','tokens','once');
-            
+        
+        
+            % Look for FOV indicator
+            [match,tokens] = regexp(s,'([A-Z])-(\d)+ - FOV=?(\d{1,6})','match','tokens','once');
             if ~isempty(match)
                 add_class('Well');
-                add_class('Row');
-                add_class('Column');
+                add_class('FOV');
 
                 metadata.Well{i} = [tokens{1} tokens{2}];
                 metadata.Row{i} = tokens{1};
                 metadata.Column{i} = tokens{2};
+                metadata.FOV{i} = tokens{3};
+                metadata.Well_FOV{i} = [tokens{1} tokens{2} '-' tokens{3}];
 
                 s = strrep(s,match,'');
+            else
+                [match,tokens] = regexp(s,'^([A-Z]{1,2})(\d){1,2}$','match','tokens','once');
+
+                if ~isempty(match)
+                    add_class('Well');
+                    add_class('Row');
+                    add_class('Column');
+
+                    metadata.Well{i} = [tokens{1} tokens{2}];
+                    metadata.Row{i} = tokens{1};
+                    metadata.Column{i} = tokens{2};
+
+                    s = strrep(s,match,'');
+                end
             end
         end
 
@@ -156,7 +175,7 @@ try
     end
 
 catch e
-    
+
     warning('Error while trying to extract metadata! Falling back to filenames');
     metadata.FileName = strings;
 end

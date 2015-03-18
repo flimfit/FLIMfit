@@ -3,10 +3,10 @@ classdef flim_omero_data_manager < handle
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
-    %
-    % This program is free software; you can redistribute it and/or modify
+    %and/or modify
     % it under the terms of the GNU General Public License as published by
-    % the Free Software Foundation; either version 2 of the License, or
+    % the Free Software Foundation; either version 2 of the
+    % This program is free software; you can redistribute it  License, or
     % (at your option) any later version.
     %
     % This program is distributed in the hope that it will be useful,
@@ -52,65 +52,7 @@ classdef flim_omero_data_manager < handle
                                         
         function delete(obj)
         end
-                
-        %------------------------------------------------------------------                        
-        function channel = get_single_channel_FLIM_FOV(obj,image,data_series)
-        % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION                                    
-            polarisation_resolved = false;
-            %
-            channel = [];
-            %
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
-            if isempty(mdta) || isempty(mdta.delays)
-                errordlg('can not load: data have no FLIM specification');
-                return;
-            end
-           
-            delays = mdta.delays;
-           
-            data_series.ZCT = get_ZCT(image, mdta.modulo, length(delays) );
-            
-            channel = data_series.ZCT{2};       % not sure why we need this?
-            
-            data_series.verbose = true;     % loading a single image            
-            
-            try
-                [data_cube, name] = data_series.OMERO_fetch(image, data_series.ZCT, mdta);
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end      
-            data_size = size(data_cube);
-            
-            
-            data_series.mode = mdta.FLIM_type;
-            
-            
-            if ~isempty(obj.dataset)
-                data_series.names{1} = name;            
-            else % SPW image - treated differently at results import
-                idStr = num2str(image.getId().getValue());
-                data_series.names{1} = [ idStr ' : ' name ];                
-            end;                
-            %
-            data_series.data_size = [ data_size 1];
-            data_series.n_datasets = 1;  
-            data_series.file_names = {'file'};                
-            data_series.metadata = extract_metadata(data_series.names);
-            data_series.polarisation_resolved = polarisation_resolved;
-            data_series.t = delays;
-            data_series.use_memory_mapping = false;
-            
-            data_series.data_series_mem = single(data_cube);
-            
-            data_series.tr_data_series_mem = single(data_cube); 
-             
-    
-            data_series.load_multiple_channels = false;
-            data_series.loaded = ones([1 data_series.n_datasets]);
-            data_series.switch_active_dataset(1);    
-            data_series.init_dataset();                        
-        end
-                                
+                  
         %------------------------------------------------------------------                
         function infostring = Set_Dataset(obj,~,~)
             %
@@ -175,90 +117,35 @@ classdef flim_omero_data_manager < handle
             data_series.image_ids = [];
             %
             if ~isempty(image) 
-                try
-                    obj.selected_channel = obj.get_single_channel_FLIM_FOV(image,data_series);
-                    data_series.image_ids(1) = image.getId.getValue;
-                catch err
-                    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
-                end
+                %try
+                    if isempty(obj.dataset)         % pre-set names for an SPW plate (verbatim from earler FLIMfit)
+                        idStr = num2str(image.getId().getValue());
+                        name = char(image.getName().getValue());
+                        data_series.names{1} = [ idStr ' : ' name ];             
+                    end  
+                    if is64
+                        data_series.use_memory_mapping = false;
+                    end
+                    
+                    data_series.file_names{1} = image;
+                    file = char(image.getName.getValue());
+                    [path,name,ext] = fileparts_inc_OME(file);
+                    data_series.names{1} = name;
+                    
+                    data_series.n_datasets = 1;
+                    data_series.load_multiple(data_series.polarisation_resolved, [] );
+                  
+                %catch err
+                %    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
+                %end
             end
             %
         end                          
                                
-        %------------------------------------------------------------------                        
-        function channel = get_single_channel_IRF_FOV(obj,image,data_series, load_as_image)
-        % data_series MUST BE initiated BEFORE THE CALL OF THIS FUNCTION  
-        
-            if nargin < 4
-                load_as_image = false;
-            end
-            
-            mdta = get_FLIM_params_from_metadata(obj.session,image);
-            if isempty(mdta) || isempty(mdta.delays)
-                channel = [];
-                errordlg('can not load: data have no FLIM specification');
-                return;
-            end
-            
-            t_irf = mdta.delays;
-            
-           
-            data_series.ZCT = get_ZCT(image,mdta.modulo, length(t_irf));
-            
-            channel = data_series.ZCT{2};       % Don't think we need to return this!
-           
-            try
-                [irf_image_data, ~] = data_series.OMERO_fetch(image, data_series.ZCT, mdta);
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end      
-                   
-            irf_image_data = double(irf_image_data);
-    
-            % Sum over pixels
-            s = size(irf_image_data);
-            if length(s) == 3
-                irf = reshape(irf_image_data,[s(1) s(2)*s(3)]);
-                irf = mean(irf,2);
-            elseif length(s) == 4
-                irf = reshape(irf_image_data,[s(1) s(2) s(3)*s(4)]);
-                irf = mean(irf,3);
-            else
-                irf = irf_image_data;
-            end
-    
-            % export may be in ns not ps.
-            if max(t_irf) < 300
-                t_irf = t_irf * 1000; 
-            end
-            
-             if load_as_image
-                irf_image_data = data_series.smooth_flim_data(irf_image_data,7);
-                data_series.image_irf = irf_image_data;
-                data_series.has_image_irf = true;
-             else
-                data_series.has_image_irf = false;
-             end
-
-            data_series.t_irf = t_irf(:);
-            data_series.irf = irf;
-            data_series.irf_name = 'irf';
-
-            data_series.t_irf_min = min(data_series.t_irf);
-            data_series.t_irf_max = max(data_series.t_irf);
-
-            data_series.estimate_irf_background();
-
-            data_series.compute_tr_irf();
-            data_series.compute_tr_data();
-
-            notify(data_series,'data_updated');
-            
-        end
-                                                      
+                                                              
         %------------------------------------------------------------------        
         function Load_IRF_WF_gated(obj,data_series,~)
-            [ Dataset ~ ] = select_Dataset(obj.session,obj.userid,'Select IRF Dataset:');             
+            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select IRF Dataset:');             
             if isempty(Dataset), return, end;            
             load_as_image = false;
             try
@@ -269,9 +156,27 @@ classdef flim_omero_data_manager < handle
             end
         end            
 
-        %------------------------------------------------------------------                
+        %------------------------------------------------------------------  
+        function Load_Background(obj,data_series,~)
+            if ~isempty(obj.plate)                
+                image = select_Image(obj.session,obj.userid,obj.plate);                
+            elseif ~isempty(obj.dataset)
+                image = select_Image(obj.session,obj.userid,obj.dataset);
+            else
+                errordlg('Please set Dataset or Plate before trying to load images'); 
+                return; 
+            end;
+                                 
+            if ~isempty(image)
+                data_series.load_background(image)
+            end
+       
+        end
+        
+         %------------------------------------------------------------------ 
+        
         function Load_Background_form_Dataset(obj,data_series,~)
-            [ Dataset ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
+            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
             if isempty(Dataset), return, end;            
             try
                 obj.load_background_from_Dataset(data_series,Dataset);                
@@ -293,11 +198,11 @@ classdef flim_omero_data_manager < handle
             Image = select_Image(obj.session,obj.userid,Dataset);                       
             if isempty(image), return, end;
             %   
-            try
-               obj.load_tvb(data_series,Image); 
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
-            end
+            %try
+               data_series.load_tvb(Image); 
+            %catch err
+            %     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
+            %end
             %            
         end
         
@@ -326,11 +231,12 @@ classdef flim_omero_data_manager < handle
             end;
             %
             if ~isempty(image) 
-                try
-                    obj.selected_channel = obj.get_single_channel_IRF_FOV(image,data_series);
-                catch err
-                    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
-                end
+                %try
+                    load_as_image = false;
+                    data_series.load_irf(image,load_as_image)
+                %catch err
+                %    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
+                %end
             end
             %
         end                          
@@ -367,69 +273,37 @@ classdef flim_omero_data_manager < handle
             end            
             %
             full_temp_file_name = [tempdir fname];
-            fid = fopen(full_temp_file_name,'w');    
+            fid = fopen(full_temp_file_name,'w');  
+            
+            [path,name,ext] = fileparts_inc_OME(fname);
+            
+            % NB marshal-object is overloaded in OMERO_data_series &
+            % load_irf uses marshal_object for .xml files so simply call
+            % directly
+            if strcmp(ext,'.xml') 
+                data_series.load_irf(fname);
+                return;
+            end;
+            
             %
-            if strcmp('sdt',fname(numel(fname)-2:numel(fname)))
+            if strcmp(ext,'.sdt')
                 fwrite(fid,typecast(str,'uint16'),'uint16');
             else                
                 fwrite(fid,str,'*uint8');
             end
             %
             fclose(fid);
-            %
-            try
+            
+           
+            %try
                 data_series.load_irf(full_temp_file_name);
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end
+            %catch err
+            %     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
+            %end
             %
             delete(full_temp_file_name); %??
         end            
-                        
-        %------------------------------------------------------------------
-        function tempfilename = load_imagefile(obj,~,~)    
-            %
-            tempfilename = [];            
-            %
-            if isempty(obj.dataset)
-                [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select a Dataset:');             
-                if isempty(Dataset), return, end;                
-            else
-                Dataset = obj.dataset;
-            end;
-            %    
-            image = select_Image(obj.session,obj.userid,Dataset);                       
-            if isempty(image), return, end;
-            %   
-            try
-                % single plane (not time-resolved) so set sizet to 1
-                ZCT = get_ZCT(image,'ModuloAlongC',1);
-                
-                %create a dummy metadata in order to get data via
-                %OMERO_fetch
-                mdta.FLIM_type = '?';
-                mdta.modulo = 'ModuloAlongC';
-                mdta.delays = 1;
-                
-                [ data_cube, ~ ] =  obj.OMERO_fetch(  image, ZCT, mdta);
-                            
-                data = double(squeeze(data_cube));
-                %
-                tempfilename = [tempname '.tif'];
-                if 2 == numel(size(data))
-                    imwrite(data,tempfilename,'tif');           
-                else
-                   sz = size(data); 
-                   nimg = sz(1);
-                     for ind = 1:nimg,
-                        imwrite( data(:,:,ind),tempfilename,'WriteMode','append');
-                     end             
-                end
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
-            end
-            %
-        end            
+                         
         
         %------------------------------------------------------------------
         function Export_Fitting_Results(obj,fit_controller,data_series,fittingparamscontroller)
@@ -469,7 +343,8 @@ classdef flim_omero_data_manager < handle
 %                                         'Export','Cancel','Cancel');              
 %                 if strcmp(choice,'Cancel'), return, end;
 %                 %
-                current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));    
+                current_dataset_name = char(java.lang.String(obj.dataset.getName().getValue()));
+                current_dataset_id = num2str(obj.dataset.getId().getValue());
 
                 if ~data_series.polarisation_resolved
                     new_dataset_name = [current_dataset_name ' FLIM fitting channel ' ...
@@ -485,7 +360,11 @@ classdef flim_omero_data_manager < handle
                     datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                    
                 end
 
-                description  = ['analysis of the ' current_dataset_name ' at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
+                description  = ['Results from fitting of Dataset '  current_dataset_name  '(' current_dataset_id ') Plane' ...
+                    ' Z ' Z_str ...
+                    ' C ' C_str ...
+                    ' T ' T_str ' ' ...    
+                    '. Created at ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS')];                 
                 newdataset = create_new_Dataset(obj.session,obj.project,new_dataset_name,description);                                                                                                    
                 %
                 if isempty(newdataset)
@@ -529,7 +408,7 @@ classdef flim_omero_data_manager < handle
                 
                  str = split(':',data_series.names{1});
                  if 2 ~= numel(str)
-                    errordlg('names of FOVs are inconistent - ensure data were loaded from SPW Plate');
+                    errordlg('names of FOVs are inconsistent - ensure data were loaded from SPW Plate');
                     return;
                  end
                  %
@@ -685,14 +564,8 @@ classdef flim_omero_data_manager < handle
                 %
                 % data settings
                 data_settings_name = [' data settings ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
-                data_series.save_data_settings([root data_settings_name]);
-                add_Annotation(obj.session, obj.userid, ...
-                                object, ...
-                                sha1, ...
-                                file_mime_type, ...
-                                [root data_settings_name], ...
-                                description, ...
-                                namespace);               
+                data_series.save_data_settings(data_settings_name, object);
+                        
 
                 % fitting settings
                 fitting_settings_name = [' fitting settings ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
@@ -720,7 +593,9 @@ classdef flim_omero_data_manager < handle
                     [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end                        
+            end
+            %
+            if ~exist('object','var') || isempty(object), return, end;
             %                        
             fname = [tempdir 'fitting settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
             fitting_params_controller.save_fitting_params(fname);         
@@ -804,9 +679,8 @@ classdef flim_omero_data_manager < handle
             if isempty(settings)
                 obj.logon = OMERO_logon();
             end
-           
-                                    
-           if isempty(obj.logon{3})
+                                               
+           if isempty(obj.logon{4})
                if neverTriedLog == true
                    ret_string = questdlg('Respond "Yes" ONLY if you intend NEVER to use FLIMfit with OMERO on this machine!');
                    if strcmp(ret_string,'Yes')
@@ -817,17 +691,16 @@ classdef flim_omero_data_manager < handle
            end
             
                 keeptrying = false;     % only try again in the event of failure to logon
-          
-
-                obj.client = loadOmero(obj.logon{1});
-
-
+                
                 try 
-                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                    port = obj.logon{2};
+                    if ischar(port), port = str2num(port); end;
+                    obj.client = loadOmero(obj.logon{1},port);                                    
+                    obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
                 catch err
+                    display(err.message);
                     obj.client = [];
                     obj.session = [];
-
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
@@ -835,12 +708,9 @@ classdef flim_omero_data_manager < handle
                     % Handle response
                     switch choice
                         case 'Try again to logon'
-                            keeptrying = true;
-                      
-                            
+                            keeptrying = true;                                                  
                         case 'Run FLIMfit in non-OMERO mode'
-                            % no action keeptrying is already false
-                       
+                            % no action keeptrying is already false                       
                     end    % end switch           
                 end   % end catch
                 if ~isempty(obj.session)
@@ -865,14 +735,15 @@ classdef flim_omero_data_manager < handle
             
                 keeptrying = false;     % only try again in the event of failure to logon
           
-                obj.client = loadOmero(obj.logon{1});
-
                 try 
-                    obj.session = obj.client.createSession(obj.logon{2},obj.logon{3});
+                    port = obj.logon{2};
+                    if ischar(port), port = str2num(port); end;
+                    obj.client = loadOmero(obj.logon{1},port);                                    
+                    obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
                 catch err
+                    display(err.message);
                     obj.client = [];
                     obj.session = [];
-
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
                     'Logon Failure!', ...
@@ -880,12 +751,9 @@ classdef flim_omero_data_manager < handle
                     % Handle response
                     switch choice
                         case 'Try again to logon'
-                            keeptrying = true;
-                      
-                            
+                            keeptrying = true;                                                  
                         case 'Run FLIMfit in non-OMERO mode'
-                            % no action keeptrying is already false
-                       
+                            % no action keeptrying is already false                       
                     end    % end switch           
                 end   % end catch
                 if ~isempty(obj.session)
@@ -942,7 +810,9 @@ classdef flim_omero_data_manager < handle
                     [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
                 case 'Cancel', 
                     return;
-            end                        
+            end 
+            %
+            if ~exist('object','var') || isempty(object), return, end;            
             %                        
             ext = '.irf';   
             irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
@@ -1035,34 +905,19 @@ classdef flim_omero_data_manager < handle
     %
         %------------------------------------------------------------------        
         function Export_Data_Settings(obj,data_series,~)
-            %
-            choice = questdlg('Do you want to Export data settings to Dataset or Plate?', ' ', ...
-                                    'Dataset' , ...
-                                    'Plate','Cancel','Cancel');              
-            switch choice
-                case 'Dataset',
-                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
-                case 'Plate', 
-                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
-                case 'Cancel', 
-                    return;
-            end                        
-            %                        
-            fname = [tempdir 'data settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
-            data_series.save_data_settings(fname);         
-            %            
-            namespace = 'IC_PHOTONICS';
-            description = ' ';            
-            sha1 = char('pending');
-            file_mime_type = char('application/octet-stream');
-            %
-            add_Annotation(obj.session, obj.userid, ...
-                            object, ...
-                            sha1, ...
-                            file_mime_type, ...
-                            fname, ...
-                            description, ...
-                            namespace);               
+            
+            
+           prompt = {'Please Enter File Annotation name'};
+           dlg_title = 'Input name';
+           num_lines = 1;
+           def = {'FLIMfit_settings.xml'};
+           file = inputdlg(prompt,dlg_title, num_lines,def);
+           file = file{1};
+          
+           data_series.save_data_settings(file);  
+            
+                       
+                       
         end            
         
         %------------------------------------------------------------------
@@ -1142,8 +997,7 @@ classdef flim_omero_data_manager < handle
             obj.screen = [];
             obj.plate = [];
             %
-        end          
-            
+        end                           
     end
 end
 
