@@ -63,7 +63,7 @@ int DecayModelWorkingBuffers::check_alf_mod(const double* new_alf, int irf_idx)
    bool changed = false;
    for(int i=0; i<nl; i++)
    {
-      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN) | isnan(cur_alf[i]);
+      changed = changed | (abs((cur_alf[i] - new_alf[i])) > DBL_MIN) | std::isnan(cur_alf[i]);
       cur_alf[i] = new_alf[i];
    }
 

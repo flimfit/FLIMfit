@@ -75,6 +75,10 @@ struct ModelParametersStruct
    int     fit_beta; 
    double  fixed_beta[N_PARAM_MAX];
    
+   // T0 fitting parameters
+   int     fit_t0;
+   double  t0_guess;
+
    // Stray light parameters
    int     fit_offset; 
    int     fit_scatter;

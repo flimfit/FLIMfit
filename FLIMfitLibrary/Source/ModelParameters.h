@@ -49,6 +49,7 @@ public:
    int SetFRET(int n_fret, int n_fret_fix, int inc_donor, double E_guess[]);
    int SetAnisotropy(int n_theta, int n_theta_fix, int inc_rinf, double theta_guess[]);
    int SetPulseTrainCorrection(int pulsetrain_correction);
+   int SetFitT0(int fit_t0, double t0_guess);
 };
 
 #endif

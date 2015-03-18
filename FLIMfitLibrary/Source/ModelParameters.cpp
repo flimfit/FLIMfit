@@ -211,6 +211,13 @@ int ModelParameters::SetPulseTrainCorrection(int pulsetrain_correction_)
    return SUCCESS;
 }
 
+int ModelParameters::SetFitT0(int fit_t0_, double t0_guess_)
+{
+   fit_t0 = fit_t0_;
+   t0_guess = t0_guess_;
+
+   return SUCCESS;
+}
 
 ModelParametersStruct ModelParameters::GetStruct()
 {

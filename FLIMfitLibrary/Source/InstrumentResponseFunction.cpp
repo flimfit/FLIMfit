@@ -98,13 +98,6 @@ double InstrumentResponseFunction::GetT0()
 
 double* InstrumentResponseFunction::GetIRF(int irf_idx, double t0_shift, double* storage)
 {
-    
-   int irf_px = irf_idx % n_px;
-   int irf_im = irf_idx / n_px;
-
-   if (image_t0_shift)
-      t0_shift += data->image_t0_shift[irf_im];
-
    if (image_irf)
       return irf_buf + irf_idx * n_irf * n_chan;
    else if (t0_image)

@@ -234,7 +234,8 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
       params.SetDecayGroups(decay_group);
    
    params.SetStrayLight(fit_offset, offset_guess, fit_scatter, scatter_guess, fit_tvb, tvb_guess);
-   
+   params.SetFitT0(fit_t0, t0_guess);
+
    if (n_fret > 0)
       params.SetFRET(n_fret, n_fret_fix, inc_donor, E_guess);
 

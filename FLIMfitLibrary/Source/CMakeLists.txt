@@ -200,7 +200,7 @@ add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E cop
                                                  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h" ${OUT_DIR}
                                                  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h" ${OUT_DIR})
 
-set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
-set( FGP_LIB ${STATIC_NAME} CACHE STRING "Include dir for GlobalProcessing." FORCE )
-set( FGP_LIB_DIR ${OUT_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
+set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
+set( FGP_LIB ${LIB_NAME} PARENT_SCOPE )
+set( FGP_LIB_DIR ${OUT_DIR} PARENT_SCOPE )
 

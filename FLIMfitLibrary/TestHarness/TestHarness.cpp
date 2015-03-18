@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    e=SetupGlobalFit(id, MODE_GLOBAL_ANALYSIS, use_image_irf, n_irf, &(t[0]), &(irf[0]), 0, NULL, 1, 0, 1, NULL, tau_min, tau_max, 1, tau_guess, 1, NULL, 0, t0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, NULL, 1, 12.5e3, 0, 0, algorithm, 0, 0, 0.95, 0, 0, 0, NULL);
    BOOST_CHECK_EQUAL( e, 0 );
     
-   e=SetDataParams(id, n_x, 1, n_y, 1, n_t, &(t[0]), &(t_int[0]), &t_skip, n_t-t_skip-n_trim_end, DATA_TYPE_TIMEGATED, &use_im[0], NULL, 0, 0, 1, global_mode, 0, 0);
+   e=SetDataParams(id, 1, n_x, n_y, 1, n_t, &(t[0]), &(t_int[0]), &t_skip, n_t-t_skip-n_trim_end, DATA_TYPE_TIMEGATED, &use_im[0], NULL, 0, 0, 4096, 1, global_mode, 0, 0);
    BOOST_CHECK_EQUAL( e, 0 );
    
    e=SetDataFloat(id, &image_data[0]);

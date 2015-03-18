@@ -82,7 +82,7 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
-target_link_libraries(TestHarness ${FGP_LIB}_lib levmar)
+target_link_libraries(TestHarness ${FGP_LIB} levmar)
 
 # Run tests after compile
 #===================================================
