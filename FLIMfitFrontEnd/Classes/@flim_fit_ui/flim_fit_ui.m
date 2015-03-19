@@ -196,36 +196,37 @@ classdef flim_fit_ui
 
             guidata(obj.window,handles);
             
+            try
+                loadOmero();
+
+                % find path to OMEuiUtils.jar - approach copied from
+                % bfCheckJavaPath
+
+                % first check it isn't already in the dynamic path
+                jPath = javaclasspath('-dynamic');
+                utilJarInPath = false;
+                for i = 1:length(jPath)
+                    if strfind(jPath{i},'OMEuiUtils.jar');
+                        utilJarInPath = true;
+                        break;
+                    end
+                end
+                if ~utilJarInPath
+                    path = which('OMEuiUtils.jar');
+                    if isempty(path)
+                        path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+                    end
+                    if ~isempty(path) && exist(path, 'file') == 2
+                        javaaddpath(path);
+                    else 
+                         assert('Cannot automatically locate an OMEuiUtils JAR file');
+                    end
+                end
+            catch
+                disp('Could not load OMERO')
+            end
             
-            loadOmero();
               
-            % find path to OMEuiUtils.jar - approach copied from
-            % bfCheckJavaPath
-            
-            % first check it isn't already in the dynamic path
-            jPath = javaclasspath('-dynamic');
-            utilJarInPath = false;
-            for i = 1:length(jPath)
-                if strfind(jPath{i},'OMEuiUtils.jar');
-                    utilJarInPath = true;
-                    break;
-                end
-            end
-                
-            if ~utilJarInPath
-                path = which('OMEuiUtils.jar');
-                if isempty(path)
-                    path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
-                end
-                if ~isempty(path) && exist(path, 'file') == 2
-                    javaaddpath(path);
-                else 
-                     assert('Cannot automatically locate an OMEuiUtils JAR file');
-                end
-            end
-            
-            
-   
             % verify that enough memory is allocated for bio-formats
             bfCheckJavaMemory();
           
