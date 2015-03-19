@@ -39,10 +39,12 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     
     session = obj.omero_data_manager.session;
     
+    dId = omero_dataset.getId().getValue();
+    
     
     selected_images = [];
     
-    imageList = getImages(session, 'dataset', omero_dataset.getId().getValue());
+    imageList = getImages(session, 'dataset', dId);
     
     if 0==imageList.size()
         errordlg('Dataset has no images - please choose a Dataset with images');
@@ -80,7 +82,9 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     
     service = session.getQueryService();
     
-    list = service.findAllByQuery(['select l from ProjectDatasetLink as l where l.child.id = ', num2str(omero_dataset.getId.getValue())], []);
+    
+    
+    list = service.findAllByQuery(['select l from ProjectDatasetLink as l where l.child.id = ', num2str(dId)], []);
     if (list.size > 0)
         project = list.get(0).getParent();
         project = getProjects(session, project.getId().getValue());
@@ -91,7 +95,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
  
     obj.header_text = [ pname ' ' dname];
     obj.n_datasets = n_datasets;
-    obj.datasetId = omero_dataset.getId.getValue();
+    obj.datasetId = dId;
     obj.omero_data_manager.dataset = omero_dataset;
     obj.polarisation_resolved = polarisation_resolved;
  
