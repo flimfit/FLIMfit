@@ -43,13 +43,13 @@ public:
    ~MaximumLikelihoodFitter();
    MaximumLikelihoodFitter* clone() const { return new MaximumLikelihoodFitter(*this); };
 
-   int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr);
+   int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr);
 
    int GetLinearParams() ;
 private:
 
-   void mle_funcs(double *alf, double *fvec, int nl, int nfunc);
-   void mle_jacb(double *alf, double *fjac, int nl, int nfunc);
+   void mle_funcs(double *fvec, int nl, int nfunc);
+   void mle_jacb(double *fjac, int nl, int nfunc);
 
    // Buffers used by levmar algorithm
    double info[LM_INFO_SZ];

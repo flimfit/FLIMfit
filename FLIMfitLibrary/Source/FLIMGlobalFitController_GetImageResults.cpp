@@ -543,7 +543,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit
                results->GetNonLinearParams(im, rg, lin_idx, nl_params);
                results->GetLinearParams(im, rg, lin_idx, l_params);
 
-               projectors[thread].GetFit(idx, &nl_params[0], &l_params[0], fit+n_meas*i);
+               projectors[thread].GetFit(idx, nl_params, &l_params[0], fit+n_meas*i);
                n_valid++;
 
                for(int j=last_idx; j<idx; j++)

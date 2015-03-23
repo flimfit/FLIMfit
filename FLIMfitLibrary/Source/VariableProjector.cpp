@@ -104,16 +104,16 @@ VariableProjector::~VariableProjector()
 }
 
 
-int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread)
+int VariableProjectorCallback(void *p, int m, int n, int s_red, const double* x, double *fnorm, double *fjrow, int iflag, int thread)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+   return vp->varproj(m, n, s_red, fnorm, fjrow, iflag, thread);
 }
 
-int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fvec, int iflag)
+int VariableProjectorDiffCallback(void *p, int m, int n, const double* x, double *fvec, int iflag)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, 1, x, fvec, NULL, iflag, 0);
+   return vp->varproj(m, n, 1, fvec, NULL, iflag, 0);
 }
 
 
@@ -145,7 +145,7 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
+int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr)
 {
    INIT_CONCURRENCY;
 
@@ -222,7 +222,7 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
 
    if (iterative_weighting)
    {
-      varproj(nsls1, nl, s_red, alf, fvec, fjac, 0, 0);
+      varproj(nsls1, nl, s_red, fvec, fjac, 0, 0);
       n_call = 1;
    }
 
@@ -235,13 +235,13 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    }
 
    if (use_numerical_derv)
-      info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf, fvec,
+      info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf.data(), fvec,
                   ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
                   &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4 );
    else
    {
    
-      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, n_jac_group, alf, fvec, fjac, nl,
+      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, n_jac_group, alf.data(), fvec, fjac, nl,
                     ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
                     &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
    }
@@ -253,13 +253,13 @@ int VariableProjector::FitFcn(int nl, double *alf, int itmax, int* niter, int* i
    // Get linear parameters
    if (info == -8)
    {
-      SetNaN(alf,nl);
+      SetNaN(alf.data(),nl);
    }
    else
    {
       if (!getting_errs)
       {
-         varproj(nsls1, nl, s_red, alf, fvec, fjac, -1, 0);
+         varproj(nsls1, nl, s_red, fvec, fjac, -1, 0);
          
          // Get optimal linear parameters by recalculating weighted by previous fit
          //varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
@@ -285,8 +285,8 @@ int VariableProjector::GetLinearParams()
 {
    int nsls1 = (n-l) * s;
    
-   varproj(nsls1, nl, 1, alf, fvec, fjac, -1, 0);
-   varproj(nsls1, nl, 1, alf, fvec, fjac, -2, 0);
+   varproj(nsls1, nl, 1, fvec, fjac, -1, 0);
+   varproj(nsls1, nl, 1, fvec, fjac, -2, 0);
    
    return 0;
 
@@ -301,7 +301,7 @@ double VariableProjector::d_sign(double *a, double *b)
 
 
 
-int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf, double *rnorm, double *fjrow, int iflag, int thread)
+int VariableProjector::varproj(int nsls1, int nls, int s_red, double *rnorm, double *fjrow, int iflag, int thread)
 {
 
    int firstca, firstcb;
@@ -504,13 +504,15 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    for(int i=0; i<n_thread; i++)
       norm_buf_[i*nmax] = 0;
 
+   _ASSERT(_CrtCheckMemory());
+
    #pragma omp parallel for num_threads(n_thread)
    for (int j=0; j<s; j++)
    {
       int idx;
       int omp_thread = omp_get_thread_num();
       
-      double* rj = r + j * r_dim1;
+      double* rj = r.data() + j * r_dim1;
       float* yj = y + j * y_dim1;
       double beta, acum;
     
@@ -621,18 +623,14 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double *alf,
    return iflag;
 }
 
-void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
+void VariableProjector::CalculateWeights(int px, const vector<double>& alf, int omp_thread)
 {
    int lp1 = l+1;
 
    float*  y = this->y + px * n;
    double* wp = wp_ + omp_thread * nmax;
    
-   double *a;
-   if (variable_phi)
-      a = a_ + omp_thread * nmax * lp1;
-   else
-      a = a_;
+   vector<double>& a = variable_phi ? a_[omp_thread] : a_[0];
 
    if (weighting == AVERAGE_WEIGHTING || n_call == 0)
    {
@@ -689,13 +687,8 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
    double* u  = u_  + omp_thread * l;
    double* wp = wp_ + omp_thread * nmax;
       
-   double *a = a_; 
-   double *b = b_;
-   if (variable_phi)
-   {
-      a  += omp_thread * nmax * lp1;
-      b  += omp_thread * ndim * ( pmax + 3 );
-   }
+   vector<double>& a = variable_phi ? a_[omp_thread] : a_[0]; 
+   vector<double>& b = variable_phi ? b_[omp_thread] : b_[0];
    
    if (firstca >= 0)
       for (m = firstca; m < lp1; ++m)
@@ -763,6 +756,8 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
       }
 
    } // first k loop
+
+   _ASSERT(_CrtCheckMemory());
 }
 
 
@@ -778,7 +773,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
 
    int a_dim1 = nmax;
    
-   double* rj = r + idx * n;
+   double* rj = r.data() + idx * n;
 
    chi2[idx] = (float) enorm(n-l, rj+l); 
    chi2[idx] *= chi2[idx] / chi2_norm;
@@ -811,7 +806,7 @@ int VariableProjector::bacsub(int idx, double *a, volatile double *x)
    int i, j, iback;
    double acum;
    */
-   double* rj = r + idx * n;
+   double* rj = r.data() + idx * n;
 
    bacsub(rj, a, x);
 

@@ -75,6 +75,7 @@ set(SOURCE
    FLIMGlobalFitController_GetImageResults.cpp
    FLIMGlobalFitController_Model.cpp
    FLIMGlobalFitController_ADA.cpp
+   AbstractDecayGroup.cpp
    FLIMData.cpp
    DecayModel.cpp
    ModelParameters.cpp

@@ -41,13 +41,18 @@ using std::abs;
 using std::max;
 
 DecayModel::DecayModel(const ModelParameters& params, const AcquisitionParameters& acq, shared_ptr<InstrumentResponseFunction> irf) : 
-   ModelParameters(params), AcquisitionParameters(acq), irf(irf), init(false), chan_fact(NULL)
+   ModelParameters(params), 
+   AcquisitionParameters(acq), 
+   irf(irf), 
+   init(false),
+   chan_fact(NULL),
+   constrain_nonlinear_parameters(true)
 {
 }
 
 void DecayModel::Init()
 {
-   use_kappa      = true;
+   constrain_nonlinear_parameters = true;
    
    n_irf = irf->n_irf;
 
@@ -234,7 +239,7 @@ void DecayModel::SetupAdjust()
 
    vector<double> irf_buf( n_irf * n_meas );
 
-   add_irf(&irf_buf[0], 0, 0, &adjust_buf[0], n_r, scale_fact); // irf_shift?
+   AddIRF(&irf_buf[0], 0, 0, &adjust_buf[0], n_r, scale_fact); // TODO : irf_shift?
 
    for(int i=0; i<n_meas; i++)
       adjust_buf[i] = adjust_buf[i] * scatter_adj + offset_adj;
@@ -271,9 +276,12 @@ void DecayModel::SetParameterIndices()
 
    alf_theta_idx = idx; 
    idx += n_theta_v;
-/*
+
    if (fit_t0)
-  */    alf_t0_idx = idx++;
+      alf_t0_idx = idx++;
+
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
+      alf_ref_idx = idx++;
 
    if (fit_offset == FIT_GLOBALLY)
       alf_offset_idx = idx++;
@@ -284,8 +292,6 @@ void DecayModel::SetParameterIndices()
   if (fit_tvb == FIT_GLOBALLY)
       alf_tvb_idx = idx++;
 
-  if (irf->ref_reconvolution == FIT_GLOBALLY)
-     alf_ref_idx = idx++;
 
 
 }
@@ -445,7 +451,13 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
       sprintf(buf,"theta_%i",i+1);
       param_names.push_back(buf);
    }
-   
+
+   if (fit_t0)
+      param_names.push_back("t0");
+
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
+      param_names.push_back("tau_ref");
+
    if (fit_offset == FIT_GLOBALLY)
       param_names.push_back("offset");
 
@@ -454,9 +466,6 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
 
    if (fit_tvb == FIT_GLOBALLY)
       param_names.push_back("tvb");
-
-   if (irf->ref_reconvolution == FIT_GLOBALLY)
-      param_names.push_back("tau_ref");
 
    n_nl_output_params = (int) param_names.size();
 
@@ -630,7 +639,7 @@ int DecayModel::DetermineMAStartPosition(int idx)
    return start;
 }
 
-void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
+void DecayModel::SetInitialParameters(vector<double>& param, double mean_arrival_time)
 {
    int idx = 0;
 
@@ -672,10 +681,10 @@ void DecayModel::SetInitialParameters(double param[], double mean_arrival_time)
 
    for(int j=0; j<n_theta_v; j++)
       param[idx++] = TransformRange(theta_guess[j+n_theta_fix],0,1000000);
-   /*
+   
    if(fit_t0)
       param[idx++] = t0_guess;
-      */
+      
    if(fit_offset == FIT_GLOBALLY)
       param[idx++] = offset_guess;
 

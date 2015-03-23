@@ -55,16 +55,16 @@ public:
    virtual ~AbstractFitter();
    virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
 
-   virtual int FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr) = 0;
+   virtual int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
    virtual int GetLinearParams() = 0;
    
    int Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
-   int GetFit(int irf_idx, double* alf, float* lin_params, double* fit);
+   int GetFit(int irf_idx, const vector<double>& alf, float* lin_params, double* fit);
    double ErrMinFcn(double x);
    int CalculateErrors(double conf_limit);
 
-   void GetParams(int nl, const double* alf);
-   double* GetModel(const double* alf, int irf_idx, int isel, int thread);
+   void GetParams(int nl, const vector<double>& alf);
+   double* GetModel(const vector<double>& alf, int irf_idx, int isel, int thread);
    void ReleaseResidualMemory();
 
    int err;
@@ -80,9 +80,9 @@ protected:
 
    int* terminate;
 
-   double*  alf;
-   double*  err_lower;
-   double*  err_upper;
+   vector<double> alf;
+   vector<double> err_lower;
+   vector<double> err_upper;
 
    // Used by variable projection
    int     inc[96];
@@ -91,13 +91,13 @@ protected:
    int     nconp1;
    int     philp1;
 
-   double *a_;
-   double *r;
-   double *b_;
-   double *kap;
-   double *params; 
-   double *alf_err;
-   double *alf_buf;
+   vector<vector<double>> a_;
+   vector<vector<double>> b_;
+   vector<double> r;
+   vector<double> kap;
+   vector<double> params; 
+   vector<double> alf_err;
+   vector<double> alf_buf;
 
    int     n;
    int     nl;

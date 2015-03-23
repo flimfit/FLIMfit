@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    vector<double> t_int;
 
    int n_x = 1;
-   int n_y = 512;
+   int n_y = 1;
 
    int N = 10000;
    double tau = 2000;

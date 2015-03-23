@@ -41,7 +41,7 @@ using boost::math::isnan;
 using std::min;
 using std::max;
 
-int DecayModelWorkingBuffers::check_alf_mod(const double* new_alf, int irf_idx)
+int DecayModelWorkingBuffers::check_alf_mod(const vector<double>& new_alf, int irf_idx)
 {
    int nl = model->nl;
 
@@ -70,8 +70,12 @@ int DecayModelWorkingBuffers::check_alf_mod(const double* new_alf, int irf_idx)
    return changed;
 }
 
-void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx, double t0_shift)
+void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift)
 {
+
+   // Check if parameters remain unchanged since last time
+   if (!check_alf_mod(new_alf, irf_idx))
+      return;
 
    double e0, de, ej, cum, fact, inv_theta, rate;
    int i, j, k, m, idx, next_idx, tau_idx;
@@ -119,17 +123,7 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx, double t0_shi
             dest_++;
          }
          
-         
-         /*
-         ej = e0;
-         for(j=0; j<n_irf; j++)
-         {
-            for(k=0; k<n_chan; k++)
-               local_exp_buf[j+k*n_irf+row*exp_dim] = ej * lirf[j+k*n_irf];
-            ej *= de;
-          }
-          */
-          
+
          row--;
 
          // Cumulative IRF expontial
@@ -164,19 +158,6 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx, double t0_shi
             }
             t_irf_ = _mm_add_pd(t_irf_, dt_irf_);
          }
-         
-         /*
-         // IRF exponential factor * t_irf
-         for(k=0; k<n_chan; k++)
-         {
-            next_idx = row*exp_dim + k*n_irf;
-            idx = next_idx + 2*exp_dim;
-            for(j=0; j<n_irf; j++)
-            {
-               local_exp_buf[next_idx+j] = local_exp_buf[idx+j] * (t_irf[j] + t0_guess);
-            }
-         }
-         */
 
          row--;
 
@@ -257,6 +238,8 @@ void DecayModelWorkingBuffers::calculate_exponentials(int irf_idx, double t0_shi
          row--;
       }
 
+      _ASSERT(_CrtCheckMemory());
+
 
    }
 }
@@ -275,8 +258,6 @@ void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_gr
 
    double rate = 1/tau_buf[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta_buf[theta_idx-1]);
    
-   
-
    fact *= (irf->ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
 
    double pulse_fact;
@@ -293,7 +274,6 @@ void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_gr
    {
       for(int i=0; i<n_t; i++)
       {
-         
          Convolve(rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, bin_shift, c);
          a[idx] += exp_model_buf[k*n_t+i] * c * fact;
          idx++;
@@ -358,13 +338,13 @@ int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double
                cur_decay_group++;
 
                if (irf->ref_reconvolution)
-                  add_irf(wb.irf_buf, irf_idx, t0_shift, a+idx, p);
+                  AddIRF(wb.irf_buf, irf_idx, t0_shift, a+idx, p);
             }
 
             // If we're doing delta-function reconvolution add contribution from reference
             // -> but only add once if beta is global (i.e. if we add up all the decays)
             if (irf->ref_reconvolution && (!beta_global || j==0))
-               add_irf(wb.irf_buf, irf_idx, t0_shift, a+idx, p);
+               AddIRF(wb.irf_buf, irf_idx, t0_shift, a+idx, p);
 
             double fact = beta_global ? wb.beta_buf[j] : 1;
 
@@ -382,7 +362,7 @@ int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double
    return n_col;
 }
 
-int DecayModel::ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::AddReferenceLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    double fact;
   
@@ -421,8 +401,11 @@ int DecayModel::ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, doubl
 
 
 
-int DecayModel::t0_derivatives(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, double b[], int bdim)
+int DecayModel::AddT0Derivatives(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, double b[], int bdim)
 {
+   if (fit_t0 != FIT)
+      return 0;
+
    // Total number of columns 
    int n_col = n_fret_group * n_pol_group * n_exp_phi;
 
@@ -441,7 +424,7 @@ int DecayModel::t0_derivatives(Buffers& wb, int irf_idx, double ref_lifetime, do
       return n_col;
 }
 
-int DecayModel::tau_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::AddLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
 
    double fact;
@@ -490,9 +473,12 @@ int DecayModel::tau_derivatives(Buffers& wb, double ref_lifetime, double b[], in
 
 }
 
-int DecayModel::beta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::AddContributionDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
-   
+ 
+   if (fit_beta != FIT_GLOBALLY)
+      return 0;
+
    double fact;
   
    int col = 0;
@@ -534,7 +520,7 @@ int DecayModel::beta_derivatives(Buffers& wb, double ref_lifetime, double b[], i
    return col;
 }
 
-int DecayModel::theta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::AddRotationalCorrelationTimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact;
@@ -560,7 +546,7 @@ int DecayModel::theta_derivatives(Buffers& wb, double ref_lifetime, double b[], 
 
 }
 
-int DecayModel::E_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
+int DecayModel::AddFRETEfficencyDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
    double fact, E, Ej, dE;
@@ -599,3 +585,54 @@ int DecayModel::E_derivatives(Buffers& wb, double ref_lifetime, double b[], int 
 
 }
 
+int DecayModel::AddOffsetDerivatives(Buffers& wb, double b[], int bdim)
+{
+   // Set derivatives for offset 
+   if (fit_offset == FIT_GLOBALLY)
+   {
+      for (int i = 0; i<n_meas; i++)
+         b[i] = 0;
+
+      for (int k = 0; k<n_chan; k++)
+         for (int i = 0; i<n_t; i++)
+            b[i] += 1;
+
+      return 1;
+   }
+
+   return 0;
+}
+
+int DecayModel::AddScatterDerivatives(Buffers& wb, double b[], int bdim, int irf_idx, double t0_shift)
+{
+   // Set derivatives for scatter 
+   if (fit_scatter == FIT_GLOBALLY)
+   {
+      for (int i = 0; i<n_meas; i++)
+         b[i] = 0;
+
+      double scale_factor[2] = { 1.0, 0.0 };
+      AddIRF(wb.irf_buf, irf_idx, t0_shift, b, n_r, scale_factor);
+
+      return 1;
+   }
+
+   return 0;
+}
+
+int DecayModel::AddTVBDerivatives(Buffers& wb, double b[], int bdim)
+{
+   // Set derivatives for tvb 
+   if (fit_tvb == FIT_GLOBALLY)
+   {
+      for (int i = 0; i<n_meas; i++)
+         b[i] = 0;
+      for (int k = 0; k<n_chan; k++)
+         for (int i = 0; i<n_t; i++)
+            b[i] += tvb_profile[k*n_t + i];
+
+      return 1;
+   }
+
+   return 0;
+}

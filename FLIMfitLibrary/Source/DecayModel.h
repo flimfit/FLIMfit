@@ -49,6 +49,25 @@ using std::vector;
 class DecayModel;
 class DecayModelWorkingBuffers;
 
+class AbstractDecayGroup : public ModelParameters, 
+                           public AcquisitionParameters
+{
+   AbstractDecayGroup(const ModelParameters& params, const AcquisitionParameters& acq, shared_ptr<InstrumentResponseFunction> irf);
+   ~AbstractDecayGroup();
+
+   void Init();
+
+   virtual void NormaliseLinearParams(volatile float lin_params[], float non_linear_params[], volatile float norm_params[]) = 0;
+   virtual void DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[]) = 0;
+protected:
+
+   bool init;
+   shared_ptr<InstrumentResponseFunction> irf;
+
+   bool constrain_nonlinear_parameters;
+};
+
+
 class DecayModel : public ModelParameters, 
                    public AcquisitionParameters
 {
@@ -67,8 +86,8 @@ public:
    int alf_t0_idx, alf_offset_idx, alf_scatter_idx, alf_E_idx, alf_beta_idx, alf_theta_idx, alf_tvb_idx, alf_ref_idx;
 
    void   SetupIncMatrix(int* inc);
-   int    CalculateModel(Buffers& wb, double *a, int adim, double *b, int bdim, double *kap, const double *alf, int irf_idx, int isel);
-   void   GetWeights(Buffers& wb, float* y, double* a, const double *alf, float* lin_params, double* w, int irf_idx);
+   int    CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel);
+   void   GetWeights(Buffers& wb, float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx);
    float* GetConstantAdjustment();
 
    int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
@@ -76,12 +95,9 @@ public:
 
    void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params);
 
-   void SetInitialParameters(double* params, double mean_arrival_time);
+   void SetInitialParameters(vector<double>& params, double mean_arrival_time);
 
    double EstimateAverageLifetime(float decay[], int data_type);
-
-
-   
 
    int l; 
    int lmax;
@@ -98,7 +114,7 @@ public:
    int n_exp_phi, n_fret_group, exp_buf_size, tau_start;
    int n_fret_v;
 
-   bool use_kappa;
+   bool constrain_nonlinear_parameters;
    bool beta_global;
    int n_beta;
 
@@ -144,20 +160,34 @@ private:
 
    void CalculateIRFMax();
 
+   double GetCurrentReferenceLifetime(const vector<double>& alf);
+   double GetCurrentT0(const vector<double>& alf);
+   
+   void GetCurrentLifetimes(Buffers& wb, const vector<double>& alf);
+   void GetCurrentContributions(Buffers& wb, const vector<double>& alf);
+   void GetCurrentRotationalCorrelationTimes(Buffers& wb, const vector<double>& alf);
+   void CalculateCurrentFRETLifetimes(Buffers& wb, const vector<double>& alf);
 
-
+   void AddOffsetColumn(vector<double>& a, int ndim, int& col);
+   void AddScatterColumn(vector<double>& a, int ndim, int& col, Buffers& wb, int irf_idx, double t0_shift);
+   void AddTVBColumn(vector<double>& a, int ndim, int& col);
+   void AddGlobalBackgroundLightColumn(vector<double>& a, int ndim, int& col, const vector<double>& alf, Buffers& wb, int irf_idx, double t0_shift);
+   
    template <typename T>
-   void add_irf(double* irf_buf, int irf_idx, double t0_shift, T a[], int pol_group, double* scale_fact = NULL);
+   void AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], int pol_group, double* scale_fact = NULL);
 
 
    int flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, bool include_fixed, int bin_shift, double a[], int adim);
-   int ref_lifetime_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
-   int tau_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
-   int beta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
-   int theta_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
-   int E_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
-   int FMM_derivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
-   int t0_derivatives(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, double b[], int bdim);
+   int AddReferenceLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int AddLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int AddContributionDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int AddRotationalCorrelationTimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int AddFRETEfficencyDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim);
+   int AddT0Derivatives(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, double b[], int bdim);
+
+   int AddOffsetDerivatives(Buffers& wb, double b[], int bdim);
+   int AddScatterDerivatives(Buffers& wb, double b[], int bdim, int irf_idx, double t0_shift);
+   int AddTVBDerivatives(Buffers& wb, double b[], int bdim);
 
    friend class DecayModelWorkingBuffers;
 
@@ -197,8 +227,8 @@ private:
 
    shared_ptr<InstrumentResponseFunction> irf;
 
-   void calculate_exponentials(int irf_idx, double t0_shift);
-   int check_alf_mod(const double* new_alf, int irf_idx);
+   void PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift);
+   int check_alf_mod(const vector<double>& new_alf, int irf_idx);
 
    void Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, int bin_shift, double& c);
    void ConvolveDerivative(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c);
@@ -222,7 +252,7 @@ private:
 
 // TODO: move this to InstrumentResponseFunction
 template <typename T>
-void DecayModel::add_irf(double* irf_buf, int irf_idx, double t0_shift, T a[], int pol_group, double* scale_fact)
+void DecayModel::AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], int pol_group, double* scale_fact)
 {   
    double* lirf = irf->GetIRF(irf_idx, t0_shift, irf_buf);
    double t_irf0 = irf->GetT0();

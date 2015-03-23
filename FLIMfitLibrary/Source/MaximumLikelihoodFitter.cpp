@@ -44,14 +44,14 @@
 
 void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa)
 {
-   MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
-   f->mle_funcs(alf,fvec,nl,nfunc);
+   MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*)pa;
+   f->mle_funcs(fvec,nl,nfunc);
 }
 
 void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
-   f->mle_jacb(alf,fjac,nl,nfunc);
+   f->mle_jacb(fjac,nl,nfunc);
 }
 
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, int* terminate) : 
@@ -64,7 +64,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, i
    expA = new double[nfunc];
 }
 
-int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, int* ierr)
+int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr)
 {
 
    for(int i=0; i<n; i++)
@@ -95,7 +95,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
 
     
     double* err = new double[nfunc];
-    dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, n_param, nfunc, this, err);
+    dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf.data(), n_param, nfunc, this, err);
     err[0] = err[0];
     delete[] err;
     
@@ -107,7 +107,7 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int* niter, 
    opt[3] = DBL_EPSILON;
    */
 
-   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf, dy, n_param, n+1, itmax, NULL, info, work, NULL, this);
+   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf.data(), dy, n_param, n+1, itmax, NULL, info, work, NULL, this);
    
    					           /* O: information regarding the minimization. Set to NULL if don't care
                       * info[0]= ||e||_2 at initial p.
@@ -155,15 +155,16 @@ int MaximumLikelihoodFitter::GetLinearParams()
 }
 
 
-void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, int nfunc)
+void MaximumLikelihoodFitter::mle_funcs(double *fvec, int n_param, int nfunc)
 {
    int i,j;
    float* adjust;
 
+   vector<double>& a = a_[0];
+   vector<double>& b = b_[0];
    GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->GetConstantAdjustment();
-   
-   double* A = alf+nl;
+   double* A = alf.data() + nl;
 
 #if CONSTRAIN_FRACTIONS
    for(i=0; i<l; i++)
@@ -177,21 +178,24 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, 
    {
       fvec[i] = adjust[i];
       for(j=0; j<l; j++)
-         fvec[i] += expA[j]*a_[i+nmax*j];
+         fvec[i] += expA[j]*a[i+nmax*j];
    }
 
    if (philp1)
       for (i=0; i<n; i++)
-         fvec[i] += a_[i+nmax*l];
+         fvec[i] += a[i+nmax*l];
       
 
    fvec[n] = kap[0]+1;
 }
 
-void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int n_param, int nfunc)
+void MaximumLikelihoodFitter::mle_jacb(double *fjac, int n_param, int nfunc)
 {
    int i,j,k;
    float* adjust;
+
+   vector<double>& a = a_[0];
+   vector<double>& b = b_[0];
 
    GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->GetConstantAdjustment();
@@ -207,7 +211,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int n_param, i
             if (inc[k + j * 12] != 0)
             {
                for (i=0; i<n; i++)
-                  fjac[n_param*i+k] += expA[j] * b_[ndim*m+i];
+                  fjac[n_param*i+k] += expA[j] * b[ndim*m+i];
                fjac[n_param*i+k] = kap[k+1];
                m++;
             }
@@ -215,7 +219,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int n_param, i
          if (inc[k + l * 12] != 0)
          {
             for (i=0; i<n; i++)
-               fjac[n_param*i+k] += b_[ndim*m+i];
+               fjac[n_param*i+k] += b[ndim*m+i];
             fjac[n_param*i+k] = kap[k+1];
             m++;
          }
@@ -226,7 +230,7 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int n_param, i
    {
 #if CONSTRAIN_FRACTIONS
          for (i=0; i<n; i++)
-            fjac[n_param*i+j+k_sub] = expA[j] * a_[i+nmax*j];
+            fjac[n_param*i+j+k_sub] = expA[j] * a[i+nmax*j];
 #else
          for (i=0; i<n; i++)
             fjac[n_param*i+j+k_sub] = a_[i+n*j];

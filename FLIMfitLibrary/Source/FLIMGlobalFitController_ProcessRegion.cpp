@@ -91,9 +91,8 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    //if (global_algorithm == MODE_GLOBAL_BINNING)
    //   local_region_data = local_region_data.GetBinnedRegion();
-
    projectors[thread].Fit(local_region_data, region_results, itmax, status->iter[thread], ierr_local, status->chi2[thread]);
-
+ 
    // If we're fitting globally using global binning now retrieve the linear parameters
    //if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
    //   projectors[thread].GetLinearParams(region_data[thread]);
