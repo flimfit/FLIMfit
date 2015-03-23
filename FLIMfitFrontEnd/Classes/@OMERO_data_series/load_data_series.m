@@ -46,7 +46,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     
     imageList = getImages(session, 'dataset', dId);
     
-    if 0==imageList.size()
+    if isempty(imageList) || 0==imageList.size()
         errordlg('Dataset has no images - please choose a Dataset with images');
         return;
     end;
