@@ -48,6 +48,7 @@ using std::vector;
 
 class DecayModel;
 class DecayModelWorkingBuffers;
+class ExponentialPrecomputationBuffer;
 
 class AbstractDecayGroup : public ModelParameters, 
                            public AcquisitionParameters
@@ -134,7 +135,8 @@ private:
 
    int n_stray;
 
-   double *chan_fact;
+   //double *chan_fact;
+   vector<vector<double>> channel_factor;
 
    vector<float> adjust_buf;
 
@@ -194,59 +196,6 @@ private:
 };
 
 
-class DecayModelWorkingBuffers : public AcquisitionParameters
-{
-   friend class DecayModel;
-
-public:
-   DecayModelWorkingBuffers(shared_ptr<DecayModel> model);
-   ~DecayModelWorkingBuffers();
-
-   void add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[], int bin_shift = 0);
-   void add_derivative(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[]);
-
-
-private:
-
-   shared_ptr<DecayModel> model;
-
-
-   int n_irf;
-   
-
-   int n_exp;
-   int exp_dim;
-
-
-   int n_pol_group;
-   int n_fret_group;
-
-   int pulsetrain_correction;
-
-   int* irf_max;
-
-   shared_ptr<InstrumentResponseFunction> irf;
-
-   void PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift);
-   int check_alf_mod(const vector<double>& new_alf, int irf_idx);
-
-   void Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, int bin_shift, double& c);
-   void ConvolveDerivative(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c);
-
-
-   int cur_irf_idx;
-
-   double *exp_buf;
-   double *tau_buf;
-   double *beta_buf;
-   double *theta_buf;
-   double *irf_buf;
-   double *cur_alf;
-
-   bool first_eval;
-
-};
-
 
 
 
@@ -269,7 +218,7 @@ void DecayModel::AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], in
          ii = (int) floor((t[i]-t_irf0)/dt_irf);
 
          if (ii>=0 && ii<n_irf)
-            a[idx] += (T) (lirf[k*n_irf+ii] * chan_fact[pol_group*n_chan+k] * scale);
+            a[idx] += (T) (lirf[k*n_irf+ii] * channel_factor[pol_group][k] * scale);
          idx++;
       }
    }

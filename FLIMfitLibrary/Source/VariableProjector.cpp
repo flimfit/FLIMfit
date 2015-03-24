@@ -715,6 +715,7 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
          firstca = kp1;
          if (alpha == (float)0.)
          {
+            throw std::exception("ISEL = -8", -8);
             isel = -8;
             //goto L99;
          }

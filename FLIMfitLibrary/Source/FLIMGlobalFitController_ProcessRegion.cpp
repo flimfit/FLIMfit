@@ -43,18 +43,9 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 {
    INIT_CONCURRENCY;
 
-   int itmax;
-//   double tau_ma;
-
    int ierr_local = 0;
 
    _ASSERT( _CrtCheckMemory( ) );
-
-//   int r_idx = data->GetRegionIndex(g,region);
-//   int start = data->GetRegionPos(g,region) + px;
-
-//   float *y, *alf, *alf_err_lower, *alf_err_upper;
-//   int   *irf_idx;
 
    FitResultsRegion region_results;
    RegionData local_region_data;
@@ -65,7 +56,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    if (data->global_mode == MODE_PIXELWISE)
    {      
       local_region_data = region_data[0].GetPixel(px);
-
       region_results = results->GetPixel(g, region, px);
    }
    else
@@ -84,39 +74,14 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    if (local_region_data.GetSize() == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
       return 0;
    
-
-
-   itmax = 100;
-
-
-   //if (global_algorithm == MODE_GLOBAL_BINNING)
-   //   local_region_data = local_region_data.GetBinnedRegion();
+   int itmax = 100;
    projectors[thread].Fit(local_region_data, region_results, itmax, status->iter[thread], ierr_local, status->chi2[thread]);
- 
-   // If we're fitting globally using global binning now retrieve the linear parameters
-   //if (data->global_mode != MODE_PIXELWISE && global_algorithm == MODE_GLOBAL_BINNING)
-   //   projectors[thread].GetLinearParams(region_data[thread]);
-   
+    
    if (calculate_errors)
    {
-
       projectors[thread].CalculateErrors(conf_interval);
-
       // TODO: get errors
    }
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   START_SPAN("Processing Results");
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   // Normalise to get beta/gamma/r and I0 and determine mean lifetimes
-   //--------------------------------------
-   //NormaliseLinearParams(s_thresh, lin_params, lin_params);
-   //CalculateMeanLifetime(s_thresh, lin_params, alf, mean_tau, w_mean_tau);
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   END_SPAN;
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
    status->FinishedRegion(thread);
 

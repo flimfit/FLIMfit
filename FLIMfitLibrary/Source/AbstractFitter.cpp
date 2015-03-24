@@ -396,11 +396,17 @@ void AbstractFitter::GetParams(int nl, const vector<double>& alf)
    }
 }
 
+double* AbstractFitter::GetModel(const vector<double>& alf, int irf_idx, int isel, int thread)
+{
+   return GetModel(alf.data(), irf_idx, isel, thread);
+}
+
+
 /*
    Get the model and derivatives, potentially removing a row if we're fitting
    with a fixed column (to calculate errors)
 */
-double* AbstractFitter::GetModel(const vector<double>& alf, int irf_idx, int isel, int omp_thread)
+double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
 {
    int valid_cols  = 0;
    int ignore_cols = 0;

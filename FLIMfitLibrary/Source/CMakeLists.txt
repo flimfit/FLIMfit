@@ -76,6 +76,7 @@ set(SOURCE
    FLIMGlobalFitController_Model.cpp
    FLIMGlobalFitController_ADA.cpp
    AbstractDecayGroup.cpp
+   ExponentialPrecomputationBuffer.cpp
    FLIMData.cpp
    DecayModel.cpp
    ModelParameters.cpp
@@ -108,6 +109,7 @@ set(HEADERS
    RegionData.h
    FitSettings.h
    DecayModel.h
+   ExponentialPrecomputationBuffer.h
    ModelParameters.h
    VariableProjector.h
    AbstractFitter.h

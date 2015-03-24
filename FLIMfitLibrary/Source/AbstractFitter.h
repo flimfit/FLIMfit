@@ -31,6 +31,7 @@
 #define _ABSTRACTFITTER_H
 
 #include "DecayModel.h"
+#include "ExponentialPrecomputationBuffer.h"
 #include "FitResults.h"
 #include "RegionData.h"
 #include "FlagDefinitions.h"
@@ -64,7 +65,11 @@ public:
    int CalculateErrors(double conf_limit);
 
    void GetParams(int nl, const vector<double>& alf);
+   
    double* GetModel(const vector<double>& alf, int irf_idx, int isel, int thread);
+
+
+   double* GetModel(const double* alf, int irf_idx, int isel, int thread);
    void ReleaseResidualMemory();
 
    int err;

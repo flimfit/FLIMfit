@@ -28,8 +28,10 @@
 //=========================================================================
 
 #include "DecayModel.h"
+#include "ExponentialPrecomputationBuffer.h"
 #include "IRFConvolution.h"
 #include "ModelADA.h"
+#include "ExponentialPrecomputationBuffer.h"
 
 #include <stdio.h>
 #include "util.h"
@@ -45,7 +47,6 @@ DecayModel::DecayModel(const ModelParameters& params, const AcquisitionParameter
    AcquisitionParameters(acq), 
    irf(irf), 
    init(false),
-   chan_fact(NULL),
    constrain_nonlinear_parameters(true)
 {
 }
@@ -76,7 +77,6 @@ void DecayModel::Init()
 
 DecayModel::~DecayModel()
 {
-   ClearVariable(chan_fact);
 }
 
 void DecayModel::CalculateParameterCounts()
@@ -186,24 +186,14 @@ void DecayModel::SetupPolarisationChannelFactors()
 {
    if (polarisation_resolved)
    {
-      chan_fact = new double[ n_chan * n_pol_group ]; //free ok
-      int i;
+      channel_factor.push_back({ 1.0 / 3.0, 1.0 / 3.0 });
 
-      double f = +0.00;
-
-      chan_fact[0] = 1.0/3.0- f*1.0/3.0;
-      chan_fact[1] = (1.0/3.0) + f*1.0/3.0;
-
-      for(i=1; i<n_pol_group ; i++)
-      {
-         chan_fact[i*2  ] =   2.0/3.0 - f*2.0/3.0;
-         chan_fact[i*2+1] =  -(1.0/3.0) + f*2.0/3.0;
-      }
+      for (int i = 1; i < n_pol_group; i++)
+         channel_factor.push_back({ 2.0 / 3.0, -1.0 / 3.0 });
    }
    else
    {
-      chan_fact = new double[1]; //free ok
-      chan_fact[0] = 1;
+      channel_factor.resize(1, vector<double>(1, 1.0));
    }
 }
 
@@ -812,7 +802,7 @@ DecayModelWorkingBuffers::DecayModelWorkingBuffers(shared_ptr<DecayModel> model)
    AcquisitionParameters(*model), first_eval(true)
 {
 
-   int max_dim, exp_buf_size;
+   int max_dim;
 
    irf = model->irf;
 
@@ -826,19 +816,16 @@ DecayModelWorkingBuffers::DecayModelWorkingBuffers(shared_ptr<DecayModel> model)
    max_dim = (int) (ceil(max_dim/4.0) * 4);
 
    n_exp = model->n_exp;
-   exp_dim = max_dim * n_chan;
-   
-   exp_buf_size = n_exp * model->n_fret_group * model->n_pol_group * exp_dim * N_EXP_BUF_ROWS;
-
-   AlignedAllocate( exp_buf_size, exp_buf ); 
-      
+         
    tau_buf   = new double[ (model->n_fret+1) * model->n_exp ]; //free ok 
    beta_buf  = new double[ model->n_exp ]; //free ok
    theta_buf = new double[ model->n_theta ]; //free ok 
    irf_buf   = new double[ model->n_irf * model->n_chan ];
    cur_alf   = new double[ model->nl ]; //ok
 
-
+   exp_buffer.resize(n_exp * model->n_fret_group * model->n_pol_group,
+      ExponentialPrecomputationBuffer(irf, model)
+      );
 
    this->model = model;
 
@@ -851,6 +838,4 @@ DecayModelWorkingBuffers::~DecayModelWorkingBuffers()
    delete[] beta_buf;
    delete[] theta_buf;
    delete[] irf_buf;
-
-   AlignedClearVariable(exp_buf);
 }

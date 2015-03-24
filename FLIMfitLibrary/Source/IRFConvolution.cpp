@@ -30,6 +30,7 @@
 
 #include "IRFConvolution.h"
 #include "DecayModel.h"
+#include "ExponentialPrecomputationBuffer.h"
 #include "ModelADA.h"
 
 
@@ -102,34 +103,40 @@ for(j=i; j<n_tau;     j++)
 // TODO: can we eliminate requirement for irf_max?
 
 
-void DecayModelWorkingBuffers::Convolve(double rate, double exp_irf_buf[], double exp_irf_cum_buf[], int k, int i, double pulse_fact, int bin_shift, double& c)
+void DecayModelWorkingBuffers::Convolve(double rate, int row, int k, int i, double pulse_fact, int bin_shift, double& c)
 {
-   int irf0 = k*n_irf;
+   const auto& exp_irf_cum_buf = exp_buffer[row].cum_irf_exp_factor[k];
+   const auto& exp_irf_buf = exp_buffer[row].irf_exp_factor[k];
 
    int j = k*n_t+i;
    int idx = irf_max[j] + bin_shift;
 
-   if (idx < irf0)
-      idx = irf0;
-   if (idx >= irf0+n_irf)
-      idx = irf0+n_irf-1;
+   idx = idx < 0 ? 0 : idx;
+   idx = idx >= n_irf ? n_irf-1 : idx;
 
-   c = exp_irf_cum_buf[irf_max[j]] - 0.5*exp_irf_buf[irf_max[j]];
+   c = exp_irf_cum_buf[idx] - 0.5*exp_irf_buf[idx];
 
    if (pulsetrain_correction && pulse_fact > 0)
-      c += (exp_irf_cum_buf[(k+1)*n_irf-1] - 0.5*exp_irf_buf[(k+1)*n_irf-1])  / pulse_fact;
+      c += (exp_irf_cum_buf[n_irf-1] - 0.5*exp_irf_buf[n_irf-1])  / pulse_fact;
 }
 
 
 
-void DecayModelWorkingBuffers::ConvolveDerivative(double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c)
+void DecayModelWorkingBuffers::ConvolveDerivative(double t, double rate, int row, int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c)
 {
+   const auto& exp_model_buf = exp_buffer[row].model_decay[k];
+   const auto& exp_irf_tirf_cum_buf = exp_buffer[row].cum_irf_exp_t_factor[k];
+   const auto& exp_irf_tirf_buf = exp_buffer[row].irf_exp_t_factor[k];
+   const auto& exp_irf_cum_buf = exp_buffer[row].cum_irf_exp_factor[k];
+   const auto& exp_irf_buf = exp_buffer[row].irf_exp_factor[k];
+
    double c_rep;
-   int j = k*n_t+i;
-   int irf_end = (k+1)*n_irf-1;
    
-   c  =        ( t * ref_fact_a + ref_fact_b ) * exp_irf_cum_buf[irf_max[j]] - exp_irf_tirf_cum_buf[irf_max[j]] * ref_fact_a;
-   c -= 0.5 * (( t * ref_fact_a +  ref_fact_b ) * exp_irf_buf[irf_max[j]] - exp_irf_tirf_buf[irf_max[j]] * ref_fact_a);
+   int idx = irf_max[k*n_t + i];
+   int irf_end = n_irf - 1;
+
+   c  =        ( t * ref_fact_a + ref_fact_b ) * exp_irf_cum_buf[idx] - exp_irf_tirf_cum_buf[idx] * ref_fact_a;
+   c -= 0.5 * (( t * ref_fact_a +  ref_fact_b ) * exp_irf_buf[idx] - exp_irf_tirf_buf[idx] * ref_fact_a);
    
    
    if (pulsetrain_correction && pulse_fact > 0)

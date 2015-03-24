@@ -28,6 +28,7 @@
 //=========================================================================
 
 #include "DecayModel.h"
+#include "ExponentialPrecomputationBuffer.h"
 #include "IRFConvolution.h"
 #include "ModelADA.h"
 
@@ -70,6 +71,34 @@ int DecayModelWorkingBuffers::check_alf_mod(const vector<double>& new_alf, int i
    return changed;
 }
 
+
+void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift)
+{
+
+   // Check if parameters remain unchanged since last time
+   if (!check_alf_mod(new_alf, irf_idx))
+      return;
+
+   first_eval = false;
+
+   for (int m = n_pol_group - 1; m >= 0; m--)
+   {
+      double inv_theta = m > 0 ? 1 / theta_buf[m - 1] : 0;
+
+      for (int i = n_fret_group*n_exp - 1; i >= 0; i--)
+      {
+
+         int tau_idx = i + n_exp * model->tau_start;
+         double rate = 1 / tau_buf[tau_idx] + inv_theta;
+
+         exp_buffer[m*n_fret_group*n_exp + i].Compute(rate, irf_idx, t0_shift, model->channel_factor[m]);
+      }
+   }
+         
+}
+
+
+/*
 void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift)
 {
 
@@ -243,19 +272,17 @@ void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_
 
    }
 }
-
+*/
 
 void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[], int bin_shift )
 {   
    double c;
-   int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
+   int row = (tau_idx+(theta_idx+fret_group_idx)*n_exp);
    
-   double* exp_model_buf         = exp_buf + (row+1+bin_shift)*exp_dim;
-   double* exp_irf_cum_buf       = exp_buf + (row+5)*exp_dim;
-   double* exp_irf_buf           = exp_buf + (row+6)*exp_dim;
+   const auto& exp_model_buf = exp_buffer[row].model_decay;
+
             
    int fret_tau_idx = tau_idx + (fret_group_idx+model->tau_start)*n_exp;
-
    double rate = 1/tau_buf[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta_buf[theta_idx-1]);
    
    fact *= (irf->ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
@@ -268,14 +295,20 @@ void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_gr
    else
       pulse_fact = exp( t_rep * rate ) - 1; 
 
-
    int idx = 0;
    for(int k=0; k<n_chan; k++)
    {
       for(int i=0; i<n_t; i++)
       {
-         Convolve(rate, exp_irf_buf, exp_irf_cum_buf, k, i, pulse_fact, bin_shift, c);
-         a[idx] += exp_model_buf[k*n_t+i] * c * fact;
+         Convolve(rate, row, k, i, pulse_fact, bin_shift, c);
+         
+         int mi = i + 1 + bin_shift; // TODO: 1 is correct here?
+            
+         mi = mi < 0 ? 0 : mi;
+         mi = mi >= n_irf ? n_irf - 1 : mi;
+
+         
+         a[idx] += exp_model_buf[k][mi] * c * fact;
          idx++;
       }
    }
@@ -284,16 +317,10 @@ void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_gr
 void DecayModelWorkingBuffers::add_derivative(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double b[])
 {   
    double c;
-   int row = N_EXP_BUF_ROWS*(tau_idx+(theta_idx+fret_group_idx)*n_exp);
+   int row = (tau_idx+(theta_idx+fret_group_idx)*n_exp);
+   const auto& exp_model_buf = exp_buffer[row].model_decay;
 
-   double* exp_model_buf         = exp_buf + (row+1)*exp_dim;
-   double* exp_irf_tirf_cum_buf  = exp_buf + (row+3)*exp_dim;
-   double* exp_irf_tirf_buf      = exp_buf + (row+4)*exp_dim;
-   double* exp_irf_cum_buf       = exp_buf + (row+5)*exp_dim;
-   double* exp_irf_buf           = exp_buf + (row+6)*exp_dim;
-      
    int fret_tau_idx = tau_idx + (fret_group_idx+model->tau_start)*n_exp;
-           
    double rate = 1/tau_buf[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta_buf[theta_idx-1]);
 
    double ref_fact_a = (irf->ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
@@ -305,8 +332,8 @@ void DecayModelWorkingBuffers::add_derivative(int tau_idx, int theta_idx, int fr
    {
       for(int i=0; i<n_t; i++)
       {
-         ConvolveDerivative(model->t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, pulse_fact, ref_fact_a, ref_fact_b, c);
-         b[idx] += exp_model_buf[k*n_t+i] * c * fact;
+         ConvolveDerivative(model->t[i], rate, row, k, i, pulse_fact, ref_fact_a, ref_fact_b, c);
+         b[idx] += exp_model_buf[k][i] * c * fact;
          idx++;
       }
    }

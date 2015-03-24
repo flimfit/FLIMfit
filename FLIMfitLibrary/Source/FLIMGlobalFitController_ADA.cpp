@@ -29,6 +29,7 @@
 
 #include "ModelADA.h"
 #include "DecayModel.h"
+#include "ExponentialPrecomputationBuffer.h"
 #include "IRFConvolution.h"
 
 #include <cmath>
