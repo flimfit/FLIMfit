@@ -187,7 +187,7 @@ classdef flim_data_series < handle & h5_serializer
         
         file_names;
         channels;
-        block = -1;
+        imageSeries = -1;
         
         loaded = [];
         load_time = [];

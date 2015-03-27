@@ -108,7 +108,8 @@ function load_plate(obj,omero_plate)
         for j = 0:wellList.size()-1,
             well = wellList.get(j);
             row = char(well.getRow().getValue() + 'A');
-            col = num2str(well.getColumn().getValue());
+            % NB add 1 as FLIMfit plate columns start at 0
+            col = num2str(well.getColumn().getValue() + 1);
             wellsSampleList = well.copyWellSamples();
             for i = 0:wellsSampleList.size()-1,
                 ws = wellsSampleList.get(i);
