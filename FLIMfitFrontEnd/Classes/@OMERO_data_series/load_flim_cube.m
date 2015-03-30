@@ -1,4 +1,4 @@
-function[success, target] = load_flim_cube(obj, target, image, selected, dims, ZCT)
+function[success, target] = load_flim_cube(obj, target, image, selected, current_image, dims, ZCT)
 
 %  Loads FLIM_data from an OMERO image or set of images
 % The underlying assumption is that if there is more than one name in
@@ -9,7 +9,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
     
 
 
-    if nargin < 6        % dims/ZCT have not  been passed so get dimensions from data_series obj
+    if nargin < 7        % dims/ZCT have not  been passed so get dimensions from data_series obj
         delays = obj.t;
         sizet = length(delays);
         nfiles = length(obj.file_names);
@@ -22,7 +22,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, dims, Z
         % if image is in fact a filename then call the superclass method
         % instead
         if findstr(class(image),'char')
-            [success, target] = load_flim_cube@flim_data_series(obj, target, image, selected, dims, ZCT);
+            [success, target] = load_flim_cube@flim_data_series(obj, target, image, selected, dims, current_image, ZCT);
             return;
         end
         

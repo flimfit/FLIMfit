@@ -1,5 +1,5 @@
 
-function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZCT)
+function[success, target] = load_flim_cube(obj, target, file, selected, current_image, dims, ZCT)
 
 
 %  Loads FLIM_data from a file or set of files
@@ -33,7 +33,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
    
-    if nargin < 6        % dims/ZCT have not  been passed so get dimensions from data_series obj
+    if nargin < 7        % dims/ZCT have not  been passed so get dimensions from data_series obj
         delays = obj.t;
         sizet = length(delays);
         nfiles = length(obj.file_names);
@@ -215,16 +215,17 @@ function[success, target] = load_flim_cube(obj, target, file, selected, dims, ZC
                 r.setId(file);
            
                 omeMeta = r.getMetadataStore();
-                r.setSeries(obj.block - 1);
-                
+              
             end
+            
+            
+            r.setSeries(obj.imageSeries(current_image) - 1);
             
             
           
             %check that image dimensions match those read from first
             %file
             
-            block = obj.block;
             
             % note the dimension inversion here
             if sizeX ~= r.getSizeY ||sizeY ~= r.getSizeX

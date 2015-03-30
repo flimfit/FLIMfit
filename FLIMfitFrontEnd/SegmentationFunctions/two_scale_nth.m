@@ -5,7 +5,7 @@ function z = two_scale_nth(U,scale1,rel_bg_scale1,scale2,rel_bg_scale2,threshold
 %rel_bg_scale1,Background size used to calculate threshold/Object width
 %scale2,Object height (pixels)
 %rel_bg_scale2,Background size used to calculate threshold/Object width
-%threshold,Threshold (0-1)
+%threshold,Threshold (0 or greater)
 %smoothing,Radius of smoothing kernel (pixels)
 %min_area,Minimium object area
 

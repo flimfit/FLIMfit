@@ -34,6 +34,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     dims.modulo = [];
     dims.FLIM_type = [];
     dims.sizeZCT = [];
+    dims.error_message = [];
   
 
     [path,name,ext] = fileparts_inc_OME(file);
@@ -105,32 +106,45 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
             r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
             r.setId(file);
+            
+             omeMeta = r.getMetadataStore();
            
             
-            
             seriesCount = r.getSeriesCount;
+            
             if seriesCount > 1
-                block = [];
-                nimages = num2str(seriesCount);
-                while isempty(block) ||  block > seriesCount  ||  block < 1   
-                    prompt = {sprintf(['This file holds ' nimages ' images. Numbered 0-' num2str(seriesCount -1) '\n Please select one'])};
-                    dlgTitle = 'Multiple images in File! ';
-                    defaultvalues = {'0'};
-                    numLines = 1;
-                    inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                    block = str2double(inputdata) + 1;
-                    
+                if omeMeta.getPlateCount > 0
+                    % plate! so check imageSeries has been setup or throw error
+                    if obj.imageSeries == -1 | length(obj.imageSeries) ~= length(obj.file_names)
+                        dims.error_message = ' This file contains Plate data. Please select with a different menu';
+                        return;
+                    end
+                else
+                    imageSeries = [];
+                    nimages = num2str(seriesCount);
+                    while isempty(imageSeries) ||  imageSeries > seriesCount  ||  imageSeries < 1
+                        prompt = {sprintf(['This file holds ' nimages ' images. Numbered 0-' num2str(seriesCount -1) '\n Please select one'])};
+                        dlgTitle = 'Multiple images in File! ';
+                        defaultvalues = {'0'};
+                        numLines = 1;
+                        inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                        imageSeries = str2double(inputdata) + 1;
+                        
+                    end
+                    % set series for each file to that selected 
+                    obj.imageSeries = ones(1,length(obj.file_names)) .* imageSeries; 
                 end
-                
-                obj.block = block;
-                
             else
-                obj.block = 1;
+                obj.imageSeries = ones(1,length(obj.file_names))
             end
             
-            r.setSeries(obj.block - 1);
+                
             
-            omeMeta = r.getMetadataStore();
+            
+            
+            r.setSeries(obj.imageSeries(1) - 1);
+            
+           
            
             
             obj.bfOmeMeta = omeMeta;  % set for use in loading data

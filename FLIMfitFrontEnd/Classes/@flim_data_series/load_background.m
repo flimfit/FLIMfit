@@ -61,7 +61,7 @@ function load_background(obj, file_or_image)
     sizeY = dims.sizeXY(2);
     
     image_data = zeros(sizet, 1, sizeX, sizeY, 1);
-    [success , image_data] = obj.load_flim_cube(image_data, file_or_image,1, dims, ZCT);
+    [success , image_data] = obj.load_flim_cube(image_data, file_or_image,1,1, dims, ZCT);
     
     % average across t if 3D data
     if(sizet > 1)

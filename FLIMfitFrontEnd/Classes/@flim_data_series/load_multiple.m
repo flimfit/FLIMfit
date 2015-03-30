@@ -32,7 +32,11 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     % this routine should load only FLIM data
     if length(dims.delays) < 2
-        errordlg('Data does not appear to be time-resolved. Unable to load!');
+        if isempty(dims.error_message)
+            errordlg('Data does not appear to be time-resolved. Unable to load!');
+        else
+            errordlg(dims.error_message);
+        end
         return;
     end;
     
@@ -96,9 +100,11 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
         obj.data_size = [length(dims.delays) 1 dims.sizeXY  obj.n_datasets];
     end
     
+    if isempty(obj.metadata)
+        obj.metadata = extract_metadata(obj.names);
+    end
     
-    obj.metadata = extract_metadata(obj.names);
-    
+   
     if obj.lazy_loading
         obj.load_selected_files(1);
     else

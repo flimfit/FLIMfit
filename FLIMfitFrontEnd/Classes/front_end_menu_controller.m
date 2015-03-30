@@ -37,6 +37,7 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Set_Plate;        
         menu_OMERO_Load_FLIM_Data;
         menu_OMERO_Load_FLIM_Dataset; 
+        menu_OMERO_Load_plate;
         menu_OMERO_Load_IRF_FOV;
         menu_OMERO_Load_IRF_annot;            
         menu_OMERO_Load_Background;            
@@ -82,6 +83,7 @@ classdef front_end_menu_controller < handle
         menu_file_load_single;
         menu_file_load_widefield;
         menu_file_load_tcspc;
+        menu_file_load_plate;
         
         menu_file_load_single_pol;
         menu_file_load_tcspc_pol;
@@ -206,7 +208,7 @@ classdef front_end_menu_controller < handle
             
             try
                 obj.recent_data = getpref('GlobalAnalysisFrontEnd','RecentData');
-            catch %#ok
+            catch 
                 addpref('GlobalAnalysisFrontEnd','RecentData',{})
                 obj.recent_data = [];
             end
@@ -388,7 +390,25 @@ classdef front_end_menu_controller < handle
             end
             
             clear chooser;
-        end                    
+        end    
+        %------------------------------------------------------------------        
+        function menu_OMERO_Load_plate_callback(obj,~,~)
+            % clear & delete existing data series 
+            if isvalid(obj.data_series_controller.data_series)
+                obj.data_series_controller.data_series.clear();
+            end
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2));
+            plate = chooser.getSelectedPlate();
+            if ~isempty(plate)
+                obj.data_series_controller.data_series = OMERO_data_series();   
+                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
+                obj.data_series_controller.load_plate(plate); 
+                notify(obj.data_series_controller,'new_dataset');
+            end
+            
+            clear chooser;
+        end  
+        
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
@@ -590,6 +610,23 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
+                if strcmp(obj.default_path,'C:\')
+                    obj.default_path = path;
+                end
+            end
+        end
+        
+        
+        function menu_file_load_plate_callback(obj,~,~)
+            % clear & delete existing data series 
+            if isvalid(obj.data_series_controller.data_series)
+                obj.data_series_controller.data_series.clear();
+            end
+            
+            [file,path] = uigetfile('*.ome.tiff;*.OME.tiff;*.ome.tif;;*.OME.tif','Select an ome.tiff containing plate data',obj.default_path);
+            if file ~= 0
+                obj.data_series_controller.data_series = flim_data_series();
+                obj.data_series_controller.load_plate([path file]); 
                 if strcmp(obj.default_path,'C:\')
                     obj.default_path = path;
                 end
