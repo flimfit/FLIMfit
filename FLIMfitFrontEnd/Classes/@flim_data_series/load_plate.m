@@ -91,7 +91,7 @@ function load_plate(obj, file)
     
     % assume only one plate & find matching Row and Column
     cols = omeMeta.getPlateColumns(0).getValue;
-    rows = omeMeta.getPlateColumns(0).getValue;
+    rows = omeMeta.getPlateRows(0).getValue;
     
     imageSeries = ones(1,n_datasets);       % pre-allocate
     file_names{1,n_datasets} = [];      
