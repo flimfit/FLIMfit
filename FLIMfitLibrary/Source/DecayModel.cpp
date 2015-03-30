@@ -197,23 +197,6 @@ void DecayModel::SetupPolarisationChannelFactors()
    }
 }
 
-void DecayModel::CheckGateSpacing()
-{
-   // Check to see if gates are equally spaced
-   //---------------------------------------------
-   eq_spaced_data = true;
-   double dt0 = t[1]-t[0];
-   for(int i=2; i<n_t; i++)
-   {
-      double dt = t[i] - t[i-1];
-      if (abs(dt - dt0) > 1)
-      {
-         eq_spaced_data = false;
-         break;
-      }
-         
-   }
-}
 
 void DecayModel::SetupAdjust()
 {
@@ -281,9 +264,6 @@ void DecayModel::SetParameterIndices()
 
   if (fit_tvb == FIT_GLOBALLY)
       alf_tvb_idx = idx++;
-
-
-
 }
 
 
@@ -526,29 +506,6 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
  *
  * Accounts for the step function in the model - we don't want to convolve before the decay starts
 */
-void DecayModel::CalculateIRFMax()
-{
-   double* t = GetT();
-
-   irf_max.assign(n_meas, 0);
-
-   double t0 = irf->GetT0();
-   double dt_irf = irf->timebin_width;
-
-   for(int j=0; j<n_chan; j++)
-   {
-      for(int i=0; i<n_t; i++)
-      {
-         int k=0;
-         while(k < n_irf && (t[i] - t0 - k*dt_irf) >= -1.0)
-         {
-            irf_max[j*n_t+i] = k + j*n_irf;
-            k++;
-         }
-      }
-   }
-
-}
 
 
 /**
@@ -823,9 +780,9 @@ DecayModelWorkingBuffers::DecayModelWorkingBuffers(shared_ptr<DecayModel> model)
    irf_buf   = new double[ model->n_irf * model->n_chan ];
    cur_alf   = new double[ model->nl ]; //ok
 
-   exp_buffer.resize(n_exp * model->n_fret_group * model->n_pol_group,
-      ExponentialPrecomputationBuffer(irf, model)
-      );
+   //exp_buffer.resize(n_exp * model->n_fret_group * model->n_pol_group,
+   //   ExponentialPrecomputationBuffer(this)
+   //   );
 
    this->model = model;
 

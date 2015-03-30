@@ -38,12 +38,12 @@
 #include <assert.h>
 #include <utility>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/ptr_container/ptr_map.hpp>
 
 using std::pair;
 using boost::ptr_map;
-using boost::shared_ptr;
+using std::shared_ptr;
 
 int next_id = 0;
 

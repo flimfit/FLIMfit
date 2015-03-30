@@ -55,13 +55,9 @@ marker_series* writer;
 #endif
 
 
-FLIMGlobalFitController::FLIMGlobalFitController() :
-   error(0), init(false), has_fit(false), model(NULL)
-{
-}
-
-FLIMGlobalFitController::FLIMGlobalFitController(ModelParameters& model_params, FitSettings& fit_settings, int polarisation_resolved, double t_rep) :
-   FitSettings(fit_settings), polarisation_resolved(polarisation_resolved), t_rep(t_rep), model_params(model_params),
+FLIMGlobalFitController::FLIMGlobalFitController(AcquisitionParameters& acq, FitSettings& fit_settings) :
+   FitSettings(fit_settings),
+   acq(acq),
    error(0), init(false), has_fit(false)
 {
    if (this->n_thread < 1)
@@ -400,7 +396,7 @@ void FLIMGlobalFitController::Init()
 
    getting_fit    = false;
 
-   model.reset( new DecayModel(model_params, *data, irf) );
+   model.reset( new DecayModel(acq) );
    model->Init();
 
    if (n_thread < 1)

@@ -71,7 +71,7 @@ int DecayModelWorkingBuffers::check_alf_mod(const vector<double>& new_alf, int i
    return changed;
 }
 
-
+/*
 void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift)
 {
 
@@ -96,7 +96,7 @@ void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_
    }
          
 }
-
+*/
 
 /*
 void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift)
@@ -272,7 +272,7 @@ void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_
 
    }
 }
-*/
+
 
 void DecayModelWorkingBuffers::add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[], int bin_shift )
 {   
@@ -338,8 +338,8 @@ void DecayModelWorkingBuffers::add_derivative(int tau_idx, int theta_idx, int fr
       }
    }
 }
-
-
+*/
+/*
 int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double t0_shift, bool include_fixed, int bin_shift, double a[], int adim)
 {
 
@@ -388,6 +388,7 @@ int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double
 
    return n_col;
 }
+*/
 
 int DecayModel::AddReferenceLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
@@ -415,7 +416,7 @@ int DecayModel::AddReferenceLifetimeDerivatives(Buffers& wb, double ref_lifetime
             fact  = - 1 / (ref_lifetime * ref_lifetime);
             fact *= beta_global ? wb.beta_buf[j] : 1;
 
-            wb.add_decay(j, p, g, fact, 0, b+idx);
+            //wb.add_decay(j, p, g, fact, 0, b+idx);
 
             if (!beta_global)
                idx += bdim;
@@ -437,12 +438,12 @@ int DecayModel::AddT0Derivatives(Buffers& wb, int irf_idx, double ref_lifetime, 
    int n_col = n_fret_group * n_pol_group * n_exp_phi;
 
    
-   flim_model(wb, irf_idx, ref_lifetime, t0_shift, false, -1, b, bdim);
+   //flim_model(wb, irf_idx, ref_lifetime, t0_shift, false, -1, b, bdim);
 
    for(int i=0; i<bdim*n_col; i++)
       b[i] *= -1;
    
-   flim_model(wb, irf_idx, ref_lifetime, t0_shift, false, -1, b, bdim);
+   //flim_model(wb, irf_idx, ref_lifetime, t0_shift, false, -1, b, bdim);
  
    double idt = 0.5/irf->timebin_width;
    for(int i=0; i<bdim*n_col; i++)
@@ -450,7 +451,7 @@ int DecayModel::AddT0Derivatives(Buffers& wb, int irf_idx, double ref_lifetime, 
 
       return n_col;
 }
-
+/*
 int DecayModel::AddLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
 
@@ -499,7 +500,8 @@ int DecayModel::AddLifetimeDerivatives(Buffers& wb, double ref_lifetime, double 
    return col;
 
 }
-
+*/
+/*
 int DecayModel::AddContributionDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
  
@@ -546,7 +548,8 @@ int DecayModel::AddContributionDerivatives(Buffers& wb, double ref_lifetime, dou
    }
    return col;
 }
-
+*/
+/*
 int DecayModel::AddRotationalCorrelationTimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
@@ -572,7 +575,8 @@ int DecayModel::AddRotationalCorrelationTimeDerivatives(Buffers& wb, double ref_
    return col;
 
 }
-
+*/
+/*
 int DecayModel::AddFRETEfficencyDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    
@@ -611,7 +615,8 @@ int DecayModel::AddFRETEfficencyDerivatives(Buffers& wb, double ref_lifetime, do
    return col;
 
 }
-
+*/
+/*
 int DecayModel::AddOffsetDerivatives(Buffers& wb, double b[], int bdim)
 {
    // Set derivatives for offset 
@@ -663,3 +668,4 @@ int DecayModel::AddTVBDerivatives(Buffers& wb, double b[], int bdim)
 
    return 0;
 }
+*/

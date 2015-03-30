@@ -45,6 +45,7 @@
 #include "InstrumentResponseFunction.h"
 #include "FLIMGlobalAnalysis.h"
 #include "FitSettings.h"
+#include "ModelParameters.h"
 
 #include "AbstractFitter.h"
 
@@ -54,7 +55,7 @@
 
 
 #include <boost/ptr_container/ptr_vector.hpp>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <memory>
 
 #include "tinythread.h"
@@ -63,7 +64,7 @@
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 #define _CRTDBG_MAPALLOC
 
-using boost::shared_ptr;
+using std::shared_ptr;
 using std::unique_ptr;
 
 class ErrMinParams;
@@ -101,8 +102,7 @@ class FLIMGlobalFitController : public FitSettings
 {
 public:
 
-   FLIMGlobalFitController(ModelParameters& model_params, FitSettings& fit_settings, int polarisation_resolved = false, double t_rep = 0.0);
-   FLIMGlobalFitController();
+   FLIMGlobalFitController(AcquisitionParameters& acq, FitSettings& fit_settings);
    ~FLIMGlobalFitController();
 
 
@@ -140,11 +140,6 @@ public:
 
    bool Busy();
 
-
-   int polarisation_resolved; // this is here because of legacy calling structure
-   double t_rep;              // ditto
-
-
 private:
 
    void CalculateIRFMax(int n_t, double t[]);
@@ -156,6 +151,8 @@ private:
 
    int ProcessRegion(int g, int r, int px, int thread);
 
+
+   AcquisitionParameters acq;
 
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;

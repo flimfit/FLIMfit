@@ -38,7 +38,7 @@
 using std::min;
 using std::max;
 
-
+/*
 void DecayModel::SetupIncMatrix(int* inc)
 {
    int i, j, n_exp_col, cur_col;
@@ -131,7 +131,7 @@ void DecayModel::SetupIncMatrix(int* inc)
      
 
 
-   // Both global offset and scatter are in col L+1
+   // Global offset, scatter and TVB are in col L+1
 
    if( fit_offset == FIT_GLOBALLY )
    {
@@ -176,7 +176,8 @@ double DecayModel::GetCurrentT0(const vector<double>& alf)
       t0_shift = t0_guess;
    return t0_shift;
 }
-
+*/
+/*
 void DecayModel::GetCurrentLifetimes(Buffers& wb, const vector<double>& alf)
 {
    // First get fixed lifetimes
@@ -223,7 +224,8 @@ void DecayModel::GetCurrentContributions(Buffers& wb, const vector<double>& alf)
          wb.beta_buf[j] = fixed_beta[j];
    }
 }
-
+*/
+/*
 void DecayModel::GetCurrentRotationalCorrelationTimes(Buffers& wb, const vector<double>& alf)
 {
    // First get fixed rotational correlation times
@@ -237,7 +239,8 @@ void DecayModel::GetCurrentRotationalCorrelationTimes(Buffers& wb, const vector<
       wb.theta_buf[j + n_theta_fix] = max(buf, 60.0);
    }
 }
-
+*/
+/*
 void DecayModel::CalculateCurrentFRETLifetimes(Buffers& wb, const vector<double>& alf)
 {
    // Set tau's for FRET
@@ -260,102 +263,111 @@ void DecayModel::CalculateCurrentFRETLifetimes(Buffers& wb, const vector<double>
       }
    }
 }
-
-
+*/
 
 /*
-   Add a constant offset component to the matrix
-*/
-void DecayModel::AddOffsetColumn(vector<double>& a, int adim, int& a_col)
+int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
 {
-   // set constant phi value for offset
-   if (fit_offset == FIT_LOCALLY)
+   double ref_lifetime = GetCurrentReferenceLifetime(alf);
+   double t0_shift = GetCurrentT0(alf);
+
+   double scale_fact[2];
+   scale_fact[0] = 1;
+   scale_fact[1] = 0;
+
+   int getting_fit = false; //TODO
+
+   switch (isel)
    {
-      for (int i = 0; i<n_meas; i++)
-         a[adim*a_col + i] = 0;
-
-      for (int k = 0; k<n_chan; k++)
-         for (int i = 0; i<n_t; i++)
-            a[i + adim*a_col] += 1;
-
-      a_col++;
-   }
-}
-
-/*
-   Add a Scatter (IRF) component to the matrix
-   Use the current IRF
-*/
-void DecayModel::AddScatterColumn(vector<double>& a, int adim, int& a_col, Buffers& wb, int irf_idx, double t0_shift)
-{
-   // set constant phi value for scatterer
-   if (fit_scatter == FIT_LOCALLY)
+   case 1:
+   case 2:
    {
-      for (int i = 0; i<n_meas; i++)
-         a[adim*a_col + i] = 0;
 
-      double scale_factor[2] = { 1.0, 0.0 };
-      AddIRF(wb.irf_buf, irf_idx, t0_shift, a.data() + adim*a_col, n_r, scale_factor);
-      a_col++;
-   }
-}
+      int col = 0;
 
-/*
-   Add a TVB component to the matrix
-*/
-void DecayModel::AddTVBColumn(vector<double>& a, int adim, int& a_col)
-{
-   if (fit_tvb == FIT_LOCALLY)
-   {
-      for (int i = 0; i<n_meas; i++)
-         a[adim*a_col + i] = 0;
+      for (int i = 0; i < decay_groups.size(); i++)
+         col += decay_groups[i].CalculateModel(a.data() + col*adim, adim, kap);
 
-      for (int k = 0; k<n_chan; k++)
+
+      if (constrain_nonlinear_parameters && kap.size() > 0)
       {
-         for (int i = 0; i<n_t; i++)
-            a[i + adim*a_col] += tvb_profile[k*n_t + i];
+         kap[0] = 0;
+         for (int i = 1; i < n_v; i++)
+            kap[0] += kappa_spacer(alf[i], alf[i - 1]);
+         for (int i = 0; i < n_v; i++)
+            kap[0] += kappa_lim(alf[i]);
+         for (int i = 0; i < n_theta_v; i++)
+            kap[0] += kappa_lim(alf[alf_theta_idx + i]);
       }
-      a_col++;
+
+      // Apply scaling to convert counts -> photons
+      for (int i = 0; i < adim*(col + 1); i++)
+         a[i] *= photons_per_count;
+
+      if (isel == 2 || getting_fit)
+         break;
+
    }
+   case 3:
+   {
+      int col = 0;
+
+      for (int i = 0; i < decay_groups.size(); i++)
+         col += decay_groups[i].CalculateDerivatives(b.data() + col*bdim, bdim, kap);
+
+      
+      col += AddLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
+      col += AddContributionDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
+
+      col += AddFRETEfficencyDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
+      col += AddRotationalCorrelationTimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
+
+      if (irf->ref_reconvolution == FIT_GLOBALLY)
+         col += AddReferenceLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
+
+      if (fit_t0 == FIT)
+         col += AddT0Derivatives(wb, irf_idx, ref_lifetime, t0_shift, b.data() + col*bdim, bdim);
+
+      col += AddOffsetDerivatives(wb, b.data() + col*bdim, bdim);
+      col += AddScatterDerivatives(wb, b.data() + col*bdim, bdim, irf_idx, t0_shift);
+      col += AddTVBDerivatives(wb, b.data() + col*bdim, bdim);
+      
+
+      for (int i = 0; i < col*bdim; i++)
+         b[i] *= photons_per_count;
+
+
+      if (constrain_nonlinear_parameters && kap.size() != 0)
+      {
+         double *kap_derv = kap.data() + 1;
+
+         for (int i = 0; i < nl; i++)
+            kap_derv[i] = 0;
+
+         for (int i = 0; i < n_v; i++)
+         {
+            kap_derv[i] = -kappa_lim(wb.tau_buf[n_fix + i]);
+            if (i < n_v - 1)
+               kap_derv[i] += kappa_spacer(wb.tau_buf[n_fix + i + 1], wb.tau_buf[n_fix + i]);
+            if (i>0)
+               kap_derv[i] -= kappa_spacer(wb.tau_buf[n_fix + i], wb.tau_buf[n_fix + i - 1]);
+         }
+         for (int i = 0; i < n_theta_v; i++)
+         {
+            kap_derv[alf_theta_idx + i] = -kappa_lim(wb.theta_buf[n_theta_fix + i]);
+         }
+
+
+      }
+
+   }
+   }
+
+   return 0;
 }
+*/
 
 /*
-
-*/
-void DecayModel::AddGlobalBackgroundLightColumn(vector<double>& a, int adim, int& a_col, const vector<double>& alf, Buffers& wb, int irf_idx, double t0_shift)
-{
-   // Set L+1 phi value (without associated beta), to include global offset/scatter
-
-   for (int i = 0; i<n_meas; i++)
-      a[i + adim*a_col] = 0;
-
-   // Add scatter
-   if (fit_scatter == FIT_GLOBALLY)
-   {
-      double scale_factor[2] = { 1.0, 0.0 };
-      AddIRF(wb.irf_buf, irf_idx, t0_shift, a.data() + adim*a_col, n_r, scale_factor);
-      for (int i = 0; i<n_meas; i++)
-         a[i + adim*a_col] = a[i + adim*a_col] * alf[alf_scatter_idx];
-   }
-
-   // Add tvb
-   if (fit_tvb == FIT_GLOBALLY)
-   {
-      for (int k = 0; k<n_chan; k++)
-         for (int i = 0; i<n_t; i++)
-            a[i + adim*a_col] += tvb_profile[k*n_t + i] * alf[alf_tvb_idx];
-   }
-
-   // Add offset
-   if (fit_offset == FIT_GLOBALLY)
-   {
-      for (int k = 0; k<n_chan; k++)
-         for (int i = 0; i<n_t; i++)
-            a[i + adim*a_col] += alf[alf_offset_idx];
-   }
-}
-
-/* ============================================================== */
 int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
 {   
    double ref_lifetime = GetCurrentReferenceLifetime(alf);
@@ -373,18 +385,14 @@ int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<
       case 2:
       {
 
-         // Get the current parameters
-         GetCurrentLifetimes(wb, alf);
-         GetCurrentRotationalCorrelationTimes(wb, alf);
-         GetCurrentContributions(wb, alf);
-         CalculateCurrentFRETLifetimes(wb, alf);
-
          int a_col = 0;
 
          // Constant columns - background light for local fitting
          AddOffsetColumn(a, adim, a_col);
          AddScatterColumn(a, adim, a_col, wb, irf_idx, t0_shift);
          AddTVBColumn(a, adim, a_col);
+
+
 
          wb.PrecomputeExponentials(alf, irf_idx, t0_shift);
 
@@ -463,7 +471,7 @@ int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<
 
    return 0;
 }
-
+*/
 
 void DecayModel::GetWeights(Buffers& wb, float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx)
 {

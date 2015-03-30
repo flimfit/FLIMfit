@@ -56,73 +56,38 @@ else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
 endif()
 
 #find_package(HDF5)
-#include_directories (${HDF5_INCLUDE_DIRS})
+#include_directories (${HDF5_INCLUDE_DIRS} )
 
-include_directories( ${LEVMAR_INCLUDE_DIRS} )
+include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel)
 
 
 
 # Set the source and header files
 #===================================================
 set(SOURCE
-   FitStatus.cpp
-   IRFConvolution.cpp
    ModelADA.cpp
-   InstrumentResponseFunction.cpp
    FLIMGlobalAnalysis.cpp
    FLIMGlobalFitController.cpp
    FLIMGlobalFitController_ProcessRegion.cpp
    FLIMGlobalFitController_GetImageResults.cpp
    FLIMGlobalFitController_Model.cpp
    FLIMGlobalFitController_ADA.cpp
-   AbstractDecayGroup.cpp
-   ExponentialPrecomputationBuffer.cpp
-   FLIMData.cpp
-   DecayModel.cpp
-   ModelParameters.cpp
-   FitResults.cpp
    FitSettings.cpp
-   RegionData.cpp
-   VariableProjector.cpp
-   MaximumLikelihoodFitter.cpp
-   AbstractFitter.cpp
-   AcquisitionParameters.cpp
-   tinythread.cpp
-   lmstr.cpp
-   lmstx.cpp
-   lmdif.cpp
-   fdjac2.cpp
-   cminpack_support.cpp
-   util.cpp
+   ModelParameters.cpp
+   DecayModel.cpp
 )
 
 set(HEADERS   
-   FitStatus.h
-   IRFConvolution.h
+   FlagDefinitions.h
    ModelADA.h
-   InstrumentResponseFunction.h
    FLIMGlobalAnalysis.h
    FLIMGlobalFitController.h
-   FLIMData.h
-   FitResults.h
    ModelADA.h
-   RegionData.h
    FitSettings.h
-   DecayModel.h
-   ExponentialPrecomputationBuffer.h
    ModelParameters.h
-   VariableProjector.h
-   AbstractFitter.h
-   MaximumLikelihoodFitter.h
-   tinythread.h
-   FlagDefinitions.h
-   cminpack.h
-   util.h
    TrimmedMean.h
-   omp_stub.h
    ImageStats.h
-   AcquisitionParameters.h
-   ConcurrencyAnalysis.h
+   ModelParameters.h
 )
 
 # Add _32/_64 appendix to library
@@ -190,7 +155,7 @@ add_library(${LIB_NAME} SHARED FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
 
 
 
-target_link_libraries(${LIB_NAME} ${LIB_NAME}_lib levmar)
+target_link_libraries(${LIB_NAME} ${LIB_NAME}_lib levmar FLIMDecayModel)
 
 
 
