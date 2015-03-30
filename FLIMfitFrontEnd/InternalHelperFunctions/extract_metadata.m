@@ -40,6 +40,7 @@ try
         
     for i=1:length(strings)
         strings{i} = strrep(strings{i},'.ome','');
+        strings{i} = strrep(strings{i},'.OME','');
     end
     
     common_substring = strings{1};
@@ -62,7 +63,7 @@ try
             
             strrep(s,match{1},'');
             
-        else
+        else  
         
         
             % Look for FOV indicator

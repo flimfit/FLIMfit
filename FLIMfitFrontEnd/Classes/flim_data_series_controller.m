@@ -175,6 +175,20 @@ classdef flim_data_series_controller < handle
                         
             notify(obj,'new_dataset');
         end
+        
+        function load_plate(obj,plate)
+            
+            polarisation_resolved = false;
+       
+            % load new dataset
+            obj.data_series.load_plate(plate);
+            
+            if ~isempty(obj.window)
+                set(obj.window,'Name',[obj.data_series.header_text ' (' obj.version ')']);
+            end
+                        
+            notify(obj,'new_dataset');
+        end
 
         function intensity = selected_intensity(obj,selected,apply_mask)
            
