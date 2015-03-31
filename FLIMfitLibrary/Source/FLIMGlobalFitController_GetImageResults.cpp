@@ -39,7 +39,6 @@
 #include "DecayModel.h"
 #include "IRFConvolution.h"
 #include "FlagDefinitions.h"
-#include "util.h"
 
 #include <vector>
 #include <cmath>
@@ -52,9 +51,8 @@
 
 #include "ConcurrencyAnalysis.h"
 
-using namespace boost::interprocess;
 
-
+/*
 int CalculateRegionStats(int n, int s, float data[], float intensity[], int intensity_stride, ImageStats<float>& stats, int region, double conf_factor, float buf[])
 {
    //using namespace boost::math;
@@ -78,9 +76,9 @@ int CalculateRegionStats(int n, int s, float data[], float intensity[], int inte
    }
    return n;
 }
+*/
 
-
-
+/*
 float DecayModel::GetNonLinearParam(int param, float alf[])
 {
    #define GET_PARAM(param,n,p)  {if (p < n) return ((float)(param)[p]); else (p-=n);}
@@ -227,8 +225,9 @@ int DecayModel::ProcessNonLinearParams(float alf[], float alf_err_lower[], float
 
    return idx;
 }
+*/
 
-
+/*
 int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread)
 {
    INIT_CONCURRENCY;
@@ -495,7 +494,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
 
    return 0;
 }
-
+*/
 
 /*===============================================
   GetFit

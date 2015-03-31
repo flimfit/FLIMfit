@@ -51,18 +51,18 @@ BackgroundLightDecayGroup::BackgroundLightDecayGroup(shared_ptr<AcquisitionParam
    parameters.push_back(tvb_param);
 }
 
-int BackgroundLightDecayGroup::SetParameters(double* param_values)
+int BackgroundLightDecayGroup::SetVariables(const double* param_values)
 {
    int idx = 0;
 
    if (parameters[0]->IsFittedGlobally())
-      offset = param_values[idx]++;
+      offset = param_values[idx++];
 
    if (parameters[1]->IsFittedGlobally())
-      scatter = param_values[idx]++;
+      scatter = param_values[idx++];
 
    if (parameters[2]->IsFittedGlobally())
-      tvb = param_values[idx]++;
+      tvb = param_values[idx++];
 
    return idx;
 }
@@ -100,7 +100,25 @@ int BackgroundLightDecayGroup::GetOutputs(double* nonlin_variables, double* lin_
    return output_idx;
 }
 
+void BackgroundLightDecayGroup::AddConstantContribution(float* a)
+{
+   float offset_adj = parameters[0]->IsFixed() ? (float) parameters[0]->initial_value : 0.0f;
+   float scatter_adj = parameters[1]->IsFixed() ? (float) parameters[0]->initial_value : 0.0f;
+   float tvb_adj = parameters[2]->IsFixed() ? (float) parameters[0]->initial_value : 0.0f;
+   
+   double scale_fact[2] = { 1, 0 };
 
+   AddIRF(irf_buf.data(), 0, 0, a, channel_factors, scale_fact); // TODO : irf_shift?
+   
+   for (int i = 0; i < acq->n_meas; i++)
+      a[i] = a[i] * scatter_adj + offset_adj;
+
+   if (!acq->tvb_profile.empty())
+   {
+      for (int i = 0; i < acq->n_meas; i++)
+         a[i] += (float)(acq->tvb_profile[i] * tvb_adj);
+   }
+}
 
 /*
 Add a constant offset component to the matrix

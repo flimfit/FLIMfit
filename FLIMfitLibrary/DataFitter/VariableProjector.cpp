@@ -662,7 +662,7 @@ void VariableProjector::CalculateWeights(int px, const vector<double>& alf, int 
    }
 
    if (n_call != 0)
-      model->GetWeights(model_buffer[omp_thread], y, a, alf, lin_params+px*lmax, wp, irf_idx[px]);
+      models[omp_thread].GetWeights(y, a, alf, lin_params+px*lmax, wp, irf_idx[px]);
 
    for(int i=0; i<n; i++)
    {

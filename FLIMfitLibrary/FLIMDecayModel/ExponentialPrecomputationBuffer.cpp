@@ -52,6 +52,10 @@ n_chan(acquisition_params->n_chan)
 
 void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models)
 {
+   // Don't compute if rate is the same
+   if (rate_ == rate)
+      return;
+   
    rate = rate_;
 
    std::cout << "Tau: " << 1 / rate << "\n";

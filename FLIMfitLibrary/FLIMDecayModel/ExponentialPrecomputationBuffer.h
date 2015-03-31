@@ -85,7 +85,7 @@ private:
    friend class DecayModelWorkingBuffers;
 };
 
-
+/*
 class DecayModelWorkingBuffers : public AcquisitionParameters
 {
    friend class DecayModel;
@@ -135,3 +135,4 @@ private:
    bool first_eval;
 
 };
+*/

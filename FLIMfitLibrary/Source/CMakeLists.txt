@@ -58,7 +58,7 @@ endif()
 #find_package(HDF5)
 #include_directories (${HDF5_INCLUDE_DIRS} )
 
-include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel)
+include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter)
 
 
 
@@ -70,8 +70,8 @@ set(SOURCE
    FLIMGlobalFitController.cpp
    FLIMGlobalFitController_ProcessRegion.cpp
    FLIMGlobalFitController_GetImageResults.cpp
-   FLIMGlobalFitController_Model.cpp
-   FLIMGlobalFitController_ADA.cpp
+   #FLIMGlobalFitController_Model.cpp
+   #FLIMGlobalFitController_ADA.cpp
    FitSettings.cpp
    ModelParameters.cpp
    DecayModel.cpp
@@ -84,9 +84,6 @@ set(HEADERS
    FLIMGlobalFitController.h
    ModelADA.h
    FitSettings.h
-   ModelParameters.h
-   TrimmedMean.h
-   ImageStats.h
    ModelParameters.h
 )
 

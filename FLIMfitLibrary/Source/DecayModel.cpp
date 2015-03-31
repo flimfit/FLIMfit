@@ -41,7 +41,7 @@
 
 using std::abs;
 using std::max;
-
+/*
 DecayModel::DecayModel(const ModelParameters& params, const AcquisitionParameters& acq, shared_ptr<InstrumentResponseFunction> irf) : 
    ModelParameters(params), 
    AcquisitionParameters(acq), 
@@ -50,7 +50,8 @@ DecayModel::DecayModel(const ModelParameters& params, const AcquisitionParameter
    constrain_nonlinear_parameters(true)
 {
 }
-
+*/
+/*
 void DecayModel::Init()
 {
    constrain_nonlinear_parameters = true;
@@ -128,15 +129,6 @@ void DecayModel::CalculateParameterCounts()
       p += l;
    }
 
-   /*
-   // Check whether t0 has been specified
-   if (fit_t0)
-   {
-      nl++;
-      p += l;
-   }
-   */
-
    if (fit_offset == FIT_GLOBALLY)
    {
       nl++;
@@ -181,7 +173,7 @@ void DecayModel::CalculateParameterCounts()
 void DecayModel::SetupDecayGroups()
 {
 }
-
+*/
 void DecayModel::SetupPolarisationChannelFactors()
 {
    if (polarisation_resolved)
@@ -197,7 +189,7 @@ void DecayModel::SetupPolarisationChannelFactors()
    }
 }
 
-
+/*
 void DecayModel::SetupAdjust()
 {
    float scatter_adj = (fit_scatter == FIX) ? (float) scatter_guess : 0;
@@ -226,9 +218,9 @@ void DecayModel::SetupAdjust()
    for(int i=0; i<n_meas; i++)
       adjust_buf[i] *= photons_per_count;
 }
+*/
 
-
-
+/*
 void DecayModel::SetParameterIndices()
 {
    // Set alf indices
@@ -265,8 +257,8 @@ void DecayModel::SetParameterIndices()
   if (fit_tvb == FIT_GLOBALLY)
       alf_tvb_idx = idx++;
 }
-
-
+*/
+/*
 void DecayModel::NormaliseLinearParams(volatile float lin_params[], float non_linear_params[], volatile float norm_params[])
 {
    int idx;
@@ -320,7 +312,8 @@ void DecayModel::NormaliseLinearParams(volatile float lin_params[], float non_li
 
    CalculateMeanLifetime(lin_params, non_linear_params, norm_params + idx);
 }
-
+*/
+/*
 void DecayModel::DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[])
 {
    float I0;
@@ -360,9 +353,9 @@ void DecayModel::DenormaliseLinearParams(volatile float norm_params[], volatile 
       norm_params += lmax;
    }
 }
+*/
 
-
-
+/*
 void DecayModel::CalculateMeanLifetime(volatile float lin_params[], float tau[], volatile float mean_lifetimes[])
 {
    if (calculate_mean_lifetimes)
@@ -389,8 +382,9 @@ void DecayModel::CalculateMeanLifetime(volatile float lin_params[], float tau[],
    }
 
 }
+*/
 
-
+/*
 void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params)
 {
    char buf[1024];
@@ -498,7 +492,7 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
    param_names.push_back("chi2");
 
 }
-
+*/
 
 
 /** 
@@ -514,6 +508,7 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
  * 
  * \param idx The pixel index, used if we have a spatially varying IRF
 */
+/*
 int DecayModel::DetermineMAStartPosition(int idx)
 {
    double c;
@@ -585,7 +580,8 @@ int DecayModel::DetermineMAStartPosition(int idx)
 
    return start;
 }
-
+*/
+/*
 void DecayModel::SetInitialParameters(vector<double>& param, double mean_arrival_time)
 {
    int idx = 0;
@@ -644,11 +640,12 @@ void DecayModel::SetInitialParameters(vector<double>& param, double mean_arrival
    if(irf->ref_reconvolution == FIT_GLOBALLY)
       param[idx++] = irf->ref_lifetime_guess;
 }
-
+*/
 
 /**
  * Estimate average lifetime of a decay as an intial guess
  */
+/*
 double DecayModel::EstimateAverageLifetime(float decay[], int data_type)
 {
    double  tau = 0;
@@ -752,9 +749,9 @@ double DecayModel::EstimateAverageLifetime(float decay[], int data_type)
    return tau;
 
 }
+*/
 
-
-
+/*
 DecayModelWorkingBuffers::DecayModelWorkingBuffers(shared_ptr<DecayModel> model) :
    AcquisitionParameters(*model), first_eval(true)
 {
@@ -796,3 +793,4 @@ DecayModelWorkingBuffers::~DecayModelWorkingBuffers()
    delete[] theta_buf;
    delete[] irf_buf;
 }
+*/

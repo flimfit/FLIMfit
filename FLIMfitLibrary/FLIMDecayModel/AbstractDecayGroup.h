@@ -31,6 +31,7 @@
 
 #include <memory>
 using std::shared_ptr;
+using std::unique_ptr;
 
 #include "ExponentialPrecomputationBuffer.h"
 #include "InstrumentResponseFunction.h"
@@ -42,16 +43,34 @@ class AbstractDecayGroup
 {
 public:
 
+   AbstractDecayGroup();
    AbstractDecayGroup(shared_ptr<AcquisitionParameters> acq);
-   ~AbstractDecayGroup();
+   virtual ~AbstractDecayGroup() = 0;
+   virtual unique_ptr<AbstractDecayGroup> clone() = 0;
 
    void Init();
 
+   virtual int SetVariables(const double* variables) = 0;
    virtual int CalculateModel(double* a, int adim, vector<double>& kap) = 0;
    virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap) = 0;
+   virtual void AddConstantContribution(float* a) {}
 
    virtual int SetupIncMatrix(int* inc, int& row, int& col) = 0;
    virtual int GetOutputs(double* nonlin_variables, double* lin_variables, float* outputs, int& nonlin_idx, int& lin_idx) = 0;
+
+   int GetInitialVariables(double* variables)
+   {
+      // TODO: needs work for betas etc where there is not a 1:1 relationship
+      int idx = 0;
+      for (auto& p : parameters)
+      {
+         if (p->IsFittedGlobally())
+            variables[idx++] = p->initial_value;
+      }
+
+      return idx;
+   }
+
 
    void SetIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_)
    {
@@ -92,12 +111,17 @@ class BackgroundLightDecayGroup : public AbstractDecayGroup
 public:
 
    BackgroundLightDecayGroup(shared_ptr<AcquisitionParameters> acq);
-   int SetParameters(double* parameters);
+   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new BackgroundLightDecayGroup(*this)); };
+   
+   int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
    int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
+   void AddConstantContribution(float* a);
 
    int SetupIncMatrix(int* inc, int& row, int& col);
    int GetOutputs(double* nonlin_variables, double* lin_variables, float* outputs, int& nonlin_idx, int& lin_idx);
+
+   int SetParameters(double* parameters);
 
 
 protected:
@@ -124,7 +148,9 @@ class MultiExponentialDecayGroup : public AbstractDecayGroup
 public:
 
    MultiExponentialDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_exponential_ = 1, bool contributions_global_ = false);
-   virtual int SetParameters(double* parameters);
+   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new MultiExponentialDecayGroup(*this)); };
+
+   virtual int SetVariables(const double* variables);
    virtual int CalculateModel(double* a, int adim, vector<double>& kap);
    virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
    virtual int GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx);
@@ -155,8 +181,9 @@ class FretDecayGroup : public MultiExponentialDecayGroup
 public:
 
    FretDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = true);
-   
-   int SetParameters(double* parameters);
+   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new FretDecayGroup(*this)); };
+
+   int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
    int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
    int GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx);
@@ -188,7 +215,9 @@ class AnisotropyDecayGroup : public MultiExponentialDecayGroup
 public:
 
    AnisotropyDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
-   int SetParameters(double* parameters);
+   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new AnisotropyDecayGroup(*this)); };
+
+   int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
    int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
    int GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx);
@@ -200,10 +229,12 @@ private:
    int AddLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap);
    int AddRotationalCorrelationTimeDerivatives(double* b, int bdim, vector<double>& kap);
 
+   void SetupChannelFactors();
+
    vector<double> theta;
 
    vector<vector<ExponentialPrecomputationBuffer>> anisotropy_buffer;
-   vector<double> channel_factors;
+   vector<vector<double>> channel_factors;
 
    vector<shared_ptr<FittingParameter>> theta_parameters;
 

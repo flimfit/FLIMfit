@@ -48,6 +48,8 @@ class DecayModel
 public:
 
    DecayModel(shared_ptr<AcquisitionParameters> acq);
+   DecayModel(const DecayModel &obj);
+
    ~DecayModel();
 
    void NormaliseLinearParams(volatile float lin_params[], float non_linear_params[], volatile float norm_params[]);
@@ -62,32 +64,33 @@ public:
 
    shared_ptr<AcquisitionParameters> GetAcquisitionParameters() { return acq; }
 
-//   int ProcessNonLinearParams(float alf[], float alf_err_lower[], float alf_err_upper[], float param[], float err_lower[], float err_upper[]);
-//   float GetNonLinearParam(int param, float alf[]);
-
    void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params);
 
-   void SetInitialParameters(vector<double>& params, double mean_arrival_time);
+   void GetInitialVariables(vector<double>& variables, double mean_arrival_time);
 
-//   double EstimateAverageLifetime(float decay[], int data_type);
+   //   double EstimateAverageLifetime(float decay[], int data_type);
+//   shared_ptr<InstrumentResponseFunction> irf;
 
-   shared_ptr<InstrumentResponseFunction> irf;
+   int GetNumNonlinearVariables();
+   int GetNumColumns();
+   int GetNumDerivatives();
 
 private:
 
    double GetCurrentReferenceLifetime(const double* param_values, int& idx);
    double GetCurrentT0(const double* param_values, int& idx);
 
-   void SetupDecayGroups();
-   void SetupPolarisationChannelFactors();
-   void SetParameterIndices();
+   int AddReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
+   int AddT0Derivatives(double* b, int bdim, vector<double>& kap);
+
+   //void SetupPolarisationChannelFactors();
+   //void SetParameterIndices();
    void SetupAdjust();
 
-   void CalculateParameterCounts();
-   void CalculateMeanLifetime(volatile float lin_params[], float non_linear_params[], volatile float mean_lifetimes[]);
-   int DetermineMAStartPosition(int idx);
-   void CalculateIRFMax();
-
+   //void CalculateParameterCounts();
+   //void CalculateMeanLifetime(volatile float lin_params[], float non_linear_params[], volatile float mean_lifetimes[]);
+   //int DetermineMAStartPosition(int idx);
+   //void CalculateIRFMax();
 
    shared_ptr<AcquisitionParameters> acq;
 
@@ -96,28 +99,8 @@ private:
 
    vector<unique_ptr<AbstractDecayGroup>> decay_groups;
 
-
-   int init;
-
-   int estimate_initial_tau;  // TODO: Best place for this?
-
-   int calculate_mean_lifetimes;
-
    float photons_per_count;
-
-   //int* decay_group_buf;
-   //int n_stray;
-
-   vector<vector<double>> channel_factor;
-
+   vector<vector<double>> channel_factor; // TODO!
    vector<float> adjust_buf;
-
-   int n_irf;
-
-   vector<int> irf_max;
-
-   int ma_start;
-
-   int n_thread;
 };
 

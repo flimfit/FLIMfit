@@ -472,7 +472,7 @@ int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<
    return 0;
 }
 */
-
+/*
 void DecayModel::GetWeights(Buffers& wb, float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx)
 {
 
@@ -511,3 +511,4 @@ float* DecayModel::GetConstantAdjustment()
 {
    return &adjust_buf[0];
 }
+*/

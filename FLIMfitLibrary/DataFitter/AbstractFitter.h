@@ -34,7 +34,7 @@
 #include "ExponentialPrecomputationBuffer.h"
 #include "FitResults.h"
 #include "RegionData.h"
-//#include "FlagDefinitions.h"
+#include "MeanLifetimeEstimator.h"
 
 #include "omp_stub.h"
 #include "levmar.h"
@@ -139,6 +139,8 @@ protected:
    double counts_per_photon;
 
 private:
+
+   MeanLifetimeEstimator lifetime_estimator;
 
    int global_algorithm;
    double conf_limit;

@@ -106,7 +106,7 @@ int MultiExponentialDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_
 }
 
 
-int MultiExponentialDecayGroup::SetParameters(double* param_value)
+int MultiExponentialDecayGroup::SetVariables(const double* param_value)
 {
    int idx = 0;
 
@@ -254,3 +254,32 @@ int MultiExponentialDecayGroup::AddContributionDerivatives(double* b, int bdim, 
 }
 
 
+// TODO: mean lifetimes
+/*
+void DecayModel::CalculateMeanLifetime(volatile float lin_params[], float tau[], volatile float mean_lifetimes[])
+{
+   if (calculate_mean_lifetimes)
+   {
+      float mean_tau = 0;
+      float w_mean_tau = 0;
+
+      for (int i = 0; i<n_fix; i++)
+      {
+         w_mean_tau += (float)(tau_guess[i] * tau_guess[i] * lin_params[i]);
+         mean_tau += (float)(tau_guess[i] * lin_params[i]);
+      }
+
+      for (int i = 0; i<n_v; i++)
+      {
+         w_mean_tau += (float)(tau[i] * tau[i] * lin_params[i + n_fix]);
+         mean_tau += (float)(tau[i] * lin_params[i + n_fix]);
+      }
+
+      w_mean_tau /= mean_tau;
+
+      mean_lifetimes[0] = mean_tau;
+      mean_lifetimes[1] = w_mean_tau;
+   }
+
+}
+*/

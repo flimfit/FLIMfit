@@ -52,7 +52,8 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    max_region_size(max_region_size), 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
-   terminate(terminate)
+   terminate(terminate),
+   lifetime_estimator(model->GetAcquisitionParameters())
 {
    err = 0;
 
@@ -72,8 +73,8 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    n_param = nl + n_param_extra;
 
 
-   for (int i = 0; i < n_thread; i++)
-      models.push_back(*model);
+   //for (int i = 0; i < n_thread; i++)
+   //   models.push_back(*model);
 
 
    // Check for valid input
@@ -220,15 +221,11 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
    chi2_norm = n - ((float)(nl))/s - l;
 
+   // Assign initial guesses to nonlinear variables  
+   double tau_mean = lifetime_estimator.EstimateMeanLifetime(avg_y, region_data.data_type);
+   model->GetInitialVariables(alf, tau_mean);
 
-
-   // Assign initial guesses to nonlinear variables
-   //------------------------------   
-   double tau_ma = model->EstimateAverageLifetime(avg_y.data(), region_data.data_type);
-   
-   
-   model->SetInitialParameters(alf, tau_ma);
-
+   // Fit!
    int ret = FitFcn(nl, alf, itmax, &niter, &ierr);
 
    chi2_final = *cur_chi2;

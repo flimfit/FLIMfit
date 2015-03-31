@@ -111,9 +111,9 @@ int FretDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
    return 0;
 }
 
-int FretDecayGroup::SetParameters(double* param_values)
+int FretDecayGroup::SetVariables(const double* param_values)
 {
-   int idx = MultiExponentialDecayGroup::SetParameters(param_values);
+   int idx = MultiExponentialDecayGroup::SetVariables(param_values);
 
    tau_fret.resize(n_fret_populations, vector<double>(n_exponential));
    E.resize(n_fret_populations);

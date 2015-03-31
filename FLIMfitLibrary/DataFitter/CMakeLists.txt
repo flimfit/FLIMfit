@@ -58,6 +58,7 @@ set(SOURCE
    FitResults.cpp
    tinythread.cpp
    util.cpp
+   MeanLifetimeEstimator.cpp
 )
 
 set(HEADERS   
@@ -74,6 +75,9 @@ set(HEADERS
    tinythread.h
    FlagDefinitions.h
    util.h
+   MeanLifetimeEstimator.h
+   ImageStats.h
+   TrimmedMean.h
 )
 
 # Include optimisation flags in Visual Studio

@@ -61,9 +61,9 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(shared_ptr<AcquisitionParameters> acq
       ExponentialPrecomputationBuffer(acq)));
 }
 
-int AnisotropyDecayGroup::SetParameters(double* param_value)
+int AnisotropyDecayGroup::SetVariables(const double* param_value)
 {
-   int idx = MultiExponentialDecayGroup::SetParameters(param_value);
+   int idx = MultiExponentialDecayGroup::SetVariables(param_value);
 
    theta.resize(n_anisotropy_populations);
 
@@ -75,7 +75,7 @@ int AnisotropyDecayGroup::SetParameters(double* param_value)
       for (int j = 0; j < n_exponential; j++)
       {
          double rate = 1 / tau[j] + 1 / theta[i];
-         anisotropy_buffer[i][j].Compute(rate, irf_idx, t0_shift, channel_factors);
+         anisotropy_buffer[i][j].Compute(rate, irf_idx, t0_shift, channel_factors[i]); // TODO: check channel factors
       }
    }
 
@@ -230,4 +230,14 @@ int AnisotropyDecayGroup::AddRotationalCorrelationTimeDerivatives(double* b, int
    }
 
    return col;
+}
+
+// TODO: call this
+void AnisotropyDecayGroup::SetupChannelFactors()
+{
+   channel_factors.push_back({ 1.0 / 3.0, 1.0 / 3.0 });
+
+   int n_pol_group = n_anisotropy_populations + include_r_inf;
+   for (int i = 1; i < n_pol_group; i++)
+      channel_factors.push_back({ 2.0 / 3.0, -1.0 / 3.0 });
 }

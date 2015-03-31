@@ -41,7 +41,7 @@
 using boost::math::isnan;
 using std::min;
 using std::max;
-
+/*
 int DecayModelWorkingBuffers::check_alf_mod(const vector<double>& new_alf, int irf_idx)
 {
    int nl = model->nl;
@@ -70,7 +70,7 @@ int DecayModelWorkingBuffers::check_alf_mod(const vector<double>& new_alf, int i
 
    return changed;
 }
-
+*/
 /*
 void DecayModelWorkingBuffers::PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift)
 {
@@ -389,7 +389,7 @@ int DecayModel::flim_model(Buffers& wb, int irf_idx, double ref_lifetime, double
    return n_col;
 }
 */
-
+/*
 int DecayModel::AddReferenceLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {
    double fact;
@@ -451,6 +451,7 @@ int DecayModel::AddT0Derivatives(Buffers& wb, int irf_idx, double ref_lifetime, 
 
       return n_col;
 }
+*/
 /*
 int DecayModel::AddLifetimeDerivatives(Buffers& wb, double ref_lifetime, double b[], int bdim)
 {

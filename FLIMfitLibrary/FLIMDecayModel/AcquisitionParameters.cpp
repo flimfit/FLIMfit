@@ -66,7 +66,7 @@ void AcquisitionParameters::SetT(vector<double>& t_)
 {
    t = t_;
 
-   n_t_full = t.size();
+   n_t_full = (int) t.size();
    n_t = n_t_full;
    t_int.assign(n_t_full, 1);
 
