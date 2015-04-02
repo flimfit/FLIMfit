@@ -66,15 +66,15 @@ include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter)
 #===================================================
 set(SOURCE
    ModelADA.cpp
-   FLIMGlobalAnalysis.cpp
+   #FLIMGlobalAnalysis.cpp
    FLIMGlobalFitController.cpp
    FLIMGlobalFitController_ProcessRegion.cpp
    FLIMGlobalFitController_GetImageResults.cpp
    #FLIMGlobalFitController_Model.cpp
    #FLIMGlobalFitController_ADA.cpp
    FitSettings.cpp
-   ModelParameters.cpp
-   DecayModel.cpp
+   #ModelParameters.cpp
+   #DecayModel.cpp
 )
 
 set(HEADERS   
@@ -84,7 +84,7 @@ set(HEADERS
    FLIMGlobalFitController.h
    ModelADA.h
    FitSettings.h
-   ModelParameters.h
+   #ModelParameters.h
 )
 
 # Add _32/_64 appendix to library

@@ -45,7 +45,7 @@ public:
 
    AbstractDecayGroup();
    AbstractDecayGroup(shared_ptr<AcquisitionParameters> acq);
-   virtual ~AbstractDecayGroup() = 0;
+   virtual ~AbstractDecayGroup() {};
    virtual unique_ptr<AbstractDecayGroup> clone() = 0;
 
    void Init();
@@ -56,28 +56,14 @@ public:
    virtual void AddConstantContribution(float* a) {}
 
    virtual int SetupIncMatrix(int* inc, int& row, int& col) = 0;
-   virtual int GetOutputs(double* nonlin_variables, double* lin_variables, float* outputs, int& nonlin_idx, int& lin_idx) = 0;
+   virtual int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
+   virtual int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
 
-   int GetInitialVariables(double* variables)
-   {
-      // TODO: needs work for betas etc where there is not a 1:1 relationship
-      int idx = 0;
-      for (auto& p : parameters)
-      {
-         if (p->IsFittedGlobally())
-            variables[idx++] = p->initial_value;
-      }
+   virtual void GetNonlinearOutputParamNames(vector<string>& names);
+   virtual void GetLinearOutputParamNames(vector<string>& names) = 0;
 
-      return idx;
-   }
-
-
-   void SetIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_)
-   {
-      irf_idx = irf_idx_;
-      t0_shift = t0_shift_;
-      reference_lifetime = reference_lifetime_;
-   }
+   int GetInitialVariables(double* variables);
+   void SetIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
 
    int GetNumComponents() { return n_lin_components; };
    int GetNumNonlinearParameters() { return n_nl_parameters; };
@@ -119,7 +105,11 @@ public:
    void AddConstantContribution(float* a);
 
    int SetupIncMatrix(int* inc, int& row, int& col);
-   int GetOutputs(double* nonlin_variables, double* lin_variables, float* outputs, int& nonlin_idx, int& lin_idx);
+   int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+
+   void GetLinearOutputParamNames(vector<string>& names);
+
 
    int SetParameters(double* parameters);
 
@@ -137,6 +127,8 @@ protected:
 
    vector<double> channel_factors;
 
+   const vector<string> names;
+
    // RUNTIME VARIABLE PARAMETERS
    double offset = 0;
    double scatter = 0;
@@ -153,15 +145,17 @@ public:
    virtual int SetVariables(const double* variables);
    virtual int CalculateModel(double* a, int adim, vector<double>& kap);
    virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
-   virtual int GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx);
+   virtual int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   virtual int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    virtual int SetupIncMatrix(int* inc, int& row, int& col);
+   virtual void GetLinearOutputParamNames(vector<string>& names);
 
 protected:
 
    int AddDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
    int AddLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);
    int AddContributionDerivatives(double* b, int bdim, vector<double>& kap);
-   int NormaliseLinearParameters(double* lin_variables, int n, float* output, int& lin_idx);
+   int NormaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);
 
    vector<double> tau;
    vector<double> beta;
@@ -186,8 +180,14 @@ public:
    int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
    int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
-   int GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx);
+   
+   int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+
    int SetupIncMatrix(int* inc, int& row, int& col);
+
+   void GetLinearOutputParamNames(vector<string>& names);
+
 
 private:
 
@@ -220,9 +220,12 @@ public:
    int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
    int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
-   int GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx);
+   int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    int SetupIncMatrix(int* inc, int& row, int& col);
 
+   void GetNonlinearOutputParamNames(vector<string>& names);
+   void GetLinearOutputParamNames(vector<string>& names);
 
 private:
 

@@ -43,6 +43,15 @@ using std::string;
 class FLIMData;
 class FitResultsRegion;
 
+class RegionSummary
+{
+public:
+   int image;
+   int region;
+   int size;
+   int iterations;
+   float success;
+};
 
 class FitResults
 {
@@ -58,6 +67,7 @@ public:
    void GetNonLinearParams(int image, int region, int pixel, vector<double>& params);
    void GetLinearParams(int image, int region, int pixel, vector<float>& params);
 
+   void ComputeImageStats(float confidence_factor);
 
    int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread);   
 
@@ -71,8 +81,6 @@ private:
    void DetermineParamNames();
 
    int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
-   void NormaliseLinearParams(volatile float lin_params[], float non_lin_params[], volatile float norm_params[]);
-   void DenormaliseLinearParams(float volatile norm_params[], float volatile lin_params[]);
    
    void GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2);
    void SetFitStatus(int image, int region, int code);

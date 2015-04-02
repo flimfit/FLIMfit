@@ -35,7 +35,8 @@
 using namespace std;
 
 BackgroundLightDecayGroup::BackgroundLightDecayGroup(shared_ptr<AcquisitionParameters> acq) :
-   AbstractDecayGroup(acq)
+   AbstractDecayGroup(acq),
+   names({ "offset", "scatter", "tvb" })
 {
    n_lin_components = 0;
    n_nl_parameters = 0;
@@ -89,16 +90,36 @@ int BackgroundLightDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_c
    return 0;
 }
 
-int BackgroundLightDecayGroup::GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx)
+int BackgroundLightDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
    int output_idx = 0;
 
-   output[output_idx++] = parameters[0]->GetValue<float>(nonlin_variables, nonlin_idx, lin_variables, lin_idx);
-   output[output_idx++] = parameters[1]->GetValue<float>(nonlin_variables, nonlin_idx, lin_variables, lin_idx);
-   output[output_idx++] = parameters[2]->GetValue<float>(nonlin_variables, nonlin_idx, lin_variables, lin_idx);
+   for (int i = 0; i < 3; i++)
+      if (parameters[i]->IsFittedGlobally())
+         output[output_idx++] = nonlin_variables[nonlin_idx++];
 
    return output_idx;
 }
+
+int BackgroundLightDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+{
+   int output_idx = 0;
+
+   for (int i = 0; i < 3; i++)
+      if (parameters[i]->IsFittedLocally())
+         output[output_idx++] = lin_variables[lin_idx++];
+
+   return output_idx;
+}
+
+
+void BackgroundLightDecayGroup::GetLinearOutputParamNames(vector<string>& names)
+{
+   for (int i = 0; i < 3; i++)
+      if (parameters[i]->IsFittedGlobally())
+         names.push_back(names[i]);
+}
+
 
 void BackgroundLightDecayGroup::AddConstantContribution(float* a)
 {

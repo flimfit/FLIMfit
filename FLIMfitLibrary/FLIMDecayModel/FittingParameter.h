@@ -55,16 +55,16 @@ public:
    bool IsFittedLocally() { return fitting_type == FittedLocally; }
    bool IsFittedGlobally() { return fitting_type == FittedGlobally; }
    
-   template<typename T>
-   T GetValue(const double* value, int& idx)
+   template<typename T, typename U>
+   T GetValue(const U* value, int& idx)
    {
       if (fitting_type == FittedGlobally)
          return static_cast<T>(value[idx++]);
       return static_cast<T>(initial_value);
    }
 
-   template<typename T>
-   T GetValue(const double* value, int& idx, const double* lin_value, int& lin_idx)
+   template<typename T, typename U>
+   T GetValue(const U* value, int& idx, const double* lin_value, int& lin_idx)
    {
       if (fitting_type == FittedGlobally)
          return static_cast<T>(value[idx++]);

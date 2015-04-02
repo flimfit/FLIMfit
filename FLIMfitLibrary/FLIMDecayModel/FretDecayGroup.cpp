@@ -136,17 +136,39 @@ int FretDecayGroup::SetVariables(const double* param_values)
    return idx;
 }
 
-int FretDecayGroup::GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx)
+int FretDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = MultiExponentialDecayGroup::GetOutputs(nonlin_variables, lin_variables, output, nonlin_idx, lin_idx);
+   int output_idx = MultiExponentialDecayGroup::GetNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = E_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);
+
+   return output_idx;
+}
+
+
+int FretDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+{
+   int output_idx = 0;
 
    int n_fret_group = include_donor_only + n_fret_populations;
    output_idx += NormaliseLinearParameters(lin_variables, n_fret_group, output + output_idx, lin_idx);
 
    return output_idx;
+}
+
+void FretDecayGroup::GetLinearOutputParamNames(vector<string>& names)
+{
+   names.push_back("I_0");
+
+   if (include_donor_only)
+      names.push_back("gamma_0");
+
+   for (int i = 0; i < n_fret_populations; i++)
+   {
+      string name = "gamma_" + boost::lexical_cast<std::string>(i + 1);
+      names.push_back(name);
+   }
 }
 
 

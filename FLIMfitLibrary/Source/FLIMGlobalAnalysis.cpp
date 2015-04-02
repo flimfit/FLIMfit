@@ -146,6 +146,7 @@ bool ClearController(int c_idx)
 
 }
 
+/*
 FITDLL_API ModelParametersStruct GetDefaultModelParameters()
 {
    ModelParameters params;
@@ -189,9 +190,34 @@ FITDLL_API int SetIRF(int c_idx, int n_chan, int n_irf, int image_irf, double ti
 
    return SUCCESS;
 }
+*/
 
-FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
-                              int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
+FITDLL_API int SetupFit(int c_idx, int global_algorithm, int algorithm,
+   int weighting, int calculate_errors, double conf_interval,
+   int n_thread, int runAsync, int use_callback, int(*callback)())
+{
+   FitSettings settings(algorithm, global_algorithm, weighting, n_thread, runAsync, callback);
+   settings.CalculateErrors(calculate_errors, conf_interval);
+
+   controller.insert(c_idx, new FLIMGlobalFitController(settings));
+}
+
+FITDLL_API int SetIRF(int c_idx, int image_irf,
+   int n_irf, int n_chan, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
+   int ref_reconvolution, double ref_lifetime_guess)
+{
+   FLIMGlobalFitController *c = GetController(c_idx);
+   if (c == NULL)
+      return ERR_INVALID_IDX;
+
+
+   shared_ptr<InstrumentResponseFunction> IRF(new InstrumentResponseFunction());
+   IRF->SetIRF(n_irf, n_chan, t_irf[0], t_irf[1] - t_irf[0], irf);
+   if (ref_reconvolution)
+      IRF->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
+}
+
+FITDLL_API int SetupGlobalFit(int c_idx, 
                               int n_exp, int n_fix, int n_decay_group, int decay_group[], double tau_min[], double tau_max[], 
                               int estimate_initial_tau, double tau_guess[],
                               int fit_beta, double fixed_beta[],
@@ -200,10 +226,8 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int fit_scatter, double scatter_guess,
                               int fit_tvb, double tvb_guess, double tvb_profile[],
                               int n_fret, int n_fret_fix, int inc_donor, double E_guess[],
-                              int pulsetrain_correction, double t_rep,
-                              int ref_reconvolution, double ref_lifetime_guess, int algorithm,
-                              int weighting, int calculate_errors, double conf_interval,
-                              int n_thread, int runAsync, int use_callback, int (*callback)())
+                              int pulsetrain_correction
+                              )
 {
    INIT_CONCURRENCY;
 
@@ -218,13 +242,11 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-   if (!use_callback)
+    if (!use_callback)
       callback = NULL;
 
-   shared_ptr<InstrumentResponseFunction> IRF( new InstrumentResponseFunction() );
-   IRF->SetIRF(n_irf, n_chan, t_irf[0], t_irf[1]-t_irf[0], irf);
-   if (ref_reconvolution)
-      IRF->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
+
+   shared_ptr<DecayModel> model = std::make_shared<DecayModel>(acq);
 
    ModelParameters params;
    params.SetDecay(n_exp, n_fix, tau_min, tau_max, tau_guess, fit_beta, fixed_beta);
@@ -246,8 +268,6 @@ FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
       new FLIMGlobalFitController(params, settings, polarisation_resolved, t_rep)
    );
            
-   controller[c_idx].SetIRF(IRF);
-
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -310,9 +330,6 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
       new FLIMGlobalFitController(params, settings, polarisation_resolved, t_rep)
    );
    
-           
-   controller[c_idx].SetIRF(IRF);
-
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -324,7 +341,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
 
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-                             int use_im[], uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
+   int use_im[], uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, double t_rep, int global_mode, int smoothing_factor, int use_autosampling)
 {
    INIT_CONCURRENCY;
 
@@ -340,7 +357,6 @@ FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, 
 
    int        n_thread              = c->n_thread;
    int        polarisation_resolved = c->polarisation_resolved;
-   double     t_rep                 = c->t_rep;
    shared_ptr<FitStatus> status     = c->status;
 
    AcquisitionParameters acq = AcquisitionParameters(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, t_rep, counts_per_photon);

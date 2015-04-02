@@ -95,11 +95,14 @@ int MultiExponentialDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_
       inc_row++;
    }
 
-   // Set diagonal elements of incidence matrix for variable beta's   
-   for (int i = 0; i<n_exponential; i++)
+   if (contributions_global)
    {
-      inc[inc_row + inc_col * 12] = 1;
-      inc_row++;
+      // Set diagonal elements of incidence matrix for variable beta's   
+      for (int i = 0; i<n_exponential; i++)
+      {
+         inc[inc_row + inc_col * 12] = 1;
+         inc_row++;
+      }
    }
 
    return 0;
@@ -128,11 +131,10 @@ int MultiExponentialDecayGroup::SetVariables(const double* param_value)
    return idx;
 }
 
-
-int MultiExponentialDecayGroup::GetOutputs(double* param_values, double* lin_variables, float* output, int& param_idx, int& lin_idx)
+int MultiExponentialDecayGroup::GetNonlinearOutputs(float* param_values, float* output, int& param_idx)
 {
    int output_idx = 0;
-   
+
    for (int i = 0; i < n_exponential; i++)
       output[output_idx++] = tau_parameters[i]->GetValue<float>(param_values, param_idx);
 
@@ -142,21 +144,40 @@ int MultiExponentialDecayGroup::GetOutputs(double* param_values, double* lin_var
       for (int i = 0; i < n_exponential; i++)
       {
          if (beta_parameters[0]->IsFixed())
-            output[output_idx++] = (float) beta_parameters[i]->initial_value;
+            output[output_idx++] = (float)beta_parameters[i]->initial_value;
          else
-            output[output_idx++] = (float) alf2beta(n_exponential, param_values + param_idx, j++); // TODO: need to use no of free betas
+            output[output_idx++] = (float)alf2beta(n_exponential, param_values + param_idx, j++); // TODO: need to use no of free betas
       }
-   }
-   else
-   {
-      output_idx += NormaliseLinearParameters(lin_variables, n_exponential, output + output_idx, lin_idx);
    }
 
    return output_idx;
 }
 
+int MultiExponentialDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+{
+   int output_idx = 0;
 
-int MultiExponentialDecayGroup::NormaliseLinearParameters(double* lin_variables, int n, float* output, int& lin_idx)
+   if (!contributions_global)
+      output_idx += NormaliseLinearParameters(lin_variables, n_exponential, output + output_idx, lin_idx);
+
+   return output_idx;
+}
+
+void MultiExponentialDecayGroup::GetLinearOutputParamNames(vector<string>& names)
+{
+   if (!contributions_global)
+   {
+      names.push_back("I_0");
+
+      for (int i = 0; i < n_exponential; i++)
+      {
+         string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
+         names.push_back(name);
+      }
+   }
+}
+
+int MultiExponentialDecayGroup::NormaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx)
 {
    double I = 0;
    for (int i = 0; i < n; i++)

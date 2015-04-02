@@ -53,7 +53,7 @@ public:
 
    AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, int* terminate);
 
-   virtual ~AbstractFitter();
+   virtual ~AbstractFitter() {};
    virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
 
    virtual int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr) = 0;

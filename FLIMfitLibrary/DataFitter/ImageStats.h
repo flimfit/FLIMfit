@@ -1,10 +1,29 @@
 //=========================================================================
-//  
-//  ImageStats.h
-//  GlobalProcessing FLIM Analysis Package
-//  (c) 2013 Sean Warren
 //
-//  Provides convenience class for handling image statistics
+// Copyright (C) 2013 Imperial College London.
+// All rights reserved.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+//
+// This software tool was developed with support from the UK 
+// Engineering and Physical Sciences Council 
+// through  a studentship from the Institute of Chemical Biology 
+// and The Wellcome Trust through a grant entitled 
+// "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
+//
+// Author : Sean Warren
 //
 //=========================================================================
 
@@ -24,11 +43,12 @@ class ImageStats
 {
 public:
 
-   ImageStats(int n_regions, int n_params, T* params) :
+   ImageStats(int n_regions, int n_params) :
       n_regions(n_regions),   
-      n_params(n_params),
-      params(params)
+      n_params(n_params)
    {
+      params.resize(n_regions * n_params);
+
       param_idx = new int[n_regions];
 
       for(int i=0; i<n_regions; i++)
@@ -48,7 +68,7 @@ public:
    {
       _ASSERT( param_idx[region] < n_params );
 
-      T* next_param = params + region * n_params * N_STATS + param_idx[region] * N_STATS;
+      T* next_param = params.data() + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = w_mean; 
@@ -74,7 +94,7 @@ public:
    {
       assert( param_idx[region] < n_params );
 
-      T* next_param = params + region * n_params * N_STATS + param_idx[region] * N_STATS;
+      T* next_param = params.data() + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
@@ -100,7 +120,7 @@ public:
    {
       _ASSERT( param_idx[region] < n_params );
 
-      T* next_param = params + region * n_params * N_STATS + param_idx[region] * N_STATS;
+      T* next_param = params.data() + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
@@ -125,7 +145,7 @@ private:
    int n_params;
    int* param_idx;
 
-   T* params;
+   std::vector<T> params;
 
 };
 

@@ -508,7 +508,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit
    int thread = 0;
 
    int n_px = data->n_px;
-   int n_meas = model->n_meas;
+   int n_meas = data->n_meas;
 
    uint8_t* mask = data->mask + im*n_px;
 
@@ -517,8 +517,8 @@ int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit
    if (iml == -1)
       return 0;
    
-   vector<double> nl_params(model->nl);
-   vector<float> l_params(model->lmax);
+   vector<double> nl_params(model->GetNumNonlinearVariables());
+   vector<float> l_params(model->GetNumColumns());
 
    getting_fit = true;
 
@@ -542,7 +542,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit
                results->GetNonLinearParams(im, rg, lin_idx, nl_params);
                results->GetLinearParams(im, rg, lin_idx, l_params);
 
-               projectors[thread].GetFit(idx, nl_params, &l_params[0], fit+n_meas*i);
+               projectors[thread].GetFit(idx, nl_params, l_params.data(), fit+n_meas*i);
                n_valid++;
 
                for(int j=last_idx; j<idx; j++)

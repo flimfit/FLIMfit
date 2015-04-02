@@ -54,18 +54,20 @@ using std::min;
 marker_series* writer;
 #endif
 
-
-FLIMGlobalFitController::FLIMGlobalFitController(AcquisitionParameters& acq, FitSettings& fit_settings) :
-   FitSettings(fit_settings),
-   acq(acq),
-   error(0), init(false), has_fit(false)
+FLIMGlobalFitController::FLIMGlobalFitController()
 {
-   if (this->n_thread < 1)
-      this->n_thread = 1;
+   worker_params.resize(n_thread);
+   status = std::make_shared<FitStatus>(n_thread);
+}
 
-   worker_params.assign(this->n_thread, WorkerParams());
-   status = shared_ptr<FitStatus>(new FitStatus(this->n_thread,NULL)); //ok
+FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
+   FitSettings(fit_settings)
+{
+   if (n_thread < 1)
+      n_thread = 1;
 
+   worker_params.resize(n_thread);
+   status = std::make_shared<FitStatus>(n_thread);
 }
 
 bool FLIMGlobalFitController::Busy()
@@ -92,7 +94,6 @@ int FLIMGlobalFitController::RunWorkers()
    omp_set_num_threads(n_omp_thread);
 
    data->irf = irf;
-   model->irf = irf;
 
    data->StartStreaming();
    status->AddConditionVariable(&active_lock);
@@ -374,18 +375,15 @@ terminated:
 void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
 {
    data = data_;
+
+   data->SetStatus(status);
+   data->SetNumThreads(n_thread);
 }
 
-void FLIMGlobalFitController::SetIRF(shared_ptr<InstrumentResponseFunction> irf_)
-{
-   irf = irf_;
-}
- 
 
 
 void FLIMGlobalFitController::Init()
 {
-
    cur_region = -1;
    next_pixel  = 0;
    next_region = 0;
@@ -396,14 +394,13 @@ void FLIMGlobalFitController::Init()
 
    getting_fit    = false;
 
-   model.reset( new DecayModel(acq) );
    model->Init();
 
    if (n_thread < 1)
       n_thread = 1;
 
    
-   if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && data->n_px > 1))
+    if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && data->n_px > 1))
       algorithm = ALG_LM;
 
    

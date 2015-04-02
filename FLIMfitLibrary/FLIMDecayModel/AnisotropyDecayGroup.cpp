@@ -129,13 +129,20 @@ int AnisotropyDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
    return 0;
 }
 
-int AnisotropyDecayGroup::GetOutputs(double* nonlin_variables, double* lin_variables, float* output, int& nonlin_idx, int& lin_idx)
+int AnisotropyDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = MultiExponentialDecayGroup::GetOutputs(nonlin_variables, lin_variables, output, nonlin_idx, lin_idx);
+   int output_idx = MultiExponentialDecayGroup::GetNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_anisotropy_populations; i++)
       output[output_idx++] = theta_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);
 
+   return output_idx;
+}
+
+int AnisotropyDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+{
+   int output_idx = 0;
+   
    // Normalise r's
 
    double I0 = lin_variables[0];
@@ -155,6 +162,21 @@ int AnisotropyDecayGroup::GetOutputs(double* nonlin_variables, double* lin_varia
    output[output_idx] = (float) I0;
 
    return output_idx;
+}
+
+void AnisotropyDecayGroup::GetLinearOutputParamNames(vector<string>& names)
+{
+   names.push_back("I_0");
+   names.push_back("r_0");
+
+   for (int i = 0; i < n_anisotropy_populations; i++)
+   {
+      string name = "r_" + boost::lexical_cast<std::string>(i + 1);
+      names.push_back(name);
+   }
+
+   if (include_r_inf)
+      names.push_back("r_inf");
 }
 
 

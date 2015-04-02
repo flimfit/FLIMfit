@@ -50,23 +50,20 @@ public:
    DecayModel(shared_ptr<AcquisitionParameters> acq);
    DecayModel(const DecayModel &obj);
 
-   ~DecayModel();
-
-   void NormaliseLinearParams(volatile float lin_params[], float non_linear_params[], volatile float norm_params[]);
-   void DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[]);
+   void AddDecayGroup(shared_ptr<AbstractDecayGroup> group);
 
    void Init();
 
    void   SetupIncMatrix(int* inc);
    int    CalculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel);
    void   GetWeights(float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx);
-   float* GetConstantAdjustment();
-
-   shared_ptr<AcquisitionParameters> GetAcquisitionParameters() { return acq; }
-
-   void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params);
+   float* GetConstantAdjustment() { return adjust_buf.data(); };
 
    void GetInitialVariables(vector<double>& variables, double mean_arrival_time);
+   shared_ptr<AcquisitionParameters> GetAcquisitionParameters() { return acq; }
+   void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params);
+   int GetNonlinearOutputs(float* nonlin_variables, float* outputs);
+   int GetLinearOutputs(float* lin_variables, float* outputs);
 
    //   double EstimateAverageLifetime(float decay[], int data_type);
 //   shared_ptr<InstrumentResponseFunction> irf;
@@ -97,7 +94,7 @@ private:
    FittingParameter reference_parameter;
    FittingParameter t0_parameter;
 
-   vector<unique_ptr<AbstractDecayGroup>> decay_groups;
+   vector<shared_ptr<AbstractDecayGroup>> decay_groups;
 
    float photons_per_count;
    vector<vector<double>> channel_factor; // TODO!

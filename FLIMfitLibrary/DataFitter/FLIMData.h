@@ -64,11 +64,14 @@ class FLIMData : public AcquisitionParameters
 public:
 
    FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
-            int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status);
+            int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor);
 
-   int  SetData(float data[]);
-   int  SetData(uint16_t data[]);
-   int  SetData(char* data_file, int data_class, int data_skip);
+   int SetData(float data[]);
+   int SetData(uint16_t data[]);
+   int SetData(char* data_file, int data_class, int data_skip);
+
+   void SetStatus(shared_ptr<FitStatus> status_);
+   void SetNumThreads(int n_thread);
 
    int  SetAcceptor(float acceptor[]);
    

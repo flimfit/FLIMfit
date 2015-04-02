@@ -173,7 +173,7 @@ void DecayModel::CalculateParameterCounts()
 void DecayModel::SetupDecayGroups()
 {
 }
-*/
+
 void DecayModel::SetupPolarisationChannelFactors()
 {
    if (polarisation_resolved)
@@ -188,7 +188,7 @@ void DecayModel::SetupPolarisationChannelFactors()
       channel_factor.resize(1, vector<double>(1, 1.0));
    }
 }
-
+*/
 /*
 void DecayModel::SetupAdjust()
 {

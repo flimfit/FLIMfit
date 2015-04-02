@@ -102,8 +102,28 @@ class FLIMGlobalFitController : public FitSettings
 {
 public:
 
-   FLIMGlobalFitController(AcquisitionParameters& acq, FitSettings& fit_settings);
+   FLIMGlobalFitController();
+   FLIMGlobalFitController(FitSettings& fit_settings);
    ~FLIMGlobalFitController();
+
+   void SetData(shared_ptr<FLIMData> data);
+   void SetModel(shared_ptr<DecayModel> model_) { model = model_; }
+   
+   //void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
+
+   void Init();
+   int  RunWorkers();
+   int  GetErrorCode();
+
+   int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
+
+   void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
+
+   void CleanupResults();
+
+
+   bool Busy();
+
 
 
    shared_ptr<InstrumentResponseFunction> irf;
@@ -113,32 +133,17 @@ public:
 
    unique_ptr<FitResults> results;
 
-   ModelParameters model_params;
-   
-   
-   int init;
-   bool has_fit;
-   bool getting_fit;
-   int error;
+   bool init = false;
+   bool has_fit = false;
+   bool getting_fit = false;
+   int error = 0;
 
 
+   //-- LEGACY --
+   bool polarisation_resolved;
+   double t_rep;
+   //------------
 
-
-   void SetData(shared_ptr<FLIMData> data);
-   void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
-
-   void Init();
-   int  RunWorkers();
-   int  GetErrorCode();
-
-   int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
-   
-   void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
-
-   void CleanupResults();
-
-
-   bool Busy();
 
 private:
 
@@ -152,7 +157,7 @@ private:
    int ProcessRegion(int g, int r, int px, int thread);
 
 
-   AcquisitionParameters acq;
+   //shared_ptr<AcquisitionParameters> acq;
 
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;

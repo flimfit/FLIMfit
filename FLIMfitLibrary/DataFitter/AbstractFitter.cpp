@@ -73,8 +73,8 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    n_param = nl + n_param_extra;
 
 
-   //for (int i = 0; i < n_thread; i++)
-   //   models.push_back(*model);
+   for (int i = 0; i < n_thread; i++)
+      models.push_back(*model);
 
 
    // Check for valid input
@@ -113,6 +113,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    Init();
 
    counts_per_photon = model->GetAcquisitionParameters()->counts_per_photon;
+
 
    if (pmax != p)
       err = ERR_INVALID_INPUT;

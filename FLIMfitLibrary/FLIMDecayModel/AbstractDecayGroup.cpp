@@ -34,3 +34,28 @@ acq(acq)
 {
 }
 
+int AbstractDecayGroup::GetInitialVariables(double* variables)
+{
+   // TODO: needs work for betas etc where there is not a 1:1 relationship
+   int idx = 0;
+   for (auto& p : parameters)
+   {
+      if (p->IsFittedGlobally())
+         variables[idx++] = p->initial_value;
+   }
+
+   return idx;
+}
+
+void AbstractDecayGroup::SetIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_)
+{
+   irf_idx = irf_idx_;
+   t0_shift = t0_shift_;
+   reference_lifetime = reference_lifetime_;
+}
+
+void AbstractDecayGroup::GetNonlinearOutputParamNames(vector<string>& names)
+{
+   for (auto p : parameters)
+      names.push_back(p->name);
+}

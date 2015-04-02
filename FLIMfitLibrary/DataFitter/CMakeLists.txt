@@ -78,6 +78,7 @@ set(HEADERS
    MeanLifetimeEstimator.h
    ImageStats.h
    TrimmedMean.h
+   RegionStatsCalculator.h
 )
 
 # Include optimisation flags in Visual Studio

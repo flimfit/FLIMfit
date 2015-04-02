@@ -32,7 +32,7 @@
 #include <cmath>
 
 FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
-                   int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor, int n_thread, shared_ptr<FitStatus> status) :
+                   int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor) :
    AcquisitionParameters(acq),   
    n_im(n_im), 
    n_x(n_x),
@@ -43,8 +43,7 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
    threshold(threshold),
    limit(limit),
    smoothing_factor(smoothing_factor),
-   n_thread(n_thread),
-   status(status)
+   n_thread(n_thread)
 {
    has_data = false;
    has_acceptor = false;
@@ -55,10 +54,6 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
 
 
    image_t0_shift = NULL;
-
-   // Make sure waiting threads are notified when we terminate
-   status->AddConditionVariable(&data_avail_cond);
-   status->AddConditionVariable(&data_used_cond);
 
 
    // So that we can calculate errors properly
@@ -111,21 +106,8 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
    background_value = 0;
    background_type = BG_NONE;
 
-   if (n_thread < 1)
-      n_thread = 1;
-
    n_px = n_x * n_y;
-   n_p  = n_x * n_y * n_meas_full;
-
-
-   tr_data_    = new float[ n_thread * n_p ]; //ok
-   tr_buf_     = new float[ n_thread * n_p ]; //ok
-   intensity_  = new float[ n_thread * n_px ];
-
-   if (polarisation_resolved)
-      r_ss_ = new float[ n_thread * n_px ];
-
-   tr_row_buf_ = new float[ n_thread * (n_x+n_y) ]; //ok
+   n_p = n_x * n_y * n_meas_full;
 
    region_count = new int[ n_im_used * MAX_REGION ];
    region_pos   = new int[ n_im_used * MAX_REGION ];
@@ -142,20 +124,6 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
    for (int i=0; i<MAX_REGION; i++)
       region_idx[n_im_used * MAX_REGION + i] = -1;
    
-   data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
-
-   cur_transformed = new int[n_thread]; //ok 
-
-   data_used = new int[n_thread];
-   data_loaded = new int[n_thread];
-
-   for (int i=0; i<n_thread; i++)
-   {
-      cur_transformed[i] = -1;
-      data_used[i] = 1;
-      data_loaded[i] = -1;
-   }
-
    int dim_required = smoothing_factor*2 + 2;
    if (n_x < dim_required || n_y < dim_required)
       this->smoothing_factor = 0;
@@ -163,6 +131,45 @@ FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y,
    smoothing_area = (float) (2*this->smoothing_factor+1)*(2*this->smoothing_factor+1);
 
 
+}
+
+void FLIMData::SetStatus(shared_ptr<FitStatus> status_)
+{
+   status = status_;
+
+   // Make sure waiting threads are notified when we terminate
+   status->AddConditionVariable(&data_avail_cond);
+   status->AddConditionVariable(&data_used_cond);
+}
+
+
+void FLIMData::SetNumThreads(int n_thread_)
+{
+   n_thread = n_thread_;
+
+   // TODO: make these all vectors
+
+   tr_data_ = new float[n_thread * n_p]; //ok
+   tr_buf_ = new float[n_thread * n_p]; //ok
+   intensity_ = new float[n_thread * n_px];
+   tr_row_buf_ = new float[n_thread * (n_x + n_y)]; //ok
+
+   if (polarisation_resolved)
+      r_ss_ = new float[n_thread * n_px];
+
+   cur_transformed = new int[n_thread]; //ok 
+
+   data_used = new int[n_thread];
+   data_loaded = new int[n_thread];
+
+   for (int i = 0; i<n_thread; i++)
+   {
+      cur_transformed[i] = -1;
+      data_used[i] = 1;
+      data_loaded[i] = -1;
+   }
+
+   data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
 }
 
 

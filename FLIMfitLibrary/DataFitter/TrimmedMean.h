@@ -1,6 +1,6 @@
 //=========================================================================
 //  
-//  GlobalProcessing FLIM Analysis Package
+//  FLIMfit
 //
 //  Code derived from: 
 //  * Fast Computation of Trimmed Means. Gleb Beliakov

@@ -3,9 +3,10 @@
 
 using namespace std;
 
-MeanLifetimeEstimator::MeanLifetimeEstimator(shared_ptr<AcquisitionParameters> irf) :
+MeanLifetimeEstimator::MeanLifetimeEstimator(shared_ptr<AcquisitionParameters> acq) :
    acq(acq)
 {
+   DetermineStartPosition(0);
 }
 
 
@@ -16,7 +17,7 @@ MeanLifetimeEstimator::MeanLifetimeEstimator(shared_ptr<AcquisitionParameters> i
 int MeanLifetimeEstimator::DetermineStartPosition(int idx)
 {
    int j_last = 0;
-   int start = 0;
+   start = 0;
 
    shared_ptr<InstrumentResponseFunction> irf = acq->irf;
    int n_meas = acq->n_meas;

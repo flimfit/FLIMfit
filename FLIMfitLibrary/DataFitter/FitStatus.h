@@ -62,7 +62,7 @@ public:
    bool running;
    bool started;
 
-   FitStatus(int n_thread, int (*callback)());
+   FitStatus(int n_thread, int (*callback)() = nullptr);
    ~FitStatus();
 
    void SetNumRegion(int n_region);

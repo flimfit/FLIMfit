@@ -37,9 +37,9 @@ DecayModel::DecayModel(shared_ptr<AcquisitionParameters> acq) :
    reference_parameter("ref_lifetime", 100, { Fixed, FittedGlobally }, Fixed),
    t0_parameter("t0", 0, { Fixed, FittedGlobally }, Fixed)
 {
-   decay_groups.emplace_back(new BackgroundLightDecayGroup(acq));
-   decay_groups.emplace_back(new MultiExponentialDecayGroup(acq, 2));
-   decay_groups.emplace_back(new FretDecayGroup(acq, 2, 2));
+   //decay_groups.emplace_back(new BackgroundLightDecayGroup(acq));
+   //decay_groups.emplace_back(new MultiExponentialDecayGroup(acq, 2));
+   //decay_groups.emplace_back(new FretDecayGroup(acq, 2, 2));
 
    photons_per_count = static_cast<float>(1.0 / acq->counts_per_photon);
    SetupAdjust();
@@ -55,6 +55,11 @@ DecayModel::DecayModel(const DecayModel &obj) :
 
    photons_per_count = obj.photons_per_count;
    SetupAdjust();
+}
+
+void DecayModel::AddDecayGroup(shared_ptr<AbstractDecayGroup> group)
+{
+   decay_groups.push_back(group);
 }
 
 
@@ -103,6 +108,8 @@ double DecayModel::GetCurrentT0(const double* param_values, int& idx)
 
 void DecayModel::SetupAdjust()
 {
+   adjust_buf.resize(acq->n_meas);
+
    for (int i = 0; i < acq->n_meas; i++)
       adjust_buf[i] *= 0;
 
@@ -111,6 +118,37 @@ void DecayModel::SetupAdjust()
 
    for (int i = 0; i < acq->n_meas; i++)
       adjust_buf[i] *= photons_per_count;
+}
+
+void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params)
+{
+   for (auto& group : decay_groups)
+      group->GetNonlinearOutputParamNames(param_names);
+
+   for (auto& group : decay_groups)
+      group->GetLinearOutputParamNames(param_names);
+}
+
+void DecayModel::SetupIncMatrix(int *inc)
+{
+   int row = 0;
+   int col = 0;
+    
+   for (auto& group : decay_groups)
+      group->SetupIncMatrix(inc, row, col);
+}
+
+int DecayModel::GetNumDerivatives()
+{
+   vector<int> inc(96);
+
+   SetupIncMatrix(inc.data());
+
+   int n = 0;
+   for (int i = 0; i < 96; i++)
+      n += inc[i];
+
+   return n;
 }
 
 int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
@@ -122,9 +160,7 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
    double reference_lifetime = GetCurrentReferenceLifetime(param_values, idx);
    double t0_shift = GetCurrentT0(param_values, idx);
 
-   double scale_fact[2];
-   scale_fact[0] = 1;
-   scale_fact[1] = 0;
+   double scale_fact[2] = {1, 0};
 
    int getting_fit = false; //TODO
 
@@ -355,4 +391,27 @@ void DecayModel::GetInitialVariables(vector<double>& param, double mean_arrival_
    if (t0_parameter.IsFittedGlobally())
       param[idx++] = t0_parameter.initial_value;
 
+}
+
+
+int DecayModel::GetNonlinearOutputs(float* nonlin_variables, float* outputs)
+{
+   int idx = 0;
+   int nonlin_idx = 0;
+
+   for (auto& g : decay_groups)
+      idx += g->GetNonlinearOutputs(nonlin_variables, outputs + idx, nonlin_idx);
+
+   return idx;
+}
+
+int DecayModel::GetLinearOutputs(float* lin_variables, float* outputs)
+{
+   int idx = 0;
+   int lin_idx = 0;
+
+   for (auto& g : decay_groups)
+      idx += g->GetLinearOutputs(lin_variables, outputs + idx, lin_idx);
+
+   return idx;
 }

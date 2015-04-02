@@ -32,38 +32,14 @@
 #include "util.h"
 #include "TrimmedMean.h"
 #include "ImageStats.h"
+#include "RegionStatsCalculator.h"
 
 #include <algorithm>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 using std::max;
 using std::min;
 
 
-
-int CalculateRegionStats(int n, int s, float data[], float intensity[], int intensity_stride, ImageStats<float>& stats, int region, double conf_factor, float buf[])
-{
-   //using namespace boost::math;
-   float* I_buf = buf + s;
-
-   for (int i = 0; i<n; i++)
-   {
-      int idx = 0;
-      for (int j = 0; j<s; j++)
-      {
-         // Only include finite numbers
-         if (boost::math::isfinite(data[i + j*n]) && boost::math::isfinite(data[i + j*n] * data[i + j*n]))
-         {
-            buf[idx] = data[i + j*n];
-            I_buf[idx] = intensity[i + j*intensity_stride];
-            idx++;
-         }
-      }
-      int K = int(0.05 * idx);
-      TrimmedMean(buf, intensity, idx, K, (float)conf_factor, stats, region);
-   }
-   return n;
-}
 
 
 
@@ -157,7 +133,7 @@ void FitResults::GetNonLinearParams(int image, int region, int pixel, vector<dou
 
    float* alf_local = alf + idx * nl; 
 
-   params.reserve(nl);
+   params.resize(nl);
 
    for(int i=0; i<nl; i++)
       params[i] = alf_local[i];
@@ -168,8 +144,9 @@ void FitResults::GetLinearParams(int image, int region, int pixel, vector<float>
    int start = data->GetRegionPos(image, region) + pixel;
    float* lin_local = lin_params + start * lmax;
 
-   params.reserve(lmax);
-   DenormaliseLinearParams(lin_local, &params[0]);
+   params.resize(lmax);
+   for (int i = 0; i<lmax; i++)
+      params[i] = lin_local[i];
 }
 
 
@@ -215,41 +192,6 @@ void FitResults::SetFitStatus(int image, int region, int code)
    }
 
 }
-/*
-void FitResults::FitFinished(int image, int region, int pixel)
-{
-
-}
-
-void FitResults::FitFinished(int image, int region)
-{
-   
-}
-*/
-
-void FitResults::NormaliseLinearParams(volatile float lin_params[], float non_lin_params[], volatile float norm_params[])
-{
-   #pragma omp parallel for
-   for(int i=0; i<n_px; i++)
-   {
-      volatile float* lin_local = lin_params + lmax * i;
-      volatile float* norm_local = norm_params + lmax * i;
-
-      model->NormaliseLinearParams(lin_local, non_lin_params, norm_local);
-   }
-}
-
-void FitResults::DenormaliseLinearParams(volatile float norm_params[], volatile float lin_params[])
-{
-   #pragma omp parallel for
-   for(int i=0; i<n_px; i++)
-   {
-      volatile float* lin_local = lin_params + lmax * i;
-      volatile float* norm_local = norm_params + lmax * i;
-
-      model->DenormaliseLinearParams(norm_local, lin_local);
-   }
-}
 
 void FitResults::DetermineParamNames()
 {
@@ -282,8 +224,84 @@ void FitResultsRegion::SetFitStatus(int code)
 }
 
 
+void FitResults::ComputeImageStats(float confidence_factor)
+{
+   RegionStatsCalculator stats_calculator(n_aux, confidence_factor);
 
+   ImageStats<float> stats(data->n_output_regions_total, n_output_params);
+   vector<RegionSummary> region_summary;
+   vector<float> param_buf;
 
+   for (int im = 0; im<data->n_im_used; im++)
+   {
+      /*
+      float* param_buf = param_buf_ + buf_size * thread;
+      float* err_lower_buf = err_lower_buf_ + buf_size * thread;
+      float* err_upper_buf = err_upper_buf_ + buf_size * thread;
+
+      float* nl_output = nl_output_ + n_nl_output_params * n_px * thread;
+      float* err_lower_output = err_lower_output_ + n_nl_output_params * n_px * thread;
+      float* err_upper_output = err_upper_output_ + n_nl_output_params * n_px * thread;
+      
+
+      float* nan_buf = nan_buf_ + nl * thread;
+      */
+
+      for (int rg = 1; rg<MAX_REGION; rg++)
+      {
+         int r_idx = data->GetRegionIndex(im, rg);
+         int idx = data->GetOutputRegionIndex(im, rg);
+
+         if (r_idx > -1)
+         {
+
+            int start = data->GetRegionPos(im, rg);
+            int s_local = data->GetRegionCount(im, rg);
+            float* intensity = aux_data + start;
+
+            int intensity_stride = n_aux;
+
+            region_summary[idx].image = data->use_im[im];
+            region_summary[idx].region = rg;
+            region_summary[idx].size = s_local;
+            region_summary[idx].iterations = ierr[r_idx];
+            region_summary[idx].success = success[r_idx];
+
+            if (data->global_mode == MODE_PIXELWISE)
+               region_summary[idx].success /= s_local;
+
+            int output_idx = 0;
+
+            if (data->global_mode == MODE_PIXELWISE)
+            {
+               float* alf_group = alf + start * nl;
+             
+               for (int i = 0; i < s_local; i++)
+                  output_idx += model->GetNonlinearOutputs(alf_group + i*nl, param_buf.data() + idx);
+
+               stats_calculator.CalculateRegionStats(n_nl_output_params, s_local, param_buf.data(), intensity, stats, idx);
+            }
+            else
+            {
+               float* alf_group = alf + nl * r_idx;
+
+               model->GetNonlinearOutputs(alf_group, param_buf.data() + idx);
+
+               for (int i = 0; i<n_nl_output_params; i++)
+                  stats.SetNextParam(idx, param_buf[i]);
+            }
+
+            float* lin_group = lin_params + start * lmax;
+
+            stats_calculator.CalculateRegionStats(lmax, s_local, lin_group, intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data, intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(1, s_local, chi2 + start, intensity, stats, idx);
+         }
+      }
+   }
+
+}
+/*
 int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread)
 {
    INIT_CONCURRENCY;
@@ -292,7 +310,7 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
 
    int n_px = data->n_px;
 
-   int nl = model->GetNumNonlinearVariables();
+   int nl = model->nl;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    START_SPAN("Calculating Result Statistics");
@@ -323,6 +341,9 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
 
    omp_set_num_threads(n_thread);
 
+
+
+   //#pragma omp parallel for
    for (int im = 0; im<data->n_im_used; im++)
    {
       int thread = omp_get_thread_num();
@@ -441,7 +462,7 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
    return 0;
 
 }
-
+*/
 
 int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[])
 {
@@ -450,7 +471,9 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
    int r_idx;
 
    int n_px = data->n_px;
-   int nl = model->nl;
+   int nl = n_nl_output_params;
+
+   vector<float> buffer(n_output_params);
 
    float* param_data = NULL;
    int span;
@@ -496,7 +519,8 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
                for (int i = 0; i<n_px; i++)
                   if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
                   {
-                     image_data[i] = model->GetNonLinearParam(r_param, param_data + j*nl);
+                     model->GetNonlinearOutputs(param_data + j*nl, buffer.data());
+                     image_data[i] = buffer[r_param];
                      j++;
                   }
 
@@ -504,7 +528,8 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
             else
             {
                param_data = alf + r_idx * nl;
-               float p = model->GetNonLinearParam(r_param, param_data);
+               model->GetNonlinearOutputs(param_data, buffer.data());
+               float p = buffer[r_param];
 
                for (int i = 0; i<n_px; i++)
                   if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))

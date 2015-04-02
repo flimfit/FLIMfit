@@ -31,7 +31,8 @@ cmake_minimum_required(VERSION 2.6)
 
 project(TestHarness)
 
-include_directories( ${FGP_INCLUDE_DIRS} )
+add_definitions(-DBOOST_DATE_TIME_NO_LIB)
+include_directories( ${LEVMAR_INCLUDE_DIRS} ${FGP_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter )
 
 # Enable OpenMP support, disable for XCode
 #===================================================
@@ -82,7 +83,7 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
-target_link_libraries(TestHarness ${FGP_LIB} levmar)
+target_link_libraries(TestHarness ${FGP_LIB} DataFitter FLIMDecayModel levmar)
 
 # Run tests after compile
 #===================================================
