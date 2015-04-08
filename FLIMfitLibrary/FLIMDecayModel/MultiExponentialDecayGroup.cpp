@@ -37,6 +37,8 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(shared_ptr<AcquisitionPar
    n_exponential(n_exponential),
    contributions_global(contributions_global)
 {
+   channel_factors.resize(acq->n_chan, 1);
+
    if (contributions_global)
    {
       n_lin_components = 1;
@@ -53,7 +55,7 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(shared_ptr<AcquisitionPar
    for (int i = 0; i < n_exponential; i++)
    {
       string name = "tau_" + boost::lexical_cast<std::string>(i + 1);
-      double initial_value = 5000.0 / i;
+      double initial_value = 5000.0 / (i + 1);
 
       auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
       parameters.push_back(p);

@@ -62,7 +62,7 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
 
    ComputeIRFFactors(rate, irf_idx, t0_shift);
    ComputeModelFactors(rate, channel_factors, compute_shifted_models);
-}
+ }
 
 void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx, double t0_shift)
 {
