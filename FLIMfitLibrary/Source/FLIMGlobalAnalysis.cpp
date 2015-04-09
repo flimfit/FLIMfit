@@ -39,94 +39,301 @@
 #include <utility>
 
 #include <memory>
-#include <boost/ptr_container/ptr_map.hpp>
+#include <map>
+#include "MexUtils.h"
 
 using std::pair;
-using boost::ptr_map;
+using std::map;
+using std::unique_ptr;
 using std::shared_ptr;
 
 int next_id = 0;
 
-typedef ptr_map<int, FLIMGlobalFitController> ControllerMap;
+struct ControllerGroup
+{
+   shared_ptr<AcquisitionParameters> acq;
+   shared_ptr<FLIMData> data;
+   shared_ptr<FLIMGlobalFitController> controller;
+};
 
+typedef map<int, ControllerGroup> ControllerMap;
+typedef pair<int, ControllerGroup> ControllerEntry;
 ControllerMap controller;
 
 
 #ifdef _WINDOWS
-
 #ifdef _DEBUG
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
 #endif
-
-BOOL APIENTRY DllMain( HANDLE hModule, 
-                       DWORD  ul_reason_for_call, 
-                       LPVOID lpReserved
-                )
-{
-   switch (ul_reason_for_call)
-   {
-   case DLL_PROCESS_ATTACH:
-      #ifdef USE_CONCURRENCY_ANALYSIS
-      writer = new marker_series("FLIMfit");
-      #endif
-      //VLDDisable();
-      break;
-      
-   case DLL_THREAD_ATTACH:
-      //VLDEnable();
-      break;
- 
-   case DLL_THREAD_DETACH:
-      //VLDDisable();
-      break;
-
-   case DLL_PROCESS_DETACH:
-      FLIMGlobalClearFit(-1);
-      #ifdef USE_CONCURRENCY_ANALYSIS
-      delete writer;
-      #endif
-      break;
-   }
-    return TRUE;
-}
-
-#else
-
-void __attribute__ ((constructor)) myinit() 
-{
-}
-
-void __attribute__ ((destructor)) myfini()
-{
-   FLIMGlobalClearFit(-1);
-}
-
 #endif
 
-FITDLL_API int FLIMGlobalGetUniqueID()
+#define AssertInputCondition(x) CheckInputCondition(#x, x);
+
+void CheckInputCondition(char* text, bool condition)
 {
-   controller.insert(next_id,new FLIMGlobalFitController());
-   return next_id++;
+   if (!condition)
+      mexErrMsgIdAndTxt("FLIMfitMex:invalidInput", text);
 }
 
-FITDLL_API void FLIMGlobalRelinquishID(int id)
+int started = false;
+void Startup()
 {
-   controller.erase(id);
+#ifdef USE_CONCURRENCY_ANALYSIS
+   if (!started)
+   {
+      writer = new marker_series("FLIMfit");
+      started = true;
+   }
+#endif
 }
 
-FLIMGlobalFitController* GetController(int c_idx)
+void Cleanup()
 {
-   ControllerMap::iterator iter = controller.find(c_idx);
+   FLIMGlobalClearFit(-1);
+#ifdef USE_CONCURRENCY_ANALYSIS
+   delete writer;
+#endif
+}
 
-   if ( iter != controller.end() )
-      return iter->second;
+
+void CheckInput(int nrhs, int needed);
+void ErrorCheck(int nlhs, int nrhs, const mxArray *prhs[]);
+void CheckSize(const mxArray* array, int needed);
+
+
+
+void GetUniqueID(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   controller.insert(ControllerEntry(next_id, ControllerGroup()));
+   plhs[0] = mxCreateDoubleScalar(next_id);
+   next_id++;
+}
+
+
+
+int SetAcquisitionParameters(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 13);
+   AssertInputCondition(mxIsInt32(prhs[9]));
+
+   int data_type = mxGetScalar(prhs[2]);
+   int polarisation_resolved = mxGetScalar(prhs[3]);
+
+   int n_chan = mxGetScalar(prhs[4]);
+   int n_t_full = mxGetScalar(prhs[5]);
+   int n_t = mxGetScalar(prhs[6]);
+   double* t = mxGetPr(prhs[7]);
+   double* t_int = mxGetPr(prhs[8]);
+   int* t_skip = reinterpret_cast<int*>(mxGetData(prhs[9]));
+   double t_rep = mxGetScalar(prhs[10]);
+   double counts_per_photon = mxGetScalar(prhs[11]);
+
+   g.acq = std::make_shared<AcquisitionParameters>(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, t_rep, counts_per_photon);
+}
+
+int SetIRF(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.acq != nullptr);
+   AssertInputCondition(nrhs >= 10);
+
+   int n_irf = mxGetN(prhs[2]);
+   int n_chan = mxGetM(prhs[3]);
+   double* data = mxGetPr(prhs[4]);
+
+   double t0 = mxGetScalar(prhs[5]);
+   double dt = mxGetScalar(prhs[6]);
+
+   int ref_reconvolution = mxGetScalar(prhs[7]);
+   double ref_lifetime_guess = mxGetScalar(prhs[8]);
+
+   shared_ptr<InstrumentResponseFunction> irf(new InstrumentResponseFunction());
+   irf->SetIRF(n_irf, n_chan, t0, dt, data);
+   if (ref_reconvolution)
+      irf->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
+
+   g.acq->SetIRF(irf);
+}
+
+int SetDataParameters(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.acq != nullptr);
+   AssertInputCondition(nrhs >= 13);
+   AssertInputCondition(mxIsInt32(prhs[5]));
+   AssertInputCondition(mxGetNumberOfElements(prhs[5]) == g.data->n_im);
+   AssertInputCondition(mxIsUint8(prhs[6]));
+   AssertInputCondition(mxGetNumberOfElements(prhs[6]) == g.data->n_im * g.data->n_x * g.data->n_y);
+
+   int n_im = mxGetScalar(prhs[2]);
+   int n_x = mxGetScalar(prhs[3]);
+   int n_y = mxGetScalar(prhs[4]);
+   int* use_im = reinterpret_cast<int32_t*>(mxGetData(prhs[5]));
+   uint8_t* mask = reinterpret_cast<uint8_t*>(mxGetData(prhs[6]));
+   int merge_regions = mxGetScalar(prhs[7]);
+   int threshold = mxGetScalar(prhs[8]);
+   int limit = mxGetScalar(prhs[9]);
+   int global_mode = mxGetScalar(prhs[10]);
+   int smoothing_factor = mxGetScalar(prhs[11]);
+
+   g.data = std::make_shared<FLIMData>(g.acq, n_im, n_x, n_y, use_im, mask, merge_regions, threshold, limit, global_mode, smoothing_factor);
+}
+
+int SetData(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.data != nullptr);
+   AssertInputCondition(nrhs >= 3);
+
+   const mxArray* data = prhs[2];
+
+   if (mxIsSingle(data))
+   {
+      float* d = reinterpret_cast<float*>(mxGetData(data));
+      g.data->SetData(d);
+   }
+   else if (mxIsUint16(data))
+   {
+      uint16_t* d = reinterpret_cast<uint16_t*>(mxGetData(data));
+      g.data->SetData(d);
+   }
    else
-      return NULL;
-
+   {
+      mexErrMsgIdAndTxt("FLIMfitMex:invalidInput", "FLIMData must be single precision floating point or uint16");
+   }
 }
 
+int SetDataFromFile(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.data != nullptr);
+   AssertInputCondition(nrhs >= 5);
+   AssertInputCondition(mxIsChar(prhs[2]));
+
+   std::string data_file = GetStringFromMatlab(prhs[2]);
+   int data_class = mxGetScalar(prhs[3]);
+   int data_skip = mxGetScalar(prhs[4]);
+
+   g.data->SetData(data_file.c_str(), data_class, data_skip);
+}
+
+int SetAcceptor(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.data != nullptr);
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsSingle(prhs[2]));
+
+   float* acceptor = reinterpret_cast<float*>(mxGetData(prhs[2]));
+   g.data->SetAcceptor(acceptor);
+}
+
+int SetBackgroundImage(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.data != nullptr);
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsSingle(prhs[2]));
+
+   float* data = reinterpret_cast<float*>(mxGetData(prhs[2]));
+   g.data->SetBackground(data);
+}
+
+int SetBackground(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.data != nullptr);
+   AssertInputCondition(nrhs >= 3);
+
+   float data = mxGetScalar(prhs[2]);
+   g.data->SetBackground(data);
+}
+
+int SetBackgroundTVImage(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.data != nullptr);
+   AssertInputCondition(nrhs >= 5);
+   AssertInputCondition(mxIsSingle(prhs[2]));
+   AssertInputCondition(mxIsSingle(prhs[3]));
+
+   float* tvb_profile = reinterpret_cast<float*>(mxGetData(prhs[2]));
+   float* tvb_I_map = reinterpret_cast<float*>(mxGetData(prhs[3]));
+   float const_background = mxGetScalar(prhs[4]);
+
+   g.data->SetTVBackground(tvb_profile, tvb_I_map, const_background);
+}
+
+int SetImageT0Shift(ControllerGroup& g, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(g.data != nullptr);
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsDouble(prhs[3]));
+
+   double* data = mxGetPr(prhs[2]);
+   g.data->SetImageT0Shift(data);
+}
+
+
+
+
+
+
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   mexAtExit(Cleanup);
+
+   Startup();
+
+   try
+   {
+      if (nrhs == 0 && nlhs > 0)
+      {
+         GetUniqueID(nlhs, plhs, nrhs, prhs);
+         return;
+      }
+
+      AssertInputCondition(nrhs >= 2);
+      AssertInputCondition(mxIsScalar(prhs[0]));
+      AssertInputCondition(mxIsChar(prhs[1]));
+
+      int c_idx = mxGetScalar(prhs[0]);
+
+      // Get controller
+      auto iter = controller.find(c_idx);
+      if (iter == controller.end())
+         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerIndex", "Controller index is not valid");
+      ControllerGroup& g = iter->second;
+
+      // Get command
+      string command = GetStringFromMatlab(prhs[1]);
+
+      if (command == "Clear")
+         controller.erase(c_idx);
+      else if (command == "SetAcquisitionParameters")
+         SetAcquisitionParameters(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetIRF")
+         SetIRF(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetDataParameters")
+         SetDataParameters(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetData")
+         SetData(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetDataFromFile")
+         SetDataFromFile(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetAcceptor")
+         SetAcceptor(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetBackgroundImage")
+         SetBackgroundImage(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetBackground")
+         SetBackground(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetBackgroundTVImage")
+         SetBackgroundTVImage(g, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetImageT0Shift")
+         SetImageT0Shift(g, nlhs, plhs, nrhs, prhs);
+
+   }
+   catch (std::exception e)
+   {
+      mexErrMsgIdAndTxt("FLIMreaderMex:exceptionOccurred",
+         e.what());
+   }
+}
+
+/*
 bool ClearController(int c_idx)
 {
    ControllerMap::iterator iter = controller.find(c_idx);
@@ -146,7 +353,6 @@ bool ClearController(int c_idx)
 
 }
 
-/*
 FITDLL_API ModelParametersStruct GetDefaultModelParameters()
 {
    ModelParameters params;
@@ -202,20 +408,6 @@ FITDLL_API int SetupFit(int c_idx, int global_algorithm, int algorithm,
    controller.insert(c_idx, new FLIMGlobalFitController(settings));
 }
 
-FITDLL_API int SetIRF(int c_idx, int image_irf,
-   int n_irf, int n_chan, double t_irf[], double irf[], double pulse_pileup, double t0_image[],
-   int ref_reconvolution, double ref_lifetime_guess)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if (c == NULL)
-      return ERR_INVALID_IDX;
-
-
-   shared_ptr<InstrumentResponseFunction> IRF(new InstrumentResponseFunction());
-   IRF->SetIRF(n_irf, n_chan, t_irf[0], t_irf[1] - t_irf[0], irf);
-   if (ref_reconvolution)
-      IRF->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
-}
 
 FITDLL_API int SetupGlobalFit(int c_idx, 
                               int n_exp, int n_fix, int n_decay_group, int decay_group[], double tau_min[], double tau_max[], 
@@ -337,121 +529,6 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
    return c->GetErrorCode();
 
 }
-
-
-
-FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-   int use_im[], uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, double t_rep, int global_mode, int smoothing_factor, int use_autosampling)
-{
-   INIT_CONCURRENCY;
-
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-
-   //TODO: check controller is init
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   START_SPAN("Setting up data object");
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   int        n_thread              = c->n_thread;
-   int        polarisation_resolved = c->polarisation_resolved;
-   shared_ptr<FitStatus> status     = c->status;
-
-   AcquisitionParameters acq = AcquisitionParameters(data_type, polarisation_resolved, n_chan, n_t_full, n_t, t, t_int, t_skip, t_rep, counts_per_photon);
-
-   shared_ptr<FLIMData> d ( new FLIMData(acq, n_im, n_x, n_y,  use_im,  
-                                         mask, merge_regions, threshold, limit, global_mode, smoothing_factor, n_thread, status) );
-   
-   c->SetData(d);
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   END_SPAN;
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   return SUCCESS;
-
-}
-
-FITDLL_API int SetDataFloat(int c_idx, float* data)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-
-   int e = c->data->SetData(data);   
-   return e;
-}
-
-FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-
-   int e = c->data->SetData(data);   
-   return e;
-}
-
-FITDLL_API int SetDataFile(int c_idx, char* data_file, int data_class, int data_skip)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-
-   return c->data->SetData(data_file, data_class, data_skip);
-}
-
-FITDLL_API int SetAcceptor(int c_idx, float* acceptor)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-
-   c->data->SetAcceptor(acceptor);
-   return SUCCESS;
-}
-
-
-
-FITDLL_API int SetBackgroundImage(int c_idx, float* background_image)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-   c->data->SetBackground(background_image);
-   return 0;
-}
-
-
-FITDLL_API int SetBackgroundValue(int c_idx, float background_value)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-   c->data->SetBackground(background_value);
-   return 0;
-}
-
-FITDLL_API int SetBackgroundTVImage(int c_idx, float* tvb_profile, float* tvb_I_map, float const_background)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-   c->data->SetTVBackground(tvb_profile, tvb_I_map, const_background);
-   return 0;
-}
-
-FITDLL_API int SetImageT0Shift(int c_idx, double* image_t0_shift)
-{
-   FLIMGlobalFitController *c = GetController(c_idx);
-   if ( c == NULL )
-      return ERR_INVALID_IDX;
-   c->data->SetImageT0Shift(image_t0_shift);
-   return 0;
-}
-
 
 
 FITDLL_API int StartFit(int c_idx)

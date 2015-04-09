@@ -31,9 +31,9 @@
 #include "FlagDefinitions.h"
 #include <cmath>
 
-FLIMData::FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
+FLIMData::FLIMData(shared_ptr<AcquisitionParameters> acq, int n_im, int n_x, int n_y, 
                    int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor) :
-   AcquisitionParameters(acq),   
+   AcquisitionParameters(*acq.get()),   
    n_im(n_im), 
    n_x(n_x),
    n_y(n_y),
@@ -268,7 +268,7 @@ int FLIMData::SetAcceptor(float acceptor[])
    return SUCCESS;
 }
 
-int FLIMData::SetData(char* data_file, int data_class, int data_skip)
+int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
 {
 
    this->data_skip = data_skip;

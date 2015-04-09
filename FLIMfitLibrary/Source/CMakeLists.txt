@@ -55,10 +55,15 @@ else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
    endif()
 endif()
 
-#find_package(HDF5)
-#include_directories (${HDF5_INCLUDE_DIRS} )
+# MATLAB stuff
+#====================================
+set(MATLAB_EXTERN_DIR "E:/Program Files/extern/")
+set(MATLAB_LIB_DIR ${MATLAB_EXTERN_DIR}lib/win64/microsoft/)
+set(MATLAB_INCLUDE_DIR ${MATLAB_EXTERN_DIR}include)
+set(MATLAB_LIBRARIES ${MATLAB_LIB_DIR}libmat.lib ${MATLAB_LIB_DIR}libmex.lib ${MATLAB_LIB_DIR}libmx.lib)
 
-include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter)
+
+include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter)
 
 
 
@@ -86,28 +91,6 @@ set(HEADERS
    FitSettings.h
    #ModelParameters.h
 )
-
-# Add _32/_64 appendix to library
-#===================================================
-if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_64" )
-else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_32" ) 
-endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
-
-
-# Copy header to output directory
-#===================================================
-#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
-#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h DESTINATION ${OUT_DIR})
 
 # Include optimisation flags in Visual Studio
 #===================================================
@@ -142,26 +125,19 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 # Make library
 #===================================================
-add_library(${LIB_NAME}_lib STATIC ${SOURCE} ${HEADERS} )
+add_library(FLIMfit STATIC ${SOURCE} ${HEADERS} )
 
-add_library(${LIB_NAME} SHARED FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
+add_library(FLIMfitMex MODULE MexUtils.h FLIMGlobalAnalysis.cpp)
+add_definitions(-DMATLAB_MEX_FILE)
+
+set_target_properties(FLIMfitMex PROPERTIES LINK_FLAGS "/export:mexFunction" )
+set_target_properties(FLIMfitMex PROPERTIES SUFFIX ".mexw64")
+
+target_link_libraries(FLIMfitMex FLIMfit levmar FLIMDecayModel)
 
 
-
-target_link_libraries(${LIB_NAME} ${LIB_NAME}_lib levmar FLIMDecayModel)
-
-
-
-# Make sure we don't have 'lib' prefix on UNIX
-#===================================================
-set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
-
-get_target_property(LIB_LOCATION ${LIB_NAME} LOCATION)
-add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIB_LOCATION} ${OUT_DIR}
-                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h" ${OUT_DIR}
-                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h" ${OUT_DIR})
+add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:FLIMfitMex> ${OUT_DIR})
 
 set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
-set( FGP_LIB ${LIB_NAME} PARENT_SCOPE )
 set( FGP_LIB_DIR ${OUT_DIR} PARENT_SCOPE )
 

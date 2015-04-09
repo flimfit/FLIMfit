@@ -38,12 +38,11 @@
 
 #include <stdint.h>
 
+#include <memory>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-
-//#include "tinythread.h"
 
 #include "FlagDefinitions.h"
 #include "ConcurrencyAnalysis.h"
@@ -63,12 +62,12 @@ class FLIMData : public AcquisitionParameters
 
 public:
 
-   FLIMData(AcquisitionParameters& acq, int n_im, int n_x, int n_y, 
+   FLIMData(std::shared_ptr<AcquisitionParameters> acq, int n_im, int n_x, int n_y, 
             int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor);
 
    int SetData(float data[]);
    int SetData(uint16_t data[]);
-   int SetData(char* data_file, int data_class, int data_skip);
+   int SetData(const char* data_file, int data_class, int data_skip);
 
    void SetStatus(shared_ptr<FitStatus> status_);
    void SetNumThreads(int n_thread);

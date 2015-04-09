@@ -27,8 +27,7 @@
 //
 //=========================================================================
 
-#ifndef _ACQUISITIONPARAMETERS_H
-#define _ACQUISITIONPARAMETERS_H
+#pragma once
 
 #include "InstrumentResponseFunction.h"
 
