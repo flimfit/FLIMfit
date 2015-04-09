@@ -1,0 +1,3 @@
+[submodule "FLIMfitLibrary/FLIMreader"]
+	path = FLIMfitLibrary/FLIMreader
+	url = https://github.com/seanwarren/FLIMreader

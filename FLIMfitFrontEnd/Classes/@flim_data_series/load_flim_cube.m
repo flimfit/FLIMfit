@@ -361,6 +361,12 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
             end
 
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        case '.pt3'
+            
+            r = FLIMreaderMex(file);
+            target(:,:,:,:,selected) = FLIMreaderMex(r, 'GetData', Carr);
+            FLIMreaderMex(r,'Delete');
+            
         case {'.csv','.txt'}
             
             if strcmp(ext,'.txt')
