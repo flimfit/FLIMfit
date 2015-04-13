@@ -407,7 +407,7 @@ FITDLL_API const char** GetOutputParamNames(int c_idx, int* n_output_params)
 FITDLL_API int GetTotalNumOutputRegions(int c_idx)
 {
    int valid = InitControllerIdx(c_idx);
-   if (!valid) return NULL;
+   if (!valid) return ERR_NO_FIT;
 
    return controller[c_idx]->data->n_output_regions_total;
 }
