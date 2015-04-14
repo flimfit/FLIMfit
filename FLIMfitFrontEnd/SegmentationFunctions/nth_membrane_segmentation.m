@@ -3,7 +3,7 @@ function z = nth_membrane_segmentation(U,scale,rel_bg_scale,threshold,membrane_w
 %scale=100,rel_bg_scale=2,threshold=0.1,membrane_width=4,smoothing=5,min_area=200
 %scale,Object width (pixels)
 %rel_bg_scale,Background size used to calculate threshold/Object width (>1)
-%threshold,Threshold (0-1)
+%threshold,Threshold (0 or greater)
 %membrane_width,Width of membrane (pixels)
 %smoothing,Radius of smoothing kernel (pixels)
 %min_area,Minimium object area (pixels^2)
