@@ -313,7 +313,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               
               % if all wells appear to be the same 
               % then use wavelength instead
-              if strcmp(chan_info{1} ,chan_info{end})
+              if strcmp(chan_info{1} ,chan_info{end}) && length(chan_info) > 1
                 for i=1:n_chan
                   chan_info{i} = header_info{3}{i};
                 end
