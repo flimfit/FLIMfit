@@ -266,10 +266,22 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
            
 
-
+        case '.pt3'
             
-          % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-          case {'.csv','.txt'} 
+            r = FLIMreaderMex(file);
+            n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
+            dims.delays = FLIMreaderMex(r,'GetTimePoints');
+            dims.sizeZCT = [ 1 n_channels 1 ];
+            dims.FLIM_type = 'TCSPC';
+            dims.sizeXY = FLIMreaderMex(r,'GetImageSize');
+            FLIMreaderMex(r,'Delete');
+            
+            for i=1:n_channels
+                dims.chan_info{i} = ['Channel:' num2str(i-1)];
+            end
+            
+        % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+        case {'.csv','.txt'} 
               
               if strcmp(ext,'.txt')
                   dlm = '\t';

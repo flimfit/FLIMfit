@@ -56,6 +56,9 @@ function compile(v)
         
     addpath_global_analysis();
     
+    CompileFLIMreaderMex();
+    
+    
     % Make sure we have included the DLL
     dll_interface = flim_dll_interface();
     dll_interface.unload_global_library();

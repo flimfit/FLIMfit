@@ -116,10 +116,6 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
    set( LIB_NAME "FLIMGlobalAnalysis_32" ) 
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
-# Make sure we output directly into binary folder
-#===================================================
-set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
-
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
@@ -150,7 +146,7 @@ if(MSVC)
 endif(MSVC)
 
 if(UNIX)
-   set(PLATFORM_FLAGS_ALL "-msse3")
+   set(PLATFORM_FLAGS_ALL "-msse3 -std=c++11")
    set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
    set(PLATFORM_FLAGS_DEBUG "")
 endif(UNIX)
