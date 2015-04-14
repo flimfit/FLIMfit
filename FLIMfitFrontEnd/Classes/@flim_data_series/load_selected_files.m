@@ -119,7 +119,7 @@ function load_selected_files(obj,selected)
                     filename = obj.file_names{1};  
                 end
                 
-                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,j);
+                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,1,j);
                 
                
                 if ~success
