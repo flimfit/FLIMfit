@@ -135,7 +135,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                     obj.imageSeries = ones(1,length(obj.file_names)) .* imageSeries; 
                 end
             else
-                obj.imageSeries = ones(1,length(obj.file_names))
+                obj.imageSeries = ones(1,length(obj.file_names));
             end
             
                 
