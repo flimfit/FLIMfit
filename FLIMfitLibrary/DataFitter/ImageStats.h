@@ -43,23 +43,25 @@ class ImageStats
 {
 public:
 
-   ImageStats(int n_regions, int n_params) :
-      n_regions(n_regions),   
+   ImageStats(int n_regions = 0, int n_params = 0) :
+      n_regions(n_regions),
       n_params(n_params)
    {
-      params.resize(n_regions * n_params);
+      SetSize(n_regions, n_params);
+   }
 
-      param_idx = new int[n_regions];
+   void SetSize(int n_regions, int n_params)
+   {
+      params.resize(n_regions * n_params * N_STATS);
+      param_idx.resize(n_regions);
 
       for(int i=0; i<n_regions; i++)
          param_idx[i] = 0;
    };
 
-   ~ImageStats()
-   {
-      delete[] param_idx;
-   }
-
+   int GetNumStats() { return N_STATS; }
+   int GetNumParams() { return n_params; }
+   vector<T>& GetStats() { return params; }
 
    /**
     * Set the next parameter statistics to specified values
@@ -143,8 +145,7 @@ private:
 
    int n_regions;
    int n_params;
-   int* param_idx;
-
+   std::vector<int> param_idx;
    std::vector<T> params;
 
 };

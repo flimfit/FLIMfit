@@ -154,7 +154,10 @@ BOOST_AUTO_TEST_CASE(TCSPC_Single)
    auto group = std::make_shared<MultiExponentialDecayGroup>(acq, 1);
    model->AddDecayGroup(group);
 
-   auto data = std::make_shared<FLIMData>(*acq, 1, n_x, n_y, nullptr, nullptr, true, 0, 1e10, MODE_GLOBAL, 0);
+   auto data = std::make_shared<FLIMData>();
+
+   data->SetAcquisitionParmeters(*acq.get());
+   data->SetDataSize(1, n_x, n_y);
 
    FLIMGlobalFitController controller;   
    controller.SetModel(model);

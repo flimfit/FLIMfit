@@ -39,6 +39,7 @@
 #include <stdint.h>
 
 #include <memory>
+#include <limits>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/bind.hpp>
@@ -62,8 +63,14 @@ class FLIMData : public AcquisitionParameters
 
 public:
 
-   FLIMData(std::shared_ptr<AcquisitionParameters> acq, int n_im, int n_x, int n_y, 
-            int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor);
+   FLIMData();
+
+   void SetAcquisitionParmeters(const AcquisitionParameters& acq);
+   void SetDataSize(int n_im, int n_x, int n_y);
+   void SetMasking(int* use_im, uint8_t mask[], int merge_regions = false);
+   void SetThresholds(int threshold, int limit);
+   void SetGlobalMode(int global_mode);
+   void SetSmoothing(int smoothing);
 
    int SetData(float data[]);
    int SetData(uint16_t data[]);
@@ -111,35 +118,34 @@ public:
 
    ~FLIMData();
 
-   int n_im;
-   int n_x;
-   int n_y;
+   int n_im = 0;
+   int n_x = 0;
+   int n_y = 0;
    int n_buf;
 
-   int n_px;
-   int n_p;
+   int n_px = 0;
 
-   int n_regions_total;
-   int n_output_regions_total;
+   int n_regions_total = 0;
+   int n_output_regions_total = 0;
 
-   int data_skip;
+   int data_skip = 0;
 
-   uint8_t* mask;
-   int n_masked_px;
-   int merge_regions;
+   uint8_t* mask = nullptr;
+   int n_masked_px = 0;
+   int merge_regions = false;
 
-   double* image_t0_shift;
+   double* image_t0_shift = nullptr;
 
 
-   int global_mode;
+   int global_mode = MODE_PIXELWISE;
 
-   int smoothing_factor;
-   float smoothing_area;
+   int smoothing_factor = 0;
+   float smoothing_area = 1;
 
-   int* use_im;
-   int n_im_used;
+   int* use_im = nullptr;
+   int n_im_used = 0;
 
-   int has_acceptor;
+   int has_acceptor = false;
 
 private:
 
@@ -159,49 +165,49 @@ private:
 
    void* data;
 
-   float* tr_data_;
-   float* tr_buf_;
-   float* tr_row_buf_;
-   float* intensity_;
-   float* r_ss_;
-   float* acceptor_;
+   std::vector<std::vector<float>> tr_data_;
+   std::vector<std::vector<float>> tr_buf_;
+   std::vector<std::vector<float>> tr_row_buf_;
+   std::vector<std::vector<float>> intensity_;
+   std::vector<std::vector<float>> r_ss_;
+   
+   float* acceptor_ = nullptr;
 
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;
 
    char *data_file; 
 
-   int data_mode;
+   int data_mode = DATA_DIRECT;
    
-   int has_data;
-   int supplied_mask;
+   int has_data = false;
+   int supplied_mask = false;
 
-   int background_type;
-   float background_value;
-   float* background_image;
+   int background_type = BG_NONE;
+   float background_value = 0;
+   float* background_image = nullptr;
 
-   float* tvb_profile;
-   float* tvb_I_map;
+   float* tvb_profile = nullptr;
+   float* tvb_I_map = nullptr;
 
-   int n_thread;
+   int n_thread = 1;
 
+   int threshold = 3;
+   int limit = INT_MAX;
 
-   int threshold;
-   int limit;
+   std::vector<int> cur_transformed;
 
-   int* cur_transformed;
+   int data_class = DATA_FLOAT;
 
-   int data_class;
+   std::vector<int> region_idx;
+   std::vector<int> output_region_idx;
+   std::vector<int> region_count;
+   std::vector<int> region_pos;
 
-   int* region_idx;
-   int* output_region_idx;
-   int* region_count;
-   int* region_pos;
+   std::vector<int> data_used;
+   std::vector<int> data_loaded;
 
-   int* data_used;
-   int* data_loaded;
-
-   bool stream_data;
+   bool stream_data = STREAM_DATA;
 
    tthread::thread* loader_thread;
    tthread::mutex data_mutex;
@@ -211,7 +217,6 @@ private:
    shared_ptr<FitStatus> status;
 
    friend void StartDataLoaderThread(void* wparams);
-
 };
 
 
@@ -351,7 +356,7 @@ int FLIMData::CalculateRegions()
 
       // Determine how many regions we have in each image
       //--------------------------------------------------------
-      int*     region_count_ptr = region_count + i * MAX_REGION;
+      int*     region_count_ptr = region_count.data() + i * MAX_REGION;
       uint8_t* mask_ptr         = mask + im*n_px;
 
       memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
@@ -440,6 +445,8 @@ void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
    int free_slot;
    bool load_image;
 
+   int n_p = n_meas_full * n_x * n_y;
+
    for(int im=0; im<n_im_used; im++)
    {
       if (only_load_non_empty_images)
@@ -492,7 +499,7 @@ void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
          if (free_slot == -2)
             return;
 
-         T* tr_buf = (T*) this->tr_buf_  + free_slot * n_p;
+         T* tr_buf = (T*) tr_buf_[free_slot].data();
          T* data_ptr = GetDataPointer<T>(free_slot, im);
          memcpy(tr_buf, data_ptr, n_p * sizeof(T));
          data_loaded[free_slot] = im;
@@ -507,6 +514,8 @@ void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
 template <typename T>
 int FLIMData::GetStreamedData(int im, int thread, T*& data)
 {
+   int n_p = n_meas_full * n_x * n_y;
+
    if (stream_data)
    {
     // Get data from loading thread
@@ -540,7 +549,7 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
          slot = -1;
       }
       else
-         data = (T*) tr_buf_  + slot * n_p;
+         data = (T*) tr_buf_[slot].data();
 
       return slot;
 
@@ -548,7 +557,7 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
    else
    {
 
-      T* tr_buf = (T*) this->tr_buf_  + thread * n_p;
+      T* tr_buf = (T*) this->tr_buf_[thread].data();
       T* data_ptr = GetDataPointer<T>(thread, im);
       memcpy(tr_buf, data_ptr, n_p * sizeof(T));
       data = tr_buf;
@@ -566,11 +575,10 @@ void FLIMData::TransformImage(int thread, int im)
    if (im == cur_transformed[thread])
       return;
 
-   float* tr_data    = tr_data_    + thread * n_p;
-   float* intensity  = intensity_  + thread * n_px;
-   float* r_ss       = r_ss_       + thread * n_px;
-   float* tr_row_buf = tr_row_buf_ + thread * (n_x + n_y);
-
+   vector<float>& tr_data = tr_data_[thread];
+   vector<float>& intensity = intensity_[thread];
+   vector<float>& r_ss = r_ss_[thread];
+   vector<float>& tr_row_buf = tr_row_buf_[thread];
    T* tr_buf;
    int slot = GetStreamedData(im, thread, tr_buf);  
    if (slot == -1)
@@ -584,7 +592,7 @@ void FLIMData::TransformImage(int thread, int im)
 
    if ( smoothing_factor == 0 )
    {
-      float* tr_ptr = tr_data;
+      float* tr_ptr = tr_data.data();
       // Copy data from source to tr_data, skipping cropped time points
       for(int y=0; y<n_y; y++)
          for(int x=0; x<n_x; x++)
@@ -606,7 +614,7 @@ void FLIMData::TransformImage(int thread, int im)
       int dx = n_meas_full;
       int dy = n_x * dx; 
 
-      float* y_smoothed_buf = intensity; // use intensity as a buffer
+      float* y_smoothed_buf = intensity.data(); // use intensity as a buffer
 
       float sa = (float) 2*s+1;
 
@@ -690,7 +698,7 @@ void FLIMData::TransformImage(int thread, int im)
 
    
    // Calculate intensity
-   float* intensity_ptr = intensity;
+   float* intensity_ptr = intensity.data();
    cur_data_ptr = (T*) tr_buf;
    for(int p=0; p<n_px; p++)
    {
@@ -715,8 +723,8 @@ void FLIMData::TransformImage(int thread, int im)
       float para;
       float perp;
 
-      float* r_ptr = r_ss;
-      float*  tr_data_ptr = tr_data;
+      float* r_ptr = r_ss.data();
+      float*  tr_data_ptr = tr_data.data();
       for(int p=0; p<n_px; p++)
       {
          para = 0;

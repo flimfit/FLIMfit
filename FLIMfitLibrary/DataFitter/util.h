@@ -50,7 +50,7 @@ void SetNaN(float* var, int n);
 
 //double NaN();
 
-
+/*
 #ifndef _MSVC
 
 #define _ASSERTE(x)
@@ -59,5 +59,5 @@ void SetNaN(float* var, int n);
 int _CrtCheckMemory( );
 
 #endif
-
+*/
 #endif 

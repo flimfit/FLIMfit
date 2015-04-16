@@ -40,8 +40,6 @@
 
 //#include "util.h"
 
-using std::min;
-using std::max;
 using std::pair;
 
 
@@ -67,7 +65,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    
    pmax  = model->GetNumDerivatives();
 
-   ndim       = max( n, 2*nl+3 );
+   ndim       = std::max( n, 2*nl+3 );
    nmax       = n + 16; // pad to prevent false sharing  
 
    n_param = nl + n_param_extra;

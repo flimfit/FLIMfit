@@ -31,66 +31,34 @@
 #include "FlagDefinitions.h"
 #include <cmath>
 
-FLIMData::FLIMData(shared_ptr<AcquisitionParameters> acq, int n_im, int n_x, int n_y, 
-                   int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, int global_mode, int smoothing_factor) :
-   AcquisitionParameters(*acq.get()),   
-   n_im(n_im), 
-   n_x(n_x),
-   n_y(n_y),
-   use_im(use_im),
-   mask(mask),
-   merge_regions(merge_regions),
-   threshold(threshold),
-   limit(limit),
-   smoothing_factor(smoothing_factor),
-   n_thread(n_thread)
+
+void FLIMData::SetAcquisitionParmeters(const AcquisitionParameters& acq)
 {
-   has_data = false;
-   has_acceptor = false;
+   *static_cast<AcquisitionParameters*>(this) = acq;
+}
 
-   data_file = NULL;
-   acceptor_  = NULL;
-   loader_thread = NULL;
+void FLIMData::SetDataSize(int n_im_, int n_x_, int n_y_)
+{
+   n_im = n_im_;
+   n_x = n_x_;
+   n_y = n_y_;
 
+   n_im_used = n_im;
 
-   image_t0_shift = NULL;
+   n_px = n_x * n_y;
 
+}
 
-   // So that we can calculate errors properly
-   if (global_mode == MODE_PIXELWISE && n_x == 1 && n_y == 1)
-      global_mode = MODE_IMAGEWISE;
-
-   this->global_mode = global_mode;
-
-   stream_data = STREAM_DATA;
-
-   n_masked_px = 0;
-
-   // Make sure we exclude very dim pixels which 
-   // can break the autosampling (we might end up with only one bin!)
-   if (threshold < 3)
-      threshold = 3;
-
-   supplied_mask = (mask != NULL);
-
-   if (!supplied_mask)
-   {
-      int sz_mask = n_im * n_x * n_y;
-      this->mask = new uint8_t[sz_mask]; //ok
-      supplied_mask = false;
-      for(int i=0; i<sz_mask; i++)
-         this->mask[i] = 1;
-   }
-
-
-   n_im_used = 0;
+void FLIMData::SetMasking(int* use_im, uint8_t mask[], int merge_regions)
+{
    if (use_im != NULL)
    {
-      for(int i=0; i<n_im; i++)
+      n_im_used = 0;
+      for (int i = 0; i<n_im; i++)
       {
          if (use_im[i])
-            for(int j=0; j<n_x*n_y; j++)
-               if(this->mask[i*n_x*n_y+j] > 0)
+            for (int j = 0; j<n_x*n_y; j++)
+               if (this->mask[i*n_x*n_y + j] > 0)
                {
                   use_im[n_im_used] = i;
                   n_im_used++;
@@ -103,34 +71,77 @@ FLIMData::FLIMData(shared_ptr<AcquisitionParameters> acq, int n_im, int n_x, int
       n_im_used = n_im;
    }
 
-   background_value = 0;
-   background_type = BG_NONE;
+   region_count.resize(n_im_used * MAX_REGION);
+   region_pos.resize(n_im_used * MAX_REGION);
+   region_idx.resize((n_im_used + 1) * MAX_REGION);
+   output_region_idx.resize(n_im_used * MAX_REGION);
 
-   n_px = n_x * n_y;
-   n_p = n_x * n_y * n_meas_full;
-
-   region_count = new int[ n_im_used * MAX_REGION ];
-   region_pos   = new int[ n_im_used * MAX_REGION ];
-   region_idx   = new int[ (n_im_used+1) * MAX_REGION ];
-   output_region_idx   = new int[ n_im_used * MAX_REGION ];
-
-   for (int i=0; i<n_im_used * MAX_REGION; i++)
+   for (int i = 0; i<n_im_used * MAX_REGION; i++)
    {
       region_count[i] = 0;
       region_pos[i] = 0;
       region_idx[i] = -1;
       output_region_idx[i] = -1;
    }
-   for (int i=0; i<MAX_REGION; i++)
+   for (int i = 0; i<MAX_REGION; i++)
       region_idx[n_im_used * MAX_REGION + i] = -1;
-   
-   int dim_required = smoothing_factor*2 + 2;
-   if (n_x < dim_required || n_y < dim_required)
-      this->smoothing_factor = 0;
+}
 
-   smoothing_area = (float) (2*this->smoothing_factor+1)*(2*this->smoothing_factor+1);
+void FLIMData::SetThresholds(int threshold_, int limit_)
+{
+   // Make sure we exclude very dim pixels which 
+   // can break the autosampling (we might end up with only one bin!)
+   threshold = std::max(threshold_, 3);
+   limit = limit_;
+}
+
+void FLIMData::SetGlobalMode(int global_mode_)
+{
+   // So that we can calculate errors properly
+   if (global_mode_ == MODE_PIXELWISE && n_x == 1 && n_y == 1)
+      global_mode_ = MODE_IMAGEWISE;
+
+   global_mode = global_mode_;
+}
+
+void FLIMData::SetSmoothing(int smoothing_factor_)
+{
+   int dim_required = smoothing_factor_ * 2 + 2;
+   if (n_x >= dim_required && n_y > dim_required)
+   {
+      smoothing_factor = smoothing_factor_;
+      smoothing_area = (float)(2 * smoothing_factor + 1)*(2 * smoothing_factor + 1);
+   }
+}
+
+FLIMData::FLIMData()
+{
+   has_data = false;
+   has_acceptor = false;
+
+   data_file = NULL;
+   acceptor_  = NULL;
+   loader_thread = NULL;
 
 
+   image_t0_shift = NULL;
+
+
+   stream_data = STREAM_DATA;
+
+
+   background_value = 0;
+   background_type = BG_NONE;
+
+
+   n_masked_px = 0;
+
+   supplied_mask = false;
+
+   background_value = 0;
+   background_type = BG_NONE;
+
+   n_px = n_x * n_y;
 }
 
 void FLIMData::SetStatus(shared_ptr<FitStatus> status_)
@@ -149,25 +160,19 @@ void FLIMData::SetNumThreads(int n_thread_)
 
    // TODO: make these all vectors
 
-   tr_data_ = new float[n_thread * n_p]; //ok
-   tr_buf_ = new float[n_thread * n_p]; //ok
-   intensity_ = new float[n_thread * n_px];
-   tr_row_buf_ = new float[n_thread * (n_x + n_y)]; //ok
+   int n_p = n_x * n_y * n_meas_full;
+
+   tr_data_.resize(n_thread, std::vector<float>(n_p));
+   tr_buf_.resize(n_thread, std::vector<float>(n_p));
+   intensity_.resize(n_thread, std::vector<float>(n_px));
+   tr_row_buf_.resize(n_thread, std::vector<float>(n_x+n_y));
 
    if (polarisation_resolved)
-      r_ss_ = new float[n_thread * n_px];
+      r_ss_.resize(n_thread, std::vector<float>(n_px));
 
-   cur_transformed = new int[n_thread]; //ok 
-
-   data_used = new int[n_thread];
-   data_loaded = new int[n_thread];
-
-   for (int i = 0; i<n_thread; i++)
-   {
-      cur_transformed[i] = -1;
-      data_used[i] = 1;
-      data_loaded[i] = -1;
-   }
+   cur_transformed.resize(n_thread, -1);
+   data_used.resize(n_thread, -1);
+   data_loaded.resize(n_thread, -1);
 
    data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
 }
@@ -526,10 +531,11 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
       masked_r_ss = aux_data++;
 
    uint8_t* im_mask = mask + iml*n_x*n_y;
-   float*   tr_data   = tr_data_ + thread * n_p;
-   float*   intensity = intensity_ + thread * n_px;
-   float*   r_ss      = r_ss_ + thread * n_px;
-   float*   acceptor  = acceptor_ + iml*n_x*n_y;
+   float*   acceptor = acceptor_ + iml*n_x*n_y;
+
+   vector<float>& tr_data = tr_data_[thread];
+   vector<float>& intensity = intensity_[thread];
+   vector<float>& r_ss = r_ss_[thread];
 
    if (data_class == DATA_FLOAT)
       TransformImage<float>(thread, im);
@@ -593,27 +599,11 @@ FLIMData::~FLIMData()
 {
    ClearMapping();
 
-   delete[] tr_data_;
-   delete[] tr_buf_;
-   delete[] tr_row_buf_;
-   delete[] intensity_;
-
-   delete[] cur_transformed;
    delete[] data_map_view;
  
-   delete[] data_used;
-   delete[] data_loaded;
-
-   delete[] region_count;
-   delete[] region_pos;
-   delete[] region_idx;
-   delete[] output_region_idx;
    if (!supplied_mask) 
       delete[] mask;
    
-   if (polarisation_resolved)
-      delete[] r_ss_;
-  
    if (data_file != NULL)
       delete[] data_file;
 

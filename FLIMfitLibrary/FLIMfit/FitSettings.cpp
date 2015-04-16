@@ -27,55 +27,38 @@
 //
 //=========================================================================
 
-#pragma once
+#include "FitSettings.h"
+#include "FlagDefinitions.h"
 
-#include "InstrumentResponseFunction.h"
-#include <vector>
-#include <memory>
-using std::shared_ptr;
-using std::vector;
+#include <cstring>
 
 
-class AcquisitionParameters
+FitSettings::FitSettings(int algorithm_, int global_algorithm_, int weighting_, int n_thread_, int runAsync_, int (*callback_)())
 {
-public:
+   algorithm = algorithm_;
+   global_algorithm = global_algorithm_;
+   weighting = weighting_;
 
-   AcquisitionParameters(int data_type = 0, double t_rep = 12500, int polarisation_resolved = false, int n_chan = 1, double counts_per_photon = 1);
-  
-   void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
-   void SetT(int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[]);
-   
-   void SetT(vector<double>& t_, double t_min, double t_max);
-   void SetT(vector<double>& t_);
-   void SetIntegrationTimes(vector<double>& t_int_);
-   
-   double* GetT();
+   n_thread = n_thread_;
+   runAsync = runAsync_;
+   callback = callback_;
 
-   int data_type;
-   int polarisation_resolved;
+   calculate_errors = false;
+   conf_interval = 0.05;
 
-   int n_t;
-   int n_t_full;
-   int n_chan;
-   
-   double  counts_per_photon;
-   double  t_rep;
-   
-   vector<int>    t_skip;
-   vector<double> t;
-   vector<double> t_int;
-   vector<double> tvb_profile;
+}
 
-   shared_ptr<InstrumentResponseFunction> irf;
+FitSettings::FitSettings(FitSettingsStruct& settings_) : 
+   FitSettingsStruct(settings_)
+{}
 
-   // Computed parameters
-   int n_meas;
-   int n_meas_full;
-   bool equally_spaced_gates;
-   vector<int> irf_max;
+void FitSettings::CalculateErrors(int calculate_errors_, double conf_interval_)
+{
+   calculate_errors = calculate_errors_;
+   conf_interval = conf_interval_;
+}
 
-protected:
-
-   void CheckGateSpacing();
-   void CalculateIRFMax();
-};
+FitSettingsStruct FitSettings::GetStruct()
+{
+   return (FitSettingsStruct) *this;
+}

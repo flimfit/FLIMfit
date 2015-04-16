@@ -112,6 +112,12 @@ FitResults::~FitResults()
    ClearVariable(aux_data);
 }
 
+int FitResults::GetNumOutputRegions()
+{
+   return data->n_output_regions_total;
+}
+
+
 const FitResultsRegion FitResults::GetRegion(int image, int region)
 {
    return FitResultsRegion(this, image, region);
@@ -206,11 +212,8 @@ void FitResults::DetermineParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 }
 
-void FitResults::GetCParamNames(int& n_params, const char**& param_names)
-{
-   n_params = n_output_params;
-   param_names = &param_names_ptr[0];
-}
+int FitResults::GetNumX() { return data->n_x; }
+int FitResults::GetNumY() { return data->n_y; }
 
 
 void FitResultsRegion::GetPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)
@@ -224,12 +227,12 @@ void FitResultsRegion::SetFitStatus(int code)
 }
 
 
-void FitResults::ComputeImageStats(float confidence_factor)
+void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary>& region_summary, ImageStats<float>& stats)
 {
    RegionStatsCalculator stats_calculator(n_aux, confidence_factor);
 
-   ImageStats<float> stats(data->n_output_regions_total, n_output_params);
-   vector<RegionSummary> region_summary;
+   stats.SetSize(data->n_output_regions_total, n_output_params);
+   
    vector<float> param_buf;
 
    for (int im = 0; im<data->n_im_used; im++)

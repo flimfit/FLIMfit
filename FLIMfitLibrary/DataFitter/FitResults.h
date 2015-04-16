@@ -27,14 +27,13 @@
 //
 //=========================================================================
 
+#pragma once
+
 #include "DecayModel.h"
+#include "ImageStats.h"
 #include <stdint.h>
 
-#ifndef _FITRESULTS_H
-#define _FITRESULTS_H
-
 #include <vector>
-
 #include <memory>
 
 using std::vector;
@@ -59,6 +58,9 @@ public:
    FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, int calculate_errors);
    ~FitResults();
 
+   const vector<string>& GetOutputParamNames() { return param_names; };
+   int GetNumOutputRegions();
+
    float* GetAuxDataPtr(int image, int region);
    
    const FitResultsRegion GetRegion(int image, int region);
@@ -67,13 +69,11 @@ public:
    void GetNonLinearParams(int image, int region, int pixel, vector<double>& params);
    void GetLinearParams(int image, int region, int pixel, vector<float>& params);
 
-   void ComputeImageStats(float confidence_factor);
-
-   int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread);   
-
+   void ComputeImageStats(float confidence_factor, vector<RegionSummary>& summary, ImageStats<float>& stats);
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
-   void GetCParamNames(int& n_params, const char**& param_names);
+   int GetNumX();
+   int GetNumY();
 
 private:
 
@@ -139,9 +139,4 @@ private:
    int region;
    int pixel;
    bool is_pixel;
-
-
-
 };
-
-#endif
