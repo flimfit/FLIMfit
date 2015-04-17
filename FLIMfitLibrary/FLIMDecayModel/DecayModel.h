@@ -47,12 +47,14 @@ class DecayModel
 {
 public:
 
-   DecayModel(shared_ptr<AcquisitionParameters> acq);
+   DecayModel();
    DecayModel(const DecayModel &obj);
 
    void AddDecayGroup(shared_ptr<AbstractDecayGroup> group);
+   shared_ptr<AbstractDecayGroup> GetGroup(int idx) { return decay_groups[idx]; };
+   void RemoveDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
 
-   void Init();
+   void Init(shared_ptr<AcquisitionParameters> acq);
 
    void   SetupIncMatrix(int* inc);
    int    CalculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel);

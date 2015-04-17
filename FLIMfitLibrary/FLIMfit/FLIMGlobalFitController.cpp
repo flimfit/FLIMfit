@@ -102,8 +102,6 @@ int FLIMGlobalFitController::RunWorkers()
 
    omp_set_num_threads(n_omp_thread);
 
-   data->irf = irf;
-
    data->StartStreaming();
    status->AddConditionVariable(&active_lock);
 
@@ -403,7 +401,7 @@ void FLIMGlobalFitController::Init()
 
    getting_fit    = false;
 
-   model->Init();
+   model->Init(acq);
 
    if (n_thread < 1)
       n_thread = 1;

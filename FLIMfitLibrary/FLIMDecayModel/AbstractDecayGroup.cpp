@@ -29,8 +29,7 @@
 
 #include "AbstractDecayGroup.h"
 
-AbstractDecayGroup::AbstractDecayGroup(shared_ptr<AcquisitionParameters> acq) :
-acq(acq)
+AbstractDecayGroup::AbstractDecayGroup()
 {
 }
 

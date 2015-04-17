@@ -52,22 +52,32 @@ include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayMod
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 add_definitions(-DMATLAB_MEX_FILE)
 
-add_library(ff_FLIMdata MODULE MexUtils.h FLIMDataMex.cpp)
-target_link_libraries(ff_FLIMdata FLIMfit DataFitter FLIMDecayModel ${MATLAB_LIBRARIES})
+add_library(ff_FLIMData MODULE MexUtils.h FLIMDataMex.cpp)
+target_link_libraries(ff_FLIMData FLIMfit DataFitter FLIMDecayModel ${MATLAB_LIBRARIES})
 
-add_library(ff_Controller MODULE MexUtils.h FLIMGlobalAnalysis.cpp)
+add_library(ff_Controller MODULE MexUtils.h ControllerMex.cpp)
 target_link_libraries(ff_Controller FLIMfit DataFitter FLIMDecayModel levmar ${MATLAB_LIBRARIES})
 
 add_library(ff_FitResults MODULE MexUtils.h FitResultsMex.cpp)
 target_link_libraries(ff_FitResults FLIMfit DataFitter FLIMDecayModel ${MATLAB_LIBRARIES})
 
+add_library(ff_DecayModel MODULE MexUtils.h DecayModelMex.cpp)
+target_link_libraries(ff_DecayModel FLIMDecayModel ${MATLAB_LIBRARIES})
 
-set_target_properties(ff_FLIMdata PROPERTIES LINK_FLAGS "/export:mexFunction" )
-set_target_properties(ff_FLIMdata PROPERTIES SUFFIX ".mexw64")
-add_custom_command(TARGET ff_FLIMdata POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMdata> ${OUT_DIR})
+
+set_target_properties(ff_FLIMData PROPERTIES LINK_FLAGS "/export:mexFunction" )
+set_target_properties(ff_FLIMData PROPERTIES SUFFIX ".mexw64")
+add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${OUT_DIR})
 
 set_target_properties(ff_FitResults PROPERTIES LINK_FLAGS "/export:mexFunction" )
 set_target_properties(ff_FitResults PROPERTIES SUFFIX ".mexw64")
 add_custom_command(TARGET ff_FitResults POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FitResults> ${OUT_DIR})
 
+set_target_properties(ff_Controller PROPERTIES LINK_FLAGS "/export:mexFunction" )
+set_target_properties(ff_Controller PROPERTIES SUFFIX ".mexw64")
+add_custom_command(TARGET ff_Controller POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_Controller> ${OUT_DIR})
+
+set_target_properties(ff_DecayModel PROPERTIES LINK_FLAGS "/export:mexFunction" )
+set_target_properties(ff_DecayModel PROPERTIES SUFFIX ".mexw64")
+add_custom_command(TARGET ff_DecayModel POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_DecayModel> ${OUT_DIR})
 

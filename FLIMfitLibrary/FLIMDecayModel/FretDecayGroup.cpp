@@ -34,8 +34,8 @@
 
 using namespace std;
 
-FretDecayGroup::FretDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
-   MultiExponentialDecayGroup(acq, n_donor_exponential, true),
+FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
+   MultiExponentialDecayGroup(n_donor_exponential, true),
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {

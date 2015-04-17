@@ -150,8 +150,8 @@ BOOST_AUTO_TEST_CASE(TCSPC_Single)
    acq->SetT(t);
    acq->SetIRF(irf_);
 
-   auto model = std::make_shared<DecayModel>(acq);
-   auto group = std::make_shared<MultiExponentialDecayGroup>(acq, 1);
+   auto model = std::make_shared<DecayModel>();
+   auto group = std::make_shared<MultiExponentialDecayGroup>(1);
    model->AddDecayGroup(group);
 
    auto data = std::make_shared<FLIMData>();

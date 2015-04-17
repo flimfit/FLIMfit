@@ -32,8 +32,7 @@
 
 using namespace std;
 
-DecayModel::DecayModel(shared_ptr<AcquisitionParameters> acq) :
-   acq(acq),
+DecayModel::DecayModel() :
    reference_parameter("ref_lifetime", 100, { Fixed, FittedGlobally }, Fixed),
    t0_parameter("t0", 0, { Fixed, FittedGlobally }, Fixed)
 {
@@ -41,9 +40,14 @@ DecayModel::DecayModel(shared_ptr<AcquisitionParameters> acq) :
    //decay_groups.emplace_back(new MultiExponentialDecayGroup(acq, 2));
    //decay_groups.emplace_back(new FretDecayGroup(acq, 2, 2));
 
+}
+
+void DecayModel::Init(shared_ptr<AcquisitionParameters> acq)
+{
    photons_per_count = static_cast<float>(1.0 / acq->counts_per_photon);
    SetupAdjust();
 }
+
 
 DecayModel::DecayModel(const DecayModel &obj) :
    acq(obj.acq),
@@ -84,9 +88,6 @@ int DecayModel::GetNumNonlinearVariables()
    return n_nonlinear;
 }
 
-void DecayModel::Init()
-{
-}
 
 
 double DecayModel::GetCurrentReferenceLifetime(const double* param_values, int& idx)

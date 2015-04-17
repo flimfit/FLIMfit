@@ -32,13 +32,10 @@
 #include <boost/lexical_cast.hpp>
 using namespace std;
 
-MultiExponentialDecayGroup::MultiExponentialDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_exponential, bool contributions_global) :
-   AbstractDecayGroup(acq),
+MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global) :
    n_exponential(n_exponential),
    contributions_global(contributions_global)
 {
-   channel_factors.resize(acq->n_chan, 1);
-
    if (contributions_global)
    {
       n_lin_components = 1;

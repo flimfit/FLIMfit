@@ -48,7 +48,8 @@ public:
    virtual ~AbstractDecayGroup() {};
    virtual unique_ptr<AbstractDecayGroup> clone() = 0;
 
-   void Init();
+   void Init(shared_ptr<AcquisitionParameters> acq);
+   vector<shared_ptr<FittingParameter>>& GetParameters() { return parameters; }
 
    virtual int SetVariables(const double* variables) = 0;
    virtual int CalculateModel(double* a, int adim, vector<double>& kap) = 0;
@@ -96,7 +97,7 @@ class BackgroundLightDecayGroup : public AbstractDecayGroup
 {
 public:
 
-   BackgroundLightDecayGroup(shared_ptr<AcquisitionParameters> acq);
+   BackgroundLightDecayGroup();
    unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new BackgroundLightDecayGroup(*this)); };
    
    int SetVariables(const double* variables);
@@ -139,7 +140,7 @@ class MultiExponentialDecayGroup : public AbstractDecayGroup
 {
 public:
 
-   MultiExponentialDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_exponential_ = 1, bool contributions_global_ = false);
+   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false);
    unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new MultiExponentialDecayGroup(*this)); };
 
    virtual int SetVariables(const double* variables);
@@ -174,7 +175,7 @@ class FretDecayGroup : public MultiExponentialDecayGroup
 {
 public:
 
-   FretDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = true);
+   FretDecayGroup(int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = true);
    unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new FretDecayGroup(*this)); };
 
    int SetVariables(const double* variables);
@@ -214,7 +215,7 @@ class AnisotropyDecayGroup : public MultiExponentialDecayGroup
 {
 public:
 
-   AnisotropyDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
+   AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
    unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new AnisotropyDecayGroup(*this)); };
 
    int SetVariables(const double* variables);

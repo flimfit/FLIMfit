@@ -34,8 +34,7 @@
 
 using namespace std;
 
-BackgroundLightDecayGroup::BackgroundLightDecayGroup(shared_ptr<AcquisitionParameters> acq) :
-   AbstractDecayGroup(acq),
+BackgroundLightDecayGroup::BackgroundLightDecayGroup() :
    names({ "offset", "scatter", "tvb" })
 {
    n_lin_components = 0;

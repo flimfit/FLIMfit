@@ -107,6 +107,7 @@ public:
    void SetFitSettings(const FitSettings& fit_settings);
    void SetData(shared_ptr<FLIMData> data);
    void SetModel(shared_ptr<DecayModel> model_) { model = model_; }
+   void SetAcquisitionParameters(shared_ptr<AcquisitionParameters> acq_) { acq = acq_; }
    
    void Init();
    int  RunWorkers();
@@ -121,7 +122,7 @@ public:
    bool Busy();
 
 
-   shared_ptr<InstrumentResponseFunction> irf;
+   shared_ptr<AcquisitionParameters> acq;
    shared_ptr<DecayModel> model;
    shared_ptr<FLIMData> data;
    shared_ptr<FitStatus> status;

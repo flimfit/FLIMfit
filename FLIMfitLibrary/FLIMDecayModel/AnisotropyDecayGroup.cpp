@@ -34,8 +34,8 @@
 
 using namespace std;
 
-AnisotropyDecayGroup::AnisotropyDecayGroup(shared_ptr<AcquisitionParameters> acq, int n_lifetime_exponential, int n_anisotropy_populations, bool include_r_inf) :
-   MultiExponentialDecayGroup(acq, n_lifetime_exponential, true),
+AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_anisotropy_populations, bool include_r_inf) :
+   MultiExponentialDecayGroup(n_lifetime_exponential, true),
    n_anisotropy_populations(n_anisotropy_populations),
    include_r_inf(include_r_inf)
 {
@@ -58,7 +58,7 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(shared_ptr<AcquisitionParameters> acq
 
    anisotropy_buffer.resize(n_anisotropy_populations,
       vector<ExponentialPrecomputationBuffer>(n_exponential,
-      ExponentialPrecomputationBuffer(acq)));
+      ExponentialPrecomputationBuffer(acq))); // TODO: acq
 }
 
 int AnisotropyDecayGroup::SetVariables(const double* param_value)

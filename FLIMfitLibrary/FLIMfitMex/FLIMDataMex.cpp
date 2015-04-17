@@ -40,20 +40,10 @@
 #include <utility>
 
 #include <memory>
-#include <map>
 #include "MexUtils.h"
+#include "PointerMap.h"
 
-using std::pair;
-using std::map;
-using std::unique_ptr;
-using std::shared_ptr;
-
-int next_id = 0;
-
-typedef map<int, shared_ptr<FLIMData>> ObjectMap;
-typedef pair<int, shared_ptr<FLIMData>> ObjectEntry;
-ObjectMap controller;
-
+PointerMap<FLIMData> pointer_map;
 
 #ifdef _WINDOWS
 #ifdef _DEBUG
@@ -243,23 +233,15 @@ void SetImageT0Shift(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs
 }
 
 
-
-void CreateFLIMData(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   controller.insert(ObjectEntry(next_id, std::make_shared<FLIMData>()));
-   plhs[0] = mxCreateDoubleScalar(next_id);
-   next_id++;
-}
-
-
-
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    try
    {
       if (nrhs == 0 && nlhs > 0)
       {
-         CreateFLIMData(nlhs, plhs, nrhs, prhs);
+         AssertInputCondition(nlhs > 0);
+         int idx = pointer_map.CreateObject();
+         plhs[0] = mxCreateDoubleScalar(idx);
          return;
       }
 
@@ -270,16 +252,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       int c_idx = mxGetScalar(prhs[0]);
 
       // Get controller
-      auto iter = controller.find(c_idx);
-      if (iter == controller.end() || iter->second == nullptr)
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "FLIMData index is not valid");
-      shared_ptr<FLIMData> d = iter->second;
+      auto d = pointer_map.Get(c_idx);
+      if (d == nullptr)
+         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerIndex", "Controller index is not valid");
 
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
-         controller.erase(c_idx);
+         pointer_map.Clear(c_idx);
       else if (command == "SetAcquisitionParameters")
          SetAcquisitionParameters(d, nlhs, plhs, nrhs, prhs);
       else if (command == "SetIRF")
