@@ -27,17 +27,7 @@
 #
 #=========================================================================
 
-cmake_minimum_required(VERSION 2.8.4)
-
 project(DataFitter)
-
-# Include the BOOST header files
-#===================================================
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-endif()
-include_directories( "../Boost" )
 
 
 include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel)
@@ -114,3 +104,4 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 # Make library
 #===================================================
 add_library(DataFitter STATIC ${SOURCE} ${HEADERS})
+target_link_libraries(DataFitter Qt5::Core)

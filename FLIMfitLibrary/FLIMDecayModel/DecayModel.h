@@ -32,6 +32,7 @@
 #include "AcquisitionParameters.h"
 #include "AbstractDecayGroup.h"
 
+#include <QObject>
 #include <cmath>
 #include <vector>
 
@@ -43,16 +44,19 @@ using std::unique_ptr;
 using std::string;
 using std::vector;
 
-class DecayModel
+class DecayModel : public QObject
 {
+   Q_OBJECT
+
 public:
 
    DecayModel();
-   DecayModel(const DecayModel &obj);
+   //DecayModel(const DecayModel &obj);
 
    void AddDecayGroup(shared_ptr<AbstractDecayGroup> group);
    shared_ptr<AbstractDecayGroup> GetGroup(int idx) { return decay_groups[idx]; };
    void RemoveDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
+   int GetNumGroups() { return static_cast<int>(decay_groups.size()); }
 
    void Init(shared_ptr<AcquisitionParameters> acq);
 
@@ -73,6 +77,12 @@ public:
    int GetNumNonlinearVariables();
    int GetNumColumns();
    int GetNumDerivatives();
+
+   void DecayGroupUpdated();
+
+signals:
+
+   void Updated();
 
 private:
 

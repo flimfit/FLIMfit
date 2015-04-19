@@ -30,6 +30,8 @@
 #pragma once
 
 #include <memory>
+#include <QObject>
+
 using std::shared_ptr;
 using std::unique_ptr;
 
@@ -39,14 +41,18 @@ using std::unique_ptr;
 #include "IRFConvolution.h"
 #include "FittingParameter.h"
 
-class AbstractDecayGroup
+class AbstractDecayGroup : public QObject
 {
+   Q_OBJECT
+
 public:
 
    AbstractDecayGroup();
    AbstractDecayGroup(shared_ptr<AcquisitionParameters> acq);
    virtual ~AbstractDecayGroup() {};
-   virtual unique_ptr<AbstractDecayGroup> clone() = 0;
+   //virtual unique_ptr<AbstractDecayGroup> clone() = 0;
+
+   virtual void Validate() {};
 
    void Init(shared_ptr<AcquisitionParameters> acq);
    vector<shared_ptr<FittingParameter>>& GetParameters() { return parameters; }
@@ -72,6 +78,10 @@ public:
    template <typename T>
    void AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor, double* scale_fact = NULL);
 
+signals:
+
+   void Updated();
+
 protected:
 
    shared_ptr<AcquisitionParameters> acq;
@@ -95,10 +105,12 @@ protected:
 
 class BackgroundLightDecayGroup : public AbstractDecayGroup
 {
+   Q_OBJECT
+
 public:
 
    BackgroundLightDecayGroup();
-   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new BackgroundLightDecayGroup(*this)); };
+   //unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new BackgroundLightDecayGroup(*this)); };
    
    int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
@@ -136,13 +148,16 @@ protected:
    double tvb = 0;
 };
 
-class MultiExponentialDecayGroup : public AbstractDecayGroup
+class BaseMultiExponentialDecayGroup : public AbstractDecayGroup
 {
+   Q_OBJECT
+
 public:
 
-   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false);
-   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new MultiExponentialDecayGroup(*this)); };
+   BaseMultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false);
 
+   virtual void Validate();
+   
    virtual int SetVariables(const double* variables);
    virtual int CalculateModel(double* a, int adim, vector<double>& kap);
    virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
@@ -150,6 +165,11 @@ public:
    virtual int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    virtual int SetupIncMatrix(int* inc, int& row, int& col);
    virtual void GetLinearOutputParamNames(vector<string>& names);
+
+   void SetNumExponential(int n_exponential);
+   void SetContributionsGlobal(bool contributions_global);
+
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
 
 protected:
 
@@ -171,12 +191,33 @@ protected:
    bool contributions_global;
 };
 
-class FretDecayGroup : public MultiExponentialDecayGroup
+class MultiExponentialDecayGroup : public BaseMultiExponentialDecayGroup
 {
+   Q_OBJECT
+
+public:
+
+   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false) :
+      BaseMultiExponentialDecayGroup(n_exponential_, contributions_global_) {}
+
+   void Validate()
+   {
+      BaseMultiExponentialDecayGroup::Validate();
+      emit Updated();
+   }
+
+   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE SetContributionsGlobal USER true);
+};
+
+class FretDecayGroup : public BaseMultiExponentialDecayGroup
+{
+   Q_OBJECT
+
 public:
 
    FretDecayGroup(int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = true);
-   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new FretDecayGroup(*this)); };
+   void SetNumFretPopulations(int n_fret_populations_);
+   void Validate();
 
    int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
@@ -189,6 +230,8 @@ public:
 
    void GetLinearOutputParamNames(vector<string>& names);
 
+
+   Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE SetNumFretPopulations USER true);
 
 private:
 
@@ -211,12 +254,14 @@ private:
 
 
 
-class AnisotropyDecayGroup : public MultiExponentialDecayGroup
+class AnisotropyDecayGroup : public BaseMultiExponentialDecayGroup
 {
+   Q_OBJECT
+
 public:
 
    AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
-   unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new AnisotropyDecayGroup(*this)); };
+   //unique_ptr<AbstractDecayGroup> clone() { return unique_ptr<AbstractDecayGroup>(new AnisotropyDecayGroup(*this)); };
 
    int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);

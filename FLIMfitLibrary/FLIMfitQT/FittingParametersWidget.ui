@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FittingParametersWidget</class>
+ <widget class="QWidget" name="FittingParametersWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>791</width>
+    <height>595</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+     <item>
+      <widget class="QComboBox" name="group_type_combo">
+       <item>
+        <property name="text">
+         <string>Multi-exponential decay</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>FRET decay</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Anisotropy Decay</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="add_group_button">
+       <property name="text">
+        <string>Add</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTreeView" name="parameter_tree">
+     <attribute name="headerVisible">
+      <bool>true</bool>
+     </attribute>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -35,13 +35,18 @@
 using namespace std;
 
 FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
-   MultiExponentialDecayGroup(n_donor_exponential, true),
+   BaseMultiExponentialDecayGroup(n_donor_exponential, true),
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {
+   Validate();
+}
+
+void FretDecayGroup::Validate()
+{
+   BaseMultiExponentialDecayGroup::Validate();
+
    n_multiexp_parameters = n_nl_parameters;
-
-
    n_lin_components = n_fret_populations + include_donor_only;
    n_nl_parameters += n_fret_populations;
 
@@ -58,9 +63,19 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
       E_parameters.push_back(p);
    }
 
-   fret_buffer.resize(n_fret_populations, 
-      vector<ExponentialPrecomputationBuffer>(n_exponential,
-         ExponentialPrecomputationBuffer(acq)));
+   emit Updated();
+
+   //TODO: move into init`
+   //fret_buffer.resize(n_fret_populations, 
+   //   vector<ExponentialPrecomputationBuffer>(n_exponential,
+    //     ExponentialPrecomputationBuffer(acq)));
+}
+
+
+void FretDecayGroup::SetNumFretPopulations(int n_fret_populations_)
+{
+   n_fret_populations = n_fret_populations;
+   Validate();
 }
 
 
@@ -113,7 +128,7 @@ int FretDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
 
 int FretDecayGroup::SetVariables(const double* param_values)
 {
-   int idx = MultiExponentialDecayGroup::SetVariables(param_values);
+   int idx = BaseMultiExponentialDecayGroup::SetVariables(param_values);
 
    tau_fret.resize(n_fret_populations, vector<double>(n_exponential));
    E.resize(n_fret_populations);
@@ -138,7 +153,7 @@ int FretDecayGroup::SetVariables(const double* param_values)
 
 int FretDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = MultiExponentialDecayGroup::GetNonlinearOutputs(nonlin_variables, output, nonlin_idx);
+   int output_idx = BaseMultiExponentialDecayGroup::GetNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = E_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);

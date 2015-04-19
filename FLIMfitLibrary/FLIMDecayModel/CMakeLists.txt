@@ -27,17 +27,7 @@
 #
 #=========================================================================
 
-cmake_minimum_required(VERSION 2.8.4)
-
 project(FLIMDecayModel)
-
-# Include the BOOST header files
-#===================================================
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-endif()
-include_directories( "../Boost" )
 
 # Enable OpenMP support, disable for XCode
 #===================================================
@@ -113,3 +103,4 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 # Make library
 #===================================================
 add_library(FLIMDecayModel STATIC ${SOURCE} ${HEADERS} )
+target_link_libraries(FLIMDecayModel Qt5::Core)

@@ -32,9 +32,14 @@
 #include <boost/lexical_cast.hpp>
 using namespace std;
 
-MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global) :
+BaseMultiExponentialDecayGroup::BaseMultiExponentialDecayGroup(int n_exponential, bool contributions_global) :
    n_exponential(n_exponential),
    contributions_global(contributions_global)
+{
+   Validate();
+}
+
+void BaseMultiExponentialDecayGroup::Validate()
 {
    if (contributions_global)
    {
@@ -49,35 +54,71 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool c
 
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    
-   for (int i = 0; i < n_exponential; i++)
+   if (tau_parameters.size() > n_exponential)
    {
-      string name = "tau_" + boost::lexical_cast<std::string>(i + 1);
-      double initial_value = 5000.0 / (i + 1);
+      tau_parameters.resize(n_exponential);
+   }
+   else
+   {
+      int old_size = tau_parameters.size();
+      for (int i = old_size; i < n_exponential; i++)
+      {
+         string name = "tau_" + boost::lexical_cast<std::string>(i + 1);
+         double initial_value = 5000.0 / (i + 1);
 
-      auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
-      parameters.push_back(p);
-      tau_parameters.push_back(p);
+         auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
+         tau_parameters.push_back(p);
+      }
    }
 
    if (contributions_global)
    {
-      for (int i = 0; i < n_exponential; i++)
+      if (beta_parameters.size() > n_exponential)
       {
-         string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
-         double initial_value = 1.0 / n_exponential;
+         beta_parameters.resize(n_exponential);
+      }
+      else
+      {
+         int old_size = beta_parameters.size();
+         for (int i = old_size; i < n_exponential; i++)
+         {
+            string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
+            double initial_value = 1.0 / n_exponential;
 
-         auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
-         parameters.push_back(p);
-         beta_parameters.push_back(p);
+            auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
+            parameters.push_back(p);
+            beta_parameters.push_back(p);
+         }
       }
    }
 
-   buffer.resize(n_exponential,
-      ExponentialPrecomputationBuffer(acq));
+   parameters.clear();
+   for (auto p : tau_parameters)
+      parameters.push_back(p);
+   for (auto p : beta_parameters)
+      parameters.push_back(p);
+
+
+   // TODO: move into INIT
+   //buffer.resize(n_exponential,
+   //   ExponentialPrecomputationBuffer(acq));
 
 }
 
-int MultiExponentialDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
+void BaseMultiExponentialDecayGroup::SetNumExponential(int n_exponential_)
+{
+   n_exponential = n_exponential_;
+   Validate();
+}
+
+void BaseMultiExponentialDecayGroup::SetContributionsGlobal(bool contributions_global_)
+{
+   contributions_global = contributions_global_;
+   Validate();
+}
+
+
+int BaseMultiExponentialDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
 {
    // Set diagonal elements of incidence matrix for variable tau's   
    int n_exp_col = contributions_global ? 1 : n_exponential;
@@ -108,7 +149,7 @@ int MultiExponentialDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_
 }
 
 
-int MultiExponentialDecayGroup::SetVariables(const double* param_value)
+int BaseMultiExponentialDecayGroup::SetVariables(const double* param_value)
 {
    int idx = 0;
 
@@ -130,7 +171,7 @@ int MultiExponentialDecayGroup::SetVariables(const double* param_value)
    return idx;
 }
 
-int MultiExponentialDecayGroup::GetNonlinearOutputs(float* param_values, float* output, int& param_idx)
+int BaseMultiExponentialDecayGroup::GetNonlinearOutputs(float* param_values, float* output, int& param_idx)
 {
    int output_idx = 0;
 
@@ -152,7 +193,7 @@ int MultiExponentialDecayGroup::GetNonlinearOutputs(float* param_values, float* 
    return output_idx;
 }
 
-int MultiExponentialDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int BaseMultiExponentialDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
 {
    int output_idx = 0;
 
@@ -162,7 +203,7 @@ int MultiExponentialDecayGroup::GetLinearOutputs(float* lin_variables, float* ou
    return output_idx;
 }
 
-void MultiExponentialDecayGroup::GetLinearOutputParamNames(vector<string>& names)
+void BaseMultiExponentialDecayGroup::GetLinearOutputParamNames(vector<string>& names)
 {
    if (!contributions_global)
    {
@@ -176,7 +217,7 @@ void MultiExponentialDecayGroup::GetLinearOutputParamNames(vector<string>& names
    }
 }
 
-int MultiExponentialDecayGroup::NormaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx)
+int BaseMultiExponentialDecayGroup::NormaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx)
 {
    double I = 0;
    for (int i = 0; i < n; i++)
@@ -191,12 +232,12 @@ int MultiExponentialDecayGroup::NormaliseLinearParameters(float* lin_variables, 
 }
 
 
-int MultiExponentialDecayGroup::CalculateModel(double* a, int adim, vector<double>& kap)
+int BaseMultiExponentialDecayGroup::CalculateModel(double* a, int adim, vector<double>& kap)
 {
    return AddDecayGroup(buffer, a, adim, kap);
 }
 
-int MultiExponentialDecayGroup::CalculateDerivatives(double* b, int bdim, vector<double>& kap)
+int BaseMultiExponentialDecayGroup::CalculateDerivatives(double* b, int bdim, vector<double>& kap)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
@@ -207,7 +248,7 @@ int MultiExponentialDecayGroup::CalculateDerivatives(double* b, int bdim, vector
 }
 
 
-int MultiExponentialDecayGroup::AddDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap)
+int BaseMultiExponentialDecayGroup::AddDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap)
 {
    int col = 0;
     
@@ -233,7 +274,7 @@ int MultiExponentialDecayGroup::AddDecayGroup(const vector<ExponentialPrecomputa
 }
 
 
-int MultiExponentialDecayGroup::AddLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap)
+int BaseMultiExponentialDecayGroup::AddLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap)
 {
    if (tau_parameters[idx]->IsFittedGlobally())
    {
@@ -250,7 +291,7 @@ int MultiExponentialDecayGroup::AddLifetimeDerivative(int idx, double* b, int bd
    return 0;
 }
 
-int MultiExponentialDecayGroup::AddContributionDerivatives(double* b, int bdim, vector<double>& kap)
+int BaseMultiExponentialDecayGroup::AddContributionDerivatives(double* b, int bdim, vector<double>& kap)
 {
    int col = 0;
 

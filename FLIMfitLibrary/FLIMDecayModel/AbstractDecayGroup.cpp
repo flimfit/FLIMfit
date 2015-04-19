@@ -29,6 +29,8 @@
 
 #include "AbstractDecayGroup.h"
 
+const char* FittingParameter::fitting_type_names[] = { "Fixed", "Fitted Locally", "Fitted Globally" };
+
 AbstractDecayGroup::AbstractDecayGroup()
 {
 }

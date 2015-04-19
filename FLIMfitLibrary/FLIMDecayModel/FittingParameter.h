@@ -41,7 +41,10 @@ enum ParameterFittingType
 
 class FittingParameter
 {
+
 public:
+
+   const static char* fitting_type_names[];
 
    FittingParameter(const std::string& name, double initial_value, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type) :
       name(name),

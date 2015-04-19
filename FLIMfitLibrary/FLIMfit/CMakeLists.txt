@@ -27,33 +27,7 @@
 #
 #=========================================================================
 
-cmake_minimum_required(VERSION 2.8.4)
-
 project(FLIMfit)
-
-# Include the BOOST header files
-#===================================================
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-endif()
-include_directories( "../Boost" )
-
-# Enable OpenMP support, disable for XCode
-#===================================================
-if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
-else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   find_package("OpenMP")
-   if (OPENMP_FOUND)
-      option(USE_OMP "Use OpenMP" ON)
-      if (USE_OMP)
-         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
-         message("Using OpenMP")
-      endif()
-   endif()
-endif()
 
 # MATLAB stuff
 #====================================
@@ -118,6 +92,7 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 # Make library
 #===================================================
 add_library(FLIMfit STATIC ${SOURCE} ${HEADERS} )
+target_link_libraries(FLIMfit Qt5::Core)
 
 set( FLIMfit_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
 set( FLIMfit_LIB_DIR ${OUT_DIR} PARENT_SCOPE )

@@ -42,7 +42,6 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "FLIMGlobalAnalysis.h"
 #include "FLIMGlobalFitController.h"
 
 

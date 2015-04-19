@@ -27,17 +27,9 @@
 #
 #=========================================================================
 
-cmake_minimum_required(VERSION 2.8.4)
-
 project(FLIMfitMex)
 
-# Include the BOOST header files
-#===================================================
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-endif()
-include_directories( "../Boost" )
+find_package(Qt5Core)
 
 # MATLAB stuff
 #====================================
@@ -48,21 +40,21 @@ set(MATLAB_LIBRARIES ${MATLAB_LIB_DIR}libmat.lib ${MATLAB_LIB_DIR}libmex.lib ${M
 
 include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit)
 
-
-add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 add_definitions(-DMATLAB_MEX_FILE)
 
+set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel ${MATLAB_LIBRARIES} Qt5::Core)
+
 add_library(ff_FLIMData MODULE MexUtils.h FLIMDataMex.cpp)
-target_link_libraries(ff_FLIMData FLIMfit DataFitter FLIMDecayModel ${MATLAB_LIBRARIES})
+target_link_libraries(ff_FLIMData ${COMMON_LIBS})
 
 add_library(ff_Controller MODULE MexUtils.h ControllerMex.cpp)
-target_link_libraries(ff_Controller FLIMfit DataFitter FLIMDecayModel levmar ${MATLAB_LIBRARIES})
+target_link_libraries(ff_Controller ${COMMON_LIBS} levmar)
 
 add_library(ff_FitResults MODULE MexUtils.h FitResultsMex.cpp)
-target_link_libraries(ff_FitResults FLIMfit DataFitter FLIMDecayModel ${MATLAB_LIBRARIES})
+target_link_libraries(ff_FitResults ${COMMON_LIBS})
 
 add_library(ff_DecayModel MODULE MexUtils.h DecayModelMex.cpp)
-target_link_libraries(ff_DecayModel FLIMDecayModel ${MATLAB_LIBRARIES})
+target_link_libraries(ff_DecayModel ${COMMON_LIBS})
 
 
 set_target_properties(ff_FLIMData PROPERTIES LINK_FLAGS "/export:mexFunction" )
