@@ -15,9 +15,42 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
+    <widget class="QTreeView" name="parameter_tree">
+     <attribute name="headerVisible">
+      <bool>true</bool>
+     </attribute>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0">
+     <item>
+      <widget class="QPushButton" name="remove_group_button">
+       <property name="text">
+        <string>Remove</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <widget class="QComboBox" name="group_type_combo">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>46</height>
+        </size>
+       </property>
        <item>
         <property name="text">
          <string>Multi-exponential decay</string>
@@ -43,13 +76,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QTreeView" name="parameter_tree">
-     <attribute name="headerVisible">
-      <bool>true</bool>
-     </attribute>
-    </widget>
    </item>
   </layout>
  </widget>

@@ -17,6 +17,7 @@ ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, int i
    m_type = Group;
    m_parent = parent;
    m_name = QString("Group %1").arg(index);
+   m_decay_group = group;
 
    const QMetaObject* group_meta = group->metaObject();
    int n_properties = group_meta->propertyCount();
@@ -96,16 +97,12 @@ ParameterListModel::ParameterListModel(shared_ptr<DecayModel> decay_model, QObje
 }
 
 
-
-
-
-
-
-void ParameterListModel::ParseDecayModel()
+void ParameterListModel::parseDecayModel()
 {
+   beginResetModel();
    delete root_item;
-   root_item = nullptr;
    root_item = new ParameterListItem(decay_model);
+   beginResetModel();
 }
 
 ParameterListModel::~ParameterListModel()
@@ -191,7 +188,7 @@ QVariant ParameterListModel::data(const QModelIndex & index, int role) const
    else if (item->type() == ParameterListItem::Option && index.column() == 1)
    {
       auto prop = item->property();
-      auto decay_group = item->decay_group();
+      auto decay_group = item->decayGroup();
       return prop.read(decay_group.get());
    }
 
@@ -224,7 +221,7 @@ bool ParameterListModel::setData(const QModelIndex & index, const QVariant & val
    else if (item->type() == ParameterListItem::Option && index.column() == 1)
    {
       auto prop = item->property();
-      auto decay_group = item->decay_group();
+      auto decay_group = item->decayGroup();
       prop.write(decay_group.get(), value);
       changed = true;
 
@@ -271,4 +268,36 @@ ParameterListItem* ParameterListModel::GetItem(const QModelIndex& parent) const
    else
       parent_item = static_cast<ParameterListItem*>(parent.internalPointer());
    return parent_item;
+}
+
+void ParameterListModel::removeGroup(const QModelIndex index)
+{
+   auto item = GetItem(index);
+   if (item->type() == ParameterListItem::Group)
+   {
+      int row = index.row();
+
+      beginRemoveRows(index.parent(), row, row);
+      decay_model->RemoveDecayGroup(item->decayGroup());
+      root_item->removeChild(row);
+      endRemoveRows();
+   }
+}
+
+void ParameterListModel::addGroup(int group_type)
+{
+
+   shared_ptr<AbstractDecayGroup> new_group;
+   if (group_type == 0)
+      new_group = std::make_shared<MultiExponentialDecayGroup>();
+   else if (group_type == 1)
+      new_group = std::make_shared<FretDecayGroup>();
+   //else if (group_type == 2)
+   //   new_group = std::make_shared<AnisotropyDecayGroup>();
+
+   int row = root_item->childCount();
+   beginInsertRows(createIndex(0, 0, root_item), row, row+1);
+   decay_model->AddDecayGroup(new_group);
+   root_item->addChild(new ParameterListItem(new_group, row, root_item));
+   endInsertRows();
 }

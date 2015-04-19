@@ -25,10 +25,19 @@ public:
    ParameterListItem* parent() { return m_parent; }
    ParameterListItem* child(int row) { return m_children.value(row); }
    int childCount() { return m_children.size(); }
+
    const QString& name() { return m_name; }
    shared_ptr<FittingParameter> parameter() { return m_parameter; }
    const QMetaProperty& property() { return m_property; }
-   shared_ptr<AbstractDecayGroup> decay_group() { return m_decay_group; }
+   shared_ptr<AbstractDecayGroup> decayGroup() { return m_decay_group; }
+
+   void addChild(ParameterListItem* child) { m_children.append(child); }
+   
+   void removeChild(int row) 
+   { 
+      delete m_children.at(row); 
+      m_children.removeAt(row);
+   }
 
 protected:
    
@@ -50,8 +59,10 @@ public:
    ParameterListModel(shared_ptr<DecayModel> decay_model, QObject* parent = 0);
    ~ParameterListModel();
 
-   void ParseDecayModel();
+   void parseDecayModel();
 
+   void addGroup(int group_type);
+   void removeGroup(const QModelIndex index);
 
    QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const;
    QModelIndex parent(const QModelIndex & index) const;
@@ -62,13 +73,6 @@ public:
    int rowCount(const QModelIndex& parent = QModelIndex()) const;
    int columnCount(const QModelIndex & parent = QModelIndex()) const;
 
-public slots:
-
-   void revert()
-   {
-      QAbstractItemModel::revert();
-      ParseDecayModel();
-   }
 
 protected:
 

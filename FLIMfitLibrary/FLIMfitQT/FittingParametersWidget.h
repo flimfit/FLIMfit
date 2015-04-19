@@ -13,9 +13,8 @@ public:
 
 protected:
 
-   enum GroupTypes { MultiexponentialDecay, FretDecay, AnisotropyDecay };
-
    void AddGroup();
+   void RemoveGroup();
 
    ParameterListModel* list_model;
    ParameterListDelegate* delegate;

@@ -55,8 +55,15 @@ public:
 
    void AddDecayGroup(shared_ptr<AbstractDecayGroup> group);
    shared_ptr<AbstractDecayGroup> GetGroup(int idx) { return decay_groups[idx]; };
-   void RemoveDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
    int GetNumGroups() { return static_cast<int>(decay_groups.size()); }
+
+   void RemoveDecayGroup(shared_ptr<AbstractDecayGroup> group) 
+   { 
+      auto iter = std::find(decay_groups.begin(), decay_groups.end(), group); 
+      if (iter != decay_groups.end())
+         decay_groups.erase(iter, iter);
+   }
+
 
    void Init(shared_ptr<AcquisitionParameters> acq);
 

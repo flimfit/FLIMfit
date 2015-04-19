@@ -8,6 +8,7 @@ FittingParametersWidget::FittingParametersWidget(QWidget* parent) :
    setupUi(this);
 
    connect(add_group_button, &QPushButton::pressed, this, &FittingParametersWidget::AddGroup);
+   connect(remove_group_button, &QPushButton::pressed, this, &FittingParametersWidget::RemoveGroup);
 }
 
 void FittingParametersWidget::SetDecayModel(std::shared_ptr<DecayModel> decay_model_)
@@ -28,12 +29,13 @@ void FittingParametersWidget::SetDecayModel(std::shared_ptr<DecayModel> decay_mo
 
 void FittingParametersWidget::AddGroup()
 {
-   int group_type = group_type_combo->currentIndex();
+   list_model->addGroup(group_type_combo->currentIndex());
+   parameter_tree->expandAll();
+}
 
-   if (group_type == MultiexponentialDecay)
-   {
-
-   }
+void FittingParametersWidget::RemoveGroup()
+{
+   list_model->removeGroup(parameter_tree->currentIndex());
 }
 
 
