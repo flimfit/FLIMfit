@@ -48,8 +48,6 @@ function addpath_global_analysis()
             % using Matlab before v2014b, use old GUILayout
             addpath([thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p17'], ...
                     [thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p17' filesep 'Patch']);
-        else
-            addpath([thisdir filesep 'HelperFunctions' filesep 'GUILayout']);
         end
             
         addpath( ...
