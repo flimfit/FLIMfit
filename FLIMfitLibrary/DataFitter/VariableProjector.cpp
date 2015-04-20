@@ -111,13 +111,15 @@ VariableProjector::~VariableProjector()
 int VariableProjectorCallback(void *p, int m, int n, int s_red, const double* x, double *fnorm, double *fjrow, int iflag, int thread)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, s_red, fnorm, fjrow, iflag, thread);
+   vp->SetAlf(x);
+   return vp->varproj(m, n, s_red, x, fnorm, fjrow, iflag, thread);
 }
 
 int VariableProjectorDiffCallback(void *p, int m, int n, const double* x, double *fvec, int iflag)
 {
    VariableProjector *vp = (VariableProjector*) p;
-   return vp->varproj(m, n, 1, fvec, NULL, iflag, 0);
+   vp->SetAlf(x);
+   return vp->varproj(m, n, 1, x, fvec, NULL, iflag, 0);
 }
 
 
@@ -226,7 +228,7 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
 
    if (iterative_weighting)
    {
-      varproj(nsls1, nl, s_red, fvec, fjac, 0, 0);
+      varproj(nsls1, nl, s_red, alf.data(), fvec, fjac, 0, 0);
       n_call = 1;
    }
 
@@ -263,7 +265,7 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
    {
       if (!getting_errs)
       {
-         varproj(nsls1, nl, s_red, fvec, fjac, -1, 0);
+         varproj(nsls1, nl, s_red, alf.data(), fvec, fjac, -1, 0);
          
          // Get optimal linear parameters by recalculating weighted by previous fit
          //varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
@@ -289,8 +291,8 @@ int VariableProjector::GetLinearParams()
 {
    int nsls1 = (n-l) * s;
    
-   varproj(nsls1, nl, 1, fvec, fjac, -1, 0);
-   varproj(nsls1, nl, 1, fvec, fjac, -2, 0);
+   varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -1, 0);
+   varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -2, 0);
    
    return 0;
 
@@ -305,7 +307,7 @@ double VariableProjector::d_sign(double *a, double *b)
 
 
 
-int VariableProjector::varproj(int nsls1, int nls, int s_red, double *rnorm, double *fjrow, int iflag, int thread)
+int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread)
 {
 
    int firstca, firstcb;
@@ -627,7 +629,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, double *rnorm, dou
    return iflag;
 }
 
-void VariableProjector::CalculateWeights(int px, const vector<double>& alf, int omp_thread)
+void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
    int lp1 = l+1;
 
@@ -661,8 +663,8 @@ void VariableProjector::CalculateWeights(int px, const vector<double>& alf, int 
       }
    }
 
-   if (n_call != 0)
-      models[omp_thread].GetWeights(y, a, alf, lin_params+px*lmax, wp, irf_idx[px]);
+   //if (n_call != 0) // TODO : add this back
+   //   models[omp_thread].GetWeights(y, a, alf, lin_params+px*lmax, wp, irf_idx[px]);
 
    for(int i=0; i<n; i++)
    {

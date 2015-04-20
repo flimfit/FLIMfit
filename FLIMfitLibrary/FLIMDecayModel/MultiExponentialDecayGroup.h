@@ -1,0 +1,55 @@
+#pragma once 
+
+#include "AbstractDecayGroup.h"
+
+
+
+
+class MultiExponentialDecayGroup : virtual public AbstractDecayGroup
+{
+public:
+
+   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false);
+
+   void SetNumExponential(int n_exponential);
+   void SetContributionsGlobal(bool contributions_global);
+
+   virtual int SetVariables(const double* variables);
+   virtual int CalculateModel(double* a, int adim, vector<double>& kap);
+   virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
+   virtual int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   virtual int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   virtual int SetupIncMatrix(int* inc, int& row, int& col);
+   virtual void GetLinearOutputParamNames(vector<string>& names);
+
+protected:
+   
+   void Init();
+   void ValidateMultiExponential();
+
+   int AddDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
+   int AddLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);
+   int AddContributionDerivatives(double* b, int bdim, vector<double>& kap);
+   int NormaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);
+
+   vector<shared_ptr<FittingParameter>> tau_parameters;
+   vector<shared_ptr<FittingParameter>> beta_parameters;
+
+   int n_exponential;
+   bool contributions_global;
+
+   vector<double> tau;
+   vector<double> beta;
+   vector<ExponentialPrecomputationBuffer> buffer;
+   vector<double> channel_factors;
+};
+
+class QMultiExponentialDecayGroupSpec : public QAbstractDecayGroupSpec, public MultiExponentialDecayGroup
+{
+   Q_OBJECT
+
+public:
+
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
+   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE SetContributionsGlobal USER true);
+};

@@ -9,7 +9,7 @@ class FittingParametersWidget : public QWidget, protected Ui::FittingParametersW
 {
 public:
    FittingParametersWidget(QWidget* parent = 0);
-   void SetDecayModel(std::shared_ptr<DecayModel> decay_model_);
+   void SetDecayModel(std::shared_ptr<QDecayModel> decay_model_);
 
 protected:
 
@@ -18,5 +18,5 @@ protected:
 
    ParameterListModel* list_model;
    ParameterListDelegate* delegate;
-   shared_ptr<DecayModel> decay_model;
+   shared_ptr<QDecayModel> decay_model;
 };

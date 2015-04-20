@@ -1,6 +1,8 @@
 #include "FittingParametersWidget.h"
 
 #include <QApplication>
+#include "MultiExponentialDecayGroup.h"
+#include "FretDecayGroup.h"
 
 FittingParametersWidget::FittingParametersWidget(QWidget* parent) :
    QWidget(parent)
@@ -11,7 +13,7 @@ FittingParametersWidget::FittingParametersWidget(QWidget* parent) :
    connect(remove_group_button, &QPushButton::pressed, this, &FittingParametersWidget::RemoveGroup);
 }
 
-void FittingParametersWidget::SetDecayModel(std::shared_ptr<DecayModel> decay_model_)
+void FittingParametersWidget::SetDecayModel(std::shared_ptr<QDecayModel> decay_model_)
 {
    decay_model = decay_model_;
    list_model = new ParameterListModel(decay_model);
@@ -42,10 +44,10 @@ void FittingParametersWidget::RemoveGroup()
 int main(int argc, char *argv[])
 {
 
-   auto decay_model = std::make_shared<DecayModel>();
+   auto decay_model = std::make_shared<QDecayModel>();
 
-   decay_model->AddDecayGroup(std::make_shared<MultiExponentialDecayGroup>(3));
-   decay_model->AddDecayGroup(std::make_shared<FretDecayGroup>(1, 2));
+   decay_model->AddDecayGroup(std::make_shared<QMultiExponentialDecayGroupSpec>());
+   decay_model->AddDecayGroup(std::make_shared<QFretDecayGroupSpec>());
 
    QApplication app(argc, argv);
    app.setOrganizationName("FLIMfit");

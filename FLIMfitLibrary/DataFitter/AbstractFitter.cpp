@@ -53,10 +53,8 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    terminate(terminate),
    lifetime_estimator(model->GetAcquisitionParameters())
 {
-   err = 0;
-
-
    irf_idx_0 = 0;
+   variable_phi = false;
 
    nl = model->GetNumNonlinearVariables();
    l = model->GetNumColumns();
@@ -82,8 +80,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
           && (nl<<1) + 3 <= ndim
           && !(nl == 0 && l == 0)))
    {
-      err = ERR_INVALID_INPUT;
-      return;
+      throw std::exception("Invalid input");
    }
    
 
@@ -114,15 +111,16 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
 
 
    if (pmax != p)
-      err = ERR_INVALID_INPUT;
+      throw std::exception("Inc matrix incorrectly setup");
 
 }
 
-
+/*
 AbstractFitter* new_clone(AbstractFitter const& other)
 {
    return other.clone();
 }
+*/
 
 int AbstractFitter::Init()
 {
@@ -190,9 +188,6 @@ int AbstractFitter::Init()
 
 int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2)
 {
-   if (err != 0)
-      return err;
-
    cur_chi2   = &c2;
 
    fixed_param = -1;
@@ -276,9 +271,6 @@ int AbstractFitter::CalculateErrors(double conf_limit)
    if(f_debug)
       fprintf(f_debug,"VAR, LIM,fixed_value_initial, fixed_value_cur, chi2_crit, chi2, F_crit, F\n");
    
-   if (err != 0)
-      return err;
-
    this->conf_limit = conf_limit;
 
    std::copy(alf.begin(), alf.end(), alf_buf.begin());
@@ -381,6 +373,10 @@ double AbstractFitter::ErrMinFcn(double x)
    return F-F_crit;
 }
 
+void AbstractFitter::SetAlf(const double* alf_)
+{
+   std::copy(alf_, alf_ + nl, alf.begin());
+}
 
 void AbstractFitter::GetParams(int nl, const vector<double>& alf)
 {
@@ -448,9 +444,6 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
 
 int AbstractFitter::GetFit(int irf_idx, const vector<double>& alf, float* lin_params, double* fit)
 {
-   if (err != 0)
-      return err;
-
    vector<double>& a = a_[0];
    vector<double>& b = b_[0];
 

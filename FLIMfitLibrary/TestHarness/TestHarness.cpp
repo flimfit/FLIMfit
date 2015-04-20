@@ -28,14 +28,15 @@
 //
 //=========================================================================
 
+/*
 #define BOOST_TEST_MODULE FLIMfitTest
 #define BOOST_TEST_SHOW_PROGRESS yes
 #define BOOST_TEST_LOG_LEVEL all
 #define BOOST_TEST_AUTO_START_DBG yes
 #define BOOST_TEST_RESULT_CODE no
-
-#include <boost/test/included/unit_test.hpp>
-#include <boost/test/unit_test.hpp>
+*/
+//#include <boost/test/included/unit_test.hpp>
+//#include <boost/test/unit_test.hpp>
 
 #include "FLIMSimulation.h"
 
@@ -43,9 +44,10 @@
 #include <string>
 #include <cmath>
 #include "FLIMGlobalFitController.h"
+#include "MultiExponentialDecayGroup.h"
 
 
-using namespace boost::unit_test;
+//using namespace boost::unit_test;
 
 void add_decay(int n_t, double* t, double tau, double I, float* decay)
 {
@@ -89,10 +91,10 @@ bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_n
 }
 
 
-BOOST_AUTO_TEST_CASE(TCSPC_Single)
-{
-   int e;
+//BOOST_AUTO_TEST_CASE(TCSPC_Single)
 
+int main()
+{
    FLIMSimulationTCSPC sim;
 
 
@@ -105,7 +107,7 @@ BOOST_AUTO_TEST_CASE(TCSPC_Single)
    int n_y = 10;
 
    int N = 10000;
-   double tau = 1000;
+   double tau = 2000;
 
 
    sim.GenerateIRF(N, irf);
@@ -145,7 +147,7 @@ BOOST_AUTO_TEST_CASE(TCSPC_Single)
    auto irf_ = std::make_shared<InstrumentResponseFunction>();
    irf_->SetIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
 
-   auto acq = std::make_shared<AcquisitionParameters>(data_type, polarisation_resolved, n_chan, t_rep_default, 1.0);   
+   auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
    acq->SetT(t);
    acq->SetIRF(irf_);
 
@@ -159,6 +161,7 @@ BOOST_AUTO_TEST_CASE(TCSPC_Single)
    data->SetDataSize(1, n_x, n_y);
 
    FLIMGlobalFitController controller;   
+   controller.SetFitSettings(FitSettings(algorithm));
    controller.SetModel(model);
 
    controller.SetData(data);

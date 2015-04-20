@@ -45,20 +45,33 @@ void FLIMData::SetDataSize(int n_im_, int n_x_, int n_y_)
 
    n_im_used = n_im;
 
+   use_im.resize(n_im);
+   for (int i = 0; i < n_im; i++)
+      use_im[i] = i;
+
    n_px = n_x * n_y;
+
+   mask.resize(n_im, vector<uint8_t>(n_px, 1)); // include everything in mask by default
+   use_im.resize(n_im);
+
+   region_count.resize(n_im_used * MAX_REGION, 0);
+   region_pos.resize(n_im_used * MAX_REGION, 0);
+   region_idx.resize((n_im_used + 1) * MAX_REGION, -1);
+   output_region_idx.resize(n_im_used * MAX_REGION, -1);
 
 }
 
-void FLIMData::SetMasking(int* use_im, uint8_t mask[], int merge_regions)
+void FLIMData::SetMasking(int* use_im_, uint8_t mask_[], int merge_regions)
 {
-   if (use_im != NULL)
+   if (use_im_ != NULL)
    {
       n_im_used = 0;
       for (int i = 0; i<n_im; i++)
       {
-         if (use_im[i])
+         std::copy(mask_ + i*n_x*n_y, mask_ + (i + 1)*n_x*n_y, mask[i].begin());
+         if (use_im_[i])
             for (int j = 0; j<n_x*n_y; j++)
-               if (this->mask[i*n_x*n_y + j] > 0)
+               if (mask_[i*n_x*n_y + j] > 0)
                {
                   use_im[n_im_used] = i;
                   n_im_used++;
@@ -70,21 +83,6 @@ void FLIMData::SetMasking(int* use_im, uint8_t mask[], int merge_regions)
    {
       n_im_used = n_im;
    }
-
-   region_count.resize(n_im_used * MAX_REGION);
-   region_pos.resize(n_im_used * MAX_REGION);
-   region_idx.resize((n_im_used + 1) * MAX_REGION);
-   output_region_idx.resize(n_im_used * MAX_REGION);
-
-   for (int i = 0; i<n_im_used * MAX_REGION; i++)
-   {
-      region_count[i] = 0;
-      region_pos[i] = 0;
-      region_idx[i] = -1;
-      output_region_idx[i] = -1;
-   }
-   for (int i = 0; i<MAX_REGION; i++)
-      region_idx[n_im_used * MAX_REGION + i] = -1;
 }
 
 void FLIMData::SetThresholds(int threshold_, int limit_)
@@ -136,8 +134,6 @@ FLIMData::FLIMData()
 
    n_masked_px = 0;
 
-   supplied_mask = false;
-
    background_value = 0;
    background_type = BG_NONE;
 
@@ -169,6 +165,8 @@ void FLIMData::SetNumThreads(int n_thread_)
 
    if (polarisation_resolved)
       r_ss_.resize(n_thread, std::vector<float>(n_px));
+   else
+      r_ss_.resize(n_thread); // no data
 
    cur_transformed.resize(n_thread, -1);
    data_used.resize(n_thread, -1);
@@ -286,15 +284,7 @@ int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
    this->data_file = new char[ strlen(data_file) + 1 ]; //ok
    strcpy(this->data_file,data_file);
 
-   try
-   {
-      data_map_file = boost::interprocess::file_mapping(data_file,boost::interprocess::read_only);
-   }
-   catch(std::exception& e)
-   {
-      e = e;
-      return ERR_COULD_NOT_OPEN_MAPPED_FILE;
-   }
+   data_map_file = boost::interprocess::file_mapping(data_file,boost::interprocess::read_only);
 
    has_data = true;
 
@@ -511,9 +501,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
 
 int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, int* irf_idx, FitResults& results)
 {
-   int iml = im;
-   if (use_im != NULL)
-      iml = use_im[im];
+   int iml = use_im[im];
 
    int s = GetRegionCount(im, region);
 
@@ -530,7 +518,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
    if (polarisation_resolved)
       masked_r_ss = aux_data++;
 
-   uint8_t* im_mask = mask + iml*n_x*n_y;
+   auto& im_mask = mask[iml];
    float*   acceptor = acceptor_ + iml*n_x*n_y;
 
    vector<float>& tr_data = tr_data_[thread];
@@ -600,10 +588,7 @@ FLIMData::~FLIMData()
    ClearMapping();
 
    delete[] data_map_view;
- 
-   if (!supplied_mask) 
-      delete[] mask;
-   
+    
    if (data_file != NULL)
       delete[] data_file;
 

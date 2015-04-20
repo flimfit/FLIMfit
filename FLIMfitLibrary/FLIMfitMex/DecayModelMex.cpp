@@ -30,6 +30,10 @@
 #pragma warning(disable: 4244 4267)
 
 #include "DecayModel.h"
+#include "MultiExponentialDecayGroup.h"
+#include "FretDecayGroup.h"
+#include "AnisotropyDecayGroup.h"
+#include "DecayModel.h"
 #include "MexUtils.h"
 #include "PointerMap.h"
 

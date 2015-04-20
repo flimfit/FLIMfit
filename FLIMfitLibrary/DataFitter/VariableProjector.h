@@ -41,7 +41,7 @@ class VariableProjector : public AbstractFitter
 public:
    VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, int* terminate);
    ~VariableProjector();
-   VariableProjector* clone() const { return new VariableProjector(*this); };
+   //VariableProjector* clone() const { return new VariableProjector(*this); };
 
    int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr);
 
@@ -49,11 +49,11 @@ public:
 
 private:
 
-   int varproj(int nsls1, int nls, int s_red, double *rnorm, double *fjrow, int iflag, int thread);
+   int varproj(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
    
    void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
 
-   void CalculateWeights(int px, const vector<double>& alf, int thread);
+   void CalculateWeights(int px, const double* alf, int thread);
 
    void get_linear_params(int idx, double* a, double* u, double* x = 0);
    int bacsub(int idx, double* a, volatile double* x);

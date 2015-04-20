@@ -46,13 +46,13 @@
 void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*)pa;
-   f->mle_funcs(alf, fvec,nl,nfunc);
+   f->mle_funcs(alf, fvec, nl, nfunc);
 }
 
 void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
-   f->mle_jacb(alf, fjac,nl,nfunc);
+   f->mle_jacb(alf, fjac, nl, nfunc);
 }
 
 MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, int* terminate) : 
@@ -97,7 +97,6 @@ int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int*
     
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf.data(), n_param, nfunc, this, err);
-    err[0] = err[0];
     delete[] err;
     
 /*    

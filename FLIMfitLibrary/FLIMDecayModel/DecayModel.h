@@ -44,18 +44,19 @@ using std::unique_ptr;
 using std::string;
 using std::vector;
 
-class DecayModel : public QObject
+class DecayModel
 {
-   Q_OBJECT
 
 public:
 
    DecayModel();
    //DecayModel(const DecayModel &obj);
-
+   
    void AddDecayGroup(shared_ptr<AbstractDecayGroup> group);
    shared_ptr<AbstractDecayGroup> GetGroup(int idx) { return decay_groups[idx]; };
    int GetNumGroups() { return static_cast<int>(decay_groups.size()); }
+
+   void RemoveDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
 
    void RemoveDecayGroup(shared_ptr<AbstractDecayGroup> group) 
    { 
@@ -78,18 +79,11 @@ public:
    int GetNonlinearOutputs(float* nonlin_variables, float* outputs);
    int GetLinearOutputs(float* lin_variables, float* outputs);
 
-   //   double EstimateAverageLifetime(float decay[], int data_type);
-//   shared_ptr<InstrumentResponseFunction> irf;
-
    int GetNumNonlinearVariables();
    int GetNumColumns();
    int GetNumDerivatives();
 
    void DecayGroupUpdated();
-
-signals:
-
-   void Updated();
 
 private:
 
@@ -99,14 +93,7 @@ private:
    int AddReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
    int AddT0Derivatives(double* b, int bdim, vector<double>& kap);
 
-   //void SetupPolarisationChannelFactors();
-   //void SetParameterIndices();
    void SetupAdjust();
-
-   //void CalculateParameterCounts();
-   //void CalculateMeanLifetime(volatile float lin_params[], float non_linear_params[], volatile float mean_lifetimes[]);
-   //int DetermineMAStartPosition(int idx);
-   //void CalculateIRFMax();
 
    shared_ptr<AcquisitionParameters> acq;
 
@@ -120,3 +107,30 @@ private:
    vector<float> adjust_buf;
 };
 
+class QDecayModel
+{
+public:
+
+   QDecayModel() : 
+      reference_parameter("ref_lifetime", 100, { Fixed, FittedGlobally }, Fixed),
+      t0_parameter("t0", 0, { Fixed, FittedGlobally }, Fixed)
+   {};
+
+   void AddDecayGroup(shared_ptr<QAbstractDecayGroupSpec> group) { decay_groups.push_back(group); };
+   shared_ptr<QAbstractDecayGroupSpec> GetGroup(int idx) { return decay_groups[idx]; };
+   int GetNumGroups() { return static_cast<int>(decay_groups.size()); }
+
+   void RemoveDecayGroup(shared_ptr<QAbstractDecayGroupSpec> group)
+   {
+      auto iter = std::find(decay_groups.begin(), decay_groups.end(), group);
+      if (iter != decay_groups.end())
+         decay_groups.erase(iter, iter);
+   }
+
+
+protected:
+   FittingParameter reference_parameter;
+   FittingParameter t0_parameter;
+
+   vector<shared_ptr<QAbstractDecayGroupSpec>> decay_groups;
+};

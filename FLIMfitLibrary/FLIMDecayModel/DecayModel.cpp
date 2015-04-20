@@ -42,9 +42,14 @@ DecayModel::DecayModel() :
 
 }
 
-void DecayModel::Init(shared_ptr<AcquisitionParameters> acq)
+void DecayModel::Init(shared_ptr<AcquisitionParameters> acq_)
 {
+   acq = acq_;
    photons_per_count = static_cast<float>(1.0 / acq->counts_per_photon);
+   
+   for (auto g : decay_groups)
+      g->Init(acq);
+   
    SetupAdjust();
 }
 
@@ -65,12 +70,12 @@ DecayModel::DecayModel(const DecayModel &obj) :
 void DecayModel::AddDecayGroup(shared_ptr<AbstractDecayGroup> group)
 {
    decay_groups.push_back(group);
-   connect(group.get(), &AbstractDecayGroup::Updated, this, &DecayModel::DecayGroupUpdated);
+//   connect(group.get(), &AbstractDecayGroup::Updated, this, &DecayModel::DecayGroupUpdated);
 }
 
 void DecayModel::DecayGroupUpdated()
 {
-   emit Updated();
+//   emit Updated();
 }
 
 
@@ -142,6 +147,8 @@ void DecayModel::SetupIncMatrix(int *inc)
    int row = 0;
    int col = 0;
     
+   std::fill(inc, inc + 96, 0);
+
    for (auto& group : decay_groups)
       group->SetupIncMatrix(inc, row, col);
 }

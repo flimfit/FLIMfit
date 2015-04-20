@@ -95,7 +95,7 @@ int FLIMGlobalFitController::RunWorkers()
       return ERR_FIT_IN_PROGRESS;
 
    if (!init)
-      return ERR_COULD_NOT_START_FIT;
+      throw(std::exception("Controller has not been initalised"));
 
    if (status->terminate)
       return 0;
@@ -401,7 +401,7 @@ void FLIMGlobalFitController::Init()
 
    getting_fit    = false;
 
-   model->Init(acq);
+   model->Init(data);
 
    if (n_thread < 1)
       n_thread = 1;
@@ -424,10 +424,7 @@ void FLIMGlobalFitController::Init()
 
    
    if (data->n_regions_total == 0)
-   {
-      error = ERR_FOUND_NO_REGIONS;
-      return;
-   }
+      throw(std::exception("No Regions in Data"));
 
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
@@ -444,7 +441,7 @@ void FLIMGlobalFitController::Init()
    int max_region_size;
 
    if (data->global_mode == MODE_GLOBAL)
-      max_fit_size = data->n_masked_px;                              // (varp) Number of pixels (right hand sides)
+      max_fit_size = data->n_masked_px;  // (varp) Number of pixels (right hand sides)
    else if (data->global_mode == MODE_IMAGEWISE)
       max_fit_size = data->n_px;
    else
@@ -509,6 +506,10 @@ void FLIMGlobalFitController::Init()
 
 FLIMGlobalFitController::~FLIMGlobalFitController()
 {
+   // wait for threads to terminate
+   for (auto& t : thread_handle)
+      t.join();
+
    if (status != NULL)
    {
       status->Terminate();

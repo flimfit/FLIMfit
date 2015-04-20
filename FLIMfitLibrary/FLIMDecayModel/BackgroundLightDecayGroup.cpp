@@ -27,7 +27,7 @@
 //
 //=========================================================================
 
-#include "AbstractDecayGroup.h"
+#include "BackgroundLightDecayGroup.h"
 
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>

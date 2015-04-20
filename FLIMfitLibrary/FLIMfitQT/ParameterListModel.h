@@ -9,10 +9,10 @@ class ParameterListItem
 public:
    enum Type { Root, Group, Option, SubParameters, Parameter };
    
-   ParameterListItem(shared_ptr<DecayModel> model);
-   ParameterListItem(shared_ptr<AbstractDecayGroup> group, int index, ParameterListItem* parent);
-   ParameterListItem(shared_ptr<AbstractDecayGroup> group, ParameterListItem* parent);
-   ParameterListItem(shared_ptr<AbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent);
+   ParameterListItem(shared_ptr<QDecayModel> model);
+   ParameterListItem(shared_ptr<QAbstractDecayGroupSpec> group, int index, ParameterListItem* parent);
+   ParameterListItem(shared_ptr<QAbstractDecayGroupSpec> group, ParameterListItem* parent);
+   ParameterListItem(shared_ptr<QAbstractDecayGroupSpec> group, const QMetaProperty prop, ParameterListItem* parent);
    ParameterListItem(shared_ptr<FittingParameter> parameter, ParameterListItem* parent);
 
    ~ParameterListItem();
@@ -29,7 +29,7 @@ public:
    const QString& name() { return m_name; }
    shared_ptr<FittingParameter> parameter() { return m_parameter; }
    const QMetaProperty& property() { return m_property; }
-   shared_ptr<AbstractDecayGroup> decayGroup() { return m_decay_group; }
+   shared_ptr<QAbstractDecayGroupSpec> decayGroup() { return m_decay_group; }
 
    void addChild(ParameterListItem* child) { m_children.append(child); }
    
@@ -47,7 +47,7 @@ protected:
    ParameterListItem* m_parent;
 
    shared_ptr<FittingParameter> m_parameter;
-   shared_ptr<AbstractDecayGroup> m_decay_group;
+   shared_ptr<QAbstractDecayGroupSpec> m_decay_group;
    QMetaProperty m_property;
 };
 
@@ -56,7 +56,7 @@ class ParameterListModel : public QAbstractItemModel
    Q_OBJECT
 
 public:
-   ParameterListModel(shared_ptr<DecayModel> decay_model, QObject* parent = 0);
+   ParameterListModel(shared_ptr<QDecayModel> decay_model, QObject* parent = 0);
    ~ParameterListModel();
 
    void parseDecayModel();
@@ -78,6 +78,6 @@ protected:
 
    ParameterListItem* GetItem(const QModelIndex& parent) const;
 
-   shared_ptr<DecayModel> decay_model;
+   shared_ptr<QDecayModel> decay_model;
    ParameterListItem *root_item;
 };

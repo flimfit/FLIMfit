@@ -62,6 +62,10 @@ set(SOURCE
 
 set(HEADERS   
    AbstractDecayGroup.h
+   FretDecayGroup.h
+   MultiExponentialDecayGroup.h
+   AnisotropyDecayGroup.h
+   BackgroundLightDecayGroup.h
    IRFConvolution.h
    InstrumentResponseFunction.h
    ExponentialPrecomputationBuffer.h
@@ -76,7 +80,6 @@ if(MSVC)
    set(PLATFORM_FLAGS_ALL "/Oi /fp:fast")
    set(PLATFORM_FLAGS_RELEASE "/Ox /Ot /Ob2")
    set(PLATFORM_FLAGS_RELWITHDEBINFO "/Ox /Ot /Ob2")
-   set(PLATFORM_FLAGS_DEBUG "/ZI")
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
    add_definitions(-D_MSVC)
    add_definitions(-DNOMINMAX)

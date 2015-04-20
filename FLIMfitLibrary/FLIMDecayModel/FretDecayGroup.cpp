@@ -27,7 +27,7 @@
 //
 //=========================================================================
 
-#include "AbstractDecayGroup.h"
+#include "FretDecayGroup.h"
 
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>
@@ -35,7 +35,7 @@
 using namespace std;
 
 FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
-   BaseMultiExponentialDecayGroup(n_donor_exponential, true),
+   MultiExponentialDecayGroup(n_donor_exponential, true),
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {
@@ -44,7 +44,7 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
 
 void FretDecayGroup::Validate()
 {
-   BaseMultiExponentialDecayGroup::Validate();
+   ValidateMultiExponential();
 
    n_multiexp_parameters = n_nl_parameters;
    n_lin_components = n_fret_populations + include_donor_only;
@@ -63,12 +63,14 @@ void FretDecayGroup::Validate()
       E_parameters.push_back(p);
    }
 
-   emit Updated();
 
-   //TODO: move into init`
-   //fret_buffer.resize(n_fret_populations, 
-   //   vector<ExponentialPrecomputationBuffer>(n_exponential,
-    //     ExponentialPrecomputationBuffer(acq)));
+}
+
+void FretDecayGroup::Init()
+{
+   fret_buffer.resize(n_fret_populations, 
+      vector<ExponentialPrecomputationBuffer>(n_exponential,
+        ExponentialPrecomputationBuffer(acq)));
 }
 
 
@@ -128,7 +130,7 @@ int FretDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
 
 int FretDecayGroup::SetVariables(const double* param_values)
 {
-   int idx = BaseMultiExponentialDecayGroup::SetVariables(param_values);
+   int idx = MultiExponentialDecayGroup::SetVariables(param_values);
 
    tau_fret.resize(n_fret_populations, vector<double>(n_exponential));
    E.resize(n_fret_populations);
@@ -153,7 +155,7 @@ int FretDecayGroup::SetVariables(const double* param_values)
 
 int FretDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = BaseMultiExponentialDecayGroup::GetNonlinearOutputs(nonlin_variables, output, nonlin_idx);
+   int output_idx = MultiExponentialDecayGroup::GetNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = E_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);

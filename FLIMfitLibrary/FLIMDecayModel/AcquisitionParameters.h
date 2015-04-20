@@ -40,7 +40,7 @@ class AcquisitionParameters
 {
 public:
 
-   AcquisitionParameters(int data_type = 0, double t_rep = 12500, int polarisation_resolved = false, int n_chan = 1, double counts_per_photon = 1);
+   AcquisitionParameters(int data_type = 0, double t_rep = 12500.0, int polarisation_resolved = false, int n_chan = 1, double counts_per_photon = 1);
   
    void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
    void SetT(int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[]);

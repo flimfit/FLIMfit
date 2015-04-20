@@ -130,7 +130,7 @@ public:
 
    int data_skip = 0;
 
-   uint8_t* mask = nullptr;
+   vector<vector<uint8_t>> mask;
    int n_masked_px = 0;
    int merge_regions = false;
 
@@ -142,7 +142,7 @@ public:
    int smoothing_factor = 0;
    float smoothing_area = 1;
 
-   int* use_im = nullptr;
+   vector<int> use_im;
    int n_im_used = 0;
 
    int has_acceptor = false;
@@ -181,7 +181,6 @@ private:
    int data_mode = DATA_DIRECT;
    
    int has_data = false;
-   int supplied_mask = false;
 
    int background_type = BG_NONE;
    float background_value = 0;
@@ -234,8 +233,7 @@ T* FLIMData::GetDataPointer(int thread, int im)
 {
    using namespace boost::interprocess;
 
-   if (use_im != NULL)
-      im = use_im[im];
+   int iml = use_im[im];
    unsigned long long offset, buf_size; // size_t?
 
    unsigned long long int im_size = n_t_full * n_chan * n_x * n_y; // size_t?
@@ -244,25 +242,17 @@ T* FLIMData::GetDataPointer(int thread, int im)
 
    T* data_ptr;
 
-   try
+   if (data_mode == DATA_MAPPED)
    {
-      if (data_mode == DATA_MAPPED)
-      {
-         buf_size = im_size * data_size;
-         offset   = im * im_size * data_size + data_skip;
+      buf_size = im_size * data_size;
+      offset = iml * im_size * data_size + data_skip;
 
-         data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
-         data_ptr = (T*) data_map_view[thread].get_address();
-      }
-      else 
-      {
-         data_ptr = ((T*)data) + im * im_size;
-      }
+      data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
+      data_ptr = (T*)data_map_view[thread].get_address();
    }
-   catch(std::exception& e)
+   else
    {
-      e = e;
-      data_ptr = NULL;
+      data_ptr = ((T*)data) + iml * im_size;
    }
 
    return data_ptr;
@@ -305,9 +295,7 @@ int FLIMData::CalculateRegions()
    {
       int thread = omp_get_thread_num();
 
-      int im = i;
-      if (use_im != NULL)
-            im = use_im[im];
+      int im = use_im[i];
 
       T* cur_data_ptr;
       int slot = GetStreamedData(i, thread, cur_data_ptr);
@@ -320,7 +308,7 @@ int FLIMData::CalculateRegions()
          for(int p=0; p<n_px; p++)
          {
             T* ptr = cur_data_ptr + p*n_meas_full;
-            uint8_t* mask_ptr = mask + im*n_px + p;
+            uint8_t* mask_ptr = mask[im].data() + p;
             double intensity = 0;
             for(int k=0; k<n_chan; k++)
             {
@@ -350,14 +338,12 @@ int FLIMData::CalculateRegions()
 
    for(int i=0; i<n_im_used; i++)
    {
-      int im = i;
-      if (use_im != NULL)
-            im = use_im[im];
+      int im = use_im[i];
 
       // Determine how many regions we have in each image
       //--------------------------------------------------------
       int*     region_count_ptr = region_count.data() + i * MAX_REGION;
-      uint8_t* mask_ptr         = mask + im*n_px;
+      uint8_t* mask_ptr         = mask[im].data();
 
       memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
       

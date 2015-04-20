@@ -41,7 +41,7 @@ public:
 
    MaximumLikelihoodFitter(shared_ptr<DecayModel> model, int* terminate);
    ~MaximumLikelihoodFitter();
-   MaximumLikelihoodFitter* clone() const { return new MaximumLikelihoodFitter(*this); };
+   //MaximumLikelihoodFitter* clone() const { return new MaximumLikelihoodFitter(*this); };
 
    int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr);
 

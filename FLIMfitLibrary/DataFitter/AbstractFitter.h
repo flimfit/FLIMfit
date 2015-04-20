@@ -54,7 +54,7 @@ public:
    AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, int* terminate);
 
    virtual ~AbstractFitter() {};
-   virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
+   //virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
 
    virtual int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
    virtual int GetLinearParams() = 0;
@@ -66,14 +66,12 @@ public:
 
    void GetParams(int nl, const vector<double>& alf);
    
+   void SetAlf(const double* alf_);
    double* GetModel(const vector<double>& alf, int irf_idx, int isel, int thread);
 
 
    double* GetModel(const double* alf, int irf_idx, int isel, int thread);
    void ReleaseResidualMemory();
-
-   int err;
-
 
 protected:
 
@@ -157,6 +155,6 @@ private:
 
 };
 
-AbstractFitter* new_clone(AbstractFitter const& other);
+//AbstractFitter* new_clone(AbstractFitter const& other);
 
 #endif

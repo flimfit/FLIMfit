@@ -31,9 +31,6 @@
 
 const char* FittingParameter::fitting_type_names[] = { "Fixed", "Fitted Locally", "Fitted Globally" };
 
-AbstractDecayGroup::AbstractDecayGroup()
-{
-}
 
 int AbstractDecayGroup::GetInitialVariables(double* variables)
 {
@@ -59,4 +56,10 @@ void AbstractDecayGroup::GetNonlinearOutputParamNames(vector<string>& names)
 {
    for (auto p : parameters)
       names.push_back(p->name);
+}
+
+void AbstractDecayGroup::Init(shared_ptr<AcquisitionParameters> acq_)
+{
+   acq = acq_;
+   Init();
 }
