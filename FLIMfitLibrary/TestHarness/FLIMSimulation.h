@@ -95,7 +95,8 @@ private:
 template <class U>
 void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, vector<U>& decay)
 {
-   decay.assign(n_t * n_x * n_y, 0);
+//   decay.assign(n_t * n_x * n_y, 0);
+   decay.resize(n_t * n_x * n_y);
 
    vector<int> buf(n_t);
    GenerateDecay(tau, N, buf);
@@ -107,7 +108,7 @@ void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, vector<U
          int pos = y + n_y*x;
          GenerateDecay(tau, N, buf); 
          for(int i=0; i<n_t; i++)
-            decay[pos * n_t + i] = (U) buf[i];
+            decay[pos * n_t + i] += (U) buf[i];
       }
    }
 }

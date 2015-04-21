@@ -112,6 +112,7 @@ int main()
 
    sim.GenerateIRF(N, irf);
    sim.GenerateImage(tau, N, n_x, n_y, image_data);
+   sim.GenerateImage(500, N, n_x, n_y, image_data);
 
    int n_t = sim.GetTimePoints(t, t_int);
    int n_irf = n_t;
@@ -152,7 +153,7 @@ int main()
    acq->SetIRF(irf_);
 
    auto model = std::make_shared<DecayModel>();
-   auto group = std::make_shared<MultiExponentialDecayGroup>(1);
+   auto group = std::make_shared<MultiExponentialDecayGroup>(2);
    model->AddDecayGroup(group);
 
    auto data = std::make_shared<FLIMData>();
