@@ -37,6 +37,8 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool c
    contributions_global(contributions_global)
 {
    ValidateMultiExponential();
+
+   channel_factor_names.push_back("Decay");
 }
 
 void MultiExponentialDecayGroup::ValidateMultiExponential()

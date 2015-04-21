@@ -28,6 +28,7 @@
 //=========================================================================
 
 #pragma once
+#pragma warning(disable: 4250) // inherits ... via dominance
 
 #include <memory>
 #include <QObject>
@@ -48,6 +49,7 @@ public:
 
    virtual ~AbstractDecayGroup() {};
    vector<shared_ptr<FittingParameter>>& GetParameters() { return parameters; }
+   const vector<std::string>& GetChannelFactorNames() { return channel_factor_names; }
 
    int GetNumComponents() { return n_lin_components; };
    int GetNumNonlinearParameters() { return n_nl_parameters; };
@@ -82,6 +84,7 @@ protected:
    int n_nl_parameters = 0;
 
    vector<shared_ptr<FittingParameter>> parameters;
+   vector<std::string> channel_factor_names;
 
    shared_ptr<AcquisitionParameters> acq;
    bool fit_t0 = false;
