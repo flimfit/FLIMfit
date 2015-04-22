@@ -401,7 +401,8 @@ void FLIMGlobalFitController::Init()
 
    getting_fit    = false;
 
-   model->Init(data);
+   model->SetAcquisitionParameters(data);
+   model->Init();
 
    if (n_thread < 1)
       n_thread = 1;

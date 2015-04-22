@@ -126,6 +126,21 @@ void MultiExponentialDecayGroup::SetContributionsGlobal(bool contributions_globa
    ValidateMultiExponential();
 }
 
+const vector<double>& MultiExponentialDecayGroup::GetChannelFactors(int index)
+{
+   if (index == 0)
+      return channel_factors;
+
+   throw std::exception("Bad channel factor index");
+}
+
+void MultiExponentialDecayGroup::SetChannelFactors(int index, const vector<double>& channel_factors_)
+{
+   if (index == 0)
+      channel_factors = channel_factors_;
+   else
+      throw std::exception("Bad channel factor index");
+}
 
 
 

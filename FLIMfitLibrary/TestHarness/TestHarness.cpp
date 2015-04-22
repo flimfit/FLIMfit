@@ -148,18 +148,19 @@ int main()
    auto irf_ = std::make_shared<InstrumentResponseFunction>();
    irf_->SetIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
 
-   auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
-   acq->SetT(t);
-   acq->SetIRF(irf_);
+   AcquisitionParameters acq(data_type, t_rep_default, polarisation_resolved, n_chan);
+   acq.SetT(t);
+   acq.SetIRF(irf_);
+
+   auto data = std::make_shared<FLIMData>();
+   data->SetAcquisitionParmeters(acq);
+   data->SetDataSize(1, n_x, n_y);
 
    auto model = std::make_shared<DecayModel>();
+   model->SetAcquisitionParameters(data);
    auto group = std::make_shared<MultiExponentialDecayGroup>(2);
    model->AddDecayGroup(group);
 
-   auto data = std::make_shared<FLIMData>();
-
-   data->SetAcquisitionParmeters(*acq.get());
-   data->SetDataSize(1, n_x, n_y);
 
    FLIMGlobalFitController controller;   
    controller.SetFitSettings(FitSettings(algorithm));

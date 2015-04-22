@@ -4,6 +4,8 @@
 #include "ui_FittingParametersWidget.h"
 #include "ParameterListModel.h"
 #include "ParameterListDelegate.h"
+#include "ChannelFactorListModel.h"
+#include "ChannelFactorListDelegate.h"
 
 class FittingParametersWidget : public QWidget, protected Ui::FittingParametersWidget
 {
@@ -16,7 +18,11 @@ protected:
    void AddGroup();
    void RemoveGroup();
 
-   ParameterListModel* list_model;
-   ParameterListDelegate* delegate;
+   ParameterListModel* param_list_model;
+   ParameterListDelegate* param_list_delegate;
+
+   ChannelFactorListModel* channel_list_model;
+   ChannelFactorListDelegate* channel_list_delegate;
+
    shared_ptr<QDecayModel> decay_model;
 };

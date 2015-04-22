@@ -50,11 +50,14 @@ public:
    virtual ~AbstractDecayGroup() {};
    vector<shared_ptr<FittingParameter>>& GetParameters() { return parameters; }
    const vector<std::string>& GetChannelFactorNames() { return channel_factor_names; }
+   virtual const vector<double>& GetChannelFactors(int index) = 0;
+   virtual void SetChannelFactors(int index, const vector<double>& channel_factors) = 0;
 
    int GetNumComponents() { return n_lin_components; };
    int GetNumNonlinearParameters() { return n_nl_parameters; };
 
-   void Init(shared_ptr<AcquisitionParameters> acq);
+   void SetAcquisitionParmeters(shared_ptr<AcquisitionParameters> acq);
+   virtual void Init() = 0;
 
    virtual int SetVariables(const double* variables) = 0;
    virtual int CalculateModel(double* a, int adim, vector<double>& kap) = 0;
@@ -76,7 +79,6 @@ public:
 
 protected:
 
-   virtual void Init() = 0;
 
    bool constrain_nonlinear_parameters = true;
 
@@ -97,9 +99,16 @@ protected:
 };
 
 
-class QAbstractDecayGroupSpec : public QObject, virtual public AbstractDecayGroup
+class QAbstractDecayGroup : public QObject, virtual public AbstractDecayGroup
 {
    Q_OBJECT
+
+public:
+   QAbstractDecayGroup(const QString& name = "", QObject* parent = 0)
+      : QObject(parent)
+   {
+      setObjectName(name);
+   }
 
 signals:
    void Updated();

@@ -4,34 +4,31 @@
 #include <QMetaProperty>
 #include "DecayModel.h"
 
-class ParameterListItem
+class ChannelFactorListItem
 {
 public:
-   enum Type { Root, Group, Option, SubParameters, Parameter };
+   enum Type { Root, Group, Channel };
    
-   ParameterListItem(shared_ptr<QDecayModel> model);
-   ParameterListItem(shared_ptr<QAbstractDecayGroup> group, int index, ParameterListItem* parent);
-   ParameterListItem(shared_ptr<QAbstractDecayGroup> group, ParameterListItem* parent);
-   ParameterListItem(shared_ptr<QAbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent);
-   ParameterListItem(shared_ptr<FittingParameter> parameter, ParameterListItem* parent);
+   ChannelFactorListItem(shared_ptr<QDecayModel> model);
+   ChannelFactorListItem(shared_ptr<QAbstractDecayGroup> group, ChannelFactorListItem* parent);
+   ChannelFactorListItem(shared_ptr<QAbstractDecayGroup> group, int index, ChannelFactorListItem* parent);
 
-   ~ParameterListItem();
+   ~ChannelFactorListItem();
 
    void refresh();
 
    int row() const;
 
    Type type() { return m_type; }
-   ParameterListItem* parent() { return m_parent; }
-   ParameterListItem* child(int row) { return m_children.value(row); }
+   ChannelFactorListItem* parent() { return m_parent; }
+   ChannelFactorListItem* child(int row) { return m_children.value(row); }
    int childCount() { return m_children.size(); }
 
    const QString& name() { return m_name; }
-   shared_ptr<FittingParameter> parameter() { return m_parameter; }
-   const QMetaProperty& property() { return m_property; }
    shared_ptr<QAbstractDecayGroup> decayGroup() { return m_decay_group; }
+   int decayGroupIndex() { return m_group_index; }
 
-   void addChild(ParameterListItem* child) { m_children.append(child); }
+   void addChild(ChannelFactorListItem* child) { m_children.append(child); }
    
    void removeChild(int row) 
    { 
@@ -42,22 +39,21 @@ public:
 protected:
    
    QString m_name;
-   QList<ParameterListItem*> m_children;
+   QList<ChannelFactorListItem*> m_children;
    Type m_type;
-   ParameterListItem* m_parent;
+   ChannelFactorListItem* m_parent;
+   int m_group_index;
 
-   shared_ptr<FittingParameter> m_parameter;
    shared_ptr<QAbstractDecayGroup> m_decay_group;
-   QMetaProperty m_property;
 };
 
-class ParameterListModel : public QAbstractItemModel
+class ChannelFactorListModel : public QAbstractItemModel
 {
    Q_OBJECT
 
 public:
-   ParameterListModel(shared_ptr<QDecayModel> decay_model, QObject* parent = 0);
-   ~ParameterListModel();
+   ChannelFactorListModel(shared_ptr<QDecayModel> decay_model, QObject* parent = 0);
+   ~ChannelFactorListModel();
 
    void parseDecayModel();
 
@@ -76,8 +72,8 @@ public:
 
 protected:
 
-   ParameterListItem* GetItem(const QModelIndex& parent) const;
+   ChannelFactorListItem* GetItem(const QModelIndex& parent) const;
 
    shared_ptr<QDecayModel> decay_model;
-   ParameterListItem *root_item;
+   ChannelFactorListItem *root_item;
 };

@@ -58,8 +58,15 @@ void AbstractDecayGroup::GetNonlinearOutputParamNames(vector<string>& names)
       names.push_back(p->name);
 }
 
-void AbstractDecayGroup::Init(shared_ptr<AcquisitionParameters> acq_)
+void AbstractDecayGroup::SetAcquisitionParmeters(shared_ptr<AcquisitionParameters> acq)
 {
-   acq = acq_;
-   Init();
+   // Make sure all the channel factors are the right size
+   int n_channel_factors = channel_factor_names.size();
+   for (int i = 0; i < n_channel_factors; i++)
+   { 
+      auto v = GetChannelFactors(i);
+      v.resize(acq->n_chan, 1.0);
+      SetChannelFactors(i, v);
+   }
 }
+

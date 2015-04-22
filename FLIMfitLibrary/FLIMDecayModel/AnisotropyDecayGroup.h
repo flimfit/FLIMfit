@@ -42,7 +42,7 @@ protected:
 };
 
 
-class QAnisotropyDecayGroup : public QAbstractDecayGroupSpec, public AnisotropyDecayGroup
+class QAnisotropyDecayGroup : public QAbstractDecayGroup, public AnisotropyDecayGroup
 {
    Q_OBJECT
 

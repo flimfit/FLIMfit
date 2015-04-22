@@ -21,12 +21,16 @@ set(SOURCE
    FittingParametersWidget.cpp
    ParameterListModel.cpp
    ParameterListDelegate.cpp
+   ChannelFactorListModel.cpp
+   ChannelFactorListDelegate.cpp
 )
 
 set(HEADERS
    FittingParametersWidget.h
    ParameterListModel.h
    ParameterListDelegate.h
+   ChannelFactorListModel.h
+   ChannelFactorListDelegate.h
 )
 
 include_directories(../FLIMDecayModel ../DataFitter ../FLIMfit ${CMAKE_CURRENT_BINARY_DIR})

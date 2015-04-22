@@ -43,12 +43,12 @@
 
 #include <QStyledItemDelegate>
 
-class ParameterListDelegate : public QStyledItemDelegate
+class ChannelFactorListDelegate : public QStyledItemDelegate
 {
    Q_OBJECT
 
 public:
-   ParameterListDelegate(QObject *parent = 0);
+   ChannelFactorListDelegate(QObject *parent = 0);
 
    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
       const QModelIndex &index) const Q_DECL_OVERRIDE;

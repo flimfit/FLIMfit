@@ -15,11 +15,11 @@ ParameterListItem::ParameterListItem(shared_ptr<QDecayModel> model)
       m_children.append(new ParameterListItem(model->GetGroup(i), i, this));
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroupSpec> group, int index, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, int index, ParameterListItem* parent)
 {
    m_type = Group;
    m_parent = parent;
-   m_name = QString("Group %1").arg(index);
+   m_name = group->objectName();
    m_decay_group = group;
 
    const QMetaObject* group_meta = group->metaObject();
@@ -51,7 +51,7 @@ void ParameterListItem::refresh()
    }
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroupSpec> group, const QMetaProperty prop, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent)
 {
    m_type = Option;
    m_parent = parent;
@@ -60,7 +60,7 @@ ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroupSpec> group, 
    m_decay_group = group;
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroupSpec> group, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, ParameterListItem* parent)
 {
    m_type = SubParameters;
    m_parent = parent;
@@ -172,7 +172,12 @@ QVariant ParameterListModel::data(const QModelIndex & index, int role) const
       return QVariant();
 
    if (index.column() == 0)
-      return item->name();
+   {
+      if (item->type() == ParameterListItem::Group)
+         return item->decayGroup()->objectName();
+      else
+         return item->name();
+   }
 
    if (item->type() == ParameterListItem::Parameter)
    {
@@ -209,7 +214,12 @@ bool ParameterListModel::setData(const QModelIndex & index, const QVariant & val
    auto item = GetItem(index);
    auto parameter = item->parameter();
 
-   if (item->type() == ParameterListItem::Parameter)
+   if (item->type() == ParameterListItem::Group && col == 0)
+   {
+      item->decayGroup()->setObjectName(value.toString());
+      changed = true;
+   }
+   else if (item->type() == ParameterListItem::Parameter)
    {
       switch (col)
       {
@@ -243,11 +253,12 @@ Qt::ItemFlags ParameterListModel::flags(const QModelIndex & index) const
 
    auto item = GetItem(index);
 
-   if (item->type() == ParameterListItem::Parameter || item->type() == ParameterListItem::Option)
-   {
-      if (index.column() > 0)
-         flags |= Qt::ItemIsEditable;
-   }
+   if (item->type() == ParameterListItem::Group && index.column() == 0)
+      flags |= Qt::ItemIsEditable;
+   
+   if ((item->type() == ParameterListItem::Parameter || 
+       item->type() == ParameterListItem::Option) && (index.column() > 0))  
+      flags |= Qt::ItemIsEditable;
 
    return flags;
 }
@@ -290,11 +301,11 @@ void ParameterListModel::removeGroup(const QModelIndex index)
 void ParameterListModel::addGroup(int group_type)
 {
 
-   shared_ptr<QAbstractDecayGroupSpec> new_group;
+   shared_ptr<QAbstractDecayGroup> new_group;
    if (group_type == 0)
-      new_group = std::make_shared<QMultiExponentialDecayGroupSpec>();
+      new_group = std::make_shared<QMultiExponentialDecayGroup>();
    else if (group_type == 1)
-      new_group = std::make_shared<QFretDecayGroupSpec>();
+      new_group = std::make_shared<QFretDecayGroup>();
    //else if (group_type == 2)
    //   new_group = std::make_shared<AnisotropyDecayGroup>();
 

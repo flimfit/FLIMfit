@@ -14,6 +14,9 @@ public:
    void SetNumExponential(int n_exponential);
    void SetContributionsGlobal(bool contributions_global);
 
+   virtual const vector<double>& GetChannelFactors(int index);
+   virtual void SetChannelFactors(int index, const vector<double>& channel_factors);
+
    virtual int SetVariables(const double* variables);
    virtual int CalculateModel(double* a, int adim, vector<double>& kap);
    virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
@@ -44,11 +47,14 @@ protected:
    vector<double> channel_factors;
 };
 
-class QMultiExponentialDecayGroupSpec : public QAbstractDecayGroupSpec, public MultiExponentialDecayGroup
+class QMultiExponentialDecayGroup : public QAbstractDecayGroup, public MultiExponentialDecayGroup
 {
    Q_OBJECT
 
 public:
+
+   QMultiExponentialDecayGroup(const QString& name = "Multi Exponential Decay", QObject* parent = 0) :
+      QAbstractDecayGroup(name, parent) {};
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
    Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE SetContributionsGlobal USER true);

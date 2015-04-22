@@ -3,6 +3,7 @@
 
 #include <QDoubleSpinBox>
 #include <QComboBox>
+#include <QLineEdit>
 
 ParameterListDelegate::ParameterListDelegate(QObject *parent)
    : QStyledItemDelegate(parent)
@@ -16,6 +17,12 @@ QWidget *ParameterListDelegate::createEditor(QWidget *parent,
    auto item = static_cast<ParameterListItem*>(index.internalPointer());
    QWidget* widget;
 
+   if (item->type() == ParameterListItem::Group)
+   {
+      auto *editor = new QLineEdit(parent);
+      editor->setFrame(false);
+      widget = editor;
+   }
    if (item->type() == ParameterListItem::Parameter)
    {
       auto parameter = item->parameter();
@@ -63,7 +70,13 @@ void ParameterListDelegate::setEditorData(QWidget *editor,
 {
    auto item = static_cast<ParameterListItem*>(index.internalPointer());
 
-   if (item->type() == ParameterListItem::Parameter)
+   if (item->type() == ParameterListItem::Group)
+   {
+      QString value = index.model()->data(index, Qt::EditRole).toString();
+      auto *lineEdit = static_cast<QLineEdit*>(editor);
+      lineEdit->setText(value);
+   }
+   else if (item->type() == ParameterListItem::Parameter)
    {
       if (index.column() == 1)
       {
@@ -107,7 +120,12 @@ void ParameterListDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
    auto item = static_cast<ParameterListItem*>(index.internalPointer());
    QVariant value;
 
-   if (item->type() == ParameterListItem::Parameter)
+   if (item->type() == ParameterListItem::Group)
+   {
+      auto *w = static_cast<QLineEdit*>(editor);
+      value = w->text();
+   }
+   else if (item->type() == ParameterListItem::Parameter)
    {
       if (index.column() == 1)
       {

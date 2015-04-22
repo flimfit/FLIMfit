@@ -1,5 +1,7 @@
 #pragma once
+
 #include "MultiExponentialDecayGroup.h"
+#include <functional>
 
 class FretDecayGroup : public MultiExponentialDecayGroup
 {
@@ -9,6 +11,10 @@ public:
    void SetNumFretPopulations(int n_fret_populations_);
    void SetIncludeDonorOnly(bool include_donor_only_);
    void SetIncludeAcceptor(bool include_acceptor_);
+
+   const vector<double>& GetChannelFactors(int index);
+   void SetChannelFactors(int index, const vector<double>& channel_factors);
+
 
    int SetVariables(const double* variables);
    int CalculateModel(double* a, int adim, vector<double>& kap);
@@ -26,28 +32,30 @@ protected:
    void Validate();
    void Init();
 
-   void AddAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap);
    int AddLifetimeDerivativesForFret(int idx, double* b, int bdim, vector<double>& kap);
    int AddFretEfficiencyDerivatives(double* b, int bdim, vector<double>& kap);
    int AddAcceptorIntensityDerivatives(double* b, int bdim, vector<double>& kap);
    int AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
 
+   void AddAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap);
+   void AddAcceptorDerivativeContribution(int i, std::function<double(int i, int j)> fact, double* b, int bdim, vector<double>& kap);
+
    vector<shared_ptr<FittingParameter>> E_parameters;
    shared_ptr<FittingParameter> A0_parameter;
    shared_ptr<FittingParameter> tauA_parameter;
 
-   int n_fret_populations;
-   bool include_donor_only;
-   bool include_acceptor;
+   int n_fret_populations = 1;
+   bool include_donor_only = true;
+   bool include_acceptor = true;
    int n_multiexp_parameters;
    
-   vector<double> E;
+   vector<vector<double>> E;
+   vector<vector<double>> a_star;
    vector<vector<double>> tau_fret;
    double A0;
    double tauA;
 
    vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
-   vector<vector<ExponentialPrecomputationBuffer>> acceptor_buffer_fret;
    unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
    vector<double> donor_channel_factors;
    vector<double> acceptor_channel_factors;
@@ -55,11 +63,14 @@ protected:
 };
 
 
-class QFretDecayGroupSpec : public QAbstractDecayGroupSpec, virtual public FretDecayGroup
+class QFretDecayGroup : public QAbstractDecayGroup, virtual public FretDecayGroup
 {
    Q_OBJECT
 
 public:
+
+   QFretDecayGroup(const QString& name = "FRET Decay", QObject* parent = 0) :
+      QAbstractDecayGroup(name, parent) {};
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
    Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE SetNumFretPopulations USER true);

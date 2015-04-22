@@ -42,11 +42,14 @@ protected:
    double tvb = 0;
 };
 
-class QBackgroundLightDecayGroup : public QAbstractDecayGroupSpec, public BackgroundLightDecayGroup
+class QBackgroundLightDecayGroup : public QAbstractDecayGroup, public BackgroundLightDecayGroup
 {
    Q_OBJECT
 
 public:
+
+   QBackgroundLightDecayGroup(const QString& name = "Background Light", QObject* parent = 0) :
+      QAbstractDecayGroup(name, parent) {};
 
 signals:
    void Updated();

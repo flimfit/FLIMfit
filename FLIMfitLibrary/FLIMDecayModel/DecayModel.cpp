@@ -42,13 +42,19 @@ DecayModel::DecayModel() :
 
 }
 
-void DecayModel::Init(shared_ptr<AcquisitionParameters> acq_)
+void DecayModel::SetAcquisitionParameters(shared_ptr<AcquisitionParameters> acq_)
 {
    acq = acq_;
    photons_per_count = static_cast<float>(1.0 / acq->counts_per_photon);
-   
+
    for (auto g : decay_groups)
-      g->Init(acq);
+      g->SetAcquisitionParmeters(acq);
+}
+
+void DecayModel::Init()
+{   
+   for (auto g : decay_groups)
+      g->Init();
    
    SetupAdjust();
 }
@@ -69,8 +75,8 @@ DecayModel::DecayModel(const DecayModel &obj) :
 
 void DecayModel::AddDecayGroup(shared_ptr<AbstractDecayGroup> group)
 {
+   group->SetAcquisitionParmeters(acq);
    decay_groups.push_back(group);
-//   connect(group.get(), &AbstractDecayGroup::Updated, this, &DecayModel::DecayGroupUpdated);
 }
 
 void DecayModel::DecayGroupUpdated()
