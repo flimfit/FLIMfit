@@ -34,7 +34,9 @@ function handles = setup_menu(obj,handles)
     menu_file_load = uimenu(menu_file,'Label','Load FLIM Dataset');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load FLIM Dataset...','Accelerator','T');
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load .tif stack Dataset...','Accelerator','Y');
-    handles.menu_file_load_plate = uimenu(menu_file,'Label','Load Plate data...','Accelerator','W');
+    
+    % Commented out pending decision on which format to adopt
+    %handles.menu_file_load_plate = uimenu(menu_file,'Label','Load Plate data...','Accelerator','W');
     
     menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
     handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
@@ -101,7 +103,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM data','Separator','on','Enable','off');
     handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset','Enable','off');
     
-    handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
+    % Commented out pending decision on which format to adopt
+    %handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
 
     handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset - Polarization','Enable','off');        
     %
@@ -127,8 +130,10 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Export_Data_Settings = uimenu(menu_OMERO,'Label','Export Data Settings','Separator','on','Enable','off');            
     handles.menu_OMERO_Import_Data_Settings = uimenu(menu_OMERO,'Label','Import Data Settings','Enable','off');    
     %
-    handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
-    handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
+    % Commented out until we decide on a suitable file format (common to
+    % both OMERO and file-side
+    %handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
+    %handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
     handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps','Separator','on','Enable','off');        
 
     %===============================
