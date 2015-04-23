@@ -125,6 +125,12 @@ void AcquisitionParameters::SetT(int n_t_full, int n_t, double t_[], double t_in
    CheckGateSpacing();
 }
 
+void AcquisitionParameters::SetImageSize(int n_x_, int n_y_)
+{
+   n_x = n_x_;
+   n_y = n_y_;
+}
+
 void AcquisitionParameters::SetIRF(shared_ptr<InstrumentResponseFunction> irf_)
 {
    irf = irf_;

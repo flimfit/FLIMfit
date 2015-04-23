@@ -246,7 +246,7 @@ T* FLIMData::GetDataPointer(int thread, int im)
    {
       buf_size = im_size * data_size;
       offset = iml * im_size * data_size + data_skip;
-
+      
       data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
       data_ptr = (T*)data_map_view[thread].get_address();
    }

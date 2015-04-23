@@ -42,6 +42,7 @@ public:
 
    AcquisitionParameters(int data_type = 0, double t_rep = 12500.0, int polarisation_resolved = false, int n_chan = 1, double counts_per_photon = 1);
   
+   void SetImageSize(int n_x, int n_y);
    void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
    void SetT(int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[]);
    
@@ -54,11 +55,14 @@ public:
    int data_type;
    int polarisation_resolved;
 
-   int n_t;
-   int n_t_full;
-   int n_chan;
+   int n_x = 1;
+   int n_y = 1;
+
+   int n_t = 1;
+   int n_t_full = 1;
+   int n_chan = 1;
    
-   double  counts_per_photon;
+   double  counts_per_photon = 1;
    double  t_rep;
    
    vector<int>    t_skip;
