@@ -127,8 +127,10 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Export_Data_Settings = uimenu(menu_OMERO,'Label','Export Data Settings','Separator','on','Enable','off');            
     handles.menu_OMERO_Import_Data_Settings = uimenu(menu_OMERO,'Label','Import Data Settings','Enable','off');    
     %
-    handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
-    handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
+    % Commented out until we decide on a suitable file format (common to
+    % both OMERO and file-side
+    %handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
+    %handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
     handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps','Separator','on','Enable','off');        
 
     %===============================
