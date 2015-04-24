@@ -110,10 +110,10 @@ rawPixelsStore.close();
 RENDER = true;
 
 re = factory.createRenderingEngine();
-%
+
 re.lookupPixels(pixelsId)
     if ~re.lookupRenderingDef(pixelsId)
-        re.resetDefaults();  
+        re.resetDefaultSettings(true);  
     end;
     if ~re.lookupRenderingDef(pixelsId)
         errordlg('mat2omeroImage: can not render properly');
