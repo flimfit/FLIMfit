@@ -12,7 +12,8 @@ find_package(Qt5OpenGL REQUIRED)
 
 qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
                        DecayWidget.ui
-                       FLIMfitWindow.ui)
+                       FLIMfitWindow.ui
+                       FittingWidget.ui)
 
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
@@ -38,22 +39,32 @@ set(HEADERS
    ChannelFactorListDelegate.h
    DecayWidget.h
    FLIMfitWindow.h
+   FLIMImporter.h
+   FLIMImageSet.h
+   FittingWidget.h
    qcustomplot.h
 )
 
-include_directories(../FLIMDecayModel ../DataFitter ../FLIMfit ${CMAKE_CURRENT_BINARY_DIR})
+include_directories(../FLIMDecayModel 
+                    ../DataFitter 
+                    ../FLIMfit
+                    ../FLIMReader/Source/FLIMReader
+                    ${LEVMAR_INCLUDE_DIRS} 
+                    ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(FLIMfitQT ${SOURCE} 
                          ${HEADERS} 
                          ${UI_HEADERS} 
                          ${UI_RESOURCES}
-                         $<TARGET_OBJECTS:FLIMreader>)
+                         $<TARGET_OBJECTS:FLIMReader>)
 
 #set_target_properties(FLIMfitQT PROPERTIES LINK_FLAGS "/NODEFAULTLIB:library" )
 
 target_link_libraries(FLIMfitQT
                            FLIMDecayModel
                            DataFitter
+                           FLIMfit
+                           levmar
                            Qt5::Widgets 
                            Qt5::PrintSupport
                            Qt5::Gui

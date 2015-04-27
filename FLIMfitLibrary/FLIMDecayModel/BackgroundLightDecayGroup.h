@@ -23,7 +23,7 @@ public:
 protected:
 
    const vector<string> names;
-   void Validate();
+   void SetupParameters();
 
    int AddOffsetColumn(double* a, int adim, vector<double>& kap);
    int AddScatterColumn(double* a, int adim, vector<double>& kap);

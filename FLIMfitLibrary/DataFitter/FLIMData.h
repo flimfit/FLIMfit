@@ -27,16 +27,15 @@
 //
 //=========================================================================
 
-#ifndef _FLIMDATA_
-#define _FLIMDATA_
+#pragma once
 
 #include "RegionData.h"
 #include "FitResults.h"
 #include "FitStatus.h"
-#include "InstrumentResponseFunction.h"
+#include "FLIMImage.h"
 #include "AcquisitionParameters.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <memory>
 #include <limits>
@@ -57,6 +56,7 @@
 using std::vector;
 using std::string;
 
+enum DataMode { DataInMemory, DataMappedFile, DataFLIMImages };
 
 class FLIMData : public AcquisitionParameters
 {
@@ -66,12 +66,14 @@ public:
    FLIMData();
 
    void SetAcquisitionParmeters(const AcquisitionParameters& acq);
-   void SetDataSize(int n_im, int n_x, int n_y);
    void SetMasking(int* use_im, uint8_t mask[], int merge_regions = false);
    void SetThresholds(int threshold, int limit);
    void SetGlobalMode(int global_mode);
    void SetSmoothing(int smoothing);
 
+   void SetData(const vector<std::shared_ptr<FLIMImage>>& images);
+
+   void SetNumImages(int n_im);
    int SetData(float data[]);
    int SetData(uint16_t data[]);
    int SetData(const char* data_file, int data_class, int data_skip);
@@ -119,11 +121,6 @@ public:
    ~FLIMData();
 
    int n_im = 0;
-   int n_x = 0;
-   int n_y = 0;
-   int n_buf;
-
-   int n_px = 0;
 
    int n_regions_total = 0;
    int n_output_regions_total = 0;
@@ -151,6 +148,7 @@ private:
 
    int GetMaskedData(int thread, int im, int region, float* masked_data, int* irf_idx, FitResults& results);
 
+   void ResizeBuffers();
 
    template <typename T>
    T* GetDataPointer(int thread, int im);
@@ -176,9 +174,11 @@ private:
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region* data_map_view;
 
+   std::vector<std::shared_ptr<FLIMImage>> images;
+
    char *data_file; 
 
-   int data_mode = DATA_DIRECT;
+   DataMode data_mode = DataInMemory;
    
    int has_data = false;
 
@@ -240,22 +240,23 @@ T* FLIMData::GetDataPointer(int thread, int im)
 
    int data_size = sizeof(T);
 
-   T* data_ptr;
-
-   if (data_mode == DATA_MAPPED)
+   switch (data_mode)
    {
+   case DataMappedFile:
       buf_size = im_size * data_size;
       offset = iml * im_size * data_size + data_skip;
-      
+
       data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
-      data_ptr = (T*)data_map_view[thread].get_address();
-   }
-   else
-   {
-      data_ptr = ((T*)data) + iml * im_size;
+      return (T*)data_map_view[thread].get_address();
+
+   case DataInMemory:
+      return ((T*)data) + iml * im_size;
+
+   case DataFLIMImages:
+      return images[iml]->dataPointer<T>();
    }
 
-   return data_ptr;
+   return nullptr;
 }
 
 
@@ -290,7 +291,7 @@ int FLIMData::CalculateRegions()
 
    StartStreaming(false);
 
-   #pragma omp parallel for schedule(dynamic, 1)
+   //#pragma omp parallel for schedule(dynamic, 1)
    for(int i=0; i<n_im_used; i++)
    {
       int thread = omp_get_thread_num();
@@ -422,11 +423,8 @@ int FLIMData::CalculateRegions()
 template <typename T>
 void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
 {
-   for(int i=0; i<n_thread; i++)
-   {
-      data_loaded[i] = -1;
-      data_used[i] = 1;
-   }
+   data_loaded.assign(n_thread, -1);
+   data_used.assign(n_thread, -1);
 
    int free_slot;
    bool load_image;
@@ -468,7 +466,7 @@ void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
                }
             }   
 
-            if (status->terminate)
+            if (status != nullptr && status->terminate)
                free_slot = -2;
 
             if (free_slot == -1)
@@ -520,7 +518,7 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
                break;
             }
          }   
-         if (status->terminate)
+         if (status != nullptr && status->terminate)
             slot = -2;
 
          if (slot == -1)
@@ -784,7 +782,3 @@ void FLIMData::TransformImage(int thread, int im)
    cur_transformed[thread] = im;
 
 }
-
-
-
-#endif

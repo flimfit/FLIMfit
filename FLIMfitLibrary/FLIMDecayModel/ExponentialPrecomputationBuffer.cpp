@@ -256,10 +256,10 @@ void ExponentialPrecomputationBuffer::AddDecay(double fact, double ref_lifetime,
       {
          Convolve(k, i, pulse_fact, bin_shift, c);
 
-         int mi = i + 1 + bin_shift; // TODO: 1 is correct here?
+         int mi = i + bin_shift; // TODO: should there be a 1 here?
 
          mi = mi < 0 ? 0 : mi;
-         mi = mi >= n_irf ? n_irf - 1 : mi;
+         mi = mi >= n_t ? n_t - 1 : mi;
 
 
          a[idx] += model_decay[k][mi] * c * fact;

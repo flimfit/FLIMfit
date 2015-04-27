@@ -47,7 +47,7 @@ AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int po
    n_meas      = 0;
 }
 
-void AcquisitionParameters::SetT(vector<double>& t_)
+void AcquisitionParameters::SetT(const vector<double>& t_)
 {
    t = t_;
 
@@ -55,8 +55,7 @@ void AcquisitionParameters::SetT(vector<double>& t_)
    n_t = n_t_full;
    t_int.assign(n_t_full, 1);
 
-   for(int i=0; i<n_chan; i++)
-      t_skip[i] = 0;
+   t_skip.resize(n_chan, 0);
 
    n_meas      = n_chan * n_t;
    n_meas_full = n_chan * n_t_full;
@@ -65,7 +64,7 @@ void AcquisitionParameters::SetT(vector<double>& t_)
 }
 
 
-void AcquisitionParameters::SetT(vector<double>& t_, double t_min, double t_max)
+void AcquisitionParameters::SetT(const vector<double>& t_, double t_min, double t_max)
 {
    SetT(t_);
 
@@ -91,8 +90,7 @@ void AcquisitionParameters::SetT(vector<double>& t_, double t_min, double t_max)
       n_t = 1;
    }
 
-   for(int i=0; i<n_chan; i++)
-      t_skip[i] = skip;
+   t_skip.resize(n_chan, 0);
 
    n_meas = n_chan * n_t;
 
@@ -107,6 +105,7 @@ void AcquisitionParameters::SetT(int n_t_full, int n_t, double t_[], double t_in
 
    if (t_skip_ != NULL)
    {
+      t_skip.resize(n_chan);
       for(int i=0; i<n_chan; i++)
          t_skip[i] = t_skip_[i];
    }
@@ -129,6 +128,8 @@ void AcquisitionParameters::SetImageSize(int n_x_, int n_y_)
 {
    n_x = n_x_;
    n_y = n_y_;
+
+   n_px = n_x * n_y;
 }
 
 void AcquisitionParameters::SetIRF(shared_ptr<InstrumentResponseFunction> irf_)
@@ -182,7 +183,7 @@ void AcquisitionParameters::CalculateIRFMax()
          int k = 0;
          while (k < n_irf && (t[i] - t0 - k*dt_irf) >= -1.0)
          {
-            irf_max[j*n_t + i] = k + j*n_irf;
+            irf_max[j*n_t + i] = k;
             k++;
          }
       }

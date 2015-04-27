@@ -124,6 +124,8 @@ int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int*
                       * info[8]= # Jacobian evaluations
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
+   assert(info[6] != 7);
+
    *cur_chi2 = (info[1] / chi2_norm);
 
    if(!getting_errs)
@@ -210,8 +212,8 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
          {
             if (inc[k + j * 12] != 0)
             {
-               for (i=0; i<n; i++)
-                  fjac[n_param*i+k] += expA[j] * b[ndim*m+i];
+               for (i = 0; i < n; i++)
+                  fjac[n_param*i + k] += expA[j] * b[ndim*m + i]; // TODO: REMOVE 10
                fjac[n_param*i+k] = kap[k+1];
                m++;
             }

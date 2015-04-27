@@ -48,7 +48,7 @@
          <item>
           <widget class="QPushButton" name="remove_group_button">
            <property name="text">
-            <string>Remove</string>
+            <string>-</string>
            </property>
           </widget>
          </item>
@@ -93,7 +93,7 @@
          <item>
           <widget class="QPushButton" name="add_group_button">
            <property name="text">
-            <string>Add</string>
+            <string>+</string>
            </property>
           </widget>
          </item>

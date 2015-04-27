@@ -36,24 +36,13 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool c
    n_exponential(n_exponential),
    contributions_global(contributions_global)
 {
-   ValidateMultiExponential();
+   SetupParametersMultiExponential();
 
    channel_factor_names.push_back("Decay");
 }
 
-void MultiExponentialDecayGroup::ValidateMultiExponential()
+void MultiExponentialDecayGroup::SetupParametersMultiExponential()
 {
-   if (contributions_global)
-   {
-      n_lin_components = 1;
-      n_nl_parameters = 2 * n_exponential - 1;
-   }
-   else
-   {
-      n_lin_components = n_exponential;
-      n_nl_parameters = n_exponential;
-   }
-
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    
    if (tau_parameters.size() > n_exponential)
@@ -73,7 +62,7 @@ void MultiExponentialDecayGroup::ValidateMultiExponential()
       }
    }
 
-   if (contributions_global)
+   if (contributions_global && (n_exponential > 1))
    {
       if (beta_parameters.size() > n_exponential)
       {
@@ -108,6 +97,13 @@ void MultiExponentialDecayGroup::ValidateMultiExponential()
 
 void MultiExponentialDecayGroup::Init()
 {
+   n_lin_components = contributions_global ? 1 : n_exponential;
+
+   for (auto& p : tau_parameters)
+      n_nl_parameters += p->IsFittedGlobally();
+   for (auto& p : beta_parameters) // TODO: sort this out, -1 and all that
+      n_nl_parameters += p->IsFittedGlobally();
+
    buffer.resize(n_exponential,
       ExponentialPrecomputationBuffer(acq));
 
@@ -117,13 +113,13 @@ void MultiExponentialDecayGroup::Init()
 void MultiExponentialDecayGroup::SetNumExponential(int n_exponential_)
 {
    n_exponential = n_exponential_;
-   ValidateMultiExponential();
+   SetupParametersMultiExponential();
 }
 
 void MultiExponentialDecayGroup::SetContributionsGlobal(bool contributions_global_)
 {
    contributions_global = contributions_global_;
-   ValidateMultiExponential();
+   SetupParametersMultiExponential();
 }
 
 const vector<double>& MultiExponentialDecayGroup::GetChannelFactors(int index)
@@ -191,7 +187,10 @@ int MultiExponentialDecayGroup::SetVariables(const double* param_value)
    if (contributions_global)
    {
       beta.resize(n_exponential);
-      alf2beta(n_exponential, param_value + idx, beta.data());
+      if (n_exponential > 1)
+         alf2beta(n_exponential, param_value + idx, beta.data()); // TODO
+      else
+         beta[0] = 1;
    }
 
    return idx;
@@ -204,7 +203,7 @@ int MultiExponentialDecayGroup::GetNonlinearOutputs(float* param_values, float* 
    for (int i = 0; i < n_exponential; i++)
       output[output_idx++] = tau_parameters[i]->GetValue<float>(param_values, param_idx);
 
-   if (contributions_global)
+   if (contributions_global && n_exponential > 1)
    {
       int j = 0;
       for (int i = 0; i < n_exponential; i++)

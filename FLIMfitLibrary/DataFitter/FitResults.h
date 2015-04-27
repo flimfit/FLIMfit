@@ -31,7 +31,7 @@
 
 #include "DecayModel.h"
 #include "ImageStats.h"
-#include <stdint.h>
+#include <cstdint>
 
 #include <vector>
 #include <memory>

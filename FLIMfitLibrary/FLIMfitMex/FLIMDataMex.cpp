@@ -108,7 +108,8 @@ void SetDataSize(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, co
    int n_x = mxGetScalar(prhs[3]);
    int n_y = mxGetScalar(prhs[4]);
 
-   d->SetDataSize(n_im, n_x, n_y);
+   d->SetImageSize(n_x, n_y);
+   d->SetNumImages(n_im);
 }
 
 void SetMasking(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -295,7 +296,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    }
    catch (std::exception e)
    {
-      mexErrMsgIdAndTxt("FLIMreaderMex:exceptionOccurred",
+      mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
          e.what());
    }
 }

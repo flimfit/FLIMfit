@@ -22,7 +22,7 @@ public:
 
 protected:
 
-   void Validate();
+   void SetupParameters();
    
    int AddLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap);
    int AddRotationalCorrelationTimeDerivatives(double* b, int bdim, vector<double>& kap);
@@ -33,8 +33,7 @@ protected:
 
    int n_anisotropy_populations;
    bool include_r_inf;
-   int n_multiexp_parameters;
-
+   
    vector<double> theta;
 
    vector<vector<ExponentialPrecomputationBuffer>> anisotropy_buffer;

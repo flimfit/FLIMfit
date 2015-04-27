@@ -391,6 +391,8 @@ void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
 
 void FLIMGlobalFitController::Init()
 {
+//   assert(acq->irf != nullptr);
+
    cur_region = -1;
    next_pixel  = 0;
    next_region = 0;
@@ -463,10 +465,8 @@ void FLIMGlobalFitController::Init()
    exp_dim = max_dim * n_chan;
    */
 
-
    // TODO: add exception handling here
    results.reset( new FitResults(model, data, calculate_errors) );
-
 
    // Create fitting objects
    projectors.reserve(n_fitters);
@@ -491,16 +491,11 @@ void FLIMGlobalFitController::Init()
    }
    */
 
-   
-
-
    // standard normal distribution object:
    boost::math::normal norm;
    conf_factor = quantile(complement(norm, 0.5*conf_interval));
 
-
    init = true;
-
 }
 
 

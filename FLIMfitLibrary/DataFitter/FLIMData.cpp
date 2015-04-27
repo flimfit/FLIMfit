@@ -31,17 +31,43 @@
 #include "FlagDefinitions.h"
 #include <cmath>
 
+FLIMData::FLIMData()
+{
+   has_data = false;
+   has_acceptor = false;
+
+   data_file = NULL;
+   acceptor_ = NULL;
+   loader_thread = NULL;
+
+
+   image_t0_shift = NULL;
+
+
+   stream_data = STREAM_DATA;
+
+
+   background_value = 0;
+   background_type = BG_NONE;
+
+
+   n_masked_px = 0;
+
+   background_value = 0;
+   background_type = BG_NONE;
+
+   SetNumThreads(1);
+}
 
 void FLIMData::SetAcquisitionParmeters(const AcquisitionParameters& acq)
 {
    *static_cast<AcquisitionParameters*>(this) = acq;
+   ResizeBuffers();
 }
 
-void FLIMData::SetDataSize(int n_im_, int n_x_, int n_y_)
+void FLIMData::SetNumImages(int n_im_)
 {
    n_im = n_im_;
-   n_x = n_x_;
-   n_y = n_y_;
 
    n_im_used = n_im;
 
@@ -112,33 +138,7 @@ void FLIMData::SetSmoothing(int smoothing_factor_)
    }
 }
 
-FLIMData::FLIMData()
-{
-   has_data = false;
-   has_acceptor = false;
 
-   data_file = NULL;
-   acceptor_  = NULL;
-   loader_thread = NULL;
-
-
-   image_t0_shift = NULL;
-
-
-   stream_data = STREAM_DATA;
-
-
-   background_value = 0;
-   background_type = BG_NONE;
-
-
-   n_masked_px = 0;
-
-   background_value = 0;
-   background_type = BG_NONE;
-
-   n_px = n_x * n_y;
-}
 
 void FLIMData::SetStatus(shared_ptr<FitStatus> status_)
 {
@@ -150,30 +150,39 @@ void FLIMData::SetStatus(shared_ptr<FitStatus> status_)
 }
 
 
+
+
 void FLIMData::SetNumThreads(int n_thread_)
 {
    n_thread = n_thread_;
-
-   // TODO: make these all vectors
-
-   int n_p = n_x * n_y * n_meas_full;
-
-   tr_data_.resize(n_thread, std::vector<float>(n_p));
-   tr_buf_.resize(n_thread, std::vector<float>(n_p));
-   intensity_.resize(n_thread, std::vector<float>(n_px));
-   tr_row_buf_.resize(n_thread, std::vector<float>(n_x+n_y));
-
-   if (polarisation_resolved)
-      r_ss_.resize(n_thread, std::vector<float>(n_px));
-   else
-      r_ss_.resize(n_thread); // no data
 
    cur_transformed.resize(n_thread, -1);
    data_used.resize(n_thread, -1);
    data_loaded.resize(n_thread, -1);
 
    data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
+
+   ResizeBuffers();
 }
+
+void FLIMData::ResizeBuffers()
+{
+   int n_p = n_x * n_y * n_meas_full;
+
+   if (n_p > 0)
+   {
+      tr_data_.resize(n_thread, std::vector<float>(n_p));
+      tr_buf_.resize(n_thread, std::vector<float>(n_p));
+      intensity_.resize(n_thread, std::vector<float>(n_px));
+      tr_row_buf_.resize(n_thread, std::vector<float>(n_x + n_y));
+
+      if (polarisation_resolved)
+         r_ss_.resize(n_thread, std::vector<float>(n_px));
+      else
+         r_ss_.resize(n_thread); // no data
+   }
+}
+
 
 
 /**
@@ -271,6 +280,28 @@ int FLIMData::SetAcceptor(float acceptor[])
    return SUCCESS;
 }
 
+void FLIMData::SetData(const vector<shared_ptr<FLIMImage>>& images_)
+{
+   SetNumImages(images_.size());
+   images = images_;
+
+   has_data = true;
+   data_mode = DataFLIMImages;
+   
+   // TODO: harmonise these
+   if (images_[0]->dataClass() == FLIMImage::DataFloat)
+      data_class = DATA_FLOAT;
+   else
+      data_class = DATA_UINT16;
+
+   int err = 0;
+   if (data_class == DATA_FLOAT)
+      err = CalculateRegions<float>();
+   else
+      err = CalculateRegions<uint16_t>();
+
+}
+
 int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
 {
 
@@ -279,7 +310,7 @@ int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
 
    has_data = false;
 
-   data_mode = DATA_MAPPED;
+   data_mode = DataMappedFile;
    
    this->data_file = new char[ strlen(data_file) + 1 ]; //ok
    strcpy(this->data_file,data_file);
@@ -305,7 +336,7 @@ int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
 int FLIMData::SetData(float* data)
 {
    this->data = (void*) data;
-   data_mode = DATA_DIRECT;
+   data_mode = DataInMemory;
    data_class = DATA_FLOAT;
    
    int err = CalculateRegions<float>();
@@ -318,7 +349,7 @@ int FLIMData::SetData(float* data)
 int FLIMData::SetData(uint16_t* data)
 {
    this->data = (void*) data;
-   data_mode = DATA_DIRECT;
+   data_mode = DataInMemory;
    data_class = DATA_UINT16;
 
    int err = CalculateRegions<uint16_t>();
@@ -474,7 +505,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
       #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
       for(int i=0; i<n_im_used; i++)
       {
-         if (!status->terminate)
+         if (status == nullptr || !status->terminate)
          {
             // This thread index will only be used if we're not streaming data,
             // make sure that we pass the right one in

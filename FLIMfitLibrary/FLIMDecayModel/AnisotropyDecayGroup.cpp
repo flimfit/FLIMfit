@@ -39,11 +39,6 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    n_anisotropy_populations(n_anisotropy_populations),
    include_r_inf(include_r_inf)
 {
-   n_multiexp_parameters = n_nl_parameters;
-
-   n_lin_components = n_anisotropy_populations + include_r_inf + 1;
-   n_nl_parameters += n_anisotropy_populations;
-
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
 
    for (int i = 0; i < n_anisotropy_populations; i++)
@@ -56,9 +51,13 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
       theta_parameters.push_back(p);
    }
 
+   // TODO: MOVE ALL TO INIT
+   //n_lin_components = n_anisotropy_populations + include_r_inf + 1;
+   //n_nl_parameters += n_anisotropy_populations;
+
    //anisotropy_buffer.resize(n_anisotropy_populations,
    //   vector<ExponentialPrecomputationBuffer>(n_exponential,
-   //   ExponentialPrecomputationBuffer(acq))); // TODO: move to init
+   //   ExponentialPrecomputationBuffer(acq))); 
 }
 
 int AnisotropyDecayGroup::SetVariables(const double* param_value)

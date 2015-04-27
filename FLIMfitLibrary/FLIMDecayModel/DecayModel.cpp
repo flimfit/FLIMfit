@@ -53,6 +53,8 @@ void DecayModel::SetAcquisitionParameters(shared_ptr<AcquisitionParameters> acq_
 
 void DecayModel::Init()
 {   
+   assert(acq->n_chan == acq->irf->n_chan);
+
    for (auto g : decay_groups)
       g->Init();
    
@@ -203,6 +205,10 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
       for (int i = 0; i < decay_groups.size(); i++)
          col += decay_groups[i]->CalculateModel(a.data() + col*adim, adim, kap);
 
+#if _DEBUG
+      for (int i = 0; i < a.size(); i++)
+         assert(std::isfinite(a[i]));
+#endif
 
       /*
       MOVE THIS TO MULTIEXPONENTIAL MODEL
@@ -233,6 +239,10 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
       for (int i = 0; i < decay_groups.size(); i++)
          col += decay_groups[i]->CalculateDerivatives(b.data() + col*bdim, bdim, kap);
 
+#if _DEBUG
+      for (int i = 0; i < b.size(); i++)
+         assert(std::isfinite(b[i]));
+#endif
       /*
       col += AddLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
       col += AddContributionDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);

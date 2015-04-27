@@ -167,7 +167,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    }
    catch (std::exception e)
    {
-      mexErrMsgIdAndTxt("FLIMreaderMex:exceptionOccurred",
+      mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
          e.what());
    }
 }

@@ -29,7 +29,7 @@ public:
 
 protected:
 
-   void Validate();
+   void SetupParameters();
    void Init();
 
    int AddLifetimeDerivativesForFret(int idx, double* b, int bdim, vector<double>& kap);
@@ -47,7 +47,6 @@ protected:
    int n_fret_populations = 1;
    bool include_donor_only = true;
    bool include_acceptor = true;
-   int n_multiexp_parameters;
    
    vector<vector<double>> E;
    vector<vector<double>> a_star;

@@ -28,7 +28,7 @@ public:
 protected:
    
    void Init();
-   void ValidateMultiExponential();
+   void SetupParametersMultiExponential();
 
    int AddDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
    int AddLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);

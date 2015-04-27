@@ -42,7 +42,7 @@ int AbstractDecayGroup::GetInitialVariables(double* variables)
          variables[idx++] = p->initial_value;
    }
 
-   return idx;
+    return idx;
 }
 
 void AbstractDecayGroup::SetIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_)
@@ -58,10 +58,12 @@ void AbstractDecayGroup::GetNonlinearOutputParamNames(vector<string>& names)
       names.push_back(p->name);
 }
 
-void AbstractDecayGroup::SetAcquisitionParmeters(shared_ptr<AcquisitionParameters> acq)
+void AbstractDecayGroup::SetAcquisitionParmeters(shared_ptr<AcquisitionParameters> acq_)
 {
+   acq = acq_;
+
    // Make sure all the channel factors are the right size
-   int n_channel_factors = channel_factor_names.size();
+   size_t n_channel_factors = channel_factor_names.size();
    for (int i = 0; i < n_channel_factors; i++)
    { 
       auto v = GetChannelFactors(i);

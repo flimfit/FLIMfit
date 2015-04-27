@@ -151,10 +151,11 @@ int main()
    AcquisitionParameters acq(data_type, t_rep_default, polarisation_resolved, n_chan);
    acq.SetT(t);
    acq.SetIRF(irf_);
-
+   acq.SetImageSize(n_x, n_y);
+   
    auto data = std::make_shared<FLIMData>();
    data->SetAcquisitionParmeters(acq);
-   data->SetDataSize(1, n_x, n_y);
+   data->SetNumImages(1);
 
    auto model = std::make_shared<DecayModel>();
    model->SetAcquisitionParameters(data);

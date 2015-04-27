@@ -39,28 +39,26 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {
-   Validate();
+   SetupParameters();
 }
 
-void FretDecayGroup::Validate()
+void FretDecayGroup::SetupParameters()
 {
-   ValidateMultiExponential();
+   SetupParametersMultiExponential();
 
    channel_factor_names.clear();
    channel_factor_names.push_back("Donor");
    if (include_acceptor)
       channel_factor_names.push_back("Acceptor");
 
-   n_multiexp_parameters = n_nl_parameters;
-   n_lin_components = n_fret_populations + include_donor_only;
-   n_nl_parameters += n_fret_populations;
-
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
 
    for (int i = 0; i < n_fret_populations; i++)
    {
       string name = "E_" + boost::lexical_cast<string>(i + 1);
-      double initial_value = 0.25 + 0.5 * i / (n_fret_populations-1);
+      double initial_value = 0.25;
+      if (n_fret_populations > 1) 
+         initial_value += 0.5 * i / (n_fret_populations - 1);
 
 
       auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
@@ -72,7 +70,9 @@ void FretDecayGroup::Validate()
    {
       double initial_value = 1;
       A0_parameter = make_shared<FittingParameter>("A0", initial_value, fixed_or_global, FittedGlobally);
+      tauA_parameter = make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
       parameters.push_back(A0_parameter);
+      parameters.push_back(tauA_parameter);
    }
 
 
@@ -80,6 +80,19 @@ void FretDecayGroup::Validate()
 
 void FretDecayGroup::Init()
 {
+   MultiExponentialDecayGroup::Init();
+
+   n_lin_components = n_fret_populations + include_donor_only;
+
+   for (auto& p : E_parameters)
+      n_nl_parameters += p->IsFittedGlobally();
+   
+   if (include_acceptor)
+   {
+      n_nl_parameters += A0_parameter->IsFittedGlobally();
+      n_nl_parameters += tauA_parameter->IsFittedGlobally();
+   }
+
    fret_buffer.resize(n_fret_populations, 
       vector<ExponentialPrecomputationBuffer>(n_exponential,
         ExponentialPrecomputationBuffer(acq)));
@@ -92,19 +105,19 @@ void FretDecayGroup::Init()
 void FretDecayGroup::SetNumFretPopulations(int n_fret_populations_)
 {
    n_fret_populations = n_fret_populations;
-   Validate();
+   SetupParameters();
 }
 
 void FretDecayGroup::SetIncludeDonorOnly(bool include_donor_only_)
 {
    include_donor_only = include_donor_only_;
-   Validate();
+   SetupParameters();
 }
 
 void FretDecayGroup::SetIncludeAcceptor(bool include_acceptor_)
 {
    include_acceptor = include_acceptor_;
-   Validate();
+   SetupParameters();
 }
 
 const vector<double>& FretDecayGroup::GetChannelFactors(int index)
@@ -136,39 +149,38 @@ void FretDecayGroup::SetChannelFactors(int index, const vector<double>& channel_
 int FretDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
 {
    int n_fret_group = n_fret_populations + include_donor_only;
-   
+
    // Set diagonal elements of incidence matrix for variable tau's   
-   for (int i = 0; i<n_exponential; i++)
+   for (int i = 0; i < n_exponential; i++)
    {
       if (tau_parameters[i]->IsFittedGlobally())
       {
-         for (int j = 0; j<n_fret_group; j++)
+         for (int j = 0; j < n_fret_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
          inc_row++;
       }
    }
 
    // Set diagonal elements of incidence matrix for variable beta's   
-   for (int i = 0; i<n_exponential; i++)
+   for (int i = 0; i < n_exponential - 1; i++) // TODO
    {
       if (beta_parameters[0]->IsFittedGlobally())
       {
-         for (int j = 0; j<n_fret_group; j++)
+         for (int j = 0; j < n_fret_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
          inc_row++;
       }
    }
-   
+
    if (include_donor_only)
       inc_col++;
 
    // Set elements of incidence matrix for E derivatives
-   for (int i = 0; i<n_fret_populations; i++)
+   for (int i = 0; i < n_fret_populations; i++)
    {
       if (E_parameters[i]->IsFittedGlobally())
       {
          inc[inc_row + (inc_col + i) * 12] = 1;
-         inc_col++;
          inc_row++;
       }
    }
@@ -179,13 +191,13 @@ int FretDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
       if (A0_parameter->IsFittedGlobally())
       {
          for (int i = 0; i < n_fret_populations; i++)
-            inc[inc_row + inc_col * 12] = 1;
+            inc[inc_row + (inc_col + i) * 12] = 1;
          inc_row++;
       }
       if (tauA_parameter->IsFittedGlobally())
       {
          for (int i = 0; i < n_fret_populations; i++)
-            inc[inc_row + inc_col * 12] = 1;
+            inc[inc_row + (inc_col + i) * 12] = 1;
          inc_row++;
       }
    }
@@ -200,8 +212,8 @@ int FretDecayGroup::SetVariables(const double* param_values)
    int idx = MultiExponentialDecayGroup::SetVariables(param_values);
 
    tau_fret.resize(n_fret_populations, vector<double>(n_exponential));
-   E.resize(n_fret_populations);
-
+   E.resize(n_fret_populations, vector<double>(n_exponential));
+   
    // Set tau's for FRET
    for (int i = 0; i<n_fret_populations; i++)
    {
@@ -220,6 +232,8 @@ int FretDecayGroup::SetVariables(const double* param_values)
 
    if (include_acceptor)
    {
+      a_star.resize(n_fret_populations, vector<double>(n_exponential));
+
       A0 = A0_parameter->GetValue<double>(param_values, idx);
       tauA = tauA_parameter->GetValue<double>(param_values, idx);
 

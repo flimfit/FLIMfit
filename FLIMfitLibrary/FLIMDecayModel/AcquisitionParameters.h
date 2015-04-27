@@ -46,8 +46,8 @@ public:
    void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
    void SetT(int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[]);
    
-   void SetT(vector<double>& t_, double t_min, double t_max);
-   void SetT(vector<double>& t_);
+   void SetT(const vector<double>& t_, double t_min, double t_max);
+   void SetT(const vector<double>& t_);
    void SetIntegrationTimes(vector<double>& t_int_);
    
    double* GetT();
@@ -73,6 +73,7 @@ public:
    shared_ptr<InstrumentResponseFunction> irf;
 
    // Computed parameters
+   int n_px;
    int n_meas;
    int n_meas_full;
    bool equally_spaced_gates;
