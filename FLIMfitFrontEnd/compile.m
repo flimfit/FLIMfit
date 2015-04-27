@@ -88,11 +88,11 @@ function compile(v)
         % Build executable
         switch platform
             case 'WIN'
-                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a pdftops.exe -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEuiUtils/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a LicenseFiles/*.txt -a HelperFunctions/genops/*
+                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a pdftops.exe -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEuiUtils/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a LicenseFiles/*.txt
         end
                 
             case 'MAC'
-                mcc -m  -v FLIMfit.m -d DeployFiles  -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a FLIMGlobalAnalysisProto_MACI64.m  -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/*  -a pdftops.bin -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEuiUtils/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a LicenseFiles/*.txt -a HelperFunctions/genops/*
+                mcc -m  -v FLIMfit.m -d DeployFiles  -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a FLIMGlobalAnalysisProto_MACI64.m  -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/*  -a pdftops.bin -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEuiUtils/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a LicenseFiles/*.txt
         end
 
         while ~exist(exe,'file')
