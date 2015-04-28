@@ -97,8 +97,6 @@ int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int*
 #ifdef _DEBUG
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf.data(), n_param, nfunc, this, err);
-    for (int i = 0; i < nfunc; i++)
-       assert(err[i] > 0.5);
     delete[] err;
 #endif
 

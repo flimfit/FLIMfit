@@ -51,6 +51,8 @@ void FretDecayGroup::SetupParameters()
    if (include_acceptor)
       channel_factor_names.push_back("Acceptor");
 
+   E_parameters.clear();
+
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
 
    for (int i = 0; i < n_fret_populations; i++)
@@ -68,8 +70,7 @@ void FretDecayGroup::SetupParameters()
 
    if (include_acceptor)
    {
-      double initial_value = 1;
-      A0_parameter = make_shared<FittingParameter>("A0", initial_value, fixed_or_global, FittedGlobally);
+      A0_parameter = make_shared<FittingParameter>("A0", 10, fixed_or_global, FittedGlobally);
       tauA_parameter = make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
       parameters.push_back(A0_parameter);
       parameters.push_back(tauA_parameter);
@@ -98,7 +99,13 @@ void FretDecayGroup::Init()
         ExponentialPrecomputationBuffer(acq)));
 
    if (include_acceptor)
+   {
+      acceptor_fret_buffer.resize(n_fret_populations,
+         vector<ExponentialPrecomputationBuffer>(n_exponential,
+         ExponentialPrecomputationBuffer(acq)));
+
       acceptor_buffer = make_unique<ExponentialPrecomputationBuffer>(acq);
+   }
 }
 
 
@@ -227,6 +234,9 @@ int FretDecayGroup::SetVariables(const double* param_values)
          tau_fret[i][j] = tau[j] * (1 - E[i][j]);
          double rate = 1 / tau_fret[i][j];
          fret_buffer[i][j].Compute(rate, irf_idx, t0_shift, channel_factors, false);
+
+         if (include_acceptor)
+            acceptor_fret_buffer[i][j].Compute(rate, irf_idx, t0_shift, acceptor_channel_factors, false);
       }
    }
 
@@ -294,10 +304,14 @@ int FretDecayGroup::CalculateModel(double* a, int adim, vector<double>& kap)
    int col = 0;
 
    if (include_donor_only)
+   {
+      memset(a + col*adim, 0, adim*sizeof(*a));
       col += AddDecayGroup(buffer, a + col*adim, adim, kap);
+   }
 
    for (int i = 0; i < fret_buffer.size(); i++)
    {
+      memset(a + col*adim, 0, adim*sizeof(*a));
       AddDecayGroup(fret_buffer[i], a + col*adim, adim, kap);
       AddAcceptorContribution(i, A0, a + col*adim, adim, kap);
 
@@ -314,7 +328,7 @@ void FretDecayGroup::AddAcceptorContribution(int i, double factor, double* a, in
       double a_start_sum = 0;
       for (int j = 0; j < n_exponential; j++)
       {
-         fret_buffer[i][j].AddDecay(factor * beta[j] * a_star[i][j], reference_lifetime, a); // rise time
+         acceptor_fret_buffer[i][j].AddDecay(-factor * beta[j] * a_star[i][j], reference_lifetime, a); // rise time
          a_start_sum += beta[j] * a_star[i][j];
       }
 
@@ -329,8 +343,8 @@ void FretDecayGroup::AddAcceptorDerivativeContribution(int i, std::function<doub
       double f_sum = 0;
       for (int j = 0; j < n_exponential; j++)
       {
-         double f = fact(i, j);
-         fret_buffer[i][j].AddDecay(f * beta[j], reference_lifetime, b); // rise time
+         double f = fact(i, j) * beta[j];
+         acceptor_fret_buffer[i][j].AddDecay(- f, reference_lifetime, b); // rise time
          f_sum += f;
       }
       acceptor_buffer->AddDecay(f_sum, reference_lifetime, b);
@@ -343,8 +357,12 @@ int FretDecayGroup::CalculateDerivatives(double* b, int bdim, vector<double>& ka
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
    {
-      col += AddLifetimeDerivative(i, b + col*bdim, bdim, kap);
-      col += AddLifetimeDerivativesForFret(i, b + col*bdim, bdim, kap);
+      if (tau_parameters[i]->IsFittedGlobally())
+      {
+         if (include_donor_only)
+            col += AddLifetimeDerivative(i, b + col*bdim, bdim, kap);
+         col += AddLifetimeDerivativesForFret(i, b + col*bdim, bdim, kap);
+      }
    }
 
    col += AddContributionDerivatives(b + col*bdim, bdim, kap);
@@ -372,14 +390,18 @@ int FretDecayGroup::AddLifetimeDerivativesForFret(int j, double* b, int bdim, ve
       memset(b + idx, 0, bdim*sizeof(*b));
 
       double fact = beta[j] / (tau_fret[i][j] * tau[j]);
-
-      if (include_acceptor)
-         fact *= (1 + a_star[i][j]);
          
       fret_buffer[i][j].AddDerivative(fact, reference_lifetime, b + idx);
 
-      auto acceptor_fact = [this](int i, int j) { return a_star[i][j] * a_star[i][j] / tauA; };
-      AddAcceptorDerivativeContribution(i, acceptor_fact, b + idx, bdim, kap);
+      if (include_acceptor)
+      {
+         fact *= A0 * a_star[i][j];
+         acceptor_fret_buffer[i][j].AddDerivative(-fact, reference_lifetime, b + idx);
+
+         auto acceptor_fact = [this](int i, int j) { return A0 * a_star[i][j] * a_star[i][j] / tauA; };
+         AddAcceptorDerivativeContribution(i, acceptor_fact, b + idx, bdim, kap);
+      }
+
 
       col++;
       idx += bdim;
@@ -393,29 +415,40 @@ int FretDecayGroup::AddFretEfficiencyDerivatives(double* b, int bdim, vector<dou
    int col = 0;
    int idx = 0;
 
+   auto fact_fcn = [this](int i, int j) 
+   {
+      double dE = E[i][j] / E[i][0];
+      dE *= dE;
+      dE *= tau[0] / tau[j];
+
+      return - tau[j] / (tau_fret[i][j] * tau_fret[i][j]) * dE;
+   };
+
    for (int i = 0; i<n_fret_populations; i++)
    {
-      memset(b + idx, 0, bdim*sizeof(*b));
-
-      for (int j = 0; j<n_exponential; j++)
+      if (E_parameters[i]->IsFittedGlobally())
       {
-         double dE = E[i][j] / E[i][0];
-         dE *= dE;
-         dE *= tau[0] / tau[j];
+         memset(b + idx, 0, bdim*sizeof(*b));
 
-         double fact = -beta[j] * tau[j] / (tau_fret[i][j] * tau_fret[i][j]) * dE;
-         
-         if (include_acceptor)
-            fact *= (1 + a_star[i][j]);
+         for (int j = 0; j < n_exponential; j++)
+         {
+            double fact = beta[j] * fact_fcn(i, j);
+            fret_buffer[i][j].AddDerivative(fact, reference_lifetime, b + idx);
 
-         fret_buffer[i][j].AddDerivative(fact, reference_lifetime, b + idx);
+            if (include_acceptor)
+            {
+               fact *= A0 * a_star[i][j];
+               acceptor_fret_buffer[i][j].AddDerivative(- fact, reference_lifetime, b + idx);
+            }
+                       
+         }
+
+         auto acceptor_fact_fcn = [this, &fact_fcn](int i, int j) { return fact_fcn(i,j) * A0 * a_star[i][j] * a_star[i][j] * tau[j]; };
+         AddAcceptorDerivativeContribution(i, acceptor_fact_fcn, b + idx, bdim, kap);
+
+         col++;
+         idx += bdim;
       }
-
-      auto fact = [this](int i, int j) { return -a_star[i][j] * a_star[i][j] / ((1-E[i][j])*(1-E[i][j])); };
-      AddAcceptorDerivativeContribution(i, fact, b + idx, bdim, kap);
-
-      col++;
-      idx += bdim;
    }
 
    return col;
@@ -426,14 +459,15 @@ int FretDecayGroup::AddAcceptorIntensityDerivatives(double* b, int bdim, vector<
    int col = 0;
    int idx = 0;
 
-   for (int i = 0; i < n_fret_populations; i++)
+   if (A0_parameter->IsFittedGlobally())
    {
-      memset(b + idx, 0, bdim*sizeof(*b));
-
-      AddAcceptorContribution(i, 1.0, b + idx, bdim, kap);
-
-      col++;
-      idx += bdim;
+      for (int i = 0; i < n_fret_populations; i++)
+      {
+         memset(b + idx, 0, bdim*sizeof(*b));
+         AddAcceptorContribution(i, 1.0, b + idx, bdim, kap);
+         col++;
+         idx += bdim;
+      }
    }
 
    return col;
@@ -444,29 +478,25 @@ int FretDecayGroup::AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<d
    int col = 0;
    int idx = 0;
 
-   for (int i = 0; i < n_fret_populations; i++)
+   if (tauA_parameter->IsFittedGlobally())
    {
-      memset(b + idx, 0, bdim*sizeof(*b));
-
-      double fact = 0;
-      for (int j = 0; j < n_exponential; j++)
-         fact += beta[j] * a_star[i][j];
-      fact /= (tauA * tauA);
-      
-      acceptor_buffer->AddDerivative(fact, reference_lifetime, b + idx);
-
-      for (int j = 0; j < n_exponential; j++)
+      for (int i = 0; i < n_fret_populations; i++)
       {
-         fact = beta[j] * a_star[i][j] * a_star[i][j] * tau[j] / (tauA * tauA);
-         acceptor_buffer->AddDecay(fact, reference_lifetime, b + idx);
-         fret_buffer[i][j].AddDecay(-fact, reference_lifetime, b + idx);
+         memset(b + idx, 0, bdim*sizeof(*b));
+
+         double fact = 0;
+         for (int j = 0; j < n_exponential; j++)
+            fact += A0 * beta[j] * a_star[i][j];
+         fact /= (tauA * tauA);
+
+         acceptor_buffer->AddDerivative(fact, reference_lifetime, b + idx);
+
+         auto acceptor_fact = [this,fact](int i, int j) { return - fact * a_star[i][j] * tau[j]; };
+         AddAcceptorDerivativeContribution(i, acceptor_fact, b + idx, bdim, kap);
+
+         col++;
+         idx += bdim;
       }
-
-      auto acceptor_fact = [this](int i, int j) { return - a_star[i][j] * a_star[i][j] * tau[i] / (tauA * tauA); };
-      AddAcceptorDerivativeContribution(i, acceptor_fact, b + idx, bdim, kap);
-
-      col++;
-      idx += bdim;
    }
 
    return col;

@@ -55,9 +55,9 @@ void MultiExponentialDecayGroup::SetupParametersMultiExponential()
       for (size_t i = old_size; i < n_exponential; i++)
       {
          string name = "tau_" + boost::lexical_cast<std::string>(i + 1);
-         double initial_value = 2500.0 / (i + 1);
+         double initial_value = 3000 / (i + 1);
 
-         auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
+         auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, Fixed);
          tau_parameters.push_back(p);
       }
    }
@@ -99,6 +99,7 @@ void MultiExponentialDecayGroup::Init()
 {
    n_lin_components = contributions_global ? 1 : n_exponential;
 
+   n_nl_parameters = 0;
    for (auto& p : tau_parameters)
       n_nl_parameters += p->IsFittedGlobally();
    for (auto& p : beta_parameters) // TODO: sort this out, -1 and all that

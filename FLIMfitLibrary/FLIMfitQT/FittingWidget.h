@@ -11,6 +11,7 @@
 #include "TextReader.h"
 
 #include <memory>
+#include <fstream>
 
 class FittingWidget : public QWidget, protected Ui::FittingWidget
 {
@@ -39,17 +40,15 @@ public:
       //decay_model->AddDecayGroup(std::make_shared<QMultiExponentialDecayGroup>());
       
       
-      auto fret_group = std::make_shared<QMultiExponentialDecayGroup>();
-      
-      /*
+      auto fret_group = std::make_shared<QFretDecayGroup>();
+      fret_group->SetIncludeAcceptor(true);
+
       std::vector<double> ch_donor = { 1.0, 0.0 };
-      std::vector<double> ch_acceptor = { 0.0, 1.0 };
+      fret_group->SetChannelFactors(0, ch_donor);
       
-
-      fret_group->SetChannelFactors(1, ch_donor);
-      fret_group->SetChannelFactors(0, ch_acceptor);
-      */
-
+      std::vector<double> ch_acceptor = { 0.0, 1.0 };
+      fret_group->SetChannelFactors(1, ch_acceptor);
+      
       decay_model->AddDecayGroup(fret_group);
 
       data_list->setModel(images.get());
@@ -69,6 +68,16 @@ public:
 
       fit_controller->Init();
       fit_controller->RunWorkers();
+
+      int mask = 0;
+      int n_valid = 0;
+      vector<double> fit(2000);
+      fit_controller->GetFit(0, 1, &mask, fit.data(), n_valid);
+
+      std::ofstream os("C:/Users/sean/Documents/FLIMTestData/results.csv");
+      for (int i = 0; i < fit.size(); i++)
+         os << fit[i] << "\n";
+
    }
 
 protected:

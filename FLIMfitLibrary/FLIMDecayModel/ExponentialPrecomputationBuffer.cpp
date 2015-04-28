@@ -58,8 +58,6 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
    
    rate = rate_;
 
-   std::cout << "Tau: " << 1 / rate << "\n";
-
    ComputeIRFFactors(rate, irf_idx, t0_shift);
    ComputeModelFactors(rate, channel_factors, compute_shifted_models);
  }
@@ -109,13 +107,13 @@ void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx
    // IRF exponential factor * t_irf
    //------------------------------------------------
    double t_rep = acquisition_params->t_rep;
-   __m128d t_irf_ = _mm_setr_pd(t0, t0 + dt_irf);
    __m128d dt_irf_ = _mm_set1_pd(dt_irf * 2);
 
    for (int k = 0; k < n_chan; k++)
    {
       __m128d* dest_ = (__m128d*) irf_exp_t_factor[k].data();
       __m128d* src_ = (__m128d*) irf_exp_factor[k].data();
+      __m128d t_irf_ = _mm_setr_pd(t0, t0 + dt_irf);
 
       for (int j = 0; j < n_loop; j++)
       {

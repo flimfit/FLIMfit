@@ -15,7 +15,7 @@ public:
    {
       auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(filename.toStdString()));
 
-      vector<int> channels = { 0 };
+      vector<int> channels = { 0, 1 };
 
       int n_chan = channels.size();
       auto t = reader->timepoints(); 
@@ -52,9 +52,9 @@ public:
             auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(full_path.toStdString()));
             reader->setTemporalResolution(5);
 
-            vector<int> channels = { 0 };
+            vector<int> channels = { 0, 1 };
 
-            auto acq = std::make_shared<AcquisitionParameters>();
+            auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
             acq->n_chan = channels.size();
             acq->SetImageSize(reader->numX(), reader->numY());
             acq->SetT(reader->timepoints());

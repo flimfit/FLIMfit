@@ -55,6 +55,7 @@ protected:
    double tauA;
 
    vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
+   vector<vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
    unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
    vector<double> donor_channel_factors;
    vector<double> acceptor_channel_factors;

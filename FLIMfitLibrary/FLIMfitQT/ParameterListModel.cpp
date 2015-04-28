@@ -221,12 +221,13 @@ bool ParameterListModel::setData(const QModelIndex & index, const QVariant & val
    }
    else if (item->type() == ParameterListItem::Parameter)
    {
-      switch (col)
+      if (col == 1)
       {
-      case 1:
          parameter->initial_value = value.toDouble();
          changed = true;
-      case 2:
+      }
+      else if (col == 2)
+      {
          parameter->fitting_type = static_cast<ParameterFittingType>(value.toInt());
          changed = true;
       }

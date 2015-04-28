@@ -247,8 +247,8 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
       double * bp = b.data();
 
 #if _DEBUG
-      for (int i = 0; i < b.size(); i++)
-         assert(std::isfinite(b[i]));
+      //for (int i = 0; i < b.size(); i++)
+      //   assert(std::isfinite(b[i]));
 #endif
       /*
       col += AddLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
@@ -465,48 +465,49 @@ void DecayModel::ValidateDerivatives()
    double factor = 100;
    double epsmch = std::numeric_limits<double>::epsilon();
    double eps = sqrt(epsmch);
+   double epsf = factor*epsmch;
+   double epslog = log10(eps);
+
 
    int n_nonlinear = GetNumNonlinearVariables();
    int n_cols = GetNumColumns();
+   int n_der = GetNumDerivatives();
 
    int inc[96];
    SetupIncMatrix(inc);
 
    int dim = acq->n_meas;
 
-   vector<double> a(dim * (n_cols+1)), ap(dim*(n_cols+1)), b(dim*(n_cols+1)), err(dim);
+   vector<double> a(dim * (n_cols+1)), ap(dim*(n_cols+1)), b(dim*n_der), err(dim);
    vector<double> kap(2);
 
    vector<double> alf(n_nonlinear);
    GetInitialVariables(alf, 2000);
    
+   CalculateModel(a, dim, b, dim, kap, alf, 0, 1);
+
    int m = 0;
    for (int i = 0; i < n_nonlinear; i++)
       for (int j = 0; j < n_cols; j++)
       {
          if (inc[i + j * 12])
          {
-            vector<double> alf_p = alf;
+            vector<double> alf_p(alf);
 
             double temp = eps * abs(alf[i]);
             if (temp == 0.0) temp = eps;
             alf_p[i] += temp;
 
-
-            CalculateModel(a, dim, b, dim, kap, alf, 0, 1);
             CalculateModel(ap, dim, b, dim, kap, alf_p, 0, 2);
 
             double* fvec = a.data() + dim * j;
             double* fvecp = ap.data() + dim * j;
             double* fjac = b.data() + dim * m;
 
-            double epsf = factor*epsmch;
-            double epslog = log10(eps);
-
             for (int k = 0; k<dim; ++k)
                err[k] = 0.0;
 
-            temp = abs(alf[j]);
+            temp = abs(alf[i]);
             if (temp == 0.0) temp = 1.0;
 
             for (int k = 0; k<dim; ++k)
@@ -514,6 +515,8 @@ void DecayModel::ValidateDerivatives()
 
             for (int k = 0; k<dim; ++k)
             {
+               double e = err[k];
+
                temp = 1.0;
                if (fvec[k] != 0.0 && fvecp[k] != 0.0 && fabs(fvecp[k] - fvec[k]) >= epsf*fabs(fvec[k]))
                   temp = eps*fabs((fvecp[k] - fvec[k]) / eps - err[k]) / (fabs(fvec[k]) + fabs(fvecp[k]));
@@ -522,6 +525,8 @@ void DecayModel::ValidateDerivatives()
                   err[k] = (log10(temp) - epslog) / epslog;
                if (temp >= eps) 
                   err[k] = 0.0;
+               if (err[k] == 0.0 && ((fvec[k] - fvecp[k]) == 0.0))
+                  err[k] = 1.0;
             }
 
             double mean_err = 0.0;
@@ -531,6 +536,8 @@ void DecayModel::ValidateDerivatives()
 
             std::cout << "Variable: " << i << ", Column: " << j << "\n";
             std::cout << "   Mean err : " << mean_err << "\n";
+
+            assert(mean_err > 0.75);
 
             m++;
          }
