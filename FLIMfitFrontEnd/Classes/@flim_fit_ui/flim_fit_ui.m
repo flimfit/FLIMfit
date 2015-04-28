@@ -60,7 +60,6 @@ classdef flim_fit_ui
                 end
             else
                 % DEBUG !test genops in deployed version
-                genops(1);
                 a = ones(10,10);
                 b = ones(10,1);
                 debug = 'testing genops'
