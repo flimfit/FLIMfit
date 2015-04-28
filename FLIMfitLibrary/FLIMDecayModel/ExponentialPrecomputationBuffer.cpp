@@ -108,8 +108,9 @@ void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx
 
    // IRF exponential factor * t_irf
    //------------------------------------------------
-   __m128d dt_irf_ = _mm_set1_pd(dt_irf);
+   double t_rep = acquisition_params->t_rep;
    __m128d t_irf_ = _mm_setr_pd(t0, t0 + dt_irf);
+   __m128d dt_irf_ = _mm_set1_pd(dt_irf * 2);
 
    for (int k = 0; k < n_chan; k++)
    {
@@ -205,7 +206,7 @@ void ExponentialPrecomputationBuffer::Convolve(int k, int i, double pulse_fact, 
 
 
 
-void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c) const
+void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const
 {
    const auto& exp_model_buf = model_decay[k];
    const auto& exp_irf_tirf_cum_buf = cum_irf_exp_t_factor[k];
@@ -226,10 +227,12 @@ void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i,
    {
       double t_rep = acquisition_params->t_rep;
 
-      c_rep = ((t + t_rep) * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact_a;
-      c_rep -= 0.5 * (((t + t_rep) * ref_fact_a + ref_fact_b) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact_a);
+      c_rep = (t * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact_a;
+      c_rep -= 0.5 * ((t * ref_fact_a + ref_fact_b) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact_a);
       c_rep /= pulse_fact;
       c += c_rep;
+
+      c += (exp_irf_cum_buf[n_irf - 1] - 0.5*exp_irf_buf[n_irf - 1]) / pulse_fact_der;
    }
 }
 
@@ -257,10 +260,8 @@ void ExponentialPrecomputationBuffer::AddDecay(double fact, double ref_lifetime,
          Convolve(k, i, pulse_fact, bin_shift, c);
 
          int mi = i + bin_shift; // TODO: should there be a 1 here?
-
          mi = mi < 0 ? 0 : mi;
          mi = mi >= n_t ? n_t - 1 : mi;
-
 
          a[idx] += model_decay[k][mi] * c * fact;
          idx++;
@@ -274,14 +275,17 @@ void ExponentialPrecomputationBuffer::AddDerivative(double fact, double ref_life
 
    double ref_fact_a = (irf->type == Reference && ref_lifetime > 0) ? (1 / ref_lifetime - rate) : 1;
    double ref_fact_b = (irf->type == Reference && ref_lifetime > 0) ? 1 : 0;
-   double pulse_fact = exp(acquisition_params->t_rep * rate) - 1;
+
+   double t_rep = acquisition_params->t_rep;
+   double pulse_fact = exp(t_rep * rate) - 1;
+   double pulse_fact_der = pulse_fact * pulse_fact / (t_rep * exp(t_rep * rate));
 
    int idx = 0;
    for (int k = 0; k<n_chan; k++)
    {
       for (int i = 0; i<n_t; i++)
       {
-         ConvolveDerivative(acquisition_params->t[i], k, i, pulse_fact, ref_fact_a, ref_fact_b, c);
+         ConvolveDerivative(acquisition_params->t[i], k, i, pulse_fact, pulse_fact_der, ref_fact_a, ref_fact_b, c);
          b[idx] += model_decay[k][i] * c * fact;
          idx++;
       }

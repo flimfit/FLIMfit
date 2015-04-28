@@ -61,7 +61,7 @@ private:
    void ComputeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models);
 
    void Convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const;
-   void ConvolveDerivative(double t, int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c) const;
+   void ConvolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const;
 
 
    vector<aligned_vector<double>> irf_exp_factor;
