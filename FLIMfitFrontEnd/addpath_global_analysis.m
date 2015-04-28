@@ -72,17 +72,17 @@ function addpath_global_analysis()
         a = ones(10,10);
         b = ones(10,1);
 
-        disp('testing genops')
+        debug = 'testing genops'
    
         try 
             c = a.*b;
             if ~all(size(c)==[10,10])
-                disp('calling makegenops 1')
+                debug = 'calling makegenops 1'
                 makegenops;
                 genops(1);    
             end
         catch
-            disp('calling makegenops 2')
+            debug = 'calling makegenops 2'
             makegenops;
             genops(1);
         end
