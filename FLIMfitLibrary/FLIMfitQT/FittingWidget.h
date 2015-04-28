@@ -23,12 +23,12 @@ public:
       connect(fit_button, &QPushButton::pressed, this, &FittingWidget::Fit);
 
 
-      QString irf_name = "C:/Users/sean/Documents/FLIMTestData/2015-05-15 Dual FRET IRF.csv";
+      QString irf_name = "C:/Users/sean/Documents/FLIMTestData/acceptor-fret-irf.csv";
 
       auto irf = FLIMImporter::importIRF(irf_name);
       
 
-      QString folder("C:/Users/sean/Documents/FLIMTestData");
+      QString folder("C:/Users/sean/Documents/FLIMTestData/acceptor");
       images = FLIMImporter::importFromFolder(folder);
 
       auto acq = images->GetAcquisitionParameters();
@@ -36,8 +36,21 @@ public:
       decay_model = std::make_shared<QDecayModel>();
 
       decay_model->SetAcquisitionParameters(acq);
-      decay_model->AddDecayGroup(std::make_shared<QMultiExponentialDecayGroup>());
-      decay_model->AddDecayGroup(std::make_shared<QFretDecayGroup>());
+      //decay_model->AddDecayGroup(std::make_shared<QMultiExponentialDecayGroup>());
+      
+      
+      auto fret_group = std::make_shared<QMultiExponentialDecayGroup>();
+      
+      /*
+      std::vector<double> ch_donor = { 1.0, 0.0 };
+      std::vector<double> ch_acceptor = { 0.0, 1.0 };
+      
+
+      fret_group->SetChannelFactors(1, ch_donor);
+      fret_group->SetChannelFactors(0, ch_acceptor);
+      */
+
+      decay_model->AddDecayGroup(fret_group);
 
       data_list->setModel(images.get());
 
@@ -49,7 +62,7 @@ public:
    void Fit()
    {
       fit_controller = std::make_shared<FLIMGlobalFitController>();
-
+      fit_controller->SetFitSettings(FitSettings(ALG_ML));
       auto data = images->GetFLIMData();
       fit_controller->SetData(data);
       fit_controller->SetModel(decay_model);

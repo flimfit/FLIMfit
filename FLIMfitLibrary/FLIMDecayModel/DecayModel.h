@@ -89,6 +89,8 @@ public:
 
 protected:
 
+   void ValidateDerivatives();
+
    double GetCurrentReferenceLifetime(const double* param_values, int& idx);
    double GetCurrentT0(const double* param_values, int& idx);
 

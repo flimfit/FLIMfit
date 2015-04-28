@@ -29,6 +29,7 @@
 //=========================================================================
 
 #include "DecayModel.h"
+#include <iostream>
 
 using namespace std;
 
@@ -59,6 +60,10 @@ void DecayModel::Init()
       g->Init();
    
    SetupAdjust();
+
+#ifdef _DEBUG
+   ValidateDerivatives();
+#endif
 }
 
 /*
@@ -238,6 +243,8 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
 
       for (int i = 0; i < decay_groups.size(); i++)
          col += decay_groups[i]->CalculateDerivatives(b.data() + col*bdim, bdim, kap);
+
+      double * bp = b.data();
 
 #if _DEBUG
       for (int i = 0; i < b.size(); i++)
@@ -445,4 +452,88 @@ int DecayModel::GetLinearOutputs(float* lin_variables, float* outputs)
       idx += g->GetLinearOutputs(lin_variables, outputs + idx, lin_idx);
 
    return idx;
+}
+
+
+/*
+* Based on fortran77 subroutine CHKDER by
+* Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More
+* Argonne National Laboratory. MINPACK project. March 1980.
+*/
+void DecayModel::ValidateDerivatives()
+{
+   double factor = 100;
+   double epsmch = std::numeric_limits<double>::epsilon();
+   double eps = sqrt(epsmch);
+
+   int n_nonlinear = GetNumNonlinearVariables();
+   int n_cols = GetNumColumns();
+
+   int inc[96];
+   SetupIncMatrix(inc);
+
+   int dim = acq->n_meas;
+
+   vector<double> a(dim * (n_cols+1)), ap(dim*(n_cols+1)), b(dim*(n_cols+1)), err(dim);
+   vector<double> kap(2);
+
+   vector<double> alf(n_nonlinear);
+   GetInitialVariables(alf, 2000);
+   
+   int m = 0;
+   for (int i = 0; i < n_nonlinear; i++)
+      for (int j = 0; j < n_cols; j++)
+      {
+         if (inc[i + j * 12])
+         {
+            vector<double> alf_p = alf;
+
+            double temp = eps * abs(alf[i]);
+            if (temp == 0.0) temp = eps;
+            alf_p[i] += temp;
+
+
+            CalculateModel(a, dim, b, dim, kap, alf, 0, 1);
+            CalculateModel(ap, dim, b, dim, kap, alf_p, 0, 2);
+
+            double* fvec = a.data() + dim * j;
+            double* fvecp = ap.data() + dim * j;
+            double* fjac = b.data() + dim * m;
+
+            double epsf = factor*epsmch;
+            double epslog = log10(eps);
+
+            for (int k = 0; k<dim; ++k)
+               err[k] = 0.0;
+
+            temp = abs(alf[j]);
+            if (temp == 0.0) temp = 1.0;
+
+            for (int k = 0; k<dim; ++k)
+               err[k] += temp*fjac[k];
+
+            for (int k = 0; k<dim; ++k)
+            {
+               temp = 1.0;
+               if (fvec[k] != 0.0 && fvecp[k] != 0.0 && fabs(fvecp[k] - fvec[k]) >= epsf*fabs(fvec[k]))
+                  temp = eps*fabs((fvecp[k] - fvec[k]) / eps - err[k]) / (fabs(fvec[k]) + fabs(fvecp[k]));
+               err[k] = 1.0;
+               if (temp>epsmch && temp<eps)
+                  err[k] = (log10(temp) - epslog) / epslog;
+               if (temp >= eps) 
+                  err[k] = 0.0;
+            }
+
+            double mean_err = 0.0;
+            for (int k = 0; k < dim; k++)
+               mean_err += err[k];
+            mean_err /= dim;
+
+            std::cout << "Variable: " << i << ", Column: " << j << "\n";
+            std::cout << "   Mean err : " << mean_err << "\n";
+
+            m++;
+         }
+      }
+   
 }

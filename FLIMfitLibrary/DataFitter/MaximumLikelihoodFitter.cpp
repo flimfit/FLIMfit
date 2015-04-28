@@ -90,15 +90,18 @@ int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int*
          alf[nl+j] = log(mx/l);
 #else
       for(int j=0; j<l; j++)
-         alf[nl-l+j] = mx/l;
+         alf[nl+j] = mx/l;
 #endif
    }
 
-    
+#ifdef _DEBUG
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf.data(), n_param, nfunc, this, err);
+    for (int i = 0; i < nfunc; i++)
+       assert(err[i] > 0.5);
     delete[] err;
-    
+#endif
+
 /*    
    double opt[4];
    opt[0] = DBL_EPSILON;
@@ -125,6 +128,8 @@ int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int*
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
    assert(info[6] != 7);
+   for (int i = 0; i < 5; i++)
+      assert(std::isfinite(info[i]));
 
    *cur_chi2 = (info[1] / chi2_norm);
 
@@ -213,7 +218,7 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
             if (inc[k + j * 12] != 0)
             {
                for (i = 0; i < n; i++)
-                  fjac[n_param*i + k] += expA[j] * b[ndim*m + i]; // TODO: REMOVE 10
+                  fjac[n_param*i + k] += expA[j] * b[ndim*m + i];
                fjac[n_param*i+k] = kap[k+1];
                m++;
             }
@@ -235,7 +240,7 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
             fjac[n_param*i+j+k_sub] = expA[j] * a[i+nmax*j];
 #else
          for (i=0; i<n; i++)
-            fjac[n_param*i+j+k_sub] = a_[i+n*j];
+            fjac[n_param*i+j+k_sub] = a[i+nmax*j];
 #endif
          fjac[n_param*i+j+k_sub] = 0; // kappa derv. for I
    }

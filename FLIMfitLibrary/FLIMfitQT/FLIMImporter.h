@@ -15,7 +15,7 @@ public:
    {
       auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(filename.toStdString()));
 
-      vector<int> channels = { 0, 1 };
+      vector<int> channels = { 0 };
 
       int n_chan = channels.size();
       auto t = reader->timepoints(); 
@@ -38,7 +38,7 @@ public:
 
       // move to reader...
       QStringList filters;
-      filters << "*.pt3";
+      filters << "*.pt3" << "*.csv";
 
       QStringList files = dir.entryList(filters);
 
@@ -52,7 +52,7 @@ public:
             auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(full_path.toStdString()));
             reader->setTemporalResolution(5);
 
-            vector<int> channels = { 0, 1 };
+            vector<int> channels = { 0 };
 
             auto acq = std::make_shared<AcquisitionParameters>();
             acq->n_chan = channels.size();

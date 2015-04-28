@@ -46,7 +46,6 @@ using std::pair;
 
 AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, int* terminate) :
    model(model),
-   n_param(n_param),
    max_region_size(max_region_size), 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 

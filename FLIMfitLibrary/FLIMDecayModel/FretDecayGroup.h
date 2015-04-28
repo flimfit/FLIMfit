@@ -7,7 +7,7 @@ class FretDecayGroup : public MultiExponentialDecayGroup
 {
 public:
 
-   FretDecayGroup(int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = true);
+   FretDecayGroup(int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = false);
    void SetNumFretPopulations(int n_fret_populations_);
    void SetIncludeDonorOnly(bool include_donor_only_);
    void SetIncludeAcceptor(bool include_acceptor_);
