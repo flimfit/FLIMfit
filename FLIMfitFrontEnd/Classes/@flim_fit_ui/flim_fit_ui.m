@@ -59,6 +59,22 @@ classdef flim_fit_ui
                     path_ = [pwd '/pdftops.bin'];
                 end
             else
+                % DEBUG !test genops in deployed version
+                genops(1);
+                a = ones(10,10);
+                b = ones(10,1);
+                debug = 'testing genops'
+   
+                try 
+                    c = a.*b;
+                    if ~all(size(c)==[10,10])
+                        debug = 'wrong size from genops test'   
+                    end
+                catch
+                    debug = 'fail genops test'
+                end
+                % **** DEBUG!
+                
                 wait = true;
                 if ispc
                     path_ = [ctfroot '\FLIMfit\pdftops.exe'];
