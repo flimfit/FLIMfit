@@ -575,7 +575,9 @@ classdef flim_data_series < handle & h5_serializer
                 case 3
                     if ~isempty(obj.tvb_I_image)
                         bg = reshape(obj.tvb_I_image,[1 1 obj.height obj.width]);
-                        bg = bg .* obj.tvb_profile + obj.background_value;
+                        % replace genops!
+                        %bg = bg .* obj.tvb_profile + obj.background_value;
+                        bg = bsxfun(@times,bg,obj.tvb_profile) + obj.background_value;
                     else
                         bg = 0;
                     end
