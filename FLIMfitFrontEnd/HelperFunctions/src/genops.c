@@ -82,6 +82,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double		mag, theta, phi, magx;
 #endif
 	
+	mexErrMsgTxt("Gen ops called here - please replace with bsxfcn(...)");
 	
 	if (nrhs != 2)
 		mexErrMsgTxt("Incorrect number of inputs.");
