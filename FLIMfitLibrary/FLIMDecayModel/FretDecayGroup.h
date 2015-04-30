@@ -36,12 +36,14 @@ protected:
    int AddFretEfficiencyDerivatives(double* b, int bdim, vector<double>& kap);
    int AddAcceptorIntensityDerivatives(double* b, int bdim, vector<double>& kap);
    int AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
+   int AddDirectAcceptorDerivatives(double* b, int bdim, vector<double>& kap);
 
    void AddAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap);
    void AddAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
 
    vector<shared_ptr<FittingParameter>> tauT_parameters;
    shared_ptr<FittingParameter> A0_parameter;
+   shared_ptr<FittingParameter> AD_parameter;
    shared_ptr<FittingParameter> tauA_parameter;
 
    int n_fret_populations = 1;
@@ -52,11 +54,13 @@ protected:
    vector<double> tau_transfer;
    vector<vector<double>> tau_fret;
    double A0;
+   double AD;
    double tauA;
 
    vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
    vector<vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
    unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
+   unique_ptr<ExponentialPrecomputationBuffer> direct_acceptor_buffer;
    vector<double> donor_channel_factors;
    vector<double> acceptor_channel_factors;
    vector<double> direct_acceptor_channel_factors;

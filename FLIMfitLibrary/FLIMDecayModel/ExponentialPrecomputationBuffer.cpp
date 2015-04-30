@@ -31,7 +31,10 @@
 #include "ExponentialPrecomputationBuffer.h"
 #include <iostream>
 #include <cmath>
+
+#ifdef __llvm__ 
 #include <x86intrin.h>
+#endif
 
 ExponentialPrecomputationBuffer::ExponentialPrecomputationBuffer(shared_ptr<AcquisitionParameters> acquisition_params) :
 acquisition_params(acquisition_params),
