@@ -59,10 +59,10 @@ public:
             acq->SetImageSize(reader->numX(), reader->numY());
             acq->SetT(reader->timepoints());
 
-            auto image = std::make_shared<FLIMImage>(acq, typeid(uint16_t));
+            auto image = std::make_shared<FLIMImage>(acq, typeid(float));
             image->setName(f.toStdString());
 
-            reader->readData(image->dataPointer<uint16_t>(), channels);
+            reader->readData(image->dataPointer<float>(), channels);
             images->AddImage(image);
          }
 

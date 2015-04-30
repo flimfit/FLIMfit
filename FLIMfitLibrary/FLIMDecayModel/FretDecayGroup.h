@@ -38,9 +38,9 @@ protected:
    int AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
 
    void AddAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap);
-   void AddAcceptorDerivativeContribution(int i, std::function<double(int i, int j)> fact, double* b, int bdim, vector<double>& kap);
+   void AddAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
 
-   vector<shared_ptr<FittingParameter>> E_parameters;
+   vector<shared_ptr<FittingParameter>> tauT_parameters;
    shared_ptr<FittingParameter> A0_parameter;
    shared_ptr<FittingParameter> tauA_parameter;
 
@@ -48,8 +48,8 @@ protected:
    bool include_donor_only = true;
    bool include_acceptor = true;
    
-   vector<vector<double>> E;
    vector<vector<double>> a_star;
+   vector<double> tau_transfer;
    vector<vector<double>> tau_fret;
    double A0;
    double tauA;
