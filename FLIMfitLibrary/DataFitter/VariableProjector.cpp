@@ -510,8 +510,6 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
    for(int i=0; i<n_thread; i++)
       norm_buf_[i*nmax] = 0;
 
-   _ASSERT(_CrtCheckMemory());
-
    #pragma omp parallel for num_threads(n_thread)
    for (int j=0; j<s; j++)
    {
@@ -721,7 +719,7 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
          firstca = kp1;
          if (alpha == (float)0.)
          {
-            throw std::exception("ISEL = -8", -8);
+            throw std::runtime_error("ISEL = -8");
             isel = -8;
             //goto L99;
          }
@@ -764,7 +762,6 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 
    } // first k loop
 
-   _ASSERT(_CrtCheckMemory());
 }
 
 

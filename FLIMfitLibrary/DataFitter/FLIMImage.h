@@ -14,9 +14,10 @@ public:
    FLIMImage(shared_ptr<AcquisitionParameters> acq, T* data_) :
       acq(acq)
    {
-      Init(T);
+      init();
+      size_t sz = acq->n_px * acq->n_meas;
       memcpy(data.data(), data_, sz * sizeof(*data_));
-      Compute();
+      compute();
    }
 
    FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type) :
@@ -33,7 +34,7 @@ public:
       else if (stored_type == typeid(uint16_t))
          data_class = DataUint16;
       else
-         throw std::exception("Unsupported data type");
+         throw std::runtime_error("Unsupported data type");
 
       int n_bytes = 1;
       if (stored_type == typeid(float))
@@ -51,7 +52,7 @@ public:
    T* dataPointer()
    { 
       if (stored_type != typeid(T))
-         throw std::exception("Attempting to retrieve incorrect data type");
+         throw std::runtime_error("Attempting to retrieve incorrect data type");
       return reinterpret_cast<T*>(data.data()); 
    }
 

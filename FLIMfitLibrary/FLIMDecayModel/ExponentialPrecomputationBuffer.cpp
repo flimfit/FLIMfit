@@ -30,13 +30,15 @@
 
 #include "ExponentialPrecomputationBuffer.h"
 #include <iostream>
+#include <cmath>
+#include <x86intrin.h>
 
 ExponentialPrecomputationBuffer::ExponentialPrecomputationBuffer(shared_ptr<AcquisitionParameters> acquisition_params) :
 acquisition_params(acquisition_params),
 irf(acquisition_params->irf),
 n_irf(irf->n_irf),
-n_t(acquisition_params->n_t),
-n_chan(acquisition_params->n_chan)
+n_chan(acquisition_params->n_chan),
+n_t(acquisition_params->n_t)
 {
    irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
    cum_irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
@@ -244,7 +246,7 @@ void ExponentialPrecomputationBuffer::AddDecay(double fact, double ref_lifetime,
 
    double pulse_fact;
 
-   const double x_max = -log(DBL_EPSILON);
+   const double x_max = -log(std::numeric_limits<double>::epsilon());
    if (acquisition_params->t_rep * rate > x_max)
       pulse_fact = 0;
    else

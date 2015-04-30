@@ -30,7 +30,6 @@
 #ifndef IMAGE_STATS_H
 #define IMAGE_STATS_H
 
-#include <boost\math\special_functions\fpclassify.hpp>
 #include "util.h"
 #include "FlagDefinitions.h"
 

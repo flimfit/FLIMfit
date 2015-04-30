@@ -52,7 +52,7 @@ void AlignedClearVariable(T*& var)
       _aligned_free(var);
 #else
       delete[] var;
-      var = NULL;
+      var = nullptr;
 #endif
    }
 };

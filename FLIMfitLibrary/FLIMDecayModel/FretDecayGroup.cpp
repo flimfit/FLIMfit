@@ -101,7 +101,7 @@ void FretDecayGroup::Init()
          vector<ExponentialPrecomputationBuffer>(n_exponential,
          ExponentialPrecomputationBuffer(acq)));
 
-      acceptor_buffer = make_unique<ExponentialPrecomputationBuffer>(acq);
+      acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(acq));
    }
 }
 
@@ -131,7 +131,7 @@ const vector<double>& FretDecayGroup::GetChannelFactors(int index)
    else if (include_acceptor && index == 1)
       return acceptor_channel_factors;
 
-   throw std::exception("Bad channel factor index");
+   throw std::runtime_error("Bad channel factor index");
 }
 
 void FretDecayGroup::SetChannelFactors(int index, const vector<double>& channel_factors_)
@@ -141,7 +141,7 @@ void FretDecayGroup::SetChannelFactors(int index, const vector<double>& channel_
    else if (include_acceptor && index == 1)
       acceptor_channel_factors = channel_factors_;
    else
-      throw std::exception("Bad channel factor index");
+      throw std::runtime_error("Bad channel factor index");
 }
 
 

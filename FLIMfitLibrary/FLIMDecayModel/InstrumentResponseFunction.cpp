@@ -38,10 +38,10 @@ using std::min;
 
 InstrumentResponseFunction::InstrumentResponseFunction() :
    image_irf(false),
-   t0_image(NULL),
+   t0_image(nullptr),
    n_irf_rep(1),
    n_chan(1),
-   irf_buf(NULL),
+   irf_buf(nullptr),
    variable_irf(false),
    type(Scatter),
    t0(0)
@@ -145,8 +145,8 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
    for(i=start; i<end; i++)
    {
       // will read y[0]...y[3]
-      _ASSERT(i+c_shift-1 < (n_irf-3));
-      _ASSERT(i+c_shift-1 >= 0);
+      assert(i+c_shift-1 < (n_irf-3));
+      assert(i+c_shift-1 >= 0);
       storage[i] = CubicInterpolate(irf_buf+i+c_shift-1,f_shift);
    }
 

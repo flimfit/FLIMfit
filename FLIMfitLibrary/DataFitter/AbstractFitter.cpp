@@ -79,7 +79,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
           && (nl<<1) + 3 <= ndim
           && !(nl == 0 && l == 0)))
    {
-      throw std::exception("Invalid input");
+      throw std::runtime_error("Invalid input");
    }
    
 
@@ -110,7 +110,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
 
 
    if (pmax != p)
-      throw std::exception("Inc matrix incorrectly setup");
+      throw std::runtime_error("Inc matrix incorrectly setup");
 
 }
 
@@ -416,9 +416,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    vector<double>& a = a_[omp_thread];
    vector<double>& b = b_[omp_thread];
 
-   _ASSERT(_CrtCheckMemory());
    models[omp_thread].CalculateModel(a, nmax, b, ndim, kap, params, irf_idx, isel);
-   _ASSERT(_CrtCheckMemory());
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)

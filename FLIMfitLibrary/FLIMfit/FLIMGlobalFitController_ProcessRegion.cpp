@@ -45,8 +45,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    int ierr_local = 0;
 
-   _ASSERT( _CrtCheckMemory( ) );
-
    FitResultsRegion region_results;
    RegionData local_region_data;
 
@@ -84,8 +82,6 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    }
   
    status->FinishedRegion(thread);
-
-   _ASSERT( _CrtCheckMemory( ) );
 
    return 0;
 }

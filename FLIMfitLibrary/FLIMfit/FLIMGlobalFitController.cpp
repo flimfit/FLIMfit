@@ -95,7 +95,7 @@ int FLIMGlobalFitController::RunWorkers()
       return ERR_FIT_IN_PROGRESS;
 
    if (!init)
-      throw(std::exception("Controller has not been initalised"));
+      throw(std::runtime_error("Controller has not been initalised"));
 
    if (status->terminate)
       return 0;
@@ -427,7 +427,7 @@ void FLIMGlobalFitController::Init()
 
    
    if (data->n_regions_total == 0)
-      throw(std::exception("No Regions in Data"));
+      throw(std::runtime_error("No Regions in Data"));
 
    // Only create as many threads as there are regions if we have
    // fewer regions than maximum allowed number of thread
@@ -528,7 +528,6 @@ int FLIMGlobalFitController::GetErrorCode()
 
 void FLIMGlobalFitController::CleanupTempVars()
 {
-
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    
    region_data.clear();
@@ -539,8 +538,6 @@ void FLIMGlobalFitController::CleanupTempVars()
         iter->ReleaseResidualMemory();
         iter++;
    }
-
-   _ASSERTE(_CrtCheckMemory());
 }
 
 void FLIMGlobalFitController::CleanupResults()

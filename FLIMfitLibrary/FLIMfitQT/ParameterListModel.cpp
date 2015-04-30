@@ -27,7 +27,7 @@ ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, int 
 
    for (int i = 0; i < n_properties; i++)
    {
-      auto& prop = group_meta->property(i);
+      const auto& prop = group_meta->property(i);
       if (prop.isUser())
          m_children.append(new ParameterListItem(group, prop, this));
    }

@@ -1,5 +1,6 @@
 #include "MeanLifetimeEstimator.h"
 #include "FlagDefinitions.h"
+#include <cmath>
 
 using namespace std;
 

@@ -128,7 +128,7 @@ const vector<double>& MultiExponentialDecayGroup::GetChannelFactors(int index)
    if (index == 0)
       return channel_factors;
 
-   throw std::exception("Bad channel factor index");
+   throw std::runtime_error("Bad channel factor index");
 }
 
 void MultiExponentialDecayGroup::SetChannelFactors(int index, const vector<double>& channel_factors_)
@@ -136,7 +136,7 @@ void MultiExponentialDecayGroup::SetChannelFactors(int index, const vector<doubl
    if (index == 0)
       channel_factors = channel_factors_;
    else
-      throw std::exception("Bad channel factor index");
+      throw std::runtime_error("Bad channel factor index");
 }
 
 
