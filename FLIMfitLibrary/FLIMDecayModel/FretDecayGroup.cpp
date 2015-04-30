@@ -71,7 +71,7 @@ void FretDecayGroup::SetupParameters()
    if (include_acceptor)
    {
       A0_parameter = make_shared<FittingParameter>("A0", 1, fixed_or_global, FittedGlobally);
-      AD_parameter = make_shared<FittingParameter>("AD", 0, fixed_or_global, FittedGlobally);
+      AD_parameter = make_shared<FittingParameter>("AD", 0.1, fixed_or_global, FittedGlobally);
       tauA_parameter = make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
       parameters.push_back(A0_parameter);
       parameters.push_back(AD_parameter);
@@ -504,10 +504,21 @@ int FretDecayGroup::AddAcceptorIntensityDerivatives(double* b, int bdim, vector<
 
    if (AD_parameter->IsFittedGlobally())
    {
+      if (include_donor_only)
+      {
+         memset(b + idx, 0, bdim*sizeof(*b));
+         direct_acceptor_buffer->AddDecay(AD, reference_lifetime, b + idx);
+
+         col++;
+         idx += bdim;
+      }
+
       for (int i = 0; i < n_fret_populations; i++)
       {
          memset(b + idx, 0, bdim*sizeof(*b));
          AddAcceptorContribution(i, 1.0, b + idx, bdim, kap);
+         direct_acceptor_buffer->AddDecay(AD, reference_lifetime, b + idx);
+
          col++;
          idx += bdim;
       }
@@ -524,6 +535,15 @@ int FretDecayGroup::AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<d
 
    if (tauA_parameter->IsFittedGlobally())
    {
+      if (include_donor_only)
+      {
+         memset(b + idx, 0, bdim*sizeof(*b));
+         direct_acceptor_buffer->AddDecay(AD * A0 / (tauA * tauA), reference_lifetime, b + idx);
+         
+         col++;
+         idx += bdim;
+      }
+
       for (int i = 0; i < n_fret_populations; i++)
       {
          memset(b + idx, 0, bdim*sizeof(*b));
@@ -536,6 +556,8 @@ int FretDecayGroup::AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<d
             fact *= - tau_transfer[i];
             AddAcceptorDerivativeContribution(i, j, fact, b + idx, bdim, kap);
          }
+
+         direct_acceptor_buffer->AddDerivative(AD * A0 / (tauA * tauA), reference_lifetime, b + idx);
 
          col++;
          idx += bdim;
