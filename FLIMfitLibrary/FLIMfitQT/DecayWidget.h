@@ -14,6 +14,8 @@ class DecayWidget : public QWidget, public Ui::DecayWidget
 
 public:
 
+   enum DisplayMode { DisplayLinear, DisplayLogarithmic };
+   
    DecayWidget(QWidget* parent) :
       QWidget(parent)
    {
@@ -21,6 +23,13 @@ public:
    
       decay_plot->xAxis->setLabel("Time (ps)");
       decay_plot->yAxis->setLabel("Intensity");
+      
+      connect(display_mode_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &DecayWidget::setDisplayMode);
+      
+      colors.push_back(Qt::darkBlue);
+      colors.push_back(Qt::darkRed);
+      colors.push_back(Qt::darkGreen);
+      colors.push_back(Qt::magenta);
    }
 
    void setImage(std::shared_ptr<FLIMImage> image_)
@@ -33,7 +42,7 @@ public:
    
    void recalculate()
    {
-      image->getDecay(mask, decay);so
+      image->getDecay(mask, decay);
       
       auto t = image->getAcquisitionParameters()->GetTimePoints();
       auto x = QVector<double>::fromStdVector(t);
@@ -45,6 +54,7 @@ public:
             decay_plot->addGraph();
 
          auto graph = decay_plot->graph(i);
+         graph->setPen(QPen(colors[i]));
          graph->setData(x, QVector<double>::fromStdVector(decay[i]));
          graph->rescaleAxes();
       
@@ -62,11 +72,23 @@ public:
       cv::rectangle(mask, sel, 1, CV_FILLED);
       
       recalculate();
+   }
+   
+   void setDisplayMode(int display_mode)
+   {
+      QCPAxis::ScaleType type;
+      if (display_mode == DisplayLinear)
+         type = QCPAxis::ScaleType::stLinear;
+      else
+         type = QCPAxis::ScaleType::stLogarithmic;
       
+      decay_plot->yAxis->setScaleType(type);
+      decay_plot->replot();
    }
    
 protected:
    std::vector<std::vector<double>> decay;
    cv::Mat mask;
    std::shared_ptr<FLIMImage> image;
+   std::vector<QColor> colors;
 };

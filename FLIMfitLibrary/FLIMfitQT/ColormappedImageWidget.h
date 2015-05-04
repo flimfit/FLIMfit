@@ -138,7 +138,7 @@ protected:
    void mouseReleaseEvent(QMouseEvent* event)
    {
       rubber_band->hide();
-      QPoint pos = transform.map(event->pos());
+      QPoint pos = event->pos();
       QRect selection(transform.map(origin), transform.map(pos));
 
       emit selectionUpdated(selection);

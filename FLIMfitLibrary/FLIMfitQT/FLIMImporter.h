@@ -49,24 +49,43 @@ public:
       auto images = std::make_shared<FLIMImageSet>();
 
 
-      for (auto& f : files)
+      int n_stack = 2;
+      vector<int> channels = { 0, 1 };
+      int channel_stride = n_stack * channels.size();
+      
+      for (int i=0; (i+n_stack)<=files.size(); i+=n_stack)
       {
-         QString full_path = QString("%1/%2").arg(folder).arg(f);
+         QString full_path = QString("%1/%2").arg(folder).arg(files[i]);
          std::string fpath = full_path.toStdString();
+         
          auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(fpath));
-         reader->setTemporalResolution(5);
-
-         vector<int> channels = { 0, 1 };
-
+         reader->setTemporalResolution(8);
+         
          auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
-         acq->n_chan = channels.size();
+         acq->n_chan = channels.size() * n_stack;
          acq->SetImageSize(reader->numX(), reader->numY());
          acq->SetT(reader->timepoints());
-
+         
          auto image = std::make_shared<FLIMImage>(acq, typeid(float));
-         image->setName(f.toStdString());
+         image->setName(files[i].toStdString());
+         
+         float* next_ptr = image->getDataPointer<float>();
+         reader->readData(next_ptr, channels, channel_stride);
 
-         reader->readData(image->getDataPointer<float>(), channels);
+         // Read in rest of files in stack
+         for (int j=1; j<n_stack; j++)
+         {
+            QString full_path = QString("%1/%2").arg(folder).arg(files[i+j]);
+            std::string fpath = full_path.toStdString();
+            
+            auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(fpath));
+            reader->setTemporalResolution(8);
+
+            float* next_ptr = image->getDataPointer<float>() + j * channels.size() * acq->n_t;
+            reader->readData(next_ptr, channels, channel_stride);
+
+         }
+         
          image->releasePointer<float>();
          images->addImage(image);
       }
