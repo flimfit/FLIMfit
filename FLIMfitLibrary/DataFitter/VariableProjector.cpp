@@ -629,8 +629,6 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
 
 void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thread)
 {
-   int lp1 = l+1;
-
    float*  y = this->y + px * n;
    double* wp = wp_ + omp_thread * nmax;
    

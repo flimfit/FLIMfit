@@ -51,7 +51,8 @@ public:
    void SetIntegrationTimes(vector<double>& t_int_);
    
    double* GetT();
-
+   const std::vector<double>& GetTimePoints();
+   
    int data_type;
    int polarisation_resolved;
 

@@ -8,101 +8,101 @@
 using std::max;
 using std::min;
 
-/* Subroutine */ void qrsolv(int n, double *r, int ldr, 
+void qrsolv(int n, double *r, int ldr,
 	const int *ipvt, const double *diag, const double *qtb, double *x, 
 	double *sdiag, double *wa)
 {
-    /* Initialized data */
+    // Initialized data 
 
 #define p5 .5
 #define p25 .25
 
-    /* Local variables */
+    // Local variables 
     int i, j, k, l, jp1, kp1;
     double tan, cos, sin, sum, temp, cotan;
     int nsing;
     double qtbpj;
 
-/*     ********** */
+//     ********** 
 
-/*     subroutine qrsolv */
+//     subroutine qrsolv 
 
-/*     given an m by n matrix a, an n by n diagonal matrix d, */
-/*     and an m-vector b, the problem is to determine an x which */
-/*     solves the system */
+//     given an m by n matrix a, an n by n diagonal matrix d, 
+//     and an m-vector b, the problem is to determine an x which 
+//     solves the system 
 
-/*           a*x = b ,     d*x = 0 , */
+//           a*x = b ,     d*x = 0 , 
 
-/*     in the least squares sense. */
+//     in the least squares sense. 
 
-/*     this subroutine completes the solution of the problem */
-/*     if it is provided with the necessary information from the */
-/*     qr factorization, with column pivoting, of a. that is, if */
-/*     a*p = q*r, where p is a permutation matrix, q has orthogonal */
-/*     columns, and r is an upper triangular matrix with diagonal */
-/*     elements of nonincreasing magnitude, then qrsolv expects */
-/*     the full upper triangle of r, the permutation matrix p, */
-/*     and the first n components of (q transpose)*b. the system */
-/*     a*x = b, d*x = 0, is then equivalent to */
+//     this subroutine completes the solution of the problem 
+//     if it is provided with the necessary information from the 
+//     qr factorization, with column pivoting, of a. that is, if 
+//     a*p = q*r, where p is a permutation matrix, q has orthogonal 
+//     columns, and r is an upper triangular matrix with diagonal 
+//     elements of nonincreasing magnitude, then qrsolv expects 
+//     the full upper triangle of r, the permutation matrix p, 
+//     and the first n components of (q transpose)*b. the system 
+//     a*x = b, d*x = 0, is then equivalent to 
 
-/*                  t       t */
-/*           r*z = q *b ,  p *d*p*z = 0 , */
+//                  t       t 
+//           r*z = q *b ,  p *d*p*z = 0 , 
 
-/*     where x = p*z. if this system does not have full rank, */
-/*     then a least squares solution is obtained. on output qrsolv */
-/*     also provides an upper triangular matrix s such that */
+//     where x = p*z. if this system does not have full rank, 
+//     then a least squares solution is obtained. on output qrsolv 
+//     also provides an upper triangular matrix s such that 
 
-/*            t   t               t */
-/*           p *(a *a + d*d)*p = s *s . */
+//            t   t               t 
+//           p *(a *a + d*d)*p = s *s . 
 
-/*     s is computed within qrsolv and may be of separate interest. */
+//     s is computed within qrsolv and may be of separate interest. 
 
-/*     the subroutine statement is */
+//     the subroutine statement is 
 
-/*       subroutine qrsolv(n,r,ldr,ipvt,diag,qtb,x,sdiag,wa) */
+//       subroutine qrsolv(n,r,ldr,ipvt,diag,qtb,x,sdiag,wa) 
 
-/*     where */
+//     where 
 
-/*       n is a positive integer input variable set to the order of r. */
+//       n is a positive integer input variable set to the order of r. 
 
-/*       r is an n by n array. on input the full upper triangle */
-/*         must contain the full upper triangle of the matrix r. */
-/*         on output the full upper triangle is unaltered, and the */
-/*         strict lower triangle contains the strict upper triangle */
-/*         (transposed) of the upper triangular matrix s. */
+//       r is an n by n array. on input the full upper triangle 
+//         must contain the full upper triangle of the matrix r. 
+//         on output the full upper triangle is unaltered, and the 
+//         strict lower triangle contains the strict upper triangle 
+//         (transposed) of the upper triangular matrix s. 
 
-/*       ldr is a positive integer input variable not less than n */
-/*         which specifies the leading dimension of the array r. */
+//       ldr is a positive integer input variable not less than n 
+//         which specifies the leading dimension of the array r. 
 
-/*       ipvt is an integer input array of length n which defines the */
-/*         permutation matrix p such that a*p = q*r. column j of p */
-/*         is column ipvt(j) of the identity matrix. */
+//       ipvt is an integer input array of length n which defines the 
+//         permutation matrix p such that a*p = q*r. column j of p 
+//         is column ipvt(j) of the identity matrix. 
 
-/*       diag is an input array of length n which must contain the */
-/*         diagonal elements of the matrix d. */
+//       diag is an input array of length n which must contain the 
+//         diagonal elements of the matrix d. 
 
-/*       qtb is an input array of length n which must contain the first */
-/*         n elements of the vector (q transpose)*b. */
+//       qtb is an input array of length n which must contain the first 
+//         n elements of the vector (q transpose)*b. 
 
-/*       x is an output array of length n which contains the least */
-/*         squares solution of the system a*x = b, d*x = 0. */
+//       x is an output array of length n which contains the least 
+//         squares solution of the system a*x = b, d*x = 0. 
 
-/*       sdiag is an output array of length n which contains the */
-/*         diagonal elements of the upper triangular matrix s. */
+//       sdiag is an output array of length n which contains the 
+//         diagonal elements of the upper triangular matrix s. 
 
-/*       wa is a work array of length n. */
+//       wa is a work array of length n. 
 
-/*     subprograms called */
+//     subprograms called 
 
-/*       fortran-supplied ... dabs,dsqrt */
+//       fortran-supplied ... dabs,dsqrt 
 
-/*     argonne national laboratory. minpack project. march 1980. */
-/*     burton s. garbow, kenneth e. hillstrom, jorge j. more */
+//     argonne national laboratory. minpack project. march 1980. 
+//     burton s. garbow, kenneth e. hillstrom, jorge j. more 
 
-/*     ********** */
+//     ********** 
 
-/*     copy r and (q transpose)*b to preserve input and initialize s. */
-/*     in particular, save the diagonal elements of r in x. */
+//     copy r and (q transpose)*b to preserve input and initialize s. 
+//     in particular, save the diagonal elements of r in x. 
 
     for (j = 0; j < n; ++j) {
 	for (i = j; i < n; ++i) {
@@ -112,12 +112,12 @@ using std::min;
 	wa[j] = qtb[j];
     }
 
-/*     eliminate the diagonal matrix d using a givens rotation. */
+//     eliminate the diagonal matrix d using a givens rotation. 
 
     for (j = 0; j < n; ++j) {
 
-/*        prepare the row of d to be eliminated, locating the */
-/*        diagonal element using p from the qr factorization. */
+//        prepare the row of d to be eliminated, locating the 
+//        diagonal element using p from the qr factorization. 
 
 	l = ipvt[j]-1;
 	if (diag[l] != 0.) {
@@ -126,15 +126,15 @@ using std::min;
             }
             sdiag[j] = diag[l];
 
-/*        the transformations to eliminate the row of d */
-/*        modify only a single element of (q transpose)*b */
-/*        beyond the first n, which is initially zero. */
+//        the transformations to eliminate the row of d 
+//        modify only a single element of (q transpose)*b 
+//        beyond the first n, which is initially zero. 
 
             qtbpj = 0.;
             for (k = j; k < n; ++k) {
 
-/*           determine a givens rotation which eliminates the */
-/*           appropriate element in the current row of d. */
+//           determine a givens rotation which eliminates the 
+//           appropriate element in the current row of d. 
 
                 if (sdiag[k] != 0.) {
                     if (fabs(r[k + k * ldr]) < fabs(sdiag[k])) {
@@ -147,15 +147,15 @@ using std::min;
                         sin = cos * tan;
                     }
 
-/*           compute the modified diagonal element of r and */
-/*           the modified element of ((q transpose)*b,0). */
+//           compute the modified diagonal element of r and 
+//           the modified element of ((q transpose)*b,0). 
 
                     r[k + k * ldr] = cos * r[k + k * ldr] + sin * sdiag[k];
                     temp = cos * wa[k] + sin * qtbpj;
                     qtbpj = -sin * wa[k] + cos * qtbpj;
                     wa[k] = temp;
 
-/*           accumulate the tranformation in the row of s. */
+//           accumulate the tranformation in the row of s. 
 
                     kp1 = k + 1;
                     if (n > kp1) {
@@ -169,15 +169,15 @@ using std::min;
             }
         }
 
-/*        store the diagonal element of s and restore */
-/*        the corresponding diagonal element of r. */
+//        store the diagonal element of s and restore 
+//        the corresponding diagonal element of r. 
 
 	sdiag[j] = r[j + j * ldr];
 	r[j + j * ldr] = x[j];
     }
 
-/*     solve the triangular system for z. if the system is */
-/*     singular, then obtain a least squares solution. */
+//     solve the triangular system for z. if the system is 
+//     singular, then obtain a least squares solution. 
 
     nsing = n;
     for (j = 0; j < n; ++j) {
@@ -202,7 +202,7 @@ using std::min;
         }
     }
 
-/*     permute the components of z back to components of x. */
+//     permute the components of z back to components of x. 
 
     for (j = 0; j < n; ++j) {
 	l = ipvt[j]-1;
@@ -210,89 +210,89 @@ using std::min;
     }
     return;
 
-/*     last card of subroutine qrsolv. */
+//     last card of subroutine qrsolv. 
 
-} /* qrsolv_ */
+} // qrsolv_ 
 
 
 
-/* Subroutine */ void rwupdt(int n, double *r, int ldr, 
+void rwupdt(int n, double *r, int ldr,
 	const double *w, double *b, double *alpha, double *cos, 
 	double *sin)
 {
-    /* Initialized data */
+    // Initialized data 
 
 #define p5 .5
 #define p25 .25
 
-    /* System generated locals */
+    // System generated locals 
     int r_dim1, r_offset;
 
-    /* Local variables */
+    // Local variables 
 
 
-/*     ********** */
+//     ********** 
 
-/*     subroutine rwupdt */
+//     subroutine rwupdt 
 
-/*     given an n by n upper triangular matrix r, this subroutine */
-/*     computes the qr decomposition of the matrix formed when a row */
-/*     is added to r. if the row is specified by the vector w, then */
-/*     rwupdt determines an orthogonal matrix q such that when the */
-/*     n+1 by n matrix composed of r augmented by w is premultiplied */
-/*     by (q transpose), the resulting matrix is upper trapezoidal. */
-/*     the matrix (q transpose) is the product of n transformations */
+//     given an n by n upper triangular matrix r, this subroutine 
+//     computes the qr decomposition of the matrix formed when a row 
+//     is added to r. if the row is specified by the vector w, then 
+//     rwupdt determines an orthogonal matrix q such that when the 
+//     n+1 by n matrix composed of r augmented by w is premultiplied 
+//     by (q transpose), the resulting matrix is upper trapezoidal. 
+//     the matrix (q transpose) is the product of n transformations 
 
-/*           g(n)*g(n-1)* ... *g(1) */
+//           g(n)*g(n-1)* ... *g(1) 
 
-/*     where g(i) is a givens rotation in the (i,n+1) plane which */
-/*     eliminates elements in the (n+1)-st plane. rwupdt also */
-/*     computes the product (q transpose)*c where c is the */
-/*     (n+1)-vector (b,alpha). q itself is not accumulated, rather */
-/*     the information to recover the g rotations is supplied. */
+//     where g(i) is a givens rotation in the (i,n+1) plane which 
+//     eliminates elements in the (n+1)-st plane. rwupdt also 
+//     computes the product (q transpose)*c where c is the 
+//     (n+1)-vector (b,alpha). q itself is not accumulated, rather 
+//     the information to recover the g rotations is supplied. 
 
-/*     the subroutine statement is */
+//     the subroutine statement is 
 
-/*       subroutine rwupdt(n,r,ldr,w,b,alpha,cos,sin) */
+//       subroutine rwupdt(n,r,ldr,w,b,alpha,cos,sin) 
 
-/*     where */
+//     where 
 
-/*       n is a positive integer input variable set to the order of r. */
+//       n is a positive integer input variable set to the order of r. 
 
-/*       r is an n by n array. on input the upper triangular part of */
-/*         r must contain the matrix to be updated. on output r */
-/*         contains the updated triangular matrix. */
+//       r is an n by n array. on input the upper triangular part of 
+//         r must contain the matrix to be updated. on output r 
+//         contains the updated triangular matrix. 
 
-/*       ldr is a positive integer input variable not less than n */
-/*         which specifies the leading dimension of the array r. */
+//       ldr is a positive integer input variable not less than n 
+//         which specifies the leading dimension of the array r. 
 
-/*       w is an input array of length n which must contain the row */
-/*         vector to be added to r. */
+//       w is an input array of length n which must contain the row 
+//         vector to be added to r. 
 
-/*       b is an array of length n. on input b must contain the */
-/*         first n elements of the vector c. on output b contains */
-/*         the first n elements of the vector (q transpose)*c. */
+//       b is an array of length n. on input b must contain the 
+//         first n elements of the vector c. on output b contains 
+//         the first n elements of the vector (q transpose)*c. 
 
-/*       alpha is a variable. on input alpha must contain the */
-/*         (n+1)-st element of the vector c. on output alpha contains */
-/*         the (n+1)-st element of the vector (q transpose)*c. */
+//       alpha is a variable. on input alpha must contain the 
+//         (n+1)-st element of the vector c. on output alpha contains 
+//         the (n+1)-st element of the vector (q transpose)*c. 
 
-/*       cos is an output array of length n which contains the */
-/*         cosines of the transforming givens rotations. */
+//       cos is an output array of length n which contains the 
+//         cosines of the transforming givens rotations. 
 
-/*       sin is an output array of length n which contains the */
-/*         sines of the transforming givens rotations. */
+//       sin is an output array of length n which contains the 
+//         sines of the transforming givens rotations. 
 
-/*     subprograms called */
+//     subprograms called 
 
-/*       fortran-supplied ... dabs,dsqrt */
+//       fortran-supplied ... dabs,dsqrt 
 
-/*     argonne national laboratory. minpack project. march 1980. */
-/*     burton s. garbow, dudley v. goetschel, kenneth e. hillstrom, */
-/*     jorge j. more */
+//     argonne national laboratory. minpack project. march 1980. 
+//     burton s. garbow, dudley v. goetschel, kenneth e. hillstrom, 
+//     jorge j. more 
 
-/*     ********** */
-    /* Parameter adjustments */
+//     ********** 
+    // Parameter adjustments 
    int j;
   
    --sin;
@@ -303,7 +303,7 @@ using std::min;
    r_offset = 1 + r_dim1 * 1;
    r -= r_offset;
 
-    /* Function Body */
+    // Function Body 
 
    for (j = 1; j <= n; ++j) 
    {
@@ -325,7 +325,7 @@ using std::min;
          }
       }
       
-//    determine a givens rotation which eliminates w(j). */
+//    determine a givens rotation which eliminates w(j). 
       double cj, sj;
       cj = 1.;
       sj = 0.;
@@ -342,7 +342,7 @@ using std::min;
             sj = cj * tan;
          }
 
-/*       apply the current transformation to r(j,j), b(j), and alpha. */
+//       apply the current transformation to r(j,j), b(j), and alpha. 
 
          r[j + j * r_dim1] = cj * r[j + j * r_dim1] + sj * rowj;
          temp = cj * b[j] + sj * *alpha;
@@ -353,25 +353,25 @@ using std::min;
       sin[j] = sj;
    }
 
-/*     last card of subroutine rwupdt. */
+//     last card of subroutine rwupdt. 
 
-} /* rwupdt_ */
-
-
+} // rwupdt_ 
 
 
-/* Subroutine */ void qrfac(int m, int n, double *a, int
+
+
+void qrfac(int m, int n, double *a, int
 	lda, int pivot, int *ipvt, int lipvt, double *rdiag,
 	 double *acnorm, double *wa)
 {
-    /* Initialized data */
+    // Initialized data 
 
 #define p05 .05
 
-    /* System generated locals */
+    // System generated locals 
     double d1;
 
-    /* Local variables */
+    // Local variables 
     int i, j, k, jp1;
     double sum;
     double temp;
@@ -379,87 +379,87 @@ using std::min;
     double epsmch;
     double ajnorm;
 
-/*     ********** */
+//     ********** 
 
-/*     subroutine qrfac */
+//     subroutine qrfac 
 
-/*     this subroutine uses householder transformations with column */
-/*     pivoting (optional) to compute a qr factorization of the */
-/*     m by n matrix a. that is, qrfac determines an orthogonal */
-/*     matrix q, a permutation matrix p, and an upper trapezoidal */
-/*     matrix r with diagonal elements of nonincreasing magnitude, */
-/*     such that a*p = q*r. the householder transformation for */
-/*     column k, k = 1,2,...,min(m,n), is of the form */
+//     this subroutine uses householder transformations with column 
+//     pivoting (optional) to compute a qr factorization of the 
+//     m by n matrix a. that is, qrfac determines an orthogonal 
+//     matrix q, a permutation matrix p, and an upper trapezoidal 
+//     matrix r with diagonal elements of nonincreasing magnitude, 
+//     such that a*p = q*r. the householder transformation for 
+//     column k, k = 1,2,...,min(m,n), is of the form 
 
-/*                           t */
-/*           i - (1/u(k))*u*u */
+//                           t 
+//           i - (1/u(k))*u*u 
 
-/*     where u has zeros in the first k-1 positions. the form of */
-/*     this transformation and the method of pivoting first */
-/*     appeared in the corresponding linpack subroutine. */
+//     where u has zeros in the first k-1 positions. the form of 
+//     this transformation and the method of pivoting first 
+//     appeared in the corresponding linpack subroutine. 
 
-/*     the subroutine statement is */
+//     the subroutine statement is 
 
-/*       subroutine qrfac(m,n,a,lda,pivot,ipvt,lipvt,rdiag,acnorm,wa) */
+//       subroutine qrfac(m,n,a,lda,pivot,ipvt,lipvt,rdiag,acnorm,wa) 
 
-/*     where */
+//     where 
 
-/*       m is a positive integer input variable set to the number */
-/*         of rows of a. */
+//       m is a positive integer input variable set to the number 
+//         of rows of a. 
 
-/*       n is a positive integer input variable set to the number */
-/*         of columns of a. */
+//       n is a positive integer input variable set to the number 
+//         of columns of a. 
 
-/*       a is an m by n array. on input a contains the matrix for */
-/*         which the qr factorization is to be computed. on output */
-/*         the strict upper trapezoidal part of a contains the strict */
-/*         upper trapezoidal part of r, and the lower trapezoidal */
-/*         part of a contains a factored form of q (the non-trivial */
-/*         elements of the u vectors described above). */
+//       a is an m by n array. on input a contains the matrix for 
+//         which the qr factorization is to be computed. on output 
+//         the strict upper trapezoidal part of a contains the strict 
+//         upper trapezoidal part of r, and the lower trapezoidal 
+//         part of a contains a factored form of q (the non-trivial 
+//         elements of the u vectors described above). 
 
-/*       lda is a positive integer input variable not less than m */
-/*         which specifies the leading dimension of the array a. */
+//       lda is a positive integer input variable not less than m 
+//         which specifies the leading dimension of the array a. 
 
-/*       pivot is a logical input variable. if pivot is set true, */
-/*         then column pivoting is enforced. if pivot is set false, */
-/*         then no column pivoting is done. */
+//       pivot is a logical input variable. if pivot is set true, 
+//         then column pivoting is enforced. if pivot is set false, 
+//         then no column pivoting is done. 
 
-/*       ipvt is an integer output array of length lipvt. ipvt */
-/*         defines the permutation matrix p such that a*p = q*r. */
-/*         column j of p is column ipvt(j) of the identity matrix. */
-/*         if pivot is false, ipvt is not referenced. */
+//       ipvt is an integer output array of length lipvt. ipvt 
+//         defines the permutation matrix p such that a*p = q*r. 
+//         column j of p is column ipvt(j) of the identity matrix. 
+//         if pivot is false, ipvt is not referenced. 
 
-/*       lipvt is a positive integer input variable. if pivot is false, */
-/*         then lipvt may be as small as 1. if pivot is true, then */
-/*         lipvt must be at least n. */
+//       lipvt is a positive integer input variable. if pivot is false, 
+//         then lipvt may be as small as 1. if pivot is true, then 
+//         lipvt must be at least n. 
 
-/*       rdiag is an output array of length n which contains the */
-/*         diagonal elements of r. */
+//       rdiag is an output array of length n which contains the 
+//         diagonal elements of r. 
 
-/*       acnorm is an output array of length n which contains the */
-/*         norms of the corresponding columns of the input matrix a. */
-/*         if this information is not needed, then acnorm can coincide */
-/*         with rdiag. */
+//       acnorm is an output array of length n which contains the 
+//         norms of the corresponding columns of the input matrix a. 
+//         if this information is not needed, then acnorm can coincide 
+//         with rdiag. 
 
-/*       wa is a work array of length n. if pivot is false, then wa */
-/*         can coincide with rdiag. */
+//       wa is a work array of length n. if pivot is false, then wa 
+//         can coincide with rdiag. 
 
-/*     subprograms called */
+//     subprograms called 
 
-/*       minpack-supplied ... dpmpar,enorm */
+//       minpack-supplied ... dpmpar,enorm 
 
-/*       fortran-supplied ... dmax1,dsqrt,min0 */
+//       fortran-supplied ... dmax1,dsqrt,min0 
 
-/*     argonne national laboratory. minpack project. march 1980. */
-/*     burton s. garbow, kenneth e. hillstrom, jorge j. more */
+//     argonne national laboratory. minpack project. march 1980. 
+//     burton s. garbow, kenneth e. hillstrom, jorge j. more 
 
-/*     ********** */
+//     ********** 
 
-/*     epsmch is the machine precision. */
+//     epsmch is the machine precision. 
 
     epsmch = dpmpar(1);
 
-/*     compute the initial column norms and initialize several arrays. */
+//     compute the initial column norms and initialize several arrays. 
 
    for (j = 0; j < n; ++j) {
 	acnorm[j] = enorm(m, &a[j * lda + 0]);
@@ -470,13 +470,13 @@ using std::min;
 	}
     }
 
-/*     reduce a to r with householder transformations. */
+//     reduce a to r with householder transformations. 
 
     minmn = min(m,n);
     for (j = 0; j < minmn; ++j) {
 	if (pivot) {
 
-/*        bring the column of largest norm into the pivot position. */
+//        bring the column of largest norm into the pivot position. 
 
             int kmax = j;
             for (k = j; k < n; ++k) {
@@ -498,8 +498,8 @@ using std::min;
             }
         }
 
-/*        compute the householder transformation to reduce the */
-/*        j-th column of a to a multiple of the j-th unit vector. */
+//        compute the householder transformation to reduce the 
+//        j-th column of a to a multiple of the j-th unit vector. 
 
 	ajnorm = enorm(m - (j+1) + 1, &a[j + j * lda]);
 	if (ajnorm != 0.) {
@@ -511,8 +511,8 @@ using std::min;
             }
             a[j + j * lda] += 1.;
 
-/*        apply the transformation to the remaining columns */
-/*        and update the norms. */
+//        apply the transformation to the remaining columns 
+//        and update the norms. 
 
             jp1 = j + 1;
             if (n > jp1) {
@@ -527,10 +527,10 @@ using std::min;
                     }
                     if (pivot && rdiag[k] != 0.) {
                         temp = a[j + k * lda] / rdiag[k];
-                        /* Computing MAX */
+                        // Computing MAX 
                         d1 = 1. - temp * temp;
                         rdiag[k] *= sqrt((max(0.,d1)));
-                        /* Computing 2nd power */
+                        // Computing 2nd power 
                         d1 = rdiag[k] / wa[k];
                         if (p05 * (d1 * d1) <= epsmch) {
                             rdiag[k] = enorm(m - (j+1), &a[jp1 + k * lda]);
@@ -543,114 +543,114 @@ using std::min;
 	rdiag[j] = -ajnorm;
     }
 
-/*     last card of subroutine qrfac. */
+//     last card of subroutine qrfac. 
 
-} /* qrfac_ */
+} // qrfac_ 
 
 
 
-/* Subroutine */ void qrfac2(int m, int n, double *a, int lda, 
+void qrfac2(int m, int n, double *a, int lda,
 	double *fvec, double *qtf, double *rdiag)
                             
 {
-///* Subroutine */ void qrfac2(int m, int n, double *a, int
+//void qrfac2(int m, int n, double *a, int
 //	lda, double *rdiag, double *acnorm, double *wa)
-    /* Initialized data */
+    // Initialized data 
 
 #define p05 .05
 
-    /* Local variables */
+    // Local variables 
     int i, j, k, jp1;
     double sum;
     double temp;
     int minmn;
     double ajnorm;
 
-/*     ********** */
+//     ********** 
 
-/*     subroutine qrfac */
+//     subroutine qrfac 
 
-/*     Modified to also return first n columns of Qt*fvec, and r only
+//     Modified to also return first n columns of Qt*fvec, and r only
 
-/*     this subroutine uses householder transformations with column */
-/*     pivoting (optional) to compute a qr factorization of the */
-/*     m by n matrix a. that is, qrfac determines an orthogonal */
-/*     matrix q, a permutation matrix p, and an upper trapezoidal */
-/*     matrix r with diagonal elements of nonincreasing magnitude, */
-/*     such that a*p = q*r. the householder transformation for */
-/*     column k, k = 1,2,...,min(m,n), is of the form */
+//     this subroutine uses householder transformations with column 
+//     pivoting (optional) to compute a qr factorization of the 
+//     m by n matrix a. that is, qrfac determines an orthogonal 
+//     matrix q, a permutation matrix p, and an upper trapezoidal 
+//     matrix r with diagonal elements of nonincreasing magnitude, 
+//     such that a*p = q*r. the householder transformation for 
+//     column k, k = 1,2,...,min(m,n), is of the form 
 
-/*                           t */
-/*           i - (1/u(k))*u*u */
+//                           t 
+//           i - (1/u(k))*u*u 
 
-/*     where u has zeros in the first k-1 positions. the form of */
-/*     this transformation and the method of pivoting first */
-/*     appeared in the corresponding linpack subroutine. */
+//     where u has zeros in the first k-1 positions. the form of 
+//     this transformation and the method of pivoting first 
+//     appeared in the corresponding linpack subroutine. 
 
-/*     the subroutine statement is */
+//     the subroutine statement is 
 
-/*       subroutine qrfac(m,n,a,lda,pivot,ipvt,lipvt,rdiag,acnorm,wa) */
+//       subroutine qrfac(m,n,a,lda,pivot,ipvt,lipvt,rdiag,acnorm,wa) 
 
-/*     where */
+//     where 
 
-/*       m is a positive integer input variable set to the number */
-/*         of rows of a. */
+//       m is a positive integer input variable set to the number 
+//         of rows of a. 
 
-/*       n is a positive integer input variable set to the number */
-/*         of columns of a. */
+//       n is a positive integer input variable set to the number 
+//         of columns of a. 
 
-/*       a is an m by n array. on input a contains the matrix for */
-/*         which the qr factorization is to be computed. on output */
-/*         the strict upper trapezoidal part of a contains the strict */
-/*         upper trapezoidal part of r, and the lower trapezoidal */
-/*         part of a contains a factored form of q (the non-trivial */
-/*         elements of the u vectors described above). */
+//       a is an m by n array. on input a contains the matrix for 
+//         which the qr factorization is to be computed. on output 
+//         the strict upper trapezoidal part of a contains the strict 
+//         upper trapezoidal part of r, and the lower trapezoidal 
+//         part of a contains a factored form of q (the non-trivial 
+//         elements of the u vectors described above). 
 
-/*       lda is a positive integer input variable not less than m */
-/*         which specifies the leading dimension of the array a. */
+//       lda is a positive integer input variable not less than m 
+//         which specifies the leading dimension of the array a. 
 
-/*       pivot is a logical input variable. if pivot is set true, */
-/*         then column pivoting is enforced. if pivot is set false, */
-/*         then no column pivoting is done. */
+//       pivot is a logical input variable. if pivot is set true, 
+//         then column pivoting is enforced. if pivot is set false, 
+//         then no column pivoting is done. 
 
-/*       ipvt is an integer output array of length lipvt. ipvt */
-/*         defines the permutation matrix p such that a*p = q*r. */
-/*         column j of p is column ipvt(j) of the identity matrix. */
-/*         if pivot is false, ipvt is not referenced. */
+//       ipvt is an integer output array of length lipvt. ipvt 
+//         defines the permutation matrix p such that a*p = q*r. 
+//         column j of p is column ipvt(j) of the identity matrix. 
+//         if pivot is false, ipvt is not referenced. 
 
-/*       lipvt is a positive integer input variable. if pivot is false, */
-/*         then lipvt may be as small as 1. if pivot is true, then */
-/*         lipvt must be at least n. */
+//       lipvt is a positive integer input variable. if pivot is false, 
+//         then lipvt may be as small as 1. if pivot is true, then 
+//         lipvt must be at least n. 
 
-/*       rdiag is an output array of length n which contains the */
-/*         diagonal elements of r. */
+//       rdiag is an output array of length n which contains the 
+//         diagonal elements of r. 
 
-/*       acnorm is an output array of length n which contains the */
-/*         norms of the corresponding columns of the input matrix a. */
-/*         if this information is not needed, then acnorm can coincide */
-/*         with rdiag. */
+//       acnorm is an output array of length n which contains the 
+//         norms of the corresponding columns of the input matrix a. 
+//         if this information is not needed, then acnorm can coincide 
+//         with rdiag. 
 
-/*       wa is a work array of length n. if pivot is false, then wa */
-/*         can coincide with rdiag. */
+//       wa is a work array of length n. if pivot is false, then wa 
+//         can coincide with rdiag. 
 
-/*     subprograms called */
+//     subprograms called 
 
-/*       minpack-supplied ... dpmpar,enorm */
+//       minpack-supplied ... dpmpar,enorm 
 
-/*       fortran-supplied ... dmax1,dsqrt,min0 */
+//       fortran-supplied ... dmax1,dsqrt,min0 
 
-/*     argonne national laboratory. minpack project. march 1980. */
-/*     burton s. garbow, kenneth e. hillstrom, jorge j. more */
+//     argonne national laboratory. minpack project. march 1980. 
+//     burton s. garbow, kenneth e. hillstrom, jorge j. more 
 
-/*     ********** */
+//     ********** 
 
 	
    minmn = min(m,n);
    for (j = 0; j < minmn; ++j) 
    {
 
-/*     compute the householder transformation to reduce the */
-/*     j-th column of a to a multiple of the j-th unit vector. */
+//     compute the householder transformation to reduce the 
+//     j-th column of a to a multiple of the j-th unit vector. 
 
       ajnorm = enorm_stride(m - (j+1) + 1, lda, &a[j * lda + j]);
 	   if (ajnorm != 0.) 
@@ -663,8 +663,8 @@ using std::min;
             
          a[j * lda + j] += 1.;
 
-/*       apply the transformation to the remaining columns */
-/*       and update the norms. */
+//       apply the transformation to the remaining columns 
+//       and update the norms. 
 
          jp1 = j + 1;
          if (n>jp1)
@@ -684,8 +684,8 @@ using std::min;
    }
 
     
-/*        form (q transpose)*fvec and store the first n components in */
-/*        qtf. */
+//        form (q transpose)*fvec and store the first n components in 
+//        qtf. 
 
    for (j = 0; j < n; ++j) 
    {
@@ -714,20 +714,20 @@ using std::min;
 
 
 
-/* Subroutine */ void lmpar(int n, double *r, int ldr, 
-	const int *ipvt, const double *diag, const double *qtb, double delta, 
+void lmpar(int n, double *r, int ldr,
+	const int *ipvt, const double *diag, const double *qtb, double delta,
 	double *par, double *x, double *sdiag, double *wa1, 
 	double *wa2)
 {
-    /* Initialized data */
+    // Initialized data 
 
 #define p1 .1
 #define p001 .001
 
-    /* System generated locals */
+    // System generated locals 
     double d1, d2;
 
-    /* Local variables */
+    // Local variables 
     int i, j, k, l;
     double fp;
     double sum, parc, parl;
@@ -737,107 +737,107 @@ using std::min;
     double gnorm;
     double dxnorm;
 
-/*     ********** */
+//     ********** 
 
-/*     subroutine lmpar */
+//     subroutine lmpar 
 
-/*     given an m by n matrix a, an n by n nonsingular diagonal */
-/*     matrix d, an m-vector b, and a positive number delta, */
-/*     the problem is to determine a value for the parameter */
-/*     par such that if x solves the system */
+//     given an m by n matrix a, an n by n nonsingular diagonal 
+//     matrix d, an m-vector b, and a positive number delta, 
+//     the problem is to determine a value for the parameter 
+//     par such that if x solves the system 
 
-/*           a*x = b ,     sqrt(par)*d*x = 0 , */
+//           a*x = b ,     sqrt(par)*d*x = 0 , 
 
-/*     in the least squares sense, and dxnorm is the euclidean */
-/*     norm of d*x, then either par is zero and */
+//     in the least squares sense, and dxnorm is the euclidean 
+//     norm of d*x, then either par is zero and 
 
-/*           (dxnorm-delta) .le. 0.1*delta , */
+//           (dxnorm-delta) .le. 0.1*delta , 
 
-/*     or par is positive and */
+//     or par is positive and 
 
-/*           abs(dxnorm-delta) .le. 0.1*delta . */
+//           abs(dxnorm-delta) .le. 0.1*delta . 
 
-/*     this subroutine completes the solution of the problem */
-/*     if it is provided with the necessary information from the */
-/*     qr factorization, with column pivoting, of a. that is, if */
-/*     a*p = q*r, where p is a permutation matrix, q has orthogonal */
-/*     columns, and r is an upper triangular matrix with diagonal */
-/*     elements of nonincreasing magnitude, then lmpar expects */
-/*     the full upper triangle of r, the permutation matrix p, */
-/*     and the first n components of (q transpose)*b. on output */
-/*     lmpar also provides an upper triangular matrix s such that */
+//     this subroutine completes the solution of the problem 
+//     if it is provided with the necessary information from the 
+//     qr factorization, with column pivoting, of a. that is, if 
+//     a*p = q*r, where p is a permutation matrix, q has orthogonal 
+//     columns, and r is an upper triangular matrix with diagonal 
+//     elements of nonincreasing magnitude, then lmpar expects 
+//     the full upper triangle of r, the permutation matrix p, 
+//     and the first n components of (q transpose)*b. on output 
+//     lmpar also provides an upper triangular matrix s such that 
 
-/*            t   t                   t */
-/*           p *(a *a + par*d*d)*p = s *s . */
+//            t   t                   t 
+//           p *(a *a + par*d*d)*p = s *s . 
 
-/*     s is employed within lmpar and may be of separate interest. */
+//     s is employed within lmpar and may be of separate interest. 
 
-/*     only a few iterations are generally needed for convergence */
-/*     of the algorithm. if, however, the limit of 10 iterations */
-/*     is reached, then the output par will contain the best */
-/*     value obtained so far. */
+//     only a few iterations are generally needed for convergence 
+//     of the algorithm. if, however, the limit of 10 iterations 
+//     is reached, then the output par will contain the best 
+//     value obtained so far. 
 
-/*     the subroutine statement is */
+//     the subroutine statement is 
 
-/*       subroutine lmpar(n,r,ldr,ipvt,diag,qtb,delta,par,x,sdiag, */
-/*                        wa1,wa2) */
+//       subroutine lmpar(n,r,ldr,ipvt,diag,qtb,delta,par,x,sdiag, 
+//                        wa1,wa2) 
 
-/*     where */
+//     where 
 
-/*       n is a positive integer input variable set to the order of r. */
+//       n is a positive integer input variable set to the order of r. 
 
-/*       r is an n by n array. on input the full upper triangle */
-/*         must contain the full upper triangle of the matrix r. */
-/*         on output the full upper triangle is unaltered, and the */
-/*         strict lower triangle contains the strict upper triangle */
-/*         (transposed) of the upper triangular matrix s. */
+//       r is an n by n array. on input the full upper triangle 
+//         must contain the full upper triangle of the matrix r. 
+//         on output the full upper triangle is unaltered, and the 
+//         strict lower triangle contains the strict upper triangle 
+//         (transposed) of the upper triangular matrix s. 
 
-/*       ldr is a positive integer input variable not less than n */
-/*         which specifies the leading dimension of the array r. */
+//       ldr is a positive integer input variable not less than n 
+//         which specifies the leading dimension of the array r. 
 
-/*       ipvt is an integer input array of length n which defines the */
-/*         permutation matrix p such that a*p = q*r. column j of p */
-/*         is column ipvt(j) of the identity matrix. */
+//       ipvt is an integer input array of length n which defines the 
+//         permutation matrix p such that a*p = q*r. column j of p 
+//         is column ipvt(j) of the identity matrix. 
 
-/*       diag is an input array of length n which must contain the */
-/*         diagonal elements of the matrix d. */
+//       diag is an input array of length n which must contain the 
+//         diagonal elements of the matrix d. 
 
-/*       qtb is an input array of length n which must contain the first */
-/*         n elements of the vector (q transpose)*b. */
+//       qtb is an input array of length n which must contain the first 
+//         n elements of the vector (q transpose)*b. 
 
-/*       delta is a positive input variable which specifies an upper */
-/*         bound on the euclidean norm of d*x. */
+//       delta is a positive input variable which specifies an upper 
+//         bound on the euclidean norm of d*x. 
 
-/*       par is a nonnegative variable. on input par contains an */
-/*         initial estimate of the levenberg-marquardt parameter. */
-/*         on output par contains the final estimate. */
+//       par is a nonnegative variable. on input par contains an 
+//         initial estimate of the levenberg-marquardt parameter. 
+//         on output par contains the final estimate. 
 
-/*       x is an output array of length n which contains the least */
-/*         squares solution of the system a*x = b, sqrt(par)*d*x = 0, */
-/*         for the output par. */
+//       x is an output array of length n which contains the least 
+//         squares solution of the system a*x = b, sqrt(par)*d*x = 0, 
+//         for the output par. 
 
-/*       sdiag is an output array of length n which contains the */
-/*         diagonal elements of the upper triangular matrix s. */
+//       sdiag is an output array of length n which contains the 
+//         diagonal elements of the upper triangular matrix s. 
 
-/*       wa1 and wa2 are work arrays of length n. */
+//       wa1 and wa2 are work arrays of length n. 
 
-/*     subprograms called */
+//     subprograms called 
 
-/*       minpack-supplied ... dpmpar,enorm,qrsolv */
+//       minpack-supplied ... dpmpar,enorm,qrsolv 
 
-/*       fortran-supplied ... dabs,dmax1,dmin1,dsqrt */
+//       fortran-supplied ... dabs,dmax1,dmin1,dsqrt 
 
-/*     argonne national laboratory. minpack project. march 1980. */
-/*     burton s. garbow, kenneth e. hillstrom, jorge j. more */
+//     argonne national laboratory. minpack project. march 1980. 
+//     burton s. garbow, kenneth e. hillstrom, jorge j. more 
 
-/*     ********** */
+//     ********** 
 
-/*     dwarf is the smallest positive magnitude. */
+//     dwarf is the smallest positive magnitude. 
 
     dwarf = dpmpar(2);
 
-/*     compute and store in x the gauss-newton direction. if the */
-/*     jacobian is rank-deficient, obtain a least squares solution. */
+//     compute and store in x the gauss-newton direction. if the 
+//     jacobian is rank-deficient, obtain a least squares solution. 
 
     nsing = n;
     for (j = 0; j < n; ++j) {
@@ -848,7 +848,7 @@ using std::min;
 	if (nsing < n) {
 	    wa1[j] = 0.;
 	}
-/* L10: */
+// L10: 
     }
     if (nsing >= 1) {
         for (k = 1; k <= nsing; ++k) {
@@ -867,9 +867,9 @@ using std::min;
 	x[l] = wa1[j];
     }
 
-/*     initialize the iteration counter. */
-/*     evaluate the function at the origin, and test */
-/*     for acceptance of the gauss-newton direction. */
+//     initialize the iteration counter. 
+//     evaluate the function at the origin, and test 
+//     for acceptance of the gauss-newton direction. 
 
     iter = 0;
     for (j = 0; j < n; ++j) {
@@ -881,9 +881,9 @@ using std::min;
 	goto TERMINATE;
     }
 
-/*     if the jacobian is not rank deficient, the newton */
-/*     step provides a lower bound, parl, for the zero of */
-/*     the function. otherwise set this bound to zero. */
+//     if the jacobian is not rank deficient, the newton 
+//     step provides a lower bound, parl, for the zero of 
+//     the function. otherwise set this bound to zero. 
 
     parl = 0.;
     if (nsing >= n) {
@@ -904,7 +904,7 @@ using std::min;
         parl = fp / delta / temp / temp;
     }
 
-/*     calculate an upper bound, paru, for the zero of the function. */
+//     calculate an upper bound, paru, for the zero of the function. 
 
     for (j = 0; j < n; ++j) {
 	sum = 0.;
@@ -920,8 +920,8 @@ using std::min;
 	paru = dwarf / min(delta,p1);
     }
 
-/*     if the input par lies outside of the interval (parl,paru), */
-/*     set par to the closer endpoint. */
+//     if the input par lies outside of the interval (parl,paru), 
+//     set par to the closer endpoint. 
 
     *par = max(*par,parl);
     *par = min(*par,paru);
@@ -929,15 +929,15 @@ using std::min;
 	*par = gnorm / dxnorm;
     }
 
-/*     beginning of an iteration. */
+//     beginning of an iteration. 
 
     for (;;) {
         ++iter;
 
-/*        evaluate the function at the current value of par. */
+//        evaluate the function at the current value of par. 
 
         if (*par == 0.) {
-            /* Computing MAX */
+            // Computing MAX 
             d1 = dwarf, d2 = p001 * paru;
             *par = max(d1,d2);
         }
@@ -953,15 +953,15 @@ using std::min;
         temp = fp;
         fp = dxnorm - delta;
 
-/*        if the function is small enough, accept the current value */
-/*        of par. also test for the exceptional cases where parl */
-/*        is zero or the number of iterations has reached 10. */
+//        if the function is small enough, accept the current value 
+//        of par. also test for the exceptional cases where parl 
+//        is zero or the number of iterations has reached 10. 
 
         if (fabs(fp) <= p1 * delta || (parl == 0. && fp <= temp && temp < 0.) || iter == 10) {
             goto TERMINATE;
         }
 
-/*        compute the newton correction. */
+//        compute the newton correction. 
 
         for (j = 0; j < n; ++j) {
             l = ipvt[j]-1;
@@ -979,7 +979,7 @@ using std::min;
         temp = enorm(n, wa1);
         parc = fp / delta / temp / temp;
 
-/*        depending on the sign of the function, update parl or paru. */
+//        depending on the sign of the function, update parl or paru. 
 
         if (fp > 0.) {
             parl = max(parl,*par);
@@ -988,32 +988,32 @@ using std::min;
             paru = min(paru,*par);
         }
 
-/*        compute an improved estimate for par. */
+//        compute an improved estimate for par. 
 
-        /* Computing MAX */
+        // Computing MAX 
         d1 = parl, d2 = *par + parc;
         *par = max(d1,d2);
 
-/*        end of an iteration. */
+//        end of an iteration. 
 
     }
 TERMINATE:
 
-/*     termination. */
+//     termination. 
 
     if (iter == 0) {
 	*par = 0.;
     }
 
-/*     last card of subroutine lmpar. */
+//     last card of subroutine lmpar. 
 
-} /* lmpar_ */
+} // lmpar_ 
 
 
 
 double dpmpar(int i)
 {
-    /* Initialized data */
+    // Initialized data 
 
     static struct {
 	double e_1[3];
@@ -1022,180 +1022,180 @@ double dpmpar(int i)
                         1.79769313485e308 }, { 0. } };
 
 
-    /* System generated locals */
+    // System generated locals 
     double ret_val;
 
-    /* Local variables */
+    // Local variables 
 #define dmach ((double *)&equiv_2)
 #define minmag ((int *)&equiv_2 + 2)
 #define maxmag ((int *)&equiv_2 + 4)
 #define mcheps ((int *)&equiv_2)
 
-/*     ********** */
+//     ********** 
 
-/*     Function dpmpar */
+//     Function dpmpar 
 
-/*     This function provides double precision machine parameters */
-/*     when the appropriate set of data statements is activated (by */
-/*     removing the c from column 1) and all other data statements are */
-/*     rendered inactive. Most of the parameter values were obtained */
-/*     from the corresponding Bell Laboratories Port Library function. */
+//     This function provides double precision machine parameters 
+//     when the appropriate set of data statements is activated (by 
+//     removing the c from column 1) and all other data statements are 
+//     rendered inactive. Most of the parameter values were obtained 
+//     from the corresponding Bell Laboratories Port Library function. 
 
-/*     The function statement is */
+//     The function statement is 
 
-/*       double precision function dpmpar(i) */
+//       double precision function dpmpar(i) 
 
-/*     where */
+//     where 
 
-/*       i is an integer input variable set to 1, 2, or 3 which */
-/*         selects the desired machine parameter. If the machine has */
-/*         t base b digits and its smallest and largest exponents are */
-/*         emin and emax, respectively, then these parameters are */
+//       i is an integer input variable set to 1, 2, or 3 which 
+//         selects the desired machine parameter. If the machine has 
+//         t base b digits and its smallest and largest exponents are 
+//         emin and emax, respectively, then these parameters are 
 
-/*         dpmpar(1) = b**(1 - t), the machine precision, */
+//         dpmpar(1) = b**(1 - t), the machine precision, 
 
-/*         dpmpar(2) = b**(emin - 1), the smallest magnitude, */
+//         dpmpar(2) = b**(emin - 1), the smallest magnitude, 
 
-/*         dpmpar(3) = b**emax*(1 - b**(-t)), the largest magnitude. */
+//         dpmpar(3) = b**emax*(1 - b**(-t)), the largest magnitude. 
 
-/*     Argonne National Laboratory. MINPACK Project. November 1996. */
-/*     Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More' */
+//     Argonne National Laboratory. MINPACK Project. November 1996. 
+//     Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More' 
 
-/*     ********** */
+//     ********** 
 
-/*     Machine constants for the IBM 360/370 series, */
-/*     the Amdahl 470/V6, the ICL 2900, the Itel AS/6, */
-/*     the Xerox Sigma 5/7/9 and the Sel systems 85/86. */
+//     Machine constants for the IBM 360/370 series, 
+//     the Amdahl 470/V6, the ICL 2900, the Itel AS/6, 
+//     the Xerox Sigma 5/7/9 and the Sel systems 85/86. 
 
-/*     data mcheps(1),mcheps(2) / z34100000, z00000000 / */
-/*     data minmag(1),minmag(2) / z00100000, z00000000 / */
-/*     data maxmag(1),maxmag(2) / z7fffffff, zffffffff / */
+//     data mcheps(1),mcheps(2) / z34100000, z00000000 / 
+//     data minmag(1),minmag(2) / z00100000, z00000000 / 
+//     data maxmag(1),maxmag(2) / z7fffffff, zffffffff / 
 
-/*     Machine constants for the Honeywell 600/6000 series. */
+//     Machine constants for the Honeywell 600/6000 series. 
 
-/*     data mcheps(1),mcheps(2) / o606400000000, o000000000000 / */
-/*     data minmag(1),minmag(2) / o402400000000, o000000000000 / */
-/*     data maxmag(1),maxmag(2) / o376777777777, o777777777777 / */
+//     data mcheps(1),mcheps(2) / o606400000000, o000000000000 / 
+//     data minmag(1),minmag(2) / o402400000000, o000000000000 / 
+//     data maxmag(1),maxmag(2) / o376777777777, o777777777777 / 
 
-/*     Machine constants for the CDC 6000/7000 series. */
+//     Machine constants for the CDC 6000/7000 series. 
 
-/*     data mcheps(1) / 15614000000000000000b / */
-/*     data mcheps(2) / 15010000000000000000b / */
+//     data mcheps(1) / 15614000000000000000b / 
+//     data mcheps(2) / 15010000000000000000b / 
 
-/*     data minmag(1) / 00604000000000000000b / */
-/*     data minmag(2) / 00000000000000000000b / */
+//     data minmag(1) / 00604000000000000000b / 
+//     data minmag(2) / 00000000000000000000b / 
 
-/*     data maxmag(1) / 37767777777777777777b / */
-/*     data maxmag(2) / 37167777777777777777b / */
+//     data maxmag(1) / 37767777777777777777b / 
+//     data maxmag(2) / 37167777777777777777b / 
 
-/*     Machine constants for the PDP-10 (KA processor). */
+//     Machine constants for the PDP-10 (KA processor). 
 
-/*     data mcheps(1),mcheps(2) / "114400000000, "000000000000 / */
-/*     data minmag(1),minmag(2) / "033400000000, "000000000000 / */
-/*     data maxmag(1),maxmag(2) / "377777777777, "344777777777 / */
+//     data mcheps(1),mcheps(2) / "114400000000, "000000000000 / 
+//     data minmag(1),minmag(2) / "033400000000, "000000000000 / 
+//     data maxmag(1),maxmag(2) / "377777777777, "344777777777 / 
 
-/*     Machine constants for the PDP-10 (KI processor). */
+//     Machine constants for the PDP-10 (KI processor). 
 
-/*     data mcheps(1),mcheps(2) / "104400000000, "000000000000 / */
-/*     data minmag(1),minmag(2) / "000400000000, "000000000000 / */
-/*     data maxmag(1),maxmag(2) / "377777777777, "377777777777 / */
+//     data mcheps(1),mcheps(2) / "104400000000, "000000000000 / 
+//     data minmag(1),minmag(2) / "000400000000, "000000000000 / 
+//     data maxmag(1),maxmag(2) / "377777777777, "377777777777 / 
 
-/*     Machine constants for the PDP-11. */
+//     Machine constants for the PDP-11. 
 
-/*     data mcheps(1),mcheps(2) /   9472,      0 / */
-/*     data mcheps(3),mcheps(4) /      0,      0 / */
+//     data mcheps(1),mcheps(2) /   9472,      0 / 
+//     data mcheps(3),mcheps(4) /      0,      0 / 
 
-/*     data minmag(1),minmag(2) /    128,      0 / */
-/*     data minmag(3),minmag(4) /      0,      0 / */
+//     data minmag(1),minmag(2) /    128,      0 / 
+//     data minmag(3),minmag(4) /      0,      0 / 
 
-/*     data maxmag(1),maxmag(2) /  32767,     -1 / */
-/*     data maxmag(3),maxmag(4) /     -1,     -1 / */
+//     data maxmag(1),maxmag(2) /  32767,     -1 / 
+//     data maxmag(3),maxmag(4) /     -1,     -1 / 
 
-/*     Machine constants for the Burroughs 6700/7700 systems. */
+//     Machine constants for the Burroughs 6700/7700 systems. 
 
-/*     data mcheps(1) / o1451000000000000 / */
-/*     data mcheps(2) / o0000000000000000 / */
+//     data mcheps(1) / o1451000000000000 / 
+//     data mcheps(2) / o0000000000000000 / 
 
-/*     data minmag(1) / o1771000000000000 / */
-/*     data minmag(2) / o7770000000000000 / */
+//     data minmag(1) / o1771000000000000 / 
+//     data minmag(2) / o7770000000000000 / 
 
-/*     data maxmag(1) / o0777777777777777 / */
-/*     data maxmag(2) / o7777777777777777 / */
+//     data maxmag(1) / o0777777777777777 / 
+//     data maxmag(2) / o7777777777777777 / 
 
-/*     Machine constants for the Burroughs 5700 system. */
+//     Machine constants for the Burroughs 5700 system. 
 
-/*     data mcheps(1) / o1451000000000000 / */
-/*     data mcheps(2) / o0000000000000000 / */
+//     data mcheps(1) / o1451000000000000 / 
+//     data mcheps(2) / o0000000000000000 / 
 
-/*     data minmag(1) / o1771000000000000 / */
-/*     data minmag(2) / o0000000000000000 / */
+//     data minmag(1) / o1771000000000000 / 
+//     data minmag(2) / o0000000000000000 / 
 
-/*     data maxmag(1) / o0777777777777777 / */
-/*     data maxmag(2) / o0007777777777777 / */
+//     data maxmag(1) / o0777777777777777 / 
+//     data maxmag(2) / o0007777777777777 / 
 
-/*     Machine constants for the Burroughs 1700 system. */
+//     Machine constants for the Burroughs 1700 system. 
 
-/*     data mcheps(1) / zcc6800000 / */
-/*     data mcheps(2) / z000000000 / */
+//     data mcheps(1) / zcc6800000 / 
+//     data mcheps(2) / z000000000 / 
 
-/*     data minmag(1) / zc00800000 / */
-/*     data minmag(2) / z000000000 / */
+//     data minmag(1) / zc00800000 / 
+//     data minmag(2) / z000000000 / 
 
-/*     data maxmag(1) / zdffffffff / */
-/*     data maxmag(2) / zfffffffff / */
+//     data maxmag(1) / zdffffffff / 
+//     data maxmag(2) / zfffffffff / 
 
-/*     Machine constants for the Univac 1100 series. */
+//     Machine constants for the Univac 1100 series. 
 
-/*     data mcheps(1),mcheps(2) / o170640000000, o000000000000 / */
-/*     data minmag(1),minmag(2) / o000040000000, o000000000000 / */
-/*     data maxmag(1),maxmag(2) / o377777777777, o777777777777 / */
+//     data mcheps(1),mcheps(2) / o170640000000, o000000000000 / 
+//     data minmag(1),minmag(2) / o000040000000, o000000000000 / 
+//     data maxmag(1),maxmag(2) / o377777777777, o777777777777 / 
 
-/*     Machine constants for the Data General Eclipse S/200. */
+//     Machine constants for the Data General Eclipse S/200. 
 
-/*     Note - it may be appropriate to include the following card - */
-/*     static dmach(3) */
+//     Note - it may be appropriate to include the following card - 
+//     static dmach(3) 
 
-/*     data minmag/20k,3*0/,maxmag/77777k,3*177777k/ */
-/*     data mcheps/32020k,3*0/ */
+//     data minmag/20k,3*0/,maxmag/77777k,3*177777k/ 
+//     data mcheps/32020k,3*0/ 
 
-/*     Machine constants for the Harris 220. */
+//     Machine constants for the Harris 220. 
 
-/*     data mcheps(1),mcheps(2) / '20000000, '00000334 / */
-/*     data minmag(1),minmag(2) / '20000000, '00000201 / */
-/*     data maxmag(1),maxmag(2) / '37777777, '37777577 / */
+//     data mcheps(1),mcheps(2) / '20000000, '00000334 / 
+//     data minmag(1),minmag(2) / '20000000, '00000201 / 
+//     data maxmag(1),maxmag(2) / '37777777, '37777577 / 
 
-/*     Machine constants for the Cray-1. */
+//     Machine constants for the Cray-1. 
 
-/*     data mcheps(1) / 0376424000000000000000b / */
-/*     data mcheps(2) / 0000000000000000000000b / */
+//     data mcheps(1) / 0376424000000000000000b / 
+//     data mcheps(2) / 0000000000000000000000b / 
 
-/*     data minmag(1) / 0200034000000000000000b / */
-/*     data minmag(2) / 0000000000000000000000b / */
+//     data minmag(1) / 0200034000000000000000b / 
+//     data minmag(2) / 0000000000000000000000b / 
 
-/*     data maxmag(1) / 0577777777777777777777b / */
-/*     data maxmag(2) / 0000007777777777777776b / */
+//     data maxmag(1) / 0577777777777777777777b / 
+//     data maxmag(2) / 0000007777777777777776b / 
 
-/*     Machine constants for the Prime 400. */
+//     Machine constants for the Prime 400. 
 
-/*     data mcheps(1),mcheps(2) / :10000000000, :00000000123 / */
-/*     data minmag(1),minmag(2) / :10000000000, :00000100000 / */
-/*     data maxmag(1),maxmag(2) / :17777777777, :37777677776 / */
+//     data mcheps(1),mcheps(2) / :10000000000, :00000000123 / 
+//     data minmag(1),minmag(2) / :10000000000, :00000100000 / 
+//     data maxmag(1),maxmag(2) / :17777777777, :37777677776 / 
 
-/*     Machine constants for the VAX-11. */
+//     Machine constants for the VAX-11. 
 
-/*     data mcheps(1),mcheps(2) /   9472,  0 / */
-/*     data minmag(1),minmag(2) /    128,  0 / */
-/*     data maxmag(1),maxmag(2) / -32769, -1 / */
+//     data mcheps(1),mcheps(2) /   9472,  0 / 
+//     data minmag(1),minmag(2) /    128,  0 / 
+//     data maxmag(1),maxmag(2) / -32769, -1 / 
 
-/*     Machine constants for IEEE machines. */
+//     Machine constants for IEEE machines. 
 
 
     ret_val = dmach[(0 + (0 + ((i - 1) << 3))) / 8];
     return ret_val;
 
-/*     Last card of function dpmpar. */
+//     Last card of function dpmpar. 
 
-} /* dpmpar_ */
+} // dpmpar_ 
 
 #undef mcheps
 #undef maxmag
@@ -1206,55 +1206,55 @@ double dpmpar(int i)
 
 double enorm(int n, const double *x)
 {
-    /* Initialized data */
+    // Initialized data 
 
 #define rdwarf 3.834e-20
 #define rgiant 1.304e19
 
-    /* System generated locals */
+    // System generated locals 
     double ret_val, d1;
 
-    /* Local variables */
+    // Local variables 
     int i;
     double s1, s2, s3, xabs, x1max, x3max, agiant, floatn;
 
-/*     ********** */
+//     ********** 
 
-/*     function enorm */
+//     function enorm 
 
-/*     given an n-vector x, this function calculates the */
-/*     euclidean norm of x. */
+//     given an n-vector x, this function calculates the 
+//     euclidean norm of x. 
 
-/*     the euclidean norm is computed by accumulating the sum of */
-/*     squares in three different sums. the sums of squares for the */
-/*     small and large components are scaled so that no overflows */
-/*     occur. non-destructive underflows are permitted. underflows */
-/*     and overflows do not occur in the computation of the unscaled */
-/*     sum of squares for the intermediate components. */
-/*     the definitions of small, intermediate and large components */
-/*     depend on two constants, rdwarf and rgiant. the main */
-/*     restrictions on these constants are that rdwarf**2 not */
-/*     underflow and rgiant**2 not overflow. the constants */
-/*     given here are suitable for every known computer. */
+//     the euclidean norm is computed by accumulating the sum of 
+//     squares in three different sums. the sums of squares for the 
+//     small and large components are scaled so that no overflows 
+//     occur. non-destructive underflows are permitted. underflows 
+//     and overflows do not occur in the computation of the unscaled 
+//     sum of squares for the intermediate components. 
+//     the definitions of small, intermediate and large components 
+//     depend on two constants, rdwarf and rgiant. the main 
+//     restrictions on these constants are that rdwarf**2 not 
+//     underflow and rgiant**2 not overflow. the constants 
+//     given here are suitable for every known computer. 
 
-/*     the function statement is */
+//     the function statement is 
 
-/*       double precision function enorm(n,x) */
+//       double precision function enorm(n,x) 
 
-/*     where */
+//     where 
 
-/*       n is a positive integer input variable. */
+//       n is a positive integer input variable. 
 
-/*       x is an input array of length n. */
+//       x is an input array of length n. 
 
-/*     subprograms called */
+//     subprograms called 
 
-/*       fortran-supplied ... dabs,dsqrt */
+//       fortran-supplied ... dabs,dsqrt 
 
-/*     argonne national laboratory. minpack project. march 1980. */
-/*     burton s. garbow, kenneth e. hillstrom, jorge j. more */
+//     argonne national laboratory. minpack project. march 1980. 
+//     burton s. garbow, kenneth e. hillstrom, jorge j. more 
 
-/*     ********** */
+//     ********** 
 
     s1 = 0.;
     s2 = 0.;
@@ -1268,30 +1268,30 @@ double enorm(int n, const double *x)
 	if (xabs <= rdwarf || xabs >= agiant) {
             if (xabs > rdwarf) {
 
-/*              sum for large components. */
+//              sum for large components. 
 
                 if (xabs > x1max) {
-                    /* Computing 2nd power */
+                    // Computing 2nd power 
                     d1 = x1max / xabs;
                     s1 = 1. + s1 * (d1 * d1);
                     x1max = xabs;
                 } else {
-                    /* Computing 2nd power */
+                    // Computing 2nd power 
                     d1 = xabs / x1max;
                     s1 += d1 * d1;
                 }
             } else {
 
-/*              sum for small components. */
+//              sum for small components. 
 
                 if (xabs > x3max) {
-                    /* Computing 2nd power */
+                    // Computing 2nd power 
                     d1 = x3max / xabs;
                     s3 = 1. + s3 * (d1 * d1);
                     x3max = xabs;
                 } else {
                     if (xabs != 0.) {
-                        /* Computing 2nd power */
+                        // Computing 2nd power 
                         d1 = xabs / x3max;
                         s3 += d1 * d1;
                     }
@@ -1299,14 +1299,14 @@ double enorm(int n, const double *x)
             }
 	} else {
 
-/*           sum for intermediate components. */
+//           sum for intermediate components. 
 
-            /* Computing 2nd power */
+            // Computing 2nd power 
             s2 += xabs * xabs;
         }
     }
 
-/*     calculation of norm. */
+//     calculation of norm. 
 
     if (s1 != 0.) {
         ret_val = x1max * sqrt(s1 + (s2 / x1max) / x1max);
@@ -1323,63 +1323,63 @@ double enorm(int n, const double *x)
     }
     return ret_val;
 
-/*     last card of function enorm. */
+//     last card of function enorm. 
 
-} /* enorm_ */
+} // enorm_ 
 
 
 
 double enorm_stride(int n, int stride, const double *x)
 {
-    /* Initialized data */
+    // Initialized data 
 
 #define rdwarf 3.834e-20
 #define rgiant 1.304e19
 
-    /* System generated locals */
+    // System generated locals 
     double ret_val, d1;
 
-    /* Local variables */
+    // Local variables 
     int i;
     double s1, s2, s3, xabs, x1max, x3max, agiant, floatn;
 
-/*     ********** */
+//     ********** 
 
-/*     function enorm */
+//     function enorm 
 
-/*     given an n-vector x, this function calculates the */
-/*     euclidean norm of x. */
+//     given an n-vector x, this function calculates the 
+//     euclidean norm of x. 
 
-/*     the euclidean norm is computed by accumulating the sum of */
-/*     squares in three different sums. the sums of squares for the */
-/*     small and large components are scaled so that no overflows */
-/*     occur. non-destructive underflows are permitted. underflows */
-/*     and overflows do not occur in the computation of the unscaled */
-/*     sum of squares for the intermediate components. */
-/*     the definitions of small, intermediate and large components */
-/*     depend on two constants, rdwarf and rgiant. the main */
-/*     restrictions on these constants are that rdwarf**2 not */
-/*     underflow and rgiant**2 not overflow. the constants */
-/*     given here are suitable for every known computer. */
+//     the euclidean norm is computed by accumulating the sum of 
+//     squares in three different sums. the sums of squares for the 
+//     small and large components are scaled so that no overflows 
+//     occur. non-destructive underflows are permitted. underflows 
+//     and overflows do not occur in the computation of the unscaled 
+//     sum of squares for the intermediate components. 
+//     the definitions of small, intermediate and large components 
+//     depend on two constants, rdwarf and rgiant. the main 
+//     restrictions on these constants are that rdwarf**2 not 
+//     underflow and rgiant**2 not overflow. the constants 
+//     given here are suitable for every known computer. 
 
-/*     the function statement is */
+//     the function statement is 
 
-/*       double precision function enorm(n,x) */
+//       double precision function enorm(n,x) 
 
-/*     where */
+//     where 
 
-/*       n is a positive integer input variable. */
+//       n is a positive integer input variable. 
 
-/*       x is an input array of length n. */
+//       x is an input array of length n. 
 
-/*     subprograms called */
+//     subprograms called 
 
-/*       fortran-supplied ... dabs,dsqrt */
+//       fortran-supplied ... dabs,dsqrt 
 
-/*     argonne national laboratory. minpack project. march 1980. */
-/*     burton s. garbow, kenneth e. hillstrom, jorge j. more */
+//     argonne national laboratory. minpack project. march 1980. 
+//     burton s. garbow, kenneth e. hillstrom, jorge j. more 
 
-/*     ********** */
+//     ********** 
 
     s1 = 0.;
     s2 = 0.;
@@ -1393,30 +1393,30 @@ double enorm_stride(int n, int stride, const double *x)
 	if (xabs <= rdwarf || xabs >= agiant) {
             if (xabs > rdwarf) {
 
-/*              sum for large components. */
+//              sum for large components. 
 
                 if (xabs > x1max) {
-                    /* Computing 2nd power */
+                    // Computing 2nd power 
                     d1 = x1max / xabs;
                     s1 = 1. + s1 * (d1 * d1);
                     x1max = xabs;
                 } else {
-                    /* Computing 2nd power */
+                    // Computing 2nd power 
                     d1 = xabs / x1max;
                     s1 += d1 * d1;
                 }
             } else {
 
-/*              sum for small components. */
+//              sum for small components. 
 
                 if (xabs > x3max) {
-                    /* Computing 2nd power */
+                    // Computing 2nd power 
                     d1 = x3max / xabs;
                     s3 = 1. + s3 * (d1 * d1);
                     x3max = xabs;
                 } else {
                     if (xabs != 0.) {
-                        /* Computing 2nd power */
+                        // Computing 2nd power 
                         d1 = xabs / x3max;
                         s3 += d1 * d1;
                     }
@@ -1424,14 +1424,14 @@ double enorm_stride(int n, int stride, const double *x)
             }
 	} else {
 
-/*           sum for intermediate components. */
+//           sum for intermediate components. 
 
-            /* Computing 2nd power */
+            // Computing 2nd power 
             s2 += xabs * xabs;
         }
     }
 
-/*     calculation of norm. */
+//     calculation of norm. 
 
     if (s1 != 0.) {
         ret_val = x1max * sqrt(s1 + (s2 / x1max) / x1max);
@@ -1448,7 +1448,7 @@ double enorm_stride(int n, int stride, const double *x)
     }
     return ret_val;
 
-/*     last card of function enorm. */
+//     last card of function enorm. 
 
-} /* enorm_ */
+} // enorm_ 
 

@@ -17,7 +17,6 @@ public:
    int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    int SetupIncMatrix(int* inc, int& row, int& col);
 
-   void GetNonlinearOutputParamNames(vector<string>& names);
    void GetLinearOutputParamNames(vector<string>& names);
 
 protected:

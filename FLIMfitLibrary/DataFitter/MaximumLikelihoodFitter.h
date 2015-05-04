@@ -57,8 +57,6 @@ private:
    double* work;
    double* expA;
 
-   double norm;
-
    int nfunc;
 
    friend void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa);

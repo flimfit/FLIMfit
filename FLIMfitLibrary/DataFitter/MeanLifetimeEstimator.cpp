@@ -111,7 +111,6 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const vector<float>& dec
    double t_mean = 0;
    double n = 0;
 
-   int n_meas = acq->n_meas;
    int n_t = acq->n_t;
    shared_ptr<InstrumentResponseFunction> irf = acq->irf;
 

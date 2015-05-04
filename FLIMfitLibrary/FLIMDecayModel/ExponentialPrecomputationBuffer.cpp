@@ -111,7 +111,6 @@ void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx
 
    // IRF exponential factor * t_irf
    //------------------------------------------------
-   double t_rep = acquisition_params->t_rep;
    __m128d dt_irf_ = _mm_set1_pd(dt_irf * 2);
 
    for (int k = 0; k < n_chan; k++)
@@ -211,7 +210,6 @@ void ExponentialPrecomputationBuffer::Convolve(int k, int i, double pulse_fact, 
 
 void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const
 {
-   const auto& exp_model_buf = model_decay[k];
    const auto& exp_irf_tirf_cum_buf = cum_irf_exp_t_factor[k];
    const auto& exp_irf_tirf_buf = irf_exp_t_factor[k];
    const auto& exp_irf_cum_buf = cum_irf_exp_factor[k];
@@ -228,8 +226,6 @@ void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i,
 
    if (pulse_fact > 0)
    {
-      double t_rep = acquisition_params->t_rep;
-
       c_rep = (t * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact_a;
       c_rep -= 0.5 * ((t * ref_fact_a + ref_fact_b) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact_a);
       c_rep /= pulse_fact;

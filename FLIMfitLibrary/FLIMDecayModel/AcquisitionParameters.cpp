@@ -30,6 +30,7 @@
 #include "AcquisitionParameters.h"
 
 #include <cassert>
+#include <cmath>
 
 AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int polarisation_resolved, int n_chan , double counts_per_photon) :
    data_type(data_type),
@@ -150,6 +151,12 @@ double* AcquisitionParameters::GetT()
    return &t[0];
 }
 
+const std::vector<double>& AcquisitionParameters::GetTimePoints()
+{
+   return t;
+}
+
+
 void AcquisitionParameters::CheckGateSpacing()
 {
    // Check to see if gates are equally spaced
@@ -159,7 +166,7 @@ void AcquisitionParameters::CheckGateSpacing()
    for (int i = 2; i<n_t; i++)
    {
       double dt = t[i] - t[i - 1];
-      if (abs(dt - dt0) > 1)
+      if (fabs(dt - dt0) > 1)
       {
          equally_spaced_gates = false;
          break;

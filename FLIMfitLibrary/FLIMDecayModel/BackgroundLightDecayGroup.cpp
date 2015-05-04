@@ -119,6 +119,28 @@ void BackgroundLightDecayGroup::GetLinearOutputParamNames(vector<string>& names)
          names.push_back(names[i]);
 }
 
+int BackgroundLightDecayGroup::CalculateModel(double* a, int adim, vector<double>& kap)
+{
+   int col = 0;
+   
+   col += AddOffsetColumn(a + col*adim, adim, kap);
+   col += AddScatterColumn(a + col*adim, adim, kap);
+   col += AddTVBColumn(a + col*adim, adim, kap);
+   
+   return col;
+}
+
+int BackgroundLightDecayGroup::CalculateDerivatives(double* b, int bdim, vector<double>& kap)
+{
+   int col = 0;
+   
+   col += AddOffsetDerivatives(b + col*bdim, bdim, kap);
+   col += AddScatterDerivatives(b + col*bdim, bdim, kap);
+   col += AddTVBDerivatives(b + col*bdim, bdim, kap);
+
+   return col;
+}
+
 
 void BackgroundLightDecayGroup::AddConstantContribution(float* a)
 {

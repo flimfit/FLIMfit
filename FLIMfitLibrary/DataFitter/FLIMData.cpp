@@ -289,7 +289,7 @@ void FLIMData::SetData(const vector<shared_ptr<FLIMImage>>& images_)
    data_mode = DataFLIMImages;
    
    // TODO: harmonise these
-   if (images_[0]->dataClass() == FLIMImage::DataFloat)
+   if (images_[0]->getDataClass() == FLIMImage::DataFloat)
       data_class = DATA_FLOAT;
    else
       data_class = DATA_UINT16;

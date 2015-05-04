@@ -34,8 +34,8 @@
 template<typename T>
 void AlignedAllocate(int size, T*& ptr)
 {
-   const int alignment = 16;
 #ifdef _WINDOWS
+   const int alignment = 16;
    ptr = (T*)_aligned_malloc(size*sizeof(T), alignment);
 #else
    ptr = new T[size];

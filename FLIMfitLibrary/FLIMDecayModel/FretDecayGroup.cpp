@@ -115,7 +115,7 @@ void FretDecayGroup::Init()
 
 void FretDecayGroup::SetNumFretPopulations(int n_fret_populations_)
 {
-   n_fret_populations = n_fret_populations;
+   n_fret_populations = n_fret_populations_;
    SetupParameters();
 }
 
@@ -439,11 +439,6 @@ int FretDecayGroup::AddFretEfficiencyDerivatives(double* b, int bdim, vector<dou
    int col = 0;
    int idx = 0;
 
-   auto fact_fcn = [this](int i, int j) 
-   {
-
-   };
-
    for (int i = 0; i<n_fret_populations; i++)
    {
       if (tauT_parameters[i]->IsFittedGlobally())
@@ -483,7 +478,7 @@ int FretDecayGroup::AddDirectAcceptorDerivatives(double* b, int bdim, vector<dou
    if (A0_parameter->IsFittedGlobally())
    {
       int n_fret_group = n_fret_populations + include_donor_only;
-      for (int i = 0; i < n_fret_populations; i++)
+      for (int i = 0; i < n_fret_group; i++)
       {
          memset(b + idx, 0, bdim*sizeof(*b));
          direct_acceptor_buffer->AddDecay(A0, reference_lifetime, b);

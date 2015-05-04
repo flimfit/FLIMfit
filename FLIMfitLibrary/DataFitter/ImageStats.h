@@ -32,6 +32,7 @@
 
 #include "util.h"
 #include "FlagDefinitions.h"
+#include <cassert>
 
 /**
  * Convenience class to encapsulate returned results for a dataset
@@ -67,7 +68,7 @@ public:
     */ 
    void SetNextParam(int region, T mean, T w_mean, T std, T w_std, T median, T q1, T q2, T p01, T p99, T err_lower, T err_upper )
    {
-      _ASSERT( param_idx[region] < n_params );
+      assert( param_idx[region] < n_params );
 
       T* next_param = params.data() + region * n_params * N_STATS + param_idx[region] * N_STATS;
 

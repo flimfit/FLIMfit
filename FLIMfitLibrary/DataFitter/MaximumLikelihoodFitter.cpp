@@ -174,7 +174,6 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, 
    float* adjust;
 
    vector<double>& a = a_[0];
-   vector<double>& b = b_[0];
    GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->GetConstantAdjustment();
    double* A = alf + nl;

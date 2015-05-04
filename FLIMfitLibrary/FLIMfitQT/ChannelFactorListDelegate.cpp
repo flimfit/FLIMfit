@@ -14,7 +14,7 @@ QWidget *ChannelFactorListDelegate::createEditor(QWidget *parent,
    const QModelIndex & index) const
 {
    auto item = static_cast<ChannelFactorListItem*>(index.internalPointer());
-   QWidget* widget;
+   QWidget* widget = nullptr;
 
    if (item->decayGroupIndex() >= 0)
    {

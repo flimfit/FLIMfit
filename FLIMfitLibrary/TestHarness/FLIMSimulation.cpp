@@ -61,9 +61,9 @@ FLIMSimulationWF::FLIMSimulationWF() :
 
 
 FLIMSimulation::FLIMSimulation(int data_type) :
+   AcquisitionParameters(data_type, t_rep_default, MODE_STANDARD, 1, 1.0),
    irf_mu( 1000 ),
-   irf_sigma( 150 ),
-   AcquisitionParameters(data_type, t_rep_default, MODE_STANDARD, 1, 1.0)
+   irf_sigma( 150 )
 {
    // Generate the IRF distribution
    norm_dist = boost::random::normal_distribution<double>(irf_mu, irf_sigma);

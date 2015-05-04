@@ -1,8 +1,11 @@
 #pragma once
 #include "ui_DecayWidget.h"
 #include <QWidget>
-#include "FLIMData.h"
+#include <QVector>
 
+#include "FLIMImage.h"
+
+#include "cv.h"
 #include <memory>
 
 class DecayWidget : public QWidget, public Ui::DecayWidget
@@ -16,21 +19,54 @@ public:
    {
       setupUi(this);
    
-      decay_plot->addGraph();
       decay_plot->xAxis->setLabel("Time (ps)");
       decay_plot->yAxis->setLabel("Intensity");
    }
 
-   void update()
+   void setImage(std::shared_ptr<FLIMImage> image_)
    {
+      image = image_;
+      auto acq = image->getAcquisitionParameters();
+      mask = cv::Mat(acq->n_x, acq->n_y, CV_8U, 1);
+      recalculate();
+   }
+   
+   void recalculate()
+   {
+      image->getDecay(mask, decay);so
+      
+      auto t = image->getAcquisitionParameters()->GetTimePoints();
+      auto x = QVector<double>::fromStdVector(t);
+      
+      int n_decay = decay.size();
+      for(int i=0; i<n_decay; i++)
+      {
+         if (decay_plot->graphCount() <= i)
+            decay_plot->addGraph();
 
+         auto graph = decay_plot->graph(i);
+         graph->setData(x, QVector<double>::fromStdVector(decay[i]));
+         graph->rescaleAxes();
+      
+      }
+      decay_plot->replot();
    }
 
-   Q_PROPERTY(std::shared_ptr<FLIMData> data MEMBER data_);
-   Q_PROPERTY(int image_index MEMBER image_index_);
-
+   void setSelection(QRect selection)
+   {
+      cv::Point top_left(selection.topLeft().x(), selection.topLeft().y());
+      cv::Point bottom_right(selection.bottomRight().x(), selection.bottomRight().y());
+      cv::Rect sel(top_left, bottom_right);
+      
+      mask = cv::Scalar(0);
+      cv::rectangle(mask, sel, 1, CV_FILLED);
+      
+      recalculate();
+      
+   }
+   
 protected:
-
-   std::shared_ptr<FLIMData> data_;
-   int image_index_ = 0;
+   std::vector<std::vector<double>> decay;
+   cv::Mat mask;
+   std::shared_ptr<FLIMImage> image;
 };

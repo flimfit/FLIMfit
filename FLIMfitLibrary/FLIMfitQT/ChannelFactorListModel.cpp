@@ -158,7 +158,6 @@ bool ChannelFactorListModel::setData(const QModelIndex & index, const QVariant &
    if (role != Qt::EditRole)
       return false;
 
-   int col = index.column();
    int changed = false;
 
    auto item = GetItem(index);

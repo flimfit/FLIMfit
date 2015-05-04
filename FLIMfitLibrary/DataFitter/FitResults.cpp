@@ -262,7 +262,7 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
             int s_local = data->GetRegionCount(im, rg);
             float* intensity = aux_data + start;
 
-            int intensity_stride = n_aux;
+            //int intensity_stride = n_aux;
 
             region_summary[idx].image = data->use_im[im];
             region_summary[idx].region = rg;

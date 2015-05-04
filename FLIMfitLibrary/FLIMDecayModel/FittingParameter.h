@@ -79,6 +79,6 @@ public:
 
    std::string name;
    double initial_value;
-   ParameterFittingType fitting_type;
    std::vector<ParameterFittingType> allowed_fitting_types;
+   ParameterFittingType fitting_type;
 };

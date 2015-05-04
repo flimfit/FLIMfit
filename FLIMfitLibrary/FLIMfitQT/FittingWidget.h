@@ -7,8 +7,8 @@
 #include "FLIMImageSet.h"
 #include "FLIMImporter.h"
 #include "FLIMGlobalFitController.h"
-
 #include "TextReader.h"
+#include "FLIMImageWidget.h"
 
 #include <memory>
 #include <fstream>
@@ -23,16 +23,18 @@ public:
 
       connect(fit_button, &QPushButton::pressed, this, &FittingWidget::Fit);
 
+      QString root = "/Users/sean/Documents/FLIMTestData";
 
-      QString irf_name = "C:/Users/sean/Documents/FLIMTestData/acceptor-fret-irf.csv";
+//      QString irf_name = QString("%1%2").arg(root).arg("/acceptor-fret-irf.csv");
+      QString irf_name = QString("%1%2").arg(root).arg("/2015-05-15 Dual FRET IRF.csv");
 
       auto irf = FLIMImporter::importIRF(irf_name);
       
 
-      QString folder("C:/Users/sean/Documents/FLIMTestData/acceptor");
+      QString folder = QString("%1%2").arg(root).arg("/dual_data");
       images = FLIMImporter::importFromFolder(folder);
-
-      auto acq = images->GetAcquisitionParameters();
+      
+      auto acq = images->getAcquisitionParameters();
       acq->SetIRF(irf);
       decay_model = std::make_shared<QDecayModel>();
 
@@ -52,17 +54,24 @@ public:
       decay_model->AddDecayGroup(fret_group);
 
       data_list->setModel(images.get());
+      
 
       parameters_widget->SetDecayModel(decay_model);
+      
+      FLIMImageWidget* image_widget = new FLIMImageWidget(this);
+      image_widget->setMinimumSize(500,500);
+      mdi_area->addSubWindow(image_widget);
 
-      Fit();
+      connect(images.get(), &FLIMImageSet::currentImageChanged, image_widget, &FLIMImageWidget::setImage);
+      image_widget->setImage(images->getCurrentImage());
+      //Fit();
    }
 
    void Fit()
    {
       fit_controller = std::make_shared<FLIMGlobalFitController>();
       fit_controller->SetFitSettings(FitSettings(ALG_ML));
-      auto data = images->GetFLIMData();
+      auto data = images->getFLIMData();
       fit_controller->SetData(data);
       fit_controller->SetModel(decay_model);
 

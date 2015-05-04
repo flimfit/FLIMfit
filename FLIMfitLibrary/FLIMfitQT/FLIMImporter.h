@@ -13,7 +13,8 @@ public:
 
    static std::shared_ptr<InstrumentResponseFunction> importIRF(const QString& filename)
    {
-      auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(filename.toStdString()));
+      std::string fname = filename.toStdString();
+      std::unique_ptr<FLIMReader> reader(FLIMReader::createReader(fname));
 
       vector<int> channels = { 0, 1 };
 
@@ -42,30 +43,32 @@ public:
 
       QStringList files = dir.entryList(filters);
 
+      if (files.empty())
+         throw std::runtime_error("No files found");
+      
       auto images = std::make_shared<FLIMImageSet>();
 
-      if (!files.empty())
+
+      for (auto& f : files)
       {
-         for (auto& f : files)
-         {
-            QString full_path = QString("%1/%2").arg(folder).arg(f);
-            auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(full_path.toStdString()));
-            reader->setTemporalResolution(5);
+         QString full_path = QString("%1/%2").arg(folder).arg(f);
+         std::string fpath = full_path.toStdString();
+         auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(fpath));
+         reader->setTemporalResolution(5);
 
-            vector<int> channels = { 0, 1 };
+         vector<int> channels = { 0, 1 };
 
-            auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
-            acq->n_chan = channels.size();
-            acq->SetImageSize(reader->numX(), reader->numY());
-            acq->SetT(reader->timepoints());
+         auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
+         acq->n_chan = channels.size();
+         acq->SetImageSize(reader->numX(), reader->numY());
+         acq->SetT(reader->timepoints());
 
-            auto image = std::make_shared<FLIMImage>(acq, typeid(float));
-            image->setName(f.toStdString());
+         auto image = std::make_shared<FLIMImage>(acq, typeid(float));
+         image->setName(f.toStdString());
 
-            reader->readData(image->dataPointer<float>(), channels);
-            images->AddImage(image);
-         }
-
+         reader->readData(image->getDataPointer<float>(), channels);
+         image->releasePointer<float>();
+         images->addImage(image);
       }
       return images;
    }

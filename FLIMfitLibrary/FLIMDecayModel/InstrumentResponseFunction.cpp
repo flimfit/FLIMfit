@@ -88,7 +88,7 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_
       double sum = 0;
       for (int j = 0; j < n_t; j++)
          sum += irf_buf[n_t * i + j];
-      assert(abs(sum - 1.0) < 0.1);
+      assert(fabs(sum - 1.0) < 0.1);
    }
 
    CalculateGFactor();

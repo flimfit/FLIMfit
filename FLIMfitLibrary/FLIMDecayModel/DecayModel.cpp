@@ -188,8 +188,6 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
    double reference_lifetime = GetCurrentReferenceLifetime(param_values, idx);
    double t0_shift = GetCurrentT0(param_values, idx);
 
-   double scale_fact[2] = {1, 0};
-
    int getting_fit = false; //TODO
 
    for (int i = 0; i < decay_groups.size(); i++)
@@ -244,30 +242,20 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
       for (int i = 0; i < decay_groups.size(); i++)
          col += decay_groups[i]->CalculateDerivatives(b.data() + col*bdim, bdim, kap);
 
-      double * bp = b.data();
-
 #if _DEBUG
       //for (int i = 0; i < b.size(); i++)
       //   assert(std::isfinite(b[i]));
 #endif
+
       /*
-      col += AddLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
-      col += AddContributionDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
-
-      col += AddFRETEfficencyDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
-      col += AddRotationalCorrelationTimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
-
       if (irf->ref_reconvolution == FIT_GLOBALLY)
       col += AddReferenceLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
 
       if (fit_t0 == FIT)
       col += AddT0Derivatives(wb, irf_idx, ref_lifetime, t0_shift, b.data() + col*bdim, bdim);
-
-      col += AddOffsetDerivatives(wb, b.data() + col*bdim, bdim);
-      col += AddScatterDerivatives(wb, b.data() + col*bdim, bdim, irf_idx, t0_shift);
-      col += AddTVBDerivatives(wb, b.data() + col*bdim, bdim);
-      */
-
+       */
+      
+      
       for (int i = 0; i < col*bdim; i++)
          b[i] *= photons_per_count;
 
@@ -515,8 +503,6 @@ void DecayModel::ValidateDerivatives()
 
             for (int k = 0; k<dim; ++k)
             {
-               double e = err[k];
-
                temp = 1.0;
                if (fvec[k] != 0.0 && fvecp[k] != 0.0 && fabs(fvecp[k] - fvec[k]) >= epsf*fabs(fvec[k]))
                   temp = eps*fabs((fvecp[k] - fvec[k]) / eps - err[k]) / (fabs(fvec[k]) + fabs(fvecp[k]));

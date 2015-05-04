@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Fitting Parameters</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -27,91 +27,84 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTabWidget" name="tabWidget">
-     <property name="currentIndex">
-      <number>0</number>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Parameters</string>
      </property>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>Model</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QTreeView" name="parameter_tree">
-         <attribute name="headerVisible">
-          <bool>false</bool>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0">
-         <item>
-          <widget class="QPushButton" name="remove_group_button">
-           <property name="text">
-            <string>-</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QComboBox" name="group_type_combo">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>46</height>
-            </size>
-           </property>
-           <item>
-            <property name="text">
-             <string>Multi-exponential decay</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>FRET decay</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Anisotropy Decay</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="add_group_button">
-           <property name="text">
-            <string>+</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>Channel Factors</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QTreeView" name="channel_factor_tree"/>
-       </item>
-      </layout>
-     </widget>
     </widget>
+   </item>
+   <item>
+    <widget class="QTreeView" name="parameter_tree">
+     <attribute name="headerVisible">
+      <bool>false</bool>
+     </attribute>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,1,0">
+     <item>
+      <widget class="QPushButton" name="remove_group_button">
+       <property name="text">
+        <string> - </string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QComboBox" name="group_type_combo">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <item>
+        <property name="text">
+         <string>Multi-exponential decay</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>FRET decay</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Anisotropy Decay</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="add_group_button">
+       <property name="text">
+        <string> + </string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Channel Factors</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTreeView" name="channel_factor_tree"/>
    </item>
   </layout>
  </widget>

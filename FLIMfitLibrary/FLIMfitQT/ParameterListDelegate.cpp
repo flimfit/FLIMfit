@@ -47,13 +47,13 @@ QWidget *ParameterListDelegate::createEditor(QWidget *parent,
    else if (item->type() == ParameterListItem::Option && index.column() == 1)
    {
       auto prop = item->property();
-      if (prop.type() == QMetaType::Int)
+      if (prop.type() == QVariant::Int)
       {
          auto* w = new QSpinBox(parent);
          w->setFrame(false);
          widget = w;
       }
-      else if (prop.type() == QMetaType::Bool)
+      else if (prop.type() == QVariant::Bool)
       {
          auto* w = new QComboBox(parent);
          w->setFrame(false);
@@ -97,13 +97,13 @@ void ParameterListDelegate::setEditorData(QWidget *editor,
    else if (item->type() == ParameterListItem::Option && index.column() == 1)
    {
       auto prop = item->property();
-      if (prop.type() == QMetaType::Int)
+      if (prop.type() == QVariant::Int)
       {
          int value = index.model()->data(index, Qt::EditRole).toInt();
          auto *w = static_cast<QSpinBox*>(editor);
          w->setValue(value);
       }
-      else if (prop.type() == QMetaType::Bool)
+      else if (prop.type() == QVariant::Bool)
       {
          int value = index.model()->data(index, Qt::EditRole).toBool();
          auto *w = static_cast<QComboBox*>(editor);
@@ -142,13 +142,13 @@ void ParameterListDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
    else if (item->type() == ParameterListItem::Option && index.column() == 1)
    {
       auto prop = item->property();
-      if (prop.type() == QMetaType::Int)
+      if (prop.type() == QVariant::Int)
       {
          auto *w = static_cast<QSpinBox*>(editor);
          w->interpretText();
          value = w->value();
       }
-      else if (prop.type() == QMetaType::Bool)
+      else if (prop.type() == QVariant::Bool)
       {
          auto *w = static_cast<QComboBox*>(editor);
          value = w->currentData();

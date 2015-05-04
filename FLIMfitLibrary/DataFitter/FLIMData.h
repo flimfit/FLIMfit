@@ -253,7 +253,7 @@ T* FLIMData::GetDataPointer(int thread, int im)
       return ((T*)data) + iml * im_size;
 
    case DataFLIMImages:
-      return images[iml]->dataPointer<T>();
+      return images[iml]->getDataPointer<T>();
    }
 
    return nullptr;

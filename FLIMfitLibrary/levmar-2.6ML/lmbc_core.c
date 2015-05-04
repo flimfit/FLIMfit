@@ -435,7 +435,7 @@ int nLMsteps=0, nLSsteps=0, nPGsteps=0, gprevtaken=0;
 int numactive;
 int (*linsolver)(LM_REAL *A, LM_REAL *B, LM_REAL *x, int m)=NULL;
 
-  mu=jacTe_inf=t=0.0;  tmin=tmin; /* -Wall */
+  mu=jacTe_inf=t=0.0;  //tmin=tmin; /* -Wall */
 
   if(n<m){
     fprintf(stderr, LCAT(LEVMAR_BC_DER, "(): cannot solve a problem with fewer measurements [%d] than unknowns [%d]\n"), n, m);
