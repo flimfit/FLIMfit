@@ -157,8 +157,8 @@ function handles = setup_menu(obj,handles)
     
     menu_background = uimenu(obj.window,'Label','Background');
     handles.menu_background_background_load = uimenu(menu_background,'Label','Load Background...');
-    %handles.menu_background_background_load_average = uimenu(menu_background,'Label','Load background by time-averaging a time-resolved image ...');
-   handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load Background from a single .tif of a stack...');
+    handles.menu_background_background_load_average = uimenu(menu_background,'Label','Load time-averaged background ...');
+   %handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load Background from a single .tif of a stack...');
     
     handles.menu_background_tvb_load = uimenu(menu_background,'Label','Load Time Varying Background...','Separator','on');
     handles.menu_background_tvb_use_selected = uimenu(menu_background,'Label','Use Selected Region as Time Varying Background');

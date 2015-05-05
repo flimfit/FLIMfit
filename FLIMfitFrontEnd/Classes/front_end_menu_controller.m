@@ -148,7 +148,7 @@ classdef front_end_menu_controller < handle
         
         menu_background_background_load;
         menu_background_background_load_average;
-        menu_background_background_load_series;
+        %menu_background_background_load_series;
         
         menu_background_tvb_load;
         menu_background_tvb_use_selected;
@@ -886,20 +886,20 @@ classdef front_end_menu_controller < handle
         % Background
         %------------------------------------------------------------------
         function menu_background_background_load_callback(obj,~,~)
-            [file,path] = uigetfile('*.*','Select a background image file',obj.default_path);
+            [file,path] = uigetfile('*.*','Select a background file',obj.default_path);
             if file ~= 0
-                obj.data_series_controller.data_series.load_background([path file]);    
+                obj.data_series_controller.data_series.load_background([path file], false);    
             end
         end
         
-      
-        function menu_background_background_load_series_callback(obj,~,~)
-            [file,path] = uigetfile('*.tif','Select a background .tif',obj.default_path);
+        function menu_background_background_load_average_callback(obj,~,~)
+            [file,path] = uigetfile('*.*','Select a background file',obj.default_path);
             if file ~= 0
-                obj.data_series_controller.data_series.load_background_single_tif([path file]);    
+                obj.data_series_controller.data_series.load_background([path file], true);    
             end
         end
         
+       
         function menu_background_tvb_load_callback(obj,~,~)
             [file,path] = uigetfile('*.*','Select a TVB file',obj.default_path);
             if file ~= 0
