@@ -1,4 +1,4 @@
-function load_background(obj, file_or_image)
+function load_background(obj, file_or_image, time_average)
 
     %> Load a background image from a file
     
@@ -53,7 +53,22 @@ function load_background(obj, file_or_image)
     
     if ~isempty(dims.delays)
         sizet = length(dims.delays);
+        if ~time_average 
+            tpoint = [];
+            while isempty(tpoint) ||  tpoint > sizet   ||  tpoint < 1
+                prompt = {sprintf(['Data contains ' num2str(sizet) ' time-points. Numbered 0-' num2str(sizet -1) '\n Please select one'])};
+                dlgTitle = 'Time-resolved data! ';
+                defaultvalues = {num2str(sizet -1)};
+                numLines = 1;
+                inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                tpoint = str2double(inputdata) + 1; 
+            end
+        end
     else
+        if time_average
+           errordlg('Please use "load background..."','Not time-resolved data!'); 
+           return;
+        end
         sizet = 1;
     end
     
@@ -64,27 +79,22 @@ function load_background(obj, file_or_image)
     [success , image_data] = obj.load_flim_cube(image_data, file_or_image,1,1, dims, ZCT);
     
     % average across t if 3D data
-    if(sizet > 1)
-        im = squeeze(mean(image_data,1));
-    else
+    if(sizet > 1) 
+        if time_average
+            im = squeeze(mean(image_data,1));
+        else
+            im = squeeze(image_data(tpoint, :,:,:));
+        end
+    else 
         im = squeeze(image_data);
     end
     
-    
-
      % correct for labview broken tiffs
      if all(im > 2^15)
          im = im - 2^15;
      end
 
-     %{
-     extent = 3;
-     kernel1 = ones([extent 1]) / extent;
-     kernel2 = ones([1 extent]) / extent;
-     filtered = conv2nan(im,kernel1);
-     im = conv2nan(filtered,kernel2);
-     %}
-
+    
      extent = 3;
      im = medfilt2(im,[extent extent],'symmetric');
 

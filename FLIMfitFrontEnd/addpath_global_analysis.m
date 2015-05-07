@@ -48,8 +48,10 @@ function addpath_global_analysis()
             % using Matlab before v2014b, use old GUILayout
             addpath([thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p17'], ...
                     [thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p17' filesep 'Patch']);
+        else
+            addpath([thisdir filesep 'Toolboxes' filesep 'GUI Layout Toolbox' filesep 'layout']);
         end
-            
+
         addpath( ...
                 [thisdir filesep 'OMEROMatlab'],... 
                 [thisdir filesep 'OMEROMatlab' filesep 'helper'],... 
@@ -64,23 +66,6 @@ function addpath_global_analysis()
                 [thisdir filesep 'ICY_Matlab' filesep 'matlabxserver']);  
         end
                                         
-        % Test genops
-        genops(1);
-
-        a = ones(10,10);
-        b = ones(10,1);
-
-        try 
-            c = a.*b;
-            if ~all(size(c)==[10,10])
-                makegenops;
-                genops(1);    
-            end
-        catch
-            makegenops;
-            genops(1);
-        end
-        
         
             
     end
