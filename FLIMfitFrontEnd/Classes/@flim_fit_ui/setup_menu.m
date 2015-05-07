@@ -113,7 +113,9 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)','Enable','off');                    
     handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
     handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background','Separator','on','Enable','off');    
-    %handles.menu_OMERO_Load_Background_form_Dataset = uimenu(menu_OMERO,'Label','Load Background (single plane: Dataset Images to smooth)','Enable','off');            
+    handles.menu_OMERO_Load_Background_average = uimenu(menu_OMERO,'Label','Load time-averaged background ...','Separator','on','Enable','off');    
+    
+    
     handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)','Enable','off');    
     %handles.menu_OMERO_Load_tvb_from_Dataset = uimenu(menu_OMERO,'Label','Load Time Varying Background (Dataset Images)','Enable','off');                    
     handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)','Enable','off');                            
@@ -158,7 +160,6 @@ function handles = setup_menu(obj,handles)
     menu_background = uimenu(obj.window,'Label','Background');
     handles.menu_background_background_load = uimenu(menu_background,'Label','Load Background...');
     handles.menu_background_background_load_average = uimenu(menu_background,'Label','Load time-averaged background ...');
-   %handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load Background from a single .tif of a stack...');
     
     handles.menu_background_tvb_load = uimenu(menu_background,'Label','Load Time Varying Background...','Separator','on');
     handles.menu_background_tvb_use_selected = uimenu(menu_background,'Label','Use Selected Region as Time Varying Background');
