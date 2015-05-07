@@ -171,7 +171,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
    // on a region, thread 0 gets the data for the next thread and processing
    // begins again. Use active_lock to ensure processes are kept in order
    //=============================================================================
-   if (data->global_mode == MODE_PIXELWISE)
+   if (global_mode == MODE_PIXELWISE)
    {
 	  int n_active_thread = min(n_thread,data->n_px);
       for(int im=0; im<data->n_im_used; im++)
@@ -385,6 +385,7 @@ void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
 
    data->SetStatus(status);
    data->SetNumThreads(n_thread);
+   data->SetGlobalMode(global_mode);
 }
 
 

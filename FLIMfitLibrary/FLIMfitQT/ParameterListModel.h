@@ -73,7 +73,6 @@ public:
    int rowCount(const QModelIndex& parent = QModelIndex()) const;
    int columnCount(const QModelIndex & parent = QModelIndex()) const;
 
-
 protected:
 
    ParameterListItem* GetItem(const QModelIndex& parent) const;

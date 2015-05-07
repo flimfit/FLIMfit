@@ -105,7 +105,7 @@ void ParameterListModel::parseDecayModel()
    beginResetModel();
    delete root_item;
    root_item = new ParameterListItem(decay_model);
-   beginResetModel();
+   endResetModel();
 }
 
 ParameterListModel::~ParameterListModel()

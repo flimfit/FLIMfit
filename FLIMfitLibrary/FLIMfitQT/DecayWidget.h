@@ -74,6 +74,11 @@ public:
       recalculate();
    }
    
+   cv::Mat getSelectionMask()
+   {
+      return mask;
+   }
+   
    void setDisplayMode(int display_mode)
    {
       QCPAxis::ScaleType type;

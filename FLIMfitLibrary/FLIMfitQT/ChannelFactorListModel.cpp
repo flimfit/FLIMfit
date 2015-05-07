@@ -72,7 +72,7 @@ void ChannelFactorListModel::parseDecayModel()
    beginResetModel();
    delete root_item;
    root_item = new ChannelFactorListItem(decay_model);
-   beginResetModel();
+   endResetModel();
 }
 
 ChannelFactorListModel::~ChannelFactorListModel()

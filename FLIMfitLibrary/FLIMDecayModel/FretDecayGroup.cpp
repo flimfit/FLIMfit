@@ -78,7 +78,7 @@ void FretDecayGroup::SetupParameters()
       parameters.push_back(tauA_parameter);
    }
 
-
+   ParametersChanged();
 }
 
 void FretDecayGroup::Init()
@@ -339,9 +339,13 @@ int FretDecayGroup::CalculateModel(double* a, int adim, vector<double>& kap)
    {
       memset(a + col*adim, 0, adim*sizeof(*a));
       AddDecayGroup(fret_buffer[i], a + col*adim, adim, kap);
-      AddAcceptorContribution(i, A0, a + col*adim, adim, kap);
-      direct_acceptor_buffer->AddDecay(A0 * AD, reference_lifetime, a + col*adim);
-
+      
+      if (include_acceptor)
+      {
+         AddAcceptorContribution(i, A0, a + col*adim, adim, kap);
+         direct_acceptor_buffer->AddDecay(A0 * AD, reference_lifetime, a + col*adim);
+      }
+      
       col++;
    }
 

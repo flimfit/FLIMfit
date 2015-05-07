@@ -79,6 +79,7 @@ public:
 
 protected:
 
+   virtual void ParametersChanged() {};
 
    bool constrain_nonlinear_parameters = true;
 
@@ -111,7 +112,14 @@ public:
    }
 
 signals:
-   void Updated();
+   void parametersUpdated();
+   
+protected:
+   
+   void ParametersChanged()
+   {
+      emit parametersUpdated();
+   }
 };
 
 

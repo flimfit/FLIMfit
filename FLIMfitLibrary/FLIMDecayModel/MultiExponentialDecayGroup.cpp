@@ -36,9 +36,9 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool c
    n_exponential(n_exponential),
    contributions_global(contributions_global)
 {
-   SetupParametersMultiExponential();
-
    channel_factor_names.push_back("Decay");
+
+   SetupParametersMultiExponential();
 }
 
 void MultiExponentialDecayGroup::SetupParametersMultiExponential()
@@ -89,10 +89,7 @@ void MultiExponentialDecayGroup::SetupParametersMultiExponential()
    for (auto p : beta_parameters)
       parameters.push_back(p);
 
-
-   // TODO: move into INIT
-
-
+   ParametersChanged();
 }
 
 void MultiExponentialDecayGroup::Init()

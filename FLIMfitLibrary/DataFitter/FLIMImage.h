@@ -84,7 +84,7 @@ public:
             intensity.at<float>(i) += data[i*n_meas + j];
       
    }
-
+   
    void getDecay(cv::Mat mask, std::vector<std::vector<double>>& decay)
    {
       if (stored_type == typeid(float))

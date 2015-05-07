@@ -103,6 +103,7 @@ struct ModelParametersStruct
 struct FitSettingsStruct
 {
    int    algorithm;
+   int    global_mode;
    int    global_algorithm;
    int    weighting;
 

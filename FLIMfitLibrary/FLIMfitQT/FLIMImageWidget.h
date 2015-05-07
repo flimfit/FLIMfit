@@ -25,6 +25,11 @@ public:
       update();
    }
    
+   cv::Mat getSelectionMask()
+   {
+      return decay_widget->getSelectionMask();
+   }
+   
 protected:
    
    void update()

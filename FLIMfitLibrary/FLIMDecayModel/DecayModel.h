@@ -98,7 +98,7 @@ protected:
    int AddT0Derivatives(double* b, int bdim, vector<double>& kap);
 
    void SetupAdjust();
-
+   
    shared_ptr<AcquisitionParameters> acq;
 
    FittingParameter reference_parameter;
@@ -122,7 +122,8 @@ public:
    shared_ptr<AcquisitionParameters> GetAcquisitionParameters() { return acq; }
 
    void AddDecayGroup(shared_ptr<QAbstractDecayGroup> group) 
-   { 
+   {
+      connect(group.get(), &QAbstractDecayGroup::parametersUpdated, this, &QDecayModel::parametersChanged);
       DecayModel::AddDecayGroup(group);
       emit GroupsUpdated();
    };
@@ -140,6 +141,11 @@ public:
          decay_groups.erase(iter, iter);
          emit GroupsUpdated();
       }
+   }
+   
+   void parametersChanged()
+   {
+      emit GroupsUpdated();
    }
 
 signals:

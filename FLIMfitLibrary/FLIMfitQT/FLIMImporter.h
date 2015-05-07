@@ -16,16 +16,14 @@ public:
       std::string fname = filename.toStdString();
       std::unique_ptr<FLIMReader> reader(FLIMReader::createReader(fname));
 
-      vector<int> channels = { 0, 1 };
-
-      int n_chan = channels.size();
+      int n_chan = reader->numChannels();
       auto t = reader->timepoints(); 
 
       assert(t.size() > 1);
 
       double timebin_width = t[1] - t[0];
 
-      vector<double> data = reader->readData<double>(channels);
+      vector<double> data = reader->readData<double>();
      
       auto irf = std::make_shared<InstrumentResponseFunction>();
       irf->SetIRF(t.size(), n_chan, t[0], timebin_width, data.data());
