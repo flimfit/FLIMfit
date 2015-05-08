@@ -34,7 +34,6 @@ include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel)
 # Set the source and header files
 #===================================================
 set(SOURCE
-   FLIMImage.cpp
    FLIMData.cpp
    RegionData.cpp
    VariableProjector.cpp
@@ -53,7 +52,6 @@ set(SOURCE
 )
 
 set(HEADERS   
-   FLIMImage.h 
    FLIMData.h
    RegionData.h
    VariableProjector.h

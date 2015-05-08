@@ -38,7 +38,7 @@ using std::unique_ptr;
 
 #include "ExponentialPrecomputationBuffer.h"
 #include "InstrumentResponseFunction.h"
-#include "AcquisitionParameters.h"
+#include "DataTransformer.h"
 #include "IRFConvolution.h"
 #include "FittingParameter.h"
 
@@ -56,7 +56,7 @@ public:
    int GetNumComponents() { return n_lin_components; };
    int GetNumNonlinearParameters() { return n_nl_parameters; };
 
-   void SetAcquisitionParmeters(shared_ptr<AcquisitionParameters> acq);
+   void SetDataParameters(shared_ptr<TransformedDataParameters> dp);
    virtual void Init() = 0;
 
    virtual int SetVariables(const double* variables) = 0;
@@ -89,7 +89,7 @@ protected:
    vector<shared_ptr<FittingParameter>> parameters;
    vector<std::string> channel_factor_names;
 
-   shared_ptr<AcquisitionParameters> acq;
+   shared_ptr<TransformedDataParameters> dp;
    bool fit_t0 = false;
 
    // RUNTIME VARIABLE PARAMETERS
@@ -139,10 +139,10 @@ void AbstractDecayGroup::AddIRF(double* irf_buf, int irf_idx, double t0_shift, T
 
    int idx = 0;
    int ii;
-   for (int k = 0; k<acq->n_chan; k++)
+   for (int k = 0; k<dp->n_chan; k++)
    {
       double scale = (scale_fact == NULL) ? 1 : scale_fact[k];
-      for (int i = 0; i<acq->n_t; i++)
+      for (int i = 0; i<dp->n_t; i++)
       {
          ii = (int)floor((acq->t[i] - t_irf0) / dt_irf);
 

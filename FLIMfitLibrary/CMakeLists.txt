@@ -19,7 +19,6 @@ FIND_PACKAGE(Boost)
 if(Boost_FOUND)
     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 endif()
-include_directories( "../Boost" )
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 

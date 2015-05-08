@@ -58,6 +58,8 @@ set(SOURCE
    ExponentialPrecomputationBuffer.cpp
    AcquisitionParameters.cpp
    DecayModel.cpp
+   DataTransformer.cpp
+   FLIMImage.cpp
 )
 
 set(HEADERS   
@@ -72,6 +74,9 @@ set(HEADERS
    AcquisitionParameters.h
    DecayModel.h
    FittingParameter.h
+   DataTransformer.h
+   FLIMImage.h
+   FLIMBackground.h
 )
 
 # Include optimisation flags in Visual Studio

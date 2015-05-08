@@ -44,9 +44,8 @@ public:
   
    void SetImageSize(int n_x, int n_y);
    void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
-   void SetT(int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[]);
+   void SetT(int n_t_full, double t_[], double t_int_[]);
    
-   void SetT(const vector<double>& t_, double t_min, double t_max);
    void SetT(const vector<double>& t_);
    void SetIntegrationTimes(vector<double>& t_int_);
    
@@ -59,14 +58,14 @@ public:
    int n_x = 1;
    int n_y = 1;
 
-   int n_t = 1;
+   //int n_t = 1;
    int n_t_full = 1;
    int n_chan = 1;
    
    double  counts_per_photon = 1;
    double  t_rep;
    
-   vector<int>    t_skip;
+   //vector<int>    t_skip;
    vector<double> t;
    vector<double> t_int;
    vector<double> tvb_profile;
@@ -75,7 +74,7 @@ public:
 
    // Computed parameters
    int n_px;
-   int n_meas;
+   //int n_meas;
    int n_meas_full;
    bool equally_spaced_gates;
    vector<int> irf_max;

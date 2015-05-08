@@ -550,7 +550,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
       masked_r_ss = aux_data++;
 
    auto& im_mask = mask[iml];
-   float*   acceptor = acceptor_ + iml*n_x*n_y;
+   float* acceptor = acceptor_ + iml*n_x*n_y;
 
    vector<float>& tr_data = tr_data_[thread];
    vector<float>& intensity = intensity_[thread];

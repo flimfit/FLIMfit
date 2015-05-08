@@ -39,13 +39,8 @@ AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int po
    t_rep(t_rep),
    counts_per_photon(counts_per_photon)
 {
-   t_skip.assign(n_chan, 0);
-  
    n_t_full = 0;
-   n_t      = 0;
-
    n_meas_full = 0;
-   n_meas      = 0;
 }
 
 void AcquisitionParameters::SetT(const vector<double>& t_)
@@ -53,73 +48,26 @@ void AcquisitionParameters::SetT(const vector<double>& t_)
    t = t_;
 
    n_t_full = (int) t.size();
-   n_t = n_t_full;
    t_int.assign(n_t_full, 1);
 
-   t_skip.resize(n_chan, 0);
-
-   n_meas      = n_chan * n_t;
    n_meas_full = n_chan * n_t_full;
 
    CheckGateSpacing();
 }
 
 
-void AcquisitionParameters::SetT(const vector<double>& t_, double t_min, double t_max)
+void AcquisitionParameters::SetT(int n_t_full, double t_[], double t_int_[])
 {
-   SetT(t_);
+   n_meas_full = n_chan * n_t_full;
 
-   int skip = 0;
+   // Copy t and t_int
+   t.resize(n_t_full);
+   t_int.resize(n_t_full);
 
    for(int i=0; i<n_t_full; i++)
    {
-      if (t[i] < t_min)
-      {
-         skip = i;
-      }
-      if (t[i] > t_max && i > skip) // ensure we have at least one point
-      {
-         n_t = i - skip;
-         break;
-      }
-   }
-
-   // If an invalid t_min was specified pull out the first gate
-   if (skip == n_t_full)
-   {
-      skip = 0;
-      n_t = 1;
-   }
-
-   t_skip.resize(n_chan, 0);
-
-   n_meas = n_chan * n_t;
-
-   CheckGateSpacing();
-}
-
-void AcquisitionParameters::SetT(int n_t_full, int n_t, double t_[], double t_int_[], int t_skip_[])
-{
-
-   n_meas      = n_chan * n_t;
-   n_meas_full = n_chan * n_t_full;
-
-   if (t_skip_ != NULL)
-   {
-      t_skip.resize(n_chan);
-      for(int i=0; i<n_chan; i++)
-         t_skip[i] = t_skip_[i];
-   }
-
-   // Copy t and t_int
-   t.resize(n_t);
-   t_int.resize(n_t);
-
-   int i0 = t_skip[0];
-   for(int i=0; i<n_t; i++)
-   {
-      t[i] = t_[i + i0];
-      t_int[i] = t_int_[i + i0];
+      t[i] = t_[i];
+      t_int[i] = t_int_[i];
    }
 
    CheckGateSpacing();
@@ -163,7 +111,7 @@ void AcquisitionParameters::CheckGateSpacing()
    //---------------------------------------------
    equally_spaced_gates = true;
    double dt0 = t[1] - t[0];
-   for (int i = 2; i<n_t; i++)
+   for (int i = 2; i<n_t_full; i++)
    {
       double dt = t[i] - t[i - 1];
       if (fabs(dt - dt0) > 1)
@@ -177,7 +125,7 @@ void AcquisitionParameters::CheckGateSpacing()
 
 void AcquisitionParameters::CalculateIRFMax()
 {
-   irf_max.assign(n_meas, 0);
+   irf_max.assign(n_meas_full, 0);
 
    double t0 = irf->GetT0();
    double dt_irf = irf->timebin_width;

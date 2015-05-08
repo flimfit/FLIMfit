@@ -56,9 +56,7 @@
 using std::vector;
 using std::string;
 
-enum DataMode { DataInMemory, DataMappedFile, DataFLIMImages };
-
-class FLIMData : public AcquisitionParameters
+class FLIMData
 {
 
 public:
@@ -69,24 +67,22 @@ public:
    void SetMasking(int* use_im, uint8_t mask[], int merge_regions = false);
    void SetThresholds(int threshold, int limit);
    void SetGlobalMode(int global_mode);
-   void SetSmoothing(int smoothing);
 
    void SetData(const vector<std::shared_ptr<FLIMImage>>& images);
 
+   /* TODO: MOVE TO FLIMImages
    void SetNumImages(int n_im);
    int SetData(float data[]);
    int SetData(uint16_t data[]);
    int SetData(const char* data_file, int data_class, int data_skip);
-
+   int SetAcceptor(float acceptor[]);
+    */
+   
    void SetStatus(shared_ptr<FitStatus> status_);
    void SetNumThreads(int n_thread);
 
-   int  SetAcceptor(float acceptor[]);
-   
    template <typename T>
    int CalculateRegions();
-
-   void DetermineAutoSampling(int thread, float decay[], int n_min_bin);
 
    int GetRegionIndex(int im, int region);
    int GetOutputRegionIndex(int im, int region);
@@ -104,9 +100,6 @@ public:
 
    double GetPhotonsPerCount();
 
-   void SetBackground(float* background_image);
-   void SetBackground(float background);
-   void SetTVBackground(float* tvb_profile, float* tvb_I_map, float const_background);
    void SetImageT0Shift(double* image_t0_shift);
    void ClearMapping();
    
@@ -133,12 +126,8 @@ public:
 
    double* image_t0_shift = nullptr;
 
-
    int global_mode = MODE_PIXELWISE;
-
-   int smoothing_factor = 0;
-   float smoothing_area = 1;
-
+   
    vector<int> use_im;
    int n_im_used = 0;
 
@@ -169,19 +158,22 @@ private:
    std::vector<std::vector<float>> intensity_;
    std::vector<std::vector<float>> r_ss_;
    
-   float* acceptor_ = nullptr;
-
-   boost::interprocess::file_mapping data_map_file;
-   boost::interprocess::mapped_region* data_map_view;
 
    std::vector<std::shared_ptr<FLIMImage>> images;
 
+   
+   /* TODO: MOVE TO FLIMImage
+   float* acceptor_ = nullptr;
+
+
+
    char *data_file; 
 
-   DataMode data_mode = DataInMemory;
    
    int has_data = false;
-
+    */
+   
+   
    int background_type = BG_NONE;
    float background_value = 0;
    float* background_image = nullptr;
@@ -229,39 +221,6 @@ void StartDataLoaderThread(void* wparams);
 
 
 template <typename T>
-T* FLIMData::GetDataPointer(int thread, int im)
-{
-   using namespace boost::interprocess;
-
-   int iml = use_im[im];
-   unsigned long long offset, buf_size; // size_t?
-
-   unsigned long long int im_size = n_t_full * n_chan * n_x * n_y; // size_t?
-
-   int data_size = sizeof(T);
-
-   switch (data_mode)
-   {
-   case DataMappedFile:
-      buf_size = im_size * data_size;
-      offset = iml * im_size * data_size + data_skip;
-
-      data_map_view[thread] = mapped_region(data_map_file, read_only, offset, buf_size);
-      return (T*)data_map_view[thread].get_address();
-
-   case DataInMemory:
-      return ((T*)data) + iml * im_size;
-
-   case DataFLIMImages:
-      return images[iml]->getDataPointer<T>();
-   }
-
-   return nullptr;
-}
-
-
-
-template <typename T>
 int FLIMData::CalculateRegions()
 {
    INIT_CONCURRENCY;
@@ -283,6 +242,8 @@ int FLIMData::CalculateRegions()
          tvb_sum += tvb_profile[i];
    else
       tvb_sum = 0;
+   
+   int n_px = acq->n_px;
   
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -449,6 +410,7 @@ void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
       {
          load_image = true;
       }
+      
       if (load_image) // don't try and load data if there are no regions
       {
          data_mutex.lock();
@@ -484,7 +446,7 @@ void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
             return;
 
          T* tr_buf = (T*) tr_buf_[free_slot].data();
-         T* data_ptr = GetDataPointer<T>(free_slot, im);
+         T* data_ptr = images[im].getDataPointer<T>();
          memcpy(tr_buf, data_ptr, n_p * sizeof(T));
          data_loaded[free_slot] = im;
 
@@ -542,7 +504,7 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
    {
 
       T* tr_buf = (T*) this->tr_buf_[thread].data();
-      T* data_ptr = GetDataPointer<T>(thread, im);
+      T* data_ptr = images[im].getDataPointer<T>();
       memcpy(tr_buf, data_ptr, n_p * sizeof(T));
       data = tr_buf;
 
@@ -551,234 +513,3 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
    }
 }
 
-template <typename T>
-void FLIMData::TransformImage(int thread, int im)
-{
-   int idx, tr_idx;
-
-   if (im == cur_transformed[thread])
-      return;
-
-   vector<float>& tr_data = tr_data_[thread];
-   vector<float>& intensity = intensity_[thread];
-   vector<float>& r_ss = r_ss_[thread];
-   vector<float>& tr_row_buf = tr_row_buf_[thread];
-   T* tr_buf;
-   int slot = GetStreamedData(im, thread, tr_buf);  
-   if (slot == -1)
-      return;
-
-   T* cur_data_ptr = tr_buf;
- 
-   float photons_per_count = (float) (1/counts_per_photon);
-
-
-
-   if ( smoothing_factor == 0 )
-   {
-      float* tr_ptr = tr_data.data();
-      // Copy data from source to tr_data, skipping cropped time points
-      for(int y=0; y<n_y; y++)
-         for(int x=0; x<n_x; x++)
-            for(int c=0; c<n_chan; c++)
-            {
-               for(int i=0; i<n_t; i++)
-                  tr_ptr[i] = cur_data_ptr[t_skip[c]+i];
-               cur_data_ptr += n_t_full;
-               tr_ptr += n_t;
-            }
-   }
-   else
-   {
-      int s = smoothing_factor;
-
-      int dxt = n_meas; 
-      int dyt = n_x * dxt; 
-
-      int dx = n_meas_full;
-      int dy = n_x * dx; 
-
-      float* y_smoothed_buf = intensity.data(); // use intensity as a buffer
-
-      float sa = (float) 2*s+1;
-
-      for(int c=0; c<n_chan; c++)
-      {
-         for(int i=0; i<n_t; i++)
-         {
-            tr_idx = c*n_t + i;
-            idx = c*n_t_full + t_skip[c] + i;
-
-            //Smooth in y axis
-            for(int x=0; x<n_x; x++)
-            {
-               for(int y=0; y<s; y++)
-               {
-                  tr_row_buf[y] = 0;
-                  for(int yp=0; yp<y+s; yp++)
-                     tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] *= (sa / (y+s));
-               }
-
-              
-               for(int y=s; y<n_y-s; y++ )
-               {
-                  tr_row_buf[y] = 0;
-                  for(int yp=y-s; yp<=y+s; yp++)
-                     tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
-               }
-
-               for(int y=n_y-s; y<n_y; y++ )
-               {
-                  tr_row_buf[y] = 0;
-                  for(int yp=y-s; yp<n_y; yp++)
-                     tr_row_buf[y] += cur_data_ptr[yp*dy+x*dx+idx];
-                  tr_row_buf[y] *= (sa / (n_y-y+s));
-               }
-
-               for(int y=0; y<n_y; y++)
-                  y_smoothed_buf[y*n_x+x] = tr_row_buf[y];
-            }
-
-            //Smooth in x axis
-            for(int y=0; y<n_y; y++)
-            {
-               for(int x=0; x<s; x++)
-               {
-                  tr_row_buf[x] = 0;
-                  for(int xp=0; xp<x+s; xp++)
-                     tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
-                  tr_row_buf[x] *= (sa / (x+s));
-               }
-
-               for(int x=s; x<n_x-s; x++)
-               {
-                  tr_row_buf[x] = 0;
-                  for(int xp=x-s; xp<=x+s; xp++)
-                     tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
-               }
-
-               for(int x=n_x-s; x<n_x; x++ )
-               {
-                  tr_row_buf[x] = 0;
-                  for(int xp=x-s; xp<n_x; xp++)
-                     tr_row_buf[x] += y_smoothed_buf[y*n_x+xp];
-                  tr_row_buf[x] *= (sa / (n_x-x+s));
-               }
-
-               for(int x=0; x<n_x; x++)
-                  tr_data[y*dyt+x*dxt+tr_idx] = tr_row_buf[x];
-
-            }
-
-         }
-      }
-   }
-   
-   float tvb_sum = 0;
-   if (background_type == BG_TV_IMAGE)
-      for(int i=0; i<n_meas; i++)
-         tvb_sum += tvb_profile[i];
-
-   
-   // Calculate intensity
-   float* intensity_ptr = intensity.data();
-   cur_data_ptr = (T*) tr_buf;
-   for(int p=0; p<n_px; p++)
-   {
-      *intensity_ptr = 0;
-      for(int i=0; i<n_meas_full; i++)
-         *intensity_ptr += cur_data_ptr[i];
-      cur_data_ptr += n_meas_full;
-
-      if (background_type == BG_VALUE)
-         *intensity_ptr -= background_value * n_meas_full;
-      else if (background_type == BG_IMAGE)
-         *intensity_ptr -= background_image[p] * n_meas_full;
-      else if (background_type == BG_TV_IMAGE)
-         *intensity_ptr -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full) ;
-
-      intensity_ptr++;
-   }
-
-   // Calculate Steady State Anisotropy
-   if (polarisation_resolved)
-   {
-      float para;
-      float perp;
-
-      float* r_ptr = r_ss.data();
-      float*  tr_data_ptr = tr_data.data();
-      for(int p=0; p<n_px; p++)
-      {
-         para = 0;
-         perp = 0;
-
-         for(int i=0; i<n_t; i++)
-            para += tr_data_ptr[i];
-         tr_data_ptr += n_t;
-         for(int i=0; i<n_t; i++)
-            perp += tr_data_ptr[i];
-         tr_data_ptr += n_t;
-
-         perp *= (float) irf->g_factor;
-
-         *r_ptr = (para - perp) / (para + 2 * perp);
-         r_ptr++;
-      }
-   }
-
-
-
-
-   // Subtract background
-   if (background_type == BG_VALUE)
-   {
-      int n_tot = n_x * n_y * n_chan * n_t;
-      for(int i=0; i<n_tot; i++)
-      {
-         tr_data[i] -= background_value * smoothing_area;
-         tr_data[i] *= photons_per_count;
-      }
-   }
-   else if (background_type == BG_IMAGE)
-   {
-      int idx = 0;
-      for(int p=0; p<n_px; p++)
-         for(int i=0; i<n_meas; i++)
-         {
-            tr_data[idx] -= background_image[p] * smoothing_area;
-            tr_data[idx] *= photons_per_count;
-            idx++;
-         }
-   } 
-   else if (background_type == BG_TV_IMAGE)
-   {
-      int idx = 0;
-      for(int p=0; p<n_px; p++)
-         for(int i=0; i<n_meas; i++)
-         {
-            tr_data[idx] -= (tvb_profile[i] * tvb_I_map[p] + background_value) * smoothing_area;
-            tr_data[idx] *= photons_per_count;
-            idx++;
-         }
-   }
-   else
-   {
-      int n_tot = n_x * n_y * n_chan * n_t;
-      for(int i=0; i<n_tot; i++)
-         tr_data[i] *= photons_per_count;
-   }
-   
-
-   // Set negative values to zero
-   int n_tot = n_x * n_y * n_chan * n_t;
-   for(int i=0; i<n_tot; i++)
-   {
-      if (tr_data[i] < 0)
-         tr_data[i] = 0;
-   }
-
-   cur_transformed[thread] = im;
-
-}
