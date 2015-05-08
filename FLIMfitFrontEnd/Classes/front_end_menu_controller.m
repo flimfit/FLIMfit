@@ -46,7 +46,7 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Import_Fitting_Settings;
         menu_OMERO_Reset_Logon;  
         menu_OMERO_Load_IRF_WF_gated;
-        menu_OMERO_Load_Background_form_Dataset;
+        menu_OMERO_Load_Background_average;
         menu_OMERO_Load_tvb_from_Image;
         menu_OMERO_Load_tvb_from_Dataset;
         menu_OMERO_Switch_User;
@@ -430,11 +430,20 @@ classdef front_end_menu_controller < handle
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
             images = chooser.getSelectedImages();
             if images.length == 1
-                obj.data_series_controller.data_series.load_background(images(1))
+                obj.data_series_controller.data_series.load_background(images(1), false)
             end
             clear chooser;                     
         end                            
         %------------------------------------------------------------------
+         function menu_OMERO_Load_Background_average_callback(obj,~,~)                                     
+            dId = obj.data_series_controller.data_series.datasetId;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
+            images = chooser.getSelectedImages();
+            if images.length == 1
+                obj.data_series_controller.data_series.load_background(images(1),true)
+            end
+            clear chooser;                     
+        end  
         function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
             obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
         end                    
@@ -461,10 +470,7 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Load_IRF_WF_gated_callback(obj,~,~)
             obj.omero_data_manager.Load_IRF_WF_gated(obj.data_series_controller.data_series);
         end
-        %------------------------------------------------------------------        
-       % function menu_OMERO_Load_Background_form_Dataset_callback(obj,~,~)
-       %     obj.omero_data_manager.Load_Background_form_Dataset(obj.data_series_controller.data_series);
-       % end
+        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;

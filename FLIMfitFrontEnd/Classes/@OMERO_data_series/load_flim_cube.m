@@ -22,7 +22,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, current
         % if image is in fact a filename then call the superclass method
         % instead
         if findstr(class(image),'char')
-            [success, target] = load_flim_cube@flim_data_series(obj, target, image, selected, dims, current_image, ZCT);
+            [success, target] = load_flim_cube@flim_data_series(obj, target, image, selected, current_image, dims, ZCT);
             return;
         end
         
