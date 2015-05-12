@@ -211,14 +211,16 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strfind(file,'ome.tif')
-                    physZ = omeMeta.getPixelsPhysicalSizeZ(0).getValue();
-                    if 1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
-                        physSizeZ = physZ.*1000;     % assume this is in ns so convert to ps
-                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
-                        dims.modulo = 'ModuloAlongZ';
-                        dims.FLIM_type = 'TCSPC';
-                        sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
-                        dims.sizeZCT = sizeZCT;
+                    if  1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
+                        physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                        if ~isempty(physZ) 
+                            physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                            dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                            dims.modulo = 'ModuloAlongZ';
+                            dims.FLIM_type = 'TCSPC';
+                            sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
+                            dims.sizeZCT = sizeZCT;
+                        end
                     end
                 end
                 
