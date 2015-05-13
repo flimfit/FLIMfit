@@ -39,6 +39,11 @@ public:
    {
       return images[idx];
    }
+   
+   const std::vector<std::shared_ptr<FLIMImage>> getImages()
+   {
+      return images;
+   }
 
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters()
    {
@@ -46,19 +51,6 @@ public:
          return images[0]->getAcquisitionParameters();
       else
          return nullptr;
-   }
-
-   std::shared_ptr<FLIMData> getFLIMData()
-   {
-      auto data = std::make_shared<FLIMData>();
-
-      AcquisitionParameters* acq = getAcquisitionParameters().get();
-      assert(acq != nullptr);
-      
-      data->SetAcquisitionParmeters(*acq);
-      data->SetData(images);
-
-      return data;
    }
    
    int getNumImages()

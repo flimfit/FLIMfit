@@ -72,8 +72,10 @@ public:
    void ComputeImageStats(float confidence_factor, vector<RegionSummary>& summary, ImageStats<float>& stats);
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
-   int GetNumX();
-   int GetNumY();
+   vector<uint8_t>& GetMask(int im) { return mask[im]; }
+   
+   //int GetNumX();
+   //int GetNumY();
 
 private:
 
@@ -92,18 +94,20 @@ private:
    int n_px;
    int lmax;
    int nl;
+   int n_meas;
 
    int n_aux;
 
-   float *alf; 
-   float *alf_err_lower;
-   float *alf_err_upper;
-   float *lin_params; 
-   float *chi2; 
-   float *aux_data;
-
-   int *ierr; 
-   float *success; 
+   vector<float> alf;
+   vector<float> alf_err_lower;
+   vector<float> alf_err_upper;
+   vector<float> lin_params; 
+   vector<float> chi2; 
+   vector<float> aux_data;
+   
+   vector<int> ierr;
+   vector<float> success; 
+   vector<vector<uint8_t>> mask;
 
 
    int calculate_errors;

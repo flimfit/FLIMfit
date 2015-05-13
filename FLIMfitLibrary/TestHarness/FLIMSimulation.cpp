@@ -14,20 +14,20 @@ using std::vector;
 FLIMSimulationTCSPC::FLIMSimulationTCSPC() :
    FLIMSimulation(DATA_TYPE_TCSPC)
 {
-   n_t = 128;
-   dt = t_rep / n_t;
+   n_t_full = 128;
+   dt = t_rep / n_t_full;
 
 
    vector<double> t_;
    vector<double> t_int_;
 
-   t_.assign(n_t, 0);
+   t_.assign(n_t_full, 0);
 
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
       t_[i] = i * dt;
 
    // Equal integration times
-   t_int_.assign(n_t, 1);
+   t_int_.assign(n_t_full, 1);
 
    SetT(t_);
    SetIntegrationTimes(t_int_);
@@ -38,21 +38,21 @@ FLIMSimulationWF::FLIMSimulationWF() :
    FLIMSimulation(DATA_TYPE_TIMEGATED),
    gate_width( 1000 )
 {
-   n_t = 5;
+   n_t_full = 5;
 
    dt = 25;
-   n_t_irf = ceil( (gate_width + irf_mu + 4 * irf_sigma) / dt ); // make sure we record enough of the IRF  
+   n_t_irf = ceil( (gate_width + irf_mu + 4 * irf_sigma) / dt ); // make sure we record enough of the IRF
 
    vector<double> t_;
    vector<double> t_int_;
 
-   t_.assign(n_t, 0);
+   t_.assign(n_t_full, 0);
 
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
       t_[i] = i * 1000;
 
    // Equal integration times
-   t_int_.assign(n_t, 1);
+   t_int_.assign(n_t_full, 1);
 
    SetT(t_);
    SetIntegrationTimes(t_int_);
@@ -104,10 +104,10 @@ void FLIMSimulationWF::GenerateDecay(double tau, int N, vector<int>& decay)
    
    // Calculate number of photons in each gate acquisition (note these will not necessarily fall in the gate)
    double total_integration = 0;
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
       total_integration += t_int[i];
 
-   for(int g=0; g<n_t; g++)
+   for(int g=0; g<n_t_full; g++)
    {
       double gate_N_avg = N * t_int[g] / total_integration;
       boost::random::poisson_distribution<int> poisson_dist(gate_N_avg);
@@ -139,13 +139,13 @@ InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
 
    // Normalise IRF
    double sum = 0;
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
        sum += irf_data[i];
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
        irf_data[i] /= sum;
 
    InstrumentResponseFunction irf;
-   irf.SetIRF(n_t, n_chan, dt, 0.0, &irf_data[0]);
+   irf.SetIRF(n_t_full, n_chan, dt, 0.0, &irf_data[0]);
 
    return irf;
 
@@ -153,7 +153,7 @@ InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
 
 void FLIMSimulationTCSPC::GenerateIRF(int N, vector<double>& decay)
 {
-   decay.assign(n_t, 0);
+   decay.assign(n_t_full, 0);
    
    // Generate decay histogram
    for(int i=0; i<N; i++)
@@ -164,16 +164,16 @@ void FLIMSimulationTCSPC::GenerateIRF(int N, vector<double>& decay)
       int idx = (int) floor(t_arrival/dt);
       
       // Make sure we're not outside of the sample window
-      if (idx >= 0 && idx<n_t)
+      if (idx >= 0 && idx<n_t_full)
          decay[idx]++;
       
    }
    
    // Normalise IRF
    double sum = 0;
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
        sum += decay[i];
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
        decay[i] /= sum;
    
 }
@@ -184,7 +184,7 @@ void FLIMSimulationWF::GenerateIRF(int N, vector<double>& decay)
 
    // Calculate number of photons in each gate acquisition (note these will not necessarily fall in the gate)
    double total_integration = 0;
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
       total_integration += t_int[i];
 
    for(int g=0; g<n_t_irf; g++)
@@ -218,13 +218,13 @@ double FLIMSimulation::SampleIRF()
 
 int FLIMSimulationTCSPC::GetTimePoints(vector<double>& t, vector<double>& t_int)
 {
-   t.assign(n_t, 0);
-   for (int i=0; i<n_t; i++) {
+   t.assign(n_t_full, 0);
+   for (int i=0; i<n_t_full; i++) {
       t[i] = i*dt;
    }
  
    // TCSPC has equal integration times by definition
-   t_int.assign(n_t, 1.0);
+   t_int.assign(n_t_full, 1.0);
    
-   return n_t;
+   return n_t_full;
 }

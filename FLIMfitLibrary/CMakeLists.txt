@@ -10,16 +10,17 @@
 project(FLIMfit)
 
 set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
+set(CMAKE_PREFIX_PATH /usr/local/opt/qt5) # for brew install of qt5
 
 find_package(Qt5Core REQUIRED)
 find_package(OpenCV REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-endif()
-add_definitions(-DBOOST_DATE_TIME_NO_LIB)
+#set(Boost_USE_STATIC_LIBS ON)
+#set(Boost_USE_MULTITHREADED ON)
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+include_directories(${Boost_INCLUDE_DIR})
+#add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 
 # Enable OpenMP support, disable for XCode

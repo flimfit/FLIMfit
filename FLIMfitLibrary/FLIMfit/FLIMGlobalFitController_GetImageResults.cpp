@@ -507,10 +507,11 @@ int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit
 
    int thread = 0;
 
+   int n_meas = data->GetNumMeasurements();
+   
    //int n_px = data->n_px;
-   int n_meas = data->n_meas;
 
-   uint8_t* mask = data->mask[im].data();
+   auto& mask = results->GetMask(im);
 
    int iml = data->GetImLoc(im);
    im = iml;

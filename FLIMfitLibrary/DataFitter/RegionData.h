@@ -36,7 +36,6 @@ class RegionData
 {
 public:
    RegionData();
-   RegionData(int data_type, int n_px, int n_meas);
    RegionData(RegionData* region, int px);
    ~RegionData();
 
@@ -57,6 +56,9 @@ public:
    int data_type;
 
 private:
+
+   RegionData(int data_type, int n_px, int n_meas);
+   
    int n_px_max;
    int n_px_cur;
    int n_meas;
@@ -66,6 +68,7 @@ private:
 
    bool is_shallow_ptr;
 
+   friend class FLIMData;
 };
 
 

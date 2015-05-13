@@ -82,5 +82,4 @@ public:
 protected:
 
    void CheckGateSpacing();
-   void CalculateIRFMax();
 };

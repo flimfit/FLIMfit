@@ -102,7 +102,7 @@ int FLIMGlobalFitController::RunWorkers()
 
    omp_set_num_threads(n_omp_thread);
 
-   data->StartStreaming();
+   //data->StartStreaming();
    status->AddConditionVariable(&active_lock);
 
    if (n_fitters == 1 && !runAsync)
@@ -133,7 +133,7 @@ int FLIMGlobalFitController::RunWorkers()
             iter++;
          }
 
-         data->StopStreaming();
+         //data->StopStreaming();
 
          CleanupTempVars();
          has_fit = true;
@@ -173,7 +173,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
    //=============================================================================
    if (global_mode == MODE_PIXELWISE)
    {
-	  int n_active_thread = min(n_thread,data->n_px);
+      int n_active_thread = n_thread;
       for(int im=0; im<data->n_im_used; im++)
       {
          for(int r=0; r<MAX_REGION; r++)
@@ -209,7 +209,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                      active_lock.wait(region_mutex);
                     
                   data->GetRegionData(0, im, r, region_data[0], *results, 1);
-                  data->ImageDataFinished(im);
+                  //data->ImageDataFinished(im);
 
                   next_pixel = 0;
                   
@@ -269,7 +269,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
 processed: 
 
          region_mutex.lock();
-         if (next_region >= data->n_regions_total)
+         if (next_region >= data->GetNumRegionsTotal())
             process_idx = -1;
          else
             process_idx = next_region++;
@@ -297,7 +297,7 @@ processed:
                         if (cur_im[i] < release_im)
                            release_im = cur_im[i];
                      }            
-                     data->AllImageLowerDataFinished(release_im-1);
+                     //data->AllImageLowerDataFinished(release_im-1);
 
                      region_mutex.unlock();
 
@@ -330,7 +330,7 @@ imagewise_terminated:
          if (cur_im[i] >= 0 && cur_im[i] < release_im)
             release_im = cur_im[i];
          }            
-         data->AllImageLowerDataFinished(release_im-1);
+         //data->AllImageLowerDataFinished(release_im-1);
 
          region_mutex.unlock();
       
@@ -373,7 +373,7 @@ terminated:
             iter++;
          }
 
-      data->StopStreaming();
+      //data->StopStreaming();
       CleanupTempVars();
    }
 }
@@ -384,7 +384,6 @@ void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
    data = data_;
 
    data->SetStatus(status);
-   data->SetNumThreads(n_thread);
    data->SetGlobalMode(global_mode);
 }
 
@@ -404,30 +403,40 @@ void FLIMGlobalFitController::Init()
 
    getting_fit    = false;
 
-   model->SetAcquisitionParameters(data);
+   model->SetTransformedDataParameters(data->GetTransformedDataParameters());
    model->Init();
 
    if (n_thread < 1)
       n_thread = 1;
 
+   int max_px_per_image = data->GetMaxPxPerImage();
+   int max_fit_size = data->GetMaxFitSize();
+   int max_region_size = data->GetMaxRegionSize();
    
-    if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && data->n_px > 1))
+   if (n_thread > max_px_per_image)
+      n_thread = max_px_per_image;
+   
+    if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && max_px_per_image > 1))
       algorithm = ALG_LM;
 
+   
+   int n_regions_total = data->GetNumRegionsTotal();
+   
+   
    
    if (data->global_mode == MODE_PIXELWISE)
    {
       status->SetNumRegion(data->n_masked_px);
-      n_fitters = min(data->n_px,n_thread);
+      n_fitters = min(max_region_size,n_thread);
    }
    else
    {
-      status->SetNumRegion(data->n_regions_total);
-      n_fitters = min(data->n_regions_total,n_thread);
+      status->SetNumRegion(n_regions_total);
+      n_fitters = min(n_regions_total,n_thread);
    }
 
    
-   if (data->n_regions_total == 0)
+   if (n_regions_total == 0)
       throw(std::runtime_error("No Regions in Data"));
 
    // Only create as many threads as there are regions if we have
@@ -440,32 +449,6 @@ void FLIMGlobalFitController::Init()
    else
       n_omp_thread = 1;
    
-
-   int max_fit_size;
-   int max_region_size;
-
-   if (data->global_mode == MODE_GLOBAL)
-      max_fit_size = data->n_masked_px;  // (varp) Number of pixels (right hand sides)
-   else if (data->global_mode == MODE_IMAGEWISE)
-      max_fit_size = data->n_px;
-   else
-      max_fit_size = 1;
-
-   if (data->global_mode == MODE_PIXELWISE)
-      max_region_size = data->n_px;                             // We retrieve whole images at a time
-   else
-      max_region_size = max_fit_size;
-
-
-   //y_dim = max(max_region_size,data->n_px);
-
-
-   /*
-
-
-   exp_dim = max_dim * n_chan;
-   */
-
    // TODO: add exception handling here
    results.reset( new FitResults(model, data, calculate_errors) );
 
@@ -480,7 +463,7 @@ void FLIMGlobalFitController::Init()
       else
          projectors.push_back( new VariableProjector(model, max_fit_size, weighting, global_algorithm, n_omp_thread, &(status->terminate)) );
 
-      region_data.push_back( new RegionData(data->data_type, max_region_size, data->n_meas) );
+      region_data.push_back( data->GetNewRegionData() );
    }
 
    /*

@@ -7,10 +7,10 @@
 #include <cv.h>
 #include <string>
 #include <fstream>
-#include <boost/interprocess/file_mapping.hpp>
+#include <future>
 
+#include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/filesystem.hpp>
 
 class FLIMImage
 {
@@ -21,6 +21,7 @@ public:
 
    template<typename T>
    FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_ = nullptr);
+   
    FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, DataMode data_mode = MappedFile);
    ~FLIMImage();
    
@@ -37,37 +38,50 @@ public:
    void setName(const std::string& name_) { name = name_; }
    DataClass getDataClass() { return data_class; }
    cv::Mat getIntensity() { return intensity; }
+   cv::Mat getAcceptor() { return acceptor; }
    const std::vector<uint8_t>& getSegmentationMask() { return mask; }
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() { return acq; }
+   
+   bool isPolarisationResolved() { return acq->polarisation_resolved; }
+   bool hasAcceptor() { return has_acceptor; }
+   
+   size_t getImageSizeInBytes() { return map_length; }
    
 protected:
 
    template<typename T>
    void getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& decay);
    
+   bool has_acceptor = false;
+   
    shared_ptr<AcquisitionParameters> acq;
    DataClass data_class;
    vector<uint8_t> data;
-   vector<uint8_t> acceptor;
    vector<uint8_t> mask;
    std::type_index stored_type;
    std::string name;
    cv::Mat intensity;
+   cv::Mat acceptor;
    
    std::string map_file_name;
    boost::interprocess::file_mapping data_map_file;
    boost::interprocess::mapped_region data_map_view;
    size_t map_offset = 0;
    size_t map_length = 0;
-   DataMode data_mode = InMemory;
+   DataMode data_mode = MappedFile;
    int open_pointers = 0;
-
+   
+private:
+   
+   std::future<void> clearing_future;
 };
 
 
 template<typename T>
 FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_) :
-acq(acq)
+acq(acq),
+stored_type(typeid(T)),
+data_mode(data_mode)
 {
    init();
    
@@ -88,13 +102,13 @@ acq(acq)
 template <typename T>
 T* FLIMImage::getDataPointer()
 {
+   if (clearing_future.valid())
+      clearing_future.wait();
+   
    using namespace boost::interprocess;
 
    if (stored_type != typeid(T))
-   {
       throw std::runtime_error("Attempting to retrieve incorrect data type");
-      return reinterpret_cast<T*>(data.data());
-   }
 
    open_pointers++;
    
@@ -104,12 +118,12 @@ T* FLIMImage::getDataPointer()
          
          // only create mapped region if we're the first
          if (open_pointers == 1)
-            data_map_view = mapped_region(data_map_file, read_only, map_offset, map_length);
+            data_map_view = mapped_region(data_map_file, read_write, map_offset, map_length);
          
          return reinterpret_cast<T*>(data_map_view.get_address());
        
       case InMemory:
-         return reinterpret_cast<T*>(data);
+         return reinterpret_cast<T*>(data.data());
    }
  
    return nullptr;
@@ -118,22 +132,26 @@ T* FLIMImage::getDataPointer()
 template<typename T>
 void FLIMImage::releasePointer()
 {
+   if (clearing_future.valid())
+      clearing_future.wait();
+   
    open_pointers--;
    assert(open_pointers >= 0);
    
    // Clear mapped region
    if (open_pointers == 0 && data_mode == MappedFile)
-      data_map_view = boost::interprocess::mapped_region();
+   {
+      // Launch in seperate thread as this may take a while to flush to disk
+      clearing_future = std::async(std::launch::async, [this](){
+         data_map_view = boost::interprocess::mapped_region();
+      });
+   }
 }
 
 template<typename T>
 void FLIMImage::releaseModifiedPointer()
 {
    compute<T>();
-   
-   if (data_mode == MappedFile)
-      data_map_view.flush(map_offset, map_length);
-   
    releasePointer<T>();
 }
 
@@ -150,6 +168,7 @@ void FLIMImage::compute()
       for (int j=0; j<n_meas; j++)
          intensity.at<float>(i) += data[i*n_meas + j];
    
+   releasePointer<T>();
 }
 
 

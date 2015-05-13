@@ -68,6 +68,7 @@ void RegionData::Clear()
 
 void RegionData::GetPointersForInsertion(int n, float*& data_, int*& irf_idx_)
 {
+   assert(!is_shallow_ptr);
    assert( n + n_px_cur <= n_px_max );
 
    data_    = data + n_px_cur * n_meas;
@@ -79,6 +80,7 @@ void RegionData::GetPointersForInsertion(int n, float*& data_, int*& irf_idx_)
 
 void RegionData::GetPointersForArbitaryInsertion(int pos, int n, float*& data_, int*& irf_idx_)
 {
+   assert(!is_shallow_ptr);
    assert( n + pos <= n_px_max );
 
    data_    = data + pos * n_meas;
@@ -149,7 +151,7 @@ RegionData& RegionData::operator=( const RegionData& other )
    is_shallow_ptr = true;
    
    n_px_max = other.n_px_max;
-   n_px_cur = other.n_px_max; // to stop the copy modifying the data
+   n_px_cur = other.n_px_cur; // to stop the copy modifying the data
       
    data     = other.data;
    irf_idx  = other.irf_idx;

@@ -195,7 +195,7 @@ int ChannelFactorListModel::rowCount(const QModelIndex& parent) const
 
 int ChannelFactorListModel::columnCount(const QModelIndex & parent) const
 {
-   return 1 + decay_model->GetAcquisitionParameters()->n_chan;
+   return 1 + decay_model->GetTransformedDataParameters()->n_chan;
 }
 
 ChannelFactorListItem* ChannelFactorListModel::GetItem(const QModelIndex& parent) const

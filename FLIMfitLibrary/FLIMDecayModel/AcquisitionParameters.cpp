@@ -84,7 +84,6 @@ void AcquisitionParameters::SetImageSize(int n_x_, int n_y_)
 void AcquisitionParameters::SetIRF(shared_ptr<InstrumentResponseFunction> irf_)
 {
    irf = irf_;
-   CalculateIRFMax();
 }
 
 
@@ -121,27 +120,4 @@ void AcquisitionParameters::CheckGateSpacing()
       }
 
    }
-}
-
-void AcquisitionParameters::CalculateIRFMax()
-{
-   irf_max.assign(n_meas_full, 0);
-
-   double t0 = irf->GetT0();
-   double dt_irf = irf->timebin_width;
-   int n_irf = irf->n_irf;
-
-   for (int j = 0; j<n_chan; j++)
-   {
-      for (int i = 0; i<n_t; i++)
-      {
-         int k = 0;
-         while (k < n_irf && (t[i] - t0 - k*dt_irf) >= -1.0)
-         {
-            irf_max[j*n_t + i] = k;
-            k++;
-         }
-      }
-   }
-
 }

@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "AcquisitionParameters.h"
+#include "DataTransformer.h"
 
 #include <memory>
 #include <vector>
@@ -38,7 +38,7 @@
 class MeanLifetimeEstimator
 {
 public:
-   MeanLifetimeEstimator(std::shared_ptr<AcquisitionParameters> acq);
+   MeanLifetimeEstimator(std::shared_ptr<TransformedDataParameters> dp);
    
    double EstimateMeanLifetime(const std::vector<float>& decay, int data_type);
 
@@ -51,5 +51,5 @@ private:
 
    int start;
 
-   std::shared_ptr<AcquisitionParameters> acq;
+   std::shared_ptr<TransformedDataParameters> dp;
 };

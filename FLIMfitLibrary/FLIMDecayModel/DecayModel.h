@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "AcquisitionParameters.h"
+#include "DataTransformer.h"
 #include "AbstractDecayGroup.h"
 
 #include <QObject>
@@ -66,8 +66,8 @@ public:
    }
 
 
-   shared_ptr<AcquisitionParameters> GetAcquisitionParameters() { return acq; }
-   void SetAcquisitionParameters(shared_ptr<AcquisitionParameters> acq_);
+   shared_ptr<TransformedDataParameters> GetTransformedDataParameters() { return dp; }
+   void SetTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_);
 
    void Init();
 
@@ -99,7 +99,7 @@ protected:
 
    void SetupAdjust();
    
-   shared_ptr<AcquisitionParameters> acq;
+   shared_ptr<TransformedDataParameters> dp;
 
    FittingParameter reference_parameter;
    FittingParameter t0_parameter;
@@ -117,9 +117,6 @@ class QDecayModel : public QObject, public DecayModel
 
 public:
 
-
-   void SetAcquisitionParameters(shared_ptr<AcquisitionParameters> acq_) { acq = acq_; }
-   shared_ptr<AcquisitionParameters> GetAcquisitionParameters() { return acq; }
 
    void AddDecayGroup(shared_ptr<QAbstractDecayGroup> group) 
    {

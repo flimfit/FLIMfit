@@ -103,9 +103,9 @@ void MultiExponentialDecayGroup::Init()
       n_nl_parameters += p->IsFittedGlobally();
 
    buffer.resize(n_exponential,
-      ExponentialPrecomputationBuffer(acq));
+      ExponentialPrecomputationBuffer(dp));
 
-   channel_factors.resize(acq->n_chan, 1);
+   channel_factors.resize(dp->n_chan, 1);
 }
 
 void MultiExponentialDecayGroup::SetNumExponential(int n_exponential_)
@@ -276,7 +276,7 @@ int MultiExponentialDecayGroup::AddDecayGroup(const vector<ExponentialPrecomputa
 {
    int col = 0;
     
-   int using_reference_reconvolution = acq->irf->type == Reference; // TODO: Clean this up
+   int using_reference_reconvolution = dp->irf->type == Reference; // TODO: Clean this up
 
    if (using_reference_reconvolution && contributions_global)
       AddIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors);

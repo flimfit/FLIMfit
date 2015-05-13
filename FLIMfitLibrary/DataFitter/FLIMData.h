@@ -51,36 +51,40 @@
 
 #define MAX_REGION 255
 
-#define STREAM_DATA  true
-
 using std::vector;
 using std::string;
+
+class PoolTransformer
+{
+public:
+   
+   PoolTransformer(DataTransformationSettings transform) :
+   transformer(transform)
+   {
+      
+   }
+   
+   int refs = 0;
+   int im = -1;
+   DataTransformer transformer;
+};
 
 class FLIMData
 {
 
 public:
 
-   FLIMData();
+   FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform);
 
-   void SetAcquisitionParmeters(const AcquisitionParameters& acq);
-   void SetMasking(int* use_im, uint8_t mask[], int merge_regions = false);
-   void SetThresholds(int threshold, int limit);
    void SetGlobalMode(int global_mode);
 
-   void SetData(const vector<std::shared_ptr<FLIMImage>>& images);
-
-   /* TODO: MOVE TO FLIMImages
-   void SetNumImages(int n_im);
-   int SetData(float data[]);
-   int SetData(uint16_t data[]);
-   int SetData(const char* data_file, int data_class, int data_skip);
-   int SetAcceptor(float acceptor[]);
-    */
-   
    void SetStatus(shared_ptr<FitStatus> status_);
-   void SetNumThreads(int n_thread);
 
+   RegionData* GetNewRegionData()
+   {
+      return new RegionData(data_type, GetMaxRegionSize(), dp->n_meas);
+   }
+   
    template <typename T>
    int CalculateRegions();
 
@@ -91,36 +95,46 @@ public:
 
    int GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread);
 
+   std::shared_ptr<TransformedDataParameters> GetTransformedDataParameters() { return dp; }
+   
+   int GetMaxFitSize()
+   {
+      if (global_mode == MODE_GLOBAL)
+         return n_masked_px;
+      else if (global_mode == MODE_IMAGEWISE)
+         return max_px_per_image;
+      else
+         return 1;
+   }
+
+   int GetMaxRegionSize()
+   {
+      if (global_mode == MODE_GLOBAL)
+         return n_masked_px;
+      else
+         return max_px_per_image;
+   }
+   
+   int GetMaxPxPerImage() { return max_px_per_image; }
+   int GetNumMeasurements() { return dp->n_meas; }
+   int GetNumRegionsTotal() { return n_regions_total; }
    int GetNumAuxillary();
    void GetAuxParamNames(vector<string>& param_names);
    
    int GetImLoc(int im);
 
-   double* GetT();  
-
-   double GetPhotonsPerCount();
-
    void SetImageT0Shift(double* image_t0_shift);
-   void ClearMapping();
-   
-   void ImageDataFinished(int im);
-   void AllImageLowerDataFinished(int im);
-   void StartStreaming(bool only_load_non_empty_images = true);
-   void StopStreaming();
+
 
    template <typename T>
    void DataLoaderThread(bool only_load_non_empty_images);
 
-   ~FLIMData();
-
    int n_im = 0;
 
-   int n_regions_total = 0;
    int n_output_regions_total = 0;
 
    int data_skip = 0;
 
-   vector<vector<uint8_t>> mask;
    int n_masked_px = 0;
    int merge_regions = false;
 
@@ -131,83 +145,44 @@ public:
    vector<int> use_im;
    int n_im_used = 0;
 
-   int has_acceptor = false;
-
+   int data_type = DATA_TYPE_TCSPC;
+   
 private:
 
-   int GetMaskedData(int thread, int im, int region, float* masked_data, int* irf_idx, FitResults& results);
+   int GetMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results);
+   void SetData(const vector<std::shared_ptr<FLIMImage>>& images);
 
    void ResizeBuffers();
 
    template <typename T>
    T* GetDataPointer(int thread, int im);
 
-   template <typename T>
-   void TransformImage(int thread, int im);
-
-   template <typename T>
-   int GetStreamedData(int im, int thread, T*& data);
-   
-   void MarkCompleted(int slot);
-
-   void* data;
-
-   std::vector<std::vector<float>> tr_data_;
-   std::vector<std::vector<float>> tr_buf_;
-   std::vector<std::vector<float>> tr_row_buf_;
-   std::vector<std::vector<float>> intensity_;
-   std::vector<std::vector<float>> r_ss_;
-   
-
    std::vector<std::shared_ptr<FLIMImage>> images;
 
+   FLIMImage::DataClass data_class = FLIMImage::DataFloat;
+
+   std::vector<std::vector<int>> region_idx;
+   std::vector<std::vector<int>> output_region_idx;
+   std::vector<std::vector<int>> region_count;
+   std::vector<std::vector<int>> region_pos;
+
+   vector<PoolTransformer> transformer_pool;
+   vector<int> pool_use_count;
    
-   /* TODO: MOVE TO FLIMImage
-   float* acceptor_ = nullptr;
-
-
-
-   char *data_file; 
-
+   DataTransformer& getPooledTransformer(int im);
+   void releasePooledTranformer(int im);
+   tthread::mutex pool_mutex;
    
-   int has_data = false;
-    */
-   
-   
-   int background_type = BG_NONE;
-   float background_value = 0;
-   float* background_image = nullptr;
-
-   float* tvb_profile = nullptr;
-   float* tvb_I_map = nullptr;
-
-   int n_thread = 1;
-
-   int threshold = 3;
-   int limit = INT_MAX;
-
-   std::vector<int> cur_transformed;
-
-   int data_class = DATA_FLOAT;
-
-   std::vector<int> region_idx;
-   std::vector<int> output_region_idx;
-   std::vector<int> region_count;
-   std::vector<int> region_pos;
-
-   std::vector<int> data_used;
-   std::vector<int> data_loaded;
-
-   bool stream_data = STREAM_DATA;
-
-   tthread::thread* loader_thread;
-   tthread::mutex data_mutex;
-   tthread::condition_variable data_avail_cond;
-   tthread::condition_variable data_used_cond;
-
    shared_ptr<FitStatus> status;
 
-   friend void StartDataLoaderThread(void* wparams);
+   bool has_acceptor = false;
+   bool polarisation_resolved = false;
+   int max_px_per_image;
+   
+   DataTransformationSettings transform;
+   std::shared_ptr<TransformedDataParameters> dp;
+
+   int n_regions_total = 0;
 };
 
 
@@ -234,103 +209,46 @@ int FLIMData::CalculateRegions()
    int r_count = 0;
    int r_idx = 0; 
    
-   omp_set_num_threads(n_thread);
-
-   double tvb_sum = 0;
-   if (background_type == BG_TV_IMAGE)
-      for(int i=0; i<n_meas; i++)
-         tvb_sum += tvb_profile[i];
-   else
-      tvb_sum = 0;
    
-   int n_px = acq->n_px;
-  
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   START_SPAN("Loading Data");
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   StartStreaming(false);
-
-   //#pragma omp parallel for schedule(dynamic, 1)
+   
    for(int i=0; i<n_im_used; i++)
    {
-      int thread = omp_get_thread_num();
+      //cp_async([&]()
+      //{
+         int im = use_im[i];
 
-      int im = use_im[i];
-
-      T* cur_data_ptr;
-      int slot = GetStreamedData(i, thread, cur_data_ptr);
-
-      // We already have segmentation mask, now calculate integrated intensity
-      // and apply min intensity and max bin mask
-      //----------------------------------------------------
-      if (slot >= 0)
-      {
-         for(int p=0; p<n_px; p++)
+         // Determine how many regions we have in each image
+         //--------------------------------------------------------
+         vector<int>& region_count_ptr = region_count[i];
+         region_count_ptr.assign(MAX_REGION, 0);
+         
+         DataTransformer transformer(transform);
+         transformer.setImage(images[im]);
+         
+         auto& mask = transformer.getMask();
+         
+         int n_px = mask.size();
+         
+         if (merge_regions)
          {
-            T* ptr = cur_data_ptr + p*n_meas_full;
-            uint8_t* mask_ptr = mask[im].data() + p;
-            double intensity = 0;
-            for(int k=0; k<n_chan; k++)
-            {
-               for(int j=0; j<n_t_full; j++)
-               {
-                  if (limit > 0 && *ptr >= limit)
-                     *mask_ptr = 0;
-
-                  intensity += *ptr;
-                  ptr++;
-               }
-            }
-            if (background_type == BG_VALUE)
-               intensity -= background_value * n_meas_full;
-            else if (background_type == BG_IMAGE)
-               intensity -= background_image[p] * n_meas_full;
-            else if (background_type == BG_TV_IMAGE)
-               intensity -= (tvb_sum * tvb_I_map[p] + background_value * n_meas_full);
-
-            if (intensity < threshold || *mask_ptr < 0 || *mask_ptr >= MAX_REGION)
-               *mask_ptr = 0;
-
+            for(int p=0; p<n_px; p++)
+               region_count_ptr[mask[p]>0]++;
          }
-      }
-      MarkCompleted(slot);
-   }
+         else
+         {
+            for(int p=0; p<n_px; p++)
+               region_count_ptr[mask[p]]++;
+         }
 
-   for(int i=0; i<n_im_used; i++)
-   {
-      int im = use_im[i];
-
-      // Determine how many regions we have in each image
-      //--------------------------------------------------------
-      int*     region_count_ptr = region_count.data() + i * MAX_REGION;
-      uint8_t* mask_ptr         = mask[im].data();
-
-      memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
-      
-
-      if (merge_regions)
-      {
-         for(int p=0; p<n_px; p++)
-            region_count_ptr[(*(mask_ptr++)>0)]++;
-      }
-      else
-      {
-         for(int p=0; p<n_px; p++)
-            region_count_ptr[*(mask_ptr++)]++;  
-      }
-
-      // Calculate region indexes
-      for(int r=1; r<MAX_REGION; r++)
-      {
-         region_pos[ i* MAX_REGION + r ] = cur_pos;
-         cur_pos += region_count[ i * MAX_REGION + r ];
-         if (region_count[ i * MAX_REGION + r ] > 0)
-            output_region_idx[ i * MAX_REGION + r ] = r_idx++;
-      }
-
-
+         // Calculate region indexes
+         for(int r=1; r<MAX_REGION; r++)
+         {
+            region_pos[i][r] = cur_pos;
+            cur_pos += region_count[i][r];
+            if (region_count[i][r] > 0)
+               output_region_idx[i][r] = r_idx++;
+         }
+      //});
    }
    
    n_output_regions_total = r_idx;
@@ -346,17 +264,17 @@ int FLIMData::CalculateRegions()
          r_count = 0;
          for(int i=0; i<n_im_used; i++)
          {
-            region_pos[ j + i* MAX_REGION ] = cur_pos;
-            cur_pos += region_count[ j + i * MAX_REGION ];
-            r_count += region_count[ j + i * MAX_REGION ];
+            region_pos[i][j] = cur_pos;
+            cur_pos += region_count[i][j];
+            r_count += region_count[i][j];
 
-            if (region_count[ j + i * MAX_REGION ] > 0)
-               region_idx[ j + (i+1) * MAX_REGION ] = r_idx;
+            if (region_count[i][j] > 0)
+               region_idx[i+1][j] = r_idx;
          }
 
          if (r_count > 0)
          {
-            region_idx[ j ] = r_idx;
+            region_idx[0][j] = r_idx;
             r_idx++;
          }
 
@@ -364,8 +282,9 @@ int FLIMData::CalculateRegions()
    }
    else
    {
-      for(int i=0; i<MAX_REGION*n_im_used; i++)
-         region_idx[i] = output_region_idx[i];
+      for(int r=0; r<MAX_REGION; r++)
+         for(int i=0; i<n_im_used; i++)
+         region_idx[i][r] = output_region_idx[i][r];
    }
    
    n_masked_px = cur_pos;
@@ -375,11 +294,11 @@ int FLIMData::CalculateRegions()
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   StopStreaming();
-
    return err;
 
 }
+
+/*
 
 template <typename T>
 void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
@@ -512,4 +431,6 @@ int FLIMData::GetStreamedData(int im, int thread, T*& data)
 
    }
 }
+ 
+ */
 

@@ -30,128 +30,45 @@
 #include "FLIMData.h"
 #include "FlagDefinitions.h"
 #include <cmath>
+#include <algorithm>
 
-FLIMData::FLIMData()
+using namespace std;
+
+FLIMData::FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform) :
+transform(transform)
 {
-   has_data = false;
-   has_acceptor = false;
-
-   data_file = NULL;
-   acceptor_ = NULL;
-   loader_thread = NULL;
-
-
    image_t0_shift = NULL;
-
-
-   stream_data = STREAM_DATA;
-
-
-   background_value = 0;
-   background_type = BG_NONE;
-
-
    n_masked_px = 0;
-
-   background_value = 0;
-   background_type = BG_NONE;
-
-   SetNumThreads(1);
+   
+   SetData(images);
+   
+   dp = make_shared<TransformedDataParameters>(images[0]->getAcquisitionParameters(), transform);
 }
 
-void FLIMData::SetAcquisitionParmeters(const AcquisitionParameters& acq)
-{
-   *static_cast<AcquisitionParameters*>(this) = acq;
-   ResizeBuffers();
-}
 
-void FLIMData::SetNumImages(int n_im_)
-{
-   n_im = n_im_;
-
-   n_im_used = n_im;
-
-   use_im.resize(n_im);
-   for (int i = 0; i < n_im; i++)
-      use_im[i] = i;
-
-   n_px = n_x * n_y;
-
-   mask.resize(n_im, vector<uint8_t>(n_px, 1)); // include everything in mask by default
-   use_im.resize(n_im);
-
-   region_count.resize(n_im_used * MAX_REGION, 0);
-   region_pos.resize(n_im_used * MAX_REGION, 0);
-   region_idx.resize((n_im_used + 1) * MAX_REGION, -1);
-   output_region_idx.resize(n_im_used * MAX_REGION, -1);
-
-}
-
-void FLIMData::SetMasking(int* use_im_, uint8_t mask_[], int merge_regions)
-{
-   if (use_im_ != NULL)
-   {
-      n_im_used = 0;
-      for (int i = 0; i<n_im; i++)
-      {
-         std::copy(mask_ + i*n_x*n_y, mask_ + (i + 1)*n_x*n_y, mask[i].begin());
-         if (use_im_[i])
-            for (int j = 0; j<n_x*n_y; j++)
-               if (mask_[i*n_x*n_y + j] > 0)
-               {
-                  use_im[n_im_used] = i;
-                  n_im_used++;
-                  break;
-               }
-      }
-   }
-   else
-   {
-      n_im_used = n_im;
-   }
-}
-
-void FLIMData::SetThresholds(int threshold_, int limit_)
-{
-   // Make sure we exclude very dim pixels which 
-   // can break the autosampling (we might end up with only one bin!)
-   threshold = std::max(threshold_, 3);
-   limit = limit_;
-}
 
 void FLIMData::SetGlobalMode(int global_mode_)
 {
+   // TODO:
    // So that we can calculate errors properly
-   if (global_mode_ == MODE_PIXELWISE && n_x == 1 && n_y == 1)
-      global_mode_ = MODE_IMAGEWISE;
+   //if (global_mode_ == MODE_PIXELWISE && n_x == 1 && n_y == 1)
+   //   global_mode_ = MODE_IMAGEWISE;
 
    global_mode = global_mode_;
 }
-
-void FLIMData::SetSmoothing(int smoothing_factor_)
-{
-   int dim_required = smoothing_factor_ * 2 + 2;
-   if (n_x >= dim_required && n_y > dim_required)
-   {
-      smoothing_factor = smoothing_factor_;
-      smoothing_area = (float)(2 * smoothing_factor + 1)*(2 * smoothing_factor + 1);
-   }
-}
-
-
 
 void FLIMData::SetStatus(shared_ptr<FitStatus> status_)
 {
    status = status_;
 
    // Make sure waiting threads are notified when we terminate
-   status->AddConditionVariable(&data_avail_cond);
-   status->AddConditionVariable(&data_used_cond);
+   //status->AddConditionVariable(&data_avail_cond);
+   //status->AddConditionVariable(&data_used_cond);
 }
 
 
 
-
+/*
 void FLIMData::SetNumThreads(int n_thread_)
 {
    n_thread = n_thread_;
@@ -159,8 +76,6 @@ void FLIMData::SetNumThreads(int n_thread_)
    cur_transformed.resize(n_thread, -1);
    data_used.resize(n_thread, -1);
    data_loaded.resize(n_thread, -1);
-
-   data_map_view = new boost::interprocess::mapped_region[n_thread]; //ok
 
    ResizeBuffers();
 }
@@ -182,18 +97,19 @@ void FLIMData::ResizeBuffers()
          r_ss_.resize(n_thread); // no data
    }
 }
-
+*/
 
 
 /**
  * Wrapper function for DataLoaderThread
  */
+/*
 void StartDataLoaderThread(void* wparams)
 {
    DataLoaderThreadParams* params = (DataLoaderThreadParams*) wparams;
    FLIMData* data = params->data;
   
-   if (data->data_class == DATA_UINT16)
+   if (data->data_class == FLIMImage::DataUint16)
       data->DataLoaderThread<uint16_t>(params->only_load_non_empty_images);
    else
       data->DataLoaderThread<float>(params->only_load_non_empty_images);
@@ -210,6 +126,7 @@ void FLIMData::MarkCompleted(int slot)
 
    data_used_cond.notify_all();
 }
+*/
 
 /*
 {
@@ -272,36 +189,43 @@ int FLIMData::GetNumAuxillary()
    return num_aux;
 }
 
-int FLIMData::SetAcceptor(float acceptor[])
-{
-   this->acceptor_ = acceptor;
-   has_acceptor = true;
-
-   return SUCCESS;
-}
-
 void FLIMData::SetData(const vector<shared_ptr<FLIMImage>>& images_)
 {
-   SetNumImages(images_.size());
    images = images_;
-
-   has_data = true;
-   data_mode = DataFLIMImages;
    
-   // TODO: harmonise these
-   if (images_[0]->getDataClass() == FLIMImage::DataFloat)
-      data_class = DATA_FLOAT;
-   else
-      data_class = DATA_UINT16;
-
+   n_im = images.size();
+   n_im_used = n_im;
+   
+   use_im.resize(n_im);
+   for (int i = 0; i < n_im; i++)
+      use_im[i] = i;
+   
+   region_count.resize(n_im_used, vector<int>(MAX_REGION, 0));
+   region_pos.resize(n_im_used, vector<int>(MAX_REGION, 0));
+   region_idx.resize(n_im_used+1, vector<int>(MAX_REGION, -1));
+   output_region_idx.resize(n_im_used, vector<int>(MAX_REGION, -1));
+   
+   
+   
+   // TODO: make sure all data is of the same class
+   data_class = images[0]->getDataClass();
+   has_acceptor = images[0]->hasAcceptor();
+   polarisation_resolved = images[0]->isPolarisationResolved();
+   data_type = images[0]->getAcquisitionParameters()->data_type;
+   
    int err = 0;
-   if (data_class == DATA_FLOAT)
+   if (data_class == FLIMImage::DataFloat)
       err = CalculateRegions<float>();
    else
       err = CalculateRegions<uint16_t>();
 
-}
+   max_px_per_image = 0;
+   for(auto& im : images)
+      max_px_per_image = max(max_px_per_image, im->getAcquisitionParameters()->n_px);
+   
 
+}
+/*
 int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
 {
 
@@ -358,12 +282,9 @@ int FLIMData::SetData(uint16_t* data)
 
    return err;
 }
+*/
 
-double FLIMData::GetPhotonsPerCount()
-{
-   return smoothing_area / counts_per_photon;
-}
-
+/*
 void FLIMData::ImageDataFinished(int im)
 {
    if (stream_data)
@@ -411,26 +332,7 @@ void FLIMData::StopStreaming()
       loader_thread = NULL;
    }
 }
-
-void FLIMData::SetBackground(float* background_image)
-{
-   this->background_image = background_image;
-   this->background_type = BG_IMAGE;
-}
-
-void FLIMData::SetBackground(float background)
-{
-   this->background_value = background;
-   this->background_type = BG_VALUE;
-}
-
-void FLIMData::SetTVBackground(float* tvb_profile, float* tvb_I_map, float const_background)
-{
-   this->tvb_profile = tvb_profile;
-   this->tvb_I_map = tvb_I_map;
-   this->background_value = const_background;
-   this->background_type = BG_TV_IMAGE;
-}
+*/
 
 void FLIMData::SetImageT0Shift(double* image_t0_shift)
 {
@@ -445,12 +347,12 @@ int FLIMData::GetRegionIndex(int im, int region)
    if (global_mode == MODE_GLOBAL)
          im++;
 
-   return region_idx[region + im * MAX_REGION];
+   return region_idx[im][region];
 }
 
 int FLIMData::GetOutputRegionIndex(int im, int region)
 {
-   return output_region_idx[region + im * MAX_REGION];
+   return output_region_idx[im][region];
 }
 
 int FLIMData::GetRegionPos(int im, int region)
@@ -458,12 +360,12 @@ int FLIMData::GetRegionPos(int im, int region)
    if (im == -1)
       im = 0;
 
-   return region_pos[region + im * MAX_REGION];
+   return region_pos[im][region];
 }
 
 int FLIMData::GetRegionCount(int im, int region)
 {
-   return region_count[region + im * MAX_REGION];
+   return region_count[im][region];
 }
 
 int FLIMData::GetImLoc(int im)
@@ -492,8 +394,9 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
       s_expected = this->GetRegionCount(group, region);
       region_data.GetPointersForInsertion(s_expected, masked_data, irf_idx);
 
-      s = GetMaskedData(thread, group, region, masked_data, irf_idx, results);
-
+      s = GetMaskedData( group, region, masked_data, irf_idx, results);
+      
+      
       assert( s == s_expected );
    }
    else if ( global_mode == MODE_GLOBAL )
@@ -502,27 +405,18 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
       int start = GetRegionPos(0, region);
        
       // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
-      #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
+      // TODO: #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
       for(int i=0; i<n_im_used; i++)
       {
-         if (status == nullptr || !status->terminate)
-         {
-            // This thread index will only be used if we're not streaming data,
-            // make sure that we pass the right one in
-            int r_thread;
-            if (n_thread == 1)
-               r_thread = thread;
-            else
-               r_thread = omp_get_thread_num();
-
-            int pos = GetRegionPos(i, region) - start;
+         if (status != nullptr && status->terminate)
+            break;
             
-            int s_expected = this->GetRegionCount(i, region);
+         int pos = GetRegionPos(i, region) - start;
+         int s_expected = this->GetRegionCount(i, region);
 
-            region_data.GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
-            s += GetMaskedData(r_thread, i, region, masked_data, irf_idx, results);
-            ImageDataFinished(i);
-         }
+         region_data.GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
+
+         s += GetMaskedData(i, region, masked_data, irf_idx, results);
       }
    }
 
@@ -530,10 +424,10 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
 }
 
 
-int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, int* irf_idx, FitResults& results)
+int FLIMData::GetMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results)
 {
    int iml = use_im[im];
-
+   auto transformer = getPooledTransformer(iml);
    int s = GetRegionCount(im, region);
 
    float *masked_intensity, *masked_r_ss, *masked_acceptor;
@@ -549,32 +443,30 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
    if (polarisation_resolved)
       masked_r_ss = aux_data++;
 
-   auto& im_mask = mask[iml];
-   float* acceptor = acceptor_ + iml*n_x*n_y;
-
-   vector<float>& tr_data = tr_data_[thread];
-   vector<float>& intensity = intensity_[thread];
-   vector<float>& r_ss = r_ss_[thread];
-
-   if (data_class == DATA_FLOAT)
-      TransformImage<float>(thread, im);
-   else
-      TransformImage<uint16_t>(thread, im);
-
+   auto& im_mask = transformer.getMask();
+   auto& tr_data = transformer.getTransformedData();
+   auto& r_ss = transformer.getSteadyStateAnisotropy();
+   
+   cv::Mat acceptor = images[iml]->getAcceptor();
+   cv::Mat intensity = images[iml]->getIntensity();
+   
+   int n_meas = transformer.getNumMeasurements();
+   
    // Store masked values
    int idx = 0;
 
+   int n_px = im_mask.size();
    for(int p=0; p<n_px; p++)
    {
       if (region < 0 || im_mask[p] == region || (merge_regions && im_mask[p] > 0))
       {
-         masked_intensity[idx*n_aux] = intensity[p];
+         masked_intensity[idx*n_aux] = intensity.at<float>(p);
    
          if (polarisation_resolved)
             masked_r_ss[idx*n_aux] = r_ss[p];
 
          if (has_acceptor)
-            masked_acceptor[idx*n_aux] = acceptor[p];
+            masked_acceptor[idx*n_aux] = acceptor.at<float>(p);
             
          for(int i=0; i<n_meas; i++)
             masked_data[idx*n_meas+i] = tr_data[p*n_meas+i];
@@ -585,19 +477,10 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
       }
    }
 
+   releasePooledTranformer(iml);
+
    assert(s == idx);
-
    return s;
-}
-
-
-
-void FLIMData::ClearMapping()
-{
-   if (data_map_view == NULL)
-      return;
-   for(int i=0; i<n_thread; i++)
-      data_map_view[i] = boost::interprocess::mapped_region();
 }
 
 
@@ -614,18 +497,57 @@ void FLIMData::GetAuxParamNames(vector<string>& param_names)
 }
 
 
-FLIMData::~FLIMData()
+DataTransformer& FLIMData::getPooledTransformer(int im)
 {
-   ClearMapping();
-
-   delete[] data_map_view;
-    
-   if (data_file != NULL)
-      delete[] data_file;
-
-   if (loader_thread != NULL)
-      delete loader_thread;
+   tthread::lock_guard<tthread::mutex> lk(pool_mutex);
+   
+   int n_pool = transformer_pool.size();
+   for (int i=0; i<n_pool; i++)
+   {
+      if (transformer_pool[i].im == im)
+      {
+         transformer_pool[i].refs++;
+         return transformer_pool[i].transformer;
+      }
+   }
+   
+   // No pooled transformers for the current image... see if there are any we can replace
+   for (int i=0; i<n_pool; i++)
+   {
+      if (transformer_pool[i].refs == 0)
+      {
+         transformer_pool[i].refs++;
+         transformer_pool[i].im = im;
+         transformer_pool[i].transformer.setImage(images[im]);
+         return transformer_pool[i].transformer;
+      }
+   }
+   
+   transformer_pool.push_back(PoolTransformer(transform));
+   transformer_pool[n_pool].refs++;
+   transformer_pool[n_pool].im = im;
+   transformer_pool[n_pool].transformer.setImage(images[im]);
+   return transformer_pool[n_pool].transformer;
 }
+
+void FLIMData::releasePooledTranformer(int im)
+{
+   tthread::lock_guard<tthread::mutex> lk(pool_mutex);
+   
+   int n_pool = transformer_pool.size();
+   for (int i=0; i<n_pool; i++)
+   {
+      if (transformer_pool[i].im == im)
+      {
+         transformer_pool[i].refs--;
+         assert(transformer_pool[i].refs >= 0);
+         return;
+      }
+   }
+   
+   assert(false); // shouldn't reach here - why are you releasing?
+}
+
 
 
 

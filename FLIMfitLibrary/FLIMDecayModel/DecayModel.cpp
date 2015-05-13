@@ -43,18 +43,18 @@ DecayModel::DecayModel() :
 
 }
 
-void DecayModel::SetAcquisitionParameters(shared_ptr<AcquisitionParameters> acq_)
+void DecayModel::SetTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
 {
-   acq = acq_;
-   photons_per_count = static_cast<float>(1.0 / acq->counts_per_photon);
+   dp = dp_;
+   photons_per_count = static_cast<float>(1.0 / dp->counts_per_photon);
 
    for (auto g : decay_groups)
-      g->SetAcquisitionParmeters(acq);
+      g->SetTransformedDataParameters(dp);
 }
 
 void DecayModel::Init()
 {   
-   assert(acq->n_chan == acq->irf->n_chan);
+   assert(dp->n_chan == dp->irf->n_chan);
 
    for (auto g : decay_groups)
       g->Init();
@@ -82,7 +82,7 @@ DecayModel::DecayModel(const DecayModel &obj) :
 
 void DecayModel::AddDecayGroup(shared_ptr<AbstractDecayGroup> group)
 {
-   group->SetAcquisitionParmeters(acq);
+   group->SetTransformedDataParameters(dp);
    decay_groups.push_back(group);
 }
 
@@ -117,7 +117,7 @@ int DecayModel::GetNumNonlinearVariables()
 
 double DecayModel::GetCurrentReferenceLifetime(const double* param_values, int& idx)
 {
-   if (acq->irf->type != Reference)
+   if (dp->irf->type != Reference)
       return 0;
 
    return reference_parameter.GetValue<double>(param_values, idx);
@@ -125,7 +125,7 @@ double DecayModel::GetCurrentReferenceLifetime(const double* param_values, int& 
 
 double DecayModel::GetCurrentT0(const double* param_values, int& idx)
 {
-   if (acq->irf->type != Reference)
+   if (dp->irf->type != Reference)
       return 0;
 
    return t0_parameter.GetValue<double>(param_values, idx);
@@ -134,15 +134,15 @@ double DecayModel::GetCurrentT0(const double* param_values, int& idx)
 
 void DecayModel::SetupAdjust()
 {
-   adjust_buf.resize(acq->n_meas);
+   adjust_buf.resize(dp->n_meas);
 
-   for (int i = 0; i < acq->n_meas; i++)
+   for (int i = 0; i < dp->n_meas; i++)
       adjust_buf[i] *= 0;
 
    for (auto& group : decay_groups)
       group->AddConstantContribution(adjust_buf.data()); // TODO: this only works for background ATM, which overwrites
 
-   for (int i = 0; i < acq->n_meas; i++)
+   for (int i = 0; i < dp->n_meas; i++)
       adjust_buf[i] *= photons_per_count;
 }
 
@@ -464,7 +464,7 @@ void DecayModel::ValidateDerivatives()
    int inc[96];
    SetupIncMatrix(inc);
 
-   int dim = acq->n_meas;
+   int dim = dp->n_meas;
 
    vector<double> a(dim * (n_cols+1)), ap(dim*(n_cols+1)), b(dim*n_der), err(dim);
    vector<double> kap(2);

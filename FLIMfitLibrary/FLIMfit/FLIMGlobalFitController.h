@@ -136,15 +136,12 @@ public:
 
 
    //-- LEGACY --
-   bool polarisation_resolved;
-   double t_rep;
+   //bool polarisation_resolved;
+   //double t_rep;
    //------------
 
 
 private:
-
-   void CalculateIRFMax(int n_t, double t[]);
-
    
    void WorkerThread(int thread);
    

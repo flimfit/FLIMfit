@@ -35,6 +35,7 @@
 #include "RegionStatsCalculator.h"
 
 #include <algorithm>
+#include <limits>
 
 using std::max;
 using std::min;
@@ -49,6 +50,8 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    n_px = data->n_masked_px;
    lmax = model->GetNumColumns();
    nl   = model->GetNumNonlinearVariables();
+   n_meas = data->GetNumMeasurements();
+   int n_regions_total = data->GetNumRegionsTotal();
 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
 
@@ -59,7 +62,7 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    if (pixelwise)
       alf_size = n_px;
    else
-      alf_size = data->n_regions_total;
+      alf_size = n_regions_total;
    alf_size *= nl;
 
    int lin_size = n_px * lmax;
@@ -67,49 +70,25 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    n_aux = data->GetNumAuxillary();
    int aux_size = n_aux * n_px;
 
+   
 
-   lin_params   = new float[ lin_size ]; //ok
-   chi2         = new float[ n_px ]; //ok
-   aux_data     = new float[ aux_size ];
+   lin_params.resize(lin_size, std::numeric_limits<float>::quiet_NaN());
+   chi2.resize(n_px, std::numeric_limits<float>::quiet_NaN());
+   aux_data.resize(aux_size, std::numeric_limits<float>::quiet_NaN());
 
-   ierr         = new int[ n_px ]; //  TODO: is this allocation right?
-   success      = new float[ n_px ]; // TODO: is this allocation right?
-   alf          = new float[ alf_size ]; //ok
-
+   ierr.resize(n_regions_total);
+   success.resize(n_regions_total);
+   alf.resize(alf_size, std::numeric_limits<float>::quiet_NaN());
+   
    if (calculate_errors)
    {
-      alf_err_lower = new float[ alf_size ];
-      alf_err_upper = new float[ alf_size ];
+      alf_err_lower.resize(alf_size);
+      alf_err_upper.resize(alf_size);
    }
-   else
-   {
-      alf_err_lower = NULL;
-      alf_err_upper = NULL;
-   }
-
-   SetNaN(alf,        alf_size );
-   SetNaN(lin_params, lin_size );
-   SetNaN(chi2,       n_px );
-   SetNaN(aux_data,   aux_size );
-   
-   for(int i=0; i<data->n_regions_total; i++)
-   {
-      success[i] = 0;
-      ierr[i] = 0;
-   }
-
 }
 
 FitResults::~FitResults()
 {
-   ClearVariable(chi2);
-   ClearVariable(alf);
-   ClearVariable(alf_err_lower);
-   ClearVariable(alf_err_upper);
-   ClearVariable(lin_params);
-   ClearVariable(ierr);
-   ClearVariable(success);
-   ClearVariable(aux_data);
 }
 
 int FitResults::GetNumOutputRegions()
@@ -137,29 +116,26 @@ void FitResults::GetNonLinearParams(int image, int region, int pixel, vector<dou
    else
       idx = data->GetRegionIndex(image, region);
 
-   float* alf_local = alf + idx * nl; 
-
    params.resize(nl);
 
    for(int i=0; i<nl; i++)
-      params[i] = alf_local[i];
+      params[i] = alf[idx*nl + i];
 }
 
 void FitResults::GetLinearParams(int image, int region, int pixel, vector<float>& params)
 {
    int start = data->GetRegionPos(image, region) + pixel;
-   float* lin_local = lin_params + start * lmax;
 
    params.resize(lmax);
    for (int i = 0; i<lmax; i++)
-      params[i] = lin_local[i];
+      params[i] = lin_params[start*lmax + i];
 }
 
 
 float* FitResults::GetAuxDataPtr(int image, int region)
 {
    int pos =  data->GetRegionPos(image,region);
-   return aux_data + pos * n_aux;
+   return aux_data.data() + pos * n_aux;
 }
 
 void FitResults::GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2_)
@@ -173,9 +149,9 @@ void FitResults::GetPointers(int image, int region, int pixel, float*& non_linea
    else
       idx = data->GetRegionIndex(image, region);
 
-   non_linear_params = alf        + idx   * nl;
-   linear_params     = lin_params + start * lmax;
-   chi2_             = chi2 + start;
+   non_linear_params = alf.data() + idx * nl;
+   linear_params     = lin_params.data() + start * lmax;
+   chi2_             = chi2.data() + start;
 
 }
 
@@ -212,8 +188,8 @@ void FitResults::DetermineParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 }
 
-int FitResults::GetNumX() { return data->n_x; }
-int FitResults::GetNumY() { return data->n_y; }
+//int FitResults::GetNumX() { return data->n_x; }
+//int FitResults::GetNumY() { return data->n_y; }
 
 
 void FitResultsRegion::GetPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)
@@ -260,7 +236,7 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
 
             int start = data->GetRegionPos(im, rg);
             int s_local = data->GetRegionCount(im, rg);
-            float* intensity = aux_data + start;
+            float* intensity = aux_data.data() + start;
 
             //int intensity_stride = n_aux;
 
@@ -277,7 +253,7 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
 
             if (data->global_mode == MODE_PIXELWISE)
             {
-               float* alf_group = alf + start * nl;
+               float* alf_group = alf.data() + start * nl;
              
                for (int i = 0; i < s_local; i++)
                   output_idx += model->GetNonlinearOutputs(alf_group + i*nl, param_buf.data() + idx);
@@ -286,7 +262,7 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
             }
             else
             {
-               float* alf_group = alf + nl * r_idx;
+               float* alf_group = alf.data() + nl * r_idx;
 
                model->GetNonlinearOutputs(alf_group, param_buf.data() + idx);
 
@@ -294,11 +270,11 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
                   stats.SetNextParam(idx, param_buf[i]);
             }
 
-            float* lin_group = lin_params + start * lmax;
+            float* lin_group = lin_params.data() + start * lmax;
 
             stats_calculator.CalculateRegionStats(lmax, s_local, lin_group, intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data, intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(1, s_local, chi2 + start, intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(1, s_local, chi2.data() + start, intensity, stats, idx);
          }
       }
    }
@@ -473,7 +449,6 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
    int start, s_local;
    int r_idx;
 
-   int n_px = data->n_px;
    int nl = n_nl_output_params;
 
    vector<float> buffer(n_output_params);
@@ -486,10 +461,11 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
       return -1;
 
    // Get mask
-   uint8_t* im_mask = data->mask[im].data();
-
+   vector<uint8_t>& im_mask = mask[im];
+   int n_px = im_mask.size();
+   
    if (ret_mask)
-      memcpy(ret_mask, im_mask, n_px * sizeof(uint8_t));
+      memcpy(ret_mask, im_mask.data(), n_px * sizeof(uint8_t));
 
    int merge_regions = data->merge_regions;
    int iml = data->GetImLoc(im);
@@ -516,7 +492,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
          {
             if (data->global_mode == MODE_PIXELWISE)
             {
-               param_data = alf + start * nl;
+               param_data = alf.data() + start * nl;
 
                int j = 0;
                for (int i = 0; i<n_px; i++)
@@ -530,7 +506,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
             }
             else
             {
-               param_data = alf + r_idx * nl;
+               param_data = alf.data() + r_idx * nl;
                model->GetNonlinearOutputs(param_data, buffer.data());
                float p = buffer[r_param];
 
@@ -548,19 +524,19 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
 
             if (r_param < lmax)
             {
-               param_data = lin_params + start * lmax + r_param;
+               param_data = lin_params.data() + start * lmax + r_param;
                span = lmax;
             } r_param -= lmax;
 
 
             if (r_param < n_aux)
             {
-               param_data = aux_data + start * n_aux + r_param;
+               param_data = aux_data.data() + start * n_aux + r_param;
                span = n_aux;
             } r_param -= n_aux;
 
             if (r_param == 0)
-               param_data = chi2 + start;
+               param_data = chi2.data() + start;
             r_param -= 1;
 
             int j = 0;

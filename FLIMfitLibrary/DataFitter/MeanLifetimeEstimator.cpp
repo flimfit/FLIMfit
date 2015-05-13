@@ -4,8 +4,8 @@
 
 using namespace std;
 
-MeanLifetimeEstimator::MeanLifetimeEstimator(shared_ptr<AcquisitionParameters> acq) :
-   acq(acq)
+MeanLifetimeEstimator::MeanLifetimeEstimator(shared_ptr<TransformedDataParameters> dp) :
+   dp(dp)
 {
    DetermineStartPosition(0);
 }
@@ -20,9 +20,9 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    int j_last = 0;
    start = 0;
 
-   shared_ptr<InstrumentResponseFunction> irf = acq->irf;
-   int n_meas = acq->n_meas;
-   int n_t = acq->n_t;
+   shared_ptr<InstrumentResponseFunction> irf = dp->irf;
+   int n_meas = dp->n_meas;
+   int n_t = dp->n_t;
    int n_irf = irf->n_irf;
 
    vector<double> storage(n_meas);
@@ -30,7 +30,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    double t_irf0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
 
-
+   auto& t = dp->getTimepoints();
 
    //===================================================
    // If we have a scatter IRF use data after cumulative sum of IRF is
@@ -53,7 +53,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
          if (c >= irf_95)
          {
             for (int j = j_last; j<n_t; j++)
-               if (acq->t[j] > t_irf0 + i*dt_irf)
+               if (t[j] > t_irf0 + i*dt_irf)
                {
                   start = j;
                   j_last = j;
@@ -79,7 +79,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
          {
             c = lirf[i];
             for (int j = j_last; j<n_t; j++)
-               if (acq->t[j] > t_irf0 + i*dt_irf)
+               if (t[j] > t_irf0 + i*dt_irf)
                {
                   start = j;
                   j_last = j;
@@ -111,22 +111,23 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const vector<float>& dec
    double t_mean = 0;
    double n = 0;
 
-   int n_t = acq->n_t;
-   shared_ptr<InstrumentResponseFunction> irf = acq->irf;
+   int n_t = dp->n_t;
+   shared_ptr<InstrumentResponseFunction> irf = dp->irf;
+   auto& t = dp->getTimepoints();
 
-   for (int i = start; i<acq->n_t; i++)
+   for (int i = start; i<n_t; i++)
    {
       double c = decay[i]; //TODO: -adjust_buf[i];
-      t_mean += c * (acq->t[i] - acq->t[start]);
+      t_mean += c * (t[i] - t[start]);
       n += c;
    }
 
    // If polarisation resolevd add perp decay using I = para + 2*g*perp
-   if (acq->polarisation_resolved)
+   if (dp->polarisation_resolved)
    {
       for (int i = start; i<n_t; i++)
       {
-         t_mean += 2 * irf->g_factor * decay[i + n_t] * (acq->t[i] - acq->t[start]);
+         t_mean += 2 * irf->g_factor * decay[i + n_t] * (t[i] - t[start]);
          n += 2 * irf->g_factor * decay[i + n_t];
       }
    }
@@ -134,7 +135,7 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const vector<float>& dec
    t_mean = t_mean / n;
 
    // Apply correction for measurement window
-   double T = acq->t[n_t - 1] - acq->t[start];
+   double T = t[n_t - 1] - t[start];
 
    // Older iterative correction; tends to same value more slowly
    //tau = t_mean;
@@ -170,18 +171,20 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeGated(const vector<float>& dec
 
    double log_di;
    
-   int n_t = acq->n_t;
+   int n_t = dp->n_t;
    N = n_t - start;
+   auto& t = dp->getTimepoints();
+   auto& t_int = dp->getGateIntegrationTimes();
 
    for (int i = start; i<n_t; i++)
    {
-      dt = acq->t[i] - acq->t[start];
+      dt = t[i] - t[start];
 
       sum_t += dt;
       sum_t2 += dt * dt;
 
       if (decay[i] > 0) // todo: add adjust_buf
-         log_di = log(decay[i] / acq->t_int[i]);
+         log_di = log(decay[i] / t_int[i]);
       else
          log_di = 0;
 

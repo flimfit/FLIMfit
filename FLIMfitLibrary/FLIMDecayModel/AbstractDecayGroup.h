@@ -56,7 +56,7 @@ public:
    int GetNumComponents() { return n_lin_components; };
    int GetNumNonlinearParameters() { return n_nl_parameters; };
 
-   void SetDataParameters(shared_ptr<TransformedDataParameters> dp);
+   void SetTransformedDataParameters(shared_ptr<TransformedDataParameters> dp);
    virtual void Init() = 0;
 
    virtual int SetVariables(const double* variables) = 0;
@@ -86,10 +86,10 @@ protected:
    int n_lin_components = 0;
    int n_nl_parameters = 0;
 
-   vector<shared_ptr<FittingParameter>> parameters;
+   vector<std::shared_ptr<FittingParameter>> parameters;
    vector<std::string> channel_factor_names;
 
-   shared_ptr<TransformedDataParameters> dp;
+   std::shared_ptr<TransformedDataParameters> dp;
    bool fit_t0 = false;
 
    // RUNTIME VARIABLE PARAMETERS
@@ -130,8 +130,9 @@ protected:
 template <typename T>
 void AbstractDecayGroup::AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor, double* scale_fact)
 {
-   shared_ptr<InstrumentResponseFunction> irf = acq->irf;
-
+   shared_ptr<InstrumentResponseFunction> irf = dp->irf;
+   auto& t = dp->getTimepoints();
+   
    double* lirf = irf->GetIRF(irf_idx, t0_shift, irf_buf);
    double t_irf0 = irf->GetT0();
    double dt_irf = irf->timebin_width;
@@ -144,7 +145,7 @@ void AbstractDecayGroup::AddIRF(double* irf_buf, int irf_idx, double t0_shift, T
       double scale = (scale_fact == NULL) ? 1 : scale_fact[k];
       for (int i = 0; i<dp->n_t; i++)
       {
-         ii = (int)floor((acq->t[i] - t_irf0) / dt_irf);
+         ii = (int)floor((t[i] - t_irf0) / dt_irf);
 
          if (ii >= 0 && ii<n_irf)
             a[idx] += (T)(lirf[k*n_irf + ii] * channel_factor[k] * scale); // TODO

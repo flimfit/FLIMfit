@@ -69,6 +69,7 @@ set(HEADERS
    ImageStats.h
    TrimmedMean.h
    RegionStatsCalculator.h
+   DataTransformerPool.h
 )
 
 # Include optimisation flags in Visual Studio

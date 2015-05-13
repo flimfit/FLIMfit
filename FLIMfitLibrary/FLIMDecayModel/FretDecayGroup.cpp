@@ -99,16 +99,16 @@ void FretDecayGroup::Init()
 
    fret_buffer.resize(n_fret_populations, 
       vector<ExponentialPrecomputationBuffer>(n_exponential,
-        ExponentialPrecomputationBuffer(acq)));
+        ExponentialPrecomputationBuffer(dp)));
 
    if (include_acceptor)
    {
       acceptor_fret_buffer.resize(n_fret_populations,
          vector<ExponentialPrecomputationBuffer>(n_exponential,
-         ExponentialPrecomputationBuffer(acq)));
+         ExponentialPrecomputationBuffer(dp)));
 
-      acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(acq));
-      direct_acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(acq));
+      acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
+      direct_acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
    }
 }
 

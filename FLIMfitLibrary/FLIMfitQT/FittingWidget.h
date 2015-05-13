@@ -37,8 +37,12 @@ public:
       auto acq = images->getAcquisitionParameters();
       acq->SetIRF(irf);
       decay_model = std::make_shared<QDecayModel>();
+      
+      transform = std::make_shared<QDataTransformationSettings>();
+      
+      auto dp = std::make_shared<TransformedDataParameters>(acq, *transform.get());
 
-      decay_model->SetAcquisitionParameters(acq);
+      decay_model->SetTransformedDataParameters(dp);
       //decay_model->AddDecayGroup(std::make_shared<QMultiExponentialDecayGroup>());
       
       
@@ -106,12 +110,12 @@ public:
       
       fit_controller = std::make_shared<FLIMGlobalFitController>();
       fit_controller->SetFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
-      auto data = images->getFLIMData();
+      
+      auto data = std::make_shared<FLIMData>(images->getImages(), *transform.get());
+         
       fit_controller->SetData(data);
       fit_controller->SetModel(decay_model);
       
-      data->SetThresholds(100, 1e7);
-
       fit_controller->Init();
       fit_controller->RunWorkers();
 
@@ -135,5 +139,6 @@ protected:
    std::shared_ptr<FLIMGlobalFitController> fit_controller;
    std::shared_ptr<FLIMGlobalFitController> selected_fit_controller;
    std::shared_ptr<QDecayModel> decay_model;
+   std::shared_ptr<QDataTransformationSettings> transform;
    FLIMImageWidget* image_widget;
 };

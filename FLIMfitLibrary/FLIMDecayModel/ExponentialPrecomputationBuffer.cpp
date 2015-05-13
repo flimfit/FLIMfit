@@ -36,12 +36,12 @@
 #include <x86intrin.h>
 #endif
 
-ExponentialPrecomputationBuffer::ExponentialPrecomputationBuffer(shared_ptr<AcquisitionParameters> acquisition_params) :
-acquisition_params(acquisition_params),
-irf(acquisition_params->irf),
+ExponentialPrecomputationBuffer::ExponentialPrecomputationBuffer(shared_ptr<TransformedDataParameters> dp) :
+dp(dp),
+irf(dp->irf),
 n_irf(irf->n_irf),
-n_chan(acquisition_params->n_chan),
-n_t(acquisition_params->n_t)
+n_chan(dp->n_chan),
+n_t(dp->n_t)
 {
    irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
    cum_irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
@@ -65,6 +65,8 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
 
    ComputeIRFFactors(rate, irf_idx, t0_shift);
    ComputeModelFactors(rate, channel_factors, compute_shifted_models);
+   
+   CalculateIRFMax();
  }
 
 void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx, double t0_shift)
@@ -147,11 +149,12 @@ void ExponentialPrecomputationBuffer::ComputeModelFactors(double rate, const vec
    if (irf->type == Reference)
       fact *= irf->timebin_width;
 
-   double* t = acquisition_params->GetT();
-
+   auto& t = dp->getTimepoints();
+   auto& t_int = dp->getGateIntegrationTimes();
+   
    double de = exp((t[0] - t[1]) * rate);
 
-   if (acquisition_params->equally_spaced_gates)
+   if (dp->equally_spaced_gates)
    {
       double e0 = exp(-t[0] * rate);
       for (int k = 0; k < n_chan; k++)
@@ -159,7 +162,7 @@ void ExponentialPrecomputationBuffer::ComputeModelFactors(double rate, const vec
          double ej = e0 * channel_factors[k];
          for (int j = 0; j < n_t; j++)
          {
-            model_decay[k][j] = fact * ej * acquisition_params->t_int[j];
+            model_decay[k][j] = fact * ej * t_int[j];
             ej *= de;
          }
       }
@@ -168,7 +171,7 @@ void ExponentialPrecomputationBuffer::ComputeModelFactors(double rate, const vec
    {
       for (int k = 0; k < n_chan; k++)
          for (int j = 0; j < n_t; j++)
-            model_decay[k][j] = fact * exp(-t[j] * rate) * channel_factors[k] * acquisition_params->t_int[j];
+            model_decay[k][j] = fact * exp(-t[j] * rate) * channel_factors[k] * t_int[j];
    }
 
    // Calculated shifted model functions
@@ -195,7 +198,7 @@ void ExponentialPrecomputationBuffer::Convolve(int k, int i, double pulse_fact, 
    const auto& exp_irf_buf = irf_exp_factor[k];
 
    int j = k*n_t + i;
-   int idx = acquisition_params->irf_max[j] + bin_shift;
+   int idx = irf_max[j] + bin_shift;
 
    idx = idx < 0 ? 0 : idx;
    idx = idx >= n_irf ? n_irf - 1 : idx;
@@ -217,7 +220,7 @@ void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i,
 
    double c_rep;
 
-   int idx = acquisition_params->irf_max[k*n_t + i];
+   int idx = irf_max[k*n_t + i];
    int irf_end = n_irf - 1;
 
    c = (t * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[idx] - exp_irf_tirf_cum_buf[idx] * ref_fact_a;
@@ -246,10 +249,10 @@ void ExponentialPrecomputationBuffer::AddDecay(double fact, double ref_lifetime,
    double pulse_fact;
 
    const double x_max = -log(std::numeric_limits<double>::epsilon());
-   if (acquisition_params->t_rep * rate > x_max)
+   if (dp->t_rep * rate > x_max)
       pulse_fact = 0;
    else
-      pulse_fact = exp(acquisition_params->t_rep * rate) - 1;
+      pulse_fact = exp(dp->t_rep * rate) - 1;
 
    int idx = 0;
    for (int k = 0; k<n_chan; k++)
@@ -275,19 +278,46 @@ void ExponentialPrecomputationBuffer::AddDerivative(double fact, double ref_life
    double ref_fact_a = (irf->type == Reference && ref_lifetime > 0) ? (1 / ref_lifetime - rate) : 1;
    double ref_fact_b = (irf->type == Reference && ref_lifetime > 0) ? 1 : 0;
 
-   double t_rep = acquisition_params->t_rep;
+   double t_rep = dp->t_rep;
    double pulse_fact = exp(t_rep * rate) - 1;
    double pulse_fact_der = pulse_fact * pulse_fact / (t_rep * exp(t_rep * rate));
 
+   auto& t = dp->getTimepoints();
+   
    int idx = 0;
    for (int k = 0; k<n_chan; k++)
    {
       for (int i = 0; i<n_t; i++)
       {
-         ConvolveDerivative(acquisition_params->t[i], k, i, pulse_fact, pulse_fact_der, ref_fact_a, ref_fact_b, c);
+         ConvolveDerivative(t[i], k, i, pulse_fact, pulse_fact_der, ref_fact_a, ref_fact_b, c);
          b[idx] += model_decay[k][i] * c * fact;
          idx++;
       }
    }
+}
+
+
+void ExponentialPrecomputationBuffer::CalculateIRFMax()
+{
+   irf_max.assign(dp->n_meas, 0);
+   auto t = dp->getTimepoints();
+   
+   double t0 = irf->GetT0();
+   double dt_irf = irf->timebin_width;
+   int n_irf = irf->n_irf;
+   
+   for (int j = 0; j<n_chan; j++)
+   {
+      for (int i = 0; i<n_t; i++)
+      {
+         int k = 0;
+         while (k < n_irf && (t[i] - t0 - k*dt_irf) >= -1.0)
+         {
+            irf_max[j*n_t + i] = k;
+            k++;
+         }
+      }
+   }
+   
 }
 

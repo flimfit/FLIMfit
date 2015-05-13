@@ -31,7 +31,7 @@
 #pragma warning(disable : 4309)
 
 #include "InstrumentResponseFunction.h"
-#include "AcquisitionParameters.h"
+#include "DataTransformer.h"
 
 #include <boost/align/aligned_allocator.hpp>
 #include <vector>
@@ -49,7 +49,7 @@ using aligned_vector = std::vector<T,
 class ExponentialPrecomputationBuffer
 {
 public:
-   ExponentialPrecomputationBuffer(shared_ptr<AcquisitionParameters> acquisition_params);
+   ExponentialPrecomputationBuffer(shared_ptr<TransformedDataParameters> dp);
    void Compute(double rate, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models = false);
 
    void AddDecay(double fact, double ref_lifetime, double a[], int bin_shift = 0) const;
@@ -57,6 +57,8 @@ public:
 
 private:
 
+   void CalculateIRFMax();
+   
    void ComputeIRFFactors(double rate, int irf_idx, double t0_shift);
    void ComputeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models);
 
@@ -74,14 +76,15 @@ private:
    aligned_vector<double> irf_working;
 
    shared_ptr<InstrumentResponseFunction> irf;
-   shared_ptr<AcquisitionParameters> acquisition_params;
-
+   shared_ptr<TransformedDataParameters> dp;
+   
    double rate;
 
    int n_irf;
    int n_chan;
    int n_t;
-
+   std::vector<int> irf_max;
+   
    friend class DecayModelWorkingBuffers;
 };
 

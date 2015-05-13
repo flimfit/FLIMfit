@@ -14,7 +14,7 @@ qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
                        DecayWidget.ui
                        FLIMfitWindow.ui
                        FittingWidget.ui
-		       FLIMImageWidget.ui)
+		                 FLIMImageWidget.ui)
 
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
@@ -74,4 +74,5 @@ target_link_libraries(FLIMfitQT
                            Qt5::PrintSupport
                            Qt5::Gui
                            Qt5::OpenGL
-                           ${OpenCV_LIBS})
+                           ${OpenCV_LIBS}
+                           ${Boost_LIBRARIES})

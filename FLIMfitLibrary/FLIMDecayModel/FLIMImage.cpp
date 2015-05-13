@@ -1,14 +1,16 @@
 #include "FLIMImage.h"
+#include <boost/filesystem.hpp>
 
 
-FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, DataMode data_mode = MappedFile) :
+FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, DataMode data_mode) :
 acq(acq),
-stored_type(type)
+stored_type(type),
+data_mode(data_mode)
 {
    init();
 }
 
-~FLIMImage::FLIMImage()
+FLIMImage::~FLIMImage()
 {
    if (data_mode == MappedFile)
    {
@@ -46,7 +48,7 @@ void FLIMImage::init()
       map_file_name = temp.native();
       
       std::ofstream of(map_file_name, std::ofstream::binary);
-      const int bufsize = 1024;
+      const int bufsize = 1024*1024;
       vector<char> zeros(bufsize);
       int nrep = map_length / bufsize + 1;
       
@@ -55,7 +57,7 @@ void FLIMImage::init()
          of.write(zeros.data(), bufsize);
       
       // Create mapping
-      data_map_file = boost::interprocess::file_mapping(map_file_name.c_str(),boost::interprocess::read_only);
+      data_map_file = boost::interprocess::file_mapping(map_file_name.c_str(),boost::interprocess::read_write);
    }
 }
 

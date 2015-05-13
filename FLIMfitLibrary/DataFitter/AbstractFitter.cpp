@@ -50,7 +50,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
    terminate(terminate),
-   lifetime_estimator(model->GetAcquisitionParameters())
+   lifetime_estimator(model->GetTransformedDataParameters())
 {
    irf_idx_0 = 0;
    variable_phi = false;
@@ -58,7 +58,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    nl = model->GetNumNonlinearVariables();
    l = model->GetNumColumns();
    lmax = l;
-   n    = model->GetAcquisitionParameters()->n_meas;
+   n    = model->GetTransformedDataParameters()->n_meas;
    
    pmax  = model->GetNumDerivatives();
 
@@ -106,7 +106,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
 
    Init();
 
-   counts_per_photon = model->GetAcquisitionParameters()->counts_per_photon;
+   counts_per_photon = model->GetTransformedDataParameters()->counts_per_photon;
 
 
    if (pmax != p)

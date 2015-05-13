@@ -6,6 +6,7 @@
 #include <QDir>
 #include <vector>
 #include <memory>
+#include <cstdint>
 
 class FLIMImporter
 {
@@ -51,42 +52,68 @@ public:
       vector<int> channels = { 0, 1 };
       int channel_stride = n_stack * channels.size();
       
+      vector<char> data_buf;
+      
+      std::vector<std::future<std::shared_ptr<FLIMImage>>> futures;
       for (int i=0; (i+n_stack)<=files.size(); i+=n_stack)
       {
-         QString full_path = QString("%1/%2").arg(folder).arg(files[i]);
-         std::string fpath = full_path.toStdString();
+         std::vector<std::string> stack_files;
+         for (int j=0; j<n_stack; j++)
+         {
+            QString full_path = QString("%1/%2").arg(folder).arg(files[i+j]);
+            stack_files.push_back(full_path.toStdString());
+         }
          
-         auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(fpath));
+         //futures.push_back(std::async([stack_files, channels, channel_stride](){
+         
+         auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(stack_files[0]));
          reader->setTemporalResolution(8);
          
          auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
          acq->n_chan = channels.size() * n_stack;
          acq->SetImageSize(reader->numX(), reader->numY());
          acq->SetT(reader->timepoints());
+         reader = nullptr;
          
-         auto image = std::make_shared<FLIMImage>(acq, typeid(float));
-         image->setName(files[i].toStdString());
-         
-         float* next_ptr = image->getDataPointer<float>();
-         reader->readData(next_ptr, channels, channel_stride);
+         auto image = std::make_shared<FLIMImage>(acq, typeid(uint16_t));
+         image->setName(stack_files[0]);
 
+         size_t sz = image->getImageSizeInBytes();
+         data_buf.resize(sz);
+         
+         uint16_t* data_ptr = reinterpret_cast<uint16_t*>(data_buf.data());
+         
          // Read in rest of files in stack
-         for (int j=1; j<n_stack; j++)
+         
+         std::vector<std::future<void>> stack_futures;
+         
+         for (int j=0; j<n_stack; j++)
          {
-            QString full_path = QString("%1/%2").arg(folder).arg(files[i+j]);
-            std::string fpath = full_path.toStdString();
-            
-            auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(fpath));
-            reader->setTemporalResolution(8);
+            //stack_futures.push_back(std::async([&](int j){
+               
+               auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(stack_files[j]));
+               reader->setTemporalResolution(8);
 
-            float* next_ptr = image->getDataPointer<float>() + j * channels.size() * acq->n_t;
-            reader->readData(next_ptr, channels, channel_stride);
-
+               uint16_t* next_ptr = data_ptr + j * channels.size() * acq->n_t_full;
+               reader->readData(next_ptr, channels, channel_stride);
+            //}, j));
          }
          
-         image->releasePointer<float>();
+         for(auto& f : stack_futures)
+            f.wait();
+
+         uint16_t* img_ptr = image->getDataPointer<uint16_t>();
+         memcpy(img_ptr, data_ptr, sz);
+         image->releaseModifiedPointer<uint16_t>();
          images->addImage(image);
+            //return image;
+            
+         //}));
       }
+                                        
+      //for(auto& f : futures)
+      //   images->addImage(f.get());
+      
       return images;
    }
 };

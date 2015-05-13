@@ -96,9 +96,9 @@ template <class U>
 void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, vector<U>& decay)
 {
 //   decay.assign(n_t * n_x * n_y, 0);
-   decay.resize(n_t * n_x * n_y);
+   decay.resize(n_t_full * n_x * n_y);
 
-   vector<int> buf(n_t);
+   vector<int> buf(n_t_full);
    GenerateDecay(tau, N, buf);
 
    for(int x=0; x<n_x; x++)
@@ -107,8 +107,8 @@ void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, vector<U
       {
          int pos = y + n_y*x;
          GenerateDecay(tau, N, buf); 
-         for(int i=0; i<n_t; i++)
-            decay[pos * n_t + i] += (U) buf[i];
+         for(int i=0; i<n_t_full; i++)
+            decay[pos * n_t_full + i] += (U) buf[i];
       }
    }
 }
@@ -118,12 +118,12 @@ void FLIMSimulation::GenerateDecay(double tau, int N, vector<U>& decay)
 {
    
    // Zero histogram
-   decay.assign(n_t, 0);
+   decay.assign(n_t_full, 0);
 
-   vector<int> buf(n_t);
+   vector<int> buf(n_t_full);
    GenerateDecay(tau, N, buf);
 
-   for(int i=0; i<n_t; i++)
+   for(int i=0; i<n_t_full; i++)
       decay[i] = (U) buf[i];
 
 }
