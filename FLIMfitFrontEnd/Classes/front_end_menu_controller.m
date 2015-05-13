@@ -45,10 +45,8 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Export_Fitting_Settings;            
         menu_OMERO_Import_Fitting_Settings;
         menu_OMERO_Reset_Logon;  
-        menu_OMERO_Load_IRF_WF_gated;
         menu_OMERO_Load_Background_average;
         menu_OMERO_Load_tvb_from_Image;
-        menu_OMERO_Load_tvb_from_Dataset;
         menu_OMERO_Switch_User;
             
         menu_OMERO_Working_Data_Info;
@@ -364,7 +362,7 @@ classdef front_end_menu_controller < handle
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, true);
             images = chooser.getSelectedImages();
             if images.length > 0
-                % NB misnomer load_single retained for compatibility with
+                % NB misnomer "load_single" retained for compatibility with
                 % file-side
                 obj.data_series_controller.data_series = OMERO_data_series();
                 obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
@@ -466,11 +464,7 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Reset_Logon_callback(obj,~,~)
             obj.omero_data_manager.Omero_logon();
         end
-        %------------------------------------------------------------------        
-        function menu_OMERO_Load_IRF_WF_gated_callback(obj,~,~)
-            obj.omero_data_manager.Load_IRF_WF_gated(obj.data_series_controller.data_series);
-        end
-        
+       
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
@@ -481,11 +475,7 @@ classdef front_end_menu_controller < handle
             end
             clear chooser;   
         end
-        %------------------------------------------------------------------        
-        function menu_OMERO_Load_tvb_from_Dataset_callback(obj,~,~)
-            obj.omero_data_manager.Load_tvb_from_Dataset(obj.data_series_controller.data_series);
-        end                              
-        %------------------------------------------------------------------        
+        %------------------------------------------------------------------                
         function menu_OMERO_Switch_User_callback(obj,~,~)
             %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
             obj.omero_data_manager.Omero_logon_forced();

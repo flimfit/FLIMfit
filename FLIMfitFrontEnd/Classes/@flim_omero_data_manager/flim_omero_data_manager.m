@@ -52,109 +52,7 @@ classdef flim_omero_data_manager < handle
                                         
         function delete(obj)
         end
-                  
-        %------------------------------------------------------------------                
-        function infostring = Set_Dataset(obj,~,~)
-            %
-            infostring = [];            
-            obj.screen = [];
-            obj.plate = [];
-            %
-            [ Dataset, Project ] = select_Dataset(obj.session,obj.userid,'Select a Dataset:'); 
-            %
-            if isempty(Dataset), return, end;
-            %
-            obj.dataset = Dataset;
-            obj.project = Project;
-            %            
-            if ~isempty(obj.project)
-                pName = char(java.lang.String(obj.project.getName().getValue()));
-                pIdName = num2str(obj.project.getId().getValue());
-            else
-                pName = 'NO PROJECT!';
-                pIdName = 'XXXX';
-            end;
-            dName = char(java.lang.String(obj.dataset.getName().getValue()));                    
-            dIdName = num2str(obj.dataset.getId().getValue());                       
-            infostring = [ 'Dataset "' dName '" [' dIdName '] @ Project "' pName '" [' pIdName ']' ];
-            %
-        end                
-        
-        %------------------------------------------------------------------                
-        function infostring = Set_Plate(obj,~,~)
-            %
-            infostring = [];
-            obj.project = [];
-            obj.dataset = [];
-            %
-            [ Plate, Screen ] = select_Plate(obj.session,obj.userid,'Select a Plate:'); 
-            %
-            if isempty(Plate), return, end;
-            %
-            obj.plate = Plate;
-            obj.screen = Screen;
-            % 
-            sName = char(java.lang.String(obj.screen.getName().getValue()));
-            sIdName = num2str(obj.screen.getId().getValue());
-            ptName = char(java.lang.String(obj.plate.getName().getValue()));                    
-            ptIdName = num2str(obj.plate.getId().getValue());                       
-            infostring = [ 'Plate "' ptName '" [' ptIdName '] @ Screen "' sName '" [' sIdName ']' ];
-            %            
-        end                
-                
-        %------------------------------------------------------------------        
-        function Load_FLIM_Data(obj,data_series,~)
-            %
-            if ~isempty(obj.plate)                
-                image = select_Image(obj.session,obj.userid,obj.plate);                
-            elseif ~isempty(obj.dataset)
-                image = select_Image(obj.session,obj.userid,obj.dataset);
-            else
-                errordlg('Please set Dataset or Plate before trying to load images'); 
-                return; 
-            end;
-            %
-            data_series.image_ids = [];
-            %
-            if ~isempty(image) 
-                %try
-                    if isempty(obj.dataset)         % pre-set names for an SPW plate (verbatim from earler FLIMfit)
-                        idStr = num2str(image.getId().getValue());
-                        name = char(image.getName().getValue());
-                        data_series.names{1} = [ idStr ' : ' name ];             
-                    end  
-                    if is64
-                        data_series.use_memory_mapping = false;
-                    end
-                    
-                    data_series.file_names{1} = image;
-                    file = char(image.getName.getValue());
-                    [path,name,ext] = fileparts_inc_OME(file);
-                    data_series.names{1} = name;
-                    
-                    data_series.n_datasets = 1;
-                    data_series.load_multiple(data_series.polarisation_resolved, [] );
-                  
-                %catch err
-                %    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
-                %end
-            end
-            %
-        end                          
-                               
-                                                              
-        %------------------------------------------------------------------        
-        function Load_IRF_WF_gated(obj,data_series,~)
-            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select IRF Dataset:');             
-            if isempty(Dataset), return, end;            
-            load_as_image = false;
-            try
-                obj.load_irf_from_Dataset(data_series,Dataset,load_as_image);
-            catch err
-                errordlg('Wrong input: Dataset should contain single-plane images with names encoding delays eg "INT_000750 T_01050.tif" ');
-                [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);                
-            end
-        end            
+                       
 
         %------------------------------------------------------------------  
         function Load_Background(obj,data_series,~)
@@ -174,51 +72,7 @@ classdef flim_omero_data_manager < handle
         end
         
          %------------------------------------------------------------------ 
-        
-        function Load_Background_form_Dataset(obj,data_series,~)
-            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
-            if isempty(Dataset), return, end;            
-            try
-                obj.load_background_from_Dataset(data_series,Dataset);                
-            catch
-                errordlg('Wrong input: Dataset should contain single-plane images of proper size');
-                [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);                
-            end            
-        end
-        
-        %------------------------------------------------------------------                
-        function Load_tvb_from_Image(obj,data_series,~)
-            if isempty(obj.dataset)
-                [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select a Dataset:');             
-                if isempty(Dataset), return, end;                
-            else
-                Dataset = obj.dataset;
-            end;
-            %    
-            Image = select_Image(obj.session,obj.userid,Dataset);                       
-            if isempty(image), return, end;
-            %   
-            %try
-               data_series.load_tvb(Image); 
-            %catch err
-            %     [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                 
-            %end
-            %            
-        end
-        
-        %------------------------------------------------------------------                
-        function Load_tvb_from_Dataset(obj,data_series,~)
-            [ Dataset, ~ ] = select_Dataset(obj.session,obj.userid,'Select Bckg Dataset:');             
-            if isempty(Dataset), return, end;            
-            try
-                obj.load_tvb(data_series,Dataset);
-            catch err
-                errordlg('Wrong input: Dataset should contain single-plane images of proper size');
-                [ST,~] = dbstack('-completenames'); disp([err.message ' in the function ' ST.name]);                
-            end            
-        end
-                
-        %------------------------------------------------------------------        
+             
         function Load_IRF_FOV(obj,data_series,~)
             %
             if ~isempty(obj.plate)                
@@ -582,21 +436,13 @@ classdef flim_omero_data_manager < handle
 
         %------------------------------------------------------------------        
         function Export_Fitting_Settings(obj,fitting_params_controller,~)
-            %
-            choice = questdlg('Do you want to Export fitting settings to Dataset or Plate?', ' ', ...
-                                    'Dataset' , ...
-                                    'Plate','Cancel','Cancel');              
-            switch choice
-                case 'Dataset',
-                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
-                case 'Plate', 
-                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
-                case 'Cancel', 
-                    return;
+            
+            selected = obj.select_for_annotation();
+            
+            if isempty(selected)
+                return;
             end
-            %
-            if ~exist('object','var') || isempty(object), return, end;
-            %                        
+                           
             fname = [tempdir 'fitting settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
             fitting_params_controller.save_fitting_params(fname);         
             %            
@@ -606,7 +452,7 @@ classdef flim_omero_data_manager < handle
             file_mime_type = char('application/octet-stream');
             %
             add_Annotation(obj.session, obj.userid, ...
-                            object, ...
+                            selected, ...
                             sha1, ...
                             file_mime_type, ...
                             fname, ...
@@ -800,20 +646,13 @@ classdef flim_omero_data_manager < handle
        %------------------------------------------------------------------                
         function Export_IRF_annot(obj,irf_data,~)
             
-               choice = questdlg('Do you want to Export IRF to Dataset or Plate?', ' ', ...
-                                    'Dataset' , ...
-                                    'Plate','Cancel','Cancel');              
-            switch choice
-                case 'Dataset',
-                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
-                case 'Plate', 
-                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
-                case 'Cancel', 
-                    return;
-            end 
-            %
-            if ~exist('object','var') || isempty(object), return, end;            
-            %                        
+            selected = obj.select_for_annotation();
+            
+            if isempty(selected)
+                return;
+            end
+            
+                                           
             ext = '.irf';   
             irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
             % works - but why is it t axis distortion there if IRF is from single-plane-tif-averaging
@@ -825,7 +664,7 @@ classdef flim_omero_data_manager < handle
             file_mime_type = char('application/octet-stream');
             %
             add_Annotation(obj.session, obj.userid, ...
-                            object, ...
+                            selected, ...
                             sha1, ...
                             file_mime_type, ...
                             irf_file_name, ...
@@ -834,21 +673,14 @@ classdef flim_omero_data_manager < handle
         end                
        %------------------------------------------------------------------                        
         function Export_TVB_annot(obj,data_series,~)
+            
+            selected = obj.select_for_annotation();
+            
+            if isempty(selected)
+                return;
+            end
 
-            choice = questdlg('Do you want to Export TVB to Dataset or Plate?', ' ', ...
-                                    'Dataset' , ...
-                                    'Plate','Cancel','Cancel');              
-            switch choice
-                case 'Dataset',
-                    [ object, ~ ] = select_Dataset(obj.session,obj.userid,'Select Dataset:'); 
-                case 'Plate', 
-                    [ object, ~ ] = select_Plate(obj.session,obj.userid,'Select Plate:'); 
-                case 'Cancel', 
-                    return;
-            end                        
-            %
-            if ~exist('object','var') || isempty(object), return, end;
-            %
+            
             tvbdata = [data_series.t(:) data_series.tvb_profile(:)];
             %
             ext = '.txt';   
@@ -862,7 +694,7 @@ classdef flim_omero_data_manager < handle
             file_mime_type = char('application/octet-stream');
             %
             add_Annotation(obj.session, obj.userid, ...
-                            object, ...
+                            selected, ...
                             sha1, ...
                             file_mime_type, ...
                             tvb_file_name, ...
@@ -944,6 +776,37 @@ classdef flim_omero_data_manager < handle
             data_series.load_data_settings(fname);
           
         end 
+        
+        %------------------------------------------------------------------
+        % ask user to select a plate or dataset for adding annotations
+        function selected = select_for_annotation(obj)
+            
+            selected = [];
+            
+            %choice = questdlg('Do you want to Export fitting settings to Dataset or Plate?', ' ', ...
+            %                        'Dataset' , ...
+            %                       'Plate','Cancel','Cancel');      
+            
+            % Use only dataset for now pemding Management decision re Plates.
+            choice = 'Dataset';
+            
+            switch choice
+                case 'Dataset',
+                    chooser = OMEuiUtils.OMEROImageChooser(obj.client, obj.userid, int32(1));
+                    selected = chooser.getSelectedDataset();
+                    clear chooser
+                case 'Plate', 
+                    chooser = OMEuiUtils.OMEROImageChooser(obj.client, obj.userid, int32(1));
+                    selected = chooser.getSelectedPlate();
+                    clear chooser;
+                case 'Cancel', 
+                    return;
+            end
+            
+            if isempty(selected)
+                return;
+            end
+        end
         
         %------------------------------------------------------------------
         function Select_Another_User(obj,~)
