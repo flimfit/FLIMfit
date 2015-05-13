@@ -912,9 +912,10 @@ classdef flim_omero_data_manager < handle
            num_lines = 1;
            def = {'FLIMfit_settings.xml'};
            file = inputdlg(prompt,dlg_title, num_lines,def);
-           file = file{1};
-          
-           data_series.save_data_settings(file);  
+           if ~isempty(file)
+               file = file{1};
+               data_series.save_data_settings(file);
+           end
             
                        
                        
