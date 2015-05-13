@@ -932,25 +932,16 @@ classdef flim_omero_data_manager < handle
              end;            
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose data settings file');
-            %
+            
             if -1 == str
                 errordlg('select_Annotation: no annotations - ret is empty');
                 return;
             elseif isempty(str)                
                 return;       
             end            
-            %
-            full_temp_file_name = [tempdir fname];
-            fid = fopen(full_temp_file_name,'w');    
-                fwrite(fid,str,'*uint8');
-            fclose(fid);
-            %
-            try
-                data_series.load_data_settings(full_temp_file_name);
-                delete(full_temp_file_name); 
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end;
+            
+            data_series.load_data_settings(fname);
+          
         end 
         
         %------------------------------------------------------------------
