@@ -293,12 +293,11 @@ classdef flim_data_series < handle & h5_serializer
         
         function load_data_settings(obj,file)
             %> Load data setting file 
-            if exist(file,'file')         
-                obj.suspend_transformation = true;
-                obj.marshal_object(file);
-                notify(obj,'masking_updated');
-                obj.suspend_transformation = false;
-            end
+            obj.suspend_transformation = true;
+            obj.marshal_object(file);
+            notify(obj,'masking_updated');
+            obj.suspend_transformation = false;
+            
         end
         
         function file = save_data_settings(obj,file)
