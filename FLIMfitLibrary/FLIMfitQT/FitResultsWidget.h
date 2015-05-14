@@ -1,6 +1,8 @@
 #pragma once
 #include "ui_FitResultsWidget.h"
 #include <QWidget>
+#include <QTableView>
+#include "ResultsTableModel.h"
 
 #include "FLIMGlobalFitController.h"
 #include <memory>
@@ -15,12 +17,21 @@ public:
    QWidget(parent)
    {
       setupUi(this);
+      
+      results_table = new QTableView;
+      mdi_area->addSubWindow(results_table);
    }
-      void setFitController(std::shared_ptr<FLIMGlobalFitController> controller_)
+
+   void setFitController(std::shared_ptr<FLIMGlobalFitController> controller_)
    {
       controller = controller_;
+      
+      results_model = std::unique_ptr<ResultsTableModel>( new ResultsTableModel(controller->getResults()) );
+      results_table->setModel(results_model.get());
    }
    
 protected:
    std::shared_ptr<FLIMGlobalFitController> controller;
+   QTableView* results_table;
+   std::unique_ptr<ResultsTableModel> results_model;
 };

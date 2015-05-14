@@ -113,9 +113,8 @@ public:
 
    void CleanupResults();
 
-   unique_ptr<FitResults> results;
-
    shared_ptr<ProgressReporter> getProgressReporter() { return reporter; }
+   shared_ptr<FitResults> getResults() { return results; };
    
    bool init = false;
    bool has_fit = false;
@@ -134,7 +133,8 @@ private:
    shared_ptr<DecayModel> model;
    shared_ptr<FLIMData> data;
    shared_ptr<ProgressReporter> reporter;
-   
+   shared_ptr<FitResults> results;
+
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;
 

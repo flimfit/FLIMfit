@@ -36,25 +36,26 @@ public:
    
    void update()
    {
-      if (reporter != nullptr)
+      if (reporter == nullptr)
+         return;
+
+      if (reporter->isIndeterminate())
       {
-         if (reporter->isIndeterminate())
-         {
-            progress_bar->setMaximum(0);
-         }
-         else
-         {
-            float progress = reporter->getProgress();
-            progress_bar->setMaximum(100);
-            progress_bar->setValue(progress * 100);
-         }
-         
-         if (reporter->isFinished())
-         {
-            timer->stop();
-            close();
-            deleteLater();
-         }
+         progress_bar->setMaximum(0);
+      }
+      else
+      {
+         float progress = reporter->getProgress();
+         progress_bar->setMaximum(100);
+         progress_bar->setValue(progress * 100);
+      }
+      
+      // Check if the task has finished
+      if (reporter->isFinished())
+      {
+         timer->stop();
+         close();
+         deleteLater();
       }
    }
    

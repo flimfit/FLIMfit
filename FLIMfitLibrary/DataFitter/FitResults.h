@@ -61,6 +61,7 @@ public:
 
    const vector<string>& GetOutputParamNames() { return param_names; };
    int GetNumOutputRegions();
+   int GetNumOutputParams() { return n_output_params; }
 
    float* GetAuxDataPtr(int image, int region);
    

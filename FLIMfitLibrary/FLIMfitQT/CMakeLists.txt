@@ -51,6 +51,7 @@ set(HEADERS
    FLIMSetListView.h
    FitResultsWidget.h
    ProgressWidget.h
+   ResultsTableModel.h
 )
 
 include_directories(../FLIMDecayModel 
