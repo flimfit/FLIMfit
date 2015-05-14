@@ -53,47 +53,7 @@ classdef flim_omero_data_manager < handle
         function delete(obj)
         end
                        
-
-        %------------------------------------------------------------------  
-        function Load_Background(obj,data_series,~)
-            if ~isempty(obj.plate)                
-                image = select_Image(obj.session,obj.userid,obj.plate);                
-            elseif ~isempty(obj.dataset)
-                image = select_Image(obj.session,obj.userid,obj.dataset);
-            else
-                errordlg('Please set Dataset or Plate before trying to load images'); 
-                return; 
-            end;
-                                 
-            if ~isempty(image)
-                data_series.load_background(image)
-            end
-       
-        end
-        
-         %------------------------------------------------------------------ 
-             
-        function Load_IRF_FOV(obj,data_series,~)
-            %
-            if ~isempty(obj.plate)                
-                image = select_Image(obj.session,obj.userid,obj.plate);                
-            elseif ~isempty(obj.dataset)
-                image = select_Image(obj.session,obj.userid,obj.dataset);
-            else
-                errordlg('Please set Dataset or Plate before trying to load IRF'); 
-                return; 
-            end;
-            %
-            if ~isempty(image) 
-                %try
-                    load_as_image = false;
-                    data_series.load_irf(image,load_as_image)
-                %catch err
-                %    [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');                    
-                %end
-            end
-            %
-        end                          
+              
                
         %------------------------------------------------------------------        
         function Load_IRF_annot(obj,data_series,~)
