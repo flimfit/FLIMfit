@@ -40,7 +40,6 @@ set(MATLAB_LIBRARIES ${MATLAB_LIB_DIR}libmat.lib ${MATLAB_LIB_DIR}libmex.lib ${M
 include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter )
 
 
-
 # Set the source and header files
 #===================================================
 set(SOURCE
@@ -57,36 +56,6 @@ set(HEADERS
    ModelADA.h
    FitSettings.h
 )
-
-# Include optimisation flags in Visual Studio
-#===================================================
-if(MSVC)
-   set(PLATFORM_FLAGS_ALL "/Oi /fp:fast")
-   set(PLATFORM_FLAGS_RELEASE "/Ox /Ot /Ob2")
-   set(PLATFORM_FLAGS_RELWITHDEBINFO "/Ox /Ot /Ob2")
-   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-   add_definitions(-D_MSVC)
-   add_definitions(-DNOMINMAX)
-
-   if(CMAKE_VS_PLATFORM_TOOLSET MATCHES "v110")
-	 message("Warning: When using VS2012 make sure you select the v110_xp toolchain to allow use on WinXP")
-   endif(CMAKE_VS_PLATFORM_TOOLSET MATCHES "v110")
-endif(MSVC)
-
-if(UNIX)
-   set(PLATFORM_FLAGS_ALL "-msse3")
-   set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
-   set(PLATFORM_FLAGS_DEBUG "")
-endif(UNIX)
-
-# Add platform specific flags
-#===================================================
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
-
-
-add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 # Make library
 #===================================================

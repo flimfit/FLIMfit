@@ -1,3 +1,6 @@
 [submodule "FLIMfitLibrary/FLIMreader"]
 	path = FLIMfitLibrary/FLIMreader
 	url = https://github.com/seanwarren/FLIMreader.git
+[submodule "FLIMfitLibrary/xdispatch"]
+	path = FLIMfitLibrary/xdispatch
+	url = https://github.com/mlba-team/xdispatch.git
