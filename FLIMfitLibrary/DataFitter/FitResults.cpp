@@ -31,7 +31,7 @@
 #include "FLIMData.h"
 #include "util.h"
 #include "TrimmedMean.h"
-#include "ImageStats.h"
+#include "RegionStats.h"
 #include "RegionStatsCalculator.h"
 
 #include <algorithm>
@@ -52,18 +52,22 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    nl   = model->GetNumNonlinearVariables();
    n_meas = data->GetNumMeasurements();
    n_im = data->n_im_used;
-   int n_regions_total = data->GetNumRegionsTotal();
+   n_regions = data->GetNumOutputRegionsTotal();
 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
 
    DetermineParamNames();
+   
+   stats.SetSize(n_regions, n_output_params);
+   region_summary.resize(n_regions);
+
 
    int alf_size;
    
    if (pixelwise)
       alf_size = n_px;
    else
-      alf_size = n_regions_total;
+      alf_size = n_regions;
    alf_size *= nl;
 
    int lin_size = n_px * lmax;
@@ -77,8 +81,8 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    chi2.resize(n_px, std::numeric_limits<float>::quiet_NaN());
    aux_data.resize(aux_size, std::numeric_limits<float>::quiet_NaN());
 
-   ierr.resize(n_regions_total);
-   success.resize(n_regions_total);
+   ierr.resize(n_regions);
+   success.resize(n_regions);
    alf.resize(alf_size, std::numeric_limits<float>::quiet_NaN());
    
    if (calculate_errors)
@@ -90,11 +94,6 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
 
 FitResults::~FitResults()
 {
-}
-
-int FitResults::GetNumOutputRegions()
-{
-   return data->n_output_regions_total;
 }
 
 
@@ -204,15 +203,13 @@ void FitResultsRegion::SetFitStatus(int code)
 }
 
 
-void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary>& region_summary, ImageStats<float>& stats)
+void FitResults::ComputeRegionStats(float confidence_factor)
 {
    RegionStatsCalculator stats_calculator(n_aux, confidence_factor);
-
-   stats.SetSize(data->n_output_regions_total, n_output_params);
    
    vector<float> param_buf;
-
-   for (int im = 0; im<data->n_im_used; im++)
+   
+   for (int im = 0; im<n_im; im++)
    {
       /*
       float* param_buf = param_buf_ + buf_size * thread;
@@ -239,6 +236,10 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
             int s_local = data->GetRegionCount(im, rg);
             float* intensity = aux_data.data() + start;
 
+            if (param_buf.size() < nl*s_local)
+               param_buf.resize(nl*s_local);
+
+            
             //int intensity_stride = n_aux;
 
             region_summary[idx].image = data->use_im[im];
@@ -257,7 +258,7 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
                float* alf_group = alf.data() + start * nl;
              
                for (int i = 0; i < s_local; i++)
-                  output_idx += model->GetNonlinearOutputs(alf_group + i*nl, param_buf.data() + idx);
+                  output_idx += model->GetNonlinearOutputs(alf_group + i*nl, param_buf.data() + output_idx);
 
                stats_calculator.CalculateRegionStats(n_nl_output_params, s_local, param_buf.data(), intensity, stats, idx);
             }
@@ -265,7 +266,7 @@ void FitResults::ComputeImageStats(float confidence_factor, vector<RegionSummary
             {
                float* alf_group = alf.data() + nl * r_idx;
 
-               model->GetNonlinearOutputs(alf_group, param_buf.data() + idx);
+               model->GetNonlinearOutputs(alf_group, param_buf.data());
 
                for (int i = 0; i<n_nl_output_params; i++)
                   stats.SetNextParam(idx, param_buf[i]);

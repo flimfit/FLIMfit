@@ -34,7 +34,8 @@ public:
       if (role != Qt::DisplayRole)
          return QVariant();
       
-      return 0;
+      auto stats = fit_results->GetStats();
+      return stats.GetStat(index.row(), index.column(), PARAM_MEAN);
    }
    
    int rowCount(const QModelIndex& parent = QModelIndex()) const

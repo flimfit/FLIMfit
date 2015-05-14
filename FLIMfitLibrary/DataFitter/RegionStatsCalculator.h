@@ -28,7 +28,7 @@
 //=========================================================================
 
 #pragma once 
-#include "ImageStats.h"
+#include "RegionStats.h"
 #include "TrimmedMean.h"
 
 #include <vector>
@@ -43,7 +43,7 @@ public:
    {
    }
 
-   int CalculateRegionStats(int n_parameters, int region_size, const float* data, float intensity[], ImageStats<float>& stats, int region)
+   int CalculateRegionStats(int n_parameters, int region_size, const float* data, float intensity[], RegionStats<float>& stats, int region)
    {
       if (buf.size() < region_size)
       {

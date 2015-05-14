@@ -30,7 +30,7 @@
 #pragma once
 
 #include "DecayModel.h"
-#include "ImageStats.h"
+#include "RegionStats.h"
 #include <cstdint>
 
 #include <vector>
@@ -60,7 +60,7 @@ public:
    ~FitResults();
 
    const vector<string>& GetOutputParamNames() { return param_names; };
-   int GetNumOutputRegions();
+   int GetNumOutputRegions() { return n_regions; }
    int GetNumOutputParams() { return n_output_params; }
 
    float* GetAuxDataPtr(int image, int region);
@@ -71,16 +71,21 @@ public:
    void GetNonLinearParams(int image, int region, int pixel, vector<double>& params);
    void GetLinearParams(int image, int region, int pixel, vector<float>& params);
 
-   void ComputeImageStats(float confidence_factor, vector<RegionSummary>& summary, ImageStats<float>& stats);
+   void ComputeRegionStats(float confidence_factor);
    int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
    vector<uint8_t>& GetMask(int im) { return mask[im]; }
    
    //int GetNumX();
    //int GetNumY();
+   
+   const RegionStats<float> GetStats() { return stats; }
 
 private:
 
+   vector<RegionSummary> region_summary;
+   RegionStats<float> stats;
+   
    void CalculateMeanLifetime();
    void DetermineParamNames();
 
@@ -98,6 +103,7 @@ private:
    int nl;
    int n_meas;
    int n_im;
+   int n_regions;
 
    int n_aux;
 

@@ -27,8 +27,7 @@
 //
 //=========================================================================
 
-#ifndef IMAGE_STATS_H
-#define IMAGE_STATS_H
+#pragma once
 
 #include "util.h"
 #include "FlagDefinitions.h"
@@ -39,19 +38,22 @@
  */
 
 template<typename T>
-class ImageStats
+class RegionStats
 {
 public:
 
-   ImageStats(int n_regions = 0, int n_params = 0) :
+   RegionStats(int n_regions = 0, int n_params = 0) :
       n_regions(n_regions),
       n_params(n_params)
    {
       SetSize(n_regions, n_params);
    }
 
-   void SetSize(int n_regions, int n_params)
+   void SetSize(int n_regions_, int n_params_)
    {
+      n_regions = n_regions_;
+      n_params = n_params_;
+      
       params.resize(n_regions * n_params * N_STATS);
       param_idx.resize(n_regions);
 
@@ -61,8 +63,13 @@ public:
 
    int GetNumStats() { return N_STATS; }
    int GetNumParams() { return n_params; }
-   vector<T>& GetStats() { return params; }
+   const vector<T>& GetStats() { return params; }
 
+   T GetStat(int region, int param, int stat) const
+   {
+      return params[stat + param * N_STATS + region * n_params * N_STATS];
+   }
+   
    /**
     * Set the next parameter statistics to specified values
     */ 
@@ -149,5 +156,3 @@ private:
    std::vector<T> params;
 
 };
-
-#endif

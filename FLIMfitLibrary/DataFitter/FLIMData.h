@@ -98,6 +98,7 @@ public:
    int GetMaxPxPerImage() { return max_px_per_image; }
    int GetNumMeasurements() { return dp->n_meas; }
    int GetNumRegionsTotal() { return n_regions_total; }
+   int GetNumOutputRegionsTotal() { return n_output_regions_total; }
    int GetNumAuxillary();
    void GetAuxParamNames(vector<string>& param_names);
    

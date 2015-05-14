@@ -126,6 +126,7 @@ int FLIMGlobalFitController::RunWorkers()
             iter->join();
 
          reporter->setFinished();
+         results->ComputeRegionStats(conf_factor);
          
          CleanupTempVars();
          has_fit = true;
@@ -369,6 +370,7 @@ terminated:
       CleanupTempVars();
       
       reporter->setFinished();
+      results->ComputeRegionStats(conf_factor);
       
    }
 }

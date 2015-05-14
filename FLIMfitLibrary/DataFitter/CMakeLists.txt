@@ -66,7 +66,7 @@ set(HEADERS
    FlagDefinitions.h
    util.h
    MeanLifetimeEstimator.h
-   ImageStats.h
+   RegionStats.h
    TrimmedMean.h
    RegionStatsCalculator.h
 )

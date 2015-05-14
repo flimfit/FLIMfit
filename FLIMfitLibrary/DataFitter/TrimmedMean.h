@@ -17,7 +17,7 @@
 #ifndef TRIMMED_MEAN_H
 #define TRIMMED_MEAN_H
 
-#include "ImageStats.h"
+#include "RegionStats.h"
 #include "util.h"
 #define SWAP(a,b) temp=(a);(a)=(b);(b)=temp;
 
@@ -92,7 +92,7 @@ float Weighted(T x, T t1, T t2, T w1, T w2)
 }
 
 template <typename T>
-void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, ImageStats<T>& stats, int region)
+void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, RegionStats<T>& stats, int region)
 {
    using namespace boost::accumulators;
 
