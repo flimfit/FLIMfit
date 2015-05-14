@@ -57,15 +57,6 @@ void FLIMData::SetGlobalMode(int global_mode_)
    global_mode = global_mode_;
 }
 
-void FLIMData::SetStatus(shared_ptr<FitStatus> status_)
-{
-   status = status_;
-
-   // Make sure waiting threads are notified when we terminate
-   //status->AddConditionVariable(&data_avail_cond);
-   //status->AddConditionVariable(&data_used_cond);
-}
-
 
 
 /*
@@ -176,6 +167,12 @@ void FLIMData::MarkCompleted(int slot)
 }
 */
 
+RegionData* FLIMData::GetNewRegionData()
+{
+   return new RegionData(data_type, GetMaxRegionSize(), dp->n_meas);
+}
+
+
 int FLIMData::GetNumAuxillary()
 {
    int num_aux = 1;  // intensity
@@ -225,6 +222,25 @@ void FLIMData::SetData(const vector<shared_ptr<FLIMImage>>& images_)
    
 
 }
+
+int FLIMData::GetMaxFitSize()
+{
+   if (global_mode == MODE_GLOBAL)
+      return n_masked_px;
+   else if (global_mode == MODE_IMAGEWISE)
+      return max_px_per_image;
+   else
+      return 1;
+}
+
+int FLIMData::GetMaxRegionSize()
+{
+   if (global_mode == MODE_GLOBAL)
+      return n_masked_px;
+   else
+      return max_px_per_image;
+}
+
 /*
 int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
 {
@@ -408,8 +424,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
       // TODO: #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
       for(int i=0; i<n_im_used; i++)
       {
-         if (status != nullptr && status->terminate)
-            break;
+         // add termination here?
             
          int pos = GetRegionPos(i, region) - start;
          int s_expected = this->GetRegionCount(i, region);
@@ -432,7 +447,8 @@ int FLIMData::GetMaskedData(int im, int region, float* masked_data, int* irf_idx
 
    float *masked_intensity, *masked_r_ss, *masked_acceptor;
    float *aux_data = results.GetAuxDataPtr(im, region);
-
+   auto mask = results.GetMask(im);
+   
    int n_aux = GetNumAuxillary();
 
    masked_intensity = aux_data++;
@@ -443,7 +459,7 @@ int FLIMData::GetMaskedData(int im, int region, float* masked_data, int* irf_idx
    if (polarisation_resolved)
       masked_r_ss = aux_data++;
 
-   auto& im_mask = transformer.getMask();
+   mask = transformer.getMask();
    auto& tr_data = transformer.getTransformedData();
    auto& r_ss = transformer.getSteadyStateAnisotropy();
    
@@ -455,10 +471,10 @@ int FLIMData::GetMaskedData(int im, int region, float* masked_data, int* irf_idx
    // Store masked values
    int idx = 0;
 
-   int n_px = im_mask.size();
+   int n_px = mask.size();
    for(int p=0; p<n_px; p++)
    {
-      if (region < 0 || im_mask[p] == region || (merge_regions && im_mask[p] > 0))
+      if (region < 0 || mask[p] == region || (merge_regions && mask[p] > 0))
       {
          masked_intensity[idx*n_aux] = intensity.at<float>(p);
    

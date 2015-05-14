@@ -15,23 +15,37 @@
 
 class FittingWidget : public QWidget, protected Ui::FittingWidget
 {
+   Q_OBJECT
+   
 public:
    FittingWidget(QWidget* parent) :
       QWidget(parent)
    {
       setupUi(this);
-
-      connect(fit_button, &QPushButton::pressed, this, &FittingWidget::Fit);
+      parameters_widget->setAttribute(Qt::WA_MacShowFocusRect, false);
+      data_list->setAttribute(Qt::WA_MacShowFocusRect, false);
+      
+      connect(fit_button, &QPushButton::pressed, this, &FittingWidget::fit);
 
       QString root = "/Users/sean/Documents/FLIMTestData";
 
-//      QString irf_name = QString("%1%2").arg(root).arg("/acceptor-fret-irf.csv");
-      QString irf_name = QString("%1%2").arg(root).arg("/2015-05-15 Dual FRET IRF.csv");
 
-      auto irf = FLIMImporter::importIRF(irf_name);
+      QString folder, irf_name;
+      if (false)
+      {
+         folder = QString("%1%2").arg(root).arg("/dual_data");
+         irf_name = QString("%1%2").arg(root).arg("/2015-05-15 Dual FRET IRF.csv");
+      }
+      else
+      {
+         folder = QString("%1%2").arg(root).arg("/acceptor");
+         irf_name = QString("%1%2").arg(root).arg("/acceptor-fret-irf.csv");
+      }
+
       
-
-      QString folder = QString("%1%2").arg(root).arg("/dual_data");
+      
+      
+      auto irf = FLIMImporter::importIRF(irf_name);
       images = FLIMImporter::importFromFolder(folder);
       
       auto acq = images->getAcquisitionParameters();
@@ -71,7 +85,7 @@ public:
       //Fit();
    }
 
-   void FitSelected()
+   void fitSelected()
    {
       /*
       selected_fit_controller = std::make_shared<FLIMGlobalFitController>();
@@ -102,7 +116,7 @@ public:
       
    }
    
-   void Fit()
+   void fit()
    {
       
       try
@@ -119,6 +133,8 @@ public:
       fit_controller->Init();
       fit_controller->RunWorkers();
 
+      emit newFitController(fit_controller);
+         /*
       int mask = 0;
       int n_valid = 0;
       vector<double> fit(2000);
@@ -127,13 +143,18 @@ public:
       std::ofstream os("C:/Users/sean/Documents/FLIMTestData/results.csv");
       for (int i = 0; i < fit.size(); i++)
          os << fit[i] << "\n";
+      */
       }
       catch(std::exception e)
       {
          std::cout << "Exception occurred: " << e.what() << "\n";
       }
+         
    }
 
+signals:
+   void newFitController(std::shared_ptr<FLIMGlobalFitController> fit_controller);
+   
 protected:
    std::shared_ptr<FLIMImageSet> images;
    std::shared_ptr<FLIMGlobalFitController> fit_controller;

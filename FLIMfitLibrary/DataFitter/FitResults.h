@@ -35,6 +35,7 @@
 
 #include <vector>
 #include <memory>
+#include <cv.h>
 
 using std::vector;
 using std::string;
@@ -95,6 +96,7 @@ private:
    int lmax;
    int nl;
    int n_meas;
+   int n_im;
 
    int n_aux;
 

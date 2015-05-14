@@ -39,7 +39,7 @@ class VariableProjector : public AbstractFitter
 {
 
 public:
-   VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, int* terminate);
+   VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
    ~VariableProjector();
    //VariableProjector* clone() const { return new VariableProjector(*this); };
 

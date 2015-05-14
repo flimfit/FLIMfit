@@ -38,17 +38,36 @@ public:
 
       // move to reader...
       QStringList filters;
-      filters << "*.pt3" << "*.csv";
+      filters << "*.ptu" << "*.pt3" << "*.csv";
 
-      QStringList files = dir.entryList(filters);
+      QFileInfoList files = dir.entryInfoList(filters);
 
       if (files.empty())
          throw std::runtime_error("No files found");
       
+      QString first_ext = files[0].completeSuffix();
+      
+      // Extract only files which match the first extension
+      QStringList matching_files;
+      for(int i=0; i<files.size(); i++)
+         if (files[i].completeSuffix() == first_ext)
+            matching_files.push_back(files[i].canonicalFilePath());
+      
+      // Read as float for csv (might well be larger than MAX(uint16_t))
+      // or read as uint16_t for image data (needs less memory)
+      if (first_ext == "csv")
+         return importFiles<float>(matching_files);
+      else
+         return importFiles<uint16_t>(matching_files);
+   }
+   
+   template <typename T>
+   static std::shared_ptr<FLIMImageSet> importFiles(QStringList files)
+   {
       auto images = std::make_shared<FLIMImageSet>();
 
 
-      int n_stack = 2;
+      int n_stack = 1;
       vector<int> channels = { 0, 1 };
       int channel_stride = n_stack * channels.size();
       
@@ -59,10 +78,7 @@ public:
       {
          std::vector<std::string> stack_files;
          for (int j=0; j<n_stack; j++)
-         {
-            QString full_path = QString("%1/%2").arg(folder).arg(files[i+j]);
-            stack_files.push_back(full_path.toStdString());
-         }
+            stack_files.push_back(files[i+j].toStdString());
          
          //futures.push_back(std::async([stack_files, channels, channel_stride](){
          
@@ -75,13 +91,13 @@ public:
          acq->SetT(reader->timepoints());
          reader = nullptr;
          
-         auto image = std::make_shared<FLIMImage>(acq, typeid(uint16_t));
+         auto image = std::make_shared<FLIMImage>(acq, typeid(T));
          image->setName(stack_files[0]);
 
          size_t sz = image->getImageSizeInBytes();
          data_buf.resize(sz);
          
-         uint16_t* data_ptr = reinterpret_cast<uint16_t*>(data_buf.data());
+         T* data_ptr = reinterpret_cast<T*>(data_buf.data());
          
          // Read in rest of files in stack
          
@@ -94,7 +110,7 @@ public:
                auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(stack_files[j]));
                reader->setTemporalResolution(8);
 
-               uint16_t* next_ptr = data_ptr + j * channels.size() * acq->n_t_full;
+               T* next_ptr = data_ptr + j * channels.size() * acq->n_t_full;
                reader->readData(next_ptr, channels, channel_stride);
             //}, j));
          }
@@ -102,9 +118,9 @@ public:
          for(auto& f : stack_futures)
             f.wait();
 
-         uint16_t* img_ptr = image->getDataPointer<uint16_t>();
+         T* img_ptr = image->getDataPointer<T>();
          memcpy(img_ptr, data_ptr, sz);
-         image->releaseModifiedPointer<uint16_t>();
+         image->releaseModifiedPointer<T>();
          images->addImage(image);
             //return image;
             

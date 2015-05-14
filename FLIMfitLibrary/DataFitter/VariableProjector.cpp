@@ -33,8 +33,8 @@ using std::max;
 
 #include "ConcurrencyAnalysis.h"
 
-VariableProjector::VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, int* terminate) : 
-    AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, terminate)
+VariableProjector::VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
+    AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, reporter)
 {
    this->weighting = weighting;
 
@@ -387,7 +387,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
       else
          isel = iflag + 1;
 
-      if (*terminate)
+      if (reporter->shouldTerminate())
          return -9;
    }
 

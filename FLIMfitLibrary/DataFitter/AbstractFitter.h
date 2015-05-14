@@ -35,6 +35,7 @@
 #include "FitResults.h"
 #include "RegionData.h"
 #include "MeanLifetimeEstimator.h"
+#include "ProgressReporter.h"
 
 #include "omp_stub.h"
 #include "levmar.h"
@@ -51,7 +52,7 @@ class AbstractFitter
 {
 public:
 
-   AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, int* terminate);
+   AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
 
    virtual ~AbstractFitter() {};
    //virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
@@ -79,9 +80,8 @@ protected:
 
    shared_ptr<DecayModel> model;
    vector<DecayModel> models;
-
-   int* terminate;
-
+   shared_ptr<ProgressReporter> reporter;
+   
    vector<double> alf;
    vector<double> err_lower;
    vector<double> err_upper;
@@ -151,10 +151,6 @@ private:
    int b_size;
 
    int irf_idx_0;
-
-
 };
-
-//AbstractFitter* new_clone(AbstractFitter const& other);
 
 #endif

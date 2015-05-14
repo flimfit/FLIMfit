@@ -55,8 +55,8 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
    f->mle_jacb(alf, fjac, nl, nfunc);
 }
 
-MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, int* terminate) : 
-    AbstractFitter(model, model->GetNumColumns(), 1, MODE_GLOBAL_BINNING, 1, terminate)
+MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter) :
+    AbstractFitter(model, model->GetNumColumns(), 1, MODE_GLOBAL_BINNING, 1, reporter)
 {
    nfunc = n + 1; // +1 for kappa
 

@@ -14,7 +14,9 @@ qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
                        DecayWidget.ui
                        FLIMfitWindow.ui
                        FittingWidget.ui
-		                 FLIMImageWidget.ui)
+		                 FLIMImageWidget.ui
+                       FitResultsWidget.ui
+                       ProgressWidget.ui)
 
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
@@ -47,6 +49,8 @@ set(HEADERS
    ColormappedImageWidget.h
    FLIMImageWidget.h
    FLIMSetListView.h
+   FitResultsWidget.h
+   ProgressWidget.h
 )
 
 include_directories(../FLIMDecayModel 
@@ -74,5 +78,6 @@ target_link_libraries(FLIMfitQT
                            Qt5::PrintSupport
                            Qt5::Gui
                            Qt5::OpenGL
+                           ${LAPACKBLAS_LIB_NAMES}
                            ${OpenCV_LIBS}
                            ${Boost_LIBRARIES})

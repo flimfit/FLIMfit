@@ -37,14 +37,10 @@
 #endif
 
 
-#include "FitStatus.h"
-#include "DecayModel.h"
-#include "ModelADA.h"
 #include "FLIMData.h"
 #include "FitResults.h"
-#include "InstrumentResponseFunction.h"
 #include "FitSettings.h"
-
+#include "ProgressReporter.h"
 #include "AbstractFitter.h"
 
 #include "FlagDefinitions.h"
@@ -54,10 +50,9 @@
 
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <memory>
-#include <memory>
 
 #include "tinythread.h"
-
+#include <atomic>
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 #define _CRTDBG_MAPALLOC
@@ -107,38 +102,25 @@ public:
    void SetFitSettings(const FitSettings& fit_settings);
    void SetData(shared_ptr<FLIMData> data);
    void SetModel(shared_ptr<DecayModel> model_) { model = model_; }
-//   void SetAcquisitionParameters(shared_ptr<AcquisitionParameters> acq_) { acq = acq_; }
    
    void Init();
    int  RunWorkers();
    int  GetErrorCode();
-   void StopFit();
   
    int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
 
    void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
 
    void CleanupResults();
-   bool Busy();
-
-
-  // shared_ptr<AcquisitionParameters> acq;
-   shared_ptr<DecayModel> model;
-   shared_ptr<FLIMData> data;
-   shared_ptr<FitStatus> status;
 
    unique_ptr<FitResults> results;
 
+   shared_ptr<ProgressReporter> getProgressReporter() { return reporter; }
+   
    bool init = false;
    bool has_fit = false;
    bool getting_fit = false;
    int error = 0;
-
-
-   //-- LEGACY --
-   //bool polarisation_resolved;
-   //double t_rep;
-   //------------
 
 
 private:
@@ -147,15 +129,16 @@ private:
    
    void CleanupTempVars();
 
-   int ProcessRegion(int g, int r, int px, int thread);
+   void ProcessRegion(int g, int r, int px, int thread);
 
-
-   //shared_ptr<AcquisitionParameters> acq;
-
+   shared_ptr<DecayModel> model;
+   shared_ptr<FLIMData> data;
+   shared_ptr<ProgressReporter> reporter;
+   
    tthread::recursive_mutex cleanup_mutex;
    tthread::recursive_mutex mutex;
 
-   ptr_vector<AbstractFitter> projectors;
+   ptr_vector<AbstractFitter> fitters;
    ptr_vector<RegionData> region_data;
    ptr_vector<tthread::thread> thread_handle;
 
@@ -166,24 +149,23 @@ private:
    int next_region;
    int threads_active;
    int threads_started;
+   int threads_running;
    vector<int> cur_im;
 
    tthread::mutex region_mutex;
-   tthread::mutex pixel_mutex;
-   tthread::mutex data_mutex;
    tthread::condition_variable active_lock;
-   tthread::condition_variable data_lock;
 
    int n_fitters;
    int n_omp_thread;
 
    double conf_factor;
 
+   bool fit_in_progress = false;
+   int n_fits = 0;
+   std::atomic_int n_fits_complete;
 
    friend void StartWorkerThread(void* wparams);
 };
-
-
 
 
 

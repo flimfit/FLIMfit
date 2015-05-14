@@ -501,10 +501,10 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
   ===============================================*/
 
 int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit[], int& n_valid)
-{   
-   if (!status->HasFit())
-      return ERR_FIT_IN_PROGRESS;
-
+{
+   if (n_fits_complete != n_fits)
+      throw(std::runtime_error("Fit not yet complete"));
+   
    int thread = 0;
 
    int n_meas = data->GetNumMeasurements();
@@ -543,7 +543,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit
                results->GetNonLinearParams(im, rg, lin_idx, nl_params);
                results->GetLinearParams(im, rg, lin_idx, l_params);
 
-               projectors[thread].GetFit(idx, nl_params, l_params.data(), fit+n_meas*i);
+               fitters[thread].GetFit(idx, nl_params, l_params.data(), fit+n_meas*i);
                n_valid++;
 
                for(int j=last_idx; j<idx; j++)

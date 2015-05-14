@@ -29,7 +29,6 @@
 
 
 #include "ModelADA.h"
-#include "FitStatus.h"
 #include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
 
@@ -133,10 +132,11 @@ double kappa_lim(double tau)
    double kappa = exp(diff);
    return kappa;
 }
-
+/*
 void updatestatus_(int* gc_int, int* thread, int* iter, float* chi2, int* terminate)
 {
    FLIMGlobalFitController* gc= (FLIMGlobalFitController*) gc_int;
    int t = gc->status->UpdateStatus(*thread, -1, *iter, *chi2);
    *terminate = t;
 }
+ */

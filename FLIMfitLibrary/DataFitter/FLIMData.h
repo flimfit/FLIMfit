@@ -31,12 +31,13 @@
 
 #include "RegionData.h"
 #include "FitResults.h"
-#include "FitStatus.h"
+#include "ProgressReporter.h"
 #include "FLIMImage.h"
 #include "AcquisitionParameters.h"
 
 #include <cstdint>
 
+#include "tinythread.h"
 #include <memory>
 #include <limits>
 #include <boost/interprocess/file_mapping.hpp>
@@ -78,13 +79,8 @@ public:
 
    void SetGlobalMode(int global_mode);
 
-   void SetStatus(shared_ptr<FitStatus> status_);
+   RegionData* GetNewRegionData();
 
-   RegionData* GetNewRegionData()
-   {
-      return new RegionData(data_type, GetMaxRegionSize(), dp->n_meas);
-   }
-   
    template <typename T>
    int CalculateRegions();
 
@@ -97,24 +93,8 @@ public:
 
    std::shared_ptr<TransformedDataParameters> GetTransformedDataParameters() { return dp; }
    
-   int GetMaxFitSize()
-   {
-      if (global_mode == MODE_GLOBAL)
-         return n_masked_px;
-      else if (global_mode == MODE_IMAGEWISE)
-         return max_px_per_image;
-      else
-         return 1;
-   }
-
-   int GetMaxRegionSize()
-   {
-      if (global_mode == MODE_GLOBAL)
-         return n_masked_px;
-      else
-         return max_px_per_image;
-   }
-   
+   int GetMaxFitSize();
+   int GetMaxRegionSize();
    int GetMaxPxPerImage() { return max_px_per_image; }
    int GetNumMeasurements() { return dp->n_meas; }
    int GetNumRegionsTotal() { return n_regions_total; }
@@ -173,7 +153,7 @@ private:
    void releasePooledTranformer(int im);
    tthread::mutex pool_mutex;
    
-   shared_ptr<FitStatus> status;
+   shared_ptr<ProgressReporter> reporter;
 
    bool has_acceptor = false;
    bool polarisation_resolved = false;

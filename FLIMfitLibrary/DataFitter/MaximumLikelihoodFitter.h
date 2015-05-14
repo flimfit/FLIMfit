@@ -39,9 +39,8 @@ class MaximumLikelihoodFitter : public AbstractFitter
 {
 public:
 
-   MaximumLikelihoodFitter(shared_ptr<DecayModel> model, int* terminate);
+   MaximumLikelihoodFitter(shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter);
    ~MaximumLikelihoodFitter();
-   //MaximumLikelihoodFitter* clone() const { return new MaximumLikelihoodFitter(*this); };
 
    int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr);
 

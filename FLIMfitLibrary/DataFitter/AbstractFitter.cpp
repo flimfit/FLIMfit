@@ -44,12 +44,12 @@ using std::pair;
 
 
 
-AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, int* terminate) :
+AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
    model(model),
    max_region_size(max_region_size), 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
-   terminate(terminate),
+   reporter(reporter),
    lifetime_estimator(model->GetTransformedDataParameters())
 {
    irf_idx_0 = 0;
@@ -308,7 +308,7 @@ int AbstractFitter::CalculateErrors(double conf_limit)
                      0.1*fixed_value_initial, 0.8*fixed_value_initial, tol, max, c_policy());    
          }
 
-         if (*terminate)
+         if (reporter->shouldTerminate())
          {
             lim = 2;
             break;
@@ -366,7 +366,7 @@ double AbstractFitter::ErrMinFcn(double x)
       fprintf(f_debug,"%d, %d, %f, %f, %f, %f, %f, %f\n",fixed_param,search_dir,fixed_value_initial,fixed_value_cur,chi2_crit,*cur_chi2,F_crit,F);
 
    // terminate ASAP
-   if (*terminate)
+   if (reporter->shouldTerminate())
       F = F_crit;
 
    return F-F_crit;

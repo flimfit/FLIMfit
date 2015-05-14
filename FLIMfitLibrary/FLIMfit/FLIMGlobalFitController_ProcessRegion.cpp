@@ -39,7 +39,7 @@
   ProcessRegion
   ===============================================*/
 
-int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread)
+void FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread)
 {
    INIT_CONCURRENCY;
 
@@ -69,21 +69,25 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------
-   if (local_region_data.GetSize() == 0 || status->UpdateStatus(thread, g, 0, 0)==1)
-      return 0;
+   if (local_region_data.GetSize() == 0 || reporter->shouldTerminate())
+      return;
    
    int itmax = 100;
-   projectors[thread].Fit(local_region_data, region_results, itmax, status->iter[thread], ierr_local, status->chi2[thread]);
+   int iter = 0; // used to use:status->iter[thread],
+   double chi2 = 0; // used to use:
+   
+   fitters[thread].Fit(local_region_data, region_results, itmax, iter, ierr_local, chi2);
     
    if (calculate_errors)
    {
-      projectors[thread].CalculateErrors(conf_interval);
+      fitters[thread].CalculateErrors(conf_interval);
       // TODO: get errors
    }
   
-   status->FinishedRegion(thread);
-
-   return 0;
+   n_fits_complete++;
+   reporter->setProgress(static_cast<float>(n_fits_complete)/n_fits);
+   
+   return;
 }
 
 

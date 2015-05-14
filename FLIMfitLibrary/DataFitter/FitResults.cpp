@@ -51,6 +51,7 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    lmax = model->GetNumColumns();
    nl   = model->GetNumNonlinearVariables();
    n_meas = data->GetNumMeasurements();
+   n_im = data->n_im_used;
    int n_regions_total = data->GetNumRegionsTotal();
 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
@@ -70,7 +71,7 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    n_aux = data->GetNumAuxillary();
    int aux_size = n_aux * n_px;
 
-   
+   mask.resize(n_im);
 
    lin_params.resize(lin_size, std::numeric_limits<float>::quiet_NaN());
    chi2.resize(n_px, std::numeric_limits<float>::quiet_NaN());

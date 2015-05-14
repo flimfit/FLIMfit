@@ -27,9 +27,6 @@
 //
 //=========================================================================
 
-#ifndef FLIMGLOBALFITCONTROLLER_H_
-#define FLIMGLOBALFITCONTROLLER_H_
-
 #include "boost/math/distributions/normal.hpp"
 
 #include "FLIMGlobalFitController.h"
@@ -46,8 +43,6 @@
 #include <cmath>
 #include <algorithm>
 
-//using namespace boost::interprocess;
-
 using std::min;
 
 #ifdef USE_CONCURRENCY_ANALYSIS
@@ -57,7 +52,7 @@ marker_series* writer;
 FLIMGlobalFitController::FLIMGlobalFitController()
 {
    worker_params.resize(n_thread);
-   status = std::make_shared<FitStatus>(n_thread);
+   reporter = std::make_shared<ProgressReporter>();
 }
 
 FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
@@ -67,7 +62,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
       n_thread = 1;
 
    worker_params.resize(n_thread);
-   status = std::make_shared<FitStatus>(n_thread);
+   reporter = std::make_shared<ProgressReporter>();
 }
 
 void FLIMGlobalFitController::SetFitSettings(const FitSettings& settings)
@@ -75,6 +70,7 @@ void FLIMGlobalFitController::SetFitSettings(const FitSettings& settings)
    *static_cast<FitSettings*>(this) = settings;
 }
 
+/*
 bool FLIMGlobalFitController::Busy()
 {
    if (!init)
@@ -83,27 +79,27 @@ bool FLIMGlobalFitController::Busy()
       return status->IsRunning();
 }
 
+
 void FLIMGlobalFitController::StopFit()
 {
    status->Terminate();
 }
-
+*/
 int FLIMGlobalFitController::RunWorkers()
 {
    
-   if (status->IsRunning())
-      return ERR_FIT_IN_PROGRESS;
-
+   if (fit_in_progress)
+      throw(std::runtime_error("Fit already running"));
+   
    if (!init)
       throw(std::runtime_error("Controller has not been initalised"));
 
-   if (status->terminate)
-      return 0;
+   fit_in_progress = true;
+   threads_running = 0;
 
    omp_set_num_threads(n_omp_thread);
 
-   //data->StartStreaming();
-   status->AddConditionVariable(&active_lock);
+   //status->AddConditionVariable(&active_lock); TODO?
 
    if (n_fitters == 1 && !runAsync)
    {
@@ -126,15 +122,11 @@ int FLIMGlobalFitController::RunWorkers()
 
       if (!runAsync)
       {
-         ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
-         while (iter != projectors.end())
-         {
+         for(auto iter = thread_handle.begin(); iter != thread_handle.end(); iter++)
             iter->join();
-            iter++;
-         }
 
-         //data->StopStreaming();
-
+         reporter->setFinished();
+         
          CleanupTempVars();
          has_fit = true;
       }
@@ -163,8 +155,9 @@ void StartWorkerThread(void* wparams)
 void FLIMGlobalFitController::WorkerThread(int thread)
 {
    int idx, region_count;
-   status->AddThread();
-
+   
+   threads_running++;
+   
    //=============================================================================
    // In pixelwise mode, we process one region at a time, with all threads
    // working on the same region. When all threads are finished working
@@ -189,7 +182,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   
                   region_mutex.lock();
 
-                  while (idx > cur_region && !(status->terminate))
+                  while (idx > cur_region && !reporter->shouldTerminate())
                      active_lock.wait(region_mutex);
                   
                   threads_active++;
@@ -235,7 +228,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
                   ProcessRegion(im, r, j, thread);
                   
                   // Check to see if a termination has been requested
-                  if (status->terminate)
+                  if (reporter->shouldTerminate())
                   {
                      region_mutex.lock();
                      threads_active--;
@@ -309,7 +302,7 @@ processed:
                      goto processed;
                   }
             
-                  if (status->terminate)
+                  if (reporter->shouldTerminate())
                      goto imagewise_terminated;
                }
 
@@ -350,14 +343,14 @@ imagewise_terminated:
          if (idx > -1 && idx % n_thread == thread)
             ProcessRegion(-1, r, 0, thread);
            
-         if (status->terminate)
+         if (reporter->shouldTerminate())
             break;
       }
    }
 
 terminated:
 
-   int threads_running = status->RemoveThread();
+   threads_running--;
 
    // If we're the last thread running cleanup temporary variables
    
@@ -373,8 +366,10 @@ terminated:
             iter++;
          }
 
-      //data->StopStreaming();
       CleanupTempVars();
+      
+      reporter->setFinished();
+      
    }
 }
 
@@ -382,8 +377,6 @@ terminated:
 void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
 {
    data = data_;
-
-   data->SetStatus(status);
    data->SetGlobalMode(global_mode);
 }
 
@@ -398,6 +391,8 @@ void FLIMGlobalFitController::Init()
    next_region = 0;
    threads_active = 0;
    threads_started = 0;
+   threads_running = 0;
+   n_fits_complete = 0;
 
    cur_im.assign(n_thread, 0);
 
@@ -423,15 +418,14 @@ void FLIMGlobalFitController::Init()
    int n_regions_total = data->GetNumRegionsTotal();
    
    
-   
    if (data->global_mode == MODE_PIXELWISE)
    {
-      status->SetNumRegion(data->n_masked_px);
+      n_fits = data->n_masked_px;
       n_fitters = min(max_region_size,n_thread);
    }
    else
    {
-      status->SetNumRegion(n_regions_total);
+      n_fits = n_regions_total;
       n_fitters = min(n_regions_total,n_thread);
    }
 
@@ -453,15 +447,15 @@ void FLIMGlobalFitController::Init()
    results.reset( new FitResults(model, data, calculate_errors) );
 
    // Create fitting objects
-   projectors.reserve(n_fitters);
+   fitters.reserve(n_fitters);
    region_data.reserve(n_fitters);
 
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
-         projectors.push_back( new MaximumLikelihoodFitter(model, &(status->terminate)) );
+         fitters.push_back( new MaximumLikelihoodFitter(model, reporter) );
       else
-         projectors.push_back( new VariableProjector(model, max_fit_size, weighting, global_algorithm, n_omp_thread, &(status->terminate)) );
+         fitters.push_back( new VariableProjector(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );
 
       region_data.push_back( data->GetNewRegionData() );
    }
@@ -490,15 +484,7 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
    for (auto& t : thread_handle)
       t.join();
 
-   if (status != NULL)
-   {
-      status->Terminate();
-      while (status->IsRunning()) {}
-   }
-
-   CleanupResults();
    CleanupTempVars();
-
 }
 
 
@@ -516,17 +502,7 @@ void FLIMGlobalFitController::CleanupTempVars()
    
    region_data.clear();
 
-   ptr_vector<AbstractFitter>::iterator iter = projectors.begin();
-   while (iter != projectors.end())
-   {
-        iter->ReleaseResidualMemory();
-        iter++;
-   }
+   for(auto& f : fitters)
+      f.ReleaseResidualMemory();
 }
 
-void FLIMGlobalFitController::CleanupResults()
-{
-   init = false;
-}
-
-#endif
