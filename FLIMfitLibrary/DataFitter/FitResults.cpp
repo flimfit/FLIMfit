@@ -180,8 +180,9 @@ void FitResults::SetFitStatus(int image, int region, int code)
 
 void FitResults::DetermineParamNames()
 {
-   model->GetOutputParamNames(param_names, n_nl_output_params);
+   model->GetOutputParamNames(param_names, n_nl_output_params, n_lin_output_params);
    data->GetAuxParamNames(param_names);
+   param_names.push_back("chi2");
 
    n_output_params = (int) param_names.size();
 
@@ -239,8 +240,8 @@ void FitResults::ComputeRegionStats(float confidence_factor)
             int s_local = data->GetRegionCount(im, rg);
             float* intensity = aux_data.data() + start;
 
-            if (param_buf.size() < nl*s_local)
-               param_buf.resize(nl*s_local);
+            if (param_buf.size() < n_output_params*s_local)
+               param_buf.resize(n_output_params*s_local);
 
             
             //int intensity_stride = n_aux;
@@ -274,12 +275,13 @@ void FitResults::ComputeRegionStats(float confidence_factor)
                for (int i = 0; i<n_nl_output_params; i++)
                   stats.SetNextParam(idx, param_buf[i]);
             }
-
-            float* lin_group = lin_params.data() + start * lmax;
-
-            stats_calculator.CalculateRegionStats(lmax, s_local, lin_group, intensity, stats, idx);
-            //stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
-            //stats_calculator.CalculateRegionStats(1, s_local, chi2.data() + start, intensity, stats, idx);
+            
+            for(int i=0; i<s_local; i++)
+               model->GetLinearOutputs(lin_params.data() + (start+i)*lmax, param_buf.data() + i*n_lin_output_params);
+            
+            stats_calculator.CalculateRegionStats(n_lin_output_params, s_local, param_buf.data(), intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(1, s_local, chi2.data() + start, intensity, stats, idx);
          }
       }
    }

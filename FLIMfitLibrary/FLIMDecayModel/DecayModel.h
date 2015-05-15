@@ -77,7 +77,7 @@ public:
    float* GetConstantAdjustment() { return adjust_buf.data(); };
 
    void GetInitialVariables(vector<double>& variables, double mean_arrival_time);
-   void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params);
+   void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params, int& n_lin_output_params);
    int GetNonlinearOutputs(float* nonlin_variables, float* outputs);
    int GetLinearOutputs(float* lin_variables, float* outputs);
 

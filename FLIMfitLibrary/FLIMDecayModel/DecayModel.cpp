@@ -145,7 +145,7 @@ void DecayModel::SetupAdjust()
       adjust_buf[i] *= photons_per_count;
 }
 
-void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params)
+void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params, int& n_lin_output_params)
 {
    for (auto& group : decay_groups)
       group->GetNonlinearOutputParamNames(param_names);
@@ -154,7 +154,9 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
 
    for (auto& group : decay_groups)
       group->GetLinearOutputParamNames(param_names);
-   
+
+   n_lin_output_params = param_names.size() - n_nl_output_params;
+
 }
 
 void DecayModel::SetupIncMatrix(int *inc)
