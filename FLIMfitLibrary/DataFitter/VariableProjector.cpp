@@ -10,7 +10,6 @@
 
 #define INVALID_INPUT -1
 
-
 #include "VariableProjector.h"
 #include "FlagDefinitions.h"
 #include "DecayModel.h"
@@ -26,8 +25,7 @@
 using std::min;
 using std::max;
 
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
+#include <future>
 
 #include "omp_stub.h"
 
@@ -511,10 +509,12 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
       norm_buf_[i*nmax] = 0;
 
    #pragma omp parallel for num_threads(n_thread)
-   for (int j=0; j<s; j++)
+   
+   // We'll apply this for all pixels
+   auto fcn = [&](int omp_thread, int j)
    {
       int idx;
-      int omp_thread = omp_get_thread_num();
+      //int omp_thread = omp_get_thread_num();
       
       double* rj = r.data() + j * r_dim1;
       float* yj = y + j * y_dim1;
@@ -603,8 +603,20 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
       if (get_lin | iterative_weighting) //(weighting == MODEL_WEIGHTING))
          get_linear_params(j, aw, u, work);
 
-   } // loop over pixels
+   }; // loop over pixels
 
+   vector<std::future<void>> futures;
+   for (int thread=0; thread<n_thread; thread++)
+      futures.push_back(std::async(
+         [&]() {
+             for(int j=thread; j<s; j+=n_thread)
+                fcn(thread, j);
+         }));
+
+   for(auto& f : futures)
+      f.wait();
+   
+   
    for(int i=0; i<n_thread; i++)
       r_sq += norm_buf_[i*nmax];
 
