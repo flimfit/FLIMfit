@@ -605,16 +605,21 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
 
    }; // loop over pixels
 
+   /*
    vector<std::future<void>> futures;
-   for (int thread=0; thread<n_thread; thread++)
+   for (int t=0; t<n_thread; t++)
       futures.push_back(std::async(
          [&]() {
-             for(int j=thread; j<s; j+=n_thread)
-                fcn(thread, j);
+             for(int j=t; j<s; j+=n_thread)
+                fcn(t, j);
          }));
 
    for(auto& f : futures)
       f.wait();
+   */
+   
+   for(int j=0; j<s; j++)
+      fcn(0, j);
    
    
    for(int i=0; i<n_thread; i++)

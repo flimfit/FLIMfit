@@ -30,8 +30,10 @@ public:
       QString root = "/Users/sean/Documents/FLIMTestData";
 
 
+      bool use_acceptor_test_data = true;
+      
       QString folder, irf_name;
-      if (false)
+      if (!use_acceptor_test_data)
       {
          folder = QString("%1%2").arg(root).arg("/dual_data");
          irf_name = QString("%1%2").arg(root).arg("/2015-05-15 Dual FRET IRF.csv");
@@ -61,13 +63,24 @@ public:
       
       
       auto fret_group = std::make_shared<QFretDecayGroup>();
-      fret_group->SetIncludeAcceptor(false);
+      
 
-      std::vector<double> ch_donor = { 0.12, 0.64, 0.11, 0.60 };
+      std::vector<double> ch_acceptor, ch_donor;
+      
+      if (use_acceptor_test_data)
+      {
+         ch_donor = {1.0, 0.0};
+         ch_acceptor = {0.0, 1.0};
+         fret_group->SetChannelFactors(1, ch_acceptor);
+      }
+      else
+      {
+         fret_group->SetIncludeAcceptor(false);
+         ch_donor = { 0.12, 0.64, 0.11, 0.60 };
+      }
+      
       fret_group->SetChannelFactors(0, ch_donor);
       
-//      std::vector<double> ch_acceptor = { 0.0, 1.0 };
-//      fret_group->SetChannelFactors(1, ch_acceptor);
       
       decay_model->AddDecayGroup(fret_group);
 

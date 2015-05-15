@@ -35,7 +35,7 @@ public:
          return QVariant();
       
       auto stats = fit_results->GetStats();
-      return stats.GetStat(index.row(), index.column(), PARAM_MEAN);
+      return stats.GetStat(index.column(), index.row(), PARAM_MEAN);
    }
    
    int rowCount(const QModelIndex& parent = QModelIndex()) const

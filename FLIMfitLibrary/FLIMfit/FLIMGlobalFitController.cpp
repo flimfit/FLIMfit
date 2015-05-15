@@ -367,10 +367,10 @@ terminated:
             iter++;
          }
 
-      CleanupTempVars();
-      
-      reporter->setFinished();
       results->ComputeRegionStats(conf_factor);
+      
+      CleanupTempVars();
+      reporter->setFinished();
       
    }
 }

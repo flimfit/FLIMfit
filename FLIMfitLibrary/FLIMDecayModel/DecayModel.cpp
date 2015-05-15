@@ -114,7 +114,6 @@ int DecayModel::GetNumNonlinearVariables()
 }
 
 
-
 double DecayModel::GetCurrentReferenceLifetime(const double* param_values, int& idx)
 {
    if (dp->irf->type != Reference)
@@ -151,8 +150,11 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
    for (auto& group : decay_groups)
       group->GetNonlinearOutputParamNames(param_names);
 
+   n_nl_output_params = param_names.size();
+
    for (auto& group : decay_groups)
       group->GetLinearOutputParamNames(param_names);
+   
 }
 
 void DecayModel::SetupIncMatrix(int *inc)

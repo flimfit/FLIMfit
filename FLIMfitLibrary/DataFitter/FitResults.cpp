@@ -53,6 +53,9 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    n_meas = data->GetNumMeasurements();
    n_im = data->n_im_used;
    n_regions = data->GetNumOutputRegionsTotal();
+   
+   
+   n_nl_output_params = nl; // TODO - redundant?
 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
 
@@ -275,8 +278,8 @@ void FitResults::ComputeRegionStats(float confidence_factor)
             float* lin_group = lin_params.data() + start * lmax;
 
             stats_calculator.CalculateRegionStats(lmax, s_local, lin_group, intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(1, s_local, chi2.data() + start, intensity, stats, idx);
+            //stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
+            //stats_calculator.CalculateRegionStats(1, s_local, chi2.data() + start, intensity, stats, idx);
          }
       }
    }
