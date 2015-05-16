@@ -44,7 +44,6 @@ set(SOURCE
    lmdif.cpp
    fdjac2.cpp
    cminpack_support.cpp
-   FitStatus.cpp
    FitResults.cpp
    tinythread.cpp
    util.cpp
@@ -60,7 +59,6 @@ set(HEADERS
    cminpack.h
    ConcurrencyAnalysis.h
    omp_stub.h
-   FitStatus.h
    FitResults.h
    tinythread.h
    FlagDefinitions.h

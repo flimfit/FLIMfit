@@ -65,7 +65,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
    reporter = std::make_shared<ProgressReporter>();
 }
 
-void FLIMGlobalFitController::SetFitSettings(const FitSettings& settings)
+void FLIMGlobalFitController::setFitSettings(const FitSettings& settings)
 {
    *static_cast<FitSettings*>(this) = settings;
 }
@@ -85,13 +85,13 @@ void FLIMGlobalFitController::StopFit()
    status->Terminate();
 }
 */
-int FLIMGlobalFitController::RunWorkers()
+int FLIMGlobalFitController::runWorkers()
 {
    
    if (fit_in_progress)
       throw(std::runtime_error("Fit already running"));
    
-   if (!init)
+   if (!is_init)
       throw(std::runtime_error("Controller has not been initalised"));
 
    fit_in_progress = true;
@@ -99,39 +99,19 @@ int FLIMGlobalFitController::RunWorkers()
 
    omp_set_num_threads(n_omp_thread);
 
-   //status->AddConditionVariable(&active_lock); TODO?
-
-   if (n_fitters == 1 && !runAsync)
+   for(int thread = 0; thread < n_fitters; thread++)
    {
-      worker_params[0].controller = this;
-      worker_params[0].thread = 0;
-
-      StartWorkerThread((void*)(&worker_params[0]));
+      worker_params[thread].controller = this;
+      worker_params[thread].thread = thread;
+   
+      thread_handle.push_back(
+            new tthread::thread(startWorkerThread,(void*)(&worker_params[thread]))
+         ); // ok
    }
-   else
-   {
-      for(int thread = 0; thread < n_fitters; thread++)
-      {
-         worker_params[thread].controller = this;
-         worker_params[thread].thread = thread;
-      
-         thread_handle.push_back(
-               new tthread::thread(StartWorkerThread,(void*)(&worker_params[thread]))
-            ); // ok
-      }
 
-      if (!runAsync)
-      {
-         for(auto iter = thread_handle.begin(); iter != thread_handle.end(); iter++)
-            iter->join();
-
-         reporter->setFinished();
-         results->ComputeRegionStats(conf_factor);
-         
-         CleanupTempVars();
-         has_fit = true;
-      }
-   }
+   if (!runAsync)
+      waitForFit();
+   
    return 0;
    
 }
@@ -140,20 +120,20 @@ int FLIMGlobalFitController::RunWorkers()
 /**
  * Wrapper function for WorkerThread
  */
-void StartWorkerThread(void* wparams)
+void startWorkerThread(void* wparams)
 {
    WorkerParams* p = (WorkerParams*) wparams;
 
    FLIMGlobalFitController* controller = p->controller;
    int                      thread     = p->thread;
 
-   controller->WorkerThread(thread);
+   controller->workerThread(thread);
 }
 
 /**
  * Worker thread, called several times to process regions
  */
-void FLIMGlobalFitController::WorkerThread(int thread)
+void FLIMGlobalFitController::workerThread(int thread)
 {
    int idx, region_count;
    
@@ -226,7 +206,7 @@ void FLIMGlobalFitController::WorkerThread(int thread)
 
                for(int j=regions_per_thread*thread; j<j_max; j++)
                {
-                  ProcessRegion(im, r, j, thread);
+                  processRegion(im, r, j, thread);
                   
                   // Check to see if a termination has been requested
                   if (reporter->shouldTerminate())
@@ -295,7 +275,7 @@ processed:
 
                      region_mutex.unlock();
 
-                     ProcessRegion(im, r, 0, thread);
+                     processRegion(im, r, 0, thread);
                      
                      im0=im;
                      
@@ -342,7 +322,7 @@ imagewise_terminated:
       {
          idx = data->GetRegionIndex(-1,r);
          if (idx > -1 && idx % n_thread == thread)
-            ProcessRegion(-1, r, 0, thread);
+            processRegion(-1, r, 0, thread);
            
          if (reporter->shouldTerminate())
             break;
@@ -367,16 +347,32 @@ terminated:
             iter++;
          }
 
-      results->ComputeRegionStats(conf_factor);
-      
-      CleanupTempVars();
-      reporter->setFinished();
-      
+      setFitComplete();
+   }
+}
+
+void FLIMGlobalFitController::setFitComplete()
+{
+   results->ComputeRegionStats(conf_factor);
+   
+   cleanupTempVars();
+   reporter->setFinished();
+   
+   has_fit = true;
+   fit_cv.notify_all();
+}
+
+void FLIMGlobalFitController::waitForFit()
+{
+   if (!has_fit)
+   {
+      fit_mutex.lock();
+      fit_cv.wait(fit_mutex);
    }
 }
 
 
-void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
+void FLIMGlobalFitController::setData(shared_ptr<FLIMData> data_)
 {
    data = data_;
    data->SetGlobalMode(global_mode);
@@ -384,7 +380,7 @@ void FLIMGlobalFitController::SetData(shared_ptr<FLIMData> data_)
 
 
 
-void FLIMGlobalFitController::Init()
+void FLIMGlobalFitController::init()
 {
 //   assert(acq->irf != nullptr);
 
@@ -475,7 +471,7 @@ void FLIMGlobalFitController::Init()
    boost::math::normal norm;
    conf_factor = quantile(complement(norm, 0.5*conf_interval));
 
-   init = true;
+   is_init = true;
 }
 
 
@@ -486,11 +482,11 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
    for (auto& t : thread_handle)
       t.join();
 
-   CleanupTempVars();
+   cleanupTempVars();
 }
 
 
-int FLIMGlobalFitController::GetErrorCode()
+int FLIMGlobalFitController::getErrorCode()
 {
    return error;
 }
@@ -498,7 +494,7 @@ int FLIMGlobalFitController::GetErrorCode()
 
 
 
-void FLIMGlobalFitController::CleanupTempVars()
+void FLIMGlobalFitController::cleanupTempVars()
 {
    tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
    

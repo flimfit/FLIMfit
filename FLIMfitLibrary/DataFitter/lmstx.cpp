@@ -240,9 +240,6 @@ int lmstx(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_gro
 
    INIT_CONCURRENCY;
 
-    #ifdef _DEBUG
-    char buf[1000];
-    #endif
     epsmch = dpmpar(1);
 
     info = 0;

@@ -76,6 +76,7 @@ class FLIMData
 public:
 
    FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform);
+   FLIMData(std::shared_ptr<FLIMImage> images, const DataTransformationSettings& transform);
 
    void SetGlobalMode(int global_mode);
 
@@ -132,7 +133,7 @@ private:
 
    int GetMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results);
    void SetData(const vector<std::shared_ptr<FLIMImage>>& images);
-
+   
    void ResizeBuffers();
 
    template <typename T>

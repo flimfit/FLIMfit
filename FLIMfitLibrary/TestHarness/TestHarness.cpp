@@ -45,7 +45,7 @@
 #include <cmath>
 #include "FLIMGlobalFitController.h"
 #include "MultiExponentialDecayGroup.h"
-
+#include "FLIMImage.h"
 
 //using namespace boost::unit_test;
 
@@ -120,6 +120,9 @@ int main()
    // Data Parameters
    //===========================
    vector<int> use_im(n_x, 1);
+   
+   
+   /*
    int t_skip = 0;
    int n_trim_end = 0;
    int n_regions_expected = 1;
@@ -133,11 +136,11 @@ int main()
    double tau_min[1] = { 0.0 };
    double tau_max[1] = { 1e6 };
    double tau_guess[1] = { 2000 };
-
    double t0 = 0;
-
-   int algorithm = ALG_ML;
    int global_mode = MODE_PIXELWISE;
+    */
+   
+   int algorithm = ALG_ML;
 
    int data_type = DATA_TYPE_TCSPC;
    bool polarisation_resolved = false;
@@ -148,32 +151,39 @@ int main()
    auto irf_ = std::make_shared<InstrumentResponseFunction>();
    irf_->SetIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
 
-   AcquisitionParameters acq(data_type, t_rep_default, polarisation_resolved, n_chan);
-   acq.SetT(t);
-   acq.SetIRF(irf_);
-   acq.SetImageSize(n_x, n_y);
+   auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
+   acq->SetT(t);
+   acq->SetIRF(irf_);
+   acq->SetImageSize(n_x, n_y);
    
-   auto data = std::make_shared<FLIMData>();
-   data->SetAcquisitionParmeters(acq);
-   data->SetNumImages(1);
+   auto image = std::make_shared<FLIMImage>(acq, FLIMImage::DataMode::InMemory, image_data.data());
+  
+  // FLIMImage im(acq, FLIMImage::DataMode::InMemory, image_data.data());
 
+   
+//   float* data_ptr = image->getDataPointer<float>();
+//   memcpy(data_ptr, image_data.data(), image_data.size() * sizeof(float));
+//   image->releaseModifiedPointer<float>();
+   
+   DataTransformationSettings transform;
+   auto data = std::make_shared<FLIMData>(image, transform);
+   
    auto model = std::make_shared<DecayModel>();
-   model->SetAcquisitionParameters(data);
+   model->SetTransformedDataParameters(data->GetTransformedDataParameters());
+   
    auto group = std::make_shared<MultiExponentialDecayGroup>(2);
    model->AddDecayGroup(group);
 
 
    FLIMGlobalFitController controller;   
-   controller.SetFitSettings(FitSettings(algorithm));
-   controller.SetModel(model);
+   controller.setFitSettings(FitSettings(algorithm));
+   controller.setModel(model);
 
-   controller.SetData(data);
-   data->SetData(image_data.data());
-
-   controller.Init();
-   controller.RunWorkers();
+   controller.setData(data);
+   controller.init();
+   controller.runWorkers();
    
-   
+   controller.waitForFit();
    /*
    // Start Fit
    //===========================

@@ -45,6 +45,18 @@ transform(transform)
    dp = make_shared<TransformedDataParameters>(images[0]->getAcquisitionParameters(), transform);
 }
 
+FLIMData::FLIMData(std::shared_ptr<FLIMImage> image, const DataTransformationSettings& transform) :
+transform(transform)
+{
+   image_t0_shift = NULL;
+   n_masked_px = 0;
+   
+   vector<std::shared_ptr<FLIMImage>> images = {image};
+   
+   SetData(images);
+   
+   dp = make_shared<TransformedDataParameters>(images[0]->getAcquisitionParameters(), transform);
+}
 
 
 void FLIMData::SetGlobalMode(int global_mode_)

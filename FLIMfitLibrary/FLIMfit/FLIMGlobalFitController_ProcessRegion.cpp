@@ -39,7 +39,7 @@
   ProcessRegion
   ===============================================*/
 
-void FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread)
+void FLIMGlobalFitController::processRegion(int g, int region, int px, int thread)
 {
    INIT_CONCURRENCY;
 

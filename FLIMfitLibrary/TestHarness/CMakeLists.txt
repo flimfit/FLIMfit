@@ -55,7 +55,10 @@ endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
-target_link_libraries(TestHarness FLIMfit DataFitter FLIMDecayModel levmar)
+target_link_libraries(TestHarness FLIMfit DataFitter FLIMDecayModel levmar
+                        ${LAPACKBLAS_LIB_NAMES}
+                        ${OpenCV_LIBS}
+                        ${Boost_LIBRARIES})
 
 # Run tests after compile
 #===================================================

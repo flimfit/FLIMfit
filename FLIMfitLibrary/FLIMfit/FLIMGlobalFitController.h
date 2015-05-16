@@ -99,24 +99,25 @@ public:
    FLIMGlobalFitController(FitSettings& fit_settings);
    ~FLIMGlobalFitController();
 
-   void SetFitSettings(const FitSettings& fit_settings);
-   void SetData(shared_ptr<FLIMData> data);
-   void SetModel(shared_ptr<DecayModel> model_) { model = model_; }
+   void setFitSettings(const FitSettings& fit_settings);
+   void setData(shared_ptr<FLIMData> data);
+   void setModel(shared_ptr<DecayModel> model_) { model = model_; }
    
-   void Init();
-   int  RunWorkers();
-   int  GetErrorCode();
-  
-   int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
+   void init();
+   int runWorkers();
+   int getErrorCode();
+   void waitForFit();
+   
+   int getFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
 
-   void GetWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
+   void getWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
 
-   void CleanupResults();
+   void cleanupResults();
 
    shared_ptr<ProgressReporter> getProgressReporter() { return reporter; }
    shared_ptr<FitResults> getResults() { return results; };
    
-   bool init = false;
+   bool is_init = false;
    bool has_fit = false;
    bool getting_fit = false;
    int error = 0;
@@ -124,11 +125,12 @@ public:
 
 private:
    
-   void WorkerThread(int thread);
+   void workerThread(int thread);
    
-   void CleanupTempVars();
-
-   void ProcessRegion(int g, int r, int px, int thread);
+   void cleanupTempVars();
+   void setFitComplete();
+   
+   void processRegion(int g, int r, int px, int thread);
 
    shared_ptr<DecayModel> model;
    shared_ptr<FLIMData> data;
@@ -155,6 +157,9 @@ private:
    tthread::mutex region_mutex;
    tthread::condition_variable active_lock;
 
+   tthread::mutex fit_mutex;
+   tthread::condition_variable fit_cv;
+   
    int n_fitters;
    int n_omp_thread;
 
@@ -164,12 +169,12 @@ private:
    int n_fits = 0;
    std::atomic_int n_fits_complete;
 
-   friend void StartWorkerThread(void* wparams);
+   friend void startWorkerThread(void* wparams);
 };
 
 
 
-void StartWorkerThread(void* wparams);
+void startWorkerThread(void* wparams);
 
 
 #endif

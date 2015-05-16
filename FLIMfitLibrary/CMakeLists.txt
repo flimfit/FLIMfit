@@ -56,7 +56,7 @@ endif(MSVC)
 if(UNIX)
    set(PLATFORM_FLAGS_ALL "-msse3")
    set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
-   set(PLATFORM_FLAGS_DEBUG "")
+   set(PLATFORM_FLAGS_DEBUG "-D_DEBUG")
 endif(UNIX)
 
 set(XDISPATCH_QT_SUPPORT OFF CACHE BOOL "Turn off xdispatch QT")

@@ -500,7 +500,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
   GetFit
   ===============================================*/
 
-int FLIMGlobalFitController::GetFit(int im, int n_fit, int fit_loc[], double fit[], int& n_valid)
+int FLIMGlobalFitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n_valid)
 {
    if (n_fits_complete != n_fits)
       throw(std::runtime_error("Fit not yet complete"));
