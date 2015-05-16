@@ -37,7 +37,7 @@
 
 #include <cstdint>
 
-#include "tinythread.h"
+#include <thread>
 #include <memory>
 #include <limits>
 #include <boost/interprocess/file_mapping.hpp>
@@ -153,7 +153,7 @@ private:
    
    DataTransformer& getPooledTransformer(int im);
    void releasePooledTranformer(int im);
-   tthread::mutex pool_mutex;
+   std::mutex pool_mutex;
    
    shared_ptr<ProgressReporter> reporter;
 

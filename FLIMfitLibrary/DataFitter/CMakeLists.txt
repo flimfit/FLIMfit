@@ -45,7 +45,6 @@ set(SOURCE
    fdjac2.cpp
    cminpack_support.cpp
    FitResults.cpp
-   tinythread.cpp
    util.cpp
    MeanLifetimeEstimator.cpp
 )
@@ -60,7 +59,6 @@ set(HEADERS
    ConcurrencyAnalysis.h
    omp_stub.h
    FitResults.h
-   tinythread.h
    FlagDefinitions.h
    util.h
    MeanLifetimeEstimator.h

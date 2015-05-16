@@ -50,7 +50,6 @@ class DecayModel
 public:
 
    DecayModel();
-   //DecayModel(const DecayModel &obj);
    
    void AddDecayGroup(shared_ptr<AbstractDecayGroup> group);
    shared_ptr<AbstractDecayGroup> GetGroup(int idx) { return decay_groups[idx]; };
@@ -107,7 +106,7 @@ protected:
    vector<shared_ptr<AbstractDecayGroup>> decay_groups;
 
    float photons_per_count;
-   vector<vector<double>> channel_factor; // TODO!
+   vector<vector<double>> channel_factor;
    vector<float> adjust_buf;
 };
 

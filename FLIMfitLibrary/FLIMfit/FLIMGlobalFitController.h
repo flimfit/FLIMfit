@@ -51,7 +51,7 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 #include <memory>
 
-#include "tinythread.h"
+#include <thread>
 #include <atomic>
 
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
@@ -137,12 +137,12 @@ private:
    shared_ptr<ProgressReporter> reporter;
    shared_ptr<FitResults> results;
 
-   tthread::recursive_mutex cleanup_mutex;
-   tthread::recursive_mutex mutex;
+   std::recursive_mutex cleanup_mutex;
+   std::recursive_mutex mutex;
 
    ptr_vector<AbstractFitter> fitters;
    ptr_vector<RegionData> region_data;
-   ptr_vector<tthread::thread> thread_handle;
+   ptr_vector<std::thread> thread_handle;
 
    vector<WorkerParams> worker_params;
    
@@ -154,11 +154,11 @@ private:
    int threads_running;
    vector<int> cur_im;
 
-   tthread::mutex region_mutex;
-   tthread::condition_variable active_lock;
+   std::mutex region_mutex;
+   std::condition_variable active_lock;
 
-   tthread::mutex fit_mutex;
-   tthread::condition_variable fit_cv;
+   std::mutex fit_mutex;
+   std::condition_variable fit_cv;
    
    int n_fitters;
    int n_omp_thread;

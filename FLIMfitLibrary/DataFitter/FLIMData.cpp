@@ -345,7 +345,7 @@ void FLIMData::StartStreaming(bool only_load_non_empty_images)
       params->data = this;
       params->only_load_non_empty_images = only_load_non_empty_images;
 
-      loader_thread = new tthread::thread(StartDataLoaderThread,(void*)params); // ok
+      loader_thread = new std::thread(StartDataLoaderThread,(void*)params); // ok
    }
 }
 
@@ -541,7 +541,7 @@ void FLIMData::GetAuxParamNames(vector<string>& param_names)
 
 DataTransformer& FLIMData::getPooledTransformer(int im)
 {
-   tthread::lock_guard<tthread::mutex> lk(pool_mutex);
+   std::lock_guard<std::mutex> lk(pool_mutex);
    
    int n_pool = transformer_pool.size();
    for (int i=0; i<n_pool; i++)
@@ -574,7 +574,7 @@ DataTransformer& FLIMData::getPooledTransformer(int im)
 
 void FLIMData::releasePooledTranformer(int im)
 {
-   tthread::lock_guard<tthread::mutex> lk(pool_mutex);
+   std::lock_guard<std::mutex> lk(pool_mutex);
    
    int n_pool = transformer_pool.size();
    for (int i=0; i<n_pool; i++)

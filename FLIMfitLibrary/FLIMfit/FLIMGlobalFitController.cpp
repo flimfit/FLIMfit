@@ -35,7 +35,7 @@
 #include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
-#include "tinythread.h"
+#include <thread>
 #include "omp_stub.h"
 
 #include <limits>
@@ -105,7 +105,7 @@ int FLIMGlobalFitController::runWorkers()
       worker_params[thread].thread = thread;
    
       thread_handle.push_back(
-            new tthread::thread(startWorkerThread,(void*)(&worker_params[thread]))
+            new std::thread(startWorkerThread,(void*)(&worker_params[thread]))
          ); // ok
    }
 
@@ -161,26 +161,22 @@ void FLIMGlobalFitController::workerThread(int thread)
                   // If we are not thread 0, check if thread 0 has processed
                   // the data we need. If not, wait until it has been processed
                   
-                  region_mutex.lock();
-
+                  std::unique_lock<std::mutex> lk(region_mutex);
                   while (idx > cur_region && !reporter->shouldTerminate())
-                     active_lock.wait(region_mutex);
+                     active_lock.wait(lk);
                   
                   threads_active++;
                   threads_started++;
-
-                  region_mutex.unlock();
                }
                else
                {                  
                   // If we are thread 0, check to see if all threads have started & finished on current region
                   // then request data for next region
 
-                  region_mutex.lock();
-                  
+                  std::unique_lock<std::mutex> lk(region_mutex);
                   while ( (threads_active > 0) ||                                  // there are threads running
                           ((threads_started < n_active_thread) && (cur_region >= 0)) ) // not all threads have yet started up
-                     active_lock.wait(region_mutex);
+                     active_lock.wait(lk);
                     
                   data->GetRegionData(0, im, r, region_data[0], *results, 1);
                   //data->ImageDataFinished(im);
@@ -193,8 +189,6 @@ void FLIMGlobalFitController::workerThread(int thread)
                   threads_started = 1;
                  
                   active_lock.notify_all();
-                  region_mutex.unlock();
-
                }
 
                // Process every n_thread'th pixel in region
@@ -335,17 +329,13 @@ terminated:
 
    // If we're the last thread running cleanup temporary variables
    
-   tthread::thread::id cur_id = tthread::this_thread::get_id();
+   std::thread::id cur_id = std::this_thread::get_id();
 
    if (threads_running == 0 && runAsync)
    {
-      ptr_vector<tthread::thread>::iterator iter = thread_handle.begin();
-         while (iter != thread_handle.end())
-         {
-            if ( iter->joinable() && iter->get_id() != cur_id )
-               iter->join();
-            iter++;
-         }
+      for(auto& t : thread_handle)
+         if ( t.joinable() && t.get_id() != cur_id )
+            t.join();
 
       setFitComplete();
    }
@@ -366,8 +356,9 @@ void FLIMGlobalFitController::waitForFit()
 {
    if (!has_fit)
    {
-      fit_mutex.lock();
-      fit_cv.wait(fit_mutex);
+      std::unique_lock<std::mutex> lk(fit_mutex);
+      while (!has_fit)
+         fit_cv.wait(lk);
    }
 }
 
@@ -382,8 +373,6 @@ void FLIMGlobalFitController::setData(shared_ptr<FLIMData> data_)
 
 void FLIMGlobalFitController::init()
 {
-//   assert(acq->irf != nullptr);
-
    cur_region = -1;
    next_pixel  = 0;
    next_region = 0;
@@ -394,7 +383,7 @@ void FLIMGlobalFitController::init()
 
    cur_im.assign(n_thread, 0);
 
-   getting_fit    = false;
+   getting_fit = false;
 
    model->SetTransformedDataParameters(data->GetTransformedDataParameters());
    model->Init();
@@ -496,7 +485,7 @@ int FLIMGlobalFitController::getErrorCode()
 
 void FLIMGlobalFitController::cleanupTempVars()
 {
-   tthread::lock_guard<tthread::recursive_mutex> guard(cleanup_mutex);
+   std::lock_guard<std::recursive_mutex> guard(cleanup_mutex);
    
    region_data.clear();
 
