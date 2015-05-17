@@ -41,33 +41,16 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
    t0_image(nullptr),
    n_irf_rep(1),
    n_chan(1),
-   irf_buf(nullptr),
    variable_irf(false),
    type(Scatter),
    t0(0)
 {
-   int n_irf_ = 4;
-
-   AllocateBuffer(n_irf_);
-
+   irf = {0.0, 1.0, 0.0, 0.0};
+   
    timebin_t0    = -1.0;
    timebin_width =  1.0;
-
-   irf_buf[0] = 0.0; 
-   irf_buf[1] = 1.0; 
-   irf_buf[2] = 0.0; 
-   irf_buf[3] = 0.0; 
-}
-   
-InstrumentResponseFunction::~InstrumentResponseFunction()
-{
-   FreeBuffer();
 }
 
-void InstrumentResponseFunction::FreeBuffer()
-{
-   AlignedClearVariable(irf_buf);
-}
 
 void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, double* irf)
 {
@@ -87,7 +70,7 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_
    {
       double sum = 0;
       for (int j = 0; j < n_t; j++)
-         sum += irf_buf[n_t * i + j];
+         sum += irf[n_t * i + j];
       assert(fabs(sum - 1.0) < 0.1);
    }
 
@@ -109,14 +92,14 @@ double InstrumentResponseFunction::GetT0()
 double* InstrumentResponseFunction::GetIRF(int irf_idx, double t0_shift, double* storage)
 {
    if (image_irf)
-      return irf_buf + irf_idx * n_irf * n_chan;
+      return irf.data() + irf_idx * n_irf * n_chan;
    else if (t0_image)
    {
       ShiftIRF(t0_image[irf_idx], storage);
       return storage;
    }
    else
-      return irf_buf;
+      return irf.data();
 
 }
 
@@ -139,7 +122,7 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
 
 
    for(i=0; i<start; i++)
-       storage[i] = irf_buf[0];
+       storage[i] = irf[0];
 
 
    for(i=start; i<end; i++)
@@ -147,40 +130,27 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
       // will read y[0]...y[3]
       assert(i+c_shift-1 < (n_irf-3));
       assert(i+c_shift-1 >= 0);
-      storage[i] = CubicInterpolate(irf_buf+i+c_shift-1,f_shift);
+      storage[i] = CubicInterpolate(irf.data()+i+c_shift-1,f_shift);
    }
 
    for(i=end; i<n_irf; i++)
-      storage[i] = irf_buf[n_irf-1];
+      storage[i] = irf[n_irf-1];
 
 }
 
 void InstrumentResponseFunction::AllocateBuffer(int n_irf_raw)
 {
-   FreeBuffer();
-
    n_irf = (int) ( ceil(n_irf_raw / 2.0) * 2 );
    int irf_size = n_irf * n_chan * n_irf_rep;
    
-   AlignedAllocate(irf_size, irf_buf);
-/*
-#ifdef _WINDOWS
-      irf_buf   = (double*) _aligned_malloc(irf_size*sizeof(double), 16);
-      t_irf_buf = (double*) _aligned_malloc(n_irf*sizeof(double), 16);
-   #else
-      irf_buf  = new double[irf_size]; 
-      t_irf_buf  = new double[a_n_irf]; 
-   #endif
-   */
+   irf.resize(irf_size);
 }
 
-void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* irf)
+void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* irf_)
 {
    // Copy IRF, padding to ensure we have an even number of points so we can 
    // use SSE primatives in convolution
    //------------------------------
-
-
    AllocateBuffer(n_irf_raw);
       
    for(int j=0; j<n_irf_rep; j++)
@@ -188,10 +158,10 @@ void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* irf)
       int i;
       for(i=0; i<n_irf_raw; i++)
          for(int k=0; k<n_chan; k++)
-             irf_buf[(j*n_chan+k)*n_irf+i] = irf[(j*n_chan+k)*n_irf_raw+i];
+             irf[(j*n_chan+k)*n_irf+i] = irf_[(j*n_chan+k)*n_irf_raw+i];
       for(; i<n_irf; i++)
          for(int k=0; k<n_chan; k++)
-            irf_buf[(j*n_chan+k)*n_irf+i] = irf_buf[(j*n_chan+k)*n_irf+i-1];
+            irf[(j*n_chan+k)*n_irf+i] = irf_[(j*n_chan+k)*n_irf+i-1];
    }
 
 }
@@ -211,8 +181,8 @@ double InstrumentResponseFunction::CalculateGFactor()
       double para = 0;
       for(int i=0; i<n_irf; i++)
       {
-         para += irf_buf[i];
-         perp += irf_buf[i+n_irf];
+         para += irf[i];
+         perp += irf[i+n_irf];
       }
 
       g_factor = para / perp;

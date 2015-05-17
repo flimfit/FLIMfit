@@ -29,33 +29,11 @@
 
 #pragma once
 
+
+#include <boost/align/aligned_allocator.hpp>
 #include <boost/serialization/base_object.hpp>
+#include <vector>
 
-template<typename T>
-void AlignedAllocate(int size, T*& ptr)
-{
-#ifdef _WINDOWS
-   const int alignment = 16;
-   ptr = (T*)_aligned_malloc(size*sizeof(T), alignment);
-#else
-   ptr = new T[size];
-#endif
-};
-
-
-template<typename T>
-void AlignedClearVariable(T*& var)
-{
-   if (var != nullptr)
-   {
-#ifdef _WINDOWS
-      _aligned_free(var);
-#else
-      delete[] var;
-      var = nullptr;
-#endif
-   }
-};
 
 enum IRFType
 {
@@ -67,7 +45,6 @@ class InstrumentResponseFunction
 {
 public:
    InstrumentResponseFunction();
-   ~InstrumentResponseFunction();
 
    void SetIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, double* irf);
    void SetImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double* irf);
@@ -96,12 +73,11 @@ private:
    double CalculateGFactor();
 
    void AllocateBuffer(int n_irf_raw);
-   void FreeBuffer();
 
    static double CubicInterpolate(double  y[], double mu);
 
-   double* irf_buf;
-
+   std::vector<double, boost::alignment::aligned_allocator<double, 16>> irf;
+   
    int     image_irf;
    double* t0_image;
 
@@ -119,6 +95,7 @@ private:
       ar & n_irf_rep;
       ar & g_factor;
       ar & type;
+      ar & irf;
    }
    
    friend class boost::serialization::access;
