@@ -6,7 +6,7 @@
 #include <QLineEdit>
 
 ParameterListDelegate::ParameterListDelegate(QObject *parent)
-   : QStyledItemDelegate(parent)
+   : AbstractItemDelegate(parent)
 {
 }
 
@@ -15,54 +15,39 @@ QWidget *ParameterListDelegate::createEditor(QWidget *parent,
    const QModelIndex & index) const
 {
    auto item = static_cast<ParameterListItem*>(index.internalPointer());
-   QWidget* widget;
 
    if (item->type() == ParameterListItem::Group)
-   {
-      auto *editor = new QLineEdit(parent);
-      editor->setFrame(false);
-      widget = editor;
-   }
+      return createLineEdit(parent);
+   
    if (item->type() == ParameterListItem::Parameter)
    {
       auto parameter = item->parameter();
 
       if (index.column() == 1)
-      {
-         auto *editor = new QDoubleSpinBox(parent);
-         editor->setFrame(false);
-         widget = editor;
-      }
+         return createDoubleSpin(parent);
+      
       else if (index.column() == 2)
       {
-         auto *combo = new QComboBox(parent);
-         combo->setFrame(false);
-
+         auto *combo = createCombo(parent);
+         
          auto fitting_types = parameter->allowed_fitting_types;
          for (auto& t : fitting_types)
             combo->addItem(FittingParameter::fitting_type_names[t], t);
-         widget = combo;
+         return combo;
       }
    }
-   else if (item->type() == ParameterListItem::Option && index.column() == 1)
+   
+   if (item->type() == ParameterListItem::Option && index.column() == 1)
    {
       auto prop = item->property();
       if (prop.type() == QVariant::Int)
-      {
-         auto* w = new QSpinBox(parent);
-         w->setFrame(false);
-         widget = w;
-      }
+         return createSpin();
+      
       else if (prop.type() == QVariant::Bool)
-      {
-         auto* w = new QComboBox(parent);
-         w->setFrame(false);
-         w->addItem("false", false);
-         w->addItem("true", true);
-         widget = w;
-      } 
+         return createBoolCombo();
    }
-   return widget;
+   
+   assert(false); // whoops!
 }
 
 void ParameterListDelegate::setEditorData(QWidget *editor,

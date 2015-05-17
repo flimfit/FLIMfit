@@ -61,7 +61,7 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
    if (rate_ == rate)
       return;
   
-   assert(std::isfinite(rate));
+   assert(std::isfinite(rate_));
    
    rate = rate_;
 

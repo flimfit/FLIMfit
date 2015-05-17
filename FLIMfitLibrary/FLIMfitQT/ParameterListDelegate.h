@@ -41,9 +41,9 @@
 
 #pragma once
 
-#include <QStyledItemDelegate>
+#include "AbstractItemDelegate.h"
 
-class ParameterListDelegate : public QStyledItemDelegate
+class ParameterListDelegate : public AbstractItemDelegate
 {
    Q_OBJECT
 
