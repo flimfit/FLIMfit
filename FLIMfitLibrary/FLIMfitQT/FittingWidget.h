@@ -87,7 +87,7 @@ public:
       data_list->setModel(images.get());
       
 
-      parameters_widget->SetDecayModel(decay_model);
+      parameters_widget->setDecayModel(decay_model);
       
       image_widget = new FLIMImageWidget(this);
       image_widget->setMinimumSize(500,500);
@@ -132,19 +132,21 @@ public:
    void fit()
    {
       
+      parameters_widget->finialise();
+      
       try
       {
       
       fit_controller = std::make_shared<FLIMGlobalFitController>();
-      fit_controller->SetFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
+      fit_controller->setFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
       
       auto data = std::make_shared<FLIMData>(images->getImages(), *transform.get());
          
-      fit_controller->SetData(data);
-      fit_controller->SetModel(decay_model);
+      fit_controller->setData(data);
+      fit_controller->setModel(decay_model);
       
-      fit_controller->Init();
-      fit_controller->RunWorkers();
+      fit_controller->init();
+      fit_controller->runWorkers();
 
       emit newFitController(fit_controller);
          /*

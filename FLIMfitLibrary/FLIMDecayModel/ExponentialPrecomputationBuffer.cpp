@@ -60,6 +60,8 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
    // Don't compute if rate is the same
    if (rate_ == rate)
       return;
+  
+   assert(std::isfinite(rate));
    
    rate = rate_;
 

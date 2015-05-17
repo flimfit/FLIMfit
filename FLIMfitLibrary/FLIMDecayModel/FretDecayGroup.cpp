@@ -479,7 +479,7 @@ int FretDecayGroup::AddDirectAcceptorDerivatives(double* b, int bdim, vector<dou
    int col = 0;
    int idx = 0;
 
-   if (A0_parameter->IsFittedGlobally())
+   if (AD_parameter->IsFittedGlobally())
    {
       int n_fret_group = n_fret_populations + include_donor_only;
       for (int i = 0; i < n_fret_group; i++)
@@ -501,7 +501,7 @@ int FretDecayGroup::AddAcceptorIntensityDerivatives(double* b, int bdim, vector<
    int col = 0;
    int idx = 0;
 
-   if (AD_parameter->IsFittedGlobally())
+   if (A0_parameter->IsFittedGlobally())
    {
       if (include_donor_only)
       {

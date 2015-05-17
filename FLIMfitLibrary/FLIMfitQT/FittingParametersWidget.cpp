@@ -5,11 +5,11 @@ FittingParametersWidget::FittingParametersWidget(QWidget* parent) :
 {
    setupUi(this);
 
-   connect(add_group_button, &QPushButton::pressed, this, &FittingParametersWidget::AddGroup);
-   connect(remove_group_button, &QPushButton::pressed, this, &FittingParametersWidget::RemoveGroup);
+   connect(add_group_button, &QPushButton::pressed, this, &FittingParametersWidget::addGroup);
+   connect(remove_group_button, &QPushButton::pressed, this, &::FittingParametersWidget::removeGroup);
 }
 
-void FittingParametersWidget::SetDecayModel(std::shared_ptr<QDecayModel> decay_model_)
+void FittingParametersWidget::setDecayModel(std::shared_ptr<QDecayModel> decay_model_)
 {
    decay_model = decay_model_;
  
@@ -40,13 +40,19 @@ void FittingParametersWidget::SetDecayModel(std::shared_ptr<QDecayModel> decay_m
 
 }
 
-void FittingParametersWidget::AddGroup()
+void FittingParametersWidget::finialise()
+{
+   parameter_tree->clearSelection();
+   channel_factor_tree->clearSelection();
+}
+
+void FittingParametersWidget::addGroup()
 {
    param_list_model->addGroup(group_type_combo->currentIndex());
    parameter_tree->expandAll();
 }
 
-void FittingParametersWidget::RemoveGroup()
+void FittingParametersWidget::removeGroup()
 {
    param_list_model->removeGroup(parameter_tree->currentIndex());
 }

@@ -157,6 +157,7 @@ void ParameterListDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
 
    if (!value.isNull())
       model->setData(index, value, Qt::EditRole);
+   
 }
 
 void ParameterListDelegate::updateEditorGeometry(QWidget *editor,

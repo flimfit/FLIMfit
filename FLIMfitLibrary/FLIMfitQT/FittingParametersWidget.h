@@ -11,12 +11,14 @@ class FittingParametersWidget : public QWidget, protected Ui::FittingParametersW
 {
 public:
    FittingParametersWidget(QWidget* parent = 0);
-   void SetDecayModel(std::shared_ptr<QDecayModel> decay_model_);
+   void setDecayModel(std::shared_ptr<QDecayModel> decay_model_);
 
+   void finialise();
+   
 protected:
 
-   void AddGroup();
-   void RemoveGroup();
+   void addGroup();
+   void removeGroup();
 
    ParameterListModel* param_list_model;
    ParameterListDelegate* param_list_delegate;
