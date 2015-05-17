@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cvmat_serialization.h"
+
 #include "AcquisitionParameters.h"
 #include <cstdint>
 #include <typeindex> 
@@ -74,7 +76,26 @@ protected:
 private:
    
    std::future<void> clearing_future;
+
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version) const
+   {
+      ar & acq;
+      ar & data_class;
+      ar & data;
+      ar & mask;
+      ar & name;
+      ar & intensity;
+      ar & acceptor;
+      ar & map_file_name;
+      ar & map_offset;
+      ar & map_length;
+      ar & data_mode;
+   }
+   
+   friend class boost::serialization::access;
 };
+
 
 
 template<typename T>

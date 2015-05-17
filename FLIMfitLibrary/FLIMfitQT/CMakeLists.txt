@@ -32,6 +32,7 @@ set(SOURCE
    DecayWidget.cpp
    main.cpp
    qcustomplot.cpp
+   FLIMImageSet.cpp
 )
 
 set(HEADERS

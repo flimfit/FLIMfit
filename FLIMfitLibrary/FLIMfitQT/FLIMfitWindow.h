@@ -1,6 +1,20 @@
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+
 #include "ui_FLIMfitWindow.h"
 #include <QMainWindow>
+#include <QFileDialog>
+#include <QDir>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QDataStream>
 #include "ProgressWidget.h"
+
+#include <fstream>
+
+static qint32 flimfit_project_format_version = 1;
 
 class FLIMfitWindow : public QMainWindow, public Ui::FLIMfitWindow
 {
@@ -12,7 +26,57 @@ public:
       setupUi(this);
       
       connect(fitting_widget, &FittingWidget::newFitController, this, &FLIMfitWindow::setFitController);
+      connect(new_project_action, &QAction::triggered, this, &FLIMfitWindow::newProjectFromDialog);
+      connect(open_project_action, &QAction::triggered, this, &FLIMfitWindow::openProjectFromDialog);
+      connect(save_project_action, &QAction::triggered, this, &FLIMfitWindow::saveProject);
       
+      openProject("/Users/sean/Documents/FLIMTestData/Test FLIMfit Project/project.flimfit");
+      
+      loadTestData();
+      fitting_widget->setImageSet(images);
+   }
+   
+   
+   void saveProject()
+   {
+      std::ofstream ofs(project_file.toStdString());
+      boost::archive::binary_oarchive oa(ofs);
+      // write class instance to archive
+      oa << images->getImages();
+   }
+   
+   void newProjectFromDialog()
+   {
+      QString folder = QFileDialog::getExistingDirectory();
+      newProject(folder);
+   }
+
+   
+   void newProject(const QString& folder)
+   {
+      QString file = QFileDialog::getSaveFileName(this, "Choose project location", QString(), "FLIMfit Project (*.flimfit)");
+      QFileInfo info(file);
+      QDir path(info.absolutePath());
+      QString base_name = info.baseName();
+      if (!path.mkdir(info.baseName()))
+      {
+         QMessageBox::critical(this, "Error", "Could not create project folder");
+         return;
+      }
+      
+      path.setPath(info.baseName());
+      project_file = path.filePath(info.fileName());
+   }
+   
+   void openProjectFromDialog()
+   {
+      QString file = QFileDialog::getOpenFileName(this, "Choose FLIMfit project", QString(), "FLIMfit Project (*.flimfit)");
+      openProject(file);
+   }
+   
+   void openProject(const QString& file)
+   {
+      project_file = file;
    }
    
    void setFitController(std::shared_ptr<FLIMGlobalFitController> controller)
@@ -26,4 +90,35 @@ public:
    }
 
 protected:
+   
+   
+   
+   void loadTestData()
+   {
+      QString root = "/Users/sean/Documents/FLIMTestData";
+      
+      bool use_acceptor_test_data = true;
+      
+      QString folder, irf_name;
+      if (!use_acceptor_test_data)
+      {
+         folder = QString("%1%2").arg(root).arg("/dual_data");
+         irf_name = QString("%1%2").arg(root).arg("/2015-05-15 Dual FRET IRF.csv");
+      }
+      else
+      {
+         folder = QString("%1%2").arg(root).arg("/acceptor");
+         irf_name = QString("%1%2").arg(root).arg("/acceptor-fret-irf.csv");
+      }
+      
+      auto irf = FLIMImporter::importIRF(irf_name);
+      images = FLIMImporter::importFromFolder(folder);
+      
+      auto acq = images->getAcquisitionParameters();
+      acq->SetIRF(irf);
+   }
+
+
+   std::shared_ptr<FLIMImageSet> images;
+   QString project_file;
 };

@@ -19,7 +19,7 @@ set(CMAKE_AUTOMOC ON)
 
 #set(Boost_USE_STATIC_LIBS ON)
 #set(Boost_USE_MULTITHREADED ON)
-find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
 include_directories(${Boost_INCLUDE_DIR})
 #add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 

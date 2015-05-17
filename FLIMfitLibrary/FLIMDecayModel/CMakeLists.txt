@@ -62,6 +62,8 @@ set(HEADERS
    DataTransformer.h
    FLIMImage.h
    FLIMBackground.h
+   cvmat_serialization.h
+
 )
 
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)

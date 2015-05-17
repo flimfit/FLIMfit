@@ -154,6 +154,10 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="new_project_action"/>
+    <addaction name="open_project_action"/>
+    <addaction name="save_project_action"/>
+    <addaction name="separator"/>
     <addaction name="actionLoad_FLIM_Data"/>
    </widget>
    <addaction name="menuFile"/>
@@ -162,6 +166,30 @@
   <action name="actionLoad_FLIM_Data">
    <property name="text">
     <string>Load FLIM Data...</string>
+   </property>
+  </action>
+  <action name="save_project_action">
+   <property name="text">
+    <string>Save Project...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="open_project_action">
+   <property name="text">
+    <string>Open Project...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="new_project_action">
+   <property name="text">
+    <string>New Project...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
  </widget>

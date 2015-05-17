@@ -35,7 +35,7 @@ public:
       // TODO : check that acq parameters match
    }
 
-   std::shared_ptr<FLIMImage> getImage(int idx)
+   std::shared_ptr<FLIMImage> getImage(int idx) const
    {
       return images[idx];
    }
@@ -63,7 +63,7 @@ public:
       current_image = images[index.row()];
       emit currentImageChanged(current_image);
    }
-   
+      
    shared_ptr<FLIMImage> getCurrentImage() { return current_image; }
 
 signals:

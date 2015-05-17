@@ -26,37 +26,21 @@ public:
       data_list->setAttribute(Qt::WA_MacShowFocusRect, false);
       
       connect(fit_button, &QPushButton::pressed, this, &FittingWidget::fit);
+      
+      image_widget = new FLIMImageWidget(this);
+      image_widget->setMinimumSize(500,500);
+      mdi_area->addSubWindow(image_widget);
+   }
+   
+   void setImageSet(std::shared_ptr<FLIMImageSet> images_)
+   {
+      images = images_;
 
-      QString root = "/Users/sean/Documents/FLIMTestData";
-
-
-      bool use_acceptor_test_data = true;
-      
-      QString folder, irf_name;
-      if (!use_acceptor_test_data)
-      {
-         folder = QString("%1%2").arg(root).arg("/dual_data");
-         irf_name = QString("%1%2").arg(root).arg("/2015-05-15 Dual FRET IRF.csv");
-      }
-      else
-      {
-         folder = QString("%1%2").arg(root).arg("/acceptor");
-         irf_name = QString("%1%2").arg(root).arg("/acceptor-fret-irf.csv");
-      }
-
-      
-      
-      
-      auto irf = FLIMImporter::importIRF(irf_name);
-      images = FLIMImporter::importFromFolder(folder);
-      
-      auto acq = images->getAcquisitionParameters();
-      acq->SetIRF(irf);
       decay_model = std::make_shared<QDecayModel>();
       
       transform = std::make_shared<QDataTransformationSettings>();
       
-      auto dp = std::make_shared<TransformedDataParameters>(acq, *transform.get());
+      auto dp = std::make_shared<TransformedDataParameters>(images->getAcquisitionParameters(), *transform.get());
 
       decay_model->SetTransformedDataParameters(dp);
       //decay_model->AddDecayGroup(std::make_shared<QMultiExponentialDecayGroup>());
@@ -67,7 +51,7 @@ public:
 
       std::vector<double> ch_acceptor, ch_donor;
       
-      if (use_acceptor_test_data)
+      if (true)
       {
          ch_donor = {1.0, 0.0};
          ch_acceptor = {0.0, 1.0};
@@ -89,13 +73,9 @@ public:
 
       parameters_widget->setDecayModel(decay_model);
       
-      image_widget = new FLIMImageWidget(this);
-      image_widget->setMinimumSize(500,500);
-      mdi_area->addSubWindow(image_widget);
-
       connect(images.get(), &FLIMImageSet::currentImageChanged, image_widget, &FLIMImageWidget::setImage);
       image_widget->setImage(images->getCurrentImage());
-      //Fit();
+
    }
 
    void fitSelected()

@@ -27,9 +27,9 @@
 //
 //=========================================================================
 
-#ifndef _IRF_H
-#define _IRF_H
+#pragma once
 
+#include <boost/serialization/base_object.hpp>
 
 template<typename T>
 void AlignedAllocate(int size, T*& ptr)
@@ -77,7 +77,6 @@ public:
    double* GetIRF(int irf_idx, double t0_shift, double* storage);
    double GetT0();
 
-
    double timebin_width;
    double timebin_t0;
 
@@ -91,7 +90,6 @@ public:
    
    IRFType type; 
 
-
 private:
    void CopyIRF(int n_irf_raw, double* irf);
    void ShiftIRF(double shift, double storage[]);
@@ -104,13 +102,25 @@ private:
 
    double* irf_buf;
 
-
    int     image_irf;
    double* t0_image;
 
    double t0;
-
-
+   
+   
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version) const
+   {
+      ar & timebin_width;
+      ar & timebin_t0;
+      ar & variable_irf;
+      ar & n_irf;
+      ar & n_chan;
+      ar & n_irf_rep;
+      ar & g_factor;
+      ar & type;
+   }
+   
+   friend class boost::serialization::access;
+   
 };
-
-#endif

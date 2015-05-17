@@ -35,6 +35,7 @@
 using std::shared_ptr;
 using std::vector;
 
+#include <boost/serialization/base_object.hpp>
 
 class AcquisitionParameters
 {
@@ -58,28 +59,46 @@ public:
    int n_x = 1;
    int n_y = 1;
 
-   //int n_t = 1;
    int n_t_full = 1;
    int n_chan = 1;
    
    double  counts_per_photon = 1;
    double  t_rep;
    
-   //vector<int>    t_skip;
    vector<double> t;
    vector<double> t_int;
-   vector<double> tvb_profile;
 
    shared_ptr<InstrumentResponseFunction> irf;
 
    // Computed parameters
    int n_px;
-   //int n_meas;
    int n_meas_full;
    bool equally_spaced_gates;
-   vector<int> irf_max;
 
 protected:
 
    void CheckGateSpacing();
+   
+private:
+   
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
 };
+
+template<class Archive>
+void AcquisitionParameters::serialize(Archive & ar, const unsigned int version)
+{
+   ar & data_type;
+   ar & polarisation_resolved;
+   ar & n_x;
+   ar & n_y;
+   ar & n_t_full;
+   ar & n_chan;
+   ar & counts_per_photon;
+   ar & t_rep;
+   ar & t;
+   ar & t_int;
+   ar & irf;
+}
