@@ -159,14 +159,17 @@
     <addaction name="separator"/>
     <addaction name="save_project_action"/>
     <addaction name="separator"/>
-    <addaction name="actionLoad_FLIM_Data"/>
+    <addaction name="load_data_action"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionLoad_FLIM_Data">
+  <action name="load_data_action">
    <property name="text">
     <string>Load FLIM Data...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="save_project_action">

@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QDataStream>
 #include "ProgressWidget.h"
+#include "ImporterWidget.h"
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -13,33 +14,56 @@
 #include <fstream>
 
 static qint32 flimfit_project_format_version = 1;
+static std::string flimfit_project_magic_string = "FLIMfit Project File";
 
 class FLIMfitWindow : public QMainWindow, public Ui::FLIMfitWindow
 {
    Q_OBJECT
+   
 public:
-   FLIMfitWindow(QWidget* parent = 0) :
+   FLIMfitWindow(const QString project_file = QString(), QWidget* parent = 0) :
       QMainWindow(parent)
    {
       setupUi(this);
       
       connect(fitting_widget, &FittingWidget::newFitController, this, &FLIMfitWindow::setFitController);
-      connect(new_project_action, &QAction::triggered, this, &FLIMfitWindow::newProjectFromDialog);
+      connect(new_project_action, &QAction::triggered, this, &FLIMfitWindow::newWindow);
       connect(open_project_action, &QAction::triggered, this, &FLIMfitWindow::openProjectFromDialog);
       connect(save_project_action, &QAction::triggered, this, &FLIMfitWindow::saveProject);
+      connect(load_data_action, &QAction::triggered, this, &FLIMfitWindow::importData);
       
-      openProject("/Users/sean/Documents/FLIMTestData/Test FLIMfit Project/project.flimfit");
+      if (project_file == QString())
+         newProjectFromDialog();
+      else
+         openProject(project_file);
       
       //loadTestData();
-      fitting_widget->setImageSet(images);
+      //fitting_widget->setImageSet(images);
    }
    
+   void importData()
+   {
+      ImporterWidget* importer = new ImporterWidget(project_root);
+      connect(importer, &ImporterWidget::newImageSet, [&](std::shared_ptr<FLIMImageSet> new_images){
+         images = new_images;
+         fitting_widget->setImageSet(images);
+      });
+      importer->show();
+   }
+   
+   void newWindow()
+   {
+      FLIMfitWindow* window = new FLIMfitWindow();
+      window->showMaximized();
+   }
    
    void saveProject()
    {
       try
       {
          std::ofstream ofs(project_file.toStdString(), std::ifstream::binary);
+         ofs << flimfit_project_magic_string << "\n";
+         ofs << flimfit_project_format_version;
          boost::archive::binary_oarchive oa(ofs);
          // write class instance to archive
          oa << images->getImages();
@@ -53,17 +77,11 @@ public:
    
    void newProjectFromDialog()
    {
-      QString folder = QFileDialog::getExistingDirectory();
-      newProject(folder);
-   }
-
-   
-   void newProject(const QString& folder)
-   {
       QString file = QFileDialog::getSaveFileName(this, "Choose project location", QString(), "FLIMfit Project (*.flimfit)");
       QFileInfo info(file);
       QDir path(info.absolutePath());
       QString base_name = info.baseName();
+      
       if (!path.mkdir(info.baseName()))
       {
          QMessageBox::critical(this, "Error", "Could not create project folder");
@@ -71,13 +89,23 @@ public:
       }
       
       path.setPath(info.baseName());
-      project_file = path.filePath(info.fileName());
+      QString new_file = path.filePath(info.fileName());
+      
+      openProject(new_file);
    }
+
    
    void openProjectFromDialog()
    {
       QString file = QFileDialog::getOpenFileName(this, "Choose FLIMfit project", QString(), "FLIMfit Project (*.flimfit)");
-      openProject(file);
+
+      if (!QFileInfo(project_file).exists() && !project_changed)
+         openProject(file);
+      else
+      {
+         FLIMfitWindow window(file);
+         window.showMaximized();
+      }
    }
    
    void openProject(const QString& file)
@@ -91,6 +119,15 @@ public:
          try
          {
             std::ifstream ifs(project_file.toStdString(), std::ifstream::binary);
+            
+            char magicbuf[30];
+            ifs.getline(magicbuf,30);
+            if (flimfit_project_magic_string != magicbuf)
+               throw std::runtime_error("Not a FLIMfit project file");
+            
+            quint32 version;
+            ifs >> version;
+            
             boost::archive::binary_iarchive ia(ifs);
             std::vector<std::shared_ptr<FLIMImage>> new_images;
             ia >> new_images;
@@ -126,7 +163,7 @@ public:
 
 protected:
    
-   
+   bool project_changed = false;
    
    void loadTestData()
    {

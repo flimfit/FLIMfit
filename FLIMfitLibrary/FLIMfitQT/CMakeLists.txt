@@ -16,7 +16,8 @@ qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
                        FittingWidget.ui
 		                 FLIMImageWidget.ui
                        FitResultsWidget.ui
-                       ProgressWidget.ui)
+                       ProgressWidget.ui
+                       ImporterWidget.ui)
 
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
@@ -54,6 +55,7 @@ set(HEADERS
    ProgressWidget.h
    ResultsTableModel.h
    AbstractItemDelegate.h
+   ImporterWidget.h
 )
 
 include_directories(../FLIMDecayModel 

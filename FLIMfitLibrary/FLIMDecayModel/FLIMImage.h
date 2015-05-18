@@ -10,6 +10,7 @@
 #include <string>
 #include <fstream>
 #include <future>
+#include <functional>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -51,12 +52,18 @@ public:
    
    void setRoot(const std::string& root_) { root = root_; } // TODO -> move mapped file
    
+   bool hasData() { return has_data; }
+   void setReadFuture(std::shared_future<void> reader_future_) { reader_future = reader_future_; }
+   
 protected:
-
+   
    template<typename T>
    void getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& decay);
    
    bool has_acceptor = false;
+   bool has_data = false;
+   std::shared_future<void> reader_future;
+   
    
    shared_ptr<AcquisitionParameters> acq;
    DataClass data_class;
@@ -99,6 +106,7 @@ private:
       ar & map_offset;
       ar & map_length;
       ar & data_mode;
+      ar & has_data;
    }
    
    friend class boost::serialization::access;
@@ -124,6 +132,8 @@ data_mode(data_mode)
       memcpy(mask.data(), mask_, acq->n_px * sizeof(uint8_t));
    }
    
+   has_data = true;
+   
    compute<T>();
 }
 
@@ -131,6 +141,16 @@ data_mode(data_mode)
 template <typename T>
 T* FLIMImage::getDataPointer()
 {
+   // See if the image data has been set
+   if (!has_data)
+   {
+      // Do we have a reader future?
+      if (reader_future.valid())
+         reader_future.wait();
+      else
+         throw std::runtime_error("No data loaded yet!");
+   }
+   
    if (clearing_future.valid())
       clearing_future.wait();
    
@@ -180,6 +200,7 @@ void FLIMImage::releasePointer()
 template<typename T>
 void FLIMImage::releaseModifiedPointer()
 {
+   has_data = true;
    compute<T>();
    releasePointer<T>();
 }

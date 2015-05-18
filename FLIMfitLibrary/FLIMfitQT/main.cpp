@@ -11,7 +11,9 @@ int main(int argc, char *argv[])
    app.setOrganizationName("FLIMfit");
    app.setApplicationName("FLIMfit");
 
-   FLIMfitWindow window;
+   QString default_project = "/Users/sean/Documents/FLIMTestData/Test FLIMfit Project/project.flimfit";
+   
+   FLIMfitWindow window(default_project);
    window.showMaximized();
 
    return app.exec();
