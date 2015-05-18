@@ -17,7 +17,8 @@ qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
 		                 FLIMImageWidget.ui
                        FitResultsWidget.ui
                        ProgressWidget.ui
-                       ImporterWidget.ui)
+                       ImporterWidget.ui
+                       FLIMfitLauncher.ui)
 
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
@@ -34,6 +35,7 @@ set(SOURCE
    main.cpp
    qcustomplot.cpp
    FLIMImageSet.cpp
+   FLIMfitWindow.cpp
 )
 
 set(HEADERS
@@ -56,6 +58,7 @@ set(HEADERS
    ResultsTableModel.h
    AbstractItemDelegate.h
    ImporterWidget.h
+   FLIMfitLauncher.h
 )
 
 include_directories(../FLIMDecayModel 
