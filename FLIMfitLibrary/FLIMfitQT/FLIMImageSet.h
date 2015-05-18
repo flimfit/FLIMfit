@@ -10,6 +10,8 @@ class FLIMImageSet : public QAbstractListModel
 
 public:
    
+   
+   
    int rowCount(const QModelIndex & parent = QModelIndex()) const
    {
       return (int) images.size();
@@ -43,6 +45,19 @@ public:
    const std::vector<std::shared_ptr<FLIMImage>> getImages()
    {
       return images;
+   }
+   
+   void setImages(const std::vector<std::shared_ptr<FLIMImage>>& images_)
+   {
+      images = images_;
+      
+      if (images.size() > 0)
+         current_image = images[0];
+      else
+         current_image = nullptr;
+      
+      emit imagesUpdated();
+      currentImageChanged(current_image);
    }
 
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters()

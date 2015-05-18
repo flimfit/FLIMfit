@@ -24,7 +24,7 @@ public:
    template<typename T>
    FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_ = nullptr);
    
-   FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, DataMode data_mode = MappedFile);
+   FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode = MappedFile, const std::string& root = "");
    ~FLIMImage();
    
    void init();
@@ -49,6 +49,8 @@ public:
    
    size_t getImageSizeInBytes() { return map_length; }
    
+   void setRoot(const std::string& root_) { root = root_; } // TODO -> move mapped file
+   
 protected:
 
    template<typename T>
@@ -72,13 +74,19 @@ protected:
    size_t map_length = 0;
    DataMode data_mode = MappedFile;
    int open_pointers = 0;
+   std::string root;
    
 private:
    
    std::future<void> clearing_future;
 
+   
+   FLIMImage() :
+   stored_type(typeid(float))
+   {};
+   
    template<class Archive>
-   void serialize(Archive & ar, const unsigned int version) const
+   void serialize(Archive & ar, const unsigned int version)
    {
       ar & acq;
       ar & data_class;

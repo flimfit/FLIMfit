@@ -1,8 +1,3 @@
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/shared_ptr.hpp>
-#include <boost/serialization/vector.hpp>
-
 #include "ui_FLIMfitWindow.h"
 #include <QMainWindow>
 #include <QFileDialog>
@@ -11,6 +6,9 @@
 #include <QMessageBox>
 #include <QDataStream>
 #include "ProgressWidget.h"
+
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 #include <fstream>
 
@@ -32,17 +30,25 @@ public:
       
       openProject("/Users/sean/Documents/FLIMTestData/Test FLIMfit Project/project.flimfit");
       
-      loadTestData();
+      //loadTestData();
       fitting_widget->setImageSet(images);
    }
    
    
    void saveProject()
    {
-      std::ofstream ofs(project_file.toStdString());
-      boost::archive::binary_oarchive oa(ofs);
-      // write class instance to archive
-      oa << images->getImages();
+      try
+      {
+         std::ofstream ofs(project_file.toStdString(), std::ifstream::binary);
+         boost::archive::binary_oarchive oa(ofs);
+         // write class instance to archive
+         oa << images->getImages();
+      }
+      catch(std::exception e)
+      {
+         QString msg = QString("Could not write project file: %1").arg(e.what());
+         QMessageBox::critical(this, "Error", msg);
+      }
    }
    
    void newProjectFromDialog()
@@ -76,7 +82,36 @@ public:
    
    void openProject(const QString& file)
    {
+      QFileInfo info(file);
+      project_root = info.absolutePath();
       project_file = file;
+      
+      if (info.exists())
+      {
+         try
+         {
+            std::ifstream ifs(project_file.toStdString(), std::ifstream::binary);
+            boost::archive::binary_iarchive ia(ifs);
+            std::vector<std::shared_ptr<FLIMImage>> new_images;
+            ia >> new_images;
+            
+            for(auto& image : new_images)
+            {
+               image->setRoot(project_root.toStdString());
+               image->init();
+            }
+            
+            images = std::make_shared<FLIMImageSet>();
+            images->setImages(new_images);
+            fitting_widget->setImageSet(images);
+            
+         }
+         catch(std::exception e)
+         {
+            QString msg = QString("Could not read project file: %1").arg(e.what());
+            QMessageBox::critical(this, "Error", msg);
+         }
+      }
    }
    
    void setFitController(std::shared_ptr<FLIMGlobalFitController> controller)
@@ -112,7 +147,7 @@ protected:
       }
       
       auto irf = FLIMImporter::importIRF(irf_name);
-      images = FLIMImporter::importFromFolder(folder);
+      images = FLIMImporter::importFromFolder(folder, project_root);
       
       auto acq = images->getAcquisitionParameters();
       acq->SetIRF(irf);
@@ -120,5 +155,6 @@ protected:
 
 
    std::shared_ptr<FLIMImageSet> images;
+   QString project_root;
    QString project_file;
 };

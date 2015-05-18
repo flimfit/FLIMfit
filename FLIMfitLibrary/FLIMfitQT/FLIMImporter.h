@@ -32,7 +32,7 @@ public:
       return irf;
    }
 
-   static std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder)
+   static std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const QString& project_folder = 0)
    {
       QDir dir(folder);
 
@@ -56,13 +56,13 @@ public:
       // Read as float for csv (might well be larger than MAX(uint16_t))
       // or read as uint16_t for image data (needs less memory)
       if (first_ext == "csv")
-         return importFiles<float>(matching_files);
+         return importFiles<float>(matching_files, project_folder);
       else
-         return importFiles<uint16_t>(matching_files);
+         return importFiles<uint16_t>(matching_files, project_folder);
    }
    
    template <typename T>
-   static std::shared_ptr<FLIMImageSet> importFiles(QStringList files)
+   static std::shared_ptr<FLIMImageSet> importFiles(QStringList files, const QString& root)
    {
       auto images = std::make_shared<FLIMImageSet>();
 
@@ -91,9 +91,11 @@ public:
          acq->SetT(reader->timepoints());
          reader = nullptr;
          
-         auto image = std::make_shared<FLIMImage>(acq, typeid(T));
-         image->setName(stack_files[0]);
-
+         QFileInfo info(QString::fromStdString(stack_files[0]));
+         std::string basename = info.baseName().toStdString();
+         
+         auto image = std::make_shared<FLIMImage>(acq, typeid(T), basename, FLIMImage::DataMode::MappedFile, root.toStdString());
+         
          size_t sz = image->getImageSizeInBytes();
          data_buf.resize(sz);
          

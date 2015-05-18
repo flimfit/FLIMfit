@@ -85,7 +85,7 @@ private:
    
    
    template<class Archive>
-   void serialize(Archive & ar, const unsigned int version) const
+   void serialize(Archive & ar, const unsigned int version)
    {
       ar & timebin_width;
       ar & timebin_t0;

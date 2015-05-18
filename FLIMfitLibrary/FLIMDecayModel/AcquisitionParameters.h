@@ -29,13 +29,17 @@
 
 #pragma once
 
+#include <boost/serialization/type_info_implementation.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+
 #include "InstrumentResponseFunction.h"
 #include <vector>
 #include <memory>
 using std::shared_ptr;
 using std::vector;
 
-#include <boost/serialization/base_object.hpp>
 
 class AcquisitionParameters
 {
@@ -101,4 +105,7 @@ void AcquisitionParameters::serialize(Archive & ar, const unsigned int version)
    ar & t;
    ar & t_int;
    ar & irf;
+   ar & n_px;
+   ar & n_meas_full;
+   ar & equally_spaced_gates;
 }
