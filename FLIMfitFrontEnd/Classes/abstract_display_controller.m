@@ -163,7 +163,7 @@ classdef abstract_display_controller < handle
                         {'*.ppt', 'Powerpoint (*.ppt)'},...
                          'Select root file name',[default_path filesep]);
 
-            if ~isempty(filename)
+            if filename ~= 0
                 
                 [f,ref] = obj.make_hidden_fig([300, 400]);
                 

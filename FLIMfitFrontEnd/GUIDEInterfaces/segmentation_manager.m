@@ -279,7 +279,7 @@ function menu_file_load_single_segmentation_Callback(hObject, eventdata, handles
                  {'*.tif', 'TIFF image (*.tif)'},...
                  'Select file name',default_path);
     
-    if ~isempty(filename)
+    if filename ~= 0
         handles.segmentation_controller.load_single_segmentation([pathname filename])
     end
 

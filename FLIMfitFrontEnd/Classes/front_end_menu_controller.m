@@ -41,7 +41,7 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_IRF_FOV;
         menu_OMERO_Load_IRF_annot;            
         menu_OMERO_Load_Background;            
-        menu_OMERO_Export_Fitting_Results;    
+        %menu_OMERO_Export_Fitting_Results;    
         menu_OMERO_Export_Fitting_Settings;            
         menu_OMERO_Import_Fitting_Settings;
         menu_OMERO_Reset_Logon;  
@@ -67,12 +67,13 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Connect_To_Another_User;    
         menu_OMERO_Connect_To_Logon_User;    
         
-        menu_OMERO_Import_Fitting_Results;
+        %menu_OMERO_Import_Fitting_Results;
         
         omero_data_manager;     
         
         menu_OMERO_load_acceptor;
-        %menu_OMERO_export_acceptor;
+        menu_OMERO_export_plots;
+        menu_OMERO_export_hist_data;
         
         %%%%%%%%%%%%%%%%%%%%%%% OMERO                        
                         
@@ -114,7 +115,6 @@ classdef front_end_menu_controller < handle
         menu_file_save_fit;
         
         menu_file_export_plots;
-        menu_file_export_gallery;
         menu_file_export_hist_data;
         
         menu_file_import_plate_metadata;
@@ -523,7 +523,8 @@ classdef front_end_menu_controller < handle
         end                                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
-            obj.omero_data_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
+            add_Image(obj.omero_data_manager);
+            %obj.omero_data_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
         end                                    
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Another_User_callback(obj,~,~)
@@ -1215,31 +1216,22 @@ classdef front_end_menu_controller < handle
                          '*.fig','Matlab figure (*.fig)'},...
                          'Select root file name',[obj.default_path filesep 'fit']);
 
-            if ~isempty(filename)
+            if filename ~= 0
                 obj.plot_controller.update_plots([pathname filename])
             end
         end
         
-        function menu_file_export_all_callback(obj,~,~)
+        function menu_OMERO_export_plots_callback(obj, ~, ~)
+            
+            default_name = [char(obj.omero_data_manager.dataset.getName().getValue() ) 'fit'];
+            [filename, pathname, before_list] = obj.data_series_controller.data_series.prompt_for_image_export('', default_name)
+            obj.plot_controller.update_plots([pathname filename]);
+            obj.data_series_controller.data_series.export_new_images(pathname,filename,before_list);
             
         end
         
-        function menu_file_export_gallery_callback(obj, ~, ~)
-
-            [filename, pathname, ~] = uiputfile( ...
-                        {'*.tiff', 'TIFF image (*.tiff)';...
-                         '*.pdf','PDF document (*.pdf)';...
-                         '*.png','PNG image (*.png)';...
-                         '*.eps','EPS level 1 image (*.eps)';...
-                         '*.fig','Matlab figure (*.fig)';...
-                         '*.*',  'All Files (*.*)'},...
-                         'Select root file name',[obj.default_path filesep 'fit']);
-
-            if ~isempty(filename)
-                obj.plot_controller.update_gallery([pathname filename])
-            end
-            
-        end
+    
+         
         
         function menu_file_export_hist_data_callback(obj, ~, ~)
             [filename, pathname] = uiputfile({'*.txt', 'Text File (*.txt)'},'Select file name',obj.default_path);

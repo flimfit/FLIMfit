@@ -87,6 +87,8 @@ classdef OMERO_data_series < flim_data_series
     
     methods
         
+     
+        
      function obj = OMERO_data_series(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
