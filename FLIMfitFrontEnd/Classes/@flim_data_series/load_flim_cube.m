@@ -1,5 +1,5 @@
 
-function[success, target] = load_flim_cube(obj, target, file, selected, current_image, dims, ZCT)
+function[success, target] = load_flim_cube(obj, target, file, read_selected, write_selected, dims, ZCT)
 
 
 %  Loads FLIM_data from a file or set of files
@@ -42,9 +42,11 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
         ZCT = obj.ZCT;
         total_files = length(obj.names);
         modulo = obj.modulo;
+       
+        
     else
         delays = dims.delays;
-        nfiles = length(selected);
+        nfiles = length(read_selected);
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);
         sizeY = dims.sizeXY(2);
@@ -54,6 +56,8 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
     
     success = true; 
     
+   
+ 
     
     % convert to java/c++ numbering from 0
     Zarr  = ZCT{1}-1;
@@ -161,7 +165,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                     
                     try
                         plane = imread(filename,'tif');
-                        target(t,1,:,:,selected) = plane;
+                        target(t,1,:,:,write_selected) = plane;
                     catch error
                         throw(error);
                     end
@@ -178,8 +182,8 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                 
             end
             
-            if min(target(:,1,:,:,selected)) > 32500
-                target(:,1,:,:,selected) = target(:,1,:,:,selected) - 32768;    % clear the sign bit which is set by labview
+            if min(target(:,1,:,:,write_selected)) > 32500
+                target(:,1,:,:,write_selected) = target(:,1,:,:,write_selected) - 32768;    % clear the sign bit which is set by labview
             end
             
             if verbose
@@ -221,7 +225,8 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
           
             % multi-image file
             if length(obj.imageSeries) >1
-                r.setSeries(obj.imageSeries(current_image) - 1);
+                r.setSeries(obj.imageSeries(read_selected) - 1);
+                read_selected= 1;
             else
                 r.setSeries(obj.imageSeries -1);
             end
@@ -273,7 +278,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                         T = Tarr(time);
                         
                         % check that we are supposed to load this FLIM cube
-                        if ctr == selected  ||  polarisation_resolved  || nfiles >1
+                        if ctr == read_selected  ||  polarisation_resolved  || nfiles >1
                             
                             t = 0;
                             for block = 0:nblocks - 1
@@ -292,7 +297,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                                                 rawPlane = r.openBytes(index);
                                                 I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
                                                 I = typecast(I, type);
-                                                target(t,pctr,:,:,selected) = reshape(I, sizeY, sizeX)';
+                                                target(t,pctr,:,:,write_selected) = reshape(I, sizeY, sizeX)';
                                                 
                                             end
                                         else  % signed
@@ -300,7 +305,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                                                 index = r.getIndex(Z, chan ,T + t);
                                                 t = t + 1;
                                                 plane = bfGetPlane(r,index + 1);
-                                                target(t,pctr,:,:,selected) = plane;
+                                                target(t,pctr,:,:,write_selected) = plane;
                                             end
                                         end
                                         
@@ -310,7 +315,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                                             index = r.getIndex(Z + t, chan ,T);
                                             t = t + 1;
                                             plane = bfGetPlane(r,index + 1);
-                                            target(t,pctr,:,:,selected) = plane;
+                                            target(t,pctr,:,:,write_selected) = plane;
                                         end
                                         
                                     case 'ModuloAlongC'
@@ -319,7 +324,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                                             index = r.getIndex(Z, C + t ,T);
                                             t = t + 1;
                                             plane = bfGetPlane(r,index + 1);
-                                            target(t,pctr,:,:,selected) = plane;
+                                            target(t,pctr,:,:,write_selected) = plane;
                                         end
                                         
                                 end  % end switch
@@ -332,7 +337,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                                 end
                                 
                             end    % end nblocks
-                        end     % end if selected
+                        end     % end if read_selected
                         
                         if polarisation_resolved
                             pctr = pctr + 1;
@@ -369,7 +374,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
         case '.pt3'
             
             r = FLIMreaderMex(file);
-            target(:,:,:,:,selected) = FLIMreaderMex(r, 'GetData', Carr);
+            target(:,:,:,:,write_selected) = FLIMreaderMex(r, 'GetData', Carr);
             FLIMreaderMex(r,'Delete');
             
         case {'.csv','.txt'}
@@ -406,8 +411,8 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                 chan = Carr(c) +2;
                 
                 % check that we are supposed to load this FLIM cube
-                if ctr == selected  ||  polarisation_resolved  || nfiles >1
-                    target(:,pctr,:,:,selected) = ir(:,chan);
+                if ctr == read_selected  ||  polarisation_resolved  || nfiles >1
+                    target(:,pctr,:,:,write_selected) = ir(:,chan);
                 end
                 
                 if polarisation_resolved
@@ -432,9 +437,9 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
                  
             % this format can't do multi-plane/channel
             if size(data,1) == 1 || size(data,2) == 1
-                target(:,1,1,1,selected) = data;
+                target(:,1,1,1,write_selected) = data;
             else
-                target(:,1,:,:,selected) = data;
+                target(:,1,:,:,write_selected) = data;
             end
           
           case {'.irf'}
@@ -448,7 +453,7 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
             end
             
             
-            target(:,pctr,:,:,selected) = ir(:,2);
+            target(:,pctr,:,:,write_selected) = ir(:,2);
            
             if polarisation_resolved
                 pctr = pctr + 1;
