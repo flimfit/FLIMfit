@@ -218,10 +218,15 @@ function[success, target] = load_flim_cube(obj, target, file, selected, current_
               
             end
             
-            
-            r.setSeries(obj.imageSeries(current_image) - 1);
-            
-            
+          
+            % multi-image file
+            if length(obj.imageSeries) >1
+                r.setSeries(obj.imageSeries(current_image) - 1);
+            else
+                r.setSeries(obj.imageSeries -1);
+            end
+               
+              
           
             %check that image dimensions match those read from first
             %file
