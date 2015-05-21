@@ -79,7 +79,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
         menu_file_export_volume = uimenu(menu_file,'Label','Export Fit Results as volume...');    
-        handles.menu_file_export_volume_to_icy = uimenu(menu_file_export_volume,'Label','Send to Icy...');    
+        handles.menu_file_export_volume_to_icy = uimenu(menu_file_export_volume,'Label','Send to Icy...');
+        handles.menu_file_export_volume_as_OMEtiff = uimenu(menu_file_export_volume,'Label','Save as OME.tiff...');                    
 
     % OMERO MEGA MENU    
     %=================================

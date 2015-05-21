@@ -133,7 +133,8 @@ classdef front_end_menu_controller < handle
         menu_file_export_exclusion_list;
         
         % icy..
-        menu_file_export_volume_to_icy        
+        menu_file_export_volume_to_icy;
+        menu_file_export_volume_as_OMEtiff;         
         
         menu_irf_load;
         menu_irf_image_load;
@@ -1304,37 +1305,119 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_file_export_volume_to_icy_callback(obj,~,~)
-            n_planes = obj.data_series_controller.data_series.n_datasets;
-           
-            params = obj.fit_controller.fit_result.fit_param_list();                       
+            try
+                obj.menu_file_export_volume('send to Icy');            
+            catch
+                errordlg('error - there might be no fitted data');
+            end
+        end
+
+        function menu_file_export_volume_as_OMEtiff_callback(obj,~,~)
+            try
+                obj.menu_file_export_volume('save as OME.tiff');            
+            catch
+                errordlg('error - there might be no fitted data');
+            end
             
-            param_array(:,:) = obj.fit_controller.get_image(1, params{1});                                   
+        end
+                
+        function menu_file_export_volume(obj,mode,~)            
+                        
+            n_planes = obj.data_series_controller.data_series.n_datasets;
+            
+            params = obj.fit_controller.fit_result.fit_param_list();                        
+            
+            param_array(:,:) = obj.fit_controller.get_image(1, params{1});                                    
             sizeY = size(param_array,1);
-            sizeX = size(param_array,2);                           
-            volm = zeros(sizeX,sizeY,n_planes,'single');
-           
+            sizeX = size(param_array,2);                                        
+
+            params_extended = [params 'I_mean_tau_chi2'];
+            
             [param,v] = listdlg('PromptString','Choose fitted parameter',...
                 'SelectionMode','single',...
-                'ListSize',[100 200],...                                       
-                'ListString',params);                                   
+                'ListSize',[100 200],...                                        
+                'ListString',params_extended);                                    
             if (~v), return, end;
-           
-            for p = 1 : n_planes               
-                plane = obj.fit_controller.get_image(p,params{param})';
-                %plane(isnan(plane)) = 0; % mmmmm
-                volm(:,:,p) = cast(plane,'single');
-            end
-           
-            volm(isnan(volm))=0;
-            volm(volm<0)=0;
-                                               
-            try
-                icy_im3show(volm); % where to get data filename from?..
-            catch
-                errordlg('error - Icy might be not running');
-            end
-           
             
+            full_filename = obj.data_series_controller.data_series.file_names{1};
+            file_name = 'xxx ';
+            if ischar(full_filename)
+                C = strsplit(full_filename,filesep);
+                file_name = char(C(length(C)));
+            else % omero
+                %
+                % to do
+                %
+            end
+            
+            file_name = ['FLIMfit result ' params_extended{param} ' ' file_name];
+            
+            % usual way
+            if param <= length(params)
+                volm = zeros(sizeX,sizeY,n_planes,'single');
+                for p = 1 : n_planes                
+                    plane = obj.fit_controller.get_image(p,params{param})';
+                    volm(:,:,p) = cast(plane,'single');
+                end
+                
+                volm(isnan(volm))=0;
+                volm(volm<0)=0;
+                    
+                if strcmp(mode,'send to Icy')
+                    try
+                        icy_im3show(volm,file_name);                    
+                    catch
+                        errordlg('error - Icy might be not running');
+                    end
+                elseif strcmp(mode,'save as OME.tiff')
+                    [filename, pathname] = uiputfile('*.OME.tiff','Save as',obj.default_path);
+                    if filename ~= 0
+                        bfsave(reshape(volm,[sizeX,sizeY,1,n_planes,1]),[pathname filename],'dimensionOrder','XYCZT','Compression', 'LZW','BigTiff', true);
+                    end                                                            
+                end
+                
+            elseif strcmp(params_extended{param},'I_mean_tau_chi2') % check not needed, actually 
+                
+                % find indices
+                ind_intensity = [];
+                ind_lifetime = [];
+                ind_chi2 = [];                       
+                for k=1:length(params), if strcmp(char(params{k}),'I'), break; end; end; ind_intensity=k;
+                for k=1:length(params), if strcmp(char(params{k}),'mean_tau'), break; end; end; ind_lifetime=k;
+                for k=1:length(params), if strcmp(char(params{k}),'chi2'), break; end; end; ind_chi2=k;  
+                
+                if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
+                    
+                    volm = zeros([sizeX,sizeY,3,n_planes,1],'single'); % XYCZT                    
+                    for p = 1 : n_planes                
+                        plane_intensity = obj.fit_controller.get_image(p,params{ind_intensity})';
+                        plane_lifetime = obj.fit_controller.get_image(p,params{ind_lifetime})';
+                        plane_chi2 = obj.fit_controller.get_image(p,params{ind_chi2})';
+                        volm(:,:,1,p,1) = cast(plane_intensity,'single');
+                        volm(:,:,2,p,1) = cast(plane_lifetime,'single');
+                        volm(:,:,3,p,1) = cast(plane_chi2,'single');                        
+                    end                    
+                    
+                    volm(isnan(volm))=0;
+                    volm(volm<0)=0;                    
+                        
+                    if strcmp(mode,'send to Icy')
+                        try
+                            icy_imshow(volm,file_name);                                                
+                        catch
+                            errordlg('error - Icy might be not running');
+                        end   
+                    elseif strcmp(mode,'save as OME.tiff')
+                        [filename, pathname] = uiputfile('*.OME.tiff','Save as',obj.default_path);
+                        if filename ~= 0
+                            bfsave(volm,[pathname filename],'dimensionOrder','XYCZT','Compression', 'LZW','BigTiff', true);
+                        end                                                                                   
+                    end                    
+                    
+                end %~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
+                
+            end
+                                                            
         end
 
     end
