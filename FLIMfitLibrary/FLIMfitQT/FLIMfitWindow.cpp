@@ -10,6 +10,7 @@
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/exception/all.hpp>
 
 #include <fstream>
 
@@ -17,7 +18,7 @@ static qint32 flimfit_project_format_version = 1;
 static std::string flimfit_project_magic_string = "FLIMfit Project File";
 
 
-FLIMfitWindow::FLIMfitWindow(const QString project_file, QWidget* parent) :
+FLIMfitWindow::FLIMfitWindow(const QString& project_file, QWidget* parent) :
 QMainWindow(parent)
 {
    setupUi(this);
@@ -62,18 +63,33 @@ void FLIMfitWindow::saveProject()
       ofs << flimfit_project_format_version;
       boost::archive::binary_oarchive oa(ofs);
       // write class instance to archive
-      oa << images->getImages();
+      if (images != nullptr)
+         oa << images->getImages();
+      else
+      {
+         std::vector<std::shared_ptr<FLIMImage>> empty;
+         oa << empty;
+      }
    }
-   catch(std::runtime_error e)
+   catch(boost::exception& e)
    {
-      QString msg = QString("Could not write project file: %1").arg(e.what());
-      QMessageBox::critical(this, "Error", msg);
+      std::cout << diagnostic_information(e);
+      //QString msg = QString("Could not write project file: %1").arg(e.what());
+      QMessageBox::critical(this, "Error", "Boost error!");
    }
 }
 
 void FLIMfitWindow::newProjectFromDialog()
 {
    QString file = QFileDialog::getSaveFileName(this, "Choose project location", QString(), "FLIMfit Project (*.flimfit)");
+   
+   if (file == QString())
+      return;
+   
+   QSettings settings;
+   settings.setValue("last_project_location", file);
+
+   
    QFileInfo info(file);
    QDir path(info.absolutePath());
    QString base_name = info.baseName();
@@ -110,6 +126,11 @@ void FLIMfitWindow::openProject(const QString& file)
    project_root = info.absolutePath();
    project_file = file;
    
+   QSettings settings;
+   QStringList recent_projects = settings.value("recent_projects", QStringList()).toStringList();
+   recent_projects.append(project_file);
+   settings.setValue("recent_projects", recent_projects);
+   
    if (info.exists())
    {
       try
@@ -138,12 +159,19 @@ void FLIMfitWindow::openProject(const QString& file)
          images->setImages(new_images);
          fitting_widget->setImageSet(images);
          
+         emit openedProject();
+         
       }
       catch(std::runtime_error e)
       {
          QString msg = QString("Could not read project file: %1").arg(e.what());
          QMessageBox::critical(this, "Error", msg);
+         close();
       }
+   }
+   else
+   {
+      saveProject();
    }
 }
 

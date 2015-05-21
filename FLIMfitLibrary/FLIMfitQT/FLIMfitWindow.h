@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ui_FLIMfitWindow.h"
 #include <QMainWindow>
 
@@ -6,7 +8,7 @@ class FLIMfitWindow : public QMainWindow, public Ui::FLIMfitWindow
    Q_OBJECT
    
 public:
-   FLIMfitWindow(const QString project_file = QString(), QWidget* parent = 0);
+   FLIMfitWindow(const QString& project_file = QString(), QWidget* parent = 0);
    
    void importData();
    void newWindow();
@@ -17,6 +19,9 @@ public:
    
    void setFitController(std::shared_ptr<FLIMGlobalFitController> controller);
 
+signals:
+   void openedProject();
+   
 protected:
    
    bool project_changed = false;
