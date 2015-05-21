@@ -1335,7 +1335,7 @@ classdef front_end_menu_controller < handle
             
             [param,v] = listdlg('PromptString','Choose fitted parameter',...
                 'SelectionMode','single',...
-                'ListSize',[100 200],...                                        
+                'ListSize',[150 200],...                                        
                 'ListString',params_extended);                                    
             if (~v), return, end;
             
@@ -1344,10 +1344,9 @@ classdef front_end_menu_controller < handle
             if ischar(full_filename)
                 C = strsplit(full_filename,filesep);
                 file_name = char(C(length(C)));
-            else % omero
-                %
-                % to do
-                %
+            else % omero                
+                image = obj.data_series_controller.data_series.file_names{1};
+                file_name = char(image.getName.getValue);               
             end
             
             file_name = ['FLIMfit result ' params_extended{param} ' ' file_name];
