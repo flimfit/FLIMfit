@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ui_FLIMfitWindow.h"
 #include <QMainWindow>
 #include "ProgressReporter.h"
@@ -7,7 +9,7 @@ class FLIMfitWindow : public QMainWindow, public Ui::FLIMfitWindow
    Q_OBJECT
    
 public:
-   FLIMfitWindow(const QString project_file = QString(), QWidget* parent = 0);
+   FLIMfitWindow(const QString& project_file = QString(), QWidget* parent = 0);
    
    void importData();
    void newWindow();
@@ -20,6 +22,9 @@ public:
    void addProgressReporter(std::shared_ptr<ProgressReporter> reporter);
    
    void closeEvent(QCloseEvent *event);
+
+signals:
+   void openedProject();
    
 protected:
    

@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "FLIMfitWindow.h"
+#include "FLIMfitLauncher.h"
 
 #include <memory>
 
@@ -12,10 +12,12 @@ int main(int argc, char *argv[])
    app.setOrganizationDomain("flimfit.org");
    app.setApplicationName("FLIMfit");
 
-   QString default_project = "/Users/sean/Documents/FLIMTestData/Test FLIMfit Project/project.flimfit";
+   auto launcher = new FLIMfitLauncher();
+   launcher->show();
    
-   FLIMfitWindow window(default_project);
-   window.showMaximized();
+   //QString default_project = "/Users/sean/Documents/FLIMTestData/Test FLIMfit Project/project.flimfit";
+   //FLIMfitWindow window(default_project);
+   //window.showMaximized();
 
    return app.exec();
 }
