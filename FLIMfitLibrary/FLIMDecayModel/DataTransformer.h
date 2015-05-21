@@ -209,7 +209,7 @@ void DataTransformer::calculateMask()
    int n_px = acq->n_px;
    int n_meas_full = acq->n_meas_full;
    
-   T* data_ptr = image->getDataPointer<T>();
+   T* data_ptr = image->getDataPointerForRead<T>();
    final_mask.resize(n_px);
    
    for(int p=0; p<n_px; p++)
@@ -263,7 +263,7 @@ void DataTransformer::transformData()
    transformed_data.resize(n_x * n_y * dp->n_meas);
    float* tr_data = transformed_data.data();
    
-   T* tr_buf = image->getDataPointer<T>();
+   T* tr_buf = image->getDataPointerForRead<T>();
    T* cur_data_ptr = tr_buf;
    
    float photons_per_count = (float) (1/acq->counts_per_photon);

@@ -11,6 +11,8 @@
 #include <fstream>
 #include <future>
 #include <functional>
+#include <mutex>
+#include <condition_variable>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -30,17 +32,18 @@ public:
    
    void init();
 
+   template<typename T> T* getDataPointerForRead();
    template<typename T> T* getDataPointer();
    template<typename T> void releasePointer();
    template<typename T> void releaseModifiedPointer();
    template<typename T> void compute();
    
    void getDecay(cv::Mat mask, std::vector<std::vector<double>>& decay);
-
+   cv::Mat getIntensity();
+   
    const std::string& getName() { return name; }
    void setName(const std::string& name_) { name = name_; }
    DataClass getDataClass() { return data_class; }
-   cv::Mat getIntensity() { return intensity; }
    cv::Mat getAcceptor() { return acceptor; }
    const std::vector<uint8_t>& getSegmentationMask() { return mask; }
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() { return acq; }
@@ -59,6 +62,8 @@ protected:
    
    template<typename T>
    void getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& decay);
+   
+   void waitForData();
    
    bool has_acceptor = false;
    bool has_data = false;
@@ -86,7 +91,8 @@ protected:
 private:
    
    std::future<void> clearing_future;
-
+   std::mutex data_mutex;
+   std::condition_variable data_cv;
    
    FLIMImage() :
    stored_type(typeid(float))
@@ -132,25 +138,25 @@ data_mode(data_mode)
       memcpy(mask.data(), mask_, acq->n_px * sizeof(uint8_t));
    }
    
-   has_data = true;
-   
    compute<T>();
 }
 
 // TODO: need some mutexes here
 template <typename T>
+T* FLIMImage::getDataPointerForRead()
+{
+   waitForData();
+
+   std::unique_lock<std::mutex> lk(data_mutex);
+   while (!has_data)
+      data_cv.wait(lk);
+   
+   return getDataPointer<T>();
+}
+
+template <typename T>
 T* FLIMImage::getDataPointer()
 {
-   // See if the image data has been set
-   if (!has_data)
-   {
-      // Do we have a reader future?
-      if (reader_future.valid())
-         reader_future.wait();
-      else
-         throw std::runtime_error("No data loaded yet!");
-   }
-   
    if (clearing_future.valid())
       clearing_future.wait();
    
@@ -200,9 +206,12 @@ void FLIMImage::releasePointer()
 template<typename T>
 void FLIMImage::releaseModifiedPointer()
 {
-   has_data = true;
    compute<T>();
    releasePointer<T>();
+   
+   std::unique_lock<std::mutex> lk(data_mutex);
+   has_data = true;
+   data_cv.notify_all();
 }
 
 template<typename T>
@@ -222,17 +231,18 @@ void FLIMImage::compute()
 }
 
 
+
 template<typename T>
 void FLIMImage::getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& decay)
 {
-   assert(mask.size() == intensity.size());
-   
    decay.resize(acq->n_chan);
    for(auto& d : decay)
       d.assign(acq->n_t_full, 0);
    
-   T* data = getDataPointer<T>();
-   
+   T* data = getDataPointerForRead<T>();
+ 
+   assert(mask.size() == intensity.size());
+
    for(int i=0; i<acq->n_px; i++)
    {
       if (mask.at<uint8_t>(i) > 0)

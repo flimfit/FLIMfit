@@ -20,6 +20,7 @@ public:
       QWidget(parent)
    {
       setupUi(this);
+      connect(this, &DecayWidget::recalculateLater, this, &DecayWidget::recalculate, Qt::QueuedConnection);
    
       decay_plot->xAxis->setLabel("Time (ps)");
       decay_plot->yAxis->setLabel("Intensity");
@@ -37,7 +38,7 @@ public:
       image = image_;
       auto acq = image->getAcquisitionParameters();
       mask = cv::Mat(acq->n_x, acq->n_y, CV_8U, 1);
-      recalculate();
+      emit recalculateLater();
    }
    
    void recalculate()
@@ -90,6 +91,9 @@ public:
       decay_plot->yAxis->setScaleType(type);
       decay_plot->replot();
    }
+   
+signals:
+   void recalculateLater();
    
 protected:
    std::vector<std::vector<double>> decay;

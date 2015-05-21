@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-
+   qRegisterMetaType<std::shared_ptr<FLIMImage>>("std::shared_ptr<FLIMImage>");
 
    QApplication app(argc, argv);
    app.setOrganizationName("FLIMfit");

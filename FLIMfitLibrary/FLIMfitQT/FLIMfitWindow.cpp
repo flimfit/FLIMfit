@@ -64,7 +64,7 @@ void FLIMfitWindow::saveProject()
       // write class instance to archive
       oa << images->getImages();
    }
-   catch(std::exception e)
+   catch(std::runtime_error e)
    {
       QString msg = QString("Could not write project file: %1").arg(e.what());
       QMessageBox::critical(this, "Error", msg);
@@ -139,7 +139,7 @@ void FLIMfitWindow::openProject(const QString& file)
          fitting_widget->setImageSet(images);
          
       }
-      catch(std::exception e)
+      catch(std::runtime_error e)
       {
          QString msg = QString("Could not read project file: %1").arg(e.what());
          QMessageBox::critical(this, "Error", msg);

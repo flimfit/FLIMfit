@@ -127,7 +127,7 @@ public:
          image->releaseModifiedPointer<T>();
       };
       
-      image->setReadFuture(std::async(read_fcn).share());
+      image->setReadFuture(std::async(std::launch::async, read_fcn).share());
       
       return image;
    }

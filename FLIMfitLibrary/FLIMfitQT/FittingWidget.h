@@ -140,9 +140,9 @@ public:
          os << fit[i] << "\n";
       */
       }
-      catch(std::exception e)
+      catch(std::runtime_error e)
       {
-         std::cout << "Exception occurred: " << e.what() << "\n";
+         std::cout << "Error occurred: " << e.what() << "\n";
       }
          
    }

@@ -79,6 +79,26 @@ void FLIMImage::init()
    }
 }
 
+
+cv::Mat FLIMImage::getIntensity()
+{
+   waitForData();
+   return intensity;
+}
+
+void FLIMImage::waitForData()
+{
+   // See if the image data has been set
+   if (!has_data)
+   {
+      // Do we have a reader future?
+      if (reader_future.valid())
+         reader_future.get();
+      else
+         throw std::runtime_error("No data loaded yet!");
+   }
+}
+
 void FLIMImage::getDecay(cv::Mat mask, std::vector<std::vector<double>>& decay)
 {
    if (stored_type == typeid(float))
