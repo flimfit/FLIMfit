@@ -46,7 +46,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0">
      <item>
       <widget class="QGroupBox" name="groupBox_2">
        <property name="title">
@@ -54,7 +54,7 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QListView" name="files_list">
+         <widget class="QListWidget" name="files_list">
           <property name="autoFillBackground">
            <bool>false</bool>
           </property>
@@ -83,10 +83,24 @@
           <property name="leftMargin">
            <number>0</number>
           </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Image Stacking</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="1">
            <widget class="QSpinBox" name="image_stacking_spin">
             <property name="minimum">
              <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Spatial Downsampling</string>
             </property>
            </widget>
           </item>
@@ -104,22 +118,8 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>Spatial Downsampling</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Image Stacking</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="1">
-           <widget class="QComboBox" name="comboBox">
+           <widget class="QComboBox" name="temporal_resolution_combo">
             <property name="currentText">
              <string>256</string>
             </property>
@@ -166,6 +166,22 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Channels</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <widget class="QListWidget" name="channel_list">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>

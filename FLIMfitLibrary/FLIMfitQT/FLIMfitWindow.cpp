@@ -40,9 +40,11 @@ QMainWindow(parent)
 void FLIMfitWindow::importData()
 {
    ImporterWidget* importer = new ImporterWidget(project_root);
+   connect(importer, &ImporterWidget::newProgressReporter, this, &FLIMfitWindow::addProgressReporter);
    connect(importer, &ImporterWidget::newImageSet, [&](std::shared_ptr<FLIMImageSet> new_images){
       images = new_images;
       fitting_widget->setImageSet(images);
+      project_changed = true;
    });
    importer->show();
 }
@@ -152,8 +154,13 @@ void FLIMfitWindow::setFitController(std::shared_ptr<FLIMGlobalFitController> co
    results_widget->setFitController(controller);
    main_tab->setCurrentIndex(2);
    
+   addProgressReporter(controller->getProgressReporter());
+}
+
+void FLIMfitWindow::addProgressReporter(std::shared_ptr<ProgressReporter> reporter)
+{
    ProgressWidget* progress = new ProgressWidget();
-   progress->setProgressReporter(controller->getProgressReporter());
+   progress->setProgressReporter(reporter);
    progress_layout->addWidget(progress);
 }
 
@@ -175,9 +182,30 @@ void FLIMfitWindow::loadTestData()
       irf_name = QString("%1%2").arg(root).arg("/acceptor-fret-irf.csv");
    }
    
-   auto irf = FLIMImporter::importIRF(irf_name);
-   images = FLIMImporter::importFromFolder(folder, project_root);
+   FLIMImporter importer;
+   auto irf = importer.importIRF(irf_name);
+   images = importer.importFromFolder(folder, {0, 1}, project_root);
    
    auto acq = images->getAcquisitionParameters();
    acq->SetIRF(irf);
+}
+
+void FLIMfitWindow::closeEvent(QCloseEvent *event)
+{
+   if (project_changed)
+   {
+      auto dialog = QMessageBox::warning(this, "Save Project",
+                                    "Save open project before closing?",
+                                         QMessageBox::Cancel | QMessageBox::No | QMessageBox::Save);
+      
+      if(dialog == QMessageBox::Save)
+      {
+         saveProject();
+         close();
+      }
+      else if (dialog == QMessageBox::Cancel)
+         event->ignore();
+      else
+         close();
+   }
 }

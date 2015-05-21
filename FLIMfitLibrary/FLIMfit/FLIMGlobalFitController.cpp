@@ -52,7 +52,7 @@ marker_series* writer;
 FLIMGlobalFitController::FLIMGlobalFitController()
 {
    worker_params.resize(n_thread);
-   reporter = std::make_shared<ProgressReporter>();
+   reporter = std::make_shared<ProgressReporter>("Fitting Data");
 }
 
 FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
@@ -62,7 +62,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
       n_thread = 1;
 
    worker_params.resize(n_thread);
-   reporter = std::make_shared<ProgressReporter>();
+   reporter = std::make_shared<ProgressReporter>("Fitting Data");
 }
 
 void FLIMGlobalFitController::setFitSettings(const FitSettings& settings)

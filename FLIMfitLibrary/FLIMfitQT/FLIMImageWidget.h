@@ -14,6 +14,7 @@ public:
    FLIMImageWidget(QWidget* parent = 0) :
    QWidget(parent)
    {
+      update_complete = true;
       setupUi(this);
       
       connect(image_widget, &ColormappedImageWidget::selectionUpdated, decay_widget, &DecayWidget::setSelection);
@@ -22,7 +23,7 @@ public:
    
    void setImage(std::shared_ptr<FLIMImage> image_)
    {
-      if (update_future.valid())
+      if (!update_complete)
       {
          // We're still trying to set the last one...
          next_image = image_;
@@ -46,6 +47,7 @@ protected:
    
    void update(std::shared_ptr<FLIMImage> image_)
    {
+      update_complete = false;
       image = image_;
       if (image == nullptr)
          return;
@@ -57,9 +59,11 @@ protected:
       
       if (image != next_image)
          emit setImageLater(next_image);
+      update_complete = true;
    }
    
    std::shared_ptr<FLIMImage> image;
    std::shared_ptr<FLIMImage> next_image;
    std::future<void> update_future;
+   std::atomic<bool> update_complete;
 };

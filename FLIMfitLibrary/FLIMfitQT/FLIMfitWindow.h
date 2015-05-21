@@ -1,5 +1,6 @@
 #include "ui_FLIMfitWindow.h"
 #include <QMainWindow>
+#include "ProgressReporter.h"
 
 class FLIMfitWindow : public QMainWindow, public Ui::FLIMfitWindow
 {
@@ -16,7 +17,10 @@ public:
    void openProject(const QString& file);
    
    void setFitController(std::shared_ptr<FLIMGlobalFitController> controller);
-
+   void addProgressReporter(std::shared_ptr<ProgressReporter> reporter);
+   
+   void closeEvent(QCloseEvent *event);
+   
 protected:
    
    bool project_changed = false;

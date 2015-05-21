@@ -9,6 +9,7 @@ int main(int argc, char *argv[])
 
    QApplication app(argc, argv);
    app.setOrganizationName("FLIMfit");
+   app.setOrganizationDomain("flimfit.org");
    app.setApplicationName("FLIMfit");
 
    QString default_project = "/Users/sean/Documents/FLIMTestData/Test FLIMfit Project/project.flimfit";

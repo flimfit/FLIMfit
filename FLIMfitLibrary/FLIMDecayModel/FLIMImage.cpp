@@ -14,29 +14,36 @@ root(root)
 
 FLIMImage::~FLIMImage()
 {
-   /*
+   
    if (data_mode == MappedFile)
    {
-      boost::filesystem::wpath file(map_file_name);
-      if(boost::filesystem::exists(file))
-         boost::filesystem::remove(file);
+      
    }
-    */
 }
 
 void FLIMImage::init()
 {
-   if (stored_type == typeid(float))
-      data_class = DataFloat;
-   else if (stored_type == typeid(uint16_t))
-      data_class = DataUint16;
+   if (stored_type == typeid(void)) // Loaded from saved file - we know data_class but not stored type
+   {
+      if (data_class == DataFloat)
+         stored_type = typeid(float);
+      else if (data_class == DataUint16)
+         stored_type = typeid(uint16_t);
+   }
    else
-      throw std::runtime_error("Unsupported data type");
+   {
+      if (stored_type == typeid(float))
+         data_class = DataFloat;
+      else if (stored_type == typeid(uint16_t))
+         data_class = DataUint16;
+      else
+         throw std::runtime_error("Unsupported data type");
+   }
    
    int n_bytes = 1;
-   if (stored_type == typeid(float))
+   if (data_class == DataFloat)
       n_bytes = 4;
-   else if (stored_type == typeid(uint16_t))
+   else if (data_class == DataUint16)
       n_bytes = 2;
    
    map_length = acq->n_px * acq->n_meas_full * n_bytes;
@@ -72,6 +79,8 @@ void FLIMImage::init()
          // Write zeros
          for(int i=0; i<nrep; i++)
             of.write(zeros.data(), bufsize);
+         
+         of.close();
       }
       
       // Create mapping

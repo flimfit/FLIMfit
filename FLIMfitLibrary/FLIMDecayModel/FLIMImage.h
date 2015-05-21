@@ -95,7 +95,7 @@ private:
    std::condition_variable data_cv;
    
    FLIMImage() :
-   stored_type(typeid(float))
+   stored_type(typeid(void))
    {};
    
    template<class Archive>
@@ -196,10 +196,11 @@ void FLIMImage::releasePointer()
    // Clear mapped region
    if (open_pointers == 0 && data_mode == MappedFile)
    {
-      // Launch in seperate thread as this may take a while to flush to disk
-      clearing_future = std::async(std::launch::async, [this](){
-         data_map_view = boost::interprocess::mapped_region();
-      });
+      //// Launch in seperate thread as this may take a while to flush to disk
+      //clearing_future = std::async(std::launch::async, [this](){
+      data_map_view.flush();
+      data_map_view = boost::interprocess::mapped_region();
+      //});
    }
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "PicoquantTTRReader.h"
 #include "FLIMImage.h"
+#include "ProgressReporter.h"
 
 #include <QString>
 #include <QDir>
@@ -8,8 +9,17 @@
 #include <memory>
 #include <cstdint>
 
-class FLIMImporter
+class FileSet
 {
+public:
+   QFileInfoList files;
+   int n_channels;
+};
+
+class FLIMImporter : public QObject
+{
+   Q_OBJECT
+   
 public:
 
    static std::shared_ptr<InstrumentResponseFunction> importIRF(const QString& filename)
@@ -31,62 +41,96 @@ public:
 
       return irf;
    }
-
-   static std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const QString& project_folder = 0)
+  
+   std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const vector<int>& channels, const QString& project_folder = 0)
+   {
+      QFileInfoList matching_files = getValidFilesFromFolder(folder).files;
+      QString first_ext = matching_files[0].completeSuffix();
+      
+      // Read as float for csv (might well be larger than MAX(uint16_t))
+      // or read as uint16_t for image data (needs less memory)
+      if (first_ext == "csv")
+         return importFiles<float>(matching_files, channels, project_folder);
+      else
+         return importFiles<uint16_t>(matching_files, channels, project_folder);
+   }
+   
+   std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const QStringList file_names, const vector<int>& channels, const QString& project_folder = 0)
    {
       QDir dir(folder);
-
-      // move to reader...
-      QStringList filters;
-      filters << "*.ptu" << "*.pt3" << "*.csv";
-
-      QFileInfoList files = dir.entryInfoList(filters);
-
+      QFileInfoList files;
+      for(auto& f : file_names)
+         files.push_back(QFileInfo(folder, f));
+      
       if (files.empty())
          throw std::runtime_error("No files found");
       
       QString first_ext = files[0].completeSuffix();
       
-      // Extract only files which match the first extension
-      QStringList matching_files;
-      for(int i=0; i<files.size(); i++)
-         if (files[i].completeSuffix() == first_ext)
-            matching_files.push_back(files[i].canonicalFilePath());
-      
       // Read as float for csv (might well be larger than MAX(uint16_t))
       // or read as uint16_t for image data (needs less memory)
       if (first_ext == "csv")
-         return importFiles<float>(matching_files, project_folder);
+         return importFiles<float>(files, channels, project_folder);
       else
-         return importFiles<uint16_t>(matching_files, project_folder);
+         return importFiles<uint16_t>(files, channels, project_folder);
+   }
+   
+   static FileSet getValidFilesFromFolder(const QString& folder)
+   {
+      QDir dir(folder);
+      
+      // move to reader...
+      QStringList filters;
+      filters << "*.ptu" << "*.pt3" << "*.csv";
+      
+      FileSet file_set;
+      file_set.files = dir.entryInfoList(filters);
+      
+      if (file_set.files.empty())
+         throw std::runtime_error("No files found");
+      
+      std::string file0 = file_set.files[0].absoluteFilePath().toStdString();
+      auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file0));
+      file_set.n_channels = reader->numChannels();
+      
+      QString first_ext = file_set.files[0].completeSuffix();
+      
+      // Extract only files which match the first extension
+      QFileInfoList matching_files;
+      for(auto& f : file_set.files)
+         if (f.completeSuffix() == first_ext)
+            matching_files.push_back(f);
+      
+      return file_set;
    }
    
    template <typename T>
-   static std::shared_ptr<FLIMImageSet> importFiles(QStringList files, const QString& root)
+   std::shared_ptr<FLIMImageSet> importFiles(QFileInfoList files, const vector<int>& channels, const QString& root)
    {
       auto images = std::make_shared<FLIMImageSet>();
-      
-      int n_stack = 1;
-      vector<int> channels = { 0, 1 };
+
+      int n_tasks = (files.size() / n_stack) * (n_stack + 2); // + 2 for setup image, compute intensity etc at end
+      reporter = std::make_shared<ProgressReporter>("Reading Files", n_tasks);
       
       std::vector<std::future<std::shared_ptr<FLIMImage>>> futures;
       for (int i=0; (i+n_stack)<=files.size(); i+=n_stack)
       {
          QStringList stack_files;
          for (int j=0; j<n_stack; j++)
-            stack_files.push_back(files[i+j]);
+            stack_files.push_back(files[i+j].absoluteFilePath());
          
          auto image = importStackedFiles<T>(stack_files, root, channels);
          images->addImage(image);
       }
-      
       return images;
    }
    
    template <typename T>
-   static std::shared_ptr<FLIMImage> importStackedFiles(QStringList stack_files, const QString& root, std::vector<int>& channels)
+   std::shared_ptr<FLIMImage> importStackedFiles(QStringList stack_files, const QString& root, const std::vector<int>& channels)
    {
-      auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(stack_files[0].toStdString()));
+      assert(!stack_files.empty());
+      std::string file = stack_files[0].toStdString();
+      auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file));
       reader->setTemporalResolution(8);
       
       auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
@@ -99,8 +143,10 @@ public:
       std::string basename = info.baseName().toStdString();
       
       auto image = std::make_shared<FLIMImage>(acq, typeid(T), basename, FLIMImage::DataMode::MappedFile, root.toStdString());
-      
-      auto read_fcn = [image, reader, stack_files, channels]()
+      std::shared_ptr<ProgressReporter> rep = reporter;
+      rep->subTaskCompleted();
+
+      auto read_fcn = [image, reader, stack_files, channels, rep]()
       {
          if (image->hasData())
             return;
@@ -115,20 +161,33 @@ public:
 
          for (int j=0; j<n_stack; j++)
          {
-            auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(stack_files[j].toStdString()));
+            std::string file = stack_files[j].toStdString();
+            auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(file));
             reader->setTemporalResolution(8);
             
             T* next_ptr = data_ptr + j * channels.size() * acq->n_t_full;
             reader->readData(next_ptr, channels, channel_stride);
+            
+            rep->subTaskCompleted();
          }
          
          T* img_ptr = image->getDataPointer<T>();
          memcpy(img_ptr, data_ptr, sz);
          image->releaseModifiedPointer<T>();
+         rep->subTaskCompleted();
       };
-      
       image->setReadFuture(std::async(std::launch::async, read_fcn).share());
       
       return image;
    }
+   
+   void setStackSize(int n_stack_) { n_stack = n_stack_; }
+   int getStackSize() { return n_stack; }
+   
+   std::shared_ptr<ProgressReporter> getProgressReporter() { return reporter; }
+   
+protected:
+   
+   std::shared_ptr<ProgressReporter> reporter;
+   int n_stack = 1;
 };
