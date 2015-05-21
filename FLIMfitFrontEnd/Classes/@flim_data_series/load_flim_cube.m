@@ -2,11 +2,7 @@
 function[success, target] = load_flim_cube(obj, target, file, read_selected, write_selected, dims, ZCT)
 
 
-%  Loads FLIM_data from a file or set of files
-% The underlying assumption is that if there is more than one name in
-% obj.file_names then all the required  planes in that file are to be loaded
-% If there is only one filename by contrast then only the selected planes
-% are to be loaded.
+    %  Loads FLIM_data from a file or set of files
 
 
     % Copyright (C) 2013 Imperial College London.
