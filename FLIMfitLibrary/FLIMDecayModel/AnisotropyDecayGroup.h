@@ -2,7 +2,7 @@
 #include "MultiExponentialDecayGroup.h"
 
 
-class AnisotropyDecayGroup : public MultiExponentialDecayGroup
+class AnisotropyDecayGroup : virtual public MultiExponentialDecayGroup
 {
 public:
    
@@ -37,10 +37,27 @@ protected:
 
    vector<vector<ExponentialPrecomputationBuffer>> anisotropy_buffer;
    vector<vector<double>> channel_factors;
+   
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
+};
+
+template<class Archive>
+void AnisotropyDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
+   ar & theta_parameters;
+   ar & n_anisotropy_populations;
+   ar & include_r_inf;
+   ar & channel_factors;
 };
 
 
-class QAnisotropyDecayGroup : public QAbstractDecayGroup, public AnisotropyDecayGroup
+class QAnisotropyDecayGroup : virtual public QAbstractDecayGroup, virtual public AnisotropyDecayGroup
 {
    Q_OBJECT
 
@@ -49,4 +66,17 @@ public:
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
    Q_PROPERTY(int n_anisotropy_populations MEMBER n_anisotropy_populations WRITE SetNumAnisotropyPopulations USER true);
    Q_PROPERTY(bool include_r_inf MEMBER include_r_inf WRITE SetIncludeRInf USER true);
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
+};
+
+template<class Archive>
+void QAnisotropyDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<AnisotropyDecayGroup>(*this);
 };

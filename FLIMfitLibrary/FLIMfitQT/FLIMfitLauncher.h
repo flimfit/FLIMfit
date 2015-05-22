@@ -21,18 +21,15 @@ public:
       connect(choose_button, &QPushButton::clicked, this, &FLIMfitLauncher::openChosen);
       connect(open_button, &QPushButton::clicked, this, &FLIMfitLauncher::openProject);
       connect(new_button, &QPushButton::clicked, this, &FLIMfitLauncher::newProject);
+      
+      populateRecentList();
    }
    
    void populateRecentList()
    {
       QSettings settings;
-      QVariant v = settings.value("laucher/recent_projects");
-      
-      if (v == QVariant())
-         return;
-      
-         QStringList recent_projects = v.toStringList();
-         
+      QStringList recent_projects = settings.value("recent_projects", QStringList()).toStringList();
+              
       for(auto& p : recent_projects)
       {
          if (QFileInfo(p).exists())
@@ -78,7 +75,6 @@ public:
    void launch(const QString& project = "")
    {
       auto window = new FLIMfitWindow(project);
-      window->showMaximized();
       connect(window, &FLIMfitWindow::openedProject, this, &QWidget::close);
    }
    

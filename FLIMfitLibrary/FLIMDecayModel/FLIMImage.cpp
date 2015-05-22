@@ -71,16 +71,8 @@ void FLIMImage::init()
       if (!boost::filesystem::exists(file) || !(boost::filesystem::file_size(file) >= map_length))
       {
          std::ofstream of(map_file_name, std::ofstream::binary);
-         
-         const int bufsize = 1024*1024;
-         vector<char> zeros(bufsize);
-         int nrep = map_length / bufsize + 1;
-         
-         // Write zeros
-         for(int i=0; i<nrep; i++)
-            of.write(zeros.data(), bufsize);
-         
-         of.close();
+         of.seekp(map_length, std::ios_base::beg);
+         of.put(0);
       }
       
       // Create mapping

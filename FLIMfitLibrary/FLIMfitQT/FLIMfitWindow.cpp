@@ -10,9 +10,26 @@
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/export.hpp>
 #include <boost/exception/all.hpp>
 
-#include <fstream>
+#include "AbstractDecayGroup.h"
+#include "MultiExponentialDecayGroup.h"
+#include "FretDecayGroup.h"
+#include "AnisotropyDecayGroup.h"
+#include "BackgroundLightDecayGroup.h"
+
+BOOST_CLASS_EXPORT(AbstractDecayGroup);
+BOOST_CLASS_EXPORT(QAbstractDecayGroup);
+BOOST_CLASS_EXPORT(MultiExponentialDecayGroup);
+BOOST_CLASS_EXPORT(QMultiExponentialDecayGroup);
+BOOST_CLASS_EXPORT(FretDecayGroup);
+BOOST_CLASS_EXPORT(QFretDecayGroup);
+BOOST_CLASS_EXPORT(AnisotropyDecayGroup);
+BOOST_CLASS_EXPORT(QAnisotropyDecayGroup);
+BOOST_CLASS_EXPORT(BackgroundLightDecayGroup);
+BOOST_CLASS_EXPORT(QBackgroundLightDecayGroup);
+
 
 static qint32 flimfit_project_format_version = 1;
 static std::string flimfit_project_magic_string = "FLIMfit Project File";
@@ -28,6 +45,9 @@ QMainWindow(parent)
    connect(open_project_action, &QAction::triggered, this, &FLIMfitWindow::openProjectFromDialog);
    connect(save_project_action, &QAction::triggered, this, &FLIMfitWindow::saveProject);
    connect(load_data_action, &QAction::triggered, this, &FLIMfitWindow::importData);
+   connect(load_irf_action, &QAction::triggered, fitting_widget, &FittingWidget::importIRF);
+   
+   images = std::make_shared<FLIMImageSet>();
    
    if (project_file == QString())
       newProjectFromDialog();
@@ -52,41 +72,19 @@ void FLIMfitWindow::importData()
 
 void FLIMfitWindow::newWindow()
 {
-   FLIMfitWindow* window = new FLIMfitWindow();
-   window->showMaximized();
+   new FLIMfitWindow();
 }
 
-void FLIMfitWindow::saveProject()
-{
-   try
-   {
-      std::ofstream ofs(project_file.toStdString(), std::ifstream::binary);
-      ofs << flimfit_project_magic_string << "\n";
-      ofs << flimfit_project_format_version;
-      boost::archive::binary_oarchive oa(ofs);
-      // write class instance to archive
-      if (images != nullptr)
-         oa << images->getImages();
-      else
-      {
-         std::vector<std::shared_ptr<FLIMImage>> empty;
-         oa << empty;
-      }
-   }
-   catch(boost::exception& e)
-   {
-      std::cout << diagnostic_information(e);
-      //QString msg = QString("Could not write project file: %1").arg(e.what());
-      QMessageBox::critical(this, "Error", "Boost error!");
-   }
-}
 
 void FLIMfitWindow::newProjectFromDialog()
 {
    QString file = QFileDialog::getSaveFileName(this, "Choose project location", QString(), "FLIMfit Project (*.flimfit)");
    
-   if (file == QString())
+   if (file == QString()) // Pressed cancel
+   {
+      close();
       return;
+   }
    
    QSettings settings;
    settings.setValue("last_project_location", file);
@@ -102,10 +100,12 @@ void FLIMfitWindow::newProjectFromDialog()
       return;
    }
    
-   path.setPath(info.baseName());
-   QString new_file = path.filePath(info.fileName());
+   QString true_file = info.absolutePath();
+   true_file.append("/").append(info.baseName()).append("/").append(info.fileName());
    
-   openProject(new_file);
+   std::string f = true_file.toStdString();
+   
+   openProject(true_file);
 }
 
 
@@ -118,7 +118,26 @@ void FLIMfitWindow::openProjectFromDialog()
    else
    {
       FLIMfitWindow window(file);
-      window.showMaximized();
+   }
+}
+
+void FLIMfitWindow::saveProject()
+{
+   try
+   {
+      std::string file = project_file.toStdString();
+      std::ofstream ofs(project_file.toStdString(), std::ifstream::binary);
+      ofs << flimfit_project_magic_string << "\n";
+      ofs << flimfit_project_format_version;
+      boost::archive::binary_oarchive oa(ofs);
+      // write class instance to archive
+      oa << images;
+      oa << *fitting_widget;
+   }
+   catch(std::exception& e)
+   {
+      QString msg = QString("Could not write project file: %1").arg(e.what());
+      QMessageBox::critical(this, "Error", msg);
    }
 }
 
@@ -130,8 +149,11 @@ void FLIMfitWindow::openProject(const QString& file)
    
    QSettings settings;
    QStringList recent_projects = settings.value("recent_projects", QStringList()).toStringList();
-   recent_projects.append(project_file);
-   settings.setValue("recent_projects", recent_projects);
+   if (!recent_projects.contains(project_file, Qt::CaseInsensitive))
+   {
+      recent_projects.append(project_file);
+      settings.setValue("recent_projects", recent_projects);
+   }
    
    if (info.exists())
    {
@@ -148,20 +170,10 @@ void FLIMfitWindow::openProject(const QString& file)
          ifs >> version;
          
          boost::archive::binary_iarchive ia(ifs);
-         std::vector<std::shared_ptr<FLIMImage>> new_images;
-         ia >> new_images;
-         
-         for(auto& image : new_images)
-         {
-            image->setRoot(project_root.toStdString());
-            image->init();
-         }
-         
-         images = std::make_shared<FLIMImageSet>();
-         images->setImages(new_images);
-         fitting_widget->setImageSet(images);
-         
-         emit openedProject();
+         ia >> images;
+         ia >> *fitting_widget;
+
+         images->setProjectRoot(project_root);
          
       }
       catch(std::runtime_error e)
@@ -169,12 +181,16 @@ void FLIMfitWindow::openProject(const QString& file)
          QString msg = QString("Could not read project file: %1").arg(e.what());
          QMessageBox::critical(this, "Error", msg);
          close();
+         return;
       }
    }
    else
    {
       saveProject();
    }
+   
+   showMaximized();
+   emit openedProject();
 }
 
 void FLIMfitWindow::setFitController(std::shared_ptr<FLIMGlobalFitController> controller)
@@ -214,8 +230,6 @@ void FLIMfitWindow::loadTestData()
    auto irf = importer.importIRF(irf_name);
    images = importer.importFromFolder(folder, {0, 1}, project_root);
    
-   auto acq = images->getAcquisitionParameters();
-   acq->SetIRF(irf);
 }
 
 void FLIMfitWindow::closeEvent(QCloseEvent *event)

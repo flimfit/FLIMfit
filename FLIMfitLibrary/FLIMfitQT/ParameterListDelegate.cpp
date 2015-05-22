@@ -41,10 +41,10 @@ QWidget *ParameterListDelegate::createEditor(QWidget *parent,
    {
       auto prop = item->property();
       if (prop.type() == QVariant::Int)
-         return createSpin();
+         return createSpin(parent);
       
       else if (prop.type() == QVariant::Bool)
-         return createBoolCombo();
+         return createBoolCombo(parent);
    }
    
    assert(false); // whoops!

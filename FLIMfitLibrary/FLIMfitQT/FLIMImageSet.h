@@ -78,7 +78,16 @@ public:
       current_image = images[index.row()];
       emit currentImageChanged(current_image);
    }
-      
+
+   void setProjectRoot(const QString project_root)
+   {
+      for(auto& image : images)
+      {
+         image->setRoot(project_root.toStdString());
+         image->init();
+      }
+   }
+   
    shared_ptr<FLIMImage> getCurrentImage() { return current_image; }
 
 signals:
@@ -88,4 +97,17 @@ protected:
 
    std::vector<std::shared_ptr<FLIMImage>> images;
    shared_ptr<FLIMImage> current_image;
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
 };
+
+template<class Archive>
+void FLIMImageSet::serialize(Archive & ar, const unsigned int version)
+{
+   ar & images;
+   ar & current_image;
+}

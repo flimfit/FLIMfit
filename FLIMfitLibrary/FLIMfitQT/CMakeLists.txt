@@ -36,6 +36,7 @@ set(SOURCE
    qcustomplot.cpp
    FLIMImageSet.cpp
    FLIMfitWindow.cpp
+   FittingWidget.cpp
 )
 
 set(HEADERS

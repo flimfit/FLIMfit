@@ -15,10 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
    <item>
-    <widget class="QWidget" name="widget" native="true">
-     <zorder>groupBox</zorder>
-     <zorder>groupBox</zorder>
-    </widget>
+    <widget class="QCustomPlot" name="irf_plot" native="true"/>
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox">
@@ -36,7 +33,7 @@
       <item row="0" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,1">
         <item>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox">
+         <widget class="QDoubleSpinBox" name="time_min_spin">
           <property name="suffix">
            <string> ps</string>
           </property>
@@ -59,7 +56,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+         <widget class="QDoubleSpinBox" name="time_max_spin">
           <property name="prefix">
            <string/>
           </property>
@@ -87,6 +84,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header>qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

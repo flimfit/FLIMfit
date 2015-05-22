@@ -49,16 +49,17 @@ protected:
    {
       update_complete = false;
       image = image_;
-      if (image == nullptr)
-         return;
+      if (image != nullptr)
+      {
+         cv::Mat intensity = image->getIntensity();
+         image_widget->setImage(intensity);
 
-      cv::Mat intensity = image->getIntensity();
-      image_widget->setImage(intensity);
-
-      decay_widget->setImage(image);
+         decay_widget->setImage(image);
+      }
       
       if (image != next_image)
          emit setImageLater(next_image);
+      
       update_complete = true;
    }
    

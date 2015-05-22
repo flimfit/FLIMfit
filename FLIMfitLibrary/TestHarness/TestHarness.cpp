@@ -153,7 +153,6 @@ int main()
 
    auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
    acq->SetT(t);
-   acq->SetIRF(irf_);
    acq->SetImageSize(n_x, n_y);
    
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::DataMode::InMemory, image_data.data());
@@ -166,6 +165,7 @@ int main()
 //   image->releaseModifiedPointer<float>();
    
    DataTransformationSettings transform;
+   transform.irf = irf_;
    auto data = std::make_shared<FLIMData>(image, transform);
    
    auto model = std::make_shared<DecayModel>();

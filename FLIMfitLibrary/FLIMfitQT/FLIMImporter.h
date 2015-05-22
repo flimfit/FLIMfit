@@ -3,6 +3,7 @@
 #include "FLIMImage.h"
 #include "ProgressReporter.h"
 
+#include <QFileDialog>
 #include <QString>
 #include <QDir>
 #include <vector>
@@ -21,8 +22,22 @@ class FLIMImporter : public QObject
    Q_OBJECT
    
 public:
+   
+   FLIMImporter()
+   {
+      filters << "*.ptu" << "*.pt3" << "*.csv";
+   }
+   
+   std::shared_ptr<InstrumentResponseFunction> importIRFFromDialog()
+   {
+      QString file = QFileDialog::getOpenFileName(nullptr, "Choose IRF", "IRF file (*.irf), CSV file (*.csv)");
+      if (file == QString())
+         return nullptr;
+      else
+         return importIRF(file);
+   }
 
-   static std::shared_ptr<InstrumentResponseFunction> importIRF(const QString& filename)
+   std::shared_ptr<InstrumentResponseFunction> importIRF(const QString& filename)
    {
       std::string fname = filename.toStdString();
       std::unique_ptr<FLIMReader> reader(FLIMReader::createReader(fname));
@@ -75,13 +90,13 @@ public:
          return importFiles<uint16_t>(files, channels, project_folder);
    }
    
-   static FileSet getValidFilesFromFolder(const QString& folder)
+   FileSet getValidFilesFromFolder(const QString& folder)
    {
       QDir dir(folder);
       
       // move to reader...
-      QStringList filters;
-      filters << "*.ptu" << "*.pt3" << "*.csv";
+      
+      
       
       FileSet file_set;
       file_set.files = dir.entryInfoList(filters);
@@ -188,6 +203,7 @@ public:
    
 protected:
    
+   QStringList filters;
    std::shared_ptr<ProgressReporter> reporter;
    int n_stack = 1;
 };

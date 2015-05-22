@@ -161,7 +161,14 @@
     <addaction name="separator"/>
     <addaction name="load_data_action"/>
    </widget>
+   <widget class="QMenu" name="menuIRF">
+    <property name="title">
+     <string>IRF</string>
+    </property>
+    <addaction name="load_irf_action"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuIRF"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="load_data_action">
@@ -194,6 +201,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="load_irf_action">
+   <property name="text">
+    <string>Load IRF...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>

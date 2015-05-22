@@ -3,7 +3,7 @@
 #include "MultiExponentialDecayGroup.h"
 #include <functional>
 
-class FretDecayGroup : public MultiExponentialDecayGroup
+class FretDecayGroup : virtual public MultiExponentialDecayGroup
 {
 public:
 
@@ -61,23 +61,58 @@ protected:
    vector<vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
    unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
    unique_ptr<ExponentialPrecomputationBuffer> direct_acceptor_buffer;
-   vector<double> donor_channel_factors;
    vector<double> acceptor_channel_factors;
    vector<double> direct_acceptor_channel_factors;
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
+};
+
+template<class Archive>
+void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<MultiExponentialDecayGroup>(*this);
+   ar & tauT_parameters;
+   ar & A0_parameter;
+   ar & AD_parameter;
+   ar & tauA_parameter;
+   ar & n_fret_populations;
+   ar & include_donor_only;
+   ar & include_acceptor;
+   ar & acceptor_channel_factors;
+   ar & direct_acceptor_channel_factors;
 };
 
 
-class QFretDecayGroup : public QAbstractDecayGroup, virtual public FretDecayGroup
+class QFretDecayGroup : virtual public QAbstractDecayGroup, virtual public FretDecayGroup
 {
    Q_OBJECT
 
 public:
 
    QFretDecayGroup(const QString& name = "FRET Decay", QObject* parent = 0) :
+      FretDecayGroup(1, 1, false),
       QAbstractDecayGroup(name, parent) {};
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
    Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE SetNumFretPopulations USER true);
    Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE SetIncludeDonorOnly USER true);
    Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE SetIncludeAcceptor USER true);
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
+};
+
+template<class Archive>
+void QFretDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<FretDecayGroup>(*this);
 };

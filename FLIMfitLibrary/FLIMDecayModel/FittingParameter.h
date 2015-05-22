@@ -81,4 +81,22 @@ public:
    double initial_value;
    std::vector<ParameterFittingType> allowed_fitting_types;
    ParameterFittingType fitting_type;
+
+private:
+   
+   FittingParameter() {}
+   
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
 };
+
+template<class Archive>
+void FittingParameter::serialize(Archive & ar, const unsigned int version)
+{
+   ar & name;
+   ar & initial_value;
+   ar & allowed_fitting_types;
+   ar & fitting_type;
+}

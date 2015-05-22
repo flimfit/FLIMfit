@@ -45,9 +45,27 @@ protected:
    vector<double> beta;
    vector<ExponentialPrecomputationBuffer> buffer;
    vector<double> channel_factors;
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
 };
 
-class QMultiExponentialDecayGroup : public QAbstractDecayGroup, public MultiExponentialDecayGroup
+template<class Archive>
+void MultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
+   ar & tau_parameters;
+   ar & beta_parameters;
+   ar & n_exponential;
+   ar & contributions_global;
+   ar & channel_factors;
+};
+
+class QMultiExponentialDecayGroup : public QAbstractDecayGroup, virtual public MultiExponentialDecayGroup
 {
    Q_OBJECT
 
@@ -58,4 +76,20 @@ public:
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
    Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE SetContributionsGlobal USER true);
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
 };
+
+template<class Archive>
+void QMultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<MultiExponentialDecayGroup>(*this);
+};
+
+BOOST_CLASS_TRACKING(MultiExponentialDecayGroup, track_always)
+BOOST_CLASS_TRACKING(QMultiExponentialDecayGroup, track_always)

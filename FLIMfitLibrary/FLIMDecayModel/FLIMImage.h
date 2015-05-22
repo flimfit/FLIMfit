@@ -221,12 +221,16 @@ void FLIMImage::compute()
    int n_px = acq->n_px;
    int n_meas = acq->n_meas_full;
    intensity = cv::Mat(acq->n_x, acq->n_y, CV_32F);
+   intensity = cv::Scalar(0);
    
    T* data = getDataPointer<T>();
    
    for (int i=0; i<n_px; i++)
       for (int j=0; j<n_meas; j++)
+      {
+         assert(std::isfinite(data[i*n_meas + j]));
          intensity.at<float>(i) += data[i*n_meas + j];
+      }
    
    releasePointer<T>();
 }

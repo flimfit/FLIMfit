@@ -2,6 +2,8 @@
 
 #include "FLIMImage.h"
 #include "FLIMBackground.h"
+#include "InstrumentResponseFunction.h"
+
 #include <vector>
 #include <QObject>
 
@@ -20,6 +22,7 @@ public:
    int threshold = 100;
    int limit = 1<<30;
    std::shared_ptr<FLIMBackground> background;
+   std::shared_ptr<InstrumentResponseFunction> irf;
 };
 
 
@@ -34,7 +37,25 @@ public:
    Q_PROPERTY(int threshold MEMBER threshold USER true);
    Q_PROPERTY(int limit MEMBER limit USER true);
    Q_PROPERTY(std::shared_ptr<FLIMBackground> background MEMBER background USER true);
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
 };
+
+template<class Archive>
+void QDataTransformationSettings::serialize(Archive & ar, const unsigned int version)
+{
+   ar & smoothing_factor;
+   ar & t_start;
+   ar & t_stop;
+   ar & threshold;
+   ar & limit;
+   ar & background;
+   ar & irf;
+}
 
 
 
@@ -67,7 +88,7 @@ public:
       n_meas = n_t * n_chan;
       
       // Copy the things we don't change
-      irf = acq->irf;
+      irf = transform.irf;
       counts_per_photon = acq->counts_per_photon;
       polarisation_resolved = acq->polarisation_resolved;
       t_int = acq->t_int;
@@ -105,7 +126,37 @@ protected:
    
    std::vector<double> t_int;
    std::vector<double> timepoints;
+
+private:
+   
+   TransformedDataParameters() {}
+   
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
 };
+
+template<class Archive>
+void TransformedDataParameters::serialize(Archive & ar, const unsigned int version)
+{
+   ar & polarisation_resolved;
+   ar & equally_spaced_gates;
+   ar & smoothing_factor;
+   ar & smoothing_area;
+   ar & n_t;
+   ar & n_meas;
+   ar & n_chan;
+   ar & t_skip;
+   ar & irf;
+   ar & counts_per_photon;
+   ar & t_rep;
+   ar & tvb_profile;
+   ar & acq;
+   ar & t_int;
+   ar & timepoints;
+}
+
 
 class DataTransformer
 {

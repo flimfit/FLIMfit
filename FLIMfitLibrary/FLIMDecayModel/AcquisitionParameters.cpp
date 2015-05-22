@@ -81,11 +81,6 @@ void AcquisitionParameters::SetImageSize(int n_x_, int n_y_)
    n_px = n_x * n_y;
 }
 
-void AcquisitionParameters::SetIRF(shared_ptr<InstrumentResponseFunction> irf_)
-{
-   irf = irf_;
-}
-
 
 void AcquisitionParameters::SetIntegrationTimes(vector<double>& t_int_)
 {

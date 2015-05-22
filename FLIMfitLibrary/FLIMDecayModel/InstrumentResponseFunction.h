@@ -76,7 +76,7 @@ private:
 
    static double CubicInterpolate(double  y[], double mu);
 
-   std::vector<double, boost::alignment::aligned_allocator<double, 16>> irf;
+   std::vector<double, boost::alignment::aligned_allocator<double, 16> > irf;
    
    int     image_irf;
    double* t0_image;

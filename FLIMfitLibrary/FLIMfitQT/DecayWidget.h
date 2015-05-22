@@ -43,6 +43,9 @@ public:
    
    void recalculate()
    {
+      if (image == nullptr)
+         return;
+      
       image->getDecay(mask, decay);
       
       auto t = image->getAcquisitionParameters()->GetTimePoints();

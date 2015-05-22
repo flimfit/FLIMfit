@@ -39,6 +39,8 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {
+   n_exponential = n_donor_exponential;
+   contributions_global = true;
    SetupParameters();
 }
 

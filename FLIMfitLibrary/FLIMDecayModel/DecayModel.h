@@ -29,8 +29,16 @@
 
 #pragma once
 
+#include <boost/serialization/type_info_implementation.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+
 #include "DataTransformer.h"
 #include "AbstractDecayGroup.h"
+#include "MultiExponentialDecayGroup.h"
+#include "FretDecayGroup.h"
+
 
 #include <QObject>
 #include <cmath>
@@ -108,7 +116,26 @@ protected:
    float photons_per_count;
    vector<vector<double>> channel_factor;
    vector<float> adjust_buf;
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
 };
+
+
+template<class Archive>
+void DecayModel::serialize(Archive & ar, const unsigned int version)
+{
+   ar & dp;
+   ar & reference_parameter;
+   ar & t0_parameter;
+   ar & decay_groups;
+   ar & photons_per_count;
+   ar & channel_factor;
+}
 
 class QDecayModel : public QObject, public DecayModel
 {
@@ -148,4 +175,16 @@ signals:
 
    void GroupsUpdated();
 
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+ 
 };
+   
+template<class Archive>
+void QDecayModel::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<DecayModel>(*this);
+}

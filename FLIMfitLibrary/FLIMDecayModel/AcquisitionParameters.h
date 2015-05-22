@@ -48,7 +48,6 @@ public:
    AcquisitionParameters(int data_type = 0, double t_rep = 12500.0, int polarisation_resolved = false, int n_chan = 1, double counts_per_photon = 1);
   
    void SetImageSize(int n_x, int n_y);
-   void SetIRF(shared_ptr<InstrumentResponseFunction> irf);
    void SetT(int n_t_full, double t_[], double t_int_[]);
    
    void SetT(const vector<double>& t_);
@@ -71,8 +70,6 @@ public:
    
    vector<double> t;
    vector<double> t_int;
-
-   shared_ptr<InstrumentResponseFunction> irf;
 
    // Computed parameters
    int n_px;
@@ -104,7 +101,6 @@ void AcquisitionParameters::serialize(Archive & ar, const unsigned int version)
    ar & t_rep;
    ar & t;
    ar & t_int;
-   ar & irf;
    ar & n_px;
    ar & n_meas_full;
    ar & equally_spaced_gates;

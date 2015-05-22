@@ -30,6 +30,11 @@
 #pragma once
 #pragma warning(disable: 4250) // inherits ... via dominance
 
+#include <boost/serialization/type_info_implementation.hpp>
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+
 #include <memory>
 #include <QObject>
 
@@ -97,6 +102,25 @@ protected:
    double t0_shift = 0;
    double reference_lifetime;
    vector<double> irf_buf;
+   
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
+};
+
+template<class Archive>
+void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & constrain_nonlinear_parameters;
+   ar & n_lin_components;
+   ar & n_nl_parameters;
+   ar & parameters;
+   ar & channel_factor_names;
+   ar & dp;
+   ar & fit_t0;
 };
 
 
@@ -120,9 +144,23 @@ protected:
    {
       emit parametersUpdated();
    }
+   
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+   
 };
 
+template<class Archive>
+void QAbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
+{
+   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
+};
 
+BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
+BOOST_CLASS_TRACKING(QAbstractDecayGroup, track_always)
 
 
 

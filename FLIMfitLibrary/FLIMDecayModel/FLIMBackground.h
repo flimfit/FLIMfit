@@ -1,4 +1,9 @@
 #pragma once 
+
+#include <boost/serialization/shared_ptr.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
+
 #include <vector>
 #include <cv.h>
 
@@ -79,6 +84,26 @@ protected:
    cv::Mat tvb_I_map;
    float tvb_mean;
    std::vector<float> tvb_profile;
+   
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+   
+   friend class boost::serialization::access;
+};
+
+template<class Archive>
+void FLIMBackground::serialize(Archive & ar, const unsigned int version)
+{
+   ar & n_x;
+   ar & n_y;
+   ar & n_meas;
+   ar & background_type;
+   ar & background_value;
+   ar & background_image;
+   ar & tvb_I_map;
+   ar & tvb_mean;
+   ar & tvb_profile;
 };
 
 

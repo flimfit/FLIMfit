@@ -10,7 +10,7 @@ const std::vector<float>& DataTransformer::getSteadyStateAnisotropy()
    if (acq->polarisation_resolved)
    {
       
-      float g_factor = acq->irf->g_factor;
+      float g_factor = transform.irf->g_factor;
       int n_t = dp->n_t;
       int n_px = acq->n_px;
       
