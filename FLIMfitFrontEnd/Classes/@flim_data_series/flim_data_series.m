@@ -134,6 +134,7 @@ classdef flim_data_series < handle & h5_serializer
     properties(Transient,Hidden)
         % Properties that won't be saved to a data_settings_file or to 
         % a project file
+        loaded_from_OMERO = false;
         
         header_text = ' ';  % text to be displayed on top bar in GUI
         

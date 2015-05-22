@@ -1,4 +1,4 @@
-function [filename, pathname, before_list] = prompt_for_image_export(obj,default_path,default_name)
+function [filename, pathname, before_list, dId] = prompt_for_image_export(obj,default_path,default_name)
     %> Prompt the user for root file name & image type (TBD Dataset)
     
     % Copyright (C) 2015 Imperial College London.
@@ -23,18 +23,19 @@ function [filename, pathname, before_list] = prompt_for_image_export(obj,default
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-    prompt={'Enter Root filename:',...
-        'Enter image type from: tiff,pdf,png,eps'};
-    name='Select root name & type';
-    numlines=1;
-    default_answer={default_name,'tiff'};
-    answer=inputdlg(prompt,name,numlines,default_answer);
-    
-    if ~isempty(answer)
+    client = obj.omero_data_manager.client;
+    userid = obj.omero_data_manager.userid;
+    dataID = javaObject('java.lang.Long',obj.datasetId);
+   
+    chooser = OMEuiUtils.OMEROImageChooser(client, userid, dataID, java.lang.String(default_name) );
+    dataset = chooser.getSelectedDataset();
+    if ~isempty(dataset)
+        filename = char(chooser.getFilename());
+        clear chooser;
         pathname = tempdir;
-        filename = [ answer{1} '.' answer{2} ];
-        search_string = [pathname filesep answer{1} '*.*'];
+        dId = dataset.getId.getValue();
+        c = strsplit(filename,'.');
+        search_string = [pathname c{1} '*.*'];
         before_list = dir(search_string);
     else
         filename=0;

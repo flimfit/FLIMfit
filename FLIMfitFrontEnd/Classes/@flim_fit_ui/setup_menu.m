@@ -131,7 +131,6 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Import_Data_Settings = uimenu(menu_OMERO,'Label','Import Data Settings','Enable','off');    
     
     handles.menu_OMERO_export_plots = uimenu(menu_OMERO,'Label','Export Images...','Separator','on','Enable','off');
-    handles.menu_OMERO_export_hist_data = uimenu(menu_OMERO,'Label','Export Histograms...','Enable','off');        
     
     %
     % Commented out until we decide on a suitable file format (common to

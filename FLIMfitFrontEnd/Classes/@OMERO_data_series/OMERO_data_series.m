@@ -98,7 +98,8 @@ classdef OMERO_data_series < flim_data_series
             
             obj.fitted_data = [];
             obj.fit_result = [];
-            obj.FLIM_modality = [];             
+            obj.FLIM_modality = [];   
+            obj.loaded_from_OMERO = true;
         end
                                         
         function delete(obj)
