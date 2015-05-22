@@ -1,4 +1,4 @@
-function export_new_images(obj,pathname,filename,before_list, dId)
+function export_new_images(obj,pathname,filename,before_list, dataset)
     %> exports all images that are not in before_list to an OMERO Dataset
     
     % Copyright (C) 2015 Imperial College London.
@@ -29,13 +29,13 @@ function export_new_images(obj,pathname,filename,before_list, dId)
     after_list = dir(search_string);
     if ~isempty(before_list)
         s = [after_list(:).datenum];
-        [s,~] = sort(s);
+        [s,s] = sort(s);
         after_list = {after_list(s).name}; % Cell array of names in order by datenum.
         after_list = after_list(length(before_list)+1:end); %keep only the new ones
     else
         after_list = {after_list(:).name};
     end
-    add_Images(obj.omero_data_manager,pathname,after_list, dId);
+    add_Images(obj.omero_data_manager,pathname,after_list, dataset);
                 
    
 end

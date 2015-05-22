@@ -1224,9 +1224,9 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_export_plots_callback(obj, ~, ~)
             
             default_name = [char(obj.omero_data_manager.dataset.getName().getValue() ) 'fit'];
-            [filename, pathname, before_list, dId] = obj.data_series_controller.data_series.prompt_for_image_export('', default_name);
+            [filename, pathname, before_list, dataset] = obj.data_series_controller.data_series.prompt_for_image_export('', default_name);
             obj.plot_controller.update_plots([pathname filename]);
-            obj.data_series_controller.data_series.export_new_images(pathname,filename,before_list, dId);
+            obj.data_series_controller.data_series.export_new_images(pathname,filename,before_list, dataset);
             
         end
         

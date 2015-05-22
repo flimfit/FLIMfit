@@ -108,7 +108,7 @@ classdef abstract_display_controller < handle
                 % in the interests of keeping the file_side stable
                 if obj.fit_controller.data_series.loaded_from_OMERO
                     default_name = [''];
-                    [filename, pathname, before_list, dId] = obj.fit_controller.data_series.prompt_for_image_export('', '');
+                    [filename, pathname, before_list, dataset] = obj.fit_controller.data_series.prompt_for_image_export('', '');
                      
                 else
                     
@@ -141,7 +141,7 @@ classdef abstract_display_controller < handle
                     close(f);
                     
                     if obj.fit_controller.data_series.loaded_from_OMERO
-                         obj.fit_controller.data_series.export_new_images(pathname,[name '.' ext],before_list, dId);
+                         obj.fit_controller.data_series.export_new_images(pathname,[name '.' ext],before_list, dataset);
                     end
                     
                     

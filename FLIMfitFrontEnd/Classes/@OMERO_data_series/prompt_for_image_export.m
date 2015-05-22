@@ -1,4 +1,4 @@
-function [filename, pathname, before_list, dId] = prompt_for_image_export(obj,default_path,default_name)
+function [filename, pathname, before_list, dataset] = prompt_for_image_export(obj,default_path,default_name)
     %> Prompt the user for root file name & image type (TBD Dataset)
     
     % Copyright (C) 2015 Imperial College London.
@@ -33,7 +33,6 @@ function [filename, pathname, before_list, dId] = prompt_for_image_export(obj,de
         filename = char(chooser.getFilename());
         clear chooser;
         pathname = tempdir;
-        dId = dataset.getId.getValue();
         c = strsplit(filename,'.');
         search_string = [pathname c{1} '*.*'];
         before_list = dir(search_string);
