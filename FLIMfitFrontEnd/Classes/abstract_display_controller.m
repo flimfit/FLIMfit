@@ -108,7 +108,7 @@ classdef abstract_display_controller < handle
                 % in the interests of keeping the file_side stable
                 if obj.fit_controller.data_series.loaded_from_OMERO
                     default_name = [''];
-                    [filename, pathname, before_list, dataset] = obj.fit_controller.data_series.prompt_for_image_export('', '');
+                    [filename, pathname, dataset, before_list] = obj.fit_controller.data_series.prompt_for_export('', '','.tiff');
                      
                 else
                     

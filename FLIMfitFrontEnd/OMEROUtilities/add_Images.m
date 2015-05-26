@@ -1,5 +1,5 @@
 
-function ret = add_Images(omero_data_manager, dirpath, filenames)
+function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
 
         % Copyright (C) 2015 Imperial College London.
         % All rights reserved.
@@ -30,25 +30,42 @@ function ret = add_Images(omero_data_manager, dirpath, filenames)
         import loci.formats.in.DefaultMetadataOptions;
         import loci.formats.in.MetadataLevel;
         import loci.common.*;
+        import omero.model.Dataset;
+        import omero.model.DatasetI;
+        import ome.services.blitz.repo.*;
         import ome.formats.OMEROMetadataStoreClient;
         import ome.formats.importer.*;
         import ome.formats.importer.ImportConfig;
         import ome.formats.importer.cli.ErrorHandler;
         import ome.formats.importer.cli.LoggingImportMonitor;
-        import omero.model.Dataset;
-        import omero.model.DatasetI;
-        import ome.services.blitz.repo.*;
+        
         import ome.formats.importer.transfers.*;
-        import ome.formats.importer.cli.CommandLineImporter;
+        import ome.formats.importer.transfers.UploadRmFileTransfer;
+        %import ome.formats.importer.cli.CommandLineImporter;
         import java.util.prefs.*;
         
-         if length(filenames) == 0
+        if length(filenames) == 0
             return;
         end
         
-        %Configuration Object
+        loci.common.DebugTools.enableLogging('DEBUG');
+         
+        % className = class(obj)
+         
+        % try
+        %     thisClass = java.lang.Class.forName(className);
+        % catch
+        %     classLoader = com.mathworks.jmi.ClassLoaderManager.getClassLoaderManager;
+         %    thisClass = classLoader.loadClass(className);
+         %end
+
+         %cl = java.lang.Thread.currentThread().getContextClassLoader();
+         
+       %  java.lang.Thread.currentThread().setContextClassLoader(thisClass.getClassLoader());
+         
+        % Configuration Object
         config = ImportConfig();
-        
+     
         %Set Config params
         config.email.set('');
         config.sendFiles.set(true);
@@ -56,7 +73,7 @@ function ret = add_Images(omero_data_manager, dirpath, filenames)
         config.contOnError.set(false);
         config.debug.set(false);
         
-        
+        cl = omero_data_manager.client;
         host = javaObject('java.lang.String',omero_data_manager.logon{1});
         port = javaObject('java.lang.Integer',str2num(omero_data_manager.logon{2}));
         name = javaObject('java.lang.String',omero_data_manager.logon{3});
@@ -68,7 +85,7 @@ function ret = add_Images(omero_data_manager, dirpath, filenames)
         config.password.set(passwd);
         config.targetClass.set('omero.model.Dataset');
         
-        dataID = javaObject('java.lang.Long',omero_data_manager.dataset.getId().getValue());
+        dataID = javaObject('java.lang.Long',dataset.getId.getValue() );
         config.targetId.set(dataID);
         
         %Metadatastore Object
@@ -76,21 +93,34 @@ function ret = add_Images(omero_data_manager, dirpath, filenames)
         store.logVersionInfo(config.getIniVersionNumber());
         reader = OMEROWrapper(config);
         
-        library = handle(ImportLibrary(store, reader));
+        uploadRm = UploadRmFileTransfer;
+        library = handle(ImportLibrary(store, reader, uploadRm));
         
         handler = ErrorHandler(config);
         library.addObserver(LoggingImportMonitor());
         
+      
         %Import
+        nfiles = length(filenames);
+        
+        paths = javaArray('java.lang.String',nfiles);
         for p = 1:length(filenames)
-            fpath = [dirpath filenames{p}]
-            candidates = ImportCandidates(reader, fpath, handler);
-            reader.setMetadataOptions(DefaultMetadataOptions(MetadataLevel.ALL));
-            success = library.importCandidates(config, candidates);
-            if success == 0
-                log = org.apache.commons.logging.LogFactory.getLog('ome.formats.importer.ImportLibrary');
-                templog=log.setLevel(0);
-            end
+            fpath = [dirpath filenames{p}];
+            paths(p) = java.lang.String(fpath);   
         end
-  
+        candidates = ImportCandidates(reader, paths, handler);
+        reader.setMetadataOptions(DefaultMetadataOptions(MetadataLevel.ALL));
+        containers = candidates.getContainers();
+
+        n = containers.size();
+        imageId = [];
+
+        for index=0:n-1
+            ic = containers.get(index);
+            ic.setTarget(dataset);
+            pixels = library.importImage(ic,index,0,n);
+            imageId = [imageId ; pixels.get(0).getImage.getId.getValue];
+        end
+        uploadRm.afterTransfer(handler.errorCount,toJavaList(paths));
+
 end

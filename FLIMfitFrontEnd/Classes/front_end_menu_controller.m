@@ -59,8 +59,8 @@ classdef front_end_menu_controller < handle
         
         menu_OMERO_Load_FLIM_Dataset_Polarization;
         
-        menu_OMERO_Export_Data_Settings;
-        menu_OMERO_Import_Data_Settings;
+        menu_OMERO_save_data_settings;
+        menu_OMERO_load_data_settings;
         
         menu_OMERO_Export_Visualisation_Images;
         
@@ -513,13 +513,13 @@ classdef front_end_menu_controller < handle
             
             clear chooser;
         end             
-        %------------------------------------------------------------------        
-        function menu_OMERO_Export_Data_Settings_callback(obj,~,~)
-            obj.omero_data_manager.Export_Data_Settings(obj.data_series_controller.data_series);
-        end                    
+                          
         %------------------------------------------------------------------
-        function menu_OMERO_Import_Data_Settings_callback(obj,~,~)
-            obj.omero_data_manager.Import_Data_Settings(obj.data_series_controller.data_series);
+        function menu_OMERO_load_data_settings_callback(obj,~,~)
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
+            dataset = chooser.getSelectedDataset();
+            obj.omero_data_manager.Import_Data_Settings(obj.data_series_controller.data_series,dataset);
+            clear chooser;
         end                                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
@@ -694,6 +694,15 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.save_data_settings([pathname filename]);         
             end
         end
+        
+         function menu_OMERO_save_data_settings_callback(obj,~,~)
+          
+            [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('', '', '.xml');
+            if filename ~= 0
+                obj.data_series_controller.data_series.save_data_settings(filename, dataset);         
+            end
+        end
+        
         
         function menu_file_load_data_settings_callback(obj,~,~)
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
@@ -1224,7 +1233,7 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_export_plots_callback(obj, ~, ~)
             
             default_name = [char(obj.omero_data_manager.dataset.getName().getValue() ) 'fit'];
-            [filename, pathname, before_list, dataset] = obj.data_series_controller.data_series.prompt_for_image_export('', default_name);
+            [filename, pathname, dataset, before_list] = obj.data_series_controller.data_series.prompt_for_export('', default_name, '.tiff');
             obj.plot_controller.update_plots([pathname filename]);
             obj.data_series_controller.data_series.export_new_images(pathname,filename,before_list, dataset);
             
