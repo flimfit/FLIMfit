@@ -134,7 +134,8 @@ classdef front_end_menu_controller < handle
         
         % icy..
         menu_file_export_volume_to_icy;
-        menu_file_export_volume_as_OMEtiff;         
+        menu_file_export_volume_as_OMEtiff;
+        menu_file_export_volume_batch;
         
         menu_irf_load;
         menu_irf_image_load;
@@ -1306,7 +1307,7 @@ classdef front_end_menu_controller < handle
         
         function menu_file_export_volume_to_icy_callback(obj,~,~)
             try
-                obj.menu_file_export_volume('send to Icy');            
+                obj.export_volume('send to Icy');            
             catch
                 errordlg('error - there might be no fitted data');
             end
@@ -1314,14 +1315,14 @@ classdef front_end_menu_controller < handle
 
         function menu_file_export_volume_as_OMEtiff_callback(obj,~,~)
             try
-                obj.menu_file_export_volume('save as OME.tiff');            
+                obj.export_volume('save as OME.tiff');            
             catch
                 errordlg('error - there might be no fitted data');
             end
             
         end
                 
-        function menu_file_export_volume(obj,mode,~)            
+        function export_volume(obj,mode,~)            
                         
             n_planes = obj.data_series_controller.data_series.n_datasets;
             
@@ -1415,10 +1416,82 @@ classdef front_end_menu_controller < handle
                     
                 end %~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
                 
-            end
+           end
                                                             
-        end
+        end % export_volume
 
+        function menu_file_export_volume_batch_callback(obj,~,~)            
+
+            % try batch here            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%            
+            folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
+            if folder == 0, return, end;
+                
+                path_parts = split(filesep,folder);
+                batch_folder = [folder filesep '..' filesep 'Batch fit - ' path_parts{end} ' - ' datestr(now,'yyyy-mm-dd HH-MM-SS')];
+                mkdir(batch_folder);
+                
+                files = dir([folder filesep '*.OME.tiff']);
+                num_datasets = size(files,1);                                
+                                
+                for k=1:num_datasets
+                    
+                    obj.data_series_controller.data_series = flim_data_series();
+                    obj.data_series_controller.data_series.all_Z_volume_loading = true;
+                    obj.data_series_controller.data_series.batch_mode = true; 
+                    
+                    obj.data_series_controller.load_single([ folder filesep char(files(k).name)]);
+                    
+                    obj.fit_controller.fit();                    
+                    if obj.fit_controller.has_fit == 0
+                        uiwait();
+                    end                    
+                    %
+                    % [data, row_headers] = obj.fit_controller.get_table_data();
+                    str = char(files(k).name);                    
+                    str = str(1:length(str)-8);                      
+                    param_table_name = [str 'csv'];
+                    obj.fit_controller.save_param_table([batch_folder filesep param_table_name]);
+                    
+                    %%%%%%%%%%%%%%%%%% save parameters as OME.tiff
+                    n_planes = obj.data_series_controller.data_series.n_datasets;                    
+                    params = obj.fit_controller.fit_result.fit_param_list();                                            
+                    param_array(:,:) = obj.fit_controller.get_image(1, params{1});                                    
+                    sizeY = size(param_array,1);
+                    sizeX = size(param_array,2);                                        
+                    
+                    % find indices
+                    ind_intensity = [];
+                    ind_lifetime = [];
+                    ind_chi2 = [];                       
+                    for kk=1:length(params), if strcmp(char(params{kk}),'I'), break; end; end; ind_intensity=kk;
+                    for kk=1:length(params), if strcmp(char(params{kk}),'mean_tau'), break; end; end; ind_lifetime=kk;
+                    for kk=1:length(params), if strcmp(char(params{kk}),'chi2'), break; end; end; ind_chi2=kk;  
+
+                    if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
+
+                        volm = zeros([sizeX,sizeY,3,n_planes,1],'single'); % XYCZT                    
+                        for p = 1 : n_planes                
+                            plane_intensity = obj.fit_controller.get_image(p,params{ind_intensity})';
+                            plane_lifetime = obj.fit_controller.get_image(p,params{ind_lifetime})';
+                            plane_chi2 = obj.fit_controller.get_image(p,params{ind_chi2})';
+                            volm(:,:,1,p,1) = cast(plane_intensity,'single');
+                            volm(:,:,2,p,1) = cast(plane_lifetime,'single');
+                            volm(:,:,3,p,1) = cast(plane_chi2,'single');                        
+                        end                    
+
+                        volm(isnan(volm))=0;
+                        volm(volm<0)=0;                    
+
+                        ometifffilename = [batch_folder filesep str(1:length(str)-1) ' fitting results.OME.tiff'];
+                        bfsave(volm,ometifffilename,'dimensionOrder','XYCZT','Compression', 'LZW','BigTiff', true);
+
+                    end %~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)                                       
+                    %%%%%%%%%%%%%%%%%% save parameters as OME.tiff
+                end
+        end
+        
+        
     end
     
 end
