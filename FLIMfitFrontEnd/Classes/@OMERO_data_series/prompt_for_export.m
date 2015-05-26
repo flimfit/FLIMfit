@@ -1,4 +1,4 @@
-function [filename, pathname, before_list, dataset] = prompt_for_image_export(obj,default_path,default_name)
+function [filename, pathname, dataset, before_list] = prompt_for_export(obj,default_path,default_name, extString)
     %> Prompt the user for root file name & image type (TBD Dataset)
     
     % Copyright (C) 2015 Imperial College London.
@@ -26,8 +26,21 @@ function [filename, pathname, before_list, dataset] = prompt_for_image_export(ob
     client = obj.omero_data_manager.client;
     userid = obj.omero_data_manager.userid;
     dataID = javaObject('java.lang.Long',obj.datasetId);
+    
+    if strcmp(extString,'.tiff') 
+        paths = javaArray('java.lang.String',5);
+        fnameStrings(1) = java.lang.String(default_name);
+        fnameStrings(2) = java.lang.String('.tiff');
+        fnameStrings(3) = java.lang.String('.pdf');
+        fnameStrings(4) = java.lang.String('.png');
+        fnameStrings(5) = java.lang.String('.eps');
+    else
+        paths = javaArray('java.lang.String',2);
+        fnameStrings(1) = java.lang.String(default_name);
+        fnameStrings(2) = java.lang.String(extString);
+    end
    
-    chooser = OMEuiUtils.OMEROImageChooser(client, userid, dataID, java.lang.String(default_name) );
+    chooser = OMEuiUtils.OMEROImageChooser(client, userid, dataID, fnameStrings );
     dataset = chooser.getSelectedDataset();
     if ~isempty(dataset)
         filename = char(chooser.getFilename());

@@ -685,33 +685,8 @@ classdef flim_omero_data_manager < handle
         end                      
     %
         %------------------------------------------------------------------        
-        function Export_Data_Settings(obj,data_series,~)
-            
-            
-           prompt = {'Please Enter File Annotation name'};
-           dlg_title = 'Input name';
-           num_lines = 1;
-           def = {'FLIMfit_settings.xml'};
-           file = inputdlg(prompt,dlg_title, num_lines,def);
-           if ~isempty(file)
-               file = file{1};
-               data_series.save_data_settings(file);
-           end
-            
-                       
-                       
-        end            
-        
-        %------------------------------------------------------------------
-        function Import_Data_Settings(obj,data_series,~)
-            %
-             if ~isempty(obj.dataset) 
-                parent = obj.dataset;
-             elseif ~isempty(obj.plate) 
-                parent = obj.plate;
-             else
-                errordlg('please set a Dataset or a Plate'), return;
-             end;            
+       
+        function Import_Data_Settings(obj,data_series,parent)
             
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose data settings file');
             
