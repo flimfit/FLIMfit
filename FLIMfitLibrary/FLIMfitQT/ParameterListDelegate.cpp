@@ -47,6 +47,7 @@ QWidget *ParameterListDelegate::createEditor(QWidget *parent,
          return createBoolCombo(parent);
    }
    
+   return nullptr;
    assert(false); // whoops!
 }
 

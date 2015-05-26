@@ -63,7 +63,7 @@ public:
          graph->setLineStyle(QCPGraph::lsNone);
          graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
          graph->setData(x, QVector<double>::fromStdVector(decay[i]));
-         graph->rescaleAxes(false);
+         graph->rescaleAxes(i==0);
       }
       
       int n_fit = fit.size();

@@ -549,7 +549,7 @@ int FretDecayGroup::AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<d
       if (include_donor_only)
       {
          memset(b + idx, 0, bdim*sizeof(*b));
-         direct_acceptor_buffer->AddDecay(AD * A0 / (tauA * tauA), reference_lifetime, b + idx);
+         direct_acceptor_buffer->AddDerivative(AD * A0 / (tauA * tauA), reference_lifetime, b + idx);
          
          col++;
          idx += bdim;

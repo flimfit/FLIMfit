@@ -51,6 +51,12 @@ public:
       
       file_items.clear();
       
+      QListWidgetItem* item;
+      while((item = files_list->takeItem(0)))
+         delete item;
+      while((item = channel_list->takeItem(0)))
+         delete item;
+      
       for(auto& f : file_set.files)
       {
          QString relative_path = f.canonicalPath();

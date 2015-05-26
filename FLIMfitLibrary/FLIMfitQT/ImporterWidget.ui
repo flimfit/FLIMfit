@@ -121,7 +121,7 @@
           <item row="2" column="1">
            <widget class="QComboBox" name="temporal_resolution_combo">
             <property name="currentText">
-             <string>256</string>
+             <string>32</string>
             </property>
             <item>
              <property name="text">
@@ -177,6 +177,13 @@
             <widget class="QListWidget" name="channel_list">
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="split_channels_check">
+             <property name="text">
+              <string>Split channels into different images</string>
              </property>
             </widget>
            </item>

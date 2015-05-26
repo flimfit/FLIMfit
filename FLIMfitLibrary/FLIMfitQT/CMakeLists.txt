@@ -37,6 +37,7 @@ set(SOURCE
    FLIMImageSet.cpp
    FLIMfitWindow.cpp
    FittingWidget.cpp
+   FLIMImporter.cpp
 )
 
 set(HEADERS
