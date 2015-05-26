@@ -59,8 +59,8 @@ protected:
 
    vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
    vector<vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
-   unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
-   unique_ptr<ExponentialPrecomputationBuffer> direct_acceptor_buffer;
+   std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
+   std::unique_ptr<ExponentialPrecomputationBuffer> direct_acceptor_buffer;
    vector<double> acceptor_channel_factors;
    vector<double> direct_acceptor_channel_factors;
 

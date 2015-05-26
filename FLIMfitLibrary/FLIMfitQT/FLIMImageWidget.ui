@@ -13,12 +13,27 @@
   <property name="windowTitle">
    <string>FLIM Image</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
-    <widget class="ColormappedImageWidget" name="image_widget" native="true"/>
-   </item>
-   <item>
-    <widget class="DecayWidget" name="decay_widget" native="true"/>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <widget class="ColormappedImageWidget" name="image_widget" native="true"/>
+     <widget class="DecayWidget" name="decay_widget" native="true"/>
+    </widget>
    </item>
   </layout>
  </widget>

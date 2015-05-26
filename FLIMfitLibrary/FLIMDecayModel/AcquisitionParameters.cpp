@@ -32,6 +32,8 @@
 #include <cassert>
 #include <cmath>
 
+using std::vector;
+
 AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int polarisation_resolved, int n_chan , double counts_per_photon) :
    data_type(data_type),
    polarisation_resolved(polarisation_resolved),

@@ -78,38 +78,38 @@ public:
    FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform);
    FLIMData(std::shared_ptr<FLIMImage> image, const DataTransformationSettings& transform);
 
-   void SetGlobalMode(int global_mode);
+   void setGlobalMode(int global_mode);
 
-   RegionData* GetNewRegionData();
+   RegionData* getNewRegionData();
 
    template <typename T>
-   int CalculateRegions();
+   int calculateRegions();
 
-   int GetRegionIndex(int im, int region);
-   int GetOutputRegionIndex(int im, int region);
-   int GetRegionPos(int im, int region);
-   int GetRegionCount(int im, int region);
+   int getRegionIndex(int im, int region);
+   int getOutputRegionIndex(int im, int region);
+   int getRegionPos(int im, int region);
+   int getRegionCount(int im, int region);
 
-   int GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread);
+   int getRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread);
 
    std::shared_ptr<TransformedDataParameters> GetTransformedDataParameters() { return dp; }
    
-   int GetMaxFitSize();
-   int GetMaxRegionSize();
-   int GetMaxPxPerImage() { return max_px_per_image; }
-   int GetNumMeasurements() { return dp->n_meas; }
-   int GetNumRegionsTotal() { return n_regions_total; }
-   int GetNumOutputRegionsTotal() { return n_output_regions_total; }
-   int GetNumAuxillary();
-   void GetAuxParamNames(vector<string>& param_names);
+   int getMaxFitSize();
+   int getMaxRegionSize();
+   int getMaxPxPerImage() { return max_px_per_image; }
+   int getNumMeasurements() { return dp->n_meas; }
+   int getNumRegionsTotal() { return n_regions_total; }
+   int getNumOutputRegionsTotal() { return n_output_regions_total; }
+   int getNumAuxillary();
+   void getAuxParamNames(vector<string>& param_names);
    
-   int GetImLoc(int im);
+   int getImLoc(int im);
 
-   void SetImageT0Shift(double* image_t0_shift);
+   void setImageT0Shift(double* image_t0_shift);
 
 
    template <typename T>
-   void DataLoaderThread(bool only_load_non_empty_images);
+   void dataLoaderThread(bool only_load_non_empty_images);
 
    int n_im = 0;
 
@@ -131,13 +131,13 @@ public:
    
 private:
 
-   int GetMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results);
-   void SetData(const vector<std::shared_ptr<FLIMImage>>& images);
+   int getMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results);
+   void setData(const vector<std::shared_ptr<FLIMImage>>& images);
    
-   void ResizeBuffers();
+   void resizeBuffers();
 
    template <typename T>
-   T* GetDataPointer(int thread, int im);
+   T* getDataPointer(int thread, int im);
 
    std::vector<std::shared_ptr<FLIMImage>> images;
 
@@ -178,7 +178,7 @@ void StartDataLoaderThread(void* wparams);
 
 
 template <typename T>
-int FLIMData::CalculateRegions()
+int FLIMData::calculateRegions()
 {
    INIT_CONCURRENCY;
 

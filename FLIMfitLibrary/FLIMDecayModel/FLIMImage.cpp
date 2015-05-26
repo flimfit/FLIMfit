@@ -1,6 +1,7 @@
 #include "FLIMImage.h"
 #include <boost/filesystem.hpp>
 
+using std::shared_ptr;
 
 FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode, const std::string& root) :
 acq(acq),

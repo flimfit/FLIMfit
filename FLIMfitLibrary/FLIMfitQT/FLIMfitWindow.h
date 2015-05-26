@@ -18,7 +18,7 @@ public:
    void openProjectFromDialog();
    void openProject(const QString& file);
    
-   void setFitController(std::shared_ptr<FitController> controller);
+   void setFitController(std::shared_ptr<QFitController> controller);
    void addProgressReporter(std::shared_ptr<ProgressReporter> reporter);
    
    void closeEvent(QCloseEvent *event);

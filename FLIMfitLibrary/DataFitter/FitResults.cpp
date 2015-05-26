@@ -50,9 +50,9 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    n_px = data->n_masked_px;
    lmax = model->GetNumColumns();
    nl   = model->GetNumNonlinearVariables();
-   n_meas = data->GetNumMeasurements();
+   n_meas = data->getNumMeasurements();
    n_im = data->n_im_used;
-   n_regions = data->GetNumOutputRegionsTotal();
+   n_regions = data->getNumOutputRegionsTotal();
    
    
    n_nl_output_params = nl; // TODO - redundant?
@@ -75,7 +75,7 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
 
    int lin_size = n_px * lmax;
 
-   n_aux = data->GetNumAuxillary();
+   n_aux = data->getNumAuxillary();
    int aux_size = n_aux * n_px;
 
    mask.resize(n_im);
@@ -115,9 +115,9 @@ void FitResults::GetNonLinearParams(int image, int region, int pixel, vector<dou
 {
    int idx;
    if (pixelwise)
-      idx = data->GetRegionPos(image, region) + pixel;
+      idx = data->getRegionPos(image, region) + pixel;
    else
-      idx = data->GetRegionIndex(image, region);
+      idx = data->getRegionIndex(image, region);
 
    params.resize(nl);
 
@@ -127,7 +127,7 @@ void FitResults::GetNonLinearParams(int image, int region, int pixel, vector<dou
 
 void FitResults::GetLinearParams(int image, int region, int pixel, vector<float>& params)
 {
-   int start = data->GetRegionPos(image, region) + pixel;
+   int start = data->getRegionPos(image, region) + pixel;
 
    params.resize(lmax);
    for (int i = 0; i<lmax; i++)
@@ -137,20 +137,20 @@ void FitResults::GetLinearParams(int image, int region, int pixel, vector<float>
 
 float* FitResults::GetAuxDataPtr(int image, int region)
 {
-   int pos =  data->GetRegionPos(image,region);
+   int pos =  data->getRegionPos(image,region);
    return aux_data.data() + pos * n_aux;
 }
 
 void FitResults::GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2_)
 {
 
-   int start = data->GetRegionPos(image, region) + pixel;
+   int start = data->getRegionPos(image, region) + pixel;
 
    int idx;
    if (pixelwise)
       idx = start;
    else
-      idx = data->GetRegionIndex(image, region);
+      idx = data->getRegionIndex(image, region);
 
    non_linear_params = alf.data() + idx * nl;
    linear_params     = lin_params.data() + start * lmax;
@@ -160,7 +160,7 @@ void FitResults::GetPointers(int image, int region, int pixel, float*& non_linea
 
 void FitResults::SetFitStatus(int image, int region, int code)
 {
-   int r_idx = data->GetRegionIndex(image, region);
+   int r_idx = data->getRegionIndex(image, region);
 
    if (pixelwise)
    {
@@ -181,7 +181,7 @@ void FitResults::SetFitStatus(int image, int region, int code)
 void FitResults::DetermineParamNames()
 {
    model->GetOutputParamNames(param_names, n_nl_output_params, n_lin_output_params);
-   data->GetAuxParamNames(param_names);
+   data->getAuxParamNames(param_names);
    param_names.push_back("chi2");
 
    n_output_params = (int) param_names.size();
@@ -230,14 +230,14 @@ void FitResults::ComputeRegionStats(float confidence_factor)
 
       for (int rg = 1; rg<MAX_REGION; rg++)
       {
-         int r_idx = data->GetRegionIndex(im, rg);
-         int idx = data->GetOutputRegionIndex(im, rg);
+         int r_idx = data->getRegionIndex(im, rg);
+         int idx = data->getOutputRegionIndex(im, rg);
 
          if (r_idx > -1)
          {
 
-            int start = data->GetRegionPos(im, rg);
-            int s_local = data->GetRegionCount(im, rg);
+            int start = data->getRegionPos(im, rg);
+            int s_local = data->getRegionCount(im, rg);
             float* intensity = aux_data.data() + start;
 
             if (param_buf.size() < n_output_params*s_local)
@@ -475,7 +475,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
       memcpy(ret_mask, im_mask.data(), n_px * sizeof(uint8_t));
 
    int merge_regions = data->merge_regions;
-   int iml = data->GetImLoc(im);
+   int iml = data->getImLoc(im);
    im = iml;
    if (iml == -1)
       return 0;
@@ -486,10 +486,10 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
    {
       int r_param = param;
 
-      r_idx = data->GetRegionIndex(im, rg);
+      r_idx = data->getRegionIndex(im, rg);
 
-      start = data->GetRegionPos(im, rg);
-      s_local = data->GetRegionCount(im, rg);
+      start = data->getRegionPos(im, rg);
+      s_local = data->getRegionCount(im, rg);
 
 
       if (r_idx > -1)

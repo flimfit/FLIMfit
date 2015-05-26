@@ -55,6 +55,7 @@ set(HEADERS
    FLIMGlobalAnalysis.h
    ModelADA.h
    FitSettings.h
+   QFitController.h
 )
 
 # Make library

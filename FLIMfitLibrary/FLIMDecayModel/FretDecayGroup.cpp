@@ -41,6 +41,12 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
 {
    n_exponential = n_donor_exponential;
    contributions_global = true;
+   
+   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   A0_parameter = make_shared<FittingParameter>("A0", 1, fixed_or_global, FittedGlobally);
+   AD_parameter = make_shared<FittingParameter>("AD", 0.1, fixed_or_global, FittedGlobally);
+   tauA_parameter = make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
+   
    SetupParameters();
 }
 
@@ -72,9 +78,6 @@ void FretDecayGroup::SetupParameters()
 
    if (include_acceptor)
    {
-      A0_parameter = make_shared<FittingParameter>("A0", 1, fixed_or_global, FittedGlobally);
-      AD_parameter = make_shared<FittingParameter>("AD", 0.1, fixed_or_global, FittedGlobally);
-      tauA_parameter = make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
       parameters.push_back(A0_parameter);
       parameters.push_back(AD_parameter);
       parameters.push_back(tauA_parameter);
@@ -247,7 +250,7 @@ int FretDecayGroup::SetVariables(const double* param_values)
    for (int i = 0; i<n_fret_populations; i++)
    {
       tau_transfer[i] = tauT_parameters[i]->GetValue<double>(param_values, idx);
-      tau_transfer[i] = std::min(tau_transfer[i], 50.0);
+      tau_transfer[i] = std::max(tau_transfer[i], 50.0);
       
       for (int j = 0; j<n_exponential; j++)
       {
@@ -268,7 +271,7 @@ int FretDecayGroup::SetVariables(const double* param_values)
       AD = AD_parameter->GetValue<double>(param_values, idx);
       tauA = tauA_parameter->GetValue<double>(param_values, idx);
 
-      tauA = std::min(tauA, 50.0);
+      tauA = std::max(tauA, 50.0);
 
       
       acceptor_buffer->Compute(1 / tauA, irf_idx, t0_shift, acceptor_channel_factors, false);

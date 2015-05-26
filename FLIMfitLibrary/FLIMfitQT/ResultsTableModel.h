@@ -48,6 +48,12 @@ public:
       return fit_results->GetNumOutputRegions();
    }
    
+   void refresh()
+   {
+      beginResetModel();
+      endResetModel();
+   }
+   
 protected:
    
    std::shared_ptr<FitResults> fit_results;

@@ -37,9 +37,6 @@
 #include "InstrumentResponseFunction.h"
 #include <vector>
 #include <memory>
-using std::shared_ptr;
-using std::vector;
-
 
 class AcquisitionParameters
 {
@@ -50,8 +47,8 @@ public:
    void setImageSize(int n_x, int n_y);
    void setT(int n_t_full, double t_[], double t_int_[]);
    
-   void setT(const vector<double>& t_);
-   void setIntegrationTimes(vector<double>& t_int_);
+   void setT(const std::vector<double>& t_);
+   void setIntegrationTimes(std::vector<double>& t_int_);
    
    double* getT();
    const std::vector<double>& getTimePoints();
@@ -68,8 +65,8 @@ public:
    double  counts_per_photon = 1;
    double  t_rep;
    
-   vector<double> t;
-   vector<double> t_int;
+   std::vector<double> t;
+   std::vector<double> t_int;
 
    // Computed parameters
    int n_px;

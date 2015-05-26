@@ -34,6 +34,11 @@ public:
       }
    }
    
+   void setFit(const std::vector<double>& t_fit, const std::vector<std::vector<double>>& fit)
+   {
+      decay_widget->setFit(t_fit, fit);
+   }
+   
    cv::Mat getSelectionMask()
    {
       return decay_widget->getSelectionMask();

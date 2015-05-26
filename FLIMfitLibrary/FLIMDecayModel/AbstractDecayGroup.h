@@ -38,9 +38,6 @@
 #include <memory>
 #include <QObject>
 
-using std::shared_ptr;
-using std::unique_ptr;
-
 #include "ExponentialPrecomputationBuffer.h"
 #include "InstrumentResponseFunction.h"
 #include "DataTransformer.h"

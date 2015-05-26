@@ -46,7 +46,6 @@
 #include <boost/ptr_container/ptr_vector.hpp>
 
 using boost::ptr_vector;
-using std::shared_ptr;
 
 class AbstractFitter
 {

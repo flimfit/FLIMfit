@@ -445,7 +445,7 @@ int AbstractFitter::GetFit(int irf_idx, const vector<double>& alf, float* lin_pa
    vector<double>& b = b_[0];
 
    float* adjust = model->GetConstantAdjustment();
-   model->CalculateModel(a, n, b, ndim, kap, params, irf_idx, 1);
+   model->CalculateModel(a, nmax, b, ndim, kap, params, irf_idx, 1);
 
    int idx = 0;
    for(int i=0; i<n; i++)

@@ -51,17 +51,15 @@ marker_series* writer;
 
 FitController::FitController()
 {
-   worker_params.resize(n_thread);
    reporter = std::make_shared<ProgressReporter>("Fitting Data");
 }
 
-FitController::FitController(FitSettings& fit_settings) :
+FitController::FitController(const FitSettings& fit_settings) :
    FitSettings(fit_settings)
 {
    if (n_thread < 1)
       n_thread = 1;
-
-   worker_params.resize(n_thread);
+   
    reporter = std::make_shared<ProgressReporter>("Fitting Data");
 }
 
@@ -100,34 +98,13 @@ int FitController::runWorkers()
    omp_set_num_threads(n_omp_thread);
 
    for(int thread = 0; thread < n_fitters; thread++)
-   {
-      worker_params[thread].controller = this;
-      worker_params[thread].thread = thread;
+      thread_handle.push_back(new std::thread(&FitController::workerThread, this, thread));
    
-      thread_handle.push_back(
-            new std::thread(startWorkerThread,(void*)(&worker_params[thread]))
-         ); // ok
-   }
-
    if (!runAsync)
       waitForFit();
    
    return 0;
    
-}
-
-
-/**
- * Wrapper function for WorkerThread
- */
-void startWorkerThread(void* wparams)
-{
-   WorkerParams* p = (WorkerParams*) wparams;
-
-   FitController* controller = p->controller;
-   int                      thread     = p->thread;
-
-   controller->workerThread(thread);
 }
 
 /**
@@ -152,7 +129,7 @@ void FitController::workerThread(int thread)
       {
          for(int r=0; r<MAX_REGION; r++)
          {
-            if (data->GetRegionIndex(im,r) > -1)
+            if (data->getRegionIndex(im,r) > -1)
             {
                idx = im*MAX_REGION+r;
 
@@ -178,7 +155,7 @@ void FitController::workerThread(int thread)
                           ((threads_started < n_active_thread) && (cur_region >= 0)) ) // not all threads have yet started up
                      active_lock.wait(lk);
                     
-                  data->GetRegionData(0, im, r, region_data[0], *results, 1);
+                  data->getRegionData(0, im, r, region_data[0], *results, 1);
                   //data->ImageDataFinished(im);
 
                   next_pixel = 0;
@@ -193,7 +170,7 @@ void FitController::workerThread(int thread)
 
                // Process every n_thread'th pixel in region
 
-               region_count = data->GetRegionCount(im,r);
+               region_count = data->getRegionCount(im,r);
 
                int regions_per_thread = (int) ceil((double)region_count / n_thread);
                int j_max = min( regions_per_thread * (thread + 1), region_count );
@@ -237,7 +214,7 @@ void FitController::workerThread(int thread)
 processed: 
 
          region_mutex.lock();
-         if (next_region >= data->GetNumRegionsTotal())
+         if (next_region >= data->getNumRegionsTotal())
             process_idx = -1;
          else
             process_idx = next_region++;
@@ -251,7 +228,7 @@ processed:
                for(int r=0; r<MAX_REGION; r++)
                {
                   // Get region index and process if it exists and is for this threads
-                  idx = data->GetRegionIndex(im,r);
+                  idx = data->getRegionIndex(im,r);
                   if (idx == process_idx)  // should be processed by this thread
                   {
                      
@@ -314,7 +291,7 @@ imagewise_terminated:
       // Cycle through regions
       for(int r=0; r<MAX_REGION; r++)
       {
-         idx = data->GetRegionIndex(-1,r);
+         idx = data->getRegionIndex(-1,r);
          if (idx > -1 && idx % n_thread == thread)
             processRegion(-1, r, 0, thread);
            
@@ -366,7 +343,7 @@ void FitController::waitForFit()
 void FitController::setData(shared_ptr<FLIMData> data_)
 {
    data = data_;
-   data->SetGlobalMode(global_mode);
+   data->setGlobalMode(global_mode);
 }
 
 
@@ -391,9 +368,9 @@ void FitController::init()
    if (n_thread < 1)
       n_thread = 1;
 
-   int max_px_per_image = data->GetMaxPxPerImage();
-   int max_fit_size = data->GetMaxFitSize();
-   int max_region_size = data->GetMaxRegionSize();
+   int max_px_per_image = data->getMaxPxPerImage();
+   int max_fit_size = data->getMaxFitSize();
+   int max_region_size = data->getMaxRegionSize();
    
    if (n_thread > max_px_per_image)
       n_thread = max_px_per_image;
@@ -402,7 +379,7 @@ void FitController::init()
       algorithm = ALG_LM;
 
    
-   int n_regions_total = data->GetNumRegionsTotal();
+   int n_regions_total = data->getNumRegionsTotal();
    
    
    if (data->global_mode == MODE_PIXELWISE)
@@ -444,7 +421,7 @@ void FitController::init()
       else
          fitters.push_back( new VariableProjector(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );
 
-      region_data.push_back( data->GetNewRegionData() );
+      region_data.push_back( data->getNewRegionData() );
    }
 
    /*

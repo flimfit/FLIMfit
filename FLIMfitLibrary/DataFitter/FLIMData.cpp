@@ -40,7 +40,7 @@ transform(transform)
    image_t0_shift = NULL;
    n_masked_px = 0;
    
-   SetData(images);
+   setData(images);
    
    dp = make_shared<TransformedDataParameters>(images[0]->getAcquisitionParameters(), transform);
 }
@@ -53,13 +53,13 @@ transform(transform)
    
    vector<std::shared_ptr<FLIMImage>> images = {image};
    
-   SetData(images);
+   setData(images);
    
    dp = make_shared<TransformedDataParameters>(images[0]->getAcquisitionParameters(), transform);
 }
 
 
-void FLIMData::SetGlobalMode(int global_mode_)
+void FLIMData::setGlobalMode(int global_mode_)
 {
    // TODO:
    // So that we can calculate errors properly
@@ -179,13 +179,13 @@ void FLIMData::MarkCompleted(int slot)
 }
 */
 
-RegionData* FLIMData::GetNewRegionData()
+RegionData* FLIMData::getNewRegionData()
 {
-   return new RegionData(data_type, GetMaxRegionSize(), dp->n_meas);
+   return new RegionData(data_type, getMaxRegionSize(), dp->n_meas);
 }
 
 
-int FLIMData::GetNumAuxillary()
+int FLIMData::getNumAuxillary()
 {
    int num_aux = 1;  // intensity
 
@@ -198,7 +198,7 @@ int FLIMData::GetNumAuxillary()
    return num_aux;
 }
 
-void FLIMData::SetData(const vector<shared_ptr<FLIMImage>>& images_)
+void FLIMData::setData(const vector<shared_ptr<FLIMImage>>& images_)
 {
    images = images_;
    
@@ -224,9 +224,9 @@ void FLIMData::SetData(const vector<shared_ptr<FLIMImage>>& images_)
    
    int err = 0;
    if (data_class == FLIMImage::DataFloat)
-      err = CalculateRegions<float>();
+      err = calculateRegions<float>();
    else
-      err = CalculateRegions<uint16_t>();
+      err = calculateRegions<uint16_t>();
 
    max_px_per_image = 0;
    for(auto& im : images)
@@ -235,7 +235,7 @@ void FLIMData::SetData(const vector<shared_ptr<FLIMImage>>& images_)
 
 }
 
-int FLIMData::GetMaxFitSize()
+int FLIMData::getMaxFitSize()
 {
    if (global_mode == MODE_GLOBAL)
       return n_masked_px;
@@ -245,7 +245,7 @@ int FLIMData::GetMaxFitSize()
       return 1;
 }
 
-int FLIMData::GetMaxRegionSize()
+int FLIMData::getMaxRegionSize()
 {
    if (global_mode == MODE_GLOBAL)
       return n_masked_px;
@@ -362,13 +362,13 @@ void FLIMData::StopStreaming()
 }
 */
 
-void FLIMData::SetImageT0Shift(double* image_t0_shift)
+void FLIMData::setImageT0Shift(double* image_t0_shift)
 {
    this->image_t0_shift = image_t0_shift;
 }
 
 
-int FLIMData::GetRegionIndex(int im, int region)
+int FLIMData::getRegionIndex(int im, int region)
 {
    // If fitting globally, set im=-1 to get index of region for all datasets
 
@@ -378,12 +378,12 @@ int FLIMData::GetRegionIndex(int im, int region)
    return region_idx[im][region];
 }
 
-int FLIMData::GetOutputRegionIndex(int im, int region)
+int FLIMData::getOutputRegionIndex(int im, int region)
 {
    return output_region_idx[im][region];
 }
 
-int FLIMData::GetRegionPos(int im, int region)
+int FLIMData::getRegionPos(int im, int region)
 {
    if (im == -1)
       im = 0;
@@ -391,12 +391,12 @@ int FLIMData::GetRegionPos(int im, int region)
    return region_pos[im][region];
 }
 
-int FLIMData::GetRegionCount(int im, int region)
+int FLIMData::getRegionCount(int im, int region)
 {
    return region_count[im][region];
 }
 
-int FLIMData::GetImLoc(int im)
+int FLIMData::getImLoc(int im)
 {
    for(int i=0; i<n_im_used; i++)
    {
@@ -406,7 +406,7 @@ int FLIMData::GetImLoc(int im)
    return -1;
 }
 
-int FLIMData::GetRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread)
+int FLIMData::getRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread)
 {
    int s = 0;
    int s_expected;
@@ -419,10 +419,10 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
    
    if ( global_mode == MODE_PIXELWISE || global_mode == MODE_IMAGEWISE )
    {
-      s_expected = this->GetRegionCount(group, region);
+      s_expected = getRegionCount(group, region);
       region_data.GetPointersForInsertion(s_expected, masked_data, irf_idx);
 
-      s = GetMaskedData( group, region, masked_data, irf_idx, results);
+      s = getMaskedData( group, region, masked_data, irf_idx, results);
       
       
       assert( s == s_expected );
@@ -430,7 +430,7 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
    else if ( global_mode == MODE_GLOBAL )
    {
       
-      int start = GetRegionPos(0, region);
+      int start = getRegionPos(0, region);
        
       // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
       // TODO: #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
@@ -439,12 +439,12 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
       {
          // add termination here?
             
-         int pos = GetRegionPos(i, region) - start;
-         int s_expected = this->GetRegionCount(i, region);
+         int pos = getRegionPos(i, region) - start;
+         int s_expected = getRegionCount(i, region);
 
          region_data.GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
 
-         return GetMaskedData(i, region, masked_data, irf_idx, results);
+         return getMaskedData(i, region, masked_data, irf_idx, results);
       };
       
       std::vector<std::future<int>> futures;
@@ -465,17 +465,17 @@ int FLIMData::GetRegionData(int thread, int group, int region, RegionData& regio
 }
 
 
-int FLIMData::GetMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results)
+int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results)
 {
    int iml = use_im[im];
    auto transformer = getPooledTransformer(iml);
-   int s = GetRegionCount(im, region);
+   int s = getRegionCount(im, region);
 
    float *masked_intensity, *masked_r_ss, *masked_acceptor;
    float *aux_data = results.GetAuxDataPtr(im, region);
    auto& mask = results.GetMask(im);
    
-   int n_aux = GetNumAuxillary();
+   int n_aux = getNumAuxillary();
 
    masked_intensity = aux_data++;
 
@@ -526,7 +526,7 @@ int FLIMData::GetMaskedData(int im, int region, float* masked_data, int* irf_idx
 }
 
 
-void FLIMData::GetAuxParamNames(vector<string>& param_names)
+void FLIMData::getAuxParamNames(vector<string>& param_names)
 {   
    param_names.push_back("I");
 

@@ -25,9 +25,9 @@ public:
    enum DataMode { InMemory, MappedFile };
 
    template<typename T>
-   FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_ = nullptr);
+   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_ = nullptr);
    
-   FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode = MappedFile, const std::string& root = "");
+   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode = MappedFile, const std::string& root = "");
    ~FLIMImage();
    
    void init();
@@ -75,10 +75,10 @@ protected:
    std::shared_future<void> reader_future;
    
    
-   shared_ptr<AcquisitionParameters> acq;
+   std::shared_ptr<AcquisitionParameters> acq;
    DataClass data_class;
-   vector<uint8_t> data;
-   vector<uint8_t> mask;
+   std::vector<uint8_t> data;
+   std::vector<uint8_t> mask;
    std::type_index stored_type;
    std::string name;
    cv::Mat intensity;
@@ -126,7 +126,7 @@ private:
 
 
 template<typename T>
-FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_) :
+FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_) :
 acq(acq),
 stored_type(typeid(T)),
 data_mode(data_mode)

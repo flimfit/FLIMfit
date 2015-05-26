@@ -236,8 +236,8 @@ private:
    std::shared_ptr<FLIMImage> image;
    DataTransformationSettings transform;
    std::shared_ptr<TransformedDataParameters> dp;
-   vector<float> tr_row_buf;
-   vector<float> y_smoothed_buf;
+   std::vector<float> tr_row_buf;
+   std::vector<float> y_smoothed_buf;
    
    std::vector<uint8_t> final_mask;
    std::vector<float> transformed_data;
@@ -251,7 +251,7 @@ private:
 template <typename T>
 void DataTransformer::calculateMask()
 {
-   const vector<uint8_t> seg_mask = image->getSegmentationMask();
+   const std::vector<uint8_t> seg_mask = image->getSegmentationMask();
    cv::Mat intensity = image->getIntensity();
    bool has_seg_mask = seg_mask.size() > 0;
 

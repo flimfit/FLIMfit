@@ -507,13 +507,13 @@ int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n
    
    int thread = 0;
 
-   int n_meas = data->GetNumMeasurements();
+   int n_meas = data->getNumMeasurements();
    
    //int n_px = data->n_px;
 
    auto& mask = results->GetMask(im);
 
-   int iml = data->GetImLoc(im);
+   int iml = data->getImLoc(im);
    im = iml;
    if (iml == -1)
       return 0;
@@ -528,7 +528,7 @@ int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n
    n_valid = 0;
    for(int rg=1; rg<MAX_REGION; rg++)
    {
-      int r_idx = data->GetRegionIndex(im, rg);
+      int r_idx = data->getRegionIndex(im, rg);
 
       if (r_idx > -1)
       {         

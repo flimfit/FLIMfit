@@ -193,7 +193,7 @@ void FLIMfitWindow::openProject(const QString& file)
    emit openedProject();
 }
 
-void FLIMfitWindow::setFitController(std::shared_ptr<FitController> controller)
+void FLIMfitWindow::setFitController(std::shared_ptr<QFitController> controller)
 {
    results_widget->setFitController(controller);
    main_tab->setCurrentIndex(2);

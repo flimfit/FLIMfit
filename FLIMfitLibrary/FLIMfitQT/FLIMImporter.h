@@ -148,7 +148,7 @@ public:
       auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file));
       reader->setTemporalResolution(8);
       
-      auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
+      auto acq = std::make_shared<AcquisitionParameters>(0, 12500);
       acq->n_chan = channels.size() * stack_files.size();
       acq->setImageSize(reader->numX(), reader->numY());
       acq->setT(reader->timepoints());

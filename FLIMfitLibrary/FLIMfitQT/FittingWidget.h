@@ -3,8 +3,9 @@
 
 #include "FittingParametersWidget.h"
 #include "FLIMImageSet.h"
-#include "FitController.h"
+#include "QFitController.h"
 #include "FLIMImageWidget.h"
+#include "ResultsTableModel.h"
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -28,18 +29,21 @@ public:
    void setDefaultModel();
       
 signals:
-   void newFitController(std::shared_ptr<FitController> fit_controller);
+   void newFitController(std::shared_ptr<QFitController> fit_controller);
    
 protected:
    
+   void selectedFitComplete();
    void connectAll();
    
    std::shared_ptr<FLIMImageSet> images;
-   std::shared_ptr<FitController> fit_controller;
-   std::shared_ptr<FitController> selected_fit_controller;
+   std::shared_ptr<QFitController> fit_controller;
+   std::shared_ptr<QFitController> selected_fit_controller;
    std::shared_ptr<QDecayModel> decay_model;
    std::shared_ptr<QDataTransformationSettings> transform;
    FLIMImageWidget* image_widget;
+   QTableView* results_table;
+   std::unique_ptr<ResultsTableModel> results_model;
    
 private:
    template<class Archive>

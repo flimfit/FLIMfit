@@ -58,7 +58,7 @@ void FitController::processRegion(int g, int region, int px, int thread)
    }
    else
    {
-      data->GetRegionData(thread, g, region, region_data[thread], *results, n_omp_thread);
+      data->getRegionData(thread, g, region, region_data[thread], *results, n_omp_thread);
       local_region_data = region_data[thread];
 
       region_results = results->GetRegion(g, region);

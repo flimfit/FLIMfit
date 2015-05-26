@@ -27,8 +27,7 @@
 //
 //=========================================================================
 
-#ifndef _FLIMGLOBALFITCONTROLLER_H
-#define _FLIMGLOBALFITCONTROLLER_H
+#pragma once
 
 #ifdef _MSC_VER
 #  pragma warning(disable: 4512) // assignment operator could not be generated.
@@ -56,38 +55,7 @@
 #define USE_GLOBAL_BINNING_AS_ESTIMATE    false
 #define _CRTDBG_MAPALLOC
 
-using std::shared_ptr;
-using std::unique_ptr;
-
 class ErrMinParams;
-class FitController;
-
-class WorkerParams 
-{
-public:
-   WorkerParams(FitController* controller, int thread) : 
-   controller(controller), thread(thread) 
-   {};
-   
-   WorkerParams() 
-   { 
-      controller = NULL;
-      thread = 0;
-   };
-
-   WorkerParams operator=(const WorkerParams& wp)
-   {
-      controller = wp.controller;
-      thread = wp.thread;
-      return wp;
-   }; 
-   
-   FitController* controller;
-   int thread;
-};
-
-class FitController;
-
 
 class FitController : public FitSettings
 
@@ -95,7 +63,7 @@ class FitController : public FitSettings
 public:
 
    FitController();
-   FitController(FitSettings& fit_settings);
+   FitController(const FitSettings& fit_settings);
    ~FitController();
 
    void setFitSettings(const FitSettings& fit_settings);
@@ -113,28 +81,26 @@ public:
 
    void cleanupResults();
 
-   shared_ptr<ProgressReporter> getProgressReporter() { return reporter; }
-   shared_ptr<FitResults> getResults() { return results; };
+   std::shared_ptr<ProgressReporter> getProgressReporter() { return reporter; }
+   std::shared_ptr<FitResults> getResults() { return results; };
+   std::shared_ptr<FLIMData> getData() { return data; }
    
-   bool is_init = false;
-   bool has_fit = false;
-   bool getting_fit = false;
-   int error = 0;
-
+protected:
+   
+   virtual void setFitComplete();
 
 private:
    
    void workerThread(int thread);
    
    void cleanupTempVars();
-   void setFitComplete();
    
    void processRegion(int g, int r, int px, int thread);
 
-   shared_ptr<DecayModel> model;
-   shared_ptr<FLIMData> data;
-   shared_ptr<ProgressReporter> reporter;
-   shared_ptr<FitResults> results;
+   std::shared_ptr<DecayModel> model;
+   std::shared_ptr<FLIMData> data;
+   std::shared_ptr<ProgressReporter> reporter;
+   std::shared_ptr<FitResults> results;
 
    std::recursive_mutex cleanup_mutex;
    std::recursive_mutex mutex;
@@ -142,8 +108,6 @@ private:
    ptr_vector<AbstractFitter> fitters;
    ptr_vector<RegionData> region_data;
    ptr_vector<std::thread> thread_handle;
-
-   vector<WorkerParams> worker_params;
    
    int cur_region;
    int next_pixel;
@@ -153,6 +117,11 @@ private:
    int threads_running;
    vector<int> cur_im;
 
+   bool is_init = false;
+   bool has_fit = false;
+   bool getting_fit = false;
+   int error = 0;
+   
    std::mutex region_mutex;
    std::condition_variable active_lock;
 
@@ -167,13 +136,5 @@ private:
    bool fit_in_progress = false;
    int n_fits = 0;
    std::atomic_int n_fits_complete;
-
-   friend void startWorkerThread(void* wparams);
 };
 
-
-
-void startWorkerThread(void* wparams);
-
-
-#endif
