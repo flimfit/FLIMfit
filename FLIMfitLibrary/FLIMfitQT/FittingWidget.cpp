@@ -18,6 +18,7 @@ QWidget(parent)
    data_list->setAttribute(Qt::WA_MacShowFocusRect, false);
    
    connect(fit_button, &QPushButton::pressed, this, &FittingWidget::fit);
+   connect(fit_selected_button, &QPushButton::pressed, this, &FittingWidget::fitSelected);
    
    image_widget = new FLIMImageWidget(this);
    image_widget->setMinimumSize(500,500);
@@ -68,8 +69,48 @@ void FittingWidget::importIRF()
 
 void FittingWidget::fitSelected()
 {
+   parameters_widget->finialise();
+   
+   try
+   {
+      
+      fit_controller = std::make_shared<FitController>();
+      fit_controller->setFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
+      
+      auto image = images->getCurrentImage();
+      cv::Mat selection_mask = image_widget->getSelectionMask();
+      auto sel = image->getRegionAsImage(selection_mask);
+      
+      auto data = std::make_shared<FLIMData>(sel, *transform.get());
+      
+      
+      
+      fit_controller->setData(data);
+      fit_controller->setModel(decay_model);
+      
+      fit_controller->init();
+      fit_controller->runWorkers();
+      
+      QThread::msleep(2000);
+      
+      int mask = 0;
+      int n_valid = 0;
+      vector<double> fit(2000);
+      fit_controller->getFit(0, 1, &mask, fit.data(), n_valid);
+      
+      std::ofstream os("C:/Users/sean/Documents/FLIMTestData/results.csv");
+      for (int i = 0; i < fit.size(); i++)
+         os << fit[i] << "\n";
+      
+      emit newFitController(fit_controller);
+   }
+   catch(std::runtime_error e)
+   {
+      std::cout << "Error occurred: " << e.what() << "\n";
+   }
+   
    /*
-    selected_fit_controller = std::make_shared<FLIMGlobalFitController>();
+    selected_fit_controller = std::make_shared<FitController>();
     selected_fit_controller->SetFitSettings(FitSettings(ALG_ML));
     
     
@@ -105,7 +146,7 @@ void FittingWidget::fit()
    try
    {
       
-      fit_controller = std::make_shared<FLIMGlobalFitController>();
+      fit_controller = std::make_shared<FitController>();
       fit_controller->setFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
       
       auto data = std::make_shared<FLIMData>(images->getImages(), *transform.get());

@@ -44,14 +44,14 @@ include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayMod
 #===================================================
 set(SOURCE
    ModelADA.cpp
-   FLIMGlobalFitController.cpp
+   FitController.cpp
    FLIMGlobalFitController_ProcessRegion.cpp
    FLIMGlobalFitController_GetImageResults.cpp
    FitSettings.cpp
 )
 
 set(HEADERS   
-   FLIMGlobalFitController.h
+   FitController.h
    FLIMGlobalAnalysis.h
    ModelADA.h
    FitSettings.h

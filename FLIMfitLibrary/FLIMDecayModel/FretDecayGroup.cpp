@@ -112,6 +112,9 @@ void FretDecayGroup::Init()
       acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
       direct_acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
    }
+   
+   acceptor_channel_factors.resize(dp->n_chan, 1);
+   direct_acceptor_channel_factors.resize(dp->n_chan, 1);
 }
 
 
@@ -137,9 +140,9 @@ const vector<double>& FretDecayGroup::GetChannelFactors(int index)
 {
    if (index == 0)
       return channel_factors;
-   else if (include_acceptor && index == 1)
+   else if (index == 1)
       return acceptor_channel_factors;
-   else if (include_acceptor && index == 2)
+   else if (index == 2)
       return direct_acceptor_channel_factors;
 
    throw std::runtime_error("Bad channel factor index");
@@ -149,9 +152,9 @@ void FretDecayGroup::SetChannelFactors(int index, const vector<double>& channel_
 {
    if (index == 0)
       channel_factors = channel_factors_;
-   else if (include_acceptor && index == 1)
+   else if (index == 1)
       acceptor_channel_factors = channel_factors_;
-   else if (include_acceptor && index == 2)
+   else if (index == 2)
       direct_acceptor_channel_factors = channel_factors_;
    else
       throw std::runtime_error("Bad channel factor index");
@@ -206,24 +209,24 @@ int FretDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
    // Set elements of incidence matrix for A0 
    if (include_acceptor && A0_parameter->IsFittedGlobally())
    {
-      for (int i = 0; i < n_fret_populations; i++)
-         inc[inc_row + (inc_col + i) * 12] = 1;
+      for (int i = 0; i < n_fret_group; i++)
+         inc[inc_row + (inc_col0 + i) * 12] = 1;
       inc_row++;
    }
 
    // Elements for direct acceptor
    if (include_acceptor && AD_parameter->IsFittedGlobally())
    {
-      for (int j = 0; j < n_fret_group; j++)
-         inc[inc_row + (inc_col0 + j) * 12] = 1;
+      for (int i = 0; i < n_fret_group; i++)
+         inc[inc_row + (inc_col0 + i) * 12] = 1;
       inc_row++;
    }
 
    // Elements for tauA derivatives
    if (include_acceptor && tauA_parameter->IsFittedGlobally())
    {
-      for (int i = 0; i < n_fret_populations; i++)
-         inc[inc_row + (inc_col + i) * 12] = 1;
+      for (int i = 0; i < n_fret_group; i++)
+         inc[inc_row + (inc_col0 + i) * 12] = 1;
       inc_row++;
    }
 
@@ -244,7 +247,8 @@ int FretDecayGroup::SetVariables(const double* param_values)
    for (int i = 0; i<n_fret_populations; i++)
    {
       tau_transfer[i] = tauT_parameters[i]->GetValue<double>(param_values, idx);
-
+      tau_transfer[i] = std::min(tau_transfer[i], 50.0);
+      
       for (int j = 0; j<n_exponential; j++)
       {
          double rate = 1 / tau[j] + 1 / tau_transfer[i];
@@ -264,6 +268,9 @@ int FretDecayGroup::SetVariables(const double* param_values)
       AD = AD_parameter->GetValue<double>(param_values, idx);
       tauA = tauA_parameter->GetValue<double>(param_values, idx);
 
+      tauA = std::min(tauA, 50.0);
+
+      
       acceptor_buffer->Compute(1 / tauA, irf_idx, t0_shift, acceptor_channel_factors, false);
       direct_acceptor_buffer->Compute(1 / tauA, irf_idx, t0_shift, direct_acceptor_channel_factors, false);
 
@@ -487,7 +494,7 @@ int FretDecayGroup::AddDirectAcceptorDerivatives(double* b, int bdim, vector<dou
       for (int i = 0; i < n_fret_group; i++)
       {
          memset(b + idx, 0, bdim*sizeof(*b));
-         direct_acceptor_buffer->AddDecay(A0, reference_lifetime, b);
+         direct_acceptor_buffer->AddDecay(A0, reference_lifetime, b + idx);
 
          col++;
          idx += bdim;

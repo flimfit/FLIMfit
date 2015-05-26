@@ -27,7 +27,7 @@
 //
 //=========================================================================
 
-#include "FLIMGlobalFitController.h"
+#include "FitController.h"
 #include "FLIMData.h"
 #include "IRFConvolution.h"
 #include "util.h"
@@ -39,7 +39,7 @@
   ProcessRegion
   ===============================================*/
 
-void FLIMGlobalFitController::processRegion(int g, int region, int px, int thread)
+void FitController::processRegion(int g, int region, int px, int thread)
 {
    INIT_CONCURRENCY;
 

@@ -64,6 +64,9 @@ protected:
    vector<double> acceptor_channel_factors;
    vector<double> direct_acceptor_channel_factors;
 
+protected:
+   int GetNumPotentialChannels() { return 3; }
+   
 private:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);

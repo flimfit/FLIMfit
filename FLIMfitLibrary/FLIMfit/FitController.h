@@ -36,7 +36,6 @@
 #  pragma warning(disable: 4610) // can never be instantiated - user defined constructor required.
 #endif
 
-
 #include "FLIMData.h"
 #include "FitResults.h"
 #include "FitSettings.h"
@@ -61,12 +60,12 @@ using std::shared_ptr;
 using std::unique_ptr;
 
 class ErrMinParams;
-class FLIMGlobalFitController;
+class FitController;
 
 class WorkerParams 
 {
 public:
-   WorkerParams(FLIMGlobalFitController* controller, int thread) : 
+   WorkerParams(FitController* controller, int thread) : 
    controller(controller), thread(thread) 
    {};
    
@@ -83,21 +82,21 @@ public:
       return wp;
    }; 
    
-   FLIMGlobalFitController* controller;
+   FitController* controller;
    int thread;
 };
 
-class FLIMGlobalFitController;
+class FitController;
 
 
-class FLIMGlobalFitController : public FitSettings
+class FitController : public FitSettings
 
 {
 public:
 
-   FLIMGlobalFitController();
-   FLIMGlobalFitController(FitSettings& fit_settings);
-   ~FLIMGlobalFitController();
+   FitController();
+   FitController(FitSettings& fit_settings);
+   ~FitController();
 
    void setFitSettings(const FitSettings& fit_settings);
    void setData(shared_ptr<FLIMData> data);

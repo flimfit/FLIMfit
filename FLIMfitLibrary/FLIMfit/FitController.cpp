@@ -29,7 +29,7 @@
 
 #include "boost/math/distributions/normal.hpp"
 
-#include "FLIMGlobalFitController.h"
+#include "FitController.h"
 
 #include "VariableProjector.h"
 #include "MaximumLikelihoodFitter.h"
@@ -49,13 +49,13 @@ using std::min;
 marker_series* writer;
 #endif
 
-FLIMGlobalFitController::FLIMGlobalFitController()
+FitController::FitController()
 {
    worker_params.resize(n_thread);
    reporter = std::make_shared<ProgressReporter>("Fitting Data");
 }
 
-FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
+FitController::FitController(FitSettings& fit_settings) :
    FitSettings(fit_settings)
 {
    if (n_thread < 1)
@@ -65,13 +65,13 @@ FLIMGlobalFitController::FLIMGlobalFitController(FitSettings& fit_settings) :
    reporter = std::make_shared<ProgressReporter>("Fitting Data");
 }
 
-void FLIMGlobalFitController::setFitSettings(const FitSettings& settings)
+void FitController::setFitSettings(const FitSettings& settings)
 {
    *static_cast<FitSettings*>(this) = settings;
 }
 
 /*
-bool FLIMGlobalFitController::Busy()
+bool FitController::Busy()
 {
    if (!init)
       return false;
@@ -80,12 +80,12 @@ bool FLIMGlobalFitController::Busy()
 }
 
 
-void FLIMGlobalFitController::StopFit()
+void FitController::StopFit()
 {
    status->Terminate();
 }
 */
-int FLIMGlobalFitController::runWorkers()
+int FitController::runWorkers()
 {
    
    if (fit_in_progress)
@@ -124,7 +124,7 @@ void startWorkerThread(void* wparams)
 {
    WorkerParams* p = (WorkerParams*) wparams;
 
-   FLIMGlobalFitController* controller = p->controller;
+   FitController* controller = p->controller;
    int                      thread     = p->thread;
 
    controller->workerThread(thread);
@@ -133,7 +133,7 @@ void startWorkerThread(void* wparams)
 /**
  * Worker thread, called several times to process regions
  */
-void FLIMGlobalFitController::workerThread(int thread)
+void FitController::workerThread(int thread)
 {
    int idx, region_count;
    
@@ -341,7 +341,7 @@ terminated:
    }
 }
 
-void FLIMGlobalFitController::setFitComplete()
+void FitController::setFitComplete()
 {
    results->ComputeRegionStats(conf_factor);
    
@@ -352,7 +352,7 @@ void FLIMGlobalFitController::setFitComplete()
    fit_cv.notify_all();
 }
 
-void FLIMGlobalFitController::waitForFit()
+void FitController::waitForFit()
 {
    if (!has_fit)
    {
@@ -363,7 +363,7 @@ void FLIMGlobalFitController::waitForFit()
 }
 
 
-void FLIMGlobalFitController::setData(shared_ptr<FLIMData> data_)
+void FitController::setData(shared_ptr<FLIMData> data_)
 {
    data = data_;
    data->SetGlobalMode(global_mode);
@@ -371,7 +371,7 @@ void FLIMGlobalFitController::setData(shared_ptr<FLIMData> data_)
 
 
 
-void FLIMGlobalFitController::init()
+void FitController::init()
 {
    cur_region = -1;
    next_pixel  = 0;
@@ -465,7 +465,7 @@ void FLIMGlobalFitController::init()
 
 
 
-FLIMGlobalFitController::~FLIMGlobalFitController()
+FitController::~FitController()
 {
    // wait for threads to terminate
    for (auto& t : thread_handle)
@@ -475,7 +475,7 @@ FLIMGlobalFitController::~FLIMGlobalFitController()
 }
 
 
-int FLIMGlobalFitController::getErrorCode()
+int FitController::getErrorCode()
 {
    return error;
 }
@@ -483,7 +483,7 @@ int FLIMGlobalFitController::getErrorCode()
 
 
 
-void FLIMGlobalFitController::cleanupTempVars()
+void FitController::cleanupTempVars()
 {
    std::lock_guard<std::recursive_mutex> guard(cleanup_mutex);
    

@@ -43,7 +43,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include "FLIMGlobalFitController.h"
+#include "FitController.h"
 #include "MultiExponentialDecayGroup.h"
 #include "FLIMImage.h"
 
@@ -175,7 +175,7 @@ int main()
    model->AddDecayGroup(group);
 
 
-   FLIMGlobalFitController controller;   
+   FitController controller;   
    controller.setFitSettings(FitSettings(algorithm));
    controller.setModel(model);
 

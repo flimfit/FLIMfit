@@ -3,7 +3,7 @@
 
 #include "FittingParametersWidget.h"
 #include "FLIMImageSet.h"
-#include "FLIMGlobalFitController.h"
+#include "FitController.h"
 #include "FLIMImageWidget.h"
 
 #include <boost/archive/binary_oarchive.hpp>
@@ -28,15 +28,15 @@ public:
    void setDefaultModel();
       
 signals:
-   void newFitController(std::shared_ptr<FLIMGlobalFitController> fit_controller);
+   void newFitController(std::shared_ptr<FitController> fit_controller);
    
 protected:
    
    void connectAll();
    
    std::shared_ptr<FLIMImageSet> images;
-   std::shared_ptr<FLIMGlobalFitController> fit_controller;
-   std::shared_ptr<FLIMGlobalFitController> selected_fit_controller;
+   std::shared_ptr<FitController> fit_controller;
+   std::shared_ptr<FitController> selected_fit_controller;
    std::shared_ptr<QDecayModel> decay_model;
    std::shared_ptr<QDataTransformationSettings> transform;
    FLIMImageWidget* image_widget;

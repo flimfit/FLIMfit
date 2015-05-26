@@ -177,14 +177,23 @@ signals:
 
 private:
    template<class Archive>
-   void serialize(Archive & ar, const unsigned int version);
+   void save(Archive & ar, const unsigned int version) const
+   {
+      ar & boost::serialization::base_object<DecayModel>(*this);
+   }
+
+   template<class Archive>
+   void load(Archive & ar, const unsigned int version)
+   {
+      ar & boost::serialization::base_object<DecayModel>(*this);
+      
+      for (auto& group : decay_groups)
+      {
+         QAbstractDecayGroup* g = dynamic_cast<QAbstractDecayGroup*>(group.get());
+         connect(g, &QAbstractDecayGroup::parametersUpdated, this, &QDecayModel::parametersChanged);
+      }
+   }
    
    friend class boost::serialization::access;
- 
+   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
-   
-template<class Archive>
-void QDecayModel::serialize(Archive & ar, const unsigned int version)
-{
-   ar & boost::serialization::base_object<DecayModel>(*this);
-}

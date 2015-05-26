@@ -24,7 +24,7 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QAbstractDecayGroup> gro
 
    const vector<std::string>& channel_factor_names = group->GetChannelFactorNames();
 
-   if (channel_factor_names.size() > 1)
+   if (channel_factor_names.size() > 0)
    {
       for (int i = 0; i < channel_factor_names.size(); i++)
          m_children.append(new ChannelFactorListItem(group, i, this));

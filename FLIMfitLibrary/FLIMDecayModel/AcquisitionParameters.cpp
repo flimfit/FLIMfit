@@ -43,7 +43,7 @@ AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int po
    n_meas_full = 0;
 }
 
-void AcquisitionParameters::SetT(const vector<double>& t_)
+void AcquisitionParameters::setT(const vector<double>& t_)
 {
    t = t_;
 
@@ -52,11 +52,11 @@ void AcquisitionParameters::SetT(const vector<double>& t_)
 
    n_meas_full = n_chan * n_t_full;
 
-   CheckGateSpacing();
+   checkGateSpacing();
 }
 
 
-void AcquisitionParameters::SetT(int n_t_full, double t_[], double t_int_[])
+void AcquisitionParameters::setT(int n_t_full, double t_[], double t_int_[])
 {
    n_meas_full = n_chan * n_t_full;
 
@@ -70,10 +70,10 @@ void AcquisitionParameters::SetT(int n_t_full, double t_[], double t_int_[])
       t_int[i] = t_int_[i];
    }
 
-   CheckGateSpacing();
+   checkGateSpacing();
 }
 
-void AcquisitionParameters::SetImageSize(int n_x_, int n_y_)
+void AcquisitionParameters::setImageSize(int n_x_, int n_y_)
 {
    n_x = n_x_;
    n_y = n_y_;
@@ -82,24 +82,24 @@ void AcquisitionParameters::SetImageSize(int n_x_, int n_y_)
 }
 
 
-void AcquisitionParameters::SetIntegrationTimes(vector<double>& t_int_)
+void AcquisitionParameters::setIntegrationTimes(vector<double>& t_int_)
 {
    assert( t_int.size() == n_t_full );
    t_int = t_int_;
 }
 
-double* AcquisitionParameters::GetT()
+double* AcquisitionParameters::getT()
 {
    return &t[0];
 }
 
-const std::vector<double>& AcquisitionParameters::GetTimePoints()
+const std::vector<double>& AcquisitionParameters::getTimePoints()
 {
    return t;
 }
 
 
-void AcquisitionParameters::CheckGateSpacing()
+void AcquisitionParameters::checkGateSpacing()
 {
    // Check to see if gates are equally spaced
    //---------------------------------------------

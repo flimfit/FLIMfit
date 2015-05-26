@@ -27,7 +27,7 @@ public:
 
 protected:
    
-   void Init();
+   virtual void Init();
    void SetupParametersMultiExponential();
 
    int AddDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);

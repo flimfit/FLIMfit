@@ -40,6 +40,8 @@ public:
    
    void getDecay(cv::Mat mask, std::vector<std::vector<double>>& decay);
    cv::Mat getIntensity();
+   std::shared_ptr<FLIMImage> getRegionAsImage(cv::Mat mask);
+   
    
    const std::string& getName() { return name; }
    void setName(const std::string& name_) { name = name_; }
@@ -62,6 +64,9 @@ protected:
    
    template<typename T>
    void getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& decay);
+   
+   template<typename T>
+   std::shared_ptr<FLIMImage> getRegionAsImageImpl(cv::Mat mask);
    
    void waitForData();
    
@@ -258,5 +263,38 @@ void FLIMImage::getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& dec
          
       }
    }
+   
+   releasePointer<T>();
+}
+
+
+template<typename T>
+std::shared_ptr<FLIMImage> FLIMImage::getRegionAsImageImpl(cv::Mat mask)
+{
+   
+   auto new_acq = std::shared_ptr<AcquisitionParameters>(new AcquisitionParameters(*acq.get()));
+   new_acq->setImageSize(1, 1);
+   
+   auto new_image = std::make_shared<FLIMImage>(new_acq, typeid(float), name, DataMode::InMemory);
+      
+   T* data = getDataPointer<T>();
+   float* new_data = new_image->getDataPointer<float>();
+   
+   assert(mask.size() == intensity.size());
+   
+   for(int i=0; i<acq->n_px; i++)
+   {
+      if (mask.at<uint8_t>(i) > 0)
+      {
+         for(int j=0; j<acq->n_meas_full; j++)
+            new_data[j] += data[i*acq->n_meas_full + j];
+         
+      }
+   }
+   
+   new_image->releaseModifiedPointer<float>();
+   releasePointer<T>();
+   
+   return new_image;
 }
 

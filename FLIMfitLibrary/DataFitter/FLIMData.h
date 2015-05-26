@@ -76,7 +76,7 @@ class FLIMData
 public:
 
    FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform);
-   FLIMData(std::shared_ptr<FLIMImage> images, const DataTransformationSettings& transform);
+   FLIMData(std::shared_ptr<FLIMImage> image, const DataTransformationSettings& transform);
 
    void SetGlobalMode(int global_mode);
 

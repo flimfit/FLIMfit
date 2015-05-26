@@ -107,3 +107,13 @@ void FLIMImage::getDecay(cv::Mat mask, std::vector<std::vector<double>>& decay)
    else if (stored_type == typeid(uint16_t))
       getDecayImpl<uint16_t>(mask, decay);
 }
+
+std::shared_ptr<FLIMImage> FLIMImage::getRegionAsImage(cv::Mat mask)
+{
+   if (stored_type == typeid(float))
+      return getRegionAsImageImpl<float>(mask);
+   else if (stored_type == typeid(uint16_t))
+      return getRegionAsImageImpl<uint16_t>(mask);
+   
+   return nullptr;
+}

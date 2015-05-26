@@ -69,7 +69,7 @@ public:
       
       n_chan = acq->n_chan;
       
-      const std::vector<double>& t_full = acq->GetTimePoints();
+      const std::vector<double>& t_full = acq->getTimePoints();
       int n_t_full = t_full.size();
       
       if (t_start > t_full[n_t_full-1])

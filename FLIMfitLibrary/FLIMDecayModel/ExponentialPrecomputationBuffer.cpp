@@ -53,6 +53,8 @@ n_t(dp->n_t)
    shifted_model_decay_low.resize(n_chan, aligned_vector<double>(n_t));
 
    irf_working.resize(n_irf * n_chan);
+
+   CalculateIRFMax();
 };
 
 void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models)
@@ -67,9 +69,7 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
 
    ComputeIRFFactors(rate, irf_idx, t0_shift);
    ComputeModelFactors(rate, channel_factors, compute_shifted_models);
-   
-   CalculateIRFMax();
- }
+}
 
 void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx, double t0_shift)
 {

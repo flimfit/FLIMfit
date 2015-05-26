@@ -48,7 +48,7 @@ public:
       
       image->getDecay(mask, decay);
       
-      auto t = image->getAcquisitionParameters()->GetTimePoints();
+      auto t = image->getAcquisitionParameters()->getTimePoints();
       auto x = QVector<double>::fromStdVector(t);
       
       int n_decay = decay.size();
@@ -59,10 +59,25 @@ public:
 
          auto graph = decay_plot->graph(i);
          graph->setPen(QPen(colors[i]));
+         graph->setLineStyle(QCPGraph::lsNone);
+         graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
          graph->setData(x, QVector<double>::fromStdVector(decay[i]));
          graph->rescaleAxes();
-      
       }
+      
+      int n_fit = fit.size();
+      for(int i=0; i<n_fit; i++)
+      {
+         int idx = i + n_decay;
+         if (decay_plot->graphCount() <= idx)
+            decay_plot->addGraph();
+         
+         auto graph = decay_plot->graph(idx);
+         graph->setPen(QPen(colors[i]));
+         graph->setData(x, QVector<double>::fromStdVector(fit[i]));
+         graph->rescaleAxes(false);
+      }
+      
       decay_plot->replot();
    }
 
@@ -95,11 +110,18 @@ public:
       decay_plot->replot();
    }
    
+   void setFit(const std::vector<std::vector<double>>& fit_)
+   {
+      fit = fit_;
+      recalculate();
+   }
+   
 signals:
    void recalculateLater();
    
 protected:
    std::vector<std::vector<double>> decay;
+   std::vector<std::vector<double>> fit;
    cv::Mat mask;
    std::shared_ptr<FLIMImage> image;
    std::vector<QColor> colors;

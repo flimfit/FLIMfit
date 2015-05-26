@@ -150,8 +150,8 @@ public:
       
       auto acq = std::make_shared<AcquisitionParameters>(0, 125000);
       acq->n_chan = channels.size() * stack_files.size();
-      acq->SetImageSize(reader->numX(), reader->numY());
-      acq->SetT(reader->timepoints());
+      acq->setImageSize(reader->numX(), reader->numY());
+      acq->setT(reader->timepoints());
       reader = nullptr;
       
       QFileInfo info(stack_files[0]);

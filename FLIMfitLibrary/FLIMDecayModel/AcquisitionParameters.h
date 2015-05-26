@@ -46,15 +46,15 @@ class AcquisitionParameters
 public:
 
    AcquisitionParameters(int data_type = 0, double t_rep = 12500.0, int polarisation_resolved = false, int n_chan = 1, double counts_per_photon = 1);
-  
-   void SetImageSize(int n_x, int n_y);
-   void SetT(int n_t_full, double t_[], double t_int_[]);
+
+   void setImageSize(int n_x, int n_y);
+   void setT(int n_t_full, double t_[], double t_int_[]);
    
-   void SetT(const vector<double>& t_);
-   void SetIntegrationTimes(vector<double>& t_int_);
+   void setT(const vector<double>& t_);
+   void setIntegrationTimes(vector<double>& t_int_);
    
-   double* GetT();
-   const std::vector<double>& GetTimePoints();
+   double* getT();
+   const std::vector<double>& getTimePoints();
    
    int data_type;
    int polarisation_resolved;
@@ -78,7 +78,7 @@ public:
 
 protected:
 
-   void CheckGateSpacing();
+   void checkGateSpacing();
    
 private:
    

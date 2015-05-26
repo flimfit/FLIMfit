@@ -177,6 +177,7 @@ int MultiExponentialDecayGroup::SetVariables(const double* param_value)
    for (int i = 0; i < n_exponential; i++)
    {
       tau[i] = tau_parameters[i]->GetValue<double>(param_value, idx);
+      tau[i] = std::min(tau[i], 50.0);
       buffer[i].Compute(1 / tau[i], irf_idx, t0_shift, channel_factors, fit_t0);
    }
 

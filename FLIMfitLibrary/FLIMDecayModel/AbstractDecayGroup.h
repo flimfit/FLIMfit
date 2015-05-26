@@ -85,7 +85,7 @@ public:
 protected:
 
    virtual void ParametersChanged() {};
-
+   virtual int GetNumPotentialChannels() { return 1; }
    bool constrain_nonlinear_parameters = true;
 
    int n_lin_components = 0;

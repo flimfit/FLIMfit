@@ -4,7 +4,7 @@
 #include <QTableView>
 #include "ResultsTableModel.h"
 
-#include "FLIMGlobalFitController.h"
+#include "FitController.h"
 #include <memory>
 
 class FitResultsWidget : public QWidget, public Ui::FitResultsWidget
@@ -22,7 +22,7 @@ public:
       mdi_area->addSubWindow(results_table);
    }
 
-   void setFitController(std::shared_ptr<FLIMGlobalFitController> controller_)
+   void setFitController(std::shared_ptr<FitController> controller_)
    {
       controller = controller_;
       
@@ -31,7 +31,7 @@ public:
    }
    
 protected:
-   std::shared_ptr<FLIMGlobalFitController> controller;
+   std::shared_ptr<FitController> controller;
    QTableView* results_table;
    std::unique_ptr<ResultsTableModel> results_model;
 };

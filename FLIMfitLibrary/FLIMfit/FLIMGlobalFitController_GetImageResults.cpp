@@ -33,7 +33,7 @@
 
 
 #include "util.h"
-#include "FLIMGlobalFitController.h"
+#include "FitController.h"
 #include "FitResults.h"
 #include "FLIMData.h"
 #include "DecayModel.h"
@@ -500,7 +500,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
   GetFit
   ===============================================*/
 
-int FLIMGlobalFitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n_valid)
+int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n_valid)
 {
    if (n_fits_complete != n_fits)
       throw(std::runtime_error("Fit not yet complete"));
