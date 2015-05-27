@@ -1332,7 +1332,7 @@ classdef front_end_menu_controller < handle
             sizeY = size(param_array,1);
             sizeX = size(param_array,2);                                        
 
-            params_extended = [params 'I_mean_tau_chi2'];
+            params_extended = [params 'I_beta1_chi2'];
             
             [param,v] = listdlg('PromptString','Choose fitted parameter',...
                 'SelectionMode','single',...
@@ -1376,14 +1376,14 @@ classdef front_end_menu_controller < handle
                     end                                                            
                 end
                 
-            elseif strcmp(params_extended{param},'I_mean_tau_chi2') % check not needed, actually 
+            elseif strcmp(params_extended{param},'I_beta1_chi2') % check not needed, actually 
                 
                 % find indices
                 ind_intensity = [];
                 ind_lifetime = [];
                 ind_chi2 = [];                       
                 for k=1:length(params), if strcmp(char(params{k}),'I'), break; end; end; ind_intensity=k;
-                for k=1:length(params), if strcmp(char(params{k}),'mean_tau'), break; end; end; ind_lifetime=k;
+                for k=1:length(params), if strcmp(char(params{k}),'beta_1'), break; end; end; ind_lifetime=k;
                 for k=1:length(params), if strcmp(char(params{k}),'chi2'), break; end; end; ind_chi2=k;  
                 
                 if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
@@ -1465,7 +1465,7 @@ classdef front_end_menu_controller < handle
                     ind_lifetime = [];
                     ind_chi2 = [];                       
                     for kk=1:length(params), if strcmp(char(params{kk}),'I'), break; end; end; ind_intensity=kk;
-                    for kk=1:length(params), if strcmp(char(params{kk}),'mean_tau'), break; end; end; ind_lifetime=kk;
+                    for kk=1:length(params), if strcmp(char(params{kk}),'beta_1'), break; end; end; ind_lifetime=kk;
                     for kk=1:length(params), if strcmp(char(params{kk}),'chi2'), break; end; end; ind_chi2=kk;  
 
                     if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
