@@ -219,11 +219,6 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             end
             
           
-            % multi-image file
-            imserDebug = obj.image_series
-            
-            
-            
             if length(obj.imageSeries) >1
                 r.setSeries(obj.imageSeries(read_selected) - 1);
                 read_selected= 1;
