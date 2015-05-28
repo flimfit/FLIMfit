@@ -197,9 +197,9 @@ classdef flim_fit_ui
 
             guidata(obj.window,handles);
             
-            
+         
             loadOmero();
-              
+            
             % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
             % bfCheckJavaPath
             

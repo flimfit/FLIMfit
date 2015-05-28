@@ -127,11 +127,9 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_save_data_settings = uimenu(menu_OMERO,'Label','Save Data Settings...','Separator','on','Enable','off');            
     handles.menu_OMERO_load_data_settings = uimenu(menu_OMERO,'Label','Load Data Settings...','Enable','off');    
     
-    handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings','Separator','on','Enable','off');            
-    handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings','Enable','off');    
-    %
-    
-    
+    handles.menu_OMERO_export_fit_params = uimenu(menu_OMERO,'Label','Export Initial Fit Parameters...','Separator','on','Enable','off');            
+    handles.menu_OMERO_import_fit_params = uimenu(menu_OMERO,'Label','Import Initial Fit Parameters...','Enable','off');    
+    % 
     handles.menu_OMERO_export_plots = uimenu(menu_OMERO,'Label','Export Images...','Separator','on','Enable','off');
     
     %

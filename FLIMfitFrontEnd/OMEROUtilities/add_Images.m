@@ -48,20 +48,7 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
             return;
         end
         
-        loci.common.DebugTools.enableLogging('DEBUG');
-         
-        % className = class(obj)
-         
-        % try
-        %     thisClass = java.lang.Class.forName(className);
-        % catch
-        %     classLoader = com.mathworks.jmi.ClassLoaderManager.getClassLoaderManager;
-         %    thisClass = classLoader.loadClass(className);
-         %end
-
-         %cl = java.lang.Thread.currentThread().getContextClassLoader();
-         
-       %  java.lang.Thread.currentThread().setContextClassLoader(thisClass.getClassLoader());
+        
          
         % Configuration Object
         config = ImportConfig();

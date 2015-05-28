@@ -42,8 +42,7 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_IRF_annot;            
         menu_OMERO_Load_Background;            
         %menu_OMERO_Export_Fitting_Results;    
-        menu_OMERO_Export_Fitting_Settings;            
-        menu_OMERO_Import_Fitting_Settings;
+       
         menu_OMERO_Reset_Logon;  
         menu_OMERO_Load_Background_average;
         menu_OMERO_Load_tvb_from_Image;
@@ -61,6 +60,9 @@ classdef front_end_menu_controller < handle
         
         menu_OMERO_save_data_settings;
         menu_OMERO_load_data_settings;
+        
+        menu_OMERO_export_fit_params;
+        menu_OMERO_import_fit_params;
         
         menu_OMERO_Export_Visualisation_Images;
         
@@ -795,13 +797,33 @@ classdef front_end_menu_controller < handle
         % Import/Export Fit Parameters
         %------------------------------------------------------------------
         function menu_file_export_fit_params_callback(obj,~,~)
-            [filename, pathname] = uiputfile({'fit_parameters.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            [filename, pathname, dataset] = uiputfile({'fit_parameters.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.fitting_params_controller.save_fitting_params([pathname filename]);         
             end
         end
 
         function menu_file_import_fit_params_callback(obj,~,~)
+            [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            if filename ~= 0
+                obj.fitting_params_controller.load_fitting_params([pathname filename]);           
+            end
+        end
+        
+        function menu_OMERO_export_fit_params_callback(obj,~,~)
+            [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('', 'fit_parameters', '.xml');
+            if filename ~= 0
+                obj.fitting_params_controller.save_fitting_params([pathname filename]);         
+                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                            dataset, ...
+                            char('application/octet-stream'), ...
+                            [pathname filename], ...
+                            '', ...
+                            'IC_PHOTONICS');  
+            end
+        end
+
+        function menu_OMERO_import_fit_params_callback(obj,~,~)
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.fitting_params_controller.load_fitting_params([pathname filename]);           
