@@ -352,7 +352,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                disp('nans in data');
            end
            
-           if if sum(isinf(target(:))) 
+           if sum(isinf(target(:))) 
                disp('infs in data');
            end
 
