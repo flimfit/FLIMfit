@@ -346,6 +346,15 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
 
             % DEBUG timing
            % tElapsed = toc(tstart)
+           
+           % DEBUG
+           if sum(isnan(target(:))) 
+               disp('nans in data');
+           end
+           
+           if if sum(isinf(target(:))) 
+               disp('infs in data');
+           end
 
             if verbose
                 delete(w);
