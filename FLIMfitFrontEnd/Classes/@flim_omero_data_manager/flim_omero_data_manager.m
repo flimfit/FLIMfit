@@ -389,30 +389,7 @@ classdef flim_omero_data_manager < handle
                                             
         end            
 
-        %------------------------------------------------------------------        
-        function Export_Fitting_Settings(obj,fitting_params_controller,~)
-            
-            selected = obj.select_for_annotation();
-            
-            if isempty(selected)
-                return;
-            end
-                           
-            fname = [tempdir 'fitting settings '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];
-            fitting_params_controller.save_fitting_params(fname);         
-            %            
-            namespace = 'IC_PHOTONICS';
-            description = ' ';            
-            file_mime_type = char('application/octet-stream');
-            %
-            add_Annotation(obj.session, obj.userid, ...
-                            selected, ...
-                            file_mime_type, ...
-                            fname, ...
-                            description, ...
-                            namespace);               
-        end            
-        
+      
         %------------------------------------------------------------------
         function Import_Fitting_Settings(obj,fitting_params_controller,~)
             %
