@@ -1441,7 +1441,9 @@ classdef front_end_menu_controller < handle
                     obj.data_series_controller.data_series.batch_mode = true; 
                     
                     obj.data_series_controller.load_single([ folder filesep char(files(k).name)]);
-                    
+                    obj.data_series_controller.data_series.binning = 0;
+                    notify(obj.data_series_controller.data_series,'masking_updated');                    
+                                        
                     obj.fit_controller.fit();                    
                     if obj.fit_controller.has_fit == 0
                         uiwait();
