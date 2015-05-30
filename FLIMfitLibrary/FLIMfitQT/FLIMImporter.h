@@ -81,7 +81,7 @@ std::shared_ptr<FLIMImage> FLIMImporter::importStackedFiles(QStringList stack_fi
    assert(!stack_files.empty());
    std::string file = stack_files[0].toStdString();
    auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file));
-   reader->setTemporalResolution(8);
+   //reader->setTemporalResolution(8);
    
    auto acq = std::make_shared<AcquisitionParameters>(0, 12500);
    acq->n_chan = channels.size() * stack_files.size();
@@ -113,7 +113,7 @@ std::shared_ptr<FLIMImage> FLIMImporter::importStackedFiles(QStringList stack_fi
       {
          std::string file = stack_files[j].toStdString();
          auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(file));
-         reader->setTemporalResolution(8);
+         //reader->setTemporalResolution(8);
          
          T* next_ptr = data_ptr + j * channels.size() * acq->n_t_full;
          reader->readData(next_ptr, channels, channel_stride);

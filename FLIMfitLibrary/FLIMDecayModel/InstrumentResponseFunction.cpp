@@ -71,7 +71,8 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_
       double sum = 0;
       for (int j = 0; j < n_t; j++)
          sum += irf[n_t * i + j];
-      assert(fabs(sum - 1.0) < 0.1);
+      if(fabs(sum - 1.0) > 0.1)
+         throw std::runtime_error("IRF is not correctly normalised");
    }
 
    CalculateGFactor();

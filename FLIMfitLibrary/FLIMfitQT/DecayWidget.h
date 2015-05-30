@@ -2,10 +2,12 @@
 #include "ui_DecayWidget.h"
 #include <QWidget>
 #include <QVector>
+#include <QAction>
 
 #include "FLIMImage.h"
 
 #include "cv.h"
+#include <opencv/highgui.h>
 #include <memory>
 
 class DecayWidget : public QWidget, public Ui::DecayWidget
@@ -31,6 +33,11 @@ public:
       colors.push_back(Qt::darkRed);
       colors.push_back(Qt::darkGreen);
       colors.push_back(Qt::magenta);
+      
+      QAction* save_action = new QAction("Save Decay...", this);
+      connect(save_action, &QAction::triggered, this, &DecayWidget::saveDecay);
+      
+      addAction(save_action);
    }
 
    void setImage(std::shared_ptr<FLIMImage> image_)
@@ -63,7 +70,7 @@ public:
          graph->setLineStyle(QCPGraph::lsNone);
          graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
          graph->setData(x, QVector<double>::fromStdVector(decay[i]));
-         graph->rescaleAxes(i==0);
+         graph->rescaleAxes(i>0);
       }
       
       int n_fit = fit.size();
@@ -115,6 +122,32 @@ public:
       t_fit = t_fit_;
       fit = fit_;
       recalculate();
+   }
+   
+   void saveDecay()
+   {
+      QString filename = QFileDialog::getSaveFileName(this, "Choose File Name", "", "CSV File (*.csv)");
+      if (filename == "")
+         return;
+      
+      QFile file(filename);
+      file.open(QIODevice::WriteOnly);
+      QTextStream ts(&file);
+      
+      
+      ts << "t (ps)";
+      for(int i=0; i<decay.size(); i++)
+         ts << ", Channel " << i;
+      ts << "\n";
+      
+      auto t = image->getAcquisitionParameters()->getTimePoints();
+      for(int i=0; i<t.size(); i++)
+      {
+         ts << t[i];
+         for(int j=0; j<decay.size(); j++)
+            ts << ", " << decay[j][i];
+         ts << "\n";
+      }
    }
    
 signals:

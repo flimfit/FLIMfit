@@ -2,7 +2,10 @@
 
 #include "ui_FLIMfitWindow.h"
 #include <QMainWindow>
+#include <QMessageBox>
 #include "ProgressReporter.h"
+
+#include <functional>
 
 class FLIMfitWindow : public QMainWindow, public Ui::FLIMfitWindow
 {
@@ -22,7 +25,7 @@ public:
    void addProgressReporter(std::shared_ptr<ProgressReporter> reporter);
    
    void closeEvent(QCloseEvent *event);
-
+                                                  
 signals:
    void openedProject();
    

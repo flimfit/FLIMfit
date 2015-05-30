@@ -65,9 +65,16 @@ void FittingWidget::setDefaultModel()
 
 void FittingWidget::importIRF()
 {
-   FLIMImporter importer;
-   auto irf = importer.importIRFFromDialog();
-   transform->irf = irf;
+   try
+   {
+      FLIMImporter importer;
+      auto irf = importer.importIRFFromDialog();
+      transform->irf = irf;
+   }
+   catch (std::runtime_error e)
+   {
+      QMessageBox::critical(this, "Could not load IRF", e.what());
+   }
 }
 
 void FittingWidget::fitSelected()
@@ -77,7 +84,7 @@ void FittingWidget::fitSelected()
    try
    {
       fit_controller = std::make_shared<QFitController>();
-      fit_controller->setFitSettings(FitSettings(ALG_ML, MODE_IMAGEWISE));
+      fit_controller->setFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
       connect(fit_controller.get(), &QFitController::fitComplete, this, &FittingWidget::selectedFitComplete);
 
       auto image = images->getCurrentImage();

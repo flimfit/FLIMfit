@@ -255,7 +255,10 @@ void FLIMImage::getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& dec
 
    for(int i=0; i<acq->n_px; i++)
    {
-      if (mask.at<uint8_t>(i) > 0)
+      int x = i % acq->n_x;
+      int y = i / acq->n_x;
+      
+      if (mask.at<uint8_t>(x,y) > 0)
       {
          for(int j=0; j<acq->n_chan; j++)
             for (int k=0; k<acq->n_t_full; k++)
@@ -284,7 +287,10 @@ std::shared_ptr<FLIMImage> FLIMImage::getRegionAsImageImpl(cv::Mat mask)
    
    for(int i=0; i<acq->n_px; i++)
    {
-      if (mask.at<uint8_t>(i) > 0)
+      int x = i % acq->n_x;
+      int y = i / acq->n_x;
+      
+      if (mask.at<uint8_t>(x,y) > 0)
       {
          for(int j=0; j<acq->n_meas_full; j++)
             new_data[j] += data[i*acq->n_meas_full + j];

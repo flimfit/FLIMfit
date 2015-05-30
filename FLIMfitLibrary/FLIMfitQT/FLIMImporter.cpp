@@ -34,7 +34,8 @@ std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRF(const QStrin
    int n_chan = reader->numChannels();
    auto t = reader->timepoints();
    
-   assert(t.size() > 1);
+   if(t.size() <= 1)
+      throw std::runtime_error("IRF should have at least two timepoints");
    
    double timebin_width = t[1] - t[0];
    
@@ -89,9 +90,10 @@ FileSet FLIMImporter::getValidFilesFromFolder(const QString& folder)
    
    FileSet file_set;
    file_set.files = dir.entryInfoList(filters);
+   file_set.n_channels = 0;
    
    if (file_set.files.empty())
-      throw std::runtime_error("No files found");
+      return file_set;
    
    std::string file0 = file_set.files[0].absoluteFilePath().toStdString();
    auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file0));

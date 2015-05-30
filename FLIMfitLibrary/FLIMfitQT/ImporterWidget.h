@@ -50,6 +50,7 @@ public:
       FileSet file_set = importer.getValidFilesFromFolder(path);
       
       file_items.clear();
+      channel_items.clear();
       
       QListWidgetItem* item;
       while((item = files_list->takeItem(0)))
