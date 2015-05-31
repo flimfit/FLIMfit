@@ -266,7 +266,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
            
 
-        case '.pt3'
+        case {'.pt3','.ptu'}
             
             r = FLIMreaderMex(file);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
