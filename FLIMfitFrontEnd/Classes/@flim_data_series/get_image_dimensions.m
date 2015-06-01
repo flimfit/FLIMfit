@@ -120,7 +120,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                         return;
                     end
                 else
-                    str = num2str((0:6)');
+                    str = num2str((0:seriesCount - 1)');
                     prompt = [{sprintf(['This file holds ' num2str(seriesCount) ' images. Numbered 0-' num2str(seriesCount -1) '\nPlease select one'])} {''}];
                     imageSeries = listdlg('PromptString',prompt,'SelectionMode','single','ListString',str);
                     if isempty(imageSeries)
