@@ -382,6 +382,7 @@ classdef front_end_menu_controller < handle
             end
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
+            clear chooser;
             if ~isempty(dataset)
                 obj.data_series_controller.data_series = OMERO_data_series();   
                 obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
@@ -389,7 +390,7 @@ classdef front_end_menu_controller < handle
                 notify(obj.data_series_controller,'new_dataset');
             end
             
-            clear chooser;
+            
         end    
         %------------------------------------------------------------------        
         function menu_OMERO_Load_plate_callback(obj,~,~)
@@ -422,8 +423,13 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
-            obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series);
-        end                    
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
+            dataset = chooser.getSelectedDataset();
+            clear chooser;
+            if ~isempty(dataset) 
+                obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series, dataset);
+            end
+          end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
             dId = obj.data_series_controller.data_series.datasetId;
@@ -448,11 +454,7 @@ classdef front_end_menu_controller < handle
             obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
         end                    
         %------------------------------------------------------------------        
-       
-        function menu_OMERO_Import_Fitting_Settings_callback(obj,~,~)
-            obj.omero_data_manager.Import_Fitting_Settings(obj.fitting_params_controller);
-        end                    
-        %------------------------------------------------------------------
+      
         function menu_OMERO_Set_Plate_callback(obj,~,~)
             infostring = obj.omero_data_manager.Set_Plate();
             if ~isempty(infostring)
@@ -503,6 +505,7 @@ classdef front_end_menu_controller < handle
             end
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
+            clear chooser;
             if ~isempty(dataset)
                 obj.data_series_controller.data_series = OMERO_data_series();   
                 obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
@@ -510,15 +513,17 @@ classdef front_end_menu_controller < handle
                 notify(obj.data_series_controller,'new_dataset');
             end
             
-            clear chooser;
+            
         end             
                           
         %------------------------------------------------------------------
         function menu_OMERO_load_data_settings_callback(obj,~,~)
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
-            obj.omero_data_manager.Import_Data_Settings(obj.data_series_controller.data_series,dataset);
             clear chooser;
+            if ~isempty(dataset)
+                obj.omero_data_manager.Import_Data_Settings(obj.data_series_controller.data_series,dataset);
+            end
         end                                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
@@ -821,9 +826,11 @@ classdef front_end_menu_controller < handle
         end
 
         function menu_OMERO_import_fit_params_callback(obj,~,~)
-            [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-            if filename ~= 0
-                obj.fitting_params_controller.load_fitting_params([pathname filename]);           
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
+            dataset = chooser.getSelectedDataset();
+            clear chooser;
+            if ~isempty(dataset)
+                obj.omero_data_manager.Import_Fitting_Settings(obj.fitting_params_controller,dataset);
             end
         end
 
@@ -1015,108 +1022,73 @@ classdef front_end_menu_controller < handle
                         
             mask=obj.data_masking_controller.roi_controller.roi_mask;
             t0_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
-            %
-            filesave = true;
-            % 
+            
+            OMEROsave = false;
+            
             if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
                 choice = questdlg('Do you want to export t0 shift data to the current working Omero data or save on disk?', ' ', ...
                                         'Omero' , ...
-                                        'disk','Cancel','Cancel');              
-                if strcmp( choice, 'Omero'), filesave = false; end;                                               
-                if strcmp( choice, 'Cancel'), return, end;                                                               
-            end
-            
-            if filesave
-                
-                [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+                                        'disk','Cancel','Cancel');  
+                if strcmp( choice, 'Cancel'), return, end; 
+                if strcmp( choice, 'Omero')
+                    [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('', '', '.xml');
+                    OMEROsave = true;
+                else
+                    [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+                end                                              
+                                                                              
                 if filename ~= 0
                     serialise_object(t0_data,[pathname filename],'flim_data_series');
-                end                
-                
-            else % Omero
-                
-                if ~isempty(obj.omero_data_manager.dataset)
-                    object = obj.omero_data_manager.dataset;
-                elseif ~isempty(obj.omero_data_manager.plate)
-                    object = obj.omero_data_manager.plate;
-                end
-
-                root = tempdir;
-                t0_name = [' irf shift map ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];                
-                serialise_object(t0_data,[root t0_name],'flim_data_series');
-                                
-                % fitting results table      
-                namespace = 'IC_PHOTONICS';
-                description = ' ';            
-                file_mime_type = char('application/octet-stream');
-
-                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
-                                object, ...
-                                file_mime_type, ...
-                                [root t0_name], ...
-                                description, ...
-                                namespace);
-                            
-                msgbox(['The file annotation "' t0_name '" has been attached to the current working data']);
-                
+                    if OMEROsave
+                         add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                                dataset, ...
+                                char('application/octet-stream'), ...
+                                [pathname filename], ...
+                                '', ...
+                                'IC_PHOTONICS');  
+                    end
+                end  
+                      
             end
             
         end
-
-
+        
         function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
 
             mask=obj.data_masking_controller.roi_controller.roi_mask;
-            tvb_data = obj.data_series_controller.data_series.generate_tvb_I_map(mask,1);            
-            %
-            filesave = true;
-            % 
-            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
-                choice = questdlg('Do you want to export TVB settings to the current working Omero data or save on disk?', ' ', ...
-                                        'Omero' , ...
-                                        'disk','Cancel','Cancel');              
-                if strcmp( choice, 'Omero'), filesave = false; end;                                               
-                if strcmp( choice, 'Cancel'), return, end;                                                               
-            end
+            tvb_data = obj.data_series_controller.data_series.generate_tvb_I_map(mask,1);  
             
-            if filesave
-                
-                [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            OMEROsave = false;
+            
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
+                choice = questdlg('Do you want to export t0 shift data to the current working Omero data or save on disk?', ' ', ...
+                                        'Omero' , ...
+                                        'disk','Cancel','Cancel');  
+                if strcmp( choice, 'Cancel'), return, end; 
+                if strcmp( choice, 'Omero')
+                    [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('', '', '.xml');
+                    OMEROsave = true;
+                else
+                    [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+                end                                              
+                                                                              
                 if filename ~= 0
                     serialise_object(tvb_data,[pathname filename],'flim_data_series');
-                end                
-                
-            else % Omero
-                
-                if ~isempty(obj.omero_data_manager.dataset)
-                    object = obj.omero_data_manager.dataset;
-                elseif ~isempty(obj.omero_data_manager.plate)
-                    object = obj.omero_data_manager.plate;
-                end
-
-                root = tempdir;
-                tvb_name = [' TVB ' datestr(now,'yyyy-mm-dd-T-HH-MM-SS') '.xml'];                
-                serialise_object(tvb_data,[root tvb_name],'flim_data_series');
-                                
-                % fitting results table      
-                namespace = 'IC_PHOTONICS';
-                description = ' ';            
-                file_mime_type = char('application/octet-stream');
-
-                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
-                                object, ...
-                                file_mime_type, ...
-                                [root tvb_name], ...
-                                description, ...
-                                namespace);
-                            
-                msgbox(['The file annotation "' tvb_name '" has been attached to the current working data']);
-                            
+                    if OMEROsave
+                         add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                                dataset, ...
+                                char('application/octet-stream'), ...
+                                [pathname filename], ...
+                                '', ...
+                                'IC_PHOTONICS');  
+                    end
+                end  
+                      
             end
-
+            
         end
-        
-        
+
+  
         function menu_test_test2_callback(obj,~,~)
             
             d = obj.data_series_controller.data_series;

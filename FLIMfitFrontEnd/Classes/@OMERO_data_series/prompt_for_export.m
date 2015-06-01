@@ -23,9 +23,16 @@ function [filename, pathname, dataset, before_list] = prompt_for_export(obj,defa
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
+   
     client = obj.omero_data_manager.client;
     userid = obj.omero_data_manager.userid;
-    dataID = javaObject('java.lang.Long',obj.datasetId);
+    
+    if double(obj.datasetForOutputId) < 1
+        dataID = javaObject('java.lang.Long',obj.datasetId);
+    else
+        dataID = javaObject('java.lang.Long',obj.datasetForOutputId);
+    end
+        
     
     if strcmp(extString,'.tiff') 
         paths = javaArray('java.lang.String',5);
@@ -44,6 +51,11 @@ function [filename, pathname, dataset, before_list] = prompt_for_export(obj,defa
     dataset = chooser.getSelectedDataset();
     if ~isempty(dataset)
         filename = char(chooser.getFilename());
+        id = dataset.getId.getValue();
+        if id ~= obj.datasetId
+            obj.datasetForOutputId = id;
+        end
+        
         clear chooser;
         pathname = tempdir;
         c = strsplit(filename,'.');

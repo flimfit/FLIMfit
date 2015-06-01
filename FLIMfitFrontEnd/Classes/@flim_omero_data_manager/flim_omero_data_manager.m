@@ -54,16 +54,8 @@ classdef flim_omero_data_manager < handle
         end
                                 
         %------------------------------------------------------------------        
-        function Load_IRF_annot(obj,data_series,~)
-            %
-            if ~isempty(obj.dataset)
-                parent = obj.dataset;
-            elseif ~isempty(obj.plate)
-                parent = obj.plate;
-            else
-                errordlg('please set Dataset or Plate and load the data before loading IRF'), return;
-            end;
-            %    
+        function Load_IRF_annot(obj,data_series,parent)
+            
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Please choose IRF file');
             %
             if isempty(str)
@@ -391,16 +383,8 @@ classdef flim_omero_data_manager < handle
 
       
         %------------------------------------------------------------------
-        function Import_Fitting_Settings(obj,fitting_params_controller,~)
-            %
-             if ~isempty(obj.dataset) 
-                parent = obj.dataset;
-             elseif ~isempty(obj.plate) 
-                parent = obj.plate;
-             else
-                errordlg('please set a Dataset or a Plate'), return;
-             end;            
-            
+        function Import_Fitting_Settings(obj,fitting_params_controller, parent)
+                     
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose fitting settings file');
             %
             if -1 == str
@@ -541,16 +525,8 @@ classdef flim_omero_data_manager < handle
        end
         
        %------------------------------------------------------------------        
-        function Load_Plate_Metadata_annot(obj,data_series,~)
-            %
-            if ~isempty(obj.dataset)
-                parent = obj.dataset;
-            elseif ~isempty(obj.plate)
-                parent = obj.plate;
-            else
-                errordlg('please set Dataset or Plate and load the data before loading plate metadata'), return;
-            end;
-            %    
+        function Load_Plate_Metadata_annot(obj,data_series,parent)
+            
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose metadata xlsx file');
             %
             if -1 == str
@@ -628,16 +604,8 @@ classdef flim_omero_data_manager < handle
                             namespace);                                                            
         end                 
        %------------------------------------------------------------------        
-        function Load_TVB_annot(obj,data_series,~)
-            %
-            if ~isempty(obj.dataset)
-                parent = obj.dataset;
-            elseif ~isempty(obj.plate)
-                parent = obj.plate;
-            else
-                errordlg('please set Dataset or Plate and load the data before loading TVB'), return;
-            end;
-            %    
+        function Load_TVB_annot(obj,data_series,parent)
+            
             [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose TVB file');
             %
             if -1 == str
