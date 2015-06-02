@@ -1384,7 +1384,10 @@ classdef front_end_menu_controller < handle
                 ind_chi2 = [];                       
                 for k=1:length(params), if strcmp(char(params{k}),'I'), ind_intensity=k; break; end; end; 
                 for k=1:length(params), if strcmp(char(params{k}),'mean_tau'), ind_lifetime=k; break; end; end; 
-                for k=1:length(params), if strcmp(char(params{k}),'chi2'), ind_chi2=k; break; end; end;   
+                for k=1:length(params), if strcmp(char(params{k}),'chi2'), ind_chi2=k; break; end; end;                   
+                if isempty(ind_lifetime) % case of single-exponential fit
+                    for k=1:length(params), if strcmp(char(params{k}),'tau_1'), ind_lifetime=k; break; end; end; 
+                end
                 
                 if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
                     
@@ -1469,7 +1472,10 @@ classdef front_end_menu_controller < handle
                     for m=1:length(params), if strcmp(char(params{m}),'I'), ind_intensity=m; break; end; end; 
                     for m=1:length(params), if strcmp(char(params{m}),'mean_tau'), ind_lifetime=m; break; end; end; 
                     for m=1:length(params), if strcmp(char(params{m}),'chi2'), ind_chi2=m; break; end; end;   
-
+                    if isempty(ind_lifetime) % case of single-exponential fit
+                        for m=1:length(params), if strcmp(char(params{m}),'tau_1'), ind_lifetime=m; break; end; end; 
+                    end
+                    
                     if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
 
                         volm = zeros([sizeX,sizeY,3,n_planes,1],'single'); % XYCZT                    
