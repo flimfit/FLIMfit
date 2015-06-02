@@ -1382,9 +1382,9 @@ classdef front_end_menu_controller < handle
                 ind_intensity = [];
                 ind_lifetime = [];
                 ind_chi2 = [];                       
-                for k=1:length(params), if strcmp(char(params{k}),'I'), break; end; end; ind_intensity=k;
-                for k=1:length(params), if strcmp(char(params{k}),'mean_tau'), break; end; end; ind_lifetime=k;
-                for k=1:length(params), if strcmp(char(params{k}),'chi2'), break; end; end; ind_chi2=k;  
+                for k=1:length(params), if strcmp(char(params{k}),'I'), ind_intensity=k; break; end; end; 
+                for k=1:length(params), if strcmp(char(params{k}),'mean_tau'), ind_lifetime=k; break; end; end; 
+                for k=1:length(params), if strcmp(char(params{k}),'chi2'), ind_chi2=k; break; end; end;   
                 
                 if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
                     
@@ -1466,9 +1466,9 @@ classdef front_end_menu_controller < handle
                     ind_intensity = [];
                     ind_lifetime = [];
                     ind_chi2 = [];                       
-                    for kk=1:length(params), if strcmp(char(params{kk}),'I'), break; end; end; ind_intensity=kk;
-                    for kk=1:length(params), if strcmp(char(params{kk}),'mean_tau'), break; end; end; ind_lifetime=kk;
-                    for kk=1:length(params), if strcmp(char(params{kk}),'chi2'), break; end; end; ind_chi2=kk;  
+                    for m=1:length(params), if strcmp(char(params{m}),'I'), ind_intensity=m; break; end; end; 
+                    for m=1:length(params), if strcmp(char(params{m}),'mean_tau'), ind_lifetime=m; break; end; end; 
+                    for m=1:length(params), if strcmp(char(params{m}),'chi2'), ind_chi2=m; break; end; end;   
 
                     if ~isempty(ind_intensity) && ~isempty(ind_lifetime) && ~isempty(ind_chi2)
 
