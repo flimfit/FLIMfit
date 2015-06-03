@@ -97,7 +97,7 @@ try
         end
 
         % Look for things of the form 'x=nn'
-        [match,tokens] = regexp(s,'(\w+)=([\d_-,]*)([a-zA-Z]*)','match','tokens');
+        [match,tokens] = regexp(s,'(\w+)=([\d_\-,]*)(\S*)','match','tokens');
         for j=1:length(tokens)
             t = tokens{j};
             add_class(t{1})

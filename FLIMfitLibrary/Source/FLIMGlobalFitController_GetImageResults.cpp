@@ -52,15 +52,13 @@ using namespace boost::interprocess;
 
 int CalculateRegionStats(int n, int s, float data[], float intensity[], ImageStats<float>& stats, int region, double conf_factor, float buf[])
 {
-   using namespace boost::math;
-
    for(int i=0; i<n; i++)
    {
       int idx = 0;
       for(int j=0; j<s; j++)
       {
          // Only include finite numbers
-         if ( isfinite(data[i+j*n]) && isfinite(data[i+j*n]*data[i+j*n]) )
+		  if (boost::math::isfinite(data[i + j*n]) && boost::math::isfinite(data[i + j*n] * data[i + j*n]))
             buf[idx++] = data[i+j*n];
       }
       int K = int (0.05 * idx);
