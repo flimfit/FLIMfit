@@ -71,8 +71,12 @@
                 end
                 
                 
+                if obj.all_Z_volume_loading
+                    ZCT = { (1:sizeZ) 1 1 };
+                else
+                    ZCT = ZCT_selection([sizeZ sizeC sizeT], maxx, minn, polarisation_resolved, chan_info);
+                end;
                 
-                ZCT = ZCT_selection([sizeZ sizeC sizeT], maxx, minn, polarisation_resolved, chan_info);
             end
             
            

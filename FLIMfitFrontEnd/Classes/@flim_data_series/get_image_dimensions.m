@@ -266,7 +266,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
            
 
-        case {'.pt3', '.ptu'}
+        case {'.pt3','.ptu'}
             
             r = FLIMreaderMex(file);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
@@ -274,7 +274,6 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             dims.sizeZCT = [ 1 n_channels 1 ];
             dims.FLIM_type = 'TCSPC';
             dims.sizeXY = FLIMreaderMex(r,'GetImageSize');
-            sb = FLIMreaderMex(r,'GetSpatialBinning');
             FLIMreaderMex(r,'Delete');
             
             for i=1:n_channels
