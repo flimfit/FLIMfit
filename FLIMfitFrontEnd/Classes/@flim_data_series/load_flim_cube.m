@@ -367,7 +367,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             end
 
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case '.pt3'
+        case {'.pt3', '.ptu'}
             
             r = FLIMreaderMex(file);
             target(:,:,:,:,write_selected) = FLIMreaderMex(r, 'GetData', Carr);

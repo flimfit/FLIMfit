@@ -382,7 +382,7 @@ imagewise_terminated:
 
 		   // When thread detaches make sure we release correctly
 		   region_mutex.lock();
-         cur_im[thread] = data->n_regions_total;
+         cur_im[thread] = data->n_im+1;
 
          int release_im = cur_im[0];
          for(int i=1; i<n_thread; i++)
@@ -391,7 +391,6 @@ imagewise_terminated:
             release_im = cur_im[i];
          }            
          data->AllImageLowerDataFinished(release_im-1);
-
          region_mutex.unlock();
       
    }
