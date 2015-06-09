@@ -279,7 +279,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             if ~isempty(obj.irf)
                 % Plot IRF
                 scale = double(max(obj.data(:)))/max(obj.irf(:));
-                plot_fcn(ha,obj.t_irf,obj.irf*scale,'--');
+                plot_fcn(ha,obj.t_irf,obj.irf*scale,'r-.');
                 hold(ha,'on');
             end
             
@@ -289,9 +289,9 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 set(ra,'Visible','on');
                 set(ha,'OuterPosition',[0 0.3 1 0.7]);
                 if obj.fit_binned
-                    plot_style = 'r--';
+                    plot_style = 'b--';
                 else
-                    plot_style = 'r';
+                    plot_style = 'b';
                 end  
                             
                 plot_fcn(ha,obj.t,obj.fit,plot_style);
