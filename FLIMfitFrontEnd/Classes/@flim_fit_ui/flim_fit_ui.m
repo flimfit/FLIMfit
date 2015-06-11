@@ -239,7 +239,9 @@ classdef flim_fit_ui
                 if ~isempty(path) && exist(path, 'file') == 2
                     javaaddpath(path);
                 else 
-                     assert('Cannot automatically locate an ini4j JAR file');
+                     disp('Cannot automatically locate an ini4j JAR file');
+                     close all;
+                     return;
                 end
             end
             

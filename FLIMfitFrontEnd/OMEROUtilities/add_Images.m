@@ -26,33 +26,18 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
         
        
         
-        %Import Packages
-        import loci.formats.in.DefaultMetadataOptions;
-        import loci.formats.in.MetadataLevel;
-        import loci.common.*;
-        import omero.model.Dataset;
-        import omero.model.DatasetI;
-        import ome.services.blitz.repo.*;
-        import ome.formats.OMEROMetadataStoreClient;
-        import ome.formats.importer.*;
-        import ome.formats.importer.ImportConfig;
-        import ome.formats.importer.cli.ErrorHandler;
-        import ome.formats.importer.cli.LoggingImportMonitor;
-        
-        import ome.formats.importer.transfers.*;
-        import ome.formats.importer.transfers.UploadRmFileTransfer;
-        %import ome.formats.importer.cli.CommandLineImporter;
-        import java.util.prefs.*;
+       
         
         if length(filenames) == 0
             return;
         end
         
         
+        java.lang.System.clearProperty('java.util.prefs.PreferencesFactory');
          
         % Configuration Object
-        config = ImportConfig();
-     
+        config = ome.formats.importer.ImportConfig();
+       
         %Set Config params
         config.email.set('');
         config.sendFiles.set(true);
@@ -60,7 +45,6 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
         config.contOnError.set(false);
         config.debug.set(false);
         
-        cl = omero_data_manager.client;
         host = javaObject('java.lang.String',omero_data_manager.logon{1});
         port = javaObject('java.lang.Integer',str2num(omero_data_manager.logon{2}));
         name = javaObject('java.lang.String',omero_data_manager.logon{3});
@@ -78,15 +62,14 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
         %Metadatastore Object
         store = config.createStore();
         store.logVersionInfo(config.getIniVersionNumber());
-        reader = OMEROWrapper(config);
+        reader = ome.formats.importer.OMEROWrapper(config);
         
-        uploadRm = UploadRmFileTransfer;
-        library = handle(ImportLibrary(store, reader, uploadRm));
+        uploadRm = ome.formats.importer.transfers.UploadRmFileTransfer;
+        library = handle(ome.formats.importer.ImportLibrary(store, reader, uploadRm));
+        handler = ome.formats.importer.cli.ErrorHandler(config);
         
-        handler = ErrorHandler(config);
-        library.addObserver(LoggingImportMonitor());
-        
-      
+        library.addObserver(ome.formats.importer.cli.LoggingImportMonitor());
+       
         %Import
         nfiles = length(filenames);
         
@@ -95,8 +78,10 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
             fpath = [dirpath filenames{p}];
             paths(p) = java.lang.String(fpath);   
         end
-        candidates = ImportCandidates(reader, paths, handler);
-        reader.setMetadataOptions(DefaultMetadataOptions(MetadataLevel.ALL));
+        
+        candidates = ome.formats.importer.ImportCandidates(reader, paths, handler);
+        reader.setMetadataOptions(loci.formats.in.DefaultMetadataOptions(loci.formats.in.MetadataLevel.ALL));
+        
         containers = candidates.getContainers();
 
         n = containers.size();
