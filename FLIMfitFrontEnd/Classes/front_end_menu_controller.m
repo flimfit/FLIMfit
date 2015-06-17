@@ -423,7 +423,8 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
+            dId = obj.data_series_controller.data_series.datasetId;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
             dataset = chooser.getSelectedDataset();
             clear chooser;
             if ~isempty(dataset) 
