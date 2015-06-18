@@ -94,5 +94,7 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
             imageId = [imageId ; pixels.get(0).getImage.getId.getValue];
         end
         uploadRm.afterTransfer(handler.errorCount,toJavaList(paths));
+        
+        disp('Image upload complete!');
 
 end
