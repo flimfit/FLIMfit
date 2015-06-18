@@ -491,10 +491,17 @@ classdef front_end_menu_controller < handle
             irfdata = [obj.data_series_controller.data_series.t_irf(:) obj.data_series_controller.data_series.irf(:)];
             obj.omero_data_manager.Export_IRF_annot(irfdata);
         end                        
-        %------------------------------------------------------------------        
+        %------------------------------------------------------------------  
         function menu_OMERO_Load_tvb_Annotation_callback(obj,~,~)
-            obj.omero_data_manager.Load_TVB_annot(obj.data_series_controller.data_series);
-        end                        
+            dId = obj.data_series_controller.data_series.datasetId;
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
+            dataset = chooser.getSelectedDataset();
+            clear chooser;
+            if ~isempty(dataset) 
+                obj.omero_data_manager.Load_TVB_annot(obj.data_series_controller.data_series, dataset);
+            end
+          end  
+                           
         %------------------------------------------------------------------        
         function menu_OMERO_Export_tvb_Annotation_callback(obj,~,~)
             obj.omero_data_manager.Export_TVB_annot(obj.data_series_controller.data_series);
