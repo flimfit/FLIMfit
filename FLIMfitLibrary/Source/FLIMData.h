@@ -95,11 +95,11 @@ public:
    
    void ImageDataFinished(int im);
    void AllImageLowerDataFinished(int im);
-   void StartStreaming(bool only_load_non_empty_images = true);
+   void StartStreaming(bool only_load_non_empty_images = true, int load_region = -1);
    void StopStreaming();
 
    template <typename T>
-   void DataLoaderThread(bool only_load_non_empty_images);
+   void DataLoaderThread(bool only_load_non_empty_images, int load_region);
 
 
 
@@ -237,6 +237,7 @@ struct DataLoaderThreadParams
 {
    FLIMData* data;
    bool only_load_non_empty_images;
+   int load_region;
 };
 
 void StartDataLoaderThread(void* wparams);
@@ -447,7 +448,7 @@ int FLIMData::CalculateRegions()
 }
 
 template <typename T>
-void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
+void FLIMData::DataLoaderThread(bool only_load_non_empty_images, int load_region)
 {
    for(int i=0; i<n_thread; i++)
    {
@@ -460,12 +461,17 @@ void FLIMData::DataLoaderThread(bool only_load_non_empty_images)
 
    for(int im=0; im<n_im_used; im++)
    {
-      if (only_load_non_empty_images)
+      if (load_region > -1)
+      {
+         if (GetRegionCount(im, load_region) > 0)
+            load_image = true;
+      }
+      else if (only_load_non_empty_images)
       {
          load_image = false;
-         for (int r = 0; r < MAX_REGION; r++ )
+         for (int r = 1; r < MAX_REGION; r++)
          {
-            if (GetRegionIndex(im, r) > -1)
+            if (GetRegionCount(im, r) > 0)
             {
                load_image = true;
                break;

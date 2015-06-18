@@ -216,9 +216,9 @@ void StartDataLoaderThread(void* wparams)
    FLIMData* data = params->data;
   
    if (data->data_class == DATA_UINT16)
-      data->DataLoaderThread<uint16_t>(params->only_load_non_empty_images);
+      data->DataLoaderThread<uint16_t>(params->only_load_non_empty_images, params->load_region);
    else
-      data->DataLoaderThread<float>(params->only_load_non_empty_images);
+      data->DataLoaderThread<float>(params->only_load_non_empty_images, params->load_region);
 
    delete params;
 }
@@ -383,13 +383,14 @@ void FLIMData::AllImageLowerDataFinished(int im)
    }
 }
 
-void FLIMData::StartStreaming(bool only_load_non_empty_images)
+void FLIMData::StartStreaming(bool only_load_non_empty_images, int load_region)
 {
    if (stream_data && loader_thread == NULL)
    {
       DataLoaderThreadParams* params = new DataLoaderThreadParams;
       params->data = this;
       params->only_load_non_empty_images = only_load_non_empty_images;
+      params->load_region = load_region;
 
       loader_thread = new tthread::thread(StartDataLoaderThread,(void*)params); // ok
    }
@@ -601,7 +602,8 @@ int FLIMData::GetRegionData(int thread, int group, int region, int px, float* re
                r_thread = omp_get_thread_num();
 
             int pos = GetRegionPos(i, region) - start;
-            s += GetMaskedData(r_thread, i, region, region_data + pos*n_meas, intensity_data + pos, r_ss_data + pos, acceptor_data + pos, irf_idx + pos);
+            if (GetRegionCount(i, region) > 0)
+               s += GetMaskedData(r_thread, i, region, region_data + pos*n_meas, intensity_data + pos, r_ss_data + pos, acceptor_data + pos, irf_idx + pos);
             ImageDataFinished(i);
          }
       }

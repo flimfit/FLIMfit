@@ -219,7 +219,6 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             end
             
           
-            % multi-image file
             if length(obj.imageSeries) >1
                 r.setSeries(obj.imageSeries(read_selected) - 1);
                 read_selected= 1;
@@ -347,6 +346,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
 
             % DEBUG timing
            % tElapsed = toc(tstart)
+           
 
             if verbose
                 delete(w);
@@ -367,7 +367,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             end
 
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case '.pt3'
+        case {'.pt3', '.ptu'}
             
             r = FLIMreaderMex(file);
             target(:,:,:,:,write_selected) = FLIMreaderMex(r, 'GetData', Carr);

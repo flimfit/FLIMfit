@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<root>
+<url><![CDATA[http://icy.bioimageanalysis.org/repository/getXMLPluginFile.php?pluginId=212&beta=0]]></url><name>Matlab communicator</name><version>1.0.5.0</version><required_kernel_version>1.3.1.0</required_kernel_version><kernel_ver>1.3.1.0</kernel_ver><jar_url><![CDATA[http://icy.bioimageanalysis.org/repository/getJarFile.php?pluginId=212&beta=0]]></jar_url><icon_url><![CDATA[http://bioimageanalysis.org/icy/image.php?idAttach=1603]]></icon_url><image_url><![CDATA[http://bioimageanalysis.org/icy/image.php?idAttach=1995]]></image_url><description><![CDATA[Low-level functions for interactive communication between Icy and Matlab.
+
+To use this plugin, you have to configure your Matlab application in a specific way: please have a look to the install instructions in the icy_init.m file located in the /path/to/Icy/plugins/ylemontag/matlabcommunicator directory.]]></description><classname><![CDATA[plugins.ylemontag.matlabcommunicator.MatlabCommunicatorDeamon]]></classname><author><![CDATA[ylemontag - Yoann Le Montagner]]></author><changelog><![CDATA[-
+Version 1.0.5.0
+Date 2013-02-12 16:12:44
+
+Fix: missing .m files in the JAR archive.
+
+-
+Version 1.0.4.0
+Date 2013-02-12 16:00:19
+
+Fix: debug output messages when MatlabCommandException is thrown.
+
+-
+Version 1.0.3.0
+Date 2012-10-12 13:38:20
+
+Fix: bug at .m extraction
+
+-
+Version 1.0.2.0
+Date 2012-10-12 12:25:21
+
+Fix: bug at .m extraction
+
+-
+Version 1.0.1.0
+Date 2012-10-12 12:21:51
+
+Fix: null pointer exception thrown if a required resource in the jar file is missing.
+
+-
+Version 1.0.0.0
+Date 2012-10-12 11:41:53
+
+Set the dependencies and the minimum kernel version
+
+-
+Version 0.0.1.0b
+Date 2012-10-12 10:31:43
+
+
+
+]]></changelog><web><![CDATA[http://icy.bioimageanalysis.org/plugin/Matlab_communicator]]></web><dependencies><dependency><classname>plugins.ylemontag.matlabio.MatlabIOLibrary</classname></dependency></dependencies></root>
