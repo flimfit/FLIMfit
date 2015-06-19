@@ -24,16 +24,11 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
         % and The Wellcome Trust through a grant entitled 
         % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
         
-       
-        
-       
-        
+    
         if length(filenames) == 0
             return;
         end
         
-        
-        java.lang.System.clearProperty('java.util.prefs.PreferencesFactory');
          
         % Configuration Object
         config = ome.formats.importer.ImportConfig();
