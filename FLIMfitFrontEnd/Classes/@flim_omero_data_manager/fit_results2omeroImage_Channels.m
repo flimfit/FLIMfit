@@ -105,7 +105,7 @@ re = factory.createRenderingEngine();
 %
 re.lookupPixels(pixelsId)
     if ~re.lookupRenderingDef(pixelsId)
-        re.resetDefaults();  
+        re.resetDefaultSettings(true);  
     end;
     if ~re.lookupRenderingDef(pixelsId)
         errordlg('fit_results2omeroImage_Channels: can not render properly');

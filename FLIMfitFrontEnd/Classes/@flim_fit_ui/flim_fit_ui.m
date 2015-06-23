@@ -197,18 +197,24 @@ classdef flim_fit_ui
 
             guidata(obj.window,handles);
             
-            
+         
             loadOmero();
-              
-            % find path to OMEuiUtils.jar - approach copied from
+            
+            % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
             % bfCheckJavaPath
             
-            % first check it isn't already in the dynamic path
+            % first check they aren't already in the dynamic path
             jPath = javaclasspath('-dynamic');
             utilJarInPath = false;
+            ini4jInPath = false;
             for i = 1:length(jPath)
                 if strfind(jPath{i},'OMEuiUtils.jar');
                     utilJarInPath = true;
+                end
+                if strfind(jPath{i},'ini4j.jar');
+                    ini4jInPath = true;
+                end
+                if utilJarInPath && ini4jInPath
                     break;
                 end
             end
@@ -225,6 +231,20 @@ classdef flim_fit_ui
                 end
             end
             
+            if ~ini4jInPath
+                path = which('ini4j.jar');
+                if isempty(path)
+                    path = fullfile(fileparts(mfilename('fullpath')), 'ini4j.jar');
+                end
+                if ~isempty(path) && exist(path, 'file') == 2
+                    javaaddpath(path);
+                else 
+                     disp('Cannot automatically locate an ini4j JAR file');
+                     close all;
+                     return;
+                end
+            end
+            
             
    
             % verify that enough memory is allocated for bio-formats
@@ -237,23 +257,22 @@ classdef flim_fit_ui
             status = bfCheckJavaPath(autoloadBioFormats);
             assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
                 'to the static Java path or add it to the Matlab path.']);
-
+            
+            
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
             
-         
+            java.lang.System.setProperty('java.util.prefs.PreferencesFactory','java.util.prefs.MacOSXPreferencesFactory');
           
             close all;
             
             set(obj.window,'Visible','on');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
-                        
+                       
             if wait
                 waitfor(obj.window);
             end
-            
-            
             
         end
         
