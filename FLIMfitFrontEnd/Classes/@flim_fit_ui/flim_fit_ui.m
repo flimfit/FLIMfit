@@ -263,7 +263,6 @@ classdef flim_fit_ui
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
             
-            java.lang.System.setProperty('java.util.prefs.PreferencesFactory','java.util.prefs.MacOSXPreferencesFactory');
           
             close all;
             
