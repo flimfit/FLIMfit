@@ -2,6 +2,7 @@
 #include "ui_FLIMImageWidget.h"
 #include <QWidget>
 #include "FLIMImage.h"
+#include "DataTransformer.h"
 
 #include <memory>
 #include <future>
@@ -19,6 +20,14 @@ public:
       
       connect(image_widget, &ColormappedImageWidget::selectionUpdated, decay_widget, &DecayWidget::setSelection);
       connect(this, &FLIMImageWidget::setImageLater, this, &FLIMImageWidget::setImage, Qt::QueuedConnection);
+   }
+   
+   void setTransform(std::shared_ptr<QDataTransformationSettings> transform_)
+   {
+      transform = transform_;
+      transformer = std::unique_ptr<DataTransformer>(new DataTransformer(*transform.get()));
+      
+      setImage(next_image);
    }
    
    void setImage(std::shared_ptr<FLIMImage> image_)
@@ -70,6 +79,8 @@ protected:
    
    std::shared_ptr<FLIMImage> image;
    std::shared_ptr<FLIMImage> next_image;
+   std::shared_ptr<QDataTransformationSettings> transform;
+   std::unique_ptr<DataTransformer> transformer;
    std::future<void> update_future;
    std::atomic<bool> update_complete;
 };

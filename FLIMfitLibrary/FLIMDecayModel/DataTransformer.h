@@ -167,6 +167,13 @@ public:
       refresh();
    }
 
+   DataTransformer(std::shared_ptr<DataTransformationSettings> transform_)
+   {
+      transform = *transform_.get();
+      refresh();
+   }
+
+   
    void setImage(std::shared_ptr<FLIMImage> image_)
    {
       if (image == image_)

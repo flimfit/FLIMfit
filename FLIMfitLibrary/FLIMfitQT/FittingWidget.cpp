@@ -41,10 +41,13 @@ void FittingWidget::setImageSet(std::shared_ptr<FLIMImageSet> images_)
 
 void FittingWidget::connectAll()
 {
-   data_list->setModel(images.get());
-   connect(images.get(), &FLIMImageSet::currentImageChanged, image_widget, &FLIMImageWidget::setImage);
-   image_widget->setImage(images->getCurrentImage());
-   parameters_widget->setDecayModel(decay_model);
+   if (images != nullptr)
+   {
+      data_list->setModel(images.get());
+      connect(images.get(), &FLIMImageSet::currentImageChanged, image_widget, &FLIMImageWidget::setImage);
+      image_widget->setImage(images->getCurrentImage());
+      parameters_widget->setDecayModel(decay_model);
+   }   
 }
 
 void FittingWidget::setDefaultModel()
