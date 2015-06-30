@@ -1,13 +1,12 @@
-#include <QApplication>
+#include "SafeApplication.h"
 #include "FLIMfitLauncher.h"
 
 #include <memory>
-
 int main(int argc, char *argv[])
 {
    qRegisterMetaType<std::shared_ptr<FLIMImage>>("std::shared_ptr<FLIMImage>");
 
-   QApplication app(argc, argv);
+   SafeApplication app(argc, argv);
    app.setOrganizationName("FLIMfit");
    app.setOrganizationDomain("flimfit.org");
    app.setApplicationName("FLIMfit");

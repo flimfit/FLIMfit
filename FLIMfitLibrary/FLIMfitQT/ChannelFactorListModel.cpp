@@ -27,7 +27,10 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QAbstractDecayGroup> gro
    if (channel_factor_names.size() > 0)
    {
       for (int i = 0; i < channel_factor_names.size(); i++)
+      {
+         auto s = channel_factor_names[i];
          m_children.append(new ChannelFactorListItem(group, i, this));
+      }
       m_group_index = -1;
    }
    else

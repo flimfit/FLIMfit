@@ -18,7 +18,8 @@ qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
                        FitResultsWidget.ui
                        ProgressWidget.ui
                        ImporterWidget.ui
-                       FLIMfitLauncher.ui)
+                       FLIMfitLauncher.ui
+		       PhasorWidget.ui)
 
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
@@ -26,6 +27,7 @@ qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
 set(CMAKE_AUTOMOC ON)
 
 set(SOURCE
+   ColormappedImageWidget.cpp
    FittingParametersWidget.cpp
    ParameterListModel.cpp
    ParameterListDelegate.cpp
@@ -61,6 +63,8 @@ set(HEADERS
    AbstractItemDelegate.h
    ImporterWidget.h
    FLIMfitLauncher.h
+   PhasorWidget.h
+   SafeApplication.h
 )
 
 include_directories(../FLIMDecayModel 

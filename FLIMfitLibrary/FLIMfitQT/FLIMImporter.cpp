@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
-
+#include <QSettings>
 
 FLIMImporter::FLIMImporter()
 {
@@ -19,7 +19,9 @@ FLIMImporter::FLIMImporter()
 
 std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRFFromDialog()
 {
-   QString file = QFileDialog::getOpenFileName(nullptr, "Choose IRF", "IRF file (*.irf), CSV file (*.csv)");
+   QSettings settings;
+   QString last_project_location = settings.value("last_project_location", QString()).toString();
+   QString file = QFileDialog::getOpenFileName(nullptr, "Choose IRF", last_project_location, "IRF file (*.irf), CSV file (*.csv)");
    if (file == QString())
       return nullptr;
    else

@@ -114,8 +114,7 @@ void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & constrain_nonlinear_parameters;
    ar & n_lin_components;
    ar & n_nl_parameters;
-   ar & parameters;
-   ar & channel_factor_names;
+//   ar & parameters;
    ar & dp;
    ar & fit_t0;
 };

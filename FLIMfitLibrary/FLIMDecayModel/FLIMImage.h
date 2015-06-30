@@ -48,7 +48,7 @@ public:
    DataClass getDataClass() { return data_class; }
    cv::Mat getAcceptor() { return acceptor; }
    const std::vector<uint8_t>& getSegmentationMask() { return mask; }
-   std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() { return acq; }
+   std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() const { return acq; }
    
    bool isPolarisationResolved() { return acq->polarisation_resolved; }
    bool hasAcceptor() { return has_acceptor; }
@@ -67,6 +67,8 @@ protected:
    
    template<typename T>
    std::shared_ptr<FLIMImage> getRegionAsImageImpl(cv::Mat mask);
+   
+   void ensureAllocated();
    
    void waitForData();
    
@@ -103,8 +105,10 @@ private:
    stored_type(typeid(void))
    {};
    
+   bool allocated = false;
+   
    template<class Archive>
-   void serialize(Archive & ar, const unsigned int version)
+   void save(Archive & ar, const unsigned int version) const
    {
       ar & acq;
       ar & data_class;
@@ -120,7 +124,27 @@ private:
       ar & has_data;
    }
    
+   template<class Archive>
+   void load(Archive & ar, const unsigned int version)
+   {
+      ar & acq;
+      ar & data_class;
+      ar & data;
+      ar & mask;
+      ar & name;
+      ar & intensity;
+      ar & acceptor;
+      ar & map_file_name;
+      ar & map_offset;
+      ar & map_length;
+      ar & data_mode;
+      ar & has_data;
+      
+      init();
+   }
+   
    friend class boost::serialization::access;
+   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
 
@@ -162,6 +186,8 @@ T* FLIMImage::getDataPointerForRead()
 template <typename T>
 T* FLIMImage::getDataPointer()
 {
+   ensureAllocated();
+   
    if (clearing_future.valid())
       clearing_future.wait();
    

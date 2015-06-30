@@ -6,7 +6,7 @@ FittingParametersWidget::FittingParametersWidget(QWidget* parent) :
    setupUi(this);
 
    connect(add_group_button, &QPushButton::pressed, this, &FittingParametersWidget::addGroup);
-   connect(remove_group_button, &QPushButton::pressed, this, &::FittingParametersWidget::removeGroup);
+   connect(remove_group_button, &QPushButton::pressed, this, &FittingParametersWidget::removeGroup);
 }
 
 void FittingParametersWidget::setDecayModel(std::shared_ptr<QDecayModel> decay_model_)

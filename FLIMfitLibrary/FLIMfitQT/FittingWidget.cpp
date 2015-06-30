@@ -23,7 +23,11 @@ QWidget(parent)
    image_widget = new FLIMImageWidget(this);
    image_widget->setMinimumSize(500,500);
    mdi_area->addSubWindow(image_widget);
-   
+
+   phasor_widget = new PhasorWidget(this);
+   phasor_widget->setMinimumSize(500,500);
+   mdi_area->addSubWindow(phasor_widget);
+
    results_table = new QTableView;
    mdi_area->addSubWindow(results_table);
 }
@@ -45,6 +49,8 @@ void FittingWidget::connectAll()
    {
       data_list->setModel(images.get());
       connect(images.get(), &FLIMImageSet::currentImageChanged, image_widget, &FLIMImageWidget::setImage);
+      connect(images.get(), &FLIMImageSet::currentImageChanged, phasor_widget, &PhasorWidget::setCurrentImage);
+      phasor_widget->setImages(images, transform);
       image_widget->setImage(images->getCurrentImage());
       parameters_widget->setDecayModel(decay_model);
    }   
@@ -110,7 +116,7 @@ void FittingWidget::fitSelected()
    }
    catch(std::runtime_error e)
    {
-      std::cout << "Error occurred: " << e.what() << "\n";
+      QMessageBox::critical(nullptr, "Exception occured", e.what());
    }
    
    /*
@@ -195,7 +201,7 @@ void FittingWidget::fit()
    }
    catch(std::runtime_error e)
    {
-      std::cout << "Error occurred: " << e.what() << "\n";
+      QMessageBox::critical(nullptr, "Exception occured", e.what());
    }
    
 }

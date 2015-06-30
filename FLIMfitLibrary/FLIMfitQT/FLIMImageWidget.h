@@ -6,6 +6,45 @@
 
 #include <memory>
 #include <future>
+/*
+class DelayedWidget : public QWidget
+{
+   Q_OBJECT
+   
+   DelayedWidget(QWidget* parent = 0) :
+   QWidget(parent)
+   {
+      update_complete = true;
+      connect(this, &DelayedWidget::setImageLater, this, &DelayedWidget::setImage, Qt::QueuedConnection);
+   }
+   
+   
+signals:
+   void setImageLater(std::shared_ptr<FLIMImage> image_);
+   
+protected:
+   void update()
+   {
+      update_complete = false;
+      image = image_;
+      if (image != nullptr)
+      {
+         cv::Mat intensity = image->getIntensity();
+         image_widget->setImage(intensity);
+         
+         decay_widget->setImage(image);
+      }
+      
+      if (image != next_image)
+         emit setImageLater(next_image);
+      
+      update_complete = true;
+   }
+   
+   std::shared_ptr<FLIMImage> image;
+   
+};
+*/
 
 class FLIMImageWidget : public QWidget, protected Ui::FLIMImageWidget
 {

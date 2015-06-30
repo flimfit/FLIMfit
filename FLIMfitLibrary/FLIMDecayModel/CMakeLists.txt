@@ -45,6 +45,7 @@ set(SOURCE
    DecayModel.cpp
    DataTransformer.cpp
    FLIMImage.cpp
+   PhasorCalculator.cpp
 )
 
 set(HEADERS   
@@ -63,7 +64,7 @@ set(HEADERS
    FLIMImage.h
    FLIMBackground.h
    cvmat_serialization.h
-
+   PhasorCalculator.h
 )
 
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)

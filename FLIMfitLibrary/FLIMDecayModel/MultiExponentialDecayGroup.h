@@ -57,12 +57,12 @@ private:
 template<class Archive>
 void MultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
-   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
    ar & tau_parameters;
    ar & beta_parameters;
    ar & n_exponential;
    ar & contributions_global;
    ar & channel_factors;
+   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
 };
 
 class QMultiExponentialDecayGroup : public QAbstractDecayGroup, virtual public MultiExponentialDecayGroup

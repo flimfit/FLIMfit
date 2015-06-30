@@ -48,6 +48,13 @@ void FLIMImage::init()
       n_bytes = 2;
    
    map_length = acq->n_px * acq->n_meas_full * n_bytes;
+
+}
+
+void FLIMImage::ensureAllocated()
+{
+   if (allocated)
+      return;
    
    if (data_mode == InMemory)
    {
@@ -55,17 +62,20 @@ void FLIMImage::init()
    }
    else
    {
-      if (root.empty())
+      if (map_file_name.empty())
       {
-         // Get temp filename
-         boost::filesystem::path temp = boost::filesystem::unique_path();
-         map_file_name = temp.native();
-      }
-      else
-      {
-         boost::filesystem::path dir(root);
-         map_file_name = root;
-         map_file_name.append("/").append(name).append(".ffdata");
+         if (root.empty())
+         {
+            // Get temp filename
+            boost::filesystem::path temp = boost::filesystem::unique_path();
+            map_file_name = temp.native();
+         }
+         else
+         {
+            boost::filesystem::path dir(root);
+            map_file_name = root;
+            map_file_name.append("/").append(name).append(".ffdata");
+         }
       }
       
       boost::filesystem::path file(map_file_name);
@@ -79,6 +89,8 @@ void FLIMImage::init()
       // Create mapping
       data_map_file = boost::interprocess::file_mapping(map_file_name.c_str(),boost::interprocess::read_write);
    }
+   
+   allocated = true;
 }
 
 

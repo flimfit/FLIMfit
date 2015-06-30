@@ -111,7 +111,9 @@ void FLIMfitWindow::newProjectFromDialog()
 
 void FLIMfitWindow::openProjectFromDialog()
 {
-   QString file = QFileDialog::getOpenFileName(this, "Choose FLIMfit project", QString(), "FLIMfit Project (*.flimfit)");
+   QSettings settings;
+   QString last_project_location = settings.value("last_project_location", QString()).toString();
+   QString file = QFileDialog::getOpenFileName(this, "Choose FLIMfit project", last_project_location, "FLIMfit Project (*.flimfit)");
    
    if (!QFileInfo(project_file).exists() && !project_changed)
       openProject(file);

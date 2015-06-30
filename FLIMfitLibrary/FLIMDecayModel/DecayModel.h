@@ -161,7 +161,7 @@ public:
       auto iter = std::find(decay_groups.begin(), decay_groups.end(), group);
       if (iter != decay_groups.end())
       {
-         decay_groups.erase(iter, iter);
+         decay_groups.erase(iter);
          emit GroupsUpdated();
       }
    }

@@ -156,7 +156,7 @@ int main()
    acq->SetImageSize(n_x, n_y);
    
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::DataMode::InMemory, image_data.data());
-  
+   image->init();
   // FLIMImage im(acq, FLIMImage::DataMode::InMemory, image_data.data());
 
    

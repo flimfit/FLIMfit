@@ -1,1 +1,1 @@
-C:\Users\sean\Documents\Imperial-FLIMfit\FLIMfitFrontEnd\pdftops.exe
+/Users/sean/repositories/FLIMfit/FLIMfitFrontEnd/pdftops.bin

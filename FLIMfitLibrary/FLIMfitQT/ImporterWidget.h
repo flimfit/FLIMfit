@@ -34,6 +34,21 @@ public:
          setFolder(last_folder.toString());
       
       image_stacking_spin->setValue(settings.value("importer/n_stack", 1).toInt());
+      
+      connect(select_all_button, &QPushButton::pressed, this, &ImporterWidget::selectAll);
+      connect(select_none_button, &QPushButton::pressed, this, &ImporterWidget::selectNone);
+   }
+   
+   void selectAll()
+   {
+      for(auto& item : file_items)
+         item->setCheckState(Qt::Checked);
+   }
+   
+   void selectNone()
+   {
+      for(auto& item : file_items)
+         item->setCheckState(Qt::Unchecked);
    }
    
    void chooseFolder()

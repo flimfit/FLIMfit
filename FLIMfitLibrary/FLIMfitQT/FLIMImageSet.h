@@ -60,7 +60,7 @@ public:
       currentImageChanged(current_image);
    }
 
-   std::shared_ptr<AcquisitionParameters> getAcquisitionParameters()
+   std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() const
    {
       if (!images.empty())
          return images[0]->getAcquisitionParameters();

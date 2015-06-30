@@ -77,7 +77,6 @@ void MultiExponentialDecayGroup::SetupParametersMultiExponential()
             double initial_value = 1.0 / n_exponential;
 
             auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
-            parameters.push_back(p);
             beta_parameters.push_back(p);
          }
       }

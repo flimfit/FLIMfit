@@ -59,7 +59,7 @@ std::shared_ptr<FLIMImageSet> FLIMImporter::importFiles(QFileInfoList files, con
 {
    auto images = std::make_shared<FLIMImageSet>();
    
-   int n_tasks = (files.size() / n_stack) * (n_stack + 2); // + 2 for setup image, compute intensity etc at end
+   int n_tasks = (files.size() / n_stack) * (n_stack + 1); // +1 for compute intensity etc at end
    reporter = std::make_shared<ProgressReporter>("Reading Files", n_tasks);
    
    std::vector<std::future<std::shared_ptr<FLIMImage>>> futures;
@@ -94,7 +94,6 @@ std::shared_ptr<FLIMImage> FLIMImporter::importStackedFiles(QStringList stack_fi
    
    auto image = std::make_shared<FLIMImage>(acq, typeid(T), basename, FLIMImage::DataMode::MappedFile, root.toStdString());
    std::shared_ptr<ProgressReporter> rep = reporter;
-   rep->subTaskCompleted();
    
    auto read_fcn = [image, reader, stack_files, channels, rep]()
    {
