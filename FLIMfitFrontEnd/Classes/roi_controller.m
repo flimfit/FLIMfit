@@ -39,6 +39,8 @@ classdef roi_controller < flim_data_series_observer
         data_intensity_view;
         
         roi_callback_id;
+        
+        click_pos_txt = '';
     end
     
     properties(GetObservable = true)
@@ -106,6 +108,8 @@ classdef roi_controller < flim_data_series_observer
             if ~obj.waiting && obj.data_series.init
                 
                 obj.waiting = true;
+                
+                obj.click_pos_txt = '';
            
                 obj.point_mode = false;
 
@@ -175,13 +179,14 @@ classdef roi_controller < flim_data_series_observer
                 click_pos = get(src,'CurrentPoint');
                 click_pos = click_pos(1,1:2);
                 click_pos = floor(click_pos); 
+                obj.click_pos_txt = ['X ' num2str(click_pos(1)) '  Y ' num2str(click_pos(2)) ];
                 
                 if ~isempty(obj.roi_handle) && isvalid(obj.roi_handle)
                     delete(obj.roi_handle);
                 end
                     
                 obj.roi_handle = impoint(obj.data_intensity_view.intensity_axes,click_pos);
-                
+               
                 addlistener(obj.roi_handle,'ObjectBeingDestroyed',@obj.roi_being_destroyed);
                 
                 obj.update_mask();
