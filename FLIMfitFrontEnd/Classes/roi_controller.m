@@ -179,7 +179,7 @@ classdef roi_controller < flim_data_series_observer
                 click_pos = get(src,'CurrentPoint');
                 click_pos = click_pos(1,1:2);
                 click_pos = floor(click_pos); 
-                obj.click_pos_txt = ['X ' num2str(click_pos(1)) '  Y ' num2str(click_pos(2)) ];
+                obj.click_pos_txt = ['X ' num2str(click_pos(1) - 1) '  Y ' num2str(click_pos(2) - 1) ];
                 
                 if ~isempty(obj.roi_handle) && isvalid(obj.roi_handle)
                     delete(obj.roi_handle);
