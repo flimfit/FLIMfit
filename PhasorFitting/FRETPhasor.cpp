@@ -3,6 +3,7 @@
 #include <mex.h>
 #include <math.h>
 #include <nlopt.hpp>
+#include <cassert>
 
 // Install NLopt first: http://ab-initio.mit.edu/wiki/index.php/NLopt
 
@@ -29,7 +30,57 @@ class Phasor
 public:
     complex<float> phasor;
     float I = 0;
+    
+    Phasor& operator+=(const Phasor& other) 
+    {
+        float newI = I + other.I;
+        phasor = (I * phasor + other.I * other.phasor) / newI;
+        I = newI;
+        return *this;
+    }
+
+    Phasor& operator*=(float v) 
+    {
+        I *= v;
+        return *this;
+    }
+
+    Phasor& operator/=(float v) 
+    {
+        I /= v;
+        return *this;
+    }
 };
+
+Phasor operator+(const Phasor& p1, const Phasor& p2) 
+{
+    Phasor p;
+    p.I = p1.I + p2.I;
+    p.phasor = (p1.I * p1.phasor + p2.I * p2.phasor) / p.I;
+    return p;
+}
+
+Phasor operator*(const Phasor& p1, float v) 
+{
+    Phasor p = p1;
+    p.I *= v;
+    return p;
+}
+
+Phasor operator*(float v, const Phasor& p1) 
+{
+    Phasor p = p1;
+    p.I *= v;
+    return p;
+}
+
+Phasor operator/(const Phasor& p1, float v) 
+{
+    Phasor p = p1;
+    p.I /= v;
+    return p;
+}
+
 
 System s_CFP;
 System s_GFP;
@@ -70,10 +121,13 @@ void setup()
 }
 
 
-vector<Phasor> FRETphasor(const System& s, float k)
+void FRETphasor(const System& s, float k, vector<Phasor>& phasor)
 {
     float A[2], tauDA[2];
-    vector<Phasor> phasor(2);
+    phasor.resize(2);
+    
+    for(int j=0; j<2; j++)
+        phasor[j].I = 0;
     
     for(int i=0; i<2; i++)
     {
@@ -104,13 +158,9 @@ vector<Phasor> FRETphasor(const System& s, float k)
             FA2 += FA * s.tauA;
         }
         
-//        mexPrintf("FD1: %f, %f\n", FD1.real(), FD1.imag());
-//        mexPrintf("FD2: %f, %f\n", FD2.real(), FD2.imag());
-        
         phasor[j].phasor = (FD1 + FA1) / (FD2 + FA2);
     }
     
-    return phasor;
 }        
 
 
@@ -120,23 +170,61 @@ void printPhasor(const Phasor& phasor)
 }
 
 
+void staticFRETphasor(const System& s, float k, vector<Phasor>& phasor)
+{
+    phasor.resize(2);
+    float F = 3.0 / 2.0 * k;
+    
+    int n = 20;
+    
+    float Emax = 1; //4.0 * F / (1.0 + 4.0 * F);
+    float dE = Emax/n;
+    float sum_p = 0;
+
+    vector<Phasor> Ephasor(2);
+    
+    float Ethresh = F/(1+F);
+
+    for (int i=0; i<n; i++)
+    {
+
+        
+        float E = (i + 1) * dE;
+
+        if (E >= (4.0 * F / (1.0 + 4.0 * F)))
+            continue;
+        
+        float p = 1.0/(2.0*(1-E)*sqrt(3.0*E*F*(1-E)));
+        
+        float q = E/(F*(1-E));
+        p = p * ((E < Ethresh) ? 
+                         log(2+sqrt(3)) 
+                       : log((2 + sqrt(3))/(sqrt(q)+sqrt(q-1))));
+                       
+        sum_p += p;
+        
+        float kE = E / (1-E);
+        FRETphasor(s, kE, Ephasor);
+        for(int i=0; i<2; i++)
+            phasor[i] += p * Ephasor[i];
+    }
+    
+    for(int i=0; i<2; i++)
+        phasor[i] /= sum_p;
+
+}
+
 vector<Phasor> systemPhasor(float A_CFP, float A_GFP, float k_CFP, float k_GFP)
 {    
     //mexPrintf("A: %f, %f, k: %f, %f\n", A_CFP, A_GFP, k_CFP, k_GFP);
+    vector<Phasor> cfp, gfp;
     
+    staticFRETphasor(s_CFP, k_CFP, cfp);
+    staticFRETphasor(s_GFP, k_GFP, gfp);
+
     vector<Phasor> phasor(2);
-
-    vector<Phasor> cfp = FRETphasor(s_CFP, k_CFP);
-    vector<Phasor> gfp = FRETphasor(s_GFP, k_GFP);
-
     for(int i=0; i<2; i++)
-    {
-        float I_CFP = A_CFP * cfp[i].I;
-        float I_GFP = A_GFP * gfp[i].I;
-        
-        phasor[i].phasor = (I_CFP * cfp[i].phasor + I_GFP * gfp[i].phasor) / (I_CFP + I_GFP);
-        phasor[i].I = I_CFP + I_GFP; 
-    }
+        phasor[i] = A_CFP * cfp[i] + A_GFP * gfp[i]; 
 
     return phasor;
 }
@@ -152,7 +240,8 @@ double objective(unsigned n, const double* x, double* grad, void* f_data)
         
     vector<Phasor> phasor = systemPhasor(A_CFP, A_GFP, k_CFP, k_GFP);
     
-    //mexPrintf("Cur: %f %f %f %f\n", A_CFP, A_GFP, k_CFP, k_GFP);
+    //printPhasor(phasor[0]);
+    //printPhasor(phasor[1]);
         
     float residual = 0;
     for (int i=0; i<2; i++)
@@ -161,6 +250,11 @@ double objective(unsigned n, const double* x, double* grad, void* f_data)
         float I_diff = phasor[i].I - measured_phasor[i].I;
         residual += p_diff.real()*p_diff.real() + p_diff.imag()*p_diff.imag() + I_diff*I_diff;
     }
+    
+    //mexPrintf("Cur: %f, %f, %f, %f  -> %f\n", A_CFP, A_GFP, k_CFP, k_GFP,residual);
+
+    if(!isfinite(residual))
+        residual = 1e10;
     
     return residual;
 }
@@ -220,7 +314,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
         catch(...)
         {
-            mexPrintf("Exception occured");
+            mexErrMsgIdAndTxt("MEX:error", "Exception occurred");
         }
         
         plhs[0] = mxCreateDoubleMatrix(1,4,mxREAL);

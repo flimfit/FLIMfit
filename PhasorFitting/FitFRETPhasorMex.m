@@ -6,7 +6,7 @@ function [Af,kf] = FitFRETPhasorMex(p, I)
     Af = zeros(size(p));
     kf = zeros(size(p));
 
-    for i=1:size(p,2)
+    parfor i=1:size(p,2)
 
         if (mod(i,100) == 0)
             disp(['About to fit: ' num2str(i)]);
