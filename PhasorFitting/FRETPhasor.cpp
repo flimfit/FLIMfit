@@ -33,54 +33,57 @@ class Phasor
 public:
     complex<float> phasor;
     float I = 0;
+    float A = 0;
     
     Phasor& operator+=(const Phasor& other) 
     {
-        float newI = I + other.I;
-        phasor = (I * phasor + other.I * other.phasor) / newI;
-        I = newI;
+        float newA = A + other.A;
+        phasor = (A * phasor + other.A * other.phasor) / newA;
+        I = (A * I + other.A * other.I) / newA;
+        A = newA;
         return *this;
     }
 
     Phasor& operator*=(float v) 
     {
         I *= v;
+        A *= v;
         return *this;
     }
 
     Phasor& operator/=(float v) 
     {
         I /= v;
+        A /= v;
         return *this;
     }
 };
 
 Phasor operator+(const Phasor& p1, const Phasor& p2) 
 {
-    Phasor p;
-    p.I = p1.I + p2.I;
-    p.phasor = (p1.I * p1.phasor + p2.I * p2.phasor) / p.I;
+    Phasor p = p1;
+    p += p2;
     return p;
 }
 
 Phasor operator*(const Phasor& p1, float v) 
 {
     Phasor p = p1;
-    p.I *= v;
+    p *= v;
     return p;
 }
 
 Phasor operator*(float v, const Phasor& p1) 
 {
     Phasor p = p1;
-    p.I *= v;
+    p *= v;
     return p;
 }
 
 Phasor operator/(const Phasor& p1, float v) 
 {
     Phasor p = p1;
-    p.I /= v;
+    p /= v;
     return p;
 }
 
@@ -97,8 +100,8 @@ complex<float> r(float tau)
 
 
 void setup()
-{
-    s_CFP.sigmaQ = 1.123/10.84;
+{    
+    s_CFP.sigmaQ = 1.1233 / 10.849; //2.123/10.84;
     s_CFP.Qdash = 1.9;
     s_CFP.aD[0] = 0.0698; //0.0495; // 617/73
     s_CFP.aD[1] = 0.3445; //0.4425; // 525/50
@@ -112,7 +115,7 @@ void setup()
     s_CFP.alphaD[1] = 0.3655;
     s_CFP.tauA = 3000;
     
-    s_GFP.sigmaQ = 0; //3.545/11.84;
+    s_GFP.sigmaQ = 3.545/11.535;
     s_GFP.Qdash = 0.416;
     s_GFP.aD[0] = 0.0865; //0.0501;  // 617/73
     s_GFP.aD[1] = 0.7578;  // 525/50
@@ -124,7 +127,7 @@ void setup()
     s_GFP.tauD[1] = 1000;
     s_GFP.alphaD[0] = 1;
     s_GFP.alphaD[1] = 0;
-    s_GFP.tauA = 1800;
+    s_GFP.tauA = 1000;
 }
 
 
@@ -140,22 +143,35 @@ void FRETphasor(const System& s, float k, vector<Phasor>& phasor)
     {
         A[i] = k * s.alphaD[i] / (s.tauA - s.tauD[i] + k);
         tauDA[i] = s.tauD[i] / (1 + k);
-        
-        for(int j=0; j<n_channel; j++)
-        {            
-            phasor[j].I += (s.alphaD[i] * tauDA[i] * s.aD[j]);
-            phasor[j].I += (s.alphaD[i] * s.tauA * s.sigmaQ * s.aA[j]);
-            phasor[j].I += (s.alphaD[i] * s.sigmaQ * k * s.tauA / (s.tauA * (1+k) - s.tauD[i]) * (s.tauA - tauDA[i]) * s.aA[j]);
-        }
     }
 
+    
     for(int j=0; j<n_channel; j++)
     {
         complex<float> FD1 = 0, FD2 = 0;
         complex<float> FA1 = 0, FA2 = 0;
+
+        phasor[j].phasor = complex<float>(0.0f,0.0f);
+        phasor[j].I = 0.0f;
         
         for(int i=0; i<n_donor_components; i++)
         {
+            complex<float> FD = s.aD[j] / s.tauD[i] - A[i] * s.Qdash * s.aA[j];
+            complex<float> FA = s.sigmaQ * s.aA[j] / s.tauA + A[i] * s.Qdash * s.aA[j];
+
+            Phasor p;
+            p.phasor = (FD * r(tauDA[i]) + FA * r(s.tauA)) / (FD * tauDA[i] + FA * s.tauA);
+            
+            p.I = tauDA[i] * s.aD[j];
+            p.I += s.tauA * s.sigmaQ * s.aA[j];
+            p.I += s.Qdash * k * s.tauA / (s.tauA * (1+k) - s.tauD[i]) * (s.tauA - tauDA[i]) * s.aA[j];
+
+            p.A = s.alphaD[i];
+
+            phasor[j] += p;
+            
+
+            /*
             complex<float> FD = s.alphaD[i] * (s.aD[j] / s.tauD[i] - A[i] * s.Qdash * s.aA[j]);
             complex<float> FA = s.alphaD[i] * (s.sigmaQ * s.aA[j] / s.tauA + A[i] * s.Qdash * s.aA[j]);
 
@@ -164,11 +180,9 @@ void FRETphasor(const System& s, float k, vector<Phasor>& phasor)
 
             FA1 += FA * r(s.tauA);
             FA2 += FA * s.tauA;
+            */
         }
-        
-        phasor[j].phasor = (FD1 + FA1) / (FD2 + FA2);
-    }
-    
+    }    
 }        
 
 
@@ -255,9 +269,12 @@ double objective(unsigned n, const double* x, double* grad, void* f_data)
     for (int i=0; i<n_channel; i++)
     {
         complex<float> p_diff = phasor[i].phasor - measured_phasor[i].phasor;
-        float I_diff = phasor[i].I - measured_phasor[i].I;
-        residual += p_diff.real()*p_diff.real() + p_diff.imag()*p_diff.imag() + I_diff*I_diff;
+        float I_diff = (phasor[i].I - measured_phasor[i].I) / measured_phasor[i].I;
+        float ri = p_diff.real()*p_diff.real() + p_diff.imag()*p_diff.imag() + I_diff*I_diff;
+        //mexPrintf("%f, ", I_diff);
+        residual += ri;
     }
+    //mexPrintf("\n");
     
     //mexPrintf("Cur: %f, %f, %f, %f  -> %f\n", A_CFP, A_GFP, k_CFP, k_GFP,residual);
 
@@ -357,7 +374,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         plhs[0] = mxCreateDoubleMatrix(1,n_constructs*2+1,mxREAL);
         double* ans = mxGetPr(plhs[0]);
         
-        for(int i=0; i<n_constructs*2; i++)
+        int i;
+        for(i=0; i<n_constructs*2; i++)
             ans[i] = exp(x[i]);
         ans[n_constructs*2] = minf;
     }

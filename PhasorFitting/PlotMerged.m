@@ -14,6 +14,7 @@ function PlotMerged(A,I,lim)
     a = reshape(a, [size(A), 3]);
     
     limh = prctile(I(~isnan(I)),95);
+    limh = 2;
     
     I = I / limh;
     I(I>1) = 1;

@@ -11,7 +11,7 @@ function [Af,kf,rf] = FitFRETPhasorMex(p, I)
 
     parfor i=1:n
 
-        if sum(I(:,i),1) > 2000
+        if sum(I(:,i),1) > 500
         
             if (mod(i,100) == 0)
                 disp(['About to fit: ' num2str(i)]);

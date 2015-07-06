@@ -30,14 +30,14 @@ irf_file = [folder 'irf.csv'];
 
 irf_phasor = GetIRFPhasor(irf_file);
 
-files = dir([folder '1*.pt3']);
+files = dir([folder '2 *.pt3']);
 
 lim1 = [0 1];
 lim2 = [0 1];
 
 h = waitbar(0,'Processing...');
 
-files = files(2);
+files = files(3);
 
 for i=1:length(files) 
    
@@ -54,13 +54,15 @@ for i=1:length(files)
     
     [data, t] = LoadImage(filename);
     sz = size(data);
-    
+        
     [p, I] = CalculatePhasor(t, data, irf_phasor, background);
     
     [Af,kf,rf] = FitFRETPhasorMex(p,I);
     
     Ef = kf./(1+kf);
 
+    I = sum(I,1);
+    I = reshape(I, sz(3:4));
     Af = reshape(Af,[2, sz(3:4)]);
     Ef = reshape(Ef,[2, sz(3:4)]);
     rf = reshape(rf,sz(3:4));
@@ -70,6 +72,7 @@ for i=1:length(files)
     r.E_CFP = squeeze(Ef(1,:,:));
     r.E_GFP = squeeze(Ef(2,:,:));
     r.res = rf;
+    r.I = I;
 
     subplot(3,1,1);
     PlotMerged(r.E_CFP, r.A_CFP, lim1)
@@ -80,12 +83,20 @@ for i=1:length(files)
     title('GFP')
 
     subplot(3,1,3);
-    PlotMerged(sqrt(r.res), r.A_GFP, [0 10000]);
-    title('res')
+    %PlotMerged(sqrt(r.res), r.A_GFP, [0 10000]);
+    imagesc(I);
+    daspect([1 1 1]);
+    set(gca,'YTick',[],'XTick',[]);
+    title('total intensity')
     
     sel = ~isnan(r.A_GFP);
     sum(r.res(sel).*r.A_GFP(sel)) / sum(r.A_GFP(sel))
 
+    g = sum(r.A_GFP(sel));
+    c = sum(r.A_CFP(sel));
+    
+    g / (g+c)
+    
     drawnow;
     
     save([filename '.mat'],'r');
