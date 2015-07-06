@@ -1,6 +1,6 @@
 function [data, t] = LoadImage(file)
 
-    channels = [2,3];
+    channels = [0,2,3];
 
     r = FLIMreaderMex(file);
     FLIMreaderMex(r, 'SetSpatialBinning', 4);
