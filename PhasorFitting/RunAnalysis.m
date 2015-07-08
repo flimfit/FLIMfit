@@ -19,25 +19,32 @@ reference = reference - background;
 
 %%
 
-semilogy(t,reference-background);
+%irf_file = [folder 'irf.csv'];
+
+%irf_phasor = GetIRFPhasor(irf_file);
+
+
+%% 
+
+folder = '/Users/sean/Documents/FLIMTestData/2015-07-08 YFP mRFP cells/';
+
 
 %%
 
 
 mex FRETPhasor.cpp 'CXXFLAGS="$CXXFLAGS -std=c++11 -O3"' -I/usr/local/include -L/usr/local/lib -lnlopt
 
-irf_file = [folder 'irf.csv'];
 
-irf_phasor = GetIRFPhasor(irf_file);
+files = [dir([folder '01 *.pt3']); ...
+      %   dir([folder '4 *.pt3']); ...
+         dir([folder '02 *.pt3'])];
 
-files = dir([folder '2 *.pt3']);
-
-lim1 = [0 1];
-lim2 = [0 1];
+lim1 = [0 0.5];
+lim2 = [0.0 0.5];
 
 h = waitbar(0,'Processing...');
 
-files = files(3);
+files = files(1);
 
 for i=1:length(files) 
    
@@ -74,21 +81,22 @@ for i=1:length(files)
     r.res = rf;
     r.I = I;
 
-    subplot(3,1,1);
+    subplot(2,1,1);
     PlotMerged(r.E_CFP, r.A_CFP, lim1)
     title(files(i).name,'Interpreter','None')
 
-    subplot(3,1,2);
+    subplot(2,1,2);
     PlotMerged(r.E_GFP, r.A_GFP, lim2);
     title('GFP')
 
-    subplot(3,1,3);
-    %PlotMerged(sqrt(r.res), r.A_GFP, [0 10000]);
-    imagesc(I);
-    daspect([1 1 1]);
-    set(gca,'YTick',[],'XTick',[]);
+    %{
+    subplot(2,1,3);
+    PlotMerged(sqrt(r.res), r.A_CFP+r.A_GFP, [0 10]);
+    %imagesc(I);
+    %daspect([1 1 1]);
+    %set(gca,'YTick',[],'XTick',[]);
     title('total intensity')
-    
+    %}
     sel = ~isnan(r.A_GFP);
     sum(r.res(sel).*r.A_GFP(sel)) / sum(r.A_GFP(sel))
 
@@ -99,13 +107,15 @@ for i=1:length(files)
     
     drawnow;
     
-    save([filename '.mat'],'r');
+    save([filename '-low_tol.mat'],'r');
     
     waitbar(i/length(files),h);
     
 end
 
 close(h);
+
+disp('Done.')
 
 %%
 

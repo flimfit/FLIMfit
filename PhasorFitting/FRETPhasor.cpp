@@ -25,7 +25,7 @@ struct System
     float aA[n_channel];
     float tauD[n_donor_components];
     float alphaD[n_donor_components];
-    float tauA = 4000;
+    float tauA;
 };
 
 class Phasor
@@ -106,14 +106,14 @@ void setup()
     s_CFP.aD[0] = 0.0698; //0.0495; // 617/73
     s_CFP.aD[1] = 0.3445; //0.4425; // 525/50
     s_CFP.aD[2] = 0.4433; // 438/32
-    s_CFP.aA[0] = 0.1211; 
+    s_CFP.aA[0] = 0.1610; //0.1211; 
     s_CFP.aA[1] = 0.6717; 
-    s_CFP.aA[2] = 0.0023;
+    s_CFP.aA[2] = 0.0038; //0.0023;
     s_CFP.tauD[0] = 2824.5;
     s_CFP.tauD[1] = 861.3;
     s_CFP.alphaD[0] = 0.6345;
     s_CFP.alphaD[1] = 0.3655;
-    s_CFP.tauA = 3000;
+    s_CFP.tauA = 2850;
     
     s_GFP.sigmaQ = 3.545/11.535;
     s_GFP.Qdash = 0.416;
@@ -127,7 +127,7 @@ void setup()
     s_GFP.tauD[1] = 1000;
     s_GFP.alphaD[0] = 1;
     s_GFP.alphaD[1] = 0;
-    s_GFP.tauA = 1000;
+    s_GFP.tauA = 800; // http://pubs.acs.org/doi/pdf/10.1021/bm901071b
 }
 
 
