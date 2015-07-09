@@ -35,12 +35,14 @@ function PlotMerged(A,I,lim)
     
     a = [a ccbar];
     
+    set(gca, 'Units', 'pixels')
+    
     image(a);
     daspect([1 1 1]);
-    text(0,10,num2str(limh,3),'Color','w','BackgroundColor','k')
-    text(size(A,2),10,num2str(lim(2),2),'Color','w','BackgroundColor','k')
-    text(size(A,2),size(A,1),num2str(lim(1),3),'Color','w','BackgroundColor','k')
+    text(4,7,num2str(limh,3),'Color','w','BackgroundColor','k','HorizontalAlignment','left','VerticalAlignment','top')
+    text(size(A,2)-3,7,num2str(lim(2),2),'Color','w','BackgroundColor','k','HorizontalAlignment','right','VerticalAlignment','top')
+    text(size(A,2)-3,size(A,1)-3,num2str(lim(1),3),'Color','w','BackgroundColor','k','HorizontalAlignment','right','VerticalAlignment','bottom')
     set(gca,'XTick',[],'YTick',[]);
-
-
+    set(gca, 'Units', 'normalized');
+    
 end

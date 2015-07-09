@@ -1,5 +1,5 @@
 mex FRETPhasor.cpp 'CXXFLAGS="$CXXFLAGS -std=c++11 -O3"' -I/usr/local/include -L/usr/local/lib -lnlopt
-%%
+
 
 
 files = dir([folder '4 *.pt3']);

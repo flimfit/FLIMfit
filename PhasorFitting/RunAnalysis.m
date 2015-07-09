@@ -1,8 +1,14 @@
 addpath('../FLIMfitLibrary/FLIMreader');
+
+root = '/Users/sean/Documents/FLIMTestData/';
+
+folder = [root '2015-07-02 CFP-GFP cells/'];
+
+files = [dir([folder '4 *.pt3']); ...
+         dir([folder '2 *.pt3']); ...
+         dir([folder '7 *.pt3'])];
+
 %%
-
-folder = '/Users/sean/Documents/FLIMTestData/2015-07-02 CFP-GFP cells/';
-
 reference_file = 'green chroma slide _38_1.pt3';
 background_file = 'no sample background_19_1.pt3';
 [reference, t] = LoadImage([folder reference_file]); 
@@ -11,7 +17,7 @@ background_file = 'no sample background_19_1.pt3';
 sz = size(reference);
 reference = reshape(reference,[sz(1:2) prod(sz(3:4))]);
 reference = mean(reference,3);
-%%
+
 background = reshape(background,[sz(1:2) prod(sz(3:4))]);
 background = mean(double(background),3);
 
@@ -26,13 +32,21 @@ irf_phasor = GetIRFPhasor(irf_file);
 
 %%
 
+folder = [root '2015-07-08 MutRac dual cells/'];
+files = dir([folder '*.pt3']);
 
-mex FRETPhasor.cpp 'CXXFLAGS="$CXXFLAGS -std=c++11 -O3"' -I/usr/local/include -L/usr/local/lib -lnlopt
+%%
 
+folder = [root '2015-07-02 CFP-GFP cells/'];
 
 files = [dir([folder '4 *.pt3']); ...
          dir([folder '2 *.pt3']); ...
          dir([folder '7 *.pt3'])];
+
+%%
+mex FRETPhasor.cpp 'CXXFLAGS="$CXXFLAGS -std=c++11 -O3"' -I/usr/local/include -L/usr/local/lib -lnlopt
+
+
 
 lim1 = [0 0.5];
 lim2 = [0.0 0.5];
@@ -82,14 +96,6 @@ for i=1:length(files)
     PlotMerged(r.E_GFP, r.A_GFP, lim2);
     title('GFP')
 
-    %{
-    subplot(2,1,3);
-    PlotMerged(sqrt(r.res), r.A_CFP+r.A_GFP, [0 10]);
-    %imagesc(I);
-    %daspect([1 1 1]);
-    %set(gca,'YTick',[],'XTick',[]);
-    title('total intensity')
-    %}
     sel = ~isnan(r.A_GFP);
     res = sum(r.res(sel).*r.A_GFP(sel)) / sum(r.A_GFP(sel));
     

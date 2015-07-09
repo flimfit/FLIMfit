@@ -104,8 +104,8 @@ complex<float> r(float tau)
 
 void setup()
 {    
-    s_CFP.sigmaQ = 1.1233 / 10.849 * 1.779; //2.123/10.84;
-    s_CFP.Qdash = 1.9 * 1.731;
+    s_CFP.sigmaQ = 1.1233 / 10.849 * 1.779 * 1.4; //2.123/10.84;
+    s_CFP.Qdash = 1.9 * 1.731 * 1.4;
     s_CFP.aD[0] = 0.0698; //0.0495; // 617/73
     s_CFP.aD[1] = 0.3445; //0.4425; // 525/50
     s_CFP.aD[2] = 0.4433; // 438/32
@@ -155,7 +155,7 @@ void FRETphasor(const System& s, float k, vector<Phasor>& phasor, float Qf1, flo
     for(int i=0; i<n_donor_components; i++)
     {
         for(int m=0; m<n_acceptor_components; m++)
-            A[i][m] = k / (s.tauA[m] * (1+k) - s.tauD[i]);
+            A[i][m] = k / (s.tauA[m] * (1+k) - s.tauD[i] + 1e-6);
         
         tauDA[i] = s.tauD[i] / (1 + k);
     }
@@ -165,16 +165,16 @@ void FRETphasor(const System& s, float k, vector<Phasor>& phasor, float Qf1, flo
     {
         phasor[j].phasor = complex<float>(0.0f,0.0f);
         phasor[j].I = 0.0f;
-        
+                
         for(int i=0; i<n_donor_components; i++)
         {
             for(int m=0; m<n_acceptor_components; m++)
             {
                 complex<float> FD = s.aD[j] / s.tauD[i] - A[i][m] * Qdash * s.aA[j];
                 complex<float> FA = (sigmaQ / s.tauA[m] + A[i][m] * Qdash) * s.aA[j];
-
+                
                 Phasor p;
-                p.phasor = (FD * r(tauDA[i]) + FA * r(s.tauA[m])) / (FD * tauDA[i] + FA * s.tauA[m]);
+                p.phasor = (FD * r(tauDA[i]) + FA * r(s.tauA[m])) / (FD * tauDA[i] + FA * s.tauA[m] + 1e-6f);
 
                 p.I = tauDA[i] * s.aD[j];
                 p.I += sigmaQ * s.tauA[m] * s.aA[j];
@@ -266,8 +266,13 @@ double residual(const vector<Phasor>& measured_phasor, const vector<Phasor>& pha
     }
     
     if(!isfinite(residual))
+    {
+        mexPrintf("Warning: residual is not finite\n");
+        for(int i=0; i<n_channel; i++)
+            printPhasor(phasor[i]);
         residual = 1;
-
+    }
+    
     return residual;
 }
 
@@ -310,7 +315,7 @@ double objectiveQ(unsigned n, const double* x, double* grad, void* f_data)
     float m2 = x[3];
     
     //vector<Phasor> phasor = systemPhasor(0, A, 0, k, 1.0f, 1.0f, m1, m2);
-    vector<Phasor> phasor = systemPhasor(A, 0, k, 1, m1, m2, 1.0f, 1.0f);
+    vector<Phasor> phasor = systemPhasor(A, 0, k, 0, m1, m2, 1.0f, 1.0f);
     
     double res = residual(measured_phasor, phasor);
     
