@@ -11,22 +11,17 @@ background_file = 'no sample background_19_1.pt3';
 sz = size(reference);
 reference = reshape(reference,[sz(1:2) prod(sz(3:4))]);
 reference = mean(reference,3);
-
+%%
 background = reshape(background,[sz(1:2) prod(sz(3:4))]);
-background = mean(background,3);
+background = mean(double(background),3);
 
 reference = reference - background;
 
 %%
 
-%irf_file = [folder 'irf.csv'];
+irf_file = [folder 'irf.csv'];
 
-%irf_phasor = GetIRFPhasor(irf_file);
-
-
-%% 
-
-folder = '/Users/sean/Documents/FLIMTestData/2015-07-08 YFP mRFP cells/';
+irf_phasor = GetIRFPhasor(irf_file);
 
 
 %%
@@ -35,16 +30,14 @@ folder = '/Users/sean/Documents/FLIMTestData/2015-07-08 YFP mRFP cells/';
 mex FRETPhasor.cpp 'CXXFLAGS="$CXXFLAGS -std=c++11 -O3"' -I/usr/local/include -L/usr/local/lib -lnlopt
 
 
-files = [dir([folder '01 *.pt3']); ...
-      %   dir([folder '4 *.pt3']); ...
-         dir([folder '02 *.pt3'])];
+files = [dir([folder '4 *.pt3']); ...
+         dir([folder '2 *.pt3']); ...
+         dir([folder '7 *.pt3'])];
 
 lim1 = [0 0.5];
 lim2 = [0.0 0.5];
 
 h = waitbar(0,'Processing...');
-
-files = files(1);
 
 for i=1:length(files) 
    
@@ -68,8 +61,8 @@ for i=1:length(files)
     
     Ef = kf./(1+kf);
 
-    I = sum(I,1);
-    I = reshape(I, sz(3:4));
+    If = sum(I,1);
+    If = reshape(If, sz(3:4));
     Af = reshape(Af,[2, sz(3:4)]);
     Ef = reshape(Ef,[2, sz(3:4)]);
     rf = reshape(rf,sz(3:4));
@@ -79,7 +72,7 @@ for i=1:length(files)
     r.E_CFP = squeeze(Ef(1,:,:));
     r.E_GFP = squeeze(Ef(2,:,:));
     r.res = rf;
-    r.I = I;
+    r.I = If;
 
     subplot(2,1,1);
     PlotMerged(r.E_CFP, r.A_CFP, lim1)
@@ -98,24 +91,28 @@ for i=1:length(files)
     title('total intensity')
     %}
     sel = ~isnan(r.A_GFP);
-    sum(r.res(sel).*r.A_GFP(sel)) / sum(r.A_GFP(sel))
+    res = sum(r.res(sel).*r.A_GFP(sel)) / sum(r.A_GFP(sel));
+    
+    disp(['Residual: ' num2str(res)]);
 
     g = sum(r.A_GFP(sel));
     c = sum(r.A_CFP(sel));
     
-    g / (g+c)
+    disp(['Fraction GFP: ' num2str(g / (g+c))]);
     
     drawnow;
     
-    save([filename '-low_tol.mat'],'r');
+    save([filename '-fixed-k-2.mat'],'r');
     
     waitbar(i/length(files),h);
     
 end
 
-close(h);
+close(h); 
 
 disp('Done.')
+%%
+ShowResults(folder, '-fixed-k-2');
 
 %%
 
