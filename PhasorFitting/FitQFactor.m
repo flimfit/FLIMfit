@@ -1,8 +1,5 @@
-mex FRETPhasor.cpp 'CXXFLAGS="$CXXFLAGS -std=c++11 -O3"' -I/usr/local/include -L/usr/local/lib -lnlopt
-
-
-
-files = dir([folder '4 *.pt3']);
+folder = [root '2015-07-02 CFP-GFP cells/'];
+files = dir([folder '2 *.pt3']);
 
 xf = [];
 
@@ -25,7 +22,7 @@ for i=1:length(files)
     kf = zeros([2,n]);
     rf = zeros([1,n]);
 
-    sel = sum(I,1) > 2500;
+    sel = sum(I,1) > 1000;
 
 
     pf = p(:,sel);

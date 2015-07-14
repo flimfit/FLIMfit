@@ -9,25 +9,35 @@ files = [dir([folder '4 *.pt3']); ...
          dir([folder '7 *.pt3'])];
 
 %%
-reference_file = 'green chroma slide _38_1.pt3';
+%reference_file = 'green chroma slide _38_1.pt3';
 background_file = 'no sample background_19_1.pt3';
-[reference, t] = LoadImage([folder reference_file]); 
+%[reference, t] = LoadImage([folder reference_file]); 
 [background] = LoadImage([folder background_file]); 
 
-sz = size(reference);
-reference = reshape(reference,[sz(1:2) prod(sz(3:4))]);
-reference = mean(reference,3);
+sz = size(background);
+%reference = reshape(reference,[sz(1:2) prod(sz(3:4))]);
+%reference = mean(reference,3);
 
 background = reshape(background,[sz(1:2) prod(sz(3:4))]);
 background = mean(double(background),3);
 
-reference = reference - background;
+%reference = reference - background;
 
 %%
 
-irf_file = [folder 'irf.csv'];
+irf_phasor = GetIRFPhasor([folder 'fitted-irf.csv']);
+
+%%
+irf_file = [folder 'reference.csv'];
 
 irf_phasor = GetIRFPhasor(irf_file);
+
+omega = 2*pi/12500;
+tau_ref = [7181.2; 6818.5; 6083];
+    
+cor = (1 + 1i * omega * tau_ref) ./ (1 + (omega*tau_ref).^2);
+    
+irf_phasor = irf_phasor ./ cor;
 
 
 %%
@@ -39,16 +49,22 @@ files = dir([folder '*.pt3']);
 
 folder = [root '2015-07-02 CFP-GFP cells/'];
 
-files = [dir([folder '4 *.pt3']); ...
-         dir([folder '2 *.pt3']); ...
-         dir([folder '7 *.pt3'])];
+files = [dir([folder '7 *.pt3']); ...
+         dir([folder '4 *.pt3']); ...
+         dir([folder '2 *.pt3'])];
+     
+%%
+
+folder = [root '2015-07-03 RhoRac dual mouse/'];
+files = dir([folder '04*.pt3']);
+
+%background = background + repmat([2e-1 0 0], [256 1]);
 
 %%
-mex FRETPhasor.cpp 'CXXFLAGS="$CXXFLAGS -std=c++11 -O3"' -I/usr/local/include -L/usr/local/lib -lnlopt
 
 
 
-lim1 = [0 0.5];
+lim1 = [0.2 0.7];
 lim2 = [0.0 0.5];
 
 h = waitbar(0,'Processing...');
@@ -57,24 +73,27 @@ for i=1:length(files)
    
     filename = [folder files(i).name];
     
-  
-    token = regexp(files(i).name,'_(\d+)\.pt3','tokens');
-    idx = num2str(token{1}{1});
-    
-    %if mod(idx,2) == 0 % skip files with EX at 960 
-    %    continue
-    %end
-    
-    
     [data, t] = LoadImage(filename);
     sz = size(data);
         
     [p, I] = CalculatePhasor(t, data, irf_phasor, background);
     
+    figure(1);
+    DrawPhasor(p,I);
+    %{
+    subplot(1,2,2)
+    RI = squeeze((sum(data(:,1,:,:),1)));
+    imagesc(RI)
+    %}
+    drawnow;
     [Af,kf,rf] = FitFRETPhasorMex(p,I);
+    disp('.')
     
     Ef = kf./(1+kf);
 
+    Ii = reshape(I, sz(2:4));
+    pi = reshape(p, sz(2:4));
+    
     If = sum(I,1);
     If = reshape(If, sz(3:4));
     Af = reshape(Af,[2, sz(3:4)]);
@@ -86,8 +105,11 @@ for i=1:length(files)
     r.E_CFP = squeeze(Ef(1,:,:));
     r.E_GFP = squeeze(Ef(2,:,:));
     r.res = rf;
-    r.I = If;
-
+    r.Isum = If;
+    r.I = Ii;
+    r.phasor = pi;
+    figure(2);
+    
     subplot(2,1,1);
     PlotMerged(r.E_CFP, r.A_CFP, lim1)
     title(files(i).name,'Interpreter','None')
@@ -108,7 +130,7 @@ for i=1:length(files)
     
     drawnow;
     
-    save([filename '-fixed-k-2.mat'],'r');
+    save([filename '.mat'],'r');
     
     waitbar(i/length(files),h);
     

@@ -2,6 +2,8 @@ function results = ShowResults2(folder, end_filter, groups)
 
     results = {};
 
+    clf(3)
+    
     for g=1:length(groups)
 
         files = dir([folder groups{g} '*' end_filter '.mat']);
@@ -30,10 +32,10 @@ function plot_results(results,names,idx,nt)
    
     n = length(results);
     n = min(n, 5);
-    lim1 = [0 0.5];
-    lim2 = [0 0.5];
+    lim1 = [0.0 0.4];
+    lim2 = [0.0 0.6];
     
-    figure(1+idx);
+    figure(3+idx);
     clf;
     for j=1:n
 
@@ -54,7 +56,7 @@ function plot_results(results,names,idx,nt)
     end
 
 
-    col(1) = 2;
+    col(1) = 3;
     col(2) = 4;
 
     x{1} = linspace(0,2,100);
@@ -65,7 +67,7 @@ function plot_results(results,names,idx,nt)
 
     label = {'A Rac', 'A Rho', 'E Rac', 'E Rho', 'residual'};
 
-    figure(1)
+    figure(3)
     subplot(nt,3,1+(idx-1)*3);
 
     [h,e] = hist3([d(:,col(1)) d(:,col(2))],[x(col(1)), x(col(2))]);
@@ -77,12 +79,13 @@ function plot_results(results,names,idx,nt)
 
     for k=3:4
 
-        subplot(nt,3,k-1+(idx-1)*3);
+        subplot(nt,3,k-1);
         xx = x{k};
         [h,e] = histwv(d(:,k),d(:,k-2),min(xx),max(xx),length(xx));
-        plot(xx,h);
+        plot(xx,h/max(h));
         xlabel(label{k});
-        ylim([0, 3000]);
-        xlim([0, 0.5]);
+        ylim([0, 1.1]);
+        xlim([0, 1]);
+        hold on;
     end
 end

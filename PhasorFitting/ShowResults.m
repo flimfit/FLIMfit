@@ -21,8 +21,8 @@ function results = ShowResults(folder, end_filter)
 
     names = strrep(names, '.pt3.mat', '');
 
-    lim1 = [0 0.5];
-    lim2 = [0 0.5];
+    lim1 = [0 1];
+    lim2 = [0 1];
   %%
 
     plot_results(5,0,1);
@@ -68,7 +68,7 @@ function results = ShowResults(folder, end_filter)
         label = {'A Rac', 'A Rho', 'E Rac', 'E Rho', 'residual'};
 
         figure(1)
-        subplot(3,3,1+(idx-1)*3);
+        subplot(3,3,1);
 
         [h,e] = hist3([d(:,col(1)) d(:,col(2))],[x(col(1)), x(col(2))]);
         imagesc(x{col(2)}, x{col(1)}, h)
@@ -85,7 +85,7 @@ function results = ShowResults(folder, end_filter)
             plot(xx,h);
             xlabel(label{k});
             ylim([0, 3000]);
-            xlim([0, 0.5]);
+            xlim([0, 1]);
         end
     end
 end

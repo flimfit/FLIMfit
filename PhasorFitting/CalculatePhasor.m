@@ -21,7 +21,7 @@ function [p,I] = CalculatePhasor(t, data, irf_phasor, background)
 
     I = sum(d,1);
 
-    p = sum(d.*c) ./ I;
+    p = sum(d.*c,1) ./ I;
 
     p = reshape(p,n_channel,n/n_channel);
     I = reshape(I,n_channel,n/n_channel);
