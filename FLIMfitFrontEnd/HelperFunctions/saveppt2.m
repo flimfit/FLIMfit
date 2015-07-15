@@ -1,30 +1,29 @@
-%{
 Copyright (c) 2009, Jedediah Frey
 Copyright (c) 2010, Jedediah Frey
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions are 
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
 met:
 
-    * Redistributions of source code must retain the above copyright 
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in 
-      the documentation and/or other materials provided with the distribution
-      
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in
+the documentation and/or other materials provided with the distribution
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+                       SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+                       INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
-%}
+
 
 % SAVEPPT2 saves plots to PowerPoint.
 % SAVEPPT2(save_file,<additional parameters>)
@@ -207,9 +206,8 @@ if nargin<1
     [fname, fpath] = uiputfile('*.ppt');
     if fpath == 0; return; end
     filespec = fullfile(fpath,fname);
-elseif strcmp(varargin{1},'ppt') || strcmp(varargin{1},'current')
+elseif strcmp(varargin{1},'ppt')
     % If the first input is the Powerpoint COM object
-    filespec = [];
 else
     % Otherwise the first input is the desired filename.
     filespec=varargin{1};
@@ -227,7 +225,7 @@ if numel(varargin)>0
     % Set up valid parameters list
     validParameters={ ...
         {'figure','fig','f'}, ... % Figure & driver settings
-        {'init','i'},'close','save','ppt','current','visible','template','currentslide' ... % Power Point Control.
+        {'init','i'},'close','save','ppt','visible','template', ... % Power Point Control.
         {'notes','n'},{'text','textbox'}, {'comments','comment'}, ... % Notes, textbox & comments settings
         {'stretch','st'},{'scale','s','sc'},{'title','t'}, ... % Stretch, Scale & Title settings
         {'driver','drivers','d'},{'resolution','res'},{'render','r'},... % Title, Resolution and Render Calls
@@ -269,7 +267,7 @@ if isfield(addlParms,'ppt')
             op=addlParms.ppt;
             break;
         catch
-            pause(0.2);
+            pause(2);
         end
     end
     if op==-1
@@ -350,8 +348,6 @@ else
                 % Open the template file
                 op = invoke(ppt.Presentations,'Open',addlParms.template,[],[],0);
             end
-        elseif isfield(addlParms,'current') && get(ppt.Presentations,'Count')>0
-            op = get(ppt,'ActivePresentation');
         else
             op = invoke(ppt.Presentations,'Add');
         end
@@ -551,16 +547,6 @@ if isfield(addlParms,'title')
     end
     % Set the text in the title to the specified title
     set(new_slide.Shapes.Title.TextFrame.TextRange,'Text',addlParms.title);
-elseif isfield(addlParms,'currentslide') && get(op.Slides,'Count') > 0
-    
-    slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex;
-
-    new_slide = invoke(op.Slides,'Item',slide_idx);
-    if isfield(addlParms,'padding')
-        top=addlParms.padding(3);
-    else
-        top=0;
-    end
 else
     % Slide with No Title
     new_slide = invoke(op.Slides,'Add',slide_count,12);
@@ -595,9 +581,12 @@ for i=1:fig.count
     row=floor((i-1)/addlParms.columns);
     column=mod(i-1,addlParms.columns);
     % Copy the figure to the clipboard
-    print(addlParms.driver,['-f' num2str(addlParms.figure(i))],rendOpt,resOpt);
+    %print(addlParms.driver,['-f' num2str(addlParms.figure(i))],rendOpt,resOpt);
+    print(addlParms.driver,addlParms.figure(i),rendOpt,resOpt);
     % Paste the contents of the Clipboard:
-    pic1 = invoke(new_slide.Shapes,'Paste');
+    %pic1 = invoke(new_slide.Shapes,'Paste');
+    picShapeRange = invoke(new_slide.Shapes,'Paste'); 
+    pic1 = invoke(picShapeRange,'Item',1);
     % Get height and width of picture:
     pic_H = get(pic1,'Height');
     pic_W = get(pic1,'Width');
@@ -700,7 +689,7 @@ end
 %% Exit Functions
 % If saveppt2 was called after an init as part of a batch process, just
 % return
-if isfield(addlParms,'ppt') || isfield(addlParms,'current');
+if isfield(addlParms,'ppt');
     return;
 end
 % Save the file
