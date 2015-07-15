@@ -32,7 +32,7 @@ function plot_results(results,names,idx,nt)
    
     n = length(results);
     n = min(n, 5);
-    lim1 = [0.0 0.4];
+    lim1 = [0.0 0.6];
     lim2 = [0.0 0.6];
     
     figure(3+idx);
@@ -41,16 +41,23 @@ function plot_results(results,names,idx,nt)
 
         r = results{j};
 
-        subplot(2,n,j);
+        subplot(3,n,j);
         imagesc(r.E_CFP);
         PlotMerged(r.E_CFP, r.A_CFP, lim1)
         title(names{j}, 'Interpreter', 'none');
 
-        subplot(2,n,j+n);
+        subplot(3,n,j+n);
         imagesc(r.E_GFP);
         PlotMerged(r.E_GFP, r.A_GFP, lim2);
         title('GFP')
 
+        subplot(3,n,j+2*n);
+        imagesc(r.RAF);
+        daspect([1 1 1]); set(gca,'YTick',[],'XTick',[]);
+        caxis([0 2000]);
+        title('RAF')
+
+        
         sel = ~isnan(r.E_GFP);
         d = [d; [r.A_CFP(sel), r.A_GFP(sel), r.E_CFP(sel) r.E_GFP(sel) r.res(sel)]];
     end
@@ -82,7 +89,8 @@ function plot_results(results,names,idx,nt)
         subplot(nt,3,k-1);
         xx = x{k};
         [h,e] = histwv(d(:,k),d(:,k-2),min(xx),max(xx),length(xx));
-        plot(xx,h);
+        sum(h.*xx')/sum(h)
+        plot(xx,h/max(h));
         xlabel(label{k});
         xlim([0, 1]);
         hold on;

@@ -30,6 +30,17 @@ public:
     float I = 0;
     float A = 0;
     
+    Phasor()
+    {}
+    
+    Phasor(float r, float i)
+    {
+        phasor.real(r);
+        phasor.imag(i);
+        I = 1;
+        A = 1;
+    }
+    
     Phasor& operator+=(const Phasor& other) 
     {
         float newA = A + other.A;
@@ -41,12 +52,14 @@ public:
 
     Phasor& operator*=(float v) 
     {
+        //I *= v;
         A *= v;
         return *this;
     }
 
     Phasor& operator/=(float v) 
     {
+        //I /= v;
         A /= v;
         return *this;
     }

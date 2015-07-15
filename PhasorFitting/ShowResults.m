@@ -84,7 +84,7 @@ function results = ShowResults(folder, end_filter)
             [h,e] = histwv(d(:,k),d(:,k-2),min(xx),max(xx),length(xx));
             plot(xx,h);
             xlabel(label{k});
-            ylim([0, 3000]);
+            ylim([0, 2000]);
             xlim([0, 1]);
         end
     end

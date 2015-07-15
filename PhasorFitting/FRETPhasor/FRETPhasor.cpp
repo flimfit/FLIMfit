@@ -94,7 +94,7 @@ void setup()
 }
 
 
-vector<Phasor> systemPhasor(float A_CFP, float A_GFP, float k_CFP, float k_GFP, float m_CFP1 = 1.0f, float m_CFP2 = 1.0f, float m_GFP1 = 1.0f, float m_GFP2 = 1.0f)
+vector<Phasor> systemPhasor(float A_CFP, float A_GFP, float k_CFP, float k_GFP, float A_RAF, float m_CFP1 = 1.0f, float m_CFP2 = 1.0f, float m_GFP1 = 1.0f, float m_GFP2 = 1.0f)
 {    
 //    mexPrintf("A: %f, %f, k: %f, %f\n", A_CFP, A_GFP, k_CFP, k_GFP);
     vector<Phasor> cfp, gfp;
@@ -106,6 +106,7 @@ vector<Phasor> systemPhasor(float A_CFP, float A_GFP, float k_CFP, float k_GFP, 
    
     for(int i=0; i<n_channel; i++)
         phasor[i] = A_CFP * cfp[i] + A_GFP * gfp[i];
+    phasor[0] += A_RAF * Phasor(0.5960, 0.4502);
     
     return phasor;
 }
@@ -138,10 +139,11 @@ double objective(unsigned n, const double* x, double* grad, void* f_data)
     
     float A_CFP = exp(x[0]);
     float A_GFP = exp(x[1]);
-    float k_CFP = exp(x[2]);
-    float k_GFP = exp(x[3]);
+    float A_RAF = exp(x[2]);
+    float k_CFP = exp(x[3]);
+    float k_GFP = exp(x[4]);
         
-    vector<Phasor> phasor = systemPhasor(A_CFP, A_GFP, k_CFP, k_GFP);
+    vector<Phasor> phasor = systemPhasor(A_CFP, A_GFP, k_CFP, k_GFP, A_RAF);
     
     double res = residual(measured_phasor, phasor);
     
@@ -158,10 +160,11 @@ double objectiveFixedK(unsigned n, const double* x, double* grad, void* f_data)
     
     float A_CFP = exp(x[0]);
     float A_GFP = exp(x[1]);
+    float A_RAF = exp(x[2]);
     float k_CFP = 0.2; 
     float k_GFP = 0.2;
         
-    vector<Phasor> phasor = systemPhasor(A_CFP, A_GFP, k_CFP, k_GFP);
+    vector<Phasor> phasor = systemPhasor(A_CFP, A_GFP, k_CFP, k_GFP, A_RAF);
     
     return residual(measured_phasor, phasor);
 }
@@ -176,8 +179,8 @@ double objectiveQ(unsigned n, const double* x, double* grad, void* f_data)
     float m1 = x[2];
     float m2 = x[3];
     
-    //vector<Phasor> phasor = systemPhasor(0, A, 0, k, 1.0f, 1.0f, m1, m2);
-    vector<Phasor> phasor = systemPhasor(A, 0, k, 0, m1, m2, 1.0f, 1.0f);
+    //vector<Phasor> phasor = systemPhasor(0, A, 0, k, 0, 1.0f, 1.0f, m1, m2);
+    vector<Phasor> phasor = systemPhasor(A, 0, k, 0, 0, m1, m2, 1.0f, 1.0f);
     
     double res = residual(measured_phasor, phasor);
     
@@ -244,7 +247,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         if (nrhs == 2)
         {
-            nlopt::opt opt(nlopt::LN_BOBYQA, 2);
+            nlopt::opt opt(nlopt::LN_BOBYQA, n_constructs + 1);
             opt.set_min_objective(&objectiveFixedK, (void*)(&measured_phasor));
             opt.set_xtol_rel(1e-4);
             opt.set_maxeval(1000);
@@ -254,14 +257,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             double minf;
             nlopt::result result;
             
-            std::vector<double> x(n_constructs);
+            std::vector<double> x(n_constructs + 1);
             for(int i=0; i<n_constructs; i++)
                 x[i] = log(0.1); // I
+            x[n_constructs] = log(0.001);
 
-            result = opt.optimize(x, minf);
+            //result = opt.optimize(x, minf);
 
           
-            nlopt::opt opt2(nlopt::LN_BOBYQA, 4);
+            nlopt::opt opt2(nlopt::LN_BOBYQA, 2*n_constructs + 1);
             opt2.set_min_objective(&objective, (void*)(&measured_phasor));
             opt2.set_xtol_rel(1e-4);
             opt2.set_maxeval(10000);
@@ -275,12 +279,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             result = opt2.optimize(x, minf);
             
             
-            plhs[0] = mxCreateDoubleMatrix(1,n_constructs*2+1,mxREAL);
+            plhs[0] = mxCreateDoubleMatrix(1,n_constructs*2+2,mxREAL);
             double* ans = mxGetPr(plhs[0]);
 
-            for(int i=0; i<n_constructs*2; i++)
+            for(int i=0; i<n_constructs*2+1; i++)
                 ans[i] = exp(x[i]);
-            ans[n_constructs*2] = minf;
+            ans[n_constructs*2+1] = minf;
         }
         else
         {

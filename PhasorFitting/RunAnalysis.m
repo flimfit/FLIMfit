@@ -28,6 +28,10 @@ background = mean(double(background),3);
 irf_phasor = GetIRFPhasor([folder 'fitted-irf.csv']);
 
 %%
+
+ra = GetIRFPhasor([folder 'rfp-autofluorescence.csv']);
+
+%%
 irf_file = [folder 'reference.csv'];
 
 irf_phasor = GetIRFPhasor(irf_file);
@@ -53,13 +57,13 @@ files = [dir([folder '7 *.pt3']); ...
          dir([folder '4 *.pt3']); ...
          dir([folder '2 *.pt3'])];
      
+     
 %%
 
 folder = [root '2015-07-03 RhoRac dual mouse/'];
-files = dir([folder '05*.pt3']);
-
-%background = background + repmat([2e-1 0 0], [256 1]);
-
+files = dir([folder '04*.pt3']);
+files = [files; dir([folder '05*.pt3'])];
+    
 %%
 
 
@@ -78,6 +82,8 @@ for i=1:length(files)
         
     [p, I] = CalculatePhasor(t, data, irf_phasor, background);
     
+    p = reshape(p,[])
+    
     figure(1);
     DrawPhasor(p,I);
     %{
@@ -86,7 +92,7 @@ for i=1:length(files)
     imagesc(RI)
     %}
     drawnow;
-    [Af,kf,rf] = FitFRETPhasorMex(p,I);
+    [Af,kf,Ff,rf] = FitFRETPhasorMex(p,I);
     disp('.')
     
     Ef = kf./(1+kf);
@@ -99,7 +105,8 @@ for i=1:length(files)
     Af = reshape(Af,[2, sz(3:4)]);
     Ef = reshape(Ef,[2, sz(3:4)]);
     rf = reshape(rf,sz(3:4));
-
+    Ff = reshape(Ff,sz(3:4));
+    
     r.A_CFP = squeeze(Af(1,:,:));
     r.A_GFP = squeeze(Af(2,:,:));
     r.E_CFP = squeeze(Ef(1,:,:));
@@ -107,6 +114,7 @@ for i=1:length(files)
     r.res = rf;
     r.Isum = If;
     r.I = Ii;
+    r.RAF = Ff;
     r.phasor = pi;
     figure(2);
     

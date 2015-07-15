@@ -1,4 +1,4 @@
-function [Af,kf,rf] = FitFRETPhasorMex(p, I)
+function [Af,kf,Ff,rf] = FitFRETPhasorMex(p, I)
     
     global red_sel
 
@@ -10,6 +10,7 @@ function [Af,kf,rf] = FitFRETPhasorMex(p, I)
     Af = nan([2,n]);
     kf = nan([2,n]);
     rf = nan([1,n]);
+    Ff = nan([1,n]);
     
     for i=1:n
 
@@ -22,8 +23,9 @@ function [Af,kf,rf] = FitFRETPhasorMex(p, I)
             if ~any(isnan(p(:,i)))
                 xf = FRETPhasor(p(:,i), I(:,i));
                 Af(:,i) = xf(1:2);
-                kf(:,i) = xf(3:4);  
-                rf(i) = xf(5);
+                Ff(i) = xf(3);
+                kf(:,i) = xf(4:5);  
+                rf(i) = xf(6);
             end
         
         end
