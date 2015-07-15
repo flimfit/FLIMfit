@@ -14,7 +14,7 @@ ref_background = mean(double(ref_background),3);
 
 reference = reference - ref_background;
 
-csvwrite([folder 'reference.csv'],[t, reference]);
+%csvwrite([folder 'reference.csv'],[t, reference]);
 
 %%
 irf_phasor = GetIRFPhasor([folder 'fitted-irf.csv']);

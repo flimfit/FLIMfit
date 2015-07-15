@@ -5,7 +5,7 @@ folder = [root '2015-07-08 MutRac dual cells/'];
 folder = [root '2015-07-02 CFP-GFP cells/'];
 %folder = [root '2015-07-08 YFP mRFP cells/'];
 
-files = dir([folder '4*.pt3']);
+files = dir([folder '2*.pt3']);
 
 
 pp = {}; II = {};
@@ -50,7 +50,7 @@ figure(4)
 clf
 
 II = sum(It,1);
-sel = II > 1000;
+sel = II > 0;
 DrawPhasor(pt(:,sel),It(:,sel))
 ylim([0.3 0.6]);
 xlim([0.2 0.8]);

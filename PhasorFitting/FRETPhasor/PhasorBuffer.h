@@ -41,14 +41,12 @@ public:
 
     Phasor& operator*=(float v) 
     {
-        //I *= v;
         A *= v;
         return *this;
     }
 
     Phasor& operator/=(float v) 
     {
-        //I /= v;
         A /= v;
         return *this;
     }

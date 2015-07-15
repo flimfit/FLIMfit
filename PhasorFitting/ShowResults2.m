@@ -82,9 +82,8 @@ function plot_results(results,names,idx,nt)
         subplot(nt,3,k-1);
         xx = x{k};
         [h,e] = histwv(d(:,k),d(:,k-2),min(xx),max(xx),length(xx));
-        plot(xx,h/max(h));
+        plot(xx,h);
         xlabel(label{k});
-        ylim([0, 1.1]);
         xlim([0, 1]);
         hold on;
     end

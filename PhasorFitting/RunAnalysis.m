@@ -56,7 +56,7 @@ files = [dir([folder '7 *.pt3']); ...
 %%
 
 folder = [root '2015-07-03 RhoRac dual mouse/'];
-files = dir([folder '04*.pt3']);
+files = dir([folder '05*.pt3']);
 
 %background = background + repmat([2e-1 0 0], [256 1]);
 
@@ -64,7 +64,7 @@ files = dir([folder '04*.pt3']);
 
 
 
-lim1 = [0.2 0.7];
+lim1 = [0.0 0.5];
 lim2 = [0.0 0.5];
 
 h = waitbar(0,'Processing...');

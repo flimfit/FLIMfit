@@ -52,18 +52,18 @@ void setup()
     */
     
     System s_CFP;
-    s_CFP.sigmaQ = 1.1233 / 10.849 * 3.18; // * 1.779 * 1.4; //2.123/10.84;
-    s_CFP.Qdash = 1.9 * 0.7;// * 1.731 * 1.4;
+    s_CFP.sigmaQ = 1.1233 / 10.849 * 3.18 * 0.94; // * 1.779 * 1.4; //2.123/10.84;
+    s_CFP.Qdash = 1.9 * 0.7 * 1.73;// * 1.731 * 1.4;
     s_CFP.aD[0] = 0.0698; //0.0495; // 617/73
     s_CFP.aD[1] = 0.3445; //0.4425; // 525/50
     s_CFP.aD[2] = 0.4433; // 438/32
     s_CFP.aA[0] = 0.1610; //0.1211; 
     s_CFP.aA[1] = 0.6717; 
     s_CFP.aA[2] = 0.0038; //0.0023;
-    s_CFP.tauD[0] = 3406; //2824.5;
-    s_CFP.tauD[1] = 1225; //861.3;
-    s_CFP.alphaD[0] = 0.6552; //0.6345;
-    s_CFP.alphaD[1] = 0.3448; //0.3655;
+    s_CFP.tauD[0] = 3291; //2824.5;
+    s_CFP.tauD[1] = 1337; //861.3;
+    s_CFP.alphaD[0] = 0.494; //0.6345;
+    s_CFP.alphaD[1] = 0.506; //0.3655;
     s_CFP.tauA[0] = 2850;
     s_CFP.tauA[1] = 1000;
     s_CFP.alphaA[0] = 1;
@@ -71,22 +71,22 @@ void setup()
         
     
     System s_GFP;
-    s_GFP.sigmaQ = 3.545/11.535 * 0.9;
-    s_GFP.Qdash = 0.416 * 1.9343;
+    s_GFP.sigmaQ = 3.545/11.535 * 1.07;
+    s_GFP.Qdash = 0.416 * 1.5182;
     s_GFP.aD[0] = 0.0865; //0.0501;  // 617/73
     s_GFP.aD[1] = 0.7578;  // 525/50
     s_GFP.aD[2] = 0.2248; //0.1461;  // 438/32
     s_GFP.aA[0] = 0.5967;
     s_GFP.aA[1] = 0.0000;
     s_GFP.aA[2] = 0.0000;
-    s_GFP.tauD[0] = 2530;
+    s_GFP.tauD[0] = 2570;
     s_GFP.tauD[1] = 1000;
     s_GFP.alphaD[0] = 1;
     s_GFP.alphaD[1] = 0;
-    s_GFP.tauA[0] = 2350;
-    s_GFP.tauA[1] = 1000;
-    s_GFP.alphaA[0] = 0.4562;
-    s_GFP.alphaA[1] = 0.5438;
+    s_GFP.tauA[0] = 2169;
+    s_GFP.tauA[1] = 1115;
+    s_GFP.alphaA[0] = 0.427;
+    s_GFP.alphaA[1] = 0.573;
     
     cfp_buffer.setSystem(s_CFP);
     gfp_buffer.setSystem(s_GFP);
@@ -176,8 +176,8 @@ double objectiveQ(unsigned n, const double* x, double* grad, void* f_data)
     float m1 = x[2];
     float m2 = x[3];
     
-    vector<Phasor> phasor = systemPhasor(0, A, 0, k, 1.0f, 1.0f, m1, m2);
-    //vector<Phasor> phasor = systemPhasor(A, 0, k, 0, m1, m2, 1.0f, 1.0f);
+    //vector<Phasor> phasor = systemPhasor(0, A, 0, k, 1.0f, 1.0f, m1, m2);
+    vector<Phasor> phasor = systemPhasor(A, 0, k, 0, m1, m2, 1.0f, 1.0f);
     
     double res = residual(measured_phasor, phasor);
     

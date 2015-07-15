@@ -1,5 +1,5 @@
 folder = [root '2015-07-02 CFP-GFP cells/'];
-files = dir([folder '2 *.pt3']);
+files = dir([folder '4 *.pt3']);
 
 xf = [];
 

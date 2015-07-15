@@ -1,6 +1,6 @@
 %FRETPhasor();
 
-k = linspace(0,2,10);
+k = linspace(0,2,1000);
 %k = [0 0.2 0.4 0.6 0.8 1 1.2 1.4];
 
 p = zeros(length(k),3);
@@ -20,6 +20,13 @@ end
 c = [1 0 0;
      0 1 0;
      0 0 1];
+ 
+ 
+%%
+
+
+%%
+ 
 %{
 clf
 
@@ -45,3 +52,32 @@ hold on;
 plot(E,IG)
 plot(E,IC,'--')
 %}
+
+return
+%%
+
+ 
+sel = k > 0.01;
+
+%p1 = pC(1,3);
+%p2 = 0.549 + 0.4392*1i;
+
+p1 = pG(1,2);
+p2 = 0.5098 + 0.4706*1i;
+
+
+dp = p2 - p1; 
+
+p0 = pG(sel,2);
+
+d = imag(dp)*real(p0) - real(dp)*imag(p0) + real(p2)*imag(p1) - imag(p2)*real(p1);
+d = abs(d) ./ abs(dp);
+
+[~,idx] = min(d);
+kk = k(sel);
+kk(idx)
+
+kk(idx)/(1+kk(idx))
+
+figure(5)
+plot(kk,d)
