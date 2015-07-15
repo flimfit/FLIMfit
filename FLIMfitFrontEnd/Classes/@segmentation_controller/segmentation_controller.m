@@ -74,7 +74,7 @@ classdef segmentation_controller < flim_data_series_observer
         combine_regions_checkbox;
         apply_filtering_pushbutton;
                 
-        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size'};
+        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Max. Roundness Factor'};
         
         
         slh = [];
@@ -262,6 +262,8 @@ classdef segmentation_controller < flim_data_series_observer
             acceptor_uq = [];
             min_size = [];
             
+            max_shape_factor = [];
+            
             if apply_filter(1)
                 donor_lq = filter_value(1);
             end
@@ -271,6 +273,10 @@ classdef segmentation_controller < flim_data_series_observer
             if apply_filter(3)
                 min_size = filter_value(3);
             end
+            if apply_filter(4)
+                max_shape_factor = filter_value(4);
+            end
+            
             
             if ndims(obj.mask) ~= ndims(obj.filtered_mask) || any(size(obj.mask) ~= size(obj.filtered_mask))
                 obj.filtered_mask = obj.mask;
@@ -298,7 +304,7 @@ classdef segmentation_controller < flim_data_series_observer
                     end
 
 
-                    regions = regionprops(im_mask, {'Area'});
+                    regions = regionprops(im_mask, {'Area','Perimeter'});
 
 
                     for j=1:length(regions)
@@ -323,7 +329,14 @@ classdef segmentation_controller < flim_data_series_observer
                         if ~isempty(min_size) && regions(j).Area < min_size
                             im_mask(j_mask) = 0;
                         end
-
+                        
+                        if ~isempty(max_shape_factor)                            
+                            sf = (regions(j).Perimeter)^2/regions(j).Area/4/pi;
+                            if sf < max_shape_factor
+                                im_mask(j_mask) = 0;
+                            end
+                        end
+                        
                     end
 
 
