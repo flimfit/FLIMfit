@@ -74,7 +74,7 @@ classdef segmentation_controller < flim_data_series_observer
         combine_regions_checkbox;
         apply_filtering_pushbutton;
                 
-        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Max. Roundness Factor'};
+        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Roundness Factor'};
         
         
         slh = [];
