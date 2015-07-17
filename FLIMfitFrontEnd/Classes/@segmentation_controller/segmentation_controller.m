@@ -74,7 +74,7 @@ classdef segmentation_controller < flim_data_series_observer
         combine_regions_checkbox;
         apply_filtering_pushbutton;
                 
-        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Roundness Factor'};
+        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Roundness Factor';'Max. Roundness Factor'};
         
         
         slh = [];
@@ -262,7 +262,8 @@ classdef segmentation_controller < flim_data_series_observer
             acceptor_uq = [];
             min_size = [];
             
-            max_shape_factor = [];
+            min_shape_factor = [];
+            max_shape_factor = [];            
             
             if apply_filter(1)
                 donor_lq = filter_value(1);
@@ -274,9 +275,11 @@ classdef segmentation_controller < flim_data_series_observer
                 min_size = filter_value(3);
             end
             if apply_filter(4)
-                max_shape_factor = filter_value(4);
+                min_shape_factor = filter_value(4);
             end
-            
+            if apply_filter(5)
+                max_shape_factor = filter_value(5);
+            end            
             
             if ndims(obj.mask) ~= ndims(obj.filtered_mask) || any(size(obj.mask) ~= size(obj.filtered_mask))
                 obj.filtered_mask = obj.mask;
@@ -330,12 +333,20 @@ classdef segmentation_controller < flim_data_series_observer
                             im_mask(j_mask) = 0;
                         end
                         
-                        if ~isempty(max_shape_factor)                            
+                        if ~isempty(min_shape_factor)                            
                             sf = (regions(j).Perimeter)^2/regions(j).Area/4/pi;
-                            if sf < max_shape_factor
+                            if sf < min_shape_factor
                                 im_mask(j_mask) = 0;
                             end
                         end
+                        
+                        if ~isempty(max_shape_factor)                            
+                            sf = (regions(j).Perimeter)^2/regions(j).Area/4/pi;
+                            if sf > max_shape_factor
+                                im_mask(j_mask) = 0;
+                            end
+                        end
+                        
                         
                     end
 
