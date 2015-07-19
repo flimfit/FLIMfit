@@ -206,9 +206,9 @@ classdef abstract_display_controller < handle
             
             obj.draw_plot(ref);
             if length(get(ref,'children')) <= 2 % if only one axis use pptfigure, gives better plots
-                saveppt2('current','figure',f,'stretch',false,'driver','bitmap','scale',false,varargin{:});
+                saveppt2('current','currentslide','figure',f,'stretch',false,'driver','bitmap','scale',false,varargin{:});
             else
-                saveppt2('current','figure',f,'stretch',false,varargin{:});
+                saveppt2('current','currentslide','figure',f,'stretch',false,varargin{:});
             end
             close(f);
         end
