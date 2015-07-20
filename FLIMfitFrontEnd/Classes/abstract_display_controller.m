@@ -187,13 +187,15 @@ classdef abstract_display_controller < handle
                 
                 [~,name,ext] = fileparts(filename);
                 file = [pathname filesep name ' ' param_name '.' ext];
-                if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
-                    ppt=saveppt2(file,'init');
-                    pptfigure(f,'ppt',ppt);
-                    saveppt2(file,'ppt',ppt,'close');
-                else
+                % pptfigure does not seem to have been updated to 2014b.
+                % Comment out for now. 
+                %if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
+                %    ppt=saveppt2(file,'init');
+                %    pptfigure(f,'ppt',ppt);
+                %    saveppt2(file,'ppt',ppt,'close');
+                %else
                     saveppt2(file,'figure',f,'stretch',false);
-                end
+                %end
                 setpref('GlobalAnalysisFrontEnd','LastFigureExportFolder',pathname);
                 
                 close(f)
