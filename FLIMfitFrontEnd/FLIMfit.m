@@ -26,7 +26,7 @@ function ui = FLIMfit()
 
 % Author : Sean Warren
 
-
+no_of_arguments = nargin
 
 addpath_global_analysis();
 
