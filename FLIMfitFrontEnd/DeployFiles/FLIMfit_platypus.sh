@@ -53,8 +53,11 @@ echo PATH is ${PATH};
     then
       token=$1
       args="${args} \"${token}\"" 
-      shift
+      
+    else
+       echo "Filtering Process Serial Number!"
     fi
+    shift
   done
 
 
