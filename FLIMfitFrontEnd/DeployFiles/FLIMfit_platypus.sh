@@ -47,9 +47,11 @@ echo args is ${args};
 
   args=
   while [ $# -gt 0 ]; do
+    if [[ $s1 != *"-psn_"* ]]
       token=$1
       args="${args} \"${token}\"" 
       shift
+    fi
   done
 
 echo args is ${args};
