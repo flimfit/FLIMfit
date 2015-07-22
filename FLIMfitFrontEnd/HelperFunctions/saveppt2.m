@@ -613,7 +613,12 @@ for i=1:fig.count
     print(addlParms.driver,addlParms.figure(i),rendOpt,resOpt);
     
     % Paste the contents of the Clipboard:
-    pic1 = invoke(new_slide.Shapes,'Paste');
+    
+    % Powerpoint 2013 fix from http://uk.mathworks.com/matlabcentral/fileexchange/19322-saveppt2
+    %pic1 = invoke(new_slide.Shapes,'Paste');
+    picShapeRange = invoke(new_slide.Shapes,'Paste'); 
+    pic1 = invoke(picShapeRange,'Item',1);
+    
     % Get height and width of picture:
     pic_H = get(pic1,'Height');
     pic_W = get(pic1,'Width');
