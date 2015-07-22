@@ -553,14 +553,11 @@ if isfield(addlParms,'title')
     set(new_slide.Shapes.Title.TextFrame.TextRange,'Text',addlParms.title);
 elseif isfield(addlParms,'currentslide') && get(op.Slides,'Count') > 0
     
-    ppt.ActiveWindow.View
-    ppt.ActiveWindow.View.Slide
-    
-    slide_idx = [];
-    
+   
     try
-        slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex
+        slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex;
     catch
+        slide_idx = [];
     end
        
     if isempty(slide_idx)
