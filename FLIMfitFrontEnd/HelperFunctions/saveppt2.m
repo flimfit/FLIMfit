@@ -553,9 +553,22 @@ if isfield(addlParms,'title')
     set(new_slide.Shapes.Title.TextFrame.TextRange,'Text',addlParms.title);
 elseif isfield(addlParms,'currentslide') && get(op.Slides,'Count') > 0
     
-    slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex;
-
-    new_slide = invoke(op.Slides,'Item',slide_idx);
+    ppt.ActiveWindow.View
+    ppt.ActiveWindow.View.Slide
+    
+    slide_idx = [];
+    
+    try
+        slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex
+    catch
+    end
+       
+    if isempty(slide_idx)
+        % Slide with No Title
+        new_slide = invoke(op.Slides,'Add',slide_count,12);  
+    else
+        new_slide = invoke(op.Slides,'Item',slide_idx);
+    end
     if isfield(addlParms,'padding')
         top=addlParms.padding(3);
     else
