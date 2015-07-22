@@ -22,7 +22,7 @@ for i=1:length(files)
     kf = zeros([2,n]);
     rf = zeros([1,n]);
 
-    sel = sum(I,1) > 1000;
+    sel = sum(I,1) > 2000;
 
 
     pf = p(:,sel);

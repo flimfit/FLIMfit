@@ -23,7 +23,7 @@ function DrawPhasor(p,I)
         n(:,:,i) = ni; % / prctile(ni(:),99.9);
     end
     
-    n = n / prctile(ni(:),99.995);
+    n = n / prctile(n(:),99.9);
     
     ed = edges(2:255);
 

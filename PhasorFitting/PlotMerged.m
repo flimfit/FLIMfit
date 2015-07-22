@@ -1,4 +1,26 @@
-function PlotMerged(A,I,lim)
+function PlotMerged(AC,IC,lim,limI)
+    
+    if nargin < 4
+        limI = nan;
+    end
+
+    A = [];
+    I = [];
+    
+    
+    if iscell(AC)
+        sep = nan([size(AC{1},1),1]);
+        for i=1:length(AC)
+            A = [A sep AC{i}];
+            I = [I sep IC{i}];
+        end
+        sz = size(AC{1});
+    else
+        A = AC;
+        I = IC;
+        sz = size(AC);
+    end    
+        
 
     m = 256;
     c = jet(m);
@@ -13,18 +35,19 @@ function PlotMerged(A,I,lim)
     a = c(A,:);
     a = reshape(a, [size(A), 3]);
     
-    limh = prctile(I(~isnan(I)),95);
-    %limh = 2;
-    
-    I = I / limh;
+    if isnan(limI)
+        limI = prctile(I(~isnan(I)),99);
+    end
+        
+    I = I / limI;
     I(I>1) = 1;
     I(isnan(I)) = 0;
     I = repmat(I,[1 1 3]);
     
     a = a .* I;
-    
+        
     h = size(A,1);
-    w = round(size(A,2) * 0.1);
+    w = round(sz(2) * 0.1);
     cbar = round(linspace(m,1,h));
     Ibar = linspace(0.2,1,w);
     cbar = repmat(cbar',[1 w]);
@@ -37,11 +60,13 @@ function PlotMerged(A,I,lim)
     
     set(gca, 'Units', 'pixels')
     
+    fs = 15;
+    
     image(a);
     daspect([1 1 1]);
-    text(4,7,num2str(limh,3),'Color','w','BackgroundColor','k','HorizontalAlignment','left','VerticalAlignment','top')
-    text(size(A,2)-3,7,num2str(lim(2),2),'Color','w','BackgroundColor','k','HorizontalAlignment','right','VerticalAlignment','top')
-    text(size(A,2)-3,size(A,1)-3,num2str(lim(1),3),'Color','w','BackgroundColor','k','HorizontalAlignment','right','VerticalAlignment','bottom')
+    text(4,7,num2str(limI,3),'FontSize',fs,'Color','w','BackgroundColor','k','HorizontalAlignment','left','VerticalAlignment','top')
+    text(size(A,2)-3,7,num2str(lim(2),2),'FontSize',fs,'Color','w','BackgroundColor','k','HorizontalAlignment','right','VerticalAlignment','top')
+    text(size(A,2)-3,size(A,1)-3,num2str(lim(1),3),'FontSize',fs,'Color','w','BackgroundColor','k','HorizontalAlignment','right','VerticalAlignment','bottom')
     set(gca,'XTick',[],'YTick',[]);
     set(gca, 'Units', 'normalized');
     

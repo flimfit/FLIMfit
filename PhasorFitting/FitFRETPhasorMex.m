@@ -31,7 +31,5 @@ function [Af,kf,Ff,rf] = FitFRETPhasorMex(p, I)
         end
         
     end
-
-    disp('Done');
     
 end

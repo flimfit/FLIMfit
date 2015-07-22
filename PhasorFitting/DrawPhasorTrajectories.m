@@ -1,6 +1,6 @@
 %FRETPhasor();
 
-k = linspace(0,2,1000);
+k = linspace(0,1,10);
 %k = [0 0.2 0.4 0.6 0.8 1 1.2 1.4];
 
 p = zeros(length(k),3);
@@ -27,22 +27,23 @@ c = [1 0 0;
 
 %%
  
-%{
+
 clf
 
-subplot(2,1,1);
 set(gca,'ColorOrder',c,'NextPlot','replacechildren')
-%}
+
 
 hold on
-plot(pG,'x-');
+plot(pG,'o-');
 hold on
-plot(pC,'o-');
+plot(pC,'x-');
 
 pc = 1./(1-1i*logspace(-10,10,1000));
 plot(pc,'k')
 ylim([0.3 0.6]);
 xlim([0.2 0.8]);
+xlim([0.8 1]);
+ylim([0.2 0.38])
 daspect([1 1 1])
 
 %{

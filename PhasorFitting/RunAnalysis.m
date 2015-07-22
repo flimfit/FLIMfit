@@ -8,25 +8,20 @@ files = [dir([folder '4 *.pt3']); ...
          dir([folder '2 *.pt3']); ...
          dir([folder '7 *.pt3'])];
 
-%%
-%reference_file = 'green chroma slide _38_1.pt3';
 background_file = 'no sample background_19_1.pt3';
-%[reference, t] = LoadImage([folder reference_file]); 
-[background] = LoadImage([folder background_file]); 
-
-sz = size(background);
-%reference = reshape(reference,[sz(1:2) prod(sz(3:4))]);
-%reference = mean(reference,3);
-
-background = reshape(background,[sz(1:2) prod(sz(3:4))]);
-background = mean(double(background),3);
-
-%reference = reference - background;
-
-%%
-
+GetBackground([folder background_file]);
+     
 irf_phasor = GetIRFPhasor([folder 'fitted-irf.csv']);
 
+
+%%
+
+folder = '/Volumes/Seagate Backup Plus Drive/FLIM Data/2015-07-16 Dual FRET mouse/'
+
+background_file = 'background 3min _46_1.pt3';
+GetBackground([folder background_file]);
+
+files = [dir([folder '01 Control*.pt3'])];
 %%
 
 ra = GetIRFPhasor([folder 'rfp-autofluorescence.csv']);
@@ -53,16 +48,15 @@ files = dir([folder '*.pt3']);
 
 folder = [root '2015-07-02 CFP-GFP cells/'];
 
-files = [dir([folder '7 *.pt3']); ...
+files = [dir([folder '2 *.pt3']); ...
          dir([folder '4 *.pt3']); ...
-         dir([folder '2 *.pt3'])];
+         dir([folder '7 *.pt3'])];
      
      
 %%
 
-folder = [root '2015-07-03 RhoRac dual mouse/'];
-files = dir([folder '04*.pt3']);
-files = [files; dir([folder '05*.pt3'])];
+folder = ['/Volumes/Seagate Backup Plus Drive/FLIM Data/2015-07-03 RhoRac dual mouse/'];
+files = [dir([folder '03*.pt3']); dir([folder '04*.pt3']); dir([folder '05*.pt3'])];
     
 %%
 
@@ -82,7 +76,15 @@ for i=1:length(files)
         
     [p, I] = CalculatePhasor(t, data, irf_phasor, background);
     
-    p = reshape(p,[])
+    kern = fspecial('disk',3);
+    p = reshape(p,sz(2:4));
+    
+    for j=1:size(p,1)
+        p(j,:,:) = imfilter(squeeze(p(j,:,:)), kern, 'replicate');
+    end
+    
+    p = reshape(p,[sz(2), sz(3)*sz(4)]);
+    
     
     figure(1);
     DrawPhasor(p,I);
@@ -138,7 +140,7 @@ for i=1:length(files)
     
     drawnow;
     
-    save([filename '.mat'],'r');
+    save([filename '-no-RAF.mat'],'r');
     
     waitbar(i/length(files),h);
     

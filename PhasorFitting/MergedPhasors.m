@@ -1,12 +1,15 @@
 
-FRETPhasor();
+%FRETPhasor();
 
 folder = [root '2015-07-08 MutRac dual cells/'];
 folder = [root '2015-07-02 CFP-GFP cells/'];
-%folder = [root '2015-07-08 YFP mRFP cells/'];
+folder = [root '2015-07-08 YFP mRFP cells/'];
 
-files = dir([folder '2*.pt3']);
+folder = '/Volumes/Seagate Backup Plus Drive/FLIM Data/2015-07-16 Dual FRET mouse/';
+files = dir([folder '01 Control*.pt3']);
 
+folder = [root '2015-07-03 RhoRac dual mouse/'];
+files = dir([folder '01*.pt3']);
 
 pp = {}; II = {};
 
@@ -17,7 +20,18 @@ for i=1:length(files)
     [data, t] = LoadImage(filename);
     sz = size(data);
 
-    [pp{i}, II{i}] = CalculatePhasor(t, data, irf_phasor, background);
+    [p, II{i}] = CalculatePhasor(t, data, irf_phasor, background);
+    %{
+    kern = fspecial('disk',3);
+    p = reshape(p,sz(2:4));
+    
+    for j=1:size(p,1)
+        p(j,:,:) = imfilter(squeeze(p(j,:,:)), kern, 'replicate');
+    end
+    %}
+    pp{i} = reshape(p,[sz(2), sz(3)*sz(4)]);
+
+    
     drawnow
 end
 
@@ -26,7 +40,7 @@ end
 
 pt = [];
 It = [];
-for i=1:length(pp); 
+for i=1:length(pp)
     pt = [pt pp{i}];
     It = [It II{i}];
     %{
@@ -39,19 +53,19 @@ for i=1:length(pp);
     
     colorbar
     %}
-    DrawPhasor(pp{i},II{i});
-    drawnow
-    pause(1)
+    %DrawPhasor(pp{i},II{i});
+    %drawnow
+    %pause(1)
 end
 
 
-%%
+
 figure(4)
 clf
 
-II = sum(It,1);
-sel = II > 0;
+Is = sum(It,1);
+sel = Is > 0;
 DrawPhasor(pt(:,sel),It(:,sel))
 ylim([0.3 0.6]);
 xlim([0.2 0.8]);
-DrawPhasorTrajectories
+%DrawPhasorTrajectories

@@ -44,8 +44,16 @@ public:
     Phasor& operator+=(const Phasor& other) 
     {
         float newA = A + other.A;
-        phasor = (A * phasor + other.A * other.phasor) / newA;
-        I = (A * I + other.A * other.I) / newA;
+        if (newA < 1e-5)
+        {
+            phasor = 0.0f;
+            I = 0.0f;
+        }
+        else
+        {            
+            phasor = (A * phasor + other.A * other.phasor) / newA;
+            I = (A * I + other.A * other.I) / newA;
+        }
         A = newA;
         return *this;
     }
