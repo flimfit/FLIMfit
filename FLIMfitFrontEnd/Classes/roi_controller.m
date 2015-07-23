@@ -113,10 +113,8 @@ classdef roi_controller < flim_data_series_observer
            
                 obj.point_mode = false;
 
-                if ~isempty(obj.roi_handle) && isvalid(obj.roi_handle)
-                    delete(obj.roi_handle);
-                end
-
+                delete(obj.roi_handle);
+              
                 switch src
                     case obj.tool_roi_rect_toggle
 
