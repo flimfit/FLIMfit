@@ -39,7 +39,7 @@ function handles = add_decay_display_panel(obj,handles,parent)
                'HorizontalAlignment', 'right' );
     handles.highlight_display_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Linear' 'Logarithmic'}, 'Parent', decay_display_layout );
-    set( decay_display_layout, 'Sizes', [100,-1,100,50,100] );
+    set( decay_display_layout, 'Sizes', [200,-1,100,50,100] );
     
     handles.decay_panel = uipanel( 'Parent', decay_layout );
     set( decay_layout, 'Sizes', [22,-1] );
