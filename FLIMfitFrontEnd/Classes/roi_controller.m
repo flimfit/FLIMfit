@@ -107,13 +107,14 @@ classdef roi_controller < flim_data_series_observer
 
             if ~obj.waiting && obj.data_series.init
                 
-                obj.waiting = true;
-                
+              
+                obj.waiting = true;  
                 obj.click_pos_txt = '';
-           
                 obj.point_mode = false;
-
-                delete(obj.roi_handle);
+                
+                if ~isempty(obj.roi_handle) && isvalid(obj.roi_handle)
+                    delete(obj.roi_handle);
+                end
               
                 switch src
                     case obj.tool_roi_rect_toggle
@@ -140,12 +141,16 @@ classdef roi_controller < flim_data_series_observer
 
                 end
 
-                addlistener(obj.roi_handle,'ObjectBeingDestroyed',@obj.roi_being_destroyed);
-                obj.roi_callback_id = addNewPositionCallback(obj.roi_handle,@obj.roi_change_callback);        
                 
-                obj.update_mask();
                 
-                notify(obj,'roi_updated');
+                if ~isempty(obj.roi_handle)
+                
+                    addlistener(obj.roi_handle,'ObjectBeingDestroyed',@obj.roi_being_destroyed);
+                    obj.roi_callback_id = addNewPositionCallback(obj.roi_handle,@obj.roi_change_callback);        
+                    obj.update_mask();
+
+                    notify(obj,'roi_updated');
+                end
 
                 obj.point_mode = true;
                 
@@ -160,8 +165,16 @@ classdef roi_controller < flim_data_series_observer
         
         function off_callback(obj,src,evtData)
            %set(src,'State','off');
+           % if an roi is part complete then use robot framework to fire
+           % esc to cancel
            if obj.waiting
-               delete(obj.roi_handle);
+               robot = java.awt.Robot;
+               robot.keyPress    (java.awt.event.KeyEvent.VK_ESCAPE);
+               robot.keyRelease  (java.awt.event.KeyEvent.VK_ESCAPE); 
+               pause(0.1);
+               if ~isempty(obj.roi_handle) && isvalid(obj.roi_handle)
+                delete(obj.roi_handle);
+               end
                obj.waiting = false;
            end
         end
