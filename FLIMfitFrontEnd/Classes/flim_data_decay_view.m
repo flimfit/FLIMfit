@@ -36,7 +36,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
        
        highlight_display_mode_popupmenu;
        highlight_decay_mode_popupmenu;
-       decay_pos_text; % Staic text to display currently selected pixel location
+       decay_pos_text; % Text to display currently selected pixel location
        
        ylim_highlight;
        ylim_residual;

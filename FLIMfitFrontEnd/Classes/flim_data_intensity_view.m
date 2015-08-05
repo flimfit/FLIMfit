@@ -29,6 +29,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
     properties
        intensity_axes;
        intensity_mode_popupmenu;
+       intensity_mode_limits_text;    % Text to display image max intensity
        data_series_list;
        im;
        colorbar_axes;
@@ -92,6 +93,8 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     else
                         lim(1) = min(flt);
                         lim(2) = round(prctile(flt,99.5));
+                        
+                        set(obj.intensity_mode_limits_text,'String',['Max ' num2str(max(flt(:)))]);
                     end
                     
                     cmap = gray(m-1);
