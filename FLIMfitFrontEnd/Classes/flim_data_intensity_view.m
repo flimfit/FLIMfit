@@ -93,8 +93,6 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     else
                         lim(1) = min(flt);
                         lim(2) = round(prctile(flt,99.5));
-                        
-                        set(obj.intensity_mode_limits_text,'String',['Max ' num2str(max(flt(:)))]);
                     end
                     
                     cmap = gray(m-1);
@@ -114,6 +112,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     cmap = gray(m-1);
                 case 4 % irf image
                     intensity = squeeze(sum(squeeze(obj.data_series.image_irf)));
+                    flt = intensity(intensity>0 & isfinite(intensity));
                     lim = prctile(intensity,[0.01 99.9]);
                     
                     cmap = gray(m-1); 
@@ -126,8 +125,12 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     cmap = jet(m-1);
                 end
                 
-                
-
+                if isempty(flt)
+                    txt = '';
+                else
+                    txt = ['Max ' num2str(max(flt(:)))];
+                end
+                set(obj.intensity_mode_limits_text,'String',txt);
                
 
                 intensity = (intensity - lim(1))/(lim(2)-lim(1));
