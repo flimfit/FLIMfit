@@ -453,17 +453,8 @@ classdef front_end_menu_controller < handle
             end
             clear chooser;                     
         end  
-        function menu_OMERO_Export_Fitting_Results_callback(obj,~,~)
-            obj.omero_data_manager.Export_Fitting_Results(obj.fit_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
-        end                    
-        %------------------------------------------------------------------        
-      
-        function menu_OMERO_Set_Plate_callback(obj,~,~)
-            infostring = obj.omero_data_manager.Set_Plate();
-            if ~isempty(infostring)
-                set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
-            end;
-        end     
+                          
+       
         %------------------------------------------------------------------        
         function menu_OMERO_Reset_Logon_callback(obj,~,~)
             obj.omero_data_manager.Omero_logon();
