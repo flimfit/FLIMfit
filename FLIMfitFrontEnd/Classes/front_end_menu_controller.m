@@ -97,7 +97,6 @@ classdef front_end_menu_controller < handle
         
         menu_file_save_dataset;
         menu_file_save_raw;
-        %menu_file_save_OME_tiff;
         menu_file_save_magic_angle_raw;
         
         menu_file_export_decay;
@@ -739,14 +738,6 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.save_raw_data([pathname filename]);         
             end
         end
-        
-        %function menu_file_save_OME_tiff_callback(obj,~,~)
-        %    pathname = uigetdir(obj.default_path,'Select folder');
-        %    if pathname ~= 0
-        %        obj.data_series_controller.data_series.save_OME_tiff(pathname);         
-        %    end
-        %end
-        
         
         function menu_file_save_magic_angle_raw_callback(obj,~,~)
             [filename, pathname] = uiputfile({'*.raw', 'Raw File (*.raw)'},'Select file name',obj.default_path);
