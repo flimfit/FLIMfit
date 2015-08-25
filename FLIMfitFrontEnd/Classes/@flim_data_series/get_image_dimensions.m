@@ -313,12 +313,17 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               
               % if all wells appear to be the same 
               % then use wavelength instead
+
               if strcmp(chan_info{1} ,chan_info{end})
                 for i=1:n_chan
-                  chan_info{i} = header_info{3}{i};
+                  if length(header_info) >= 3
+                     chan_info{i} = header_info{3}{i};
+                  else
+                     chan_info{i} = num2str(i);
+                  end
                 end
               end
-              
+
               
               ir = dlmread(file,dlm,n_header_lines,0);
               obj.txtInfoRead = ir;    % save ir into class
