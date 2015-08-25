@@ -7,7 +7,7 @@ function [p,I] = CalculatePhasor(t, data, irf_phasor, background)
         irf_phasor = 1;
     end
     if nargin == 4
-        data = data - repmat(background,[1 1 sz(3:4)]);
+        data = data - background; %repmat(background,[1 1 sz(3:4)]);
     end
 
     n_channel = size(data,2);

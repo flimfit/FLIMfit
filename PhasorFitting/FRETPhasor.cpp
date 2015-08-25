@@ -1,7 +1,9 @@
 #include "PhasorBuffer.h"
 #include <nlopt.hpp>
 #include <cassert>
+#include <future>
 
+using std::future;
 // Install NLopt first: http://ab-initio.mit.edu/wiki/index.php/NLopt
 
 // compile using command:
@@ -10,7 +12,8 @@
 
 PhasorBuffer cfp_buffer, gfp_buffer;
 
-const bool use_RAF = false;
+const bool use_RAF = true;
+int n_thread = 4;
 
 void setup()
 {
@@ -92,7 +95,8 @@ vector<Phasor> systemPhasor(float A_CFP, float A_GFP, float k_CFP, float k_GFP, 
         phasor[i] = A_CFP * cfp[i] + A_GFP * gfp[i];
     
     phasor[0] += A_RAF * Phasor(0.5960, 0.4502);
-    
+    //phasor[0] += A_RAF * Phasor(0.3529, 0.1725);
+         
     return phasor;
 }
  
@@ -205,6 +209,84 @@ double objectiveQ(unsigned n, const double* x, double* grad, void* f_data)
     return res;
 }
 
+void fit(const vector<Phasor>& measured_phasor, double ans[])
+{
+   nlopt::opt opt(nlopt::LN_BOBYQA, n_constructs + use_RAF);
+   opt.set_min_objective(&objectiveFixedK, (void*)(&measured_phasor));
+   opt.set_xtol_rel(1e-4);
+   opt.set_maxeval(1000);
+   opt.set_maxtime(1.0);
+   //opt.set_initial_step(0.1);
+   
+   double minf;
+   nlopt::result result;
+   
+   std::vector<double> x(n_constructs + use_RAF);
+   for(int i=0; i<n_constructs; i++)
+      x[i] = log(0.1); // I
+   if (use_RAF)
+      x[n_constructs] = log(0.001);
+   
+   //result = opt.optimize(x, minf);
+   
+   
+   nlopt::opt opt2(nlopt::LN_BOBYQA, 2*n_constructs + use_RAF);
+   opt2.set_min_objective(&objective, (void*)(&measured_phasor));
+   opt2.set_xtol_rel(1e-4);
+   opt2.set_maxeval(10000);
+   opt2.set_maxtime(10.0);
+   //opt2.set_initial_step(0.01);
+   
+   for(int i=0; i<n_constructs; i++)
+      x.push_back(log(0.2));
+   
+   
+   result = opt2.optimize(x, minf);
+   
+  
+   int idx = 0;
+   ans[0] = exp(x[idx++]);
+   ans[1] = exp(x[idx++]);
+   ans[2] = use_RAF ? exp(x[idx++]) : 0;
+   ans[3] = exp(x[idx++]);
+   ans[4] = exp(x[idx++]);
+   ans[5] = minf;
+
+}
+
+void fitQ(const vector<Phasor>& measured_phasor, double ans[])
+{
+   nlopt::opt opt(nlopt::LN_BOBYQA, 4);
+   opt.set_min_objective(&objectiveQ, (void*)(&measured_phasor));
+   opt.set_xtol_rel(1e-4);
+   opt.set_maxeval(10000);
+   opt.set_maxtime(10.0);
+   opt.set_initial_step(0.1);
+   
+   std::vector<double> x(4);
+   x[0] = log(1);
+   x[1] = log(0.2);
+   x[2] = 1;
+   x[3] = 1;
+   
+   double minf;
+   try
+   {
+      nlopt::result result = opt.optimize(x, minf);
+      mexPrintf("Result: %d\n", result);
+   }
+   catch(...)
+   {
+      mexErrMsgIdAndTxt("MEX:error", "Exception occurred");
+   }
+   
+   ans[0] = exp(x[0]);
+   ans[1] = exp(x[1]);
+   ans[2] = x[2];
+   ans[3] = x[3];
+   ans[4] = minf;
+}
+
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -240,112 +322,50 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         return;
     }
-           
-    
-    
     
     if (nrhs == 2 || nrhs == 3)
     {
-        vector<Phasor> measured_phasor(n_channel);
-        
-        if (mxGetNumberOfElements(prhs[0]) < n_channel)
-            mexErrMsgIdAndTxt("Mex:Error", "Not enough measurements");
-        if (mxGetNumberOfElements(prhs[1]) < n_channel)
-            mexErrMsgIdAndTxt("Mex:Error", "Not enough measurements");
-                
+        if (mxGetM(prhs[0]) != n_channel)
+            mexErrMsgIdAndTxt("Mex:Error", "Incorrect number of measurements");
+        if (mxGetM(prhs[1]) != n_channel)
+            mexErrMsgIdAndTxt("Mex:Error", "Incorrect number of measurements");
+       
+        int n_data = std::min(mxGetN(prhs[0]),mxGetN(prhs[1]));
+
+  
         double* mp_r = mxGetPr(prhs[0]);
         double* mp_i = mxGetPi(prhs[0]);
         double* mi = mxGetPr(prhs[1]);
+       
+        plhs[0] = mxCreateDoubleMatrix(6,n_data,mxREAL);
+        double* ans = mxGetPr(plhs[0]);
+       
+        vector<future<void>> futures;
         
-        for(int j=0; j<n_channel; j++)
+        for(int thread=0; thread<n_thread; thread++)
         {
-            measured_phasor[j].phasor.real(mp_r[j]);
-            measured_phasor[j].phasor.imag(mp_i[j]);
-            measured_phasor[j].I = mi[j];
-        }
-        
-        if (nrhs == 2)
-        {
-            nlopt::opt opt(nlopt::LN_BOBYQA, n_constructs + use_RAF);
-            opt.set_min_objective(&objectiveFixedK, (void*)(&measured_phasor));
-            opt.set_xtol_rel(1e-4);
-            opt.set_maxeval(1000);
-            opt.set_maxtime(1.0);
-            //opt.set_initial_step(0.1);
-
-            double minf;
-            nlopt::result result;
-            
-            std::vector<double> x(n_constructs + use_RAF);
-            for(int i=0; i<n_constructs; i++)
-                x[i] = log(0.1); // I
-            if (use_RAF)
-                x[n_constructs] = log(0.001);
-
-            result = opt.optimize(x, minf);
-
-          
-            nlopt::opt opt2(nlopt::LN_BOBYQA, 2*n_constructs + use_RAF);
-            opt2.set_min_objective(&objective, (void*)(&measured_phasor));
-            opt2.set_xtol_rel(1e-4);
-            opt2.set_maxeval(10000);
-            opt2.set_maxtime(10.0);
-            //opt2.set_initial_step(0.01);
-
-            for(int i=0; i<n_constructs; i++)
-                x.push_back(log(0.2));
-            
-            
-            result = opt2.optimize(x, minf);
-            
-            
-            plhs[0] = mxCreateDoubleMatrix(1,n_constructs*2+2,mxREAL);
-            double* ans = mxGetPr(plhs[0]);
-
-            int idx = 0;
-            ans[0] = exp(x[idx++]);
-            ans[1] = exp(x[idx++]);
-            ans[2] = use_RAF ? exp(x[idx++]) : 0;
-            ans[3] = exp(x[idx++]); 
-            ans[4] = exp(x[idx++]);
-            ans[5] = minf;
-        }
-        else
-        {
-            nlopt::opt opt(nlopt::LN_BOBYQA, 4);
-            opt.set_min_objective(&objectiveQ, (void*)(&measured_phasor));
-            opt.set_xtol_rel(1e-4);
-            opt.set_maxeval(10000);
-            opt.set_maxtime(10.0);
-            opt.set_initial_step(0.1);
-
-            std::vector<double> x(4);
-            x[0] = log(1);
-            x[1] = log(0.2);
-            x[2] = 1;
-            x[3] = 1;
-
-            double minf;
-            try
-            {
-                nlopt::result result = opt.optimize(x, minf);
-                mexPrintf("Result: %d\n", result);
-            }
-            catch(...)
-            {
-                mexErrMsgIdAndTxt("MEX:error", "Exception occurred");
-            }
-
-            plhs[0] = mxCreateDoubleMatrix(1,5,mxREAL);
-            double* ans = mxGetPr(plhs[0]);
-
-            ans[0] = exp(x[0]);
-            ans[1] = exp(x[1]);
-            ans[2] = x[2];
-            ans[3] = x[3];
-            ans[4] = minf;
-        }
-            
+            futures.push_back(std::async(std::launch::async,
+            [=](){
+                
+                for (int j=thread; j<n_data; j+=n_thread)
+                {
+                    vector<Phasor> measured_phasor(n_channel);
+                    for(int k=0; k<n_channel; k++)
+                    {
+                        measured_phasor[k].phasor.real(mp_r[j*n_channel+k]);
+                        measured_phasor[k].phasor.imag(mp_i[j*n_channel+k]);
+                        measured_phasor[k].I = mi[j*n_channel+k];
+                    }
+                    
+                    if (nrhs == 2)
+                        fit(measured_phasor, ans+j*6);
+                    else
+                        fitQ(measured_phasor, ans+j*6);
+                }
+            }));
+       }
+      
+       for(auto& f : futures)
+           f.wait();
     }
-    
 }

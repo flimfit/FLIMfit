@@ -1,6 +1,6 @@
 function [Af,kf,Ff,rf] = FitFRETPhasorMex(p, I)
     
-    global red_sel
+    omega = 2*pi / 12500;
 
     p = double(p);
     I = double(I);
@@ -12,24 +12,23 @@ function [Af,kf,Ff,rf] = FitFRETPhasorMex(p, I)
     rf = nan([1,n]);
     Ff = nan([1,n]);
     
-    for i=1:n
-
-        if any(I(:,i) > 300) % && PhasorInEllipse(p(1,i), red_sel)
-        
-%            if (mod(i,100) == 0)
- %               disp(['About to fit: ' num2str(i)]);
-  %          end
-
-            if ~any(isnan(p(:,i)))
-                xf = FRETPhasor(p(:,i), I(:,i));
-                Af(:,i) = xf(1:2);
-                Ff(i) = xf(3);
-                kf(:,i) = xf(4:5);  
-                rf(i) = xf(6);
-            end
-        
-        end
-        
-    end
+    sel = (sum(I,1) > 100) & ~any(isnan(p),1);
     
+    p = p(:,sel);
+    I = I(:,sel);
+    
+    
+    xf = FRETPhasor(p,I);
+    
+    Af(:,sel) = xf(1:2,:);
+    Ff(:,sel) = xf(3,:);
+    kf(:,sel) = xf(4:5,:);  
+    rf(:,sel) = xf(6,:);
+    
+    %{
+    tau = 1/omega * imag(p) ./ real(p);
+    
+    Af(:,sel) = flipud(I(2:3,:));
+    kf(:,sel) = flipud(tau(2:3,:));
+    %}
 end

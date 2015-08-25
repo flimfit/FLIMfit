@@ -12,7 +12,7 @@ function [results] = ShowResults2(folder, end_filter, groups, limI)
     
     for g=1:length(groups)
 
-        files = dir([folder groups{g} '*.pt3' end_filter '.mat']);
+        files = dir([folder groups{g} '*' end_filter '.mat']);
 
 
         for i=1:length(files)
@@ -57,7 +57,7 @@ function plot_results(results,names,idx,nt,limI,group_name)
     d = [];
    
     n = length(results);
-    n = min(n, 5);
+    %n = min(n, 5);
     lim1 = [0.0 0.6];
     lim2 = [0.0 0.6];
     

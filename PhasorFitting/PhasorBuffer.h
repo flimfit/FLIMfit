@@ -114,7 +114,7 @@ class PhasorBuffer
 public:
        
     
-    void get(float k, vector<Phasor>& phasor, float Qf1 = 1.0f, float Qf2 = 1.0f)
+    void get(float k, vector<Phasor>& phasor, float Qf1 = 1.0f, float Qf2 = 1.0f) const
     {
         if ((Qf1 != 1.0f) || (Qf2 != 1.0f))
         {
@@ -173,7 +173,7 @@ public:
         
 protected:
     
-    void calculate(float k, vector<Phasor>& phasor, float Qf1 = 1.0, float Qf2 = 1.0)
+    void calculate(float k, vector<Phasor>& phasor, float Qf1 = 1.0, float Qf2 = 1.0) const
     {
         if (use_static)
                 staticFRETphasor(k, phasor, Qf1, Qf2);
@@ -189,7 +189,7 @@ protected:
     
     vector<vector<Phasor>> phasor_buffer;
     
-    void FRETphasor(float k, vector<Phasor>& phasor, float Qf1 = 1.0f, float Qf2 = 1.0f)
+    void FRETphasor(float k, vector<Phasor>& phasor, float Qf1 = 1.0f, float Qf2 = 1.0f) const 
     {
         float A[n_donor_components][n_acceptor_components];
         float tauDA[n_donor_components];
@@ -241,7 +241,7 @@ protected:
         
     }        
 
-    void staticFRETphasor(float k, vector<Phasor>& phasor, float Qf1 = 1.0f, float Qf2 = 1.0f)
+    void staticFRETphasor(float k, vector<Phasor>& phasor, float Qf1 = 1.0f, float Qf2 = 1.0f) const
     {
         if (k < 1e-3)
         {
@@ -310,7 +310,7 @@ protected:
 
     }
     
-    complex<float> r(float tau)
+    complex<float> r(float tau) const 
     {
         return 1.0f / (1.0f-complex<float>(0,omega*tau));
     }
