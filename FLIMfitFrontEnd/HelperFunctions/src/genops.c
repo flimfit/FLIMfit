@@ -83,6 +83,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #endif
 	
 	
+	
 	if (nrhs != 2)
 		mexErrMsgTxt("Incorrect number of inputs.");
 	
@@ -136,6 +137,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
 	else  /* X and Y are both N-D and different dimensionality. */
 	{
+        mexErrMsgTxt("Gen ops called here - please replace with bsxfcn(...)");
 		ndim = max(xnd,ynd);
 		sx = (int *)mxMalloc(sizeof(int)*ndim);
 		sy = (int *)mxMalloc(sizeof(int)*ndim);

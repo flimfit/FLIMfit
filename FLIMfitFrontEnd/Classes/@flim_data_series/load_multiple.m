@@ -80,6 +80,8 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
                     end
                 end
                 obj.load_multiple_planes = dim;
+                % use mem mapping for multiple planes to handle OPT stuff
+                obj.use_memory_mapping = true;
                 break;
             end
         end
@@ -89,6 +91,8 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
         end
     
     end
+    
+    
 
     obj.t = dims.delays;
     obj.channels = obj.ZCT{2};

@@ -110,10 +110,10 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     
                     cmap = gray(m-1);
                 case 4 % irf image
-                    intensity = [];
-                    lim = [0 0];
+                    intensity = squeeze(sum(squeeze(obj.data_series.image_irf)));
+                    lim = prctile(intensity,[0.01 99.9]);
                     
-                    cmap = gray(m-1);
+                    cmap = gray(m-1); 
                 case 5 % t0 map
                     intensity = obj.data_series.t0_image;
                     

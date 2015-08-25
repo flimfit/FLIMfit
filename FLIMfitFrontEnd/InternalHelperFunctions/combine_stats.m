@@ -37,8 +37,10 @@ function [M, S, N] = combine_stats(m,s,n)
         N = NaN;
         M = NaN;
         S = NaN;
-    else   
+    else 
         N = sum(n);
+        n = repmat(n, [size(m,1) 1]);
+        
         M = sum(n .* m,2) / N;
         S = sqrt(sum( n .* s.*s, 2) / N); 
     end

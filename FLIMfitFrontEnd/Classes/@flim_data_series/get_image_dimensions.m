@@ -135,7 +135,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                     obj.imageSeries = ones(1,length(obj.file_names)) .* imageSeries; 
                 end
             else
-                obj.imageSeries = ones(1,length(obj.file_names))
+                obj.imageSeries = ones(1,length(obj.file_names));
             end
             
                 
@@ -266,7 +266,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
            
 
-        case '.pt3'
+        case {'.pt3','.ptu'}
             
             r = FLIMreaderMex(file);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
@@ -311,19 +311,19 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                   chan_info{i} = header_info{1}{i};
               end
               
-              % if all wells appear to be the same 
-              % then use wavelength instead
-
-              if strcmp(chan_info{1} ,chan_info{end})
-                for i=1:n_chan
-                  if length(header_info) >= 3
-                     chan_info{i} = header_info{3}{i};
-                  else
-                     chan_info{i} = num2str(i);
+              if n_chan > 1     % no point in following code for a single channel
+                  % if all wells appear to be the same 
+                  % then use wavelength instead
+                  if strcmp(chan_info{1} ,chan_info{end})
+                    % check size matches
+                    if size(header_info,1) > 2  &&  size(header_info,2) == n_chan
+                        for i=1:n_chan
+                          chan_info{i} = header_info{3}{i};
+                        end
+                    end
                   end
-                end
               end
-
+              
               
               ir = dlmread(file,dlm,n_header_lines,0);
               obj.txtInfoRead = ir;    % save ir into class
