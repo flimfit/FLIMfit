@@ -197,7 +197,8 @@ classdef flim_fit_ui
 
             guidata(obj.window,handles);
             
-            
+            try
+                
             loadOmero();
               
             % find path to OMEuiUtils.jar - approach copied from
@@ -223,6 +224,8 @@ classdef flim_fit_ui
                 else 
                      assert('Cannot automatically locate an OMEuiUtils JAR file');
                 end
+            end
+            
             end
             
             
