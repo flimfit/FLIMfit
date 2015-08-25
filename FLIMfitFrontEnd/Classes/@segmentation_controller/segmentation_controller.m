@@ -69,12 +69,13 @@ classdef segmentation_controller < flim_data_series_observer
         
         ok_button;
         cancel_button;
+        figure1;
         
         region_filter_table;
         combine_regions_checkbox;
         apply_filtering_pushbutton;
                 
-        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size'};
+        filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Roundness Factor';'Max. Roundness Factor'};
         
         
         slh = [];
@@ -87,7 +88,8 @@ classdef segmentation_controller < flim_data_series_observer
             obj = obj@flim_data_series_observer(handles.data_series_controller);
             
             assign_handles(obj,handles);
-
+            
+            
             set(obj.algorithm_popup,'Callback',@obj.algorithm_updated);
             set(obj.segment_button,'Callback',@obj.segment_pressed);
             set(obj.segment_selected_button,'Callback',@obj.segment_selected_pressed);
@@ -98,6 +100,9 @@ classdef segmentation_controller < flim_data_series_observer
             
             set(obj.ok_button,'Callback',@obj.ok_pressed);
             set(obj.cancel_button,'Callback',@obj.cancel_pressed);
+            
+            % attempt to get Close request to behave as "cancel"
+            set(obj.figure1,'CloseRequestFcn',@obj.cancel_pressed);
             
             set(obj.delete_all_button,'Callback',@obj.delete_all_pressed);
             set(obj.copy_to_all_button,'Callback',@obj.copy_to_all_pressed);
@@ -262,6 +267,9 @@ classdef segmentation_controller < flim_data_series_observer
             acceptor_uq = [];
             min_size = [];
             
+            min_shape_factor = [];
+            max_shape_factor = [];            
+            
             if apply_filter(1)
                 donor_lq = filter_value(1);
             end
@@ -271,6 +279,12 @@ classdef segmentation_controller < flim_data_series_observer
             if apply_filter(3)
                 min_size = filter_value(3);
             end
+            if apply_filter(4)
+                min_shape_factor = filter_value(4);
+            end
+            if apply_filter(5)
+                max_shape_factor = filter_value(5);
+            end            
             
             if ndims(obj.mask) ~= ndims(obj.filtered_mask) || any(size(obj.mask) ~= size(obj.filtered_mask))
                 obj.filtered_mask = obj.mask;
@@ -298,7 +312,7 @@ classdef segmentation_controller < flim_data_series_observer
                     end
 
 
-                    regions = regionprops(im_mask, {'Area'});
+                    regions = regionprops(im_mask, {'Area','Perimeter'});
 
 
                     for j=1:length(regions)
@@ -323,7 +337,22 @@ classdef segmentation_controller < flim_data_series_observer
                         if ~isempty(min_size) && regions(j).Area < min_size
                             im_mask(j_mask) = 0;
                         end
-
+                        
+                        if ~isempty(min_shape_factor)                            
+                            sf = (regions(j).Perimeter)^2/regions(j).Area/4/pi;
+                            if sf < min_shape_factor
+                                im_mask(j_mask) = 0;
+                            end
+                        end
+                        
+                        if ~isempty(max_shape_factor)                            
+                            sf = (regions(j).Perimeter)^2/regions(j).Area/4/pi;
+                            if sf > max_shape_factor
+                                im_mask(j_mask) = 0;
+                            end
+                        end
+                        
+                        
                     end
 
 

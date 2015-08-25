@@ -120,26 +120,19 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                         return;
                     end
                 else
-                    imageSeries = [];
-                    nimages = num2str(seriesCount);
-                    while isempty(imageSeries) ||  imageSeries > seriesCount  ||  imageSeries < 1
-                        prompt = {sprintf(['This file holds ' nimages ' images. Numbered 0-' num2str(seriesCount -1) '\n Please select one'])};
-                        dlgTitle = 'Multiple images in File! ';
-                        defaultvalues = {'0'};
-                        numLines = 1;
-                        inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                        imageSeries = str2double(inputdata) + 1;
-                        
+                    str = num2str((0:seriesCount - 1)');
+                    prompt = [{sprintf(['This file holds ' num2str(seriesCount) ' images. Numbered 0-' num2str(seriesCount -1) '\nPlease select one'])} {''}];
+                    imageSeries = listdlg('PromptString',prompt,'SelectionMode','single','ListString',str);
+                    if isempty(imageSeries)
+                        return;
                     end
+                    
                     % set series for each file to that selected 
                     obj.imageSeries = ones(1,length(obj.file_names)) .* imageSeries; 
                 end
             else
                 obj.imageSeries = ones(1,length(obj.file_names));
             end
-            
-                
-            
             
             
             r.setSeries(obj.imageSeries(1) - 1);
@@ -192,14 +185,6 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                      if modlo.end > modlo.start
                         nsteps = round((modlo.end - modlo.start)/modlo.step);
                         delays = 0:nsteps;
-                         % This code block is Just to fix temp problem with
-                        % timebase in PicoQuant .bin files
-                        % Only until bio-formats 5.1 !!
-                        % To be removed ASAP
-                        if strcmp(ext,'.bin')
-                            modlo.step = modlo.step .* nsteps;
-                        end
-                        %%%%%%%%%%%%%%%%%%%%%%%%%
                         delays = delays .* modlo.step;
                         dims.delays = delays + modlo.start;
                      end
@@ -219,14 +204,16 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strfind(file,'ome.tif')
-                    physZ = omeMeta.getPixelsPhysicalSizeZ(0).getValue();
-                    if 1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
-                        physSizeZ = physZ.*1000;     % assume this is in ns so convert to ps
-                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
-                        dims.modulo = 'ModuloAlongZ';
-                        dims.FLIM_type = 'TCSPC';
-                        sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
-                        dims.sizeZCT = sizeZCT;
+                    if  1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
+                        physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                        if ~isempty(physZ) 
+                            physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                            dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                            dims.modulo = 'ModuloAlongZ';
+                            dims.FLIM_type = 'TCSPC';
+                            sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
+                            dims.sizeZCT = sizeZCT;
+                        end
                     end
                 end
                 

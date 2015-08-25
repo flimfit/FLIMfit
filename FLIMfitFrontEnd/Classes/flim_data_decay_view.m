@@ -36,6 +36,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
        
        highlight_display_mode_popupmenu;
        highlight_decay_mode_popupmenu;
+       decay_pos_text; % Text to display currently selected pixel location
        
        ylim_highlight;
        ylim_residual;
@@ -267,6 +268,8 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             cla(ra);
             
             if ~isempty(obj.data)
+                txt = [obj.roi_controller.click_pos_txt ' Total Intensity = ' num2str(sum(obj.data)) ];
+                set(obj.decay_pos_text,'String',txt);
                 plot_fcn(ha,obj.t,obj.data,'o');
                 hold(ha,'on');
             end
@@ -396,15 +399,14 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             obj.update_data();
 
             [path, name, ext] = fileparts(file);
-            file_name = [path name ext];
-            irf_file_name = [path name '_irf' ext];
-
-            % Collate Data
-            export_data = [obj.t obj.data obj.fit obj.residual];
-            irf_data = [obj.t_irf obj.irf];
-
+           
+           
             if ~isempty(obj.data)
-
+                
+                 % Collate Data
+                export_data = [obj.t obj.data obj.fit obj.residual];
+                file_name = [path name ext];
+           
                 f=fopen(file_name,'w');
                 fprintf(f,obj.data_type);
                 if ~isempty(obj.fit)
@@ -417,10 +419,27 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             end
 
             if ~isempty(obj.irf)
-                f=fopen(irf_file_name,'w');
-                fprintf(f,'t (ps),IRF\r\n');
-                fclose(f);
-                dlmwrite(irf_file_name,irf_data,'-append','delimiter',',');
+                
+                irf_data = [];
+                
+                % fix to handle https://github.com/openmicroscopy/Imperial-FLIMfit/issues/149
+                % NB fixing the symptom rather than the cause 
+                s1 = size(obj.irf);
+                s2 = size(obj.t_irf);
+                if s1 == s2
+                    irf_data = [obj.t_irf obj.irf];
+                else
+                    if s1 == flip(s2)
+                        irf_data = [obj.t_irf obj.irf'];
+                    end
+                end
+                if ~isempty(irf_data)
+                    irf_file_name = [path name '_irf' ext];
+                    f=fopen(irf_file_name,'w');
+                    fprintf(f,'t (ps),IRF\r\n');
+                    fclose(f);
+                    dlmwrite(irf_file_name,irf_data,'-append','delimiter',',');
+                 end
             end
         end
         
