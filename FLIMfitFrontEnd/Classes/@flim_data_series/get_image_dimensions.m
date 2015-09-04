@@ -284,9 +284,15 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               header_info = cell(1,n_header_lines);
               
               n_chan = zeros(1,n_header_lines);
+              wave_no = [];
               for i=1:n_header_lines
                   parts = regexp(header_data{i},[ '\s*' dlm '\s*' ],'split');
                   header_info{i} = parts(2:end);
+                  tag = parts{1}
+                  % find which line describes wavelength
+                  if strfind(lower(tag),'wave')
+                      wave_no = i;
+                  end
                   n_chan(i) = length(header_info{i});
               end
               n_chan = min(n_chan);
@@ -298,14 +304,14 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                   chan_info{i} = header_info{1}{i};
               end
               
-              if n_chan > 1     % no point in following code for a single channel
+              if n_chan > 1  && ~isempty(wave_no)  % no point in following code for a single channel
                   % if all wells appear to be the same 
                   % then use wavelength instead
                   if strcmp(chan_info{1} ,chan_info{end})
                     % check size matches
-                    if size(header_info,1) > 2  &&  size(header_info,2) == n_chan
+                    if length(header_info{wave_no}) > 2  &&  length(header_info{wave_no}) == n_chan
                         for i=1:n_chan
-                          chan_info{i} = header_info{3}{i};
+                          chan_info{i} = header_info{wave_no}{i};
                         end
                     end
                   end
