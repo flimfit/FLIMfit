@@ -288,7 +288,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               for i=1:n_header_lines
                   parts = regexp(header_data{i},[ '\s*' dlm '\s*' ],'split');
                   header_info{i} = parts(2:end);
-                  tag = parts{1}
+                  tag = parts{1};
                   % find which line describes wavelength
                   if strfind(lower(tag),'wave')
                       wave_no = i;
