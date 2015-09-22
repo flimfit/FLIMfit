@@ -94,7 +94,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
              dims.modulo = []; 
                 
          % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-         case {'.sdt','.msr','.ome', '.ics', '.bin'}
+         case {'.sdt','.msr','.ome', '.ics', '.bin','.spc'}
              
              s = [];
              
