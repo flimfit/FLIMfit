@@ -108,8 +108,8 @@ function init_dataset(obj,setting_file_name)
         obj.set_delta_irf();
     end
     
-    % if single-pixel image then force no smoothing
-    if obj.data_size(3) == 1 & obj.data_size(4) == 1
+    % if single-pixel, single line or single column image then force no smoothing
+    if obj.data_size(3) == 1 | obj.data_size(4) == 1
         obj.binning = 0;
         notify(obj,'masking_updated');
     end
