@@ -116,7 +116,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 if omeMeta.getPlateCount > 0
                     % plate! so check imageSeries has been setup or throw error
                     if obj.imageSeries == -1 | length(obj.imageSeries) ~= length(obj.file_names)
-                        dims.error_message = ' This file contains Plate data. Please select with a different menu';
+                        dims.error_message = ' This file contains Plate data. Please load using the appropriate menu item';
                         return;
                     end
                 else
@@ -222,7 +222,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 if strfind(file,'.ics')
                     text = r.getMetadataValue('history extents');
                     text = strrep(text,'?','');
-                    decay_range  = str2num(text) * 1e12;  % convert to ps
+                    decay_range  = str2Double(text) * 1e12;  % convert to ps
                     delays = 0:sizeZCT(2) -1;
                     step = decay_range/sizeZCT(2);
                     dims.delays = delays .* step;
@@ -249,7 +249,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             end
           
 
-            
+            if isempty(dims.delays)
+                dims.error_message = 'Unable to load! Not time resolved data.';
+            end
             dims.sizeXY = sizeXY;
            
 
