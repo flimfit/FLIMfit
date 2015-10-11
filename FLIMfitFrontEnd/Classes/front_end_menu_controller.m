@@ -405,6 +405,7 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series = OMERO_data_series();   
                 obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
                 obj.data_series_controller.load_plate(plate); 
+                obj.data_series_controller.data_series.plateId = plate.getId().getValue();
                 notify(obj.data_series_controller,'new_dataset');
             end
             
@@ -414,7 +415,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, dId );
             images = chooser.getSelectedImages();
             if images.length == 1
                 load_as_image = false;
@@ -425,17 +426,23 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
-            dataset = chooser.getSelectedDataset();
+            pId = obj.data_series_controller.data_series.plateId;
+            if double(dId) < 1 && double(pId)
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2));
+                selected = chooser.getSelectedPlate();
+            else
+                selected = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, dId, '');
+                selected = chooser.getSelectedDataset();
+            end
             clear chooser;
-            if ~isempty(dataset) 
-                obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series, dataset);
+            if ~isempty(selected) 
+                obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series, selected);
             end
           end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, dId );
             images = chooser.getSelectedImages();
             if images.length == 1
                 obj.data_series_controller.data_series.load_background(images(1), false)
@@ -445,7 +452,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
          function menu_OMERO_Load_Background_average_callback(obj,~,~)                                     
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, dId );
             images = chooser.getSelectedImages();
             if images.length == 1
                 obj.data_series_controller.data_series.load_background(images(1),true)
@@ -462,7 +469,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------        
         function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, dId );
             images = chooser.getSelectedImages();
             if images.length == 1
                 obj.data_series_controller.data_series.load_tvb(images(1))
@@ -486,10 +493,16 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------  
         function menu_OMERO_Load_tvb_Annotation_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
-            dataset = chooser.getSelectedDataset();
+            pId = obj.data_series_controller.data_series.plateId;
+            if double(dId) < 1 && double(pId)
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2));
+                selected = chooser.getSelectedPlate();
+            else
+                selected = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, dId, '');
+                selected = chooser.getSelectedDataset();
+            end
             clear chooser;
-            if ~isempty(dataset) 
+            if ~isempty(selected) 
                 obj.omero_data_manager.Load_TVB_annot(obj.data_series_controller.data_series, dataset);
             end
           end  

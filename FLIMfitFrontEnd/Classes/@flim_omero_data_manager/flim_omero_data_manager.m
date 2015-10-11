@@ -89,13 +89,13 @@ classdef flim_omero_data_manager < handle
                 return;
             end;
             
-            %
+            
             if strcmp(ext,'.sdt')
                 fwrite(fid,typecast(str,'uint16'),'uint16');
             else                
                 fwrite(fid,str,'*uint8');
             end
-            %
+            
             fclose(fid);
             
            
