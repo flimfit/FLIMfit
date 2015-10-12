@@ -50,7 +50,6 @@ classdef front_end_menu_controller < handle
             
         menu_OMERO_Working_Data_Info;
         
-        menu_OMERO_Load_Pate_Metadata;
         menu_OMERO_Export_IRF_annot;
         
         menu_OMERO_Load_tvb_Annotation; 
@@ -481,11 +480,7 @@ classdef front_end_menu_controller < handle
             %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
             obj.omero_data_manager.Omero_logon_forced();
         end        
-        %------------------------------------------------------------------        
-        function menu_OMERO_Load_Pate_Metadata_callback(obj,~,~)
-            obj.omero_data_manager.Load_Plate_Metadata_annot(obj.data_series_controller.data_series);
-        end                        
-        %------------------------------------------------------------------        
+         %------------------------------------------------------------------        
         function menu_OMERO_Export_IRF_annot_callback(obj,~,~)
             irfdata = [obj.data_series_controller.data_series.t_irf(:) obj.data_series_controller.data_series.irf(:)];
             obj.omero_data_manager.Export_IRF_annot(irfdata);

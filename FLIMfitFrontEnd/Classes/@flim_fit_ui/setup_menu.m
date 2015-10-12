@@ -120,9 +120,7 @@ function handles = setup_menu(obj,handles)
     %
     handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
     %handles.menu_OMERO_export_acceptor = uimenu(menu_OMERO,'Label','Export Acceptor Images...','Enable','off');
-    %
-    handles.menu_OMERO_Load_Pate_Metadata = uimenu(menu_OMERO,'Label','Load Plate Metadata','Separator','on','Enable','off');                            
-    
+                            
     handles.menu_OMERO_save_data_settings = uimenu(menu_OMERO,'Label','Save Data Settings...','Separator','on','Enable','off');            
     handles.menu_OMERO_load_data_settings = uimenu(menu_OMERO,'Label','Load Data Settings...','Enable','off');    
     
