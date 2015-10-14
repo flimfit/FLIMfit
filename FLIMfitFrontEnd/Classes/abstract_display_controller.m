@@ -68,17 +68,17 @@ classdef abstract_display_controller < handle
             
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
                 @(~,~,~) obj.save_as() );
-            %if strfind(computer, 'PCWIN') 
-            %   uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
-            %        @(~,~,~) obj.save_as_ppt() );
-            %    uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
-            %        @(~,~,~) obj.export_to_ppt() );
-            %end
+            if strfind(computer, 'PCWIN') 
+               uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
+                    @(~,~,~) obj.save_as_ppt() );
+                uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
+                    @(~,~,~) obj.export_to_ppt() );
+            end
             if exports_data
                 uimenu(obj.contextmenu,'Label','Export Data...','Callback',...
                 @(~,~,~) obj.export_data() );
             end
-            
+           
             set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
            
         end
@@ -104,24 +104,33 @@ classdef abstract_display_controller < handle
                 errordlg('Sorry! No image available.');
             else
                 
-                default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
-                [filename, pathname, ~] = uiputfile( ...
+                % should be done by overloading but for now use 'ifs'
+                % in the interests of keeping the file_side stable
+                if obj.fit_controller.data_series.loaded_from_OMERO
+                    default_name = [''];
+                    [filename, pathname, dataset, before_list] = obj.fit_controller.data_series.prompt_for_export('', '','.tiff');
+                     
+                else
+                    
+                    default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+                    [filename, pathname, ~] = uiputfile( ...
                         {'*.tiff', 'TIFF image (*.tiff)';...
-                         '*.pdf','PDF document (*.pdf)';...
-                         '*.png','PNG image (*.png)';...
-                         '*.eps','EPS image (*.eps)';...
-                         '*.fig','Matlab figure (*.fig)'},...
-                         'Select root file name',[default_path filesep]);
-
-                if filename~=0
+                        '*.pdf','PDF document (*.pdf)';...
+                        '*.png','PNG image (*.png)';...
+                        '*.eps','EPS image (*.eps)';...
+                        '*.fig','Matlab figure (*.fig)'},...
+                        'Select root file name',[default_path filesep]);
+                end
                 
+                if filename~=0
+                    
                     [~,name,ext] = fileparts(filename);
                     ext = ext(2:end);
-                
+                    
                     [f,ref] = obj.make_hidden_fig();
                     obj.draw_plot(ref);
                     
-                    filename = [pathname filesep name ' ' param_name '.' ext];
+                    filename = [pathname name  param_name '.' ext];
 
                     switch ext
                         case 'fig'
@@ -130,6 +139,13 @@ classdef abstract_display_controller < handle
                             export_fig(f, filename );
                     end
                     close(f);
+                    
+                    if obj.fit_controller.data_series.loaded_from_OMERO
+                         obj.fit_controller.data_series.export_new_images(pathname,[name '.' ext],before_list, dataset);
+                    end
+                    
+                    
+                    
                 end
             end
             
@@ -163,7 +179,7 @@ classdef abstract_display_controller < handle
                         {'*.ppt', 'Powerpoint (*.ppt)'},...
                          'Select root file name',[default_path filesep]);
 
-            if ~isempty(filename)
+            if filename ~= 0
                 
                 [f,ref] = obj.make_hidden_fig([300, 400]);
                 
@@ -171,13 +187,15 @@ classdef abstract_display_controller < handle
                 
                 [~,name,ext] = fileparts(filename);
                 file = [pathname filesep name ' ' param_name '.' ext];
-                if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
-                    ppt=saveppt2(file,'init');
-                    pptfigure(f,'ppt',ppt);
-                    saveppt2(file,'ppt',ppt,'close');
-                else
+                % pptfigure does not seem to have been updated to 2014b.
+                % Comment out for now. 
+                %if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
+                %    ppt=saveppt2(file,'init');
+                %    pptfigure(f,'ppt',ppt);
+                %    saveppt2(file,'ppt',ppt,'close');
+                %else
                     saveppt2(file,'figure',f,'stretch',false);
-                end
+                %end
                 setpref('GlobalAnalysisFrontEnd','LastFigureExportFolder',pathname);
                 
                 close(f)

@@ -57,9 +57,10 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
                  dir([root_path '*.asc']); 
                  dir([root_path '*.bin']); 
                  dir([root_path '*.pt3']);
-                 dir([root_path '*.ptu'])]; 
-             
-        n_datasets = length(files);
+                 dir([root_path '*.ptu'])
+                 dir([root_path '*.spc'])]; 
+
+		 n_datasets = length(files);
         
         file_names = cell(1,n_datasets);
         for i=1:n_datasets

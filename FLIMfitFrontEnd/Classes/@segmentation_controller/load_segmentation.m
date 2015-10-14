@@ -64,7 +64,8 @@ function load_segmentation(obj,folder)
             match_string = d.names{i};
         end
         
-        matching_files = dir([folder '*' match_string '*.tif*']);
+        matching_files = [dir([folder '*' match_string '*.tif*'])
+                          dir([folder '*' match_string '*.png'])];
             
         if ~isempty(matching_files)
             mask = uint8(imread([folder matching_files(1).name]));
