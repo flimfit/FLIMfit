@@ -35,8 +35,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load FLIM Dataset...','Accelerator','T');
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load .tif stack Dataset...','Accelerator','Y');
     
-    % Commented out pending decision on which format to adopt
-    %handles.menu_file_load_plate = uimenu(menu_file,'Label','Load Plate data...','Accelerator','W');
+    handles.menu_file_load_plate = uimenu(menu_file,'Label','Load Plate data...','Accelerator','W');
     
     menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
     handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
@@ -104,8 +103,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM data','Separator','on','Enable','off');
     handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset','Enable','off');
     
-    % Commented out pending decision on which format to adopt
-    %handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
+    handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
 
     handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset - Polarization','Enable','off');        
     %
@@ -122,9 +120,7 @@ function handles = setup_menu(obj,handles)
     %
     handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
     %handles.menu_OMERO_export_acceptor = uimenu(menu_OMERO,'Label','Export Acceptor Images...','Enable','off');
-    %
-    handles.menu_OMERO_Load_Pate_Metadata = uimenu(menu_OMERO,'Label','Load Plate Metadata','Separator','on','Enable','off');                            
-    
+                            
     handles.menu_OMERO_save_data_settings = uimenu(menu_OMERO,'Label','Save Data Settings...','Separator','on','Enable','off');            
     handles.menu_OMERO_load_data_settings = uimenu(menu_OMERO,'Label','Load Data Settings...','Enable','off');    
     

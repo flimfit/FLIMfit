@@ -189,7 +189,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
             
             % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.sdt','.msr','.ome', '.ics', '.bin'}
+        case {'.sdt','.msr','.ome', '.ics', '.bin','.spc'}
            
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
@@ -281,13 +281,13 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                                 
                                 switch modulo
                                     case 'ModuloAlongT'
-                                        T = T * sizet;
+                                        Tt = T * sizet;
                                         if ~sgn
                                             for p = 1:nplanes
                                                 % unsigned moduloAlongT
                                                 % this is the loop that needs to be
                                                 % optimised for speed
-                                                index = r.getIndex(Z, chan ,T + t);
+                                                index = r.getIndex(Z, chan ,Tt + t);
                                                 t = t + 1;
                                                 rawPlane = r.openBytes(index);
                                                 I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
@@ -297,7 +297,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                                             end
                                         else  % signed
                                             for p = 1:nplanes
-                                                index = r.getIndex(Z, chan ,T + t);
+                                                index = r.getIndex(Z, chan ,Tt + t);
                                                 t = t + 1;
                                                 plane = bfGetPlane(r,index + 1);
                                                 target(t,pctr,:,:,write_selected) = plane;
@@ -305,18 +305,18 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                                         end
                                         
                                     case 'ModuloAlongZ'
-                                        Z = Z * sizet;
+                                        Zt = Z * sizet;
                                         for p = 1:nplanes
-                                            index = r.getIndex(Z + t, chan ,T);
+                                            index = r.getIndex(Zt + t, chan ,T);
                                             t = t + 1;
                                             plane = bfGetPlane(r,index + 1);
                                             target(t,pctr,:,:,write_selected) = plane;
                                         end
                                         
                                     case 'ModuloAlongC'
-                                        C = chan * sizet;
+                                        Ct = chan * sizet;
                                         for p = 1:nplanes
-                                            index = r.getIndex(Z, C + t ,T);
+                                            index = r.getIndex(Z, Ct + t ,T);
                                             t = t + 1;
                                             plane = bfGetPlane(r,index + 1);
                                             target(t,pctr,:,:,write_selected) = plane;

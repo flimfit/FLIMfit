@@ -116,7 +116,10 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     dims.sizeXY = sizeXY;
     dims.sizeZCT = sizeZCT;
         
- 
+    if isempty(dims.delays)
+        dims.error_message = 'Unable to load! Not time resolved data.';
+    end
+    
     if length(t_int) ~= length(dims.delays)
         t_int = ones(size(dims.delays));
     end

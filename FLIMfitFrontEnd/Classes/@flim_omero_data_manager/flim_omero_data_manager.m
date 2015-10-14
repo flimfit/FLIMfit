@@ -89,13 +89,13 @@ classdef flim_omero_data_manager < handle
                 return;
             end;
             
-            %
+            
             if strcmp(ext,'.sdt')
                 fwrite(fid,typecast(str,'uint16'),'uint16');
             else                
                 fwrite(fid,str,'*uint8');
             end
-            %
+            
             fclose(fid);
             
            
@@ -252,31 +252,7 @@ classdef flim_omero_data_manager < handle
             
        end
         
-       %------------------------------------------------------------------        
-        function Load_Plate_Metadata_annot(obj,data_series,parent)
-            
-            [str, fname] = select_Annotation(obj.session,obj.userid,parent,'Choose metadata xlsx file');
-            %
-            if -1 == str
-                errordlg('select_Annotation: no annotations - ret is empty');
-                return;
-            elseif isempty(str)                
-                return;       
-            end            
-            %
-            full_temp_file_name = [tempdir fname];
-            fid = fopen(full_temp_file_name,'w');                
-            fwrite(fid,str,'int8');                        
-            fclose(fid);                                                
-            %
-            try
-                data_series.import_plate_metadata(full_temp_file_name);
-            catch err
-                 [ST,~] = dbstack('-completenames'); errordlg([err.message ' in the function ' ST.name],'Error');
-            end
-            %
-            delete(full_temp_file_name); %??
-        end      
+       
        %------------------------------------------------------------------                
         function Export_IRF_annot(obj,irf_data,~)
             
@@ -285,7 +261,6 @@ classdef flim_omero_data_manager < handle
             if isempty(selected)
                 return;
             end
-            
                                            
             ext = '.irf';   
             irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
