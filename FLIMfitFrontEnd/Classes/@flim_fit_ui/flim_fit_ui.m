@@ -198,53 +198,57 @@ classdef flim_fit_ui
             guidata(obj.window,handles);
             
          
-            loadOmero();
-            
-            % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
-            % bfCheckJavaPath
-            
-            % first check they aren't already in the dynamic path
-            jPath = javaclasspath('-dynamic');
-            utilJarInPath = false;
-            ini4jInPath = false;
-            for i = 1:length(jPath)
-                if strfind(jPath{i},'OMEuiUtils.jar');
-                    utilJarInPath = true;
+            try
+                loadOmero();
+
+                % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
+                % bfCheckJavaPath
+
+                % first check they aren't already in the dynamic path
+                jPath = javaclasspath('-dynamic');
+                utilJarInPath = false;
+                ini4jInPath = false;
+                for i = 1:length(jPath)
+                    if strfind(jPath{i},'OMEuiUtils.jar');
+                        utilJarInPath = true;
+                    end
+                    if strfind(jPath{i},'ini4j.jar');
+                        ini4jInPath = true;
+                    end
+                    if utilJarInPath && ini4jInPath
+                        break;
+                    end
                 end
-                if strfind(jPath{i},'ini4j.jar');
-                    ini4jInPath = true;
+
+                if ~utilJarInPath
+                    path = which('OMEuiUtils.jar');
+                    if isempty(path)
+                        path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+                    end
+                    if ~isempty(path) && exist(path, 'file') == 2
+                        javaaddpath(path);
+                    else 
+                         assert('Cannot automatically locate an OMEuiUtils JAR file');
+                    end
                 end
-                if utilJarInPath && ini4jInPath
-                    break;
+
+                if ~ini4jInPath
+                    path = which('ini4j.jar');
+                    if isempty(path)
+                        path = fullfile(fileparts(mfilename('fullpath')), 'ini4j.jar');
+                    end
+                    if ~isempty(path) && exist(path, 'file') == 2
+                        javaaddpath(path);
+                    else 
+                         disp('Cannot automatically locate an ini4j JAR file');
+                         close all;
+                         return;
+                    end
                 end
+            catch e
+                disp('Could not load Omero');
+                disp(e);
             end
-                
-            if ~utilJarInPath
-                path = which('OMEuiUtils.jar');
-                if isempty(path)
-                    path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
-                end
-                if ~isempty(path) && exist(path, 'file') == 2
-                    javaaddpath(path);
-                else 
-                     assert('Cannot automatically locate an OMEuiUtils JAR file');
-                end
-            end
-            
-            if ~ini4jInPath
-                path = which('ini4j.jar');
-                if isempty(path)
-                    path = fullfile(fileparts(mfilename('fullpath')), 'ini4j.jar');
-                end
-                if ~isempty(path) && exist(path, 'file') == 2
-                    javaaddpath(path);
-                else 
-                     disp('Cannot automatically locate an ini4j JAR file');
-                     close all;
-                     return;
-                end
-            end
-            
             
    
             % verify that enough memory is allocated for bio-formats
