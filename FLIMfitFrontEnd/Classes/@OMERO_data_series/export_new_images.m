@@ -1,11 +1,7 @@
-function obj = marshal_object(obj,file)
-
-    % Reads a FLIMfit_settings file into an xml node 
-    % then calls marshal_object to re-initialise the 
-    % current object accordingly.
-
-
-    % Copyright (C) 2013 Imperial College London.
+function export_new_images(obj,pathname,filename,before_list, dataset)
+    %> exports all images that are not in before_list to an OMERO Dataset
+    
+    % Copyright (C) 2015 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -28,16 +24,18 @@ function obj = marshal_object(obj,file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-    % Author : Sean Warren
-
-   if exist(file,'file')  
-       try 
-            doc_node = xmlread(file);
-            obj = marshal_object(doc_node,'flim_data_series',obj);
-
-        catch
-           warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
-       end
-   end
-         
+    c = strsplit(filename,'.');
+    search_string = [pathname c{1} '*.*'];
+    after_list = dir(search_string);
+    if ~isempty(before_list)
+        s = [after_list(:).datenum];
+        [s,s] = sort(s);
+        after_list = {after_list(s).name}; % Cell array of names in order by datenum.
+        after_list = after_list(length(before_list)+1:end); %keep only the new ones
+    else
+        after_list = {after_list(:).name};
+    end
+    add_Images(obj.omero_data_manager,pathname,after_list, dataset);
+                
+   
 end

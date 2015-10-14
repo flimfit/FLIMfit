@@ -94,7 +94,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
              dims.modulo = []; 
                 
          % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-         case {'.sdt','.msr','.ome', '.ics', '.bin'}
+         case {'.sdt','.msr','.ome', '.ics', '.bin','.spc'}
              
              s = [];
              
@@ -116,30 +116,23 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 if omeMeta.getPlateCount > 0
                     % plate! so check imageSeries has been setup or throw error
                     if obj.imageSeries == -1 | length(obj.imageSeries) ~= length(obj.file_names)
-                        dims.error_message = ' This file contains Plate data. Please select with a different menu';
+                        dims.error_message = ' This file contains Plate data. Please load using the appropriate menu item';
                         return;
                     end
                 else
-                    imageSeries = [];
-                    nimages = num2str(seriesCount);
-                    while isempty(imageSeries) ||  imageSeries > seriesCount  ||  imageSeries < 1
-                        prompt = {sprintf(['This file holds ' nimages ' images. Numbered 0-' num2str(seriesCount -1) '\n Please select one'])};
-                        dlgTitle = 'Multiple images in File! ';
-                        defaultvalues = {'0'};
-                        numLines = 1;
-                        inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
-                        imageSeries = str2double(inputdata) + 1;
-                        
+                    str = num2str((0:seriesCount - 1)');
+                    prompt = [{sprintf(['This file holds ' num2str(seriesCount) ' images. Numbered 0-' num2str(seriesCount -1) '\nPlease select one'])} {''}];
+                    imageSeries = listdlg('PromptString',prompt,'SelectionMode','single','ListString',str);
+                    if isempty(imageSeries)
+                        return;
                     end
+                    
                     % set series for each file to that selected 
                     obj.imageSeries = ones(1,length(obj.file_names)) .* imageSeries; 
                 end
             else
                 obj.imageSeries = ones(1,length(obj.file_names));
             end
-            
-                
-            
             
             
             r.setSeries(obj.imageSeries(1) - 1);
@@ -192,14 +185,6 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                      if modlo.end > modlo.start
                         nsteps = round((modlo.end - modlo.start)/modlo.step);
                         delays = 0:nsteps;
-                         % This code block is Just to fix temp problem with
-                        % timebase in PicoQuant .bin files
-                        % Only until bio-formats 5.1 !!
-                        % To be removed ASAP
-                        if strcmp(ext,'.bin')
-                            modlo.step = modlo.step .* nsteps;
-                        end
-                        %%%%%%%%%%%%%%%%%%%%%%%%%
                         delays = delays .* modlo.step;
                         dims.delays = delays + modlo.start;
                      end
@@ -219,14 +204,16 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strfind(file,'ome.tif')
-                    physZ = omeMeta.getPixelsPhysicalSizeZ(0).getValue();
-                    if 1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
-                        physSizeZ = physZ.*1000;     % assume this is in ns so convert to ps
-                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
-                        dims.modulo = 'ModuloAlongZ';
-                        dims.FLIM_type = 'TCSPC';
-                        sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
-                        dims.sizeZCT = sizeZCT;
+                    if  1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
+                        physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                        if ~isempty(physZ) 
+                            physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                            dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                            dims.modulo = 'ModuloAlongZ';
+                            dims.FLIM_type = 'TCSPC';
+                            sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
+                            dims.sizeZCT = sizeZCT;
+                        end
                     end
                 end
                 
@@ -235,7 +222,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 if strfind(file,'.ics')
                     text = r.getMetadataValue('history extents');
                     text = strrep(text,'?','');
-                    decay_range  = str2num(text) * 1e12;  % convert to ps
+                    decay_range  = str2Double(text) * 1e12;  % convert to ps
                     delays = 0:sizeZCT(2) -1;
                     step = decay_range/sizeZCT(2);
                     dims.delays = delays .* step;
@@ -262,7 +249,9 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             end
           
 
-            
+            if isempty(dims.delays)
+                dims.error_message = 'Unable to load! Not time resolved data.';
+            end
             dims.sizeXY = sizeXY;
            
 
@@ -297,9 +286,15 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               header_info = cell(1,n_header_lines);
               
               n_chan = zeros(1,n_header_lines);
+              wave_no = [];
               for i=1:n_header_lines
                   parts = regexp(header_data{i},[ '\s*' dlm '\s*' ],'split');
                   header_info{i} = parts(2:end);
+                  tag = parts{1};
+                  % find which line describes wavelength
+                  if strfind(lower(tag),'wave')
+                      wave_no = i;
+                  end
                   n_chan(i) = length(header_info{i});
               end
               n_chan = min(n_chan);
@@ -311,14 +306,14 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                   chan_info{i} = header_info{1}{i};
               end
               
-              if n_chan > 1     % no point in following code for a single channel
+              if n_chan > 1  && ~isempty(wave_no)  % no point in following code for a single channel
                   % if all wells appear to be the same 
                   % then use wavelength instead
                   if strcmp(chan_info{1} ,chan_info{end})
                     % check size matches
-                    if size(header_info,1) > 2  &&  size(header_info,2) == n_chan
+                    if length(header_info{wave_no}) > 2  &&  length(header_info{wave_no}) == n_chan
                         for i=1:n_chan
-                          chan_info{i} = header_info{3}{i};
+                          chan_info{i} = header_info{wave_no}{i};
                         end
                     end
                   end

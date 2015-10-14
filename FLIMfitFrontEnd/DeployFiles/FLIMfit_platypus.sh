@@ -46,10 +46,22 @@ echo PATH is ${PATH};
 
   args=
   while [ $# -gt 0 ]; do
+
+# filter out args starting with "-psn_" which are process serial numbers
+# see apple docs for details
+    if [[ $1 != "-psn_"* ]]
+    then
       token=$1
       args="${args} \"${token}\"" 
-      shift
+      
+    else
+       echo "Filtering Process Serial Number!"
+    fi
+    shift
   done
+
+
+
   eval "\"${exe_dir}/FLIMfit.app/Contents/MacOS/FLIMfit\"" $args
 
 
