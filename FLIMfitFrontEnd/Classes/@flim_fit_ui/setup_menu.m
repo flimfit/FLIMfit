@@ -86,11 +86,11 @@ function handles = setup_menu(obj,handles)
     
     menu_OMERO = uimenu(obj.window,'Label','OMERO');
 
-    handles.menu_login = uimenu(menu_OMERO,'Label','Log in to OMERO');
+    handles.menu_login = uimenu(menu_OMERO,'Label','Log in to OMERO...');
 
     %handles.menu_OMERO_Working_Data_Info = uimenu(menu_OMERO,'Label','Working Data have not been set up','ForegroundColor','red','Enable','off');
 
-    menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set User');
+    menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set User...');
     %handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO_Set_Data,'Label','Dataset','Enable','off');
     %handles.menu_OMERO_Set_Plate = uimenu(menu_OMERO_Set_Data,'Label','SPW Plate','Enable','off');
     handles.menu_OMERO_Switch_User = uimenu(menu_OMERO_Set_Data,'Label','Switch User...','Separator','on','Enable','off');    
@@ -98,27 +98,27 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Connect_To_Another_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to another user...','Enable','off');    
     handles.menu_OMERO_Connect_To_Logon_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to logon user...','Enable','off');    
 
-    handles.menu_OMERO_Reset_Logon = uimenu(menu_OMERO_Set_Data,'Label','Restore Logon','Separator','on','Enable','off');                
+    handles.menu_OMERO_Reset_Logon = uimenu(menu_OMERO_Set_Data,'Label','Restore Logon...','Separator','on','Enable','off');                
     %
-    handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM data','Separator','on','Enable','off');
-    handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset','Enable','off');
+    handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM Data...','Separator','on','Enable','off');
+    handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM Data from a Dataset...','Enable','off');
     
     handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
 
-    handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset - Polarization','Enable','off');        
+    handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load Polarization Resolved Data','Enable','off');        
     %
-    handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)','Separator','on','Enable','off');    
-    handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)','Enable','off');                    
+    handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)...','Separator','on','Enable','off');    
+    handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)...','Enable','off');                    
     %handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
-    handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background','Separator','on','Enable','off');    
-    handles.menu_OMERO_Load_Background_average = uimenu(menu_OMERO,'Label','Load time-averaged background ...','Separator','off','Enable','off');    
+    handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background...','Separator','on','Enable','off');    
+    handles.menu_OMERO_Load_Background_average = uimenu(menu_OMERO,'Label','Load time-averaged background...','Separator','off','Enable','off');    
     
     
-    handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)','Enable','off');                      
-    handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)','Enable','off');                            
+    handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)...','Enable','off');                      
+    handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)...','Enable','off');                            
     %handles.menu_OMERO_Export_tvb_Annotation = uimenu(menu_OMERO,'Label','Export Time Varying Background (Annotation)','Enable','off');  
     %
-    handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
+    %handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
     %handles.menu_OMERO_export_acceptor = uimenu(menu_OMERO,'Label','Export Acceptor Images...','Enable','off');
                             
     handles.menu_OMERO_save_data_settings = uimenu(menu_OMERO,'Label','Save Data Settings...','Separator','on','Enable','off');            
@@ -127,8 +127,9 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_export_fit_params = uimenu(menu_OMERO,'Label','Export Initial Fit Parameters...','Separator','on','Enable','off');            
     handles.menu_OMERO_import_fit_params = uimenu(menu_OMERO,'Label','Import Initial Fit Parameters...','Enable','off');    
     % 
-    handles.menu_OMERO_export_plots = uimenu(menu_OMERO,'Label','Export Images...','Separator','on','Enable','off');
-    
+    handles.menu_OMERO_export_fit_table = uimenu(menu_OMERO,'Label','Export Fit Results Table...','Separator','on','Enable','off');
+    handles.menu_OMERO_export_plots = uimenu(menu_OMERO,'Label','Export Images...','Separator','off','Enable','off');
+    handles.menu_OMERO_export_hist_data = uimenu(menu_OMERO,'Label','Export Histograms...','Separator','off','Enable','off');
     %
     % Commented out until we decide on a suitable file format (common to
     % both OMERO and file-side
