@@ -1,4 +1,4 @@
-function [filename, pathname, dataset, before_list] = prompt_for_export(obj,default_path,default_name, extString)
+function [filename, pathname, selected, before_list] = prompt_for_export(obj,prompt,default_name, extString)
     %> Prompt the user for root file name & image type (TBD Dataset)
     
     % Copyright (C) 2015 Imperial College London.
@@ -27,32 +27,49 @@ function [filename, pathname, dataset, before_list] = prompt_for_export(obj,defa
     client = obj.omero_data_manager.client;
     userid = obj.omero_data_manager.userid;
     
-    if double(obj.datasetForOutputId) < 1
+    
+    
+    if obj.datasetForOutputId < 1
         dataID = javaObject('java.lang.Long',obj.datasetId);
     else
         dataID = javaObject('java.lang.Long',obj.datasetForOutputId);
     end
-        
+     
+    type = 1;       % by default select a dataset
     
     if strcmp(extString,'.tiff') 
-        paths = javaArray('java.lang.String',5);
+        fnameStrings = javaArray('java.lang.String',6);
         fnameStrings(1) = java.lang.String(default_name);
-        fnameStrings(2) = java.lang.String('.tiff');
-        fnameStrings(3) = java.lang.String('.pdf');
-        fnameStrings(4) = java.lang.String('.png');
-        fnameStrings(5) = java.lang.String('.eps');
+        fnameStrings(2) = java.lang.String(prompt);
+        fnameStrings(3) = java.lang.String('.tiff');
+        fnameStrings(4) = java.lang.String('.pdf');
+        fnameStrings(5) = java.lang.String('.png');
+        fnameStrings(6) = java.lang.String('.eps');
     else
-        paths = javaArray('java.lang.String',2);
+        fnameStrings = javaArray('java.lang.String',3);
         fnameStrings(1) = java.lang.String(default_name);
-        fnameStrings(2) = java.lang.String(extString);
+        fnameStrings(2) = java.lang.String(prompt);
+        fnameStrings(3) = java.lang.String(extString);
+        
+        % if saving a text file check if we are working from a plate
+        if obj.datasetId < 0 && obj.plateId > 0;
+            type = 2;   % type 2 = plate
+            dataID = javaObject('java.lang.Long',obj.plateId);
+        end
+    end
+     
+    if type == 2
+        chooser = OMEuiUtils.OMEROImageChooser(client, userid, type, false, dataID, fnameStrings );
+        selected = chooser.getSelectedPlate();
+    else
+        chooser = OMEuiUtils.OMEROImageChooser(client, userid, dataID, fnameStrings );
+        selected = chooser.getSelectedDataset();
     end
    
-    chooser = OMEuiUtils.OMEROImageChooser(client, userid, dataID, fnameStrings );
-    dataset = chooser.getSelectedDataset();
-    if ~isempty(dataset)
+    if ~isempty(selected)
         filename = char(chooser.getFilename());
-        id = dataset.getId.getValue();
-        if id ~= obj.datasetId
+        id = selected.getId.getValue();
+        if id ~= obj.datasetId && type == 1
             obj.datasetForOutputId = id;
         end
         

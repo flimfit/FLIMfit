@@ -70,12 +70,10 @@ classdef OMERO_data_series < flim_data_series
         
         FLIM_modality;
         
-       
-        datasetId = java.lang.Long(-1);
-        datasetForOutputId = java.lang.Long(-1);
-        plateId = java.lang.Long(-1);
-        
-        
+        datasetId = -1;
+        datasetForOutputId = -1;
+        plateId = -1;
+           
     end
     
     events
