@@ -61,9 +61,6 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             
             info = imfinfo(first);
             
-            
-            delays = zeros([1,noOfFiles]);
-            
             for f = 1:noOfFiles
                 filename = [path filesep dirStruct(f).name];
                 [~,name] = fileparts(filename);
@@ -74,15 +71,27 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 
                 tokens = regexp(name,'(?:^|\s)T\_(\d+)','tokens');
                 if ~isempty(tokens)
-                    delays(f) = str2double(tokens{1});
+                    del = str2double(tokens{1});
                 else
-                    name = name(end-4:end);      %last 6 chars contains delay
-                    delays(f) = str2double(name);
+                    sname = name(end-4:end);      %last 6 chars contains delay
+                    del = str2double(sname);  
                 end
-                
+                if isnan(del)
+                    errordlg(['Unable to parse filename: ' name]);
+                    dims.delays = [];
+                    return;
+                else
+                    delays(f) = del;
+                end
                 
                 [dims.delays, sort_idx] = sort(delays);
                 
+            end
+            
+            if length(delays) < 3
+                dimd.delays = [];
+                errordlg('Too few valid .tif files found!!');
+                return;
             end
             
              %NB dimensions reversed to retain compatibility with earlier
