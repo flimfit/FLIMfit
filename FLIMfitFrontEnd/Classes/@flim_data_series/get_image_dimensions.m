@@ -287,6 +287,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               
               n_chan = zeros(1,n_header_lines);
               wave_no = [];
+              
               for i=1:n_header_lines
                   parts = regexp(header_data{i},[ '\s*' dlm '\s*' ],'split');
                   header_info{i} = parts(2:end);
@@ -304,6 +305,12 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               % by default use well for chan_info
               for i=1:n_chan
                   chan_info{i} = header_info{1}{i};
+              end
+              
+              % catch headerless or unreadable headers
+              if isempty(n_chan) | n_chan < 1
+                  n_chan = 1;
+                  chan_info{1} = '1';
               end
               
               if n_chan > 1  && ~isempty(wave_no)  % no point in following code for a single channel
