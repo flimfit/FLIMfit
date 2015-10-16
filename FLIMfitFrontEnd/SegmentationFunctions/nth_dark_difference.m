@@ -3,10 +3,10 @@ function z = nth_dark_difference(U,scale1,rel_bg_scale1,threshold1,scale2,rel_bg
 %scale1=100,rel_bg_scale1=2,threshold1=0.1,scale2=200,rel_bg_scale2=4,threshold2=0.1,smoothing=5,min_area=200
 %scale1,Width of bright nucleus within desired object (pixels)
 %rel_bg_scale1,Background size used to calculate threshold/Object width
-%threshold1,Threshold for bright nucleus(0-1)
+%threshold1,Threshold for bright nucleus(0 or greater)
 %scale2,Width of desired object (pixels)
 %rel_bg_scale2,Background size used to calculate threshold/Object width
-%threshold2,Threshold for cytoplasm (0-1)
+%threshold2,Threshold for cytoplasm (0 or greater)
 %smoothing,Radius of smoothing kernel (pixels)
 %min_area,Minimium object area (pixel^2)
 

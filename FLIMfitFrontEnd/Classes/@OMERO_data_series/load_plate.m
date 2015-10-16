@@ -95,7 +95,7 @@ function load_plate(obj,omero_plate)
     obj.header_text = [ sname ' ' pname];
     obj.n_datasets = n_datasets;
     obj.plateId = pId;
-    obj.omero_data_manager.plate = omero_plate;
+    obj.omero_data_manager.setPlate(omero_plate);
     obj.polarisation_resolved = polarisation_resolved;
  
     metadata = struct();

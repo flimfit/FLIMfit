@@ -28,21 +28,13 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
             session = obj.omero_data_manager.session;
             userid = obj.omero_data_manager.userid;
             %
-            choice = questdlg('Do you want to visualize fitted Dataset or Plate?', ' ', ...
-                                    'Dataset' , ...
-                                    'Plate','Cancel','Cancel');              
-            switch choice
-                case 'Dataset',
-                    [ object, parent ] = select_Dataset(session,userid,'Select Dataset:'); 
-                case 'Plate', 
-                    [ object, parent ] = select_Plate(session,userid,'Select Plate:'); 
-                case 'Cancel', 
-                    return;
-            end  
-            %
+            selected = obj.select_for_annotation();
+            
+            if isempty(selected)
+                return;
+            end
+            
             obj.fit_result = f.fit_result;
-            %                                    
-            if isempty(object), return, end; 
             
             if ~isempty(parent)
                 pName = char(java.lang.String(parent.getName().getValue()));

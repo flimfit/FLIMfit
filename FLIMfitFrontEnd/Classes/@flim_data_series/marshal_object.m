@@ -30,13 +30,14 @@ function obj = marshal_object(obj,file)
 
     % Author : Sean Warren
 
+   if exist(file,'file')  
+       try 
+            doc_node = xmlread(file);
+            obj = marshal_object(doc_node,'flim_data_series',obj);
 
-   try 
-        doc_node = xmlread(file);
-        obj = marshal_object(doc_node,'flim_data_series',obj);
-        
-    catch
-       warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
-    end
+        catch
+           warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
+       end
+   end
          
 end

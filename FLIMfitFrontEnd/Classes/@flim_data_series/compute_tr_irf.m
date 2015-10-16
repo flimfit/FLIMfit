@@ -259,7 +259,10 @@ function compute_tr_irf(obj)
 
             sm = sum(obj.tr_image_irf,1);  
             sm(sm==0) = 1;
-            obj.tr_image_irf = obj.tr_image_irf ./ sm;
+            
+            %replace genops with bsxfun
+            obj.tr_image_irf = bsxfun(@rdivide,obj.tr_image_irf,sm);
+            %obj.tr_image_irf = obj.tr_image_irf ./ sm;
             
             obj.tr_image_irf = reshape(obj.tr_image_irf,sz);
             %{

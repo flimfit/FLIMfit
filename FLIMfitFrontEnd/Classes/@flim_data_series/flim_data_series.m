@@ -129,11 +129,15 @@ classdef flim_data_series < handle & h5_serializer
         
         has_image_irf = 0;
         image_irf;
+        
+        all_Z_volume_loading = false;
+        batch_mode = false;
     end
     
     properties(Transient,Hidden)
         % Properties that won't be saved to a data_settings_file or to 
         % a project file
+        loaded_from_OMERO = false;
         
         header_text = ' ';  % text to be displayed on top bar in GUI
         
@@ -293,12 +297,11 @@ classdef flim_data_series < handle & h5_serializer
         
         function load_data_settings(obj,file)
             %> Load data setting file 
-            if exist(file,'file')         
-                obj.suspend_transformation = true;
-                obj.marshal_object(file);
-                notify(obj,'masking_updated');
-                obj.suspend_transformation = false;
-            end
+            obj.suspend_transformation = true;
+            obj.marshal_object(file);
+            notify(obj,'masking_updated');
+            obj.suspend_transformation = false;
+            
         end
         
         function file = save_data_settings(obj,file)
@@ -308,7 +311,7 @@ classdef flim_data_series < handle & h5_serializer
             end
             if obj.init
                 
-                if isempty(file)
+                if isempty(file) && ~obj.batch_mode % i.e. not batch
                     choice = questdlg('Would you like to save the current settings?', ...
                     'Save Data Settings in the current directory', ...
                     'Yes','No','No');
@@ -575,7 +578,9 @@ classdef flim_data_series < handle & h5_serializer
                 case 3
                     if ~isempty(obj.tvb_I_image)
                         bg = reshape(obj.tvb_I_image,[1 1 obj.height obj.width]);
-                        bg = bg .* obj.tvb_profile + obj.background_value;
+                        % replace genops!
+                        %bg = bg .* obj.tvb_profile + obj.background_value;
+                        bg = bsxfun(@times,bg,obj.tvb_profile) + obj.background_value;
                     else
                         bg = 0;
                     end

@@ -1,13 +1,30 @@
-function[success, target] = load_flim_cube(obj, target, image, selected, current_image, dims, ZCT)
+function[success, target] = load_flim_cube(obj, target, image, read_selected, write_selected, dims, ZCT)
 
-%  Loads FLIM_data from an OMERO image or set of images
-% The underlying assumption is that if there is more than one name in
-% obj.file_names then all the required  planes in that file are to be loaded
-% If there is only one filename by contrast then only the selected planes
-% are to be loaded.
+    % Loads FLIM_data from an OMERO image or set of images
 
+    % Copyright (C) 2013 Imperial College London.
+    % All rights reserved.
+    %
+    % This program is free software; you can redistribute it and/or modify
+    % it under the terms of the GNU General Public License as published by
+    % the Free Software Foundation; either version 2 of the License, or
+    % (at your option) any later version.
+    %
+    % This program is distributed in the hope that it will be useful,
+    % but WITHOUT ANY WARRANTY; without even the implied warranty of
+    % MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    % GNU General Public License for more details.
+    %
+    % You should have received a copy of the GNU General Public License along
+    % with this program; if not, write to the Free Software Foundation, Inc.,
+    % 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+    %
+    % This software tool was developed with support from the UK 
+    % Engineering and Physical Sciences Council 
+    % through  a studentship from the Institute of Chemical Biology 
+    % and The Wellcome Trust through a grant entitled 
+    % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
-
 
     if nargin < 7        % dims/ZCT have not  been passed so get dimensions from data_series obj
         delays = obj.t;
@@ -22,11 +39,11 @@ function[success, target] = load_flim_cube(obj, target, image, selected, current
         % if image is in fact a filename then call the superclass method
         % instead
         if findstr(class(image),'char')
-            [success, target] = load_flim_cube@flim_data_series(obj, target, image, selected, dims, current_image, ZCT);
+            [success, target] = load_flim_cube@flim_data_series(obj, target, image, read_selected, write_selected, dims, ZCT);
             return;
         end
         
-        nfiles = length(selected);
+        nfiles = length(read_selected);
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);
         sizeY = dims.sizeXY(2);
@@ -176,7 +193,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, current
    
         
         % check that we are supposed to load this FLIM cube
-        if ctr == selected || polarisation_resolved || nfiles > 1
+        if ctr == read_selected || polarisation_resolved || nfiles > 1
             
             t = 0;
             
@@ -224,7 +241,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, current
                     t = t + 1;
                    
                 
-                    target(t,pctr,:,:,selected) = plane';                 
+                    target(t,pctr,:,:,write_selected) = plane';                 
                 
                 end
             
@@ -235,7 +252,7 @@ function[success, target] = load_flim_cube(obj, target, image, selected, current
                     drawnow;
                 end
             end   % end nblocks
-        end   % end if selected
+        end   % end if read_selected
         
         if polarisation_resolved
             pctr = pctr + 1;

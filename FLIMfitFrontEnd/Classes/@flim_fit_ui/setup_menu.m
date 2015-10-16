@@ -34,6 +34,7 @@ function handles = setup_menu(obj,handles)
     menu_file_load = uimenu(menu_file,'Label','Load FLIM Dataset');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load FLIM Dataset...','Accelerator','T');
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load .tif stack Dataset...','Accelerator','Y');
+    
     handles.menu_file_load_plate = uimenu(menu_file,'Label','Load Plate data...','Accelerator','W');
     
     menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
@@ -51,7 +52,6 @@ function handles = setup_menu(obj,handles)
 
     %handles.menu_file_save_dataset = uimenu(menu_file,'Label','Save FLIM Data...','Separator','on');
     handles.menu_file_save_raw = uimenu(menu_file,'Label','Save as Raw Dataset...');
-    %handles.menu_file_save_OME_tiff = uimenu(menu_file,'Label','Save as OME tiff stack...');
     handles.menu_file_save_magic_angle_raw = uimenu(menu_file,'Label','Save Magic Angle as Raw Dataset...');
 
 
@@ -77,18 +77,20 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
         menu_file_export_volume = uimenu(menu_file,'Label','Export Fit Results as volume...');    
-        handles.menu_file_export_volume_to_icy = uimenu(menu_file_export_volume,'Label','Send to Icy...');    
-
+        handles.menu_file_export_volume_to_icy = uimenu(menu_file_export_volume,'Label','Send to Icy...');
+        handles.menu_file_export_volume_as_OMEtiff = uimenu(menu_file_export_volume,'Label','Save as OME.tiff...');
+        handles.menu_file_export_volume_batch = uimenu(menu_file_export_volume,'Label','Batch-process data directory with current setup...');        
+        
     % OMERO MEGA MENU    
     %=================================
     
     menu_OMERO = uimenu(obj.window,'Label','OMERO');
 
-    handles.menu_login = uimenu(menu_OMERO,'Label','Log in to OMERO');
+    handles.menu_login = uimenu(menu_OMERO,'Label','Log in to OMERO...');
 
     %handles.menu_OMERO_Working_Data_Info = uimenu(menu_OMERO,'Label','Working Data have not been set up','ForegroundColor','red','Enable','off');
 
-    menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set User');
+    menu_OMERO_Set_Data = uimenu(menu_OMERO,'Label','Set User...');
     %handles.menu_OMERO_Set_Dataset = uimenu(menu_OMERO_Set_Data,'Label','Dataset','Enable','off');
     %handles.menu_OMERO_Set_Plate = uimenu(menu_OMERO_Set_Data,'Label','SPW Plate','Enable','off');
     handles.menu_OMERO_Switch_User = uimenu(menu_OMERO_Set_Data,'Label','Switch User...','Separator','on','Enable','off');    
@@ -96,40 +98,44 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Connect_To_Another_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to another user...','Enable','off');    
     handles.menu_OMERO_Connect_To_Logon_User = uimenu(menu_OMERO_Set_Data,'Label','Connect to logon user...','Enable','off');    
 
-    handles.menu_OMERO_Reset_Logon = uimenu(menu_OMERO_Set_Data,'Label','Restore Logon','Separator','on','Enable','off');                
+    handles.menu_OMERO_Reset_Logon = uimenu(menu_OMERO_Set_Data,'Label','Restore Logon...','Separator','on','Enable','off');                
     %
-    handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM data','Separator','on','Enable','off');
-    handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset','Enable','off');
+    handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM Data...','Separator','on','Enable','off');
+    handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM Data from a Dataset...','Enable','off');
     
     handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
 
-    handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load FLIM data from a Dataset - Polarization','Enable','off');        
+    handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load Polarization Resolved Data','Enable','off');        
     %
-    handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)','Separator','on','Enable','off');    
-    %handles.menu_OMERO_Load_IRF_WF_gated = uimenu(menu_OMERO,'Label','Load IRF (Dataset Images to average)','Enable','off'); 
-    handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)','Enable','off');                    
-    handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
-    handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background','Separator','on','Enable','off');    
-    %handles.menu_OMERO_Load_Background_form_Dataset = uimenu(menu_OMERO,'Label','Load Background (single plane: Dataset Images to smooth)','Enable','off');            
-    handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)','Enable','off');    
-    %handles.menu_OMERO_Load_tvb_from_Dataset = uimenu(menu_OMERO,'Label','Load Time Varying Background (Dataset Images)','Enable','off');                    
-    handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)','Enable','off');                            
-    handles.menu_OMERO_Export_tvb_Annotation = uimenu(menu_OMERO,'Label','Export Time Varying Background (Annotation)','Enable','off');  
+    handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)...','Separator','on','Enable','off');    
+    handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)...','Enable','off');                    
+    %handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
+    handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background...','Separator','on','Enable','off');    
+    handles.menu_OMERO_Load_Background_average = uimenu(menu_OMERO,'Label','Load time-averaged background...','Separator','off','Enable','off');    
+    
+    
+    handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)...','Enable','off');                      
+    handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)...','Enable','off');                            
+    %handles.menu_OMERO_Export_tvb_Annotation = uimenu(menu_OMERO,'Label','Export Time Varying Background (Annotation)','Enable','off');  
     %
-    handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
+    %handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
     %handles.menu_OMERO_export_acceptor = uimenu(menu_OMERO,'Label','Export Acceptor Images...','Enable','off');
+                            
+    handles.menu_OMERO_save_data_settings = uimenu(menu_OMERO,'Label','Save Data Settings...','Separator','on','Enable','off');            
+    handles.menu_OMERO_load_data_settings = uimenu(menu_OMERO,'Label','Load Data Settings...','Enable','off');    
+    
+    handles.menu_OMERO_export_fit_params = uimenu(menu_OMERO,'Label','Export Initial Fit Parameters...','Separator','on','Enable','off');            
+    handles.menu_OMERO_import_fit_params = uimenu(menu_OMERO,'Label','Import Initial Fit Parameters...','Enable','off');    
+    % 
+    handles.menu_OMERO_export_fit_table = uimenu(menu_OMERO,'Label','Export Fit Results Table...','Separator','on','Enable','off');
+    handles.menu_OMERO_export_plots = uimenu(menu_OMERO,'Label','Export Images...','Separator','off','Enable','off');
+    handles.menu_OMERO_export_hist_data = uimenu(menu_OMERO,'Label','Export Histograms...','Separator','off','Enable','off');
     %
-    handles.menu_OMERO_Load_Pate_Metadata = uimenu(menu_OMERO,'Label','Load Plate Metadata','Separator','on','Enable','off');                            
-    %
-    handles.menu_OMERO_Export_Fitting_Settings = uimenu(menu_OMERO,'Label','Export Fitting Settings','Separator','on','Enable','off');            
-    handles.menu_OMERO_Import_Fitting_Settings = uimenu(menu_OMERO,'Label','Import Fitting Settings','Enable','off');    
-    %
-    handles.menu_OMERO_Export_Data_Settings = uimenu(menu_OMERO,'Label','Export Data Settings','Separator','on','Enable','off');            
-    handles.menu_OMERO_Import_Data_Settings = uimenu(menu_OMERO,'Label','Import Data Settings','Enable','off');    
-    %
-    handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
-    handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
-    handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps','Separator','on','Enable','off');        
+    % Commented out until we decide on a suitable file format (common to
+    % both OMERO and file-side
+    %handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
+    %handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
+    %handles.menu_OMERO_Export_Visualisation_Images = uimenu(menu_OMERO,'Label','Export FLIM maps','Separator','on','Enable','off');        
 
     %===============================
        
@@ -152,8 +158,7 @@ function handles = setup_menu(obj,handles)
     
     menu_background = uimenu(obj.window,'Label','Background');
     handles.menu_background_background_load = uimenu(menu_background,'Label','Load Background...');
-    %handles.menu_background_background_load_average = uimenu(menu_background,'Label','Load background by time-averaging a time-resolved image ...');
-   handles.menu_background_background_load_series = uimenu(menu_background,'Label','Load Background from a single .tif of a stack...');
+    handles.menu_background_background_load_average = uimenu(menu_background,'Label','Load time-averaged background ...');
     
     handles.menu_background_tvb_load = uimenu(menu_background,'Label','Load Time Varying Background...','Separator','on');
     handles.menu_background_tvb_use_selected = uimenu(menu_background,'Label','Use Selected Region as Time Varying Background');

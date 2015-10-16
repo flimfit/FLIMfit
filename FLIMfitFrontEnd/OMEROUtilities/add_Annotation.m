@@ -1,4 +1,4 @@
-function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_file_name,description,namespace)
+function ret = add_Annotation(session,userId,object,file_mime_type,full_file_name,description,namespace)
 
         % Copyright (C) 2013 Imperial College London.
         % All rights reserved.
@@ -29,12 +29,14 @@ function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_fil
         %
         ret = false;
         %
-        if isempty(full_file_name) || isempty(full_file_name) || isempty(sha1)...
+        if isempty(full_file_name)...
                 || isempty(file_mime_type) || isempty(session) || isempty(object)
             return;
         end;
-        %
-%    try                               
+        
+        if exist(full_file_name, 'file') ~= 2
+            return;
+        end
 
         fa = writeFileAnnotation(session, full_file_name,...
             'mimetype', file_mime_type, 'description', description,...
@@ -47,11 +49,11 @@ function ret = add_Annotation(session,userId,object,sha1,file_mime_type,full_fil
                                 
         linkAnnotation(session, fa, lower(class_names{k}),...
             object.getId().getValue());
-        %
-%     catch ME
-%         disp(ME);
-%         return;
-%     end
-    %
+        
+        % if this is a temp file then delete
+        if strfind(full_file_name,tempdir)
+            delete(full_file_name);
+        end
+
     ret = true;    
 end

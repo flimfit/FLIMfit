@@ -114,12 +114,14 @@ function handles = setup_layout(obj, handles)
     intensity_layout = uiextras.VBox( 'Parent', dataset_layout, 'Spacing', 3 );
     
     intensity_opts_layout = uiextras.HBox( 'Parent', intensity_layout, 'Spacing', 3 );
-    uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', intensity_opts_layout, ...
+    handles.intensity_mode_limits_text = uicontrol( 'Style', 'text', 'String', ' ', 'Parent', intensity_opts_layout, ...
+               'HorizontalAlignment', 'left' );
+    uicontrol( 'Style', 'text', 'String', 'Mode ', 'Parent', intensity_opts_layout, ...
                'HorizontalAlignment', 'right' );
     handles.intensity_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Integrated Intensity','Background','TVB Intensity Map','SV IRF','IRF Shift Map'}, 'Parent', intensity_opts_layout );
     
-    set( intensity_opts_layout, 'Sizes', [-1,200] );
+    set( intensity_opts_layout, 'Sizes', [80,-1,200] );
     
     
     intensity_container = uicontainer( 'Parent', intensity_layout ); 

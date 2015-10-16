@@ -23,7 +23,7 @@
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-    
+   
     if nargin < 2
         file = [];
     end
@@ -102,12 +102,10 @@
                 if isempty(ann)
                     namespace = 'IC_PHOTONICS';
                     description = ' ';            
-                    sha1 = char('pending');
                     file_mime_type = char('application/octet-stream');
 
                     add_Annotation(session, obj.omero_data_manager.userid, ...
                                 parent, ...
-                                sha1, ...
                                 file_mime_type, ...
                                 tmpfile, ...
                                 description, ...

@@ -70,11 +70,10 @@ classdef OMERO_data_series < flim_data_series
         
         FLIM_modality;
         
-       
-        datasetId = java.lang.Long(-1);
-        plateId = java.lang.Long(-1);
-        
-        
+        datasetId = -1;
+        datasetForOutputId = -1;
+        plateId = -1;
+           
     end
     
     events
@@ -87,6 +86,8 @@ classdef OMERO_data_series < flim_data_series
     
     methods
         
+     
+        
      function obj = OMERO_data_series(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
@@ -96,7 +97,8 @@ classdef OMERO_data_series < flim_data_series
             
             obj.fitted_data = [];
             obj.fit_result = [];
-            obj.FLIM_modality = [];             
+            obj.FLIM_modality = [];   
+            obj.loaded_from_OMERO = true;
         end
                                         
         function delete(obj)
