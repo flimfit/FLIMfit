@@ -28,9 +28,6 @@ function compile(v)
     disp( 'Starting Matlab compilation.' );
 
     if nargin >= 1
-        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'r');
-        oldv = fgetl(fid);      % repo version for passing to inno setup
-        fclose(fid)
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
         fwrite(fid,v);
         fclose(fid);
@@ -65,7 +62,6 @@ function compile(v)
     dll_interface.load_global_library();
 
     sys = '64'; % deprecate support for 32 bit
-    arch = 'x64';
     
     % Build compiled Matlab project
     %------------------------------------------------
@@ -102,7 +98,7 @@ function compile(v)
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
-    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' oldv '_' computer]
+    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v]
 
     disp( ['creating folder at  ' deploy_folder ] );
     mkdir(deploy_folder);
@@ -128,9 +124,21 @@ function compile(v)
             
             copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
-            root = [cd '\..'];
-            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' oldv '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
+            matlab_v = version('-release');
+            [major, minor] = mcrversion;
+            mcr_v = [num2str(major) '.' num2str(minor)];
             
+            if ~exist('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt', 'file')
+                disp('No VS Redistributable location found. Please run Configure_WIN.bat in repository root');
+            end
+            fid = fopen('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt','r');
+            redist_file = fgetl(fid);
+            fclose(fid);
+            
+            root = [cd '\..'];
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMcrVer="' mcr_v '" /dMatlabVer="' matlab_v ...
+                   '" /dMyAppVersion="' v '" /dRepositoryRoot="' root '" /dVSRedist="' redist_file '" "InstallerScript.iss"'];
+            disp(cmd);
             system(cmd);
                                                                                                                                                                                                                          
                                                                                                                                                                                                       
