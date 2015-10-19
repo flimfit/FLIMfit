@@ -13,34 +13,22 @@ echo "Ensure cmake, gcc 4.9 and boost are installed..."
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 
-# Make sure we compile with gcc-4.9
-export CC=gcc-4.9
-export CXX=g++-4.9
+PROJECT_TYPE=xcode
 
-echo "Cleaning 64 bit CMake Project..."
-rm -rf GeneratedProjects/gcc_64
-mkdir -p GeneratedProjects/gcc_64
-cd GeneratedProjects/gcc_64
+export CC=/usr/local/bin/clang-omp
+export CXX=/usr/local/bin/clang-omp++
 
-echo "Generating 64 bit CMake Project..."
-cmake ../../ -G "Unix Makefiles"
+cd GeneratedProjects
 
-echo "Building 64 bit Project..."
+echo "Cleaning CMake Project..."
+rm -rf ${PROJECT_TYPE}
+mkdir -p ${PROJECT_TYPE}
+cd ${PROJECT_TYPE}
+
+echo "Generating CMake Project..."
+cmake ../../ -G "Xcode" -DCMAKE_BUILD_TYPE=RELEASE
+
+echo "Building Project..."
 make
 
 cd ../../
-
-#export CC=
-#export CXX=
-
-#echo "Cleaning 64 bit CMake Xcode Project..."
-#rm -rf GeneratedProjects/Xcode_64
-#mkdir -p GeneratedProjects/Xcode_64
-#cd GeneratedProjects/Xcode_64
-
-#echo "Generating 64 bit CMake Xcode Project..."
-#cmake ../../ -G "Xcode"
-
-#cd ../../
-
-

@@ -1,23 +1,21 @@
-
-OME=5.1
-WORKSPACE=.
 PROJECT_TYPE=xcode
+OME=5.1
+MATLAB_VER=R2015b
 
-# Make sure we compile with gcc-4.9
-export CC=/usr/local/bin/clang-omp
-export CXX=/usr/local/bin/clang-omp++
+cd FLIMfitLibrary
+./Build_MAC64.sh
+cd ..
 
-cd FLIMfitLibrary/GeneratedProjects
+export PATH=/Applications/MATLAB_${MATLAB_VER}.app/bin:$PATH
+# compile the Matlab code to generate the FLIMfit_MACI64.app
+cd FLIMfitFrontEnd
+OLDVER="$(cat GeneratedFiles/version.txt)"
+VERSION=$(git describe)
 
-echo "Cleaning 64 bit CMake Project..."
-rm -rf ${PROJECT_TYPE}
-mkdir -p ${PROJECT_TYPE}
-cd ${PROJECT_TYPE}
+matlab -nodisplay -nosplash -r "compile $VERSION; exit"
 
-echo "Generating 64 bit CMake Project..."
-cmake ../../ -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE
 
-echo "Building 64 bit Project..."
-make
+cd FLIMfitStandalone/FLIMfit_${OLDVER}_MACI64
+zip -r FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64.zip *.app/
 
-#THIRD 
+zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
