@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set OME=5.1
+if [ -z ${OME+x} ]; then set OME=5.1; echo "Setting OME=5.1"; fi
 
 export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
@@ -13,14 +13,15 @@ echo "Checking for homebrew install..."
 brew update
 
 echo "Ensure cmake, clang-omp and boost are installed..."
-# Ensure clang-omp, ghostscript, cmake, LAPACK boost is installed using Homebrew
-(brew list | grep clang-omp) || brew install clang-omp
+# Ensure gcc-4.9, ghostscript, cmake, LAPACK, boost are installed using Homebrew
+(brew list | grep gcc49) || brew install homebrew/versions/gcc49
 (brew list | grep boost) && echo " installed" || brew install boost
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 (brew list | grep lapack) && echo " installed" || brew install homebrew/dupes/LAPACK
 
 # Download OMERO Matlab plug-in
+echo "Downloading OMERO/bioformats components..."
 curl -OL http://downloads.openmicroscopy.org/latest/omero$OME/matlab.zip
 unzip -o matlab.zip
 mv OMERO.matlab*/* FLIMfitFrontEnd/OMEROMatlab/

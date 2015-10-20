@@ -1,17 +1,16 @@
 #!/bin/bash
 
-OME=5.1
-MATLAB_VER=R2015b
-PROJECT_TYPE=Unix
+if [ -z ${OME+x} ]; then set OME=5.1; echo "Setting OME=5.1"; fi
+if [ -z ${MATLAB_VER+x} ]; then set MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
 
 export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
 
 echo "Cleaning CMake Project..."
 cd GeneratedProjects
-rm -rf ${PROJECT_TYPE}
-mkdir -p ${PROJECT_TYPE}
-cd ${PROJECT_TYPE}
+rm -rf Unix
+mkdir -p Unix
+cd Unix
 
 echo "Generating CMake Project..."
 cmake ../../ -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE \
