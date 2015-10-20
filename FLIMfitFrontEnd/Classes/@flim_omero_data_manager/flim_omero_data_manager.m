@@ -47,10 +47,22 @@ classdef flim_omero_data_manager < handle
         function obj = flim_omero_data_manager(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
+            dataset = [];
+            plate = [];
             
         end
                                         
         function delete(obj)
+        end
+        
+        function setDataset(obj, dset) 
+            obj.dataset = dset;
+            obj.plate = [];
+        end
+        
+        function setPlate(obj, pl) 
+            obj.dataset = [];
+            obj.plate = pl;
         end
                                 
         %------------------------------------------------------------------        

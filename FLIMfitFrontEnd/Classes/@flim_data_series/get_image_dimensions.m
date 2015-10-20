@@ -61,9 +61,6 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             
             info = imfinfo(first);
             
-            
-            delays = zeros([1,noOfFiles]);
-            
             for f = 1:noOfFiles
                 filename = [path filesep dirStruct(f).name];
                 [~,name] = fileparts(filename);
@@ -74,15 +71,27 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                 
                 tokens = regexp(name,'(?:^|\s)T\_(\d+)','tokens');
                 if ~isempty(tokens)
-                    delays(f) = str2double(tokens{1});
+                    del = str2double(tokens{1});
                 else
-                    name = name(end-4:end);      %last 6 chars contains delay
-                    delays(f) = str2double(name);
+                    sname = name(end-4:end);      %last 6 chars contains delay
+                    del = str2double(sname);  
                 end
-                
+                if isnan(del)
+                    errordlg(['Unable to parse filename: ' name]);
+                    dims.delays = [];
+                    return;
+                else
+                    delays(f) = del;
+                end
                 
                 [dims.delays, sort_idx] = sort(delays);
                 
+            end
+            
+            if length(delays) < 3
+                dimd.delays = [];
+                errordlg('Too few valid .tif files found!!');
+                return;
             end
             
              %NB dimensions reversed to retain compatibility with earlier
@@ -288,6 +297,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               
               n_chan = zeros(1,n_header_lines);
               wave_no = [];
+              
               for i=1:n_header_lines
                   parts = regexp(header_data{i},[ '\s*' dlm '\s*' ],'split');
                   header_info{i} = parts(2:end);
@@ -305,6 +315,12 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
               % by default use well for chan_info
               for i=1:n_chan
                   chan_info{i} = header_info{1}{i};
+              end
+              
+              % catch headerless or unreadable headers
+              if isempty(n_chan) | n_chan < 1
+                  n_chan = 1;
+                  chan_info{1} = '1';
               end
               
               if n_chan > 1  && ~isempty(wave_no)  % no point in following code for a single channel
