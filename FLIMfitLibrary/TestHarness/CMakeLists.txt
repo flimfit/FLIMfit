@@ -87,6 +87,6 @@ add_executable(TestHarness ${SOURCE} ${HEADERS} )
 #get_target_property(EXE_LOCATION TestHarness LOCATION)
 #add_custom_command(TARGET TestHarness POST_BUILD COMMAND $<TARGET_FILE:TestHarness> ARGS --result_code=no --report_level=no --catch_system_errors=no)
 
-target_link_libraries(TestHarness ${FGP_LIB} levmar)
+target_link_libraries(TestHarness ${FGP_LIB} levmar ${LEVMAR_LIBRARIES})
 
 

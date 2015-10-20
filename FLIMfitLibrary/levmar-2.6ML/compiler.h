@@ -20,6 +20,8 @@
 #ifndef _COMPILER_H_
 #define _COMPILER_H_
 
+#include <math.h>
+
 /* note: intel's icc defines both __ICC & __INTEL_COMPILER.
  * Also, some compilers other than gcc define __GNUC__,
  * therefore gcc should be checked last
@@ -30,20 +32,8 @@
 #define inline // other than MSVC, ICC, GCC: define empty
 #endif
 
-#ifdef _MSC_VER
-#define LM_FINITE _finite // MSVC
-#elif defined(__ICC) || defined(__INTEL_COMPILER) || defined(__GNUC__)
-#define LM_FINITE finite // ICC, GCC
-#else
-#define LM_FINITE finite // other than MSVC, ICC, GCC, let's hope this will work
-#endif
-
-#ifdef _MSC_VER
-#define LM_ISINF(x) (!_finite(x) && !_isnan(x)) // MSVC
-#elif defined(__ICC) || defined(__INTEL_COMPILER) || defined(__GNUC__)
-#define LM_ISINF(x) isinf(x) // ICC, GCC
-#else
-#define LM_ISINF(x) isinf(x) // other than MSVC, ICC, GCC, let's hope this will work
-#endif
+// Lets just use the c99 versions
+#define LM_FINITE isfinite
+#define LM_ISINF isinf
 
 #endif /* _COMPILER_H_ */

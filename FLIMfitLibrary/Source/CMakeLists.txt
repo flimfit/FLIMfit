@@ -33,34 +33,21 @@ project(FLIMfit)
 
 # Include the BOOST header files
 #===================================================
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-endif()
-include_directories( "../Boost" )
+FIND_PACKAGE(Boost REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 # Enable OpenMP support, disable for XCode
 #===================================================
-#if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-#   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-#   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
-#else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   find_package("OpenMP")
-   if (OPENMP_FOUND)
-      option(USE_OMP "Use OpenMP" ON)
-      if (USE_OMP)
-         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
-         message("Using OpenMP")
-      endif()
+find_package("OpenMP")
+if (OPENMP_FOUND)
+   option(USE_OMP "Use OpenMP" ON)
+   if (USE_OMP)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+      message("Using OpenMP")
    endif()
-#endif()
-
-#find_package(HDF5)
-#include_directories (${HDF5_INCLUDE_DIRS})
+endif()
 
 include_directories( ${LEVMAR_INCLUDE_DIRS} )
-
-
 
 # Set the source and header files
 #===================================================
@@ -108,27 +95,8 @@ set(HEADERS
    ConcurrencyAnalysis.h
 )
 
-# Add _32/_64 appendix to library
-#===================================================
-if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_64" )
-else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_32" ) 
-endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+set(LIB_NAME "FLIMGlobalAnalysis_64")
 
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
-
-
-# Copy header to output directory
-#===================================================
-#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h DESTINATION ${OUT_DIR})
-#file(COPY  ${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h DESTINATION ${OUT_DIR})
 
 # Include optimisation flags in Visual Studio
 #===================================================
@@ -168,7 +136,7 @@ add_library(${STATIC_NAME} STATIC ${SOURCE} ${HEADERS} )
 add_library(${LIB_NAME} SHARED FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
 
 
-target_link_libraries(${LIB_NAME} ${STATIC_NAME} levmar)
+target_link_libraries(${LIB_NAME} ${STATIC_NAME} levmar ${LEVMAR_LIBRARIES})
 
 
 
@@ -177,9 +145,9 @@ target_link_libraries(${LIB_NAME} ${STATIC_NAME} levmar)
 set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
 
 get_target_property(LIB_LOCATION ${LIB_NAME} LOCATION)
-add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIB_LOCATION} ${OUT_DIR}
-                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FLIMGlobalAnalysis.h" ${OUT_DIR}
-                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Source/FlagDefinitions.h" ${OUT_DIR})
+add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:FLIMGlobalAnalysis_64> ${OUT_DIR}
+                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/FLIMGlobalAnalysis.h" ${OUT_DIR}
+                                                 COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/FlagDefinitions.h" ${OUT_DIR})
 
 set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Include dir for GlobalProcessing." FORCE )
 set( FGP_LIB ${STATIC_NAME} CACHE STRING "Include dir for GlobalProcessing." FORCE )

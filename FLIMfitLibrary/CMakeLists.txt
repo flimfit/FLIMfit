@@ -7,11 +7,9 @@
 ##
 ##=========================================================================
 
-project(FLIMfit)
+project(FLIMfitLib)
 
-set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "/usr/local/bin/clang-omp++")
-
-set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
+set(OUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 add_subdirectory( "levmar-2.6ML" )

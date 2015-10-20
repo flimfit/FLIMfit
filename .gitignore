@@ -10,13 +10,14 @@ syntax: glob
 *.orig
 *.bak
 *.rej
+*.dll
+*.dylib
 data_settings.xml
 FLIMGlobalAnalysisProto_*
 .DS_Store
-FLIMFitLibrary/Boost/*
 FLIMFitLibrary/Minpack/*
 TestDatasets/*
-FLIMFitLibrary/GeneratedProjects/*
+GeneratedProjects/*
 FLIMFitFrontEnd/FLIMGlobalAnalysis_64_thunk_*
 GlobalProcessingFrontEnd/FLIMfit_32/*
 GlobalProcessingFrontEnd/FLIMfit_64/*
