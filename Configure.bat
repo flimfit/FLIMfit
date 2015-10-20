@@ -1,5 +1,4 @@
 @echo off
-Setlocal EnableDelayedExpansion
 
 IF NOT DEFINED OME SET OME=5.1
 IF NOT DEFINED MSVC_VER SET MSVC_VER=12
@@ -20,7 +19,11 @@ curl -LO http://www.sherlocksoftware.org/innotools/files/itd0.3.5.exe
 itd0.3.5.exe /silent
 del itd0.3.5.exe
 
+
+Setlocal EnableDelayedExpansion
+
 :: Check if requested version of Visual Studio is installed
+echo H: !VS%MSVC_VER%0COMNTOOLS!
 IF NOT DEFINED VS%MSVC_VER%0COMNTOOLS (
 	IF MSVC_VER==14	( choco install visualstudio2015community -y  -packageParameters "--Features MDDCPlusPlus"
 	) ELSE (
@@ -42,18 +45,18 @@ FOR /D %%G in ("%REDIST_STR%") DO (
 )
 :skip
 
+Endlocal & SET MSVC_VER=%MSVC_VER%
 
 :: Setup Boost
 SET BOOST_URL=http://sourceforge.net/projects/boost/files/boost-binaries/%BOOST_VER_MAJOR%.%BOOST_VER_MINOR%.0/boost_%BOOST_VER_MAJOR%_%BOOST_VER_MINOR%_0-msvc-%MSVC_VER%.0-64.exe/download
 SET BOOST_ROOT=c:\local\boost_%BOOST_VER_MAJOR%_%BOOST_VER_MINOR%_0\
 SET BOOST_LIBRARYDIR=%BOOST_ROOT%lib64-msvc-%MSVC_VER%.0\
 SETX BOOST_ROOT c:\local\boost_%BOOST_VER_MAJOR%_%BOOST_VER_MINOR%_0\
-SETX BOOST_LIBRARYDIR %BOOST_ROOT%\lib64-msvc-%MSVC_VER%.0\
+SETX BOOST_LIBRARYDIR %BOOST_ROOT%lib64-msvc-%MSVC_VER%.0\
 
 
 
 :: Check if boost is installed and install if not
-echo %BOOST_LIBRARYDIR%
 if exist %BOOST_LIBRARYDIR% (
 	echo Boost already installed
 ) else (
@@ -87,3 +90,4 @@ xcopy FLIMfitFrontEnd\BFMatlab\bfmatlab\* FLIMfitFrontEnd\BFMatlab\ /E /Y
 
 :: Download ini4j.jar
 curl -L http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar -o%OMERO_LIBS_FOLDER%ini4j.jar
+
