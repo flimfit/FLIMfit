@@ -17,7 +17,7 @@ EndLocal
 
 echo Cleaning CMake Project
 SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64
-rmdir %PROJECT_DIR% /s /q
+::rmdir %PROJECT_DIR% /s /q
 mkdir %PROJECT_DIR%
 cd %PROJECT_DIR%
 
@@ -36,8 +36,6 @@ echo Compiling front end
 echo Please wait for MATLAB to load
 
 cd FLIMfitFrontEnd
-::"%ProgramFiles%\MATLAB\R%MATLAB_VER%\bin\matlab.exe" -nodisplay -nosplash -nodesktop -r "run('compile.m');"
-
-echo Finished build
+"%ProgramFiles%\MATLAB\R%MATLAB_VER%\bin\matlab.exe" -nodisplay -nosplash -nodesktop -r "run('compile.m');"
 
 cd ..
