@@ -71,7 +71,8 @@ function handles = setup_menu(obj,handles)
     %handles.menu_file_export_fit_results = uimenu(menu_file,'Label','Export Fit Results as HDF...','Separator','on');    
     %handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
     
-    handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...','Separator','on');
+    handles.menu_file_export_intensity = uimenu(menu_file,'Label','Export Intensity Images...','Separator','on');
+    handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...');
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
       

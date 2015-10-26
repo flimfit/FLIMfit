@@ -134,6 +134,8 @@ classdef front_end_menu_controller < handle
         menu_file_import_exclusion_list;
         menu_file_export_exclusion_list;
         
+        menu_file_export_intensity;
+        
         % icy..
         menu_file_export_volume_to_icy;
         menu_file_export_volume_as_OMEtiff;
@@ -797,6 +799,11 @@ classdef front_end_menu_controller < handle
             if filename ~= 0
                 obj.fit_controller.load_fit_result([pathname filename]);           
             end
+        end
+        
+        function menu_file_export_intensity_callback(obj,~,~)
+            folder = uigetdir(obj.default_path);
+            obj.data_series_controller.data_series.export_intensity_images(folder);
         end
         
         %------------------------------------------------------------------
