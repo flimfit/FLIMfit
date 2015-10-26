@@ -431,7 +431,7 @@ classdef front_end_menu_controller < handle
             dId = obj.data_series_controller.data_series.datasetId;
             pId = obj.data_series_controller.data_series.plateId;
             if dId < 1 && pId > 0
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2));
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2), false, java.lang.Long(pId), '');
                 selected = chooser.getSelectedPlate();
             else
                 selected = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
