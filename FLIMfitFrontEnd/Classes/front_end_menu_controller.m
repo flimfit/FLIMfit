@@ -1044,31 +1044,31 @@ classdef front_end_menu_controller < handle
             OMEROsave = false;
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
-                choice = questdlg('Do you want to export t0 shift data to the current working Omero data or save on disk?', ' ', ...
+                choice = questdlg('Do you want to export t0 shift data to the current OMERO server or save on disk?', ' ', ...
                                         'Omero' , ...
                                         'disk','Cancel','Cancel');  
                 if strcmp( choice, 'Cancel'), return, end; 
                 if strcmp( choice, 'Omero')
                     [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.xml');
                     OMEROsave = true;
-                else
-                    [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-                end                                              
-                                                                              
-                if filename ~= 0
-                    serialise_object(t0_data,[pathname filename],'flim_data_series');
-                    if OMEROsave
-                         add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
-                                dataset, ...
-                                char('application/octet-stream'), ...
-                                [pathname filename], ...
-                                '', ...
-                                'IC_PHOTONICS');  
-                    end
-                end  
-                      
+                end    
             end
             
+            if ~OMEROsave
+                [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            end                                                               
+            if filename ~= 0
+                serialise_object(t0_data,[pathname filename],'flim_data_series');
+                if OMEROsave
+                    add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                        dataset, ...
+                        char('application/octet-stream'), ...
+                        [pathname filename], ...
+                        '', ...
+                        'IC_PHOTONICS');
+                end
+            end
+                        
         end
         
         function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
@@ -1079,31 +1079,30 @@ classdef front_end_menu_controller < handle
             OMEROsave = false;
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
-                choice = questdlg('Do you want to export t0 shift data to the current working Omero data or save on disk?', ' ', ...
+                choice = questdlg('Do you want to export t0 shift data to the current OMERO server or save to disk?', ' ', ...
                                         'Omero' , ...
                                         'disk','Cancel','Cancel');  
                 if strcmp( choice, 'Cancel'), return, end; 
                 if strcmp( choice, 'Omero')
                     [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.xml');
                     OMEROsave = true;
-                else
-                    [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
-                end                                              
-                                                                              
-                if filename ~= 0
-                    serialise_object(tvb_data,[pathname filename],'flim_data_series');
-                    if OMEROsave
-                         add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
-                                dataset, ...
-                                char('application/octet-stream'), ...
-                                [pathname filename], ...
-                                '', ...
-                                'IC_PHOTONICS');  
-                    end
-                end  
-                      
+                end   
             end
             
+            if ~OMEROsave
+                [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            end                                                                  
+            if filename ~= 0
+                serialise_object(tvb_data,[pathname filename],'flim_data_series');
+                if OMEROsave
+                    add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                        dataset, ...
+                        char('application/octet-stream'), ...
+                        [pathname filename], ...
+                        '', ...
+                        'IC_PHOTONICS');
+                end
+            end
         end
 
   
