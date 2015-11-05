@@ -428,13 +428,21 @@ classdef front_end_menu_controller < handle
         end                    
         %------------------------------------------------------------------
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
-            dId = obj.data_series_controller.data_series.datasetId;
-            pId = obj.data_series_controller.data_series.plateId;
+            
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
+            
+                dId = obj.data_series_controller.data_series.datasetId;
+                pId = obj.data_series_controller.data_series.plateId;
+            else
+                dId = -1;
+                pId = -1;
+            end
+           
             if dId < 1 && pId > 0
                 chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2), false, java.lang.Long(pId), '');
                 selected = chooser.getSelectedPlate();
             else
-                selected = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
                 selected = chooser.getSelectedDataset();
             end
             clear chooser;
