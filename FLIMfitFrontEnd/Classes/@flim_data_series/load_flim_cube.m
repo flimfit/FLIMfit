@@ -442,7 +442,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
               
             % if this is the same file from which we got the image
             % dimensions
-            if strcmp(file,obj.file_names(1) )  && ~isempty(obj.txtInfoRead)
+               
+            if  ~isempty(obj.file_names) & strcmp(file,obj.file_names(1) )  & ~isempty(obj.txtInfoRead)
                 ir = obj.txtInfoRead;
             else
                 ir = load(file);
