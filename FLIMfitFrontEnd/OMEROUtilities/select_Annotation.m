@@ -48,25 +48,20 @@ function [ret fname] = select_Annotation(session, userId, object, prompt)
             ret = -1;
             return;
         end                
-        %        
-        str = char(256,256);
-        z = 0;
+       
         for j = 0:annotations.size()-1
-            anno_j_name = char(java.lang.String(annotations.get(j).getFile().getName().getValue()));
-            z = z + 1;
-            str(z,1:length(anno_j_name)) = anno_j_name;
+            anno_names{j+1} = char(java.lang.String(annotations.get(j).getFile().getName().getValue()));
         end
-        %
-        str = str(1:annotations.size(),:);
-        %
+         
         [s,v] = listdlg('PromptString',prompt,...
                             'SelectionMode','single',...
                             'ListSize',[300 300],...                            
-                            'ListString',str);
-        %
+                            'ListString',anno_names);
+        
         if(v)
             ann = annotations.get(s-1);
             fname = char(java.lang.String(ann.getFile().getName().getValue()));
+
         else
             return;
         end;
@@ -76,10 +71,9 @@ function [ret fname] = select_Annotation(session, userId, object, prompt)
         rawFileStore.setFileId(originalFile.getId().getValue());
         %
         byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
-        %
-        %ret = char(byteArr'); ?!        
+           
         ret = byteArr;
-        %
+        
 	    rawFileStore.close();
 end
 
