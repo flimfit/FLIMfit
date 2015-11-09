@@ -29,21 +29,24 @@ function [ret fname] = select_Annotation(session, userId, object, prompt)
         %
         ret = [];
         fname = [];
-        %
-        class_names = {'Dataset','Project','Plate','Screen','Image'};        
-        for k = 1:numel(class_names)
-            if strfind(class(object),class_names{k}), break, end;
+        
+        
+        class_names = getObjectTypes();       
+        for k = 1:length(class_names)
+            if strfind(class(object),class_names(k).class);
+                parentType = class_names(k).class;
+                break;
+            end;
         end
-        %
-        specifier = ['omero.model.' class_names{k}];        
-        %
+              
+        
         objId = java.lang.Long(object.getId().getValue());
-        %
+        
         annotators = java.util.ArrayList;    
         metadataService = session.getMetadataService();
-        map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(objId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
+        map = metadataService.loadAnnotations(parentType, java.util.Arrays.asList(objId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
         annotations = map.get(objId);
-        %
+        
         if 0 == annotations.size()
             ret = -1;
             return;
