@@ -166,8 +166,9 @@ classdef front_end_menu_controller < handle
         menu_tools_estimate_irf;
         menu_tools_create_irf_shift_map;
         menu_tools_create_tvb_intensity_map;
+        menu_tools_fit_gaussian_irf;
         menu_tools_preferences;
-        
+                
         menu_test_test1;
         menu_test_test2;
         menu_test_test3;
@@ -252,15 +253,32 @@ classdef front_end_menu_controller < handle
                 if strncmp(prop,'menu_',5)
                     method = [prop '_callback'];
                     matching_methods = findobj([obj_method{:}],'Name',method);
-                    if ~isempty(matching_methods)               
-                        eval(['set(obj.' prop ',''Callback'',@obj.' method ')' ]);
+                    if ~isempty(matching_methods)  
+                        fcn = eval(['@obj.' method]);
+                        set(obj.(prop),'Callback',@(x,y) obj.EscapedCallback(x,y,fcn));
+                        %eval(['set(obj.' prop ',''Callback'',@obj.' method ')' ]);
                     end
                 end          
              end
              
         end
         
-                       
+                  
+        function EscapedCallback(obj, ~, ~, fcn)
+            fcn([],[]);
+            %{
+            try
+                
+                fcn([],[]);
+            catch e
+                
+                msgbox(e.message);
+                
+            end
+            %}
+            
+        end
+        
         function set.recent_data(obj,recent_data)
             obj.recent_data = recent_data;
             setpref('GlobalAnalysisFrontEnd','RecentData',recent_data);
