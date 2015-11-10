@@ -169,7 +169,8 @@ function handles = setup_menu(obj,handles)
     %handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
     handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
     handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
-
+    handles.menu_tools_fit_gaussian_irf = uimenu(menu_tools,'Label','Fit Gaussian IRF...');
+    
     handles.menu_tools_preferences = uimenu(menu_tools,'Label','Preferences...','Separator','on');
    
     % NB odd naming in this menu allows easy movement of items back 

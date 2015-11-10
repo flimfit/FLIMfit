@@ -1096,6 +1096,33 @@ classdef front_end_menu_controller < handle
             
         end
         
+        function menu_tools_fit_gaussian_irf_callback(obj,~,~)
+
+            fh = figure(100);
+            set(fh,'Name','Estimate Gaussian IRF','NumberTitle','off');
+            ax = axes();
+           
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = mean(double(data),3);
+            
+            for i=1:size(data,2)
+                irf(:,i) = FitGaussianIRF(t,data(:,i),ax);
+            end
+
+            plot(ax, t, irf);
+            ylabel('IRF'); xlabel('Time (ps)');
+
+            [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
+            csvwrite([path file], [t, irf]);
+            
+            close(fh);
+            
+        end
+        
         function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
 
             mask=obj.data_masking_controller.roi_controller.roi_mask;
