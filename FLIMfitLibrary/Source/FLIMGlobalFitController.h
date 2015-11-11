@@ -289,6 +289,7 @@ private:
 
    int ma_start;
    float* local_decay;
+   float* binned_decay;
    double g_factor;
 
    double photons_per_count;
