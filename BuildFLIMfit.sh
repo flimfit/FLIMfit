@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then set OME=5.1; echo "Setting OME=5.1"; fi
-if [ -z ${MATLAB_VER+x} ]; then set MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
+if [ -z ${OME+x} ]; then export OME=5.1; echo "Setting OME=5.1"; fi
+if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
 
 export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
