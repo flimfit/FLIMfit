@@ -13,12 +13,13 @@ echo "Checking for homebrew install..."
 brew update
 brew upgrade
 
-echo "Ensure cmake, clang-omp and boost are installed..."
+echo "Ensure cmake, gcc and boost are installed..."
 # Ensure gcc-4.9, ghostscript, cmake, LAPACK, boost are installed using Homebrew
 (brew list | grep gcc49) || brew install homebrew/versions/gcc49
 (brew list | grep boost) && echo " installed" || brew install boost
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
+(brew list | grep platypus) && echo " installed" || brew install platypus
 (brew list | grep lapack) && echo " installed" || brew install homebrew/dupes/LAPACK
 
 # Download OMERO Matlab plug-in

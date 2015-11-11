@@ -107,10 +107,6 @@ if(MSVC)
    set(PLATFORM_FLAGS_DEBUG "/ZI")
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
    add_definitions(-D_MSVC)
-
-   if(CMAKE_VS_PLATFORM_TOOLSET MATCHES "v110")
-	 message("Warning: When using VS2012 make sure you select the v110_xp toolchain to allow use on WinXP")
-   endif(CMAKE_VS_PLATFORM_TOOLSET MATCHES "v110")
 endif(MSVC)
 
 if(UNIX)

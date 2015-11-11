@@ -20,8 +20,6 @@ cmake ../../ -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE \
 echo "Building Project..."
 make
 
-exit  
-
 cd ../../
 
 export PATH=/Applications/MATLAB_${MATLAB_VER}.app/bin:$PATH
@@ -36,4 +34,4 @@ matlab -nodisplay -nosplash -r "compile $VERSION; exit"
 cd FLIMfitStandalone/FLIMfit_${OLDVER}_MACI64
 zip -r FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64.zip *.app/
 
-zip clang_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
+zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
