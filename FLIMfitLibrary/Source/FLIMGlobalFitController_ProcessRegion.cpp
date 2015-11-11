@@ -55,6 +55,7 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
    int r_idx = data->GetRegionIndex(g,region);
 
    float  *local_decay     = this->local_decay + thread * n_meas;
+   float  *binned_decay    = this->local_decay + thread * n_meas;
 
    double *alf_local       = this->alf_local + thread * nl * 3;
    double *err_lower_local = this->alf_local + thread * nl * 3 +   nl;
@@ -175,22 +176,28 @@ int FLIMGlobalFitController::ProcessRegion(int g, int region, int px, int thread
 
    float* y_fit;
    int   s_fit;
+   double effective_photons_per_count = photons_per_count;
    if (global_algorithm == MODE_GLOBAL_BINNING)
    {
+	   for (int i = 0; i < n_meas; i++)
+		   binned_decay[i] = local_decay[i] * s_thresh;
+
       s_fit = 1;
-      y_fit = local_decay;
+      y_fit = binned_decay;
+	  effective_photons_per_count /= s_thresh;
    }
    else
    {
       s_fit = s_thresh;
       y_fit = y;
+	  effective_photons_per_count = photons_per_count;
    }
 
    _ASSERT( _CrtCheckMemory( ) );
 
 
    projectors[thread].Fit(s_fit, n_meas_res, lmax, y_fit, local_decay, irf_idx, alf_local, lin_params, chi2, thread, itmax, 
-                          photons_per_count, status->iter[thread], ierr_local, status->chi2[thread]);
+                          effective_photons_per_count, status->iter[thread], ierr_local, status->chi2[thread]);
 
    _ASSERT( _CrtCheckMemory( ) );
 

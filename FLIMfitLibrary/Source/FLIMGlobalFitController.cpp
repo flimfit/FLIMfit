@@ -135,6 +135,7 @@ FLIMGlobalFitController::FLIMGlobalFitController(int global_algorithm, int image
 
    result_map_filename = NULL;
    local_decay = NULL;
+   binned_decay = NULL;
    data = NULL;
 
    alf_local = NULL;
@@ -1015,7 +1016,8 @@ void FLIMGlobalFitController::Init()
       y            = new float[ n_fitters * y_dim * n_meas ]; //free ok 
       irf_idx      = new int[ n_fitters * y_dim ];
 
-      local_decay  = new float[ n_fitters * n_meas ]; //ok
+	  binned_decay = new float[n_fitters * n_meas]; //ok
+	  local_decay = new float[n_fitters * n_meas]; //ok
       lin_local    = new float[ n_fitters * lmax ]; //ok
       w            = new float[ n_fitters * n_meas ]; //free ok
 
@@ -1441,7 +1443,8 @@ void FLIMGlobalFitController::CleanupResults()
       ClearVariable(irf_max);
       ClearVariable(adjust_buf);
       ClearVariable(local_decay);
-      ClearVariable(decay_group_buf);
+	  ClearVariable(binned_decay);
+	  ClearVariable(decay_group_buf);
 
       ClearVariable(irf_idx);
 
