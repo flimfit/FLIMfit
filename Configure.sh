@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then set OME=5.1; echo "Setting OME=5.1"; fi
+if [ -z ${OME+x} ]; then export OME=5.1; echo "Setting OME=5.1"; fi
 
 export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
@@ -11,6 +11,7 @@ echo "Checking for homebrew install..."
 	|| echo "Homebrew installed"
 
 brew update
+brew upgrade
 
 echo "Ensure cmake, clang-omp and boost are installed..."
 # Ensure gcc-4.9, ghostscript, cmake, LAPACK, boost are installed using Homebrew
