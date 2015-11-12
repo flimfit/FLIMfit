@@ -7,7 +7,7 @@ export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
 
 echo "Cleaning CMake Project..."
-cd GeneratedProjects
+cd FLIMfitLibrary/GeneratedProjects
 rm -rf Unix
 mkdir -p Unix
 cd Unix
