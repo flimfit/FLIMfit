@@ -56,7 +56,7 @@ function compile(v)
         
     addpath_global_analysis();
     
-    CompileFLIMreaderMex();
+    %CompileFLIMreaderMex();
     
     
     % Make sure we have included the DLL
