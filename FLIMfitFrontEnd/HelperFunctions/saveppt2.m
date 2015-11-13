@@ -553,9 +553,19 @@ if isfield(addlParms,'title')
     set(new_slide.Shapes.Title.TextFrame.TextRange,'Text',addlParms.title);
 elseif isfield(addlParms,'currentslide') && get(op.Slides,'Count') > 0
     
-    slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex;
-
-    new_slide = invoke(op.Slides,'Item',slide_idx);
+   
+    try
+        slide_idx = ppt.ActiveWindow.View.Slide.SlideIndex;
+    catch
+        slide_idx = [];
+    end
+       
+    if isempty(slide_idx)
+        % Slide with No Title
+        new_slide = invoke(op.Slides,'Add',slide_count,12);  
+    else
+        new_slide = invoke(op.Slides,'Item',slide_idx);
+    end
     if isfield(addlParms,'padding')
         top=addlParms.padding(3);
     else
@@ -595,9 +605,17 @@ for i=1:fig.count
     row=floor((i-1)/addlParms.columns);
     column=mod(i-1,addlParms.columns);
     % Copy the figure to the clipboard
-    print(addlParms.driver,['-f' num2str(addlParms.figure(i))],rendOpt,resOpt);
+    
+    % 2014b update from http://uk.mathworks.com/matlabcentral/fileexchange/19322-saveppt2
+    print(addlParms.driver,addlParms.figure(i),rendOpt,resOpt);
+    
     % Paste the contents of the Clipboard:
-    pic1 = invoke(new_slide.Shapes,'Paste');
+    
+    % Powerpoint 2013 fix from http://uk.mathworks.com/matlabcentral/fileexchange/19322-saveppt2
+    %pic1 = invoke(new_slide.Shapes,'Paste');
+    picShapeRange = invoke(new_slide.Shapes,'Paste'); 
+    pic1 = invoke(picShapeRange,'Item',1);
+    
     % Get height and width of picture:
     pic_H = get(pic1,'Height');
     pic_W = get(pic1,'Width');

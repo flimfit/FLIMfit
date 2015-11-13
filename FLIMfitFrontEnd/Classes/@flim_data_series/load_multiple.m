@@ -30,6 +30,13 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     % get dimensions from first file
     dims = obj.get_image_dimensions(obj.file_names{1});
     
+    if isempty(dims.delays)     % cancelled out
+        if ~isempty(dims.error_message)
+            errordlg(dims.error_message);
+        end
+        return;
+    end
+    
     % this routine should load only FLIM data
     if length(dims.delays) < 2
         if isempty(dims.error_message)

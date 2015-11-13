@@ -222,7 +222,9 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             end
         end
         
-        function export_histogram_data(obj,file,mode)
+        function filename = export_histogram_data(obj,file,mode)
+            
+            filename = [];
             
             if obj.cur_param == 0
                 return;

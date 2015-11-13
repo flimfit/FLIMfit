@@ -32,17 +32,17 @@ function obj = marshal_object(obj,file)
     
    try 
    
-       if ~isempty(obj.omero_data_manager.dataset)
-           parent = obj.omero_data_manager.dataset;
+       if obj.datasetId > 0
+            parentId = java.lang.Long(obj.datasetId);
             specifier = 'omero.model.Dataset';    
-       elseif ~isempty(obj.omero_data_manager.plate)
-           parent = obj.omero_data_manager.plate;
+       elseif obj.plateId > 0
+           parentId = java.lang.Long(obj.plateId);
            specifier = 'omero.model.Plate';    
        else
            return;
        end
        
-       parentId = java.lang.Long(parent.getId().getValue());
+      
        session = obj.omero_data_manager.session;
        
        annotators = java.util.ArrayList;

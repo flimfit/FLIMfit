@@ -69,6 +69,7 @@ classdef segmentation_controller < flim_data_series_observer
         
         ok_button;
         cancel_button;
+        figure1;
         
         region_filter_table;
         combine_regions_checkbox;
@@ -87,7 +88,8 @@ classdef segmentation_controller < flim_data_series_observer
             obj = obj@flim_data_series_observer(handles.data_series_controller);
             
             assign_handles(obj,handles);
-
+            
+            
             set(obj.algorithm_popup,'Callback',@obj.algorithm_updated);
             set(obj.segment_button,'Callback',@obj.segment_pressed);
             set(obj.segment_selected_button,'Callback',@obj.segment_selected_pressed);
@@ -98,6 +100,9 @@ classdef segmentation_controller < flim_data_series_observer
             
             set(obj.ok_button,'Callback',@obj.ok_pressed);
             set(obj.cancel_button,'Callback',@obj.cancel_pressed);
+            
+            % attempt to get Close request to behave as "cancel"
+            set(obj.figure1,'CloseRequestFcn',@obj.cancel_pressed);
             
             set(obj.delete_all_button,'Callback',@obj.delete_all_pressed);
             set(obj.copy_to_all_button,'Callback',@obj.copy_to_all_pressed);

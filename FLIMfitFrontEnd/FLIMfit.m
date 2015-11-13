@@ -27,7 +27,6 @@ function ui = FLIMfit()
 % Author : Sean Warren
 
 
-
 addpath_global_analysis();
 
 
