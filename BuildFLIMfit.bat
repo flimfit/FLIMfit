@@ -17,7 +17,6 @@ EndLocal & SET VS_PATH=%VS_PATH%
 
 echo Adding Visual Studio to path
 call %VS_PATH%
-EndLocal
 
 echo Cleaning CMake Project
 SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64
