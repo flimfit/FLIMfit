@@ -70,8 +70,9 @@ DownloadZipIntoFolder $bf_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
 echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
 
+
 echo "Setup Boost"
-$BOOST_ROOT = "$($pwd)\Boost\"
+$BOOST_ROOT="c:\local\boost_$($BOOST_VER_MAJOR)_$(BOOST_VER_MINOR)_0\
 $BOOST_LIBRARYDIR = "$($BOOST_ROOT)lib64-msvc-$($MSVC_VER).0\"
 [Environment]::SetEnvironmentVariable("BOOST_ROOT", $BOOST_ROOT, "User")
 [Environment]::SetEnvironmentVariable("BOOST_LIBRARYDIR", $BOOST_LIBRARYDIR, "User")
