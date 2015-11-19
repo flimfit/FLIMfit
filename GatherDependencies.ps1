@@ -45,13 +45,19 @@ function DownloadZipIntoFolder
 	Remove-Item $output_file
 }
 
-$ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
-$bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $OME + '/artifacts/bfmatlab.zip';
-$ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
 
+
+$ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
+$bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $OME + '/artifacts/bfmatlab.zip'
+$ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
+$boost_url = 'http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
+$cmake_url = 'https://cmake.org/files/v3.4/cmake-3.4.0-win32-x86.zip'
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
 
+#((new-object net.webclient).DownloadFile($cmake_url, 'cmake.zip'))
+#Unzip 'cmake_zip' "$pwd"
+	
 DownloadZipIntoFolder $ome_url "$pwd\FLIMfitFrontEnd\OMEROMatlab\"
 
 #echo remove sl4j-api.jar to avoid LOGGER clashes
@@ -65,7 +71,6 @@ echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
 
 echo "Setup Boost"
-$boost_url='http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
 $BOOST_ROOT = "$($pwd)\Boost\"
 $BOOST_LIBRARYDIR = "$($BOOST_ROOT)lib64-msvc-$($MSVC_VER).0\"
 [Environment]::SetEnvironmentVariable("BOOST_ROOT", $BOOST_ROOT, "User")
@@ -81,10 +86,13 @@ if (Test-Path $BOOST_LIBRARYDIR)
 else
 {
 	echo "    Downloading: $BOOST_URL"
-	Remove-Item boost-installer.exe
+	if (Test-Path boost-installer.exe)
+	{
+   	Remove-Item boost-installer.exe
+   }
 	$webclient = new-object net.webclient
 	$webclient.DownloadFile($boost_url, "$pwd\boost-installer.exe")
-	.\boost-installer.exe /silent /DIR="$pwd\Boost\"
+	.\boost-installer.exe /silent
 }
 
 
