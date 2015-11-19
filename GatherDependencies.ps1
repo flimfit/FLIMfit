@@ -48,7 +48,6 @@ function DownloadZipIntoFolder
 $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
 $bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $OME + '/artifacts/bfmatlab.zip';
 $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
-$cur_dir = $(pwd)
 
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
@@ -68,7 +67,7 @@ echo "Downloading ini4j.jar"
 
 echo "Setup Boost"
 $boost_url='http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
-$BOOST_ROOT = $cur_dir + '\Boost\'
+$BOOST_ROOT = "$($pwd)\Boost\"
 $BOOST_LIBRARYDIR = $BOOST_ROOT + 'lib64-msvc-' + $MSVC_VER + '.0\'
 [Environment]::SetEnvironmentVariable("BOOST_ROOT", $BOOST_ROOT, "User")
 [Environment]::SetEnvironmentVariable("BOOST_LIBRARYDIR", $BOOST_LIBRARYDIR, "User")
