@@ -66,8 +66,8 @@ echo "Downloading ini4j.jar"
 
 echo "Setup Boost"
 $boost_url='http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
-$BOOST_ROOT="$pwd\Boost\"
-$BOOST_LIBRARYDIR=$BOOST_ROOT + 'lib64-msvc-' + $MSVC_VER + '.0\'
+$BOOST_ROOT = $(pwd) + '\Boost\'
+$BOOST_LIBRARYDIR = $BOOST_ROOT + 'lib64-msvc-' + $MSVC_VER + '.0\'
 [Environment]::SetEnvironmentVariable("BOOST_ROOT", $BOOST_ROOT, "User")
 [Environment]::SetEnvironmentVariable("BOOST_LIBRARYDIR", $BOOST_LIBRARYDIR, "User")
 
