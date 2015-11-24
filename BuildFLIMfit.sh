@@ -28,8 +28,7 @@ cd FLIMfitFrontEnd
 
 OLDVER="$(cat GeneratedFiles/version.txt)"
 VERSION=$(git describe)
-echo "VERSION ="
-ECHO %VERSION%
+echo "VERSION = $VERSION"
 
 build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
