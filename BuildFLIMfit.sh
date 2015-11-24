@@ -31,8 +31,9 @@ build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
 matlab -nodisplay -nosplash -r "compile $VERSION; exit"
 
+cd $WORKSPACE/FLIMfitStandalone/FLIMfit_${OLDVER}_MACI64
 
-cd FLIMfitStandalone/${build_name}
 zip -r FLIMfit_${build_name}.zip *.app/
 
 zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
+
