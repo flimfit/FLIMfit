@@ -29,13 +29,13 @@ cd FLIMfitFrontEnd
 OLDVER="$(cat GeneratedFiles/version.txt)"
 VERSION=$(git describe)
 echo "VERSION ="
-echo %VERSION%
+ECHO %VERSION%
 
 build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
 matlab -nodisplay -nosplash -r "compile $VERSION; exit"
 
-cd $WORKSPACE/FLIMfitStandalone/FLIMfit_${OLDVER}_MACI64
+cd $WORKSPACE/FLIMfitStandalone/FLIMfit_${VERSION}
 
 zip -r FLIMfit_${build_name}.zip *.app/
 
