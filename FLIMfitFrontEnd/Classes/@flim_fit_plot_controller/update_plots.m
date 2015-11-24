@@ -101,7 +101,7 @@ function update_plots(obj,file_root)
                     subplot_idx = subplot_idx + 1;
                     if save
                         export_fig([name_root ' ' r.params{plot_idx} '.' ext]);
-                        SaveFPTiff(im_data,[name_root ' ' r.params{plot_idx} ' raw.tiff'])
+                        SaveFPTiff(im_data,[name_root ' ' r.params{plot_idx} ' raw.tif'])
                     end
                 end
 

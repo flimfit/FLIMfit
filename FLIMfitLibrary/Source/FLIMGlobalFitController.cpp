@@ -1383,7 +1383,7 @@ void FLIMGlobalFitController::CleanupTempVars()
         iter++;
    }
 
-   _ASSERTE(_CrtCheckMemory());
+   //_ASSERTE(_CrtCheckMemory());
 }
 
 void FLIMGlobalFitController::CleanupResults()
@@ -1479,7 +1479,7 @@ void FLIMGlobalFitController::CleanupResults()
       thread_handle = NULL;
    }
 
-     _ASSERTE(_CrtCheckMemory());
+     //_ASSERTE(_CrtCheckMemory());
 }
 
 #endif
