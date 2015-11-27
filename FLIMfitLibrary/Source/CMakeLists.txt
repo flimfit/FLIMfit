@@ -36,8 +36,9 @@ project(FLIMfit)
 FIND_PACKAGE(Boost)
 if(Boost_FOUND)
     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+else()
+    include_directories( "../Boost" )
 endif()
-include_directories( "../Boost" )
 
 # Enable OpenMP support, disable for XCode
 #===================================================

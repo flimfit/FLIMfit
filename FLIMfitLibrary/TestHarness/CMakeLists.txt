@@ -55,9 +55,9 @@ endif()
 FIND_PACKAGE(Boost)
 if(Boost_FOUND)
     INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+else()
+    include_directories( "../Boost" )
 endif()
-include_directories( "../Boost" )
-
 
 # Set the source and header files
 #===================================================
