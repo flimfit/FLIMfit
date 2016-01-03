@@ -189,7 +189,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
             
             % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.sdt','.msr','.ome', '.ics', '.bin','.spc'}
+        case {'.sdt','.msr','.ome', '.ics','.spc'}
            
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
@@ -367,7 +367,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             end
 
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.pt3', '.ptu'}
+        case {'.pt3', '.ptu', '.bin', '.bin2'}
             
             r = FLIMreaderMex(file);
             FLIMreaderMex(r,'SetSpatialBinning',2);
