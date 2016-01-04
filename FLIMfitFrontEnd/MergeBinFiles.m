@@ -1,14 +1,14 @@
 function MergeBinFiles()
 
-    files{1} = 'C:\Users\sean\Downloads\16.11.15 bin files\VLDLR_mGFP parallel channel.bin';
-    files{2} = 'C:\Users\sean\Downloads\16.11.15 bin files\VLDLR_mGFP perpendicular channel.bin';
+    files{1} = 'C:\Users\New\Downloads\16.11.15 bin files\VLDLR_mGFP parallel channel.bin';
+    files{2} = 'C:\Users\New\Downloads\16.11.15 bin files\VLDLR_mGFP perpendicular channel.bin';
 
-    output = 'C:\Users\sean\Downloads\16.11.15 bin files\merge.bin2';
+    output = 'C:\Users\New\Downloads\16.11.15 bin files\merge.bin2';
     
     n_chan = length(files);
     
     for i=1:n_chan
-        fh(i) = fopen(files{1});
+        fh(i) = fopen(files{i});
     end
     
     n_x = fread(fh(1),1,'uint32');
