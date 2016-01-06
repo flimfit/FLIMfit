@@ -10,9 +10,6 @@
 ;#define MyAppVersion "x.x.x"
 ;#define RepositoryRoot "...\Imperial-FLIMfit"
 
-; Define Matlab compiler runtime download and required versio
-#define McrUrl "http://www.mathworks.co.uk/supportfiles/downloads/R{#MatlabVer}/deployment_files/R2014b/installers/win64/MCR_R2014b_win64_installer.exe"
-
 ; Define Ghostscript download urls and required version
 #define GhostscriptUrl "http://downloads.ghostscript.com/public/gs916w64.exe"
 #define GhostscriptVersionRequired "9.16"
@@ -112,8 +109,8 @@ var
 begin
 
   // Check if mcr is installed
-  MatlabMcrInstalled := RegKeyExists(HKLM,'SOFTWARE\MathWorks\MATLAB Compiler Runtime\{#McrVer}');
-  GhostscriptInstalled := RegKeyExists(HKLM,'SOFTWARE\GPL Ghostscript\{#GhostscriptVersionRequired}');
+  MatlabMcrInstalled := RegKeyExists(HKLM64,'SOFTWARE\MathWorks\MATLAB Runtime\{#McrVer}\') or RegKeyExists(HKLM64,'SOFTWARE\MathWorks\MATLAB Compiler Runtime\{#McrVer}\');
+  GhostscriptInstalled := RegKeyExists(HKLM64,'SOFTWARE\GPL Ghostscript\{#GhostscriptVersionRequired}\');
 
   if MatlabMcrInstalled = true then
       Log('Required MCR version already installed')
