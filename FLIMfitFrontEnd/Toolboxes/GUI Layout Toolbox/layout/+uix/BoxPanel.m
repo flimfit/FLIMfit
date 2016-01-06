@@ -11,7 +11,7 @@ classdef BoxPanel < uix.Container
     %  See also: uix.Panel, uipanel, uix.CardPanel
     
     %  Copyright 2009-2014 The MathWorks, Inc.
-    %  $Revision: 992 $ $Date: 2014-09-29 04:20:51 -0400 (Mon, 29 Sep 2014) $
+    %  $Revision: 1113 $ $Date: 2015-05-28 13:15:49 +0100 (Thu, 28 May 2015) $
     
     properties( Dependent )
         Title % title
@@ -32,10 +32,10 @@ classdef BoxPanel < uix.Container
         HelpFcn % help callback
         Minimized % minimized [true|false]
         MinimizeFcn % minimize callback
+        Selection % selected contents
     end
     
     properties( Access = private )
-        LocationObserver % location observer
         Titlebar % titlebar
         TopBorder % border image
         MiddleBorder % border image
@@ -53,7 +53,9 @@ classdef BoxPanel < uix.Container
         MinimizeButton % title button
         Docked_ = true % backing for Docked
         Minimized_ = false % backing for Minimized
+        Selection_ = 0 % backing for Selection
         ColorButtonCData % Button images with colors applied
+        G1218142 = false % bug flag
     end
     
     properties( Access = private, Constant )
@@ -73,8 +75,7 @@ classdef BoxPanel < uix.Container
             % Call superclass constructor
             obj@uix.Container()
             
-            % Create location observer
-            locationObserver = uix.LocationObserver( obj );
+            % Set default colors
             defaultTitleColor = [0.05 0.25 0.5];
             defaultForegroundColor = [1 1 1];
             
@@ -119,7 +120,6 @@ classdef BoxPanel < uix.Container
                 'TooltipString', 'Minimize this panel' );
             
             % Store properties
-            obj.LocationObserver = locationObserver;
             obj.Titlebar = titlebar;
             obj.TopBorder = topBorder;
             obj.MiddleBorder = middleBorder;
@@ -287,8 +287,8 @@ classdef BoxPanel < uix.Container
             % Set
             obj.HighlightColor_ = value;
             
-            % Redraw borders
-            obj.redrawBorders()
+            % Mark as dirty
+            obj.Dirty = true; % TODO just redraw borders
             
         end % set.HighlightColor
         
@@ -309,8 +309,8 @@ classdef BoxPanel < uix.Container
             % Set
             obj.ShadowColor_ = value;
             
-            % Redraw borders
-            obj.redrawBorders()
+            % Mark as dirty
+            obj.Dirty = true; % TODO just redraw borders
             
         end % set.ShadowColor
         
@@ -357,8 +357,8 @@ classdef BoxPanel < uix.Container
             % Set
             obj.CloseButton.Callback = value;
             
-            % Redraw buttons
-            obj.redrawButtons()
+            % Mark as dirty
+            obj.Dirty = true; % TODO just redraw buttons
             
         end % set.CloseRequestFcn
         
@@ -373,8 +373,8 @@ classdef BoxPanel < uix.Container
             % Set
             obj.DockButton.Callback = value;
             
-            % Redraw buttons
-            obj.redrawButtons()
+            % Mark as dirty
+            obj.Dirty = true; % TODO just redraw buttons
             
         end % set.DockFcn
         
@@ -389,8 +389,8 @@ classdef BoxPanel < uix.Container
             % Set
             obj.HelpButton.Callback = value;
             
-            % Redraw buttons
-            obj.redrawButtons()
+            % Mark as dirty
+            obj.Dirty = true; % TODO just redraw buttons
             
         end % set.HelpFcn
         
@@ -405,8 +405,8 @@ classdef BoxPanel < uix.Container
             % Set
             obj.MinimizeButton.Callback = value;
             
-            % Redraw buttons
-            obj.redrawButtons()
+            % Mark as dirty
+            obj.Dirty = true; % TODO just redraw buttons
             
         end % set.MinimizeFcn
         
@@ -469,6 +469,40 @@ classdef BoxPanel < uix.Container
             
         end % set.Minimized
         
+        function value = get.Selection( obj )
+            
+            value = obj.Selection_;
+            
+        end % get.Selection
+        
+        function set.Selection( obj, value )
+            
+            % Check
+            assert( isa( value, 'double' ), 'uix:InvalidPropertyValue', ...
+                'Property ''Selection'' must be of type double.' )
+            assert( isequal( size( value ), [1 1] ), ...
+                'uix:InvalidPropertyValue', ...
+                'Property ''Selection'' must be scalar.' )
+            assert( isreal( value ) && rem( value, 1 ) == 0, ...
+                'uix:InvalidPropertyValue', ...
+                'Property ''Selection'' must be an integer.' )
+            n = numel( obj.Contents_ );
+            if n == 0
+                assert( value == 0, 'uix:InvalidPropertyValue', ...
+                    'Property ''Selection'' must be 0 for a container with no children.' )
+            else
+                assert( value >= 1 && value <= n, 'uix:InvalidPropertyValue', ...
+                    'Property ''Selection'' must be between 1 and the number of children.' )
+            end
+            
+            % Set
+            obj.Selection_ = value;
+            
+            % Mark as dirty
+            obj.Dirty = true;
+            
+        end % set.Selection
+        
     end % accessors
     
     methods( Access = protected )
@@ -481,12 +515,13 @@ classdef BoxPanel < uix.Container
             %  See also: redrawBorders, redrawButtons
             
             % Compute positions
-            location = obj.LocationObserver.Location;
-            width = ceil( location(1) + location(3) ) - floor( location(1) );
-            height = ceil( location(2) + location(4) ) - floor( location(2) );
+            bounds = hgconvertunits( ancestor( obj, 'figure' ), ...
+                [0 0 1 1], 'normalized', 'pixels', obj );
+            width = ceil( bounds(1) + bounds(3) ) - floor( bounds(1) );
+            height = ceil( bounds(2) + bounds(4) ) - floor( bounds(2) );
             titleHeight = obj.TitleHeight;
             if titleHeight == -1 % cache stale, refresh
-                titleAdjust = 3; % Dirty hack - extent seems to be a bit bigger than required for one line of text
+                titleAdjust = 3; % extent seems to be a bit bigger than required for one line of text
                 titleHeight = obj.Titlebar.Extent(4) - titleAdjust;
                 obj.TitleHeight = titleHeight; % store
             end
@@ -558,11 +593,18 @@ classdef BoxPanel < uix.Container
             
             % Redraw contents
             children = obj.Contents_;
-            selection = numel( children );
+            selection = obj.Selection_;
             for ii = 1:numel( children )
                 child = children(ii);
                 if ii == selection && ~minimized
-                    child.Visible = 'on';
+                    if obj.G1218142
+                        warning( 'uix:G1218142', ...
+                            'Selected child of %s is not visible due to bug G1218142.  The child will become visible at the next redraw.', ...
+                            class( obj ) )
+                        obj.G1218142 = false;
+                    else
+                        child.Visible = 'on';
+                    end
                     child.Units = 'pixels';
                     if isa( child, 'matlab.graphics.axis.Axes' )
                         switch child.ActivePositionProperty
@@ -596,20 +638,40 @@ classdef BoxPanel < uix.Container
             
         end % redraw
         
-        function reparent( obj, oldAncestors, newAncestors )
-            %reparent  Reparent container
-            %
-            %  c.reparent(a,b) reparents the container c from the ancestors
-            %  a to the ancestors b.
+        function addChild( obj, child )
             
-            % Refresh location observer
-            locationObserver = uix.LocationObserver( [newAncestors; obj] );
-            obj.LocationObserver = locationObserver;
+            % Check for bug
+            if verLessThan( 'MATLAB', '8.5' ) && strcmp( child.Visible, 'off' )
+                obj.G1218142 = true;
+            end
+            
+            % Select new content
+            obj.Selection_ = numel( obj.Contents_ ) + 1;
             
             % Call superclass method
-            reparent@uix.Container( obj, oldAncestors, newAncestors )
+            addChild@uix.mixin.Container( obj, child )
             
-        end % reparent
+        end % addChild
+        
+        function removeChild( obj, child )
+            
+            % Adjust selection if required
+            contents = obj.Contents_;
+            n = numel( contents );
+            index = find( contents == child );
+            selection = obj.Selection_;
+            if index == 1 && selection == 1 && n > 1
+                % retain selection
+            elseif index <= selection
+                obj.Selection_ = selection - 1;
+            else
+                % retain selection
+            end
+            
+            % Call superclass method
+            removeChild@uix.mixin.Container( obj, child )
+            
+        end % removeChild
         
     end % template methods
     
