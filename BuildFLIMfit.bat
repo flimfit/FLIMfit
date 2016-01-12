@@ -11,6 +11,8 @@ if %MSVC_VER%==11 SET MSVC_YEAR=2012
 if %MSVC_VER%==12 SET MSVC_YEAR=2013
 if %MSVC_VER%==14 SET MSVC_YEAR=2015
 
+if NOT DEFINED VERSION FOR /F "delims=" %%i IN ('git describe') DO set VERSION=%%i
+
 Setlocal EnableDelayedExpansion
 SET VS_PATH="!VS%MSVC_VER%0COMNTOOLS!vsvars32.bat"
 EndLocal & SET VS_PATH=%VS_PATH%
@@ -39,6 +41,6 @@ echo Compiling front end
 echo Please wait for MATLAB to load
 
 cd FLIMfitFrontEnd
-"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nodisplay -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%'); run('compile.m'); quit();"
+"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nodisplay -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%'); compile %VERSION%; quit();"
 
 cd ..
