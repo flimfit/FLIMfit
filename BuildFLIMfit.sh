@@ -26,17 +26,16 @@ export PATH=/Applications/MATLAB_${MATLAB_VER}.app/bin:$PATH
 # compile the Matlab code to generate the FLIMfit_MACI64.app
 cd FLIMfitFrontEnd
 
-OLDVER="$(cat GeneratedFiles/version.txt)"
-VERSION=$(git describe)
+if [ -z ${VERSION+x} ]; then export VERSION=$(git describe); fi
 echo "VERSION = $VERSION"
 
 build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
 matlab -nodisplay -nosplash -r "compile $VERSION; exit"
 
-cd $WORKSPACE/FLIMfitStandalone/FLIMfit_${VERSION}
+cd $WORKSPACE/FLIMfitStandalone
 
-zip -r FLIMfit_${build_name}.zip *.app/
+zip -r FLIMfit_${VERSION}_MACI64.zip *.app/
 
-zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
+#zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
 
