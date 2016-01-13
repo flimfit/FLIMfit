@@ -162,6 +162,15 @@ function compile(v)
             [major, minor] = mcrversion;
             mcr_v = [num2str(major) '.' num2str(minor)];
             
+            % Make a version number that Inno setup likes
+            v_tokens = regexp(v,'(\d+\.\d+\.\d+)-(\d+)-([a-z0-9]+)','tokens');
+            if ~isempty(v_tokens)
+                t = v_tokens{1};
+                v_inno = [t{1} '.' t{2}];
+            else
+                v_inno = v;
+            end
+            
             if ~exist('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt', 'file')
                 disp('No VS Redistributable location found. Please run Configure_WIN.bat in repository root');
             end
@@ -171,7 +180,7 @@ function compile(v)
             
             root = [cd '\..'];
             cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMcrVer="' mcr_v '" /dMatlabVer="' matlab_v ...
-                   '" /dMyAppVersion="' v '" /dRepositoryRoot="' root '" /dVSRedist="' redist_file '" "InstallerScript.iss"'];
+                   '" /dMyAppVersion="' v_inno '" /dRepositoryRoot="' root '" /dVSRedist="' redist_file '" "InstallerScript.iss"'];
             disp(cmd);
             system(cmd);
                                                                                                                                                                                                                          
