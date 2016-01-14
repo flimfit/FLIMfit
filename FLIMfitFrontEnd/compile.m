@@ -229,7 +229,7 @@ function compile(v)
             
             cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC49HB.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name]
             
-            final_folder = ['..' filesep 'FLIMfitStandalone' filesep 'BuildApps' filesep];
+            final_folder = ['..' filesep 'FLIMfitStandalone' filesep 'BuiltApps' filesep];
             mkdir(final_folder);
            
             pause(3)
