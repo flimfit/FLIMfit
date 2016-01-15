@@ -134,6 +134,8 @@ classdef front_end_menu_controller < handle
         menu_file_import_exclusion_list;
         menu_file_export_exclusion_list;
         
+        menu_file_export_intensity;
+        
         % icy..
         menu_file_export_volume_to_icy;
         menu_file_export_volume_as_OMEtiff;
@@ -164,8 +166,9 @@ classdef front_end_menu_controller < handle
         menu_tools_estimate_irf;
         menu_tools_create_irf_shift_map;
         menu_tools_create_tvb_intensity_map;
+        menu_tools_fit_gaussian_irf;
         menu_tools_preferences;
-        
+                
         menu_test_test1;
         menu_test_test2;
         menu_test_test3;
@@ -250,15 +253,32 @@ classdef front_end_menu_controller < handle
                 if strncmp(prop,'menu_',5)
                     method = [prop '_callback'];
                     matching_methods = findobj([obj_method{:}],'Name',method);
-                    if ~isempty(matching_methods)               
-                        eval(['set(obj.' prop ',''Callback'',@obj.' method ')' ]);
+                    if ~isempty(matching_methods)  
+                        fcn = eval(['@obj.' method]);
+                        set(obj.(prop),'Callback',@(x,y) obj.EscapedCallback(x,y,fcn));
+                        %eval(['set(obj.' prop ',''Callback'',@obj.' method ')' ]);
                     end
                 end          
              end
              
         end
         
-                       
+                  
+        function EscapedCallback(obj, ~, ~, fcn)
+            fcn([],[]);
+            %{
+            try
+                
+                fcn([],[]);
+            catch e
+                
+                msgbox(e.message);
+                
+            end
+            %}
+            
+        end
+        
         function set.recent_data(obj,recent_data)
             obj.recent_data = recent_data;
             setpref('GlobalAnalysisFrontEnd','RecentData',recent_data);
@@ -807,6 +827,11 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        function menu_file_export_intensity_callback(obj,~,~)
+            folder = uigetdir(obj.default_path);
+            obj.data_series_controller.data_series.export_intensity_images(folder);
+        end
+        
         %------------------------------------------------------------------
         % Import/Export Fit Parameters
         %------------------------------------------------------------------
@@ -1077,6 +1102,33 @@ classdef front_end_menu_controller < handle
                 end
             end
                         
+        end
+        
+        function menu_tools_fit_gaussian_irf_callback(obj,~,~)
+
+            fh = figure(100);
+            set(fh,'Name','Estimate Gaussian IRF','NumberTitle','off');
+            ax = axes();
+           
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = mean(double(data),3);
+            
+            for i=1:size(data,2)
+                irf(:,i) = FitGaussianIRF(t,data(:,i),ax);
+            end
+
+            plot(ax, t, irf);
+            ylabel('IRF'); xlabel('Time (ps)');
+
+            [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
+            csvwrite([path file], [t, irf]);
+            
+            close(fh);
+            
         end
         
         function menu_tools_create_tvb_intensity_map_callback(obj,~,~)

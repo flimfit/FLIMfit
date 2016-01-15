@@ -34,7 +34,7 @@ classdef flim_fit_ui
       
         function obj = flim_fit_ui(wait,require_auth)
             
-            set_splash('FLIMfit_splash1.tif');
+            set_splash('FLIMfit-logo-colour.png');
             
             % pause to allow splash screen to display
             pause(0.1);

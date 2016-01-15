@@ -1,38 +1,46 @@
-set PATH=C:\CYGWIN64\BIN;%PATH%
-echo "About to Download Boost Library"
-rem Download Boost library
-curl -L %BOOST_URL% -o boost.tar.gz
-tar xvf boost.tar.gz
-rem tar -zxvf boost.tar.gz --wildcards "*.hpp"
-rem tar -zxvf boost.tar.gz --wildcards "*.h"
-rem tar -zxvf boost.tar.gz --wildcards "*.ipp"
-rm boost.tar.gz
-sh -c "mv -v boost_*/boost FLIMfitLibrary/Boost/ && rm -rf boost_*"
-rem Download OMERO Matlab plug-in
-echo OME=%OME%
-echo WS=%WORKSPACE%
-set
-echo "Downloading %OME% version of OMERO.matlab
-curl -OL http://downloads.openmicroscopy.org/latest/omero%OME%/matlab.zip
-unzip matlab.zip
-rm matlab*.zip
-sh -c "mv -v OMERO.matlab-*/* FLIMfitFrontEnd/OMEROMatlab/"
-rm -rf OMERO.matlab*"
-rem remove sl4j-api.jar to avoid LOGGER clashes
-rm FLIMfitFrontEnd/OMEROMatlab/libs/slf4j-log4j12.jar
-rm FLIMfitFrontEnd/OMEROMatlab/libs/slf4j-api.jar
-rm FLIMfitFrontEnd/OMEROMatlab/libs/log4j.jar
-rem Download bio-formats Matlab toolbox
-echo "Downloading %OME% version of bfmatlab
-curl -OL http://downloads.openmicroscopy.org/latest/bioformats%
-OME%/artifacts/bfmatlab.zip
-unzip bfmatlab.zip
-rm bfmatlab.zip
-sh -c "mv -v bfmatlab/* FLIMfitFrontEnd/BFMatlab/
-rm -rf bfmatlab
-rem Download ini4j.jar
-curl -OL
-http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-
-0.3.2.jar
-sh -c "mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar"
-See the
+@echo off
+
+IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2015b
+IF NOT DEFINED MSVC_VER SET MSVC_VER=12
+IF NOT DEFINED BOOST_ROOT SET BOOST_ROOT=c:\local\boost_%BOOST_VER_MAJOR%_%BOOST_VER_MINOR%_0\
+
+SET BOOST_LIBRARYDIR=%BOOST_ROOT%lib64-msvc-%MSVC_VER%.0\
+echo BOOST_LIBRARYDIR = %BOOST_LIBRARYDIR%
+
+if %MSVC_VER%==11 SET MSVC_YEAR=2012
+if %MSVC_VER%==12 SET MSVC_YEAR=2013
+if %MSVC_VER%==14 SET MSVC_YEAR=2015
+
+if NOT DEFINED VERSION FOR /F "delims=" %%i IN ('git describe') DO set VERSION=%%i
+
+Setlocal EnableDelayedExpansion
+SET VS_PATH="!VS%MSVC_VER%0COMNTOOLS!vsvars32.bat"
+EndLocal & SET VS_PATH=%VS_PATH%
+
+echo Adding Visual Studio to path
+call %VS_PATH%
+
+echo Cleaning CMake Project
+SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64
+rmdir %PROJECT_DIR% /s /q
+mkdir %PROJECT_DIR%
+cd %PROJECT_DIR%
+
+set GENERATOR="Visual Studio %MSVC_VER% %MSVC_YEAR% Win64"
+echo Generating CMake Project in: %PROJECT_DIR%
+echo Using Generator: %GENERATOR%
+cmake -G %GENERATOR% ..\..\
+
+
+echo Building 64bit Project in Release mode
+msbuild "FLIMfit.sln" /property:Configuration=Release
+cd "..\..\"
+
+
+echo Compiling front end
+echo Please wait for MATLAB to load
+
+cd FLIMfitFrontEnd
+"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%'); compile %VERSION%; quit();"
+
+cd ..

@@ -28,9 +28,6 @@ function compile(v)
     disp( 'Starting Matlab compilation.' );
 
     if nargin >= 1
-        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'r');
-        oldv = fgetl(fid);      % repo version for passing to inno setup
-        fclose(fid)
         fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
         fwrite(fid,v);
         fclose(fid);
@@ -55,9 +52,7 @@ function compile(v)
     end
         
     addpath_global_analysis();
-    
-    %CompileFLIMreaderMex();
-    
+        
     
     % Make sure we have included the DLL
     dll_interface = flim_dll_interface();
@@ -65,7 +60,6 @@ function compile(v)
     dll_interface.load_global_library();
 
     sys = '64'; % deprecate support for 32 bit
-    arch = 'x64';
     
     % Build compiled Matlab project
     %------------------------------------------------
@@ -88,21 +82,57 @@ function compile(v)
         % Build executable
         switch platform
             case 'WIN'
-                mcc -m FLIMfit.m -v -d DeployFiles -a FLIMGlobalAnalysisProto_PCWIN64.m -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/* -a pdftops.exe -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEuiUtils/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a 'Toolboxes/GUI Layout Toolbox/layout/+uix/Resources/*' -a LicenseFiles/*.txt
+                mcc -m FLIMfit.m -v -d DeployFiles ...
+                    -a FLIMGlobalAnalysisProto_PCWIN64.m ...
+                    -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll ...
+                    -a ../FLIMfitLibrary/Libraries/FLIMreaderMex.mexw64 ...
+                    -a segmentation_funcs.mat ...
+                    -a icons.mat ...
+                    -a SegmentationFunctions/*  ...
+                    -a SegmentationFunctions/Support/* ...
+                    -a pdftops.exe ...
+                    -a FLIMfit-logo-colour.png ...
+                    -a BFMatlab/*.jar ...
+                    -a OMEROMatlab/libs/*.jar ...
+                    -a OMEuiUtils/*.jar ...
+                    -a OMEROMatlab/*.config ...
+                    -a GeneratedFiles/version.txt ...
+                    -a 'Toolboxes/GUI Layout Toolbox/layout' ...
+                    -a LicenseFiles/*.txt
                 
             case 'MAC'
-                mcc -m  -v FLIMfit.m -d DeployFiles  -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib -a FLIMGlobalAnalysis_64_thunk_maci64.dylib -a FLIMGlobalAnalysisProto_MACI64.m  -a segmentation_funcs.mat -a icons.mat -a SegmentationFunctions/* -a SegmentationFunctions/Support/*  -a pdftops.bin -a FLIMfit_splash1.tif -a BFMatlab/*.jar -a OMEROMatlab/libs/*.jar -a OMEuiUtils/*.jar -a OMEROMatlab/*.config -a GeneratedFiles/version.txt -a 'Toolboxes/GUI Layout Toolbox/layout/+uix/Resources/*' -a LicenseFiles/*.txt
+                CompileFLIMreaderMex();
+            
+                mcc -m FLIMfit.m -v -d DeployFiles ...
+                    -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib ...
+                    -a FLIMGlobalAnalysis_64_thunk_maci64.dylib ...
+                    -a FLIMGlobalAnalysisProto_MACI64.m  ...
+                    -a FLIMreaderMex.mexmaci64 ...
+                    -a segmentation_funcs.mat ...
+                    -a icons.mat ...
+                    -a SegmentationFunctions/* ...
+                    -a SegmentationFunctions/Support/*  ...
+                    -a pdftops.bin ...
+                    -a FLIMfit-logo-colour.png ...
+                    -a BFMatlab/*.jar ...
+                    -a OMEROMatlab/libs/*.jar ...
+                    -a OMEuiUtils/*.jar ...
+                    -a OMEROMatlab/*.config ...
+                    -a GeneratedFiles/version.txt ...
+                    -a 'Toolboxes/GUI Layout Toolbox/layout' ...
+                    -a LicenseFiles/*.txt
         end
 
         while ~exist(exe,'file')
             pause(3);
         end
         
+    end
     
    
     % Create deployment folder in FLIMfitStandalone
     %------------------------------------------------
-    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' oldv '_' computer]
+    deploy_folder = ['..' filesep 'FLIMfitStandalone' filesep 'FLIMfit_' v]
 
     disp( ['creating folder at  ' deploy_folder ] );
     mkdir(deploy_folder);
@@ -128,9 +158,30 @@ function compile(v)
             
             copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
-            root = [cd '\..'];
-            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMyAppVersion="' oldv '" /dMyAppSystem=' sys ' /dMyAppArch=' arch ' /dRepositoryRoot="' root '" "InstallerScript.iss"'];
+            matlab_v = version('-release');
+            [major, minor] = mcrversion;
+            mcr_v = [num2str(major) '.' num2str(minor)];
             
+            % Make a version number that Inno setup likes
+            v_tokens = regexp(v,'(\d+\.\d+\.\d+)-(\d+)-([a-z0-9]+)','tokens');
+            if ~isempty(v_tokens)
+                t = v_tokens{1};
+                v_inno = [t{1} '.' t{2}];
+            else
+                v_inno = v;
+            end
+            
+            if ~exist('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt', 'file')
+                disp('No VS Redistributable location found. Please run Configure_WIN.bat in repository root');
+            end
+            fid = fopen('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt','r');
+            redist_file = fgetl(fid);
+            fclose(fid);
+            
+            root = [cd '\..'];
+            cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMcrVer="' mcr_v '" /dMatlabVer="' matlab_v ...
+                   '" /dAppVersion="' v '" /dInnoAppVersion="' v_inno '" /dRepositoryRoot="' root '" /dVSRedist="' redist_file '" "InstallerScript.iss"'];
+            disp(cmd);
             system(cmd);
                                                                                                                                                                                                                          
                                                                                                                                                                                                       
@@ -176,13 +227,15 @@ function compile(v)
             disp( 'NB Currently uses GCC as configured at University of  Dundee!! ');
             disp ('If building elewhere use the appropriate .platypus file!');
             
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC47.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name]
+            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC49HB.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name]
             
+            final_folder = ['..' filesep 'FLIMfitStandalone' filesep 'BuiltApps' filesep];
+            mkdir(final_folder);
            
             pause(3)
             system(cmd);
             pause(3)
-            movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
+            movefile([deploy_folder '/FLIMfit.app'], [final_folder '/' package_name '.app']);
             
             
             

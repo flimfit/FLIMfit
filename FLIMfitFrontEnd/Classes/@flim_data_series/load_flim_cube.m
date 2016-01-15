@@ -189,7 +189,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
             
             % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.sdt','.msr','.ome', '.ics', '.bin','.spc'}
+        case {'.sdt','.msr','.ome', '.ics','.spc'}
            
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
@@ -366,13 +366,21 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 end
             end
 
-        % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.pt3', '.ptu'}
+        case {'.pt3', '.ptu', '.bin', '.bin2'}
             
             r = FLIMreaderMex(file);
-            target(:,:,:,:,write_selected) = FLIMreaderMex(r, 'GetData', Carr);
+            FLIMreaderMex(r,'SetSpatialBinning',2);
+            data = FLIMreaderMex(r, 'GetData', Carr);
+            
+            expected_size = size(target);
+            if all(size(data)==expected_size(1:4))        
+                target(:,:,:,:,write_selected) = data;
+            else
+                disp(['File "' file '" was unexpected size']);
+            end
             FLIMreaderMex(r,'Delete');
             
+        % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.csv','.txt'}
             
             if strcmp(ext,'.txt')
