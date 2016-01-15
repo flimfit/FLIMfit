@@ -41,6 +41,6 @@ echo Compiling front end
 echo Please wait for MATLAB to load
 
 cd FLIMfitFrontEnd
-"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nodisplay -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%'); compile %VERSION%; quit();"
+"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%'); compile %VERSION%; quit();"
 
 cd ..
