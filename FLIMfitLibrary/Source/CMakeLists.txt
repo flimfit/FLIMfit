@@ -113,6 +113,7 @@ if(UNIX)
    set(PLATFORM_FLAGS_ALL "-msse3 -std=c++11")
    set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
    set(PLATFORM_FLAGS_DEBUG "")
+   set(CMAKE_MACOSX_RPATH 1)
 endif(UNIX)
 
 # Add platform specific flags
@@ -127,12 +128,12 @@ add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 # Make library
 #===================================================
 set(STATIC_NAME "${LIB_NAME}_lib")
-add_library(${STATIC_NAME} STATIC ${SOURCE} ${HEADERS} )
+#add_library(${STATIC_NAME} STATIC ${SOURCE} ${HEADERS} )
 
-add_library(${LIB_NAME} SHARED FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
+add_library(${LIB_NAME} SHARED ${SOURCE} ${HEADERS} FLIMGlobalAnalysis.h FLIMGlobalAnalysis.cpp)
 
 
-target_link_libraries(${LIB_NAME} ${STATIC_NAME} levmar ${LEVMAR_LIBRARIES})
+target_link_libraries(${LIB_NAME} levmar ${LEVMAR_LIBRARIES})
 
 
 
@@ -140,7 +141,6 @@ target_link_libraries(${LIB_NAME} ${STATIC_NAME} levmar ${LEVMAR_LIBRARIES})
 #===================================================
 set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
 
-get_target_property(LIB_LOCATION ${LIB_NAME} LOCATION)
 add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:FLIMGlobalAnalysis_64> ${OUT_DIR}
                                                  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/FLIMGlobalAnalysis.h" ${OUT_DIR}
                                                  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/FlagDefinitions.h" ${OUT_DIR})

@@ -99,13 +99,24 @@ function compile(v)
                     -a LicenseFiles/*.txt
                 
             case 'MAC'
-                CompileFLIMreaderMex();
-            
+                
+                try 
+                    rmdir('DeployLibraries','s');
+                catch
+                end
+                
+                CompileFLIMreaderMex('../FLIMfitLibrary/Libraries/');
+                
+                copyfile('../FLIMfitLibrary/Libraries/*.dylib','DeployLibraries')
+                copyfile('../FLIMfitLibrary/Libraries/*.mexmaci64','DeployLibraries')
+                
+                system('DeployFiles/dylibbundler -x DeployLibraries/FLIMGlobalAnalysis_64.dylib -b  -d DeployLibraries -p @loader_path');
+                system('DeployFiles/dylibbundler -x DeployLibraries/FLIMreaderMex.mexmaci64 -b  -d DeployLibraries -p @loader_path');
+                
                 mcc -m FLIMfit.m -v -d DeployFiles ...
-                    -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib ...
+                    -a DeployLibraries/* ... %../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib ...
                     -a FLIMGlobalAnalysis_64_thunk_maci64.dylib ...
                     -a FLIMGlobalAnalysisProto_MACI64.m  ...
-                    -a FLIMreaderMex.mexmaci64 ...
                     -a segmentation_funcs.mat ...
                     -a icons.mat ...
                     -a SegmentationFunctions/* ...
@@ -186,46 +197,30 @@ function compile(v)
         case 'MAC'
            
             % wait for the build to complete
-            MacOS_folder = [ './' exe filesep 'Contents' filesep 'MacOS']
-            filename = [ MacOS_folder '/FLIMfit']
+            MacOS_folder = [ './' exe filesep 'Contents' filesep 'MacOS'];
+            filename = [ MacOS_folder '/FLIMfit'];
             while ~exist(filename,'file')
                 pause(3);
             end
              
-             
             % change icon by overwriting matlab membrane.icns
-            deployFiles_folder = ['.' filesep 'DeployFiles']
-            resource_folder = [ './' exe filesep 'Contents' filesep 'Resources']
+            deployFiles_folder = ['.' filesep 'DeployFiles'];
+            resource_folder = [ './' exe filesep 'Contents' filesep 'Resources'];
             
-            
- 
-            
-            filename = [resource_folder '/membrane.icns']
             if exist([resource_folder '/membrane.icns'], 'file') == 2
-                    delete([resource_folder '/membrane.icns'])
-                    pause(2);
+                delete([resource_folder '/membrane.icns'])
+                pause(2);
             end
             
-           
             disp( ['copying ' deployFiles_folder '/microscopeGreen.icns' ' to ' resource_folder '/membrane.icns' ] );
-            
             copyfile( [deployFiles_folder '/microscopeGreen.icns'], [resource_folder '/membrane.icns' ],'f');
            
             pause(1);
             
             % Package app with platypus
             package_name = ['FLIMfit ' v];
-            
-            % NB The platypus profile file FLIMfit_????.platypus used in the following line will
-            % determine which files are included  in the final .app 
-            % Please use an appropriate configuration for your build
-            % environment 
-            % examples are included for:
-            % Homebrew GCC 4.7 [FLIMfit_GCC47HB.platypus]
-            disp( 'NB Currently uses GCC as configured at University of  Dundee!! ');
-            disp ('If building elewhere use the appropriate .platypus file!');
-            
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC49HB.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name]
+                        
+            cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
             
             final_folder = ['..' filesep 'FLIMfitStandalone' filesep 'BuiltApps' filesep];
             mkdir(final_folder);
@@ -234,8 +229,6 @@ function compile(v)
             system(cmd);
             pause(3)
             movefile([deploy_folder '/FLIMfit.app'], [final_folder '/' package_name '.app']);
-            
-            
             
     end
     

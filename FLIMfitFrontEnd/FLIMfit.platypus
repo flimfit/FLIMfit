@@ -12,11 +12,6 @@
 	<string>Imperial College, London Photonics</string>
 	<key>BundledFiles</key>
 	<array>
-		<string>/usr/local/opt/gcc49/lib/gcc/4.9/libgomp.1.dylib</string>
-		<string>/usr/local/opt/gcc49/lib/gcc/4.9/libstdc++.6.dylib</string>
-		<string>/usr/local/opt/gcc49/lib/gcc/4.9/libgcc_s.1.dylib</string>
-		<string>/usr/local/opt/boost/lib/libboost_system-mt.dylib</string>
-		<string>/usr/local/opt/boost/lib/libboost_filesystem-mt.dylib</string>
 		<string>./DeployFiles/gs-noX11</string>
 		<string>./DeployFiles/FLIMfit.app</string>
 	</array>
