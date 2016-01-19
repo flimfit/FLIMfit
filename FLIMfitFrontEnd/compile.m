@@ -27,16 +27,13 @@ function compile(v)
 
     disp( 'Starting Matlab compilation.' );
 
-    if nargin >= 1
-        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
-        fwrite(fid,v);
-        fclose(fid);
-    else
-        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'r');
-        v = fgetl(fid);
-        fclose(fid);
-    end
-    
+    [~,v] = system('git describe','-echo');
+    v = v(1:end-1);
+
+    fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
+    fwrite(fid,v);
+    fclose(fid);
+
     if ~isempty(strfind(computer,'PCWIN'))
         platform = 'WIN';
         lib_ext = '.dll';
