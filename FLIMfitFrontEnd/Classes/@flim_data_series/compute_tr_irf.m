@@ -232,7 +232,7 @@ function compute_tr_irf(obj)
         
         
         for i=1:size(obj.tr_irf,2)
-            new_irf(:,i) = interp1(new_t,obj.tr_irf(:,i),new_t-remaining_shift,'pchip',0);  
+            new_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),new_t-remaining_shift,'pchip',0);  
         end
         
         new_irf(isnan(new_irf)) = 0;
