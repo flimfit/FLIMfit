@@ -13,6 +13,7 @@
 	<key>BundledFiles</key>
 	<array>
 		<string>/usr/local/lib/gcc/4.9/libgomp.1.dylib</string>
+		<string>/usr/local/lib/gcc/4.9/libgomp.dylib</string>
 		<string>/usr/local/lib/gcc/4.9/libstdc++.6.dylib</string>
 		<string>/usr/local/lib/gcc/4.9/libgcc_s.1.dylib</string>
 		<string>/usr/local/lib/libboost_system-mt.dylib</string>
