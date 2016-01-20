@@ -179,6 +179,7 @@ function compile(v)
             else
                 v_inno = v;
             end
+            v_inno = regexprep(v_inno,'([^\d\.]+)','');
             
             if ~exist('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt', 'file')
                 disp('No VS Redistributable location found. Please run Configure_WIN.bat in repository root');
