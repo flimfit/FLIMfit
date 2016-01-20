@@ -3,8 +3,8 @@
 if [ -z ${OME+x} ]; then export OME=5.1; echo "Setting OME=5.1"; fi
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
 
-export CC=/usr/local/bin/gcc-4.9
-export CXX=/usr/local/bin/g++-4.9
+export CC=/usr/local/bin/gcc-5
+export CXX=/usr/local/bin/g++-5
 
 echo "Cleaning CMake Project..."
 cd GeneratedProjects
@@ -33,9 +33,8 @@ build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
 matlab -nodisplay -nosplash -r "compile $VERSION; exit"
 
-cd $WORKSPACE/FLIMfitStandalone/BuiltApps/
-
-zip -r FLIMfit_${VERSION}_MACI64.zip *.app/
+cd ..
+zip -r ./FLIMfitStandalone/BuiltApps/FLIMfit_${VERSION}_MACI64.zip ./FLIMfitStandalone/BuiltApps/*.app/
 
 #zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
 
