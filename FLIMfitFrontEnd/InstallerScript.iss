@@ -21,6 +21,7 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
 
 AppId={{5B6988D3-4B10-4DC8-AE28-E29DF8D99C39}}
 AppName={#MyAppName}
@@ -90,7 +91,7 @@ begin
   Exec(expandconstant('{tmp}\bin\win64\setup.exe'), '-mode automated', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
   // Install Visual Studio Redist
-  Exec(expandconstant('{tmp}\vcredist_64.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
+  Exec(expandconstant('{tmp}\vcredist_x64.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
   // Install Ghostscript if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\Ghostscript.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
