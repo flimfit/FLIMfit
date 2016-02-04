@@ -10,11 +10,11 @@ Latest versions and binary executables
 --------------------------------------
 
 For the latest version, binary executables and further documentation please visit 
-<http://www.openmicroscopy.org/site/products/partner/flimfit>
+<http://www.flimfit.org>
 
 The binary executables do not require MATLAB. 
 
-The source code repository is available at: <https://github.com/openmicroscopy/Imperial-FLIMfit/>
+The source code repository is available at: <https://github.com/imperial-photonics/FLIMfit/>
 
 
 Support
@@ -43,17 +43,10 @@ Required Packages
 
 Compiling
 -------------------
-1. Download the boost library from the link above and either install the source 
-   so it can be found by CMake or copy the 'boost' header folder into 
-	
-	GlobalProcessingLibrary\Boost\boost
+1. Use CMake to generate a Visual Studio Project in a folder such as:
+	`GeneratedProjects\MSVC11_64`
 
-   You do not need to compile Boost, only the headers are used
-
-2. Use CMake to generate a Visual Studio Project in a folder such as:
-	`GlobalProcessingLibrary\GeneratedProjects\MSVC11_64`
-
-3. Compile the generated solution in Visual Studio
+2. Compile the generated solution in Visual Studio
 
 
 Running FLIMfit from MATLAB
@@ -61,9 +54,9 @@ Running FLIMfit from MATLAB
 1. In MATLAB, ensure you have setup the MATLAB compiler by typing `mex -setup` and following the instructions
 
 1. Set your working directory to 
-	GlobalProcessingFrontEnd\
+	FLIMfitFrontEnd\
 
 2. Start the UI by typing
-	FLIMfit <or FLIMfit(true) for the OMERO enabled version>
+	FLIMfit
 
 3. See the online instructions for usage
