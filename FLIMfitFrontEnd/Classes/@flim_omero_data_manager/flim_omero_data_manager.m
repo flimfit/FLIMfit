@@ -371,7 +371,7 @@ classdef flim_omero_data_manager < handle
             %                        'Dataset' , ...
             %                       'Plate','Cancel','Cancel');      
             
-            % Use only dataset for now pemding Management decision re Plates.
+            % Use only dataset for now pending Management decision re Plates.
             choice = 'Dataset';
             
             switch choice

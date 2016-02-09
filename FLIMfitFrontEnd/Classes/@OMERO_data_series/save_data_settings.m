@@ -66,7 +66,7 @@
 
         if isempty(file)
             txt = strsplit(parentType,'.');
-            title = char(strcat({'As an annotation to  '}, txt(end)));
+            title = char(strcat({'As an Attachment to  '}, txt(end)));
             choice = questdlg('Would you like to save the current settings?', title ,'Yes','No','No');
             if strcmp(choice,'Yes')
                     pol_idx = obj.polarisation_resolved + 1;
