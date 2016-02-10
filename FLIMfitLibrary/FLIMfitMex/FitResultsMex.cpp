@@ -33,7 +33,6 @@
 #include "InstrumentResponseFunction.h"
 #include "ModelADA.h" 
 #include "FLIMGlobalAnalysis.h"
-#include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "PointerMap.h"
 #include "tinythread.h"

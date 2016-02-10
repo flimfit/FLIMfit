@@ -144,19 +144,19 @@ class QDecayModel : public QObject, public DecayModel
 public:
 
 
-   void AddDecayGroup(shared_ptr<QAbstractDecayGroup> group) 
+   void AddDecayGroup(shared_ptr<AbstractDecayGroup> group) 
    {
-      connect(group.get(), &QAbstractDecayGroup::parametersUpdated, this, &QDecayModel::parametersChanged);
+      connect(group.get(), &AbstractDecayGroup::parametersUpdated, this, &QDecayModel::parametersChanged);
       DecayModel::AddDecayGroup(group);
       emit GroupsUpdated();
    };
    
-   shared_ptr<QAbstractDecayGroup> GetGroup(int idx) 
+   shared_ptr<AbstractDecayGroup> GetGroup(int idx) 
    {
-      return std::dynamic_pointer_cast<QAbstractDecayGroup>(decay_groups[idx]);
+      return decay_groups[idx];
    };
    
-   void RemoveDecayGroup(shared_ptr<QAbstractDecayGroup> group)
+   void RemoveDecayGroup(shared_ptr<AbstractDecayGroup> group)
    {
       auto iter = std::find(decay_groups.begin(), decay_groups.end(), group);
       if (iter != decay_groups.end())
@@ -189,8 +189,7 @@ private:
       
       for (auto& group : decay_groups)
       {
-         QAbstractDecayGroup* g = dynamic_cast<QAbstractDecayGroup*>(group.get());
-         connect(g, &QAbstractDecayGroup::parametersUpdated, this, &QDecayModel::parametersChanged);
+         connect(group.get(), &AbstractDecayGroup::parametersUpdated, this, &QDecayModel::parametersChanged);
       }
    }
    

@@ -2,11 +2,18 @@
 #include "MultiExponentialDecayGroup.h"
 
 
-class AnisotropyDecayGroup : virtual public MultiExponentialDecayGroup
+class AnisotropyDecayGroup : public MultiExponentialDecayGroup
 {
+   Q_OBJECT
+
 public:
    
    AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
+   
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
+   Q_PROPERTY(int n_anisotropy_populations MEMBER n_anisotropy_populations WRITE SetNumAnisotropyPopulations USER true);
+   Q_PROPERTY(bool include_r_inf MEMBER include_r_inf WRITE SetIncludeRInf USER true);
+
    void SetNumAnisotropyPopulations(int n_anisotropy_populations) {}; // TODO
    void SetIncludeRInf(bool include_r_inf) {};
 
@@ -56,7 +63,7 @@ void AnisotropyDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & channel_factors;
 };
 
-
+/*
 class QAnisotropyDecayGroup : virtual public QAbstractDecayGroup, virtual public AnisotropyDecayGroup
 {
    Q_OBJECT
@@ -80,3 +87,4 @@ void QAnisotropyDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
    ar & boost::serialization::base_object<AnisotropyDecayGroup>(*this);
 };
+*/

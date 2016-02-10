@@ -259,7 +259,7 @@ void FLIMImage::compute()
    for (int i=0; i<n_px; i++)
       for (int j=0; j<n_meas; j++)
       {
-         assert(std::isfinite(data[i*n_meas + j]));
+         //assert(std::isfinite(data[i*n_meas + j]));
          intensity.at<float>(i) += data[i*n_meas + j];
       }
    

@@ -48,7 +48,7 @@ cv::Mat PhasorCalculator::getMap()
       auto intensity = im->getIntensity();
       
       int valid = 0, invalid = 0;
-      for(int i=0; i<phasor.size(); i++)
+      for(size_t i=0; i<phasor.size(); i++)
       {
          
          int x = std::round(phasor[i].g * image_size);

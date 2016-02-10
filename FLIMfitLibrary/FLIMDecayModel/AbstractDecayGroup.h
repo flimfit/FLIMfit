@@ -45,8 +45,10 @@
 #include "FittingParameter.h"
 
 
-class AbstractDecayGroup
+class AbstractDecayGroup : public QObject
 {
+   Q_OBJECT
+
 public:
 
    virtual ~AbstractDecayGroup() {};
@@ -79,9 +81,12 @@ public:
    template <typename T>
    void AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor, double* scale_fact = NULL);
 
+signals:
+   void parametersUpdated();
+
 protected:
 
-   virtual void ParametersChanged() {};
+   void ParametersChanged() { emit parametersUpdated(); };
    virtual int GetNumPotentialChannels() { return 1; }
    bool constrain_nonlinear_parameters = true;
 
@@ -119,7 +124,7 @@ void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & fit_t0;
 };
 
-
+/*
 class QAbstractDecayGroup : public QObject, virtual public AbstractDecayGroup
 {
    Q_OBJECT
@@ -155,8 +160,11 @@ void QAbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
 };
 
-BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 BOOST_CLASS_TRACKING(QAbstractDecayGroup, track_always)
+*/
+
+BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
+
 
 
 

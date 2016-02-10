@@ -152,8 +152,8 @@ int main()
    irf_->SetIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
 
    auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
-   acq->SetT(t);
-   acq->SetImageSize(n_x, n_y);
+   acq->setT(t);
+   acq->setImageSize(n_x, n_y);
    
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::DataMode::InMemory, image_data.data());
    image->init();

@@ -70,7 +70,7 @@ public:
    
    int getNumImages()
    {
-      return images.size();
+      return (int) images.size();
    }
    
    void setCurrent(const QModelIndex index)

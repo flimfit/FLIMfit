@@ -15,7 +15,7 @@ namespace boost {
       void save(Archive & ar, const ::cv::Mat& m, const unsigned int version)
       {
          size_t elem_size = m.elemSize();
-         size_t elem_type = m.type();
+         int elem_type = m.type();
          
          ar & m.cols;
          ar & m.rows;
@@ -30,8 +30,8 @@ namespace boost {
       template<class Archive>
       void load(Archive & ar, ::cv::Mat& m, const unsigned int version)
       {
-         int cols, rows;
-         size_t elem_size, elem_type;
+         int cols, rows, elem_type;
+         size_t elem_size;
          
          ar & cols;
          ar & rows;

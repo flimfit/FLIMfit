@@ -11,10 +11,7 @@ class DataTransformationSettings
 {
 public:
    
-   DataTransformationSettings()
-   {
-      background = std::make_shared<FLIMBackground>(0);
-   }
+   DataTransformationSettings();
    
    int smoothing_factor = 0;
    int t_start = 0;
@@ -70,7 +67,7 @@ public:
       n_chan = acq->n_chan;
       
       const std::vector<double>& t_full = acq->getTimePoints();
-      int n_t_full = t_full.size();
+      int n_t_full = static_cast<int>(t_full.size());
       
       if (t_start > t_full[n_t_full-1])
          throw std::runtime_error("Invalid t start");
@@ -84,7 +81,7 @@ public:
             timepoints.push_back(t_full[i]);
       }
       
-      n_t = timepoints.size();
+      n_t = static_cast<int>(timepoints.size());
       n_meas = n_t * n_chan;
       
       // Copy the things we don't change

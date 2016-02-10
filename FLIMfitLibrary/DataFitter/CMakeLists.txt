@@ -29,8 +29,9 @@
 
 project(DataFitter)
 
+find_package(OpenCV REQUIRED)
 
-include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel)
+include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ${OpenCV_INCLUDE_DIRS})
 # Set the source and header files
 #===================================================
 set(SOURCE

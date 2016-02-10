@@ -5,10 +5,11 @@ cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0043 NEW)
 
 find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Declarative REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
+find_package(OpenCV REQUIRED)
 
+find_package(BOOST REQUIRED COMPONENTS system serialization)
 
 qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
                        DecayWidget.ui
@@ -19,7 +20,7 @@ qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
                        ProgressWidget.ui
                        ImporterWidget.ui
                        FLIMfitLauncher.ui
-		       PhasorWidget.ui)
+		                 PhasorWidget.ui)
 
 #qt5_add_resources(UI_RESOURCES PuppetMasterResources.qrc
 #                                qdarkstyle/style.qrc)
@@ -40,6 +41,7 @@ set(SOURCE
    FLIMfitWindow.cpp
    FittingWidget.cpp
    FLIMImporter.cpp
+   AbstractItemDelegate.cpp
 )
 
 set(HEADERS
@@ -73,7 +75,10 @@ include_directories(../FLIMDecayModel
                     ../FLIMReader/Source/FLIMReader
                     ${LEVMAR_INCLUDE_DIRS} 
                     ${CMAKE_CURRENT_BINARY_DIR}
-                    ${CMAKE_CURRENT_SOURCE_DIR})
+                    ${CMAKE_CURRENT_SOURCE_DIR}
+                    ${OpenCV_INCLUDE_DIRS})
+
+link_directories(${LAPACKBLAS_DIR} "C:/local/boost_1_59_0/lib64-msvc-14.0/") # lapack doesn't give us the right path
 
 add_executable(FLIMfitQT ${SOURCE} 
                          ${HEADERS} 
@@ -81,7 +86,7 @@ add_executable(FLIMfitQT ${SOURCE}
                          ${UI_RESOURCES}
                          $<TARGET_OBJECTS:FLIMReader>)
 
-#set_target_properties(FLIMfitQT PROPERTIES LINK_FLAGS "/NODEFAULTLIB:library" )
+set_target_properties(FLIMfitQT PROPERTIES LINK_FLAGS "/NODEFAULTLIB:library" )
 
 target_link_libraries(FLIMfitQT
                            FLIMDecayModel
@@ -93,5 +98,6 @@ target_link_libraries(FLIMfitQT
                            Qt5::Gui
                            Qt5::OpenGL
                            ${LAPACKBLAS_LIB_NAMES}
+                           ${F2C_LIB_NAME}
                            ${OpenCV_LIBS}
-                           ${Boost_LIBRARIES})
+                           ${FLIMDecayModel_LIBRARIES})

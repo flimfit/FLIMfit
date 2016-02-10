@@ -154,12 +154,12 @@ void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_outp
    for (auto& group : decay_groups)
       group->GetNonlinearOutputParamNames(param_names);
 
-   n_nl_output_params = param_names.size();
+   n_nl_output_params = (int) param_names.size();
 
    for (auto& group : decay_groups)
       group->GetLinearOutputParamNames(param_names);
 
-   n_lin_output_params = param_names.size() - n_nl_output_params;
+   n_lin_output_params = (int) param_names.size() - n_nl_output_params;
 
 }
 

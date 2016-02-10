@@ -3,11 +3,19 @@
 #include "MultiExponentialDecayGroup.h"
 #include <functional>
 
-class FretDecayGroup : virtual public MultiExponentialDecayGroup
+class FretDecayGroup : public MultiExponentialDecayGroup
 {
+   Q_OBJECT
+
 public:
 
    FretDecayGroup(int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = false);
+   
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
+   Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE SetNumFretPopulations USER true);
+   Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE SetIncludeDonorOnly USER true);
+   Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE SetIncludeAcceptor USER true);
+   
    void SetNumFretPopulations(int n_fret_populations_);
    void SetIncludeDonorOnly(bool include_donor_only_);
    void SetIncludeAcceptor(bool include_acceptor_);
@@ -90,7 +98,7 @@ void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & direct_acceptor_channel_factors;
 };
 
-
+/*
 class QFretDecayGroup : virtual public QAbstractDecayGroup, virtual public FretDecayGroup
 {
    Q_OBJECT
@@ -119,3 +127,4 @@ void QFretDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
    ar & boost::serialization::base_object<FretDecayGroup>(*this);
 };
+*/

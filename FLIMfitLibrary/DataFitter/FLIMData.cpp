@@ -202,7 +202,7 @@ void FLIMData::setData(const vector<shared_ptr<FLIMImage>>& images_)
 {
    images = images_;
    
-   n_im = images.size();
+   n_im = static_cast<int>(images.size());
    n_im_used = n_im;
    
    use_im.resize(n_im);
@@ -497,7 +497,7 @@ int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx
    // Store masked values
    int idx = 0;
 
-   int n_px = mask.size();
+   int n_px = static_cast<int>(mask.size());
    for(int p=0; p<n_px; p++)
    {
       if (region < 0 || mask[p] == region || (merge_regions && mask[p] > 0))
@@ -543,7 +543,7 @@ DataTransformer& FLIMData::getPooledTransformer(int im)
 {
    std::lock_guard<std::mutex> lk(pool_mutex);
    
-   int n_pool = transformer_pool.size();
+   int n_pool = static_cast<int>(transformer_pool.size());
    for (int i=0; i<n_pool; i++)
    {
       if (transformer_pool[i].im == im)
@@ -576,7 +576,7 @@ void FLIMData::releasePooledTranformer(int im)
 {
    std::lock_guard<std::mutex> lk(pool_mutex);
    
-   int n_pool = transformer_pool.size();
+   int n_pool = static_cast<int>(transformer_pool.size());
    for (int i=0; i<n_pool; i++)
    {
       if (transformer_pool[i].im == im)

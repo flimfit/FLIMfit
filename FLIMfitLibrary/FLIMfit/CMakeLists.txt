@@ -28,6 +28,7 @@
 #=========================================================================
 
 project(FLIMfit)
+find_package(OpenCV REQUIRED)
 
 # MATLAB stuff
 #====================================
@@ -37,7 +38,7 @@ set(MATLAB_INCLUDE_DIR ${MATLAB_EXTERN_DIR}include)
 set(MATLAB_LIBRARIES ${MATLAB_LIB_DIR}libmat.lib ${MATLAB_LIB_DIR}libmex.lib ${MATLAB_LIB_DIR}libmx.lib)
 
 
-include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter )
+include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter )
 
 
 # Set the source and header files

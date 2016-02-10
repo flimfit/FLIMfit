@@ -63,8 +63,8 @@ double NaN()
 }
 */
 
-int _CrtCheckMemory( )
-{ return 0; };
+//int _CrtCheckMemory( )
+//{ return 0; };
 
 #ifndef USE_OMP
 

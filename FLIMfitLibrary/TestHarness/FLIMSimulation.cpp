@@ -29,8 +29,8 @@ FLIMSimulationTCSPC::FLIMSimulationTCSPC() :
    // Equal integration times
    t_int_.assign(n_t_full, 1);
 
-   SetT(t_);
-   SetIntegrationTimes(t_int_);
+   setT(t_);
+   setIntegrationTimes(t_int_);
 
 }
 
@@ -54,8 +54,8 @@ FLIMSimulationWF::FLIMSimulationWF() :
    // Equal integration times
    t_int_.assign(n_t_full, 1);
 
-   SetT(t_);
-   SetIntegrationTimes(t_int_);
+   setT(t_);
+   setIntegrationTimes(t_int_);
 
 }
 

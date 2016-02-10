@@ -4,6 +4,8 @@
 
 class BackgroundLightDecayGroup : public AbstractDecayGroup
 {
+   Q_OBJECT
+
 public:
 
    BackgroundLightDecayGroup();
@@ -42,6 +44,7 @@ protected:
    double tvb = 0;
 };
 
+/*
 class QBackgroundLightDecayGroup : public QAbstractDecayGroup, public BackgroundLightDecayGroup
 {
    Q_OBJECT
@@ -54,3 +57,4 @@ public:
 signals:
    void Updated();
 };
+*/

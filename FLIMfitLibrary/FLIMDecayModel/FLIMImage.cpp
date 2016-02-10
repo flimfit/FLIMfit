@@ -68,7 +68,7 @@ void FLIMImage::ensureAllocated()
          {
             // Get temp filename
             boost::filesystem::path temp = boost::filesystem::unique_path();
-            map_file_name = temp.native();
+            map_file_name = temp.generic_string();
          }
          else
          {

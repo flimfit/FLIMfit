@@ -6,8 +6,9 @@
 
 #include "FLIMImage.h"
 
-#include "cv.h"
-#include <opencv/highgui.h>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <memory>
 
 class DecayWidget : public QWidget, public Ui::DecayWidget
@@ -59,7 +60,7 @@ public:
       auto x = QVector<double>::fromStdVector(t);
       auto xfit = QVector<double>::fromStdVector(t_fit);
       
-      int n_decay = decay.size();
+      int n_decay = (int) decay.size();
       for(int i=0; i<n_decay; i++)
       {
          if (decay_plot->graphCount() <= i)
@@ -73,7 +74,7 @@ public:
          graph->rescaleAxes(i>0);
       }
       
-      int n_fit = fit.size();
+      int n_fit = (int) fit.size();
       for(int i=0; i<n_fit; i++)
       {
          int idx = i + n_decay;

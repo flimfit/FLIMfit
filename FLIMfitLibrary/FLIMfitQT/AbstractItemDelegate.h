@@ -18,51 +18,15 @@ public:
    AbstractItemDelegate(QObject * parent = 0) :
    QStyledItemDelegate(parent) {}
    
-   QDoubleSpinBox* createDoubleSpin(QWidget * parent = 0) const
+//   template <typename T>
+   void commitDataW(QWidget* widget, double t)
    {
-      auto *editor = new QDoubleSpinBox(parent);
-      editor->setFrame(false);
-      auto fcn = std::bind(&AbstractItemDelegate::commitData, this, editor);
-      connect(editor, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, fcn);
-      return editor;
+      commitData(widget);
    }
-   
-   QSpinBox* createSpin(QWidget * parent = 0) const
-   {
-      auto *editor = new QSpinBox(parent);
-      editor->setFrame(false);
-      auto fcn = std::bind(&AbstractItemDelegate::commitData, this, editor);
-      connect(editor, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, fcn);
-      return editor;
-   }
-   
-   QComboBox* createCombo(QWidget * parent = 0) const
-   {
-      auto *editor = new QComboBox(parent);
-      auto fcn = std::bind(&AbstractItemDelegate::commitData, this, editor);
-      connect(editor, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, fcn);
-      editor->setFrame(false);
-      return editor;
-   }
-   
-   QComboBox* createBoolCombo(QWidget * parent = 0) const
-   {
-      auto* editor = new QComboBox(parent);
-      editor->setFrame(false);
-      editor->addItem("false", false);
-      editor->addItem("true", true);
-      
-      auto fcn = std::bind(&AbstractItemDelegate::commitData, this, editor);
-      connect(editor, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, fcn);
-      return editor;
-   }
-   
-   QLineEdit* createLineEdit(QWidget * parent = 0) const
-   {
-      auto *editor = new QLineEdit(parent);
-      editor->setFrame(false);
-      auto fcn = std::bind(&AbstractItemDelegate::commitData, this, editor);
-      connect(editor, &QLineEdit::textChanged, this, fcn);
-      return editor;
-   }
+
+   QDoubleSpinBox* createDoubleSpin(QWidget * parent = 0) const;
+   QSpinBox* createSpin(QWidget * parent = 0) const;
+   QComboBox* createCombo(QWidget * parent = 0) const;
+   QComboBox* createBoolCombo(QWidget * parent = 0) const;
+   QLineEdit* createLineEdit(QWidget * parent = 0) const;
 };

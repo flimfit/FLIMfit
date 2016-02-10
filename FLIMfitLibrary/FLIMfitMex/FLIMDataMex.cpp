@@ -33,7 +33,6 @@
 #include "InstrumentResponseFunction.h"
 #include "ModelADA.h" 
 #include "FLIMGlobalAnalysis.h"
-#include "FLIMGlobalFitController.h"
 #include "FLIMData.h"
 #include "tinythread.h"
 #include <assert.h>
@@ -73,7 +72,7 @@ void SetAcquisitionParameters(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[],
    int* t_skip = reinterpret_cast<int*>(mxGetData(prhs[11]));
    
    auto acq = AcquisitionParameters(data_type, t_rep, polarisation_resolved, n_chan, counts_per_photon);
-   acq.SetT(n_t_full, n_t, t, t_int, t_skip);
+   acq.setT(n_t_full, t, t_int);
    
    d->SetAcquisitionParmeters(acq);
 }

@@ -209,7 +209,7 @@ int FLIMData::calculateRegions()
          
          auto& mask = transformer.getMask();
          
-         int n_px = mask.size();
+         int n_px = static_cast<int>(mask.size());
          
          if (merge_regions)
          {

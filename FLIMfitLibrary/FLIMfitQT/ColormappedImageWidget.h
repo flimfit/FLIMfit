@@ -10,6 +10,7 @@
 #include <QTransform>
 #include <QRubberBand>
 
+#include <functional>
 #include <vector>
 #include <limits>
 #include <cmath>

@@ -50,7 +50,7 @@ public:
          setFinished();
    }
    
-   float getProgress() { return progress; }
+   double getProgress() { return progress; }
    bool isIndeterminate() { return indeterminate; }
    bool isFinished() { return finished; }
    const std::string& getTaskName() { return task_name; }

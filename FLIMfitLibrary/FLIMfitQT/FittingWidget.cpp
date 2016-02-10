@@ -64,7 +64,7 @@ void FittingWidget::setDefaultModel()
    decay_model->SetTransformedDataParameters(dp);
    
    
-   auto fret_group = std::make_shared<QFretDecayGroup>();
+   auto fret_group = std::make_shared<FretDecayGroup>();
    fret_group->SetIncludeAcceptor(false);
    std::vector<double> ch_donor = { 0.12, 0.64, 0.11, 0.60 };
    fret_group->SetChannelFactors(0, ch_donor);

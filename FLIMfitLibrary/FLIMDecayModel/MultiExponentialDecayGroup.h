@@ -5,11 +5,16 @@
 
 
 
-class MultiExponentialDecayGroup : virtual public AbstractDecayGroup
+class MultiExponentialDecayGroup : public AbstractDecayGroup
 {
+   Q_OBJECT
+
 public:
 
    MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false);
+
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
+   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE SetContributionsGlobal USER true);
 
    void SetNumExponential(int n_exponential);
    void SetContributionsGlobal(bool contributions_global);
@@ -65,6 +70,7 @@ void MultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int vers
    ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
 };
 
+/*
 class QMultiExponentialDecayGroup : public QAbstractDecayGroup, virtual public MultiExponentialDecayGroup
 {
    Q_OBJECT
@@ -90,6 +96,8 @@ void QMultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int ver
 {
    ar & boost::serialization::base_object<MultiExponentialDecayGroup>(*this);
 };
+*/
 
 BOOST_CLASS_TRACKING(MultiExponentialDecayGroup, track_always)
-BOOST_CLASS_TRACKING(QMultiExponentialDecayGroup, track_always)
+
+//BOOST_CLASS_TRACKING(QMultiExponentialDecayGroup, track_always)

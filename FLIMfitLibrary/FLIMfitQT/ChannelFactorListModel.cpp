@@ -15,7 +15,7 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QDecayModel> model)
       m_children.append(new ChannelFactorListItem(model->GetGroup(i), this));
 }
 
-ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QAbstractDecayGroup> group, ChannelFactorListItem* parent)
+ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> group, ChannelFactorListItem* parent)
 {
    m_type = Group;
    m_parent = parent;
@@ -39,7 +39,7 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QAbstractDecayGroup> gro
    }
 }
 
-ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QAbstractDecayGroup> group, int index, ChannelFactorListItem* parent)
+ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> group, int index, ChannelFactorListItem* parent)
 {
    m_type = Channel;
    m_parent = parent;
@@ -228,11 +228,11 @@ void ChannelFactorListModel::removeGroup(const QModelIndex index)
 void ChannelFactorListModel::addGroup(int group_type)
 {
 
-   shared_ptr<QAbstractDecayGroup> new_group;
+   shared_ptr<AbstractDecayGroup> new_group;
    if (group_type == 0)
-      new_group = std::make_shared<QMultiExponentialDecayGroup>();
+      new_group = std::make_shared<MultiExponentialDecayGroup>();
    else if (group_type == 1)
-      new_group = std::make_shared<QFretDecayGroup>();
+      new_group = std::make_shared<FretDecayGroup>();
    //else if (group_type == 2)
    //   new_group = std::make_shared<AnisotropyDecayGroup>();
 

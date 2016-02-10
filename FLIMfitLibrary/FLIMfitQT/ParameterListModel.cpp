@@ -16,7 +16,7 @@ ParameterListItem::ParameterListItem(shared_ptr<QDecayModel> model)
       m_children.append(new ParameterListItem(model->GetGroup(i), i, this));
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, int index, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, int index, ParameterListItem* parent)
 {
    m_type = Group;
    m_parent = parent;
@@ -52,7 +52,7 @@ void ParameterListItem::refresh()
    }
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent)
 {
    m_type = Option;
    m_parent = parent;
@@ -61,7 +61,7 @@ ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, cons
    m_decay_group = group;
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<QAbstractDecayGroup> group, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, ParameterListItem* parent)
 {
    m_type = SubParameters;
    m_parent = parent;
@@ -303,11 +303,11 @@ void ParameterListModel::removeGroup(const QModelIndex index)
 void ParameterListModel::addGroup(int group_type)
 {
 
-   shared_ptr<QAbstractDecayGroup> new_group;
+   shared_ptr<AbstractDecayGroup> new_group;
    if (group_type == 0)
-      new_group = std::make_shared<QMultiExponentialDecayGroup>();
+      new_group = std::make_shared<MultiExponentialDecayGroup>();
    else if (group_type == 1)
-      new_group = std::make_shared<QFretDecayGroup>();
+      new_group = std::make_shared<FretDecayGroup>();
    //else if (group_type == 2)
    //   new_group = std::make_shared<AnisotropyDecayGroup>();
 

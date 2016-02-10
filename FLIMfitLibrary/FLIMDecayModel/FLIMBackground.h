@@ -48,6 +48,7 @@ public:
          case TimeVaryingBackground:
             return tvb_mean * tvb_I_map.at<float>(p) + background_value;
       }
+      return 0;
    }
    
    float getBackgroundValue(int p, int m)
@@ -61,6 +62,7 @@ public:
          case TimeVaryingBackground:
             return tvb_profile[m] * tvb_I_map.at<float>(p) + background_value;
       }
+      return 0;
    }
    
    

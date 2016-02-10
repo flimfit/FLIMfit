@@ -10,9 +10,9 @@ public:
    enum Type { Root, Group, Option, SubParameters, Parameter };
    
    ParameterListItem(shared_ptr<QDecayModel> model);
-   ParameterListItem(shared_ptr<QAbstractDecayGroup> group, int index, ParameterListItem* parent);
-   ParameterListItem(shared_ptr<QAbstractDecayGroup> group, ParameterListItem* parent);
-   ParameterListItem(shared_ptr<QAbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent);
+   ParameterListItem(shared_ptr<AbstractDecayGroup> group, int index, ParameterListItem* parent);
+   ParameterListItem(shared_ptr<AbstractDecayGroup> group, ParameterListItem* parent);
+   ParameterListItem(shared_ptr<AbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent);
    ParameterListItem(shared_ptr<FittingParameter> parameter, ParameterListItem* parent);
 
    ~ParameterListItem();
@@ -29,7 +29,7 @@ public:
    const QString& name() { return m_name; }
    shared_ptr<FittingParameter> parameter() { return m_parameter; }
    const QMetaProperty& property() { return m_property; }
-   shared_ptr<QAbstractDecayGroup> decayGroup() { return m_decay_group; }
+   shared_ptr<AbstractDecayGroup> decayGroup() { return m_decay_group; }
 
    void addChild(ParameterListItem* child) { m_children.append(child); }
    
@@ -47,7 +47,7 @@ protected:
    ParameterListItem* m_parent;
 
    shared_ptr<FittingParameter> m_parameter;
-   shared_ptr<QAbstractDecayGroup> m_decay_group;
+   shared_ptr<AbstractDecayGroup> m_decay_group;
    QMetaProperty m_property;
 };
 

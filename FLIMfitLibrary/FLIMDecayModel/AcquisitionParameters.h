@@ -54,7 +54,7 @@ public:
    const std::vector<double>& getTimePoints();
    
    int data_type;
-   int polarisation_resolved;
+   bool polarisation_resolved;
 
    int n_x = 1;
    int n_y = 1;

@@ -17,11 +17,8 @@ find_package(Qt5Core REQUIRED)
 find_package(OpenCV REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
-#set(Boost_USE_STATIC_LIBS ON)
-#set(Boost_USE_MULTITHREADED ON)
 find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
 include_directories(${Boost_INCLUDE_DIR})
-#add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 
 # Enable OpenMP support, disable for XCode
@@ -67,12 +64,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 
+add_subdirectory("FLIMreader/Source")
 add_subdirectory( "levmar-2.6ML" )
 #add_subdirectory("xdispatch")
 add_subdirectory("FLIMDecayModel")
 add_subdirectory("DataFitter")
 add_subdirectory("FLIMfit")
-add_subdirectory("FLIMReader/Source/FLIMReader")
 add_subdirectory("FLIMfitQT")
-#add_subdirectory("FLIMfitMex")
+add_subdirectory("FLIMfitMex")
 add_subdirectory("TestHarness")

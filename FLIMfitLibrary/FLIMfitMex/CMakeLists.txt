@@ -30,30 +30,35 @@
 project(FLIMfitMex)
 
 find_package(Qt5Core)
-
+find_package(OpenCV REQUIRED)
 # MATLAB stuff
 #====================================
-set(MATLAB_EXTERN_DIR "E:/Program Files/extern/")
-set(MATLAB_LIB_DIR ${MATLAB_EXTERN_DIR}lib/win64/microsoft/)
-set(MATLAB_INCLUDE_DIR ${MATLAB_EXTERN_DIR}include)
-set(MATLAB_LIBRARIES ${MATLAB_LIB_DIR}libmat.lib ${MATLAB_LIB_DIR}libmex.lib ${MATLAB_LIB_DIR}libmx.lib)
 
-include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit)
+# Find MATLAB
+set(MATLAB_ADDITIONAL_VERSIONS
+    "R2015b=8.6"
+    "R2015a=8.5"
+    "R2014b=8.4")
+set(MATLAB_FIND_DEBUG TRUE)
+find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
+
+
+include_directories(${Matlab_INCLUDE_DIRS} ${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit)
 
 add_definitions(-DMATLAB_MEX_FILE)
 
 set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel ${MATLAB_LIBRARIES} Qt5::Core)
 
-add_library(ff_FLIMData MODULE MexUtils.h FLIMDataMex.cpp)
+matlab_add_mex(NAME ff_FLIMData SRC MexUtils.h FLIMDataMex.cpp)
 target_link_libraries(ff_FLIMData ${COMMON_LIBS})
 
-add_library(ff_Controller MODULE MexUtils.h ControllerMex.cpp)
+matlab_add_mex(NAME ff_Controller SRC MexUtils.h ControllerMex.cpp)
 target_link_libraries(ff_Controller ${COMMON_LIBS} levmar)
 
-add_library(ff_FitResults MODULE MexUtils.h FitResultsMex.cpp)
+matlab_add_mex(NAME ff_FitResults SRC MexUtils.h FitResultsMex.cpp)
 target_link_libraries(ff_FitResults ${COMMON_LIBS})
 
-add_library(ff_DecayModel MODULE MexUtils.h DecayModelMex.cpp)
+matlab_add_mex(NAME ff_DecayModel SRC MexUtils.h DecayModelMex.cpp)
 target_link_libraries(ff_DecayModel ${COMMON_LIBS})
 
 

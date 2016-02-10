@@ -1,11 +1,14 @@
 #pragma once 
 
+#define _USE_MATH_DEFINES
+
 #include "FLIMImage.h"
 #include <vector>
 #include <cv.h>
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <cmath>
 #include "DataTransformer.h"
 
 class Phasor

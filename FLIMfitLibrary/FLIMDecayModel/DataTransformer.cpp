@@ -1,5 +1,10 @@
 #include "DataTransformer.h"
 
+DataTransformationSettings::DataTransformationSettings()
+{
+   background = std::make_shared<FLIMBackground>(0.0f);
+}
+
 const std::vector<float>& DataTransformer::getSteadyStateAnisotropy()
 {
    getTransformedData();

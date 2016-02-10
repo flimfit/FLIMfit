@@ -20,15 +20,10 @@
 #include "BackgroundLightDecayGroup.h"
 
 BOOST_CLASS_EXPORT(AbstractDecayGroup);
-BOOST_CLASS_EXPORT(QAbstractDecayGroup);
 BOOST_CLASS_EXPORT(MultiExponentialDecayGroup);
-BOOST_CLASS_EXPORT(QMultiExponentialDecayGroup);
 BOOST_CLASS_EXPORT(FretDecayGroup);
-BOOST_CLASS_EXPORT(QFretDecayGroup);
 BOOST_CLASS_EXPORT(AnisotropyDecayGroup);
-BOOST_CLASS_EXPORT(QAnisotropyDecayGroup);
 BOOST_CLASS_EXPORT(BackgroundLightDecayGroup);
-BOOST_CLASS_EXPORT(QBackgroundLightDecayGroup);
 
 
 static qint32 flimfit_project_format_version = 1;
