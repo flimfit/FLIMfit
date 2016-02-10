@@ -29,6 +29,7 @@
 
 #pragma warning(disable: 4244 4267)
 
+#include "FitController.h"
 #include "FitStatus.h"
 #include "InstrumentResponseFunction.h"
 #include "ModelADA.h" 
@@ -45,7 +46,7 @@
 
 using std::string;
 
-PointerMap<FLIMGlobalFitController> pointer_map;
+PointerMap<FitController> pointer_map;
 
 void CheckInput(int nrhs, int needed);
 void ErrorCheck(int nlhs, int nrhs, const mxArray *prhs[]);
@@ -59,49 +60,50 @@ int  GetErrorCode();
 int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
 
 
-void SetupFit(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void SetupFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 9);
 
    int global_algorithm = mxGetScalar(prhs[2]);
-   int algorithm = mxGetScalar(prhs[3]);
-   int weighting = mxGetScalar(prhs[4]);
-   int calculate_errors = mxGetScalar(prhs[5]); 
-   double conf_interval = mxGetScalar(prhs[6]);
-   int n_thread = mxGetScalar(prhs[7]);
-   int runAsync = mxGetScalar(prhs[8]);
+   int global_mode = mxGetScalar(prhs[3]);
+   int algorithm = mxGetScalar(prhs[4]);
+   int weighting = mxGetScalar(prhs[5]);
+   int calculate_errors = mxGetScalar(prhs[6]); 
+   double conf_interval = mxGetScalar(prhs[7]);
+   int n_thread = mxGetScalar(prhs[8]);
+   int runAsync = mxGetScalar(prhs[9]);
 
-   FitSettings settings(algorithm, global_algorithm, weighting, n_thread, runAsync, nullptr);
+   FitSettings settings(algorithm, global_mode, global_algorithm, weighting, n_thread, runAsync, nullptr);
    settings.CalculateErrors(calculate_errors, conf_interval);
 
-   c->SetFitSettings(settings);
+   c->setFitSettings(settings);
 }
 
-void SetData(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void SetData(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
    auto data = GetSharedPtrFromMatlab<FLIMData>(prhs[2]);
-   c->SetData(data);
+   c->setData(data);
 }
 
-void SetModel(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void SetModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    
    auto model = GetSharedPtrFromMatlab<DecayModel>(prhs[2]);
-   c->SetModel(model);
+   c->setModel(model);
 }
 
-void StartFit(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void StartFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    
-   c->Init();
-   c->RunWorkers();
+   c->init();
+   c->runWorkers();
 }
 
-void GetFit(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void GetFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(nlhs >= 3);
@@ -116,30 +118,33 @@ void GetFit(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], in
    //c->GetFit(im, n_fit, fit_mask, fit, *n_valid);
 }
 
-void ClearFit(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void ClearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
-   c->Init();
-   c->RunWorkers();
+   c->init();
+   c->runWorkers();
 }
 
-void StopFit(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void StopFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
-   c->StopFit();
+   c->stopFit();
 }
 
-void GetFitStatus(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void GetFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 5);
    
-   c->status->CalculateProgress();
+   auto reporter = c->getProgressReporter();
+   double progress = reporter->getProgress();
 
-   int n_thread = c->status->n_thread;
 
-   plhs[0] = mxCreateDoubleScalar(c->status->progress);
+   plhs[0] = mxCreateDoubleScalar(progress);
+
+   /* TODO
+   //   int n_thread = c->status->n_thread;
    plhs[1] = mxCreateDoubleMatrix(1, n_thread, mxREAL);
    plhs[2] = mxCreateDoubleMatrix(1, n_thread, mxREAL);
    plhs[3] = mxCreateDoubleMatrix(1, n_thread, mxREAL);
@@ -157,6 +162,7 @@ void GetFitStatus(shared_ptr<FLIMGlobalFitController> c, int nlhs, mxArray *plhs
       iter[i] = c->status->iter[i];
       chi2[i] = c->status->chi2[i];
    }
+   */
 }
 
 

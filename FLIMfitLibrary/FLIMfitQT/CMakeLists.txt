@@ -78,13 +78,13 @@ include_directories(../FLIMDecayModel
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${OpenCV_INCLUDE_DIRS})
 
-link_directories(${LAPACKBLAS_DIR} "C:/local/boost_1_59_0/lib64-msvc-14.0/") # lapack doesn't give us the right path
+link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 
 add_executable(FLIMfitQT ${SOURCE} 
                          ${HEADERS} 
                          ${UI_HEADERS} 
                          ${UI_RESOURCES}
-                         $<TARGET_OBJECTS:FLIMReader>)
+                         $<TARGET_OBJECTS:FLIMreader>)
 
 set_target_properties(FLIMfitQT PROPERTIES LINK_FLAGS "/NODEFAULTLIB:library" )
 

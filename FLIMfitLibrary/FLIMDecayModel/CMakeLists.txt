@@ -30,7 +30,7 @@
 project(FLIMDecayModel)
 
 find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED COMPONENTS serialization)
+find_package(Boost REQUIRED COMPONENTS system filesystem serialization date_time)
 
 # Set the source and header files
 #===================================================
@@ -77,4 +77,4 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 add_library(FLIMDecayModel STATIC ${SOURCE} ${HEADERS})
 set(FLIMDecayModel_LIBRARIES ${Boost_LIBRARIES} PARENT_SCOPE)
 message(HELLO ${FLIMDecayModel_LIBRARIES})
-target_link_libraries(FLIMDecayModel Qt5::Core ${Boost_LIBRARIES})
+target_link_libraries(FLIMDecayModel Qt5::Core ${Boost_LIBRARIES} ${OpenCV_LIBRARIES})

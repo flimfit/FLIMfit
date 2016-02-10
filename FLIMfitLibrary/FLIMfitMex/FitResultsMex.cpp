@@ -83,9 +83,10 @@ void GetImageStats(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const mxA
    int* success = reinterpret_cast<int*>(mxCreateNumericMatrix(n_regions, 1, mxINT32_CLASS, mxREAL));
    int* iterations = reinterpret_cast<int*>(mxCreateNumericMatrix(n_regions, 1, mxINT32_CLASS, mxREAL));
 
-   vector<RegionSummary> summary;
-   ImageStats<float> stats;
-   r->ComputeImageStats(0.05f, summary, stats);
+   r->ComputeRegionStats(0.05f);
+   vector<RegionSummary> summary = r->GetRegionSummary();
+   RegionStats<float> stats = r->GetStats();
+   
 
    const char* fieldnames[5] =
    {  "image",
@@ -110,7 +111,7 @@ void GetImageStats(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const mxA
    plhs[1] = mxCreateNumericArray(3, sz, mxSINGLE_CLASS, mxREAL);
 
    float* ptr = reinterpret_cast<float*>(mxGetPr(plhs[0]));
-   vector<float>& stats_data = stats.GetStats();
+   const vector<float>& stats_data = stats.GetStats();
    std::copy(stats_data.begin(), stats_data.end(), ptr);
 }
 

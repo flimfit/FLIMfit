@@ -192,8 +192,8 @@ void FitResults::DetermineParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 }
 
-//int FitResults::GetNumX() { return data->n_x; }
-//int FitResults::GetNumY() { return data->n_y; }
+int FitResults::GetNumX() { assert(false); return 0; } // TODO
+int FitResults::GetNumY() { assert(false); return 0; } // TODO
 
 
 void FitResultsRegion::GetPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)

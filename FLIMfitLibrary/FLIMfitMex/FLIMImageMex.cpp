@@ -57,6 +57,7 @@ class Container
 public:
    AcquisitionParameters acq;
    InstrumentResponseFunction irf;
+   FLIMImage image;
 };
 
 void SetAcquisitionParameters(shared_ptr<Container> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -75,10 +76,10 @@ void SetAcquisitionParameters(shared_ptr<Container> d, int nlhs, mxArray *plhs[]
    double* t = mxGetPr(prhs[9]);
    double* t_int = mxGetPr(prhs[10]);
    int* t_skip = reinterpret_cast<int*>(mxGetData(prhs[11]));
-   
+
    auto acq = AcquisitionParameters(data_type, t_rep, polarisation_resolved, n_chan, counts_per_photon);
    acq.setT(n_t_full, t, t_int);
-   
+
    d->acq = acq;
 }
 
@@ -127,32 +128,6 @@ void SetMasking(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, con
    int merge_regions = mxGetScalar(prhs[4]);
 
    d->SetMasking(use_im, mask, merge_regions);
-}
-
-void SetThresholds(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 4);
-
-   int threshold = mxGetScalar(prhs[2]);
-   int limit = mxGetScalar(prhs[3]);
-
-   d->SetThresholds(threshold, limit);
-}
-
-void SetGlobalMode(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-
-   int global_mode = mxGetScalar(prhs[2]);
-   d->SetGlobalMode(global_mode);
-}
-
-void SetSmoothing(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-
-  int smoothing = mxGetScalar(prhs[2]);
-  d->SetSmoothing(smoothing);
 }
 
 void SetData(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

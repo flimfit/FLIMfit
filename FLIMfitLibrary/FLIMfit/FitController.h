@@ -74,6 +74,7 @@ public:
    int runWorkers();
    int getErrorCode();
    void waitForFit();
+   void stopFit();
    
    int getFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
 

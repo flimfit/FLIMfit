@@ -83,6 +83,12 @@ void FitController::StopFit()
    status->Terminate();
 }
 */
+
+void FitController::stopFit()
+{
+   reporter->requestTermination();
+}
+
 int FitController::runWorkers()
 {
    

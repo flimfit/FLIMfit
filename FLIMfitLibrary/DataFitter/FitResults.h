@@ -76,10 +76,11 @@ public:
 
    vector<uint8_t>& GetMask(int im) { return mask[im]; }
    
-   //int GetNumX();
-   //int GetNumY();
+   int GetNumX();
+   int GetNumY();
    
    const RegionStats<float> GetStats() { return stats; }
+   const vector<RegionSummary>& GetRegionSummary() { return region_summary; }
 
 private:
 

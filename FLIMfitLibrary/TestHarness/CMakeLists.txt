@@ -62,6 +62,7 @@ add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
 target_link_libraries(TestHarness FLIMfit DataFitter FLIMDecayModel levmar
                         ${LAPACKBLAS_LIB_NAMES}
+                        ${F2C_LIB_NAME}
                         ${OpenCV_LIBS}
                         ${Boost_LIBRARIES})
 
