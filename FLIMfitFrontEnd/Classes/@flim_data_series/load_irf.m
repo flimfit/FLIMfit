@@ -85,6 +85,12 @@ function load_irf(obj,file_or_image,load_as_image)
            t_irf = t_irf * 1000; 
         end
 
+        % sort in time order
+        t_irf = t_irf(:);
+        [t_irf, sort_idx] = sort(t_irf);
+        irf = irf(sort_idx,:);
+        irf_image_data = irf_image_data(sort_idx,:,:,:);
+
         if load_as_image
             irf_image_data = obj.smooth_flim_data(irf_image_data,7);
             obj.image_irf = irf_image_data;
@@ -92,9 +98,8 @@ function load_irf(obj,file_or_image,load_as_image)
         else
             obj.has_image_irf = false;
         end
-
-
-        obj.t_irf = t_irf(:);
+        
+        obj.t_irf = t_irf;
         obj.irf = irf;
         obj.irf_name = 'irf';
 

@@ -101,9 +101,13 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     else % tif-stack
 
         folder_names = get_folders_recursive(root_path);
+        
+        if isempty(folder_names)
+            errordlg('Failed to find subdirectories!');
+            return;
+        end;
             
         folder_names = sort_nat(folder_names);    
-        
         
         if isempty(selected)
             [folder_names, ~, obj.lazy_loading] = dataset_selection(folder_names);

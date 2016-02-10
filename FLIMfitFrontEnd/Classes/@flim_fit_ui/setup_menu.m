@@ -58,9 +58,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_save_data_settings = uimenu(menu_file,'Label','Save Data Settings...','Separator','on');
     handles.menu_file_load_data_settings = uimenu(menu_file,'Label','Load Data Settings...');
     
-    handles.menu_file_load_t_calibration = uimenu(menu_file,'Label','Load Time Point Calbration File...','Separator','on');
-
-    
+  
     handles.menu_file_set_default_path = uimenu(menu_file,'Label','Set Default Folder...','Separator','on','Accelerator','D');
     handles.menu_file_recent_default = uimenu(menu_file,'Label','Use Recent Default Folder');
     
@@ -73,14 +71,11 @@ function handles = setup_menu(obj,handles)
     %handles.menu_file_export_fit_results = uimenu(menu_file,'Label','Export Fit Results as HDF...','Separator','on');    
     %handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
     
-    handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...','Separator','on');
+    handles.menu_file_export_intensity = uimenu(menu_file,'Label','Export Intensity Images...','Separator','on');
+    handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...');
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
-        menu_file_export_volume = uimenu(menu_file,'Label','Export Fit Results as volume...');    
-        handles.menu_file_export_volume_to_icy = uimenu(menu_file_export_volume,'Label','Send to Icy...');
-        handles.menu_file_export_volume_as_OMEtiff = uimenu(menu_file_export_volume,'Label','Save as OME.tiff...');
-        handles.menu_file_export_volume_batch = uimenu(menu_file_export_volume,'Label','Batch-process data directory with current setup...');        
-        
+      
     % OMERO MEGA MENU    
     %=================================
     
@@ -174,9 +169,20 @@ function handles = setup_menu(obj,handles)
     %handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
     handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
     handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
-
+    handles.menu_tools_fit_gaussian_irf = uimenu(menu_tools,'Label','Fit Gaussian IRF...');
+    
     handles.menu_tools_preferences = uimenu(menu_tools,'Label','Preferences...','Separator','on');
+   
+    % NB odd naming in this menu allows easy movement of items back 
+    % to their original location
+    menu_advanced = uimenu(obj.window,'Label','Advanced');
+    handles.menu_file_load_t_calibration = uimenu(menu_advanced,'Label','Load Time Point Calbration File...','Separator','on');
 
+    menu_file_export_volume = uimenu(menu_advanced,'Label','Export Fit Results as volume...');    
+        handles.menu_file_export_volume_to_icy = uimenu(menu_file_export_volume,'Label','Send to Icy...');
+        handles.menu_file_export_volume_as_OMEtiff = uimenu(menu_file_export_volume,'Label','Save as OME.tiff...');
+        handles.menu_file_export_volume_batch = uimenu(menu_file_export_volume,'Label','Batch-process data directory with current setup...');        
+        
     % Test items need work - temporarily removed form GUI
     %menu_test = uimenu(obj.window,'Label','Test');
     %handles.menu_test_test1 = uimenu(menu_test,'Label','Start Regression Tests','Accelerator','X');

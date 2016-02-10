@@ -221,19 +221,22 @@ function compute_tr_irf(obj)
             diff = obj.tr_t_irf(1) - obj.t(1);
             n = ceil(diff/dt) + 1;
             
-            padding = (-n:-1:-1)*dt + obj.tr_t_irf(1);
-            
-            new_t = [padding; obj.tr_t_irf];
+            padding = (-n:1:-1)*dt + obj.tr_t_irf(1);
+        
+            new_t = [padding'; obj.tr_t_irf];
             
         else
             new_t = obj.tr_t_irf;
         end
             
         
+        
         for i=1:size(obj.tr_irf,2)
-            obj.tr_irf(:,i) = interp1(obj.tr_t_irf,obj.tr_irf(:,i),new_t-remaining_shift,'pchip',0);
+            new_irf(:,i) = interp1(new_t,obj.tr_irf(:,i),new_t-remaining_shift,'pchip',0);  
         end
-        obj.tr_irf(isnan(obj.tr_irf)) = 0;
+        
+        new_irf(isnan(new_irf)) = 0;
+        obj.tr_irf = new_irf;
         obj.tr_t_irf = new_t;
         
         % Normalise irf so it sums to unity

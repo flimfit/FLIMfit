@@ -52,8 +52,6 @@ function bg_data = generate_tvb_I_map(obj, mask, dataset)
     dI(~mask) = NaN;
     dIuncorrected(~mask) = NaN;
     
-    sum(dI(:))
-    
     f=figure('Units','Pixels');
     p = get(f,'Position');
     p(2:4) = [200,600,300];

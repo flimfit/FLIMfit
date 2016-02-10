@@ -32,6 +32,10 @@ project(TestHarness)
 include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit )
 
 
+# Include the BOOST header files
+#===================================================
+FIND_PACKAGE(Boost REQUIRED)
+
 # Set the source and header files
 #===================================================
 set(SOURCE
@@ -60,8 +64,11 @@ target_link_libraries(TestHarness FLIMfit DataFitter FLIMDecayModel levmar
                         ${OpenCV_LIBS}
                         ${Boost_LIBRARIES})
 
+
 # Run tests after compile
 #===================================================
 #add_custom_command(TARGET TestHarness POST_BUILD
 #				   COMMAND $<TARGET_FILE:TestHarness> --result_code=no --report_level=no)
+target_link_libraries(TestHarness ${FGP_LIB} levmar ${LEVMAR_LIBRARIES})
+
 

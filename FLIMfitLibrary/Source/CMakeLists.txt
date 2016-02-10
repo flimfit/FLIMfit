@@ -33,39 +33,23 @@ project(FLIMfit)
 
 # Include the BOOST header files
 #===================================================
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-endif()
-include_directories( "../Boost" )
+FIND_PACKAGE(Boost REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 # Enable OpenMP support, disable for XCode
 #===================================================
-if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
-else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   find_package("OpenMP")
-   if (OPENMP_FOUND)
-      option(USE_OMP "Use OpenMP" ON)
-      if (USE_OMP)
-         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
-         message("Using OpenMP")
-      endif()
+find_package("OpenMP")
+if (OPENMP_FOUND)
+   option(USE_OMP "Use OpenMP" ON)
+   if (USE_OMP)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
+      message("Using OpenMP")
    endif()
 endif()
 
-# MATLAB stuff
-#====================================
-set(MATLAB_EXTERN_DIR "E:/Program Files/extern/")
-set(MATLAB_LIB_DIR ${MATLAB_EXTERN_DIR}lib/win64/microsoft/)
-set(MATLAB_INCLUDE_DIR ${MATLAB_EXTERN_DIR}include)
-set(MATLAB_LIBRARIES ${MATLAB_LIB_DIR}libmat.lib ${MATLAB_LIB_DIR}libmex.lib ${MATLAB_LIB_DIR}libmx.lib)
 
 
 include_directories(${MATLAB_INCLUDE_DIR} ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter)
-
-
 
 # Set the source and header files
 #===================================================
@@ -92,6 +76,7 @@ set(HEADERS
    #ModelParameters.h
 )
 
+
 # Include optimisation flags in Visual Studio
 #===================================================
 if(MSVC)
@@ -101,11 +86,6 @@ if(MSVC)
    set(PLATFORM_FLAGS_DEBUG "/ZI")
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
    add_definitions(-D_MSVC)
-   add_definitions(-DNOMINMAX)
-
-   if(CMAKE_VS_PLATFORM_TOOLSET MATCHES "v110")
-	 message("Warning: When using VS2012 make sure you select the v110_xp toolchain to allow use on WinXP")
-   endif(CMAKE_VS_PLATFORM_TOOLSET MATCHES "v110")
 endif(MSVC)
 
 if(UNIX)
@@ -124,7 +104,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)
 
 # Make library
-#===================================================
 add_library(FLIMfit STATIC ${SOURCE} ${HEADERS} )
 
 add_library(FLIMfitMex MODULE MexUtils.h FLIMGlobalAnalysis.cpp)
@@ -140,4 +119,3 @@ add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
 
 set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
 set( FGP_LIB_DIR ${OUT_DIR} PARENT_SCOPE )
-
