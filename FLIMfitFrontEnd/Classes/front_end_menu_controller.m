@@ -438,7 +438,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------ 
         function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(0), java.lang.Long(dId) );
             images = chooser.getSelectedImages();
             if images.length == 1
                 load_as_image = false;
@@ -450,7 +450,6 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
-            
                 dId = obj.data_series_controller.data_series.datasetId;
                 pId = obj.data_series_controller.data_series.plateId;
             else
@@ -459,13 +458,19 @@ classdef front_end_menu_controller < handle
             end
            
             if dId < 1 && pId > 0
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2), false, java.lang.Long(pId), '');
-                selected = chooser.getSelectedPlate();
+                % plate so attachment only 
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(7), java.lang.Long(pId));
+                selected = chooser.getSelectedFile();
             else
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
-                selected = chooser.getSelectedDataset();
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(8),java.lang.Long(dId));
+                images = chooser.getSelectedImages();
+                selected = chooser.getSelectedFile();
             end
             clear chooser;
+            if images.length == 1
+                  load_as_image = false;
+                  obj.data_series_controller.data_series.load_irf(images(1),load_as_image);
+            end
             if ~isempty(selected) 
                 obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series, selected);
             end
