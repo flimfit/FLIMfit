@@ -470,9 +470,44 @@ classdef front_end_menu_controller < handle
             if images.length == 1
                   load_as_image = false;
                   obj.data_series_controller.data_series.load_irf(images(1),load_as_image);
-            end
-            if ~isempty(selected) 
-                obj.omero_data_manager.Load_IRF_annot(obj.data_series_controller.data_series, selected);
+            else
+                if ~isempty(selected)
+                    
+                     fname = char(selected.getName().getValue());
+                     [path,name,ext] = fileparts_inc_OME(fname);
+                    
+                    % NB marshal-object is overloaded in OMERO_data_series &
+                    % load_irf uses marshal_object for .xml files so simply call
+                    % directly
+                    if strcmp(ext,'.xml')
+                        obj.data_series_controller.data_series.load_irf(fname);
+                        return;
+                    end;
+                    
+                    fullpath  = [tempdir fname];
+                    context = java.util.HashMap;
+                    context.put('omero.group', '-1');
+                    % Initialize raw file store
+                    store = obj.omero_data_manager.session.createRawFileStore();
+                    % Set file annotation id
+                    store.setFileId(selected.getId().getValue(), context);
+                    % Read data and cast into int8
+                    fid = fopen(fullpath, 'w');
+                    byteArr  = store.read(0,selected.getSize().getValue());
+                    
+                    if strcmp(ext,'.sdt')
+                        fwrite(fid,typecast(byteArr,'uint16'),'uint16');
+                    else
+                        fwrite(fid,byteArr,'*uint8');
+                    end
+                    
+                    fclose(fid);
+                    % Close the file store
+                    store.close();
+                   
+                    obj.data_series_controller.data_series.load_irf(fullpath, true);
+                    delete(fullpath);
+                end
             end
           end                    
         %------------------------------------------------------------------
