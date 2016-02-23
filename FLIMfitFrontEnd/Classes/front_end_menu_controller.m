@@ -38,8 +38,7 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_FLIM_Data;
         menu_OMERO_Load_FLIM_Dataset; 
         menu_OMERO_Load_plate;
-        menu_OMERO_Load_IRF_FOV;
-        menu_OMERO_Load_IRF_annot;            
+        menu_OMERO_Load_irf;      
         menu_OMERO_Load_Background;            
         %menu_OMERO_Export_Fitting_Results;    
        
@@ -49,9 +48,7 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Switch_User;
             
         menu_OMERO_Working_Data_Info;
-        
-        menu_OMERO_Export_IRF_annot;
-        
+      
         menu_OMERO_Load_tvb_Annotation; 
         menu_OMERO_Export_tvb_Annotation;
         
@@ -434,20 +431,9 @@ classdef front_end_menu_controller < handle
             
             clear chooser;
         end  
-        
-        %------------------------------------------------------------------ 
-        function menu_OMERO_Load_IRF_FOV_callback(obj,~,~)
-            dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(0), java.lang.Long(dId) );
-            images = chooser.getSelectedImages();
-            if images.length == 1
-                load_as_image = false;
-                obj.data_series_controller.data_series.load_irf(images(1),load_as_image)
-            end
-            clear chooser;
-        end                    
+                    
         %------------------------------------------------------------------
-        function menu_OMERO_Load_IRF_annot_callback(obj,~,~)
+        function menu_OMERO_Load_irf_callback(obj,~,~)
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
                 dId = obj.data_series_controller.data_series.datasetId;
@@ -494,7 +480,7 @@ classdef front_end_menu_controller < handle
                     % Read data and cast into int8
                     fid = fopen(fullpath, 'w');
                     byteArr  = store.read(0,selected.getSize().getValue());
-                    
+                     
                     if strcmp(ext,'.sdt')
                         fwrite(fid,typecast(byteArr,'uint16'),'uint16');
                     else
@@ -505,7 +491,7 @@ classdef front_end_menu_controller < handle
                     % Close the file store
                     store.close();
                    
-                    obj.data_series_controller.data_series.load_irf(fullpath, true);
+                    obj.data_series_controller.data_series.load_irf(fullpath);
                     delete(fullpath);
                 end
             end
@@ -551,12 +537,7 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Switch_User_callback(obj,~,~)
             %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
             obj.omero_data_manager.Omero_logon_forced();
-        end        
-         %------------------------------------------------------------------        
-        function menu_OMERO_Export_IRF_annot_callback(obj,~,~)
-            irfdata = [obj.data_series_controller.data_series.t_irf(:) obj.data_series_controller.data_series.irf(:)];
-            obj.omero_data_manager.Export_IRF_annot(irfdata);
-        end                        
+        end                          
         %------------------------------------------------------------------  
         function menu_OMERO_Load_tvb_Annotation_callback(obj,~,~)
             dId = obj.data_series_controller.data_series.datasetId;

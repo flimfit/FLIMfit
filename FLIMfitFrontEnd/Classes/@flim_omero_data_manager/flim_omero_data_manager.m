@@ -265,32 +265,7 @@ classdef flim_omero_data_manager < handle
        end
         
        
-       %------------------------------------------------------------------                
-        function Export_IRF_annot(obj,irf_data,~)
-            
-            selected = obj.select_for_annotation();
-            
-            if isempty(selected)
-                return;
-            end
-                                           
-            ext = '.irf';   
-            irf_file_name = [tempdir 'IRF '  datestr(now,'yyyy-mm-dd-T-HH-MM-SS') ext];            
-            % works - but why is it t axis distortion there if IRF is from single-plane-tif-averaging
-            dlmwrite(irf_file_name,irf_data);            
-            %            
-            namespace = 'IC_PHOTONICS';
-            description = ' ';            
-            file_mime_type = char('application/octet-stream');
-            %
-            add_Annotation(obj.session, obj.userid, ...
-                            selected, ...
-                            file_mime_type, ...
-                            irf_file_name, ...
-                            description, ...
-                            namespace);                        
-        end                
-       %------------------------------------------------------------------                        
+                           
         function Export_TVB_annot(obj,data_series,~)
             
             selected = obj.select_for_annotation();
