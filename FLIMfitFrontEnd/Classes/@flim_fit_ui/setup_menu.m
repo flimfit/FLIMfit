@@ -102,7 +102,8 @@ function handles = setup_menu(obj,handles)
 
     handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load Polarization Resolved Data','Enable','off');        
     %
-    handles.menu_OMERO_Load_irf = uimenu(menu_OMERO,'Label','Load IRF...','Separator','on','Enable','off');                              
+    handles.menu_OMERO_Load_irf = uimenu(menu_OMERO,'Label','Load IRF...','Separator','on','Enable','off'); 
+    handles.menu_OMERO_Load_sv_irf = uimenu(menu_OMERO,'Label','Load Spatially Varying IRF...','Enable','off');
     handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background...','Separator','on','Enable','off');    
     handles.menu_OMERO_Load_Background_average = uimenu(menu_OMERO,'Label','Load time-averaged background...','Separator','off','Enable','off');    
     
@@ -134,7 +135,6 @@ function handles = setup_menu(obj,handles)
        
     menu_irf       = uimenu(obj.window,'Label','IRF');
     handles.menu_irf_load = uimenu(menu_irf,'Label','Load IRF...');
-   
     handles.menu_irf_image_load = uimenu(menu_irf,'Label','Load Spatially Varying IRF...');
   
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');

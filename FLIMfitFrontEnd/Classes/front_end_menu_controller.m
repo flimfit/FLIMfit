@@ -38,7 +38,8 @@ classdef front_end_menu_controller < handle
         menu_OMERO_Load_FLIM_Data;
         menu_OMERO_Load_FLIM_Dataset; 
         menu_OMERO_Load_plate;
-        menu_OMERO_Load_irf;      
+        menu_OMERO_Load_irf; 
+        menu_OMERO_Load_sv_irf;
         menu_OMERO_Load_Background;            
         %menu_OMERO_Export_Fitting_Results;    
        
@@ -434,7 +435,7 @@ classdef front_end_menu_controller < handle
                     
         %------------------------------------------------------------------
         function menu_OMERO_Load_irf_callback(obj,~,~)
-            
+            images = [];
             if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
                 dId = obj.data_series_controller.data_series.datasetId;
                 pId = obj.data_series_controller.data_series.plateId;
@@ -496,6 +497,25 @@ classdef front_end_menu_controller < handle
                 end
             end
           end                    
+        %------------------------------------------------------------------
+        function menu_OMERO_Load_sv_irf_callback(obj,~,~)
+            images = [];
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
+                dId = obj.data_series_controller.data_series.datasetId;
+            end
+            if dId < 1 
+                % plate so err
+                h = errordlg('Not yet implemented!');
+            else
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(0),java.lang.Long(dId));
+                images = chooser.getSelectedImages();
+            end
+            clear chooser;
+            if images.length == 1
+                  load_as_image = true;
+                  obj.data_series_controller.data_series.load_irf(images(1),load_as_image)
+            end  
+        end
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
             dId = obj.data_series_controller.data_series.datasetId;
