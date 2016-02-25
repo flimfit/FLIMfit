@@ -45,14 +45,11 @@ classdef front_end_menu_controller < handle
        
         menu_OMERO_Reset_Logon;  
         menu_OMERO_Load_Background_average;
-        menu_OMERO_Load_tvb_from_Image;
         menu_OMERO_Switch_User;
             
         menu_OMERO_Working_Data_Info;
-      
-        menu_OMERO_Load_tvb_Annotation; 
-        menu_OMERO_Export_tvb_Annotation;
-        
+        menu_OMERO_Load_tvb
+         
         menu_OMERO_Load_FLIM_Dataset_Polarization;
         
         menu_OMERO_save_data_settings;
@@ -410,9 +407,7 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
                 obj.data_series_controller.load_data_series(dataset,''); 
                 notify(obj.data_series_controller,'new_dataset');
-            end
-            
-            
+            end   
         end    
         %------------------------------------------------------------------        
         function menu_OMERO_Load_plate_callback(obj,~,~)
@@ -557,28 +552,73 @@ classdef front_end_menu_controller < handle
         function menu_OMERO_Switch_User_callback(obj,~,~)
             %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
             obj.omero_data_manager.Omero_logon_forced();
-        end                          
-        %------------------------------------------------------------------  
-        function menu_OMERO_Load_tvb_Annotation_callback(obj,~,~)
-            dId = obj.data_series_controller.data_series.datasetId;
-            pId = obj.data_series_controller.data_series.plateId;
-            if double(dId) < 1 && double(pId)
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2));
-                selected = chooser.getSelectedPlate();
+        end    
+        
+        %------------------------------------------------------------------
+        function menu_OMERO_Load_tvb_callback(obj,~,~)
+            images = [];
+            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
+                dId = obj.data_series_controller.data_series.datasetId;
+                pId = obj.data_series_controller.data_series.plateId;
             else
-                selected = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1), false, java.lang.Long(dId), '');
-                selected = chooser.getSelectedDataset();
+                dId = -1;
+                pId = -1;
+            end
+           
+            if dId < 1 && pId > 0
+                % plate so attachment only 
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(7), java.lang.Long(pId));
+                selected = chooser.getSelectedFile();
+            else
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(8),java.lang.Long(dId));
+                images = chooser.getSelectedImages();
+                selected = chooser.getSelectedFile();
             end
             clear chooser;
-            if ~isempty(selected) 
-                obj.omero_data_manager.Load_TVB_annot(obj.data_series_controller.data_series, dataset);
+            if images.length == 1
+                  load_as_image = false;
+                  obj.data_series_controller.data_series.load_tvb(images(1)); 
+            else
+                if ~isempty(selected)
+                    
+                     fname = char(selected.getName().getValue());
+                     [path,name,ext] = fileparts_inc_OME(fname);
+                    
+                    % NB marshal-object is overloaded in OMERO_data_series &
+                    % load_irf uses marshal_object for .xml files so simply call
+                    % directly
+                    if strcmp(ext,'.xml')
+                        obj.data_series_controller.data_series.load_tvb(fname);
+                        return;
+                    end;
+                    
+                    fullpath  = [tempdir fname];
+                    context = java.util.HashMap;
+                    context.put('omero.group', '-1');
+                    % Initialize raw file store
+                    store = obj.omero_data_manager.session.createRawFileStore();
+                    % Set file annotation id
+                    store.setFileId(selected.getId().getValue(), context);
+                    % Read data and cast into int8
+                    fid = fopen(fullpath, 'w');
+                    byteArr  = store.read(0,selected.getSize().getValue());
+                     
+                    if strcmp(ext,'.sdt')
+                        fwrite(fid,typecast(byteArr,'uint16'),'uint16');
+                    else
+                        fwrite(fid,byteArr,'*uint8');
+                    end
+                    
+                    fclose(fid);
+                    % Close the file store
+                    store.close();
+                   
+                    obj.data_series_controller.data_series.load_tvb(fullpath); 
+                    delete(fullpath);
+                end
             end
-          end  
-                           
-        %------------------------------------------------------------------        
-        function menu_OMERO_Export_tvb_Annotation_callback(obj,~,~)
-            obj.omero_data_manager.Export_TVB_annot(obj.data_series_controller.data_series);
-        end    
+          end                    
+        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~)
             if isvalid(obj.data_series_controller.data_series)
@@ -599,11 +639,17 @@ classdef front_end_menu_controller < handle
                           
         %------------------------------------------------------------------
         function menu_OMERO_load_data_settings_callback(obj,~,~)
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
-            dataset = chooser.getSelectedDataset();
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(6));
+            selected = chooser.getSelectedFile();
             clear chooser;
-            if ~isempty(dataset)
-                obj.omero_data_manager.Import_Data_Settings(obj.data_series_controller.data_series,dataset);
+            if ~isempty(selected)
+                 fname = char(selected.getName().getValue());
+                 [path,name,ext] = fileparts_inc_OME(fname);
+                  if strcmp(ext,'.xml')
+                      obj.data_series_controller.data_series.load_data_settings(fname);
+                  else
+                      errordlg('Please select a .xml file')
+                  end
             end
         end                                            
         %------------------------------------------------------------------
@@ -902,16 +948,40 @@ classdef front_end_menu_controller < handle
                             'IC_PHOTONICS');  
             end
         end
-
+        
         function menu_OMERO_import_fit_params_callback(obj,~,~)
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
-            dataset = chooser.getSelectedDataset();
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(6));
+            selected = chooser.getSelectedFile();
             clear chooser;
-            if ~isempty(dataset)
-                obj.omero_data_manager.Import_Fitting_Settings(obj.fitting_params_controller,dataset);
+            if ~isempty(selected)
+                fname = char(selected.getName().getValue());
+                [path,name,ext] = fileparts_inc_OME(fname);
+                
+                if ~strcmp(ext,'.xml')
+                    errordlg('Plese select a .xml file!');
+                    return;
+                end;
+                
+                fullpath  = [tempdir fname];
+                context = java.util.HashMap;
+                context.put('omero.group', '-1');
+                % Initialize raw file store
+                store = obj.omero_data_manager.session.createRawFileStore();
+                % Set file annotation id
+                store.setFileId(selected.getId().getValue(), context);
+                % Read data and cast into int8
+                fid = fopen(fullpath, 'w');
+                byteArr  = store.read(0,selected.getSize().getValue());
+                fwrite(fid,byteArr,'*uint8');
+                fclose(fid);
+                % Close the file store
+                store.close();
+                obj.fitting_params_controller.load_fitting_params(fullpath); 
+                delete(fullpath);
+               
             end
-        end
-
+        end       
+        
         %------------------------------------------------------------------
         % Export Fit Table
         %------------------------------------------------------------------

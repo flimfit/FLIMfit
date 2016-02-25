@@ -115,6 +115,8 @@ classdef flim_data_series < handle & h5_serializer
     end
     
     properties(Transient)
+        
+        datasetId = -1;   %Set invalid OMERO dataset Id as default
         acceptor;
         root_path;
         
