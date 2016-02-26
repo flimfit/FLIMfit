@@ -463,32 +463,12 @@ classdef front_end_menu_controller < handle
                     % directly
                     if strcmp(ext,'.xml')
                         obj.data_series_controller.data_series.load_irf(fname);
-                        return;
-                    end;
-                    
-                    fullpath  = [tempdir fname];
-                    context = java.util.HashMap;
-                    context.put('omero.group', '-1');
-                    % Initialize raw file store
-                    store = obj.omero_data_manager.session.createRawFileStore();
-                    % Set file annotation id
-                    store.setFileId(selected.getId().getValue(), context);
-                    % Read data and cast into int8
-                    fid = fopen(fullpath, 'w');
-                    byteArr  = store.read(0,selected.getSize().getValue());
-                     
-                    if strcmp(ext,'.sdt')
-                        fwrite(fid,typecast(byteArr,'uint16'),'uint16');
-                    else
-                        fwrite(fid,byteArr,'*uint8');
+                    else 
+                        fullpath  = [tempdir fname];
+                        getOriginalFileContent(selected, fullpath, obj.omero_data_manager.session);
+                        obj.data_series_controller.data_series.load_irf(fullpath);
+                        delete(fullpath);
                     end
-                    
-                    fclose(fid);
-                    % Close the file store
-                    store.close();
-                   
-                    obj.data_series_controller.data_series.load_irf(fullpath);
-                    delete(fullpath);
                 end
             end
           end                    
@@ -585,36 +565,16 @@ classdef front_end_menu_controller < handle
                      [path,name,ext] = fileparts_inc_OME(fname);
                     
                     % NB marshal-object is overloaded in OMERO_data_series &
-                    % load_irf uses marshal_object for .xml files so simply call
+                    % load_tvb uses marshal_object for .xml files so simply call
                     % directly
                     if strcmp(ext,'.xml')
                         obj.data_series_controller.data_series.load_tvb(fname);
-                        return;
-                    end;
-                    
-                    fullpath  = [tempdir fname];
-                    context = java.util.HashMap;
-                    context.put('omero.group', '-1');
-                    % Initialize raw file store
-                    store = obj.omero_data_manager.session.createRawFileStore();
-                    % Set file annotation id
-                    store.setFileId(selected.getId().getValue(), context);
-                    % Read data and cast into int8
-                    fid = fopen(fullpath, 'w');
-                    byteArr  = store.read(0,selected.getSize().getValue());
-                     
-                    if strcmp(ext,'.sdt')
-                        fwrite(fid,typecast(byteArr,'uint16'),'uint16');
                     else
-                        fwrite(fid,byteArr,'*uint8');
+                        fullpath  = [tempdir fname];
+                        getOriginalFileContent(selected, fullpath, obj.omero_data_manager.session);
+                        obj.data_series_controller.data_series.load_tvb(fullpath);
+                        delete(fullpath);
                     end
-                    
-                    fclose(fid);
-                    % Close the file store
-                    store.close();
-                   
-                    obj.data_series_controller.data_series.load_tvb(fullpath); 
-                    delete(fullpath);
                 end
             end
           end                    
@@ -963,19 +923,7 @@ classdef front_end_menu_controller < handle
                 end;
                 
                 fullpath  = [tempdir fname];
-                context = java.util.HashMap;
-                context.put('omero.group', '-1');
-                % Initialize raw file store
-                store = obj.omero_data_manager.session.createRawFileStore();
-                % Set file annotation id
-                store.setFileId(selected.getId().getValue(), context);
-                % Read data and cast into int8
-                fid = fopen(fullpath, 'w');
-                byteArr  = store.read(0,selected.getSize().getValue());
-                fwrite(fid,byteArr,'*uint8');
-                fclose(fid);
-                % Close the file store
-                store.close();
+                getOriginalFileContent(selected, fullpath, obj.omero_data_manager.session);
                 obj.fitting_params_controller.load_fitting_params(fullpath); 
                 delete(fullpath);
                
