@@ -430,16 +430,36 @@ classdef front_end_menu_controller < handle
                     
         %------------------------------------------------------------------
         function menu_OMERO_Load_irf_callback(obj,~,~)
-            images = [];
-            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
-                dId = obj.data_series_controller.data_series.datasetId;
-                pId = obj.data_series_controller.data_series.plateId;
-            else
-                dId = -1;
-                pId = -1;
-            end
+            
+            [image, selected] = obj.load_image_or_attachment;
            
-            if dId < 1 && pId > 0
+            if ~isempty(image)
+                  load_as_image = false;
+                  obj.data_series_controller.data_series.load_irf(image,load_as_image);
+            else
+                if ~isempty(selected)
+                    obj.data_series_controller.data_series.load_irf(selected);
+                    if isa(selected,char)
+                        delete(selected);
+                    end
+                end
+            end
+        end
+    
+        %------------------------------------------------------------------
+        function [image, file] = load_image_or_attachment(obj)
+            % common functionality for OMERO_load_irf load 
+            % and OMERO_load_tvb
+            
+            images = [];
+            image = [];
+            file = [];
+            fullpath = [];
+                            
+            dId = obj.data_series_controller.data_series.datasetId;
+            pId = obj.data_series_controller.data_series.plateId;
+            
+            if pId > 0
                 % plate so attachment only 
                 chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(7), java.lang.Long(pId));
                 selected = chooser.getSelectedFile();
@@ -450,24 +470,23 @@ classdef front_end_menu_controller < handle
             end
             clear chooser;
             if images.length == 1
-                  load_as_image = false;
-                  obj.data_series_controller.data_series.load_irf(images(1),load_as_image);
+                  image = images(1);
             else
                 if ~isempty(selected)
                     
                      fname = char(selected.getName().getValue());
                      [path,name,ext] = fileparts_inc_OME(fname);
                     
-                    % NB marshal-object is overloaded in OMERO_data_series &
-                    % load_irf uses marshal_object for .xml files so simply call
-                    % directly
+                    % NB marshal-object is overloaded in OMERO_data_series 
+                    % load_irf etc use marshal_object for .xml files so 
+                    % simply return selected file
+                    
                     if strcmp(ext,'.xml')
-                        obj.data_series_controller.data_series.load_irf(fname);
+                        file = selected;
                     else 
                         fullpath  = [tempdir fname];
-                        getOriginalFileContent(selected, fullpath, obj.omero_data_manager.session);
-                        obj.data_series_controller.data_series.load_irf(fullpath);
-                        delete(fullpath);
+                        getOriginalFileContent(obj.omero_data_manager.session, selected, fullpath);
+                        file = fullpath;
                     end
                 end
             end
@@ -475,16 +494,10 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Load_sv_irf_callback(obj,~,~)
             images = [];
-            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
-                dId = obj.data_series_controller.data_series.datasetId;
-            end
-            if dId < 1 
-                % plate so err
-                h = errordlg('Not yet implemented!');
-            else
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(0),java.lang.Long(dId));
-                images = chooser.getSelectedImages();
-            end
+            dId = obj.data_series_controller.data_series.datasetId;
+            
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(0),java.lang.Long(dId));
+            images = chooser.getSelectedImages();
             clear chooser;
             if images.length == 1
                   load_as_image = true;
@@ -518,16 +531,7 @@ classdef front_end_menu_controller < handle
             obj.omero_data_manager.Omero_logon();
         end
        
-        %------------------------------------------------------------------        
-        function menu_OMERO_Load_tvb_from_Image_callback(obj,~,~)
-            dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
-            images = chooser.getSelectedImages();
-            if images.length == 1
-                obj.data_series_controller.data_series.load_tvb(images(1))
-            end
-            clear chooser;   
-        end
+        
         %------------------------------------------------------------------                
         function menu_OMERO_Switch_User_callback(obj,~,~)
             %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
@@ -536,49 +540,22 @@ classdef front_end_menu_controller < handle
         
         %------------------------------------------------------------------
         function menu_OMERO_Load_tvb_callback(obj,~,~)
-            images = [];
-            if isa(obj.data_series_controller.data_series,'OMERO_data_series')                
-                dId = obj.data_series_controller.data_series.datasetId;
-                pId = obj.data_series_controller.data_series.plateId;
-            else
-                dId = -1;
-                pId = -1;
-            end
+            
+            [image, selected] = obj.load_image_or_attachment;
            
-            if dId < 1 && pId > 0
-                % plate so attachment only 
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(7), java.lang.Long(pId));
-                selected = chooser.getSelectedFile();
-            else
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(8),java.lang.Long(dId));
-                images = chooser.getSelectedImages();
-                selected = chooser.getSelectedFile();
-            end
-            clear chooser;
-            if images.length == 1
+            if ~isempty(image)
                   load_as_image = false;
-                  obj.data_series_controller.data_series.load_tvb(images(1)); 
+                  obj.data_series_controller.data_series.load_tvb(image);
             else
                 if ~isempty(selected)
-                    
-                     fname = char(selected.getName().getValue());
-                     [path,name,ext] = fileparts_inc_OME(fname);
-                    
-                    % NB marshal-object is overloaded in OMERO_data_series &
-                    % load_tvb uses marshal_object for .xml files so simply call
-                    % directly
-                    if strcmp(ext,'.xml')
-                        obj.data_series_controller.data_series.load_tvb(fname);
-                    else
-                        fullpath  = [tempdir fname];
-                        getOriginalFileContent(selected, fullpath, obj.omero_data_manager.session);
-                        obj.data_series_controller.data_series.load_tvb(fullpath);
-                        delete(fullpath);
+                    obj.data_series_controller.data_series.load_tvb(selected);
+                    if isa(selected,char)
+                        delete(selected);
                     end
                 end
             end
-          end                    
-        
+        end
+    
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~)
             if isvalid(obj.data_series_controller.data_series)
@@ -923,7 +900,7 @@ classdef front_end_menu_controller < handle
                 end;
                 
                 fullpath  = [tempdir fname];
-                getOriginalFileContent(selected, fullpath, obj.omero_data_manager.session);
+                getOriginalFileContent(obj.omero_data_manager.session, selected, fullpath);
                 obj.fitting_params_controller.load_fitting_params(fullpath); 
                 delete(fullpath);
                
