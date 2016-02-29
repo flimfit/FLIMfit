@@ -48,7 +48,7 @@ function obj = marshal_object(obj,file, originalFile)
       end
       
       
-      na = length(annotations)
+      na = length(annotations);
       if na  == 0
           ret = -1;
           return;
