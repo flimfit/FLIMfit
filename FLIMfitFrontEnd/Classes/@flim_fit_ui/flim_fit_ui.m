@@ -295,15 +295,7 @@ classdef flim_fit_ui
             delete(handles.data_series_controller.data_series)
             
             if ~isempty(client)                
-                % save logon anyway                
-                %logon = handles.omero_data_manager.logon;
-                %logon_filename = handles.omero_data_manager.omero_logon_filename;                
-                %omero_logon = [];
-                %omero_logon.logon = logon;
                 
-                %    xml_write(logon_filename,omero_logon);                                
-               
-                %
                 disp('Closing OMERO session');
                 client.closeSession();
                 %
