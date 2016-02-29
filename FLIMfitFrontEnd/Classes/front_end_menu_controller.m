@@ -534,8 +534,7 @@ classdef front_end_menu_controller < handle
         
         %------------------------------------------------------------------                
         function menu_OMERO_Switch_User_callback(obj,~,~)
-            %delete([ pwd '\' obj.omero_data_manager.omero_logon_filename ]);
-            obj.omero_data_manager.Omero_logon_forced();
+            obj.omero_data_manager.Omero_logon();
         end    
         
         %------------------------------------------------------------------
