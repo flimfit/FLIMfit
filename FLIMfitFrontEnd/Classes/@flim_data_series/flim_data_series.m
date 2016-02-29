@@ -116,7 +116,9 @@ classdef flim_data_series < handle & h5_serializer
     
     properties(Transient)
         
-        datasetId = -1;   %Set invalid OMERO dataset Id as default
+        datasetId = -1;   %Set invalid OMERO dataset/plate Id as default
+        plateId = -1;
+        
         acceptor;
         root_path;
         
