@@ -169,7 +169,7 @@ classdef flim_fit_ui
             handles = obj.setup_toolbar(handles);
 
             handles.data_series_controller = flim_data_series_controller(handles);                                    
-            handles.omero_data_manager = flim_omero_data_manager(handles);
+            handles.omero_logon_manager = flim_omero_logon_manager(handles);
             
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);
@@ -188,7 +188,7 @@ classdef flim_fit_ui
             
             % unless preferences specifically say not, then show OMERO logon
             %if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
-            %   handles.omero_data_manager.Omero_logon();
+            %   handles.omero_logon_manager.Omero_logon();
             %end
             
             handles = obj.setup_menu(handles);            
@@ -290,7 +290,7 @@ classdef flim_fit_ui
         function close_request_fcn(obj,~,~)
             
             handles = guidata(obj.window);
-            client = handles.omero_data_manager.client;
+            client = handles.omero_logon_manager.client;
             
             delete(handles.data_series_controller.data_series)
             
@@ -299,8 +299,8 @@ classdef flim_fit_ui
                 disp('Closing OMERO session');
                 client.closeSession();
                 %
-                handles.omero_data_manager.session = [];
-                handles.omero_data_manager.client = [];
+                handles.omero_logon_manager.session = [];
+                handles.omero_logon_manager.client = [];
                 
             end
             

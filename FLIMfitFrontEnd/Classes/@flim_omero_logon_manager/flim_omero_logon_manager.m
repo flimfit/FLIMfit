@@ -1,5 +1,5 @@
 %> @ingroup UserInterfaceControllers
-classdef flim_omero_data_manager < handle 
+classdef flim_omero_logon_manager < handle 
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -43,7 +43,7 @@ classdef flim_omero_data_manager < handle
         
     methods
         
-        function obj = flim_omero_data_manager(varargin)            
+        function obj = flim_omero_logon_manager(varargin)            
             handles = args2struct(varargin);
             assign_handles(obj,handles);
             dataset = [];
@@ -73,36 +73,32 @@ classdef flim_omero_data_manager < handle
             
             keeptrying = true;
            
-            while keeptrying 
+            while keeptrying
                 
             if ~ispref('GlobalAnalysisFrontEnd','OMEROlogin')
                 neverTriedLog = true;       % set flag if the OMERO dialog login has never been called on this machine
             else
                 neverTriedLog = false;
             end
-                
             
-            % if no logon file then user must login
-            if isempty(settings)
-                obj.logon = OMERO_logon();
-            end
-                                               
-           if isempty(obj.logon{4})
+            obj.logon = OMERO_logon();
+           
+                if isempty(obj.logon{4})
                if neverTriedLog == true
                    ret_string = questdlg('Respond "Yes" ONLY if you intend NEVER to use FLIMfit with OMERO on this machine!');
                    if strcmp(ret_string,'Yes')
                         addpref('GlobalAnalysisFrontEnd','NeverOMERO','On');
                    end
                end
-               return
-           end
-            
+                    return
+                end
+                
                 keeptrying = false;     % only try again in the event of failure to logon
                 
-                try 
+                try
                     port = obj.logon{2};
                     if ischar(port), port = str2num(port); end;
-                    obj.client = loadOmero(obj.logon{1},port);                                    
+                    obj.client = loadOmero(obj.logon{1},port);
                     obj.session = obj.client.createSession(obj.logon{3},obj.logon{4});
                 catch err
                     display(err.message);
@@ -110,21 +106,21 @@ classdef flim_omero_data_manager < handle
                     obj.session = [];
                     % Construct a questdlg with three options
                     choice = questdlg('OMERO logon failed!', ...
-                    'Logon Failure!', ...
-                    'Try again to logon','Run FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
+                        'Logon Failure!', ...
+                        'Try again to logon','Run FLIMfit in non-OMERO mode','Launch FLIMfit in non-OMERO mode');
                     % Handle response
                     switch choice
                         case 'Try again to logon'
-                            keeptrying = true;                                                  
+                            keeptrying = true;
                         case 'Run FLIMfit in non-OMERO mode'
-                            % no action keeptrying is already false                       
-                    end    % end switch           
+                            % no action keeptrying is already false
+                    end    % end switch
                 end   % end catch
                 if ~isempty(obj.session)
                     obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
-                    obj.userid = obj.session.getAdminService().getEventContext().userId;                    
+                    obj.userid = obj.session.getAdminService().getEventContext().userId;
                 end
-            end     % end while                        
+            end     % end while
             
         end
       

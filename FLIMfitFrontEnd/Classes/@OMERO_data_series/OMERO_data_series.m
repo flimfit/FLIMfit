@@ -63,7 +63,7 @@ classdef OMERO_data_series < flim_data_series
         image_ids;
         mdta;
        
-        omero_data_manager;
+        omero_logon_manager;
         fitted_data;
         
         fit_result;
@@ -122,7 +122,7 @@ classdef OMERO_data_series < flim_data_series
             %
             table_data = [];
             %
-            session = obj.omero_data_manager.session;
+            session = obj.omero_logon_manager.session;
             %           
             whosobject = class(object);
             %

@@ -35,7 +35,7 @@ function export_new_images(obj,pathname,filename,before_list, dataset)
     else
         after_list = {after_list(:).name};
     end
-    add_Images(obj.omero_data_manager,pathname,after_list, dataset);
+    add_Images(obj.omero_logon_manager,pathname,after_list, dataset);
                 
    
 end

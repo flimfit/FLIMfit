@@ -65,7 +65,7 @@ classdef front_end_menu_controller < handle
         
         %menu_OMERO_Import_Fitting_Results;
         
-        omero_data_manager;     
+        omero_logon_manager;     
         
         
         menu_OMERO_load_acceptor;
@@ -356,9 +356,9 @@ classdef front_end_menu_controller < handle
         % OMERO
         %------------------------------------------------------------------
         function menu_login_callback(obj,~,~)
-            obj.omero_data_manager.Omero_logon();
+            obj.omero_logon_manager.Omero_logon();
             
-            if ~isempty(obj.omero_data_manager.session)
+            if ~isempty(obj.omero_logon_manager.session)
                 props = properties(obj);
                 OMERO_props = props( strncmp('menu_OMERO',props,10) );
                 for i=1:length(OMERO_props)
@@ -369,7 +369,7 @@ classdef front_end_menu_controller < handle
         end
         %------------------------------------------------------------------
         function menu_OMERO_Set_Dataset_callback(obj,~,~)            
-            infostring = obj.omero_data_manager.Set_Dataset();
+            infostring = obj.omero_logon_manager.Set_Dataset();
             if ~isempty(infostring)
                 set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');
             end;
@@ -380,13 +380,13 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.clear();
             end
             
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, true);
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, true);
             images = chooser.getSelectedImages();
             if images.length > 0
                 % NB misnomer "load_single" retained for compatibility with
                 % file-side
                 obj.data_series_controller.data_series = OMERO_data_series();
-                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
+                obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;
                 obj.data_series_controller.load_single(images);
                 notify(obj.data_series_controller,'new_dataset');
             end
@@ -399,12 +399,12 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
             clear chooser;
             if ~isempty(dataset)
                 obj.data_series_controller.data_series = OMERO_data_series();   
-                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
+                obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;  
                 obj.data_series_controller.load_data_series(dataset,''); 
                 notify(obj.data_series_controller,'new_dataset');
             end   
@@ -415,11 +415,11 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(2));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(2));
             plate = chooser.getSelectedPlate();
             if ~isempty(plate)
                 obj.data_series_controller.data_series = OMERO_data_series();   
-                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
+                obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;  
                 obj.data_series_controller.load_plate(plate); 
                 obj.data_series_controller.data_series.plateId = plate.getId().getValue();
                 notify(obj.data_series_controller,'new_dataset');
@@ -461,10 +461,10 @@ classdef front_end_menu_controller < handle
             
             if pId > 0
                 % plate so attachment only 
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(7), java.lang.Long(pId));
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(7), java.lang.Long(pId));
                 selected = chooser.getSelectedFile();
             else
-                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(8),java.lang.Long(dId));
+                chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(8),java.lang.Long(dId));
                 images = chooser.getSelectedImages();
                 selected = chooser.getSelectedFile();
             end
@@ -485,7 +485,7 @@ classdef front_end_menu_controller < handle
                         file = selected;
                     else 
                         fullpath  = [tempdir fname];
-                        getOriginalFileContent(obj.omero_data_manager.session, selected, fullpath);
+                        getOriginalFileContent(obj.omero_logon_manager.session, selected, fullpath);
                         file = fullpath;
                     end
                 end
@@ -496,7 +496,7 @@ classdef front_end_menu_controller < handle
             images = [];
             dId = obj.data_series_controller.data_series.datasetId;
             
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(0),java.lang.Long(dId));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(0),java.lang.Long(dId));
             images = chooser.getSelectedImages();
             clear chooser;
             if images.length == 1
@@ -507,7 +507,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_OMERO_Load_Background_callback(obj,~,~)                                     
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, java.lang.Long(dId));
             images = chooser.getSelectedImages();
             if images.length == 1
                 obj.data_series_controller.data_series.load_background(images(1), false)
@@ -517,7 +517,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
          function menu_OMERO_Load_Background_average_callback(obj,~,~)                                     
             dId = obj.data_series_controller.data_series.datasetId;
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, java.lang.Long(dId) );
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, java.lang.Long(dId) );
             images = chooser.getSelectedImages();
             if images.length == 1
                 obj.data_series_controller.data_series.load_background(images(1),true)
@@ -528,13 +528,13 @@ classdef front_end_menu_controller < handle
        
         %------------------------------------------------------------------        
         function menu_OMERO_Reset_Logon_callback(obj,~,~)
-            obj.omero_data_manager.Omero_logon();
+            obj.omero_logon_manager.Omero_logon();
         end
        
         
         %------------------------------------------------------------------                
         function menu_OMERO_Switch_User_callback(obj,~,~)
-            obj.omero_data_manager.Omero_logon();
+            obj.omero_logon_manager.Omero_logon();
         end    
         
         %------------------------------------------------------------------
@@ -560,12 +560,12 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(1));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
             clear chooser;
             if ~isempty(dataset)
                 obj.data_series_controller.data_series = OMERO_data_series();   
-                obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;  
+                obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;  
                 obj.data_series_controller.load_data_series(dataset,'',true); 
                 notify(obj.data_series_controller,'new_dataset');
             end
@@ -575,7 +575,7 @@ classdef front_end_menu_controller < handle
                           
         %------------------------------------------------------------------
         function menu_OMERO_load_data_settings_callback(obj,~,~)
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(6));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(6));
             selected = chooser.getSelectedFile();
             clear chooser;
             if ~isempty(selected)
@@ -590,28 +590,28 @@ classdef front_end_menu_controller < handle
         end                                            
         %------------------------------------------------------------------
         function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
-            add_Image(obj.omero_data_manager);
-            %obj.omero_data_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
+            add_Image(obj.omero_logon_manager);
+            %obj.omero_logon_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
         end                                    
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Another_User_callback(obj,~,~)
-            obj.omero_data_manager.Select_Another_User();
+            obj.omero_logon_manager.Select_Another_User();
             %set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Logon_User_callback(obj,~,~)            
-            obj.omero_data_manager.userid = obj.omero_data_manager.session.getAdminService().getEventContext().userId;
-            obj.omero_data_manager.project = [];
-            obj.omero_data_manager.dataset = [];
-            obj.omero_data_manager.screen = [];
-            obj.omero_data_manager.plate = [];
+            obj.omero_logon_manager.userid = obj.omero_logon_manager.session.getAdminService().getEventContext().userId;
+            obj.omero_logon_manager.project = [];
+            obj.omero_logon_manager.dataset = [];
+            obj.omero_logon_manager.screen = [];
+            obj.omero_logon_manager.plate = [];
             %set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------                
         function menu_OMERO_Import_Fitting_Results_callback(obj,~,~)  
             obj.data_series_controller.data_series.clear();    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series();
-            obj.data_series_controller.data_series.omero_data_manager = obj.omero_data_manager;
+            obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;
             infostring = obj.data_series_controller.data_series.load_fitted_data(obj.fit_controller);
             %if ~isempty(infostring)
             %    set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');            
@@ -619,11 +619,11 @@ classdef front_end_menu_controller < handle
         end                                    
         %------------------------------------------------------------------                
         function menu_OMERO_load_acceptor_callback(obj,~,~)
-            obj.omero_data_manager.Load_Acceptor_Images(obj.data_series_controller.data_series);
+            obj.omero_logon_manager.Load_Acceptor_Images(obj.data_series_controller.data_series);
         end
         %------------------------------------------------------------------                
         function menu_OMERO_export_acceptor_callback(obj,~,~)
-            obj.omero_data_manager.Export_Acceptor_Images(obj.data_series_controller.data_series);
+            obj.omero_logon_manager.Export_Acceptor_Images(obj.data_series_controller.data_series);
         end
                 
         %------------------------------------------------------------------
@@ -876,7 +876,7 @@ classdef front_end_menu_controller < handle
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('root filename', 'fit_parameters', '.xml');
             if filename ~= 0
                 obj.fitting_params_controller.save_fitting_params([pathname filename]);         
-                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                add_Annotation(obj.omero_logon_manager.session, obj.omero_logon_manager.userid, ...
                             dataset, ...
                             char('application/octet-stream'), ...
                             [pathname filename], ...
@@ -886,7 +886,7 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_OMERO_import_fit_params_callback(obj,~,~)
-            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_data_manager.client, obj.omero_data_manager.userid, int32(6));
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(6));
             selected = chooser.getSelectedFile();
             clear chooser;
             if ~isempty(selected)
@@ -899,7 +899,7 @@ classdef front_end_menu_controller < handle
                 end;
                 
                 fullpath  = [tempdir fname];
-                getOriginalFileContent(obj.omero_data_manager.session, selected, fullpath);
+                getOriginalFileContent(obj.omero_logon_manager.session, selected, fullpath);
                 obj.fitting_params_controller.load_fitting_params(fullpath); 
                 delete(fullpath);
                
@@ -920,7 +920,7 @@ classdef front_end_menu_controller < handle
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.csv');
             if filename ~= 0
                 obj.fit_controller.save_param_table([pathname filename]);         
-                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                add_Annotation(obj.omero_logon_manager.session, obj.omero_logon_manager.userid, ...
                             dataset, ...
                             char('application/octet-stream'), ...
                             [pathname filename], ...
@@ -1128,7 +1128,7 @@ classdef front_end_menu_controller < handle
             if filename ~= 0
                 serialise_object(t0_data,[pathname filename],'flim_data_series');
                 if OMEROsave
-                    add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                    add_Annotation(obj.omero_logon_manager.session, obj.omero_logon_manager.userid, ...
                         dataset, ...
                         char('application/octet-stream'), ...
                         [pathname filename], ...
@@ -1190,7 +1190,7 @@ classdef front_end_menu_controller < handle
             if filename ~= 0
                 serialise_object(tvb_data,[pathname filename],'flim_data_series');
                 if OMEROsave
-                    add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                    add_Annotation(obj.omero_logon_manager.session, obj.omero_logon_manager.userid, ...
                         dataset, ...
                         char('application/octet-stream'), ...
                         [pathname filename], ...
@@ -1335,7 +1335,7 @@ classdef front_end_menu_controller < handle
         
         function menu_OMERO_export_plots_callback(obj, ~, ~)
             
-            default_name = [char(obj.omero_data_manager.dataset.getName().getValue() ) 'fit'];
+            default_name = [char(obj.omero_logon_manager.dataset.getName().getValue() ) 'fit'];
             [filename, pathname, dataset, before_list] = obj.data_series_controller.data_series.prompt_for_export('root filename', default_name, '.tiff');
             obj.plot_controller.update_plots([pathname filename]);
             obj.data_series_controller.data_series.export_new_images(pathname,filename,before_list, dataset);
@@ -1356,7 +1356,7 @@ classdef front_end_menu_controller < handle
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('root filename', '', '.txt');
             if filename ~= 0
                 fname = obj.hist_controller.export_histogram_data([pathname filename]);
-                add_Annotation(obj.omero_data_manager.session, obj.omero_data_manager.userid, ...
+                add_Annotation(obj.omero_logon_manager.session, obj.omero_logon_manager.userid, ...
                     dataset, ...
                     char('application/octet-stream'), ...
                     fname, ...

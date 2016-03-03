@@ -33,7 +33,7 @@ function obj = marshal_object(obj,file, originalFile)
     
   try 
   
-  session = obj.omero_data_manager.session;
+  session = obj.omero_logon_manager.session;
   
   if nargin < 3   % no originalFile supplied so search
       
