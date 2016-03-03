@@ -102,15 +102,13 @@ function handles = setup_menu(obj,handles)
 
     handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load Polarization Resolved Data','Enable','off');        
     %
-    handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)...','Separator','on','Enable','off');    
-    handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)...','Enable','off');                    
-    %handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
+    handles.menu_OMERO_Load_irf = uimenu(menu_OMERO,'Label','Load IRF...','Separator','on','Enable','off'); 
+    handles.menu_OMERO_Load_sv_irf = uimenu(menu_OMERO,'Label','Load Spatially Varying IRF...','Enable','off');
     handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background...','Separator','on','Enable','off');    
     handles.menu_OMERO_Load_Background_average = uimenu(menu_OMERO,'Label','Load time-averaged background...','Separator','off','Enable','off');    
     
     
-    handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)...','Enable','off');                      
-    handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)...','Enable','off');                            
+    handles.menu_OMERO_Load_tvb = uimenu(menu_OMERO,'Label','Load Time Varying Background...','Enable','off');                                    
     %handles.menu_OMERO_Export_tvb_Annotation = uimenu(menu_OMERO,'Label','Export Time Varying Background (Annotation)','Enable','off');  
     %
     %handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
@@ -136,7 +134,6 @@ function handles = setup_menu(obj,handles)
        
     menu_irf       = uimenu(obj.window,'Label','IRF');
     handles.menu_irf_load = uimenu(menu_irf,'Label','Load IRF...');
-   
     handles.menu_irf_image_load = uimenu(menu_irf,'Label','Load Spatially Varying IRF...');
   
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');

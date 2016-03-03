@@ -1,0 +1,4 @@
+Add a copy of OMEuiUtils.jar to this directory
+Download from: https://dl.bintray.com/joshmoore/maven/
+
+
