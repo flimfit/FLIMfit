@@ -379,13 +379,7 @@ classdef front_end_menu_controller < handle
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            
-            
-            % debug for mac_merge build problems
-            obj.omero_logon_manager.userid
-            javaclasspath('-dynamic')
-            
-            
+             
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, true);
             images = chooser.getSelectedImages();
             if images.length > 0
