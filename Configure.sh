@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then export OME=5.1; echo "Setting OME=5.1"; fi
+if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
 
 export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
