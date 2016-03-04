@@ -1,6 +1,8 @@
 #!/bin/bash
 
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
+if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
+
 
 export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
@@ -37,7 +39,7 @@ rm FLIMfitFrontEnd/OMEROMatlab/libs/log4j.jar
 
 
 # Download bio-formats Matlab toolbox
-curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$OME/artifacts/bfmatlab.zip
+curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$BIO/artifacts/bfmatlab.zip
 
 unzip -o bfmatlab.zip
 rm bfmatlab.zip
