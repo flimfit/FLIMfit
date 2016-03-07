@@ -194,7 +194,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
            
 
-        case {'.pt3','.ptu','.bin','.bin2'}
+        case {'.pt3','.ptu','.bin2'}
             
             r = FLIMreaderMex(file);
             FLIMreaderMex(r,'SetSpatialBinning',2);
