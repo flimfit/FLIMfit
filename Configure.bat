@@ -43,7 +43,6 @@ IF NOT DEFINED NOADMIN (
 
 )
 
-
 SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio %MSVC_VER%.0\VC\redist\*
 FOR /D %%G in ("%REDIST_STR%") DO (
 	@ECHO %%G\vcredist_x64.exe>FLIMfitLibrary\VisualStudioRedistributablePath.txt
