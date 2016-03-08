@@ -1,10 +1,12 @@
 
 $OME = $env:OME
+$BIO = $env:BIO
 $MSVC_VER = $env:MSVC_VER
 $BOOST_VER_MAJOR = $env:BOOST_VER_MAJOR
 $BOOST_VER_MINOR = $env:BOOST_VER_MINOR
 
 if (!$OME) { $OME=5.2 }
+if (!$BIO) { $BIO=5.1 }
 if (!$MSVC_VER) { $MSVC_VER=12 }
 if (!$BOOST_VER_MAJOR) { $BOOST_VER_MAJOR=1 }
 if (!$BOOST_VER_MINOR) { $BOOST_VER_MINOR=59 }
@@ -48,12 +50,15 @@ function DownloadZipIntoFolder
 
 
 $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
-$bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $OME + '/artifacts/bfmatlab.zip'
+$bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/bfmatlab.zip'
 $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
+$OMEuiUtils_url = 'https://bintray.com/artifact/download/joshmoore/maven/ome/OMEuiUtils/0.1.4/OMEuiUtils-0.1.4.jar'
 $boost_url = 'http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
 $cmake_url = 'https://cmake.org/files/v3.4/cmake-3.4.0-win32-x86.zip'
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
+$OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
+
 
 #((new-object net.webclient).DownloadFile($cmake_url, 'cmake.zip'))
 #Unzip 'cmake_zip' "$pwd"
@@ -69,6 +74,9 @@ DownloadZipIntoFolder $bf_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
 
 echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
+
+echo "Downloading OMEuiUtils.jar"
+((new-object net.webclient).DownloadFile($OMEuiUtils_url, "$OMEuiUtils_dir\OMEuiUtils.jar"))
 
 
 echo "Setup Boost"
