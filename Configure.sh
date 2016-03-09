@@ -35,7 +35,6 @@ rm FLIMfitFrontEnd/OMEROMatlab/libs/slf4j-log4j12.jar
 rm FLIMfitFrontEnd/OMEROMatlab/libs/slf4j-api.jar
 rm FLIMfitFrontEnd/OMEROMatlab/libs/log4j.jar
 
-
 # Download bio-formats Matlab toolbox
 curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$OME/artifacts/bfmatlab.zip
 
