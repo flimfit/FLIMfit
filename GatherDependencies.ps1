@@ -11,8 +11,9 @@ if (!$MSVC_VER) { $MSVC_VER=12 }
 if (!$BOOST_VER_MAJOR) { $BOOST_VER_MAJOR=1 }
 if (!$BOOST_VER_MINOR) { $BOOST_VER_MINOR=59 }
 
-echo “OME version = “ $OME
-echo “Bio-Formats version = “ $OME
+
+echo "OMERO version = " %OME%
+echo "Bio-Formats version = " %BIO%
 
 
 
