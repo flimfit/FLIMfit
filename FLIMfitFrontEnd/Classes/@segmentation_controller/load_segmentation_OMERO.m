@@ -31,7 +31,7 @@ function load_segmentation_OMERO(obj)
         errordlg('images are not originated from OMERO, cannot continue..'), return, 
     end;
     
-    session = d.omero_data_manager.session;    
+    session = d.omero_logon_manager.session;    
     
     segmentation_description = [];    
     ROI_descriptions_list = get_ROI_descriptions( session, d );

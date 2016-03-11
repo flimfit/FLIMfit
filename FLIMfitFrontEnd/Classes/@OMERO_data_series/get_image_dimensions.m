@@ -62,7 +62,7 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     sizeXY(1) = pixels.getSizeY.getValue();
     sizeXY(2) = pixels.getSizeX.getValue();
     
-    session = obj.omero_data_manager.session;
+    session = obj.omero_logon_manager.session;
         
     % check for presence of an Xml modulo Annotation  containing 'Lifetime'
     s = read_XmlAnnotation_havingNS(session,image,'openmicroscopy.org/omero/dimension/modulo'); 

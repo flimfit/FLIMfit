@@ -1,5 +1,5 @@
 
-function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
+function ret = add_Images(omero_logon_manager, dirpath, filenames, dataset)
 
         % Copyright (C) 2015 Imperial College London.
         % All rights reserved.
@@ -40,10 +40,10 @@ function ret = add_Images(omero_data_manager, dirpath, filenames, dataset)
         config.contOnError.set(false);
         config.debug.set(false);
         
-        host = javaObject('java.lang.String',omero_data_manager.logon{1});
-        port = javaObject('java.lang.Integer',str2num(omero_data_manager.logon{2}));
-        name = javaObject('java.lang.String',omero_data_manager.logon{3});
-        passwd = javaObject('java.lang.String',omero_data_manager.logon{4});
+        host = javaObject('java.lang.String',omero_logon_manager.logon{1});
+        port = javaObject('java.lang.Integer',str2num(omero_logon_manager.logon{2}));
+        name = javaObject('java.lang.String',omero_logon_manager.logon{3});
+        passwd = javaObject('java.lang.String',omero_logon_manager.logon{4});
         
         config.hostname.set(host);
         config.port.set(port);

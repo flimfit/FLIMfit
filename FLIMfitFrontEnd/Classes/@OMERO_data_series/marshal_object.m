@@ -1,8 +1,10 @@
-function obj = marshal_object(obj,file)
+function obj = marshal_object(obj,file, originalFile)
 
-    % Reads a FLIMfit_settings file into an xml node 
+    % Reads a FLIMfit .xml file into an xml node 
     % then calls marshal_object to re-initialise the 
     % current object accordingly.
+    % Uses the supplied oroginalFile if available otherwise searches the 
+    % currene dataset/plate for Attachments with a matching name.
 
 
     % Copyright (C) 2013 Imperial College London.
@@ -27,66 +29,62 @@ function obj = marshal_object(obj,file)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-    % Author : Sean Warren
+ 
     
-   try 
-   
-       if obj.datasetId > 0
-            parentId = java.lang.Long(obj.datasetId);
-            specifier = 'omero.model.Dataset';    
-       elseif obj.plateId > 0
-           parentId = java.lang.Long(obj.plateId);
-           specifier = 'omero.model.Plate';    
-       else
-           return;
-       end
-       
+  try 
+  
+  session = obj.omero_logon_manager.session;
+  
+  if nargin < 3   % no originalFile supplied so search
       
-       session = obj.omero_data_manager.session;
-       
-       annotators = java.util.ArrayList;
-       metadataService = session.getMetadataService();
-       map = metadataService.loadAnnotations(specifier, java.util.Arrays.asList(parentId), java.util.Arrays.asList('ome.model.annotations.FileAnnotation'), annotators, omero.sys.ParametersI());
-       annotations = map.get(parentId);
-        %
-        if 0 == annotations.size()
-            ret = -1;
-            return;
-        end
-        
-        
-        ann = [];
-        
-        for j = 0:annotations.size()-1
-            anno_name = char(java.lang.String(annotations.get(j).getFile().getName().getValue()));
-            if strcmp(anno_name, file) 
-                ann = annotations.get(j);
-                 originalFile = ann.getFile();        
-                 rawFileStore = session.createRawFileStore();
-                 rawFileStore.setFileId(originalFile.getId().getValue());
-                 
-                 byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
-                 
-                 str = char(byteArr);
-                 
-                 doc_node = xmlreadstring(str);
-                 
-                 obj = marshal_object(doc_node,'OMERO_data_series',obj);
-              
-                 rawFileStore.close();
-                
-                break;
-            end
-                
-        end
-       
-       
-       
-       
-        
-    catch
-       warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file'); 
-    end
-         
+      if obj.datasetId > 0
+          parentId = obj.datasetId;
+          annotations = getDatasetFileAnnotations(session, parentId);
+      elseif obj.plateId > 0
+          parentId = obj.plateId;
+          annotations = getPlateFileAnnotations(session, parentId);
+      else
+          return;
+      end
+      
+      
+      na = length(annotations);
+      if na  == 0
+          ret = -1;
+          return;
+      end
+      
+      for j = 1:na
+          originalFile = annotations(j).getFile();
+          anno_name = char(originalFile.getName().getValue());
+          if strcmp(anno_name, file)
+              break;
+          end
+          
+      end
+      
+  end
+  
+  
+  context = java.util.HashMap;
+  context.put('omero.group', '-1');
+  rawFileStore = session.createRawFileStore();
+  rawFileStore.setFileId(originalFile.getId().getValue());
+  
+  byteArr  = rawFileStore.read(0,originalFile.getSize().getValue());
+  
+  str = char(byteArr);
+  
+  doc_node = xmlreadstring(str);
+  
+  obj = marshal_object(doc_node,'OMERO_data_series',obj);
+  
+  rawFileStore.close();
+  
+  
+  
+  catch
+    warning('FLIMfit:LoadDataSettingsFailed','Failed to load data settings file');
+  end
+  
 end

@@ -26,8 +26,8 @@ function save_segmentation_OMERO(obj)
     % Author : Sean Warren
  
     d = obj.data_series_controller.data_series;
-    session = d.omero_data_manager.session;
-    userid = d.omero_data_manager.userid;
+    session = d.omero_logon_manager.session;
+    userid = d.omero_logon_manager.userid;
     logon_userid = session.getAdminService().getEventContext().userId;
     logon_user_name = char(session.getAdminService().getEventContext().userName);
     
