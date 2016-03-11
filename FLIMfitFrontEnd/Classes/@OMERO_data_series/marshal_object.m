@@ -54,13 +54,22 @@ function obj = marshal_object(obj,file, originalFile)
           return;
       end
       
+      name_found = false;
+      
       for j = 1:na
           originalFile = annotations(j).getFile();
           anno_name = char(originalFile.getName().getValue());
           if strcmp(anno_name, file)
+              name_found = true;
               break;
           end
           
+      end
+      
+      % no matching Attachment found
+      if ~name_found
+          ret = -1;
+          return;
       end
       
   end
