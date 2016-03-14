@@ -369,7 +369,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         case {'.pt3', '.ptu', '.bin', '.bin2'}
             
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',2);
+            FLIMreaderMex(r,'SetSpatialBinning',1);
             data = FLIMreaderMex(r, 'GetData', Carr);
             
             expected_size = size(target);
