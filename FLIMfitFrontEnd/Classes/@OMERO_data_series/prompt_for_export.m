@@ -24,8 +24,8 @@ function [filename, pathname, selected, before_list] = prompt_for_export(obj,pro
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
    
-    client = obj.omero_data_manager.client;
-    userid = obj.omero_data_manager.userid;
+    client = obj.omero_logon_manager.client;
+    userid = obj.omero_logon_manager.userid;
     
     
     

@@ -196,7 +196,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
         case {'.pt3','.ptu','.bin2'}
             
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',2);
+            FLIMreaderMex(r,'SetSpatialBinning',1);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
             dims.sizeZCT = [ 1 n_channels 1 ];

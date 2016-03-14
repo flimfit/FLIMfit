@@ -106,10 +106,12 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
 
     
     if obj.polarisation_resolved
-         obj.data_size = [length(dims.delays) 2 dims.sizeXY obj.n_datasets ];
+        n_chan = 2;
     else
-        obj.data_size = [length(dims.delays) 1 dims.sizeXY  obj.n_datasets];
+        n_chan = 1;
     end
+    
+    obj.data_size = [length(dims.delays) n_chan dims.sizeXY obj.n_datasets];
     
     if isempty(obj.metadata)
         obj.metadata = extract_metadata(obj.names);

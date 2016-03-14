@@ -36,7 +36,11 @@ function load_irf(obj,file_or_image,load_as_image)
      [path,name,ext] = fileparts_inc_OME(file);
         
     if strcmp(ext,'.xml')
-        obj.marshal_object(file);
+        if isa(file_or_image,'omero.model.OriginalFileI')
+            obj.marshal_object(file, file_or_image);
+        else
+            obj.marshal_object(file);
+        end
     else
         
         dims = obj.get_image_dimensions(file_or_image);

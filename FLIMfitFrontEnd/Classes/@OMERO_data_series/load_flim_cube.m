@@ -127,7 +127,7 @@ function[success, target] = load_flim_cube(obj, target, image, read_selected, wr
     
      % No requirement for looking at series_count as OMERO stores each block
     % as a separate image
-    session = obj.omero_data_manager.session;
+    session = obj.omero_logon_manager.session;
     pixelsList = image.copyPixels();    
     pixels = pixelsList.get(0);
     
