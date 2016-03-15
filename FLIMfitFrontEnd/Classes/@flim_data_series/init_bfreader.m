@@ -42,11 +42,16 @@ function [ext,r] = init_bfreader(obj,file)
         
         % filter out .tiffs for separate handling
         format = char(r.getFormat());
-        if strcmp(format,'Tagged Image File Format')
+        %  trapdoor for formats that need to be handled 'oddly' 
+        switch(format)
+        case 'Tagged Image File Format'
             ext = '.tif';
-        else
+        case 'PicoQuant Bin'
+            ext = '.bin';  
+        otherwise
             ext = '.bio';
         end
+        
     catch exception
         % bioformats does not recognise the file
         % so work on the filename
