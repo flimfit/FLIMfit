@@ -369,11 +369,14 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         case {'.pt3', '.ptu', '.bin', '.bin2', '.ffd'}
             
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',2);
+            FLIMreaderMex(r,'SetSpatialBinning',1);
             data = FLIMreaderMex(r, 'GetData', Carr);
             
             expected_size = size(target);
-            if all(size(data)==expected_size(1:4))        
+            expected_size(ndims(expected_size):4) = 1;
+            actual_size = size(data);
+            actual_size(ndims(actual_size):4) = 1;
+            if all(actual_size==expected_size(1:4))        
                 target(:,:,:,:,write_selected) = data;
             else
                 disp(['File "' file '" was unexpected size']);

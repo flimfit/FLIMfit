@@ -37,7 +37,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
         data_setting_file = [];
     end
     
-    session = obj.omero_data_manager.session;
+    session = obj.omero_logon_manager.session;
     
     dId = omero_dataset.getId().getValue();
     
@@ -75,7 +75,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     end
    
     
-    session = obj.omero_data_manager.session;
+    session = obj.omero_logon_manager.session;
     
     pname = ' ';
     dname = char(omero_dataset.getName.getValue());
@@ -88,7 +88,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     if (list.size > 0)
         project = list.get(0).getParent();
         project = getProjects(session, project.getId().getValue());
-        obj.omero_data_manager.project = project;
+        obj.omero_logon_manager.project = project;
         pname = char(project.getName.getValue() );
     end
     
@@ -96,7 +96,7 @@ function load_data_series(obj,omero_dataset,mode,polarisation_resolved,data_sett
     obj.header_text = [ pname ' ' dname];
     obj.n_datasets = n_datasets;
     obj.datasetId = dId;
-    obj.omero_data_manager.setDataset(omero_dataset);
+    obj.omero_logon_manager.setDataset(omero_dataset);
     obj.polarisation_resolved = polarisation_resolved;
  
    

@@ -33,13 +33,16 @@ function load_tvb(obj,file_or_image)
     
     
     [~,~,ext] = fileparts_inc_OME(file);
-    if strcmp(ext,'.xml')
-       
-        obj.marshal_object(file);
     
+    if strcmp(ext,'.xml')
+        if isa(file_or_image,'omero.model.OriginalFileI')
+            obj.marshal_object(file, file_or_image);
+        else
+            obj.marshal_object(file);
+        end
     else
-        
-         dims = obj.get_image_dimensions(file_or_image);
+    
+        dims = obj.get_image_dimensions(file_or_image);
         
         if isempty(dims.delays)
             return;

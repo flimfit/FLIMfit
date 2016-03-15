@@ -21,7 +21,7 @@ Support
 ------------------------------------------ 
 
 If you have issues installing or running this software, please contact us via the  FLIMfit users mailing list
-at  < http://lists.openmicroscopy.org.uk/mailman/listinfo/flimfit-users>
+at  <http://lists.openmicroscopy.org.uk/mailman/listinfo/flimfit-users>
 
 
 Compling and running FLIMfit
@@ -37,8 +37,8 @@ which assume a Windows platform.
 Required Packages
 --------------------
 - CMake 2.8.10    	<http://www.cmake.org/>
-- Visual Studio 2012	<http://www.microsoft.com/visualstudio/eng/downloads>
-- MATLAB 2014b		<http://www.mathworks.co.uk/products/matlab/>
+- Visual Studio 2014	<http://www.microsoft.com/visualstudio/eng/downloads>
+- MATLAB 2015b		<http://www.mathworks.co.uk/products/matlab/>
 - Boost 1.5.1		<http://www.boost.org/users/history/version_1_51_0.html>
 
 Compiling

@@ -27,7 +27,7 @@ function ret = load_acceptor_images(obj,id_list,~)
 
     ret = false;
     
-    imageList = getImages(obj.omero_data_manager.session,id_list);
+    imageList = getImages(obj.omero_logon_manager.session,id_list);
 
     image = imageList(1);
     pixelsList = image.copyPixels();    
@@ -45,7 +45,7 @@ function ret = load_acceptor_images(obj,id_list,~)
     
     obj.acceptor = zeros(SizeX,SizeY,n_images);    
 
-    store = obj.omero_data_manager.session.createRawPixelsStore();     
+    store = obj.omero_logon_manager.session.createRawPixelsStore();     
     
     for k = 1 : n_images                
         image = imageList(k);

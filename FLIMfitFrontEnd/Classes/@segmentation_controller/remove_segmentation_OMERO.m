@@ -33,7 +33,7 @@ function remove_segmentation_OMERO(obj, delete_all )
     
     d = obj.data_series_controller.data_series; 
     
-    session = d.omero_data_manager.session; 
+    session = d.omero_logon_manager.session; 
         
      
     if ~isa(d,'OMERO_data_series')
