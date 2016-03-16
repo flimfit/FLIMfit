@@ -69,7 +69,6 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
           
  
     % if no modulo annotation check for Imspector produced ome-tiffs.
-    % NB no support for FLIM .ics files in OMERO
     if isempty(s)
         if strfind(char(image.getName.getValue() ),'ome.tif')
             if 1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1

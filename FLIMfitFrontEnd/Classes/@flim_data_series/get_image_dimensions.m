@@ -154,21 +154,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                         end
                     end
                 end
-                
-                
-                % support for .ics files lacking a Modulo annotation
-                if strfind(file,'.ics')
-                    text = r.getMetadataValue('history extents');
-                    text = strrep(text,'?','');
-                    decay_range  = str2Double(text) * 1e12;  % convert to ps
-                    delays = 0:sizeZCT(2) -1;
-                    step = decay_range/sizeZCT(2);
-                    dims.delays = delays .* step;
-                    dims.modulo = 'ModuloAlongC';
-                    dims.sizeZCT = [ 1 1 1 ];
-                    dims.FLIM_type = 'TCSPC';
-                end
-                
+                       
             end
             
             
