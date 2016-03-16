@@ -266,7 +266,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 
                 %Kludge to suppress bright line artefact on RHS in BH .sdt files
                 
-                if strfind(file(end-5:end),'.sdt')  && sizeX > 1 && sizeY > 1
+                if strcmp(file(end-3:end),'.sdt')  && sizeX > 1 && sizeY > 1
                     target(:,:,:,end,:) = 0;
                 end
                 
