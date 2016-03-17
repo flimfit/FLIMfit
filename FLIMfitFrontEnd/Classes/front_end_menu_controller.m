@@ -1153,14 +1153,14 @@ classdef front_end_menu_controller < handle
             data = mean(double(data),3);
             
             for i=1:size(data,2)
-                irf(:,i) = FitGaussianIRF(t,data(:,i),ax);
+                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),ax);
             end
 
-            plot(ax, t, irf);
-            ylabel('IRF'); xlabel('Time (ps)');
+%            plot(ax, t, irf);
+%            ylabel('IRF'); xlabel('Time (ps)');
 
             [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
-            csvwrite([path file], [t, irf]);
+            csvwrite([path file], [t_final', irf]);
             
             close(fh);
             
