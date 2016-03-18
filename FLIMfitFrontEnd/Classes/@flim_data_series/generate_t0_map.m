@@ -165,12 +165,15 @@ function irf_data = generate_t0_map(obj, mask, dataset)
     
     % If we don't have an IRF loaded, use the decay.
     % Otherwise use the loaded IRF.
+    
+    irf_data = struct('t0_image',diff,'irf_background',0,'t0',0,'t_irf_min',obj.t_irf_min,'t_irf_max',obj.t_irf_max);   
+    
     if size(obj.tr_irf,1) > 3         
-        irf_data = struct('t_irf',obj.tr_t_irf,'irf',obj.tr_irf,'t0_image',diff);       
+        irf_data.t_irf = obj.tr_t_irf;
+        irf_data.irf = obj.tr_irf;
     else
-        irf_data = struct('t_irf',obj.tr_t,'irf',decay,'t0_image',diff);
+        irf_data.t_irf = obj.tr_t;
+        irf_data.irf = decay;
     end
-    
-    
     
 end
