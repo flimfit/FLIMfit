@@ -172,6 +172,7 @@ classdef front_end_menu_controller < handle
         menu_help_about;
         menu_help_bugs;
         menu_help_tracker;
+        menu_help_check_version;
         
         menu_batch_batch_fitting;
         
@@ -1372,13 +1373,16 @@ classdef front_end_menu_controller < handle
 
         function menu_help_tracker_callback(obj, ~, ~)
             
-            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues');
+            obj.open_browser('https://github.com/imperial-photonics/FLIMfit/issues');
             
         end
 
         function menu_help_bugs_callback(obj, ~, ~)
-            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues/new');
-            
+            obj.open_browser('https://github.com/imperial-photonics/FLIMfit/issues/new'); 
+        end
+        
+        function menu_help_check_version_callback(obj, ~, ~)
+            check_version();
         end
         
         function open_browser(~, url_str)
