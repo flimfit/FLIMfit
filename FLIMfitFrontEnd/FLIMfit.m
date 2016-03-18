@@ -37,6 +37,7 @@ else ismac;
 end
 
 ui = flim_fit_ui(false);
-
+check_version(true);
+diagnostics();
 
 end
