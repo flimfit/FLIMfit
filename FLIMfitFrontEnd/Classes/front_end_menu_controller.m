@@ -130,6 +130,8 @@ classdef front_end_menu_controller < handle
         menu_file_export_exclusion_list;
         
         menu_file_export_intensity;
+            
+        menu_file_exit;
         
         % icy..
         menu_file_export_volume_to_icy;
@@ -188,6 +190,7 @@ classdef front_end_menu_controller < handle
         recent_default_path;
 
         default_path;
+        window;
 
     end
     
@@ -239,7 +242,7 @@ classdef front_end_menu_controller < handle
             
              mc = metaclass(obj);
              obj_prop = mc.Properties;
-             obj_method = mc.Methods;
+             obj_method = [mc.Methods{:}];
              
              
              % Search for properties with corresponding callbacks
@@ -247,11 +250,11 @@ classdef front_end_menu_controller < handle
                 prop = obj_prop{i}.Name;
                 if strncmp(prop,'menu_',5)
                     method = [prop '_callback'];
-                    matching_methods = findobj([obj_method{:}],'Name',method);
+                    matching_methods = findobj(obj_method,'Name',method);
                     if ~isempty(matching_methods)  
                         fcn = eval(['@obj.' method]);
                         set(obj.(prop),'Callback',@(x,y) obj.EscapedCallback(x,y,fcn));
-                        %eval(['set(obj.' prop ',''Callback'',@obj.' method ')' ]);
+                        disp(prop)
                     end
                 end          
              end
@@ -260,17 +263,17 @@ classdef front_end_menu_controller < handle
         
                   
         function EscapedCallback(obj, ~, ~, fcn)
-            fcn([],[]);
-            %{
-            try
-                
+            
+            if false && ~isdeployed
                 fcn([],[]);
-            catch e
-                
-                msgbox(e.message);
-                
+            else            
+                try
+                    fcn([],[]);
+                catch e
+                    d = getReport(e,'extended','hyperlinks','off');
+                    errordlg(d,'Error Occurred');
+                end
             end
-            %}
             
         end
         
@@ -350,6 +353,16 @@ classdef front_end_menu_controller < handle
                 obj.update_recent_default_list();
                 obj.update_recent_irf_list();
             end
+        end
+        
+        function menu_file_exit_callback(obj,~,~)
+           
+            if isdeployed
+                exit()
+            else
+                close(obj.window)
+            end
+            
         end
                 
         %------------------------------------------------------------------
