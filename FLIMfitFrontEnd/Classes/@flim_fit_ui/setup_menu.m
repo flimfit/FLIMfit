@@ -75,6 +75,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...');
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
+    
+    handles.menu_file_exit = uimenu(menu_file,'Label','Quit','Separator','on');
       
     % OMERO MEGA MENU    
     %=================================
