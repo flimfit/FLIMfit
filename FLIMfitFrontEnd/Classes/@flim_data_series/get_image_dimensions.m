@@ -143,7 +143,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strfind(file,'ome.tif')
-                    if  1 == sizeZCT(2)  && sizeZCT(1) > 1
+                    if  sizeZCT(1) > 1
                         physZ = omeMeta.getPixelsPhysicalSizeZ(0);
                         if ~isempty(physZ) 
                             physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
