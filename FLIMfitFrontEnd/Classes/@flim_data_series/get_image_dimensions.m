@@ -143,14 +143,55 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strfind(file,'ome.tif')
-                    if  sizeZCT(1) > 1
-                        physZ = omeMeta.getPixelsPhysicalSizeZ(0);
-                        if ~isempty(physZ) 
-                            physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
-                            dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                    % attempt to extract metadata
+                    ras = loci.common.RandomAccessInputStream(file,16);
+                    tp = loci.formats.tiff.TiffParser(ras);
+                    firstIFD = tp.getFirstIFD();
+                    xml = char(firstIFD.getComment());
+                    k = strfind(xml,'AxisName="lifetime"');
+                    if ~isempty(k)  
+                        % new-style :aVision ome-tiff so try and handle
+                        % accordingly
+                        xml = xml(k(1):k(1)+100);    % pull out this section of the xml
+                        
+                        k = strfind(xml,'PhysicalUnit="');
+                        uns = xml(k(1)+14:end);
+                        e = strfind(uns,'"') -1;
+                        uns = uns(1:e(1));
+                        physicalUnit = str2double(uns) * 1000;
+
+                        k = strfind(xml,'Steps="');
+                        sts = xml(k(1)+7:end);
+                        e = strfind(sts,'"') -1;
+                        sts = sts(1:e(1));
+                        lifetimeSteps = str2double(sts);
+                        
+                        if lifetimeSteps == sizeZCT(1) 
+                            dims.delays = (0:sizeZCT(1)-1).* physicalUnit;
                             dims.modulo = 'ModuloAlongZ';
                             dims.FLIM_type = 'TCSPC';
                             dims.sizeZCT = sizeZCT;
+                        end
+                        if lifetimeSteps == sizeZCT(3) 
+                            dims.delays = (0:sizeZCT(3)-1).*physicalUnit;
+                            dims.modulo = 'ModuloAlongT';
+                            dims.FLIM_type = 'TCSPC';
+                            dims.sizeZCT = sizeZCT;
+                        end
+                            
+                        
+                    else
+                        %possibly old-style LaVision ome-tiff
+                    
+                        if  sizeZCT(1) > 1 && sizeZCT(2) == 1 && sizeZCT(3) == 1
+                            physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                            if ~isempty(physZ)
+                                physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                                dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                                dims.modulo = 'ModuloAlongZ';
+                                dims.FLIM_type = 'TCSPC';
+                                dims.sizeZCT = sizeZCT;
+                            end
                         end
                     end
                 end
