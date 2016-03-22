@@ -282,12 +282,19 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
             r = FLIMreaderMex(file);
             FLIMreaderMex(r,'SetSpatialBinning',1);
-            data = FLIMreaderMex(r, 'GetData', Carr);
+            
+            if ~polarisation_resolved 
+                chan = Carr(read_selected); % load channels sequentially
+            else
+                chan = Carr;
+            end
+            
+            data = FLIMreaderMex(r, 'GetData', chan);
             
             expected_size = size(target);
-            expected_size(ndims(expected_size):4) = 1;
+            expected_size((length(expected_size)+1):4) = 1;
             actual_size = size(data);
-            actual_size(ndims(actual_size):4) = 1;
+            actual_size((length(actual_size)+1):4) = 1;
             if all(actual_size==expected_size(1:4))        
                 target(:,:,:,:,write_selected) = data;
             else
