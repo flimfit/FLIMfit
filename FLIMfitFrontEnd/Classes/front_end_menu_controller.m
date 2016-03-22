@@ -174,6 +174,7 @@ classdef front_end_menu_controller < handle
         menu_help_about;
         menu_help_bugs;
         menu_help_tracker;
+        menu_help_check_version;
         
         menu_batch_batch_fitting;
         
@@ -253,8 +254,7 @@ classdef front_end_menu_controller < handle
                     matching_methods = findobj(obj_method,'Name',method);
                     if ~isempty(matching_methods)  
                         fcn = eval(['@obj.' method]);
-                        set(obj.(prop),'Callback',@(x,y) obj.EscapedCallback(x,y,fcn));
-                        disp(prop)
+                        set(obj.(prop),'Callback',@(x,y) escaped_callback(x,y,fcn));
                     end
                 end          
              end
@@ -262,20 +262,7 @@ classdef front_end_menu_controller < handle
         end
         
                   
-        function EscapedCallback(obj, ~, ~, fcn)
-            
-            if false && ~isdeployed
-                fcn([],[]);
-            else            
-                try
-                    fcn([],[]);
-                catch e
-                    d = getReport(e,'extended','hyperlinks','off');
-                    errordlg(d,'Error Occurred');
-                end
-            end
-            
-        end
+        
         
         function set.recent_data(obj,recent_data)
             obj.recent_data = recent_data;
@@ -329,14 +316,14 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Default Path
         %------------------------------------------------------------------
-        function menu_file_new_window_callback(obj,~,~)
+        function menu_file_new_window_callback(obj)
             FLIMfit();
         end
         
         %------------------------------------------------------------------
         % Default Path
         %------------------------------------------------------------------
-        function menu_file_set_default_path_callback(obj,~,~)
+        function menu_file_set_default_path_callback(obj)
             path = uigetdir(obj.default_path,'Select default path');
             if path ~= 0
                 obj.default_path = path; 
@@ -355,7 +342,7 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_file_exit_callback(obj,~,~)
+        function menu_file_exit_callback(obj)
            
             if isdeployed
                 exit()
@@ -368,7 +355,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % OMERO
         %------------------------------------------------------------------
-        function menu_login_callback(obj,~,~)
+        function menu_login_callback(obj)
             obj.omero_logon_manager.Omero_logon();
             
             if ~isempty(obj.omero_logon_manager.session)
@@ -381,14 +368,14 @@ classdef front_end_menu_controller < handle
             
         end
         %------------------------------------------------------------------
-        function menu_OMERO_Set_Dataset_callback(obj,~,~)            
+        function menu_OMERO_Set_Dataset_callback(obj)            
             infostring = obj.omero_logon_manager.Set_Dataset();
             if ~isempty(infostring)
                 set(obj.menu_OMERO_Working_Data_Info,'Label',infostring,'ForegroundColor','blue');
             end;
         end                        
         %------------------------------------------------------------------        
-        function menu_OMERO_Load_FLIM_Data_callback(obj,~,~)
+        function menu_OMERO_Load_FLIM_Data_callback(obj)
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
@@ -407,7 +394,7 @@ classdef front_end_menu_controller < handle
             clear chooser;
         end                                  
         %------------------------------------------------------------------        
-        function menu_OMERO_Load_FLIM_Dataset_callback(obj,~,~)
+        function menu_OMERO_Load_FLIM_Dataset_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -423,7 +410,7 @@ classdef front_end_menu_controller < handle
             end   
         end    
         %------------------------------------------------------------------        
-        function menu_OMERO_Load_plate_callback(obj,~,~)
+        function menu_OMERO_Load_plate_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -442,7 +429,7 @@ classdef front_end_menu_controller < handle
         end  
                     
         %------------------------------------------------------------------
-        function menu_OMERO_Load_irf_callback(obj,~,~)
+        function menu_OMERO_Load_irf_callback(obj)
             
             [image, selected] = obj.load_image_or_attachment;
            
@@ -505,7 +492,7 @@ classdef front_end_menu_controller < handle
             end
           end                    
         %------------------------------------------------------------------
-        function menu_OMERO_Load_sv_irf_callback(obj,~,~)
+        function menu_OMERO_Load_sv_irf_callback(obj)
             images = [];
             dId = obj.data_series_controller.data_series.datasetId;
             
@@ -518,7 +505,7 @@ classdef front_end_menu_controller < handle
             end  
         end
         %------------------------------------------------------------------
-        function menu_OMERO_Load_Background_callback(obj,~,~)                                     
+        function menu_OMERO_Load_Background_callback(obj)                                     
             dId = obj.data_series_controller.data_series.datasetId;
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, java.lang.Long(dId));
             images = chooser.getSelectedImages();
@@ -528,7 +515,7 @@ classdef front_end_menu_controller < handle
             clear chooser;                     
         end                            
         %------------------------------------------------------------------
-         function menu_OMERO_Load_Background_average_callback(obj,~,~)                                     
+         function menu_OMERO_Load_Background_average_callback(obj)                                     
             dId = obj.data_series_controller.data_series.datasetId;
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, java.lang.Long(dId) );
             images = chooser.getSelectedImages();
@@ -540,18 +527,18 @@ classdef front_end_menu_controller < handle
                           
        
         %------------------------------------------------------------------        
-        function menu_OMERO_Reset_Logon_callback(obj,~,~)
+        function menu_OMERO_Reset_Logon_callback(obj)
             obj.omero_logon_manager.Omero_logon();
         end
        
         
         %------------------------------------------------------------------                
-        function menu_OMERO_Switch_User_callback(obj,~,~)
+        function menu_OMERO_Switch_User_callback(obj)
             obj.omero_logon_manager.Omero_logon();
         end    
         
         %------------------------------------------------------------------
-        function menu_OMERO_Load_tvb_callback(obj,~,~)
+        function menu_OMERO_Load_tvb_callback(obj)
             
             [image, selected] = obj.load_image_or_attachment;
            
@@ -569,7 +556,7 @@ classdef front_end_menu_controller < handle
         end
     
         %------------------------------------------------------------------        
-        function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj,~,~)
+        function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj)
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
@@ -587,7 +574,7 @@ classdef front_end_menu_controller < handle
         end             
                           
         %------------------------------------------------------------------
-        function menu_OMERO_load_data_settings_callback(obj,~,~)
+        function menu_OMERO_load_data_settings_callback(obj)
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(6));
             selected = chooser.getSelectedFile();
             clear chooser;
@@ -602,17 +589,17 @@ classdef front_end_menu_controller < handle
             end
         end                                            
         %------------------------------------------------------------------
-        function menu_OMERO_Export_Visualisation_Images_callback(obj,~,~)
+        function menu_OMERO_Export_Visualisation_Images_callback(obj)
             add_Image(obj.omero_logon_manager);
             %obj.omero_logon_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
         end                                    
         %------------------------------------------------------------------
-        function menu_OMERO_Connect_To_Another_User_callback(obj,~,~)
+        function menu_OMERO_Connect_To_Another_User_callback(obj)
             obj.omero_logon_manager.Select_Another_User();
             %set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------
-        function menu_OMERO_Connect_To_Logon_User_callback(obj,~,~)            
+        function menu_OMERO_Connect_To_Logon_User_callback(obj)            
             obj.omero_logon_manager.userid = obj.omero_logon_manager.session.getAdminService().getEventContext().userId;
             obj.omero_logon_manager.project = [];
             obj.omero_logon_manager.dataset = [];
@@ -621,7 +608,7 @@ classdef front_end_menu_controller < handle
             %set(obj.menu_OMERO_Working_Data_Info,'Label','Working Data have not been set up','ForegroundColor','red');
         end                            
         %------------------------------------------------------------------                
-        function menu_OMERO_Import_Fitting_Results_callback(obj,~,~)  
+        function menu_OMERO_Import_Fitting_Results_callback(obj)  
             obj.data_series_controller.data_series.clear();    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series();
             obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;
@@ -631,11 +618,11 @@ classdef front_end_menu_controller < handle
             %end;            
         end                                    
         %------------------------------------------------------------------                
-        function menu_OMERO_load_acceptor_callback(obj,~,~)
+        function menu_OMERO_load_acceptor_callback(obj)
             obj.omero_logon_manager.Load_Acceptor_Images(obj.data_series_controller.data_series);
         end
         %------------------------------------------------------------------                
-        function menu_OMERO_export_acceptor_callback(obj,~,~)
+        function menu_OMERO_export_acceptor_callback(obj)
             obj.omero_logon_manager.Export_Acceptor_Images(obj.data_series_controller.data_series);
         end
                 
@@ -646,7 +633,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Load Data
         %------------------------------------------------------------------
-        function menu_file_load_single_callback(obj,~,~)
+        function menu_file_load_single_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -662,7 +649,7 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_file_load_widefield_callback(obj,~,~)
+        function menu_file_load_widefield_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -678,7 +665,7 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_file_load_tcspc_callback(obj,~,~)
+        function menu_file_load_tcspc_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -694,7 +681,7 @@ classdef front_end_menu_controller < handle
         end
         
         
-        function menu_file_load_plate_callback(obj,~,~)
+        function menu_file_load_plate_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -710,7 +697,7 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_file_load_single_pol_callback(obj,~,~)
+        function menu_file_load_single_pol_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -725,7 +712,7 @@ classdef front_end_menu_controller < handle
             end
                 end
         
-        function menu_file_load_tcspc_pol_callback(obj,~,~)
+        function menu_file_load_tcspc_pol_callback(obj)
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
@@ -740,25 +727,25 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_file_reload_data_callback(obj,~,~)
+        function menu_file_reload_data_callback(obj)
             obj.data_series_controller.data_series.reload_data;
         end
         
-        function menu_file_load_acceptor_callback(obj,~,~)
+        function menu_file_load_acceptor_callback(obj)
             folder = uigetdir(obj.default_path,'Select the folder containing the acceptor images');
             if folder ~= 0
                 obj.data_series_controller.data_series.load_acceptor_images(folder);
             end
         end
         
-        function menu_file_import_acceptor_callback(obj,~,~)
+        function menu_file_import_acceptor_callback(obj)
             [file path] = uigetfile({'*.tiff'},'Select the exported acceptor image file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_acceptor_images([path file]);
             end
         end
         
-        function menu_file_export_acceptor_callback(obj,~,~)
+        function menu_file_export_acceptor_callback(obj)
             [file path] = uiputfile({'*.tiff'},'Select exported acceptor image file name',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.export_acceptor_images([path file]);
@@ -768,14 +755,14 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Export Data Settings
         %------------------------------------------------------------------
-        function menu_file_save_data_settings_callback(obj,~,~)
+        function menu_file_save_data_settings_callback(obj)
             [filename, pathname] = uiputfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.save_data_settings([pathname filename]);         
             end
         end
         
-         function menu_OMERO_save_data_settings_callback(obj,~,~)
+         function menu_OMERO_save_data_settings_callback(obj)
           
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.xml');
             if filename ~= 0
@@ -784,14 +771,14 @@ classdef front_end_menu_controller < handle
         end
         
         
-        function menu_file_load_data_settings_callback(obj,~,~)
+        function menu_file_load_data_settings_callback(obj)
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.load_data_settings([pathname filename]);         
             end
         end
         
-        function menu_file_load_t_calibration_callback(obj,~,~)
+        function menu_file_load_t_calibration_callback(obj)
             [filename, pathname] = uigetfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.load_t_calibriation([pathname filename]);         
@@ -801,28 +788,28 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Export Data
         %------------------------------------------------------------------
-        function menu_file_save_dataset_callback(obj,~,~)
+        function menu_file_save_dataset_callback(obj)
             [filename, pathname] = uiputfile({'*.hdf5', 'HDF5 File (*.hdf5)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.save_data_series([pathname filename]);         
             end
         end
         
-        function menu_file_save_raw_callback(obj,~,~)
+        function menu_file_save_raw_callback(obj)
             [filename, pathname] = uiputfile({'*.raw', 'Raw File (*.raw)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.save_raw_data([pathname filename]);         
             end
         end
         
-        function menu_file_save_magic_angle_raw_callback(obj,~,~)
+        function menu_file_save_magic_angle_raw_callback(obj)
             [filename, pathname] = uiputfile({'*.raw', 'Raw File (*.raw)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.save_magic_angle_raw([pathname filename]);         
             end
         end
             
-        function menu_file_load_raw_callback(obj,~,~)
+        function menu_file_load_raw_callback(obj)
             [filename, pathname] = uigetfile({'*.raw', 'Raw File (*.raw)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.load_raw([pathname filename]);         
@@ -832,14 +819,14 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Export Decay
         %------------------------------------------------------------------
-        function menu_file_export_decay_callback(obj,~,~)
+        function menu_file_export_decay_callback(obj)
             [filename, pathname] = uiputfile({'*.txt', 'TXT File (*.txt)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_decay_view.update_display([pathname filename]);
             end
         end
         
-        function menu_file_export_decay_series_callback(obj,~,~)
+        function menu_file_export_decay_series_callback(obj)
             [filename, pathname] = uiputfile({'*.txt', 'TXT File (*.txt)'},'Select file postfix',obj.default_path);
             if filename ~= 0
                 obj.data_decay_view.update_display([pathname filename],'all');
@@ -849,21 +836,21 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Import/Export Fit Results
         %------------------------------------------------------------------
-        function menu_file_export_fit_results_callback(obj,~,~)
+        function menu_file_export_fit_results_callback(obj)
             [filename, pathname] = uiputfile({'*.hdf5', 'HDF5 File (*.hdf5)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.fit_controller.save_fit_result([pathname filename]);         
             end
         end
 
-        function menu_file_import_fit_results_callback(obj,~,~)
+        function menu_file_import_fit_results_callback(obj)
             [filename, pathname] = uigetfile({'*.hdf5', 'HDF5 File (*.hdf5)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.fit_controller.load_fit_result([pathname filename]);           
             end
         end
         
-        function menu_file_export_intensity_callback(obj,~,~)
+        function menu_file_export_intensity_callback(obj)
             folder = uigetdir(obj.default_path);
             obj.data_series_controller.data_series.export_intensity_images(folder);
         end
@@ -871,21 +858,21 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Import/Export Fit Parameters
         %------------------------------------------------------------------
-        function menu_file_export_fit_params_callback(obj,~,~)
+        function menu_file_export_fit_params_callback(obj)
             [filename, pathname, dataset] = uiputfile({'fit_parameters.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.fitting_params_controller.save_fitting_params([pathname filename]);         
             end
         end
 
-        function menu_file_import_fit_params_callback(obj,~,~)
+        function menu_file_import_fit_params_callback(obj)
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.fitting_params_controller.load_fitting_params([pathname filename]);           
             end
         end
         
-        function menu_OMERO_export_fit_params_callback(obj,~,~)
+        function menu_OMERO_export_fit_params_callback(obj)
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('root filename', 'fit_parameters', '.xml');
             if filename ~= 0
                 obj.fitting_params_controller.save_fitting_params([pathname filename]);         
@@ -898,7 +885,7 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_OMERO_import_fit_params_callback(obj,~,~)
+        function menu_OMERO_import_fit_params_callback(obj)
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(6));
             selected = chooser.getSelectedFile();
             clear chooser;
@@ -922,14 +909,14 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Export Fit Table
         %------------------------------------------------------------------
-        function menu_file_export_fit_table_callback(obj,~,~)
+        function menu_file_export_fit_table_callback(obj)
             [filename, pathname] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.fit_controller.save_param_table([pathname filename]);
             end
         end
         
-        function menu_OMERO_export_fit_table_callback(obj,~,~)
+        function menu_OMERO_export_fit_table_callback(obj)
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.csv');
             if filename ~= 0
                 obj.fit_controller.save_param_table([pathname filename]);         
@@ -944,7 +931,7 @@ classdef front_end_menu_controller < handle
         
         
    
-        function menu_file_import_plate_metadata_callback(obj,~,~)
+        function menu_file_import_plate_metadata_callback(obj)
             [file,path] = uigetfile({'*.xls;*.xlsx;*.csv','All Compatible Files';'*.xls;*.xlsx','Excel Files';'*.csv','CSV File'},'Select the metadata file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.import_plate_metadata([path file]);
@@ -952,14 +939,14 @@ classdef front_end_menu_controller < handle
         end
         
         
-        function menu_file_import_exclusion_list_callback(obj,~,~)
+        function menu_file_import_exclusion_list_callback(obj)
             [file,path] = uigetfile({'*.txt','Text Files'},'Select the exclusion file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.import_exclusion_list([path file]);
             end
         end
         
-        function menu_file_export_exclusion_list_callback(obj,~,~)
+        function menu_file_export_exclusion_list_callback(obj)
             [file,path] = uiputfile({'*.txt','Text Files'},'Select the exclusion file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.export_exclusion_list([path file]);
@@ -969,7 +956,7 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % IRF
         %------------------------------------------------------------------
-        function menu_irf_load_callback(obj,~,~)
+        function menu_irf_load_callback(obj)
             [file,path] = uigetfile('*.*','Select a file from the irf',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_irf([path file]);
@@ -977,38 +964,38 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_irf_image_load_callback(obj,~,~)
+        function menu_irf_image_load_callback(obj)
             [file,path] = uigetfile('*.*','Select a file from the irf',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_irf([path file],true);
             end
         end
         
-        function menu_irf_set_delta_callback(obj,~,~)
+        function menu_irf_set_delta_callback(obj)
             obj.data_series_controller.data_series.set_delta_irf();
         end
         
-        function menu_irf_set_rectangular_callback(obj,~,~)
+        function menu_irf_set_rectangular_callback(obj)
             width = inputdlg('IRF Width','IRF Width',1,{'500'});
             width = str2double(width);
             obj.data_series_controller.data_series.set_rectangular_irf(width);
         end
         
-        function menu_irf_set_gaussian_callback(obj,~,~)
+        function menu_irf_set_gaussian_callback(obj)
             width = inputdlg('IRF Width','IRF Width',1,{'500'});
             width = str2double(width);
             obj.data_series_controller.data_series.set_gaussian_irf(width);
         end
         
-        function menu_irf_estimate_background_callback(obj,~,~)
+        function menu_irf_estimate_background_callback(obj)
             obj.data_series_controller.data_series.estimate_irf_background();
         end
         
-        function menu_irf_estimate_t0_callback(obj,~,~)
+        function menu_irf_estimate_t0_callback(obj)
             obj.data_masking_controller.t0_guess_callback();    
         end
         
-        function menu_irf_estimate_g_factor_callback(obj,~,~)
+        function menu_irf_estimate_g_factor_callback(obj)
             obj.data_masking_controller.g_factor_guess_callback();    
         end
         
@@ -1016,14 +1003,14 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Background
         %------------------------------------------------------------------
-        function menu_background_background_load_callback(obj,~,~)
+        function menu_background_background_load_callback(obj)
             [file,path] = uigetfile('*.*','Select a background file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_background([path file], false);    
             end
         end
         
-        function menu_background_background_load_average_callback(obj,~,~)
+        function menu_background_background_load_average_callback(obj)
             [file,path] = uigetfile('*.*','Select a background file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_background([path file], true);    
@@ -1031,21 +1018,21 @@ classdef front_end_menu_controller < handle
         end
         
        
-        function menu_background_tvb_load_callback(obj,~,~)
+        function menu_background_tvb_load_callback(obj)
             [file,path] = uigetfile('*.*','Select a TVB file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_tvb([path file]);    
             end
         end
         
-        function menu_background_tvb_I_map_load_callback(obj,~,~)
+        function menu_background_tvb_I_map_load_callback(obj)
             [file,path] = uigetfile('*.xml','Select a TVB intensity map file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_background([path file]);    
             end
         end
         
-        function menu_background_tvb_use_selected_callback(obj,~,~)
+        function menu_background_tvb_use_selected_callback(obj)
            obj.data_masking_controller.tvb_define_callback();    
         end
         
@@ -1053,14 +1040,14 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Segmentation
         %------------------------------------------------------------------
-        function menu_segmentation_yuriy_callback(obj,~,~)
+        function menu_segmentation_yuriy_callback(obj)
             segmentation_manager(obj.data_series_controller);
         end
         
         %------------------------------------------------------------------
         % Batch Fit
         %------------------------------------------------------------------
-        function menu_batch_batch_fitting_callback(obj,~,~)
+        function menu_batch_batch_fitting_callback(obj)
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
                 settings_file = tempname;
@@ -1075,7 +1062,7 @@ classdef front_end_menu_controller < handle
         end
         
         
-        function menu_tools_photon_stats_callback(obj,~,~)
+        function menu_tools_photon_stats_callback(obj)
             d = obj.data_series_controller.data_series;
             
             % get data without smoothing
@@ -1091,13 +1078,13 @@ classdef front_end_menu_controller < handle
 
         end
 
-        function menu_tools_preferences_callback(obj,~,~)
+        function menu_tools_preferences_callback(obj)
             profile = profile_controller();
             profile.set_profile();
         end
 
         
-        function menu_tools_estimate_irf_callback(obj,~,~)
+        function menu_tools_estimate_irf_callback(obj)
             d = obj.data_series_controller.data_series;
             estimate_irf(d.tr_t_irf,d.tr_irf);
         end
@@ -1107,17 +1094,17 @@ classdef front_end_menu_controller < handle
         % Views
         %------------------------------------------------------------------
         
-        function menu_view_chi2_display_callback(obj,~,~)
+        function menu_view_chi2_display_callback(obj)
             chi2_display(obj.fit_controller);
         end
         
-        function menu_test_test1_callback(obj,~,~)
+        function menu_test_test1_callback(obj)
             regression_testing(obj);
             %polarisation_testing(obj.data_series_controller.data_series,obj.default_path);
         end
         
         
-        function menu_tools_create_irf_shift_map_callback(obj,~,~)
+        function menu_tools_create_irf_shift_map_callback(obj)
                         
             mask=obj.data_masking_controller.roi_controller.roi_mask;
             t0_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
@@ -1152,7 +1139,7 @@ classdef front_end_menu_controller < handle
                         
         end
         
-        function menu_tools_fit_gaussian_irf_callback(obj,~,~)
+        function menu_tools_fit_gaussian_irf_callback(obj)
 
             fh = figure(100);
             set(fh,'Name','Estimate Gaussian IRF','NumberTitle','off');
@@ -1179,7 +1166,7 @@ classdef front_end_menu_controller < handle
             
         end
         
-        function menu_tools_create_tvb_intensity_map_callback(obj,~,~)
+        function menu_tools_create_tvb_intensity_map_callback(obj)
 
             mask=obj.data_masking_controller.roi_controller.roi_mask;
             tvb_data = obj.data_series_controller.data_series.generate_tvb_I_map(mask,1);  
@@ -1214,7 +1201,7 @@ classdef front_end_menu_controller < handle
         end
 
   
-        function menu_test_test2_callback(obj,~,~)
+        function menu_test_test2_callback(obj)
             
             d = obj.data_series_controller.data_series;
 
@@ -1285,7 +1272,7 @@ classdef front_end_menu_controller < handle
             
         end
         
-        function menu_test_test3_callback(obj,~,~)
+        function menu_test_test3_callback(obj)
             
             d = obj.data_series_controller.data_series;
             
@@ -1324,7 +1311,7 @@ classdef front_end_menu_controller < handle
         end
         
         
-        function menu_test_unload_dll_callback(obj,~,~)
+        function menu_test_unload_dll_callback(obj)
             if is64
                 unloadlibrary('FLIMGlobalAnalysis_64');
             else
@@ -1365,7 +1352,7 @@ classdef front_end_menu_controller < handle
             end
         end
         
-        function menu_OMERO_export_hist_data_callback(obj,~,~)
+        function menu_OMERO_export_hist_data_callback(obj)
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('root filename', '', '.txt');
             if filename ~= 0
                 fname = obj.hist_controller.export_histogram_data([pathname filename]);
@@ -1385,13 +1372,16 @@ classdef front_end_menu_controller < handle
 
         function menu_help_tracker_callback(obj, ~, ~)
             
-            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues');
+            obj.open_browser('https://github.com/imperial-photonics/FLIMfit/issues');
             
         end
 
         function menu_help_bugs_callback(obj, ~, ~)
-            obj.open_browser('https://github.com/openmicroscopy/Imperial-FLIMfit/issues/new');
-            
+            obj.open_browser('https://github.com/imperial-photonics/FLIMfit/issues/new'); 
+        end
+        
+        function menu_help_check_version_callback(obj, ~, ~)
+            check_version();
         end
         
         function open_browser(~, url_str)
@@ -1419,7 +1409,7 @@ classdef front_end_menu_controller < handle
                         
         end
         
-        function menu_file_export_volume_to_icy_callback(obj,~,~)
+        function menu_file_export_volume_to_icy_callback(obj)
             try
                 obj.export_volume('send to Icy');            
             catch
@@ -1427,7 +1417,7 @@ classdef front_end_menu_controller < handle
             end
         end
 
-        function menu_file_export_volume_as_OMEtiff_callback(obj,~,~)
+        function menu_file_export_volume_as_OMEtiff_callback(obj)
             try
                 obj.export_volume('save as OME.tiff');            
             catch
@@ -1537,7 +1527,7 @@ classdef front_end_menu_controller < handle
                                                             
         end % export_volume
 
-        function menu_file_export_volume_batch_callback(obj,~,~)            
+        function menu_file_export_volume_batch_callback(obj)            
 
             % try batch here            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%            
