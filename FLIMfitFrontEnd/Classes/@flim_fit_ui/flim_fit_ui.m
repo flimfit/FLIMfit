@@ -94,39 +94,7 @@ classdef flim_fit_ui
             catch
                 v = '[unknown version]';
             end
-            
-            %{
-            cur_ver = urlread('https://raw.github.com/openmicroscopy/Imperial-FLIMfit/master/GlobalProcessingFrontEnd/GeneratedFiles/version.txt');
-            if obj.split_ver(cur_ver) > obj.split_ver(v)
-                msgbox(['A new version of FLIMfit, v' cur_ver ' is now available. ']);
-            end
-              %}  
-            % Get authentication if needed
-            %{
-            if require_auth
-                auth_text = urlread('https://global-analysis.googlecode.com/hg/GlobalAnalysisAuth.txt');
-                auth_success = false;
-                
-                if strfind(auth_text,'external_auth=false')
-                    auth_success = true;
-                end
-                
-                min_ver = regexp(auth_text,'min_version=([[0-9]\.]+)','tokens');
-                if ~isempty(min_ver)
-                    min_ver = obj.split_ver(min_ver{1}{1});
-                else
-                    min_ver = 0;
-                end
-                if min_ver == 0 || obj.split_ver(v{1}) < min_ver
-                    auth_success = false;
-                end
-                if ~auth_success 
-                    disp('Sorry, error occured while authenticating.');
-                    return
-                end
-            end
-            %}
-            
+                        
             % Open a window and add some menus
             obj.window = figure( ...
                 'Name', ['FLIMfit ' v], ...
