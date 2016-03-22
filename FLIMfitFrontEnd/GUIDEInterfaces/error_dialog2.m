@@ -22,10 +22,10 @@ function varargout = error_dialog2(varargin)
 
 % Edit the above text to modify the response to help error_dialog2
 
-% Last Modified by GUIDE v2.5 22-Mar-2016 11:29:42
+% Last Modified by GUIDE v2.5 22-Mar-2016 11:39:29
 
 % Begin initialization code - DO NOT EDIT
-gui_Singleton = 1;
+gui_Singleton = 0;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
                    'gui_OpeningFcn', @error_dialog2_OpeningFcn, ...
@@ -54,7 +54,7 @@ function error_dialog2_OpeningFcn(hObject, eventdata, handles, varargin)
 
 
 if ~isempty(varargin)
-    set(handles.error_text,'String', varargin{1})
+    set(handles.error_text,'String', varargin{1}{1})
 end
 
 % Determine the position of the dialog - centered on the callback figure
