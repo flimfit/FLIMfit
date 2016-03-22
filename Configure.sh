@@ -49,7 +49,7 @@ rm -rf bfmatlab
 echo "Downloading beta version of bio-formats. TO BE REMOVED!"
 curl -OL https://ci.openmicroscopy.org/job/BIOFORMATS-5.1-merge-build/1128/artifact/artifacts/bioformats_package.jar
 rm FLIMfitFrontEnd/BFMatlab/bioformats_package.jar
-mv bioformat_package.jar FLIMfitFrontEnd/BFMatlab/bioformats_package.jar
+mv bioformats_package.jar FLIMfitFrontEnd/BFMatlab/bioformats_package.jar
 
 
 
