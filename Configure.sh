@@ -45,6 +45,12 @@ rm bfmatlab.zip
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
 rm -rf bfmatlab
 
+# temporarily download a beta version of bioformats for testing TO BE REMOVED!
+curl -OL https://ci.openmicroscopy.org/job/BIOFORMATS-5.1-merge-build/1127/artifact/artifacts/bioformats_package.jar
+mv bioformat_package.jar FLIMfitFrontEnd/BFMatlab/
+
+
+
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar
 mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar
