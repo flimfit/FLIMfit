@@ -66,6 +66,9 @@ $bf_merge_url = 'https://ci.openmicroscopy.org/job/BIOFORMATS-5.1-merge-build/11
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
 $OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
 
+$BFMatlab_dir = "$pwd\FLIMfitFrontEnd\BFMatlab"
+
+
 #((new-object net.webclient).DownloadFile($cmake_url, 'cmake.zip'))
 #Unzip 'cmake_zip' "$pwd"
 	
@@ -79,7 +82,7 @@ Remove-Item "$omero_matlab_libs_dir\log4j.jar"
 DownloadZipIntoFolder $bf_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
 
 echo "Downloading beta version of bioformats_package.jar"
-DownloadZipIntoFolder $bf_merge_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
+((new-object net.webclient).DownloadFile($bf_merge_url, "$BFMatlab_dir\bioformats_package.jar"))
 
 echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
