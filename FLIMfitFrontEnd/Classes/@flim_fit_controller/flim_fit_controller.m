@@ -121,11 +121,11 @@ classdef flim_fit_controller < flim_data_series_observer
             obj.dll_interface = flim_dll_interface();
             
             if ishandle(obj.fit_pushbutton)
-                set(obj.fit_pushbutton,'Callback',@obj.fit_pushbutton_callback);
+                set(obj.fit_pushbutton,'Callback',@(x,y) escaped_callback(x,y,@obj.fit_pushbutton_callback));
             end
 
             if ishandle(obj.binned_fit_pushbutton)
-                set(obj.binned_fit_pushbutton,'Callback',@obj.binned_fit_pushbutton_callback);
+                set(obj.binned_fit_pushbutton,'Callback',@(x,y) escaped_callback(x,y,@obj.binned_fit_pushbutton_callback));
             end
 
             
@@ -258,14 +258,14 @@ classdef flim_fit_controller < flim_data_series_observer
             end
         end
         
-        function fit_pushbutton_callback(obj,~,~)
+        function fit_pushbutton_callback(obj)
             d = obj.data_series_controller.data_series;
             if d.init
                 obj.fit();
             end            
         end
         
-        function binned_fit_pushbutton_callback(obj,~,~)
+        function binned_fit_pushbutton_callback(obj)
             d = obj.data_series_controller.data_series;
             if d.init
                 obj.fit(true);
