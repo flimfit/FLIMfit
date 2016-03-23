@@ -187,7 +187,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
 
-            if length(dims.delays) > 1)
+            if length(dims.delays) > 1
                 dt = dims.delays(2) - dims.delays(1);
             else
                 dt = 1;
