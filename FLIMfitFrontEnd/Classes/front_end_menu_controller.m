@@ -254,7 +254,6 @@ classdef front_end_menu_controller < handle
                     if ~isempty(matching_methods)  
                         fcn = eval(['@obj.' method]);
                         set(obj.(prop),'Callback',@(x,y) obj.EscapedCallback(x,y,fcn));
-                        disp(prop)
                     end
                 end          
              end
