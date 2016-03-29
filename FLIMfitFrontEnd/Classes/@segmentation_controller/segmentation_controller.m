@@ -39,6 +39,8 @@ classdef segmentation_controller < flim_data_series_observer
         OMERO_Load_Segmentation_Images;
         OMERO_Load_Single_Segmentation_Image;
         OMERO_Save_Segmentation_Images;
+        OMERO_Remove_Segmentation;
+        OMERO_Remove_All_Segmentations;
         
         tool_roi_rect_toggle;
         tool_roi_poly_toggle;
@@ -132,7 +134,7 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.OMERO_Load_Single_Segmentation_Image,'Callback',@(~,~) obj.load_single_segmentation_OMERO);
             set(obj.OMERO_Save_Segmentation_Images,'Callback',@(~,~) obj.save_segmentation_OMERO);
             set(obj.OMERO_Remove_Segmentation,'Callback',@(~,~) obj.remove_segmentation_OMERO);
-            set(obj.OMERO_Remove_All_Segmentations_Callback,'Callback',@(~,~) obj.remove_all_segmentations_OMERO);
+            set(obj.OMERO_Remove_All_Segmentations,'Callback',@(~,~) obj.remove_all_segmentations_OMERO);
             
             filter_data = [num2cell(false(size(obj.filters))), ...
                            obj.filters, ...

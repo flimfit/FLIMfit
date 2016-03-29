@@ -24,8 +24,8 @@ function new_segmentation_manager(data_series_controller)
 
         buttons_layout = uiextras.HBox('Parent',layout_all,'Spacing',pad);
         uiextras.Empty('Parent',buttons_layout);
-        handles.cancel_pushbutton = uicontrol('Style','pushbutton','String','Cancel','Parent',buttons_layout,'Callback',@(~,~) delete(fh));
-        handles.ok_pushbutton = uicontrol('Style','pushbutton','String','OK','Parent',buttons_layout,'Callback',@(~,~) delete(fh));
+        handles.cancel_button = uicontrol('Style','pushbutton','String','Cancel','Parent',buttons_layout,'Callback',@(~,~) delete(fh));
+        handles.ok_button = uicontrol('Style','pushbutton','String','OK','Parent',buttons_layout,'Callback',@(~,~) delete(fh));
         set(layout_all,'Sizes',[-1 22]);
         set(buttons_layout,'Sizes',[-1 200 200]);
 
@@ -96,13 +96,13 @@ function new_segmentation_manager(data_series_controller)
         handles.OMERO_Remove_Segmentation = uimenu(menu_OMERO,'Label','Remove Segmentation Image...');
         handles.OMERO_Remove_All_Segmentations = uimenu(menu_OMERO,'Label','Remove All Segmentation Images...');
        
-            load('icons.mat');
+        icons = load('icons.mat');
     
         handles.toolbar = uitoolbar(fh);
-        handles.tool_roi_rect_toggle = uitoggletool(handles.toolbar,'CData',rect_icon);
-        handles.tool_roi_poly_toggle = uitoggletool(handles.toolbar,'CData',poly_icon,);
-        handles.tool_roi_circle_toggle = uitoggletool(handles.toolbar,'CData',ellipse_icon,'ToolTipString','Ellipse');
-        handles.tool_roi_erase_toggle = uitoggletool(handles.toolbar,'CData',eraser_icon,'ToolTipString','Erase');
+        handles.tool_roi_rect_toggle = uitoggletool(handles.toolbar,'CData',icons.rect_icon,'ToolTipString','Rectangle');
+        handles.tool_roi_poly_toggle = uitoggletool(handles.toolbar,'CData',icons.poly_icon,'ToolTipString','Polygon');
+        handles.tool_roi_circle_toggle = uitoggletool(handles.toolbar,'CData',icons.ellipse_icon,'ToolTipString','Ellipse');
+        handles.tool_roi_erase_toggle = uitoggletool(handles.toolbar,'CData',icons.eraser_icon,'ToolTipString','Erase');
 
         
     end
