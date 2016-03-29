@@ -284,47 +284,6 @@ function menu_file_load_single_segmentation_Callback(hObject, eventdata, handles
     end
 
 
-% --- Executes on button press in trim_outliers_checkbox.
-function trim_outliers_checkbox_Callback(hObject, eventdata, handles)
-% hObject    handle to trim_outliers_checkbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of trim_outliers_checkbox
-
-
-% --- Executes on button press in segment_selected_button.
-function segment_selected_button_Callback(hObject, eventdata, handles)
-% hObject    handle to segment_selected_button (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-
-% --- Executes on button press in apply_filtering_pushbutton.
-function apply_filtering_pushbutton_Callback(hObject, eventdata, handles)
-% hObject    handle to apply_filtering_pushbutton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-
-
-% --- Executes on button press in combine_regions_checkbox.
-function combine_regions_checkbox_Callback(hObject, eventdata, handles)
-% hObject    handle to combine_regions_checkbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of combine_regions_checkbox
-
-
-% --------------------------------------------------------------------
-function OMERO_Callback(hObject, eventdata, handles)
-% hObject    handle to OMERO (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 % --------------------------------------------------------------------
 function OMERO_Load_Segmentation_Images_Callback(hObject, eventdata, handles)
 % hObject    handle to OMERO_Load_Segmentation_Images (see GCBO)

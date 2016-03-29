@@ -25,7 +25,17 @@ function load_segmentation(obj,folder)
 
     % Author : Sean Warren
 
+    if nargin < 2
+        try
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+        catch
+            addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
+            default_path = 'C:\';
+        end
 
+        folder = uigetdir(default_path,'Choose the folder containing the segmented images');
+    end
+        
     if folder==0
         return
     end

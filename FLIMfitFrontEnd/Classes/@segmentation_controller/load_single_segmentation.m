@@ -25,7 +25,27 @@ function load_single_segmentation(obj,file)
 
     % Author : Sean Warren
 
+    if nargin < 2
+        
+        try
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+        catch
+            addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
+            default_path = 'C:\';
+        end
 
+        [filename, pathname] = uigetfile( ...
+                     {'*.tif', 'TIFF image (*.tif)'},...
+                     'Select file name',default_path);
+
+        if filename ~= 0
+            file = [pathname filename];
+        else
+            return;
+        end
+        
+    end
+    
     str = {'Replace' 'AND' 'OR' 'NAND'};
     [choice,ok] = listdlg('PromptString','How would you like to combine the selected files with the current mask?',...
                     'SelectionMode','single',...

@@ -1041,7 +1041,7 @@ classdef front_end_menu_controller < handle
         % Segmentation
         %------------------------------------------------------------------
         function menu_segmentation_yuriy_callback(obj)
-            segmentation_manager(obj.data_series_controller);
+            new_segmentation_manager(obj.data_series_controller);
         end
         
         %------------------------------------------------------------------

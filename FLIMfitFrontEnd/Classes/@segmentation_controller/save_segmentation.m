@@ -25,7 +25,21 @@ function save_segmentation(obj,folder)
 
     % Author : Sean Warren
 
+    if nargin < 2
+        try
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+        catch
+            addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
+            default_path = 'C:\';
+        end
 
+         folder = uigetdir(default_path,'Choose the folder to save the segmented images');
+    end
+    
+    if folder == 0
+        return
+    end
+    
     folder = ensure_trailing_slash(folder);
     
     if isempty(obj.mask)
