@@ -361,7 +361,7 @@ classdef front_end_menu_controller < handle
             if ~isempty(obj.omero_logon_manager.session)
                 props = properties(obj);
                 OMERO_props = props( strncmp('menu_OMERO',props,10) );
-                for i=1:length(OMERO_props)
+                for i=1:length(OMERO_props) 
                     set(obj.(OMERO_props{i}),'Enable','on');
                 end
             end
@@ -917,6 +917,11 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_OMERO_export_fit_table_callback(obj)
+            if strcmp(class(obj.data_series_controller.data_series),'flim_data_series')
+                errordlg('Not yet implemented for data not loaded from OMERO!');
+                return;
+            end 
+            
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.csv');
             if filename ~= 0
                 obj.fit_controller.save_param_table([pathname filename]);         
@@ -1335,8 +1340,8 @@ classdef front_end_menu_controller < handle
         
         function menu_OMERO_export_plots_callback(obj, ~, ~)
             
-            if isempty(obj.omero_logon_manager.dataset)
-                h = errordlg('Data must be selected from an OMERO server for this option!');
+            if strcmp(class(obj.data_series_controller.data_series),'flim_data_series')
+                errordlg('Not yet implemented for data not loaded from OMERO!');
                 return;
             end 
             
@@ -1347,10 +1352,8 @@ classdef front_end_menu_controller < handle
             
         end
         
-    
-         
-        
         function menu_file_export_hist_data_callback(obj, ~, ~)
+            
             [filename, pathname] = uiputfile({'*.txt', 'Text File (*.txt)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.hist_controller.export_histogram_data([pathname filename]);
@@ -1358,6 +1361,10 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_OMERO_export_hist_data_callback(obj)
+            if strcmp(class(obj.data_series_controller.data_series),'flim_data_series')
+                errordlg('Not yet implemented for data not loaded from OMERO!');
+                return;
+            end 
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('root filename', '', '.txt');
             if filename ~= 0
                 fname = obj.hist_controller.export_histogram_data([pathname filename]);
