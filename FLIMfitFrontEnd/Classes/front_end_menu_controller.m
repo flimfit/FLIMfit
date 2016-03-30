@@ -1335,6 +1335,11 @@ classdef front_end_menu_controller < handle
         
         function menu_OMERO_export_plots_callback(obj, ~, ~)
             
+            if isempty(obj.omero_logon_manager.dataset)
+                h = errordlg('Data must be selected from an OMERO server for this option!');
+                return;
+            end 
+            
             default_name = [char(obj.omero_logon_manager.dataset.getName().getValue() ) 'fit'];
             [filename, pathname, dataset, before_list] = obj.data_series_controller.data_series.prompt_for_export('root filename', default_name, '.tiff');
             obj.plot_controller.update_plots([pathname filename]);
