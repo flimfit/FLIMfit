@@ -917,10 +917,6 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_OMERO_export_fit_table_callback(obj)
-            if strcmp(class(obj.data_series_controller.data_series),'flim_data_series')
-                errordlg('Not yet implemented for data not loaded from OMERO!');
-                return;
-            end 
             
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.csv');
             if filename ~= 0
@@ -1361,10 +1357,7 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_OMERO_export_hist_data_callback(obj)
-            if strcmp(class(obj.data_series_controller.data_series),'flim_data_series')
-                errordlg('Not yet implemented for data not loaded from OMERO!');
-                return;
-            end 
+            
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('root filename', '', '.txt');
             if filename ~= 0
                 fname = obj.hist_controller.export_histogram_data([pathname filename]);
