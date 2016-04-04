@@ -1,5 +1,5 @@
 
-function[success, target] = load_flim_cube(obj, target, file, read_selected, write_selected, dims, ZCT)
+function[success, target] = load_flim_cube(obj, target, file, read_selected, write_selected, reader_settings, dims, ZCT)
 
     %  Loads FLIM_data from a file or set of files
 
@@ -28,6 +28,10 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
    
+    if nargin < 6
+        reader_settings = obj.reader_settings;
+    end
+
     if nargin < 7        % dims/ZCT have not  been passed so get dimensions from data_series obj
         delays = obj.t;
         sizet = length(delays);
@@ -36,9 +40,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
         total_files = length(obj.names);
-        modulo = obj.modulo;
-       
-        
+        modulo = obj.modulo;      
     else
         delays = dims.delays;
         nfiles = length(read_selected);
@@ -281,9 +283,10 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         case {'.pt3', '.ptu', '.bin', '.bin2', '.ffd'}
             
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',1);
+            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
             
-            if ~polarisation_resolved 
+            if ~polarisation_resolved && length(Carr) > 1 
                 chan = Carr(read_selected); % load channels sequentially
             else
                 chan = Carr;

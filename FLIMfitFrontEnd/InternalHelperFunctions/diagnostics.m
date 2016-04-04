@@ -13,7 +13,8 @@ function diagnostics(event_category, event_label, varargin)
         data = [data '&an=FLIMfit&av=' ver];
 
         for i=1:2:(length(varargin)-1)
-           data = [data '&' varargin{i} '=' urlencode(varargin{i+1})]; 
+           encoded_argument = char(java.net.URLEncoder.encode(varargin{i+1},'UTF-8'));
+           data = [data '&' varargin{i} '=' encoded_argument]; 
         end
         
         webwrite('http://www.google-analytics.com/collect',data);

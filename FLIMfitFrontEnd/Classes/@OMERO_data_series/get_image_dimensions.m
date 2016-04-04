@@ -1,5 +1,5 @@
 
-function[dims,t_int ] = get_image_dimensions(obj, image)
+function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
 
 % Finds the dimensions of an OMERO image or set of images including 
 % the units along the time dimension (delays)
@@ -30,10 +30,14 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
 
     % if image is in fact a filename then call the superclass method
     % instead
+    
+    
     if findstr(class(image),'char')
-        [dims,t_int ] = get_image_dimensions@flim_data_series(obj, image);
+        [dims,t_int,reader_settings] = get_image_dimensions@flim_data_series(obj, image);
         return;
     end
+    
+    reader_settings = struct();
     
     t_int = [];
     dims.delays = [];

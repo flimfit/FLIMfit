@@ -1,5 +1,5 @@
 
-function[dims,t_int ] = get_image_dimensions(obj, file)
+function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
 
 % Finds the dimensions of an image file or set of files including 
 % the units along the time dimension (delays)
@@ -28,6 +28,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+    reader_settings = struct();
     
     t_int = [];
     dims.delays = [];
@@ -222,12 +223,25 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
 
         case {'.pt3','.ptu','.bin','.bin2','.ffd'}
             
+            
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',1);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
+
+            if length(dims.delays) > 1
+                dt = dims.delays(2) - dims.delays(1);
+            else
+                dt = 1;
+            end
+            
+            reader_settings = FLIMreader_options_dialog(length(dims.delays), dt);
+            
+            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            
             dims.sizeZCT = [ 1 n_channels 1 ];
             dims.FLIM_type = 'TCSPC';
+            dims.delays = FLIMreaderMex(r,'GetTimePoints');
             dims.sizeXY = FLIMreaderMex(r,'GetImageSize');
             FLIMreaderMex(r,'Delete');
             
