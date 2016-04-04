@@ -151,7 +151,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                     xml = char(firstIFD.getComment());
                     k = strfind(xml,'AxisName="lifetime"');
                     if ~isempty(k)  
-                        % new-style :aVision ome-tiff so try and handle
+                        % new-style LaVision ome-tiff so try and handle
                         % accordingly
                         xml = xml(k(1):k(1)+100);    % pull out this section of the xml
                         
@@ -184,7 +184,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                     else
                         %possibly old-style LaVision ome-tiff
                     
-                        if  sizeZCT(1) > 1 && sizeZCT(2) == 1 && sizeZCT(3) == 1
+                        if  sizeZCT(1) > 1 && sizeZCT(2) == 1 
                             physZ = omeMeta.getPixelsPhysicalSizeZ(0);
                             if ~isempty(physZ)
                                 physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
