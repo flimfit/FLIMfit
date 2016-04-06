@@ -60,8 +60,7 @@ $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/in
 $OMEuiUtils_url = 'https://bintray.com/artifact/download/joshmoore/maven/ome/OMEuiUtils/0.1.4/OMEuiUtils-0.1.4.jar'
 $boost_url = 'http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
 $cmake_url = 'https://cmake.org/files/v3.4/cmake-3.4.0-win32-x86.zip'
-
-$bf_merge_url = 'https://ci.openmicroscopy.org/job/BIOFORMATS-5.1-merge-build/1128/artifact/artifacts/bioformats_package.jar'
+'
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
 $OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
@@ -80,9 +79,6 @@ Remove-Item "$omero_matlab_libs_dir\slf4j-api.jar"
 Remove-Item "$omero_matlab_libs_dir\log4j.jar"
 
 DownloadZipIntoFolder $bf_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
-
-echo "Downloading beta version of bioformats_package.jar"
-((new-object net.webclient).DownloadFile($bf_merge_url, "$BFMatlab_dir\bioformats_package.jar"))
 
 echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
