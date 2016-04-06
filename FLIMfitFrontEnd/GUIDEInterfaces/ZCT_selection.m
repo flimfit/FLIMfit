@@ -305,7 +305,7 @@ sett = cell2mat(squeeze(data(:,2)));
 if handles.nZ > 1  || handles.nC > 1
     maxT = 1;
 else
-    maxT = handles.maxC;
+    maxT = handles.maxT;
 end
 
 if eventdata.EditData % if the checkbox was set to true
