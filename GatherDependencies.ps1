@@ -60,7 +60,7 @@ $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/in
 $OMEuiUtils_url = 'https://bintray.com/artifact/download/joshmoore/maven/ome/OMEuiUtils/0.1.4/OMEuiUtils-0.1.4.jar'
 $boost_url = 'http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
 $cmake_url = 'https://cmake.org/files/v3.4/cmake-3.4.0-win32-x86.zip'
-'
+
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
 $OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
