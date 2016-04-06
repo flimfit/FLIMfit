@@ -22,7 +22,7 @@ function varargout = ZCT_selection(varargin)
 
 % Edit the above text to modify the response to help ZCT_selection
 
-% Last Modified by GUIDE v2.5 12-Feb-2015 16:18:30
+% Last Modified by GUIDE v2.5 06-Apr-2016 12:28:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -66,6 +66,11 @@ handles.sizeZ = sizeZ;
 handles.sizeC = sizeC;
 handles.sizeT = sizeT;
 
+% No in each dimension currently selected
+handles.nZ = 1;
+handles.nC = 1;
+handles.nT = 1;
+
 ZCTMax = varargin{2};
 maxZ = ZCTMax(1);
 maxC = ZCTMax(2);
@@ -79,6 +84,19 @@ ZCTMin = varargin{3};
 handles.minZ = ZCTMin(1);
 handles.minC = ZCTMin(2);
 handles.minT = ZCTMin(3);
+
+if maxZ > 1
+  set(handles.AllZpushbutton,'Visible','on');
+else
+  set(handles.AllZpushbutton,'Visible','off'); 
+end
+
+if maxT > 1
+  set(handles.AllTpushbutton,'Visible','on');
+else
+  set(handles.AllTpushbutton,'Visible','off'); 
+end
+
 
 pol_resolved = varargin{4};
 handles.pol_resolved = pol_resolved;
@@ -174,8 +192,16 @@ function uitableZ_CellEditCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 data=get(hObject,'Data'); % get the data cell array of the table
 sett = cell2mat(squeeze(data(:,2)));
+
+% only allow multiple Z-planes if a single T and C selected
+if handles.nT > 1  || handles.nC > 1
+    maxZ = 1;
+else
+    maxZ = handles.maxZ;
+end
+
 if eventdata.EditData % if the checkbox was set to true
-    if sum(sett) > handles.maxZ
+    if sum(sett) > maxZ
         sett(eventdata.Indices(1) ) = 0;  %eliminate the box just ticked from enquiries
         first = squeeze(find(sett,1));
         data(first,2) = num2cell(false);  
@@ -191,10 +217,16 @@ else
     end     
 end
 
+sett = cell2mat(squeeze(data(:,2)));
+handles.nZ = sum(sett);
+
+
 
 set(hObject,'Data',data); % now set the table's data to the updated data cell array
 % Update handles structure
 guidata(hObject, handles);
+
+AllpushbuttonCheck(handles);
 
 
 % --- Executes when entered data in editable cell(s) in uitableC.
@@ -207,10 +239,19 @@ function uitableC_CellEditCallback(hObject, eventdata, handles)
 %	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
+
 data=get(hObject,'Data'); % get the data cell array of the table
 sett = cell2mat(squeeze(data(:,2)));
+
+% only allow multiple channels if a single Z and T selected
+if handles.nZ > 1  || handles.nT > 1
+    maxC = 1;
+else
+    maxC = handles.maxC;
+end
+
 if eventdata.EditData % if the checkbox was set to true
-    if sum(sett) > handles.maxC
+    if sum(sett) > maxC
         sett(eventdata.Indices(1) ) = 0;  %eliminate the box just ticked from enquiries
         first = squeeze(find(sett,1));
         data(first,2) = num2cell(false);  
@@ -237,10 +278,14 @@ if eventdata.EditData % if the checkbox was set to true
     end   
 end
 
+sett = cell2mat(squeeze(data(:,2)));
+handles.nC = sum(sett);
 
 set(hObject,'Data',data); % now set the table's data to the updated data cell array
 % Update handles structure
 guidata(hObject, handles);
+
+AllpushbuttonCheck(handles);
 
 
 % --- Executes when entered data in editable cell(s) in uitableT.
@@ -255,8 +300,16 @@ function uitableT_CellEditCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 data=get(hObject,'Data'); % get the data cell array of the table
 sett = cell2mat(squeeze(data(:,2)));
+
+% only allow multiple time-points if a single Z-plane and channel selected
+if handles.nZ > 1  || handles.nC > 1
+    maxT = 1;
+else
+    maxT = handles.maxC;
+end
+
 if eventdata.EditData % if the checkbox was set to true
-    if sum(sett) > handles.maxT
+    if sum(sett) > maxT
         sett(eventdata.Indices(1) ) = 0;  %eliminate the box just ticked from enquiries
         first = squeeze(find(sett,1));
         data(first,2) = num2cell(false);  
@@ -272,11 +325,16 @@ else
     end   
      
 end
+
+sett = cell2mat(squeeze(data(:,2)));
+handles.nT = sum(sett); 
         
 
 set(hObject,'Data',data); % now set the table's data to the updated data cell array
 % Update handles structure
 guidata(hObject, handles);
+
+AllpushbuttonCheck(handles);
 
 % --- Executes when entered data in editable cell(s) in uitablePerp.
 function uitablePerp_CellEditCallback(hObject, eventdata, handles)
@@ -359,17 +417,63 @@ guidata(hObject,handles);
 uiresume(handles.figure1);
 
 
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
+% --- Executes on button press in AllZpushbutton.
+function AllZpushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to AllZpushbutton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 dataZ = get(handles.uitableZ,'Data');
 sizeZ = handles.sizeZ;
 
-dataZ(:,2)= num2cell( true(sizeZ,1));
+% if already all set then clear 
+if handles.nZ == sizeZ
+    dataZ(2:end,2)= num2cell( false(sizeZ - 1,1));
+    handles.nZ = 1;
+else
+    dataZ(:,2)= num2cell( true(sizeZ,1));
+    handles.nZ = sizeZ;
+end
 set(handles.uitableZ,'Data',dataZ);
+guidata(hObject,handles);
+
+
+
+% --- Executes on button press in AllTpushbutton.
+function AllTpushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to AllTpushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+dataT = get(handles.uitableT,'Data');
+sizeT = handles.sizeT;
+
+% if already all set then clear 
+if handles.nT == sizeT
+    dataT(2:end,2)= num2cell( false(sizeT - 1,1));
+    handles.nT = 1;
+else
+    dataT(:,2)= num2cell( true(sizeT,1));
+    handles.nT = sizeT;
+end
+set(handles.uitableT,'Data',dataT);
+guidata(hObject,handles);
+
+% --- Check if "All" buttons should be enabled
+function AllpushbuttonCheck(handles)
+
+if handles.nT == 1 && handles.nC == 1
+    set(handles.AllZpushbutton,'Enable','on');
+else
+    set(handles.AllZpushbutton,'Enable','off');
+end
+
+if handles.nZ == 1 && handles.nC == 1
+    set(handles.AllTpushbutton,'Enable','on');
+else
+    set(handles.AllTpushbutton,'Enable','off');
+end
+
 
 
 
