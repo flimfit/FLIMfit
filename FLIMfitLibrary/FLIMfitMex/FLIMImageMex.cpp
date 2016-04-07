@@ -29,20 +29,16 @@
 
 #pragma warning(disable: 4244 4267)
 
-#include "FitStatus.h"
-#include "InstrumentResponseFunction.h"
-#include "ModelADA.h" 
-#include "FLIMGlobalAnalysis.h"
-#include "FLIMData.h"
+#include "FLIMImage.h"
 #include "tinythread.h"
 #include <assert.h>
 #include <utility>
 
 #include <memory>
+#include <unordered_set>
 #include "MexUtils.h"
-#include "PointerMap.h"
 
-PointerMap<FLIMData> pointer_map;
+std::unordered_set<std::shared_ptr<FLIMImage>> ptr_set;
 
 #ifdef _WINDOWS
 #ifdef _DEBUG
@@ -52,164 +48,50 @@ PointerMap<FLIMData> pointer_map;
 #endif
 #endif
 
-class Container
+std::shared_ptr<AcquisitionParameters> getAcquisitionParameters(const mxArray* acq_params_struct)
 {
-public:
-   AcquisitionParameters acq;
-   InstrumentResponseFunction irf;
-   FLIMImage image;
-};
+   AssertInputCondition(mxIsStruct(acq_params_struct));
 
-void SetAcquisitionParameters(shared_ptr<Container> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 12);
-   AssertInputCondition(mxIsInt32(prhs[11]));
+   int data_type = getValueFromStruct(acq_params_struct, "data_type");
+   double t_rep = getValueFromStruct(acq_params_struct, "t_rep");
+   int polarisation_resolved = getValueFromStruct(acq_params_struct, "polarisation_resolved");
+   int n_chan = getValueFromStruct(acq_params_struct, "n_chan");
+   double counts_per_photon = getValueFromStruct(acq_params_struct, "counts_per_photon");
 
-   int data_type = mxGetScalar(prhs[2]);
-   double t_rep = mxGetScalar(prhs[3]);
-   int polarisation_resolved = mxGetScalar(prhs[4]);
-   int n_chan = mxGetScalar(prhs[5]);
-   double counts_per_photon = mxGetScalar(prhs[6]);
+   int n_x = getValueFromStruct(acq_params_struct, "n_x");
+   int n_y = getValueFromStruct(acq_params_struct, "n_y");
 
-   int n_t_full = mxGetScalar(prhs[7]);
-   int n_t = mxGetScalar(prhs[8]);
-   double* t = mxGetPr(prhs[9]);
-   double* t_int = mxGetPr(prhs[10]);
-   int* t_skip = reinterpret_cast<int*>(mxGetData(prhs[11]));
 
-   auto acq = AcquisitionParameters(data_type, t_rep, polarisation_resolved, n_chan, counts_per_photon);
-   acq.setT(n_t_full, t, t_int);
+   std::vector<double> t = getVectorFromStruct<double>(acq_params_struct, "t");
+   std::vector<double> t_int = getVectorFromStruct<double>(acq_params_struct, "t_int");
 
-   d->acq = acq;
+   auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep, polarisation_resolved, n_chan, counts_per_photon);
+   acq->setT(t);
+   acq->setIntegrationTimes(t_int);
+   acq->setImageSize(n_x, n_y);
+   
+   return acq;
 }
 
-void SetIRF(shared_ptr<Container> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 10);
 
-   int n_irf = mxGetN(prhs[2]);
-   int n_chan = mxGetM(prhs[3]);
-   double* data = mxGetPr(prhs[4]);
-
-   double t0 = mxGetScalar(prhs[5]);
-   double dt = mxGetScalar(prhs[6]);
-
-   int ref_reconvolution = mxGetScalar(prhs[7]);
-   double ref_lifetime_guess = mxGetScalar(prhs[8]);
-
-   InstrumentResponseFunction irf;
-   irf.SetIRF(n_irf, n_chan, t0, dt, data);
-   if (ref_reconvolution)
-      irf.SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
-
-   d->irf = irf;
-}
-
-void SetDataSize(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-
-   int n_im = mxGetScalar(prhs[2]);
-   int n_x = mxGetScalar(prhs[3]);
-   int n_y = mxGetScalar(prhs[4]);
-
-   d->SetImageSize(n_x, n_y);
-   d->SetNumImages(n_im);
-}
-
-void SetMasking(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-   AssertInputCondition(mxGetNumberOfElements(prhs[2]) == d->n_im);
-   AssertInputCondition(mxGetNumberOfElements(prhs[3]) == d->n_im * d->n_x * d->n_y);
-
-   int* use_im = reinterpret_cast<int32_t*>(mxGetData(prhs[2]));
-   uint8_t* mask = reinterpret_cast<uint8_t*>(mxGetData(prhs[3]));
-   int merge_regions = mxGetScalar(prhs[4]);
-
-   d->SetMasking(use_im, mask, merge_regions);
-}
-
-void SetData(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setMask(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsUint8(prhs[2]));
+   AssertInputCondition(mxGetNumberOfElements(prhs[2]) == d->getAcquisitionParameters()->n_px);
+   
+   uint8_t* mask = reinterpret_cast<uint8_t*>(mxGetData(prhs[3]));
 
-   const mxArray* data = prhs[2];
-
-   if (mxIsSingle(data))
-   {
-      float* ptr = reinterpret_cast<float*>(mxGetData(data));
-      d->SetData(ptr);
-   }
-   else if (mxIsUint16(data))
-   {
-      uint16_t* ptr = reinterpret_cast<uint16_t*>(mxGetData(data));
-      d->SetData(ptr);
-   }
-   else
-   {
-      mexErrMsgIdAndTxt("FLIMfitMex:invalidInput", "FLIMData must be single precision floating point or uint16");
-   }
+   d->setSegmentationMask(mask);
 }
 
-void SetDataFromFile(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-   AssertInputCondition(mxIsChar(prhs[2]));
-
-   std::string data_file = GetStringFromMatlab(prhs[2]);
-   int data_class = mxGetScalar(prhs[3]);
-   int data_skip = mxGetScalar(prhs[4]);
-
-   d->SetData(data_file.c_str(), data_class, data_skip);
-}
-
-void SetAcceptor(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setAcceptor(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsSingle(prhs[2]));
 
    float* acceptor = reinterpret_cast<float*>(mxGetData(prhs[2]));
-   d->SetAcceptor(acceptor);
-}
-
-void SetBackgroundImage(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(mxIsSingle(prhs[2]));
-
-   float* data = reinterpret_cast<float*>(mxGetData(prhs[2]));
-   d->SetBackground(data);
-}
-
-void SetBackground(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-
-   float data = mxGetScalar(prhs[2]);
-   d->SetBackground(data);
-}
-
-void SetBackgroundTVImage(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-   AssertInputCondition(mxIsSingle(prhs[2]));
-   AssertInputCondition(mxIsSingle(prhs[3]));
-
-   float* tvb_profile = reinterpret_cast<float*>(mxGetData(prhs[2]));
-   float* tvb_I_map = reinterpret_cast<float*>(mxGetData(prhs[3]));
-   float const_background = mxGetScalar(prhs[4]);
-
-   d->SetTVBackground(tvb_profile, tvb_I_map, const_background);
-}
-
-void SetImageT0Shift(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(mxIsDouble(prhs[3]));
-
-   double* data = mxGetPr(prhs[2]);
-   d->SetImageT0Shift(data);
+   //d->setAcceptor(acceptor); // TODO
 }
 
 
@@ -217,65 +99,80 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    try
    {
-      if (nrhs == 0 && nlhs > 0)
+      if (nlhs > 0 && !mxIsScalar(plhs[0]))
       {
-         AssertInputCondition(nlhs > 0);
-         int idx = pointer_map.CreateObject();
-         plhs[0] = mxCreateDoubleScalar(idx);
+         const mxArray* acq_struct = getNamedArgument(nrhs, prhs, "acquisition_parmeters");
+         auto acq = getAcquisitionParameters(acq_struct);
+
+         std::shared_ptr<FLIMImage> image;
+
+         if (isArgument(nrhs, prhs, "data"))
+         {
+            const mxArray* data = getNamedArgument(nrhs, prhs, "data");
+            
+            FLIMImage::DataClass data_class;
+            if (mxIsUint16(data))
+               data_class = FLIMImage::DataUint16;
+            if (mxIsSingle(data))
+               data_class = FLIMImage::DataFloat;
+            else
+               mexErrMsgIdAndTxt("FLIMfit:invalidDataClass", "data must be single precision floating point or uint16");
+
+            image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, data_class, mxGetData(data));
+         }
+         else if (isArgument(nrhs, prhs, "mapped_file"))
+         {
+            std::string mapped_file = GetStringFromMatlab(getNamedArgument(nrhs, prhs, "mapped_file"));
+            int map_offset = mxGetScalar(getNamedArgument(nrhs, prhs, "data_offset"));
+
+            std::string data_class_str = GetStringFromMatlab(getNamedArgument(nrhs, prhs, "data_class"));
+            FLIMImage::DataClass data_class;
+            if (data_class_str == "uint16")
+               data_class = FLIMImage::DataUint16;
+            else if (data_class_str == "float")
+               data_class = FLIMImage::DataFloat;
+            else
+               mexErrMsgIdAndTxt("FLIMfit:unknownDataClass", "Data class is not recognised; should be uint16 or float");
+
+            
+            image = std::make_shared<FLIMImage>(acq, mapped_file, data_class, map_offset);
+         }
+         else
+         {
+            mexErrMsgIdAndTxt("FLIMfit:dataNotProvided", "Data must be provided using 'data' or 'mapped_file' named arguments");
+         }
+
+         ptr_set.insert(image);
+         plhs[0] = PackageSharedPtrForMatlab(image);
          return;
       }
 
       AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsScalar(prhs[0]));
+      AssertInputCondition(mxIsUint64(prhs[0]));
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      int c_idx = mxGetScalar(prhs[0]);
-
       // Get controller
-      auto d = pointer_map.Get(c_idx);
-      if (d == nullptr)
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerIndex", "Controller index is not valid");
+      auto d = GetSharedPtrFromMatlab<FLIMImage>(prhs[0]);
+
+      if (ptr_set.find(d) == ptr_set.end())
+         mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
 
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
-         pointer_map.Clear(c_idx);
-      else if (command == "SetAcquisitionParameters")
-         SetAcquisitionParameters(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetIRF")
-         SetIRF(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetDataSize")
-         SetDataSize(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetMasking")
-         SetMasking(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetThresholds")
-         SetThresholds(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetGlobalMode")
-         SetGlobalMode(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetData")
-         SetData(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetSmoothing")
-         SetSmoothing(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetDataFromFile")
-         SetDataFromFile(d, nlhs, plhs, nrhs, prhs);
+         ptr_set.erase(d);
+      else if (command == "SetMask")
+         setMask(d, nlhs, plhs, nrhs, prhs);
       else if (command == "SetAcceptor")
-         SetAcceptor(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetBackgroundImage")
-         SetBackgroundImage(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetBackground")
-         SetBackground(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetBackgroundTVImage")
-         SetBackgroundTVImage(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetImageT0Shift")
-         SetImageT0Shift(d, nlhs, plhs, nrhs, prhs);
+         setAcceptor(d, nlhs, plhs, nrhs, prhs);
       else
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");
+         mexErrMsgIdAndTxt("FLIMfitMex:invalidCommand", "Unrecognised command");
 
    }
    catch (std::exception e)
    {
-      mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
+      mexErrMsgIdAndTxt("FLIMfitMex:exceptionOccurred",
          e.what());
    }
 }

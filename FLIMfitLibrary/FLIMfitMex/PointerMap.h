@@ -3,21 +3,22 @@
 #include <memory>
 #include <map>
 
-template<class T>
+template<class T,class ...Args>
 class PointerMap
 {
 public:
 
-   int CreateObject()
+   template<class ...Args>
+   int CreateObject(Args... args)
    {
       int id = next_id;
       next_id++;
 
-      object_map.insert(std::pair<int, std::shared_ptr<T>>(id, std::make_shared<T>()));
+      object_map.insert(std::pair<int, std::shared_ptr<T>>(id, std::make_shared<T>(args...)));
       return id;
    }
 
-   shared_ptr<T> Get(int idx)
+   std::shared_ptr<T> Get(int idx)
    {
       auto iter = object_map.find(idx);
       if (iter == object_map.end() || iter->second == nullptr)

@@ -146,6 +146,107 @@ void CheckSize(const mxArray* array, int needed)
       "Input array is the wrong size");
 }
 
+mxArray* getFieldFromStruct(const mxArray* s, const char *field)
+{
+   int field_number = mxGetFieldNumber(s, field);
+   if (field_number == -1)
+   {
+      std::string err = std::string("Missing field in structure: ").append(field);
+      mexErrMsgIdAndTxt("FLIMfit:missingField", err.c_str());
+   }
+
+   return mxGetFieldByNumber(s, 0, field_number);
+}
+
+double getValueFromStruct(const mxArray* s, const char *field, double default_value)
+{
+   int field_number = mxGetFieldNumber(s, field);
+   if (field_number == -1)
+      return default_value;
+
+   const mxArray* v = mxGetFieldByNumber(s, 0, field_number);
+   
+   if (!mxIsScalar(v))
+   {
+      std::string err = std::string("Expected field to be scalar: ").append(field);
+      mexErrMsgIdAndTxt("FLIMfit:missingField", err.c_str());
+   }
+   
+   return mxGetScalar(s);
+}
+
+double getValueFromStruct(const mxArray* s, const char *field)
+{
+   const mxArray* v = getFieldFromStruct(s, field);
+
+   if (!mxIsScalar(v))
+   {
+      std::string err = std::string("Expected field to be scalar: ").append(field);
+      mexErrMsgIdAndTxt("FLIMfit:missingField", err.c_str());
+   }
+
+   return mxGetScalar(s);
+}
+
+cv::Mat getCvMat(const mxArray* im)
+{
+   int type;
+   if (mxIsDouble(im))
+      type = CV_64F;
+   else if (mxIsSingle(im))
+      type = CV_32F;
+   else if (mxIsInt32(im))
+      type = CV_32S;
+   else if (mxIsInt16(im))
+      type = CV_16S;
+   else if (mxIsInt8(im))
+      type = CV_8S;
+   else if (mxIsUint16(im))
+      type = CV_16U;
+   else if (mxIsUint8(im))
+      type = CV_8U;
+   else
+      mexErrMsgIdAndTxt("FLIMfit:invalidInput",
+         "Image was not of an acceptable type");
+
+   AssertInputCondition(mxIsDouble(im));
+   AssertInputCondition(mxGetNumberOfDimensions(im) == 2);
+   int n = mxGetN(im);
+   int m = mxGetM(im);
+
+   return cv::Mat(n, m, type);
+}
+
+template<typename T>
+std::vector<T> getVectorFromStruct(const mxArray* s, const char *field)
+{
+   mxArray* v = getFieldFromStruct(s, field);
+   return GetVector<T>(v);
+}
+
+bool isArgument(int nrhs, const mxArray *prhs[], const char* arg, int nstart = 0)
+{
+   for (int i = nstart; (i + 1) < nrhs; i++)
+   {
+      if (mxIsChar(prhs[i]) && GetStringFromMatlab(prhs[i]) == arg)
+         return true;
+   }
+   return false;
+}
+
+const mxArray* getNamedArgument(int nrhs, const mxArray *prhs[], const char* arg, int nstart = 0)
+{
+   for (int i = nstart; (i+1) < nrhs; i++)
+   {
+      if (mxIsChar(prhs[i]) && GetStringFromMatlab(prhs[i]) == arg)
+         return prhs[i + 1];
+   }
+
+   std::string err = std::string("Missing argument: ").append(arg);
+   mexErrMsgIdAndTxt("FLIMfit:missingArgument", err.c_str());
+   return static_cast<const mxArray*>(nullptr);
+}
+
 void CheckInput(int nrhs, int needed)
 {
    if (nrhs < needed)
@@ -160,13 +261,35 @@ std::shared_ptr<T> GetSharedPtrFromMatlab(const mxArray* a)
       mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
       "Should be a pointer from Mex file");
 
+   if (mxGetNumberOfElements(a) > 1)
+      mexWarnMsgIdAndTxt("MATLAB:mxmalloc:tooManyPointers",
+         "Only expected one pointer, will return first");
+
    return **reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
 }
 
 template<class T>
-mxArray* PackageSharedPtrForMatlab(shared_ptr<T> ptr)
+std::vector<std::shared_ptr<T>> GetSharedPtrVectorFromMatlab(const mxArray* a)
 {
-   mxArray* a = mxCreateNumericArray(1, 1, mxUINT64_CLASS, mxREAL);
+   if (!mxIsUint64(a))
+      mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
+         "Should be a pointer from Mex file");
+   
+   auto ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
+
+   int n = mxGetNumberOfElements(a);
+   std::vector<std::shared_ptr<T>> v(n);
+   for (int i = 0; i < n; i++)
+      v[n] = *ptrs[i];
+   
+   return v;
+}
+
+
+template<class T>
+mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T> ptr)
+{
+   mxArray* a = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
    uint64_t* ap = reinterpret_cast<uint64_t*>(mxGetData(a));
    *ap = reinterpret_cast<uint64_t>(&ptr);
    return a;

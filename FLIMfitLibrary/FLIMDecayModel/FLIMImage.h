@@ -26,11 +26,35 @@ public:
 
    template<typename T>
    FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_ = nullptr);
-   
+   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_);
+   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, int map_offset);
+
+   // for loading ffdata
    FLIMImage(std::shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode = MappedFile, const std::string& root = "");
+
    ~FLIMImage();
    
    void init();
+
+   void setSegmentationMask(const std::vector<uint8_t>& mask_)
+   {
+      if (mask_.size() != acq->n_px)
+         throw std::runtime_error("Mask is incorrect size");
+
+      std::copy(mask_.begin(), mask_.end(), mask.begin());
+   }
+
+   // Caller must ensure that size of mask_ is greater or equal to n_px
+   void setSegmentationMask(const uint8_t* mask_)
+   {
+      std::copy(mask_, mask_ + acq->n_px, mask.begin());
+   }
+
+
+   void setAcceptor(cv::Mat acceptor)
+   {
+      // TODO
+   }
 
    template<typename T> T* getDataPointerForRead();
    template<typename T> T* getDataPointer();
@@ -62,6 +86,9 @@ public:
    
 protected:
    
+   template<typename T>
+   void setData(T* data);
+
    template<typename T>
    void getDecayImpl(cv::Mat mask, std::vector<std::vector<double>>& decay);
    
@@ -156,18 +183,22 @@ stored_type(typeid(T)),
 data_mode(data_mode)
 {
    init();
-   
-   T* data_ptr = getDataPointer<T>();
-   memcpy(data_ptr, data_, map_length);
-   releaseModifiedPointer<T>();
-   
+
    if (mask_ != nullptr)
    {
       mask.resize(acq->n_px);
       memcpy(mask.data(), mask_, acq->n_px * sizeof(uint8_t));
    }
    
-   compute<T>();
+   setData(data_);
+}
+
+template<typename T>
+void FLIMImage::setData(T* data_)
+{
+   T* data_ptr = getDataPointer<T>();
+   memcpy(data_ptr, data_, map_length);
+   releaseModifiedPointer<T>();
 }
 
 // TODO: need some mutexes here

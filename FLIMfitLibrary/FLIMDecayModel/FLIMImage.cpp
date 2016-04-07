@@ -13,6 +13,33 @@ root(root)
    init();
 }
 
+FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, int map_offset) :
+   acq(acq),
+   map_file_name(map_file_name),
+   data_class(data_class),
+   map_offset(map_offset),
+   stored_type(typeid(void))
+{
+   init();
+}
+
+FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_) : 
+   acq(acq),
+   data_mode(data_mode),
+   data_class(data_class),
+   stored_type(typeid(void))
+{
+   init();
+
+   switch (data_class)
+   {
+   case DataUint16:
+      setData(static_cast<uint16_t*>(data_));
+   case DataFloat:
+      setData(static_cast<float*>(data_));
+   }
+}
+
 FLIMImage::~FLIMImage()
 {
    
@@ -24,7 +51,7 @@ FLIMImage::~FLIMImage()
 
 void FLIMImage::init()
 {
-   if (stored_type == typeid(void)) // Loaded from saved file - we know data_class but not stored type
+   if (stored_type == typeid(void)) // We know data_class but not stored type
    {
       if (data_class == DataFloat)
          stored_type = typeid(float);
@@ -48,7 +75,6 @@ void FLIMImage::init()
       n_bytes = 2;
    
    map_length = acq->n_px * acq->n_meas_full * n_bytes;
-
 }
 
 void FLIMImage::ensureAllocated()

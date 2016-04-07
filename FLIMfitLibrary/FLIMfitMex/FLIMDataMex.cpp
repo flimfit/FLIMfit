@@ -39,10 +39,8 @@
 #include <utility>
 
 #include <memory>
+#include <unordered_set>
 #include "MexUtils.h"
-#include "PointerMap.h"
-
-PointerMap<FLIMData> pointer_map;
 
 #ifdef _WINDOWS
 #ifdef _DEBUG
@@ -52,255 +50,139 @@ PointerMap<FLIMData> pointer_map;
 #endif
 #endif
 
-class Container
+std::unordered_set<std::shared_ptr<FLIMData>> ptr_set;
+
+DataTransformationSettings getDataTransformationSettings(const mxArray* settings_struct)
 {
-public:
-   AcquisitionParameters acq;
-   InstrumentResponseFunction irf;
-};
+   AssertInputCondition(mxIsStruct(settings_struct));
 
-void SetAcquisitionParameters(shared_ptr<Container> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+   DataTransformationSettings settings;
+
+   settings.smoothing_factor = getValueFromStruct(settings_struct, "smoothing_factor");
+   settings.t_start = getValueFromStruct(settings_struct, "t_start");
+   settings.t_stop = getValueFromStruct(settings_struct, "t_stop");
+   settings.threshold = getValueFromStruct(settings_struct, "threshold");
+   settings.limit = getValueFromStruct(settings_struct, "limit");
+
+   return settings;
+}
+
+std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
 {
-   AssertInputCondition(nrhs >= 12);
-   AssertInputCondition(mxIsInt32(prhs[11]));
-
-   int data_type = mxGetScalar(prhs[2]);
-   double t_rep = mxGetScalar(prhs[3]);
-   int polarisation_resolved = mxGetScalar(prhs[4]);
-   int n_chan = mxGetScalar(prhs[5]);
-   double counts_per_photon = mxGetScalar(prhs[6]);
-
-   int n_t_full = mxGetScalar(prhs[7]);
-   int n_t = mxGetScalar(prhs[8]);
-   double* t = mxGetPr(prhs[9]);
-   double* t_int = mxGetPr(prhs[10]);
-   int* t_skip = reinterpret_cast<int*>(mxGetData(prhs[11]));
+   AssertInputCondition(mxIsStruct(irf_struct));
    
-   auto acq = AcquisitionParameters(data_type, t_rep, polarisation_resolved, n_chan, counts_per_photon);
-   acq.setT(n_t_full, t, t_int);
-   
-   d->acq = acq;
-}
+   auto irf = std::make_shared<InstrumentResponseFunction>();
 
-void SetIRF(shared_ptr<Container> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 10);
+   double timebin_t0 = getValueFromStruct(irf_struct, "timebin_t0");
+   double timebin_width = getValueFromStruct(irf_struct, "timebin_width");
 
-   int n_irf = mxGetN(prhs[2]);
-   int n_chan = mxGetM(prhs[3]);
-   double* data = mxGetPr(prhs[4]);
+   const mxArray* irf_ = getFieldFromStruct(irf_struct, "IRF");
+   AssertInputCondition(mxIsDouble(irf_) && mxGetNumberOfDimensions(irf_) == 2);
 
-   double t0 = mxGetScalar(prhs[5]);
-   double dt = mxGetScalar(prhs[6]);
+   int n_t = mxGetN(irf_);
+   int n_chan = mxGetM(irf_);
+   double* irf_data = static_cast<double*>(mxGetData(irf_));
 
-   int ref_reconvolution = mxGetScalar(prhs[7]);
-   double ref_lifetime_guess = mxGetScalar(prhs[8]);
-
-   InstrumentResponseFunction irf;
-   irf.SetIRF(n_irf, n_chan, t0, dt, data);
-   if (ref_reconvolution)
-      irf.SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
-
-   d->irf = irf;
-}
-
-void SetDataSize(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-
-   int n_im = mxGetScalar(prhs[2]);
-   int n_x = mxGetScalar(prhs[3]);
-   int n_y = mxGetScalar(prhs[4]);
-
-   d->SetImageSize(n_x, n_y);
-   d->SetNumImages(n_im);
-}
-
-void SetMasking(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-   AssertInputCondition(mxGetNumberOfElements(prhs[2]) == d->n_im);
-   AssertInputCondition(mxGetNumberOfElements(prhs[3]) == d->n_im * d->n_x * d->n_y);
-
-   int* use_im = reinterpret_cast<int32_t*>(mxGetData(prhs[2]));
-   uint8_t* mask = reinterpret_cast<uint8_t*>(mxGetData(prhs[3]));
-   int merge_regions = mxGetScalar(prhs[4]);
-
-   d->SetMasking(use_im, mask, merge_regions);
-}
-
-void SetThresholds(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 4);
-
-   int threshold = mxGetScalar(prhs[2]);
-   int limit = mxGetScalar(prhs[3]);
-
-   d->SetThresholds(threshold, limit);
-}
-
-void SetGlobalMode(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-
-   int global_mode = mxGetScalar(prhs[2]);
-   d->SetGlobalMode(global_mode);
-}
-
-void SetSmoothing(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-
-  int smoothing = mxGetScalar(prhs[2]);
-  d->SetSmoothing(smoothing);
-}
-
-void SetData(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-
-   const mxArray* data = prhs[2];
-
-   if (mxIsSingle(data))
+   if (mxGetNumberOfDimensions(irf_) > 2)
    {
-      float* ptr = reinterpret_cast<float*>(mxGetData(data));
-      d->SetData(ptr);
-   }
-   else if (mxIsUint16(data))
-   {
-      uint16_t* ptr = reinterpret_cast<uint16_t*>(mxGetData(data));
-      d->SetData(ptr);
+      int n_rep = mxGetNumberOfElements(irf_) / (n_t * n_chan);
+      //irf->SetImageIRF(n_t, n_chan, n_rep, timebin_t0, timebin_width, irf_data); TODO
    }
    else
    {
-      mexErrMsgIdAndTxt("FLIMfitMex:invalidInput", "FLIMData must be single precision floating point or uint16");
+      irf->SetIRF(n_t, n_chan, timebin_t0, timebin_width, irf_data);
    }
+
+   bool ref_reconvolution = getValueFromStruct(irf_struct, "ref_reconvoltion", false);
+   double ref_lifetime_guess = getValueFromStruct(irf_struct, "ref_lifetime_guess", 80.0);
+   
+   irf->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
+
+   // TODO: irf.SetIRFShiftMap()
+
+   return irf;
 }
-
-void SetDataFromFile(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-   AssertInputCondition(mxIsChar(prhs[2]));
-
-   std::string data_file = GetStringFromMatlab(prhs[2]);
-   int data_class = mxGetScalar(prhs[3]);
-   int data_skip = mxGetScalar(prhs[4]);
-
-   d->SetData(data_file.c_str(), data_class, data_skip);
-}
-
-void SetAcceptor(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(mxIsSingle(prhs[2]));
-
-   float* acceptor = reinterpret_cast<float*>(mxGetData(prhs[2]));
-   d->SetAcceptor(acceptor);
-}
-
-void SetBackgroundImage(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(mxIsSingle(prhs[2]));
-
-   float* data = reinterpret_cast<float*>(mxGetData(prhs[2]));
-   d->SetBackground(data);
-}
-
-void SetBackground(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-
-   float data = mxGetScalar(prhs[2]);
-   d->SetBackground(data);
-}
-
-void SetBackgroundTVImage(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 5);
-   AssertInputCondition(mxIsSingle(prhs[2]));
-   AssertInputCondition(mxIsSingle(prhs[3]));
-
-   float* tvb_profile = reinterpret_cast<float*>(mxGetData(prhs[2]));
-   float* tvb_I_map = reinterpret_cast<float*>(mxGetData(prhs[3]));
-   float const_background = mxGetScalar(prhs[4]);
-
-   d->SetTVBackground(tvb_profile, tvb_I_map, const_background);
-}
-
-void SetImageT0Shift(shared_ptr<FLIMData> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(mxIsDouble(prhs[3]));
-
-   double* data = mxGetPr(prhs[2]);
-   d->SetImageT0Shift(data);
-}
-
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    try
    {
-      if (nrhs == 0 && nlhs > 0)
+      if (nlhs > 0 && !mxIsScalar(plhs[0]))
       {
-         AssertInputCondition(nlhs > 0);
-         int idx = pointer_map.CreateObject();
-         plhs[0] = mxCreateDoubleScalar(idx);
+         const mxArray* image_ptrs = getNamedArgument(nrhs, prhs, "images");
+         auto images = GetSharedPtrVectorFromMatlab<FLIMImage>(image_ptrs);
+
+         const mxArray* settings_struct = getNamedArgument(nrhs, prhs, "data_transformation_settings");
+         auto transformation_settings = getDataTransformationSettings(settings_struct);
+
+         if (isArgument(nrhs, prhs, "irf"))
+         {
+            const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "irf");
+            transformation_settings.irf = getIRF(irf_struct);
+         }
+
+         double background_value = 0.0;
+
+         if (isArgument(nrhs, prhs, "background_value"))
+         {
+            const mxArray* background_value_ = getNamedArgument(nrhs, prhs, "background_value");
+            AssertInputCondition(mxIsScalar(background_value_));
+            background_value = mxGetScalar(background_value_);
+         }
+
+         if (isArgument(nrhs, prhs, "background_image"))
+         {
+            const mxArray* background_image_ = getNamedArgument(nrhs, prhs, "background_image");
+            cv::Mat background_image = getCvMat(background_image_);
+            transformation_settings.background = std::make_shared<FLIMBackground>(background_image);
+         }
+
+         if (isArgument(nrhs, prhs, "tvb_profile") && isArgument(nrhs, prhs, "tvb_I_map"))
+         {
+            std::vector<float> tvb_profile = GetVector<float>(getNamedArgument(nrhs, prhs, "tvb_profile"));
+            const mxArray* I_map_ = getNamedArgument(nrhs, prhs, "I_map");
+            cv::Mat I_map = getCvMat(I_map_);
+            FLIMBackground(tvb_profile, I_map, background_value);
+         }
+         else if (background_value != 0.0)
+         {
+            transformation_settings.background = std::make_shared<FLIMBackground>(background_value);
+         }
+
+         auto data = std::make_shared<FLIMData>(images, transformation_settings);
+
+         if (isArgument(nrhs, prhs, "global_mode"))
+         {
+            const mxArray* global_mode_ = getNamedArgument(nrhs, prhs, "global_mode");
+            AssertInputCondition(mxIsScalar(global_mode_));
+            int global_mode = mxGetScalar(global_mode_);
+            data->setGlobalMode(global_mode);
+         }
+
+         ptr_set.insert(data);
+         plhs[0] = PackageSharedPtrForMatlab(data);
          return;
       }
 
+
       AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsScalar(prhs[0]));
+      AssertInputCondition(mxIsUint64(prhs[0]));
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      int c_idx = mxGetScalar(prhs[0]);
+      auto data = GetSharedPtrFromMatlab<FLIMData>(prhs[0]);
 
-      // Get controller
-      auto d = pointer_map.Get(c_idx);
-      if (d == nullptr)
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerIndex", "Controller index is not valid");
+      if (ptr_set.find(data) == ptr_set.end())
+         mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid data pointer");
 
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
-         pointer_map.Clear(c_idx);
-      else if (command == "SetAcquisitionParameters")
-         SetAcquisitionParameters(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetIRF")
-         SetIRF(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetDataSize")
-         SetDataSize(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetMasking")
-         SetMasking(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetThresholds")
-         SetThresholds(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetGlobalMode")
-         SetGlobalMode(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetData")
-         SetData(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetSmoothing")
-         SetSmoothing(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetDataFromFile")
-         SetDataFromFile(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetAcceptor")
-         SetAcceptor(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetBackgroundImage")
-         SetBackgroundImage(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetBackground")
-         SetBackground(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetBackgroundTVImage")
-         SetBackgroundTVImage(d, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetImageT0Shift")
-         SetImageT0Shift(d, nlhs, plhs, nrhs, prhs);
-      else
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");
-
+         ptr_set.erase(data);
    }
    catch (std::exception e)
    {
-      mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
+      mexErrMsgIdAndTxt("FLIMfitMex:exceptionOccurred",
          e.what());
    }
 }
