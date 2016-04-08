@@ -27,16 +27,13 @@ function compile(v)
 
     disp( 'Starting Matlab compilation.' );
 
-    if nargin >= 1
-        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
-        fwrite(fid,v);
-        fclose(fid);
-    else
-        fid = fopen(['GeneratedFiles' filesep 'version.txt'],'r');
-        v = fgetl(fid);
-        fclose(fid);
-    end
-    
+    [~,v] = system('git describe','-echo');
+    v = v(1:end-1);
+
+    fid = fopen(['GeneratedFiles' filesep 'version.txt'],'w');
+    fwrite(fid,v);
+    fclose(fid);
+
     if ~isempty(strfind(computer,'PCWIN'))
         platform = 'WIN';
         lib_ext = '.dll';
@@ -83,6 +80,7 @@ function compile(v)
         switch platform
             case 'WIN'
                 mcc -m FLIMfit.m -v -d DeployFiles ...
+                    -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dll ...
                     -a FLIMGlobalAnalysisProto_PCWIN64.m ...
                     -a FLIMGlobalAnalysis_64_thunk_pcwin64.dll ...
                     -a ../FLIMfitLibrary/Libraries/FLIMreaderMex.mexw64 ...
@@ -90,7 +88,8 @@ function compile(v)
                     -a icons.mat ...
                     -a SegmentationFunctions/*  ...
                     -a SegmentationFunctions/Support/* ...
-                    -a pdftops.exe -a FLIMfit_splash1.tif ...
+                    -a pdftops.exe ...
+                    -a FLIMfit-logo-colour.png ...
                     -a BFMatlab/*.jar ...
                     -a OMEROMatlab/libs/*.jar ...
                     -a OMEuiUtils/*.jar ...
@@ -100,17 +99,30 @@ function compile(v)
                     -a LicenseFiles/*.txt
                 
             case 'MAC'
+                
+                try 
+                    rmdir('DeployLibraries','s');
+                catch
+                end
+                
+                CompileFLIMreaderMex('../FLIMfitLibrary/Libraries/');
+                
+                copyfile('../FLIMfitLibrary/Libraries/*.dylib','DeployLibraries')
+                copyfile('../FLIMfitLibrary/Libraries/*.mexmaci64','DeployLibraries')
+                
+                system('DeployFiles/dylibbundler -x DeployLibraries/FLIMGlobalAnalysis_64.dylib -b  -d DeployLibraries -p @loader_path');
+                system('DeployFiles/dylibbundler -x DeployLibraries/FLIMreaderMex.mexmaci64 -b  -d DeployLibraries -p @loader_path');
+                
                 mcc -m FLIMfit.m -v -d DeployFiles ...
-                    -a ../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib ...
+                    -a DeployLibraries/* ... %../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib ...
                     -a FLIMGlobalAnalysis_64_thunk_maci64.dylib ...
                     -a FLIMGlobalAnalysisProto_MACI64.m  ...
-                    -a ../FLIMfitLibrary/Libraries/FLIMreaderMex.maci64 ...
                     -a segmentation_funcs.mat ...
                     -a icons.mat ...
                     -a SegmentationFunctions/* ...
                     -a SegmentationFunctions/Support/*  ...
                     -a pdftops.bin ...
-                    -a FLIMfit_splash1.tif ...
+                    -a FLIMfit-logo-colour.png ...
                     -a BFMatlab/*.jar ...
                     -a OMEROMatlab/libs/*.jar ...
                     -a OMEuiUtils/*.jar ...
@@ -159,6 +171,16 @@ function compile(v)
             [major, minor] = mcrversion;
             mcr_v = [num2str(major) '.' num2str(minor)];
             
+            % Make a version number that Inno setup likes
+            v_tokens = regexp(v,'(\d+\.\d+\.\d+)(?:-RC){0,1}-(\d+)-([a-z0-9]+)','tokens');
+            if ~isempty(v_tokens)
+                t = v_tokens{1};
+                v_inno = [t{1} '.' t{2}];
+            else
+                v_inno = v;
+            end
+            v_inno = regexprep(v_inno,'([^\d\.]+)','');
+            
             if ~exist('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt', 'file')
                 disp('No VS Redistributable location found. Please run Configure_WIN.bat in repository root');
             end
@@ -168,7 +190,7 @@ function compile(v)
             
             root = [cd '\..'];
             cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMcrVer="' mcr_v '" /dMatlabVer="' matlab_v ...
-                   '" /dMyAppVersion="' v '" /dRepositoryRoot="' root '" /dVSRedist="' redist_file '" "InstallerScript.iss"'];
+                   '" /dAppVersion="' v '" /dInnoAppVersion="' v_inno '" /dRepositoryRoot="' root '" /dVSRedist="' redist_file '" "InstallerScript.iss"'];
             disp(cmd);
             system(cmd);
                                                                                                                                                                                                                          
@@ -176,54 +198,38 @@ function compile(v)
         case 'MAC'
            
             % wait for the build to complete
-            MacOS_folder = [ './' exe filesep 'Contents' filesep 'MacOS']
-            filename = [ MacOS_folder '/FLIMfit']
+            MacOS_folder = [ './' exe filesep 'Contents' filesep 'MacOS'];
+            filename = [ MacOS_folder '/FLIMfit'];
             while ~exist(filename,'file')
                 pause(3);
             end
              
-             
             % change icon by overwriting matlab membrane.icns
-            deployFiles_folder = ['.' filesep 'DeployFiles']
-            resource_folder = [ './' exe filesep 'Contents' filesep 'Resources']
+            deployFiles_folder = ['.' filesep 'DeployFiles'];
+            resource_folder = [ './' exe filesep 'Contents' filesep 'Resources'];
             
-            
- 
-            
-            filename = [resource_folder '/membrane.icns']
             if exist([resource_folder '/membrane.icns'], 'file') == 2
-                    delete([resource_folder '/membrane.icns'])
-                    pause(2);
+                delete([resource_folder '/membrane.icns'])
+                pause(2);
             end
             
-           
             disp( ['copying ' deployFiles_folder '/microscopeGreen.icns' ' to ' resource_folder '/membrane.icns' ] );
-            
             copyfile( [deployFiles_folder '/microscopeGreen.icns'], [resource_folder '/membrane.icns' ],'f');
            
             pause(1);
             
             % Package app with platypus
             package_name = ['FLIMfit ' v];
+                        
+            cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
             
-            % NB The platypus profile file FLIMfit_????.platypus used in the following line will
-            % determine which files are included  in the final .app 
-            % Please use an appropriate configuration for your build
-            % environment 
-            % examples are included for:
-            % Homebrew GCC 4.7 [FLIMfit_GCC47HB.platypus]
-            disp( 'NB Currently uses GCC as configured at University of  Dundee!! ');
-            disp ('If building elewhere use the appropriate .platypus file!');
-            
-            cmd = ['/usr/local/bin/platypus -y -P FLIMfit_GCC49HB.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name]
-            
+            final_folder = ['..' filesep 'FLIMfitStandalone' filesep 'BuiltApps' filesep];
+            mkdir(final_folder);
            
             pause(3)
             system(cmd);
             pause(3)
-            movefile([deploy_folder '/FLIMfit.app'], [deploy_folder '/' package_name '.app']);
-            
-            
+            movefile([deploy_folder '/FLIMfit.app'], [final_folder '/' package_name '.app']);
             
     end
     

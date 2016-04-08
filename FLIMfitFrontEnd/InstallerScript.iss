@@ -21,16 +21,17 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
 
 AppId={{5B6988D3-4B10-4DC8-AE28-E29DF8D99C39}}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
+AppVersion={#AppVersion}
 AppPublisher={#MyAppPublisher}
 UsePreviousAppDir=no
-DefaultDirName={pf}\{#MyAppName}\{#MyAppName} {#MyAppVersion}
+DefaultDirName={pf}\{#MyAppName}\{#MyAppName} {#AppVersion}
 DefaultGroupName={#MyAppName}
 OutputDir={#RepositoryRoot}\FLIMfitStandalone\Installer
-OutputBaseFilename=FLIMFit {#MyAppVersion} Setup x64
+OutputBaseFilename=FLIMfit {#AppVersion} Setup x64
 SetupIconFile={#RepositoryRoot}\FLIMfitFrontEnd\DeployFiles\microscope.ico
 Compression=lzma
 SolidCompression=yes
@@ -40,7 +41,7 @@ ShowLanguageDialog=no
 AppCopyright={#MyAppCopyright}
 LicenseFile={#RepositoryRoot}\FLIMfitFrontEnd\LicenseFiles\GPL Licence.txt
 AllowUNCPath=False
-VersionInfoVersion={#MyAppVersion}
+VersionInfoVersion={#InnoAppVersion}
 MinVersion=0,5.01sp3
 
 [Languages]
@@ -53,16 +54,16 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 [Files]
 Source: "{#RepositoryRoot}\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#VSRedist}"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}\Start_FLIMfit.bat"; DestDir: "{app}"; Flags: ignoreversion 64bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}\FLIMGlobalAnalysis_64.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#MyAppVersion}\FLIMfit.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\Start_FLIMfit.bat"; DestDir: "{app}"; Flags: ignoreversion 64bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMGlobalAnalysis_64.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
+Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMfit.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "C:\Program Files\MATLAB\R{#MatlabVer}\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "{#RepositoryRoot}\InstallerSupport\microscope.ico"; DestDir: "{app}"
 Source: "{#RepositoryRoot}\FLIMfitFrontEnd\java.opts"; DestDir: "{app}";
 [Icons]
-Name: "{group}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; IconFilename: "{app}\microscope.ico"
-Name: "{commondesktop}\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#MyAppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
+Name: "{group}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; IconFilename: "{app}\microscope.ico"
+Name: "{commondesktop}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
 
 ;[Run]
 ;Filename: "{app}\Start_FLIMfit_.bat"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
@@ -90,7 +91,7 @@ begin
   Exec(expandconstant('{tmp}\bin\win64\setup.exe'), '-mode automated', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
   // Install Visual Studio Redist
-  Exec(expandconstant('{tmp}\vcredist_64.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
+  Exec(expandconstant('{tmp}\vcredist_x64.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
   // Install Ghostscript if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\Ghostscript.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)

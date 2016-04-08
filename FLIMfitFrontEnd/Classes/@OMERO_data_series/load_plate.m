@@ -27,7 +27,7 @@ function load_plate(obj,omero_plate)
     
     polarisation_resolved = false;
     
-    session = obj.omero_data_manager.session;
+    session = obj.omero_logon_manager.session;
     
     selected_images = [];
     
@@ -76,7 +76,7 @@ function load_plate(obj,omero_plate)
     end
    
     
-    session = obj.omero_data_manager.session;
+    session = obj.omero_logon_manager.session;
     
     sname = ' ';
     pname = char(omero_plate.getName.getValue());
@@ -87,7 +87,7 @@ function load_plate(obj,omero_plate)
     if (list.size > 0)
         screen = list.get(0).getParent();
         screen = getScreens(session, screen.getId().getValue());
-        obj.omero_data_manager.screen = screen;
+        obj.omero_logon_manager.screen = screen;
         sname = char(screen.getName.getValue() );
     end
     
@@ -95,7 +95,7 @@ function load_plate(obj,omero_plate)
     obj.header_text = [ sname ' ' pname];
     obj.n_datasets = n_datasets;
     obj.plateId = pId;
-    obj.omero_data_manager.setPlate(omero_plate);
+    obj.omero_logon_manager.setPlate(omero_plate);
     obj.polarisation_resolved = polarisation_resolved;
  
     metadata = struct();

@@ -33,13 +33,13 @@
     end
     
     
-    if obj.init  && ~isempty(obj.omero_data_manager.session)
+    if obj.init  && ~isempty(obj.omero_logon_manager.session)
 
         if isempty(parent)    % parent not passed in 
-            if ~isempty(obj.omero_data_manager.dataset)
-                parent = obj.omero_data_manager.dataset; 
-            elseif ~isempty(obj.omero_data_manager.plate)
-                parent = obj.omero_data_manager.plate;   
+            if ~isempty(obj.omero_logon_manager.dataset)
+                parent = obj.omero_logon_manager.dataset; 
+            elseif ~isempty(obj.omero_logon_manager.plate)
+                parent = obj.omero_logon_manager.plate;   
             else
                 return;
             end
@@ -55,7 +55,7 @@
         parentId = java.lang.Long(parent.getId().getValue());
 
        
-        session = obj.omero_data_manager.session;
+        session = obj.omero_logon_manager.session;
 
         annotators = java.util.ArrayList;
         metadataService = session.getMetadataService();
@@ -66,7 +66,7 @@
 
         if isempty(file)
             txt = strsplit(parentType,'.');
-            title = char(strcat({'As an annotation to  '}, txt(end)));
+            title = char(strcat({'As an Attachment to  '}, txt(end)));
             choice = questdlg('Would you like to save the current settings?', title ,'Yes','No','No');
             if strcmp(choice,'Yes')
                     pol_idx = obj.polarisation_resolved + 1;
@@ -104,7 +104,7 @@
                     description = ' ';            
                     file_mime_type = char('application/octet-stream');
 
-                    add_Annotation(session, obj.omero_data_manager.userid, ...
+                    add_Annotation(session, obj.omero_logon_manager.userid, ...
                                 parent, ...
                                 file_mime_type, ...
                                 tmpfile, ...

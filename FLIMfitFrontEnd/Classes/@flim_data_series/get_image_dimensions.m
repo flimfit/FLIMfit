@@ -1,5 +1,5 @@
 
-function[dims,t_int ] = get_image_dimensions(obj, file)
+function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
 
 % Finds the dimensions of an image file or set of files including 
 % the units along the time dimension (delays)
@@ -28,6 +28,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+    reader_settings = struct();
     
     t_int = [];
     dims.delays = [];
@@ -35,90 +36,22 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     dims.FLIM_type = [];
     dims.sizeZCT = [];
     dims.error_message = [];
+ 
   
-
-    [path,name,ext] = fileparts_inc_OME(file);
-
+    [ext,r] = obj.init_bfreader(file);
     
     dims.chan_info = [];
         
     
     switch ext
-
-        % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case '.tif'
-            
-            
-            dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
-            noOfFiles = length(dirStruct);
-            
-            if noOfFiles == 0
-                delays = [];
-                return
-            end
-            
-            first = [path filesep dirStruct(1).name];
-            
-            info = imfinfo(first);
-            
-            for f = 1:noOfFiles
-                filename = [path filesep dirStruct(f).name];
-                [~,name] = fileparts(filename);
-                tokens = regexp(name,'INT\_(\d+)','tokens');
-                if ~isempty(tokens)
-                    t_int(f) = str2double(tokens{1});
-                end
-                
-                tokens = regexp(name,'(?:^|\s)T\_(\d+)','tokens');
-                if ~isempty(tokens)
-                    del = str2double(tokens{1});
-                else
-                    sname = name(end-4:end);      %last 6 chars contains delay
-                    del = str2double(sname);  
-                end
-                if isnan(del)
-                    errordlg(['Unable to parse filename: ' name]);
-                    dims.delays = [];
-                    return;
-                else
-                    delays(f) = del;
-                end
-                
-                [dims.delays, sort_idx] = sort(delays);
-                
-            end
-            
-            if length(delays) < 3
-                dimd.delays = [];
-                errordlg('Too few valid .tif files found!!');
-                return;
-            end
-            
-             %NB dimensions reversed to retain compatibility with earlier
-             %code
-             dims.sizeXY = [  info.Height   info.Width ];
-             %dims.sizeXY = [ info.Width info.Height ];
-             dims.FLIM_type = 'Gated';  
-             dims.sizeZCT = [1 1 1];
-             dims.modulo = []; 
-                
+      
          % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-         case {'.sdt','.msr','.ome', '.ics','.spc'}
+         case '.bio'
              
-             s = [];
-             
-             
-            % Get the channel filler
-            r = loci.formats.ChannelFiller();
-            r = loci.formats.ChannelSeparator(r);
-
-            OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
-            r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
-            r.setId(file);
+            s = [];
             
-             omeMeta = r.getMetadataStore();
+            omeMeta = r.getMetadataStore();
            
-            
             seriesCount = r.getSeriesCount;
             
             if seriesCount > 1
@@ -146,8 +79,6 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             
             r.setSeries(obj.imageSeries(1) - 1);
             
-           
-           
             
             obj.bfOmeMeta = omeMeta;  % set for use in loading data
             obj.bfReader = r;
@@ -213,33 +144,18 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strfind(file,'ome.tif')
-                    if  1 == sizeZCT(2) && 1 == sizeZCT(3) && sizeZCT(1) > 1
+                    if  sizeZCT(1) > 1
                         physZ = omeMeta.getPixelsPhysicalSizeZ(0);
                         if ~isempty(physZ) 
                             physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
                             dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
                             dims.modulo = 'ModuloAlongZ';
                             dims.FLIM_type = 'TCSPC';
-                            sizeZCT(1) = sizeZCT(1)./length(dims.delays); 
                             dims.sizeZCT = sizeZCT;
                         end
                     end
                 end
-                
-                
-                % support for .ics files lacking a Modulo annotation
-                if strfind(file,'.ics')
-                    text = r.getMetadataValue('history extents');
-                    text = strrep(text,'?','');
-                    decay_range  = str2Double(text) * 1e12;  % convert to ps
-                    delays = 0:sizeZCT(2) -1;
-                    step = decay_range/sizeZCT(2);
-                    dims.delays = delays .* step;
-                    dims.modulo = 'ModuloAlongC';
-                    dims.sizeZCT = [ 1 1 1 ];
-                    dims.FLIM_type = 'TCSPC';
-                end
-                
+                       
             end
             
             
@@ -264,20 +180,91 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
            
 
-        case {'.pt3','.ptu','.bin','.bin2'}
+        case {'.pt3','.ptu','.bin','.bin2','.ffd'}
+            
             
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',2);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
+
+            if length(dims.delays) > 1
+                dt = dims.delays(2) - dims.delays(1);
+            else
+                dt = 1;
+            end
+            
+            reader_settings = FLIMreader_options_dialog(length(dims.delays), dt);
+            
+            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            
             dims.sizeZCT = [ 1 n_channels 1 ];
             dims.FLIM_type = 'TCSPC';
+            dims.delays = FLIMreaderMex(r,'GetTimePoints');
             dims.sizeXY = FLIMreaderMex(r,'GetImageSize');
             FLIMreaderMex(r,'Delete');
             
             for i=1:n_channels
                 dims.chan_info{i} = ['Channel:' num2str(i-1)];
             end
+    
+        % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        case '.tif'
+            
+            
+            dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
+            noOfFiles = length(dirStruct);
+            
+            if noOfFiles == 0
+                delays = [];
+                return
+            end
+            
+            first = [path filesep dirStruct(1).name];
+            
+            info = imfinfo(first);
+            
+            for f = 1:noOfFiles
+                filename = [path filesep dirStruct(f).name];
+                [~,name] = fileparts(filename);
+                tokens = regexp(name,'INT\_(\d+)','tokens');
+                if ~isempty(tokens)
+                    t_int(f) = str2double(tokens{1});
+                end
+                
+                tokens = regexp(name,'(?:^|\s)T\_(\d+)','tokens');
+                if ~isempty(tokens)
+                    del = str2double(tokens{1});
+                else
+                    sname = name(end-4:end);      %last 6 chars contains delay
+                    del = str2double(sname);  
+                end
+                if isnan(del)
+                    errordlg(['Unable to parse filename: ' name]);
+                    dims.delays = [];
+                    return;
+                else
+                    delays(f) = del;
+                end
+                
+                [dims.delays, sort_idx] = sort(delays);
+                
+            end
+            
+            if length(delays) < 3
+                dimd.delays = [];
+                errordlg('Too few valid .tif files found!!');
+                return;
+            end
+            
+             %NB dimensions reversed to retain compatibility with earlier
+             %code
+             dims.sizeXY = [  info.Height   info.Width ];
+             %dims.sizeXY = [ info.Width info.Height ];
+             dims.FLIM_type = 'Gated';  
+             dims.sizeZCT = [1 1 1];
+             dims.modulo = []; 
+            
             
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
         case {'.csv','.txt'} 

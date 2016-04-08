@@ -1,3 +1,4 @@
-[submodule "FLIMfitLibrary/FLIMreader"]
-	path = FLIMfitLibrary/FLIMreader
-	url = https://github.com/seanwarren/FLIMreader.git
+[submodule "FLIMreader"]
+	path = FLIMreader
+   url=https://github.com/seanwarren/FLIMreader.git
+   branch=ffd-support

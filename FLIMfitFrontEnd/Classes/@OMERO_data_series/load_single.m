@@ -42,7 +42,7 @@ function load_single(obj,images,polarisation_resolved)
     image = images(1);
     imageID = image.getId.getValue;
     
-    session = obj.omero_data_manager.session;
+    session = obj.omero_logon_manager.session;
     
     pname = ' ';
     dname = ' ';
@@ -52,14 +52,14 @@ function load_single(obj,images,polarisation_resolved)
     if (list.size > 0)
         dataset = list.get(0).getParent();
         dataset = getDatasets(session, dataset.getId().getValue());
-        obj.omero_data_manager.setDataset(dataset);
+        obj.omero_logon_manager.setDataset(dataset);
         dname = char(dataset.getName.getValue());
         obj.datasetId = dataset.getId().getValue();
         list = service.findAllByQuery(['select l from ProjectDatasetLink as l where l.child.id = ', num2str(dataset.getId.getValue())], []);
         if (list.size > 0)
             project = list.get(0).getParent();
             project = getProjects(session, project.getId().getValue());
-            obj.omero_data_manager.project = project;
+            obj.omero_logon_manager.project = project;
             pname = char(project.getName.getValue() );
         end
     end

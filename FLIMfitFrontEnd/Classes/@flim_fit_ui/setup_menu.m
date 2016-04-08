@@ -35,7 +35,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load FLIM Dataset...','Accelerator','T');
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load .tif stack Dataset...','Accelerator','Y');
     
-    handles.menu_file_load_plate = uimenu(menu_file,'Label','Load Plate data...','Accelerator','W');
+    %handles.menu_file_load_plate = uimenu(menu_file,'Label','Load Plate data...','Accelerator','W');
     
     menu_file_load_pol = uimenu(menu_file,'Label','Load Polarisation Resolved Data');
     handles.menu_file_load_single_pol = uimenu(menu_file_load_pol,'Label','Load Single Image...','Accelerator','P');
@@ -75,6 +75,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_export_fit_table = uimenu(menu_file,'Label','Export Fit Results Table...');
     handles.menu_file_export_plots = uimenu(menu_file,'Label','Export Images...');
     handles.menu_file_export_hist_data = uimenu(menu_file,'Label','Export Histograms...');
+    
+    handles.menu_file_exit = uimenu(menu_file,'Label','Quit','Separator','on');
       
     % OMERO MEGA MENU    
     %=================================
@@ -98,19 +100,17 @@ function handles = setup_menu(obj,handles)
     handles.menu_OMERO_Load_FLIM_Data = uimenu(menu_OMERO,'Label','Load FLIM Data...','Separator','on','Enable','off');
     handles.menu_OMERO_Load_FLIM_Dataset = uimenu(menu_OMERO,'Label','Load FLIM Data from a Dataset...','Enable','off');
     
-    handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
+    %handles.menu_OMERO_Load_plate = uimenu(menu_OMERO,'Label','Load Plate data...','Enable','off');
 
     handles.menu_OMERO_Load_FLIM_Dataset_Polarization = uimenu(menu_OMERO,'Label','Load Polarization Resolved Data','Enable','off');        
     %
-    handles.menu_OMERO_Load_IRF_FOV = uimenu(menu_OMERO,'Label','Load IRF (Single FOV)...','Separator','on','Enable','off');    
-    handles.menu_OMERO_Load_IRF_annot = uimenu(menu_OMERO,'Label','Load IRF (Annotation)...','Enable','off');                    
-    %handles.menu_OMERO_Export_IRF_annot = uimenu(menu_OMERO,'Label','Export IRF (Annotation)','Enable','off');                            
+    handles.menu_OMERO_Load_irf = uimenu(menu_OMERO,'Label','Load IRF...','Separator','on','Enable','off'); 
+    handles.menu_OMERO_Load_sv_irf = uimenu(menu_OMERO,'Label','Load Spatially Varying IRF...','Enable','off');
     handles.menu_OMERO_Load_Background = uimenu(menu_OMERO,'Label','Load Background...','Separator','on','Enable','off');    
     handles.menu_OMERO_Load_Background_average = uimenu(menu_OMERO,'Label','Load time-averaged background...','Separator','off','Enable','off');    
     
     
-    handles.menu_OMERO_Load_tvb_from_Image = uimenu(menu_OMERO,'Label','Load Time Varying Background (Image)...','Enable','off');                      
-    handles.menu_OMERO_Load_tvb_Annotation = uimenu(menu_OMERO,'Label','Load Time Varying Background (Annotation)...','Enable','off');                            
+    handles.menu_OMERO_Load_tvb = uimenu(menu_OMERO,'Label','Load Time Varying Background...','Enable','off');                                    
     %handles.menu_OMERO_Export_tvb_Annotation = uimenu(menu_OMERO,'Label','Export Time Varying Background (Annotation)','Enable','off');  
     %
     %handles.menu_OMERO_load_acceptor = uimenu(menu_OMERO,'Label','Load Accceptor Images...','Separator','on','Enable','off');
@@ -136,7 +136,6 @@ function handles = setup_menu(obj,handles)
        
     menu_irf       = uimenu(obj.window,'Label','IRF');
     handles.menu_irf_load = uimenu(menu_irf,'Label','Load IRF...');
-   
     handles.menu_irf_image_load = uimenu(menu_irf,'Label','Load Spatially Varying IRF...');
   
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');
@@ -195,6 +194,6 @@ function handles = setup_menu(obj,handles)
     handles.menu_help_about = uimenu(menu_help,'Label','About...');
     handles.menu_help_tracker = uimenu(menu_help,'Label','Open Issue Tracker...');
     handles.menu_help_bugs = uimenu(menu_help,'Label','File Bug Report...');
-    
+    handles.menu_help_check_version = uimenu(menu_help,'Label','Check for new version...');
 end
 

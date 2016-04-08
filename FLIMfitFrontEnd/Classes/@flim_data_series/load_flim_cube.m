@@ -1,6 +1,5 @@
 
-function[success, target] = load_flim_cube(obj, target, file, read_selected, write_selected, dims, ZCT)
-
+function[success, target] = load_flim_cube(obj, target, file, read_selected, write_selected, reader_settings, dims, ZCT)
 
     %  Loads FLIM_data from a file or set of files
 
@@ -29,6 +28,10 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
    
+    if nargin < 6
+        reader_settings = obj.reader_settings;
+    end
+
     if nargin < 7        % dims/ZCT have not  been passed so get dimensions from data_series obj
         delays = obj.t;
         sizet = length(delays);
@@ -37,9 +40,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
         total_files = length(obj.names);
-        modulo = obj.modulo;
-       
-        
+        modulo = obj.modulo;      
     else
         delays = dims.delays;
         nfiles = length(read_selected);
@@ -52,9 +53,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     
     success = true; 
     
-   
- 
-    
+
     % convert to java/c++ numbering from 0
     Zarr  = ZCT{1}-1;
     Carr = ZCT{2}-1;
@@ -73,9 +72,19 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     pctr = 1;       % polarised counter (should only go up to 2)
     
     
-    [path,fname,ext] = fileparts_inc_OME(file);
+    % bio-Formats should already be loaded by
+    % get_image_dimensions
+    % if this is the same file from which we got the image
+    % dimensions
+    if strcmp(file,obj.file_names(1) )  && ~isempty(obj.bfReader)
+        r = obj.bfReader;
+        omeMeta = obj.bfOmeMeta;
+        ext = '.bio';
+    else
+        [ext,r] = obj.init_bfreader(file);
+    end
     
-    
+     
     % default do not display a waitbar
     nblocks = 1;
     nplanesInBlock = sizet;
@@ -118,107 +127,16 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     
    
     
-    
-    
-    
     switch ext
         
-        % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % No need to allow for multiple Z,C or T as this format can't store them
-        case '.tif'
-            
-            if verbose
-                w = waitbar(0, 'Loading FLIMage....');
-                drawnow;
-            end
-            
-            dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
-            
-            if length(dirStruct) ~= sizet
-                success = false
-                return;
-            end
-            
-            t = 1;
-            for block = 0:nblocks - 1
-                
-                nplanes = nplanesInBlock(block + 1);
-                
-                for p = 1:nplanes
-                    
-                    % find the filename which matches the first delay
-                    str = num2str(delays(t));
-                    ff = 1;
-                    while isempty(strfind(dirStruct(ff).name, str))
-                        ff = ff + 1;
-                        if ff > sizet
-                            success = false;
-                            return;
-                        end
-                    end
-                    
-                    filename = [path filesep dirStruct(ff).name];
-                    
-                    try
-                        plane = imread(filename,'tif');
-                        target(t,1,:,:,write_selected) = plane;
-                    catch error
-                        throw(error);
-                    end
-                    
-                    t = t +1;
-                    
-                end
-                
-                if verbose
-                    totalPlane = totalPlane + nplanes;
-                    waitbar(totalPlane /totalPlanes,w);
-                    drawnow;
-                end
-                
-            end
-            
-            if min(target(:,1,:,:,write_selected)) > 32500
-                target(:,1,:,:,write_selected) = target(:,1,:,:,write_selected) - 32768;    % clear the sign bit which is set by labview
-            end
-            
-            if verbose
-                delete(w);
-                drawnow;
-            end
-            
-            
-            % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.sdt','.msr','.ome', '.ics','.spc'}
+         % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        case '.bio'
            
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
             end
             
-            % bio-Formats should already be loaded by
-            % get_image_dimensions
-            
-            % if this is the same file from which we got the image
-            % dimensions
-            if strcmp(file,obj.file_names(1) )  && ~isempty(obj.bfReader)
-                r = obj.bfReader;
-                omeMeta = obj.bfOmeMeta;
-            else
-              
-                % Get the channel filler
-                r = loci.formats.ChannelFiller();
-                r = loci.formats.ChannelSeparator(r);
-
-                OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
-                r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
-                r.setId(file);
-           
-                omeMeta = r.getMetadataStore();
-              
-            end
-            
-          
             if length(obj.imageSeries) >1
                 r.setSeries(obj.imageSeries(read_selected) - 1);
                 read_selected= 1;
@@ -226,18 +144,13 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 r.setSeries(obj.imageSeries -1);
             end
                
-              
-          
             %check that image dimensions match those read from first
             %file
-            
-            
             % note the dimension inversion here
             if sizeX ~= r.getSizeY ||sizeY ~= r.getSizeX
                 success = false;
                 return;
             end
-         
             
             % timing debug
             %tstart = tic;
@@ -249,9 +162,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             sgn = loci.formats.FormatTools.isSigned(pixelType);
             % asume for now all our data is unsigned (see bfgetPlane for examples of signed)
             little = r.isLittleEndian();
-            
-           
-            
+                
             switch bpp
                 case 1
                     type = 'uint8';
@@ -356,7 +267,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             if strcmp('TCSPC',obj.mode)
                 
                 %Kludge to suppress bright line artefact on RHS in BH .sdt files
-                if strcmp(ext,'.sdt')  && sizeX > 1 && sizeY > 1
+                
+                if strcmp(file(end-3:end),'.sdt')  && sizeX > 1 && sizeY > 1
                     target(:,:,:,end,:) = 0;
                 end
                 
@@ -365,16 +277,101 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                     target = target - 32768;    % clear the sign bit which is set by labview
                 end
             end
+            
+           
 
-        % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case {'.pt3', '.ptu', '.bin', '.bin2'}
+        case {'.pt3', '.ptu', '.bin', '.bin2', '.ffd'}
             
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',2);
-            data = FLIMreaderMex(r, 'GetData', Carr);
-            target(:,:,:,:,write_selected) = data;
-            FLIMreaderMex(r,'Delete');
+            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
             
+            if ~polarisation_resolved && length(Carr) > 1 
+                chan = Carr(read_selected); % load channels sequentially
+            else
+                chan = Carr;
+            end
+            
+            data = FLIMreaderMex(r, 'GetData', chan);
+            
+            expected_size = size(target);
+            expected_size((length(expected_size)+1):4) = 1;
+            actual_size = size(data);
+            actual_size((length(actual_size)+1):4) = 1;
+            if all(actual_size==expected_size(1:4))        
+                target(:,:,:,:,write_selected) = data;
+            else
+                disp(['File "' file '" was unexpected size']);
+            end
+            FLIMreaderMex(r,'Delete');
+        
+        % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % No need to allow for multiple Z,C or T as this format can't store them
+        case '.tif'
+            
+            if verbose
+                w = waitbar(0, 'Loading FLIMage....');
+                drawnow;
+            end
+            
+            dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
+            
+            if length(dirStruct) ~= sizet
+                success = false
+                return;
+            end
+            
+            t = 1;
+            for block = 0:nblocks - 1
+                
+                nplanes = nplanesInBlock(block + 1);
+                
+                for p = 1:nplanes
+                    
+                    % find the filename which matches the first delay
+                    str = num2str(delays(t));
+                    ff = 1;
+                    while isempty(strfind(dirStruct(ff).name, str))
+                        ff = ff + 1;
+                        if ff > sizet
+                            success = false;
+                            return;
+                        end
+                    end
+                    
+                    filename = [path filesep dirStruct(ff).name];
+                    
+                    try
+                        plane = imread(filename,'tif');
+                        target(t,1,:,:,write_selected) = plane;
+                    catch error
+                        throw(error);
+                    end
+                    
+                    t = t +1;
+                    
+                end
+                
+                if verbose
+                    totalPlane = totalPlane + nplanes;
+                    waitbar(totalPlane /totalPlanes,w);
+                    drawnow;
+                end
+                
+            end
+            
+            if min(target(:,1,:,:,write_selected)) > 32500
+                target(:,1,:,:,write_selected) = target(:,1,:,:,write_selected) - 32768;    % clear the sign bit which is set by labview
+            end
+            
+            if verbose
+                delete(w);
+                drawnow;
+            end
+            
+    
+            
+        % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.csv','.txt'}
             
             if strcmp(ext,'.txt')

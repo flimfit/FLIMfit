@@ -1,10 +1,12 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then export OME=5.1; echo "Setting OME=5.1"; fi
+if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.1"; fi
+if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
+
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
 
-export CC=/usr/local/bin/gcc-4.9
-export CXX=/usr/local/bin/g++-4.9
+export CC=/usr/local/bin/gcc-5
+export CXX=/usr/local/bin/g++-5
 
 echo "Cleaning CMake Project..."
 cd GeneratedProjects
@@ -26,17 +28,16 @@ export PATH=/Applications/MATLAB_${MATLAB_VER}.app/bin:$PATH
 # compile the Matlab code to generate the FLIMfit_MACI64.app
 cd FLIMfitFrontEnd
 
-OLDVER="$(cat GeneratedFiles/version.txt)"
-VERSION=$(git describe)
+if [ -z ${VERSION+x} ]; then export VERSION=$(git describe); fi
 echo "VERSION = $VERSION"
 
 build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
 matlab -nodisplay -nosplash -r "compile $VERSION; exit"
 
-cd $WORKSPACE/FLIMfitStandalone/FLIMfit_${VERSION}
+cd ../FLIMfitStandalone/BuiltApps
+zip -r FLIMfit_${VERSION}_MACI64.zip *.app/
+cd ../..
 
-zip -r FLIMfit_${build_name}.zip *.app/
-
-zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
+#zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
 

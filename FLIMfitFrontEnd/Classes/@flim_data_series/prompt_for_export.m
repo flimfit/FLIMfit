@@ -1,7 +1,8 @@
-function export_new_images(obj,pathname,filename,before_list, dataset)
-    %> exports all images that are not in before_list to an OMERO Dataset
+function [filename, pathname, selected, before_list] = prompt_for_export(obj,prompt,default_name, extString)
+    %> Matches function in OMERO_data_series. If OMERO export menu items are
+    % selected and data_series isn't set up for OMERO.
     
-    % Copyright (C) 2015 Imperial College London.
+    % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -23,19 +24,11 @@ function export_new_images(obj,pathname,filename,before_list, dataset)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-    c = strsplit(filename,'.');
-    search_string = [pathname c{1} '*.*'];
-    after_list = dir(search_string);
-    if ~isempty(before_list)
-        s = [after_list(:).datenum];
-        [s,s] = sort(s);
-        after_list = {after_list(s).name}; % Cell array of names in order by datenum.
-        after_list = after_list(length(before_list)+1:end); %keep only the new ones
-    else
-        after_list = {after_list(:).name};
-    end
-    add_Images(obj.omero_logon_manager,pathname,after_list, dataset);
-                
    
+    errordlg('Not yet implemented for data not loaded from OMERO!');
+    filename = 0;
+    pathname = 0;
+    selected = [];
+    before_list = [];
+    
 end

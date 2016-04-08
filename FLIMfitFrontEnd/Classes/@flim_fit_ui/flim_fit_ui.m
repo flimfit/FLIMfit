@@ -34,7 +34,7 @@ classdef flim_fit_ui
       
         function obj = flim_fit_ui(wait,require_auth)
             
-            set_splash('FLIMfit_splash1.tif');
+            set_splash('FLIMfit-logo-colour.png');
             
             % pause to allow splash screen to display
             pause(0.1);
@@ -94,39 +94,7 @@ classdef flim_fit_ui
             catch
                 v = '[unknown version]';
             end
-            
-            %{
-            cur_ver = urlread('https://raw.github.com/openmicroscopy/Imperial-FLIMfit/master/GlobalProcessingFrontEnd/GeneratedFiles/version.txt');
-            if obj.split_ver(cur_ver) > obj.split_ver(v)
-                msgbox(['A new version of FLIMfit, v' cur_ver ' is now available. ']);
-            end
-              %}  
-            % Get authentication if needed
-            %{
-            if require_auth
-                auth_text = urlread('https://global-analysis.googlecode.com/hg/GlobalAnalysisAuth.txt');
-                auth_success = false;
-                
-                if strfind(auth_text,'external_auth=false')
-                    auth_success = true;
-                end
-                
-                min_ver = regexp(auth_text,'min_version=([[0-9]\.]+)','tokens');
-                if ~isempty(min_ver)
-                    min_ver = obj.split_ver(min_ver{1}{1});
-                else
-                    min_ver = 0;
-                end
-                if min_ver == 0 || obj.split_ver(v{1}) < min_ver
-                    auth_success = false;
-                end
-                if ~auth_success 
-                    disp('Sorry, error occured while authenticating.');
-                    return
-                end
-            end
-            %}
-            
+                        
             % Open a window and add some menus
             obj.window = figure( ...
                 'Name', ['FLIMfit ' v], ...
@@ -169,7 +137,7 @@ classdef flim_fit_ui
             handles = obj.setup_toolbar(handles);
 
             handles.data_series_controller = flim_data_series_controller(handles);                                    
-            handles.omero_data_manager = flim_omero_data_manager(handles);
+            handles.omero_logon_manager = flim_omero_logon_manager(handles);
             
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);
@@ -188,7 +156,7 @@ classdef flim_fit_ui
             
             % unless preferences specifically say not, then show OMERO logon
             %if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
-            %   handles.omero_data_manager.Omero_logon();
+            %   handles.omero_logon_manager.Omero_logon();
             %end
             
             handles = obj.setup_menu(handles);            
@@ -290,25 +258,17 @@ classdef flim_fit_ui
         function close_request_fcn(obj,~,~)
             
             handles = guidata(obj.window);
-            client = handles.omero_data_manager.client;
+            client = handles.omero_logon_manager.client;
             
             delete(handles.data_series_controller.data_series)
             
             if ~isempty(client)                
-                % save logon anyway                
-                %logon = handles.omero_data_manager.logon;
-                %logon_filename = handles.omero_data_manager.omero_logon_filename;                
-                %omero_logon = [];
-                %omero_logon.logon = logon;
                 
-                %    xml_write(logon_filename,omero_logon);                                
-               
-                %
                 disp('Closing OMERO session');
                 client.closeSession();
                 %
-                handles.omero_data_manager.session = [];
-                handles.omero_data_manager.client = [];
+                handles.omero_logon_manager.session = [];
+                handles.omero_logon_manager.client = [];
                 
             end
             

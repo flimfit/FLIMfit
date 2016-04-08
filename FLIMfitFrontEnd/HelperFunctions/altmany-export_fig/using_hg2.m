@@ -10,9 +10,7 @@
 %        (true) or not (false).
 
 function tf = using_hg2(fig)
-try
-    tf = ~graphicsversion(fig, 'handlegraphics');
-catch
-    tf = false;
-end
+
+tf = ~verLessThan('matlab','8.4.0');
+
 end

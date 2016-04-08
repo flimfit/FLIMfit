@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then export OME=5.1; echo "Setting OME=5.1"; fi
+if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
+if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
+
 
 export CC=/usr/local/bin/gcc-4.9
 export CXX=/usr/local/bin/g++-4.9
@@ -35,9 +37,8 @@ rm FLIMfitFrontEnd/OMEROMatlab/libs/slf4j-log4j12.jar
 rm FLIMfitFrontEnd/OMEROMatlab/libs/slf4j-api.jar
 rm FLIMfitFrontEnd/OMEROMatlab/libs/log4j.jar
 
-
 # Download bio-formats Matlab toolbox
-curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$OME/artifacts/bfmatlab.zip
+curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$BIO/artifacts/bfmatlab.zip
 
 unzip -o bfmatlab.zip
 rm bfmatlab.zip
@@ -47,3 +48,7 @@ rm -rf bfmatlab
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar
 mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar
+
+# Download omeUiUtils
+curl -OL https://bintray.com/artifact/download/joshmoore/maven/ome/OMEuiUtils/0.1.4/OMEuiUtils-0.1.4.jar
+mv OMEuiUtils-0.1.4.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar

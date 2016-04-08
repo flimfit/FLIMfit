@@ -25,8 +25,8 @@ function infostring = load_fitted_data(obj,f,~) %f : flim_fit_controller
             %
             infostring = [];
             %
-            session = obj.omero_data_manager.session;
-            userid = obj.omero_data_manager.userid;
+            session = obj.omero_logon_manager.session;
+            userid = obj.omero_logon_manager.userid;
             %
             selected = obj.select_for_annotation();
             
