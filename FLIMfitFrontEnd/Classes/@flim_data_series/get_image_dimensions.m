@@ -143,62 +143,67 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
        
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
-                if strcmp(char(r.getFormat()), 'OME-TIFF')
-                    choice  = questdlg({'This File most resembles an Abberior Imspector FLIM OME-TIFF.'; 'Can you please confirm this?'},'Ambiguous File Format!','Yes');
-                    if strcmp(choice,'Yes') 
-               
-                        % attempt to extract metadata
-                        ras = loci.common.RandomAccessInputStream(file,16);
-                        tp = loci.formats.tiff.TiffParser(ras);
-                        firstIFD = tp.getFirstIFD();
-                        xml = char(firstIFD.getComment());
-                        k = strfind(xml,'AxisName="lifetime"');
-                        if ~isempty(k)
-                            % new-style LaVision ome-tiff so try and handle
-                            % accordingly
-                            xml = xml(k(1):k(1)+100);    % pull out this section of the xml
+                if strcmp(char(r.getFormat()), 'OME-TIFF');
+                    parser = loci.formats.tiff.TiffParser(file);
+                    service = loci.formats.services.OMEXMLServiceImpl();
+                    version = char(service.getOMEXMLVersion(parser.getComment()));
+                    if strcmp(version,'2008-02')
+                        choice  = questdlg({'This File most resembles an Abberior Imspector FLIM OME-TIFF.'; 'Can you please confirm this?'},'Non-standard OME-TIFF!','Yes');
+                        if strcmp(choice,'Yes')
                             
-                            k = strfind(xml,'PhysicalUnit="');
-                            uns = xml(k(1)+14:end);
-                            e = strfind(uns,'"') -1;
-                            uns = uns(1:e(1));
-                            physicalUnit = str2double(uns) * 1000;
-                            
-                            k = strfind(xml,'Steps="');
-                            sts = xml(k(1)+7:end);
-                            e = strfind(sts,'"') -1;
-                            sts = sts(1:e(1));
-                            lifetimeSteps = str2double(sts);
-                            
-                            if lifetimeSteps == sizeZCT(1)
-                                dims.delays = (0:sizeZCT(1)-1).* physicalUnit;
-                                dims.modulo = 'ModuloAlongZ';
-                                dims.FLIM_type = 'TCSPC';
-                                dims.sizeZCT = sizeZCT;
-                            end
-                            if lifetimeSteps == sizeZCT(3)
-                                dims.delays = (0:sizeZCT(3)-1).*physicalUnit;
-                                dims.modulo = 'ModuloAlongT';
-                                dims.FLIM_type = 'TCSPC';
-                                dims.sizeZCT = sizeZCT;
-                            end
-                            
-                        else
-                            %possibly old-style LaVision ome-tiff
-                            if  sizeZCT(1) > 1 
-                                physZ = omeMeta.getPixelsPhysicalSizeZ(0);
-                                if ~isempty(physZ)
-                                    physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
-                                    dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                            % attempt to extract metadata
+                            ras = loci.common.RandomAccessInputStream(file,16);
+                            tp = loci.formats.tiff.TiffParser(ras);
+                            firstIFD = tp.getFirstIFD();
+                            xml = char(firstIFD.getComment());
+                            k = strfind(xml,'AxisName="lifetime"');
+                            if ~isempty(k)
+                                % "autosave" style LaVision ome-tiff so try and handle
+                                % accordingly
+                                xml = xml(k(1):k(1)+100);    % pull out this section of the xml
+                                
+                                k = strfind(xml,'PhysicalUnit="');
+                                uns = xml(k(1)+14:end);
+                                e = strfind(uns,'"') -1;
+                                uns = uns(1:e(1));
+                                physicalUnit = str2double(uns) * 1000;
+                                
+                                k = strfind(xml,'Steps="');
+                                sts = xml(k(1)+7:end);
+                                e = strfind(sts,'"') -1;
+                                sts = sts(1:e(1));
+                                lifetimeSteps = str2double(sts);
+                                
+                                if lifetimeSteps == sizeZCT(1)
+                                    dims.delays = (0:sizeZCT(1)-1).* physicalUnit;
                                     dims.modulo = 'ModuloAlongZ';
                                     dims.FLIM_type = 'TCSPC';
                                     dims.sizeZCT = sizeZCT;
+                                end
+                                if lifetimeSteps == sizeZCT(3)
+                                    dims.delays = (0:sizeZCT(3)-1).*physicalUnit;
+                                    dims.modulo = 'ModuloAlongT';
+                                    dims.FLIM_type = 'TCSPC';
+                                    dims.sizeZCT = sizeZCT;
+                                end
+                                
+                            else
+                                % old-style (not auto-saved) LaVision ome-tiff
+                                % Foreced to assume z is actually t
+                                if  sizeZCT(1) > 1
+                                    physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                                    if ~isempty(physZ)
+                                        physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                                        dims.modulo = 'ModuloAlongZ';
+                                        dims.FLIM_type = 'TCSPC';
+                                        dims.sizeZCT = sizeZCT;
+                                    end
                                 end
                             end
                         end
                     end
                 end
-                
             end
             
             
