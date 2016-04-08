@@ -172,7 +172,7 @@ double getValueFromStruct(const mxArray* s, const char *field, double default_va
       mexErrMsgIdAndTxt("FLIMfit:missingField", err.c_str());
    }
    
-   return mxGetScalar(s);
+   return mxGetScalar(v);
 }
 
 double getValueFromStruct(const mxArray* s, const char *field)
@@ -185,7 +185,7 @@ double getValueFromStruct(const mxArray* s, const char *field)
       mexErrMsgIdAndTxt("FLIMfit:missingField", err.c_str());
    }
 
-   return mxGetScalar(s);
+   return mxGetScalar(v);
 }
 
 cv::Mat getCvMat(const mxArray* im)
@@ -236,7 +236,7 @@ bool isArgument(int nrhs, const mxArray *prhs[], const char* arg, int nstart = 0
 
 const mxArray* getNamedArgument(int nrhs, const mxArray *prhs[], const char* arg, int nstart = 0)
 {
-   for (int i = nstart; (i+1) < nrhs; i++)
+   for (int i = nstart; (i+1) < nrhs; i+=2)
    {
       if (mxIsChar(prhs[i]) && GetStringFromMatlab(prhs[i]) == arg)
          return prhs[i + 1];
@@ -255,7 +255,7 @@ void CheckInput(int nrhs, int needed)
 }
 
 template<class T>
-std::shared_ptr<T> GetSharedPtrFromMatlab(const mxArray* a)
+std::shared_ptr<T>& GetSharedPtrFromMatlab(const mxArray* a)
 {
    if (!mxIsUint64(a))
       mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
@@ -265,7 +265,7 @@ std::shared_ptr<T> GetSharedPtrFromMatlab(const mxArray* a)
       mexWarnMsgIdAndTxt("MATLAB:mxmalloc:tooManyPointers",
          "Only expected one pointer, will return first");
 
-   return **reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
+   return *reinterpret_cast<std::shared_ptr<T>*>(mxGetData(a));
 }
 
 template<class T>
@@ -275,12 +275,12 @@ std::vector<std::shared_ptr<T>> GetSharedPtrVectorFromMatlab(const mxArray* a)
       mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
          "Should be a pointer from Mex file");
    
-   auto ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
+   std::shared_ptr<T>** ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
 
    int n = mxGetNumberOfElements(a);
    std::vector<std::shared_ptr<T>> v(n);
    for (int i = 0; i < n; i++)
-      v[n] = *ptrs[i];
+      v[i] = *ptrs[i];
    
    return v;
 }
@@ -290,7 +290,7 @@ template<class T>
 mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T> ptr)
 {
    mxArray* a = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
-   uint64_t* ap = reinterpret_cast<uint64_t*>(mxGetData(a));
-   *ap = reinterpret_cast<uint64_t>(&ptr);
+   std::shared_ptr<T>** p = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
+   p[0] = new std::shared_ptr<T>(ptr);
    return a;
 }

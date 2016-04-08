@@ -76,11 +76,11 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
    double timebin_t0 = getValueFromStruct(irf_struct, "timebin_t0");
    double timebin_width = getValueFromStruct(irf_struct, "timebin_width");
 
-   const mxArray* irf_ = getFieldFromStruct(irf_struct, "IRF");
+   const mxArray* irf_ = getFieldFromStruct(irf_struct, "irf");
    AssertInputCondition(mxIsDouble(irf_) && mxGetNumberOfDimensions(irf_) == 2);
 
-   int n_t = mxGetN(irf_);
-   int n_chan = mxGetM(irf_);
+   int n_t = mxGetM(irf_);
+   int n_chan = mxGetN(irf_);
    double* irf_data = static_cast<double*>(mxGetData(irf_));
 
    if (mxGetNumberOfDimensions(irf_) > 2)
@@ -93,7 +93,7 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
       irf->SetIRF(n_t, n_chan, timebin_t0, timebin_width, irf_data);
    }
 
-   bool ref_reconvolution = getValueFromStruct(irf_struct, "ref_reconvoltion", false);
+   bool ref_reconvolution = getValueFromStruct(irf_struct, "ref_reconvolution", false);
    double ref_lifetime_guess = getValueFromStruct(irf_struct, "ref_lifetime_guess", 80.0);
    
    irf->SetReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
@@ -107,7 +107,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    try
    {
-      if (nlhs > 0 && !mxIsScalar(plhs[0]))
+      if (nlhs > 0 && nrhs > 0 && !mxIsScalar(prhs[0]))
       {
          const mxArray* image_ptrs = getNamedArgument(nrhs, prhs, "images");
          auto images = GetSharedPtrVectorFromMatlab<FLIMImage>(image_ptrs);

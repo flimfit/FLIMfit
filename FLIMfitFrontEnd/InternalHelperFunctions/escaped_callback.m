@@ -1,6 +1,6 @@
 function escaped_callback( ~, ~, fcn)
             
-    if strcmp(computer,'MACI64') && ~isdeployed
+    if ~isdeployed
         fcn();
     else            
         try

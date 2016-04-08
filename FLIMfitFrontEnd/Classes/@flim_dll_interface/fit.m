@@ -136,6 +136,85 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
         
     obj.im_size = [d.height d.width];
    
+    acq = struct();
+    acq.data_type = strcmp(d.mode,'tcspc');
+    acq.t_rep = 1e6/d.rep_rate;
+    acq.polarisation_resolved = d.polarisation_resolved;
+    acq.n_chan = d.n_chan;
+    acq.counts_per_photon = d.counts_per_photon;
+    acq.n_x = d.width;
+    acq.n_y = d.height;
+    acq.t = d.t;
+    acq.t_int = d.t_int;
+    
+    
+    
+    % todo: get this from data
+    
+    if d.use_memory_mapping
+        offset_step = 4 * d.n_t * d.n_chan * d.height * d.width;
+
+        for i=1:length(use)
+           offset = (use(i)-1) * offset_step + d.mapfile_offset;
+           im(i) = ff_FLIMImage('acquisition_parmeters',acq,'mapped_file',d.mapfile_name,'data_offset',offset,'data_class',d.data_type); 
+        end
+    else
+        for i=1:length(use)
+           im(i) = ff_FLIMImage('acquisition_parmeters',acq,'data',d.data_series_mem(:,:,:,:)); 
+        end
+    end
+    
+    if ~isempty(d.acceptor)
+       for i=1:length(use) 
+           ff_FLIMImage(im(i),'SetAcceptor',d.acceptor(:,:,use(i)));
+       end
+    end
+    if ~isempty(d.seg_mask)
+       for i=1:length(use)
+           ff_FLIMImage(im(i),'SetMask',d.mask(:,:,use(i)));
+       end
+    end
+    
+    transform = struct();
+    transform.smoothing_factor = d.binning;
+    transform.t_start = d.t_min;
+    transform.t_stop = d.t_max;
+    transform.threshold = d.thresh_min;
+    transform.limit = d.gate_max;
+    
+    irf = struct();
+    irf.irf = d.irf;
+    irf.timebin_t0 = d.t_irf(1);
+    irf.timebin_width = d.t_irf(2) - d.t_irf(1);
+    irf.ref_reconvolution = d.irf_type;
+    irf.ref_lifetime_guess = d.ref_lifetime;
+    
+    im
+    
+    data = ff_FLIMData('images',im,...
+                       'data_transformation_settings',transform,...
+                       'irf',irf,...
+                       'background_value',d.background_value,...
+                       'global_mode',p.global_fitting);
+            
+    % todo: background image, TVB
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     % Setup memory to pass to DLL
     obj.p_use = libpointer('int32Ptr',use);  

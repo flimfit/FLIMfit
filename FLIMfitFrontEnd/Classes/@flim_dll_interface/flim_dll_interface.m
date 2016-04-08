@@ -98,38 +98,14 @@ classdef flim_dll_interface < handle
         
     methods
     
-         function load_global_library(obj)
-                
-            proto_file = ['FLIMGlobalAnalysisProto_' computer];
-            proto_ref = eval(['@' proto_file]);
-
-            if ~libisloaded(obj.lib_name)
-                warning('off','MATLAB:loadlibrary:TypeNotFound');
-                if ~isdeployed
-                    [~,warnings] = loadlibrary(obj.lib_name,'FLIMGlobalAnalysis.h','mfilename',proto_file);
-                else
-                    loadlibrary(obj.lib_name,proto_ref);
-                end
-                warning('on','MATLAB:loadlibrary:TypeNotFound');
-                
-                
-            end
-
-            if isempty(obj.dll_id)
-                obj.dll_id = calllib(obj.lib_name,'FLIMGlobalGetUniqueID');
-            end
-
-            
+         function load_global_library(obj) 
          end
 
          function unload_global_library(obj)
-             if libisloaded(obj.lib_name)
-                unloadlibrary(obj.lib_name)
-             end
+            clear ff_FLIMImage ff_FLIMData ff_FitResult ff_DecayModel ff_Controller
          end
          
          function terminate_fit(obj)
-             calllib(obj.lib_name,'FLIMGlobalTerminateFit',obj.dll_id);
              clear obj.data obj.p_data obj.mask obj.p_beta obj.p_I0 obj.p_chi2 obj.p_ierr obj.p_tau obj.p_t0 obj.p_offset obj.p_scatter;
          end
         

@@ -99,7 +99,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    try
    {
-      if (nlhs > 0 && !mxIsScalar(plhs[0]))
+      if (nlhs > 0 && nrhs > 0 && !mxIsScalar(prhs[0]))
       {
          const mxArray* acq_struct = getNamedArgument(nrhs, prhs, "acquisition_parmeters");
          auto acq = getAcquisitionParameters(acq_struct);
@@ -129,10 +129,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             FLIMImage::DataClass data_class;
             if (data_class_str == "uint16")
                data_class = FLIMImage::DataUint16;
-            else if (data_class_str == "float")
+            else if (data_class_str == "float" || data_class_str == "single")
                data_class = FLIMImage::DataFloat;
             else
-               mexErrMsgIdAndTxt("FLIMfit:unknownDataClass", "Data class is not recognised; should be uint16 or float");
+               mexErrMsgIdAndTxt("FLIMfit:unknownDataClass", "Data class is not recognised; should be uint16 or float/single");
 
             
             image = std::make_shared<FLIMImage>(acq, mapped_file, data_class, map_offset);
@@ -152,7 +152,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
-      auto d = GetSharedPtrFromMatlab<FLIMImage>(prhs[0]);
+      auto& d = GetSharedPtrFromMatlab<FLIMImage>(prhs[0]);
 
       if (ptr_set.find(d) == ptr_set.end())
          mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
@@ -161,7 +161,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       string command = GetStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
+      {
          ptr_set.erase(d);
+         delete &d;  // TODO: test this...
+      }
       else if (command == "SetMask")
          setMask(d, nlhs, plhs, nrhs, prhs);
       else if (command == "SetAcceptor")

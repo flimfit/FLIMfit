@@ -122,7 +122,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         n_decay_group = max(p.global_beta_group)+1;
 
         fit_beta = min(p.fit_beta,2);
-        
+%{        
         err = calllib(obj.lib_name,'SetupGlobalFit', ...
                             obj.dll_id, p.global_algorithm, obj.use_image_irf, ...
                             length(d.tr_irf), obj.p_t_irf, obj.p_irf, 0, obj.p_t0_image, ...
@@ -136,6 +136,8 @@ function err = call_fitting_lib(obj,roi_mask,selected)
                             p.pulsetrain_correction, 1e-6/d.rep_rate, ...
                             ref_recov, d.ref_lifetime, p.fitting_algorithm, p.weighting_mode, ...
                             p.calculate_errs, conf_interval, p.n_thread, true, false, 0);
+        %}
+        err = 0;
     end
 
     if err ~= 0
@@ -153,7 +155,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         thresh_min = d.thresh_min;
     end
     
-    
+    %{
     calllib(obj.lib_name,'SetDataParams',...
             obj.dll_id, n_datasets, height, width, d.n_chan, n_t, obj.p_t, obj.p_t_int, t_skip, length(d.tr_t),...
             data_type, obj.p_use, obj.p_mask, p.merge_regions, thresh_min, d.gate_max, counts_per_photon, p.global_fitting, d.binning, p.use_autosampling);
@@ -162,11 +164,11 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         obj.p_acceptor = libpointer('singlePtr', d.acceptor);
         calllib(obj.lib_name,'SetAcceptor',obj.dll_id,obj.p_acceptor)
     end
-        
+      %}  
     if err ~= 0
         return;
     end
-        
+        %{
     if ~obj.bin
         if d.background_type == 1
             calllib(obj.lib_name,'SetBackgroundValue',obj.dll_id,d.background_value);
@@ -209,6 +211,6 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     end
 
     err = calllib(obj.lib_name,'StartFit',obj.dll_id);
-        
+%}        
 
-    end
+end

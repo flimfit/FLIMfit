@@ -50,23 +50,22 @@ set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core)
 
 matlab_add_mex(NAME ff_FLIMImage SRC MexUtils.h FLIMImageMex.cpp)
 target_link_libraries(ff_FLIMImage ${COMMON_LIBS})
+add_custom_command(TARGET ff_FLIMImage POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMImage> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_FLIMData SRC MexUtils.h FLIMDataMex.cpp)
 target_link_libraries(ff_FLIMData ${COMMON_LIBS})
+add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_Controller SRC MexUtils.h ControllerMex.cpp)
 target_link_libraries(ff_Controller ${COMMON_LIBS} levmar ${LAPACKBLAS_LIB_NAMES} ${F2C_LIB_NAME})
+add_custom_command(TARGET ff_Controller POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_Controller> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_FitResults SRC MexUtils.h FitResultsMex.cpp)
 target_link_libraries(ff_FitResults ${COMMON_LIBS})
+add_custom_command(TARGET ff_FitResults POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FitResults> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_DecayModel SRC MexUtils.h DecayModelMex.cpp)
 target_link_libraries(ff_DecayModel ${COMMON_LIBS})
+add_custom_command(TARGET ff_DecayModel POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_DecayModel> ${MEX_OUT_DIR})
 
-
-#add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${OUT_DIR})
-#add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${OUT_DIR})
-#add_custom_command(TARGET ff_FitResults POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FitResults> ${OUT_DIR})
-#add_custom_command(TARGET ff_Controller POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_Controller> ${OUT_DIR})
-#add_custom_command(TARGET ff_DecayModel POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_DecayModel> ${OUT_DIR})
 

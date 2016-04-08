@@ -1,4 +1,4 @@
-classdef flim_data_series < handle & h5_serializer
+  classdef flim_data_series < handle & h5_serializer
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
