@@ -143,24 +143,76 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
        
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
-                if strfind(file,'ome.tif')
-                    if  sizeZCT(1) > 1
-                        physZ = omeMeta.getPixelsPhysicalSizeZ(0);
-                        if ~isempty(physZ) 
-                            physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
-                            dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
-                            dims.modulo = 'ModuloAlongZ';
-                            dims.FLIM_type = 'TCSPC';
-                            dims.sizeZCT = sizeZCT;
+                if strcmp(char(r.getFormat()), 'OME-TIFF');
+                    parser = loci.formats.tiff.TiffParser(file);
+                    service = loci.formats.services.OMEXMLServiceImpl();
+                    version = char(service.getOMEXMLVersion(parser.getComment()));
+                    if strcmp(version,'2008-02')
+                        choice  = questdlg...
+                            ({'Possible data errors.';...
+                            'This File most resembles a  LaVision BioTec ImSpector FLIM OME-TIFF.';...
+                            'Can you please confirm this?'},...
+                            'Warning! Non-standard OME-TIFF!','Yes');
+                        if strcmp(choice,'Yes')
+                            
+                            % attempt to extract metadata
+                            ras = loci.common.RandomAccessInputStream(file,16);
+                            tp = loci.formats.tiff.TiffParser(ras);
+                            firstIFD = tp.getFirstIFD();
+                            xml = char(firstIFD.getComment());
+                            k = strfind(xml,'AxisName="lifetime"');
+                            if ~isempty(k)
+                                % "autosave" style LaVision ome-tiff so try and handle
+                                % accordingly
+                                xml = xml(k(1):k(1)+100);    % pull out this section of the xml
+                                
+                                k = strfind(xml,'PhysicalUnit="');
+                                uns = xml(k(1)+14:end);
+                                e = strfind(uns,'"') -1;
+                                uns = uns(1:e(1));
+                                physicalUnit = str2double(uns) * 1000;
+                                
+                                k = strfind(xml,'Steps="');
+                                sts = xml(k(1)+7:end);
+                                e = strfind(sts,'"') -1;
+                                sts = sts(1:e(1));
+                                lifetimeSteps = str2double(sts);
+                                
+                                if lifetimeSteps == sizeZCT(1)
+                                    dims.delays = (0:sizeZCT(1)-1).* physicalUnit;
+                                    dims.modulo = 'ModuloAlongZ';
+                                    dims.FLIM_type = 'TCSPC';
+                                    dims.sizeZCT = sizeZCT;
+                                end
+                                if lifetimeSteps == sizeZCT(3)
+                                    dims.delays = (0:sizeZCT(3)-1).*physicalUnit;
+                                    dims.modulo = 'ModuloAlongT';
+                                    dims.FLIM_type = 'TCSPC';
+                                    dims.sizeZCT = sizeZCT;
+                                end
+                                
+                            else
+                                % old-style (not auto-saved) LaVision ome-tiff
+                                % Foreced to assume z is actually t
+                                if  sizeZCT(1) > 1
+                                    physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                                    if ~isempty(physZ)
+                                        physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                                        dims.modulo = 'ModuloAlongZ';
+                                        dims.FLIM_type = 'TCSPC';
+                                        dims.sizeZCT = sizeZCT;
+                                    end
+                                end
+                            end
                         end
                     end
                 end
-                       
             end
             
             
-
-             % get channel_names
+            
+            % get channel_names
             for c = 1:sizeZCT(2)
                 chan_info{c} = char(omeMeta.getChannelName( 0 ,  c -1 ));
                 if isempty(chan_info{c})
@@ -169,24 +221,24 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                 if isempty(chan_info{c})
                     chan_info{c} = ['Channel:' num2str(c-1)];
                 end
-
+                
                 dims.chan_info = chan_info;
             end
-          
-
+            
+            
             if isempty(dims.delays)
                 dims.error_message = 'Unable to load! Not time resolved data.';
             end
             dims.sizeXY = sizeXY;
-           
-
+            
+            
         case {'.pt3','.ptu','.bin','.bin2','.ffd'}
             
             
             r = FLIMreaderMex(file);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
-
+            
             if length(dims.delays) > 1
                 dt = dims.delays(2) - dims.delays(1);
             else
@@ -207,8 +259,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             for i=1:n_channels
                 dims.chan_info{i} = ['Channel:' num2str(i-1)];
             end
-    
-        % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case '.tif'
             
             

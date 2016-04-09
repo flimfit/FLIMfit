@@ -75,7 +75,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
     % if no modulo annotation check for Imspector produced ome-tiffs.
     if isempty(s)
         if strfind(char(image.getName.getValue() ),'ome.tif')
-            if sizeZCT(1) > 1
+            if sizeZCT(1) > 1 && sizeZCT(2) == 1 && sizeZCT(3) == 1
                 physZ = pixels.getPhysicalSizeZ();
                 if ~isempty(physZ)
                     physSizeZ = physZ.getValue() .* 1000;    % assume this is in ns so convert to ps
