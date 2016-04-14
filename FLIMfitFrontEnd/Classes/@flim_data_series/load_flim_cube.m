@@ -319,16 +319,30 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 return;
             end
             
+            if verbose
+                w = waitbar(0, 'Loading FLIMage....');
+                drawnow;
+            end
+            
             for p = 1:sizet
                 filename = [path filesep files{p}];
                 plane = imread(filename,'tif');
                 target(p,1,:,:,write_selected) = plane;
+                if verbose
+                    waitbar(sizet /p,w);
+                    drawnow;
+                end
             end
                             
             if min(target(:,1,:,:,write_selected)) > 32500
                 target(:,1,:,:,write_selected) = target(:,1,:,:,write_selected) - 32768;    % clear the sign bit which is set by labview
             end
-                        
+            
+            if verbose
+                delete(w);
+                drawnow;
+            end
+            
     
             
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
