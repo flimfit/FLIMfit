@@ -639,14 +639,22 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.clear();
             end
             
-            [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
-            if file ~= 0
-                obj.data_series_controller.data_series = flim_data_series();
-                obj.data_series_controller.load_single([path file]); 
-                if strcmp(obj.default_path,'C:\')
-                    obj.default_path = path;
+            [files,path] = uigetfile('*.*','Select a file from the data',obj.default_path,'MultiSelect','on'); 
+            if ~iscell(files) 
+                if files ~= 0
+                    files = cellstr(files);
+                else
+                    return;
                 end
             end
+            
+            obj.data_series_controller.data_series = flim_data_series();
+            
+            obj.data_series_controller.load_single([path file]);
+            if strcmp(obj.default_path,'C:\')
+                obj.default_path = path;
+            end
+            
         end
         
         function menu_file_load_widefield_callback(obj)
