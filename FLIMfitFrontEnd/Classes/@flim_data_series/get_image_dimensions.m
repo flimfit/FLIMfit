@@ -38,7 +38,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
     dims.error_message = [];
  
   
-    [ext,r] = obj.init_bfreader(file);
+    [ext,r,path] = obj.init_bfreader(file);
     
     dims.chan_info = [];
         
