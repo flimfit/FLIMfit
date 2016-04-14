@@ -61,8 +61,11 @@ $OMEuiUtils_url = 'https://bintray.com/artifact/download/joshmoore/maven/ome/OME
 $boost_url = 'http://sourceforge.net/projects/boost/files/boost-binaries/' + $BOOST_VER_MAJOR + '.' + $BOOST_VER_MINOR + '.0/boost_' + $BOOST_VER_MAJOR + '_' + $BOOST_VER_MINOR + '_0-msvc-' + $MSVC_VER + '.0-64.exe/download'
 $cmake_url = 'https://cmake.org/files/v3.4/cmake-3.4.0-win32-x86.zip'
 
+
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
 $OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
+
+$BFMatlab_dir = "$pwd\FLIMfitFrontEnd\BFMatlab"
 
 
 #((new-object net.webclient).DownloadFile($cmake_url, 'cmake.zip'))
