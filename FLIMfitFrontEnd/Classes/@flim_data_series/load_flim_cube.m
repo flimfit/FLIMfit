@@ -39,15 +39,15 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeX = obj.data_size(3);
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
-        total_files = length(obj.names);
+        ncubes = obj.n_datasets;
         modulo = obj.modulo;      
     else
         delays = dims.delays;
-        nfiles = length(read_selected);
+        nfiles = 1;   % only a single file except for the data
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);
         sizeY = dims.sizeXY(2);
-        total_files = nfiles;
+        ncubes = 1;
         modulo = dims.modulo;
     end
     
@@ -91,7 +91,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     verbose = false;
     
     % display a wait bar when required
-    if nfiles == 1  && total_files == 1  || obj.lazy_loading
+    if nfiles == 1  && ncubes == 1  || obj.lazy_loading
         
         verbose = true;
       
@@ -136,8 +136,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
             end
-            
-            if length(obj.imageSeries) >1
+             
+            if length(obj.imageSeries) >1   % if imageSeries is a vector indicates a plate
                 r.setSeries(obj.imageSeries(read_selected) - 1);
                 read_selected= 1;
             else

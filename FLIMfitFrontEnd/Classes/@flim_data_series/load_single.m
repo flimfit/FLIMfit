@@ -1,4 +1,4 @@
-function load_single(obj,file,polarisation_resolved)
+function load_single(obj,path, files, polarisation_resolved)
     %> Load a single FLIM dataset
     
     % Copyright (C) 2013 Imperial College London.
@@ -26,23 +26,22 @@ function load_single(obj,file,polarisation_resolved)
 
     % Author : Sean Warren
    
-    if nargin < 3
+    if nargin < 4
         polarisation_resolved = false;
     end
-    if nargin < 4
+    if nargin < 5
         data_setting_file = [];
     end
-    if nargin < 5
+    if nargin < 6
         channel = [];
     end
     
-    obj.header_text = file;
-    
-    
-    [path,name,ext] = fileparts_inc_OME(file);
+    first = [path files{1}];
+  
+    [path,name,ext] = fileparts_inc_OME(first);
     
     if strcmp(ext,'.raw')
-        obj.load_raw_data(file);
+        obj.load_raw_data(first);
         return;
     end
     
@@ -51,28 +50,47 @@ function load_single(obj,file,polarisation_resolved)
         obj.use_memory_mapping = false;
     end
     
-  
-    obj.root_path = ensure_trailing_slash(path); 
+    nfiles = length(files);
+    root_path = ensure_trailing_slash(path); 
     obj.polarisation_resolved = polarisation_resolved;
     
-    obj.n_datasets = 1;
-    obj.file_names = {file};
+    if nfiles > 1
+        obj.header_text = root_path;
+    else
+        obj.header_text = first;
+    end
+    
+    obj.root_path = root_path;
+    
+    obj.n_datasets = nfiles;
+    
+    file_names = [];
+    
+    for i = 1:nfiles
+        file_names{i} = [root_path files{i}];
+    end
+    
     obj.lazy_loading = false;
     
-    
-    
     if isempty(obj.names)
-        % Set names from file names
-        if strcmp(ext,'.tif')
-            path_parts = split(filesep,path);
-            names{1} = path_parts{end};
-        else
-            if isempty(obj.names)    
-                names{1} = name;
+        names = [];
+        
+        for i = 1:nfiles
+            % Set names from file names
+            if strcmp(ext,'.tif')
+                path_parts = split(filesep,path);
+                names{i} = path_parts{end};
+            else
+                if isempty(obj.names)
+                    [~,name,~] = fileparts_inc_OME([files{i}]);
+                    names{i} = [name];
+                end
             end
         end
         obj.names = names;
     end
+    
+    obj.file_names = file_names;
     
     obj.load_multiple(polarisation_resolved, data_setting_file);
     
