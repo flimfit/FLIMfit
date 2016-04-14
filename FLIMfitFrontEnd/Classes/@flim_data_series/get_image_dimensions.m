@@ -209,62 +209,23 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             end
     
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case '.tif'
+        case {'.tif','.tiff'}
             
-            
+            path = fileparts(file);
             dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
-            noOfFiles = length(dirStruct);
+            files = {dirStruct.name};
+            [dims.delays,dims.t_int] = get_delays_from_tif_stack(files);
             
-            if noOfFiles == 0
-                delays = [];
-                return
-            end
-            
-            first = [path filesep dirStruct(1).name];
-            
+            first = [path filesep files{1}];
             info = imfinfo(first);
-            
-            for f = 1:noOfFiles
-                filename = [path filesep dirStruct(f).name];
-                [~,name] = fileparts(filename);
-                tokens = regexp(name,'INT\_(\d+)','tokens');
-                if ~isempty(tokens)
-                    t_int(f) = str2double(tokens{1});
-                end
-                
-                tokens = regexp(name,'(?:^|\s)T\_(\d+)','tokens');
-                if ~isempty(tokens)
-                    del = str2double(tokens{1});
-                else
-                    sname = name(end-4:end);      %last 6 chars contains delay
-                    del = str2double(sname);  
-                end
-                if isnan(del)
-                    errordlg(['Unable to parse filename: ' name]);
-                    dims.delays = [];
-                    return;
-                else
-                    delays(f) = del;
-                end
-                
-                [dims.delays, sort_idx] = sort(delays);
-                
-            end
-            
-            if length(delays) < 3
-                dimd.delays = [];
-                errordlg('Too few valid .tif files found!!');
-                return;
-            end
-            
+                        
              %NB dimensions reversed to retain compatibility with earlier
              %code
-             dims.sizeXY = [  info.Height   info.Width ];
+             dims.sizeXY = [ info.Height info.Width ];
              %dims.sizeXY = [ info.Width info.Height ];
              dims.FLIM_type = 'Gated';  
              dims.sizeZCT = [1 1 1];
              dims.modulo = []; 
-            
             
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
         case {'.csv','.txt'} 

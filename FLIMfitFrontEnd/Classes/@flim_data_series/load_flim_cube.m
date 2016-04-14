@@ -307,68 +307,28 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % No need to allow for multiple Z,C or T as this format can't store them
-        case '.tif'
-            
-            if verbose
-                w = waitbar(0, 'Loading FLIMage....');
-                drawnow;
-            end
-            
+        case {'.tif','.tiff'}
+                        
+            path = fileparts(file);
             dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
-            
-            if length(dirStruct) ~= sizet
-                success = false
+            files = {dirStruct.name};
+            [~,~,files] = get_delays_from_tif_stack(files);
+                        
+            if length(files) ~= sizet
+                success = false;
                 return;
             end
             
-            t = 1;
-            for block = 0:nblocks - 1
-                
-                nplanes = nplanesInBlock(block + 1);
-                
-                for p = 1:nplanes
-                    
-                    % find the filename which matches the first delay
-                    str = num2str(delays(t));
-                    ff = 1;
-                    while isempty(strfind(dirStruct(ff).name, str))
-                        ff = ff + 1;
-                        if ff > sizet
-                            success = false;
-                            return;
-                        end
-                    end
-                    
-                    filename = [path filesep dirStruct(ff).name];
-                    
-                    try
-                        plane = imread(filename,'tif');
-                        target(t,1,:,:,write_selected) = plane;
-                    catch error
-                        throw(error);
-                    end
-                    
-                    t = t +1;
-                    
-                end
-                
-                if verbose
-                    totalPlane = totalPlane + nplanes;
-                    waitbar(totalPlane /totalPlanes,w);
-                    drawnow;
-                end
-                
+            for p = 1:sizet
+                filename = [path filesep files{p}];
+                plane = imread(filename,'tif');
+                target(p,1,:,:,write_selected) = plane;
             end
-            
+                            
             if min(target(:,1,:,:,write_selected)) > 32500
                 target(:,1,:,:,write_selected) = target(:,1,:,:,write_selected) - 32768;    % clear the sign bit which is set by labview
             end
-            
-            if verbose
-                delete(w);
-                drawnow;
-            end
-            
+                        
     
             
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
