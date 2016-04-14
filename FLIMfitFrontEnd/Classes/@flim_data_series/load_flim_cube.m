@@ -81,7 +81,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         omeMeta = obj.bfOmeMeta;
         ext = '.bio';
     else
-        [ext,r,path] = obj.init_bfreader(file);
+        [ext,r] = obj.init_bfreader(file);
     end
     
      

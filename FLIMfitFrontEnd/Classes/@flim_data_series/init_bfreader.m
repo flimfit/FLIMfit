@@ -1,4 +1,4 @@
-function [ext,r, path] = init_bfreader(obj,file)
+function [ext,r] = init_bfreader(obj,file)
 
     % init_bfreader attempts to set up a bio-Formats reader for file
     % if successful it returns the extension ext as 'bio" except in the
@@ -29,8 +29,6 @@ function [ext,r, path] = init_bfreader(obj,file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-    % get path and set default value of ext
-    [path,name,ext] = fileparts_inc_OME(file); 
    
     try
         % Get the channel filler
@@ -56,5 +54,6 @@ function [ext,r, path] = init_bfreader(obj,file)
         
     catch exception
         % bioformats does not recognise the file
-        % so use defaults
+        % so work on the filename
+        [path,name,ext] = fileparts_inc_OME(file);  
     end
