@@ -650,7 +650,7 @@ classdef front_end_menu_controller < handle
             
             obj.data_series_controller.data_series = flim_data_series();
             
-            obj.data_series_controller.load_single([path file]);
+            obj.data_series_controller.load_single(path, files);
             if strcmp(obj.default_path,'C:\')
                 obj.default_path = path;
             end
