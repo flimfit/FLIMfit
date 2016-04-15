@@ -56,6 +56,7 @@ function load_single(obj, path, files, polarisation_resolved)
     
     if nfiles > 1
         obj.header_text = root_path;
+        file_names = sort_nat(files);
     else
         obj.header_text = first;
     end
