@@ -73,7 +73,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                     obj.imageSeries = ones(1,length(obj.file_names)) .* imageSeries; 
                 end
             else
-                obj.imageSeries = ones(1,length(obj.file_names));
+                obj.imageSeries = 1;
             end
             
             
