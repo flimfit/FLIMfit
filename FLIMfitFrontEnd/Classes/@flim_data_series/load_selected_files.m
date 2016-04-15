@@ -28,7 +28,7 @@ function load_selected_files(obj,selected)
     if nargin < 2
         selected = 1:obj.n_datasets;
     end
-        
+    
     if ~isempty(obj.loaded)
         already_loaded = true;
         for i=1:length(selected)
@@ -36,7 +36,7 @@ function load_selected_files(obj,selected)
                 already_loaded = false;
             end
         end
-
+        
         if already_loaded
             return
         end
@@ -50,102 +50,103 @@ function load_selected_files(obj,selected)
     end
     
     obj.clear_memory_mapping();
-
+    
     obj.loaded = false(1, obj.n_datasets);
     num_sel = length(selected);
-
+    
     for j=1:num_sel
         obj.loaded(selected(j)) = true;
     end
     
     if obj.hdf5
-    
+        
         %...
         
     elseif obj.raw
         
         obj.init_memory_mapping(obj.data_size(1:4), num_sel, obj.mapfile_name);
-    
+        
     else
         
-         mem_size = obj.data_size(1:4);
-         
-         nfiles = length(obj.file_names);
-         selPerFile = num_sel./nfiles;
-     
-         if obj.use_memory_mapping
+        mem_size = obj.data_size(1:4);
+        
+        nfiles = length(obj.file_names);
+        selPerFile = length(obj.names)./nfiles;
+        
+        if obj.use_memory_mapping
             
-          
+            
             obj.data_series_mem = single(zeros([mem_size' 1]));
             
             obj.data_type = 'single';
             
             mapfile_name = global_tempname;
             mapfile = fopen(mapfile_name,'w');
-
-            jj = 1;
-            for f = 1:nfiles
             
-                filename = obj.file_names{f}
-                for j=1:selPerFile
-                    
-                    [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,j,1);
-                    
-                    if ~success
-                        disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
-                    end
-                    
-                    data = obj.data_series_mem(:,:,:,:,1);
-                    
-                    c1=fwrite(mapfile,data,'single');
-                    jj = jj + 1;
-                    
-                    if using_popup
-                        waitbar(jj/num_sel,wait_handle)
-                    end
-                    
+            for j=1:num_sel
+               
+                s = selected(j);
+                currentFile = ceil(s./selPerFile);
+                filename = obj.file_names{currentFile};
+                plane = s - ((currentFile -1) .* selPerFile);
+               
+                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,1);
+                
+                if ~success
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
                 end
-
+                
+                data = obj.data_series_mem(:,:,:,:,1);
+                
+                c1=fwrite(mapfile,data,'single');
+                
+                
+                if using_popup
+                    waitbar(j./num_sel,wait_handle)
+                end
+                
+                
+                
             end
-
+            
             fclose(mapfile);
             
-            obj.init_memory_mapping(mem_size, num_sel, mapfile_name);    
+            obj.init_memory_mapping(mem_size, num_sel, mapfile_name);
         else
             
-             obj.data_series_mem = single(zeros([mem_size' num_sel]));
-             
-             jj = 1;
-            for f = 1:nfiles
+            obj.data_series_mem = single(zeros([mem_size' num_sel]));
             
-                filename = obj.file_names{f};
-                for j=1:selPerFile
-           
-                    [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,j,jj);
-                    
-                    
-                    if ~success
-                        disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
-                    end
-                    
-                    jj = jj + 1;
-                    
-                    if using_popup
-                        waitbar(jj/num_sel,wait_handle)
-                    end
+            for j=1:num_sel
+                
+                s = selected(j);
+                currentFile = ceil(s./selPerFile);
+                filename = obj.file_names{currentFile};
+                plane = s - ((currentFile -1) .* selPerFile);
+                
+                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,s);
+                
+                
+                if ~success
+                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
                 end
-
+                
+                
+                if using_popup
+                    waitbar(j./num_sel,wait_handle)
+                end
+                
+                
             end
             
             obj.active = 1;
             obj.cur_data = obj.data_series_mem(:,:,:,:,1);
             
         end
-
+        
     end
     
     
-               
+    
     if using_popup
         close(wait_handle)
     end

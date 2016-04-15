@@ -76,7 +76,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
         D = obj.ZCT{dim};
         if length(D) > allowed(dim)
             for f = 1:length(obj.file_names)
-                name = obj.names{f}
+                name = obj.names{f};
                 if dim == 2 && ~isempty(chan_info)
                     for d = 1:length(D)
                         names{na} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{d} ];
@@ -111,7 +111,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     end
     
     obj.data_size = [length(dims.delays) n_chan dims.sizeXY obj.n_datasets];
-    
+     
     if isempty(obj.metadata)
         obj.metadata = extract_metadata(obj.names);
     end
