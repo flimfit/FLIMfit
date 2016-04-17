@@ -31,7 +31,7 @@ function handles = setup_menu(obj,handles)
     menu_file      = uimenu(obj.window,'Label','File');
     handles.menu_file_new_window = uimenu(menu_file,'Label','New Window','Accelerator','N');
     handles.menu_file_load_single = uimenu(menu_file,'Label','Load FLIM Data...','Accelerator','O','Separator','on');
-    menu_file_load = uimenu(menu_file,'Label','Load FLIM Data from a directory');
+    menu_file_load = uimenu(menu_file,'Label','Load FLIM Dataset');
     handles.menu_file_load_tcspc = uimenu(menu_file_load,'Label','Load FLIM Dataset...','Accelerator','T');
     handles.menu_file_load_widefield = uimenu(menu_file_load,'Label','Load .tif stack Dataset...','Accelerator','Y');
     

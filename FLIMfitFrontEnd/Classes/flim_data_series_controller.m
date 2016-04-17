@@ -139,24 +139,24 @@ classdef flim_data_series_controller < handle
         end
         
         
-        function load_single(obj, path, files, polarisation_resolved,setting_file_name,channels)
+        function load_single(obj,file,polarisation_resolved,setting_file_name,channels)
             % save settings from previous dataset if it exists
             saved_setting_file_name = obj.data_settings_filename{1};
  
-            if nargin < 6
+            if nargin < 5
                 channels = [];
             end
             
-            if nargin < 5
+            if nargin < 4
                 setting_file_name = [];
             end
             
-            if nargin < 4
+            if nargin < 3
                 polarisation_resolved = false;
             end
 
             % load new dataset
-            obj.data_series.load_single(path, files, polarisation_resolved);
+            obj.data_series.load_single(file,polarisation_resolved);
             
             %{
             if nargin < 4
