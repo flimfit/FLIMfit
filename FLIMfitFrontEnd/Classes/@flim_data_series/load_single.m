@@ -62,7 +62,10 @@ function load_single(obj,files,polarisation_resolved)
     obj.polarisation_resolved = polarisation_resolved;
     
     if strcmp(ext,'.tif')
-        nfiles = 1;
+        if nfiles > 1
+            errordlg('Please use "Load from Directory" option to load multiple .tiff stacks. ','Menu Error');
+            return;
+        end
     end
     
     if nfiles > 1
