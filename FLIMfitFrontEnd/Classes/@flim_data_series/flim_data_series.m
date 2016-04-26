@@ -242,7 +242,7 @@ classdef flim_data_series < handle & h5_serializer
 
         function obj = flim_data_series()
             
-            use_memory_mapping = true;
+            obj.use_memory_mapping = true;
             
             del_files = dir([tempdir 'GPTEMP*']);
             
