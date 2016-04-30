@@ -118,9 +118,11 @@ begin
   else
    begin
       Log('Required MCR version not installed')
-      url := 'http://downloads.flimfit.org/mcr/MCR_R{#MatlabVer}_win64_installer.exe'
-      Log('Adding MCR Download: ' + url);
-      itd_addfile(url,expandconstant('{tmp}\MatlabMCR.zip'));  
+      url1 := 'http://storage.googleapis.com/flimfit-downloads/mcr/MCR_R{#MatlabVer}_win64_installer.exe'
+      url2 := 'http://www.mathworks.com/supportfiles/downloads/R{#MatlabVer}/deployment_files/R{#MatlabVer}/installers/win64/MCR_{#MatlabVer}_win64_installer.exe';
+      Log('Adding MCR Download: ' + url1);
+      itd_addfile(url1,expandconstant('{tmp}\MatlabMCR.zip'));  
+      itd_addmirror(url2,expandconstant('{tmp}\MatlabMCR.zip'));  
     end;  
     
   Result := true;
