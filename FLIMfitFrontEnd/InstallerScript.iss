@@ -10,10 +10,6 @@
 ;#define MyAppVersion "x.x.x"
 ;#define RepositoryRoot "...\Imperial-FLIMfit"
 
-; Define Ghostscript download urls and required version
-#define GhostscriptUrl "http://downloads.ghostscript.com/public/gs916w64.exe"
-#define GhostscriptVersionRequired "9.16"
-
 #include "it_download.iss"
 
 [Setup]
@@ -78,7 +74,7 @@ WinVersionTooHighError=This will install [name/ver] on your computer.%n%nIt is r
 procedure InitializeWizard();
 begin
  itd_init;
- itd_setoption('UI_AllowContinue', '1'); // allow downloads to fail
+ itd_setoption('UI_AllowContinue', 1); // allow downloads to fail
  //Start the download after the "Ready to install" screen is shown
  itd_downloadafter(wpReady);
 end;
@@ -88,17 +84,18 @@ var
   ResultCode : Integer;
 begin
  if CurStep=ssPostInstall then begin //Lets install those files that were downloaded for us
-  // Unzip and install Matlab MCR if downloaded
-  Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\MatlabMCR.zip'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
-  Exec(expandconstant('{tmp}\bin\win64\setup.exe'), '-mode silent -agreeToLicense yes', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
-  
   // Install Visual Studio Redist
   Exec(expandconstant('{tmp}\vcredist_x64.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
   // Install Ghostscript if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\gs916w64.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   Exec(expandconstant('{tmp}\setupgs.exe'), expandconstant('"{pf}\gs"'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
- end;
+
+  // Unzip and install Matlab MCR if downloaded
+  Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\MatlabMCR.zip'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
+  Exec(expandconstant('{tmp}\bin\win64\setup.exe'), '-mode silent -agreeToLicense yes', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
+  
+  end;
 end;
 
 
@@ -122,8 +119,7 @@ begin
       url1 := 'http://storage.googleapis.com/flimfit-downloads/mcr/MCR_R{#MatlabVer}_win64_installer.exe'
       url2 := 'http://www.mathworks.com/supportfiles/downloads/R{#MatlabVer}/deployment_files/R{#MatlabVer}/installers/win64/MCR_{#MatlabVer}_win64_installer.exe';
       Log('Adding MCR Download: ' + url1);
-      itd_addfile(url1,expandconstant('{tmp}\MatlabMCR.zip'));  
-      itd_addmirror(url2,expandconstant('{tmp}\MatlabMCR.zip'));  
+      itd_addfile(url1,expandconstant('{tmp}\MatlabMCR.zip'));   
     end;  
     
   Result := true;
