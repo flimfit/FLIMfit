@@ -106,7 +106,8 @@ function InitializeSetup(): Boolean;
 var
   // Declare variables
   MatlabMcrInstalled : Boolean;
-  url : String;
+  url1 : String;
+  url2 : String;
   
 begin
 
