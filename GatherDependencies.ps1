@@ -68,7 +68,7 @@ $OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
 $BFMatlab_dir = "$pwd\FLIMfitFrontEnd\BFMatlab"
 
 echo "Downloading Ghostscript"
-((new-object net.webclient).DownloadFile($gs_url, "$pwd\InstallerSupport\"))
+((new-object net.webclient).DownloadFile($gs_url, "$pwd\InstallerSupport\gs916w64.exe"))
 
 DownloadZipIntoFolder $ome_url "$pwd\FLIMfitFrontEnd\OMEROMatlab\"
 
