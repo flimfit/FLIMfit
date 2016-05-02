@@ -5,12 +5,11 @@
 #define MyAppPublisher "Sean Warren"
 #define MyAppCopyright "(c) Imperial College London"
 
-
 ; These options need to be set on the commandline, eg. > iscc \dMyAppVersion=x.x.x \dMyAppSystem=64 \dRepositoryRoot="...\Imperial-FLIMfit" "InstallerScript.iss"
 ;#define MyAppVersion "x.x.x"
 ;#define RepositoryRoot "...\Imperial-FLIMfit"
 
-#include "it_download.iss"
+#include <idp.iss> 
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -58,26 +57,18 @@ Source: "{#RepositoryRoot}\InstallerSupport\microscope.ico"; DestDir: "{app}"
 Source: "{#RepositoryRoot}\InstallerSupport\gs916w64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitFrontEnd\java.opts"; DestDir: "{app}";
 
+
 [Icons]
 Name: "{group}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; IconFilename: "{app}\microscope.ico"
 Name: "{commondesktop}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
-
-;[Run]
-;Filename: "{app}\Start_FLIMfit_.bat"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 
 [Messages]
 WinVersionTooHighError=This will install [name/ver] on your computer.%n%nIt is recommended that you close all other applications before continuing.%n%nIf they are not already installed, it will also download and install the Matlab 2015b Compiler Runtime which are required to run [name]. An internet connection will be required.
 
 [Code]
-procedure InitializeWizard();
-begin
- itd_init;
- itd_setoption('UI_AllowContinue', '1'); // allow downloads to fail
- //Start the download after the "Ready to install" screen is shown
- itd_downloadafter(wpReady);
-end;
+
 
 procedure CurStepChanged(CurStep: TSetupStep);
 var
@@ -87,25 +78,21 @@ begin
   // Install Visual Studio Redist
   Exec(expandconstant('{tmp}\vcredist_x64.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   
-  // Install Ghostscript if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\gs916w64.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   Exec(expandconstant('{tmp}\setupgs.exe'), expandconstant('"{pf}\gs"'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
 
   // Unzip and install Matlab MCR if downloaded
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\MatlabMCR.zip'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
-  Exec(expandconstant('{tmp}\bin\win64\setup.exe'), '-mode silent -agreeToLicense yes', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
-  
+  Exec(expandconstant('{tmp}\bin\win64\setup.exe'), '-mode automated -agreeToLicense yes', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)  
   end;
 end;
 
 
-function InitializeSetup(): Boolean;
+procedure InitializeWizard();
 var
   // Declare variables
   MatlabMcrInstalled : Boolean;
-  url1 : String;
-  url2 : String;
-  
+  url : String;
 begin
 
   // Check if mcr is installed
@@ -116,13 +103,11 @@ begin
   else
    begin
       Log('Required MCR version not installed')
-      url1 := 'http://storage.googleapis.com/flimfit-downloads/mcr/MCR_R{#MatlabVer}_win64_installer.exe'
-      url2 := 'http://www.mathworks.com/supportfiles/downloads/R{#MatlabVer}/deployment_files/R{#MatlabVer}/installers/win64/MCR_{#MatlabVer}_win64_installer.exe';
-      Log('Adding MCR Download: ' + url1);
-      itd_addfile(url1,expandconstant('{tmp}\MatlabMCR.zip'));   
+      url := 'http://storage.googleapis.com/flimfit-downloads/mcr/MCR_R{#MatlabVer}_win64_installer.exe'
+      Log('Adding MCR Download: ' + url);
+	  
+	  idpAddFile(url,expandconstant('{tmp}\MatlabMCR.zip'));   
+	  idpDownloadAfter(wpReady);
+	  
     end;  
-    
-  Result := true;
 end;
-
-
