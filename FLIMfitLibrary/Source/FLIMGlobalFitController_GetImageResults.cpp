@@ -389,7 +389,7 @@ int FLIMGlobalFitController::GetImageStats(int& n_regions, int image[], int regi
 }
 
 
-int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[])
+int FLIMGlobalFitController::GetParameterImage(int im, int param, mask_type ret_mask[], float image_data[])
 {
 
    int start, s_local;
@@ -405,10 +405,10 @@ int FLIMGlobalFitController::GetParameterImage(int im, int param, uint8_t ret_ma
       return -1;
 
    // Get mask
-   uint8_t *im_mask = data->mask + im*n_px;  
+   mask_type *im_mask = data->mask + im*n_px;  
    
    if (ret_mask)
-      memcpy(ret_mask, im_mask, n_px * sizeof(uint8_t));
+      memcpy(ret_mask, im_mask, n_px * sizeof(mask_type));
 
    int merge_regions = data->merge_regions;
    int iml = data->GetImLoc(im);
@@ -530,7 +530,7 @@ int FLIMGlobalFitController::GetFit(int im, int n_t, double t[], int n_fit, int 
    int start, s_local;
    int n_px = data->n_px;;
 
-   uint8_t* mask = data->mask + im*n_px;
+   mask_type* mask = data->mask + im*n_px;
 
    int iml = data->GetImLoc(im);
    im = iml;

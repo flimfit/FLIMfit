@@ -210,7 +210,7 @@ public:
    int GetFit(int im, int n_t, double t[], int n_fit, int fit_mask[], double fit[], int& n_valid);
    int GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[]);   
 
-   int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
+   int GetParameterImage(int im, int param, mask_type ret_mask[], float image_data[]);
 
    double CalculateGFactor();
 
