@@ -82,11 +82,17 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
                 name = obj.names{f};
                 switch(dim)
                     case 2  %channels
-                        if  ~isempty(chan_info)
-                            for d = 1:length(D)
-                                names{na} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{d} ];
-                                na = na + 1;
+                        add_class('Channel');
+                        for d = 1:length(D)
+                            if  ~isempty(chan_info)
+                                names{na} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{D(d)} ];
+                                metadata.Channel{na} = chan_info{D(d)};
+                            else
+                                names{na} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{D(d)} ];
+                                metadata.Channel{na} = D(d) -1;
                             end
+                            metadata.FileName{na} = name;
+                            na = na + 1;
                         end
                     case 1  %Z
                         add_class('Z');
