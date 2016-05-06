@@ -62,7 +62,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         t_skip = [];
         n_t = length(d.tr_t);
         obj.p_t = libpointer('doublePtr',d.tr_t);
-        obj.p_mask = libpointer('uint8Ptr',uint8(1));
+        obj.p_mask = libpointer('uint16Ptr',uint16(1));
 
         obj.p_irf = libpointer('doublePtr', irf);
         
@@ -91,7 +91,7 @@ function err = call_fitting_lib(obj,roi_mask,selected)
         
         if ~isempty(d.seg_mask)        
             m = d.seg_mask;
-            obj.p_mask = libpointer('uint8Ptr', uint8(m));
+            obj.p_mask = libpointer('uint16Ptr', uint16(m));
         else
             obj.p_mask = [];
         end

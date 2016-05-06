@@ -219,7 +219,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                     chan_info{c} = char(omeMeta.getChannelEmissionWavelength(0, c -1));
                 end
                 if isempty(chan_info{c})
-                    chan_info{c} = ['Channel:' num2str(c-1)];
+                    chan_info{c} = ['Channel ' num2str(c-1)];
                 end
                 
                 dims.chan_info = chan_info;
@@ -257,7 +257,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             FLIMreaderMex(r,'Delete');
             
             for i=1:n_channels
-                dims.chan_info{i} = ['Channel:' num2str(i-1)];
+                dims.chan_info{i} = ['Channel ' num2str(i-1)];
             end
             
             % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -323,7 +323,7 @@ FITDLL_API int SetAcceptor(int c_idx, float* acceptor)
 
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-                             int use_im[], uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
+                             int use_im[], mask_type mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling)
 {
    INIT_CONCURRENCY;
 
@@ -424,7 +424,7 @@ FITDLL_API int GetImageStats(int c_idx, int* n_regions, int* image, int* regions
 }
 
 
-FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[])
+FITDLL_API int GetParameterImage(int c_idx, int im, int param, mask_type ret_mask[], float image_data[])
 {
    int valid = InitControllerIdx(c_idx);
    if (!valid) return ERR_NO_FIT;

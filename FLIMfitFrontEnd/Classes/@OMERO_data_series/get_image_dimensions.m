@@ -108,7 +108,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
                  if ~isempty(wave)
                     dims.chan_info{c} = char(wave.getValue());
                  else
-                    dims.chan_info{c} = ['Channel:' num2str(c-1)];
+                    dims.chan_info{c} = ['Channel ' num2str(c-1)];
                  end
              end
         end
