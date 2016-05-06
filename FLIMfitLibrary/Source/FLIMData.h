@@ -44,7 +44,7 @@
 
 #include "omp_stub.h"
 
-#define MAX_REGION 255
+#define MAX_REGION 4095
 
 #define STREAM_DATA  true
 
