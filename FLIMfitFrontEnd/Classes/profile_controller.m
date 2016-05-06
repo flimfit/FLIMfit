@@ -12,7 +12,7 @@ classdef profile_controller
 
             % Data Preferences
             profile_def.Data.Automatically_Estimate_IRF_Background = true;
-            profile_def.Data.Default_Camera_Background = 200;
+            profile_def.Data.Default_Camera_Background = 0;
             profile_def.Data.Default_Rep_Rate = 80;
 
             % Fitting Preferences

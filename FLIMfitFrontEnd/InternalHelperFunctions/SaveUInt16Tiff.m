@@ -1,6 +1,4 @@
-function[header_data] = parse_csv_txt_header(obj, file)
-
-% Reads the header from a single-pixel .txt  or .csv file
+function SaveUInt8Tiff(data,file)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -25,39 +23,20 @@ function[header_data] = parse_csv_txt_header(obj, file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+    % Author : Sean Warren
 
-    header_data = [];
+    t = Tiff(file,'w');
+    tagstruct.ImageLength = size(data,1);
+    tagstruct.ImageWidth = size(data,2);
+    tagstruct.Photometric = Tiff.Photometric.MinIsBlack;
+    tagstruct.SampleFormat = Tiff.SampleFormat.UInt;
+    tagstruct.BitsPerSample = 16;
+    tagstruct.SamplesPerPixel = 1;
+    tagstruct.RowsPerStrip = 16;
+    tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky;
+    tagstruct.Software = 'MATLAB';
+    t.setTag(tagstruct);
     
-    if strfind(file,'.txt')
-        dlm = '\t';
-    else
-        dlm = ',';
-    end
-
-    fid = fopen(file);
-
-    header_data = cell(0,0);
-    textl = fgetl(fid);
-
-
-    if strcmp(textl,'TRFA_IC_1.0')
-        fclose(fid_);
-        throw(MException('FLIM:CannotOpenTRFA','Cannot open TRFA formatted files'));
-        return;
-    end
-
-    while ~isempty(textl)
-        first = sscanf(textl,['%f' dlm]);
-        if isempty(first) || isnan(first(1))
-            header_data{end+1} =  textl;
-            textl = fgetl(fid);
-        else
-            textl = [];
-        end
-    end
-
-    if isempty(header_data)
-        throw(MException('FLIM:CSVFileMustHaveHeader','Delimited text files must have a header'));
-    end
-    
-    fclose(fid);
+    t.write(uint16(data));
+    t.close();
+end

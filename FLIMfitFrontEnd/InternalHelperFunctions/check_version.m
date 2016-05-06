@@ -29,6 +29,8 @@ function check_version(quiet)
            for i=1:n
                if new_version(i) > current_version(i)
                    new_available = true;
+               elseif new_version(i) < current_version(i)
+                   break;
                end
            end
 
