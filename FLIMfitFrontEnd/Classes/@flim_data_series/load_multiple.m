@@ -31,8 +31,6 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     % get dimensions from first file
     [dims,~,obj.reader_settings] = obj.get_image_dimensions(obj.file_names{1});
     
-
-
     if isempty(dims.delays)     % cancelled out
         if ~isempty(dims.error_message)
             errordlg(dims.error_message);
@@ -64,46 +62,67 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     end
     
     
-    % handle exception where there is only one file or image 
-    % so multiple Z, C or T are allowed
-    if length(obj.file_names) == 1
-        % for the time being assume only 1 dimension can be > 1 
-        % otherwise this will go horribly wrong !
-        allowed = [ 1 1 1];   % allowed max no of planes in each dimension ZCT
-        if polarisation_resolved
-            allowed = [ 1 2 1 ];
-        end
-        prefix = [ 'Z' 'C' 'T'];
-
-        names = [];
-
-        for dim = 1:3
-            D = obj.ZCT{dim};
-            if length(D) > allowed(dim)
-                if dim == 2 && ~isempty(chan_info) 
-                    for d = 1:length(D)
-                        names{d} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{d}];
-                    end
-                else
-                    for d = 1:length(D)
-                        names{d} = [ prefix(dim)   num2str(D(d) -1) ];
-                    end
-                end
-                obj.load_multiple_planes = dim;
-                % use mem mapping for multiple planes to handle OPT stuff
-                obj.use_memory_mapping = true;
-                break;
-            end
-        end
-        if ~isempty(names) 
-            obj.names = names;
-            obj.n_datasets = length(obj.names);
-        end
+    % handle exception where  multiple Z, C or T are allowed
+    % for the time being assume only 1 dimension can be > 1 
+    % (as enforced in ZCT_selection) otherwise this will go horribly wrong !
+    allowed = [ 1 1 1];   % allowed max no of planes in each dimension ZCT
+    if polarisation_resolved
+        allowed = [ 1 2 1 ];
+    end
+    prefix = [ 'Z' 'C' 'T'];
     
+    names = [];
+    
+    na = 1;
+    for dim = 1:3
+        D = obj.ZCT{dim};
+        if length(D) > allowed(dim)
+            metadata = struct();
+            for f = 1:length(obj.file_names)
+                name = obj.names{f};
+                switch(dim)
+                    case 2  %channels
+                        if  ~isempty(chan_info)
+                            for d = 1:length(D)
+                                names{na} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{d} ];
+                                na = na + 1;
+                            end
+                        end
+                    case 1  %Z
+                        add_class('Z');
+                        for d = 1:length(D)
+                            names{na} = [ prefix(dim)   num2str(D(d) -1) '-' name];
+                            metadata.Z{na} = D(d) -1;
+                            metadata.FileName{na} = name;
+                            na = na + 1;
+                        end
+                    case 3  %T
+                        add_class('T');
+                        for d = 1:length(D)
+                            names{na} = [ prefix(dim)   num2str(D(d) -1) '-' name];
+                            metadata.T{na} = D(d) -1;
+                            metadata.FileName{na} = name;
+                            na = na + 1;
+                        end
+                end
+            end
+            obj.load_multiple_planes = dim;
+            % use mem mapping for multiple planes to handle OPT stuff
+            obj.use_memory_mapping = true;
+            break;
+        end
+    end
+    
+    if ~isempty(metadata)
+        obj.metadata = metadata;
     end
     
     
-
+    if ~isempty(names)
+        obj.names = names;
+        obj.n_datasets = length(obj.names);
+    end
+    
     obj.t = dims.delays;
     obj.channels = obj.ZCT{2};
 
@@ -115,7 +134,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     end
     
     obj.data_size = [length(dims.delays) n_chan dims.sizeXY obj.n_datasets];
-    
+     
     if isempty(obj.metadata)
         obj.metadata = extract_metadata(obj.names);
     end
@@ -130,4 +149,11 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     obj.init_dataset(data_setting_file);
     
+    function add_class(class)
+        if ~isfield(metadata,class)
+            metadata.(class) = cell(1,obj.n_datasets);
+        end
+    end
+    
 end
+

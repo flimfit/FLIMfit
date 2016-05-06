@@ -39,15 +39,13 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeX = obj.data_size(3);
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
-        total_files = length(obj.names);
         modulo = obj.modulo;      
     else
         delays = dims.delays;
-        nfiles = length(read_selected);
+        nfiles = 1;   % only a single file except for the data
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);
         sizeY = dims.sizeXY(2);
-        total_files = nfiles;
         modulo = dims.modulo;
     end
     
@@ -85,17 +83,16 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     end
     
      
-    % default do not display a waitbar
+    % default do not display a waitbar. So no need for mutiple blocks
     nblocks = 1;
     nplanesInBlock = sizet;
     verbose = false;
     
     % display a wait bar when required
-    if nfiles == 1  && total_files == 1  || obj.lazy_loading
+    if (nfiles == 1 && obj.load_multiple_planes == 0 ) || obj.lazy_loading  
         
         verbose = true;
       
-        
         if polarisation_resolved
             totalPlanes = sizet * 2;
         else
@@ -136,8 +133,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
             end
-            
-            if length(obj.imageSeries) >1
+             
+            if length(obj.imageSeries) >1   % if imageSeries is a vector indicates a plate
                 r.setSeries(obj.imageSeries(read_selected) - 1);
                 read_selected= 1;
             else
@@ -160,7 +157,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             bpp = loci.formats.FormatTools.getBytesPerPixel(pixelType);
             fp = loci.formats.FormatTools.isFloatingPoint(pixelType);
             sgn = loci.formats.FormatTools.isSigned(pixelType);
-            % asume for now all our data is unsigned (see bfgetPlane for examples of signed)
+            % assume for now all our data is unsigned (see bfgetPlane for examples of signed)
             little = r.isLittleEndian();
                 
             switch bpp
@@ -184,8 +181,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                         T = Tarr(time);
                         
                         % check that we are supposed to load this FLIM cube
-                        if ctr == read_selected  ||  polarisation_resolved  || nfiles >1
-                            
+                        if ctr == read_selected  ||  polarisation_resolved 
+                          
                             t = 0;
                             for block = 0:nblocks - 1
                                 nplanes = nplanesInBlock(block + 1);
@@ -380,7 +377,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 chan = Carr(c) +2;
                 
                 % check that we are supposed to load this FLIM cube
-                if ctr == read_selected  ||  polarisation_resolved  || nfiles >1
+                if ctr == read_selected  ||  polarisation_resolved  
                     target(:,pctr,:,:,write_selected) = ir(:,chan);
                 end
                 

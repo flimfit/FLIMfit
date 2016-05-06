@@ -62,10 +62,16 @@
             
            if (sizeZ + sizeC + sizeT) > 3
                     
-                minn = [ 1 1 1 ];   % select one from each 
+                minn = [ 1 1 1 ];   % select one from each by default
                     
-                if length(obj.file_names) == 1   && multiple_planes      % single file in data set
-                    maxx = [ sizeZ sizeC sizeT ];       % so allow any selection
+                if  multiple_planes 
+                    % if single file in data set allow any selection
+                    if length(obj.file_names) == 1
+                        maxx = [ sizeZ sizeC sizeT ];   
+                    else
+                        % otherwise allow any Z or T but restrict Channels
+                        maxx = [ sizeZ 1 sizeT ];
+                    end
                 else
                     maxx = minn;
                 end
