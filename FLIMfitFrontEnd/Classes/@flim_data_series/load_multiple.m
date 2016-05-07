@@ -73,11 +73,11 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     names = [];
     
+    metadata = struct();
     na = 1;
     for dim = 1:3
         D = obj.ZCT{dim};
         if length(D) > allowed(dim)
-            metadata = struct();
             for f = 1:length(obj.file_names)
                 name = obj.names{f};
                 switch(dim)
