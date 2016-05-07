@@ -113,12 +113,9 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
                 end
             end
             obj.load_multiple_planes = dim;
+            obj.metadata = metadata;
             break;
         end
-    end
-    
-    if ~isempty(metadata)
-        obj.metadata = metadata;
     end
     
     
