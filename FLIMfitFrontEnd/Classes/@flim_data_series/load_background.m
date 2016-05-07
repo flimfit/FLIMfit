@@ -50,7 +50,7 @@ function load_background(obj, file_or_image, time_average)
     
     if isempty(im)  % not a .tif
     
-        dims = obj.get_image_dimensions(file_or_image);
+        [dims, ~, reader_settings] = obj.get_image_dimensions(file_or_image);
         
         % Determine which plane we need to load (param 5 disallows the
         % selection of multiple planes )
@@ -85,7 +85,7 @@ function load_background(obj, file_or_image, time_average)
         sizeY = dims.sizeXY(2);
         
         image_data = zeros(sizet, 1, sizeX, sizeY, 1);
-        [success , image_data] = obj.load_flim_cube(image_data, file_or_image,1,1, dims, ZCT);
+        [success , image_data] = obj.load_flim_cube(image_data, file_or_image, 1, 1, reader_settings, dims, ZCT);
         
         % average across t if 3D data
         if(sizet > 1)

@@ -39,11 +39,12 @@
 #include "FitStatus.h"
 
 #include "FlagDefinitions.h"
+#include "FLIMGlobalAnalysis.h"
 #include "ConcurrencyAnalysis.h"
 
 #include "omp_stub.h"
 
-#define MAX_REGION 255
+#define MAX_REGION 4095
 
 #define STREAM_DATA  true
 
@@ -55,7 +56,7 @@ class FLIMData
 public:
 
    FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type,
-            int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status);
+            int* use_im, mask_type mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status);
 
    int  SetData(float data[]);
    int  SetData(uint16_t data[]);
@@ -125,7 +126,7 @@ public:
 
    int use_autosampling;
 
-   uint8_t* mask;
+   mask_type* mask;
    int n_masked_px;
    int merge_regions;
 
@@ -334,7 +335,7 @@ int FLIMData::CalculateRegions()
          for(int p=0; p<n_px; p++)
          {
             T* ptr = cur_data_ptr + p*n_meas_full;
-            uint8_t* mask_ptr = mask + im*n_px + p;
+            mask_type* mask_ptr = mask + im*n_px + p;
             double intensity = 0;
             for(int k=0; k<n_chan; k++)
             {
@@ -370,8 +371,8 @@ int FLIMData::CalculateRegions()
 
       // Determine how many regions we have in each image
       //--------------------------------------------------------
-      int*     region_count_ptr = region_count + i * MAX_REGION;
-      uint8_t* mask_ptr         = mask + im*n_px;
+      int*       region_count_ptr = region_count + i * MAX_REGION;
+      mask_type* mask_ptr         = mask + im*n_px;
 
       memset(region_count_ptr, 0, MAX_REGION*sizeof(int));
       

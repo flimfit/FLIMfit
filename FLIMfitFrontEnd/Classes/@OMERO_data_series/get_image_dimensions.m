@@ -1,5 +1,5 @@
 
-function[dims,t_int ] = get_image_dimensions(obj, image)
+function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
 
 % Finds the dimensions of an OMERO image or set of images including 
 % the units along the time dimension (delays)
@@ -30,10 +30,14 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
 
     % if image is in fact a filename then call the superclass method
     % instead
+    
+    
     if findstr(class(image),'char')
-        [dims,t_int ] = get_image_dimensions@flim_data_series(obj, image);
+        [dims,t_int,reader_settings] = get_image_dimensions@flim_data_series(obj, image);
         return;
     end
+    
+    reader_settings = struct();
     
     t_int = [];
     dims.delays = [];
@@ -71,7 +75,7 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
     % if no modulo annotation check for Imspector produced ome-tiffs.
     if isempty(s)
         if strfind(char(image.getName.getValue() ),'ome.tif')
-            if sizeZCT(1) > 1
+            if sizeZCT(1) > 1 && sizeZCT(2) == 1 && sizeZCT(3) == 1
                 physZ = pixels.getPhysicalSizeZ();
                 if ~isempty(physZ)
                     physSizeZ = physZ.getValue() .* 1000;    % assume this is in ns so convert to ps
@@ -104,7 +108,7 @@ function[dims,t_int ] = get_image_dimensions(obj, image)
                  if ~isempty(wave)
                     dims.chan_info{c} = char(wave.getValue());
                  else
-                    dims.chan_info{c} = ['Channel:' num2str(c-1)];
+                    dims.chan_info{c} = ['Channel ' num2str(c-1)];
                  end
              end
         end

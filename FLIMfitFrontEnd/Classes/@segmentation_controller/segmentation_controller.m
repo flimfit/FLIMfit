@@ -72,8 +72,8 @@ classdef segmentation_controller < flim_data_series_observer
         segmentation_im;
         mask_im;
         
-        mask = uint8(1);
-        filtered_mask = uint8(1);
+        mask = uint16(1);
+        filtered_mask = uint16(1);
         n_regions = 0;
         
         ok_button;
@@ -233,7 +233,7 @@ classdef segmentation_controller < flim_data_series_observer
         
         function data_update(obj)
             d = obj.data_series;
-            obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
+            obj.mask = zeros([d.height d.width d.n_datasets],'uint16');
             obj.update_display();
             obj.n_regions = 0;
         end
@@ -250,7 +250,7 @@ classdef segmentation_controller < flim_data_series_observer
             a = questdlg('Are you sure you want to clear all regions?','Confirmation','Yes','No','No');
             if strcmp(a,'Yes')
                 d = obj.data_series;
-                obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
+                obj.mask = zeros([d.height d.width d.n_datasets],'uint16');
                 obj.filter_masks(1:obj.data_series.n_datasets);
             end
         end
@@ -381,7 +381,7 @@ classdef segmentation_controller < flim_data_series_observer
 
                 end
                 if ~isempty(im_mask)
-                    obj.filtered_mask(:,:,i) = uint8(im_mask);
+                    obj.filtered_mask(:,:,i) = uint16(im_mask);
                 end
                 
                 idx = idx + 1;
@@ -414,7 +414,7 @@ classdef segmentation_controller < flim_data_series_observer
                 
                 im_mask = call_arb_segmentation_function(func,intensity,params);
                 
-                obj.mask(:,:,i) = uint8(im_mask);
+                obj.mask(:,:,i) = uint16(im_mask);
                
                 obj.filter_masks(i);
                 

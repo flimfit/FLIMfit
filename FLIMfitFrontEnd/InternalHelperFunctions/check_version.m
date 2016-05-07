@@ -21,7 +21,6 @@ function check_version(quiet)
         fclose(fid);
         
         current_version = process_version(current_version);
-        current_version = [4 10 2];
 
         if ~isempty(new_version) && ~isempty(current_version)
            n = min(length(new_version), length(current_version));
@@ -30,6 +29,8 @@ function check_version(quiet)
            for i=1:n
                if new_version(i) > current_version(i)
                    new_available = true;
+               elseif new_version(i) < current_version(i)
+                   break;
                end
            end
 

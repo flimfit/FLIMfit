@@ -1,6 +1,8 @@
-function [param_data, mask] = get_image(obj,dataset,param,indexing)
-
-    % Copyright (C) 2013 Imperial College London.
+function [filename, pathname, selected, before_list] = prompt_for_export(obj,prompt,default_name, extString)
+    %> Matches function in OMERO_data_series. If OMERO export menu items are
+    % selected and data_series isn't set up for OMERO.
+    
+    % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -22,33 +24,11 @@ function [param_data, mask] = get_image(obj,dataset,param,indexing)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-    % Author : Sean Warren
-
-
-    param_data = 0;
-    mask = 0;
-        
-    if nargin < 4 || strcmp(indexing,'result')
-        dataset = obj.datasets(dataset);
-    end
+   
+    errordlg('Not yet implemented for data not loaded from OMERO!');
+    filename = 0;
+    pathname = 0;
+    selected = [];
+    before_list = [];
     
-    if (obj.bin || param == 0)
-        return
-    end
-            
-    sz = obj.im_size;
-    
-    
-    p_mask = libpointer('uint16Ptr', NaN(sz));
-    p_param_data = libpointer('singlePtr', NaN(sz));
-
-    err = calllib(obj.lib_name,'GetParameterImage',obj.dll_id, dataset-1, param-1, p_mask, p_param_data);
-    
-    mask = p_mask.Value;
-    mask = reshape(mask, sz);
-    
-    param_data = p_param_data.Value;
-    param_data = reshape(param_data, sz);
-
 end

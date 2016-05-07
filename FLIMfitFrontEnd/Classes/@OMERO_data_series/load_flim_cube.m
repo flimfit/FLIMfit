@@ -1,4 +1,4 @@
-function[success, target] = load_flim_cube(obj, target, image, read_selected, write_selected, dims, ZCT)
+function[success, target] = load_flim_cube(obj, target, image, read_selected, write_selected, reader_settings, dims, ZCT)
 
     % Loads FLIM_data from an OMERO image or set of images
 
@@ -25,6 +25,9 @@ function[success, target] = load_flim_cube(obj, target, image, read_selected, wr
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
     
+    if nargin < 6
+        reader_settings = obj.reader_settings;
+    end
 
     if nargin < 7        % dims/ZCT have not  been passed so get dimensions from data_series obj
         delays = obj.t;
@@ -39,7 +42,7 @@ function[success, target] = load_flim_cube(obj, target, image, read_selected, wr
         % if image is in fact a filename then call the superclass method
         % instead
         if findstr(class(image),'char')
-            [success, target] = load_flim_cube@flim_data_series(obj, target, image, read_selected, write_selected, dims, ZCT);
+            [success, target] = load_flim_cube@flim_data_series(obj, target, image, read_selected, write_selected, reader_settings, dims, ZCT);
             return;
         end
         

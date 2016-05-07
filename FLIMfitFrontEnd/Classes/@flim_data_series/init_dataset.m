@@ -52,7 +52,7 @@ function init_dataset(obj,setting_file_name)
     
     obj.background_image = [];
     
-    obj.mask = ones([obj.height obj.width obj.n_datasets],'uint8');
+    obj.mask = ones([obj.height obj.width obj.n_datasets],'uint16');
     obj.seg_mask = [];
     
     obj.intensity = [];
