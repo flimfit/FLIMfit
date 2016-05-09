@@ -1,4 +1,4 @@
-function irf_final = FitGaussianIRF(td, d, ax)
+function [irf_final,t_final] = FitGaussianIRF(td, d, ax)
 
 dt = td(2)-td(1);
 t = -max(td):1:max(td);
@@ -15,20 +15,27 @@ opts = optimset('Display', 'iter');
 t0 = td(idx);
 
 tau0 = 4000;
-sigma0 = 70;
+sigma0 = 200;
 
 count = 0;
 
 offset0 = 1e-10;
+
+
 x = fminsearch(@fit, [tau0, t0, sigma0, I0], opts);
 
+disp(['t0: ' num2str(x(2)) ' ps']);
+disp(['sigma: ' num2str(x(3)) ' ps']);
 
-irf_final = irfc(sel);
+sel2 = ismember(int32(t), int32(0:25:T));
+
+t_final = t(sel2);
+irf_final = irfc(sel2);
 irf_final = irf_final / sum(irf_final);
 
 plot(ax, td,[d dc]);
 hold on;
-plot(ax, td,irf_final / max(irf_final));
+plot(ax, t_final, irf_final / max(irf_final));
 hold off;
 
 
@@ -37,7 +44,8 @@ hold off;
         t0 = x(2);
         sigma = x(3);
         I = x(4);
-        [dc,irfc] = generate_decay(I, tau, t0, sigma, 0);
+        %width = x(5);
+        [dc,irfc] = generate_decay(I, tau, t0, sigma, 0, 0);
         
         if mod(count,20) == 0
             plot(td,d,'ob','MarkerSize',3);
@@ -52,12 +60,18 @@ hold off;
         r = sum((d-dc).^2);
     end
 
-    function [dc,irf] = generate_decay(I, tau, t0, sigma, offset)
+    function [dc,irf] = generate_decay(I, tau, t0, sigma, width, offset)
         irf = normpdf(t,t0,sigma) + offset;
-
+        %w = t >= 0 & t <= width * 1e3;
+        %w = w / sum(w);
+        
+        %irf1 = irf;
+        %irf = conv(irf,w,'same');
+        
         dc = I * decay_fcn(tau, t);
         dc = conv(dc,irf,'same');
         dc = dc(1:length(t));
+        
         dc = dc(sel)';
     end
 
