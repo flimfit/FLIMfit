@@ -150,6 +150,13 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     obj.init_dataset(data_setting_file);
     
+    memory
+    clear('obj.data_series_mem');
+    memory
+    obj.data_series_mem = [];
+    memory
+   
+    
     function add_class(class)
         if ~isfield(metadata,class)
             metadata.(class) = cell(1,obj.n_datasets);
