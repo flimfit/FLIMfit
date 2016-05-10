@@ -97,10 +97,11 @@ function update_plots(obj,file_root)
                         hei = r.width;
                         
                         % work-around for small image issues
-                        if wid < 100 & hei < 100
+                        while wid < 100 & hei < 100
                             wid = wid.*2;
                             hei = hei.*2;
                         end
+                        
                         [h,c] = tight_subplot(f_save,1,1,1,save,[wid hei]);
                     end
                     
@@ -119,7 +120,15 @@ function update_plots(obj,file_root)
                         h = ha(subplot_idx);
                         c = hc(subplot_idx);
                     else
-                        [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
+                        wid = r.width;
+                        hei = r.width;
+                        
+                        % work-around for small image issues
+                        while wid < 100 & hei < 100
+                            wid = wid.*2;
+                            hei = hei.*2;
+                        end
+                        [h,c] = tight_subplot(f_save,1,1,1,save,[wid hei]);
                     end
                     
                     obj.plot_figure(h,c,cur_im,plot_idx,true,'',indexing);
@@ -139,4 +148,5 @@ function update_plots(obj,file_root)
         close(f_save)
     end
 end
+
 
