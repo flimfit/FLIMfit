@@ -93,15 +93,16 @@ function update_plots(obj,file_root)
                         h = ha(subplot_idx);
                         c = hc(subplot_idx);
                     else
-                        [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
+                        wid = r.width .* 2;
+                        hei = r.width .* 2;
+                        [h,c] = tight_subplot(f_save,1,1,1,save,[wid hei]);
                     end
                     
                     im_data = obj.plot_figure(h,c,cur_im,plot_idx,false,'',indexing);
                     
                     subplot_idx = subplot_idx + 1;
                     if save
-                        
-                        export_fig([name_root ' ' r.params{plot_idx} '.' ext], '-m4');
+                        export_fig([name_root ' ' r.params{plot_idx} '.' ext]);
                         SaveFPTiff(im_data,[name_root ' ' r.params{plot_idx} ' raw.tif'])
                     end
                 end
