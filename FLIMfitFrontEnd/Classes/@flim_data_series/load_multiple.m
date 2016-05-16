@@ -26,8 +26,6 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
 
     % Author : Sean Warren
     
-    obj.use_memory_mapping = true;
-    
     % get dimensions from first file
     [dims,~,obj.reader_settings] = obj.get_image_dimensions(obj.file_names{1});
     
