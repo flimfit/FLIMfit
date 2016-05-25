@@ -70,44 +70,27 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     prefix = [ 'Z' 'C' 'T'];
     
     names = [];
+    filename = {};
     
     na = 1;
     for dim = 1:3
+        p = prefix(dim);
         D = obj.ZCT{dim};
         if length(D) > allowed(dim)
             metadata = struct();
             for f = 1:length(obj.file_names)
                 name = obj.names{f};
-                switch(dim)
-                    case 2  %channels
-                        add_class('Channel');
-                        for d = 1:length(D)
-                            if  ~isempty(chan_info)
-                                names{na} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{D(d)} ];
-                                metadata.Channel{na} = chan_info{D(d)};
-                            else
-                                names{na} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{D(d)} ];
-                                metadata.Channel{na} = D(d) -1;
-                            end
-                            metadata.FileName{na} = name;
-                            na = na + 1;
-                        end
-                    case 1  %Z
-                        add_class('Z');
-                        for d = 1:length(D)
-                            names{na} = [ prefix(dim)   num2str(D(d) -1) '-' name];
-                            metadata.Z{na} = D(d) -1;
-                            metadata.FileName{na} = name;
-                            na = na + 1;
-                        end
-                    case 3  %T
-                        add_class('T');
-                        for d = 1:length(D)
-                            names{na} = [ prefix(dim)   num2str(D(d) -1) '-' name];
-                            metadata.T{na} = D(d) -1;
-                            metadata.FileName{na} = name;
-                            na = na + 1;
-                        end
+                %add_class(p);
+                for d = 1:length(D)
+                    if p == 'C' && ~isempty(chan_info)
+                        names{na} = [ p num2str(D(d) -1) '-' chan_info{D(d)} ];
+                        metadata.(p){na} = chan_info{D(d)};
+                    else
+                        names{na} = [ p num2str(D(d)-1) '-' name ];
+                        metadata.(p){na} = D(d)-1;
+                    end
+                    filename{na} = name;
+                    na = na + 1;
                 end
             end
             obj.load_multiple_planes = dim;
@@ -115,6 +98,8 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
             break;
         end
     end
+    
+    obj.metadata = extract_metadata(filename,obj.metadata);
     
     
     if ~isempty(names)
