@@ -72,35 +72,37 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     names = [];
     filename = {};
     
-    na = 1;
-    for dim = 1:3
-        p = prefix(dim);
-        D = obj.ZCT{dim};
-        if length(D) > allowed(dim)
-            metadata = struct();
-            for f = 1:length(obj.file_names)
-                name = obj.names{f};
-                %add_class(p);
-                for d = 1:length(D)
-                    if p == 'C' && ~isempty(chan_info)
-                        names{na} = [ p num2str(D(d) -1) '-' chan_info{D(d)} ];
-                        metadata.(p){na} = chan_info{D(d)};
-                    else
-                        names{na} = [ p num2str(D(d)-1) '-' name ];
-                        metadata.(p){na} = D(d)-1;
+    if any(cellfun(@length,obj.ZCT) > allowed)
+    
+        na = 1;
+        for dim = 1:3
+            p = prefix(dim);
+            D = obj.ZCT{dim};
+            if length(D) > allowed(dim)
+                metadata = struct();
+                for f = 1:length(obj.file_names)
+                    name = obj.names{f};
+                    %add_class(p);
+                    for d = 1:length(D)
+                        if p == 'C' && ~isempty(chan_info)
+                            names{na} = [ p num2str(D(d) -1) '-' chan_info{D(d)} ];
+                            metadata.(p){na} = chan_info{D(d)};
+                        else
+                            names{na} = [ p num2str(D(d)-1) '-' name ];
+                            metadata.(p){na} = D(d)-1;
+                        end
+                        filename{na} = name;
+                        na = na + 1;
                     end
-                    filename{na} = name;
-                    na = na + 1;
                 end
+                obj.load_multiple_planes = dim;
+                obj.metadata = metadata;
+                break;
             end
-            obj.load_multiple_planes = dim;
-            obj.metadata = metadata;
-            break;
         end
+
+        obj.metadata = extract_metadata(filename,obj.metadata);
     end
-    
-    obj.metadata = extract_metadata(filename,obj.metadata);
-    
     
     if ~isempty(names)
         obj.names = names;
