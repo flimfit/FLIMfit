@@ -47,6 +47,18 @@ try
  
     for i=1:n
         s = strings{i};
+        
+        % Get trailing rep numbers
+        [match,tokens] = regexp(s,'_(\d+)_(\d+)$','match','tokens','once');
+        if ~isempty(tokens)
+            add_class('Rep1');
+            add_class('Rep2');
+            metadata.Rep1{i} = str2double(tokens{1});
+            metadata.Rep2{i} = str2double(tokens{2});
+            
+            s = strrep(s,match,'');
+        end
+        
         % Look for Well= indicator
         [tokens,match] = regexp(s,'Well=([A-Za-z])(\d+)','tokens','match');
         if ~isempty(tokens)
@@ -61,7 +73,7 @@ try
             metadata.Row{i} = token{1};
             metadata.Column{i} = token{2};
             
-            strrep(s,match{1},'');
+            s = strrep(s,match{1},'');
             
         else  
         
@@ -174,11 +186,19 @@ try
             metadata.(names{j}) = d;  
         end
     end
+    
+    % put rep fields at end
+    fields = fieldnames(metadata);
+    sel = ~cellfun(@isempty,strfind(fields,'Rep'));
+    [~,idx] = sort(sel);
+    ord = 1:length(fields);
+    metadata = orderfields(metadata,ord(idx));
 
 catch e
 
     warning('Error while trying to extract metadata! Falling back to filenames');
     metadata.FileName = strings;
+    disp(getReport(e));
 end
 
     function add_class(class)
