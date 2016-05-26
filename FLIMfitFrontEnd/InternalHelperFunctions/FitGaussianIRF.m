@@ -1,42 +1,40 @@
 function [irf_final,t_final] = FitGaussianIRF(td, d, T, ax)
 
-dt = td(2)-td(1);
-t = -max(td):1:max(td);
-decay_fcn = @(tau,t) ((t>0) + 1 / exp(T/tau)) .* exp(-t/tau);
+    dt = td(2)-td(1);
+    t = -max(td):1:max(td);
+    decay_fcn = @(tau,t) ((t>0) + 1 / exp(T/tau)) .* exp(-t/tau);
 
-sel = ismember(int32(t), int32(td));
-sum(sel)
-irf = [];
-dc = [];
+    sel = ismember(int32(t), int32(td));
+    sum(sel)
+    dc = [];
 
-opts = optimset('Display', 'iter');
+    opts = optimset('Display', 'iter');
 
-[I0,idx] = max(d);
-t0 = td(idx);
+    [I0,idx] = max(d);
+    t0 = td(idx);
 
-tau0 = 4000;
-sigma0 = 200;
+    tau0 = 4000;
+    sigma0 = 200;
 
-count = 0;
+    count = 0;
+    x = fminsearch(@fit, [tau0, t0, sigma0, I0], opts);
 
-offset0 = 1e-10;
+    disp(['t0: ' num2str(x(2)) ' ps']);
+    disp(['sigma: ' num2str(x(3)) ' ps']);
 
+    tg = floor(t / dt);
+    tgm = min(tg);
+    irf_final = accumarray(tg'-tgm+1,irfc');
+    t_final = tgm*dt + (0:(length(irf_final)-1)) * dt;
 
-x = fminsearch(@fit, [tau0, t0, sigma0, I0], opts);
+    min_idx = find(irf_final > 1e-3,1) - 1;
+    irf_final = irf_final(min_idx:end);
+    t_final = t_final(min_idx:end);
 
-disp(['t0: ' num2str(x(2)) ' ps']);
-disp(['sigma: ' num2str(x(3)) ' ps']);
-
-sel2 = ismember(int32(t), int32(-1000:25:T));
-
-t_final = t(sel2);
-irf_final = irfc(sel2);
-irf_final = irf_final / sum(irf_final);
-
-plot(ax, td,[d dc]);
-hold on;
-plot(ax, t_final, irf_final / max(irf_final));
-hold off;
+    plot(ax, td,[d dc]);
+    hold on;
+    plot(ax, t_final, irf_final / max(irf_final));
+    hold off;
 
 
     function r = fit(x)
@@ -44,7 +42,6 @@ hold off;
         t0 = x(2);
         sigma = x(3);
         I = x(4);
-        %width = x(5);
         [dc,irfc] = generate_decay(I, tau, t0, sigma, 0, 0);
         
         if mod(count,20) == 0
@@ -60,13 +57,8 @@ hold off;
         r = sum((d-dc).^2);
     end
 
-    function [dc,irf] = generate_decay(I, tau, t0, sigma, width, offset)
+    function [dc,irf] = generate_decay(I, tau, t0, sigma, offset)
         irf = normpdf(t,t0,sigma) + offset;
-        %w = t >= 0 & t <= width * 1e3;
-        %w = w / sum(w);
-        
-        %irf1 = irf;
-        %irf = conv(irf,w,'same');
         
         dc = I * decay_fcn(tau, t);
         dc = conv(dc,irf,'same');
