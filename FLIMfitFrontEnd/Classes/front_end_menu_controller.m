@@ -58,8 +58,6 @@ classdef front_end_menu_controller < handle
         menu_OMERO_export_fit_params;
         menu_OMERO_import_fit_params;
         
-        menu_OMERO_Export_Visualisation_Images;
-        
         menu_OMERO_Connect_To_Another_User;    
         menu_OMERO_Connect_To_Logon_User;    
         
@@ -588,11 +586,7 @@ classdef front_end_menu_controller < handle
                   end
             end
         end                                            
-        %------------------------------------------------------------------
-        function menu_OMERO_Export_Visualisation_Images_callback(obj)
-            add_Image(obj.omero_logon_manager);
-            %obj.omero_logon_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
-        end                                    
+                                          
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Another_User_callback(obj)
             obj.omero_logon_manager.Select_Another_User();

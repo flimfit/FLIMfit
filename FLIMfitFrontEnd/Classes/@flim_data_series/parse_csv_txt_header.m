@@ -56,8 +56,6 @@ function[header_data] = parse_csv_txt_header(obj, file)
         end
     end
 
-    if isempty(header_data)
-        throw(MException('FLIM:CSVFileMustHaveHeader','Delimited text files must have a header'));
-    end
+  
     
     fclose(fid);

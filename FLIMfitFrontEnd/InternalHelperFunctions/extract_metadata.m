@@ -1,4 +1,4 @@
-function metadata = extract_metadata(strings)
+function metadata = extract_metadata(strings,metadata)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -30,8 +30,11 @@ function metadata = extract_metadata(strings)
     strrep(strings,'.','_');
     
 try 
-    metadata = struct();
-
+    
+    if nargin < 2
+        metadata = struct();
+    end
+    
     if nargin < 1
         strings = {'Test t=1.0min x=4 type=gfp' 'Test t=2.0min x=3'};
     end
@@ -137,7 +140,7 @@ try
         end
         
         % Look for things of the form 'Xnn'
-        [match,tokens] = regexp(s,'\s([A-Z])([\d]+(?:[_-,]\d+)*)','match','tokens');
+        [match,tokens] = regexp(s,'\s([A-Z][a-z]+)([\d]+(?:[_-,]\d+)*)','match','tokens');
         for j=1:length(tokens)
             t = tokens{j};
             t{2} = strrep(t{2},'_','.');

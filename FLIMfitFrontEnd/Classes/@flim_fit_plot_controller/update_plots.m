@@ -93,7 +93,7 @@ function update_plots(obj,file_root)
                         h = ha(subplot_idx);
                         c = hc(subplot_idx);
                     else
-                        [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
+                        [h,c] = tight_subplot(f_save,1,1,1,save,size_check(r.width,r.height));
                     end
                     
                     im_data = obj.plot_figure(h,c,cur_im,plot_idx,false,'',indexing);
@@ -111,7 +111,7 @@ function update_plots(obj,file_root)
                         h = ha(subplot_idx);
                         c = hc(subplot_idx);
                     else
-                        [h,c] = tight_subplot(f_save,1,1,1,save,[r.width r.height]);
+                        [h,c] = tight_subplot(f_save,1,1,1,save,size_check(r.width, r.height));
                     end
                     
                     obj.plot_figure(h,c,cur_im,plot_idx,true,'',indexing);
@@ -130,5 +130,16 @@ function update_plots(obj,file_root)
     if save
         close(f_save)
     end
+end
+
+% work-around to enlarge small images to avoid oversized text 
+function winsize = size_check(width,height)
+
+while width < 100 && height < 100
+    width = width .* 2;
+    height = height .* 2;
+end
+winsize = [width height];
+
 end
 
