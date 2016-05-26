@@ -1,9 +1,9 @@
-function [irf_final,t_final] = FitGaussianIRF(td, d, ax)
+function [irf_final,t_final] = FitGaussianIRF(td, d, T, ax)
 
 dt = td(2)-td(1);
 t = -max(td):1:max(td);
-T = 12500;
-decay_fcn = @(tau,t) ((t>0).*exp(-t/tau) + ((t+T)>0).*exp(-(t+T)/tau) + ((t+2*T)>0).*exp(-(t+2*T)/tau) + ((t+3*T)>0).*exp(-(t+3*T)/tau) + ((t+4*T)>0).*exp(-(t+4*T)/tau));
+decay_fcn = @(tau,t) ((t>0) + 1 / exp(T/tau)) .* exp(-t/tau);
+
 sel = ismember(int32(t), int32(td));
 sum(sel)
 irf = [];
@@ -27,7 +27,7 @@ x = fminsearch(@fit, [tau0, t0, sigma0, I0], opts);
 disp(['t0: ' num2str(x(2)) ' ps']);
 disp(['sigma: ' num2str(x(3)) ' ps']);
 
-sel2 = ismember(int32(t), int32(0:25:T));
+sel2 = ismember(int32(t), int32(-1000:25:T));
 
 t_final = t(sel2);
 irf_final = irfc(sel2);
