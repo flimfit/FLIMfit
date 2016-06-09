@@ -132,6 +132,9 @@ classdef control_binder < handle
             switch control_type
                 case 'edit'
                     value = str2double(get(src,'String'));
+                    if isnan(value)
+                        value = obj.bound_data_source.(parameter);
+                    end
                 case 'popupmenu'
                     idx = get(src,'Value');
                     str = get(src,'String');
