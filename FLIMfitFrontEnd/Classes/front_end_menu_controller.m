@@ -188,6 +188,7 @@ classdef front_end_menu_controller < handle
         recent_irf;
         recent_default_path;
 
+        platform_default_path; 
         default_path;
         window;
 
