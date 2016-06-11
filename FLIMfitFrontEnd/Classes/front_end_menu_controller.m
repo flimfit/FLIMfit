@@ -207,10 +207,10 @@ classdef front_end_menu_controller < handle
             try
                 obj.default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
             catch e
-                if ismac
-                    obj.platform_default_path = '';
-                else
+                if ispc
                     obj.platform_default_path = 'C:';
+                else
+                    obj.platform_default_path = '';
                 end
                 addpref('GlobalAnalysisFrontEnd','DefaultFolder',obj.platform_default_path)
                 obj.default_path = obj.platform_default_path;
