@@ -212,7 +212,7 @@ classdef front_end_menu_controller < handle
                 else
                     obj.platform_default_path = 'C:';
                 end
-                addpref('GlobalAnalysisFrontEnd','DefaultFolder',default)
+                addpref('GlobalAnalysisFrontEnd','DefaultFolder',obj.platform_default_path)
                 obj.default_path = obj.platform_default_path;
             end
             
