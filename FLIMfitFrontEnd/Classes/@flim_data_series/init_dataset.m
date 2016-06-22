@@ -33,7 +33,7 @@ function init_dataset(obj,setting_file_name)
     % Set defaults for background depending on type of data
     if strcmp(obj.mode,'TCSPC')
         obj.background_value = 0;
-        obj.background_type = 0;
+        background_type = 0;
     else
         background_val = prof.Data.Default_Camera_Background;
         
@@ -41,10 +41,10 @@ function init_dataset(obj,setting_file_name)
         % data
         if min(obj.cur_tr_data(:)) <= background_val
             obj.background_value = 0;
-            obj.background_type = 0;
+            background_type = 0;
         else
             obj.background_value = background_val;
-            obj.background_type = 1;
+            background_type = 1;
         end
     end
     
@@ -124,6 +124,8 @@ function init_dataset(obj,setting_file_name)
     end
     
     obj.compute_tr_irf();
-    obj.compute_tr_data();
+    % NB this calls compute_tr_data so no need to call explicitly
+    obj.background_type = background_type; 
+    
 
 end
