@@ -256,10 +256,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
            % tElapsed = toc(tstart)
            
 
-            if verbose
-                delete(w);
-                drawnow;
-            end
+           
 
             if strcmp('TCSPC',obj.mode)
                 
@@ -273,6 +270,11 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 if min(target(target > 0)) > 32500
                     target = target - 32768;    % clear the sign bit which is set by labview
                 end
+            end
+            
+            if verbose
+                delete(w);
+                drawnow;
             end
             
            
