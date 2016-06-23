@@ -268,7 +268,12 @@ function[success, target] = load_flim_cube(obj, target, image, read_selected, wr
     
     store.close();
     
-  
+    if verbose
+        delete(w);
+        drawnow;
+    end
+    
+    
     if strcmp('TCSPC',obj.mode)
         %Kludge to suppress bright line artefact on RHS in BH .sdt files
         file = char(image.getName().getValue());
@@ -280,11 +285,6 @@ function[success, target] = load_flim_cube(obj, target, image, read_selected, wr
         if min(target(target > 0)) > 32500
             target = target - 32768;    % clear the sign bit which is set by labview
         end
-    end
-    
-     if verbose
-        delete(w);
-        drawnow;
     end
     
     

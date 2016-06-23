@@ -114,8 +114,6 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
         obj.load_selected_files(1:obj.n_datasets);
     end
    
-    w = waitbar(1,'Initializing! Please wait...');
     obj.init_dataset(data_setting_file);
-    close(w);
       
 end

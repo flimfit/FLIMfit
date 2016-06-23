@@ -146,11 +146,12 @@ function load_selected_files(obj,selected)
     end
     
     
-    obj.compute_tr_data(false);
     
     if using_popup
-        close(wait_handle);
+        close(wait_handle)
     end
+    
+    obj.compute_tr_data(false);
     
     
 end
