@@ -102,17 +102,14 @@ function load_background(obj, file_or_image, time_average)
         end
     end  % end 'not a 'tif'
     
-     wbar = waitbar(1,'Initializing! Please wait...');
     
      % correct for labview broken tiffs
      if all(im > 2^15)
          im = im - 2^15;
      end
-
-    
+  
      extent = 3;
      im = medfilt2(im,[extent extent],'symmetric');
-
 
      if any(size(im) ~= [obj.height obj.width])
          throw(MException('GlobalAnalysis:BackgroundIncorrectShape','Error loading background, file has different dimensions to the data'));
@@ -122,6 +119,4 @@ function load_background(obj, file_or_image, time_average)
      end
 
      
-     close(wbar);
-    
 end

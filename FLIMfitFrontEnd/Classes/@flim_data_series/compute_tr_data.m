@@ -46,6 +46,8 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     calculated = false;
     
     if obj.init && ~obj.suspend_transformation
+        
+        wbar = waitbar(1,'Transforming! Please wait...');
 
         calculated = true;
 
@@ -255,11 +257,14 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         obj.compute_tr_irf();
         
  
-        
         obj.compute_intensity();
-        obj.compute_tr_tvb_profile();        
+        obj.compute_tr_tvb_profile();  
+        
         if notify_update
             notify(obj,'data_updated');
         end
+        
+        close(wbar);
+        
     end
 end
