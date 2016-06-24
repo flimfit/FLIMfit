@@ -672,7 +672,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
-                if strcmp(obj,default_path,obj.platform_default_path)
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -687,7 +687,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                if strcmp(obj,default_path,obj.platform_default_path)
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
