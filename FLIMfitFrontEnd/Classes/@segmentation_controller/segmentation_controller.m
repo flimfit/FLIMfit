@@ -53,6 +53,7 @@ classdef segmentation_controller < flim_data_series_observer
         
        
         trim_outliers_checkbox;
+        white_text_checkbox;
         
         data_series_list;
         
