@@ -75,6 +75,11 @@ function load_single(obj,images,polarisation_resolved)
         
     obj.polarisation_resolved = polarisation_resolved;
     
+    % must be done after test for .raw as load_raw_data requires mem mapping
+    if is64
+        obj.use_memory_mapping = false;
+    end
+    
     for i = 1:obj.n_datasets
         image = images(i);
         obj.file_names{i} = image;
