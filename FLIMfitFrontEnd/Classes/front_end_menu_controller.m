@@ -1173,16 +1173,15 @@ classdef front_end_menu_controller < handle
             end
 
             dat = table();
-            dat.t = t_final';
+            dat.t = t_final;
             for i=1:size(irf,2)
                 dat.(['irf_ch' num2str(i)]) = irf(:,i);
             end
             
-%            plot(ax, t, irf);
-%            ylabel('IRF'); xlabel('Time (ps)');
-
             [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
-            writetable(dat,[path file]);
+            if file~=0
+                writetable(dat,[path file]);
+            end
             
             close(fh);
             
