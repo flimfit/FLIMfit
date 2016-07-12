@@ -1162,19 +1162,26 @@ classdef front_end_menu_controller < handle
             d = obj.data_series_controller.data_series;
             mask = obj.data_masking_controller.roi_controller.roi_mask;
 
+            T = 1e6 / d.rep_rate;
+            
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = mean(double(data),3);
             
             for i=1:size(data,2)
-                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),ax);
+                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),T,ax);
             end
 
-%            plot(ax, t, irf);
-%            ylabel('IRF'); xlabel('Time (ps)');
-
+            dat = table();
+            dat.t = t_final;
+            for i=1:size(irf,2)
+                dat.(['irf_ch' num2str(i)]) = irf(:,i);
+            end
+            
             [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
-            csvwrite([path file], [t_final', irf]);
+            if file~=0
+                writetable(dat,[path file]);
+            end
             
             close(fh);
             
