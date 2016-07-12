@@ -268,6 +268,13 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             files = {dirStruct.name};
             [dims.delays,dims.t_int] = get_delays_from_tif_stack(files);
             
+            if sum(isnan(dims.delays)) > 0
+                dims.delays =[];
+                dims.t_int = [];
+                errordlg('Unrecognised file-name convention!')'
+                return;
+            end
+            
             first = [path filesep files{1}];
             info = imfinfo(first);
                         

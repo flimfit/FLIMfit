@@ -58,8 +58,6 @@ classdef front_end_menu_controller < handle
         menu_OMERO_export_fit_params;
         menu_OMERO_import_fit_params;
         
-        menu_OMERO_Export_Visualisation_Images;
-        
         menu_OMERO_Connect_To_Another_User;    
         menu_OMERO_Connect_To_Logon_User;    
         
@@ -190,6 +188,7 @@ classdef front_end_menu_controller < handle
         recent_irf;
         recent_default_path;
 
+        platform_default_path; 
         default_path;
         window;
 
@@ -208,8 +207,13 @@ classdef front_end_menu_controller < handle
             try
                 obj.default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
             catch e
-                addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
-                obj.default_path = 'C:\';
+                if ispc
+                    obj.platform_default_path = 'C:';
+                else
+                    obj.platform_default_path = '';
+                end
+                addpref('GlobalAnalysisFrontEnd','DefaultFolder',obj.platform_default_path)
+                obj.default_path = obj.platform_default_path;
             end
             
             try
@@ -588,11 +592,7 @@ classdef front_end_menu_controller < handle
                   end
             end
         end                                            
-        %------------------------------------------------------------------
-        function menu_OMERO_Export_Visualisation_Images_callback(obj)
-            add_Image(obj.omero_logon_manager);
-            %obj.omero_logon_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
-        end                                    
+                                          
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Another_User_callback(obj)
             obj.omero_logon_manager.Select_Another_User();
@@ -647,7 +647,7 @@ classdef front_end_menu_controller < handle
             end
             obj.data_series_controller.data_series = flim_data_series();
             obj.data_series_controller.load_single([path files]); 
-            if strcmp(obj.default_path,'C:\')
+            if strcmp(obj.default_path,obj.platform_default_path)
                 obj.default_path = path;
             end
             
@@ -656,7 +656,7 @@ classdef front_end_menu_controller < handle
             %if file ~= 0
             %    obj.data_series_controller.data_series = flim_data_series();
             %    obj.data_series_controller.load_single([path file]); 
-            %    if strcmp(obj.default_path,'C:\')
+            %    if strcmp(obj,default_path,obj.platform_default_path)
             %        obj.default_path = path;
             %    end
             %end
@@ -672,7 +672,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj,default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -687,7 +687,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj,default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -704,7 +704,7 @@ classdef front_end_menu_controller < handle
             if file ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_plate([path file]); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -719,7 +719,7 @@ classdef front_end_menu_controller < handle
             if file ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj,default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -734,7 +734,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj,default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -1068,7 +1068,7 @@ classdef front_end_menu_controller < handle
                 fit_params = obj.fitting_params_controller.fit_params;
                 obj.data_series_controller.data_series.save_dataset_indextings(settings_file);
                 batch_fit(folder,'widefield',settings_file,fit_params);
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj,default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
