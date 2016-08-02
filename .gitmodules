@@ -1,4 +1,4 @@
 [submodule "FLIMreader"]
 	path = FLIMreader
    url=https://github.com/seanwarren/FLIMreader.git
-   branch=master
+   branch=stable
