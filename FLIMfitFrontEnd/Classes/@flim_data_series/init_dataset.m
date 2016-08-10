@@ -123,7 +123,6 @@ function init_dataset(obj,setting_file_name)
         obj.counts_per_photon = 1;
     end
     
-    obj.compute_tr_irf();
     obj.compute_tr_data();
 
 end

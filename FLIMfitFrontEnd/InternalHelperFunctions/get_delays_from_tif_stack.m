@@ -4,7 +4,7 @@ function [delays,t_int,files] = get_delays_from_tif_stack(files)
     t_int = ones(1,length(files));
 
     for f = 1:length(files)
-        name = files{f};
+        [~,name] = fileparts(files{f});
         tokens = regexp(name,'INT\_(\d+)','tokens');
         if ~isempty(tokens)
             t_int(f) = str2double(tokens{1});

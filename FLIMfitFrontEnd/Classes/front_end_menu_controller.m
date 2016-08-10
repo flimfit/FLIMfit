@@ -672,7 +672,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
-                if strcmp(obj,default_path,obj.platform_default_path)
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -687,7 +687,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                if strcmp(obj,default_path,obj.platform_default_path)
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -719,7 +719,7 @@ classdef front_end_menu_controller < handle
             if file ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
-                if strcmp(obj,default_path,obj.platform_default_path)
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -734,7 +734,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
-                if strcmp(obj,default_path,obj.platform_default_path)
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -1068,7 +1068,7 @@ classdef front_end_menu_controller < handle
                 fit_params = obj.fitting_params_controller.fit_params;
                 obj.data_series_controller.data_series.save_dataset_indextings(settings_file);
                 batch_fit(folder,'widefield',settings_file,fit_params);
-                if strcmp(obj,default_path,obj.platform_default_path)
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -1162,19 +1162,26 @@ classdef front_end_menu_controller < handle
             d = obj.data_series_controller.data_series;
             mask = obj.data_masking_controller.roi_controller.roi_mask;
 
+            T = 1e6 / d.rep_rate;
+            
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = mean(double(data),3);
             
             for i=1:size(data,2)
-                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),ax);
+                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),T,ax);
             end
 
-%            plot(ax, t, irf);
-%            ylabel('IRF'); xlabel('Time (ps)');
-
+            dat = table();
+            dat.t = t_final;
+            for i=1:size(irf,2)
+                dat.(['irf_ch' num2str(i)]) = irf(:,i);
+            end
+            
             [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
-            csvwrite([path file], [t_final', irf]);
+            if file~=0
+                writetable(dat,[path file]);
+            end
             
             close(fh);
             
