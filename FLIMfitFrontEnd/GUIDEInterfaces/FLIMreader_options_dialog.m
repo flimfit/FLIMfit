@@ -1,5 +1,7 @@
 function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignment)
 
+    persistent last_options
+
     if nargin < 2
         max_timebins = 256;
         dt = 1;
@@ -52,26 +54,48 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     uicontrol('Style','text','String','Realignment','Parent',realign_layout,'HorizontalAlignment','left');
     uicontrol('Style','text','String','Spatial binning','Parent',realign_layout,'HorizontalAlignment','left');
     uicontrol('Style','text','String','Frame binning','Parent',realign_layout,'HorizontalAlignment','left');
-    realign_popup = uicontrol('Style','popupmenu','Parent',realign_layout,'String',{'Off','Translation','Rigid Body'},'Callback',@realign_callback);
+    uicontrol('Style','text','String','Points','Parent',realign_layout,'HorizontalAlignment','left');
+    realign_popup = uicontrol('Style','popupmenu','Parent',realign_layout,'String',{'Off','Translation','Rigid Body','Warp'},'Callback',@(x,y) realign_callback());
     realign_spatial_popup = uicontrol('Style','popupmenu','Parent',realign_layout,'String',binning,'Enable','off','Value',3);
     realign_frame_popup = uicontrol('Style','popupmenu','Parent',realign_layout,'String',{'1' '2' '3' '4' '5' '6'},'Enable','off','Value',4);
+    realign_points_popup = uicontrol('Style','popupmenu','Parent',realign_layout,'String',{'5' '10' '20' '30' '40' '50'},'Enable','off','Value',2);
     set(realign_layout,'RowSizes',[22 22 22],'ColumnSizes',[-1 200]);
 
+    if ~isempty(last_options)
+        setPopupByNumber(spatial_popup, last_options.spatial_binning);
+        setPopupByNumber(timebins_popup, last_options.timebins);
+        setPopupByNumber(realign_spatial_popup, last_options.realignment.spatial_binning);
+        setPopupByNumber(realign_frame_popup, last_options.realignment.frame_binning);
+        setPopupByNumber(realign_points_popup, last_options.realignment.n_resampling_points);
+        set(realign_popup,'Value',last_options.realignment.type + 1);
+        realign_callback();
+    end
+    
+    
     if supports_realignment      
-        fig_sizes = [49 105 22];
+        fig_sizes = [49 130 22];
     else
         fig_sizes = [49 0 22];
     end
     
     
-    function realign_callback(~,~)
-        if get(realign_popup,'Value') > 1
-            enable_str = 'on';
-        else
-            enable_str = 'off';
+    function realign_callback()
+        mode = get(realign_popup,'Value');
+        enable_spatial = 'off';
+        enable_frame = 'off';
+        enable_interp = 'off';
+        if mode > 1
+            enable_spatial = 'on';
+            enable_frame = 'on';
         end
-        set(realign_spatial_popup,'Enable',enable_str);
-        set(realign_frame_popup,'Enable',enable_str);
+        if mode == 4
+            set(realign_frame_popup,'Value',1);
+            enable_frame = 'off';
+            enable_interp = 'on';
+        end
+        set(realign_spatial_popup,'Enable',enable_spatial);
+        set(realign_frame_popup,'Enable',enable_frame);
+        set(realign_points_popup,'Enable',enable_interp);
     end   
     
     uicontrol('Style','pushbutton','Parent',fig_layout,'String','OK','Callback',@(~,~) uiresume(fh));
@@ -108,13 +132,37 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     
     uiwait(fh);
 
-    options.spatial_binning = 2^(get(spatial_popup,'Value')-1);
+    options.spatial_binning = getNumberFromPopup(realign_spatial_popup);
     options.num_temporal_bits = ceil(log2(max_timebins)) - get(timebins_popup,'Value') + 1; 
-    options.realignment.use_realignment = get(realign_popup,'Value') > 1;
-    options.realignment.use_rotation = get(realign_popup,'Value') == 3;
-    options.realignment.spatial_binning = 2^(get(realign_spatial_popup,'Value')-1);
-    options.realignment.frame_binning = get(realign_frame_popup,'Value');
+    options.realignment.type = get(realign_popup,'Value')-1;
+    options.realignment.spatial_binning = getNumberFromPopup(realign_spatial_popup);
+    options.realignment.frame_binning = getNumberFromPopup(realign_frame_popup);
+    options.realignment.n_resampling_points = getNumberFromPopup(realign_points_popup); 
+    options.timebins = getNumberFromPopup(timebins_popup);
+    
+    last_options = options;
+    
     delete(fh);
+    
+    function num = getNumberFromPopup(popup)
+        str = get(popup,'String');
+        tokens = regexp(str,'^(\d+)','tokens','once');
+        tokens = cellfun(@(x) x{1},tokens,'UniformOutput',false);
+        v = get(popup,'Value');
+        num = str2double(tokens{v});
+    end
+
+    function setPopupByNumber(popup,num)
+        str = get(popup,'String');
+        tokens = regexp(str,'^(\d+)','tokens','once');
+        tokens = cellfun(@(x) x{1},tokens,'UniformOutput',false);
+
+        str_v = str2double(tokens);
+        idx = find(num==str_v,1);
+        if ~isempty(idx)
+            set(popup,'Value',idx);
+        end
+    end
 
 
 end
