@@ -28,6 +28,7 @@ function handles = add_image_display_panel(obj,handles,parent)
 
     % Plot display
     handles.plot_panel = uipanel( 'Parent', parent );
+    handles.plot_axes = axes('Parent',handles.plot_panel);
     
     
     % Gallery display

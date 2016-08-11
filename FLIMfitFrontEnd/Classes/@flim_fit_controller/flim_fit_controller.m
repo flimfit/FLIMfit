@@ -74,6 +74,8 @@ classdef flim_fit_controller < flim_data_series_observer
         
         plot_select_table;
         invert_colormap_popupmenu;
+        show_colormap_popupmenu;
+        show_limits_popupmenu;
         
         display_normal = struct();
         display_merged = struct();
@@ -85,6 +87,9 @@ classdef flim_fit_controller < flim_data_series_observer
 
         cur_lims = [];
         invert_colormap = false;
+        show_colormap = true;
+        show_limits = true;
+        
         
         n_plots = 0;
         
@@ -156,6 +161,14 @@ classdef flim_fit_controller < flim_data_series_observer
             
             if ~isempty(obj.invert_colormap_popupmenu)
                 add_callback(obj.invert_colormap_popupmenu,@obj.plot_select_update);
+            end
+            
+            if ~isempty(obj.show_colormap_popupmenu)
+                add_callback(obj.show_colormap_popupmenu,@obj.plot_select_update);
+            end
+            
+            if ~isempty(obj.show_limits_popupmenu)
+                add_callback(obj.show_limits_popupmenu,@obj.plot_select_update);
             end
             
             if ~isempty(obj.table_stat_popupmenu)
@@ -440,6 +453,8 @@ classdef flim_fit_controller < flim_data_series_observer
                 set(obj.plot_select_table,'RowName',[]);
 
                 obj.invert_colormap = get(obj.invert_colormap_popupmenu,'Value')-1;
+                obj.show_colormap =  get(obj.show_colormap_popupmenu,'Value')-1;
+                obj.show_limits =  get(obj.show_limits_popupmenu,'Value')-1;
             end
          end
          
