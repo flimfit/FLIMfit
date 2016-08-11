@@ -132,7 +132,7 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     
     uiwait(fh);
 
-    options.spatial_binning = getNumberFromPopup(realign_spatial_popup);
+    options.spatial_binning = getNumberFromPopup(spatial_popup);
     options.num_temporal_bits = ceil(log2(max_timebins)) - get(timebins_popup,'Value') + 1; 
     options.realignment.type = get(realign_popup,'Value')-1;
     options.realignment.spatial_binning = getNumberFromPopup(realign_spatial_popup);
