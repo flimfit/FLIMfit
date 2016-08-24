@@ -6,7 +6,7 @@ $BOOST_VER_MAJOR = $env:BOOST_VER_MAJOR
 $BOOST_VER_MINOR = $env:BOOST_VER_MINOR
 
 if (!$OME) { $OME=5.2 }
-if (!$BIO) { $BIO=5.1 }
+if (!$BIO) { $BIO=5.2 }
 if (!$MSVC_VER) { $MSVC_VER=12 }
 if (!$BOOST_VER_MAJOR) { $BOOST_VER_MAJOR=1 }
 if (!$BOOST_VER_MINOR) { $BOOST_VER_MINOR=59 }
