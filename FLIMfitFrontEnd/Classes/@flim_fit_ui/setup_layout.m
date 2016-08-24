@@ -59,12 +59,17 @@ function handles = setup_layout(obj, handles)
     handles.plot_select_table = uitable( 'ColumnName', col_names, 'ColumnWidth', col_width, 'RowName', [], 'Parent', display_params_panel );
     handles.filter_table = uitable( 'Parent', display_params_panel );
 
-    colormap_panel = uiextras.Grid( 'Parent', display_params_panel );
+    colormap_panel = uiextras.Grid( 'Parent', display_params_panel, 'Spacing', 0 );
     
     uicontrol( 'Style', 'text', 'String', 'Invert Colorscale? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel );
+    uicontrol( 'Style', 'text', 'String', 'Display Colormap? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel );
+    uicontrol( 'Style', 'text', 'String', 'Display Limits? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel );
     handles.invert_colormap_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel );    
+    handles.show_colormap_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel, 'Value', 2 );    
+    handles.show_limits_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel, 'Value', 2 );    
     
-    set(display_params_panel, 'Sizes', [-1 -1 22] );
+    set(colormap_panel, 'ColumnSizes', [-1 -1], 'RowSizes', [22 22 22]);
+    set(display_params_panel, 'Sizes', [-1 -1 76] );
     
     set( topright_layout, 'Sizes', [-1, 0] );
    

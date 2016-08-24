@@ -26,13 +26,8 @@ function update_plots(obj,file_root)
     % Author : Sean Warren
 
 
-    children = get(obj.plot_panel,'Children');
-    if ~isempty(children)
-        for i=1:length(children)
-            delete(children(i))
-        end
-    end
-    
+    % obj.plot_panel
+        
     if ~obj.fit_controller.has_fit || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
         return
     end
@@ -42,7 +37,6 @@ function update_plots(obj,file_root)
         
     
     if nargin == 2
-        f_save = figure('visible','on');        
         save = true;
         [path,root,ext] = fileparts(file_root);
         ext = ext(2:end);
@@ -58,10 +52,6 @@ function update_plots(obj,file_root)
     n = ceil(sqrt(f.n_plots));   
     m = ceil(f.n_plots/n);
 
-  
-    if f.n_plots>0 && ~save
-        [ha,hc] = tight_subplot(obj.plot_panel,f.n_plots,m,n,save,[r.width r.height],5,5,5);
-    end
     
     if ~save
         ims = obj.dataset_selected;
@@ -70,6 +60,17 @@ function update_plots(obj,file_root)
         ims = 1:r.n_results;
         indexing = 'result';
     end
+    
+    if ~save()
+        pos = get(obj.plot_panel,'Position');
+        pos(1:2) = 10;
+        pos(3:4) = pos(3:4) - 20;
+        set(obj.plot_axes,'Units','pixels','Position',pos);
+    end
+    
+    figs = [];
+    
+    options = struct();
     
     for cur_im = ims
         
@@ -82,43 +83,32 @@ function update_plots(obj,file_root)
         end
 
         subplot_idx = 1;
-
+        
         if f.n_plots > 0
 
             for plot_idx = 1:length(f.plot_names)
             
                 if f.display_normal.(f.plot_names{plot_idx})
                     
-                    if ~save
-                        h = ha(subplot_idx);
-                        c = hc(subplot_idx);
-                    else
-                        [h,c] = tight_subplot(f_save,1,1,1,save,size_check(r.width,r.height));
-                    end
+                    [fig,im_data] = obj.plot_figure2(cur_im, plot_idx, false, options, indexing);
+                    figs(:,:,:,subplot_idx) = fig;
                     
-                    im_data = obj.plot_figure(h,c,cur_im,plot_idx,false,'',indexing);
-                    
-                    subplot_idx = subplot_idx + 1;
                     if save
-                        export_fig([name_root ' ' r.params{plot_idx} '.' ext]);
+                        imwrite(uint8(fig*255),[name_root ' ' r.params{plot_idx} '.' ext]);
                         SaveFPTiff(im_data,[name_root ' ' r.params{plot_idx} ' raw.tif'])
                     end
+                    subplot_idx = subplot_idx + 1;
                 end
 
                 % Merge
                 if f.display_merged.(f.plot_names{plot_idx})
-                    if ~save
-                        h = ha(subplot_idx);
-                        c = hc(subplot_idx);
-                    else
-                        [h,c] = tight_subplot(f_save,1,1,1,save,size_check(r.width, r.height));
-                    end
                     
-                    obj.plot_figure(h,c,cur_im,plot_idx,true,'',indexing);
-                  
+                    fig = obj.plot_figure2(cur_im, plot_idx, true, options, indexing);
+                    figs(:,:,:,subplot_idx) = fig;
+                    
                     subplot_idx = subplot_idx + 1;
                     if save
-                        export_fig([name_root ' ' r.params{plot_idx} ' merge.' ext]);
+                        imwrite(uint8(fig*255),[name_root ' ' r.params{plot_idx} ' merge.' ext]);
                     end
                 end
                 
@@ -127,8 +117,8 @@ function update_plots(obj,file_root)
         end      
     end
     
-    if save
-        close(f_save)
+    if ~save
+        montage(figs,'Size',[m n],'Parent',obj.plot_axes);
     end
 end
 
