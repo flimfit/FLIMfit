@@ -51,5 +51,5 @@ curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0
 mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar
 
 # Download omeUiUtils
-curl -OL https://bintray.com/artifact/download/joshmoore/maven/ome/OMEuiUtils/0.1.4/OMEuiUtils-0.1.4.jar
-mv OMEuiUtils-0.1.4.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar
+curl -OL https://bintray.com/artifact/download/imperial-photonics/OMEuiUtils/OMEuiUtils/0.1.5/OMEuiUtils-0.1.5.jar
+mv OMEuiUtils-0.1.5.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar
