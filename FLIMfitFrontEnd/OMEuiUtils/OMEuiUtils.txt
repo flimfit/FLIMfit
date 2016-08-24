@@ -1,5 +1,5 @@
 Add a copy of OMEuiUtils.jar to this directory
 Download from:
-https://dl.bintray.com/imperial-photonics/maven/OMEuiUtils/OMEuiUtils/
+https://dl.bintray.com/imperial-photonics/omeUiUtils
 
 
