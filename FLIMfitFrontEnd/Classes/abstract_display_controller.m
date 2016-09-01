@@ -269,7 +269,7 @@ classdef abstract_display_controller < handle
             function fcn(obj1,src)
                 tabs = get(obj.display_tabpanel,'TabTitles');
            
-                if strcmp(tabs{src.SelectedChild},tab);
+                if strcmp(tabs{src.NewValue},tab);
                     obj.draw_plot();
                 end
                 last_fcn(obj1,src);
