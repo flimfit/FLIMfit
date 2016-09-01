@@ -35,13 +35,13 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
     % Fit Params Panel
     %---------------------------------------
-    fit_params_panel = uiextras.TabPanel( 'Parent', parent );
+    fit_params_panel = uix.TabPanel( 'Parent', parent );
     
     % Main Tab
-    fit_params_main_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
-    fit_params_main_label_layout = uiextras.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );
-    fit_params_main_opt_layout = uiextras.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );
-    fit_params_main_extra_layout = uiextras.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );    
+    fit_params_main_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
+    fit_params_main_label_layout = uix.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );
+    fit_params_main_opt_layout = uix.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );
+    fit_params_main_extra_layout = uix.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );    
     
     handles.auto_estimate_tau_checkbox = uicontrol( 'Style', 'checkbox', 'String', 'Automatically Estimate Lifetimes', 'Parent', fit_params_main_extra_layout);
     handles.tau_guess_table = uitable('Parent', fit_params_main_extra_layout); 
@@ -56,18 +56,18 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('main','fit_reference','popupmenu','Fit Reference', {'Fixed','Fitted'});
     add_fitting_param_control('main','fit_t0','popupmenu','Fit IRF Shift', {'Fixed','Fitted'});
     
-    set(fit_params_main_layout,'Sizes',[120 120 300])
-    set(fit_params_main_extra_layout,'Sizes',[22, -1])
+    set(fit_params_main_layout,'Widths',[120 120 300])
+    set(fit_params_main_extra_layout,'Heights',[22, -1])
     
     % Stray light tab
-    fit_params_stray_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
-    fit_params_stray_label_layout = uiextras.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );
-    fit_params_stray_opt_layout = uiextras.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );
-    fit_params_stray_extra_layout = uiextras.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );    
+    fit_params_stray_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
+    fit_params_stray_label_layout = uix.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );
+    fit_params_stray_opt_layout = uix.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );
+    fit_params_stray_extra_layout = uix.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );    
     
-    fit_params_stray_col2_layout = uiextras.HBox( 'Parent', fit_params_stray_extra_layout, 'Spacing', 3 );
-    fit_params_stray_col2_label_layout = uiextras.VBox( 'Parent', fit_params_stray_col2_layout, 'Spacing', 1 );
-    fit_params_stray_col2_opt_layout = uiextras.VBox( 'Parent', fit_params_stray_col2_layout, 'Spacing', 1 );
+    fit_params_stray_col2_layout = uix.HBox( 'Parent', fit_params_stray_extra_layout, 'Spacing', 3 );
+    fit_params_stray_col2_label_layout = uix.VBox( 'Parent', fit_params_stray_col2_layout, 'Spacing', 1 );
+    fit_params_stray_col2_opt_layout = uix.VBox( 'Parent', fit_params_stray_col2_layout, 'Spacing', 1 );
 
     add_fitting_param_control('stray','fit_offset','popupmenu','Offset',{'Fixed','Fitted Locally','Fitted Globally'});
     add_fitting_param_control('stray_col2','offset','edit','Offset', '0');
@@ -76,29 +76,29 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     add_fitting_param_control('stray','fit_tvb','popupmenu','TV Background',{'Fixed','Fitted Locally','Fitted Globally'});
     add_fitting_param_control('stray_col2','tvb','edit','TVB', '0');
 
-    set(fit_params_stray_layout,'Sizes',[120 120 300])
-    set(fit_params_stray_col2_layout,'Sizes',[70 120])
+    set(fit_params_stray_layout,'Widths',[120 120 300])
+    set(fit_params_stray_col2_layout,'Widths',[70 120])
     
    
         % Anisotropy tab
-        fit_params_anis_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-        fit_params_anis_label_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
-        fit_params_anis_opt_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
-        fit_params_anis_extra_layout = uiextras.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
+        fit_params_anis_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
+        fit_params_anis_label_layout = uix.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
+        fit_params_anis_opt_layout = uix.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
+        fit_params_anis_extra_layout = uix.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
 
         add_fitting_param_control('anis','n_theta','popupmenu','No. Decays', {'0','1', '2', '3', '4', '5'});
         add_fitting_param_control('anis','n_theta_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
 
         handles.theta_guess_table = uitable('Parent', fit_params_anis_extra_layout);
 
-        set(fit_params_anis_layout,'Sizes',[120 120 300])
-        set(fit_params_anis_extra_layout,'Sizes',[92])
+        set(fit_params_anis_layout,'Widths',[120 120 300])
+        set(fit_params_anis_extra_layout,'Heights',[92])
 
         % FRET tab
-        fit_params_fret_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-        fit_params_fret_label_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
-        fit_params_fret_opt_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
-        fit_params_fret_extra_layout = uiextras.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
+        fit_params_fret_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
+        fit_params_fret_label_layout = uix.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
+        fit_params_fret_opt_layout = uix.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
+        fit_params_fret_extra_layout = uix.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
 
         add_fitting_param_control('fret','n_fret','popupmenu','No. FRET Species', {'0','1', '2', '3', '4', '5'});
         add_fitting_param_control('fret','n_fret_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
@@ -106,18 +106,18 @@ function handles = add_fitting_params_panel(obj,handles,parent)
 
         handles.fret_guess_table = uitable('Parent', fit_params_fret_extra_layout);
 
-        set(fit_params_fret_layout,'Sizes',[120 120 300])
-        set(fit_params_fret_extra_layout,'Sizes',[92])
+        set(fit_params_fret_layout,'Widths',[120 120 300])
+        set(fit_params_fret_extra_layout,'Heights',[92])
 
         % Advanced tab
-        fit_params_adv_layout = uiextras.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-        fit_params_adv_label_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-        fit_params_adv_opt_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-        fit_params_adv_extra_layout = uiextras.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
+        fit_params_adv_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
+        fit_params_adv_label_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
+        fit_params_adv_opt_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
+        fit_params_adv_extra_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
 
-        fit_params_adv_col2_layout = uiextras.HBox( 'Parent', fit_params_adv_extra_layout, 'Spacing', 3 );
-        fit_params_adv_col2_label_layout = uiextras.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
-        fit_params_adv_col2_opt_layout = uiextras.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
+        fit_params_adv_col2_layout = uix.HBox( 'Parent', fit_params_adv_extra_layout, 'Spacing', 3 );
+        fit_params_adv_col2_label_layout = uix.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
+        fit_params_adv_col2_opt_layout = uix.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
 
         
         add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
@@ -133,15 +133,11 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         add_fitting_param_control('adv_col2','calculate_errs','checkbox','', 'Calculate Errors');
         add_fitting_param_control('adv_col2','use_image_t0_correction','checkbox','', 'Use FOV IRF shift');
         
-        set(fit_params_adv_layout,'Sizes',[120 120 300])
-        set(fit_params_adv_col2_layout,'Sizes',[20 -1])
-        
-   
-    
-        set(fit_params_panel, 'TabNames', {'Lifetime'; 'Stray Light'; 'Anisotropy'; 'FRET'; 'Advanced'});
-   
-    
-    set(fit_params_panel, 'SelectedChild', 1);
+        set(fit_params_adv_layout,'Widths',[120 120 300])
+        set(fit_params_adv_col2_layout,'Widths',[20 -1])
+      
+        set(fit_params_panel, 'TabTitles', {'Lifetime'; 'Stray Light'; 'Anisotropy'; 'FRET'; 'Advanced'});
+        set(fit_params_panel, 'Selection', 1);
 
     
     
@@ -157,11 +153,11 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         eval(['handles.' name '_label = label;']);
         eval(['handles.' name '_' style ' = control;']);
 
-        label_layout_sizes = get(label_layout,'Sizes');
+        label_layout_sizes = get(label_layout,'Heights');
         label_layout_sizes(end) = 22;
         
-        set(label_layout,'Sizes',label_layout_sizes);
-        set(opt_layout,'Sizes',label_layout_sizes);
+        set(label_layout,'Heights',label_layout_sizes);
+        set(opt_layout,'Heights',label_layout_sizes);
 
         
     end

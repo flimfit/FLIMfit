@@ -256,18 +256,18 @@ classdef abstract_display_controller < handle
         end
         
         function ret = is_active_tab(obj,tab)
-            tabs = get(obj.display_tabpanel,'TabNames');
-            sel = get(obj.display_tabpanel,'SelectedChild');
+            tabs = get(obj.display_tabpanel,'TabTitle');
+            sel = get(obj.display_tabpanel,'Selection');
            
             ret = strcmp(tabs{sel},tab);
         end
         
         function register_tab_function(obj,tab)
             
-            last_fcn = get(obj.display_tabpanel,'Callback');
+            last_fcn = get(obj.display_tabpanel,'SelectionChangedFcn');
             
             function fcn(obj1,src)
-                tabs = get(obj.display_tabpanel,'TabNames');
+                tabs = get(obj.display_tabpanel,'TabTitles');
            
                 if strcmp(tabs{src.SelectedChild},tab);
                     obj.draw_plot();
@@ -275,7 +275,7 @@ classdef abstract_display_controller < handle
                 last_fcn(obj1,src);
             end
         
-            set(obj.display_tabpanel,'Callback',@fcn);
+            set(obj.display_tabpanel,'SelectionChangedFcn',@fcn);
             
             obj.registered_tab = tab;
             
