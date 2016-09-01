@@ -27,7 +27,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
 
 
    % dataset
-    dataset_panel = uix.TabPanel( 'Parent', parent );
+    dataset_panel = uix.TabPanel( 'Parent', parent, 'TabWidth', 80 );
  
 
     % data transformation

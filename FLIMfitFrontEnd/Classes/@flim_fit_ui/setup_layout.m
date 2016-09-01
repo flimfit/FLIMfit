@@ -40,7 +40,7 @@ function handles = setup_layout(obj, handles)
     
     topright_layout = uix.HBox( 'Parent', right_layout );
             
-    display_tabpanel = uix.TabPanel( 'Parent', topright_layout );
+    display_tabpanel = uix.TabPanel( 'Parent', topright_layout, 'TabWidth', 80 );
     handles.display_tabpanel = display_tabpanel;
     
     handles = obj.add_decay_display_panel(handles,display_tabpanel);

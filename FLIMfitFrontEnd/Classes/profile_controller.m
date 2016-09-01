@@ -113,7 +113,7 @@ classdef profile_controller
             clf(f);
             layout = uix.VBox( 'Parent', f );
 
-            tab_panel = uix.TabPanel( 'Parent', layout );
+            tab_panel = uix.TabPanel( 'Parent', layout, 'TabWidth', 80 );
             button_layout = uix.HBox( 'Parent', layout );
 
             uicontrol( 'Style', 'pushbutton', ... 

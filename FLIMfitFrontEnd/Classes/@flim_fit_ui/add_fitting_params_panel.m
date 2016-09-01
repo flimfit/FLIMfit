@@ -35,7 +35,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
     % Fit Params Panel
     %---------------------------------------
-    fit_params_panel = uix.TabPanel( 'Parent', parent );
+    fit_params_panel = uix.TabPanel( 'Parent', parent, 'TabWidth', 80 );
     
     % Main Tab
     fit_params_main_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
