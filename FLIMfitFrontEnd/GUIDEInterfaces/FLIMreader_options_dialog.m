@@ -40,10 +40,10 @@ function options = FLIMreader_options_dialog(max_timebins, dt)
     FigPos(3:4)=[FigWidth FigHeight];
     set(fh, 'Position', FigPos);
 
-    layout = uiextras.Grid('Parent',fh, 'Spacing', 5, 'Padding', 5);
+    layout = uix.Grid('Parent',fh, 'Spacing', 5, 'Padding', 5);
     uicontrol('Style','text','String','Spatial binning','Parent',layout,'HorizontalAlignment','left');
     uicontrol('Style','text','String','Time bins','Parent',layout,'HorizontalAlignment','left');
-    uiextras.Empty('Parent',layout);
+    uix.Empty('Parent',layout);
 
     for i=1:4
         num = num2str(2^(i-1));
@@ -63,7 +63,7 @@ function options = FLIMreader_options_dialog(max_timebins, dt)
     timebins_popup = uicontrol('Style','popupmenu','Parent',layout,'String',timebins);
     uicontrol('Style','pushbutton','Parent',layout,'String','OK','Callback',@(~,~) uiresume(fh));
 
-    set(layout,'RowSizes',[22 22 22],'ColumnSizes',[100 200]);
+    set(layout,'Heights',[22 22 22],'Widths',[100 200]);
 
     uiwait(fh);
 

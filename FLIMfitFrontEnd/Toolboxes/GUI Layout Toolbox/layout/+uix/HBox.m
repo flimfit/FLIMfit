@@ -8,8 +8,8 @@ classdef HBox < uix.Box
     %
     %  See also: uix.VBox, uix.Grid, uix.HButtonBox, uix.HBoxFlex
     
-    %  Copyright 2009-2014 The MathWorks, Inc.
-    %  $Revision: 1077 $ $Date: 2015-03-19 16:44:14 +0000 (Thu, 19 Mar 2015) $
+    %  Copyright 2009-2015 The MathWorks, Inc.
+    %  $Revision: 1262 $ $Date: 2016-02-25 01:13:37 +0000 (Thu, 25 Feb 2016) $
     
     properties( Access = public, Dependent, AbortSet )
         Widths % widths of contents, in pixels and/or weights
@@ -30,9 +30,6 @@ classdef HBox < uix.Box
             %
             %  b = uix.HBox(p1,v1,p2,v2,...) sets parameter p1 to value v1,
             %  etc.
-            
-            % Call superclass constructor
-            obj@uix.Box()
             
             % Set properties
             if nargin > 0
@@ -113,6 +110,9 @@ classdef HBox < uix.Box
     methods( Access = protected )
         
         function redraw( obj )
+            %redraw  Redraw
+            %
+            %  c.redraw() redraws the container c.
             
             % Compute positions
             bounds = hgconvertunits( ancestor( obj, 'figure' ), ...
@@ -155,6 +155,9 @@ classdef HBox < uix.Box
         end % redraw
         
         function addChild( obj, child )
+            %addChild  Add child
+            %
+            %  c.addChild(d) adds the child d to the container c.
             
             % Add to sizes
             obj.Widths_(end+1,:) = -1;
@@ -166,6 +169,9 @@ classdef HBox < uix.Box
         end % addChild
         
         function removeChild( obj, child )
+            %removeChild  Remove child
+            %
+            %  c.removeChild(d) removes the child d from the container c.
             
             % Remove from sizes
             tf = obj.Contents_ == child;

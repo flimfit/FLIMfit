@@ -111,10 +111,10 @@ classdef profile_controller
                   'MenuBar','none');
 
             clf(f);
-            layout = uiextras.VBox( 'Parent', f );
+            layout = uix.VBox( 'Parent', f );
 
-            tab_panel = uiextras.TabPanel( 'Parent', layout );
-            button_layout = uiextras.HBox( 'Parent', layout );
+            tab_panel = uix.TabPanel( 'Parent', layout, 'TabWidth', 80 );
+            button_layout = uix.HBox( 'Parent', layout );
 
             uicontrol( 'Style', 'pushbutton', ... 
                        'String', 'Cancel', ...
@@ -126,7 +126,7 @@ classdef profile_controller
                        'Callback', @ok_callback, ...
                        'Parent', button_layout );   
 
-            layout.Sizes = [-1 22];
+            layout.Heights = [-1 22];
 
             % Get preference definitions
             profile_def = obj.profile_definitions();
@@ -147,8 +147,8 @@ classdef profile_controller
                 propertiesGUI(h(i),profile_def.(groups{i}),cur_profile,i);
             end
 
-            tab_panel.TabNames = groups;
-            tab_panel.SelectedChild = 1;
+            tab_panel.TabTitles = groups;
+            tab_panel.Selection = 1;
 
 
             function cancel_callback(~,~,~)
