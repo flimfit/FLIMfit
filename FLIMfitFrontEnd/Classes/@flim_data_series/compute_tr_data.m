@@ -158,14 +158,14 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         obj.intensity = squeeze(in);
 
-        sz = size(obj.cur_tr_data);
+        %sz = size(obj.cur_tr_data);
         
         
-        in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
+        %in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
         
-        s = sum(in,2);
+        %s = sum(in,2);
         
-        sel = s > 0.5 * max(s);
+        %sel = s > 0.5 * max(s);
         
         %{
         in = obj.cur_tr_data(sel,1,:,:);
