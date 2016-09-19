@@ -132,9 +132,9 @@ function im=display_flim(data,mask,lim,varargin)
     if options.show_limits
         font_size = ceil(size(data,1) * 0.03);
         font_size = max(font_size,8);
-        im = insertText(im,[size(data,1) 1],num2str(lim(2)),'AnchorPoint','RightTop',...
+        im = insertText(im,[size(data,2) 1],num2str(lim(2)),'AnchorPoint','RightTop',...
             'Font','Arial','FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
-        im = insertText(im,[size(data,1) size(data,2)],num2str(lim(1)),'AnchorPoint','RightBottom',...
+        im = insertText(im,[size(data,2) size(data,1)],num2str(lim(1)),'AnchorPoint','RightBottom',...
             'Font','Arial','FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
     end
     
@@ -142,56 +142,5 @@ function im=display_flim(data,mask,lim,varargin)
         im = insertText(im,[0,0],options.t,'AnchorPoint','LeftTop',...
             'Font','Arial','FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
     end
-    
-    %{
-    % Draw main image
-    %=========================================
-    im(1)=image(mapped_data,'Parent',h);    
-    set(h,'XTick',[],'YTick',[]);
-    
-    daspect(h,[1 1 1]);
-    
-    set(h,'Units','pixels');
-    pos=plotboxpos(h);
-    set(h,'Units','normalized');
-    
-    % Draw colourbar and labels
-    %=========================================
-    if ~isempty(hc)
-        im(2)=image(cbar,'Parent',hc);
-        set(hc,'XTick',[],'YTick',[]);
-    
-        ht1=text(pos(3), 2, num2str(lim(1)), 'Units','pixels','Parent',h,...
-             'Color','w','BackgroundColor','k','Margin',1,...
-             'FontUnits','points','FontSize',10,...
-             'HorizontalAlignment','right','VerticalAlignment','bottom');
-
-        ht2=text(pos(3), pos(4)-1, num2str(lim(2)), 'Units','pixels','Parent',h,...
-             'Color','w','BackgroundColor','k','Margin',1,...
-             'FontUnits','points','FontSize',10,...
-             'HorizontalAlignment','right','VerticalAlignment','top');
-
-        set(ht1,'Units','normalized');
-        set(ht2,'Units','normalized');
-
-        bar_pos = [pos(1)+pos(3) pos(2) 20 pos(4)];
-        set(hc,'Units','pixels','Position',bar_pos);
-    
-        set(hc,'Units','normalized');
-
-    end
-    
-    
-    % Draw text labels
-    %=========================================
-    if ~isempty(t) && ~strcmp(t,'')
-        ht3=text(3, pos(4), t, 'Units','pixels','Parent',h,...
-         'Color','w','BackgroundColor','k','Margin',1,...
-         'FontUnits','points','FontSize',10,...
-         'HorizontalAlignment','left','VerticalAlignment','top');
-        set(ht3,'Units','normalized');
-    end
-    
-    %}
     
 end
