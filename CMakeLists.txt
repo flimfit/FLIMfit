@@ -8,8 +8,10 @@ HunterGate(
 
 project(FLIMfit)
 
-hunter_add_package(Boost COMPONENTS system filesystem)
+if (WIN32)
 hunter_add_package(OpenCV)
+endif (WIN32)
+hunter_add_package(Boost COMPONENTS system filesystem)
 
 set(FLIMreaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)
 
