@@ -40,7 +40,7 @@ function check_version(quiet)
                
                switch button,
                    case 'Yes'
-                       web('http://downloads.openmicroscopy.org/latest/flimfit/','-browser');
+                       web('http://flimfit.org/downloads/latest/','-browser');
                    case 'Ignore for this version'
                        setpref('GlobalAnalysisFrontEnd','IgnoreNewVersion',new_version_str);
                end

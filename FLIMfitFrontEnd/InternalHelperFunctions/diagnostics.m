@@ -1,4 +1,9 @@
 function diagnostics(event_category, event_label, varargin)
+
+    if ~isdeployed
+        return
+    end
+
     try
         fid = fopen('GeneratedFiles/version.txt');
         ver = fgetl(fid);

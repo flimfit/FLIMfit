@@ -26,11 +26,11 @@ function handles = add_plotter_display_panel(obj,handles,parent)
     % Author : Sean Warren
 
 
-    layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+    layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
     
     handles.graph_axes = axes('Parent',layout);
     
-    param_layout = uiextras.Grid( 'Parent', layout, 'Spacing', 3 );
+    param_layout = uix.Grid( 'Parent', layout, 'Spacing', 3 );
     uicontrol( 'Style', 'text', 'String', 'Label  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
     uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', param_layout, ...
@@ -53,30 +53,30 @@ function handles = add_plotter_display_panel(obj,handles,parent)
         
     uicontrol( 'Style', 'text', 'String', 'Display  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
-%     uiextras.Empty( 'Parent', param_layout );
+%     uix.Empty( 'Parent', param_layout );
     uicontrol( 'Style', 'text', 'String', 'Data cursor  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
            
     handles.graph_display_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Line' 'Line with Scatter' 'Box Plot'}, 'Parent', param_layout );       
-%     uiextras.Empty( 'Parent', param_layout );
+%     uix.Empty( 'Parent', param_layout );
     handles.graph_dcm_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Off' 'Datatip' 'Window'}, 'Parent', param_layout ); 
     
         
-    set( param_layout, 'RowSizes', [22,22] );
-    set( param_layout, 'ColumnSizes', [90,90,90,90,90,90] );
+    set( param_layout, 'Heights', [22,22] );
+    set( param_layout, 'Widths', [90,90,90,90,90,90] );
     
-    set( layout, 'Sizes', [-1 70]) 
+    set( layout, 'Heights', [-1 70]) 
     
     
-    plate_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+    plate_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
     
         
     plate_container = uicontainer( 'Parent', plate_layout );
     handles.plate_axes = axes( 'Parent', plate_container );
     
-    param_layout = uiextras.Grid( 'Parent', plate_layout, 'Spacing', 3 );
+    param_layout = uix.Grid( 'Parent', plate_layout, 'Spacing', 3 );
     uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
     uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', param_layout, ...
@@ -87,14 +87,14 @@ function handles = add_plotter_display_panel(obj,handles,parent)
             'String', {'Well Average','First Image'}, 'Parent', param_layout );
     uicontrol( 'Style', 'text', 'String', 'Intensity merge  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
-    uiextras.Empty( 'Parent', param_layout);
+    uix.Empty( 'Parent', param_layout);
     handles.plate_merge_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'No','Yes'}, 'Parent', param_layout );
     
-    set( param_layout, 'RowSizes', [22,22] );
-    set( param_layout, 'ColumnSizes', [100,100,100,100] );
+    set( param_layout, 'Heights', [22,22] );
+    set( param_layout, 'Widths', [100,100,100,100] );
     
-    set( plate_layout, 'Sizes', [-1 70])
+    set( plate_layout, 'Heights', [-1 70])
     
     
     

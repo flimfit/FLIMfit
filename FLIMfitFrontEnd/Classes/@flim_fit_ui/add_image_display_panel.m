@@ -33,16 +33,16 @@ function handles = add_image_display_panel(obj,handles,parent)
     
     % Gallery display
     
-    gallery_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+    gallery_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
 
-    gallery_layout_top = uiextras.HBox( 'Parent', gallery_layout, 'Spacing', 0 );
+    gallery_layout_top = uix.HBox( 'Parent', gallery_layout, 'Spacing', 0 );
     
     handles.gallery_panel = uipanel( 'Parent', gallery_layout_top, 'BorderType', 'none' );
     handles.gallery_slider = uicontrol( 'Parent', gallery_layout_top, 'Style', 'slider' );
     
-    set( gallery_layout_top, 'Sizes', [-1 22] );
+    set( gallery_layout_top, 'Widths', [-1 22] );
     
-    bottom_layout = uiextras.Grid( 'Parent', gallery_layout, 'Spacing', 3 );
+    bottom_layout = uix.Grid( 'Parent', gallery_layout, 'Spacing', 3 );
     
     uicontrol( 'Style', 'text', 'String', 'Image', 'Parent', bottom_layout );
     uicontrol( 'Style', 'text', 'String', 'Columns', 'Parent', bottom_layout );
@@ -57,14 +57,14 @@ function handles = add_image_display_panel(obj,handles,parent)
     handles.gallery_unit_edit = uicontrol( 'Style', 'edit', 'String', '', 'Parent', bottom_layout);
     
     uicontrol( 'Style', 'text', 'String', 'Intensity Merge', 'Parent', bottom_layout );
-    uiextras.Empty( 'Parent', bottom_layout );
+    uix.Empty( 'Parent', bottom_layout );
     
     handles.gallery_merge_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No', 'Yes'}, 'Parent', bottom_layout);
         
-    set( bottom_layout, 'ColumnSizes',[90 90 90 90 90 90], 'RowSizes', [22 22] );
+    set( bottom_layout, 'Widths',[90 90 90 90 90 90], 'Heights', [22 22] );
     
     
-    set(gallery_layout,'Sizes',[-1,70]);
+    set(gallery_layout,'Heights',[-1,70]);
     
     
 end

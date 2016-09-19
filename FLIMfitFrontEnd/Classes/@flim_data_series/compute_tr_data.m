@@ -47,7 +47,13 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     
     if obj.init && ~obj.suspend_transformation
         
-        wbar = waitbar(1,'Transforming! Please wait...');
+        % arbitarary size threshold
+        d_size = obj.data_size;
+        if (d_size(1) * d_size(3) * d_size(4)) > 16000000
+            wbar = waitbar(1,'Transforming! Please wait...');
+        else
+            wbar = [];
+        end
 
         calculated = true;
 
@@ -152,14 +158,14 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         obj.intensity = squeeze(in);
 
-        sz = size(obj.cur_tr_data);
+        %sz = size(obj.cur_tr_data);
         
         
-        in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
+        %in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
         
-        s = sum(in,2);
+        %s = sum(in,2);
         
-        sel = s > 0.5 * max(s);
+        %sel = s > 0.5 * max(s);
         
         %{
         in = obj.cur_tr_data(sel,1,:,:);
@@ -263,7 +269,9 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             notify(obj,'data_updated');
         end
         
-        close(wbar);
+        if ~isempty(wbar)
+            close(wbar);
+        end
         
     end
 end

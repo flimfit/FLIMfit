@@ -30,20 +30,20 @@ function flim_data_selector(data_series_controller)
     
     handles = struct('data_series_controller',data_series_controller);
     
-    layout = uiextras.HBox( 'Parent', fig );
+    layout = uix.HBox( 'Parent', fig );
     
     handles.data_series_table = uitable( 'Parent', layout );
 
-    right_layout = uiextras.VBox( 'Parent', layout );
+    right_layout = uix.VBox( 'Parent', layout );
 
-    button_layout_top = uiextras.HBox( 'Parent', right_layout );    
+    button_layout_top = uix.HBox( 'Parent', right_layout );    
     handles.sel_all_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Select All', 'Parent', button_layout_top );
     handles.desel_all_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Deselect All', 'Parent', button_layout_top );
 
     
     handles.filter_table = uitable( 'Parent', right_layout );
 
-    button_layout_bottom = uiextras.HBox( 'Parent', right_layout );    
+    button_layout_bottom = uix.HBox( 'Parent', right_layout );    
     handles.sel_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Select', 'Parent', button_layout_bottom );
     handles.desel_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Deselect', 'Parent', button_layout_bottom );
     
@@ -52,10 +52,10 @@ function flim_data_selector(data_series_controller)
     set(handles.sel_all_pushbutton,'Callback',@select_all);
     set(handles.desel_all_pushbutton,'Callback',@deselect_all);
     
-    uiextras.Empty('Parent', right_layout);
+    uix.Empty('Parent', right_layout);
     
-    set(layout,'Sizes',[-1 250])
-    set(right_layout,'Sizes',[30 250 30 -1])
+    set(layout,'Widths',[-1 250])
+    set(right_layout,'Heights',[30 250 30 -1])
     
     handles.flim_data_series_list = flim_data_series_list(handles);
    
