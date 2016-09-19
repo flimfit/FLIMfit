@@ -40,7 +40,7 @@ function [param_data, mask] = get_image(obj,dataset,param,indexing)
     sz = obj.im_size;
     
     
-    p_mask = libpointer('uint8Ptr', NaN(sz));
+    p_mask = libpointer('uint16Ptr', NaN(sz));
     p_param_data = libpointer('singlePtr', NaN(sz));
 
     err = calllib(obj.lib_name,'GetParameterImage',obj.dll_id, dataset-1, param-1, p_mask, p_param_data);

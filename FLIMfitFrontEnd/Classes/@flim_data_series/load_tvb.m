@@ -42,7 +42,7 @@ function load_tvb(obj,file_or_image)
         end
     else
     
-        dims = obj.get_image_dimensions(file_or_image);
+        [dims,~,reader_settings] = obj.get_image_dimensions(file_or_image);
         
         if isempty(dims.delays)
             return;
@@ -64,17 +64,15 @@ function load_tvb(obj,file_or_image)
         sizeY = dims.sizeXY(2);
         
         if obj.polarisation_resolved
-            tvb_image_data = zeros(sizet, 2, sizeX, sizeY, 1);
-            [success , tvb_image_data] = obj.load_flim_cube(tvb_image_data, file_or_image,1,1, dims, ZCT);
-            tvb_data = reshape(tvb_image_data,[sizet 2 sizeX * sizeY]);
-            tvb_data = mean(tvb_data,3);
+            n_chan = 2;
         else
-            tvb_image_data = zeros(sizet, 1, sizeX, sizeY, 1);
-            [success , tvb_image_data] = obj.load_flim_cube(tvb_image_data, file_or_image,1,1, dims, ZCT);
-            tvb_data = reshape(tvb_image_data,[sizet  sizeX * sizeY]);
-            tvb_data = mean(tvb_data,2);
+            n_chan = 1;
         end
-       
+
+        tvb_image_data = zeros(sizet, n_chan, sizeX, sizeY, 1);
+        [~, tvb_image_data] = obj.load_flim_cube(tvb_image_data, file_or_image, 1, 1, reader_settings, dims, ZCT);
+        tvb_data = reshape(tvb_image_data,[sizet n_chan sizeX * sizeY]);
+        tvb_data = mean(tvb_data,3);
         
         % export may be in ns not ps.
         if max(t_tvb) < 300
@@ -98,6 +96,6 @@ function load_tvb(obj,file_or_image)
     obj.compute_tr_tvb_profile();
     
     notify(obj,'data_updated');
-
     
+  
 end

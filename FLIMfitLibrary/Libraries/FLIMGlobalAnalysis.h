@@ -46,6 +46,7 @@ extern "C" {
 #endif
 
 typedef unsigned short uint16_t;
+typedef uint16_t mask_type;
 
 FITDLL_API int FLIMGlobalGetUniqueID();
 FITDLL_API void FLIMGlobalRelinquishID(int id);
@@ -83,7 +84,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t,
-                             int data_type, int* use_im, uint8_t *mask, int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling);
+                             int data_type, int* use_im, mask_type *mask, int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling);
 
 FITDLL_API int SetDataFloat(int c_idx, float* data);
 FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);
@@ -106,7 +107,7 @@ FITDLL_API int GetTotalNumOutputRegions(int c_idx);
 
 FITDLL_API int GetImageStats(int c_idx, int* n_regions, int* image, int* regions, int* region_size, float* success, int* iterations, float* stats);
 
-FITDLL_API int GetParameterImage(int c_idx, int im, int param, uint8_t ret_mask[], float image_data[]);
+FITDLL_API int GetParameterImage(int c_idx, int im, int param, mask_type ret_mask[], float image_data[]);
 
 
 

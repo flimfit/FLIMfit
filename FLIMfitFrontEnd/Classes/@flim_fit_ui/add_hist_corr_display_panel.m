@@ -30,12 +30,12 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     % Author : Sean Warren
 
 
-    hist_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+    hist_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
     
     handles.hist_axes = axes('Parent',hist_layout);
     
    
-    opt_layout = uiextras.Grid( 'Parent', hist_layout, 'Spacing', 3 );
+    opt_layout = uix.Grid( 'Parent', hist_layout, 'Spacing', 3 );
     uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', opt_layout, ...
                'HorizontalAlignment', 'right' );
     uicontrol( 'Style', 'text', 'String', 'Weighting  ', 'Parent', opt_layout, ...
@@ -57,24 +57,24 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
         
     uicontrol( 'Style', 'text', 'String', 'Add False Colour  ', 'Parent', opt_layout, ...
                'HorizontalAlignment', 'right' );
-    uiextras.Empty( 'Parent', opt_layout );
+    uix.Empty( 'Parent', opt_layout );
         
     handles.hist_addcolour_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'On' 'Off'}, 'Parent', opt_layout );
-   uiextras.Empty( 'Parent', opt_layout );
+   uix.Empty( 'Parent', opt_layout );
     
-    set( hist_layout, 'Sizes', [-1,70] );
-    set( opt_layout, 'ColumnSizes', [90 90 90 90 90 90]);
-    set( opt_layout, 'RowSizes', [22 22]);
+    set( hist_layout, 'Heights', [-1,70] );
+    set( opt_layout, 'Widths', [90 90 90 90 90 90]);
+    set( opt_layout, 'Heights', [22 22]);
 
 
     
     
-    corr_layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
+    corr_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
     
     handles.corr_axes = axes('Parent',corr_layout);
     
-    param_layout = uiextras.Grid( 'Parent', corr_layout, 'Spacing', 3 );
+    param_layout = uix.Grid( 'Parent', corr_layout, 'Spacing', 3 );
     uicontrol( 'Style', 'text', 'String', 'X Parameter  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
            uicontrol( 'Style', 'text', 'String', 'Y Parameter  ', 'Parent', param_layout, ...
@@ -104,10 +104,10 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     handles.corr_independent_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {''}, 'Parent', param_layout );
         
-    uiextras.Empty( 'Parent', param_layout);
+    uix.Empty( 'Parent', param_layout);
         
-    set( corr_layout, 'Sizes', [-1,70] );
-    set( param_layout, 'RowSizes', [22 22] );
+    set( corr_layout, 'Heights', [-1,70] );
+    set( param_layout, 'Heights', [22 22] );
 
 
 end

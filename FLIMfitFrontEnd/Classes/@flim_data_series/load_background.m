@@ -50,7 +50,7 @@ function load_background(obj, file_or_image, time_average)
     
     if isempty(im)  % not a .tif
     
-        dims = obj.get_image_dimensions(file_or_image);
+        [dims, ~, reader_settings] = obj.get_image_dimensions(file_or_image);
         
         % Determine which plane we need to load (param 5 disallows the
         % selection of multiple planes )
@@ -70,6 +70,9 @@ function load_background(obj, file_or_image, time_average)
                     defaultvalues = {num2str(sizet -1)};
                     numLines = 1;
                     inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                    if isempty(inputdata)
+                        return;
+                    end
                     tpoint = str2double(inputdata) + 1;
                 end
             end
@@ -85,7 +88,7 @@ function load_background(obj, file_or_image, time_average)
         sizeY = dims.sizeXY(2);
         
         image_data = zeros(sizet, 1, sizeX, sizeY, 1);
-        [success , image_data] = obj.load_flim_cube(image_data, file_or_image,1,1, dims, ZCT);
+        [success , image_data] = obj.load_flim_cube(image_data, file_or_image, 1, 1, reader_settings, dims, ZCT);
         
         % average across t if 3D data
         if(sizet > 1)
@@ -99,24 +102,21 @@ function load_background(obj, file_or_image, time_average)
         end
     end  % end 'not a 'tif'
     
+    
      % correct for labview broken tiffs
      if all(im > 2^15)
          im = im - 2^15;
      end
-
-    
+  
      extent = 3;
      im = medfilt2(im,[extent extent],'symmetric');
-
 
      if any(size(im) ~= [obj.height obj.width])
          throw(MException('GlobalAnalysis:BackgroundIncorrectShape','Error loading background, file has different dimensions to the data'));
      else
          obj.background_image = im;
-         obj.background_type = 2;
+         obj.background_type = 2;   % this runs obj.compute_tr_data()
      end
 
      
-     obj.compute_tr_data();
-    
 end

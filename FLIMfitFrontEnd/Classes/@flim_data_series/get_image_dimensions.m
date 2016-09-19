@@ -1,5 +1,5 @@
 
-function[dims,t_int ] = get_image_dimensions(obj, file)
+function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
 
 % Finds the dimensions of an image file or set of files including 
 % the units along the time dimension (delays)
@@ -28,6 +28,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
+    reader_settings = struct();
     
     t_int = [];
     dims.delays = [];
@@ -72,7 +73,7 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
                     obj.imageSeries = ones(1,length(obj.file_names)) .* imageSeries; 
                 end
             else
-                obj.imageSeries = ones(1,length(obj.file_names));
+                obj.imageSeries = 1;
             end
             
             
@@ -142,115 +143,148 @@ function[dims,t_int ] = get_image_dimensions(obj, file)
        
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
-                if strfind(file,'ome.tif')
-                    if  sizeZCT(1) > 1
-                        physZ = omeMeta.getPixelsPhysicalSizeZ(0);
-                        if ~isempty(physZ) 
-                            physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
-                            dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
-                            dims.modulo = 'ModuloAlongZ';
-                            dims.FLIM_type = 'TCSPC';
-                            dims.sizeZCT = sizeZCT;
+                if strcmp(char(r.getFormat()), 'OME-TIFF');
+                    parser = loci.formats.tiff.TiffParser(file);
+                    service = loci.formats.services.OMEXMLServiceImpl();
+                    version = char(service.getOMEXMLVersion(parser.getComment()));
+                    if strcmp(version,'2008-02')
+                        choice  = questdlg...
+                            ({'Possible data errors.';...
+                            'This File most resembles a  LaVision BioTec ImSpector FLIM OME-TIFF.';...
+                            'Can you please confirm this?'},...
+                            'Warning! Non-standard OME-TIFF!','Yes');
+                        if strcmp(choice,'Yes')
+                            
+                            % attempt to extract metadata
+                            ras = loci.common.RandomAccessInputStream(file,16);
+                            tp = loci.formats.tiff.TiffParser(ras);
+                            firstIFD = tp.getFirstIFD();
+                            xml = char(firstIFD.getComment());
+                            k = strfind(xml,'AxisName="lifetime"');
+                            if ~isempty(k)
+                                % "autosave" style LaVision ome-tiff so try and handle
+                                % accordingly
+                                xml = xml(k(1):k(1)+100);    % pull out this section of the xml
+                                
+                                k = strfind(xml,'PhysicalUnit="');
+                                uns = xml(k(1)+14:end);
+                                e = strfind(uns,'"') -1;
+                                uns = uns(1:e(1));
+                                physicalUnit = str2double(uns) * 1000;
+                                
+                                k = strfind(xml,'Steps="');
+                                sts = xml(k(1)+7:end);
+                                e = strfind(sts,'"') -1;
+                                sts = sts(1:e(1));
+                                lifetimeSteps = str2double(sts);
+                                
+                                if lifetimeSteps == sizeZCT(1)
+                                    dims.delays = (0:sizeZCT(1)-1).* physicalUnit;
+                                    dims.modulo = 'ModuloAlongZ';
+                                    dims.FLIM_type = 'TCSPC';
+                                    dims.sizeZCT = sizeZCT;
+                                end
+                                if lifetimeSteps == sizeZCT(3)
+                                    dims.delays = (0:sizeZCT(3)-1).*physicalUnit;
+                                    dims.modulo = 'ModuloAlongT';
+                                    dims.FLIM_type = 'TCSPC';
+                                    dims.sizeZCT = sizeZCT;
+                                end
+                                
+                            else
+                                % old-style (not auto-saved) LaVision ome-tiff
+                                % Foreced to assume z is actually t
+                                if  sizeZCT(1) > 1
+                                    physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                                    if ~isempty(physZ)
+                                        physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                                        dims.modulo = 'ModuloAlongZ';
+                                        dims.FLIM_type = 'TCSPC';
+                                        dims.sizeZCT = sizeZCT;
+                                    end
+                                end
+                            end
                         end
                     end
                 end
-                       
             end
             
             
-
-             % get channel_names
+            
+            % get channel_names
             for c = 1:sizeZCT(2)
                 chan_info{c} = char(omeMeta.getChannelName( 0 ,  c -1 ));
                 if isempty(chan_info{c})
                     chan_info{c} = char(omeMeta.getChannelEmissionWavelength(0, c -1));
                 end
                 if isempty(chan_info{c})
-                    chan_info{c} = ['Channel:' num2str(c-1)];
+                    chan_info{c} = ['Channel ' num2str(c-1)];
                 end
-
+                
                 dims.chan_info = chan_info;
             end
-          
-
+            
+            
             if isempty(dims.delays)
                 dims.error_message = 'Unable to load! Not time resolved data.';
             end
             dims.sizeXY = sizeXY;
-           
-
+            
+            
         case {'.pt3','.ptu','.bin','.bin2','.ffd'}
             
+            
             r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',1);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
+            
+            if length(dims.delays) > 1
+                dt = dims.delays(2) - dims.delays(1);
+            else
+                dt = 1;
+            end
+            
+            reader_settings = FLIMreader_options_dialog(length(dims.delays), dt);
+            
+            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            
             dims.sizeZCT = [ 1 n_channels 1 ];
             dims.FLIM_type = 'TCSPC';
+            dims.delays = FLIMreaderMex(r,'GetTimePoints');
             dims.sizeXY = FLIMreaderMex(r,'GetImageSize');
             FLIMreaderMex(r,'Delete');
             
             for i=1:n_channels
-                dims.chan_info{i} = ['Channel:' num2str(i-1)];
+                dims.chan_info{i} = ['Channel ' num2str(i-1)];
             end
-    
-        % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        case '.tif'
             
+            % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        case {'.tif','.tiff'}
             
+            path = fileparts(file);
             dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
-            noOfFiles = length(dirStruct);
+            files = {dirStruct.name};
+            [dims.delays,dims.t_int] = get_delays_from_tif_stack(files);
             
-            if noOfFiles == 0
-                delays = [];
-                return
-            end
-            
-            first = [path filesep dirStruct(1).name];
-            
-            info = imfinfo(first);
-            
-            for f = 1:noOfFiles
-                filename = [path filesep dirStruct(f).name];
-                [~,name] = fileparts(filename);
-                tokens = regexp(name,'INT\_(\d+)','tokens');
-                if ~isempty(tokens)
-                    t_int(f) = str2double(tokens{1});
-                end
-                
-                tokens = regexp(name,'(?:^|\s)T\_(\d+)','tokens');
-                if ~isempty(tokens)
-                    del = str2double(tokens{1});
-                else
-                    sname = name(end-4:end);      %last 6 chars contains delay
-                    del = str2double(sname);  
-                end
-                if isnan(del)
-                    errordlg(['Unable to parse filename: ' name]);
-                    dims.delays = [];
-                    return;
-                else
-                    delays(f) = del;
-                end
-                
-                [dims.delays, sort_idx] = sort(delays);
-                
-            end
-            
-            if length(delays) < 3
-                dimd.delays = [];
-                errordlg('Too few valid .tif files found!!');
+            if sum(isnan(dims.delays)) > 0
+                dims.delays =[];
+                dims.t_int = [];
+                errordlg('Unrecognised file-name convention!')'
                 return;
             end
             
+            first = [path filesep files{1}];
+            info = imfinfo(first);
+                        
              %NB dimensions reversed to retain compatibility with earlier
              %code
-             dims.sizeXY = [  info.Height   info.Width ];
+             dims.sizeXY = [ info.Height info.Width ];
              %dims.sizeXY = [ info.Width info.Height ];
              dims.FLIM_type = 'Gated';  
              dims.sizeZCT = [1 1 1];
              dims.modulo = []; 
-            
             
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
         case {'.csv','.txt'} 

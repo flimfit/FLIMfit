@@ -1,6 +1,8 @@
-function default_path = get_default_path()
-
-    % Copyright (C) 2013 Imperial College London.
+function [filename, pathname, selected, before_list] = prompt_for_export(obj,prompt,default_name, extString)
+    %> Matches function in OMERO_data_series. If OMERO export menu items are
+    % selected and data_series isn't set up for OMERO.
+    
+    % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -22,15 +24,11 @@ function default_path = get_default_path()
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
-    % Author : Sean Warren
-
-
-    try
-        default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
-    catch %#ok
-        addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
-        default_path = 'C:\';
-    end
-
+   
+    errordlg('Not yet implemented for data not loaded from OMERO!');
+    filename = 0;
+    pathname = 0;
+    selected = [];
+    before_list = [];
+    
 end

@@ -93,7 +93,7 @@ classdef flim_data_series < handle & h5_serializer
         background;
         
         num_datasets; % This property is for backwards compatability only; do not use in new code
-        
+       
         im_size;
         n_t;
     end
@@ -136,6 +136,8 @@ classdef flim_data_series < handle & h5_serializer
         
         all_Z_volume_loading = false;
         batch_mode = false;
+        
+        reader_settings;
     end
     
     properties(Transient,Hidden)
@@ -240,7 +242,7 @@ classdef flim_data_series < handle & h5_serializer
 
         function obj = flim_data_series()
             
-            use_memory_mapping = true;
+            obj.use_memory_mapping = true;
             
             del_files = dir([tempdir 'GPTEMP*']);
             

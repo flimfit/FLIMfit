@@ -45,10 +45,11 @@ rm bfmatlab.zip
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
 rm -rf bfmatlab
 
+
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar
 mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar
 
 # Download omeUiUtils
-curl -OL https://bintray.com/artifact/download/joshmoore/maven/ome/OMEuiUtils/0.1.4/OMEuiUtils-0.1.4.jar
-mv OMEuiUtils-0.1.4.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar
+curl -OL https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.5.jar
+mv OMEuiUtils-0.1.5.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar

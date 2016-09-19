@@ -57,7 +57,7 @@ function load_single_segmentation(obj,file)
     
     d = obj.data_series_controller.data_series;
     
-    mask = uint8(imread(file));
+    mask = uint16(imread(file));
     mask = repmat(mask,[1 1 d.n_datasets]);
 
     switch choice

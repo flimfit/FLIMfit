@@ -41,14 +41,14 @@ function load_acceptor_images(obj,path)
             
             % check dimensions of the first file
             file_name = options.background;
-            dims = obj.get_image_dimensions(file_name);
+            [dims,~,reader_settings] = obj.get_image_dimensions(file_name);
             if length(dims.delays) > 1 
                 errordlg('Not yet implemented for time-resolved data data');
                 return;
             end
             
             bg_data  = zeros(1, 1,  obj.height, obj.width);
-            [success, bg_data] = obj.load_flim_cube(bg_data, file_name,1,1,dims,ZCT);
+            [success, bg_data] = obj.load_flim_cube(bg_data, file_name,1,1,reader_settings,dims,ZCT);
             bg = squeeze(bg_data);
            
             % correct for labview broken tiffs
@@ -89,7 +89,7 @@ function load_acceptor_images(obj,path)
         else
             
             % check dimensions of the first file
-            dims = obj.get_image_dimensions(file_names{1});
+            [dims,~,reader_settings] = obj.get_image_dimensions(file_names{1});
             if sum(dims.sizeZCT) > 3 
                 errordlg('Not yet implemented for multi-plane data');
                 return;
@@ -110,7 +110,7 @@ function load_acceptor_images(obj,path)
                 % insert code to handle 3d images here
                 
             else
-                [success, acc_data] = obj.load_flim_cube(acc_data, file_names{i},1,i,dims,ZCT);
+                [success, acc_data] = obj.load_flim_cube(acc_data, file_names{i},1,i,reader_settings,dims,ZCT);
                 im = squeeze(acc_data);
             end
                 

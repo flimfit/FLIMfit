@@ -58,8 +58,6 @@ classdef front_end_menu_controller < handle
         menu_OMERO_export_fit_params;
         menu_OMERO_import_fit_params;
         
-        menu_OMERO_Export_Visualisation_Images;
-        
         menu_OMERO_Connect_To_Another_User;    
         menu_OMERO_Connect_To_Logon_User;    
         
@@ -190,6 +188,7 @@ classdef front_end_menu_controller < handle
         recent_irf;
         recent_default_path;
 
+        platform_default_path; 
         default_path;
         window;
 
@@ -208,8 +207,13 @@ classdef front_end_menu_controller < handle
             try
                 obj.default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
             catch e
-                addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
-                obj.default_path = 'C:\';
+                if ispc
+                    obj.platform_default_path = 'C:';
+                else
+                    obj.platform_default_path = '';
+                end
+                addpref('GlobalAnalysisFrontEnd','DefaultFolder',obj.platform_default_path)
+                obj.default_path = obj.platform_default_path;
             end
             
             try
@@ -361,7 +365,7 @@ classdef front_end_menu_controller < handle
             if ~isempty(obj.omero_logon_manager.session)
                 props = properties(obj);
                 OMERO_props = props( strncmp('menu_OMERO',props,10) );
-                for i=1:length(OMERO_props)
+                for i=1:length(OMERO_props) 
                     set(obj.(OMERO_props{i}),'Enable','on');
                 end
             end
@@ -588,11 +592,7 @@ classdef front_end_menu_controller < handle
                   end
             end
         end                                            
-        %------------------------------------------------------------------
-        function menu_OMERO_Export_Visualisation_Images_callback(obj)
-            add_Image(obj.omero_logon_manager);
-            %obj.omero_logon_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
-        end                                    
+                                          
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Another_User_callback(obj)
             obj.omero_logon_manager.Select_Another_User();
@@ -639,14 +639,27 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.data_series.clear();
             end
             
-            [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
-            if file ~= 0
-                obj.data_series_controller.data_series = flim_data_series();
-                obj.data_series_controller.load_single([path file]); 
-                if strcmp(obj.default_path,'C:\')
-                    obj.default_path = path;
+            [files,path] = uigetfile('*.*','Select a file from the data',obj.default_path,'MultiSelect','on'); 
+            if ~iscell(files) 
+                if files == 0
+                    return;
                 end
             end
+            obj.data_series_controller.data_series = flim_data_series();
+            obj.data_series_controller.load_single([path files]); 
+            if strcmp(obj.default_path,obj.platform_default_path)
+                obj.default_path = path;
+            end
+            
+            
+            %[file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
+            %if file ~= 0
+            %    obj.data_series_controller.data_series = flim_data_series();
+            %    obj.data_series_controller.load_single([path file]); 
+            %    if strcmp(obj,default_path,obj.platform_default_path)
+            %        obj.default_path = path;
+            %    end
+            %end
         end
         
         function menu_file_load_widefield_callback(obj)
@@ -659,7 +672,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -674,7 +687,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -691,7 +704,7 @@ classdef front_end_menu_controller < handle
             if file ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_plate([path file]); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -706,7 +719,7 @@ classdef front_end_menu_controller < handle
             if file ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -721,7 +734,7 @@ classdef front_end_menu_controller < handle
             if folder ~= 0
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -917,6 +930,7 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_OMERO_export_fit_table_callback(obj)
+            
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.csv');
             if filename ~= 0
                 obj.fit_controller.save_param_table([pathname filename]);         
@@ -1054,7 +1068,7 @@ classdef front_end_menu_controller < handle
                 fit_params = obj.fitting_params_controller.fit_params;
                 obj.data_series_controller.data_series.save_dataset_indextings(settings_file);
                 batch_fit(folder,'widefield',settings_file,fit_params);
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -1148,19 +1162,26 @@ classdef front_end_menu_controller < handle
             d = obj.data_series_controller.data_series;
             mask = obj.data_masking_controller.roi_controller.roi_mask;
 
+            T = 1e6 / d.rep_rate;
+            
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = mean(double(data),3);
             
             for i=1:size(data,2)
-                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),ax);
+                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),T,ax);
             end
 
-%            plot(ax, t, irf);
-%            ylabel('IRF'); xlabel('Time (ps)');
-
+            dat = table();
+            dat.t = t_final;
+            for i=1:size(irf,2)
+                dat.(['irf_ch' num2str(i)]) = irf(:,i);
+            end
+            
             [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
-            csvwrite([path file], [t_final', irf]);
+            if file~=0
+                writetable(dat,[path file]);
+            end
             
             close(fh);
             
@@ -1335,6 +1356,11 @@ classdef front_end_menu_controller < handle
         
         function menu_OMERO_export_plots_callback(obj, ~, ~)
             
+            if strcmp(class(obj.data_series_controller.data_series),'flim_data_series')
+                errordlg('Not yet implemented for data not loaded from OMERO!');
+                return;
+            end 
+            
             default_name = [char(obj.omero_logon_manager.dataset.getName().getValue() ) 'fit'];
             [filename, pathname, dataset, before_list] = obj.data_series_controller.data_series.prompt_for_export('root filename', default_name, '.tiff');
             obj.plot_controller.update_plots([pathname filename]);
@@ -1342,10 +1368,8 @@ classdef front_end_menu_controller < handle
             
         end
         
-    
-         
-        
         function menu_file_export_hist_data_callback(obj, ~, ~)
+            
             [filename, pathname] = uiputfile({'*.txt', 'Text File (*.txt)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.hist_controller.export_histogram_data([pathname filename]);
@@ -1353,6 +1377,7 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_OMERO_export_hist_data_callback(obj)
+            
             [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('root filename', '', '.txt');
             if filename ~= 0
                 fname = obj.hist_controller.export_histogram_data([pathname filename]);

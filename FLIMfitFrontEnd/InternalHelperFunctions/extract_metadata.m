@@ -1,4 +1,4 @@
-function metadata = extract_metadata(strings)
+function metadata = extract_metadata(strings,metadata)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -30,8 +30,11 @@ function metadata = extract_metadata(strings)
     strrep(strings,'.','_');
     
 try 
-    metadata = struct();
-
+    
+    if nargin < 2
+        metadata = struct();
+    end
+    
     if nargin < 1
         strings = {'Test t=1.0min x=4 type=gfp' 'Test t=2.0min x=3'};
     end
@@ -47,6 +50,18 @@ try
  
     for i=1:n
         s = strings{i};
+        
+        % Get trailing rep numbers
+        [match,tokens] = regexp(s,'_(\d+)_(\d+)$','match','tokens','once');
+        if ~isempty(tokens)
+            add_class('Rep1');
+            add_class('Rep2');
+            metadata.Rep1{i} = str2double(tokens{1});
+            metadata.Rep2{i} = str2double(tokens{2});
+            
+            s = strrep(s,match,'');
+        end
+        
         % Look for Well= indicator
         [tokens,match] = regexp(s,'Well=([A-Za-z])(\d+)','tokens','match');
         if ~isempty(tokens)
@@ -61,7 +76,7 @@ try
             metadata.Row{i} = token{1};
             metadata.Column{i} = token{2};
             
-            strrep(s,match{1},'');
+            s = strrep(s,match{1},'');
             
         else  
         
@@ -125,7 +140,7 @@ try
         end
         
         % Look for things of the form 'Xnn'
-        [match,tokens] = regexp(s,'\s([A-Z])([\d]+(?:[_-,]\d+)*)','match','tokens');
+        [match,tokens] = regexp(s,'\s([A-Z][a-z]+)([\d]+(?:[_-,]\d+)*)','match','tokens');
         for j=1:length(tokens)
             t = tokens{j};
             t{2} = strrep(t{2},'_','.');
@@ -174,11 +189,19 @@ try
             metadata.(names{j}) = d;  
         end
     end
+    
+    % put rep fields at end
+    fields = fieldnames(metadata);
+    sel = ~cellfun(@isempty,strfind(fields,'Rep'));
+    [~,idx] = sort(sel);
+    ord = 1:length(fields);
+    metadata = orderfields(metadata,ord(idx));
 
 catch e
 
     warning('Error while trying to extract metadata! Falling back to filenames');
     metadata.FileName = strings;
+    disp(getReport(e));
 end
 
     function add_class(class)

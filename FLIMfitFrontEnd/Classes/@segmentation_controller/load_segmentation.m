@@ -78,10 +78,10 @@ function load_segmentation(obj,folder)
                           dir([folder '*' match_string '*.png'])];
             
         if ~isempty(matching_files)
-            mask = uint8(imread([folder matching_files(1).name]));
-            mask(mask>254) = 1;
+            mask = uint16(imread([folder matching_files(1).name]));
+            mask(mask>65536) = 1;
         else
-            mask = ones([d.height d.width],'uint8');
+            mask = ones([d.height d.width],'uint16');
         end
 
         switch choice
