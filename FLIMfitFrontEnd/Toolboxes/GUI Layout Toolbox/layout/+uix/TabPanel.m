@@ -1,4 +1,4 @@
-classdef TabPanel < uix.Container
+classdef TabPanel < uix.Container & uix.mixin.Panel
     %uix.TabPanel  Tab panel
     %
     %  p = uix.TabPanel(p1,v1,p2,v2,...) constructs a tab panel and sets
@@ -13,8 +13,8 @@ classdef TabPanel < uix.Container
     %
     %  See also: uitabgroup, uitab, uix.CardPanel
     
-    %  Copyright 2009-2014 The MathWorks, Inc.
-    %  $Revision: 1094 $ $Date: 2015-05-14 16:52:45 +0100 (Thu, 14 May 2015) $
+    %  Copyright 2009-2015 The MathWorks, Inc.
+    %  $Revision: 1336 $ $Date: 2016-08-16 02:04:41 +0100 (Tue, 16 Aug 2016) $
     
     properties( Access = public, Dependent, AbortSet )
         FontAngle % font angle
@@ -25,7 +25,6 @@ classdef TabPanel < uix.Container
         ForegroundColor % tab text color [RGB]
         HighlightColor % border highlight color [RGB]
         ShadowColor % border shadow color [RGB]
-        Selection % selected contents
     end
     
     properties
@@ -49,29 +48,25 @@ classdef TabPanel < uix.Container
         ForegroundColor_ = get( 0, 'DefaultUicontrolForegroundColor' ) % backing for ForegroundColor
         HighlightColor_ = [1 1 1] % backing for HighlightColor
         ShadowColor_ = [0.7 0.7 0.7] % backing for ShadowColor
-        Selection_ = 0 % backing for Selection
+        ParentBackgroundColor = get( 0, 'DefaultUicontrolForegroundColor' ) % default parent background color
         Tabs = gobjects( [0 1] ) % tabs
         TabListeners = event.listener.empty( [0 1] ) % tab listeners
         TabLocation_ = 'top' % backing for TabPosition
         TabHeight = -1 % cache of tab height (-1 denotes stale cache)
-        TabWidth_ = 80 % backing for TabWidth
-        TabDividers = uix.Image.empty( [0 1] ) % tab dividers
-        LocationObserver % location observer
+        TabWidth_ = 50 % backing for TabWidth
+        Dividers % tab dividers
         BackgroundColorListener % listener
         SelectionChangedListener % listener
-        G1218142 = false % bug flag
+        ParentListener % listener
+        ParentBackgroundColorListener % listener
     end
     
     properties( Access = private, Constant )
         FontNames = listfonts() % all available font names
         DividerMask = uix.TabPanel.getDividerMask() % divider image data
         DividerWidth = 8 % divider width
-        DividerHeight = 8 % minimum divider height
+        TabMinimumHeight = 9 % tab minimum height
         Tint = 0.85 % tint factor for unselected tabs
-    end
-    
-    events( NotifyAccess = private )
-        SelectionChanged % selection changed
     end
     
     methods
@@ -84,21 +79,26 @@ classdef TabPanel < uix.Container
             %  p = uix.TabPanel(p1,v1,p2,v2,...) sets parameter p1 to value
             %  v1, etc.
             
-            % Call superclass constructor
-            obj@uix.Container()
+            % Create dividers
+            dividers = matlab.ui.control.UIControl( 'Internal', true, ...
+                'Parent', obj, 'Units', 'pixels', 'Style', 'checkbox',...
+                'Tag', 'TabPanelDividers' );
             
-            % Create observers and listeners
-            locationObserver = uix.LocationObserver( obj );
+            % Create listeners
             backgroundColorListener = event.proplistener( obj, ...
                 findprop( obj, 'BackgroundColor' ), 'PostSet', ...
                 @obj.onBackgroundColorChange );
             selectionChangedListener = event.listener( obj, ...
                 'SelectionChanged', @obj.onSelectionChanged );
+            parentListener = event.proplistener( obj, ...
+                findprop( obj, 'Parent' ), 'PostSet', ...
+                @obj.onParentChanged );
             
             % Store properties
-            obj.LocationObserver = locationObserver;
+            obj.Dividers = dividers;
             obj.BackgroundColorListener = backgroundColorListener;
             obj.SelectionChangedListener = selectionChangedListener;
+            obj.ParentListener = parentListener;
             
             % Set properties
             if nargin > 0
@@ -341,16 +341,10 @@ classdef TabPanel < uix.Container
             % Set
             obj.HighlightColor_ = value;
             
-            % Redraw tabs
-            obj.redrawTabs()
+            % Mark as dirty
+            obj.Dirty = true;
             
         end % set.HighlightColor
-        
-        function value = get.Selection( obj )
-            
-            value = obj.Selection_;
-            
-        end % get.Selection
         
         function set.SelectionChangedFcn( obj, value )
             
@@ -375,42 +369,6 @@ classdef TabPanel < uix.Container
             
         end % set.SelectionChangedFcn
         
-        function set.Selection( obj, value ) % TODO
-            
-            % Check
-            assert( isa( value, 'double' ), 'uix:InvalidPropertyValue', ...
-                'Property ''Selection'' must be of type double.' )
-            assert( isequal( size( value ), [1 1] ), ...
-                'uix:InvalidPropertyValue', ...
-                'Property ''Selection'' must be scalar.' )
-            assert( isreal( value ) && rem( value, 1 ) == 0, ...
-                'uix:InvalidPropertyValue', ...
-                'Property ''Selection'' must be an integer.' )
-            n = numel( obj.Contents_ );
-            if n == 0
-                assert( value == 0, 'uix:InvalidPropertyValue', ...
-                    'Property ''Selection'' must be 0 for a container with no children.' )
-            else
-                assert( value >= 1 && value <= n, 'uix:InvalidPropertyValue', ...
-                    'Property ''Selection'' must be between 1 and the number of children.' )
-                assert( strcmp( obj.Tabs(value).Enable, 'inactive' ), ...
-                    'uix:InvalidPropertyValue', 'Cannot select a disabled tab.' )
-            end
-            
-            % Set
-            oldSelection = obj.Selection_;
-            newSelection = value;
-            obj.Selection_ = newSelection;
-            
-            % Mark as dirty
-            obj.Dirty = true;
-            
-            % Notify selection change
-            obj.notify( 'SelectionChanged', ...
-                uix.SelectionEvent( oldSelection, newSelection ) )
-            
-        end % set.Selection
-        
         function value = get.ShadowColor( obj )
             
             value = obj.ShadowColor_;
@@ -428,8 +386,8 @@ classdef TabPanel < uix.Container
             % Set
             obj.ShadowColor_ = value;
             
-            % Redraw tabs
-            obj.redrawTabs()
+            % Mark as dirty
+            obj.Dirty = true;
             
         end % set.ShadowColor
         
@@ -464,46 +422,6 @@ classdef TabPanel < uix.Container
             for ii = 1:numel( tabs )
                 tabs(ii).Enable = value{ii};
                 tabListeners(ii).Enabled = tf(ii);
-            end
-            
-            % Update selection
-            oldSelection = obj.Selection_;
-            if oldSelection == 0
-                % When no tab was selected, select the last enabled tab
-                newSelection = find( tf, 1, 'last' );
-                if isempty( newSelection )
-                    newSelection = 0;
-                end
-                obj.Selection_ = newSelection;
-                % Mark as dirty
-                obj.Dirty = true;
-            elseif ~tf(oldSelection)
-                % When the tab that was selected is disabled, select the
-                % first enabled tab to the right, or failing that, the last
-                % enabled tab to the left, or failing that, nothing
-                preSelection = find( tf(1:oldSelection-1), 1, 'last' );
-                postSelection = oldSelection + ...
-                    find( tf(oldSelection+1:end), 1, 'first' );
-                if ~isempty( postSelection )
-                    newSelection = postSelection;
-                elseif ~isempty( preSelection )
-                    newSelection = preSelection;
-                else
-                    newSelection = 0;
-                end
-                obj.Selection_ = newSelection;
-                % Mark as dirty
-                obj.Dirty = true;
-            else
-                % When the tab that was selected is enabled, the previous
-                % selection remains valid
-                newSelection = oldSelection;
-            end
-            
-            % Notify selection change
-            if oldSelection ~= newSelection
-                obj.notify( 'SelectionChanged', ...
-                    uix.SelectionEvent( oldSelection, newSelection ) )
             end
             
         end % set.TabEnables
@@ -614,34 +532,23 @@ classdef TabPanel < uix.Container
         
         function redraw( obj )
             
-            % Create or destroy tab dividers
-            tabs = obj.Tabs;
-            n = numel( tabs ); % number of tabs
-            u = numel( obj.TabDividers ); % current number of dividers
-            v = sign( n ) * ( n + 1 ); % required number of dividers
-            if u < v % create
-                for ii = u+1:v
-                    divider = uix.Image( 'Internal', true, ...
-                        'Parent', obj, 'Units', 'pixels' );
-                    obj.TabDividers(ii,:) = divider;
-                end
-            elseif u > v % destroy
-                delete( obj.TabDividers(v+1:u,:) )
-                obj.TabDividers(v+1:u,:) = [];
-            end
-            
             % Compute positions
             bounds = hgconvertunits( ancestor( obj, 'figure' ), ...
                 [0 0 1 1], 'normalized', 'pixels', obj );
             w = ceil( bounds(1) + bounds(3) ) - floor( bounds(1) ); % width
             h = ceil( bounds(2) + bounds(4) ) - floor( bounds(2) ); % height
             p = obj.Padding_; % padding
+            tabs = obj.Tabs;
+            n = numel( tabs ); % number of tabs
             tH = obj.TabHeight; % tab height
-            if n > 0 && tH == -1 % cache stale, refresh
-                cTabExtents = get( tabs, {'Extent'} );
-                tabExtents = vertcat( cTabExtents{:} );
-                tH = max( tabExtents(:,4) );
-                tH = max( [tH obj.DividerHeight] ); % apply minimum
+            if tH == -1 % cache stale, refresh
+                if n > 0
+                    cTabExtents = get( tabs, {'Extent'} );
+                    tabExtents = vertcat( cTabExtents{:} );
+                    tH = max( tabExtents(:,4) );
+                end
+                tH = max( tH, obj.TabMinimumHeight ); % apply minimum
+                tH = ceil( tH ); % round up
                 obj.TabHeight = tH; % store
             end
             cH = max( [h - 2 * p - tH, 1] ); % contents height
@@ -660,71 +567,47 @@ classdef TabPanel < uix.Container
             if tW < 0 && n > 0 % relative
                 tW = max( ( w - (n+1) * dW ) / n, 1 );
             end
+            tW = ceil( tW ); % round up
             for ii = 1:n
                 tabs(ii).Position = [1 + (ii-1) * tW + ii * dW, tY, tW, tH];
             end
-            tabDividers = obj.TabDividers;
-            for ii = 1:v
-                tabDividers(ii).Position = [1 + (ii-1) * tW + (ii-1) * dW, tY, dW, tH];
-            end
+            obj.Dividers.Position = [0 tY w+1 tH];
             contentsPosition = [cX cY cW cH];
             
             % Redraw tabs
             obj.redrawTabs()
             
             % Redraw contents
-            children = obj.Contents_;
-            selection = obj.Selection_;
-            for ii = 1:numel( children )
-                child = children(ii);
-                if ii == selection
-                    if obj.G1218142
-                        warning( 'uix:G1218142', ...
-                            'Selected child of %s is not visible due to bug G1218142.  The child will become visible at the next redraw.', ...
-                            class( obj ) )
-                        obj.G1218142 = false;
-                    else
-                        child.Visible = 'on';
-                    end
-                    child.Units = 'pixels';
-                    if isa( child, 'matlab.graphics.axis.Axes' )
-                        switch child.ActivePositionProperty
-                            case 'position'
-                                child.Position = contentsPosition;
-                            case 'outerposition'
-                                child.OuterPosition = contentsPosition;
-                            otherwise
-                                error( 'uix:InvalidState', ...
-                                    'Unknown value ''%s'' for property ''ActivePositionProperty'' of %s.', ...
-                                    child.ActivePositionProperty, class( child ) )
-                        end
-                        child.ContentsVisible = 'on';
-                    else
-                        child.Position = contentsPosition;
-                    end
-                else
-                    child.Visible = 'off';
-                    if isa( child, 'matlab.graphics.axis.Axes' )
-                        child.ContentsVisible = 'off';
-                    end
-                    % As a remedy for g1100294, move off-screen too
-                    if isa( child, 'matlab.graphics.axis.Axes' ) ...
-                            && strcmp(child.ActivePositionProperty, 'outerposition')
-                        child.OuterPosition(1) = -child.OuterPosition(3)-20;
-                    else
-                        child.Position(1) = -child.Position(3)-20;
-                    end
-                end
-            end
+            obj.redrawContents( contentsPosition )
             
         end % redraw
         
-        function addChild( obj, child )
+        function redrawContents( obj, position )
+            %redrawContents  Redraw contents
             
-            % Check for bug
-            if verLessThan( 'MATLAB', '8.5' ) && strcmp( child.Visible, 'off' )
-                obj.G1218142 = true;
+            % Call superclass method
+            redrawContents@uix.mixin.Panel( obj, position )
+            
+            % If not enabled, hide selected contents too
+            selection = obj.Selection_;
+            if selection ~= 0 && strcmp( obj.TabEnables{selection}, 'off' )
+                child = obj.Contents_(selection);
+                child.Visible = 'off';
+                if isa( child, 'matlab.graphics.axis.Axes' )
+                    child.ContentsVisible = 'off';
+                end
+                % As a remedy for g1100294, move off-screen too
+                if isa( child, 'matlab.graphics.axis.Axes' ) ...
+                        && strcmp(child.ActivePositionProperty, 'outerposition' )
+                    child.OuterPosition(1) = -child.OuterPosition(3)-20;
+                else
+                    child.Position(1) = -child.Position(3)-20;
+                end
             end
+            
+        end % redrawContents
+        
+        function addChild( obj, child )
             
             % Create new tab
             n = numel( obj.Tabs );
@@ -735,29 +618,34 @@ classdef TabPanel < uix.Container
                 'FontAngle', obj.FontAngle_, 'FontWeight', obj.FontWeight_, ...
                 'ForegroundColor', obj.ForegroundColor_, ...
                 'String', sprintf( 'Page %d', n + 1 ) );
-            tabListener = event.listener( tab, 'ButtonDown', @obj.onTabClick );
+            tabListener = event.listener( tab, 'ButtonDown', @obj.onTabClicked );
             obj.Tabs(n+1,:) = tab;
             obj.TabListeners(n+1,:) = tabListener;
             
-            % If nothing was selected, select the new content
+            % Mark as dirty
+            obj.TabHeight = -1;
+            
+            % Check for bug
+            if verLessThan( 'MATLAB', '8.5' ) && strcmp( child.Visible, 'off' )
+                obj.G1218142 = true;
+            end
+            
+            % Select new content
             oldSelection = obj.Selection_;
-            if oldSelection == 0
-                newSelection = n + 1;
+            if numel( obj.Contents_ ) == 0
+                newSelection = 1;
                 obj.Selection_ = newSelection;
             else
                 newSelection = oldSelection;
             end
             
-            % Mark as dirty
-            obj.TabHeight = -1;
-            
             % Call superclass method
-            addChild@uix.Container( obj, child )
+            addChild@uix.mixin.Container( obj, child )
             
             % Notify selection change
             if oldSelection ~= newSelection
                 obj.notify( 'SelectionChanged', ...
-                    uix.SelectionEvent( oldSelection, newSelection ) )
+                    uix.SelectionData( oldSelection, newSelection ) )
             end
             
         end % addChild
@@ -773,42 +661,8 @@ classdef TabPanel < uix.Container
             obj.Tabs(index,:) = [];
             obj.TabListeners(index,:) = [];
             
-            % Adjust selection
-            oldSelection = obj.Selection_;
-            if oldSelection < index
-                % When a tab to the right of the selected tab is removed,
-                % the previous selection remains valid
-            elseif oldSelection > index
-                % When a tab to the left of the selected tab is removed,
-                % decrement the selection by 1
-                newSelection = oldSelection - 1;
-                obj.Selection_ = newSelection;
-            else
-                % When the selected tab is removed, select the first
-                % enabled tab to the right, or failing that, the last
-                % enabled tab to the left, or failing that, nothing
-                tf = strcmp( get( obj.Tabs, {'Enable'} ), 'inactive' );
-                preSelection = find( tf(1:oldSelection-1), 1, 'last' );
-                postSelection = oldSelection - 1 + ...
-                    find( tf(oldSelection:end), 1, 'first' );
-                if ~isempty( postSelection )
-                    newSelection = postSelection;
-                elseif ~isempty( preSelection )
-                    newSelection = preSelection;
-                else
-                    newSelection = 0;
-                end
-                obj.Selection_ = newSelection;
-            end
-            
             % Call superclass method
-            removeChild@uix.Container( obj, child )
-            
-            % Notify selection change
-            if oldSelection == index
-                obj.notify( 'SelectionChanged', ...
-                    uix.SelectionEvent( oldSelection, newSelection ) )
-            end
+            removeChild@uix.mixin.Panel( obj, child )
             
         end % removeChild
         
@@ -821,39 +675,18 @@ classdef TabPanel < uix.Container
             % Reorder
             obj.Tabs = obj.Tabs(indices,:);
             obj.TabListeners = obj.TabListeners(indices,:);
-            selection = obj.Selection_;
-            if selection ~= 0
-                obj.Selection_ = find( indices == selection );
-            end
             
             % Call superclass method
-            reorder@uix.Container( obj, indices )
+            reorder@uix.mixin.Panel( obj, indices )
             
         end % reorder
         
-        function reparent( obj, oldAncestors, newAncestors )
+        function reparent( obj, oldFigure, newFigure )
             %reparent  Reparent container
             %
-            %  c.reparent(a,b) reparents the container c from the ancestors
-            %  a to the ancestors b.
+            %  c.reparent(a,b) reparents the container c from the figure a
+            %  to the figure b.
             
-            % Refresh location observer
-            locationObserver = uix.LocationObserver( [newAncestors; obj] );
-            obj.LocationObserver = locationObserver;
-            
-            % Reparent context menus if figure has changed
-            if isempty( oldAncestors ) || ...
-                    ~isa( oldAncestors(1), 'matlab.ui.Figure' )
-                oldFigure = gobjects( [0 0] );
-            else
-                oldFigure = oldAncestors(1);
-            end
-            if isempty( newAncestors ) || ...
-                    ~isa( newAncestors(1), 'matlab.ui.Figure' )
-                newFigure = gobjects( [0 0] );
-            else
-                newFigure = newAncestors(1);
-            end
             if ~isequal( oldFigure, newFigure )
                 contextMenus = obj.TabContextMenus;
                 for ii = 1:numel( contextMenus )
@@ -865,7 +698,7 @@ classdef TabPanel < uix.Container
             end
             
             % Call superclass method
-            reparent@uix.Container( obj, oldAncestors, newAncestors )
+            reparent@uix.mixin.Panel( obj, oldFigure, newFigure )
             
         end % reparent
         
@@ -880,11 +713,19 @@ classdef TabPanel < uix.Container
             
             % Get relevant properties
             selection = obj.Selection_;
+            tabs = obj.Tabs;
+            t = numel( tabs );
+            dividers = obj.Dividers;
+            
+            % Handle no tabs as a special case
+            if t == 0
+                dividers.Visible = 'off'; % hide
+                return
+            end
             
             % Repaint tabs
-            tabs = obj.Tabs;
             backgroundColor = obj.BackgroundColor;
-            for ii = 1:numel( tabs )
+            for ii = 1:t
                 tab = tabs(ii);
                 if ii == selection
                     tab.BackgroundColor = backgroundColor;
@@ -894,34 +735,49 @@ classdef TabPanel < uix.Container
             end
             
             % Repaint dividers
-            tabDividers = obj.TabDividers;
-            n = numel( tabDividers );
-            dividerNames = repmat( 'F', [n 2] ); % initialize
-            if n > 0
-                dividerNames(1,1) = 'E'; % end
-                dividerNames(end,2) = 'E'; % end
-            end
+            d = t + 1;
+            dividerNames = repmat( 'F', [d 2] ); % initialize
+            dividerNames(1,1) = 'E'; % end
+            dividerNames(end,2) = 'E'; % end
             if selection ~= 0
                 dividerNames(selection,2) = 'T'; % selected
                 dividerNames(selection+1,1) = 'T'; % selected
             end
-            for ii = 1:n
-                tabDivider = tabDividers(ii);
-                mask = obj.DividerMask.( dividerNames(ii,:) );
-                jMask = zeros( size( mask ), 'int32' ); % initialize
-                jMask(mask==0) = uix.Image.rgb2int( obj.ShadowColor );
-                jMask(mask==1) = uix.Image.rgb2int( obj.BackgroundColor );
-                jMask(mask==2) = uix.Image.rgb2int( obj.Tint * obj.BackgroundColor );
-                jMask(mask==3) = uix.Image.rgb2int( obj.HighlightColor );
-                jData = repmat( jMask(5,:), [tabDivider.Position(4) 1] );
-                jData(1:4,:) = jMask(1:4,:);
-                jData(end-3:end,:) = jMask(end-3:end,:);
+            tH = obj.TabHeight;
+            assert( tH >= obj.TabMinimumHeight, 'uix:InvalidState', ...
+                'Cannot redraw tabs with invalid TabHeight.' )
+            tW = obj.Tabs(1).Position(3);
+            dW = obj.DividerWidth;
+            allCData = zeros( [tH 0 3] ); % initialize
+            map = [obj.ShadowColor; obj.BackgroundColor; ...
+                obj.Tint * obj.BackgroundColor; obj.HighlightColor;...
+                obj.ParentBackgroundColor];
+            for ii = 1:d
+                % Select mask
+                iMask = obj.DividerMask.( dividerNames(ii,:) );
+                % Resize
+                iData = repmat( iMask(5,:), [tH 1] );
+                iData(1:4,:) = iMask(1:4,:);
+                iData(end-3:end,:) = iMask(end-3:end,:);
+                % Convert to RGB
+                cData = ind2rgb( iData+1, map );
+                % Orient
                 switch obj.TabLocation_
                     case 'bottom'
-                        jData = flipud( jData );
+                        cData = flipud( cData );
                 end
-                tabDivider.JData = jData;
+                % Insert
+                allCData(1:tH,(ii-1)*(dW+tW)+(1:dW),:) = cData; % center
+                if ii > 1 % extend left under transparent uicontrol edge
+                    allCData(1:tH,(ii-1)*(dW+tW),:) = cData(:,1,:);
+                end
+                if ii < d % extend right under transparent uicontrol edge
+                    allCData(1:tH,(ii-1)*(dW+tW)+dW+1,:) = cData(:,end,:);
+                end
             end
+            dividers.CData = allCData; % paint
+            dividers.BackgroundColor = obj.ParentBackgroundColor;
+            dividers.Visible = 'on'; % show
             
         end % redrawTabs
         
@@ -929,7 +785,7 @@ classdef TabPanel < uix.Container
     
     methods( Access = private )
         
-        function onTabClick( obj, source, ~ )
+        function onTabClicked( obj, source, ~ )
             
             % Update selection
             oldSelection = obj.Selection_;
@@ -942,13 +798,14 @@ classdef TabPanel < uix.Container
             
             % Notify selection change
             obj.notify( 'SelectionChanged', ...
-                uix.SelectionEvent( oldSelection, newSelection ) )
+                uix.SelectionData( oldSelection, newSelection ) )
             
-        end % onTabClick
+        end % onTabClicked
         
         function onBackgroundColorChange( obj, ~, ~ )
             
-            obj.redrawTabs()
+            % Mark as dirty
+            obj.Dirty = true;
             
         end % onBackgroundColorChange
         
@@ -968,6 +825,42 @@ classdef TabPanel < uix.Container
             
         end % onSelectionChanged
         
+        function onParentChanged( obj, ~, ~ )
+            
+            % Update ParentBackgroundColor and ParentBackgroundColor
+            if isprop( obj.Parent, 'BackgroundColor' )
+                prop = 'BackgroundColor';
+            elseif isprop( obj.Parent, 'Color' )
+                prop = 'Color';
+            else
+                prop = [];
+            end
+            
+            if ~isempty( prop )
+                obj.ParentBackgroundColorListener = event.proplistener( obj.Parent, ...
+                    findprop( obj.Parent, prop ), 'PostSet', ...
+                    @( src, evt ) obj.updateParentBackgroundColor( prop ) );
+            else
+                obj.ParentBackgroundColorListener = [];
+            end
+            
+            obj.updateParentBackgroundColor( prop );
+            
+        end % onParentChanged
+        
+        function updateParentBackgroundColor( obj, prop )
+            
+            if isempty( prop )
+                obj.ParentBackgroundColor = obj.BackgroundColor;
+            else
+                obj.ParentBackgroundColor = obj.Parent.(prop);
+            end
+            
+            % Mark as dirty
+            obj.Dirty = true;
+            
+        end
+        
     end % event handlers
     
     methods( Access = private, Static )
@@ -975,17 +868,50 @@ classdef TabPanel < uix.Container
         function mask = getDividerMask()
             %getDividerMask  Get divider image data
             %
-            %  m = uix.BoxPanel.getDividerMask() returns the image masks
+            %  m = uix.TabPanel.getDividerMask() returns the image masks
             %  for tab panel dividers.  Mask entries are 0 (shadow), 1
             %  (background), 2 (tint) and 3 (highlight).
             
-            mask.EF = sum( uix.loadIcon( 'tab_NoEdge_NotSelected.png' ), 3 );
-            mask.ET = sum( uix.loadIcon( 'tab_NoEdge_Selected.png' ), 3 );
-            mask.FE = sum( uix.loadIcon( 'tab_NotSelected_NoEdge.png' ), 3 );
-            mask.FF = sum( uix.loadIcon( 'tab_NotSelected_NotSelected.png' ), 3 );
-            mask.FT = sum( uix.loadIcon( 'tab_NotSelected_Selected.png' ), 3 );
-            mask.TE = sum( uix.loadIcon( 'tab_Selected_NoEdge.png' ), 3 );
-            mask.TF = sum( uix.loadIcon( 'tab_Selected_NotSelected.png' ), 3 );
+            mask.EF = indexColor( uix.loadIcon( 'tab_NoEdge_NotSelected.png' ) );
+            mask.ET = indexColor( uix.loadIcon( 'tab_NoEdge_Selected.png' ) );
+            mask.FE = indexColor( uix.loadIcon( 'tab_NotSelected_NoEdge.png' ) );
+            mask.FF = indexColor( uix.loadIcon( 'tab_NotSelected_NotSelected.png' ) );
+            mask.FT = indexColor( uix.loadIcon( 'tab_NotSelected_Selected.png' ) );
+            mask.TE = indexColor( uix.loadIcon( 'tab_Selected_NoEdge.png' ) );
+            mask.TF = indexColor( uix.loadIcon( 'tab_Selected_NotSelected.png' ) );
+            
+            function mask = indexColor( rgbMap )
+                %indexColor  Returns a map of index given an RGB map
+                %
+                %  mask = indexColor( rgbMap ) returns a mask of color
+                %  index based on the supplied rgbMap.
+                %  black  : 0
+                %  red    : 1
+                %  yellow : 2
+                %  white  : 3
+                %  blue   : 4
+                mask = nan( size( rgbMap, 1 ),size( rgbMap, 2 ) );
+                % Black
+                colorIndex = isColor( rgbMap, [0 0 0] );
+                mask(colorIndex) = 0;
+                % Red
+                colorIndex = isColor( rgbMap, [1 0 0] );
+                mask(colorIndex) = 1;
+                % Yellow
+                colorIndex = isColor( rgbMap, [1 1 0] );
+                mask(colorIndex) = 2;
+                % White
+                colorIndex = isColor( rgbMap, [1 1 1] );
+                mask(colorIndex) = 3;
+                % Blue
+                colorIndex = isColor( rgbMap, [0 0 1] );
+                mask(colorIndex) = 4;
+                % Nested
+                function boolMap = isColor( map, color )
+                    %isColor  Return a map of boolean where map is equal to color
+                    boolMap = all( bsxfun( @eq, map, permute( color, [1 3 2] ) ), 3 );
+                end
+            end
             
         end % getDividerMask
         

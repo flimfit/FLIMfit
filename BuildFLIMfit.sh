@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.1"; fi
-if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
+if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
+if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
 
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
 
