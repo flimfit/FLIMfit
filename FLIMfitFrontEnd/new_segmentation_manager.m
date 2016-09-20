@@ -33,11 +33,13 @@ function new_segmentation_manager(data_series_controller)
 
         handles.data_series_table = uitable('Parent',layout);
 
-        right_layout = uiextras.VBox('Parent',layout,'Spacing',pad);
-        top_layout = uiextras.HBox('Parent',right_layout,'Spacing',pad);
-        bottom_layout = uiextras.HBox('Parent',right_layout,'Spacing',pad);
+        right_layout = uiextras.HBox('Parent',layout,'Spacing',pad);
 
-        seg_panel = uipanel('Title','Automatic Segmentation','Parent',top_layout);
+        handles.segmentation_axes = axes('Parent',right_layout);
+
+        options_layout = uiextras.VBox('Parent',right_layout,'Spacing',pad/2);
+
+        seg_panel = uipanel('Title','Automatic Segmentation','Parent',options_layout);
         seg_layout = uiextras.VBox('Parent',seg_panel,'Spacing',pad,'Padding',pad);
 
         alg_layout = uiextras.HBox('Parent',seg_layout,'Spacing',pad);
@@ -54,7 +56,8 @@ function new_segmentation_manager(data_series_controller)
         set(seg_button_layout,'Sizes',[-1 100 100])
         set(seg_layout,'Sizes',[22 -1 22])
 
-        filter_panel = uipanel('Title','Region Filtering','Parent',top_layout);
+        
+        filter_panel = uipanel('Title','Region Filtering','Parent',options_layout);
         filter_layout = uiextras.VBox('Parent',filter_panel,'Padding',pad,'Spacing',pad);
 
         handles.region_filter_table = uitable('Parent',filter_layout,'ColumnName',[],...
@@ -65,11 +68,7 @@ function new_segmentation_manager(data_series_controller)
         handles.combine_regions_checkbox = uicontrol('Style','checkbox','String','Combine all regions','Parent',filter_button_layout);
         handles.apply_filtering_pushbutton = uicontrol('Style','pushbutton','String','Apply','Parent',filter_button_layout);
         set(filter_layout,'Sizes',[-1 22])
-
-        handles.segmentation_axes = axes('Parent',bottom_layout);
-
-        options_layout = uiextras.VBox('Parent',bottom_layout,'Spacing',pad/2);
-
+        
         handles.replicate_mask_checkbox = uicontrol('Style','checkbox','String','Apply manual regions to all','Parent',options_layout);
         handles.trim_outliers_checkbox = uicontrol('Style','checkbox','String','Trim outliers for display','Parent',options_layout);
 
@@ -80,9 +79,8 @@ function new_segmentation_manager(data_series_controller)
         handles.copy_to_all_button = uicontrol('Style','pushbutton','String','Copy to all images','Parent',options_layout);
         handles.delete_all_button = uicontrol('Style','pushbutton','String','Delete all regions','Parent',options_layout);
 
-        set(options_layout,'Sizes',[22 22 -1 22 22])
-        set(right_layout,'Sizes',[150 -1]);
-        set(bottom_layout,'Sizes',[-1 200]);
+        set(options_layout,'Sizes',[250 180 22 22 -1 22 22])
+        set(right_layout,'Sizes',[-1 300]);
         set(layout,'Sizes',[200,-1]);
         
         menu_file = uimenu(fh,'Label','File');
