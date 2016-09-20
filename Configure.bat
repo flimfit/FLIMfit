@@ -12,7 +12,7 @@ if ERRORLEVEL 9009 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex 
 SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 
 :: Install cmake, gs and OMERO stuff
-choco install cmake.portable -y
+choco install cmake.portable -y -version 3.6.1
 
 :: The following packages must be installed as admin
 IF NOT DEFINED NOADMIN (
