@@ -146,12 +146,13 @@ function on_callback(obj,src,evtData)
             C = get(axh, 'CurrentPoint');
             pos = [C(1,1), mod(C(1,2), size(obj.paint_mask,1)) + 1];
 
+            all_pos = pos;
             if ~isempty(last_pos)
                 distance = norm(last_pos-pos);
                 n = ceil(distance / r) * 2;
                 
                 all_pos = [linspace(last_pos(1),pos(1),n)' linspace(last_pos(2),pos(2),n)'];
-            end
+                end
                 
             last_pos = pos;
             
