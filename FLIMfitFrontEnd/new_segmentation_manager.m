@@ -17,7 +17,7 @@ function new_segmentation_manager(data_series_controller)
         pos = [100 100 screen_pos(3:4) - 200];
 
         fh = figure('NumberTitle','off','Name','Segmentation Manager','Toolbar','none','Position',pos,'MenuBar','none');
-        handles.window = fh;
+        handles.figure1 = fh;
         
         layout_all = uiextras.VBox('Parent',fh,'Padding',pad*1.5,'Spacing',pad);
         layout = uiextras.HBox('Parent',layout_all,'Spacing',pad);
@@ -102,6 +102,7 @@ function new_segmentation_manager(data_series_controller)
         handles.tool_roi_rect_toggle = uitoggletool(handles.toolbar,'CData',icons.rect_icon,'ToolTipString','Rectangle');
         handles.tool_roi_poly_toggle = uitoggletool(handles.toolbar,'CData',icons.poly_icon,'ToolTipString','Polygon');
         handles.tool_roi_circle_toggle = uitoggletool(handles.toolbar,'CData',icons.ellipse_icon,'ToolTipString','Ellipse');
+        handles.tool_roi_paint_toggle = uitoggletool(handles.toolbar,'CData',icons.paintbrush_icon,'ToolTipString','Ellipse');
         handles.tool_roi_erase_toggle = uitoggletool(handles.toolbar,'CData',icons.eraser_icon,'ToolTipString','Erase');
 
         

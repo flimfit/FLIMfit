@@ -46,6 +46,7 @@ classdef segmentation_controller < flim_data_series_observer
         tool_roi_poly_toggle;
         tool_roi_circle_toggle;
         tool_roi_erase_toggle;
+        tool_roi_paint_toggle;
         
         replicate_mask_checkbox;
                 
@@ -72,6 +73,7 @@ classdef segmentation_controller < flim_data_series_observer
         
         segmentation_im;
         mask_im;
+        paint_im;
         
         mask = uint16(1);
         filtered_mask = uint16(1);
@@ -87,6 +89,8 @@ classdef segmentation_controller < flim_data_series_observer
                 
         filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Roundness Factor';'Max. Roundness Factor'};
         
+        paint_active = false;
+        paint_mask;
         
         slh = [];
     end
@@ -121,10 +125,13 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.tool_roi_rect_toggle,'State','off');
             set(obj.tool_roi_poly_toggle,'State','off');
             set(obj.tool_roi_circle_toggle,'State','off');
+            set(obj.tool_roi_paint_toggle,'State','off');
                        
             set(obj.tool_roi_rect_toggle,'OnCallback',@obj.on_callback);
             set(obj.tool_roi_poly_toggle,'OnCallback',@obj.on_callback);
             set(obj.tool_roi_circle_toggle,'OnCallback',@obj.on_callback);
+            set(obj.tool_roi_paint_toggle,'OnCallback',@obj.on_callback);
+            set(obj.tool_roi_paint_toggle,'OffCallback',@obj.on_callback);
             
             set(obj.trim_outliers_checkbox,'Callback',@(~,~) obj.update_display)
             
