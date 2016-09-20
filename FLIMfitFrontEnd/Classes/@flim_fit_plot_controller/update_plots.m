@@ -65,7 +65,9 @@ function update_plots(obj,file_root)
         pos = get(obj.plot_panel,'Position');
         pos(1:2) = 10;
         pos(3:4) = pos(3:4) - 20;
-        set(obj.plot_axes,'Units','pixels','Position',pos);
+        if (min(pos(3:4)) > 0)
+            set(obj.plot_axes,'Units','pixels','Position',pos);
+        end
     end
     
     figs = [];
@@ -117,8 +119,8 @@ function update_plots(obj,file_root)
         end      
     end
     
-    if ~save
-        montage(figs,'Size',[m n],'Parent',obj.plot_axes);
+    if ~save && f.n_plots > 0
+            montage(figs,'Size',[m n],'Parent',obj.plot_axes);
     end
 end
 
