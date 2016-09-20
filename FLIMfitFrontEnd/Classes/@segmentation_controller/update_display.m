@@ -130,7 +130,6 @@ function update_display(obj)
        colors = jet(length(stats));
        for i=1:length(stats)
             c = stats(i).Centroid;
-            text_col = 1-colors(i,:);
             
             if (mean(colors(i,:))) < 0.6
                 text_col = 'w';

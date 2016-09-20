@@ -191,9 +191,8 @@ classdef segmentation_controller < flim_data_series_observer
             else
                 obj.algorithm_updated([],[]);
             end
-
-
             
+            set(obj.region_filter_table,'ColumnWidth',{22 150 80});
             
             if ~isempty(obj.data_series.seg_mask)
                 obj.mask = obj.data_series.seg_mask;
