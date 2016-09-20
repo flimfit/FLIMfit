@@ -49,6 +49,7 @@ classdef segmentation_controller < flim_data_series_observer
         tool_roi_paint_toggle;
         
         replicate_mask_checkbox;
+        brush_width_popup;
                 
         algorithm_popup;
         parameter_table;
@@ -74,6 +75,8 @@ classdef segmentation_controller < flim_data_series_observer
         segmentation_im;
         mask_im;
         paint_im;
+        
+        brush_width = 5;
         
         mask = uint16(1);
         filtered_mask = uint16(1);
@@ -144,6 +147,8 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.OMERO_Remove_Segmentation,'Callback',@(~,~) obj.remove_segmentation_OMERO);
             set(obj.OMERO_Remove_All_Segmentations,'Callback',@(~,~) obj.remove_all_segmentations_OMERO);
             
+            set(obj.brush_width_popup,'Callback',@(~,~) obj.set_brush_width);
+            
             filter_data = [num2cell(false(size(obj.filters))), ...
                            obj.filters, ...
                            num2cell(zeros(size(obj.filters)))];
@@ -202,6 +207,10 @@ classdef segmentation_controller < flim_data_series_observer
             obj.update_display();
             obj.slh = addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
 
+        end
+        
+        function set_brush_width(obj)
+            obj.brush_width = get(obj.brush_width_popup,'Value');
         end
         
         function ok_pressed(obj,src,~)

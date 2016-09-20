@@ -73,10 +73,18 @@ function new_segmentation_manager(data_series_controller)
         set(filter_layout,'Heights',[-1 22])
         
         check_panel = uipanel('Title','Options','Parent',options_layout);
-        check_layout = uix.HBox
-        handles.replicate_mask_checkbox = uicontrol('Style','checkbox','String','Apply manual regions to all','Parent',check_panel);
-        handles.trim_outliers_checkbox = uicontrol('Style','checkbox','String','Trim outliers for display','Parent',check_panel);
+        check_layout = uix.VBox('Parent',check_panel,'Padding',pad);
+        handles.replicate_mask_checkbox = uicontrol('Style','checkbox','String','Apply manual regions to all','Parent',check_layout);
+        handles.trim_outliers_checkbox = uicontrol('Style','checkbox','String','Trim outliers for display','Parent',check_layout);
 
+        brush_layout = uix.HBox('Parent',check_layout);
+        uicontrol('Style','text','String','Brush Width','Parent',brush_layout);
+        handles.brush_width_popup = uicontrol('Style','popupmenu','String',{'1','2','3','4','5','6','7','8','9','10'},'Parent',brush_layout,'Value',6);
+        set(brush_layout,'Width',[70 -1]);
+        uix.Empty('Parent',check_layout);
+        
+        set(check_layout,'Heights',[22 22 22 -1])
+        
         handles.seg_results_table = uitable('Parent',options_layout,'ColumnName',{'Region','Area (px)','Del.'},...
                                     'ColumnFormat',{'char','numeric','logical'},'ColumnEditable',[false false true],...
                                     'RowName',[],'ColumnWidth',{60 98 40});
@@ -84,7 +92,7 @@ function new_segmentation_manager(data_series_controller)
         handles.copy_to_all_button = uicontrol('Style','pushbutton','String','Copy to all images','Parent',options_layout);
         handles.delete_all_button = uicontrol('Style','pushbutton','String','Delete all regions','Parent',options_layout);
 
-        set(options_layout,'Heights',[250 180 50 -1 22 22])
+        set(options_layout,'Heights',[250 180 100 -1 22 22])
         set(right_layout,'Widths',[-1 300]);
         set(layout,'Widths',[200,-1]);
         

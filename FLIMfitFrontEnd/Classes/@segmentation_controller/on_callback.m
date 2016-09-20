@@ -41,7 +41,6 @@ function on_callback(obj,src,evtData)
         obj.waiting = false;
 
         [X,Y] = meshgrid(1:size(obj.mask,2),1:size(obj.mask,1));
-        r = 8;
         last_pos = [];
         
         if obj.paint_active
@@ -141,6 +140,8 @@ function on_callback(obj,src,evtData)
         
         if mouse_down
             
+            r = obj.brush_width;
+
             axh = obj.segmentation_axes;
             C = get(axh, 'CurrentPoint');
             pos = [C(1,1), mod(C(1,2), size(obj.paint_mask,1)) + 1];
@@ -149,7 +150,7 @@ function on_callback(obj,src,evtData)
                 distance = norm(last_pos-pos);
                 n = ceil(distance / r) * 2;
                 
-                all_pos = [linspace(last_pos(1),pos(1),n)' linspace(last_pos(2),pos(2),n)']
+                all_pos = [linspace(last_pos(1),pos(1),n)' linspace(last_pos(2),pos(2),n)'];
             end
                 
             last_pos = pos;
