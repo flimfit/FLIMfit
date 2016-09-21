@@ -1,5 +1,5 @@
 function diagnostics(event_category, event_label, varargin)
-
+        
     if ~isdeployed
         return
     end
