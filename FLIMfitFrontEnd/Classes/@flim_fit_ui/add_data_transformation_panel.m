@@ -69,7 +69,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Background ', 'HorizontalAlignment', 'right', 'Parent', background_layout );
     uicontrol( 'Style', 'text', 'String', 'Background Value ', 'HorizontalAlignment', 'right', 'Parent', background_layout );
     
-    handles.background_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', 'Single Value', 'Image', 'TV Image'}, 'Parent', background_layout );
+    handles.background_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'None', 'Single Value', 'Image', 'TV Intensity Map'}, 'Parent', background_layout );
     handles.background_value_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', background_layout );
     %handles.tvb_define_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Define', 'Parent', background_layout );
     

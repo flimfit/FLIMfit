@@ -282,7 +282,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             r = FLIMreaderMex(file);
             FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
             FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
-            
+            FLIMreaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
+
             if ~polarisation_resolved && length(Carr) > 1 
                 chan = Carr(read_selected); % load channels sequentially
             else

@@ -16,8 +16,7 @@ cd Unix
 
 echo "Generating CMake Project..."
 cmake ../../ -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE \
-   -DFLIMreaderMEX_OUT_DIR=../../FLIMfitFrontEnd \
-   -DCMAKE_XCODE_ATTRIBUTE_GCC_VERSION=/usr/local/bin/clang-omp++
+   -DFLIMreaderMEX_OUT_DIR=../../FLIMfitFrontEnd
 
 echo "Building Project..."
 make
@@ -33,7 +32,8 @@ echo "VERSION = $VERSION"
 
 build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
-matlab -nodisplay -nosplash -r "compile $VERSION; exit"
+cur_dir=$(grealpath .)
+matlab -nodisplay -nosplash -r "cd('${cur_dir}'); compile $VERSION; exit"
 
 cd ../FLIMfitStandalone/BuiltApps
 zip -r FLIMfit_${VERSION}_MACI64.zip *.app/
