@@ -33,7 +33,7 @@ echo "VERSION = $VERSION"
 build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
 
 cur_dir=$(grealpath .)
-matlab -nodisplay -nosplash -r "cd('${cur_dir}'); compile $VERSION; exit"
+matlab -nodisplay -nosplash -r "cd('${cur_dir}'); compile(true); exit"
 
 cd ../FLIMfitStandalone/BuiltApps
 zip -r FLIMfit_${VERSION}_MACI64.zip *.app/
