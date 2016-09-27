@@ -28,8 +28,6 @@ function compile(exit_on_error)
     if nargin < 1
         exit_on_error = false;
     end
-
-    exit_on_error
     
     if exit_on_error    
         try
@@ -125,16 +123,14 @@ function compile(exit_on_error)
                     catch
                     end
 
-                    CompileFLIMreaderMex('../FLIMfitLibrary/Libraries/');
-
                     copyfile('../FLIMfitLibrary/Libraries/*.dylib','DeployLibraries')
                     copyfile('../FLIMfitLibrary/Libraries/*.mexmaci64','DeployLibraries')
 
-                    system('DeployFiles/dylibbundler -x DeployLibraries/FLIMGlobalAnalysis_64.dylib -b  -d DeployLibraries -p @loader_path');
-                    system('DeployFiles/dylibbundler -x DeployLibraries/FLIMreaderMex.mexmaci64 -b  -d DeployLibraries -p @loader_path');
+                    system('DeployFiles/dylibbundler -of -x DeployLibraries/FLIMGlobalAnalysis_64.dylib -b  -d DeployLibraries -p @loader_path');
+                    system('DeployFiles/dylibbundler -of -x DeployLibraries/FLIMreaderMex.mexmaci64 -b  -d DeployLibraries -p @loader_path');
 
                     mcc -m FLIMfit.m -v -d DeployFiles ...
-                        -a DeployLibraries/* ... %../FLIMfitLibrary/Libraries/FLIMGlobalAnalysis_64.dylib ...
+                        -a DeployLibraries/* ...
                         -a FLIMGlobalAnalysis_64_thunk_maci64.dylib ...
                         -a FLIMGlobalAnalysisProto_MACI64.m  ...
                         -a segmentation_funcs.mat ...
