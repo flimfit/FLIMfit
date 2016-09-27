@@ -3,9 +3,8 @@
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
 if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
 
-
-export CC=/usr/local/bin/gcc-5
-export CXX=/usr/local/bin/g++-5
+export CC=/usr/local/bin/gcc-6
+export CXX=/usr/local/bin/g++-6
 
 echo "Checking for homebrew install..."
 (brew | grep "command not found") \
@@ -15,9 +14,9 @@ echo "Checking for homebrew install..."
 brew update
 
 echo "Ensure cmake, gcc and boost are installed..."
-# Ensure gcc-4.9, ghostscript, cmake, LAPACK, boost are installed using Homebrew
-(brew list | grep gcc5) || brew install homebrew/versions/gcc5
-(brew list | grep opencv3) && echo " installed" || brew install opencv3
+# Ensure gcc, ghostscript, cmake, LAPACK, boost are installed using Homebrew
+(brew list | grep gcc6) || brew install homebrew/versions/gcc6
+(brew list | grep opencv3) && echo " installed" || brew install homebrew/science/opencv3
 (brew list | grep boost) && echo " installed" || brew install boost
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
@@ -25,6 +24,7 @@ echo "Ensure cmake, gcc and boost are installed..."
 (brew list | grep lapack) && echo " installed" || brew install homebrew/dupes/LAPACK
 (brew list | grep coreutils) && echo " installed" || brew install coreutils
 brew upgrade opencv3 cmake boost
+brew ln opencv3 --force
 
 # Download OMERO Matlab plug-in
 echo "Downloading OMERO/bioformats components..."

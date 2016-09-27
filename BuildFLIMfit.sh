@@ -5,8 +5,8 @@ if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
 
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
 
-export CC=/usr/local/bin/gcc-5
-export CXX=/usr/local/bin/g++-5
+export CC=/usr/local/bin/gcc-6
+export CXX=/usr/local/bin/g++-6
 
 echo "Cleaning CMake Project..."
 cd GeneratedProjects
@@ -35,8 +35,6 @@ cd FLIMfitFrontEnd
 if [ -z ${VERSION+x} ]; then export VERSION=$(git describe); fi
 echo "VERSION = $VERSION"
 
-build_name=FLIMfit_${VERSION}_OME_${OME}_b${BUILD_NUMBER}_MACI64
-
 cur_dir=$(grealpath .)
 if ! matlab -nodisplay -nosplash -r "cd('${cur_dir}'); compile(true); exit"; then
     echo 'Error building frontend'
@@ -47,5 +45,4 @@ cd ../FLIMfitStandalone/BuiltApps
 zip -r FLIMfit_${VERSION}_MACI64.zip *.app/
 cd ../..
 
-#zip gcc_libs.zip ./FLIMfit\ ${VERSION}.app/Contents/Resources/*.dylib
-
+echo "Build complete"
