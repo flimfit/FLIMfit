@@ -5,7 +5,6 @@ function [ext,r] = init_bfreader(obj,file)
     % case of tiff files §§
     % otherwise ext is ret urned depending on the filename extension
     
-
     % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
     %
