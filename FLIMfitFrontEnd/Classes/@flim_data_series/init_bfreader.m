@@ -28,7 +28,8 @@ function [ext,r] = init_bfreader(obj,file)
     % through  a studentship from the Institute of Chemical Biology 
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-  
+
+   
     try
         % Get the channel filler
         r = loci.formats.ChannelFiller();
