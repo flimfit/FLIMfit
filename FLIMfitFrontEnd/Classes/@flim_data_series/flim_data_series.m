@@ -602,7 +602,11 @@ classdef flim_data_series < handle & h5_serializer
         function set.data_size(obj,data_size)
             s = length(data_size);
             if s == 3
-                data_size = [data_size(1) 1 data_size(2:3)];
+                % not sure wht this check is needed
+                % but allow data_size to be 3 for 1xn images
+                if data_size(2) > 1
+                    data_size = [data_size(1) 1 data_size(2:3)];
+                end
             end
             obj.data_size = [data_size(:) ; ones(5-s,1)];
         end
