@@ -155,9 +155,21 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         if obj.polarisation_resolved
             in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
         end
+     
         
-        obj.intensity = squeeze(in);
-
+        size_before = size(in);
+        squeezed = squeeze(in);
+        
+        if length(size_before) == 4
+            % handle possible  dimension flip when squeezing 1xn data
+            size_after = size(squeezed);
+            if size_after(1) == size_before(4) && size_after(2) == size_before(3)
+                squeezed = squeezed';
+            end
+        end
+        
+        obj.intensity = squeezed;
+ 
         %sz = size(obj.cur_tr_data);
         
         

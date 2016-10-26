@@ -838,7 +838,15 @@ classdef flim_data_series < handle & h5_serializer
             %> Compute mask based on thresholds and segmentation mask
             
             if obj.init
-                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeeze(max(max(obj.cur_data,[],1),[],2)) < obj.gate_max;
+                
+                squeezed = squeeze(max(max(obj.cur_data,[],1),[],2));
+                % handle possible  dimension flip when squeezing 1xn data
+                if size(squeezed') == size(obj.intensity)
+                    squeezed = squeezed';
+                end
+                 
+                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeezed < obj.gate_max;
+               
                 obj.mask = obj.thresh_mask;
 
                 v = obj.intensity(obj.mask);
