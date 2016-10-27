@@ -144,7 +144,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                 cmap = [ [1,0,0]; cmap];
 
                 mapped_data = ind2rgb(intensity,cmap);
-
+                
                 if ~isempty(obj.im) && all(size(get(obj.im,'CData'))==size(mapped_data))
                     set(obj.im,'CData',mapped_data);
                 else
@@ -154,7 +154,8 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                 end
                 
                 set(ax, 'units', 'pixels','XTick',[],'YTick',[]);
-                daspect(ax,[1 1 1]);
+                
+                daspect(ax,calculate_aspect(size(mapped_data)));
 
                 pos=plotboxpos(ax);
 
