@@ -156,14 +156,12 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
         end
      
-        
         size_before = size(in);
         squeezed = squeeze(in);
         
-        if length(size_before) == 4
+        if length(size_before) == 4 && size_before(3) == 1
             % handle possible  dimension flip when squeezing 1xn data
-            size_after = size(squeezed);
-            if size_after(1) == size_before(4) && size_after(2) == size_before(3)
+            if size_before(4) && size(squeezed,1)
                 squeezed = squeezed';
             end
         end
@@ -171,7 +169,6 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         obj.intensity = squeezed;
  
         %sz = size(obj.cur_tr_data);
-        
         
         %in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
         

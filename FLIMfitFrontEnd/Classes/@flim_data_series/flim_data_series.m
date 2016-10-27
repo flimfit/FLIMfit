@@ -841,7 +841,8 @@ classdef flim_data_series < handle & h5_serializer
                 
                 squeezed = squeeze(max(max(obj.cur_data,[],1),[],2));
                 % handle possible  dimension flip when squeezing 1xn data
-                if size(squeezed') == size(obj.intensity)
+                s = size(obj.intensity);
+                if s(1) == 1 && size(squeezed,1) == s(2)
                     squeezed = squeezed';
                 end
                  
