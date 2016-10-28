@@ -172,7 +172,7 @@ function irf_data = generate_t0_map(obj, mask, dataset)
         irf_data.t_irf = obj.tr_t_irf;
         irf_data.irf = obj.tr_irf;
     else
-        msgbox(' Warning! No IRF loaded so saving selected decay as IRF');
+        uiwait(msgbox(' Warning! No IRF loaded so saving selected decay as IRF'));
         irf_data.t_irf = obj.tr_t';
         irf_data.irf = decay;
     end
