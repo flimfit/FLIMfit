@@ -121,9 +121,15 @@ function update_display(obj)
         % find centroids for labels
         stats = regionprops(mask,'Centroid');
         
+        if obj.white_txt_flag
+            txt_col = 'w';
+        else
+            txt_col = 'k';
+        end
+        
         for i=1:length(stats)
             c = stats(i).Centroid;
-            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color','k');
+            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color',txt_col);
         end
 
         
