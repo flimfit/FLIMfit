@@ -81,9 +81,11 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     else
         [ext,r] = obj.init_bfreader(file);
         % if first file was bio-formats readable then all others must be
-        if ~strcmp(ext,'.bio')
-            success = false;
-            return;
+        if ~isempty(obj.bfReader)
+            if ~strcmp(ext,'.bio')
+                success = false;
+                return;
+            end
         end
             
     end
