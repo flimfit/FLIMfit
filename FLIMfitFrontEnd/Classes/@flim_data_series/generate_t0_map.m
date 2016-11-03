@@ -175,6 +175,12 @@ function irf_data = generate_t0_map(obj, mask, dataset)
         uiwait(msgbox(' Warning! No IRF loaded so saving selected decay as IRF'));
         irf_data.t_irf = obj.tr_t';
         irf_data.irf = decay;
+        
+        % It seems likely that irf_min & max need to be overwritten 
+        irf_data.t_irf_min = min(obj.tr_t);
+        irf_data.t_irf_max = max(obj.tr_t);
+      
+        
     end
     
 end
