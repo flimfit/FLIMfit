@@ -107,6 +107,7 @@ classdef front_end_menu_controller < handle
         menu_file_save_data_settings;
         
         menu_file_load_t_calibration;
+        menu_OMERO_import;
         
         menu_file_open_fit;
         menu_file_save_fit;
@@ -789,6 +790,22 @@ classdef front_end_menu_controller < handle
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.load_data_settings([pathname filename]);         
+            end
+        end
+        
+        function menu_OMERO_import_callback(obj)
+            
+            obj.data_series_controller.data_series.clear();    % ensure delete if multiple handles
+            obj.data_series_controller.data_series = OMERO_data_series();
+            obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;
+            default_name = '';
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(1));
+            dataset = chooser.getSelectedDataset();
+            [filename,pathname] = uigetfile('*.*','Select file for import then DELETION!');
+            
+            if filename ~= 0
+                before_list = [];
+                obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
             end
         end
         
