@@ -45,9 +45,16 @@ function load_irf(obj,file_or_image,load_as_image)
         
         [dims,~,reader_settings] = obj.get_image_dimensions(file_or_image);
         
-        if isempty(dims.delays)
+        if isempty(dims.delays) 
             return;
-        end;
+        end
+        
+        if obj.polarisation_resolved
+            if dims.sizeZCT(2) < 2
+                errordlg('IRF must have at least 2 channels!');
+                return;
+            end
+        end
   
         chan_info = dims.chan_info;
        
