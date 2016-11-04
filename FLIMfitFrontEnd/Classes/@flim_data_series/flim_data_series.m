@@ -602,7 +602,11 @@ classdef flim_data_series < handle & h5_serializer
         function set.data_size(obj,data_size)
             s = length(data_size);
             if s == 3
-                data_size = [data_size(1) 1 data_size(2:3)];
+                % not sure wht this check is needed
+                % but allow data_size to be 3 for 1xn images
+                if data_size(2) > 1
+                    data_size = [data_size(1) 1 data_size(2:3)];
+                end
             end
             obj.data_size = [data_size(:) ; ones(5-s,1)];
         end
@@ -834,7 +838,16 @@ classdef flim_data_series < handle & h5_serializer
             %> Compute mask based on thresholds and segmentation mask
             
             if obj.init
-                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeeze(max(max(obj.cur_data,[],1),[],2)) < obj.gate_max;
+                
+                squeezed = squeeze(max(max(obj.cur_data,[],1),[],2));
+                % handle possible  dimension flip when squeezing 1xn data
+                s = size(obj.intensity);
+                if s(1) == 1 && size(squeezed,1) == s(2)
+                    squeezed = squeezed';
+                end
+                 
+                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeezed < obj.gate_max;
+               
                 obj.mask = obj.thresh_mask;
 
                 v = obj.intensity(obj.mask);

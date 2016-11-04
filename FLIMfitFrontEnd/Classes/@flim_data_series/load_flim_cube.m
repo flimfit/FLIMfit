@@ -80,6 +80,14 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         ext = '.bio';
     else
         [ext,r] = obj.init_bfreader(file);
+        % if first file was bio-formats readable then all others must be
+        if ~isempty(obj.bfReader)
+            if ~strcmp(ext,'.bio')
+                success = false;
+                return;
+            end
+        end
+            
     end
     
      
@@ -277,7 +285,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
            
 
-        case {'.pt3', '.ptu', '.bin', '.bin2', '.ffd'}
+        case {'.pt3', '.ptu', '.bin2', '.ffd'}
             
             r = FLIMreaderMex(file);
             FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
