@@ -795,17 +795,28 @@ classdef front_end_menu_controller < handle
         
         function menu_OMERO_import_callback(obj)
             
+            if isempty(obj.omero_logon_manager.client)
+                errordlg('Please log on First!');
+                return;
+            end
+                
+     
             obj.data_series_controller.data_series.clear();    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series();
             obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;
             default_name = '';
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
-            [filename,pathname] = uigetfile('*.*','Select file for import then DELETION!');
+            clear chooser;
             
-            if filename ~= 0
-                before_list = [];
-                obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
+            while true
+                [filename,pathname] = uigetfile('*.*','Select next file for import then DELETION!');
+                if filename ~= 0
+                    before_list = [];
+                    obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
+                else
+                    return;
+                end
             end
         end
         
