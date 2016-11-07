@@ -812,8 +812,25 @@ classdef front_end_menu_controller < handle
             while true
                 [filename,pathname] = uigetfile('*.*','Select next file for import then DELETION!');
                 if filename ~= 0
-                    before_list = [];
-                    obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
+            
+                                        files = dir([pathname '\*.tif']);
+                    nfiles = length(files);
+                    for l = 1:nfiles
+                        filenames{l} =  files(l).name; 
+                    end
+%                     before_list = [];
+
+                    add_Images(obj.omero_logon_manager,pathname,filenames, dataset);
+
+                    % write to OMERO
+%                     obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
+
+%     add_Images(obj.omero_logon_manager,pathname,after_list, dataset);
+%     for p = 1:length(filenames)
+%     fpath = [dirpath filenames{p}];
+                    
+%                     before_list = [];
+%                     obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
                 else
                     return;
                 end
