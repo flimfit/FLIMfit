@@ -798,8 +798,7 @@ classdef front_end_menu_controller < handle
             if isempty(obj.omero_logon_manager.client)
                 errordlg('Please log on First!');
                 return;
-            end
-                
+            end                
      
             obj.data_series_controller.data_series.clear();    % ensure delete if multiple handles
             obj.data_series_controller.data_series = OMERO_data_series();
@@ -813,14 +812,14 @@ classdef front_end_menu_controller < handle
                 [filename,pathname] = uigetfile('*.*','Select next file for import then DELETION!');
                 if filename ~= 0
             
-                                        files = dir([pathname '\*.tif']);
-                    nfiles = length(files);
-                    for l = 1:nfiles
-                        filenames{l} =  files(l).name; 
-                    end
+    files = dir([pathname '\*.tif']);
+    nfiles = length(files);
+    for l = 1:nfiles
+        filenames{l} =  files(l).name; 
+    end
 %                     before_list = [];
 
-                    add_Images(obj.omero_logon_manager,pathname,filenames, dataset);
+    send_Images(obj.omero_logon_manager,pathname,filenames, dataset);
 
                     % write to OMERO
 %                     obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
