@@ -601,14 +601,7 @@ classdef flim_data_series < handle & h5_serializer
        
         function set.data_size(obj,data_size)
             s = length(data_size);
-            if s == 3
-                % not sure wht this check is needed
-                % but allow data_size to be 3 for 1xn images
-                if data_size(2) > 1
-                    data_size = [data_size(1) 1 data_size(2:3)];
-                end
-            end
-            obj.data_size = [data_size(:) ; ones(5-s,1)];
+            obj.data_size = [data_size(:); ones(5-s,1)];
         end
         
         function set.polarisation_resolved(obj,polarisation_resolved)
@@ -839,18 +832,11 @@ classdef flim_data_series < handle & h5_serializer
             
             if obj.init
                 
-                squeezed = squeeze(max(max(obj.cur_data,[],1),[],2));
-                % handle possible  dimension flip when squeezing 1xn data
-                s = size(obj.intensity);
-                if s(1) == 1 && size(squeezed,1) == s(2)
-                    squeezed = squeezed';
-                end
-                 
-                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeezed < obj.gate_max;
-               
+                max_gate = (max(max(obj.cur_data,[],1),[],2));
+                max_gate = reshape(max_gate,obj.data_size(3:4)');
+                
+                obj.thresh_mask = obj.intensity >= obj.thresh_min & max_gate < obj.gate_max;
                 obj.mask = obj.thresh_mask;
-
-                v = obj.intensity(obj.mask);
                 
                 % If we have a segmentation mask apply it the mask
                 if ~isempty(obj.seg_mask)
