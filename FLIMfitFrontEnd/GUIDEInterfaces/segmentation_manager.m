@@ -22,7 +22,7 @@ function varargout = segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 06-Sep-2013 16:13:02
+% Last Modified by GUIDE v2.5 07-Nov-2016 12:20:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -361,3 +361,23 @@ function OMERO_Remove_All_Segmentations_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.segmentation_controller.remove_all_segmentations_OMERO;
 
+
+% --------------------------------------------------------------------
+function menu_options_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_options (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menu_toggle_col_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_toggle_col (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if ~handles.segmentation_controller.white_txt_flag
+    handles.segmentation_controller.white_txt_flag = true;
+else
+    handles.segmentation_controller.white_txt_flag = false;
+end
+    
