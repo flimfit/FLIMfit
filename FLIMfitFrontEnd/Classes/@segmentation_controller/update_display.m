@@ -101,10 +101,11 @@ function update_display(obj)
             cmask = mask_filtered;
         end
                         
-        cmask = (1 + cmask/max(cmask(:))) * m + 1;
+        cmap = lines(max(cmask(:))+1);
+        cmask = ind2rgb(cmask,cmap);
+        
 
-
-        colormap(obj.segmentation_axes,[gray(m);[1 0 0];jet(m)]);
+        colormap(obj.segmentation_axes,gray(m));
 
         obj.segmentation_im = image(cim,'Parent',obj.segmentation_axes);
         hold(obj.segmentation_axes,'on');
@@ -123,7 +124,7 @@ function update_display(obj)
         
         for i=1:length(stats)
             c = stats(i).Centroid;
-            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color','k');
+            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color',1-cmap(i,:));
         end
 
         
