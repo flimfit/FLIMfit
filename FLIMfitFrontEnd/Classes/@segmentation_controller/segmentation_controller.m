@@ -127,29 +127,19 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.region_filter_table,'ColumnEditable',[true false true]);
                         
             if ~isdeployed
-            
-                folder = [pwd filesep 'SegmentationFunctions'];
-                addpath(folder);
-                addpath([folder filesep 'Support']);
-
-                [funcs, param_list, default_list, desc_list summary_list] = parse_function_folder(folder);
-                
-                save('segmentation_funcs.mat', 'funcs', 'param_list', 'default_list', 'desc_list', 'summary_list');
-                
-            else
-                
-                try 
-                    load('segmentation_funcs.mat');
-                catch %ok
-                    funcs = [];
-                    param_list = [];
-                    default_list = [];
-                    desc_list = [];
-                    summary_list = [];
-                end
-                
+                generate_segmentation_functions_file();
             end
-            
+              
+            try 
+                load('segmentation_funcs.mat');
+            catch %ok
+                funcs = [];
+                param_list = [];
+                default_list = [];
+                desc_list = [];
+                summary_list = [];
+            end
+                            
             obj.funcs = funcs;
             obj.param_list = param_list;
             obj.default_list = default_list;
