@@ -87,7 +87,7 @@ function get_return_data(obj)
     
                                     
     keep = true(size(obj.datasets));
-    idx = 1;
+    idx = r.n_results + 1;
     % Get results for each image
     for  i = 1:length(obj.datasets)
         
@@ -122,11 +122,11 @@ function get_return_data(obj)
     fields = fieldnames(md);
     for i=1:length(fields)
         f = md.(fields{i});
-        md.(fields{i}) = f(obj.datasets);
+        md.(fields{i}) = f(r.image);
     end
     obj.fit_result.metadata = md;
 
-    r.names = d.names(obj.datasets);
+    r.names = [r.names d.names(obj.datasets)];
 
     
     obj.progress_bar = [];
