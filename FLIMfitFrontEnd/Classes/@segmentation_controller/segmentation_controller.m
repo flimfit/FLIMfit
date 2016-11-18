@@ -60,6 +60,8 @@ classdef segmentation_controller < flim_data_series_observer
         
         selected = 1;
         
+        white_txt_flag = false;
+        
         segmentation_im;
         mask_im;
         
