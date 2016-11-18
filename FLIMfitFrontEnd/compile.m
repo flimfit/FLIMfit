@@ -49,6 +49,7 @@ function compile(v)
     end
         
     addpath_global_analysis();
+    generate_segmentation_functions_file();
         
     
     % Make sure we have included the DLL

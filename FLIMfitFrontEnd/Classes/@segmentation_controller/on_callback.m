@@ -103,7 +103,6 @@ function on_callback(obj,src,evtData)
             else
                 obj.filter_masks(obj.data_series_list.selected);
             end
-            obj.update_display();
         end
         
         set(src,'State','off');
