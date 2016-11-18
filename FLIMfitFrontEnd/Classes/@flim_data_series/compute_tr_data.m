@@ -47,7 +47,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     
     if obj.init && ~obj.suspend_transformation
         
-        % arbitarary size threshold
+        % arbitrary size threshold
         d_size = obj.data_size;
         if (d_size(1) * d_size(3) * d_size(4)) > 16000000
             wbar = waitbar(1,'Transforming! Please wait...');
@@ -155,11 +155,20 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         if obj.polarisation_resolved
             in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
         end
+     
+        size_before = size(in);
+        squeezed = squeeze(in);
         
-        obj.intensity = squeeze(in);
-
+        if length(size_before) == 4 && size_before(3) == 1
+            % handle possible  dimension flip when squeezing 1xn data
+            if size_before(4) && size(squeezed,1)
+                squeezed = squeezed';
+            end
+        end
+        
+        obj.intensity = squeezed;
+ 
         %sz = size(obj.cur_tr_data);
-        
         
         %in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
         

@@ -1,10 +1,4 @@
-function [ext,r] = init_bfreader(obj,file)
-
-    % init_bfreader attempts to set up a bio-Formats reader for file
-    % if successful it returns the extension ext as 'bio" except in the
-    % case of tiff files §§
-    % otherwise ext is ret urned depending on the filename extension
-    
+function aspect = calculate_aspect(map_size)
 
     % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
@@ -29,29 +23,19 @@ function [ext,r] = init_bfreader(obj,file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-   
-    try
-        % Get the channel filler
-        r = loci.formats.ChannelFiller();
-        r = loci.formats.ChannelSeparator(r);
-        
-        OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
-        r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
-        
-        r.setId(file);
-        
-        % filter out .tiffs for separate handling
-        format = char(r.getFormat());
-        %  trapdoor for formats that need to be handled outside Bio-Formats
-        switch(format)
-        case 'Tagged Image File Format'
-            ext = '.tif'; 
-        otherwise
-            ext = '.bio';
-        end
-        
-    catch exception
-        % bioformats does not recognise the file
-        % so work on the filename
-        [path,name,ext] = fileparts_inc_OME(file);  
+    aspect = [ 1 1 1];  % default aspect
+    
+    if length(map_size) ~= 3
+        return;
     end
+    
+    % change aspect for v.non_square images
+    if map_size(1) > 100 * map_size(2)
+        aspect = [ 1 10 1 ];
+    end
+    if map_size(2) > 100 * map_size(1)
+        aspect = [ 10 1 1 ];
+    end
+    
+    
+end
