@@ -63,6 +63,8 @@ classdef flim_fit_result < handle
         height;
         
         stat_names = {};
+        
+        dll_id;
     end
     
     properties(SetObservable = true)
@@ -102,7 +104,7 @@ classdef flim_fit_result < handle
                            
         end
             
-        function set_results(obj,idx,im,regions,region_size,success,iterations,stats,names)
+        function set_results(obj,idx,dll_id,im,regions,region_size,success,iterations,stats,names)
             
             region_size = double(region_size);
             stats = double(stats);
@@ -112,6 +114,7 @@ classdef flim_fit_result < handle
             obj.regions{idx} = regions;
             obj.image(idx) = im;
             obj.region_size{idx} = region_size;
+            obj.dll_id(idx) = dll_id;
             
             for i=1:length(names)
                 r_stats.(names{i}) = stats(:,:,i);

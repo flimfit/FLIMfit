@@ -67,7 +67,8 @@ function compile(exit_on_error)
         end
 
         addpath_global_analysis();
-
+    	generate_segmentation_functions_file();
+	
 
         % Make sure we have included the DLL
         dll_interface = flim_dll_interface();

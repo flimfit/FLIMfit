@@ -1,6 +1,6 @@
-function [param_data, mask] = get_image(obj,dataset,param,indexing)
+function aspect = calculate_aspect(map_size)
 
-    % Copyright (C) 2013 Imperial College London.
+    % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -23,34 +23,19 @@ function [param_data, mask] = get_image(obj,dataset,param,indexing)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-    % Author : Sean Warren
-
-
-    param_data = 0;
-    mask = 0;
-        
-    if nargin < 4 || strcmp(indexing,'result')
-        dataset = obj.fit_result.image(dataset);
+    aspect = [ 1 1 1];  % default aspect
+    
+    if length(map_size) ~= 3
+        return;
     end
     
-    if (obj.bin || param == 0)
-        return
+    % change aspect for v.non_square images
+    if map_size(1) > 100 * map_size(2)
+        aspect = [ 1 10 1 ];
     end
-            
-    sz = obj.im_size;
+    if map_size(2) > 100 * map_size(1)
+        aspect = [ 10 1 1 ];
+    end
     
-    [~,idx] = find(obj.fit_result.image == dataset); 
-    dll_id = obj.fit_result.dll_id(idx);
     
-    p_mask = libpointer('uint16Ptr', NaN(sz));
-    p_param_data = libpointer('singlePtr', NaN(sz));
-
-    err = calllib(obj.lib_name,'GetParameterImage', dll_id, dataset-1, param-1, p_mask, p_param_data);
-    
-    mask = p_mask.Value;
-    mask = reshape(mask, sz);
-    
-    param_data = p_param_data.Value;
-    param_data = reshape(param_data, sz);
-
 end

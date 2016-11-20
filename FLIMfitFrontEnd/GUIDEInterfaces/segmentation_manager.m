@@ -22,7 +22,7 @@ function varargout = segmentation_manager(varargin)
 
 % Edit the above text to modify the response to help yuiry_segmentation_manager
 
-% Last Modified by GUIDE v2.5 17-Jun-2016 14:54:48
+% Last Modified by GUIDE v2.5 06-Sep-2013 16:13:02
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -294,13 +294,7 @@ function trim_outliers_checkbox_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of trim_outliers_checkbox
 
-% --- Executes on button press in white_text_checkbox.
-function white_text_checkbox_Callback(hObject, eventdata, handles)
-% hObject    handle to white_text_checkbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of trim_outliers_checkbox
 % --- Executes on button press in segment_selected_button.
 function segment_selected_button_Callback(hObject, eventdata, handles)
 % hObject    handle to segment_selected_button (see GCBO)
@@ -369,3 +363,4 @@ function OMERO_Remove_All_Segmentations_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.segmentation_controller.remove_all_segmentations_OMERO;
+

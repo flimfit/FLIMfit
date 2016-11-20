@@ -93,7 +93,8 @@ function load_selected_files(obj,selected)
                 [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,1);
                 
                 if ~success
-                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
+                    disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
+  
                 end
                 
                 data = obj.data_series_mem(:,:,:,:,1);
@@ -127,7 +128,7 @@ function load_selected_files(obj,selected)
                 
                 
                 if ~success
-                    disp(['Warning: unable to load dataset ' num2str(j), '. Data size mismatch! ']);
+                    disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
                 end
                 
                 
