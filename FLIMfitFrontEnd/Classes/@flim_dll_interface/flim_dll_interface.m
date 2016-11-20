@@ -1,4 +1,4 @@
-classdef flim_dll_interface < handle
+  classdef flim_dll_interface < handle
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -94,6 +94,7 @@ classdef flim_dll_interface < handle
         use;
         
         dll_id;
+        fit_dll_id;
     end
         
     methods
@@ -116,12 +117,15 @@ classdef flim_dll_interface < handle
             end
 
             if isempty(obj.dll_id)
-                obj.dll_id = calllib(obj.lib_name,'FLIMGlobalGetUniqueID');
+                obj.get_new_id();
             end
 
-            
          end
 
+         function get_new_id(obj)
+            obj.dll_id = calllib(obj.lib_name,'FLIMGlobalGetUniqueID');
+         end
+         
          function unload_global_library(obj)
              if libisloaded(obj.lib_name)
                 unloadlibrary(obj.lib_name)
@@ -144,7 +148,16 @@ classdef flim_dll_interface < handle
             obj.load_global_library();
         end
         
+        function clear_fit(obj)
+            for id = obj.fit_dll_id
+                calllib(obj.lib_name,'FLIMGlobalClearFit',id);
+                calllib(obj.lib_name,'FLIMGlobalRelinquishID',id);
+            end
+            obj.fit_dll_id = [];
+        end
+        
         function delete(obj)
+            obj.clear_fit();
             if libisloaded(obj.lib_name)
                 calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
                 calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);

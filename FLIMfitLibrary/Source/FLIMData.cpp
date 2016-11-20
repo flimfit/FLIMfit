@@ -45,7 +45,6 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    t_int(t_int),
    n_t(n_t),
    data_type(data_type),
-   use_im(use_im),
    mask(mask),
    merge_regions(merge_regions),
    threshold(threshold),
@@ -98,6 +97,8 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    }
 
 
+   this->use_im = new int[n_im];
+
    n_im_used = 0;
    if (use_im != NULL)
    {
@@ -107,7 +108,7 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
             for(int j=0; j<n_x*n_y; j++)
                if(this->mask[i*n_x*n_y+j] > 0)
                {
-                  use_im[n_im_used] = i;
+                  this->use_im[n_im_used] = i;
                   n_im_used++;
                   break;
                }
@@ -701,6 +702,9 @@ FLIMData::~FLIMData()
    delete[] region_pos;
    delete[] region_idx;
    delete[] output_region_idx;
+
+   delete[] use_im;
+
    if (!supplied_mask) 
       delete[] mask;
    
