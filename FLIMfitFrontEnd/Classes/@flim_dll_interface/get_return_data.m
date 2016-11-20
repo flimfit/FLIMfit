@@ -87,7 +87,7 @@ function get_return_data(obj)
     
                                     
     keep = true(size(obj.datasets));
-    idx = 1;
+    idx = r.n_results + 1;
     % Get results for each image
     for  i = 1:length(obj.datasets)
         
@@ -107,7 +107,7 @@ function get_return_data(obj)
 
             names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
 
-            r.set_results(idx,im,regions_sel,region_size_sel,success_sel,iterations_sel,stats_sel,names);
+            r.set_results(idx,obj.dll_id,im,regions_sel,region_size_sel,success_sel,iterations_sel,stats_sel,names);
             idx = idx+1;
         else
             keep(i) = false;
@@ -122,12 +122,14 @@ function get_return_data(obj)
     fields = fieldnames(md);
     for i=1:length(fields)
         f = md.(fields{i});
-        md.(fields{i}) = f(obj.datasets);
+        md.(fields{i}) = f(r.image);
     end
     obj.fit_result.metadata = md;
 
-    r.names = d.names(obj.datasets);
+    r.names = [r.names d.names(obj.datasets)];
 
+    obj.fit_dll_id(end+1) = obj.dll_id;
+    
     
     obj.progress_bar = [];
     

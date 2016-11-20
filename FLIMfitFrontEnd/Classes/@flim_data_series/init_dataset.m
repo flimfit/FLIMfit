@@ -81,13 +81,7 @@ function init_dataset(obj,setting_file_name)
     else
         obj.n_chan = 1;
     end
-    
-    % Reshape data to so 2nd dimension is polarisation channel
-    s = size(obj.cur_data);
-    if length(s) == 3
-        obj.data_series = reshape(obj.cur_data,[s(1) 1 s(2) s(3)]);
-    end
-    
+     
     obj.data_size = size(obj.cur_data);
     obj.data_size = [obj.data_size ones(1,4-length(obj.data_size))];
 

@@ -27,8 +27,6 @@ function fit_complete(obj,~,~)
 
     
     obj.fit_result = obj.dll_interface.fit_result;
-        
-    obj.dll_interface.fit_result = [];
     
     obj.display_fit_end();
 

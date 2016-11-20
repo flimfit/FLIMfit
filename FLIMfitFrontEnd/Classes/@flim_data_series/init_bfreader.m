@@ -45,9 +45,7 @@ function [ext,r] = init_bfreader(obj,file)
         %  trapdoor for formats that need to be handled outside Bio-Formats
         switch(format)
         case 'Tagged Image File Format'
-            ext = '.tif';
-        case 'PicoQuant Bin'
-            ext = '.bin';  
+            ext = '.tif'; 
         otherwise
             ext = '.bio';
         end
