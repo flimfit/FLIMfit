@@ -50,11 +50,15 @@ $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.
 $bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/bfmatlab.zip'
 $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
 $OMEuiUtils_url = 'https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.5.jar'
+$gs_url = 'http://downloads.flimfit.org/gs/gs916w64.exe'
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
 $OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
 
 $BFMatlab_dir = "$pwd\FLIMfitFrontEnd\BFMatlab"
+
+echo "Downloading Ghostscript"
+((new-object net.webclient).DownloadFile($gs_url, "$pwd\InstallerSupport\gs916w64.exe"))
 
 DownloadZipIntoFolder $ome_url "$pwd\FLIMfitFrontEnd\OMEROMatlab\"
 
