@@ -3,7 +3,7 @@
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
 if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
 
-if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2015b; echo "Setting MATLAB_VER=R2015b"; fi
+if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
 
 export CC=/usr/local/bin/gcc-6
 export CXX=/usr/local/bin/g++-6
