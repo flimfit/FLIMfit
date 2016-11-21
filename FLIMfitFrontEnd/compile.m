@@ -173,7 +173,8 @@ function compile(v)
             mcr_v = [num2str(major) '.' num2str(minor)];
             
             % Make a version number that Inno setup likes
-            v_tokens = regexp(v,'(\d+\.\d+\.\d+)(?:-RC){0,1}-(\d+)-([a-z0-9]+)','tokens');
+            v_tokens = regexp(v,'(\d+\.\d+\.\d+)(?:-*RC){0,1}-(\d+)-([a-z0-9]+)','tokens');
+
             if ~isempty(v_tokens)
                 t = v_tokens{1};
                 v_inno = [t{1} '.' t{2}];
