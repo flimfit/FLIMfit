@@ -238,6 +238,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             r = FLIMreaderMex(file);
             n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
+            supports_realignment = FLIMreaderMex(r,'SupportsRealignment');
             
             if length(dims.delays) > 1
                 dt = dims.delays(2) - dims.delays(1);
@@ -245,10 +246,11 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                 dt = 1;
             end
             
-            reader_settings = FLIMreader_options_dialog(length(dims.delays), dt);
+            reader_settings = FLIMreader_options_dialog(length(dims.delays), dt, supports_realignment);
             
             FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
             FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            FLIMreaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
             
             dims.sizeZCT = [ 1 n_channels 1 ];
             dims.FLIM_type = 'TCSPC';

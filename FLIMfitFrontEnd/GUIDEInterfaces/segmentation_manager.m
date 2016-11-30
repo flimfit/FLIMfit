@@ -284,6 +284,8 @@ function menu_file_load_single_segmentation_Callback(hObject, eventdata, handles
     end
 
 
+<<<<<<< HEAD
+=======
 % --- Executes on button press in trim_outliers_checkbox.
 function trim_outliers_checkbox_Callback(hObject, eventdata, handles)
 % hObject    handle to trim_outliers_checkbox (see GCBO)
@@ -325,6 +327,7 @@ function OMERO_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+>>>>>>> master
 % --------------------------------------------------------------------
 function OMERO_Load_Segmentation_Images_Callback(hObject, eventdata, handles)
 % hObject    handle to OMERO_Load_Segmentation_Images (see GCBO)
