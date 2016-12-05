@@ -43,7 +43,7 @@ set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
 
 
-include_directories(${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit)
+include_directories(${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit ../FLIMWidgets ${FLIMWidgets_INCLUDE_DIRS})
 link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 
 set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core)
@@ -65,7 +65,7 @@ target_link_libraries(ff_FitResults ${COMMON_LIBS})
 add_custom_command(TARGET ff_FitResults POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FitResults> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_DecayModel SRC MexUtils.h DecayModelMex.cpp)
-target_link_libraries(ff_DecayModel ${COMMON_LIBS})
+target_link_libraries(ff_DecayModel FLIMWidgets ${COMMON_LIBS})
 add_custom_command(TARGET ff_DecayModel POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_DecayModel> ${MEX_OUT_DIR})
 
 

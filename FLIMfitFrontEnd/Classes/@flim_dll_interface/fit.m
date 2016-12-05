@@ -188,9 +188,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
     irf.timebin_width = d.t_irf(2) - d.t_irf(1);
     irf.ref_reconvolution = d.irf_type;
     irf.ref_lifetime_guess = d.ref_lifetime;
-    
-    im
-    
+        
     data = ff_FLIMData('images',im,...
                        'data_transformation_settings',transform,...
                        'irf',irf,...
@@ -199,6 +197,9 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
             
     % todo: background image, TVB
     
+    model = ff_DecayModel();
+    
+    ff_DecayModel(model,'AddDecayGroup','Multi-Exponential Decay',n_decay);
     
     
     

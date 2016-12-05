@@ -156,6 +156,8 @@ public:
       return decay_groups[idx];
    };
    
+   void RemoveDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
+
    void RemoveDecayGroup(shared_ptr<AbstractDecayGroup> group)
    {
       auto iter = std::find(decay_groups.begin(), decay_groups.end(), group);

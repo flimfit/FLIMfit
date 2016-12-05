@@ -11,8 +11,7 @@ find_package(OpenCV REQUIRED)
 
 find_package(BOOST REQUIRED COMPONENTS system serialization)
 
-qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui
-                       DecayWidget.ui
+qt5_wrap_ui(UI_HEADERS DecayWidget.ui
                        FLIMfitWindow.ui
                        FittingWidget.ui
 		                 FLIMImageWidget.ui
@@ -29,11 +28,6 @@ set(CMAKE_AUTOMOC ON)
 
 set(SOURCE
    ColormappedImageWidget.cpp
-   FittingParametersWidget.cpp
-   ParameterListModel.cpp
-   ParameterListDelegate.cpp
-   ChannelFactorListModel.cpp
-   ChannelFactorListDelegate.cpp
    DecayWidget.cpp
    main.cpp
    qcustomplot.cpp
@@ -41,15 +35,9 @@ set(SOURCE
    FLIMfitWindow.cpp
    FittingWidget.cpp
    FLIMImporter.cpp
-   AbstractItemDelegate.cpp
 )
 
 set(HEADERS
-   FittingParametersWidget.h
-   ParameterListModel.h
-   ParameterListDelegate.h
-   ChannelFactorListModel.h
-   ChannelFactorListDelegate.h
    DecayWidget.h
    FLIMfitWindow.h
    FLIMImporter.h
@@ -62,7 +50,6 @@ set(HEADERS
    FitResultsWidget.h
    ProgressWidget.h
    ResultsTableModel.h
-   AbstractItemDelegate.h
    ImporterWidget.h
    FLIMfitLauncher.h
    PhasorWidget.h
@@ -73,6 +60,7 @@ include_directories(../FLIMDecayModel
                     ../DataFitter 
                     ../FLIMfit
                     ../FLIMReader/Source/FLIMReader
+                    ../FLIMWidgets
                     ${LEVMAR_INCLUDE_DIRS} 
                     ${CMAKE_CURRENT_BINARY_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}
@@ -93,6 +81,7 @@ target_link_libraries(FLIMfitQT
                            DataFitter
                            FLIMfit
                            levmar
+                           FLIMWidgets
                            Qt5::Widgets 
                            Qt5::PrintSupport
                            Qt5::Gui

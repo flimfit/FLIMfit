@@ -21,6 +21,7 @@ TestDatasets/*
 GeneratedProjects/*
 FLIMFitFrontEnd/FLIMGlobalAnalysis_64_thunk_*
 FLIMFitFrontEnd/OMEROMatlab/*
+FLIMfitFrontEnd/OMEuiUtils/*
 FLIMFitFrontEnd/BFMatlab/*
 FLIMFitFrontEndStandalone/*
 FLIMfitStandalone/*

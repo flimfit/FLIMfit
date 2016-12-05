@@ -33,14 +33,16 @@
 #include "MultiExponentialDecayGroup.h"
 #include "FretDecayGroup.h"
 #include "AnisotropyDecayGroup.h"
-#include "DecayModel.h"
 #include "MexUtils.h"
 #include "PointerMap.h"
+#include <unordered_set>
+#include "FittingParametersWidget.h"
 
-PointerMap<DecayModel> pointer_map;
+std::unordered_set<std::shared_ptr<QDecayModel>> ptr_set;
 
+int loaded = 0;
 
-void AddDecayGroup(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsChar(prhs[2]));
@@ -69,7 +71,7 @@ void AddDecayGroup(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], int 
    model->AddDecayGroup(group);
 }
 
-void RemoveDecayGroup(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
@@ -77,7 +79,7 @@ void RemoveDecayGroup(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], i
    model->RemoveDecayGroup(group_idx);
 }
 
-void GetParameters(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(nlhs >= 1);
@@ -105,7 +107,7 @@ void GetParameters(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], int 
    }
 }
 
-void SetParameters(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 4);
    AssertInputCondition(mxIsStruct(prhs[3]));
@@ -133,6 +135,13 @@ void SetParameters(shared_ptr<DecayModel> model, int nlhs, mxArray *plhs[], int 
    }
 }
 
+void openUI(shared_ptr<QDecayModel> model)
+{
+   
+   auto widget = new FittingParametersWidget();
+   widget->setDecayModel(model);
+   widget->show();
+}
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -141,8 +150,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       if (nrhs == 0 && nlhs > 0)
       {
          AssertInputCondition(nlhs > 0);
-         int idx = pointer_map.CreateObject();
-         plhs[0] = mxCreateDoubleScalar(idx);
+         auto model = std::make_shared<QDecayModel>();
+         ptr_set.insert(model);
+         plhs[0] = PackageSharedPtrForMatlab(model);
          return;
       }
 
@@ -150,27 +160,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsScalar(prhs[0]));
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      int c_idx = mxGetScalar(prhs[0]);
-
       // Get controller
-      auto model = pointer_map.Get(c_idx);
-      if (model == nullptr)
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerIndex", "Controller index is not valid");
+      auto& model = GetSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+
+      if (ptr_set.find(model) == ptr_set.end())
+         mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
 
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
-         pointer_map.Clear(c_idx);
+         ptr_set.erase(model);
       else if (command == "AddDecayGroup")
-         SetParameters(model, nlhs, plhs, nrhs, prhs);
+         addDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "RemoveDecayGroup")
-         SetParameters(model, nlhs, plhs, nrhs, prhs);
+         removeDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "GetParameters")
-         SetParameters(model, nlhs, plhs, nrhs, prhs);
+         getParameters(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetParameters")
-         SetParameters(model, nlhs, plhs, nrhs, prhs);
-
+         setParameters(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "OpenUI")
+         openUI(model);
    }
    catch (std::exception e)
    {

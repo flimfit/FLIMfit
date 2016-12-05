@@ -255,7 +255,7 @@ void CheckInput(int nrhs, int needed)
 }
 
 template<class T>
-std::shared_ptr<T>& GetSharedPtrFromMatlab(const mxArray* a)
+std::shared_ptr<T> GetSharedPtrFromMatlab(const mxArray* a)
 {
    if (!mxIsUint64(a))
       mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
@@ -265,7 +265,7 @@ std::shared_ptr<T>& GetSharedPtrFromMatlab(const mxArray* a)
       mexWarnMsgIdAndTxt("MATLAB:mxmalloc:tooManyPointers",
          "Only expected one pointer, will return first");
 
-   return *reinterpret_cast<std::shared_ptr<T>*>(mxGetData(a));
+   return **reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
 }
 
 template<class T>
