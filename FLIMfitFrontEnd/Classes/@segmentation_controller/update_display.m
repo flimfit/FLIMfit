@@ -120,13 +120,7 @@ function update_display(obj)
         
         % find centroids for labels
         stats = regionprops(mask_filtered,'Centroid');
-        
-        if get(obj.white_text_checkbox,'Value')
-            text_col = 'w';
-        else
-            text_col = 'k';
-        end
-        
+                
        colors = jet(length(stats));
        for i=1:length(stats)
             c = stats(i).Centroid;
