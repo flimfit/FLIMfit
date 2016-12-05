@@ -116,44 +116,25 @@ void conv_irf(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], do
       c += (exp_irf_cum_buf[(k+1)*gc->n_irf-1] - 0.5*exp_irf_buf[(k+1)*gc->n_irf-1])  / pulse_fact;
 }
 
-void conv_irf_deriv(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c)
+void conv_irf_deriv(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c)
 {
    double c_rep;
    int j = k*gc->n_t+i;
    int irf_end = (k+1)*gc->n_irf-1;
 
-   c  =        t * exp_irf_cum_buf[gc->irf_max[j]] - exp_irf_tirf_cum_buf[gc->irf_max[j]];
-   c -= 0.5 * (t * exp_irf_buf[gc->irf_max[j]] - exp_irf_tirf_buf[gc->irf_max[j]]);
+   c  = (t * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[gc->irf_max[j]] - exp_irf_tirf_cum_buf[gc->irf_max[j]] * ref_fact_a;
+   c -= 0.5 * ((t * ref_fact_a + ref_fact_b) * exp_irf_buf[gc->irf_max[j]] - exp_irf_tirf_buf[gc->irf_max[j]] * ref_fact_a);
    
    if (gc->pulsetrain_correction && pulse_fact > 0)
    {
-      c_rep  =        (t+gc->t_rep) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end];
-      c_rep -= 0.5 * ((t+gc->t_rep) * exp_irf_buf[irf_end] -  exp_irf_tirf_buf[irf_end]);
-      
-      c     += c_rep / pulse_fact;
-   }
-   
-}
-
-void conv_irf_deriv_ref(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double ref_fact, double& c)
-{
-   double c_rep;
-   int j = k*gc->n_t+i;
-   int irf_end = (k+1)*gc->n_irf-1;
-   
-   c  =        ( t * ref_fact + 1 ) * exp_irf_cum_buf[gc->irf_max[j]] - exp_irf_tirf_cum_buf[gc->irf_max[j]] * ref_fact;
-   c -= 0.5 * (( t * ref_fact + 1 ) * exp_irf_buf[gc->irf_max[j]] - exp_irf_tirf_buf[gc->irf_max[j]] * ref_fact);
-   
-   
-   if (gc->pulsetrain_correction && pulse_fact > 0)
-   {
-      c_rep  =        ( (t+gc->t_rep) * ref_fact + 1 ) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact;
-      c_rep -= 0.5 * (( (t+gc->t_rep) * ref_fact + 1 ) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact);
+      c_rep = (t * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[irf_end] - exp_irf_tirf_cum_buf[irf_end] * ref_fact_a;
+      c_rep -= 0.5 * ((t * ref_fact_a + ref_fact_b) * exp_irf_buf[irf_end] - exp_irf_tirf_buf[irf_end] * ref_fact_a);
       c_rep /= pulse_fact;
       c += c_rep;
+
+      c += (exp_irf_cum_buf[gc->n_irf - 1] - 0.5*exp_irf_buf[gc->n_irf - 1]) / pulse_fact_der;
    }
    
 }
-
 
 
