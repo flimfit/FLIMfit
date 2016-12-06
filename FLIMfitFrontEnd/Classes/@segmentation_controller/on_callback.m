@@ -40,7 +40,9 @@ function on_callback(obj,src,evtData)
         obj.paint_active = strcmp(get(obj.tool_roi_paint_toggle,'State'),'on');
         obj.waiting = false;
 
-        [X,Y] = meshgrid(1:size(obj.mask,2),1:size(obj.mask,1));
+        mask_size = size(obj.mask);
+        
+        [X,Y] = meshgrid(1:mask_size(2),1:mask_size(1));
         last_pos = [];
         
         if obj.paint_active
@@ -48,7 +50,7 @@ function on_callback(obj,src,evtData)
             set(fh, 'WindowButtonMotionFcn', @mouseMove);
             set(fh, 'WindowButtonDownFcn', @mouseDown);
             set(fh, 'WindowButtonUpFcn', @mouseUp);
-            obj.paint_mask = zeros(size(obj.mask));
+            obj.paint_mask = zeros(mask_size(1:2));
         end
         
     else
