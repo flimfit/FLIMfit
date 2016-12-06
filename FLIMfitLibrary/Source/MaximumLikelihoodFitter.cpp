@@ -94,11 +94,18 @@ int MaximumLikelihoodFitter::FitFcn(int nl, double *alf, int itmax, int max_jacb
 #endif
    }
 
-    
+#ifdef _DEBUG
     double* err = new double[nfunc];
     dlevmar_chkjac(MLEfuncsCallback, MLEjacbCallback, alf, nvar, nfunc, this, err);
-    err[0] = err[0];
+
+    double mean_err = 0;
+    for (int i = 0; i < nfunc; i++)
+       mean_err += err[i];
+    mean_err /= nfunc;
+
     delete[] err;
+#endif
+
     
 /*    
    double opt[4];
@@ -178,12 +185,12 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int nl, int n
    {
       fvec[i] = adjust[i];
       for(j=0; j<l; j++)
-         fvec[i] += expA[j]*a_[i+n*j];
+         fvec[i] += expA[j]*a_[i+nmax*j];
    }
 
    if (philp1)
       for (i=0; i<n; i++)
-         fvec[i] += a_[i+n*l];
+         fvec[i] += a_[i+nmax*l];
       
 
    fvec[n] = kap[0]+1;
@@ -228,10 +235,10 @@ void MaximumLikelihoodFitter::mle_jacb(double *alf, double *fjac, int nl, int nf
    {
 #if CONSTRAIN_FRACTIONS
          for (i=0; i<n; i++)
-            fjac[nl*i+j+k_sub] = expA[j] * a_[i+n*j];
+            fjac[nl*i+j+k_sub] = expA[j] * a_[i+nmax*j];
 #else
          for (i=0; i<n; i++)
-            fjac[nl*i+j+k_sub] = a_[i+n*j];
+            fjac[nl*i+j+k_sub] = a_[i+nmax*j];
 #endif
          fjac[nl*i+j+k_sub] = 0; // kappa derv. for I
    }

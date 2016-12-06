@@ -1113,7 +1113,7 @@ void FLIMGlobalFitController::Init()
    // Select correct convolution function for data type
    //-------------------------------------------------
    Convolve = conv_irf;
-   ConvolveDerivative = ref_reconvolution ? conv_irf_deriv_ref : conv_irf_deriv;
+   ConvolveDerivative = conv_irf_deriv;
 
    // Setup adjust buffer which will be subtracted from the data
    SetupAdjust(0, adjust_buf, (fit_scatter == FIX) ? (float) scatter_guess : 0, 

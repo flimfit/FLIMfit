@@ -333,15 +333,18 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
            
    double rate = 1/tau[fret_tau_idx] + ((theta_idx==0) ? 0 : 1/theta[theta_idx-1]);
 
-   double ref_fact = (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
-   double pulse_fact = exp( t_rep * rate ) - 1; 
+   double ref_fact_a = (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
+   double ref_fact_b = (ref_reconvolution && ref_lifetime > 0) ? 1 : 0;
+
+   double pulse_fact = exp( t_rep * rate ) - 1;
+   double pulse_fact_der = pulse_fact * pulse_fact / (t_rep * exp(t_rep * rate));
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
    {
       for(int i=0; i<n_t; i++)
       {
-         ConvolveDerivative(this, t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, pulse_fact, ref_fact, c);
+         ConvolveDerivative(this, t[i], rate, exp_irf_buf, exp_irf_cum_buf, exp_irf_tirf_buf, exp_irf_tirf_cum_buf, k, i, pulse_fact, pulse_fact_der, ref_fact_a, ref_fact_b, c);
          b[idx] += exp_model_buf[k*n_t+i] * c * fact;
          idx += resample_idx[i];
       }
