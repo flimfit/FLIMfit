@@ -2,7 +2,7 @@ function bug_snag(error)
 
     % Get version
     fid = fopen('GeneratedFiles/version.txt');
-    flimfit_    ver = fgetl(fid);
+    flimfit_ver = fgetl(fid);
     fclose(fid);
 
     % Get user ID
