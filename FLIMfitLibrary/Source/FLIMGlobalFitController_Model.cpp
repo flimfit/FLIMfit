@@ -292,14 +292,7 @@ void FLIMGlobalFitController::add_decay(int threadi, int tau_idx, int theta_idx,
 
    fact *= (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
 
-   double pulse_fact;
-   
-   const double x_max = -log(DBL_EPSILON);
-   if (t_rep * rate > x_max)
-      pulse_fact = 0;
-   else
-      pulse_fact = exp( t_rep * rate ) - 1; 
-
+   double pulse_fact = (t_rep * rate > 36) ? 4e15 : exp(t_rep * rate) - 1; // crudely make sure we keep in double range
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
@@ -336,8 +329,9 @@ void FLIMGlobalFitController::add_derivative(int thread, int tau_idx, int theta_
    double ref_fact_a = (ref_reconvolution && ref_lifetime > 0) ? (1/ref_lifetime - rate) : 1;
    double ref_fact_b = (ref_reconvolution && ref_lifetime > 0) ? 1 : 0;
 
-   double pulse_fact = exp( t_rep * rate ) - 1;
-   double pulse_fact_der = pulse_fact * pulse_fact / (t_rep * exp(t_rep * rate));
+   double pulse_fact = (t_rep * rate > 36) ? 4e15 : exp(t_rep * rate) - 1; // make sure we keep in double range
+   double pulse_fact_der = (pulse_fact / (t_rep * (pulse_fact+1))) * pulse_fact; // order this way to prevent overflow 
+
 
    int idx = 0;
    for(int k=0; k<n_chan; k++)
