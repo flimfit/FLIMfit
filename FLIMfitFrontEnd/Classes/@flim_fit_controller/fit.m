@@ -67,8 +67,7 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
         set(obj.progress_table,'RowName',row_headers);
 
         obj.start_time = tic;
-        
-        obj.fit_result = [];
+       
         
         if bin == false
             err = obj.dll_interface.fit(obj.data_series_controller.data_series, obj.fit_params);

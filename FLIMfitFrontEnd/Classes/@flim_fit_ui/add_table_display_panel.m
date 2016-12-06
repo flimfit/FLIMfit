@@ -26,8 +26,8 @@ function handles = add_table_display_panel(obj,handles,parent)
     % Author : Sean Warren
 
 
-    layout = uiextras.VBox( 'Parent', parent, 'Spacing', 3 );
-    top_layout = uiextras.HBox( 'Parent', layout, 'Spacing', 3 );
+    layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
+    top_layout = uix.HBox( 'Parent', layout, 'Spacing', 3 );
         
     uicontrol( 'Style', 'text', 'String', 'Statistic  ', 'Parent', top_layout, ...
                'HorizontalAlignment', 'right' );
@@ -38,7 +38,7 @@ function handles = add_table_display_panel(obj,handles,parent)
     %---------------------------------------
     handles.results_table = uitable( 'Parent', layout );
     
-    set(layout,'Sizes',[22,-1])
-    set(top_layout,'Sizes',[90,90])
+    set(layout,'Heights',[22,-1])
+    set(top_layout,'Widths',[90,90])
     
 end

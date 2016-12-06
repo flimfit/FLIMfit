@@ -33,12 +33,23 @@ classdef segmentation_controller < flim_data_series_observer
         desc_list;
         summary_list;
         
+        menu_file_load_segmentation;
+        menu_file_save_segmentation;
+        menu_file_load_single_segmentation;
+        OMERO_Load_Segmentation_Images;
+        OMERO_Load_Single_Segmentation_Image;
+        OMERO_Save_Segmentation_Images;
+        OMERO_Remove_Segmentation;
+        OMERO_Remove_All_Segmentations;
+        
         tool_roi_rect_toggle;
         tool_roi_poly_toggle;
         tool_roi_circle_toggle;
         tool_roi_erase_toggle;
+        tool_roi_paint_toggle;
         
         replicate_mask_checkbox;
+        brush_width_popup;
                 
         algorithm_popup;
         parameter_table;
@@ -62,9 +73,12 @@ classdef segmentation_controller < flim_data_series_observer
         
         segmentation_im;
         mask_im;
+        paint_im;
         
-        mask = uint8(1);
-        filtered_mask = uint8(1);
+        brush_width = 5;
+        
+        mask = uint16(1);
+        filtered_mask = uint16(1);
         n_regions = 0;
         
         ok_button;
@@ -77,6 +91,8 @@ classdef segmentation_controller < flim_data_series_observer
                 
         filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Roundness Factor';'Max. Roundness Factor'};
         
+        paint_active = false;
+        paint_mask;
         
         slh = [];
     end
@@ -111,13 +127,26 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.tool_roi_rect_toggle,'State','off');
             set(obj.tool_roi_poly_toggle,'State','off');
             set(obj.tool_roi_circle_toggle,'State','off');
+            set(obj.tool_roi_paint_toggle,'State','off');
                        
             set(obj.tool_roi_rect_toggle,'OnCallback',@obj.on_callback);
             set(obj.tool_roi_poly_toggle,'OnCallback',@obj.on_callback);
             set(obj.tool_roi_circle_toggle,'OnCallback',@obj.on_callback);
+            set(obj.tool_roi_paint_toggle,'OnCallback',@obj.on_callback);
+            set(obj.tool_roi_paint_toggle,'OffCallback',@obj.on_callback);
             
             set(obj.trim_outliers_checkbox,'Callback',@(~,~) obj.update_display)
             
+            set(obj.menu_file_load_segmentation,'Callback',@(~,~) obj.load_segmentation);
+            set(obj.menu_file_load_single_segmentation,'Callback',@(~,~) obj.load_single_segmentation);
+            set(obj.menu_file_save_segmentation,'Callback',@(~,~) obj.save_segmentation);
+            set(obj.OMERO_Load_Segmentation_Images,'Callback',@(~,~) obj.load_segmentation_OMERO);
+            set(obj.OMERO_Load_Single_Segmentation_Image,'Callback',@(~,~) obj.load_single_segmentation_OMERO);
+            set(obj.OMERO_Save_Segmentation_Images,'Callback',@(~,~) obj.save_segmentation_OMERO);
+            set(obj.OMERO_Remove_Segmentation,'Callback',@(~,~) obj.remove_segmentation_OMERO);
+            set(obj.OMERO_Remove_All_Segmentations,'Callback',@(~,~) obj.remove_all_segmentations_OMERO);
+            
+            set(obj.brush_width_popup,'Callback',@(~,~) obj.set_brush_width);
             
             filter_data = [num2cell(false(size(obj.filters))), ...
                            obj.filters, ...
@@ -127,29 +156,19 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.region_filter_table,'ColumnEditable',[true false true]);
                         
             if ~isdeployed
-            
-                folder = [pwd filesep 'SegmentationFunctions'];
-                addpath(folder);
-                addpath([folder filesep 'Support']);
-
-                [funcs, param_list, default_list, desc_list summary_list] = parse_function_folder(folder);
-                
-                save('segmentation_funcs.mat', 'funcs', 'param_list', 'default_list', 'desc_list', 'summary_list');
-                
-            else
-                
-                try 
-                    load('segmentation_funcs.mat');
-                catch %ok
-                    funcs = [];
-                    param_list = [];
-                    default_list = [];
-                    desc_list = [];
-                    summary_list = [];
-                end
-                
+                generate_segmentation_functions_file();
             end
-            
+              
+            try 
+                load('segmentation_funcs.mat');
+            catch %ok
+                funcs = [];
+                param_list = [];
+                default_list = [];
+                desc_list = [];
+                summary_list = [];
+            end
+                            
             obj.funcs = funcs;
             obj.param_list = param_list;
             obj.default_list = default_list;
@@ -166,9 +185,8 @@ classdef segmentation_controller < flim_data_series_observer
             else
                 obj.algorithm_updated([],[]);
             end
-
-
             
+            set(obj.region_filter_table,'ColumnWidth',{22 150 80});
             
             if ~isempty(obj.data_series.seg_mask)
                 obj.mask = obj.data_series.seg_mask;
@@ -178,6 +196,10 @@ classdef segmentation_controller < flim_data_series_observer
             obj.update_display();
             obj.slh = addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
 
+        end
+        
+        function set_brush_width(obj)
+            obj.brush_width = get(obj.brush_width_popup,'Value');
         end
         
         function ok_pressed(obj,src,~)
@@ -216,7 +238,7 @@ classdef segmentation_controller < flim_data_series_observer
         
         function data_update(obj)
             d = obj.data_series;
-            obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
+            obj.mask = zeros([d.height d.width d.n_datasets],'uint16');
             obj.update_display();
             obj.n_regions = 0;
         end
@@ -233,7 +255,7 @@ classdef segmentation_controller < flim_data_series_observer
             a = questdlg('Are you sure you want to clear all regions?','Confirmation','Yes','No','No');
             if strcmp(a,'Yes')
                 d = obj.data_series;
-                obj.mask = zeros([d.height d.width d.n_datasets],'uint8');
+                obj.mask = zeros([d.height d.width d.n_datasets],'uint16');
                 obj.filter_masks(1:obj.data_series.n_datasets);
             end
         end
@@ -364,7 +386,7 @@ classdef segmentation_controller < flim_data_series_observer
 
                 end
                 if ~isempty(im_mask)
-                    obj.filtered_mask(:,:,i) = uint8(im_mask);
+                    obj.filtered_mask(:,:,i) = uint16(im_mask);
                 end
                 
                 idx = idx + 1;
@@ -397,7 +419,7 @@ classdef segmentation_controller < flim_data_series_observer
                 
                 im_mask = call_arb_segmentation_function(func,intensity,params);
                 
-                obj.mask(:,:,i) = uint8(im_mask);
+                obj.mask(:,:,i) = uint16(im_mask);
                
                 obj.filter_masks(i);
                 

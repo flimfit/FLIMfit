@@ -73,15 +73,12 @@ function load_single(obj,images,polarisation_resolved)
         obj.n_datasets = length(images);
     end
         
+    obj.polarisation_resolved = polarisation_resolved;
     
+    % must be done after test for .raw as load_raw_data requires mem mapping
     if is64
         obj.use_memory_mapping = false;
     end
-    
-  
-    obj.polarisation_resolved = polarisation_resolved;
-    
-    
     
     for i = 1:obj.n_datasets
         image = images(i);
@@ -90,8 +87,6 @@ function load_single(obj,images,polarisation_resolved)
         [path,name,ext] = fileparts_inc_OME(file);
         names{i} = name;
     end
-    
-    
     
     obj.lazy_loading = false;
     

@@ -7,7 +7,7 @@ function escaped_callback( ~, ~, fcn)
             fcn();
         catch e
             d = getReport(e,'extended','hyperlinks','off');
-            diagnostics('program','error','error_report',d);
+            bug_snag(e);
             clipboard('copy',d);
             error_dialog2({d});
         end

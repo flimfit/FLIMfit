@@ -1,6 +1,6 @@
-function identify_flim_files(obj,root_path)
+function aspect = calculate_aspect(map_size)
 
-    % Copyright (C) 2013 Imperial College London.
+    % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -23,37 +23,19 @@ function identify_flim_files(obj,root_path)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-    % Author : Sean Warren
-
-    if ~exist(root_path,'dir')
-        throw(MException('FLIM:PathDoesNotExist','Path does not exist'));
-    end
-
-    root_path = ensure_trailing_slash(root_path);
-
-    flim_files = cell(0);
-
+    aspect = [ 1 1 1];  % default aspect
     
-    % Check for SDT files
-    %-------------------------------------------------------------
-    sdt_files = dir([root_path '*.sdt']);
-        
-    for i=1:length(sdt_files)
-        [~,~,data_size] = LoadSDT(sdt_files(i).name,1,true); 
-        flim_files(end+1) = ... 
-            struct('DataType','TCSPC','Format','SDT','FileName',sdt_files(i).name,...
-                   'DataSize',data_size); %#ok
+    if length(map_size) ~= 3
+        return;
     end
     
-    % Check for TXT files
-    %-------------------------------------------------------------
-    sdt_files = dir([root_path '*.txt']);
-        
-    for i=1:length(txt_files)
-        [~,~,data_size] = LoadSDT(sdt_files(i).name,1,true); 
-        flim_files(end+1) = ... 
-            struct('DataType','TCSPC','Format','TXT','FileName',sdt_files(i).name,...
-                   'DataSize',data_size); %#ok
+    % change aspect for v.non_square images
+    if map_size(1) > 100 * map_size(2)
+        aspect = [ 1 10 1 ];
     end
-
+    if map_size(2) > 100 * map_size(1)
+        aspect = [ 10 1 1 ];
+    end
+    
+    
 end

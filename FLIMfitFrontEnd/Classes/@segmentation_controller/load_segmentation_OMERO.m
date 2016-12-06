@@ -81,8 +81,8 @@ function load_segmentation_OMERO(obj)
         
         mask = get_FOV_masks(session, image, segmentation_description, zct );
         
-        mask(mask>255)=0;
-        mask = uint8(mask);
+        mask(mask>65536)=0;
+        mask = uint16(mask);
 
         switch choice
             case 1

@@ -39,15 +39,13 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeX = obj.data_size(3);
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
-        total_files = length(obj.names);
         modulo = obj.modulo;      
     else
         delays = dims.delays;
-        nfiles = length(read_selected);
+        nfiles = 1;   % only a single file except for the data
         sizet = length(dims.delays);
         sizeX = dims.sizeXY(1);
         sizeY = dims.sizeXY(2);
-        total_files = nfiles;
         modulo = dims.modulo;
     end
     
@@ -82,20 +80,27 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         ext = '.bio';
     else
         [ext,r] = obj.init_bfreader(file);
+        % if first file was bio-formats readable then all others must be
+        if ~isempty(obj.bfReader)
+            if ~strcmp(ext,'.bio')
+                success = false;
+                return;
+            end
+        end
+            
     end
     
      
-    % default do not display a waitbar
+    % default do not display a waitbar. So no need for mutiple blocks
     nblocks = 1;
     nplanesInBlock = sizet;
     verbose = false;
     
     % display a wait bar when required
-    if nfiles == 1  && total_files == 1  || obj.lazy_loading
+    if (nfiles == 1 && obj.load_multiple_planes == 0 ) || obj.lazy_loading  
         
         verbose = true;
       
-        
         if polarisation_resolved
             totalPlanes = sizet * 2;
         else
@@ -136,8 +141,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
             end
-            
-            if length(obj.imageSeries) >1
+             
+            if length(obj.imageSeries) >1   % if imageSeries is a vector indicates a plate
                 r.setSeries(obj.imageSeries(read_selected) - 1);
                 read_selected= 1;
             else
@@ -160,7 +165,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             bpp = loci.formats.FormatTools.getBytesPerPixel(pixelType);
             fp = loci.formats.FormatTools.isFloatingPoint(pixelType);
             sgn = loci.formats.FormatTools.isSigned(pixelType);
-            % asume for now all our data is unsigned (see bfgetPlane for examples of signed)
+            % assume for now all our data is unsigned (see bfgetPlane for examples of signed)
             little = r.isLittleEndian();
                 
             switch bpp
@@ -184,8 +189,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                         T = Tarr(time);
                         
                         % check that we are supposed to load this FLIM cube
-                        if ctr == read_selected  ||  polarisation_resolved  || nfiles >1
-                            
+                        if ctr == read_selected  ||  polarisation_resolved 
+                          
                             t = 0;
                             for block = 0:nblocks - 1
                                 nplanes = nplanesInBlock(block + 1);
@@ -280,12 +285,13 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
            
 
-        case {'.pt3', '.ptu', '.bin', '.bin2', '.ffd'}
+        case {'.pt3', '.ptu', '.bin2', '.ffd'}
             
             r = FLIMreaderMex(file);
             FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
             FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
-            
+            FLIMreaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
+
             if ~polarisation_resolved && length(Carr) > 1 
                 chan = Carr(read_selected); % load channels sequentially
             else
@@ -307,59 +313,33 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % No need to allow for multiple Z,C or T as this format can't store them
-        case '.tif'
+        case {'.tif','.tiff'}
+                        
+            path = fileparts(file);
+            dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
+            files = {dirStruct.name};
+            [~,~,files] = get_delays_from_tif_stack(files);
+                        
+            if length(files) ~= sizet
+                success = false;
+                return;
+            end
             
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
             end
             
-            dirStruct = [dir([path filesep '*.tif']) dir([path filesep '*.tiff'])];
-            
-            if length(dirStruct) ~= sizet
-                success = false
-                return;
-            end
-            
-            t = 1;
-            for block = 0:nblocks - 1
-                
-                nplanes = nplanesInBlock(block + 1);
-                
-                for p = 1:nplanes
-                    
-                    % find the filename which matches the first delay
-                    str = num2str(delays(t));
-                    ff = 1;
-                    while isempty(strfind(dirStruct(ff).name, str))
-                        ff = ff + 1;
-                        if ff > sizet
-                            success = false;
-                            return;
-                        end
-                    end
-                    
-                    filename = [path filesep dirStruct(ff).name];
-                    
-                    try
-                        plane = imread(filename,'tif');
-                        target(t,1,:,:,write_selected) = plane;
-                    catch error
-                        throw(error);
-                    end
-                    
-                    t = t +1;
-                    
-                end
-                
+            for p = 1:sizet
+                filename = [path filesep files{p}];
+                plane = imread(filename,'tif');
+                target(p,1,:,:,write_selected) = plane;
                 if verbose
-                    totalPlane = totalPlane + nplanes;
-                    waitbar(totalPlane /totalPlanes,w);
+                    waitbar(sizet /p,w);
                     drawnow;
                 end
-                
             end
-            
+                            
             if min(target(:,1,:,:,write_selected)) > 32500
                 target(:,1,:,:,write_selected) = target(:,1,:,:,write_selected) - 32768;    % clear the sign bit which is set by labview
             end
@@ -406,7 +386,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 chan = Carr(c) +2;
                 
                 % check that we are supposed to load this FLIM cube
-                if ctr == read_selected  ||  polarisation_resolved  || nfiles >1
+                if ctr == read_selected  ||  polarisation_resolved  
                     target(:,pctr,:,:,write_selected) = ir(:,chan);
                 end
                 

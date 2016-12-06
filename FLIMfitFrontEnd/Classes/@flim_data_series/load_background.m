@@ -70,6 +70,9 @@ function load_background(obj, file_or_image, time_average)
                     defaultvalues = {num2str(sizet -1)};
                     numLines = 1;
                     inputdata = inputdlg(prompt,dlgTitle,numLines,defaultvalues);
+                    if isempty(inputdata)
+                        return;
+                    end
                     tpoint = str2double(inputdata) + 1;
                 end
             end
@@ -99,24 +102,21 @@ function load_background(obj, file_or_image, time_average)
         end
     end  % end 'not a 'tif'
     
+    
      % correct for labview broken tiffs
      if all(im > 2^15)
          im = im - 2^15;
      end
-
-    
+  
      extent = 3;
      im = medfilt2(im,[extent extent],'symmetric');
-
 
      if any(size(im) ~= [obj.height obj.width])
          throw(MException('GlobalAnalysis:BackgroundIncorrectShape','Error loading background, file has different dimensions to the data'));
      else
          obj.background_image = im;
-         obj.background_type = 2;
+         obj.background_type = 2;   % this runs obj.compute_tr_data()
      end
 
      
-     obj.compute_tr_data();
-    
 end

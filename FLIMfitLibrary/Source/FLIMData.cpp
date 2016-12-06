@@ -33,7 +33,7 @@
 //#include "hdf5.h"
 
 FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t, int data_type, 
-                   int* use_im, uint8_t mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
+                   int* use_im, mask_type mask[], int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling, int n_thread, FitStatus* status) :
    polarisation_resolved(polarisation_resolved),
    g_factor(g_factor),
    n_im(n_im), 
@@ -45,7 +45,6 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    t_int(t_int),
    n_t(n_t),
    data_type(data_type),
-   use_im(use_im),
    mask(mask),
    merge_regions(merge_regions),
    threshold(threshold),
@@ -91,12 +90,14 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
    if (!supplied_mask)
    {
       int sz_mask = n_im * n_x * n_y;
-      this->mask = new uint8_t[sz_mask]; //ok
+      this->mask = new mask_type[sz_mask]; //ok
       supplied_mask = false;
       for(int i=0; i<sz_mask; i++)
          this->mask[i] = 1;
    }
 
+
+   this->use_im = new int[n_im];
 
    n_im_used = 0;
    if (use_im != NULL)
@@ -107,7 +108,7 @@ FLIMData::FLIMData(int polarisation_resolved, double g_factor, int n_im, int n_x
             for(int j=0; j<n_x*n_y; j++)
                if(this->mask[i*n_x*n_y+j] > 0)
                {
-                  use_im[n_im_used] = i;
+                  this->use_im[n_im_used] = i;
                   n_im_used++;
                   break;
                }
@@ -629,7 +630,7 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
    if (use_im != NULL)
       iml = use_im[im];
 
-   uint8_t* im_mask = mask + iml*n_x*n_y;
+   mask_type* im_mask = mask + iml*n_x*n_y;
    float*   tr_data   = tr_data_ + thread * n_p;
    float*   intensity = intensity_ + thread * n_px;
    float*   r_ss      = r_ss_ + thread * n_px;
@@ -701,6 +702,9 @@ FLIMData::~FLIMData()
    delete[] region_pos;
    delete[] region_idx;
    delete[] output_region_idx;
+
+   delete[] use_im;
+
    if (!supplied_mask) 
       delete[] mask;
    

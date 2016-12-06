@@ -25,7 +25,21 @@ function save_segmentation(obj,folder)
 
     % Author : Sean Warren
 
+    if nargin < 2
+        try
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+        catch
+            addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
+            default_path = 'C:\';
+        end
 
+         folder = uigetdir(default_path,'Choose the folder to save the segmented images');
+    end
+    
+    if folder == 0
+        return
+    end
+    
     folder = ensure_trailing_slash(folder);
     
     if isempty(obj.mask)
@@ -37,7 +51,7 @@ function save_segmentation(obj,folder)
     for i=1:d.n_datasets
        
         file = [folder d.names{i} ' segmentation.tif'];
-        SaveUInt8Tiff(obj.filtered_mask(:,:,i),file);
+        SaveUInt16Tiff(obj.filtered_mask(:,:,i),file);
         
     end
 

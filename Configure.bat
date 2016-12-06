@@ -1,10 +1,8 @@
 @echo off
 
 IF NOT DEFINED OME SET OME=5.2
-IF NOT DEFINED BIO SET BIO=5.1
-IF NOT DEFINED MSVC_VER SET MSVC_VER=12
-IF NOT DEFINED BOOST_VER_MAJOR SET BOOST_VER_MAJOR=1
-IF NOT DEFINED BOOST_VER_MINOR SET BOOST_VER_MINOR=59
+IF NOT DEFINED BIO SET BIO=5.2
+IF NOT DEFINED MSVC_VER SET MSVC_VER=14
 
 :: Install Chocolatey
 choco.exe 2> NUL
@@ -12,7 +10,7 @@ if ERRORLEVEL 9009 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex 
 SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 
 :: Install cmake, gs and OMERO stuff
-choco install cmake.portable -y
+choco install cmake.portable -y -version 3.6.1
 
 :: The following packages must be installed as admin
 IF NOT DEFINED NOADMIN (

@@ -242,7 +242,7 @@
 
         function obj = flim_data_series()
             
-            use_memory_mapping = true;
+            obj.use_memory_mapping = true;
             
             del_files = dir([tempdir 'GPTEMP*']);
             
@@ -601,10 +601,7 @@
        
         function set.data_size(obj,data_size)
             s = length(data_size);
-            if s == 3
-                data_size = [data_size(1) 1 data_size(2:3)];
-            end
-            obj.data_size = [data_size(:) ; ones(5-s,1)];
+            obj.data_size = [data_size(:); ones(5-s,1)];
         end
         
         function set.polarisation_resolved(obj,polarisation_resolved)
@@ -834,10 +831,12 @@
             %> Compute mask based on thresholds and segmentation mask
             
             if obj.init
-                obj.thresh_mask = obj.intensity >= obj.thresh_min & squeeze(max(max(obj.cur_data,[],1),[],2)) < obj.gate_max;
+                
+                max_gate = (max(max(obj.cur_data,[],1),[],2));
+                max_gate = reshape(max_gate,obj.data_size(3:4)');
+                
+                obj.thresh_mask = obj.intensity >= obj.thresh_min & max_gate < obj.gate_max;
                 obj.mask = obj.thresh_mask;
-
-                v = obj.intensity(obj.mask);
                 
                 % If we have a segmentation mask apply it the mask
                 if ~isempty(obj.seg_mask)

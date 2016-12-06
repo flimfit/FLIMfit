@@ -102,8 +102,7 @@ function update_display(obj)
         end
                         
         cmask = (1 + cmask/max(cmask(:))) * m + 1;
-
-
+ 
         colormap(obj.segmentation_axes,[gray(m);[1 0 0];jet(m)]);
 
         obj.segmentation_im = image(cim,'Parent',obj.segmentation_axes);
@@ -111,6 +110,7 @@ function update_display(obj)
         
         image(ones(size(bmask))*(m+1),'Parent',obj.segmentation_axes,'AlphaData',bmask);
         obj.mask_im = image(cmask,'Parent',obj.segmentation_axes, 'AlphaData',alpha);
+        obj.paint_im = image(ones([size(cmask) 3]), 'AlphaData',zeros(size(cmask)));
         hold(obj.segmentation_axes,'off');
         
         set(obj.segmentation_axes,'XTick',[],'YTick',[]);
@@ -119,11 +119,19 @@ function update_display(obj)
         obj.n_regions = max(mask_filtered(:));
         
         % find centroids for labels
-        stats = regionprops(mask,'Centroid');
-        
-        for i=1:length(stats)
+        stats = regionprops(mask_filtered,'Centroid');
+                
+       colors = jet(length(stats));
+       for i=1:length(stats)
             c = stats(i).Centroid;
-            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color','k');
+            
+            if (mean(colors(i,:))) < 0.6
+                text_col = 'w';
+            else 
+                text_col = 'k';
+            end
+            
+            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color',text_col,'HorizontalAlignment','center');
         end
 
         

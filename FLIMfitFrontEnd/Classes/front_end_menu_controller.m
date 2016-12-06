@@ -58,8 +58,6 @@ classdef front_end_menu_controller < handle
         menu_OMERO_export_fit_params;
         menu_OMERO_import_fit_params;
         
-        menu_OMERO_Export_Visualisation_Images;
-        
         menu_OMERO_Connect_To_Another_User;    
         menu_OMERO_Connect_To_Logon_User;    
         
@@ -190,6 +188,7 @@ classdef front_end_menu_controller < handle
         recent_irf;
         recent_default_path;
 
+        platform_default_path; 
         default_path;
         window;
 
@@ -208,8 +207,13 @@ classdef front_end_menu_controller < handle
             try
                 obj.default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
             catch e
-                addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
-                obj.default_path = 'C:\';
+                if ispc
+                    obj.platform_default_path = 'C:';
+                else
+                    obj.platform_default_path = '';
+                end
+                addpref('GlobalAnalysisFrontEnd','DefaultFolder',obj.platform_default_path)
+                obj.default_path = obj.platform_default_path;
             end
             
             try
@@ -376,13 +380,14 @@ classdef front_end_menu_controller < handle
         end                        
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Data_callback(obj)
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
-             
+            
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, true);
             images = chooser.getSelectedImages();
+            clear chooser;
             if images.length > 0
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 % NB misnomer "load_single" retained for compatibility with
                 % file-side
                 obj.data_series_controller.data_series = OMERO_data_series();
@@ -390,19 +395,18 @@ classdef front_end_menu_controller < handle
                 obj.data_series_controller.load_single(images);
                 notify(obj.data_series_controller,'new_dataset');
             end
-            
-            clear chooser;
         end                                  
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_callback(obj)
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
+            
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
             clear chooser;
             if ~isempty(dataset)
+                % clear & delete existing data series
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = OMERO_data_series();   
                 obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;  
                 obj.data_series_controller.load_data_series(dataset,''); 
@@ -411,21 +415,21 @@ classdef front_end_menu_controller < handle
         end    
         %------------------------------------------------------------------        
         function menu_OMERO_Load_plate_callback(obj)
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
+            
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(2));
             plate = chooser.getSelectedPlate();
+            clear chooser;
             if ~isempty(plate)
+                % clear & delete existing data series
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = OMERO_data_series();   
                 obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;  
                 obj.data_series_controller.load_plate(plate); 
                 obj.data_series_controller.data_series.plateId = plate.getId().getValue();
                 notify(obj.data_series_controller,'new_dataset');
             end
-            
-            clear chooser;
         end  
                     
         %------------------------------------------------------------------
@@ -557,13 +561,14 @@ classdef front_end_menu_controller < handle
     
         %------------------------------------------------------------------        
         function menu_OMERO_Load_FLIM_Dataset_Polarization_callback(obj)
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
+            
             chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(1));
             dataset = chooser.getSelectedDataset();
             clear chooser;
             if ~isempty(dataset)
+                    if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = OMERO_data_series();   
                 obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;  
                 obj.data_series_controller.load_data_series(dataset,'',true); 
@@ -588,11 +593,7 @@ classdef front_end_menu_controller < handle
                   end
             end
         end                                            
-        %------------------------------------------------------------------
-        function menu_OMERO_Export_Visualisation_Images_callback(obj)
-            add_Image(obj.omero_logon_manager);
-            %obj.omero_logon_manager.Export_Visualisation_Images(obj.plot_controller,obj.data_series_controller.data_series,obj.fitting_params_controller);
-        end                                    
+                                          
         %------------------------------------------------------------------
         function menu_OMERO_Connect_To_Another_User_callback(obj)
             obj.omero_logon_manager.Select_Another_User();
@@ -634,47 +635,60 @@ classdef front_end_menu_controller < handle
         % Load Data
         %------------------------------------------------------------------
         function menu_file_load_single_callback(obj)
+            
+            [files,path] = uigetfile('*.*','Select a file from the data',obj.default_path,'MultiSelect','on'); 
+            if ~iscell(files) 
+                if files == 0
+                    return;
+                end
+            end
             % clear & delete existing data series 
             if isvalid(obj.data_series_controller.data_series)
                 obj.data_series_controller.data_series.clear();
             end
-            
-            [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
-            if file ~= 0
-                obj.data_series_controller.data_series = flim_data_series();
-                obj.data_series_controller.load_single([path file]); 
-                if strcmp(obj.default_path,'C:\')
-                    obj.default_path = path;
-                end
+            obj.data_series_controller.data_series = flim_data_series();
+            obj.data_series_controller.load_single([path files]); 
+            if strcmp(obj.default_path,obj.platform_default_path)
+                obj.default_path = path;
             end
+            
+            
+            %[file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
+            %if file ~= 0
+            %    obj.data_series_controller.data_series = flim_data_series();
+            %    obj.data_series_controller.load_single([path file]); 
+            %    if strcmp(obj,default_path,obj.platform_default_path)
+            %        obj.default_path = path;
+            %    end
+            %end
         end
         
         function menu_file_load_widefield_callback(obj)
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
-             
+            
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                % clear & delete existing data series 
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
         end
         
         function menu_file_load_tcspc_callback(obj)
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                % clear & delete existing data series
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -682,46 +696,46 @@ classdef front_end_menu_controller < handle
         
         
         function menu_file_load_plate_callback(obj)
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
             
             [file,path] = uigetfile('*.ome.tiff;*.OME.tiff;*.ome.tif;;*.OME.tif','Select an ome.tiff containing plate data',obj.default_path);
             if file ~= 0
+                % clear & delete existing data series
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_plate([path file]); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
         end
         
         function menu_file_load_single_pol_callback(obj)
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
             [file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
             if file ~= 0
+                % clear & delete existing data series
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
                 end
         
         function menu_file_load_tcspc_pol_callback(obj)
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
             folder = uigetdir(obj.default_path,'Select the folder containing the datasets');
             if folder ~= 0
+                % clear & delete existing data series
+                if isvalid(obj.data_series_controller.data_series)
+                    obj.data_series_controller.data_series.clear();
+                end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -1042,7 +1056,7 @@ classdef front_end_menu_controller < handle
         % Segmentation
         %------------------------------------------------------------------
         function menu_segmentation_yuriy_callback(obj)
-            segmentation_manager(obj.data_series_controller);
+            new_segmentation_manager(obj.data_series_controller);
         end
         
         %------------------------------------------------------------------
@@ -1055,7 +1069,7 @@ classdef front_end_menu_controller < handle
                 fit_params = obj.fitting_params_controller.fit_params;
                 obj.data_series_controller.data_series.save_dataset_indextings(settings_file);
                 batch_fit(folder,'widefield',settings_file,fit_params);
-                if strcmp(obj.default_path,'C:\')
+                if strcmp(obj.default_path,obj.platform_default_path)
                     obj.default_path = path;
                 end
             end
@@ -1149,19 +1163,26 @@ classdef front_end_menu_controller < handle
             d = obj.data_series_controller.data_series;
             mask = obj.data_masking_controller.roi_controller.roi_mask;
 
+            T = 1e6 / d.rep_rate;
+            
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = mean(double(data),3);
             
             for i=1:size(data,2)
-                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),ax);
+                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),T,ax);
             end
 
-%            plot(ax, t, irf);
-%            ylabel('IRF'); xlabel('Time (ps)');
-
+            dat = table();
+            dat.t = t_final;
+            for i=1:size(irf,2)
+                dat.(['irf_ch' num2str(i)]) = irf(:,i);
+            end
+            
             [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
-            csvwrite([path file], [t_final', irf]);
+            if file~=0
+                writetable(dat,[path file]);
+            end
             
             close(fh);
             

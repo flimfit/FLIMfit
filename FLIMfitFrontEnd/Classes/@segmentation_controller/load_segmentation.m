@@ -25,7 +25,17 @@ function load_segmentation(obj,folder)
 
     % Author : Sean Warren
 
+    if nargin < 2
+        try
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+        catch
+            addpref('GlobalAnalysisFrontEnd','DefaultFolder','C:\')
+            default_path = 'C:\';
+        end
 
+        folder = uigetdir(default_path,'Choose the folder containing the segmented images');
+    end
+        
     if folder==0
         return
     end
@@ -68,10 +78,10 @@ function load_segmentation(obj,folder)
                           dir([folder '*' match_string '*.png'])];
             
         if ~isempty(matching_files)
-            mask = uint8(imread([folder matching_files(1).name]));
-            mask(mask>254) = 1;
+            mask = uint16(imread([folder matching_files(1).name]));
+            mask(mask>65536) = 1;
         else
-            mask = ones([d.height d.width],'uint8');
+            mask = ones([d.height d.width],'uint16');
         end
 
         switch choice

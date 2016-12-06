@@ -26,12 +26,9 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
 
     % Author : Sean Warren
     
-    
     % get dimensions from first file
     [dims,~,obj.reader_settings] = obj.get_image_dimensions(obj.file_names{1});
     
-
-
     if isempty(dims.delays)     % cancelled out
         if ~isempty(dims.error_message)
             errordlg(dims.error_message);
@@ -50,9 +47,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     end;
     
     chan_info = dims.chan_info;
-
     obj.modulo = dims.modulo;
-
     obj.mode = dims.FLIM_type;
 
     % Determine which planes we need to load 
@@ -62,71 +57,63 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
         return;
     end
     
-    
-    % handle exception where there is only one file or image 
-    % so multiple Z, C or T are allowed
-    if length(obj.file_names) == 1
-        % for the time being assume only 1 dimension can be > 1 
-        % otherwise this will go horribly wrong !
-        allowed = [ 1 1 1];   % allowed max no of planes in each dimension ZCT
-        if polarisation_resolved
-            allowed = [ 1 2 1 ];
-        end
-        prefix = [ 'Z' 'C' 'T'];
-
-        names = [];
-
-        for dim = 1:3
-            D = obj.ZCT{dim};
-            if length(D) > allowed(dim)
-                if dim == 2 && ~isempty(chan_info) 
-                    for d = 1:length(D)
-                        names{d} = [ prefix(dim)   num2str(D(d) -1) '-' chan_info{d}];
-                    end
-                else
-                    for d = 1:length(D)
-                        names{d} = [ prefix(dim)   num2str(D(d) -1) ];
-                    end
-                end
-                obj.load_multiple_planes = dim;
-                % use mem mapping for multiple planes to handle OPT stuff
-                obj.use_memory_mapping = true;
-                break;
-            end
-        end
-        if ~isempty(names) 
-            obj.names = names;
-            obj.n_datasets = length(obj.names);
-        end
-    
-    end
-    
-    
-
-    obj.t = dims.delays;
-    obj.channels = obj.ZCT{2};
-
-    
-    if obj.polarisation_resolved
+    if polarisation_resolved
         n_chan = 2;
     else
         n_chan = 1;
     end
     
-    obj.data_size = [length(dims.delays) n_chan dims.sizeXY obj.n_datasets];
+    % handle exception where  multiple Z, C or T are allowed
+    % for the time being assume only 1 dimension can be > 1 
+    % (as enforced in ZCT_selection) otherwise this will go horribly wrong !
+    allowed = [ 1 n_chan 1 ];
+    prefix = [ 'Z' 'C' 'T'];
     
+    dim = find(cellfun(@length,obj.ZCT) > allowed,1);    
+    if ~isempty(dim)
+        p = prefix(dim);
+        D = obj.ZCT{dim};
+
+        names = cell(1,length(D)*length(obj.file_names));
+        filename = names;
+        metadata = struct();
+        
+        na = 1;
+        for f = 1:length(obj.file_names)
+            name = obj.names{f};
+            for d = 1:length(D)
+                if p == 'C' && ~isempty(chan_info)
+                    names{na} = [ p num2str(D(d) -1) '-' chan_info{D(d)} ];
+                    metadata.(p){na} = chan_info{D(d)};
+                else
+                    names{na} = [ p num2str(D(d)-1) '-' name ];
+                    metadata.(p){na} = D(d)-1;
+                end
+                filename{na} = name;
+                na = na + 1;
+            end
+        end
+        obj.load_multiple_planes = dim;
+        obj.metadata = extract_metadata(filename,metadata);
+        obj.names = names;
+        obj.n_datasets = length(obj.names);
+    end
+        
+    obj.t = dims.delays;
+    obj.channels = obj.ZCT{2};
+
+    obj.data_size = [length(dims.delays) n_chan dims.sizeXY obj.n_datasets];
+     
     if isempty(obj.metadata)
         obj.metadata = extract_metadata(obj.names);
     end
-    
-   
+       
     if obj.lazy_loading
         obj.load_selected_files(1);
     else
         obj.load_selected_files(1:obj.n_datasets);
     end
-    
-    
+   
     obj.init_dataset(data_setting_file);
-    
+      
 end

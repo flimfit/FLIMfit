@@ -48,12 +48,15 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
     % If called without arguments we're continuing a fit
     if nargin > 1
         
+        obj.clear_fit();
+        
         obj.data_series = data_series;
         obj.fit_params = fit_params;
         obj.fit_round = 1;
         
         obj.fit_in_progress = true;
         
+        delete(obj.fit_result);
         obj.fit_result = flim_fit_result();    
         
         obj.fit_result.width = data_series.width;
@@ -61,6 +64,10 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
         obj.fit_result.binned = obj.bin;
                 
     end
+
+    % Get new fitting object
+    obj.get_new_id();
+
     
     p = obj.fit_params;
     d = obj.data_series;

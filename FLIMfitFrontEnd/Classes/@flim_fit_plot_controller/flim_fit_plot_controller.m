@@ -30,6 +30,7 @@
         
         dataset_selected = 1;       
         plot_panel;
+        plot_axes;
     
         n_plots = 0;
         

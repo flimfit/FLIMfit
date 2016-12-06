@@ -34,18 +34,18 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     if nargin < 3
         no_smoothing = false;
     end
-   %{
-    x = linspace(0,3000,100);
-    h = 0;
-    for i=1:obj.n_datasets
-        a = obj.acceptor(:,:,i);
-        h = h + hist(a(:),x);
-    end
-    
-    %}
+
     calculated = false;
     
     if obj.init && ~obj.suspend_transformation
+        
+        % arbitrary size threshold
+        d_size = obj.data_size;
+        if (d_size(1) * d_size(3) * d_size(4)) > 16000000
+            wbar = waitbar(1,'Transforming! Please wait...');
+        else
+            wbar = [];
+        end
 
         calculated = true;
 
@@ -147,27 +147,10 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         if obj.polarisation_resolved
             in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
         end
+     
+        obj.intensity = reshape(in,obj.data_size(3:4)');
         
-        obj.intensity = squeeze(in);
 
-        sz = size(obj.cur_tr_data);
-        
-        
-        in = reshape(obj.cur_tr_data,[sz(1) prod(sz(2:end))]);
-        
-        s = sum(in,2);
-        
-        sel = s > 0.5 * max(s);
-        
-        %{
-        in = obj.cur_tr_data(sel,1,:,:);
-        in = sum(in,1);
-        in = sum(in,2);
-        in = squeeze(in);
-        
-        %obj.intensity = in;
-        %}
-        
         
         % Shift the perpendicular channel and crop in time
         tmp = obj.cur_tr_data(t_inc,1,:,:);
@@ -175,74 +158,6 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             tmp(:,2,:,:) = obj.cur_tr_data(t_inc_perp,2,:,:);
         end
         obj.cur_tr_data = tmp;
-
-
-        %{
-        figure(4);
-        subplot(1,2,1);
-        s = mean(obj.cur_tr_data,1);
-        s = squeeze(s);
-        imagesc(s);
-        colorbar;
-        caxis([0 10]);
-        set(gca,'XTick',[],'YTick',[]);
-        title(['Mean (' num2str(mean(s(:))) ')']);
-        daspect([1 1 1 ]);
-        
-        subplot(1,2,2);
-        s = std(obj.cur_tr_data,1);
-        s = squeeze(s);
-        imagesc(s);
-        colorbar;
-        caxis([0 3]);
-        set(gca,'XTick',[],'YTick',[]);
-        title(['Std Dev (' num2str(mean(s(:))) ')']);
-        daspect([1 1 1 ]);
-        %}
-        %{
-        figure(10);
-        in = sum(obj.cur_tr_data,1);
-        in = squeeze(in);
-                
-        
-        
-        in = permute(in,[2 3 1]);
-        
-        in1 = in(:,:,1);
-        in2 = in(:,:,2);
-        
-        c = xcorr2(in1,in2);
-        
-        m1 = max(c,[],1);
-        [~,m1] = max(m1)
-        m2 = max(c,[],2);
-        [~,m2] = max(m2)
-        
-        mx = max(in1(:));
-        mn = min(in1(:));
-        in1 = (in1 - mn) / (mx - mn);
-        
-        mx = max(in2(:));
-        mn = min(in2(:));
-        in2 = (in2 - mn) / (mx - mn);
-        
-        cdata = zeros([size(in,1) size(in,2) 3]);
-        cdata(:,:,1) = in1;
-        cdata(:,:,2) = in2;
-        
-        %subplot(1,2,1)
-        subplot(1,1,1)
-        image(cdata);
-        set(gca,'YTick',[],'XTick',[]);
-        daspect([1 1 1])
-        
-        %imagesc(c);
-        
-        %subplot(1,2,2)
-        %ss = obj.steady_state_anisotropy(obj.active);
-        %imagesc(ss);
-        %}
-        
 
         % Smooth data
         if obj.binning > 0 && ~no_smoothing
@@ -254,12 +169,16 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         obj.compute_tr_irf();
         
- 
-        
         obj.compute_intensity();
-        obj.compute_tr_tvb_profile();        
+        obj.compute_tr_tvb_profile();  
+        
         if notify_update
             notify(obj,'data_updated');
         end
+        
+        if ~isempty(wbar)
+            close(wbar);
+        end
+        
     end
 end

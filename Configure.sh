@@ -3,9 +3,8 @@
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
 if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
 
-
-export CC=/usr/local/bin/gcc-4.9
-export CXX=/usr/local/bin/g++-4.9
+export CC=/usr/local/bin/gcc-6
+export CXX=/usr/local/bin/g++-6
 
 echo "Checking for homebrew install..."
 (brew | grep "command not found") \
@@ -13,16 +12,16 @@ echo "Checking for homebrew install..."
 	|| echo "Homebrew installed"
 
 brew update
-brew upgrade
 
 echo "Ensure cmake, gcc and boost are installed..."
-# Ensure gcc-4.9, ghostscript, cmake, LAPACK, boost are installed using Homebrew
-(brew list | grep gcc49) || brew install homebrew/versions/gcc49
-(brew list | grep boost) && echo " installed" || brew install boost
+# Ensure gcc, ghostscript, cmake, LAPACK are installed using Homebrew
+(brew list | grep gcc6) || brew install homebrew/versions/gcc6
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 (brew list | grep platypus) && echo " installed" || brew install platypus
 (brew list | grep lapack) && echo " installed" || brew install homebrew/dupes/LAPACK
+(brew list | grep coreutils) && echo " installed" || brew install coreutils
+brew upgrade cmake
 
 # Download OMERO Matlab plug-in
 echo "Downloading OMERO/bioformats components..."
@@ -45,10 +44,11 @@ rm bfmatlab.zip
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
 rm -rf bfmatlab
 
+
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar
 mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar
 
 # Download omeUiUtils
-curl -OL https://bintray.com/artifact/download/joshmoore/maven/ome/OMEuiUtils/0.1.4/OMEuiUtils-0.1.4.jar
-mv OMEuiUtils-0.1.4.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar
+curl -OL https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.5.jar
+mv OMEuiUtils-0.1.5.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar

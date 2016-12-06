@@ -99,7 +99,10 @@ function load_plate(obj,omero_plate)
     obj.polarisation_resolved = polarisation_resolved;
  
     metadata = struct();
-   
+    add_class('Well');
+    add_class('Row');
+    add_class('Column');
+    
     % find corresponding Image list...
     for m = 1:n_datasets
         name = image_names{m};
@@ -117,9 +120,6 @@ function load_plate(obj,omero_plate)
                 if strcmp(name,wsname)
                     selected_image = ws.getImage;
                     selected_images{m} = selected_image;
-                    add_class('Well');
-                    add_class('Row');
-                    add_class('Column');
                     metadata.Well{m} = [row col];
                     metadata.Row{m} = row;
                     metadata.Column{m} = col;

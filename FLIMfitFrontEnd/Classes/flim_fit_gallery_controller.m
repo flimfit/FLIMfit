@@ -301,10 +301,10 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 end
                 
                 for i=1:cols-1
-                     line([r.width r.width]*i/scale,[0 r.height*rows]/scale,'Parent',ax,'Color','w');
+                     line([r.width+0.5 r.width+0.5]*i/scale,[0 r.height*rows+0.5]/scale,'Parent',ax,'Color','w');
                 end
                 for i=1:rows-1
-                     line([0 r.width*cols]/scale,[r.height r.height]*i/scale,'Parent',ax,'Color','w');
+                     line([0 r.width*cols+0.5]/scale,[r.height+0.5 r.height+0.5]*i/scale,'Parent',ax,'Color','w');
                 end
                 
             end

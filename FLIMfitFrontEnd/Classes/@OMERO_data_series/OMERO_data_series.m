@@ -114,7 +114,7 @@ classdef OMERO_data_series < flim_data_series
             end
             
             param_data = squeeze(obj.fitted_data(im,:,:,param)); 
-            mask = uint8(~isnan(param_data));
+            mask = uint16(~isnan(param_data));
         end;
         
         %------------------------------------------------------------------

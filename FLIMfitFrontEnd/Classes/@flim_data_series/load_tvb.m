@@ -70,7 +70,7 @@ function load_tvb(obj,file_or_image)
         end
 
         tvb_image_data = zeros(sizet, n_chan, sizeX, sizeY, 1);
-        [~, tvb_image_data] = obj.load_flim_cube(tvb_image_data, file_or_image, 1, 1, dims, ZCT, reader_settings);
+        [~, tvb_image_data] = obj.load_flim_cube(tvb_image_data, file_or_image, 1, 1, reader_settings, dims, ZCT);
         tvb_data = reshape(tvb_image_data,[sizet n_chan sizeX * sizeY]);
         tvb_data = mean(tvb_data,3);
         
@@ -96,6 +96,6 @@ function load_tvb(obj,file_or_image)
     obj.compute_tr_tvb_profile();
     
     notify(obj,'data_updated');
-
     
+  
 end
