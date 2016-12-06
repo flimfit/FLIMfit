@@ -32,8 +32,9 @@ classdef flim_fit_ui
     
     methods
       
-        function obj = flim_fit_ui(wait,require_auth)
+        function obj = flim_fit_ui(wait)
             
+            diagnostics('program','start');
             set_splash('FLIMfit-logo-colour.png');
             
             % pause to allow splash screen to display
@@ -45,11 +46,7 @@ classdef flim_fit_ui
             if nargin < 1
                 wait = false;
             end
-            
-            if nargin < 2
-                require_auth = false;
-            end
-            
+                        
             if ~isdeployed
                 addpath_global_analysis();
                 if ispc
@@ -256,6 +253,8 @@ classdef flim_fit_ui
 
         
         function close_request_fcn(obj,~,~)
+            
+            diagnostics('program','end');
             
             handles = guidata(obj.window);
             client = handles.omero_logon_manager.client;
