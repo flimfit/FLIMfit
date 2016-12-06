@@ -14,17 +14,14 @@ echo "Checking for homebrew install..."
 brew update
 
 echo "Ensure cmake, gcc and boost are installed..."
-# Ensure gcc, ghostscript, cmake, LAPACK, boost are installed using Homebrew
+# Ensure gcc, ghostscript, cmake, LAPACK are installed using Homebrew
 (brew list | grep gcc6) || brew install homebrew/versions/gcc6
-(brew list | grep opencv3) && echo " installed" || brew install homebrew/science/opencv3
-(brew list | grep boost) && echo " installed" || brew install boost
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 (brew list | grep platypus) && echo " installed" || brew install platypus
 (brew list | grep lapack) && echo " installed" || brew install homebrew/dupes/LAPACK
 (brew list | grep coreutils) && echo " installed" || brew install coreutils
-brew upgrade opencv3 cmake boost
-brew ln opencv3 --force
+brew upgrade cmake
 
 # Download OMERO Matlab plug-in
 echo "Downloading OMERO/bioformats components..."
