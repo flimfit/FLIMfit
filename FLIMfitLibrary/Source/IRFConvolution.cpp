@@ -119,11 +119,11 @@ void conv_irf(FLIMGlobalFitController *gc, double rate, double exp_irf_buf[], do
 void conv_irf_deriv(FLIMGlobalFitController *gc, double t, double rate, double exp_irf_buf[], double exp_irf_cum_buf[], double exp_irf_tirf_buf[], double exp_irf_tirf_cum_buf[], int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c)
 {
    double c_rep;
-   int j = k*gc->n_t+i;
+   int idx = gc->irf_max[k*gc->n_t+i];
    int irf_end = (k+1)*gc->n_irf-1;
 
-   c  = (t * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[gc->irf_max[j]] - exp_irf_tirf_cum_buf[gc->irf_max[j]] * ref_fact_a;
-   c -= 0.5 * ((t * ref_fact_a + ref_fact_b) * exp_irf_buf[gc->irf_max[j]] - exp_irf_tirf_buf[gc->irf_max[j]] * ref_fact_a);
+   c  = (t * ref_fact_a + ref_fact_b) * exp_irf_cum_buf[idx] - exp_irf_tirf_cum_buf[idx] * ref_fact_a;
+   c -= 0.5 * ((t * ref_fact_a + ref_fact_b) * exp_irf_buf[idx] - exp_irf_tirf_buf[idx] * ref_fact_a);
    
    if (gc->pulsetrain_correction && pulse_fact > 0)
    {
