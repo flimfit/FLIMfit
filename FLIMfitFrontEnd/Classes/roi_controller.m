@@ -184,7 +184,7 @@ classdef roi_controller < flim_data_series_observer
             notify(obj,'roi_updated');
         end
 
-        function click_callback(obj,src)
+        function click_callback(obj,src,~)
             
             if obj.point_mode && ~isempty(obj.data_intensity_view.im)
                 click_pos = get(src,'CurrentPoint');
