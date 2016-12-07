@@ -1,14 +1,9 @@
-
 project(FLIMfitQT)
-
-cmake_policy(SET CMP0020 NEW)
-cmake_policy(SET CMP0043 NEW)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
-
 find_package(BOOST REQUIRED COMPONENTS system serialization)
 
 qt5_wrap_ui(UI_HEADERS DecayWidget.ui
@@ -60,13 +55,13 @@ include_directories(../FLIMDecayModel
                     ../DataFitter 
                     ../FLIMfit
                     ../FLIMReader/Source/FLIMReader
-                    ../FLIMWidgets
+                    ${FLIMWidgets_INCLUDE_DIRS}
                     ${LEVMAR_INCLUDE_DIRS} 
                     ${CMAKE_CURRENT_BINARY_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}
                     ${OpenCV_INCLUDE_DIRS})
 
-link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
+#link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 
 add_executable(FLIMfitQT ${SOURCE} 
                          ${HEADERS} 

@@ -13,13 +13,16 @@ cmake_minimum_required(VERSION 3.0)
 set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 set(CMAKE_PREFIX_PATH /usr/local/opt/qt5) # for brew install of qt5
 
+if(MSVC)
+  set( Boost_USE_STATIC_LIBS ON )
+  add_definitions(-DBOOST_ALL_NO_LIB=1)
+endif()
+
 find_package(Qt5Core REQUIRED)
 find_package(OpenCV REQUIRED)
-set(CMAKE_AUTOMOC ON)
-
 find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
-include_directories(${Boost_INCLUDE_DIR})
 
+set(CMAKE_AUTOMOC ON)
 
 # Enable OpenMP support, disable for XCode
 #===================================================
@@ -27,15 +30,6 @@ if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
    set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-reorder")
-#else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-#   find_package("OpenMP")
-#   if (OPENMP_FOUND)
-#      option(USE_OMP "Use OpenMP" ON)
-#      if (USE_OMP)
-#         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -DUSE_OMP")
-#         message("Using OpenMP")
-#      endif()
-#   endif()
 endif()
 
 
@@ -56,14 +50,11 @@ if(UNIX)
    set(PLATFORM_FLAGS_DEBUG "-D_DEBUG")
 endif(UNIX)
 
-set(XDISPATCH_QT_SUPPORT OFF CACHE BOOL "Turn off xdispatch QT")
-
 # Add platform specific flags
 #===================================================
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
-set(CMAKE_DEBUG_POSTFIX "")
 
 add_subdirectory("FLIMreader/Source")
 add_subdirectory( "levmar-2.6ML" )

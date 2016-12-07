@@ -31,6 +31,8 @@ project(FLIMfitMex)
 
 find_package(Qt5Core)
 find_package(OpenCV REQUIRED)
+find_package(Boost CONFIG REQUIRED COMPONENTS serialization)
+
 # MATLAB stuff
 #====================================
 
@@ -46,7 +48,7 @@ find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
 include_directories(${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit ../FLIMWidgets ${FLIMWidgets_INCLUDE_DIRS})
 link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 
-set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core)
+set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core ${Boost_LIBRARIES})
 
 matlab_add_mex(NAME ff_FLIMImage SRC MexUtils.h FLIMImageMex.cpp)
 target_link_libraries(ff_FLIMImage ${COMMON_LIBS})

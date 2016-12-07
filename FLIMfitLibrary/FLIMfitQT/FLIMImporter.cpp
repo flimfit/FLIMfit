@@ -33,7 +33,7 @@ std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRF(const QStrin
    std::string fname = filename.toStdString();
    std::unique_ptr<FLIMReader> reader(FLIMReader::createReader(fname));
    
-   int n_chan = reader->numChannels();
+   int n_chan = reader->getNumChannels();
    auto t = reader->timepoints();
    
    if(t.size() <= 1)
@@ -41,10 +41,11 @@ std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRF(const QStrin
    
    double timebin_width = t[1] - t[0];
    
-   vector<double> data = reader->readData<double>();
+   auto cube = std::make_shared<FlimCube<double>>();
+   reader->readData<double>(cube);
    
    auto irf = std::make_shared<InstrumentResponseFunction>();
-   irf->SetIRF(t.size(), n_chan, t[0], timebin_width, data.data());
+   irf->SetIRF(t.size(), n_chan, t[0], timebin_width, cube->getDataPtr());
    
    return irf;
 }
@@ -99,7 +100,7 @@ FileSet FLIMImporter::getValidFilesFromFolder(const QString& folder)
    
    std::string file0 = file_set.files[0].absoluteFilePath().toStdString();
    auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file0));
-   file_set.n_channels = reader->numChannels();
+   file_set.n_channels = reader->getNumChannels();
    
    QString first_ext = file_set.files[0].completeSuffix();
    
