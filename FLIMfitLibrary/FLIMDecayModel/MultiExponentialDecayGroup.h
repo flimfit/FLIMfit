@@ -13,32 +13,32 @@ public:
 
    MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false);
 
-   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
-   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE SetContributionsGlobal USER true);
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
+   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);
 
-   void SetNumExponential(int n_exponential);
-   void SetContributionsGlobal(bool contributions_global);
+   void setNumExponential(int n_exponential);
+   void setContributionsGlobal(bool contributions_global);
 
-   virtual const vector<double>& GetChannelFactors(int index);
-   virtual void SetChannelFactors(int index, const vector<double>& channel_factors);
+   virtual const vector<double>& getChannelFactors(int index);
+   virtual void setChannelFactors(int index, const vector<double>& channel_factors);
 
-   virtual int SetVariables(const double* variables);
-   virtual int CalculateModel(double* a, int adim, vector<double>& kap);
-   virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
-   virtual int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
-   virtual int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
-   virtual int SetupIncMatrix(int* inc, int& row, int& col);
-   virtual void GetLinearOutputParamNames(vector<string>& names);
+   virtual int setVariables(const double* variables);
+   virtual int calculateModel(double* a, int adim, vector<double>& kap);
+   virtual int calculateDerivatives(double* b, int bdim, vector<double>& kap);
+   virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   virtual int setupIncMatrix(int* inc, int& row, int& col);
+   virtual void getLinearOutputParamNames(vector<string>& names);
 
 protected:
    
-   virtual void Init();
-   void SetupParametersMultiExponential();
+   virtual void init();
+   void setupParametersMultiExponential();
 
-   int AddDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
-   int AddLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);
-   int AddContributionDerivatives(double* b, int bdim, vector<double>& kap);
-   int NormaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);
+   int addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
+   int addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);
+   int addContributionDerivatives(double* b, int bdim, vector<double>& kap);
+   int normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);
 
    vector<shared_ptr<FittingParameter>> tau_parameters;
    vector<shared_ptr<FittingParameter>> beta_parameters;

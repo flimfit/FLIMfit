@@ -36,8 +36,8 @@ void FittingParametersWidget::setDecayModel(std::shared_ptr<QDecayModel> decay_m
    channel_factor_tree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
    channel_factor_tree->expandAll();
 
-   connect(decay_model.get(), &QDecayModel::GroupsUpdated, channel_list_model, &ChannelFactorListModel::parseDecayModel, Qt::QueuedConnection);
-   connect(decay_model.get(), &QDecayModel::GroupsUpdated, channel_factor_tree, &QTreeView::expandAll, Qt::QueuedConnection);
+   connect(decay_model.get(), &QDecayModel::groupsUpdated, channel_list_model, &ChannelFactorListModel::parseDecayModel, Qt::QueuedConnection);
+   connect(decay_model.get(), &QDecayModel::groupsUpdated, channel_factor_tree, &QTreeView::expandAll, Qt::QueuedConnection);
 
 }
 

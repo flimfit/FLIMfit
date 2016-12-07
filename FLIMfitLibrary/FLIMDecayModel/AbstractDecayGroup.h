@@ -52,42 +52,42 @@ class AbstractDecayGroup : public QObject
 public:
 
    virtual ~AbstractDecayGroup() {};
-   vector<shared_ptr<FittingParameter>>& GetParameters() { return parameters; }
-   const vector<std::string>& GetChannelFactorNames() { return channel_factor_names; }
-   virtual const vector<double>& GetChannelFactors(int index) = 0;
-   virtual void SetChannelFactors(int index, const vector<double>& channel_factors) = 0;
+   vector<shared_ptr<FittingParameter>>& getParameters() { return parameters; }
+   const vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
+   virtual const vector<double>& getChannelFactors(int index) = 0;
+   virtual void setChannelFactors(int index, const vector<double>& channel_factors) = 0;
 
-   int GetNumComponents() { return n_lin_components; };
-   int GetNumNonlinearParameters() { return n_nl_parameters; };
+   int getNumComponents() { return n_lin_components; };
+   int getNumNonlinearParameters() { return n_nl_parameters; };
 
-   void SetTransformedDataParameters(shared_ptr<TransformedDataParameters> dp);
-   virtual void Init() = 0;
+   void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp);
+   virtual void init() = 0;
 
-   virtual int SetVariables(const double* variables) = 0;
-   virtual int CalculateModel(double* a, int adim, vector<double>& kap) = 0;
-   virtual int CalculateDerivatives(double* b, int bdim, vector<double>& kap) = 0;
-   virtual void AddConstantContribution(float* a) {}
+   virtual int setVariables(const double* variables) = 0;
+   virtual int calculateModel(double* a, int adim, vector<double>& kap) = 0;
+   virtual int calculateDerivatives(double* b, int bdim, vector<double>& kap) = 0;
+   virtual void addConstantContribution(float* a) {}
 
-   virtual int SetupIncMatrix(int* inc, int& row, int& col) = 0;
-   virtual int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
-   virtual int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
+   virtual int setupIncMatrix(int* inc, int& row, int& col) = 0;
+   virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
+   virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
 
-   virtual void GetNonlinearOutputParamNames(vector<string>& names);
-   virtual void GetLinearOutputParamNames(vector<string>& names) = 0;
+   virtual void getNonlinearOutputParamNames(vector<string>& names);
+   virtual void getLinearOutputParamNames(vector<string>& names) = 0;
 
-   int GetInitialVariables(double* variables);
-   void SetIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
+   int getInitialVariables(double* variables);
+   void setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
 
    template <typename T>
-   void AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor, double* scale_fact = NULL);
+   void addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor, double* scale_fact = NULL);
 
 signals:
    void parametersUpdated();
 
 protected:
 
-   void ParametersChanged() { emit parametersUpdated(); };
-   virtual int GetNumPotentialChannels() { return 1; }
+   void parametersChanged() { emit parametersUpdated(); };
+   virtual int getNumPotentialChannels() { return 1; }
    bool constrain_nonlinear_parameters = true;
 
    int n_lin_components = 0;
@@ -170,7 +170,7 @@ BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 
 // TODO: move this to InstrumentResponseFunction
 template <typename T>
-void AbstractDecayGroup::AddIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor, double* scale_fact)
+void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor, double* scale_fact)
 {
    shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    auto& t = dp->getTimepoints();

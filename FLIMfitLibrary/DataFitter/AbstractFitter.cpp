@@ -50,20 +50,20 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
    reporter(reporter),
-   lifetime_estimator(model->GetTransformedDataParameters())
+   lifetime_estimator(model->getTransformedDataParameters())
 {
    irf_idx_0 = 0;
    variable_phi = false;
 
-   nl = model->GetNumNonlinearVariables();
-   l = model->GetNumColumns();
+   nl = model->getNumNonlinearVariables();
+   l = model->getNumColumns();
    lmax = l;
-   n    = model->GetTransformedDataParameters()->n_meas;
+   n = model->getTransformedDataParameters()->n_meas;
    
-   pmax  = model->GetNumDerivatives();
+   pmax  = model->getNumDerivatives();
 
-   ndim       = std::max( n, 2*nl+3 );
-   nmax       = n + 16; // pad to prevent false sharing  
+   ndim = std::max( n, 2*nl+3 );
+   nmax = n + 16; // pad to prevent false sharing  
 
    n_param = nl + n_param_extra;
 
@@ -106,7 +106,7 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
 
    Init();
 
-   counts_per_photon = model->GetTransformedDataParameters()->counts_per_photon;
+   counts_per_photon = model->getTransformedDataParameters()->counts_per_photon;
 
 
    if (pmax != p)
@@ -139,7 +139,7 @@ int AbstractFitter::Init()
 
    if ( l > 0 && nl > 0 )
    {
-      model->SetupIncMatrix(inc);
+      model->setupIncMatrix(inc);
 
       if (fixed_param >= 0)
       {
@@ -216,7 +216,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
    // Assign initial guesses to nonlinear variables  
    double tau_mean = lifetime_estimator.EstimateMeanLifetime(avg_y, region_data.data_type);
-   model->GetInitialVariables(alf, tau_mean);
+   model->getInitialVariables(alf, tau_mean);
 
    // Fit!
    int ret = FitFcn(nl, alf, itmax, &niter, &ierr);
@@ -416,7 +416,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    vector<double>& a = a_[omp_thread];
    vector<double>& b = b_[omp_thread];
 
-   models[omp_thread].CalculateModel(a, nmax, b, ndim, kap, params, irf_idx, isel);
+   models[omp_thread].calculateModel(a, nmax, b, ndim, kap, params, irf_idx, isel);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)
@@ -444,8 +444,8 @@ int AbstractFitter::GetFit(int irf_idx, const vector<double>& alf, float* lin_pa
    vector<double>& a = a_[0];
    vector<double>& b = b_[0];
 
-   float* adjust = model->GetConstantAdjustment();
-   model->CalculateModel(a, nmax, b, ndim, kap, params, irf_idx, 1);
+   float* adjust = model->getConstantAdjustment();
+   model->calculateModel(a, nmax, b, ndim, kap, params, irf_idx, 1);
 
    int idx = 0;
    for(int i=0; i<n; i++)

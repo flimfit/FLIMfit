@@ -59,13 +59,13 @@ public:
 
    DecayModel();
    
-   void AddDecayGroup(shared_ptr<AbstractDecayGroup> group);
-   shared_ptr<AbstractDecayGroup> GetGroup(int idx) { return decay_groups[idx]; };
-   int GetNumGroups() { return static_cast<int>(decay_groups.size()); }
+   void addDecayGroup(shared_ptr<AbstractDecayGroup> group);
+   shared_ptr<AbstractDecayGroup> getGroup(int idx) { return decay_groups[idx]; };
+   int getNumGroups() { return static_cast<int>(decay_groups.size()); }
 
-   void RemoveDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
+   void removeDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
 
-   void RemoveDecayGroup(shared_ptr<AbstractDecayGroup> group) 
+   void removeDecayGroup(shared_ptr<AbstractDecayGroup> group) 
    { 
       auto iter = std::find(decay_groups.begin(), decay_groups.end(), group); 
       if (iter != decay_groups.end())
@@ -73,38 +73,38 @@ public:
    }
 
 
-   shared_ptr<TransformedDataParameters> GetTransformedDataParameters() { return dp; }
-   void SetTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_);
+   shared_ptr<TransformedDataParameters> getTransformedDataParameters() { return dp; }
+   void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_);
 
-   void Init();
+   void init();
 
-   void   SetupIncMatrix(int* inc);
-   int    CalculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel);
-   void   GetWeights(float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx);
-   float* GetConstantAdjustment() { return adjust_buf.data(); };
+   void   setupIncMatrix(int* inc);
+   int    calculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel);
+   void   getWeights(float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx);
+   float* getConstantAdjustment() { return adjust_buf.data(); };
 
-   void GetInitialVariables(vector<double>& variables, double mean_arrival_time);
-   void GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params, int& n_lin_output_params);
-   int GetNonlinearOutputs(float* nonlin_variables, float* outputs);
-   int GetLinearOutputs(float* lin_variables, float* outputs);
+   void getInitialVariables(vector<double>& variables, double mean_arrival_time);
+   void getOutputParamNames(vector<string>& param_names, int& n_nl_output_params, int& n_lin_output_params);
+   int getNonlinearOutputs(float* nonlin_variables, float* outputs);
+   int getLinearOutputs(float* lin_variables, float* outputs);
 
-   int GetNumNonlinearVariables();
-   int GetNumColumns();
-   int GetNumDerivatives();
+   int getNumNonlinearVariables();
+   int getNumColumns();
+   int getNumDerivatives();
 
-   void DecayGroupUpdated();
+   void decayGroupUpdated();
 
 protected:
 
-   void ValidateDerivatives();
+   void validateDerivatives();
 
-   double GetCurrentReferenceLifetime(const double* param_values, int& idx);
-   double GetCurrentT0(const double* param_values, int& idx);
+   double getCurrentReferenceLifetime(const double* param_values, int& idx);
+   double getCurrentT0(const double* param_values, int& idx);
 
-   int AddReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
-   int AddT0Derivatives(double* b, int bdim, vector<double>& kap);
+   int addReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
+   int addT0Derivatives(double* b, int bdim, vector<double>& kap);
 
-   void SetupAdjust();
+   void setupAdjust();
    
    shared_ptr<TransformedDataParameters> dp;
 
@@ -144,38 +144,38 @@ class QDecayModel : public QObject, public DecayModel
 public:
 
 
-   void AddDecayGroup(shared_ptr<AbstractDecayGroup> group) 
+   void addDecayGroup(shared_ptr<AbstractDecayGroup> group) 
    {
       connect(group.get(), &AbstractDecayGroup::parametersUpdated, this, &QDecayModel::parametersChanged);
-      DecayModel::AddDecayGroup(group);
-      emit GroupsUpdated();
+      DecayModel::addDecayGroup(group);
+      emit groupsUpdated();
    };
    
-   shared_ptr<AbstractDecayGroup> GetGroup(int idx) 
+   shared_ptr<AbstractDecayGroup> getGroup(int idx) 
    {
       return decay_groups[idx];
    };
    
-   void RemoveDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
+   void removeDecayGroup(int idx) { decay_groups.erase(decay_groups.begin() + idx); }
 
-   void RemoveDecayGroup(shared_ptr<AbstractDecayGroup> group)
+   void removeDecayGroup(shared_ptr<AbstractDecayGroup> group)
    {
       auto iter = std::find(decay_groups.begin(), decay_groups.end(), group);
       if (iter != decay_groups.end())
       {
          decay_groups.erase(iter);
-         emit GroupsUpdated();
+         emit groupsUpdated();
       }
    }
    
    void parametersChanged()
    {
-      emit GroupsUpdated();
+      emit groupsUpdated();
    }
 
 signals:
 
-   void GroupsUpdated();
+   void groupsUpdated();
 
 private:
    template<class Archive>

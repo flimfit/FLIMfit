@@ -10,10 +10,10 @@ ParameterListItem::ParameterListItem(shared_ptr<QDecayModel> model)
    m_type = Root;
    m_parent = nullptr;
 
-   int n_groups = model->GetNumGroups();
+   int n_groups = model->getNumGroups();
 
    for (int i = 0; i < n_groups; i++)
-      m_children.append(new ParameterListItem(model->GetGroup(i), i, this));
+      m_children.append(new ParameterListItem(model->getGroup(i), i, this));
 }
 
 ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, int index, ParameterListItem* parent)
@@ -46,7 +46,7 @@ void ParameterListItem::refresh()
    {
       qDeleteAll(m_children);
       m_children.clear();
-      auto params = m_decay_group->GetParameters();
+      auto params = m_decay_group->getParameters();
       for (auto& p : params)
          m_children.append(new ParameterListItem(p, this));
    }
@@ -294,7 +294,7 @@ void ParameterListModel::removeGroup(const QModelIndex index)
       int row = index.row();
 
       beginRemoveRows(index.parent(), row, row);
-      decay_model->RemoveDecayGroup(item->decayGroup());
+      decay_model->removeDecayGroup(item->decayGroup());
       root_item->removeChild(row);
       endRemoveRows();
    }
@@ -313,7 +313,7 @@ void ParameterListModel::addGroup(int group_type)
 
    int row = root_item->childCount();
    beginInsertRows(createIndex(0, 0, root_item), row, row+1);
-   decay_model->AddDecayGroup(new_group);
+   decay_model->addDecayGroup(new_group);
    root_item->addChild(new ParameterListItem(new_group, row, root_item));
    endInsertRows();
 }

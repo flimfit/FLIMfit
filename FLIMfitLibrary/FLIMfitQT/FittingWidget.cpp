@@ -61,15 +61,15 @@ void FittingWidget::setDefaultModel()
    transform = std::make_shared<QDataTransformationSettings>();
 
    auto dp = std::make_shared<TransformedDataParameters>(images->getAcquisitionParameters(), *transform.get());
-   decay_model->SetTransformedDataParameters(dp);
+   decay_model->setTransformedDataParameters(dp);
    
    
    auto fret_group = std::make_shared<FretDecayGroup>();
-   fret_group->SetIncludeAcceptor(false);
+   fret_group->setIncludeAcceptor(false);
    std::vector<double> ch_donor = { 0.12, 0.64, 0.11, 0.60 };
-   fret_group->SetChannelFactors(0, ch_donor);
+   fret_group->setChannelFactors(0, ch_donor);
    
-   decay_model->AddDecayGroup(fret_group);
+   decay_model->addDecayGroup(fret_group);
 }
 
 void FittingWidget::importIRF()

@@ -51,7 +51,7 @@ BackgroundLightDecayGroup::BackgroundLightDecayGroup() :
    parameters.push_back(tvb_param);
 }
 
-int BackgroundLightDecayGroup::SetVariables(const double* param_values)
+int BackgroundLightDecayGroup::setVariables(const double* param_values)
 {
    int idx = 0;
 
@@ -67,7 +67,7 @@ int BackgroundLightDecayGroup::SetVariables(const double* param_values)
    return idx;
 }
 
-int BackgroundLightDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
+int BackgroundLightDecayGroup::setupIncMatrix(int* inc, int& inc_row, int& inc_col)
 {
    for (int i = 0; i < 3; i++)
    {
@@ -89,7 +89,7 @@ int BackgroundLightDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_c
    return 0;
 }
 
-int BackgroundLightDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int BackgroundLightDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
    int output_idx = 0;
 
@@ -100,7 +100,7 @@ int BackgroundLightDecayGroup::GetNonlinearOutputs(float* nonlin_variables, floa
    return output_idx;
 }
 
-int BackgroundLightDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int BackgroundLightDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
 {
    int output_idx = 0;
 
@@ -112,37 +112,37 @@ int BackgroundLightDecayGroup::GetLinearOutputs(float* lin_variables, float* out
 }
 
 
-void BackgroundLightDecayGroup::GetLinearOutputParamNames(vector<string>& names)
+void BackgroundLightDecayGroup::getLinearOutputParamNames(vector<string>& names)
 {
    for (int i = 0; i < 3; i++)
       if (parameters[i]->IsFittedGlobally())
          names.push_back(names[i]);
 }
 
-int BackgroundLightDecayGroup::CalculateModel(double* a, int adim, vector<double>& kap)
+int BackgroundLightDecayGroup::calculateModel(double* a, int adim, vector<double>& kap)
 {
    int col = 0;
    
-   col += AddOffsetColumn(a + col*adim, adim, kap);
-   col += AddScatterColumn(a + col*adim, adim, kap);
-   col += AddTVBColumn(a + col*adim, adim, kap);
+   col += addOffsetColumn(a + col*adim, adim, kap);
+   col += addScatterColumn(a + col*adim, adim, kap);
+   col += addTVBColumn(a + col*adim, adim, kap);
    
    return col;
 }
 
-int BackgroundLightDecayGroup::CalculateDerivatives(double* b, int bdim, vector<double>& kap)
+int BackgroundLightDecayGroup::calculateDerivatives(double* b, int bdim, vector<double>& kap)
 {
    int col = 0;
    
-   col += AddOffsetDerivatives(b + col*bdim, bdim, kap);
-   col += AddScatterDerivatives(b + col*bdim, bdim, kap);
-   col += AddTVBDerivatives(b + col*bdim, bdim, kap);
+   col += addOffsetDerivatives(b + col*bdim, bdim, kap);
+   col += addScatterDerivatives(b + col*bdim, bdim, kap);
+   col += addTVBDerivatives(b + col*bdim, bdim, kap);
 
    return col;
 }
 
 
-void BackgroundLightDecayGroup::AddConstantContribution(float* a)
+void BackgroundLightDecayGroup::addConstantContribution(float* a)
 {
    float offset_adj = parameters[0]->IsFixed() ? (float) parameters[0]->initial_value : 0.0f;
    float scatter_adj = parameters[1]->IsFixed() ? (float) parameters[0]->initial_value : 0.0f;
@@ -150,7 +150,7 @@ void BackgroundLightDecayGroup::AddConstantContribution(float* a)
    
    double scale_fact[2] = { 1, 0 };
 
-   AddIRF(irf_buf.data(), 0, 0, a, channel_factors, scale_fact); // TODO : irf_shift?
+   addIRF(irf_buf.data(), 0, 0, a, channel_factors, scale_fact); // TODO : irf_shift?
    
    for (int i = 0; i < dp->n_meas; i++)
       a[i] = a[i] * scatter_adj + offset_adj;
@@ -165,7 +165,7 @@ void BackgroundLightDecayGroup::AddConstantContribution(float* a)
 /*
 Add a constant offset component to the matrix
 */
-int BackgroundLightDecayGroup::AddOffsetColumn(double* a, int adim, vector<double>& kap)
+int BackgroundLightDecayGroup::addOffsetColumn(double* a, int adim, vector<double>& kap)
 {
    // set constant phi value for offset
    if (parameters[0]->fitting_type == FittedLocally)
@@ -183,7 +183,7 @@ int BackgroundLightDecayGroup::AddOffsetColumn(double* a, int adim, vector<doubl
 Add a Scatter (IRF) component to the matrix
 Use the current IRF
 */
-int BackgroundLightDecayGroup::AddScatterColumn(double* a, int adim, vector<double>& kap)
+int BackgroundLightDecayGroup::addScatterColumn(double* a, int adim, vector<double>& kap)
 {
    // set constant phi value for scatterer
    if (parameters[1]->fitting_type == FittedLocally)
@@ -191,7 +191,7 @@ int BackgroundLightDecayGroup::AddScatterColumn(double* a, int adim, vector<doub
       memset(a, 0, adim*sizeof(*a));
       
       double scale_factor[2] = { 1.0, 0.0 };
-      AddIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors, scale_factor);
+      addIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors, scale_factor);
       
       return 1;
    }
@@ -202,7 +202,7 @@ int BackgroundLightDecayGroup::AddScatterColumn(double* a, int adim, vector<doub
 /*
 Add a TVB component to the matrix
 */
-int BackgroundLightDecayGroup::AddTVBColumn(double* a, int adim, vector<double>& kap)
+int BackgroundLightDecayGroup::addTVBColumn(double* a, int adim, vector<double>& kap)
 {
    if (parameters[1]->fitting_type == FittedLocally)
    {
@@ -215,7 +215,7 @@ int BackgroundLightDecayGroup::AddTVBColumn(double* a, int adim, vector<double>&
    return 0;
 }
 
-int BackgroundLightDecayGroup::AddGlobalBackgroundLightColumn(double* a, int adim, vector<double>& kap)
+int BackgroundLightDecayGroup::addGlobalBackgroundLightColumn(double* a, int adim, vector<double>& kap)
 {
    // Set L+1 phi value (without associated beta), to include global offset/scatter
 
@@ -225,7 +225,7 @@ int BackgroundLightDecayGroup::AddGlobalBackgroundLightColumn(double* a, int adi
    if (parameters[1]->IsFittedGlobally())
    {
       double scale_factor[2] = { 1.0, 0.0 };
-      AddIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors, scale_factor);
+      addIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors, scale_factor);
       for (int i = 0; i<dp->n_meas; i++)
          a[i] *= scatter;
    }
@@ -248,7 +248,7 @@ int BackgroundLightDecayGroup::AddGlobalBackgroundLightColumn(double* a, int adi
 }
 
 
-int BackgroundLightDecayGroup::AddOffsetDerivatives(double* b, int bdim, vector<double>& kap)
+int BackgroundLightDecayGroup::addOffsetDerivatives(double* b, int bdim, vector<double>& kap)
 {
    // Set derivatives for offset 
    if (parameters[0]->IsFittedGlobally())
@@ -262,7 +262,7 @@ int BackgroundLightDecayGroup::AddOffsetDerivatives(double* b, int bdim, vector<
    return 0;
 }
 
-int BackgroundLightDecayGroup::AddScatterDerivatives(double* b, int bdim, vector<double>& kap)
+int BackgroundLightDecayGroup::addScatterDerivatives(double* b, int bdim, vector<double>& kap)
 {
    // Set derivatives for scatter 
    if (parameters[1]->IsFittedGlobally())
@@ -270,7 +270,7 @@ int BackgroundLightDecayGroup::AddScatterDerivatives(double* b, int bdim, vector
       memset(b, 0, sizeof(*b)*bdim);
 
       double scale_factor[2] = { 1.0, 0.0 };
-      AddIRF(irf_buf.data(), irf_idx, t0_shift, b, channel_factors, scale_factor);
+      addIRF(irf_buf.data(), irf_idx, t0_shift, b, channel_factors, scale_factor);
 
       return 1;
    }
@@ -278,7 +278,7 @@ int BackgroundLightDecayGroup::AddScatterDerivatives(double* b, int bdim, vector
    return 0;
 }
 
-int BackgroundLightDecayGroup::AddTVBDerivatives(double b[], int bdim, vector<double>& kap)
+int BackgroundLightDecayGroup::addTVBDerivatives(double b[], int bdim, vector<double>& kap)
 {
    // Set derivatives for tvb 
    if (parameters[2]->IsFittedGlobally())

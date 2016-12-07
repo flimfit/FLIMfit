@@ -68,7 +68,7 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
    //else if (group_type == "Anisotropy Decay")
    //   group = std::make_shared<AnisotropyDecayGroup>();
 
-   model->AddDecayGroup(group);
+   model->addDecayGroup(group);
 }
 
 void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -76,7 +76,7 @@ void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], 
    AssertInputCondition(nrhs >= 3);
 
    int group_idx = mxGetScalar(prhs[2]);
-   model->RemoveDecayGroup(group_idx);
+   model->removeDecayGroup(group_idx);
 }
 
 void getParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -86,8 +86,8 @@ void getParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
 
    int group_idx = mxGetScalar(prhs[2]);
 
-   auto group = model->GetGroup(group_idx);
-   auto& parameters = group->GetParameters();
+   auto group = model->getGroup(group_idx);
+   auto& parameters = group->getParameters();
 
    const char* field_names[4] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes"};
    plhs[0] = mxCreateStructMatrix(1, parameters.size(), 4, field_names);
@@ -114,8 +114,8 @@ void setParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
 
    int group_idx = mxGetScalar(prhs[2]);
 
-   auto group = model->GetGroup(group_idx);
-   auto& parameters = group->GetParameters();
+   auto group = model->getGroup(group_idx);
+   auto& parameters = group->getParameters();
 
    const char* field_names[4] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes" };
    plhs[0] = mxCreateStructMatrix(1, parameters.size(), 4, field_names);

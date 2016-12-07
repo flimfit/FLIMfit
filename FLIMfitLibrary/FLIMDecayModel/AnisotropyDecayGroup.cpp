@@ -60,9 +60,9 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    //   ExponentialPrecomputationBuffer(acq))); 
 }
 
-int AnisotropyDecayGroup::SetVariables(const double* param_value)
+int AnisotropyDecayGroup::setVariables(const double* param_value)
 {
-   int idx = MultiExponentialDecayGroup::SetVariables(param_value);
+   int idx = MultiExponentialDecayGroup::setVariables(param_value);
 
    theta.resize(n_anisotropy_populations);
 
@@ -86,7 +86,7 @@ int AnisotropyDecayGroup::SetVariables(const double* param_value)
 Set up matrix indicating which parmeters affect which column.
 Each row of the matrix corresponds to a variable
 */
-int AnisotropyDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
+int AnisotropyDecayGroup::setupIncMatrix(int* inc, int& inc_row, int& inc_col)
 {
    int n_anisotropy_group = n_anisotropy_populations + include_r_inf + 1;
 
@@ -128,9 +128,9 @@ int AnisotropyDecayGroup::SetupIncMatrix(int* inc, int& inc_row, int& inc_col)
    return 0;
 }
 
-int AnisotropyDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int AnisotropyDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = MultiExponentialDecayGroup::GetNonlinearOutputs(nonlin_variables, output, nonlin_idx);
+   int output_idx = MultiExponentialDecayGroup::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_anisotropy_populations; i++)
       output[output_idx++] = theta_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);
@@ -138,7 +138,7 @@ int AnisotropyDecayGroup::GetNonlinearOutputs(float* nonlin_variables, float* ou
    return output_idx;
 }
 
-int AnisotropyDecayGroup::GetLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int AnisotropyDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
 {
    int output_idx = 0;
    
@@ -163,7 +163,7 @@ int AnisotropyDecayGroup::GetLinearOutputs(float* lin_variables, float* output, 
    return output_idx;
 }
 
-void AnisotropyDecayGroup::GetLinearOutputParamNames(vector<string>& names)
+void AnisotropyDecayGroup::getLinearOutputParamNames(vector<string>& names)
 {
    names.push_back("I_0");
    names.push_back("r_0");
@@ -179,37 +179,37 @@ void AnisotropyDecayGroup::GetLinearOutputParamNames(vector<string>& names)
 }
 
 
-int AnisotropyDecayGroup::CalculateModel(double* a, int adim, vector<double>& kap)
+int AnisotropyDecayGroup::calculateModel(double* a, int adim, vector<double>& kap)
 {
    int col = 0;
 
-   col += AddDecayGroup(buffer, a, adim, kap);
+   col += addDecayGroup(buffer, a, adim, kap);
 
    for (int i = 0; i < anisotropy_buffer.size(); i++)
-      col += AddDecayGroup(anisotropy_buffer[i], a, adim, kap);
+      col += addDecayGroup(anisotropy_buffer[i], a, adim, kap);
    // TODO: channel factors need to be sorted here!!!
    return col;
 }
 
 
-int AnisotropyDecayGroup::CalculateDerivatives(double* b, int bdim, vector<double>& kap)
+int AnisotropyDecayGroup::calculateDerivatives(double* b, int bdim, vector<double>& kap)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
    {
-      col += AddLifetimeDerivative(i, b + col*bdim, bdim, kap);
-      col += AddLifetimeDerivativesForAnisotropy(i, b + col*bdim, bdim, kap);
+      col += addLifetimeDerivative(i, b + col*bdim, bdim, kap);
+      col += addLifetimeDerivativesForAnisotropy(i, b + col*bdim, bdim, kap);
    }
 
-   col += AddContributionDerivatives(b + col*bdim, bdim, kap);
-   col += AddRotationalCorrelationTimeDerivatives(b + col*bdim, bdim, kap);
+   col += addContributionDerivatives(b + col*bdim, bdim, kap);
+   col += addRotationalCorrelationTimeDerivatives(b + col*bdim, bdim, kap);
 
    return col;
 }
 
 
 
-int AnisotropyDecayGroup::AddLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap)
+int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap)
 {
    if (tau_parameters[idx]->IsFittedGlobally())
    {
@@ -230,7 +230,7 @@ int AnisotropyDecayGroup::AddLifetimeDerivativesForAnisotropy(int idx, double* b
    return 0;
 }
 
-int AnisotropyDecayGroup::AddRotationalCorrelationTimeDerivatives(double* b, int bdim, vector<double>& kap)
+int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double* b, int bdim, vector<double>& kap)
 {
    int col = 0;
 
@@ -254,7 +254,7 @@ int AnisotropyDecayGroup::AddRotationalCorrelationTimeDerivatives(double* b, int
 }
 
 // TODO: call this
-void AnisotropyDecayGroup::SetupChannelFactors()
+void AnisotropyDecayGroup::setupChannelFactors()
 {
    channel_factors.push_back({ 1.0 / 3.0, 1.0 / 3.0 });
 

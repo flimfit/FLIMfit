@@ -11,43 +11,43 @@ public:
 
    FretDecayGroup(int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = false);
    
-   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
-   Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE SetNumFretPopulations USER true);
-   Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE SetIncludeDonorOnly USER true);
-   Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE SetIncludeAcceptor USER true);
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
+   Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE setNumFretPopulations USER true);
+   Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE setIncludeDonorOnly USER true);
+   Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE setIncludeAcceptor USER true);
    
-   void SetNumFretPopulations(int n_fret_populations_);
-   void SetIncludeDonorOnly(bool include_donor_only_);
-   void SetIncludeAcceptor(bool include_acceptor_);
+   void setNumFretPopulations(int n_fret_populations_);
+   void setIncludeDonorOnly(bool include_donor_only_);
+   void setIncludeAcceptor(bool include_acceptor_);
 
-   const vector<double>& GetChannelFactors(int index);
-   void SetChannelFactors(int index, const vector<double>& channel_factors);
+   const vector<double>& getChannelFactors(int index);
+   void setChannelFactors(int index, const vector<double>& channel_factors);
 
 
-   int SetVariables(const double* variables);
-   int CalculateModel(double* a, int adim, vector<double>& kap);
-   int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
+   int setVariables(const double* variables);
+   int calculateModel(double* a, int adim, vector<double>& kap);
+   int calculateDerivatives(double* b, int bdim, vector<double>& kap);
 
-   int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
-   int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
 
-   int SetupIncMatrix(int* inc, int& row, int& col);
+   int setupIncMatrix(int* inc, int& row, int& col);
 
-   void GetLinearOutputParamNames(vector<string>& names);
+   void getLinearOutputParamNames(vector<string>& names);
 
 protected:
 
-   void SetupParameters();
-   void Init();
+   void setupParameters();
+   void init();
 
-   int AddLifetimeDerivativesForFret(int idx, double* b, int bdim, vector<double>& kap);
-   int AddFretEfficiencyDerivatives(double* b, int bdim, vector<double>& kap);
-   int AddAcceptorIntensityDerivatives(double* b, int bdim, vector<double>& kap);
-   int AddAcceptorLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
-   int AddDirectAcceptorDerivatives(double* b, int bdim, vector<double>& kap);
+   int addLifetimeDerivativesForFret(int idx, double* b, int bdim, vector<double>& kap);
+   int addFretEfficiencyDerivatives(double* b, int bdim, vector<double>& kap);
+   int addAcceptorIntensityDerivatives(double* b, int bdim, vector<double>& kap);
+   int addAcceptorLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
+   int addDirectAcceptorDerivatives(double* b, int bdim, vector<double>& kap);
 
-   void AddAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap);
-   void AddAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
+   void addAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap);
+   void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
 
    vector<shared_ptr<FittingParameter>> tauT_parameters;
    shared_ptr<FittingParameter> A0_parameter;
@@ -73,7 +73,7 @@ protected:
    vector<double> direct_acceptor_channel_factors;
 
 protected:
-   int GetNumPotentialChannels() { return 3; }
+   int getNumPotentialChannels() { return 3; }
    
 private:
    template<class Archive>

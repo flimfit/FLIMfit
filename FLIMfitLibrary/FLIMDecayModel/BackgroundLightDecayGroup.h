@@ -10,31 +10,31 @@ public:
 
    BackgroundLightDecayGroup();
 
-   int SetVariables(const double* variables);
-   int CalculateModel(double* a, int adim, vector<double>& kap);
-   int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
-   void AddConstantContribution(float* a);
+   int setVariables(const double* variables);
+   int calculateModel(double* a, int adim, vector<double>& kap);
+   int calculateDerivatives(double* b, int bdim, vector<double>& kap);
+   void addConstantContribution(float* a);
 
-   int SetupIncMatrix(int* inc, int& row, int& col);
-   int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
-   int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   int setupIncMatrix(int* inc, int& row, int& col);
+   int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
 
-   void GetLinearOutputParamNames(vector<string>& names);
-   int SetParameters(double* parameters);
+   void getLinearOutputParamNames(vector<string>& names);
+   int setParameters(double* parameters);
 
 protected:
 
    const vector<string> names;
-   void SetupParameters();
+   void setupParameters();
 
-   int AddOffsetColumn(double* a, int adim, vector<double>& kap);
-   int AddScatterColumn(double* a, int adim, vector<double>& kap);
-   int AddTVBColumn(double* a, int adim, vector<double>& kap);
-   int AddGlobalBackgroundLightColumn(double* a, int adim, vector<double>& kap);
+   int addOffsetColumn(double* a, int adim, vector<double>& kap);
+   int addScatterColumn(double* a, int adim, vector<double>& kap);
+   int addTVBColumn(double* a, int adim, vector<double>& kap);
+   int addGlobalBackgroundLightColumn(double* a, int adim, vector<double>& kap);
 
-   int AddOffsetDerivatives(double* b, int bdim, vector<double>& kap);
-   int AddScatterDerivatives(double* b, int bdim, vector<double>& kap);
-   int AddTVBDerivatives(double* b, int bdim, vector<double>& kap);
+   int addOffsetDerivatives(double* b, int bdim, vector<double>& kap);
+   int addScatterDerivatives(double* b, int bdim, vector<double>& kap);
+   int addTVBDerivatives(double* b, int bdim, vector<double>& kap);
 
    vector<double> channel_factors;
 

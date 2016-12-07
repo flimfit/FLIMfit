@@ -169,10 +169,10 @@ int main()
    auto data = std::make_shared<FLIMData>(image, transform);
    
    auto model = std::make_shared<DecayModel>();
-   model->SetTransformedDataParameters(data->GetTransformedDataParameters());
+   model->setTransformedDataParameters(data->GetTransformedDataParameters());
    
    auto group = std::make_shared<MultiExponentialDecayGroup>(2);
-   model->AddDecayGroup(group);
+   model->addDecayGroup(group);
 
 
    FitController controller;   

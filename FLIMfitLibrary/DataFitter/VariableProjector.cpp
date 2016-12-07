@@ -232,7 +232,7 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
 
    if (false && weighting == AVERAGE_WEIGHTING && !getting_errs)
    {
-      float* adjust = model->GetConstantAdjustment();
+      float* adjust = model->getConstantAdjustment();
       for(int j=0; j<s; j++)
          for (int i=0; i < n; ++i)
                y[i + j * n] = (y[i + j * n]-adjust[i]) * (float) w[i];
@@ -496,7 +496,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
       return 0;
    }
       
-   float* adjust = model->GetConstantAdjustment();
+   float* adjust = model->getConstantAdjustment();
    if (!variable_phi)
       GetModel(alf, irf_idx[0], isel, 0);
    if (!iterative_weighting)

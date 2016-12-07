@@ -48,8 +48,8 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    model(model), data(data), calculate_errors(calculate_errors)
 {
    n_px = data->n_masked_px;
-   lmax = model->GetNumColumns();
-   nl   = model->GetNumNonlinearVariables();
+   lmax = model->getNumColumns();
+   nl   = model->getNumNonlinearVariables();
    n_meas = data->getNumMeasurements();
    n_im = data->n_im_used;
    n_regions = data->getNumOutputRegionsTotal();
@@ -180,7 +180,7 @@ void FitResults::SetFitStatus(int image, int region, int code)
 
 void FitResults::DetermineParamNames()
 {
-   model->GetOutputParamNames(param_names, n_nl_output_params, n_lin_output_params);
+   model->getOutputParamNames(param_names, n_nl_output_params, n_lin_output_params);
    data->getAuxParamNames(param_names);
    param_names.push_back("chi2");
 
@@ -262,7 +262,7 @@ void FitResults::ComputeRegionStats(float confidence_factor)
                float* alf_group = alf.data() + start * nl;
              
                for (int i = 0; i < s_local; i++)
-                  output_idx += model->GetNonlinearOutputs(alf_group + i*nl, param_buf.data() + output_idx);
+                  output_idx += model->getNonlinearOutputs(alf_group + i*nl, param_buf.data() + output_idx);
 
                stats_calculator.CalculateRegionStats(n_nl_output_params, s_local, param_buf.data(), intensity, stats, idx);
             }
@@ -270,14 +270,14 @@ void FitResults::ComputeRegionStats(float confidence_factor)
             {
                float* alf_group = alf.data() + nl * r_idx;
 
-               model->GetNonlinearOutputs(alf_group, param_buf.data());
+               model->getNonlinearOutputs(alf_group, param_buf.data());
 
                for (int i = 0; i<n_nl_output_params; i++)
                   stats.SetNextParam(idx, param_buf[i]);
             }
             
             for(int i=0; i<s_local; i++)
-               model->GetLinearOutputs(lin_params.data() + (start+i)*lmax, param_buf.data() + i*n_lin_output_params);
+               model->getLinearOutputs(lin_params.data() + (start+i)*lmax, param_buf.data() + i*n_lin_output_params);
             
             stats_calculator.CalculateRegionStats(n_lin_output_params, s_local, param_buf.data(), intensity, stats, idx);
             stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
@@ -505,7 +505,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
                for (int i = 0; i<n_px; i++)
                   if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
                   {
-                     model->GetNonlinearOutputs(param_data + j*nl, buffer.data());
+                     model->getNonlinearOutputs(param_data + j*nl, buffer.data());
                      image_data[i] = buffer[r_param];
                      j++;
                   }
@@ -514,7 +514,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
             else
             {
                param_data = alf.data() + r_idx * nl;
-               model->GetNonlinearOutputs(param_data, buffer.data());
+               model->getNonlinearOutputs(param_data, buffer.data());
                float p = buffer[r_param];
 
                for (int i = 0; i<n_px; i++)

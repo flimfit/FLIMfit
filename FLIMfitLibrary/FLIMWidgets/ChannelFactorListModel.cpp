@@ -9,10 +9,10 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QDecayModel> model)
    m_type = Root;
    m_parent = nullptr;
 
-   int n_groups = model->GetNumGroups();
+   int n_groups = model->getNumGroups();
 
    for (int i = 0; i < n_groups; i++)
-      m_children.append(new ChannelFactorListItem(model->GetGroup(i), this));
+      m_children.append(new ChannelFactorListItem(model->getGroup(i), this));
 }
 
 ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> group, ChannelFactorListItem* parent)
@@ -22,7 +22,7 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> grou
    m_name = group->objectName();
    m_decay_group = group;
 
-   const vector<std::string>& channel_factor_names = group->GetChannelFactorNames();
+   const vector<std::string>& channel_factor_names = group->getChannelFactorNames();
 
    if (channel_factor_names.size() > 0)
    {
@@ -43,7 +43,7 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> grou
 {
    m_type = Channel;
    m_parent = parent;
-   m_name = QString::fromStdString(group->GetChannelFactorNames()[index]);
+   m_name = QString::fromStdString(group->getChannelFactorNames()[index]);
    m_decay_group = group;
    m_group_index = index;
 }
@@ -65,7 +65,7 @@ ChannelFactorListModel::ChannelFactorListModel(shared_ptr<QDecayModel> decay_mod
    QAbstractItemModel(parent),
    decay_model(decay_model)
 {
-   connect(decay_model.get(), &QDecayModel::GroupsUpdated, this, &ChannelFactorListModel::parseDecayModel, Qt::QueuedConnection);
+   connect(decay_model.get(), &QDecayModel::groupsUpdated, this, &ChannelFactorListModel::parseDecayModel, Qt::QueuedConnection);
    root_item = new ChannelFactorListItem(decay_model);
 }
 
@@ -148,7 +148,7 @@ QVariant ChannelFactorListModel::data(const QModelIndex & index, int role) const
    if (item->decayGroupIndex() >= 0)
    {
       auto decay_group = item->decayGroup();
-      auto& channel_factors = decay_group->GetChannelFactors(item->decayGroupIndex());
+      auto& channel_factors = decay_group->getChannelFactors(item->decayGroupIndex());
       if (index.column() <= channel_factors.size())
          return channel_factors[index.column() - 1];
    }
@@ -169,9 +169,9 @@ bool ChannelFactorListModel::setData(const QModelIndex & index, const QVariant &
    {
       auto decay_group = item->decayGroup();
       int i = item->decayGroupIndex();
-      vector<double> channel_factors = decay_group->GetChannelFactors(i);
+      vector<double> channel_factors = decay_group->getChannelFactors(i);
       channel_factors[index.column() - 1] = value.toDouble();
-      decay_group->SetChannelFactors(i, channel_factors);
+      decay_group->setChannelFactors(i, channel_factors);
       changed = true;
    }
 
@@ -198,7 +198,7 @@ int ChannelFactorListModel::rowCount(const QModelIndex& parent) const
 
 int ChannelFactorListModel::columnCount(const QModelIndex & parent) const
 {
-   return 1 + decay_model->GetTransformedDataParameters()->n_chan;
+   return 1 + decay_model->getTransformedDataParameters()->n_chan;
 }
 
 ChannelFactorListItem* ChannelFactorListModel::GetItem(const QModelIndex& parent) const
@@ -219,7 +219,7 @@ void ChannelFactorListModel::removeGroup(const QModelIndex index)
       int row = index.row();
 
       beginRemoveRows(index.parent(), row, row);
-      decay_model->RemoveDecayGroup(item->decayGroup());
+      decay_model->removeDecayGroup(item->decayGroup());
       root_item->removeChild(row);
       endRemoveRows();
    }
@@ -238,7 +238,7 @@ void ChannelFactorListModel::addGroup(int group_type)
 
    int row = root_item->childCount();
    beginInsertRows(createIndex(0, 0, root_item), row, row+1);
-   decay_model->AddDecayGroup(new_group);
+   decay_model->addDecayGroup(new_group);
    root_item->addChild(new ChannelFactorListItem(new_group, row, root_item));
    endInsertRows();
 }

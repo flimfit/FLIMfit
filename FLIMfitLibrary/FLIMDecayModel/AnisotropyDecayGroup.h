@@ -10,30 +10,30 @@ public:
    
    AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
    
-   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
-   Q_PROPERTY(int n_anisotropy_populations MEMBER n_anisotropy_populations WRITE SetNumAnisotropyPopulations USER true);
-   Q_PROPERTY(bool include_r_inf MEMBER include_r_inf WRITE SetIncludeRInf USER true);
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
+   Q_PROPERTY(int n_anisotropy_populations MEMBER n_anisotropy_populations WRITE setNumAnisotropyPopulations USER true);
+   Q_PROPERTY(bool include_r_inf MEMBER include_r_inf WRITE setIncludeRInf USER true);
 
-   void SetNumAnisotropyPopulations(int n_anisotropy_populations) {}; // TODO
-   void SetIncludeRInf(bool include_r_inf) {};
+   void setNumAnisotropyPopulations(int n_anisotropy_populations) {}; // TODO
+   void setIncludeRInf(bool include_r_inf) {};
 
-   int SetVariables(const double* variables);
-   int CalculateModel(double* a, int adim, vector<double>& kap);
-   int CalculateDerivatives(double* b, int bdim, vector<double>& kap);
-   int GetNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
-   int GetLinearOutputs(float* lin_variables, float* output, int& lin_idx);
-   int SetupIncMatrix(int* inc, int& row, int& col);
+   int setVariables(const double* variables);
+   int calculateModel(double* a, int adim, vector<double>& kap);
+   int calculateDerivatives(double* b, int bdim, vector<double>& kap);
+   int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
+   int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   int setupIncMatrix(int* inc, int& row, int& col);
 
-   void GetLinearOutputParamNames(vector<string>& names);
+   void getLinearOutputParamNames(vector<string>& names);
 
 protected:
 
-   void SetupParameters();
+   void setupParameters();
    
-   int AddLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap);
-   int AddRotationalCorrelationTimeDerivatives(double* b, int bdim, vector<double>& kap);
+   int addLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap);
+   int addRotationalCorrelationTimeDerivatives(double* b, int bdim, vector<double>& kap);
 
-   void SetupChannelFactors();
+   void setupChannelFactors();
 
    vector<shared_ptr<FittingParameter>> theta_parameters;
 

@@ -1,4 +1,4 @@
-function err = fit(obj, data_series, fit_params, roi_mask, selected)
+ function err = fit(obj, data_series, fit_params, roi_mask, selected)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.

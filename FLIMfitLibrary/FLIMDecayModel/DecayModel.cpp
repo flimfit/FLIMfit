@@ -43,16 +43,16 @@ DecayModel::DecayModel() :
 
 }
 
-void DecayModel::SetTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
+void DecayModel::setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
 {
    dp = dp_;
    photons_per_count = static_cast<float>(1.0 / dp->counts_per_photon);
 
    for (auto g : decay_groups)
-      g->SetTransformedDataParameters(dp);
+      g->setTransformedDataParameters(dp);
 }
 
-void DecayModel::Init()
+void DecayModel::init()
 {
    if (dp->irf == nullptr)
       throw std::runtime_error("No IRF loaded");
@@ -61,9 +61,9 @@ void DecayModel::Init()
       throw std::runtime_error("IRF must have the same number of channels as the data");
    
    for (auto g : decay_groups)
-      g->Init();
+      g->init();
    
-   SetupAdjust();
+   setupAdjust();
 
 #ifdef _DEBUG
    ValidateDerivatives();
@@ -84,32 +84,32 @@ DecayModel::DecayModel(const DecayModel &obj) :
 }
 */
 
-void DecayModel::AddDecayGroup(shared_ptr<AbstractDecayGroup> group)
+void DecayModel::addDecayGroup(shared_ptr<AbstractDecayGroup> group)
 {
-   group->SetTransformedDataParameters(dp);
+   group->setTransformedDataParameters(dp);
    decay_groups.push_back(group);
 }
 
-void DecayModel::DecayGroupUpdated()
+void DecayModel::decayGroupUpdated()
 {
 //   emit Updated();
 }
 
 
-int DecayModel::GetNumColumns()
+int DecayModel::getNumColumns()
 {
    int n_columns = 0;
    for (auto& group : decay_groups)
-      n_columns += group->GetNumComponents();
+      n_columns += group->getNumComponents();
 
    return n_columns;
 }
 
-int DecayModel::GetNumNonlinearVariables()
+int DecayModel::getNumNonlinearVariables()
 {
    int n_nonlinear = 0;
    for (auto& group : decay_groups)
-      n_nonlinear += group->GetNumNonlinearParameters();
+      n_nonlinear += group->getNumNonlinearParameters();
 
    n_nonlinear += reference_parameter.IsFittedGlobally();
    n_nonlinear += t0_parameter.IsFittedGlobally();
@@ -118,7 +118,7 @@ int DecayModel::GetNumNonlinearVariables()
 }
 
 
-double DecayModel::GetCurrentReferenceLifetime(const double* param_values, int& idx)
+double DecayModel::getCurrentReferenceLifetime(const double* param_values, int& idx)
 {
    if (dp->irf->type != Reference)
       return 0;
@@ -126,7 +126,7 @@ double DecayModel::GetCurrentReferenceLifetime(const double* param_values, int& 
    return reference_parameter.GetValue<double>(param_values, idx);
 }
 
-double DecayModel::GetCurrentT0(const double* param_values, int& idx)
+double DecayModel::getCurrentT0(const double* param_values, int& idx)
 {
    if (dp->irf->type != Reference)
       return 0;
@@ -135,7 +135,7 @@ double DecayModel::GetCurrentT0(const double* param_values, int& idx)
 }
 
 
-void DecayModel::SetupAdjust()
+void DecayModel::setupAdjust()
 {
    adjust_buf.resize(dp->n_meas);
 
@@ -143,27 +143,27 @@ void DecayModel::SetupAdjust()
       adjust_buf[i] *= 0;
 
    for (auto& group : decay_groups)
-      group->AddConstantContribution(adjust_buf.data()); // TODO: this only works for background ATM, which overwrites
+      group->addConstantContribution(adjust_buf.data()); // TODO: this only works for background ATM, which overwrites
 
    for (int i = 0; i < dp->n_meas; i++)
       adjust_buf[i] *= photons_per_count;
 }
 
-void DecayModel::GetOutputParamNames(vector<string>& param_names, int& n_nl_output_params, int& n_lin_output_params)
+void DecayModel::getOutputParamNames(vector<string>& param_names, int& n_nl_output_params, int& n_lin_output_params)
 {
    for (auto& group : decay_groups)
-      group->GetNonlinearOutputParamNames(param_names);
+      group->getNonlinearOutputParamNames(param_names);
 
    n_nl_output_params = (int) param_names.size();
 
    for (auto& group : decay_groups)
-      group->GetLinearOutputParamNames(param_names);
+      group->getLinearOutputParamNames(param_names);
 
    n_lin_output_params = (int) param_names.size() - n_nl_output_params;
 
 }
 
-void DecayModel::SetupIncMatrix(int *inc)
+void DecayModel::setupIncMatrix(int *inc)
 {
    int row = 0;
    int col = 0;
@@ -171,14 +171,14 @@ void DecayModel::SetupIncMatrix(int *inc)
    std::fill(inc, inc + 96, 0);
 
    for (auto& group : decay_groups)
-      group->SetupIncMatrix(inc, row, col);
+      group->setupIncMatrix(inc, row, col);
 }
 
-int DecayModel::GetNumDerivatives()
+int DecayModel::getNumDerivatives()
 {
    vector<int> inc(96);
 
-   SetupIncMatrix(inc.data());
+   setupIncMatrix(inc.data());
 
    int n = 0;
    for (int i = 0; i < 96; i++)
@@ -187,21 +187,21 @@ int DecayModel::GetNumDerivatives()
    return n;
 }
 
-int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
+int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
 {
    int idx = 0;
 
    const double* param_values = alf.data();
 
-   double reference_lifetime = GetCurrentReferenceLifetime(param_values, idx);
-   double t0_shift = GetCurrentT0(param_values, idx);
+   double reference_lifetime = getCurrentReferenceLifetime(param_values, idx);
+   double t0_shift = getCurrentT0(param_values, idx);
 
    int getting_fit = false; //TODO
 
    for (int i = 0; i < decay_groups.size(); i++)
    {
-      decay_groups[i]->SetIRFPosition(irf_idx, t0_shift, reference_lifetime);
-      idx += decay_groups[i]->SetVariables(param_values + idx);
+      decay_groups[i]->setIRFPosition(irf_idx, t0_shift, reference_lifetime);
+      idx += decay_groups[i]->setVariables(param_values + idx);
    }
 
 
@@ -214,7 +214,7 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
       int col = 0;
 
       for (int i = 0; i < decay_groups.size(); i++)
-         col += decay_groups[i]->CalculateModel(a.data() + col*adim, adim, kap);
+         col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap);
 
 #if _DEBUG
       for (int i = 0; i < a.size(); i++)
@@ -248,7 +248,7 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
       int col = 0;
 
       for (int i = 0; i < decay_groups.size(); i++)
-         col += decay_groups[i]->CalculateDerivatives(b.data() + col*bdim, bdim, kap);
+         col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, kap);
 
 #if _DEBUG
       //for (int i = 0; i < b.size(); i++)
@@ -299,7 +299,7 @@ int DecayModel::CalculateModel(vector<double>& a, int adim, vector<double>& b, i
 }
 
 
-int DecayModel::AddReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap)
+int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap)
 {
    //TODO
    /*
@@ -343,7 +343,7 @@ int DecayModel::AddReferenceLifetimeDerivatives(double* b, int bdim, vector<doub
 
 
 
-int DecayModel::AddT0Derivatives(double* b, int bdim, vector<double>& kap)
+int DecayModel::addT0Derivatives(double* b, int bdim, vector<double>& kap)
 {
    // TODO
    /*
@@ -371,7 +371,7 @@ int DecayModel::AddT0Derivatives(double* b, int bdim, vector<double>& kap)
 }
 
 
-void DecayModel::GetWeights(float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx)
+void DecayModel::getWeights(float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx)
 {
    return;
 
@@ -412,13 +412,13 @@ void DecayModel::GetWeights(float* y, const vector<double>& a, const vector<doub
 
 
 
-void DecayModel::GetInitialVariables(vector<double>& param, double mean_arrival_time)
+void DecayModel::getInitialVariables(vector<double>& param, double mean_arrival_time)
 {
    // TODO: set initial tau's based on mean arrival time
 
    int idx = 0;
    for (auto& g : decay_groups)
-      idx += g->GetInitialVariables(param.data() + idx);
+      idx += g->getInitialVariables(param.data() + idx);
 
    if (reference_parameter.IsFittedGlobally())
       param[idx++] = reference_parameter.initial_value;
@@ -428,24 +428,24 @@ void DecayModel::GetInitialVariables(vector<double>& param, double mean_arrival_
 }
 
 
-int DecayModel::GetNonlinearOutputs(float* nonlin_variables, float* outputs)
+int DecayModel::getNonlinearOutputs(float* nonlin_variables, float* outputs)
 {
    int idx = 0;
    int nonlin_idx = 0;
 
    for (auto& g : decay_groups)
-      idx += g->GetNonlinearOutputs(nonlin_variables, outputs + idx, nonlin_idx);
+      idx += g->getNonlinearOutputs(nonlin_variables, outputs + idx, nonlin_idx);
 
    return idx;
 }
 
-int DecayModel::GetLinearOutputs(float* lin_variables, float* outputs)
+int DecayModel::getLinearOutputs(float* lin_variables, float* outputs)
 {
    int idx = 0;
    int lin_idx = 0;
 
    for (auto& g : decay_groups)
-      idx += g->GetLinearOutputs(lin_variables, outputs + idx, lin_idx);
+      idx += g->getLinearOutputs(lin_variables, outputs + idx, lin_idx);
 
    return idx;
 }
@@ -456,7 +456,7 @@ int DecayModel::GetLinearOutputs(float* lin_variables, float* outputs)
 * Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More
 * Argonne National Laboratory. MINPACK project. March 1980.
 */
-void DecayModel::ValidateDerivatives()
+void DecayModel::validateDerivatives()
 {
    double factor = 100;
    double epsmch = std::numeric_limits<double>::epsilon();
@@ -465,12 +465,12 @@ void DecayModel::ValidateDerivatives()
    double epslog = log10(eps);
 
 
-   int n_nonlinear = GetNumNonlinearVariables();
-   int n_cols = GetNumColumns();
-   int n_der = GetNumDerivatives();
+   int n_nonlinear = getNumNonlinearVariables();
+   int n_cols = getNumColumns();
+   int n_der = getNumDerivatives();
 
    int inc[96];
-   SetupIncMatrix(inc);
+   setupIncMatrix(inc);
 
    int dim = dp->n_meas;
 
@@ -478,9 +478,9 @@ void DecayModel::ValidateDerivatives()
    vector<double> kap(2);
 
    vector<double> alf(n_nonlinear);
-   GetInitialVariables(alf, 2000);
+   getInitialVariables(alf, 2000);
    
-   CalculateModel(a, dim, b, dim, kap, alf, 0, 1);
+   calculateModel(a, dim, b, dim, kap, alf, 0, 1);
 
    int m = 0;
    for (int i = 0; i < n_nonlinear; i++)
@@ -494,7 +494,7 @@ void DecayModel::ValidateDerivatives()
             if (temp == 0.0) temp = eps;
             alf_p[i] += temp;
 
-            CalculateModel(ap, dim, b, dim, kap, alf_p, 0, 2);
+            calculateModel(ap, dim, b, dim, kap, alf_p, 0, 2);
 
             double* fvec = a.data() + dim * j;
             double* fvecp = ap.data() + dim * j;

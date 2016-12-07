@@ -368,8 +368,8 @@ void FitController::init()
 
    getting_fit = false;
 
-   model->SetTransformedDataParameters(data->GetTransformedDataParameters());
-   model->Init();
+   model->setTransformedDataParameters(data->GetTransformedDataParameters());
+   model->init();
 
    if (n_thread < 1)
       n_thread = 1;

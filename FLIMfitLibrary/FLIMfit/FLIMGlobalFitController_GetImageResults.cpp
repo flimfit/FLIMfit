@@ -518,8 +518,8 @@ int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n
    if (iml == -1)
       return 0;
    
-   vector<double> nl_params(model->GetNumNonlinearVariables());
-   vector<float> l_params(model->GetNumColumns());
+   vector<double> nl_params(model->getNumNonlinearVariables());
+   vector<float> l_params(model->getNumColumns());
 
    getting_fit = true;
 

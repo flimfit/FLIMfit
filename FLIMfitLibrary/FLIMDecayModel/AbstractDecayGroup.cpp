@@ -32,7 +32,7 @@
 const char* FittingParameter::fitting_type_names[] = { "Fixed", "Fitted Locally", "Fitted Globally" };
 
 
-int AbstractDecayGroup::GetInitialVariables(double* variables)
+int AbstractDecayGroup::getInitialVariables(double* variables)
 {
    // TODO: needs work for betas etc where there is not a 1:1 relationship
    int idx = 0;
@@ -45,30 +45,30 @@ int AbstractDecayGroup::GetInitialVariables(double* variables)
     return idx;
 }
 
-void AbstractDecayGroup::SetIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_)
+void AbstractDecayGroup::setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_)
 {
    irf_idx = irf_idx_;
    t0_shift = t0_shift_;
    reference_lifetime = reference_lifetime_;
 }
 
-void AbstractDecayGroup::GetNonlinearOutputParamNames(vector<string>& names)
+void AbstractDecayGroup::getNonlinearOutputParamNames(vector<string>& names)
 {
    for (auto p : parameters)
       names.push_back(p->name);
 }
 
-void AbstractDecayGroup::SetTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
+void AbstractDecayGroup::setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
 {
    dp = dp_;
 
    // Make sure all the channel factors are the right size
-   size_t n_channel_factors = GetNumPotentialChannels();
+   size_t n_channel_factors = getNumPotentialChannels();
    for (int i = 0; i < n_channel_factors; i++)
    { 
-      auto v = GetChannelFactors(i);
+      auto v = getChannelFactors(i);
       v.resize(dp->n_chan, 1.0);
-      SetChannelFactors(i, v);
+      setChannelFactors(i, v);
    }
 }
 
