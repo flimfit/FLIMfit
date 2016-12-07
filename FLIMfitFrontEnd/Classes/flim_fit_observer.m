@@ -36,19 +36,19 @@ classdef flim_fit_observer < handle
            obj.fit_controller = fit_controller; 
            
            if ~isempty(fit_controller)
-               obj.flim_fit_lh = addlistener(fit_controller,'fit_updated',@obj.fit_update_evt);
-               obj.flim_fit_lh = addlistener(fit_controller,'fit_display_updated',@obj.fit_display_update_evt);
+               obj.flim_fit_lh = addlistener(fit_controller,'fit_updated',@(~,~) escaped_callback(@obj.fit_update_evt));
+               obj.flim_fit_lh = addlistener(fit_controller,'fit_display_updated',@(~,~) escaped_callback(@obj.fit_display_update_evt));
            end
         end
         
         
-        function fit_update_evt(obj,src,evtData)
+        function fit_update_evt(obj)
             if isvalid(obj)
                 obj.fit_update();
             end
         end
 
-        function fit_display_update_evt(obj,src,evtData)
+        function fit_display_update_evt(obj)
             if isvalid(obj)
                 obj.fit_display_update();
             end

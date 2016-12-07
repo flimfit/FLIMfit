@@ -39,8 +39,8 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             assign_handles(obj,handles);
 
             obj.register_tab_function('Plate');
-            set(obj.plate_mode_popupmenu,'Callback',@(~,~)obj.update_display);
-            set(obj.plate_merge_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.plate_mode_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
+            set(obj.plate_merge_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
         
             obj.update_display();
         end

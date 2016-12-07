@@ -1,10 +1,10 @@
-function escaped_callback( ~, ~, fcn)
+function escaped_callback(fcn,varargin)
             
     if strcmp(computer,'MACI64') && ~isdeployed
-        fcn();
+        fcn(varargin{:});
     else            
         try
-            fcn();
+            fcn(varargin{:});
         catch e
             d = getReport(e,'extended','hyperlinks','off');
             bug_snag(e);

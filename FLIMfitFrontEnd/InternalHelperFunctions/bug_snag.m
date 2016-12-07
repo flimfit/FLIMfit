@@ -1,5 +1,9 @@
 function bug_snag(error)
 
+    if ~isdeployed
+        return
+    end
+
     % Get version
     fid = fopen('GeneratedFiles/version.txt');
     flimfit_ver = fgetl(fid);

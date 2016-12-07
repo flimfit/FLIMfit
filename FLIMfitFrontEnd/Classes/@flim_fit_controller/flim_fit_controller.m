@@ -126,53 +126,52 @@ classdef flim_fit_controller < flim_data_series_observer
             obj.dll_interface = flim_dll_interface();
             
             if ishandle(obj.fit_pushbutton)
-                set(obj.fit_pushbutton,'Callback',@(x,y) escaped_callback(x,y,@obj.fit_pushbutton_callback));
+                set(obj.fit_pushbutton,'Callback',@(~,~) escaped_callback(@obj.fit_pushbutton_callback));
             end
 
             if ishandle(obj.binned_fit_pushbutton)
-                set(obj.binned_fit_pushbutton,'Callback',@(x,y) escaped_callback(x,y,@obj.binned_fit_pushbutton_callback));
+                set(obj.binned_fit_pushbutton,'Callback',@(~,~) escaped_callback(@obj.binned_fit_pushbutton_callback));
             end
 
-            
             if ~isempty(obj.data_series_controller) 
-                addlistener(obj.data_series_controller,'new_dataset',@obj.new_dataset);
+                addlistener(obj.data_series_controller,'new_dataset',@(~,~) escaped_callback(@obj.new_dataset));
             end
             
-            addlistener(obj.dll_interface,'fit_completed',@obj.fit_complete);
-            addlistener(obj.dll_interface,'progress_update',@obj.update_progress);
+            addlistener(obj.dll_interface,'fit_completed',@(~,~) escaped_callback(@obj.fit_complete));
+            addlistener(obj.dll_interface,'progress_update',@(~,~) escaped_callback(@obj.update_progress));
             
             if ~isempty(obj.fitting_params_controller)
-                addlistener(obj.fitting_params_controller,'fit_params_update',@obj.fit_params_updated);
+                addlistener(obj.fitting_params_controller,'fit_params_update',@(~,~) escaped_callback(@obj.fit_params_updated));
                 obj.fit_params = obj.fitting_params_controller.fit_params;
             end
             
             if ~isempty(obj.roi_controller)
-                addlistener(obj.roi_controller,'roi_updated',@obj.roi_mask_updated);
+                addlistener(obj.roi_controller,'roi_updated',@(~,~) escaped_callback(@obj.roi_mask_updated));
             end
             
             if ~isempty(obj.live_update_checkbox)
                 set(obj.live_update_checkbox,'Value',obj.live_update);
-                set(obj.live_update_checkbox,'Callback',@obj.live_update_callback);
+                set(obj.live_update_checkbox,'Callback',@(~,~) escaped_callback(@obj.live_update_callback));
             end
             
             if ~isempty(obj.plot_select_table)
-                set(obj.plot_select_table,'CellEditCallback',@obj.plot_select_update);
+                set(obj.plot_select_table,'CellEditCallback',@(~,~) escaped_callback(@obj.plot_select_update));
             end
             
             if ~isempty(obj.invert_colormap_popupmenu)
-                add_callback(obj.invert_colormap_popupmenu,@obj.plot_select_update);
+                add_callback(obj.invert_colormap_popupmenu,@(~,~) escaped_callback(@obj.plot_select_update));
             end
             
             if ~isempty(obj.show_colormap_popupmenu)
-                add_callback(obj.show_colormap_popupmenu,@obj.plot_select_update);
+                add_callback(obj.show_colormap_popupmenu,@(~,~) escaped_callback(@obj.plot_select_update));
             end
             
             if ~isempty(obj.show_limits_popupmenu)
-                add_callback(obj.show_limits_popupmenu,@obj.plot_select_update);
+                add_callback(obj.show_limits_popupmenu,@(~,~) escaped_callback(@obj.plot_select_update));
             end
             
             if ~isempty(obj.table_stat_popupmenu)
-                set(obj.table_stat_popupmenu,'Callback',@obj.table_stat_updated);
+                set(obj.table_stat_popupmenu,'Callback',@(~,~) escaped_callback(@obj.table_stat_updated));
             end
             
             obj.update_list();
@@ -180,7 +179,7 @@ classdef flim_fit_controller < flim_data_series_observer
             
         end       
         
-        function fit_params_updated(obj,~,~)
+        function fit_params_updated(obj)
             obj.fit_params = obj.fitting_params_controller.fit_params;
             if obj.data_series_controller.data_series.init && obj.live_update
                 obj.fit(true);
@@ -189,7 +188,7 @@ classdef flim_fit_controller < flim_data_series_observer
             end
         end
         
-        function roi_mask_updated(obj,~,~)
+        function roi_mask_updated(obj)
             d = obj.data_series_controller.data_series;
             if ~(obj.has_fit && obj.fit_result.binned == false) && d.init
                 updated_live_fit = false;
@@ -264,7 +263,7 @@ classdef flim_fit_controller < flim_data_series_observer
         end
         
         
-        function live_update_callback(obj,~,~)
+        function live_update_callback(obj)
             obj.live_update = get(obj.live_update_checkbox,'Value');
             if obj.live_update == false
                 obj.clear_fit();
@@ -289,11 +288,11 @@ classdef flim_fit_controller < flim_data_series_observer
             obj.clear_fit();
         end
         
-        function new_dataset(obj,~,~)
+        function new_dataset(obj)
             obj.clear_fit();
         end
         
-        function table_stat_updated(obj,~,~)
+        function table_stat_updated(obj)
             obj.update_table()
         end
         
@@ -458,7 +457,7 @@ classdef flim_fit_controller < flim_data_series_observer
             end
          end
          
-         function plot_select_update(obj,~,~)
+         function plot_select_update(obj)
             plots = get(obj.plot_select_table,'Data');
 
             obj.n_plots = 0;

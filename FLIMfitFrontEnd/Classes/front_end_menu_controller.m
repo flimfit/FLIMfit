@@ -258,7 +258,7 @@ classdef front_end_menu_controller < handle
                     matching_methods = findobj(obj_method,'Name',method);
                     if ~isempty(matching_methods)  
                         fcn = eval(['@obj.' method]);
-                        set(obj.(prop),'Callback',@(x,y) escaped_callback(x,y,fcn));
+                        set(obj.(prop),'Callback',@(x,y) escaped_callback(fcn));
                     end
                 end          
              end

@@ -40,10 +40,10 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             obj = obj@abstract_plot_controller(handles,handles.hist_axes,handles.hist_param_popupmenu,false);
             assign_handles(obj,handles);
             
-            set(obj.hist_weighting_popupmenu,'Callback',@(~,~)obj.update_display);
-            set(obj.hist_classes_edit,'Callback',@(~,~)obj.update_display);
-            set(obj.hist_source_popupmenu,'Callback',@(~,~)obj.update_display);
-            set(obj.hist_addcolour_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.hist_weighting_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
+            set(obj.hist_classes_edit,'Callback',@(~,~) escaped_callback(@obj.update_display));
+            set(obj.hist_source_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
+            set(obj.hist_addcolour_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
             
             obj.register_tab_function('Histogram');
             obj.update_display();
