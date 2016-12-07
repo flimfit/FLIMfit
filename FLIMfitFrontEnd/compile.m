@@ -237,6 +237,23 @@ function compile(exit_on_error)
 
                 % Package app with platypus
                 package_name = ['FLIMfit ' v];
+                
+                
+                [major,minor] = mcrversion;
+                
+                % Setup platypus script
+                fid = fopen([deployFiles_folder filesep 'FLIMfit_platypus.sh'],'r');
+                script = fread(fid);
+                fclose(fid);
+                script = strrep(script,'[MCR_VERSION_MAJOR]',num2str(major));
+                script = strrep(script,'[MCR_VERSION_MINOR]',num2str(minor));
+                script = strrep(script,'[MATLAB_VERSION]',version('-release'));
+                
+                fid = fopen([deployFiles_folder filesep 'FLIMfit_platypus_versioned.sh'],'w');
+                fwrite(fid,script);
+                fclose(fid);
+                
+                
 
                 cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
 
