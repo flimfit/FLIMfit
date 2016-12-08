@@ -32,7 +32,8 @@
 #include <boost/lexical_cast.hpp>
 using namespace std;
 
-MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global) :
+MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global, const QString& name) :
+   AbstractDecayGroup(name),
    n_exponential(n_exponential),
    contributions_global(contributions_global)
 {
@@ -80,6 +81,10 @@ void MultiExponentialDecayGroup::setupParametersMultiExponential()
             beta_parameters.push_back(p);
          }
       }
+   }
+   else
+   {
+      beta_parameters.clear();
    }
 
    parameters.clear();

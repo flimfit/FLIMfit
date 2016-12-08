@@ -46,10 +46,11 @@ DecayModel::DecayModel() :
 void DecayModel::setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
 {
    dp = dp_;
-   photons_per_count = static_cast<float>(1.0 / dp->counts_per_photon);
-
    for (auto g : decay_groups)
       g->setTransformedDataParameters(dp);
+
+   if (!dp) return;
+   photons_per_count = static_cast<float>(1.0 / dp->counts_per_photon);
 }
 
 void DecayModel::init()
@@ -66,7 +67,7 @@ void DecayModel::init()
    setupAdjust();
 
 #ifdef _DEBUG
-   ValidateDerivatives();
+   validateDerivatives();
 #endif
 }
 

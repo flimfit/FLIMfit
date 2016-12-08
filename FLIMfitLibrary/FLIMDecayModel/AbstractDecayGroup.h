@@ -51,6 +51,14 @@ class AbstractDecayGroup : public QObject
 
 public:
 
+   AbstractDecayGroup(const QString& name = "", QObject* parent = 0)
+      : QObject(parent)
+   {
+      setObjectName(name);
+   }
+
+
+
    virtual ~AbstractDecayGroup() {};
    vector<shared_ptr<FittingParameter>>& getParameters() { return parameters; }
    const vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
@@ -124,44 +132,6 @@ void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & fit_t0;
 };
 
-/*
-class QAbstractDecayGroup : public QObject, virtual public AbstractDecayGroup
-{
-   Q_OBJECT
-
-public:
-   QAbstractDecayGroup(const QString& name = "", QObject* parent = 0)
-      : QObject(parent)
-   {
-      setObjectName(name);
-   }
-
-signals:
-   void parametersUpdated();
-   
-protected:
-   
-   void ParametersChanged()
-   {
-      emit parametersUpdated();
-   }
-   
-private:
-   template<class Archive>
-   void serialize(Archive & ar, const unsigned int version);
-   
-   friend class boost::serialization::access;
-   
-};
-
-template<class Archive>
-void QAbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
-{
-   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
-};
-
-BOOST_CLASS_TRACKING(QAbstractDecayGroup, track_always)
-*/
 
 BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 

@@ -53,77 +53,138 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
 
    if (group_type == "Multi-Exponential Decay")
    {
-      AssertInputCondition(nrhs >= 4);
-      int n_components = mxGetScalar(prhs[3]);
+      int n_components = (nrhs >= 4) ? mxGetScalar(prhs[3]) : 1;
       group = std::make_shared<MultiExponentialDecayGroup>(n_components);
    }
    else if (group_type == "FRET Decay")
    {
-      AssertInputCondition(nrhs >= 5);
-      int n_components = mxGetScalar(prhs[3]);
-      int n_fret = mxGetScalar(prhs[4]);
+      int n_components = (nrhs >= 4) ? mxGetScalar(prhs[3]) : 1;
+      int n_fret = (nrhs >= 5) ? mxGetScalar(prhs[4]) : 1;
       group = std::make_shared<FretDecayGroup>(n_components, n_fret);
 
    }
    //else if (group_type == "Anisotropy Decay")
    //   group = std::make_shared<AnisotropyDecayGroup>();
 
-   model->addDecayGroup(group);
+   if (group)
+      model->addDecayGroup(group);
 }
 
 void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
-   int group_idx = mxGetScalar(prhs[2]);
+   int group_idx = mxGetScalar(prhs[2])-1;
    model->removeDecayGroup(group_idx);
 }
 
-void getParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+mxArray* getVariables(shared_ptr<QDecayModel> model, int group_idx)
 {
-   AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(nlhs >= 1);
-
-   int group_idx = mxGetScalar(prhs[2]);
+   AssertInputCondition(group_idx < model->getNumGroups());
 
    auto group = model->getGroup(group_idx);
    auto& parameters = group->getParameters();
 
    const char* field_names[4] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes"};
-   plhs[0] = mxCreateStructMatrix(1, parameters.size(), 4, field_names);
+   mxArray* s = mxCreateStructMatrix(1, parameters.size(), 4, field_names);
 
    for (int i = 0; i < parameters.size(); i++)
    { 
-      mxSetFieldByNumber(plhs[0], i, 0, mxCreateString(parameters[i]->name.c_str()));
-      mxSetFieldByNumber(plhs[0], i, 1, mxCreateDoubleScalar(parameters[i]->initial_value));
-      mxSetFieldByNumber(plhs[0], i, 2, mxCreateDoubleScalar(parameters[i]->fitting_type));
+      mxSetFieldByNumber(s, i, 0, mxCreateString(parameters[i]->name.c_str()));
+      mxSetFieldByNumber(s, i, 1, mxCreateDoubleScalar(parameters[i]->initial_value));
+      mxSetFieldByNumber(s, i, 2, mxCreateDoubleScalar(parameters[i]->fitting_type + 1));
 
       auto& allowed_types = parameters[i]->allowed_fitting_types;
       mxArray* a = mxCreateNumericMatrix(1, allowed_types.size(), mxDOUBLE_CLASS, mxREAL);
       double* ap = mxGetPr(a);
       for (int j = 0; j < allowed_types.size(); j++)
-         ap[j] = allowed_types[j];
-      mxSetFieldByNumber(plhs[0], i, 3, a);
+         ap[j] = allowed_types[j] + 1;
+      mxSetFieldByNumber(s, i, 3, a);
    }
+
+   return s;
 }
 
-void setParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+mxArray* getParameters(shared_ptr<QDecayModel> model, int group_idx)
+{
+   AssertInputCondition(group_idx < model->getNumGroups());
+   auto group = model->getGroup(group_idx);
+
+   const QMetaObject* group_meta = group->metaObject();
+   int n_properties = group_meta->propertyCount() - 1; // ignore objectName
+
+   std::vector<const char*> field_names(n_properties);
+   for (int i = 0; i < n_properties; i++)
+   {
+      const auto& prop = group_meta->property(i + 1);
+      field_names[i] = prop.name();
+   }
+
+   mxArray* s = mxCreateStructMatrix(1, 1, n_properties, field_names.data());
+
+   for (int i = 0; i < n_properties; i++)
+   {
+      const auto& prop = group_meta->property(i + 1);
+      QVariant v = prop.read(group.get());
+
+      mxArray* vv;
+      QByteArray vs;
+      switch (v.type())
+      {
+      case QMetaType::Bool:
+         mxSetFieldByNumber(s, 0, i, mxCreateLogicalScalar(v.toDouble()));
+         break;
+      case QMetaType::Int:
+      case QMetaType::UInt:
+      case QMetaType::Long:
+         vv = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
+         static_cast<int64_t*>(mxGetData(vv))[0] = v.toInt();
+         mxSetFieldByNumber(s, 0, i, vv);
+         break;
+      case QMetaType::Char:
+      case QMetaType::QString:
+         vs = v.toString().toLocal8Bit();
+         vv = mxCreateStringFromNChars(vs.constData(), vs.length());
+         mxSetFieldByNumber(s, 0, i, vv);
+         break;
+      default:
+         mxSetFieldByNumber(s, 0, i, mxCreateDoubleScalar(0));
+      }
+   }
+
+   return s;
+}
+
+void setParameter(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 5);
+
+   int group_idx = mxGetScalar(prhs[2])-1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   auto group = model->getGroup(group_idx);
+
+   std::string name = GetStringFromMatlab(prhs[3]);
+   double value = mxGetScalar(prhs[4]);
+
+   group->setProperty(name.c_str(), value);
+}
+
+void setVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 4);
    AssertInputCondition(mxIsStruct(prhs[3]));
 
-   int group_idx = mxGetScalar(prhs[2]);
+   int group_idx = mxGetScalar(prhs[2])-1;
+   AssertInputCondition(group_idx < model->getNumGroups());
 
    auto group = model->getGroup(group_idx);
    auto& parameters = group->getParameters();
 
-   const char* field_names[4] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes" };
-   plhs[0] = mxCreateStructMatrix(1, parameters.size(), 4, field_names);
-
    for (int i = 0; i < parameters.size(); i++)
    {
       parameters[i]->initial_value = mxGetScalar(mxGetField(prhs[3], i, "InitialValue"));
-      ParameterFittingType type = static_cast<ParameterFittingType>((int) mxGetScalar(mxGetField(prhs[3], i, "FittingType")));
+      ParameterFittingType type = static_cast<ParameterFittingType>((int) mxGetScalar(mxGetField(prhs[3], i, "FittingType"))-1);
 
       int is_allowed = false;
       auto& allowed_types = parameters[i]->allowed_fitting_types;
@@ -132,6 +193,26 @@ void setParameters(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
       
       if (is_allowed)
          parameters[i]->fitting_type = type;
+   }
+}
+
+void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+
+   int n_group = model->getNumGroups();
+   const char* field_names[3] = { "Name", "Parameters", "Variables" };
+   plhs[0] = mxCreateStructMatrix(1, n_group, 3, field_names);
+
+   for (int i = 0; i < n_group; i++)
+   {
+      auto group = model->getGroup(i);
+
+      group->objectName();
+
+      mxSetFieldByNumber(plhs[0], i, 0, mxCreateString(group->objectName().toLocal8Bit()));
+      mxSetFieldByNumber(plhs[0], i, 1, getParameters(model, i));
+      mxSetFieldByNumber(plhs[0], i, 2, getVariables(model, i));
    }
 }
 
@@ -175,14 +256,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          addDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "RemoveDecayGroup")
          removeDecayGroup(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetParameters")
-         getParameters(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetParameters")
-         setParameters(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetGroups")
+         getGroups(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetVariables")
+         setVariables(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetParameter")
+         setParameter(model, nlhs, plhs, nrhs, prhs);
       else if (command == "OpenUI")
          openUI(model);
    }
-   catch (std::exception e)
+   catch (std::runtime_error e)
    {
       mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
          e.what());

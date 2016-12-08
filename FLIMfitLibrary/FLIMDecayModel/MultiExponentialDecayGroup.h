@@ -11,7 +11,7 @@ class MultiExponentialDecayGroup : public AbstractDecayGroup
 
 public:
 
-   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false);
+   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay");
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
    Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);

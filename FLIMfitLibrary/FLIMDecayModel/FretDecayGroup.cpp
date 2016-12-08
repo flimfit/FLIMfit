@@ -35,7 +35,7 @@
 using namespace std;
 
 FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
-   MultiExponentialDecayGroup(n_donor_exponential, true),
+   MultiExponentialDecayGroup(n_donor_exponential, true, "FRET Decay"),
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {

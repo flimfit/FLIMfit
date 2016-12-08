@@ -35,7 +35,7 @@
 using namespace std;
 
 AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_anisotropy_populations, bool include_r_inf) :
-   MultiExponentialDecayGroup(n_lifetime_exponential, true),
+   MultiExponentialDecayGroup(n_lifetime_exponential, true, "Anisotropy Decay"),
    n_anisotropy_populations(n_anisotropy_populations),
    include_r_inf(include_r_inf)
 {

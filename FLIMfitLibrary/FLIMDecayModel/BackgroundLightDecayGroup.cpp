@@ -35,6 +35,7 @@
 using namespace std;
 
 BackgroundLightDecayGroup::BackgroundLightDecayGroup() :
+   AbstractDecayGroup("Background Contribution"),
    names({ "offset", "scatter", "tvb" })
 {
    n_lin_components = 0;
