@@ -49,7 +49,6 @@ classdef flim_fit_ui
             end
                         
             if ~isdeployed
-                addpath_global_analysis();
                 if ispc
                     path_ = [pwd '\pdftops.exe'];
                 end

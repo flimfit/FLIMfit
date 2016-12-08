@@ -33,8 +33,6 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
         fit_controller;
         
         fit_params;
-        
-        model;
     end
     
     events
@@ -49,21 +47,20 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj = obj@flim_data_series_observer(handles.data_series_controller);
             obj = obj@control_binder(flim_fitting_params());
             
-            obj.model = handles.model;
             
             assign_handles(obj,handles);
 
-            obj.fit_params = obj.bound_data_source;
-                                
+            obj.fit_params = obj.bound_data_source;                                
             obj.bind_control(handles,'weighting_mode','popupmenu');
             obj.bind_control(handles,'calculate_errs','checkbox');
             obj.bind_control(handles,'use_memory_mapping','checkbox');
-            obj.bind_control(handles,'use_autosampling','popupmenu');
             obj.bind_control(handles,'image_irf_mode','popupmenu');
             
             obj.bound_all_controls = true;
             obj.set_polarisation_mode(false);
             addlistener(obj.data_series_controller,'new_dataset',@obj.data_update_evt);
+            
+            obj.fit_params.model = handles.model;
             
             obj.update_controls();
             

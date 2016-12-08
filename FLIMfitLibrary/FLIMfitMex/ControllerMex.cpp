@@ -48,34 +48,22 @@ using std::string;
 
 PointerMap<FitController> pointer_map;
 
-void CheckInput(int nrhs, int needed);
-void ErrorCheck(int nlhs, int nrhs, const mxArray *prhs[]);
-void CheckSize(const mxArray* array, int needed);
-
-
-void Init();
-int  RunWorkers();
-int  GetErrorCode();
-
-int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
-
-
 void setFitSettings(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nrhs >= 2);
-   AssertInputCondition(mxIsStruct(prhs[1]));
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsStruct(prhs[2]));
 
    FitSettings settings;
 
-   settings.global_algorithm = getValueFromStruct(prhs[1],"global_algorithm", 0);
-   settings.global_mode = getValueFromStruct(prhs[1], "global_mode", 0);
-   settings.algorithm = getValueFromStruct(prhs[1], "algorithm", 0);
-   settings.weighting = getValueFromStruct(prhs[1], "weighting");
-   settings.n_thread = getValueFromStruct(prhs[1], "n_thread", 4);
-   settings.run_async = getValueFromStruct(prhs[1], "run_async", 1);
+   settings.global_algorithm = getValueFromStruct(prhs[2],"global_algorithm", 0);
+   settings.global_mode = getValueFromStruct(prhs[2], "global_mode", 0);
+   settings.algorithm = getValueFromStruct(prhs[2], "algorithm", 0);
+   settings.weighting = getValueFromStruct(prhs[2], "weighting");
+   settings.n_thread = getValueFromStruct(prhs[2], "n_thread", 4);
+   settings.run_async = getValueFromStruct(prhs[2], "run_async", 1);
 
-   int calculate_errors = getValueFromStruct(prhs[1], "calculate_errors", 0);
-   double conf_interval = getValueFromStruct(prhs[1], "conf_interval", 0.05);
+   int calculate_errors = getValueFromStruct(prhs[2], "calculate_errors", 0);
+   double conf_interval = getValueFromStruct(prhs[2], "conf_interval", 0.05);
    settings.setCalculateErrors(calculate_errors, conf_interval);
 
    c->setFitSettings(settings);
@@ -93,14 +81,12 @@ void setModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
 {
    AssertInputCondition(nrhs >= 3);
    
-   auto model = GetSharedPtrFromMatlab<DecayModel>(prhs[2]);
+   auto model = GetSharedPtrFromMatlab<QDecayModel>(prhs[2]);
    c->setModel(model);
 }
 
 void startFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-   
+{   
    c->init();
    c->runWorkers();
 }
@@ -122,16 +108,12 @@ void getFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, co
 
 void clearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nrhs >= 3);
-
    c->init();
    c->runWorkers();
 }
 
 void stopFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nrhs >= 3);
-
    c->stopFit();
 }
 
@@ -205,9 +187,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          setModel(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "StartFit")
          startFit(controller, nlhs, plhs, nrhs, prhs);
+      else if (command == "StopFit")
+         stopFit(controller, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetFitStatus")
+         getFitStatus(controller, nlhs, plhs, nrhs, prhs);
 
    }
-   catch (std::exception e)
+   catch (std::runtime_error e)
    {
       mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
          e.what());

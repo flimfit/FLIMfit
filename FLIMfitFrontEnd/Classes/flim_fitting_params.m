@@ -28,16 +28,18 @@ classdef flim_fitting_params < handle & h5_serializer
    
     properties(SetObservable)     
 
+        model;
+        
+        global_fitting = 0;
+        global_variable = 0;
+        
         polarisation_resolved = false;
         
         calculate_errs = false;
         split_fit = false;
         use_memory_mapping = false;
-        
-        use_autosampling = false;
-        
+                
         image_irf_mode = 0;
-        
         
         weighting_mode = 0;
         

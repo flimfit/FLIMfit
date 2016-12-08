@@ -110,21 +110,13 @@ classdef flim_dll_interface < handle
          end
         
         function obj = flim_dll_interface()
-            
-            if is64
-                obj.lib_name = 'FLIMGlobalAnalysis_64';
-            else
-                obj.lib_name = 'FLIMGlobalAnalysis_32';
-            end
-            
             obj.load_global_library();
+            
+            obj.dll_id = ff_Controller();
         end
         
         function delete(obj)
-            if libisloaded(obj.lib_name)
-                calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
-                calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
-            end
+            obj.unload_global_library();
         end
        
         

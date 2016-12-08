@@ -48,7 +48,7 @@
     % If called without arguments we're continuing a fit
     if nargin > 1
         
-        obj.clear_fit();
+%TODO:        obj.clear_fit();
         
         obj.data_series = data_series;
         obj.fit_params = fit_params;
@@ -66,7 +66,7 @@
     end
 
     % Get new fitting object
-    obj.get_new_id();
+    %obj.get_new_id();
 
     
     p = obj.fit_params;
@@ -207,17 +207,18 @@
     
     fit_settings = struct();
     fit_settings.n_thread = p.n_thread;
-    fit_settings.calculate_errors = p.calculate_errors;    
-
+    fit_settings.calculate_errors = p.calculate_errs;
+    fit_settings.weighting = p.weighting_mode;
+    % TODO ...
      
-    ff_Controller(obj.controller,'Clear');
-    ff_Controller(obj.controller,'SetData',data);
-    ff_Controller(obj.controller,'SetModel',p.model);
-    ff_Controller(obj.controller,'SetFitSettings',fit_settings);
+    ff_Controller(obj.dll_id,'ClearFit');
+    ff_Controller(obj.dll_id,'SetData',data);
+    ff_Controller(obj.dll_id,'SetModel',p.model);
+    ff_Controller(obj.dll_id,'SetFitSettings',fit_settings);
     
     obj.start_time = tic;
    
-    ff_Controller(obj.controller,'StartFit');
+    ff_Controller(obj.dll_id,'StartFit');
     
     if err ~= 0
         obj.clear_temp_vars();
