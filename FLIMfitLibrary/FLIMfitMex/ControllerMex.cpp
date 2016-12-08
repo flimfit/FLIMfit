@@ -119,13 +119,15 @@ void stopFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, c
 
 void getFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nlhs >= 5);
+   AssertInputCondition(nlhs >= 2);
    
    auto reporter = c->getProgressReporter();
-   double progress = reporter->getProgress();
 
+   plhs[0] = mxCreateDoubleScalar(reporter->getProgress());
+   plhs[1] = mxCreateLogicalScalar(reporter->isFinished());
 
-   plhs[0] = mxCreateDoubleScalar(progress);
+   //const char* labels[] = { "group", "n_completed", "iter", "chi2" };
+   //plhs[2] = mxCreateStructMatrix(1, 1, 4, labels);
 
    /* TODO
    //   int n_thread = c->status->n_thread;
