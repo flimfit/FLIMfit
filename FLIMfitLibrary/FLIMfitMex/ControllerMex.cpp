@@ -60,26 +60,28 @@ int  GetErrorCode();
 int GetFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
 
 
-void SetupFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setFitSettings(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nrhs >= 9);
+   AssertInputCondition(nrhs >= 2);
+   AssertInputCondition(mxIsStruct(prhs[1]));
 
-   int global_algorithm = mxGetScalar(prhs[2]);
-   int global_mode = mxGetScalar(prhs[3]);
-   int algorithm = mxGetScalar(prhs[4]);
-   int weighting = mxGetScalar(prhs[5]);
-   int calculate_errors = mxGetScalar(prhs[6]); 
-   double conf_interval = mxGetScalar(prhs[7]);
-   int n_thread = mxGetScalar(prhs[8]);
-   int runAsync = mxGetScalar(prhs[9]);
+   FitSettings settings;
 
-   FitSettings settings(algorithm, global_mode, global_algorithm, weighting, n_thread, runAsync, nullptr);
-   settings.CalculateErrors(calculate_errors, conf_interval);
+   settings.global_algorithm = getValueFromStruct(prhs[1],"global_algorithm", 0);
+   settings.global_mode = getValueFromStruct(prhs[1], "global_mode", 0);
+   settings.algorithm = getValueFromStruct(prhs[1], "algorithm", 0);
+   settings.weighting = getValueFromStruct(prhs[1], "weighting");
+   settings.n_thread = getValueFromStruct(prhs[1], "n_thread", 4);
+   settings.run_async = getValueFromStruct(prhs[1], "run_async", 1);
+
+   int calculate_errors = getValueFromStruct(prhs[1], "calculate_errors", 0);
+   double conf_interval = getValueFromStruct(prhs[1], "conf_interval", 0.05);
+   settings.setCalculateErrors(calculate_errors, conf_interval);
 
    c->setFitSettings(settings);
 }
 
-void SetData(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setData(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
@@ -87,7 +89,7 @@ void SetData(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, c
    c->setData(data);
 }
 
-void SetModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    
@@ -95,7 +97,7 @@ void SetModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
    c->setModel(model);
 }
 
-void StartFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void startFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    
@@ -103,7 +105,7 @@ void StartFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
    c->runWorkers();
 }
 
-void GetFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(nlhs >= 3);
@@ -118,7 +120,7 @@ void GetFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, co
    //c->GetFit(im, n_fit, fit_mask, fit, *n_valid);
 }
 
-void ClearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void clearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
@@ -126,14 +128,14 @@ void ClearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
    c->runWorkers();
 }
 
-void StopFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void stopFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
    c->stopFit();
 }
 
-void GetFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 5);
    
@@ -195,14 +197,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
       if (command == "Clear")
          pointer_map.Clear(c_idx);
-      else if (command == "SetupFit")
-         SetupFit(controller, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetFitSettings")
+         setFitSettings(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "SetData")
-         SetupFit(controller, nlhs, plhs, nrhs, prhs);
+         setData(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "SetModel")
-         SetupFit(controller, nlhs, plhs, nrhs, prhs);
+         setModel(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "StartFit")
-         SetupFit(controller, nlhs, plhs, nrhs, prhs);
+         startFit(controller, nlhs, plhs, nrhs, prhs);
 
    }
    catch (std::exception e)

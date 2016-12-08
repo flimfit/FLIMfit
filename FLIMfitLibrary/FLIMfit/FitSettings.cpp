@@ -41,7 +41,7 @@ FitSettings::FitSettings(int algorithm_, int global_mode_, int global_algorithm_
    weighting = weighting_;
 
    n_thread = n_thread_;
-   runAsync = runAsync_;
+   run_async = runAsync_;
    callback = callback_;
 
    calculate_errors = false;
@@ -53,13 +53,13 @@ FitSettings::FitSettings(FitSettingsStruct& settings_) :
    FitSettingsStruct(settings_)
 {}
 
-void FitSettings::CalculateErrors(int calculate_errors_, double conf_interval_)
+void FitSettings::setCalculateErrors(int calculate_errors_, double conf_interval_)
 {
    calculate_errors = calculate_errors_;
    conf_interval = conf_interval_;
 }
 
-FitSettingsStruct FitSettings::GetStruct()
+FitSettingsStruct FitSettings::getStruct()
 {
    return (FitSettingsStruct) *this;
 }

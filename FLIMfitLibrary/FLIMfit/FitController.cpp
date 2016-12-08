@@ -106,7 +106,7 @@ int FitController::runWorkers()
    for(int thread = 0; thread < n_fitters; thread++)
       thread_handle.push_back(new std::thread(&FitController::workerThread, this, thread));
    
-   if (!runAsync)
+   if (!run_async)
       waitForFit();
    
    return 0;
@@ -314,7 +314,7 @@ terminated:
    
    std::thread::id cur_id = std::this_thread::get_id();
 
-   if (threads_running == 0 && runAsync)
+   if (threads_running == 0 && run_async)
    {
       for(auto& t : thread_handle)
          if ( t.joinable() && t.get_id() != cur_id )

@@ -28,6 +28,7 @@ classdef flim_fit_ui
    
     properties
         window
+        model
     end
     
     methods

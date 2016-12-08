@@ -155,7 +155,7 @@ function handles = setup_layout(obj, handles)
 
     set(fit_button_layout,'Widths',[-1,-2]);
     
-    set(left_layout,'Heights',[-1,125,208,30])
+    set(left_layout,'Heights',[-1,125,400,30])
     
         
     set(top_layout,'Widths',[-1,-2],'MinimumWidths',[500 0]);

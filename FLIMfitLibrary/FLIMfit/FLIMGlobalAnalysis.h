@@ -111,7 +111,7 @@ struct FitSettingsStruct
    double conf_interval;
 
    int    n_thread; 
-   int    runAsync;
+   int    run_async;
    int    (*callback)();
 };
 

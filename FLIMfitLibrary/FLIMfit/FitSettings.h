@@ -37,7 +37,7 @@ public:
    FitSettings(int algorithm = ALG_ML, int global_mode = MODE_PIXELWISE, int global_algorithm = MODE_GLOBAL_ANALYSIS, int weighting = AVERAGE_WEIGHTING, int n_thread = 1, int runAsync = true, int (*callback)() = NULL);
    FitSettings(FitSettingsStruct& settings_);
 
-   void CalculateErrors(int calculate_errors, double conf_interval = 0.05);
+   void setCalculateErrors(int calculate_errors, double conf_interval = 0.05);
 
-   FitSettingsStruct GetStruct();
+   FitSettingsStruct getStruct();
 };

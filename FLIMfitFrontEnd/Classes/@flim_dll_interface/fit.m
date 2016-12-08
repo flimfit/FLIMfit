@@ -195,7 +195,7 @@
     irf.timebin_width = d.t_irf(2) - d.t_irf(1);
     irf.ref_reconvolution = d.irf_type;
     irf.ref_lifetime_guess = d.ref_lifetime;
-        
+            
     data = ff_FLIMData('images',im,...
                        'data_transformation_settings',transform,...
                        'irf',irf,...
@@ -204,72 +204,20 @@
             
     % todo: background image, TVB
     
-    model = ff_DecayModel();
     
-    ff_DecayModel(model,'AddDecayGroup','Multi-Exponential Decay',n_decay);
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    % Setup memory to pass to DLL
-    obj.p_use = libpointer('int32Ptr',use);  
-    obj.p_tau_guess = libpointer('doublePtr',p.tau_guess);
-    obj.p_tau_min = libpointer('doublePtr',p.tau_min);
-    obj.p_tau_max = libpointer('doublePtr',p.tau_max);
-    
-    if obj.use_image_irf
-        obj.p_irf = libpointer('doublePtr', d.tr_image_irf);
-    else
-        obj.p_irf = libpointer('doublePtr', d.tr_irf);
-    end
-    
-    if d.use_image_t0_correction && ~obj.bin
-        obj.p_image_t0_shift = libpointer('doublePtr', cell2mat(d.metadata.t0)-d.metadata.t0{d.active});
-    else 
-        obj.p_image_t0_shift = [];
-    end
-    
-    if ~isempty(d.t0_image) && p.image_irf_mode == 2
-        if obj.bin
-            obj.p_t0_image = libpointer('doublePtr', d.t0_image(selected));
-        else
-            obj.p_t0_image = libpointer('doublePtr', d.t0_image);
-        end
-    else
-        obj.p_t0_image = [];
-    end
-    
-    obj.p_t_int = libpointer('doublePtr',d.tr_t_int);
-    obj.p_t_irf = libpointer('doublePtr', d.tr_t_irf);
-    obj.p_fixed_beta = libpointer('doublePtr',p.fixed_beta);
-    obj.p_E_guess = libpointer('doublePtr',p.fret_guess);
-    obj.p_theta_guess = libpointer('doublePtr',p.theta_guess);
-    obj.p_global_beta_group = libpointer('int32Ptr',p.global_beta_group);
-    
-    obj.p_tvb_profile = libpointer('doublePtr',d.tr_tvb_profile);
-    obj.p_tvb_profile_single = libpointer('singlePtr',d.tr_tvb_profile);
-    
-    if ~d.use_memory_mapping
-        obj.p_data = libpointer('singlePtr', d.data_series_mem);
-    end
+    fit_settings = struct();
+    fit_settings.n_thread = p.n_thread;
+    fit_settings.calculate_errors = p.calculate_errors;    
 
+     
+    ff_Controller(obj.controller,'Clear');
+    ff_Controller(obj.controller,'SetData',data);
+    ff_Controller(obj.controller,'SetModel',p.model);
+    ff_Controller(obj.controller,'SetFitSettings',fit_settings);
     
     obj.start_time = tic;
    
-    err = obj.call_fitting_lib(roi_mask,selected);
+    ff_Controller(obj.controller,'StartFit');
     
     if err ~= 0
         obj.clear_temp_vars();

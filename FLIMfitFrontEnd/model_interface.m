@@ -1,12 +1,10 @@
-function model_interface
+function model = model_interface(fh)
 
     decay_types = {'Multi-Exponential Decay','FRET Decay','Anistropy Decay'};
     fit_options = {'Fixed','Fitted Locally','Fitted Globally'};
     
-    fh = figure(1);
     model = ff_DecayModel();    
-    ff_DecayModel(model,'AddDecayGroup','Multi-Exponential Decay',2);
-    ff_DecayModel(model,'AddDecayGroup','Multi-Exponential Decay',2);
+    ff_DecayModel(model,'AddDecayGroup','Multi-Exponential Decay',1);
    
     groups = ff_DecayModel(model,'GetGroups');
 
