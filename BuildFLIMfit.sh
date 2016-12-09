@@ -7,6 +7,7 @@ if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_V
 
 export CC=/usr/local/bin/gcc-6
 export CXX=/usr/local/bin/g++-6
+export MACOSX_DEPLOYMENT_TARGET=10.9.5
 
 echo "Cleaning CMake Project..."
 cd GeneratedProjects

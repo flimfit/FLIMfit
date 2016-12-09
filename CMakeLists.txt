@@ -9,11 +9,6 @@ HunterGate(
 
 project(FLIMfit)
 
-# Improve compatibility with old macOS versions
-if(APPLE)
-   set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} --mmacosx-version-min=10.9.5" )
-endif(APPLE)
-
 hunter_add_package(OpenCV)
 hunter_add_package(Boost COMPONENTS system filesystem)
 
