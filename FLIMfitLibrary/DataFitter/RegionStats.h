@@ -61,9 +61,11 @@ public:
          param_idx[i] = 0;
    };
 
-   int GetNumStats() { return N_STATS; }
-   int GetNumParams() { return n_params; }
-   const vector<T>& GetStats() { return params; }
+   int GetNumStats() const { return N_STATS; }
+   int GetNumParams() const { return n_params; }
+   int GetNumRegions() const { return n_regions };
+
+   const vector<T>& GetStats() const { return params; } 
 
    T GetStat(int region, int param, int stat) const
    {

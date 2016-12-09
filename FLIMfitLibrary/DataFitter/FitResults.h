@@ -59,41 +59,41 @@ public:
    FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, int calculate_errors);
    ~FitResults();
 
-   const vector<string>& GetOutputParamNames() { return param_names; };
-   int GetNumOutputRegions() { return n_regions; }
-   int GetNumOutputParams() { return n_output_params; }
+   const vector<string>& getOutputParamNames() { return param_names; };
+   int getNumOutputRegions() { return n_regions; }
+   int getNumOutputParams() { return n_output_params; }
 
-   float* GetAuxDataPtr(int image, int region);
+   float* getAuxDataPtr(int image, int region);
    
-   const FitResultsRegion GetRegion(int image, int region);
-   const FitResultsRegion GetPixel(int image, int region, int pixel);
+   const FitResultsRegion getRegion(int image, int region);
+   const FitResultsRegion getPixel(int image, int region, int pixel);
   
-   void GetNonLinearParams(int image, int region, int pixel, vector<double>& params);
-   void GetLinearParams(int image, int region, int pixel, vector<float>& params);
+   void getNonLinearParams(int image, int region, int pixel, vector<double>& params);
+   void getLinearParams(int image, int region, int pixel, vector<float>& params);
 
-   void ComputeRegionStats(float confidence_factor);
-   int GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
+   void computeRegionStats(float confidence_factor);
+   int getParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
-   vector<uint8_t>& GetMask(int im) { return mask[im]; }
+   vector<uint8_t>& getMask(int im) { return mask[im]; }
    
-   int GetNumX();
-   int GetNumY();
+   int getNumX();
+   int getNumY();
    
-   const RegionStats<float> GetStats() { return stats; }
-   const vector<RegionSummary>& GetRegionSummary() { return region_summary; }
+   const RegionStats<float> getStats() { return stats; }
+   const vector<RegionSummary>& getRegionSummary() { return region_summary; }
 
 private:
 
    vector<RegionSummary> region_summary;
    RegionStats<float> stats;
    
-   void CalculateMeanLifetime();
-   void DetermineParamNames();
+   void calculateMeanLifetime();
+   void determineParamNames();
 
-   int ProcessLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
+   int processLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
    
-   void GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2);
-   void SetFitStatus(int image, int region, int code);
+   void getPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2);
+   void setFitStatus(int image, int region, int code);
 
    shared_ptr<FLIMData> data;
    shared_ptr<DecayModel> model;
@@ -145,8 +145,8 @@ public:
   FitResultsRegion(FitResults* results, int image, int region, int pixel) : 
       results(results), image(image), region(region), pixel(pixel), is_pixel(true) {};
 
-  void GetPointers(float*& non_linear_params, float*& linear_params, float*& chi2);
-  void SetFitStatus(int code);
+  void getPointers(float*& non_linear_params, float*& linear_params, float*& chi2);
+  void setFitStatus(int code);
 
 private:
    FitResults* results;

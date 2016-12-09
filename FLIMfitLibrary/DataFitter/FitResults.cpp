@@ -59,7 +59,7 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
 
-   DetermineParamNames();
+   determineParamNames();
    
    stats.SetSize(n_regions, n_output_params);
    region_summary.resize(n_regions);
@@ -100,18 +100,18 @@ FitResults::~FitResults()
 }
 
 
-const FitResultsRegion FitResults::GetRegion(int image, int region)
+const FitResultsRegion FitResults::getRegion(int image, int region)
 {
    return FitResultsRegion(this, image, region);
 }
 
-const FitResultsRegion FitResults::GetPixel(int image, int region, int pixel)
+const FitResultsRegion FitResults::getPixel(int image, int region, int pixel)
 {
    return FitResultsRegion(this, image, region, pixel);
 }
 
 
-void FitResults::GetNonLinearParams(int image, int region, int pixel, vector<double>& params)
+void FitResults::getNonLinearParams(int image, int region, int pixel, vector<double>& params)
 {
    int idx;
    if (pixelwise)
@@ -125,7 +125,7 @@ void FitResults::GetNonLinearParams(int image, int region, int pixel, vector<dou
       params[i] = alf[idx*nl + i];
 }
 
-void FitResults::GetLinearParams(int image, int region, int pixel, vector<float>& params)
+void FitResults::getLinearParams(int image, int region, int pixel, vector<float>& params)
 {
    int start = data->getRegionPos(image, region) + pixel;
 
@@ -135,13 +135,13 @@ void FitResults::GetLinearParams(int image, int region, int pixel, vector<float>
 }
 
 
-float* FitResults::GetAuxDataPtr(int image, int region)
+float* FitResults::getAuxDataPtr(int image, int region)
 {
    int pos =  data->getRegionPos(image,region);
    return aux_data.data() + pos * n_aux;
 }
 
-void FitResults::GetPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2_)
+void FitResults::getPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2_)
 {
 
    int start = data->getRegionPos(image, region) + pixel;
@@ -158,7 +158,7 @@ void FitResults::GetPointers(int image, int region, int pixel, float*& non_linea
 
 }
 
-void FitResults::SetFitStatus(int image, int region, int code)
+void FitResults::setFitStatus(int image, int region, int code)
 {
    int r_idx = data->getRegionIndex(image, region);
 
@@ -178,7 +178,7 @@ void FitResults::SetFitStatus(int image, int region, int code)
 
 }
 
-void FitResults::DetermineParamNames()
+void FitResults::determineParamNames()
 {
    model->getOutputParamNames(param_names, n_nl_output_params, n_lin_output_params);
    data->getAuxParamNames(param_names);
@@ -192,22 +192,22 @@ void FitResults::DetermineParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 }
 
-int FitResults::GetNumX() { assert(false); return 0; } // TODO
-int FitResults::GetNumY() { assert(false); return 0; } // TODO
+int FitResults::getNumX() { assert(false); return 0; } // TODO
+int FitResults::getNumY() { assert(false); return 0; } // TODO
 
 
-void FitResultsRegion::GetPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)
+void FitResultsRegion::getPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)
 {
-   results->GetPointers(image, region, pixel, non_linear_params, linear_params, chi2);
+   results->getPointers(image, region, pixel, non_linear_params, linear_params, chi2);
 }
 
-void FitResultsRegion::SetFitStatus(int code)
+void FitResultsRegion::setFitStatus(int code)
 {
-   results->SetFitStatus(image, region, code);
+   results->setFitStatus(image, region, code);
 }
 
 
-void FitResults::ComputeRegionStats(float confidence_factor)
+void FitResults::computeRegionStats(float confidence_factor)
 {
    RegionStatsCalculator stats_calculator(n_aux, confidence_factor);
    
@@ -288,7 +288,7 @@ void FitResults::ComputeRegionStats(float confidence_factor)
 
 }
 /*
-int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread)
+int FitResults::getImageStats(int& n_regions, int image[], int regions[], int region_size[], float success[], int iterations[], float params[], double conf_factor, int n_thread)
 {
    INIT_CONCURRENCY;
 
@@ -450,7 +450,7 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
 }
 */
 
-int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float image_data[])
+int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float image_data[])
 {
 
    int start, s_local;

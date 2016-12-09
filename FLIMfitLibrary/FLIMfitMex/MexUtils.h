@@ -285,7 +285,6 @@ std::vector<std::shared_ptr<T>> GetSharedPtrVectorFromMatlab(const mxArray* a)
    return v;
 }
 
-
 template<class T>
 mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T> ptr)
 {
@@ -293,4 +292,11 @@ mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T> ptr)
    std::shared_ptr<T>** p = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
    p[0] = new std::shared_ptr<T>(ptr);
    return a;
+}
+
+
+template<class T>
+mxArray* ReleaseSharedPtrFromMatlab(std::shared_ptr<T> ptr)
+{
+   delete ptr;
 }

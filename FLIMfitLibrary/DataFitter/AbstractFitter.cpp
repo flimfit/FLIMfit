@@ -210,7 +210,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
 
    float *alf_results;
-   results.GetPointers(alf_results, lin_params, chi2);
+   results.getPointers(alf_results, lin_params, chi2);
 
    chi2_norm = n - ((float)(nl))/s - l;
 
@@ -237,7 +237,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
    }
 
 
-   results.SetFitStatus(ierr);
+   results.setFitStatus(ierr);
 
    return ret;
 }

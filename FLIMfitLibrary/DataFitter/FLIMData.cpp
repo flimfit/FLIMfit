@@ -472,8 +472,8 @@ int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx
    int s = getRegionCount(im, region);
 
    float *masked_intensity, *masked_r_ss, *masked_acceptor;
-   float *aux_data = results.GetAuxDataPtr(im, region);
-   auto& mask = results.GetMask(im);
+   float *aux_data = results.getAuxDataPtr(im, region);
+   auto& mask = results.getMask(im);
    
    int n_aux = getNumAuxillary();
 

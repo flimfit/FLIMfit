@@ -21,7 +21,7 @@ public:
       
       if (orientation == Qt::Vertical)
       {
-         return QString::fromStdString(fit_results->GetOutputParamNames()[section]);
+         return QString::fromStdString(fit_results->getOutputParamNames()[section]);
       }
       else
       {
@@ -34,18 +34,18 @@ public:
       if (role != Qt::DisplayRole)
          return QVariant();
       
-      auto stats = fit_results->GetStats();
+      auto stats = fit_results->getStats();
       return stats.GetStat(index.column(), index.row(), PARAM_MEAN);
    }
    
    int rowCount(const QModelIndex& parent = QModelIndex()) const
    {
-      return fit_results->GetNumOutputParams();
+      return fit_results->getNumOutputParams();
    }
    
    int columnCount(const QModelIndex & parent = QModelIndex()) const
    {
-      return fit_results->GetNumOutputRegions();
+      return fit_results->getNumOutputRegions();
    }
    
    void refresh()

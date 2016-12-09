@@ -48,11 +48,11 @@ int next_id = 0;
 PointerMap<FitResults> pointer_map;
 
 
-void GetOutputParamNames(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getOutputParamNames(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
 
-   const vector<string>& names = r->GetOutputParamNames();
+   const vector<string>& names = r->getOutputParamNames();
 
    plhs[0] = mxCreateCellMatrix(1, names.size());
 
@@ -63,59 +63,70 @@ void GetOutputParamNames(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, con
    }
 }
 
-void GetTotalNumOutputRegions(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getTotalNumOutputRegions(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
 
-   int n_regions = r->GetNumOutputRegions();
+   int n_regions = r->getNumOutputRegions();
    plhs[0] = mxCreateDoubleScalar(n_regions);
 }
 
-void GetImageStats(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+
+void getImageStats(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nlhs >= 2);
+   AssertInputCondition(nlhs >= 1);
 
-   int n_regions = r->GetNumOutputRegions();
+   // Summary
+   auto& summary = r->getRegionSummary();
+   const char* labels[] = { "image", "region", "size", "iterations", "success" };;
 
-   int* image = reinterpret_cast<int*>(mxCreateNumericMatrix(n_regions, 1, mxINT32_CLASS, mxREAL));
-   int* region_idx = reinterpret_cast<int*>(mxCreateNumericMatrix(n_regions, 1, mxINT32_CLASS, mxREAL));
-   int* regions_size = reinterpret_cast<int*>(mxCreateNumericMatrix(n_regions, 1, mxINT32_CLASS, mxREAL));
-   int* success = reinterpret_cast<int*>(mxCreateNumericMatrix(n_regions, 1, mxINT32_CLASS, mxREAL));
-   int* iterations = reinterpret_cast<int*>(mxCreateNumericMatrix(n_regions, 1, mxINT32_CLASS, mxREAL));
+   int num_regions = summary.size();
 
-   r->ComputeRegionStats(0.05f);
-   vector<RegionSummary> summary = r->GetRegionSummary();
-   RegionStats<float> stats = r->GetStats();
-   
+   plhs[0] = mxCreateStructMatrix(1, 1, 5, labels);
+   mxArray* image = mxCreateDoubleMatrix(1, num_regions, mxREAL);
+   mxArray* region = mxCreateDoubleMatrix(1, num_regions, mxREAL);
+   mxArray* size = mxCreateDoubleMatrix(1, num_regions, mxREAL);
+   mxArray* iterations = mxCreateDoubleMatrix(1, num_regions, mxREAL);
+   mxArray* success = mxCreateDoubleMatrix(1, num_regions, mxREAL);
 
-   const char* fieldnames[5] =
-   {  "image",
-      "index",
-      "size",
-      "succes",
-      "iterations"
-   };
+   mxSetFieldByNumber(plhs[0], 0, 0, image);
+   mxSetFieldByNumber(plhs[0], 0, 1, region);
+   mxSetFieldByNumber(plhs[0], 0, 2, size);
+   mxSetFieldByNumber(plhs[0], 0, 3, iterations);
+   mxSetFieldByNumber(plhs[0], 0, 4, success);
 
-   plhs[0] = mxCreateStructMatrix(1, n_regions, 4, fieldnames);
+   double* imaged = reinterpret_cast<double*>(mxGetData(image));
+   double* regiond = reinterpret_cast<double*>(mxGetData(image));
+   double* sized = reinterpret_cast<double*>(mxGetData(image));
+   double* iterationsd = reinterpret_cast<double*>(mxGetData(image));
+   double* successd = reinterpret_cast<double*>(mxGetData(image));
 
-   for (int i = 0; i < n_regions; i++)
+   for (int i = 0; i < num_regions; i++)
    {
-      mxSetFieldByNumber(plhs[0], i, 0, mxCreateDoubleScalar(summary[i].image));
-      mxSetFieldByNumber(plhs[0], i, 1, mxCreateDoubleScalar(summary[i].region));
-      mxSetFieldByNumber(plhs[0], i, 2, mxCreateDoubleScalar(summary[i].size));
-      mxSetFieldByNumber(plhs[0], i, 3, mxCreateDoubleScalar(summary[i].success));
-      mxSetFieldByNumber(plhs[0], i, 4, mxCreateDoubleScalar(summary[i].iterations));
+      imaged[i] = summary[i].image;
+      regiond[i] = summary[i].region;
+      sized[i] = summary[i].size;
+      iterationsd[i] = summary[i].iterations;
+      successd[i] = summary[i].success;
    }
 
-   mwSize sz[3] = { stats.GetNumStats(), stats.GetNumParams(), n_regions };
-   plhs[1] = mxCreateNumericArray(3, sz, mxSINGLE_CLASS, mxREAL);
+   if (nlhs < 2)
+      return;
 
-   float* ptr = reinterpret_cast<float*>(mxGetPr(plhs[0]));
-   const vector<float>& stats_data = stats.GetStats();
-   std::copy(stats_data.begin(), stats_data.end(), ptr);
+   // Statistics
+   auto& stats = r->getStats();
+   int num_params = stats.GetNumParams();
+   int num_stats = stats.GetNumStats();
+
+   mwSize dims[] = { num_stats, num_params, num_regions };
+   plhs[1] = mxCreateNumericArray(3, dims, mxSINGLE_CLASS, mxREAL);
+   float* sf = reinterpret_cast<float*>(mxGetData(plhs[1]));
+
+   auto stats_vector = stats.GetStats();
+   std::copy(stats_vector.begin(), stats_vector.end(), sf);
 }
 
-void GetParameterImage(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getParameterImage(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 2);
    AssertInputCondition(nrhs >= 4);
@@ -123,8 +134,8 @@ void GetParameterImage(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const
    int im = mxGetScalar(prhs[2]);
    int param = mxGetScalar(prhs[3]);
 
-   int n_x = r->GetNumX();
-   int n_y = r->GetNumY();
+   int n_x = r->getNumX();
+   int n_y = r->getNumY();
 
    plhs[0] = mxCreateNumericMatrix(n_y, n_x, mxUINT8_CLASS, mxREAL);
    plhs[1] = mxCreateNumericMatrix(n_y, n_x, mxSINGLE_CLASS, mxREAL);
@@ -132,11 +143,8 @@ void GetParameterImage(FitResults* r, int nlhs, mxArray *plhs[], int nrhs, const
    uint8_t* ptr_map = reinterpret_cast<uint8_t*>(plhs[0]);
    float* ptr_param = reinterpret_cast<float*>(plhs[0]);
 
-   r->GetParameterImage(im, param, ptr_map, ptr_param);
+   r->getParameterImage(im, param, ptr_map, ptr_param);
 }
-
-
-
 
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -145,27 +153,28 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    try
    {
       AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsUint64(prhs[0]));
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      FitResults* results = *reinterpret_cast<FitResults**>(mxGetData(prhs[0]));
+      auto results = GetSharedPtrFromMatlab<FitResults>(prhs[0]);
 
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
       if (command == "GetOutputParamNames")
-         GetOutputParamNames(results, nlhs, plhs, nrhs, prhs);
+         getOutputParamNames(results, nlhs, plhs, nrhs, prhs);
       else if (command == "GetTotalNumOutputRegions")
-         GetTotalNumOutputRegions(results, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetImageStats")
-         GetImageStats(results, nlhs, plhs, nrhs, prhs);
+         getTotalNumOutputRegions(results, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetStats")
+         getImageStats(results, nlhs, plhs, nrhs, prhs);
       else if (command == "GetParameterImage")
-         GetParameterImage(results, nlhs, plhs, nrhs, prhs);
+         getParameterImage(results, nlhs, plhs, nrhs, prhs);
+      else if (command == "Delete")
+         ReleaseSharedPtrFromMatlab(results);
       else
          mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");
 
    }
-   catch (std::exception e)
+   catch (std::runtime_error e)
    {
       mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
          e.what());

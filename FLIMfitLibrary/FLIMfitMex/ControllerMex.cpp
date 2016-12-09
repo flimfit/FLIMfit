@@ -91,21 +91,6 @@ void startFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
    c->runWorkers();
 }
 
-void getFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
-   AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(nlhs >= 3);
-
-   // TODO
-
-   //int im = mxGetScalar(prhs[2]);
-   //int fit_mask[]= mxGetScalar(prhs[2]);  
-   //double fit[]= mxGetScalar(prhs[2]);  
-   //int* n_valid;
-   
-   //c->GetFit(im, n_fit, fit_mask, fit, *n_valid);
-}
-
 void clearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    c->init();
@@ -151,6 +136,13 @@ void getFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nr
    */
 }
 
+void getFitResults(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+   plhs[0] = PackageSharedPtrForMatlab(c->getResults());
+}
+
+
 
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -170,7 +162,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       int c_idx = mxGetScalar(prhs[0]);
-
+      
       // Get controller
       auto controller = pointer_map.Get(c_idx);
       if (controller == nullptr)
@@ -193,6 +185,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          stopFit(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "GetFitStatus")
          getFitStatus(controller, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetFitResults")
+         getFitResults(controller, nlhs, plhs, nrhs, prhs);
 
    }
    catch (std::runtime_error e)

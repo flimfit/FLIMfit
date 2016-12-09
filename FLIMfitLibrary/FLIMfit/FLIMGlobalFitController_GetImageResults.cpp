@@ -511,7 +511,7 @@ int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n
    
    //int n_px = data->n_px;
 
-   auto& mask = results->GetMask(im);
+   auto& mask = results->getMask(im);
 
    int iml = data->getImLoc(im);
    im = iml;
@@ -540,8 +540,8 @@ int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n
             int idx = fit_loc[i];
             if (mask[idx] == rg)
             {
-               results->GetNonLinearParams(im, rg, lin_idx, nl_params);
-               results->GetLinearParams(im, rg, lin_idx, l_params);
+               results->getNonLinearParams(im, rg, lin_idx, nl_params);
+               results->getLinearParams(im, rg, lin_idx, l_params);
 
                fitters[thread].GetFit(idx, nl_params, l_params.data(), fit+n_meas*i);
                n_valid++;

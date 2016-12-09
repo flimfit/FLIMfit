@@ -326,7 +326,7 @@ terminated:
 
 void FitController::setFitComplete()
 {
-   results->ComputeRegionStats(conf_factor);
+   results->computeRegionStats(conf_factor);
    
    cleanupTempVars();
    reporter->setFinished();
