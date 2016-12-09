@@ -99,33 +99,12 @@ classdef flim_fit_ui
                 'MenuBar', 'none', ...
                 'Toolbar', 'none', ...
                 'HandleVisibility', 'off', ...
-                'Visible','off', ...
-                'Units','normalized', ...
-                'OuterPosition',[0 0.03 1 0.97]);
-            
-            coords = get(0,'MonitorPositions');             
-            %position only in main monitor
-            
-            hostname = getenv('COMPUTERNAME');
-            
-            monitor = 1;                       
-            coords = coords(monitor,:);
-            
-            % Allow for taskbar if we're on windows
-            comp = computer;
-            if strcmp(comp(1:2),'PC')
-                coords(4) = coords(4) - 30;
-                coords(2) = coords(2) + 30;
-            end
-            
-            try 
-                set(obj.window,'Units','Pixels','OuterPosition',coords);
-            catch e %#ok
-               disp('Warning: could not maximise window'); 
-            end
+                'Visible','off',...
+                'Units','normalized',...
+                'OuterPosition',[0 0 1 1]);
+                                    
             handles = guidata(obj.window); 
                                                 
-        
             handles.version = v;
             handles.window = obj.window;
             handles.use_popup = true;
@@ -173,10 +152,10 @@ classdef flim_fit_ui
             utilJarInPath = false;
             ini4jInPath = false;
             for i = 1:length(jPath)
-                if strfind(jPath{i},'OMEuiUtils.jar');
+                if strfind(jPath{i},'OMEuiUtils.jar')
                     utilJarInPath = true;
                 end
-                if strfind(jPath{i},'ini4j.jar');
+                if strfind(jPath{i},'ini4j.jar')
                     ini4jInPath = true;
                 end
                 if utilJarInPath && ini4jInPath
@@ -234,6 +213,11 @@ classdef flim_fit_ui
             set(obj.window,'Visible','on');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                        
+            pause(0.00001);
+            frame_h = get(obj.window,'JavaFrame');
+            frame_h.setMaximized(true); 
+
+            
             if wait
                 waitfor(obj.window);
             end
@@ -295,10 +279,6 @@ classdef flim_fit_ui
             end
             
             clear all;
-
-             
-          
-            
             
         end
         

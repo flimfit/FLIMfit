@@ -75,7 +75,7 @@ void getTotalNumOutputRegions(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[
 void getImageStats(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
-
+    
    // Summary
    auto& summary = r->getRegionSummary();
    const char* labels[] = { "image", "region", "size", "iterations", "success" };;
@@ -96,10 +96,10 @@ void getImageStats(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs
    mxSetFieldByNumber(plhs[0], 0, 4, success);
 
    double* imaged = reinterpret_cast<double*>(mxGetData(image));
-   double* regiond = reinterpret_cast<double*>(mxGetData(image));
-   double* sized = reinterpret_cast<double*>(mxGetData(image));
-   double* iterationsd = reinterpret_cast<double*>(mxGetData(image));
-   double* successd = reinterpret_cast<double*>(mxGetData(image));
+   double* regiond = reinterpret_cast<double*>(mxGetData(region));
+   double* sized = reinterpret_cast<double*>(mxGetData(size));
+   double* iterationsd = reinterpret_cast<double*>(mxGetData(iterations));
+   double* successd = reinterpret_cast<double*>(mxGetData(success));
 
    for (int i = 0; i < num_regions; i++)
    {
@@ -169,7 +169,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       else if (command == "GetParameterImage")
          getParameterImage(results, nlhs, plhs, nrhs, prhs);
       else if (command == "Delete")
-         ReleaseSharedPtrFromMatlab(results);
+         ReleaseSharedPtrFromMatlab<FitResults>(prhs[0]);
       else
          mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");
 

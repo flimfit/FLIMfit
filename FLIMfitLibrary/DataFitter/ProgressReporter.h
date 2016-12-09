@@ -12,6 +12,14 @@ public:
       sub_tasks_completed = 0;
       progress = 0;
    }
+
+   void reset()
+   {
+      progress = 0;
+      finished = false;
+      termination_requested = false;
+      sub_tasks_completed = 0;
+   }
    
    virtual void setInterderminate()
    {

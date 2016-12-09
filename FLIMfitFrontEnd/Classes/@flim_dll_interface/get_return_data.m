@@ -43,6 +43,12 @@ function get_return_data(obj)
     results = ff_Controller(obj.dll_id,'GetFitResults');
     [summary, stats] = ff_FitResults(results,'GetStats');
     
+    param_names = ff_FitResults(results,'GetOutputParamNames'); 
+    r.set_param_names(param_names);
+
+    names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
+    r.stat_names = names;
+    
     keep = true(size(obj.datasets));
     idx = r.n_results + 1;
     % Get results for each image
@@ -54,15 +60,13 @@ function get_return_data(obj)
         
         if sum(region_sel) > 0
             region_size_sel = summary.size(region_sel);
-            regions_sel     = summary.regions(region_sel);
+            regions_sel     = summary.region(region_sel);
             iterations_sel  = summary.iterations(region_sel);
             success_sel     = summary.success(region_sel);
 
             stats_sel = stats(:,:,region_sel);
 
             stats_sel = permute(stats_sel,[2 3 1]);
-
-            names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
 
             r.set_results(idx,obj.dll_id,im,regions_sel,region_size_sel,success_sel,iterations_sel,stats_sel,names);
             idx = idx+1;

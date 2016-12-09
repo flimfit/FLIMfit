@@ -500,7 +500,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
   GetFit
   ===============================================*/
 
-int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n_valid)
+int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& n_valid)
 {
    if (n_fits_complete != n_fits)
       throw(std::runtime_error("Fit not yet complete"));
@@ -518,6 +518,8 @@ int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n
    if (iml == -1)
       return 0;
    
+   int nel = mask.size();
+
    vector<double> nl_params(model->getNumNonlinearVariables());
    vector<float> l_params(model->getNumColumns());
 
@@ -537,8 +539,8 @@ int FitController::getFit(int im, int n_fit, int fit_loc[], double fit[], int& n
          int last_idx = 0;
          for(int i=0; i<n_fit; i++)
          {
-            int idx = fit_loc[i];
-            if (mask[idx] == rg)
+            uint32_t idx = fit_loc[i];
+            if (idx < nel && mask[idx] == rg)
             {
                results->getNonLinearParams(im, rg, lin_idx, nl_params);
                results->getLinearParams(im, rg, lin_idx, l_params);

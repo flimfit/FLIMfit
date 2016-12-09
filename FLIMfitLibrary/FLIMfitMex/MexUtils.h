@@ -286,7 +286,7 @@ std::vector<std::shared_ptr<T>> GetSharedPtrVectorFromMatlab(const mxArray* a)
 }
 
 template<class T>
-mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T> ptr)
+mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T>& ptr)
 {
    mxArray* a = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
    std::shared_ptr<T>** p = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
@@ -294,9 +294,16 @@ mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T> ptr)
    return a;
 }
 
-
 template<class T>
-mxArray* ReleaseSharedPtrFromMatlab(std::shared_ptr<T> ptr)
+void ReleaseSharedPtrFromMatlab(const mxArray* a)
 {
-   delete ptr;
+   if (!mxIsUint64(a))
+      mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
+         "Should be a pointer from Mex file");
+
+   std::shared_ptr<T>** ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
+
+   int n = mxGetNumberOfElements(a);
+   for (int i = 0; i < n; i++)
+      delete ptrs[i];
 }

@@ -236,10 +236,13 @@ void MultiExponentialDecayGroup::getLinearOutputParamNames(vector<string>& names
    {
       names.push_back("I_0");
 
-      for (int i = 0; i < n_exponential; i++)
+      if (n_exponential > 1)
       {
-         string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
-         names.push_back(name);
+         for (int i = 0; i < n_exponential; i++)
+         {
+            string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
+            names.push_back(name);
+         }
       }
    }
 }

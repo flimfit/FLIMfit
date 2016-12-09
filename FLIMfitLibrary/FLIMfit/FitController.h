@@ -76,7 +76,7 @@ public:
    void waitForFit();
    void stopFit();
    
-   int getFit(int im, int n_fit, int fit_mask[], double fit[], int& n_valid);
+   int getFit(int im, int n_fit, uint fit_mask[], double fit[], int& n_valid);
 
    void getWeights(float* y, double* a, const double* alf, float* lin_params, double* w, int irf_idx, int thread);
 

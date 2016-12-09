@@ -52,36 +52,15 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     mask = mask(:);
     loc = 0:(length(mask)-1);
     loc = loc(mask);
+    loc = uint32(loc);
     
+    [decay, n_valid] = ff_Controller(obj.dll_id, 'GetFit', im, loc);
     
-    n_fit = sum(mask(:)>0);
-    n_t = length(t);
-    n_chan = d.n_chan;
-    
-    p_fit = libpointer('doublePtr',zeros([n_t n_chan n_fit]));
-    p_n_valid = libpointer('int32Ptr',0);
-    try
-        
-        calllib(obj.lib_name,'FLIMGlobalGetFit', obj.dll_id, im, n_t, t, n_fit, loc, p_fit, p_n_valid);
-        
-        n_valid = p_n_valid.Value;
-        decay = p_fit.Value;
-        decay = reshape(decay,[n_t n_chan n_fit]);
-        
-        if (all(isnan(decay)))
-            decay = NaN(n_t,n_chan);
-        else
-            decay = nansum(decay,3);
-            decay = decay / double(n_valid);
-        end
-        
-    catch error
-        
+    if (all(isnan(decay)))
         decay = NaN(n_t,n_chan);
-         disp('Warning: Could not get fit');
+    else
+        decay = nansum(decay,3);
+        decay = decay / double(n_valid);
     end
-            
-    clear p_fit;
-    
-
+           
 end

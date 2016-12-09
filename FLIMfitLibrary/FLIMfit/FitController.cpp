@@ -68,22 +68,6 @@ void FitController::setFitSettings(const FitSettings& settings)
    *static_cast<FitSettings*>(this) = settings;
 }
 
-/*
-bool FitController::Busy()
-{
-   if (!init)
-      return false;
-   else
-      return status->IsRunning();
-}
-
-
-void FitController::StopFit()
-{
-   status->Terminate();
-}
-*/
-
 void FitController::stopFit()
 {
    reporter->requestTermination();
@@ -98,8 +82,12 @@ int FitController::runWorkers()
    if (!is_init)
       throw(std::runtime_error("Controller has not been initalised"));
 
+   reporter->reset();
+
+   has_fit = false;
    fit_in_progress = true;
    threads_running = 0;
+
 
    omp_set_num_threads(n_omp_thread);
 
@@ -332,6 +320,7 @@ void FitController::setFitComplete()
    reporter->setFinished();
    
    has_fit = true;
+   fit_in_progress = false;
    fit_cv.notify_all();
 }
 
@@ -452,7 +441,8 @@ FitController::~FitController()
 {
    // wait for threads to terminate
    for (auto& t : thread_handle)
-      t.join();
+      if (t.joinable())
+         t.join();
 
    cleanupTempVars();
 }

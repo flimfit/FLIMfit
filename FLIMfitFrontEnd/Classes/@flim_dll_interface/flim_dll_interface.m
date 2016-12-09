@@ -94,7 +94,7 @@ classdef flim_dll_interface < handle
         use;
         
         dll_id;
-        result_objs;
+        result_objs = uint64.empty([0 1]);
     end
         
     methods
@@ -120,6 +120,12 @@ classdef flim_dll_interface < handle
             obj.unload_global_library();
         end
        
+        function clear_fit(obj)
+            for r=1:length(obj.result_objs)
+                ff_FitResults(obj.result_objs(r),'Delete');
+            end
+            obj.result_objs = uint64.empty([0 1]);
+        end
         
         function im = fill_image(obj,var,mask,min_region)
 

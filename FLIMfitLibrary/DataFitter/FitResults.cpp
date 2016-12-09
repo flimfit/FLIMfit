@@ -60,10 +60,7 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
 
    determineParamNames();
-   
-   stats.SetSize(n_regions, n_output_params);
-   region_summary.resize(n_regions);
-
+  
 
    int alf_size;
    
@@ -209,6 +206,9 @@ void FitResultsRegion::setFitStatus(int code)
 
 void FitResults::computeRegionStats(float confidence_factor)
 {
+   stats.SetSize(n_regions, n_output_params);
+   region_summary.resize(n_regions);
+
    RegionStatsCalculator stats_calculator(n_aux, confidence_factor);
    
    vector<float> param_buf;

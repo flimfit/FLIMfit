@@ -142,6 +142,31 @@ void getFitResults(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int n
    plhs[0] = PackageSharedPtrForMatlab(c->getResults());
 }
 
+void getFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 4);
+   AssertInputCondition(nlhs >= 1);
+
+   AssertInputCondition(mxIsNumeric(prhs[2])); // image
+   AssertInputCondition(mxIsUint32(prhs[3])); // fitloc
+
+   int im = mxGetScalar(prhs[2]);
+   uint32_t* loc = reinterpret_cast<uint32_t*>(mxGetData(prhs[3]));
+   int n_fit = mxGetNumberOfElements(prhs[3]);
+   
+   auto dp = c->getData()->GetTransformedDataParameters();  
+   mwSize dims[] = { dp->n_t, dp->n_chan, n_fit };
+
+   plhs[0] = mxCreateNumericArray(3, dims, mxDOUBLE_CLASS, mxREAL);
+   double* fit = reinterpret_cast<double*>(mxGetData(plhs[0]));
+
+   int n_valid;
+   c->getFit(im, n_fit, loc, fit, n_valid);
+
+   if (nlhs >= 2)
+      plhs[1] = mxCreateDoubleScalar(n_valid);
+}
+
 
 
 
@@ -185,6 +210,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          stopFit(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "GetFitStatus")
          getFitStatus(controller, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetFit")
+         getFit(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "GetFitResults")
          getFitResults(controller, nlhs, plhs, nrhs, prhs);
 

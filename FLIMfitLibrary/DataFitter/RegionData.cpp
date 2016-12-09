@@ -37,7 +37,7 @@ RegionData::RegionData() :
    n_px_max(0),
    n_px_cur(0),
    n_meas(0),
-   is_shallow_ptr(false)
+   is_shallow_ptr(true)
 {
 }
 
@@ -52,6 +52,37 @@ RegionData::RegionData(int data_type, int n_px_max, int n_meas) :
    irf_idx = new int[n_px_max];
 }
 
+RegionData::RegionData(RegionData* region, int px) :
+   n_px_max(1),
+   n_px_cur(1),
+   is_shallow_ptr(true)
+{  
+   n_meas = region->n_meas;
+   data_type = region->data_type;
+
+   data = region->data + px * n_meas;
+   irf_idx = region->irf_idx + px;
+}
+
+RegionData& RegionData::operator=(const RegionData& other)
+{
+   assert(is_shallow_ptr);
+
+   is_shallow_ptr = true;
+
+   n_px_max = other.n_px_max;
+   n_px_cur = other.n_px_cur; // to stop the copy modifying the data
+
+   data = other.data;
+   irf_idx = other.irf_idx;
+
+   data_type = other.data_type;
+   n_meas = other.n_meas;
+
+   return *this;
+}
+
+
 RegionData::~RegionData()
 {
    if (!is_shallow_ptr)
@@ -60,6 +91,28 @@ RegionData::~RegionData()
       delete[] irf_idx;
    }
 }
+
+const RegionData RegionData::GetPixel(int px)
+{
+   assert(px < n_px_cur);
+   return RegionData(this, px);
+}
+
+const RegionData RegionData::GetBinnedRegion()
+{
+   RegionData binned_region(data_type, 1, n_meas);
+
+   float* binned_data;
+   int*   binned_irf_idx;
+
+   binned_region.GetPointersForInsertion(1, binned_data, binned_irf_idx);
+
+   GetAverageDecay(binned_data);
+   binned_irf_idx[0] = 0;
+
+   return binned_region;
+}
+
 
 void RegionData::Clear()
 {
@@ -110,54 +163,4 @@ void RegionData::GetPointers(float*& data, int*& irf_idx)
 int RegionData::GetSize()
 {
    return n_px_cur;
-}
-
-const RegionData RegionData::GetPixel(int px)
-{
-   assert(px < n_px_cur);
-   return RegionData(this, px);
-}
-
-
-RegionData::RegionData(RegionData* region, int px) : 
-   n_px_max(1),
-   n_px_cur(1),
-   is_shallow_ptr(true)
-{
-   n_meas  = region->n_meas;
-   data_type = region->data_type;
-
-   data    = region->data + px * n_meas;
-   irf_idx = region->irf_idx + px;
-}
-
-const RegionData RegionData::GetBinnedRegion()
-{
-   RegionData binned_region(data_type, 1, n_meas);
-
-   float* binned_data;
-   int*   binned_irf_idx;
-
-   binned_region.GetPointersForInsertion(1, binned_data, binned_irf_idx);
-
-   GetAverageDecay(binned_data);
-   binned_irf_idx[0] = 0;
-
-   return binned_region;
-}
-
-RegionData& RegionData::operator=( const RegionData& other ) 
-{
-   is_shallow_ptr = true;
-   
-   n_px_max = other.n_px_max;
-   n_px_cur = other.n_px_cur; // to stop the copy modifying the data
-      
-   data     = other.data;
-   irf_idx  = other.irf_idx;
-
-   data_type = other.data_type;
-   n_meas    = other.n_meas;
-   
-   return *this;
 }
