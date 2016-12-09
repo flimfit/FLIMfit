@@ -94,6 +94,7 @@ classdef flim_dll_interface < handle
         use;
         
         dll_id;
+        result_objs;
     end
         
     methods

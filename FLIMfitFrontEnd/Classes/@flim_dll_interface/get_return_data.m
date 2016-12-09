@@ -38,54 +38,11 @@ function get_return_data(obj)
     r.t_exec = toc(obj.start_time);    
     disp(['DLL execution time: ' num2str(r.t_exec)]);
         
-  
     obj.fit_result.smoothing = (2*d.binning+1)^2;
+            
+    results = ff_Controller(obj.dll_id,'GetFitResults');
+    [summary, stats] = ff_FitResults(results,'GetStats');
     
-        
-    % Get param names
-    p_n_output = libpointer('int32Ptr',0);
-    ptr = calllib(obj.lib_name,'GetOutputParamNames',obj.dll_id, p_n_output);
-        
-    n_output = p_n_output.Value;
-    param_names = cell(1,n_output);
-    for i=1:n_output
-        param_names(i) = ptr.Value;
-        ptr = ptr + 1;
-    end
-
-    r.set_param_names(param_names);
-    
-    n_regions_total = calllib(obj.lib_name,'GetTotalNumOutputRegions',obj.dll_id);
-
-    
-    % Setup memory to retrieve data
-    p_n_regions = libpointer('int32Ptr',0);
-    p_image = libpointer('int32Ptr',zeros(1,n_regions_total)); 
-    p_region = libpointer('int32Ptr',zeros(1,n_regions_total)); 
-    p_region_size = libpointer('int32Ptr',zeros(1,n_regions_total)); 
-    p_success = libpointer('singlePtr',zeros(1,n_regions_total)); 
-    p_iterations = libpointer('int32Ptr',zeros(1,n_regions_total)); 
-    
-    
-    n_stats = 11;
-    
-    p_stats = libpointer('singlePtr',zeros(n_stats,n_output,n_regions_total));
-    
-
-    
-    err = calllib(obj.lib_name,'GetImageStats',obj.dll_id, p_n_regions, p_image, ...
-                      p_region, p_region_size, p_success, p_iterations, p_stats);
-    
-                  
-    region_size = double(p_region_size.Value);
-    regions = double(p_region.Value);
-    image = double(p_image.Value);
-    iterations = double(p_iterations.Value);
-    success = double(p_success.Value);
-    stats = reshape(double(p_stats.Value),[n_stats,n_output,n_regions_total]);
-                  
-    
-                                    
     keep = true(size(obj.datasets));
     idx = r.n_results + 1;
     % Get results for each image
@@ -93,13 +50,13 @@ function get_return_data(obj)
         
         im = obj.datasets(i);
                             
-        region_sel = (image == (im-1) & region_size > 0);
+        region_sel = (summary.image == (im-1) & summary.size > 0);
         
         if sum(region_sel) > 0
-            region_size_sel = region_size(region_sel);
-            regions_sel     = regions(region_sel);
-            iterations_sel  = iterations(region_sel);
-            success_sel     = success(region_sel);
+            region_size_sel = summary.size(region_sel);
+            regions_sel     = summary.regions(region_sel);
+            iterations_sel  = summary.iterations(region_sel);
+            success_sel     = summary.success(region_sel);
 
             stats_sel = stats(:,:,region_sel);
 
@@ -128,8 +85,7 @@ function get_return_data(obj)
 
     r.names = [r.names d.names(obj.datasets)];
 
-    obj.fit_dll_id(end+1) = obj.dll_id;
-    
+    obj.result_objs(end+1) = results;
     
     obj.progress_bar = [];
     

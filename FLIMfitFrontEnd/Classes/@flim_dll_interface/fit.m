@@ -48,7 +48,7 @@
     % If called without arguments we're continuing a fit
     if nargin > 1
         
-%TODO:        obj.clear_fit();
+        obj.clear_fit();
         
         obj.data_series = data_series;
         obj.fit_params = fit_params;
