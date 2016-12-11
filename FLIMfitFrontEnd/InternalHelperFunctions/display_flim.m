@@ -133,14 +133,14 @@ function im=display_flim(data,mask,lim,varargin)
         font_size = ceil(size(data,1) * 0.03);
         font_size = max(font_size,8);
         im = insertText(im,[size(data,2) 1],num2str(lim(2)),'AnchorPoint','RightTop',...
-            'Font','Arial','FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
+            'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
         im = insertText(im,[size(data,2) size(data,1)],num2str(lim(1)),'AnchorPoint','RightBottom',...
-            'Font','Arial','FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
+            'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
     end
     
     if ~strcmp(options.t,'')
         im = insertText(im,[0,0],options.t,'AnchorPoint','LeftTop',...
-            'Font','Arial','FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
+            'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
     end
     
 end

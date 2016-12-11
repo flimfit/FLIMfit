@@ -40,9 +40,9 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             assign_handles(obj,handles);
             
             set(obj.corr_independent_popupmenu,'Callback',@obj.ind_param_select_update);
-            set(obj.corr_source_popupmenu,'Callback',@(~,~)obj.update_display);
-            set(obj.corr_display_popupmenu,'Callback',@(~,~)obj.update_display);
-            set(obj.corr_scale_popupmenu,'Callback',@(~,~)obj.update_display);
+            set(obj.corr_source_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
+            set(obj.corr_display_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
+            set(obj.corr_scale_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_display));
             
             obj.register_tab_function('Correlation');
             obj.update_display();

@@ -44,29 +44,29 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
             assign_handles(obj,handles);
             
             parent = get(obj.intensity_axes,'Parent');
-            set(parent,'ResizeFcn',@obj.update_figure);
+            set(parent,'ResizeFcn',@(~,~) escaped_callback(@obj.update_figure));
             
-            set(obj.intensity_mode_popupmenu,'Callback',@obj.update_figure);
+            set(obj.intensity_mode_popupmenu,'Callback',@(~,~) escaped_callback(@obj.update_figure));
             if ~isempty(obj.data_series_list)
-                addlistener(obj.data_series_list,'selection_updated',@obj.data_update_evt);
+                addlistener(obj.data_series_list,'selection_updated',@(~,~) escaped_callback(@obj.data_update_evt));
             end
             obj.update_figure();
         end
         
         function data_set(obj)
-            obj.lh = addlistener(obj.data_series,'masking_updated',@obj.data_update_evt);
+            obj.lh = addlistener(obj.data_series,'masking_updated',@(~,~) escaped_callback(@obj.data_update_evt));
         end
         
         function set_click_callback(obj,callback)
             obj.callback = callback;
-            set(obj.intensity_axes,'ButtonDownFcn',callback)
+            set(obj.intensity_axes,'ButtonDownFcn',@(~,~) escaped_callback(callback));
         end
 
         function data_update(obj)
             obj.update_figure();
         end
         
-        function update_figure(obj,~,~)
+        function update_figure(obj)
             
             ax = obj.intensity_axes;
             
