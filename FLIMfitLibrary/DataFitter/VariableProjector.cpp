@@ -258,7 +258,7 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
       //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       // Get linear parameters
-      if (info == -8)
+      if (info <= -8)
       {
          SetNaN(alf.data(), nl);
       }
