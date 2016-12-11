@@ -8,13 +8,14 @@ function model = model_interface(fh)
    
     groups = ff_DecayModel(model,'GetGroups');
 
+    main_layout = uix.VBox('Parent',fh,'Padding',5,'Spacing',2,'BackgroundColor','w');
+
     draw();
     
     function draw()    
-        clf(fh);
 
-        main_layout = uix.VBox('Parent',fh,'Padding',5,'Spacing',2,'BackgroundColor','w');
-
+        delete(main_layout.Contents);
+        
         add_layout = uix.HBox('Parent',main_layout,'Spacing',5,'BackgroundColor','w');
         uicontrol('Style','text','String','New: ','Parent',add_layout,'BackgroundColor','w');
         add_popup = uicontrol('Style','popupmenu','String',decay_types,'Parent',add_layout);
