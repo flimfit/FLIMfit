@@ -131,19 +131,19 @@ void getParameterImage(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int 
    AssertInputCondition(nlhs >= 2);
    AssertInputCondition(nrhs >= 4);
 
-   int im = mxGetScalar(prhs[2]);
-   int param = mxGetScalar(prhs[3]);
+   int im = mxGetScalar(prhs[2]) - 1;
+   int param = mxGetScalar(prhs[3]) - 1;
 
-   int n_x = r->getNumX();
-   int n_y = r->getNumY();
+   int n_x = r->getNumX(im);
+   int n_y = r->getNumY(im);
 
-   plhs[0] = mxCreateNumericMatrix(n_y, n_x, mxUINT8_CLASS, mxREAL);
-   plhs[1] = mxCreateNumericMatrix(n_y, n_x, mxSINGLE_CLASS, mxREAL);
-
-   uint8_t* ptr_map = reinterpret_cast<uint8_t*>(plhs[0]);
+   plhs[0] = mxCreateNumericMatrix(n_y, n_x, mxSINGLE_CLASS, mxREAL);
+   plhs[1] = mxCreateNumericMatrix(n_y, n_x, mxUINT8_CLASS, mxREAL);
+   
    float* ptr_param = reinterpret_cast<float*>(plhs[0]);
+   uint8_t* ptr_mask = reinterpret_cast<uint8_t*>(plhs[1]);
 
-   r->getParameterImage(im, param, ptr_map, ptr_param);
+   r->getParameterImage(im, param, ptr_mask, ptr_param);
 }
 
 

@@ -68,7 +68,7 @@ function get_return_data(obj)
 
             stats_sel = permute(stats_sel,[2 3 1]);
 
-            r.set_results(idx,obj.dll_id,im,regions_sel,region_size_sel,success_sel,iterations_sel,stats_sel,names);
+            r.set_results(idx,results,im,regions_sel,region_size_sel,success_sel,iterations_sel,stats_sel,names);
             idx = idx+1;
         else
             keep(i) = false;

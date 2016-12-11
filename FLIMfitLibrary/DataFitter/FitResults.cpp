@@ -54,7 +54,6 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    n_im = data->n_im_used;
    n_regions = data->getNumOutputRegionsTotal();
    
-   
    n_nl_output_params = nl; // TODO - redundant?
 
    pixelwise = (data->global_mode == MODE_PIXELWISE);
@@ -89,6 +88,12 @@ FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, 
    {
       alf_err_lower.resize(alf_size);
       alf_err_upper.resize(alf_size);
+   }
+
+   image_size.resize(n_im);
+   for (int i = 0; i < n_im; i++)
+   {
+      image_size[i] = data->getImageSize(i);
    }
 }
 
@@ -189,8 +194,8 @@ void FitResults::determineParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 }
 
-int FitResults::getNumX() { assert(false); return 0; } // TODO
-int FitResults::getNumY() { assert(false); return 0; } // TODO
+int FitResults::getNumX(int im) { return image_size[im].width; } // TODO
+int FitResults::getNumY(int im) { return image_size[im].height; } // TODO
 
 
 void FitResultsRegion::getPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)

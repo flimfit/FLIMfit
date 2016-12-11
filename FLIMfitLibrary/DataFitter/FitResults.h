@@ -76,8 +76,8 @@ public:
 
    vector<uint8_t>& getMask(int im) { return mask[im]; }
    
-   int getNumX();
-   int getNumY();
+   int getNumX(int im);
+   int getNumY(int im);
    
    const RegionStats<float> getStats() { return stats; }
    const vector<RegionSummary>& getRegionSummary() { return region_summary; }
@@ -127,6 +127,8 @@ private:
    int n_lin_output_params;
    vector<const char*> param_names_ptr;
    vector<string> param_names;
+
+   std::vector<cv::Size> image_size;
 
    friend class FitResultsRegion;
 };

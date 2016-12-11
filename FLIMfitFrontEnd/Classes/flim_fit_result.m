@@ -64,7 +64,7 @@ classdef flim_fit_result < handle
         
         stat_names = {};
         
-        dll_id;
+        dll_id = struct('type',{},'pointer',{},'valid',{});
     end
     
     properties(SetObservable = true)

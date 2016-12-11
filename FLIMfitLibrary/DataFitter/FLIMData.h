@@ -107,6 +107,7 @@ public:
 
    void setImageT0Shift(double* image_t0_shift);
 
+   cv::Size getImageSize(int im) { return images[im]->getIntensity().size(); };
 
    template <typename T>
    void dataLoaderThread(bool only_load_non_empty_images);

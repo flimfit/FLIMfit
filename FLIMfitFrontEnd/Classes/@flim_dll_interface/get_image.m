@@ -36,21 +36,10 @@ function [param_data, mask] = get_image(obj,dataset,param,indexing)
     if (obj.bin || param == 0)
         return
     end
-            
-    sz = obj.im_size;
     
     [~,idx] = find(obj.fit_result.image == dataset); 
     dll_id = obj.fit_result.dll_id(idx);
     
-    p_mask = libpointer('uint16Ptr', NaN(sz));
-    p_param_data = libpointer('singlePtr', NaN(sz));
-
-    err = calllib(obj.lib_name,'GetParameterImage', dll_id, dataset-1, param-1, p_mask, p_param_data);
+    [param_data,mask] = ff_FitResults(dll_id,'GetParameterImage', dataset, param);
     
-    mask = p_mask.Value;
-    mask = reshape(mask, sz);
-    
-    param_data = p_param_data.Value;
-    param_data = reshape(param_data, sz);
-
 end
