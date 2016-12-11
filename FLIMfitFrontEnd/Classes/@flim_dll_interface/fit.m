@@ -201,7 +201,9 @@
                        'irf',irf,...
                        'background_value',d.background_value,...
                        'global_mode',p.global_fitting);
-            
+       
+    ff_FLIMImage(im,'Release');
+                   
     % todo: background image, TVB
     
     
@@ -211,10 +213,13 @@
     fit_settings.weighting = p.weighting_mode;
     % TODO ...
      
+    obj.dll_id = ff_Controller();
     ff_Controller(obj.dll_id,'ClearFit');
     ff_Controller(obj.dll_id,'SetData',data);
     ff_Controller(obj.dll_id,'SetModel',p.model);
     ff_Controller(obj.dll_id,'SetFitSettings',fit_settings);
+    
+    ff_FLIMData(data,'Release')
     
     obj.start_time = tic;
    

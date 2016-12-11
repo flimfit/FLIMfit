@@ -148,23 +148,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       }
 
       AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsUint64(prhs[0]));
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
       auto& d = GetSharedPtrFromMatlab<FLIMImage>(prhs[0]);
 
-      if (ptr_set.find(d) == ptr_set.end())
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
-
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
-      if (command == "Clear")
-      {
-         ptr_set.erase(d);
-         delete &d;  // TODO: test this...
-      }
+      if (command == "Release")
+         ReleaseSharedPtrFromMatlab<FLIMImage>(prhs[0]);
       else if (command == "SetMask")
          setMask(d, nlhs, plhs, nrhs, prhs);
       else if (command == "SetAcceptor")
@@ -173,7 +166,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          mexErrMsgIdAndTxt("FLIMfitMex:invalidCommand", "Unrecognised command");
 
    }
-   catch (std::exception e)
+   catch (std::runtime_error e)
    {
       mexErrMsgIdAndTxt("FLIMfitMex:exceptionOccurred",
          e.what());

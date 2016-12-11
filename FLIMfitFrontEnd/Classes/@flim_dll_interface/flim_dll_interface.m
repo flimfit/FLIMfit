@@ -94,7 +94,7 @@ classdef flim_dll_interface < handle
         use;
         
         dll_id;
-        result_objs = uint64.empty([0 1]);
+        result_objs = struct('type',{},'pointer',{},'valid',{});
     end
         
     methods
@@ -112,8 +112,6 @@ classdef flim_dll_interface < handle
         
         function obj = flim_dll_interface()
             obj.load_global_library();
-            
-            obj.dll_id = ff_Controller();
         end
         
         function delete(obj)
@@ -122,9 +120,12 @@ classdef flim_dll_interface < handle
        
         function clear_fit(obj)
             for r=1:length(obj.result_objs)
-                ff_FitResults(obj.result_objs(r),'Delete');
+                ff_FitResults(obj.result_objs(r),'Release');
             end
-            obj.result_objs = uint64.empty([0 1]);
+            obj.result_objs = struct('type',{},'pointer',{},'valid',{});
+            if ~isempty(obj.dll_id)
+                ff_Controller(obj.dll_id,'Release');
+            end
         end
         
         function im = fill_image(obj,var,mask,min_region)

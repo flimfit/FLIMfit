@@ -254,56 +254,86 @@ void CheckInput(int nrhs, int needed)
       "Not enough input arguments");
 }
 
+
+template<class T>
+mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T>& ptr)
+{
+   // Create pointer reference
+   mxArray* ptr_ptr = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+   std::shared_ptr<T>** p = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(ptr_ptr));
+   p[0] = new std::shared_ptr<T>(ptr);
+
+   const char* fields[] = { "type", "pointer", "valid" };
+   mxArray* a = mxCreateStructMatrix(1, 1, 3, fields);
+   mxSetFieldByNumber(a, 0, 0, mxCreateString(typeid(T).name()));
+   mxSetFieldByNumber(a, 0, 1, ptr_ptr);
+   mxSetFieldByNumber(a, 0, 2, mxCreateLogicalScalar(1));
+   
+   return a;
+}
+
+template<class T>
+mxArray* ValidateSharedPointer(const mxArray* a)
+{
+   if (!mxIsStruct(a))
+      mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
+         "Input should be a structure");
+
+   if (mxGetNumberOfFields(a) != 3)
+      mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
+         "Structure not recognised");
+
+   std::string type = GetStringFromMatlab(getFieldFromStruct(a, "type"));
+   if (type != typeid(T).name())
+      mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
+         "Incorrect type");
+
+   if (getValueFromStruct(a, "valid") != 1.0)
+      mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
+         "Pointer not valid");
+
+   mxArray* ptr = getFieldFromStruct(a, "pointer");
+   if (!mxIsUint64(ptr))
+      mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
+         "Pointer not valid");
+
+   return ptr;
+}
+
 template<class T>
 std::shared_ptr<T> GetSharedPtrFromMatlab(const mxArray* a)
 {
-   if (!mxIsUint64(a))
-      mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
-      "Should be a pointer from Mex file");
+   mxArray* ptr = ValidateSharedPointer<T>(a);
 
-   if (mxGetNumberOfElements(a) > 1)
+   if (mxGetNumberOfElements(ptr) > 1)
       mexWarnMsgIdAndTxt("MATLAB:mxmalloc:tooManyPointers",
          "Only expected one pointer, will return first");
 
-   return **reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
+   return **reinterpret_cast<std::shared_ptr<T>**>(mxGetData(ptr));
 }
 
 template<class T>
 std::vector<std::shared_ptr<T>> GetSharedPtrVectorFromMatlab(const mxArray* a)
 {
-   if (!mxIsUint64(a))
-      mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
-         "Should be a pointer from Mex file");
-   
-   std::shared_ptr<T>** ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
+   ValidateSharedPointer<T>(a);
 
    int n = mxGetNumberOfElements(a);
    std::vector<std::shared_ptr<T>> v(n);
    for (int i = 0; i < n; i++)
-      v[i] = *ptrs[i];
-   
-   return v;
-}
+   {
+      mxArray* ptr_i = mxGetField(a, i, "pointer");
+      v[i] = **reinterpret_cast<std::shared_ptr<T>**>(mxGetData(ptr_i));
+   }
 
-template<class T>
-mxArray* PackageSharedPtrForMatlab(std::shared_ptr<T>& ptr)
-{
-   mxArray* a = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
-   std::shared_ptr<T>** p = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
-   p[0] = new std::shared_ptr<T>(ptr);
-   return a;
+   return v;
 }
 
 template<class T>
 void ReleaseSharedPtrFromMatlab(const mxArray* a)
 {
-   if (!mxIsUint64(a))
-      mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
-         "Should be a pointer from Mex file");
-
-   std::shared_ptr<T>** ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(a));
-
-   int n = mxGetNumberOfElements(a);
+   mxArray* ptr = ValidateSharedPointer<T>(a);
+   std::shared_ptr<T>** ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(ptr));
+   int n = mxGetNumberOfElements(ptr);
    for (int i = 0; i < n; i++)
       delete ptrs[i];
 }

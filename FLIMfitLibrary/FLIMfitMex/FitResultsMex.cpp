@@ -168,7 +168,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          getImageStats(results, nlhs, plhs, nrhs, prhs);
       else if (command == "GetParameterImage")
          getParameterImage(results, nlhs, plhs, nrhs, prhs);
-      else if (command == "Delete")
+      else if (command == "Release")
          ReleaseSharedPtrFromMatlab<FitResults>(prhs[0]);
       else
          mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");

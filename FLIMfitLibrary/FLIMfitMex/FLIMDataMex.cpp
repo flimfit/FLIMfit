@@ -159,28 +159,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             data->setGlobalMode(global_mode);
          }
 
-         ptr_set.insert(data);
          plhs[0] = PackageSharedPtrForMatlab(data);
          return;
       }
 
 
       AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsUint64(prhs[0]));
       AssertInputCondition(mxIsChar(prhs[1]));
 
       auto data = GetSharedPtrFromMatlab<FLIMData>(prhs[0]);
 
-      if (ptr_set.find(data) == ptr_set.end())
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid data pointer");
-
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
-      if (command == "Clear")
-         ptr_set.erase(data);
+      if (command == "Release")
+         ReleaseSharedPtrFromMatlab<FLIMData>(prhs[0]);
    }
-   catch (std::exception e)
+   catch (std::runtime_error e)
    {
       mexErrMsgIdAndTxt("FLIMfitMex:exceptionOccurred",
          e.what());

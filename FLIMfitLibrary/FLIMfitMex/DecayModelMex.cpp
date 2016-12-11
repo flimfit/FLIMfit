@@ -250,8 +250,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       // Get command
       string command = GetStringFromMatlab(prhs[1]);
 
-      if (command == "Clear")
-         ptr_set.erase(model);
+      if (command == "Release")
+         ReleaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
       else if (command == "AddDecayGroup")
          addDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "RemoveDecayGroup")
