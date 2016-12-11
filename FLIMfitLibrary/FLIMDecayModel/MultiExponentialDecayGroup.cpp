@@ -142,7 +142,7 @@ void MultiExponentialDecayGroup::setChannelFactors(int index, const vector<doubl
 
 
 
-int MultiExponentialDecayGroup::setupIncMatrix(int* inc, int& inc_row, int& inc_col)
+int MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
 {
    // Set diagonal elements of incidence matrix for variable tau's   
       

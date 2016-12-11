@@ -50,7 +50,9 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
    reporter(reporter),
-   lifetime_estimator(model->getTransformedDataParameters())
+   lifetime_estimator(model->getTransformedDataParameters()),
+   inc(96),
+   inc_full(96)
 {
    irf_idx_0 = 0;
    variable_phi = false;
@@ -273,7 +275,8 @@ int AbstractFitter::CalculateErrors(double conf_limit)
    this->conf_limit = conf_limit;
 
    std::copy(alf.begin(), alf.end(), alf_buf.begin());
-   memcpy(inc_full, inc, 96*sizeof(int));
+   std::copy(inc.begin(), inc.end(), inc_full.begin());
+   
 
    getting_errs = true;
 

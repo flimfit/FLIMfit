@@ -68,7 +68,7 @@ int BackgroundLightDecayGroup::setVariables(const double* param_values)
    return idx;
 }
 
-int BackgroundLightDecayGroup::setupIncMatrix(int* inc, int& inc_row, int& inc_col)
+int BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
 {
    for (int i = 0; i < 3; i++)
    {

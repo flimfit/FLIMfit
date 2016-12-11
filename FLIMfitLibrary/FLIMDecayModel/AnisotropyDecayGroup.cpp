@@ -86,7 +86,7 @@ int AnisotropyDecayGroup::setVariables(const double* param_value)
 Set up matrix indicating which parmeters affect which column.
 Each row of the matrix corresponds to a variable
 */
-int AnisotropyDecayGroup::setupIncMatrix(int* inc, int& inc_row, int& inc_col)
+int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
 {
    int n_anisotropy_group = n_anisotropy_populations + include_r_inf + 1;
 

@@ -27,7 +27,7 @@ public:
    virtual int calculateDerivatives(double* b, int bdim, vector<double>& kap);
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
-   virtual int setupIncMatrix(int* inc, int& row, int& col);
+   virtual int setupIncMatrix(std::vector<int>& inc, int& row, int& col);
    virtual void getLinearOutputParamNames(vector<string>& names);
 
 protected:

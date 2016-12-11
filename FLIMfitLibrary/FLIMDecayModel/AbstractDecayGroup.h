@@ -76,14 +76,14 @@ public:
    virtual int calculateDerivatives(double* b, int bdim, vector<double>& kap) = 0;
    virtual void addConstantContribution(float* a) {}
 
-   virtual int setupIncMatrix(int* inc, int& row, int& col) = 0;
+   virtual int setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
 
    virtual void getNonlinearOutputParamNames(vector<string>& names);
    virtual void getLinearOutputParamNames(vector<string>& names) = 0;
 
-   int getInitialVariables(double* variables);
+   int getInitialVariables(std::vector<double>::iterator& variables);
    void setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
 
    template <typename T>

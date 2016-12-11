@@ -164,12 +164,12 @@ void DecayModel::getOutputParamNames(vector<string>& param_names, int& n_nl_outp
 
 }
 
-void DecayModel::setupIncMatrix(int *inc)
+void DecayModel::setupIncMatrix(std::vector<int>& inc)
 {
    int row = 0;
    int col = 0;
     
-   std::fill(inc, inc + 96, 0);
+   std::fill(inc.begin(), inc.end(), 0);
 
    for (auto& group : decay_groups)
       group->setupIncMatrix(inc, row, col);
@@ -179,7 +179,7 @@ int DecayModel::getNumDerivatives()
 {
    vector<int> inc(96);
 
-   setupIncMatrix(inc.data());
+   setupIncMatrix(inc);
 
    int n = 0;
    for (int i = 0; i < 96; i++)
@@ -417,9 +417,11 @@ void DecayModel::getInitialVariables(vector<double>& param, double mean_arrival_
 {
    // TODO: set initial tau's based on mean arrival time
 
+   auto cur_param = param.begin();
+
    int idx = 0;
    for (auto& g : decay_groups)
-      idx += g->getInitialVariables(param.data() + idx);
+      idx += g->getInitialVariables(param.begin());
 
    if (reference_parameter.IsFittedGlobally())
       param[idx++] = reference_parameter.initial_value;
@@ -470,7 +472,7 @@ void DecayModel::validateDerivatives()
    int n_cols = getNumColumns();
    int n_der = getNumDerivatives();
 
-   int inc[96];
+   std::vector<int> inc(96);
    setupIncMatrix(inc);
 
    int dim = dp->n_meas;

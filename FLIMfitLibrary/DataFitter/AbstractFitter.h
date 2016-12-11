@@ -27,8 +27,7 @@
 //
 //=========================================================================
 
-#ifndef _ABSTRACTFITTER_H
-#define _ABSTRACTFITTER_H
+#pragma once
 
 #include "DecayModel.h"
 #include "ExponentialPrecomputationBuffer.h"
@@ -86,8 +85,8 @@ protected:
    vector<double> err_upper;
 
    // Used by variable projection
-   int     inc[96];
-   int     inc_full[96];
+   std::vector<int> inc;
+   std::vector<int> inc_full;
    //int     ncon;
    //int     nconp1;
    int     philp1;
@@ -151,5 +150,3 @@ private:
 
    int irf_idx_0;
 };
-
-#endif
