@@ -155,10 +155,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(nrhs >= 2);
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      auto results = GetSharedPtrFromMatlab<FitResults>(prhs[0]);
+      auto results = getSharedPtrFromMatlab<FitResults>(prhs[0]);
 
       // Get command
-      string command = GetStringFromMatlab(prhs[1]);
+      string command = getStringFromMatlab(prhs[1]);
 
       if (command == "GetOutputParamNames")
          getOutputParamNames(results, nlhs, plhs, nrhs, prhs);
@@ -169,7 +169,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       else if (command == "GetParameterImage")
          getParameterImage(results, nlhs, plhs, nrhs, prhs);
       else if (command == "Release")
-         ReleaseSharedPtrFromMatlab<FitResults>(prhs[0]);
+         releaseSharedPtrFromMatlab<FitResults>(prhs[0]);
       else
          mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");
 

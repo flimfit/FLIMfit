@@ -47,7 +47,7 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsChar(prhs[2]));
 
-   string group_type = GetStringFromMatlab(prhs[2]);
+   string group_type = getStringFromMatlab(prhs[2]);
 
    shared_ptr<AbstractDecayGroup> group;
 
@@ -164,7 +164,7 @@ void setParameter(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int 
 
    auto group = model->getGroup(group_idx);
 
-   std::string name = GetStringFromMatlab(prhs[3]);
+   std::string name = getStringFromMatlab(prhs[3]);
    double value = mxGetScalar(prhs[4]);
 
    group->setProperty(name.c_str(), value);
@@ -233,7 +233,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          AssertInputCondition(nlhs > 0);
          auto model = std::make_shared<QDecayModel>();
          ptr_set.insert(model);
-         plhs[0] = PackageSharedPtrForMatlab(model);
+         plhs[0] = packageSharedPtrForMatlab(model);
          return;
       }
 
@@ -242,16 +242,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
-      auto& model = GetSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+      auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
 
       if (ptr_set.find(model) == ptr_set.end())
          mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
 
       // Get command
-      string command = GetStringFromMatlab(prhs[1]);
+      string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
-         ReleaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+         releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
       else if (command == "AddDecayGroup")
          addDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "RemoveDecayGroup")

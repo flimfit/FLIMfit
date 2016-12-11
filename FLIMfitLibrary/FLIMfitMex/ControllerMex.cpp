@@ -73,7 +73,7 @@ void setData(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, c
 {
    AssertInputCondition(nrhs >= 3);
 
-   auto data = GetSharedPtrFromMatlab<FLIMData>(prhs[2]);
+   auto data = getSharedPtrFromMatlab<FLIMData>(prhs[2]);
    c->setData(data);
 }
 
@@ -81,7 +81,7 @@ void setModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
 {
    AssertInputCondition(nrhs >= 3);
    
-   auto model = GetSharedPtrFromMatlab<QDecayModel>(prhs[2]);
+   auto model = getSharedPtrFromMatlab<QDecayModel>(prhs[2]);
    c->setModel(model);
 }
 
@@ -139,7 +139,7 @@ void getFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nr
 void getFitResults(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
-   plhs[0] = PackageSharedPtrForMatlab(c->getResults());
+   plhs[0] = packageSharedPtrForMatlab(c->getResults());
 }
 
 void getFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -194,7 +194,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerIndex", "Controller index is not valid");
 
       // Get command
-      string command = GetStringFromMatlab(prhs[1]);
+      string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
          pointer_map.Clear(c_idx);

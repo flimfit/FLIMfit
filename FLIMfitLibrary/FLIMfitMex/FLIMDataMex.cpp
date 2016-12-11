@@ -110,7 +110,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       if (nlhs > 0 && nrhs > 0 && !mxIsScalar(prhs[0]))
       {
          const mxArray* image_ptrs = getNamedArgument(nrhs, prhs, "images");
-         auto images = GetSharedPtrVectorFromMatlab<FLIMImage>(image_ptrs);
+         auto images = getSharedPtrVectorFromMatlab<FLIMImage>(image_ptrs);
 
          const mxArray* settings_struct = getNamedArgument(nrhs, prhs, "data_transformation_settings");
          auto transformation_settings = getDataTransformationSettings(settings_struct);
@@ -139,7 +139,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
          if (isArgument(nrhs, prhs, "tvb_profile") && isArgument(nrhs, prhs, "tvb_I_map"))
          {
-            std::vector<float> tvb_profile = GetVector<float>(getNamedArgument(nrhs, prhs, "tvb_profile"));
+            std::vector<float> tvb_profile = getVector<float>(getNamedArgument(nrhs, prhs, "tvb_profile"));
             const mxArray* I_map_ = getNamedArgument(nrhs, prhs, "I_map");
             cv::Mat I_map = getCvMat(I_map_);
             FLIMBackground(tvb_profile, I_map, background_value);
@@ -159,7 +159,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             data->setGlobalMode(global_mode);
          }
 
-         plhs[0] = PackageSharedPtrForMatlab(data);
+         plhs[0] = packageSharedPtrForMatlab(data);
          return;
       }
 
@@ -167,13 +167,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(nrhs >= 2);
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      auto data = GetSharedPtrFromMatlab<FLIMData>(prhs[0]);
+      auto data = getSharedPtrFromMatlab<FLIMData>(prhs[0]);
 
       // Get command
-      string command = GetStringFromMatlab(prhs[1]);
+      string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
-         ReleaseSharedPtrFromMatlab<FLIMData>(prhs[0]);
+         releaseSharedPtrFromMatlab<FLIMData>(prhs[0]);
    }
    catch (std::runtime_error e)
    {
