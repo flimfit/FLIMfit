@@ -170,6 +170,7 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
    // Reference: http://iopscience.iop.org/0004-637X/518/1/380/
 
    using_gamma_weighting = false;
+   fit_successful = false;
 
    if (weighting == AVERAGE_WEIGHTING)
    {
@@ -238,37 +239,47 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
                y[i + j * n] = (y[i + j * n]-adjust[i]) * (float) w[i];
    }
 
-   if (use_numerical_derv)
-      info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf.data(), fvec,
-                  ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
-                  &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4 );
-   else
+   try
    {
-   
-      info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, n_jac_group, alf.data(), fvec, fjac, nl,
-                    ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
-                    &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4 );
-   }
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   START_SPAN("Computing Linear Parameters");
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   // Get linear parameters
-   if (info == -8)
-   {
-      SetNaN(alf.data(),nl);
-   }
-   else
-   {
-      if (!getting_errs)
+      if (use_numerical_derv)
+         info = lmdif(VariableProjectorDiffCallback, (void*) this, nsls1, nl, alf.data(), fvec,
+            ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
+            &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4);
+      else
       {
-         varproj(nsls1, nl, s_red, alf.data(), fvec, fjac, -1, 0);
-         
-         // Get optimal linear parameters by recalculating weighted by previous fit
-         //varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
+
+         info = lmstx(VariableProjectorCallback, (void*) this, nsls1, nl, s_red, n_jac_group, alf.data(), fvec, fjac, nl,
+            ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
+            &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
       }
+
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      START_SPAN("Computing Linear Parameters");
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      // Get linear parameters
+      if (info == -8)
+      {
+         SetNaN(alf.data(), nl);
+      }
+      else
+      {
+         if (!getting_errs)
+         {
+            varproj(nsls1, nl, s_red, alf.data(), fvec, fjac, -1, 0);
+
+            // Get optimal linear parameters by recalculating weighted by previous fit
+            //varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
+         }
+      }
+
+      fit_successful = true;
    }
+   catch (std::runtime_error e)
+   {
+      info = -100;
+   }
+
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    END_SPAN;
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -278,22 +289,21 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
    else
       *ierr = *niter;
   
-
    return 0;
-
-
-
 }
 
 int VariableProjector::GetLinearParams() 
 {
-   int nsls1 = (n-l) * s;
-   
-   varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -1, 0);
-   varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -2, 0);
-   
-   return 0;
+   if (fit_successful)
+   {
+      int nsls1 = (n - l) * s;
 
+      varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -1, 0);
+      //   varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -2, 0); TODO: do we need this?
+
+   }   
+
+   return 0;
 }
 
 double VariableProjector::d_sign(double *a, double *b)

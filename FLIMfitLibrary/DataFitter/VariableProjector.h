@@ -85,6 +85,8 @@ private:
    int use_numerical_derv;
    int using_gamma_weighting;
 
+   bool fit_successful = false;
+
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
 };
