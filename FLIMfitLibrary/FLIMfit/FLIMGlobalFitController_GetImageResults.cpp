@@ -518,7 +518,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
    if (iml == -1)
       return 0;
    
-   int nel = mask.size();
+   uint32_t nel = mask.size();
 
    vector<double> nl_params(model->getNumNonlinearVariables());
    vector<float> l_params(model->getNumColumns());
@@ -548,7 +548,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
                fitters[thread].GetFit(idx, nl_params, l_params.data(), fit+n_meas*i);
                n_valid++;
 
-               for(int j=last_idx; j<idx; j++)
+               for(uint32_t j=last_idx; j<idx; j++)
                   lin_idx += (mask[j] == rg);
                last_idx = idx;
 

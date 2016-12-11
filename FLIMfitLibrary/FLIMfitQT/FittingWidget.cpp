@@ -150,7 +150,7 @@ void FittingWidget::fitSelected()
 
 void FittingWidget::selectedFitComplete()
 {
-   int mask = 0;
+   uint mask = 0;
    int n_valid = 0;
    auto dp = fit_controller->getData()->GetTransformedDataParameters();
    

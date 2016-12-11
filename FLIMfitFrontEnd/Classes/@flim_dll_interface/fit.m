@@ -154,10 +154,7 @@
     acq.t = d.t;
     acq.t_int = d.t_int;
     
-    
-    
     % todo: get this from data
-    
     if d.use_memory_mapping
         offset_step = 4 * d.n_t * d.n_chan * d.height * d.width;
 
@@ -167,7 +164,7 @@
         end
     else
         for i=1:length(use)
-           im(i) = ff_FLIMImage('acquisition_parmeters',acq,'data',d.data_series_mem(:,:,:,:)); 
+           im(i) = ff_FLIMImage('acquisition_parmeters',acq,'data',d.data_series_mem(:,:,:,:,i)); 
         end
     end
     
