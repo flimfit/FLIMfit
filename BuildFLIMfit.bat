@@ -9,23 +9,19 @@ if %MSVC_VER%==14 SET MSVC_YEAR=2015
 
 echo Cleaning CMake Project
 SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64
-rmdir %PROJECT_DIR% /s /q
-mkdir %PROJECT_DIR%
-cd %PROJECT_DIR%
+echo rmdir %PROJECT_DIR% /s /q
+echo mkdir %PROJECT_DIR%
 
 set GENERATOR="Visual Studio %MSVC_VER% %MSVC_YEAR% Win64"
 echo Generating CMake Project in: %PROJECT_DIR%
 echo Using Generator: %GENERATOR%
-cmake -G %GENERATOR% ..\..\
+cmake -G %GENERATOR% -H. -B%PROJECT_DIR%
 
 echo Building 64bit Project in Release mode
-cmake --build . --config Release
+cmake --build %PROJECT_DIR%  --config Release
 if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 
-cd "..\..\"
 echo Compiling front end
 echo Please wait for MATLAB to load
 
-cd FLIMfitFrontEnd
-"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%'); compile(true); quit();"
-cd ..
+"C:\Program Files\MATLAB\%MATLAB_VER%\bin\matlab.exe" -nosplash -nodesktop -wait -log compile_output.txt -r "cd('%CD%\FLIMfitFrontEnd'); compile(true); quit();"
