@@ -140,8 +140,8 @@ void getParameterImage(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int 
    plhs[0] = mxCreateNumericMatrix(n_y, n_x, mxSINGLE_CLASS, mxREAL);
    plhs[1] = mxCreateNumericMatrix(n_y, n_x, mxUINT8_CLASS, mxREAL);
    
-   float* ptr_param = reinterpret_cast<float*>(plhs[0]);
-   uint8_t* ptr_mask = reinterpret_cast<uint8_t*>(plhs[1]);
+   float* ptr_param = reinterpret_cast<float*>(mxGetData(plhs[0]));
+   uint8_t* ptr_mask = reinterpret_cast<uint8_t*>(mxGetData(plhs[1]));
 
    r->getParameterImage(im, param, ptr_mask, ptr_param);
 }

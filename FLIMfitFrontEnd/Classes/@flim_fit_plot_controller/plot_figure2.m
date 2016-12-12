@@ -31,7 +31,6 @@ function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
     if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
         return
     end
-    intensity = f.get_intensity(dataset,indexing);
     im_data = f.get_image(dataset,im,indexing);
         
     invert = f.invert_colormap;
@@ -53,9 +52,10 @@ function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
     options.show_limits = f.show_limits;
     
     if merge
-        fig = display_flim(im_data,isnan(intensity),lims,intensity,options);
+        intensity = f.get_intensity(dataset,indexing);
+        fig = display_flim(im_data,isnan(im_data),lims,intensity,options);
     else
-        fig = display_flim(im_data,isnan(intensity),lims,options);
+        fig = display_flim(im_data,isnan(im_data),lims,options);
     end
 
 end

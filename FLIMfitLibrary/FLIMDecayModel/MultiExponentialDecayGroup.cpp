@@ -103,8 +103,12 @@ void MultiExponentialDecayGroup::init()
    n_nl_parameters = 0;
    for (auto& p : tau_parameters)
       n_nl_parameters += p->IsFittedGlobally();
-   for (auto& p : beta_parameters) // TODO: sort this out, -1 and all that
-      n_nl_parameters += p->IsFittedGlobally();
+   
+   int free_beta = 0;
+   for (auto& p : beta_parameters)
+      free_beta += p->IsFittedGlobally();
+   free_beta = (free_beta > 0) ? free_beta - 1 : 0; // one degree of freedom handled by local parameter
+   n_nl_parameters += free_beta;
 
    buffer.resize(n_exponential,
       ExponentialPrecomputationBuffer(dp));
@@ -148,14 +152,16 @@ int MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_r
       
    int cur_col = 0;
 
-   for (int i = 0; i<n_exponential; i++)
+   for (int i = 0; i < n_exponential; i++)
    {
       if (tau_parameters[i]->IsFittedGlobally())
+      {
          inc[inc_row + (inc_col + cur_col) * 12] = 1;
-      
-   if (!contributions_global)
+         inc_row++;
+      }
+
+      if (!contributions_global)
          cur_col++;
-      inc_row++;
    }
 
    if (contributions_global)
@@ -181,7 +187,7 @@ int MultiExponentialDecayGroup::setVariables(const double* param_value)
    for (int i = 0; i < n_exponential; i++)
    {
       tau[i] = tau_parameters[i]->GetValue<double>(param_value, idx);
-      tau[i] = std::max(tau[i], 50.0);
+      tau[i] = tau[i] < 50.0 ? 50.0 : tau[i];
       buffer[i].Compute(1 / tau[i], irf_idx, t0_shift, channel_factors, fit_t0);
    }
 
