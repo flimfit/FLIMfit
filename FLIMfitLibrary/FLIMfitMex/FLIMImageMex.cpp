@@ -90,7 +90,7 @@ void setAcceptor(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nr
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsSingle(prhs[2]));
 
-   d->setAcceptor(getCvMat(prhs[2])); // TODO
+   d->setAcceptor(getCvMat(prhs[2]));
 }
 
 

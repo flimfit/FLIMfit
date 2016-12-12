@@ -208,6 +208,9 @@
     fit_settings.n_thread = p.n_thread;
     fit_settings.calculate_errors = p.calculate_errs;
     fit_settings.weighting = p.weighting_mode;
+    fit_settings.global_algorithm = 1;
+    fit_settings.global_mode = 0;
+    fit_settings.algorithm = 0;
     % TODO ...
      
     obj.dll_id = ff_Controller();
