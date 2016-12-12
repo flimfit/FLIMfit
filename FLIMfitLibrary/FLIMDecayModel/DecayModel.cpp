@@ -217,11 +217,6 @@ int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, i
       for (int i = 0; i < decay_groups.size(); i++)
          col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap);
 
-#if _DEBUG
-      for (int i = 0; i < a.size(); i++)
-         assert(std::isfinite(a[i]));
-#endif
-
       /*
       MOVE THIS TO MULTIEXPONENTIAL MODEL
       if (constrain_nonlinear_parameters && kap.size() > 0)

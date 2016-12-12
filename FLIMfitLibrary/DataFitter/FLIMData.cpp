@@ -61,7 +61,7 @@ transform(transform)
 
 void FLIMData::setGlobalMode(int global_mode_)
 {
-   // TODO:
+   // TODO(P:Low)
    // So that we can calculate errors properly
    //if (global_mode_ == MODE_PIXELWISE && n_x == 1 && n_y == 1)
    //   global_mode_ = MODE_IMAGEWISE;
@@ -216,7 +216,7 @@ void FLIMData::setData(const vector<shared_ptr<FLIMImage>>& images_)
    
    
    
-   // TODO: make sure all data is of the same class
+   // TODO(P:Low): make sure all data is of the same class
    data_class = images[0]->getDataClass();
    has_acceptor = images[0]->hasAcceptor();
    polarisation_resolved = images[0]->isPolarisationResolved();
