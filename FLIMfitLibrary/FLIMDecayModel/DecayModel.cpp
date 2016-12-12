@@ -529,7 +529,8 @@ void DecayModel::validateDerivatives()
             std::cout << "Variable: " << i << ", Column: " << j << "\n";
             std::cout << "   Mean err : " << mean_err << "\n";
 
-            //assert(mean_err > 0.75);
+            if (mean_err < 0.75)
+               throw std::runtime_error("Problem with derivatives detected!");
 
             m++;
          }

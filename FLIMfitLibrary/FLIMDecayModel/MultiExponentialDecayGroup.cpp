@@ -125,6 +125,15 @@ void MultiExponentialDecayGroup::init()
    for (auto& p : beta_parameters)
       n_nl_parameters += p->isFittedGlobally();
 
+   fixed_beta = 0;
+   n_beta_free = 0;
+   for (auto& p : beta_parameters)
+      if (p->isFixed())
+         fixed_beta += p->initial_value;
+      else
+         n_beta_free++;
+
+
    buffer.resize(n_exponential,
       ExponentialPrecomputationBuffer(dp));
 
@@ -212,9 +221,10 @@ int MultiExponentialDecayGroup::setVariables(const double* param_value)
    // Get contributions
    if (contributions_global)
    {
+      beta_param_values = param_value + idx;
       beta.resize(n_exponential);
       if (n_exponential > 1)
-         idx += getBeta(beta_parameters, param_value + idx, beta.data());
+         idx += getBeta(beta_parameters, fixed_beta, n_beta_free, param_value + idx, beta.data());
       else
          beta[0] = 1;
    }
@@ -231,7 +241,7 @@ int MultiExponentialDecayGroup::getNonlinearOutputs(float* param_values, float* 
 
    if (contributions_global && n_exponential > 1)
    {
-      getBeta(beta_parameters, param_values + param_idx, output + output_idx);
+      getBeta(beta_parameters, fixed_beta, n_beta_free, param_values + param_idx, output + output_idx);
       output_idx += n_exponential;
    }
 
@@ -345,23 +355,25 @@ int MultiExponentialDecayGroup::addContributionDerivatives(double* b, int bdim, 
 {
    int col = 0;
 
+   int ji = 0;
    if (contributions_global)
    {
       for (int j = 0; j < n_exponential; j++)
-      {
          if (beta_parameters[j]->isFittedGlobally())
          {
             memset(b + col*bdim, 0, bdim * sizeof(*b));
-
+            int ki = ji;
             for (int k = j; k < n_exponential; k++)
-            {
-               double factor = beta_derv(n_exponential, j, k, beta.data());
-               buffer[k].AddDecay(factor, reference_lifetime, b + col*bdim);
-            }
+               if (!beta_parameters[k]->isFixed())
+               {
+                  double factor = beta_derv(n_beta_free, ji, ki, beta_param_values) * (1-fixed_beta);
+                  buffer[k].AddDecay(factor, reference_lifetime, b + col*bdim);
+                  ki++;
+               }
 
             col++;
+            ji++;
          }
-      }
    }
 
    return col;

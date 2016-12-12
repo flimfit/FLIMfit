@@ -3,19 +3,10 @@
 #include "AbstractDecayGroup.h"
 #include "IRFConvolution.h"
 
-template<class T>
-int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, const T* alf, T beta[])
+template<class T> // TODO: make this part of class
+int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[])
 {
-   double fixed_beta = 0;
-   int n_free = 0;
-
-   for (auto& p : beta_parameters)
-      if (p->isFixed())
-         fixed_beta += p->initial_value;
-      else
-         n_free++;
-
-   alf2beta(n_free, alf, beta);
+   alf2beta(n_beta_free, alf, beta);
 
    int idx = 0;
    for (int i = 0; i < beta_parameters.size(); i++)
@@ -30,7 +21,7 @@ int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, const T
          beta[i] = beta_parameters[i]->initial_value;
    }
 
-   return n_free - 1;
+   return n_beta_free - 1;
 }
 class MultiExponentialDecayGroup : public AbstractDecayGroup
 {
@@ -82,6 +73,9 @@ private:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
    
+   const double* beta_param_values = nullptr;
+   int n_beta_free;
+   double fixed_beta;
    friend class boost::serialization::access;
    
 };
