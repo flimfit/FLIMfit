@@ -36,7 +36,7 @@
 #include <cmath>
 
 template <typename T>
-void alf2beta(int n, const T* alf, double beta[])
+void alf2beta(int n, const T* alf, T beta[])
 {
    // For example if there are four components
    // beta[0] =                              alf[0] 

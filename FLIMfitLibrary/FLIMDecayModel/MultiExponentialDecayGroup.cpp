@@ -32,6 +32,8 @@
 #include <boost/lexical_cast.hpp>
 using namespace std;
 
+
+
 MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global, const QString& name) :
    AbstractDecayGroup(name),
    n_exponential(n_exponential),
@@ -102,13 +104,26 @@ void MultiExponentialDecayGroup::init()
 
    n_nl_parameters = 0;
    for (auto& p : tau_parameters)
-      n_nl_parameters += p->IsFittedGlobally();
+      n_nl_parameters += p->isFittedGlobally();
    
-   int free_beta = 0;
+   // Reduce degrees of freedom
+   if (!beta_parameters.empty())
+   {
+      for (auto& p : beta_parameters)
+         p->setConstrained(false);
+
+      for (auto it = beta_parameters.rbegin(); it != beta_parameters.rend(); it++)
+      {
+         if (!(*it)->isFixed())
+         {
+            (*it)->setConstrained();
+            break;
+         }
+      }
+   }
+
    for (auto& p : beta_parameters)
-      free_beta += p->IsFittedGlobally();
-   free_beta = (free_beta > 0) ? free_beta - 1 : 0; // one degree of freedom handled by local parameter
-   n_nl_parameters += free_beta;
+      n_nl_parameters += p->isFittedGlobally();
 
    buffer.resize(n_exponential,
       ExponentialPrecomputationBuffer(dp));
@@ -154,7 +169,7 @@ int MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_r
 
    for (int i = 0; i < n_exponential; i++)
    {
-      if (tau_parameters[i]->IsFittedGlobally())
+      if (tau_parameters[i]->isFittedGlobally())
       {
          inc[inc_row + (inc_col + cur_col) * 12] = 1;
          inc_row++;
@@ -169,8 +184,11 @@ int MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_r
       // Set diagonal elements of incidence matrix for variable beta's   
       for (int i = 0; i<n_exponential; i++)
       {
-         inc[inc_row + inc_col * 12] = 1;
-         inc_row++;
+         if (beta_parameters[i]->isFittedGlobally())
+         {
+            inc[inc_row + inc_col * 12] = 1;
+            inc_row++;
+         }
       }
    }
 
@@ -186,7 +204,7 @@ int MultiExponentialDecayGroup::setVariables(const double* param_value)
    tau.resize(n_exponential);
    for (int i = 0; i < n_exponential; i++)
    {
-      tau[i] = tau_parameters[i]->GetValue<double>(param_value, idx);
+      tau[i] = tau_parameters[i]->getValue<double>(param_value, idx);
       tau[i] = tau[i] < 50.0 ? 50.0 : tau[i];
       buffer[i].Compute(1 / tau[i], irf_idx, t0_shift, channel_factors, fit_t0);
    }
@@ -196,7 +214,7 @@ int MultiExponentialDecayGroup::setVariables(const double* param_value)
    {
       beta.resize(n_exponential);
       if (n_exponential > 1)
-         alf2beta(n_exponential, param_value + idx, beta.data()); // TODO
+         idx += getBeta(beta_parameters, param_value + idx, beta.data());
       else
          beta[0] = 1;
    }
@@ -209,18 +227,12 @@ int MultiExponentialDecayGroup::getNonlinearOutputs(float* param_values, float* 
    int output_idx = 0;
 
    for (int i = 0; i < n_exponential; i++)
-      output[output_idx++] = tau_parameters[i]->GetValue<float>(param_values, param_idx);
+      output[output_idx++] = tau_parameters[i]->getValue<float>(param_values, param_idx);
 
    if (contributions_global && n_exponential > 1)
    {
-      int j = 0;
-      for (int i = 0; i < n_exponential; i++)
-      {
-         if (beta_parameters[0]->IsFixed())
-            output[output_idx++] = (float)beta_parameters[i]->initial_value;
-         else
-            output[output_idx++] = (float)alf2beta(n_exponential, param_values + param_idx, j++); // TODO: need to use no of free betas
-      }
+      getBeta(beta_parameters, param_values + param_idx, output + output_idx);
+      output_idx += n_exponential;
    }
 
    return output_idx;
@@ -314,7 +326,7 @@ int MultiExponentialDecayGroup::addDecayGroup(const vector<ExponentialPrecomputa
 
 int MultiExponentialDecayGroup::addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap)
 {
-   if (tau_parameters[idx]->IsFittedGlobally())
+   if (tau_parameters[idx]->isFittedGlobally())
    {
       memset(b, 0, bdim*sizeof(*b));
 
@@ -333,19 +345,22 @@ int MultiExponentialDecayGroup::addContributionDerivatives(double* b, int bdim, 
 {
    int col = 0;
 
-   if (contributions_global) // TODO: allow these to be fixed
+   if (contributions_global)
    {
-      for (int j = 0; j < n_exponential - 1; j++)
+      for (int j = 0; j < n_exponential; j++)
       {
-         memset(b + col*bdim, 0, bdim*sizeof(*b));
-
-         for (int k = j; k < n_exponential; k++)
+         if (beta_parameters[j]->isFittedGlobally())
          {
-            double factor = beta_derv(n_exponential, j, k, beta.data());
-            buffer[k].AddDecay(factor, reference_lifetime, b + col*bdim);
-         }
+            memset(b + col*bdim, 0, bdim * sizeof(*b));
 
-         col++;
+            for (int k = j; k < n_exponential; k++)
+            {
+               double factor = beta_derv(n_exponential, j, k, beta.data());
+               buffer[k].AddDecay(factor, reference_lifetime, b + col*bdim);
+            }
+
+            col++;
+         }
       }
    }
 

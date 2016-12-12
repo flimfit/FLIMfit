@@ -34,11 +34,10 @@ const char* FittingParameter::fitting_type_names[] = { "Fixed", "Fitted Locally"
 
 int AbstractDecayGroup::getInitialVariables(std::vector<double>::iterator& variables)
 {
-   // TODO: needs work for betas etc where there is not a 1:1 relationship
    int idx = 0;
    for (auto& p : parameters)
    {
-      if (p->IsFittedGlobally())
+      if (p->isFittedGlobally())
          *(variables++) = p->initial_value;
    }
 

@@ -93,13 +93,13 @@ void FretDecayGroup::init()
    n_lin_components = n_fret_populations + include_donor_only;
 
    for (auto& p : tauT_parameters)
-      n_nl_parameters += p->IsFittedGlobally();
+      n_nl_parameters += p->isFittedGlobally();
    
    if (include_acceptor)
    {
-      n_nl_parameters += A0_parameter->IsFittedGlobally();
-      n_nl_parameters += AD_parameter->IsFittedGlobally();
-      n_nl_parameters += tauA_parameter->IsFittedGlobally();
+      n_nl_parameters += A0_parameter->isFittedGlobally();
+      n_nl_parameters += AD_parameter->isFittedGlobally();
+      n_nl_parameters += tauA_parameter->isFittedGlobally();
    }
 
    fret_buffer.resize(n_fret_populations, 
@@ -177,7 +177,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
    // Set diagonal elements of incidence matrix for variable tau's   
    for (int i = 0; i < n_exponential; i++)
    {
-      if (tau_parameters[i]->IsFittedGlobally())
+      if (tau_parameters[i]->isFittedGlobally())
       {
          for (int j = 0; j < n_fret_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
@@ -188,7 +188,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
    // Set diagonal elements of incidence matrix for variable beta's   
    for (int i = 0; i < n_exponential - 1; i++) // TODO
    {
-      if (beta_parameters[0]->IsFittedGlobally())
+      if (beta_parameters[0]->isFittedGlobally())
       {
          for (int j = 0; j < n_fret_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
@@ -202,7 +202,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
    // Set elements of incidence matrix for E derivatives
    for (int i = 0; i < n_fret_populations; i++)
    {
-      if (tauT_parameters[i]->IsFittedGlobally())
+      if (tauT_parameters[i]->isFittedGlobally())
       {
          inc[inc_row + (inc_col + i) * 12] = 1;
          inc_row++;
@@ -210,7 +210,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
    }
 
    // Set elements of incidence matrix for A0 
-   if (include_acceptor && A0_parameter->IsFittedGlobally())
+   if (include_acceptor && A0_parameter->isFittedGlobally())
    {
       for (int i = 0; i < n_fret_group; i++)
          inc[inc_row + (inc_col0 + i) * 12] = 1;
@@ -218,7 +218,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
    }
 
    // Elements for direct acceptor
-   if (include_acceptor && AD_parameter->IsFittedGlobally())
+   if (include_acceptor && AD_parameter->isFittedGlobally())
    {
       for (int i = 0; i < n_fret_group; i++)
          inc[inc_row + (inc_col0 + i) * 12] = 1;
@@ -226,7 +226,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
    }
 
    // Elements for tauA derivatives
-   if (include_acceptor && tauA_parameter->IsFittedGlobally())
+   if (include_acceptor && tauA_parameter->isFittedGlobally())
    {
       for (int i = 0; i < n_fret_group; i++)
          inc[inc_row + (inc_col0 + i) * 12] = 1;
@@ -249,7 +249,7 @@ int FretDecayGroup::setVariables(const double* param_values)
    // Set tau's for FRET
    for (int i = 0; i<n_fret_populations; i++)
    {
-      tau_transfer[i] = tauT_parameters[i]->GetValue<double>(param_values, idx);
+      tau_transfer[i] = tauT_parameters[i]->getValue<double>(param_values, idx);
       tau_transfer[i] = std::max(tau_transfer[i], 50.0);
       
       for (int j = 0; j<n_exponential; j++)
@@ -267,9 +267,9 @@ int FretDecayGroup::setVariables(const double* param_values)
    {
       a_star.resize(n_fret_populations, vector<double>(n_exponential));
       
-      A0 = A0_parameter->GetValue<double>(param_values, idx);
-      AD = AD_parameter->GetValue<double>(param_values, idx);
-      tauA = tauA_parameter->GetValue<double>(param_values, idx);
+      A0 = A0_parameter->getValue<double>(param_values, idx);
+      AD = AD_parameter->getValue<double>(param_values, idx);
+      tauA = tauA_parameter->getValue<double>(param_values, idx);
 
       tauA = std::max(tauA, 50.0);
 
@@ -296,13 +296,13 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
    int output_idx = MultiExponentialDecayGroup::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_fret_populations; i++)
-      output[output_idx++] = tauT_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);
+      output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    if (include_acceptor)
    {
-      output[output_idx++] = A0_parameter->GetValue<float>(nonlin_variables, nonlin_idx);
-      output[output_idx++] = AD_parameter->GetValue<float>(nonlin_variables, nonlin_idx);
-      output[output_idx++] = tauA_parameter->GetValue<float>(nonlin_variables, nonlin_idx);
+      output[output_idx++] = A0_parameter->getValue<float>(nonlin_variables, nonlin_idx);
+      output[output_idx++] = AD_parameter->getValue<float>(nonlin_variables, nonlin_idx);
+      output[output_idx++] = tauA_parameter->getValue<float>(nonlin_variables, nonlin_idx);
    }
 
    return output_idx;
@@ -395,7 +395,7 @@ int FretDecayGroup::calculateDerivatives(double* b, int bdim, vector<double>& ka
    int col = 0;
     for (int i = 0; i < n_exponential; i++)
    {
-      if (tau_parameters[i]->IsFittedGlobally())
+      if (tau_parameters[i]->isFittedGlobally())
       {
          if (include_donor_only)
             col += addLifetimeDerivative(i, b + col*bdim, bdim, kap);
@@ -457,7 +457,7 @@ int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, vector<dou
 
    for (int i = 0; i<n_fret_populations; i++)
    {
-      if (tauT_parameters[i]->IsFittedGlobally())
+      if (tauT_parameters[i]->isFittedGlobally())
       {
          memset(b + idx, 0, bdim*sizeof(*b));
 
@@ -491,7 +491,7 @@ int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, vector<dou
    int col = 0;
    int idx = 0;
 
-   if (AD_parameter->IsFittedGlobally())
+   if (AD_parameter->isFittedGlobally())
    {
       int n_fret_group = n_fret_populations + include_donor_only;
       for (int i = 0; i < n_fret_group; i++)
@@ -513,7 +513,7 @@ int FretDecayGroup::addAcceptorIntensityDerivatives(double* b, int bdim, vector<
    int col = 0;
    int idx = 0;
 
-   if (A0_parameter->IsFittedGlobally())
+   if (A0_parameter->isFittedGlobally())
    {
       if (include_donor_only)
       {
@@ -544,7 +544,7 @@ int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, vector<d
    int col = 0;
    int idx = 0;
 
-   if (tauA_parameter->IsFittedGlobally())
+   if (tauA_parameter->isFittedGlobally())
    {
       if (include_donor_only)
       {

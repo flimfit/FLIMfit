@@ -72,7 +72,6 @@ public:
          decay_groups.erase(iter, iter);
    }
 
-
    shared_ptr<TransformedDataParameters> getTransformedDataParameters() { return dp; }
    void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_);
 

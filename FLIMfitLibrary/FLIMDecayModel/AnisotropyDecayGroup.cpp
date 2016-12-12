@@ -68,7 +68,7 @@ int AnisotropyDecayGroup::setVariables(const double* param_value)
 
    for (int i = 0; i<n_anisotropy_populations; i++)
    {
-      theta[i] = theta_parameters[i]->GetValue<double>(param_value, idx);
+      theta[i] = theta_parameters[i]->getValue<double>(param_value, idx);
       // TODO: constrain above 60ps
 
       for (int j = 0; j < n_exponential; j++)
@@ -93,7 +93,7 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
    // Set diagonal elements of incidence matrix for variable tau's   
    for (int i = 0; i<n_exponential; i++)
    {
-      if (tau_parameters[i]->IsFittedGlobally())
+      if (tau_parameters[i]->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
@@ -104,7 +104,7 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
    // Set diagonal elements of incidence matrix for variable beta's   
    for (int i = 0; i<n_exponential; i++)
    {
-      if (beta_parameters[0]->IsFittedGlobally())
+      if (beta_parameters[0]->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
@@ -117,7 +117,7 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
    // Set elements of incidence matrix for theta derivatives
    for (int i = 0; i<n_anisotropy_populations; i++)
    {
-      if (theta_parameters[i]->IsFittedGlobally())
+      if (theta_parameters[i]->isFittedGlobally())
       {
          inc[inc_row + inc_col * 12] = 1;
          inc_col++;
@@ -133,7 +133,7 @@ int AnisotropyDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* ou
    int output_idx = MultiExponentialDecayGroup::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_anisotropy_populations; i++)
-      output[output_idx++] = theta_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);
+      output[output_idx++] = theta_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    return output_idx;
 }
@@ -211,7 +211,7 @@ int AnisotropyDecayGroup::calculateDerivatives(double* b, int bdim, vector<doubl
 
 int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap)
 {
-   if (tau_parameters[idx]->IsFittedGlobally())
+   if (tau_parameters[idx]->isFittedGlobally())
    {
       memset(b, 0, bdim*sizeof(*b));
 
@@ -236,7 +236,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double* b, int
 
    for (int p = 0; p<n_anisotropy_populations; p++)
    {
-      if (theta_parameters[p]->IsFittedGlobally())
+      if (theta_parameters[p]->isFittedGlobally())
       {
          memset(b + col*bdim, 0, bdim*sizeof(*b));
 

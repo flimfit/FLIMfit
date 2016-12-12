@@ -1,10 +1,37 @@
 #pragma once 
 
 #include "AbstractDecayGroup.h"
+#include "IRFConvolution.h"
 
+template<class T>
+int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, const T* alf, T beta[])
+{
+   double fixed_beta = 0;
+   int n_free = 0;
 
+   for (auto& p : beta_parameters)
+      if (p->isFixed())
+         fixed_beta += p->initial_value;
+      else
+         n_free++;
 
+   alf2beta(n_free, alf, beta);
 
+   int idx = 0;
+   for (int i = 0; i < beta_parameters.size(); i++)
+   {
+      if (!beta_parameters[i]->isFixed())
+         beta[i] = beta[idx++] * (1 - fixed_beta);
+   }
+
+   for (int i = 0; i < beta_parameters.size(); i++)
+   {
+      if (beta_parameters[i]->isFixed())
+         beta[i] = beta_parameters[i]->initial_value;
+   }
+
+   return n_free - 1;
+}
 class MultiExponentialDecayGroup : public AbstractDecayGroup
 {
    Q_OBJECT
