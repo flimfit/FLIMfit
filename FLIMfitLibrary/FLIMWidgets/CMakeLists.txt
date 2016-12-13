@@ -3,7 +3,6 @@ project(FLIMWidgets)
 
 
 find_package(Qt5Widgets REQUIRED)
-find_package(Qt5PrintSupport REQUIRED)
 find_package(BOOST REQUIRED COMPONENTS system serialization)
 
 qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui)
@@ -44,5 +43,4 @@ add_library(FLIMWidgets ${SOURCE}
 target_link_libraries(FLIMWidgets
                       FLIMDecayModel
                       Qt5::Widgets 
-                      Qt5::PrintSupport
                       Qt5::Gui)
