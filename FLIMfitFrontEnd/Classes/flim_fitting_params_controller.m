@@ -58,7 +58,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             
             obj.bound_all_controls = true;
             obj.set_polarisation_mode(false);
-            obj.fit_params.model = handles.model;
+            obj.fit_params.model = handles.model_controller.model;
             
 			addlistener(obj.data_series_controller,'new_dataset',@(~,~) escaped_callback(@obj.data_update_evt));
             

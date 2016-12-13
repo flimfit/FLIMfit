@@ -269,7 +269,6 @@ void getChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 
 void setChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nlhs >= 1);
    AssertInputCondition(nrhs >= 5);
 
    int group_idx = mxGetScalar(prhs[2]) - 1;
