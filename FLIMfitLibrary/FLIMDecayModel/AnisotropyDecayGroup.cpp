@@ -35,7 +35,7 @@
 using namespace std;
 
 AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_anisotropy_populations, bool include_r_inf) :
-   MultiExponentialDecayGroup(n_lifetime_exponential, true, "Anisotropy Decay"),
+   MultiExponentialDecayGroupPrivate(n_lifetime_exponential, true, "Anisotropy Decay"),
    n_anisotropy_populations(n_anisotropy_populations),
    include_r_inf(include_r_inf)
 {
@@ -62,7 +62,7 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
 
 int AnisotropyDecayGroup::setVariables(const double* param_value)
 {
-   int idx = MultiExponentialDecayGroup::setVariables(param_value);
+   int idx = MultiExponentialDecayGroupPrivate::setVariables(param_value);
 
    theta.resize(n_anisotropy_populations);
 
@@ -130,7 +130,7 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
 
 int AnisotropyDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = MultiExponentialDecayGroup::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
+   int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_anisotropy_populations; i++)
       output[output_idx++] = theta_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);

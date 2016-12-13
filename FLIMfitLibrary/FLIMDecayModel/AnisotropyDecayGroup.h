@@ -2,7 +2,7 @@
 #include "MultiExponentialDecayGroup.h"
 
 
-class AnisotropyDecayGroup : public MultiExponentialDecayGroup
+class AnisotropyDecayGroup : public MultiExponentialDecayGroupPrivate
 {
    Q_OBJECT
 

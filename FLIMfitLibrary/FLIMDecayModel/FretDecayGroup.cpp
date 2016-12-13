@@ -35,7 +35,7 @@
 using namespace std;
 
 FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
-   MultiExponentialDecayGroup(n_donor_exponential, true, "FRET Decay"),
+   MultiExponentialDecayGroupPrivate(n_donor_exponential, true, "FRET Decay"),
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {
@@ -88,7 +88,7 @@ void FretDecayGroup::setupParameters()
 
 void FretDecayGroup::init()
 {
-   MultiExponentialDecayGroup::init();
+   MultiExponentialDecayGroupPrivate::init();
 
    n_lin_components = n_fret_populations + include_donor_only;
 
@@ -119,6 +119,13 @@ void FretDecayGroup::init()
    acceptor_channel_factors.resize(dp->n_chan, 1);
    direct_acceptor_channel_factors.resize(dp->n_chan, 1);
 }
+
+void FretDecayGroup::setNumExponential(int n_exponential_)
+{
+   n_exponential = n_exponential_;
+   setupParameters();
+}
+
 
 
 void FretDecayGroup::setNumFretPopulations(int n_fret_populations_)
@@ -241,7 +248,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
 
 int FretDecayGroup::setVariables(const double* param_values)
 {
-   int idx = MultiExponentialDecayGroup::setVariables(param_values);
+   int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
 
    tau_fret.resize(n_fret_populations, vector<double>(n_exponential));
    tau_transfer.resize(n_fret_populations, n_exponential);
@@ -293,7 +300,7 @@ int FretDecayGroup::setVariables(const double* param_values)
 
 int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = MultiExponentialDecayGroup::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
+   int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);

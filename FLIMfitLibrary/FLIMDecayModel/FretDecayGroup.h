@@ -3,7 +3,7 @@
 #include "MultiExponentialDecayGroup.h"
 #include <functional>
 
-class FretDecayGroup : public MultiExponentialDecayGroup
+class FretDecayGroup : public MultiExponentialDecayGroupPrivate
 {
    Q_OBJECT
 
@@ -16,6 +16,7 @@ public:
    Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE setIncludeDonorOnly USER true);
    Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE setIncludeAcceptor USER true);
    
+   void setNumExponential(int n_exponential_);
    void setNumFretPopulations(int n_fret_populations_);
    void setIncludeDonorOnly(bool include_donor_only_);
    void setIncludeAcceptor(bool include_acceptor_);
@@ -86,7 +87,7 @@ private:
 template<class Archive>
 void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
-   ar & boost::serialization::base_object<MultiExponentialDecayGroup>(*this);
+   ar & boost::serialization::base_object<MultiExponentialDecayGroupPrivate>(*this);
    ar & tauT_parameters;
    ar & A0_parameter;
    ar & AD_parameter;

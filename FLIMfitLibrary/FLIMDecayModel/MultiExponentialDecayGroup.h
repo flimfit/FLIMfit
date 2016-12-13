@@ -23,18 +23,15 @@ int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, double 
 
    return n_beta_free - 1;
 }
-class MultiExponentialDecayGroup : public AbstractDecayGroup
+class MultiExponentialDecayGroupPrivate : public AbstractDecayGroup
 {
    Q_OBJECT
 
 public:
 
-   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay");
+   MultiExponentialDecayGroupPrivate(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay");
 
-   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
-   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);
-
-   void setNumExponential(int n_exponential);
+   virtual void setNumExponential(int n_exponential);
    void setContributionsGlobal(bool contributions_global);
 
    virtual const vector<double>& getChannelFactors(int index);
@@ -49,7 +46,7 @@ public:
    virtual void getLinearOutputParamNames(vector<string>& names);
 
 protected:
-   
+  
    virtual void init();
    void setupParametersMultiExponential();
 
@@ -81,7 +78,7 @@ private:
 };
 
 template<class Archive>
-void MultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int version)
+void MultiExponentialDecayGroupPrivate::serialize(Archive & ar, const unsigned int version)
 {
    ar & tau_parameters;
    ar & beta_parameters;
@@ -89,6 +86,23 @@ void MultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int vers
    ar & contributions_global;
    ar & channel_factors;
    ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
+};
+
+class MultiExponentialDecayGroup : public MultiExponentialDecayGroupPrivate
+{
+   Q_OBJECT
+
+public:
+
+   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay") :
+      MultiExponentialDecayGroupPrivate(n_exponential_, contributions_global_, name)
+   {
+
+   }
+
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
+   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);
+
 };
 
 /*

@@ -114,41 +114,51 @@ mxArray* getParameters(shared_ptr<QDecayModel> model, int group_idx)
    int n_properties = group_meta->propertyCount() - 1; // ignore objectName
 
    std::vector<const char*> field_names(n_properties);
+   int n_user_properties = 0;
    for (int i = 0; i < n_properties; i++)
    {
       const auto& prop = group_meta->property(i + 1);
-      field_names[i] = prop.name();
+      if (prop.isUser())
+         field_names[n_user_properties++] = prop.name();
    }
 
-   mxArray* s = mxCreateStructMatrix(1, 1, n_properties, field_names.data());
+   mxArray* s = mxCreateStructMatrix(1, 1, n_user_properties, field_names.data());
 
+   int idx = 0;
    for (int i = 0; i < n_properties; i++)
    {
       const auto& prop = group_meta->property(i + 1);
-      QVariant v = prop.read(group.get());
-
-      mxArray* vv;
-      QByteArray vs;
-      switch (v.type())
+      
+      if (prop.isUser())
       {
-      case QMetaType::Bool:
-         mxSetFieldByNumber(s, 0, i, mxCreateLogicalScalar(v.toDouble()));
-         break;
-      case QMetaType::Int:
-      case QMetaType::UInt:
-      case QMetaType::Long:
-         vv = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
-         static_cast<int64_t*>(mxGetData(vv))[0] = v.toInt();
-         mxSetFieldByNumber(s, 0, i, vv);
-         break;
-      case QMetaType::Char:
-      case QMetaType::QString:
-         vs = v.toString().toLocal8Bit();
-         vv = mxCreateStringFromNChars(vs.constData(), vs.length());
-         mxSetFieldByNumber(s, 0, i, vv);
-         break;
-      default:
-         mxSetFieldByNumber(s, 0, i, mxCreateDoubleScalar(0));
+
+         QVariant v = prop.read(group.get());
+
+         mxArray* vv;
+         QByteArray vs;
+         switch (v.type())
+         {
+         case QMetaType::Bool:
+            mxSetFieldByNumber(s, 0, idx, mxCreateLogicalScalar(v.toDouble()));
+            break;
+         case QMetaType::Int:
+         case QMetaType::UInt:
+         case QMetaType::Long:
+            vv = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
+            static_cast<int64_t*>(mxGetData(vv))[0] = v.toInt();
+            mxSetFieldByNumber(s, 0, idx, vv);
+            break;
+         case QMetaType::Char:
+         case QMetaType::QString:
+            vs = v.toString().toLocal8Bit();
+            vv = mxCreateStringFromNChars(vs.constData(), vs.length());
+            mxSetFieldByNumber(s, 0, idx, vv);
+            break;
+         default:
+            mxSetFieldByNumber(s, 0, idx, mxCreateDoubleScalar(0));
+         }
+
+         idx++;
       }
    }
 

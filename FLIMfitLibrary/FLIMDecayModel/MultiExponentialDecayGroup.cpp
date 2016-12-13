@@ -34,7 +34,7 @@ using namespace std;
 
 
 
-MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool contributions_global, const QString& name) :
+MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(int n_exponential, bool contributions_global, const QString& name) :
    AbstractDecayGroup(name),
    n_exponential(n_exponential),
    contributions_global(contributions_global)
@@ -44,7 +44,7 @@ MultiExponentialDecayGroup::MultiExponentialDecayGroup(int n_exponential, bool c
    setupParametersMultiExponential();
 }
 
-void MultiExponentialDecayGroup::setupParametersMultiExponential()
+void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
 {
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    
@@ -98,7 +98,7 @@ void MultiExponentialDecayGroup::setupParametersMultiExponential()
    parametersChanged();
 }
 
-void MultiExponentialDecayGroup::init()
+void MultiExponentialDecayGroupPrivate::init()
 {
    n_lin_components = contributions_global ? 1 : n_exponential;
 
@@ -140,19 +140,19 @@ void MultiExponentialDecayGroup::init()
    channel_factors.resize(dp->n_chan, 1);
 }
 
-void MultiExponentialDecayGroup::setNumExponential(int n_exponential_)
+void MultiExponentialDecayGroupPrivate::setNumExponential(int n_exponential_)
 {
    n_exponential = n_exponential_;
    setupParametersMultiExponential();
 }
 
-void MultiExponentialDecayGroup::setContributionsGlobal(bool contributions_global_)
+void MultiExponentialDecayGroupPrivate::setContributionsGlobal(bool contributions_global_)
 {
    contributions_global = contributions_global_;
    setupParametersMultiExponential();
 }
 
-const vector<double>& MultiExponentialDecayGroup::getChannelFactors(int index)
+const vector<double>& MultiExponentialDecayGroupPrivate::getChannelFactors(int index)
 {
    if (index == 0)
       return channel_factors;
@@ -160,7 +160,7 @@ const vector<double>& MultiExponentialDecayGroup::getChannelFactors(int index)
    throw std::runtime_error("Bad channel factor index");
 }
 
-void MultiExponentialDecayGroup::setChannelFactors(int index, const vector<double>& channel_factors_)
+void MultiExponentialDecayGroupPrivate::setChannelFactors(int index, const vector<double>& channel_factors_)
 {
    if (index == 0)
       channel_factors = channel_factors_;
@@ -170,7 +170,7 @@ void MultiExponentialDecayGroup::setChannelFactors(int index, const vector<doubl
 
 
 
-int MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
+int MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
 {
    // Set diagonal elements of incidence matrix for variable tau's   
       
@@ -205,7 +205,7 @@ int MultiExponentialDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_r
 }
 
 
-int MultiExponentialDecayGroup::setVariables(const double* param_value)
+int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
 {
    int idx = 0;
 
@@ -232,7 +232,7 @@ int MultiExponentialDecayGroup::setVariables(const double* param_value)
    return idx;
 }
 
-int MultiExponentialDecayGroup::getNonlinearOutputs(float* param_values, float* output, int& param_idx)
+int MultiExponentialDecayGroupPrivate::getNonlinearOutputs(float* param_values, float* output, int& param_idx)
 {
    int output_idx = 0;
 
@@ -248,7 +248,7 @@ int MultiExponentialDecayGroup::getNonlinearOutputs(float* param_values, float* 
    return output_idx;
 }
 
-int MultiExponentialDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int MultiExponentialDecayGroupPrivate::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
 {
    int output_idx = 0;
 
@@ -258,7 +258,7 @@ int MultiExponentialDecayGroup::getLinearOutputs(float* lin_variables, float* ou
    return output_idx;
 }
 
-void MultiExponentialDecayGroup::getLinearOutputParamNames(vector<string>& names)
+void MultiExponentialDecayGroupPrivate::getLinearOutputParamNames(vector<string>& names)
 {
    if (!contributions_global)
    {
@@ -275,7 +275,7 @@ void MultiExponentialDecayGroup::getLinearOutputParamNames(vector<string>& names
    }
 }
 
-int MultiExponentialDecayGroup::normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx)
+int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx)
 {
    double I = 0;
    for (int i = 0; i < n; i++)
@@ -290,14 +290,14 @@ int MultiExponentialDecayGroup::normaliseLinearParameters(float* lin_variables, 
 }
 
 
-int MultiExponentialDecayGroup::calculateModel(double* a, int adim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, vector<double>& kap)
 {
    int sz = contributions_global ? 1 : n_exponential;
    memset(a, 0, sz*adim*sizeof(*a));
    return addDecayGroup(buffer, a, adim, kap);
 }
 
-int MultiExponentialDecayGroup::calculateDerivatives(double* b, int bdim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, vector<double>& kap)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
@@ -308,7 +308,7 @@ int MultiExponentialDecayGroup::calculateDerivatives(double* b, int bdim, vector
 }
 
 
-int MultiExponentialDecayGroup::addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap)
 {
    int col = 0;
     
@@ -334,7 +334,7 @@ int MultiExponentialDecayGroup::addDecayGroup(const vector<ExponentialPrecomputa
 }
 
 
-int MultiExponentialDecayGroup::addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap)
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
@@ -351,7 +351,7 @@ int MultiExponentialDecayGroup::addLifetimeDerivative(int idx, double* b, int bd
    return 0;
 }
 
-int MultiExponentialDecayGroup::addContributionDerivatives(double* b, int bdim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int bdim, vector<double>& kap)
 {
    int col = 0;
 
