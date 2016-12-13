@@ -1,6 +1,12 @@
-function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
+function try_bfreader(obj)
 
-    % Copyright (C) 2013 Imperial College London.
+    % init_bfreader attempts to set up a bio-Formats reader for file
+    % if successful it returns the extension ext as 'bio" except in the
+    % case of tiff files §§
+    % otherwise ext is ret urned depending on the filename extension
+    
+
+    % Copyright (C) 2016 Imperial College London.
     % All rights reserved.
     %
     % This program is free software; you can redistribute it and/or modify
@@ -23,39 +29,31 @@ function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-    % Author : Sean Warren
-
-
-    f = obj.fit_controller;
-    r = f.fit_result;
-    if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
-        return
-    end
-    im_data = f.get_image(dataset,im,indexing);
+   
+    try
+        % Get the channel filler
+        r = loci.formats.ChannelFiller();
+        r = loci.formats.ChannelSeparator(r);
         
-    invert = f.invert_colormap;
+        OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
+        r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
         
-    param = r.params{im};
-    
-    if strcmp(param,'I0') || strcmp(param,'I')
-        cscale = @gray;
-    elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
-        cscale = @inv_jet;
-    else
-        cscale = @jet;
+        r.setId(obj.filename);
+        
+        obj.bf_reader = r;
+        
+        % filter out .tiffs for separate handling
+        format = char(r.getFormat());
+        %  trapdoor for formats that need to be handled outside Bio-Formats
+        switch(format)
+        case 'Tagged Image File Format'
+            obj.ext = '.tif'; 
+        otherwise
+            obj.ext = '.bio';
+        end
+        
+    catch exception %#ok
+        % bioformats does not recognise the file
+        % so work on the filename
+        [~,~,obj.ext] = fileparts_inc_OME(file);  
     end
-    
-    lims = f.get_cur_lims(im);
-    options.int_lim = f.get_cur_intensity_lims();
-    options.cscale = cscale;
-    options.show_colormap = f.show_colormap;
-    options.show_limits = f.show_limits;
-    
-    if merge
-        intensity = f.get_intensity(dataset,indexing);
-        fig = display_flim(im_data,isnan(im_data),lims,intensity,options);
-    else
-        fig = display_flim(im_data,isnan(im_data),lims,options);
-    end
-
-end

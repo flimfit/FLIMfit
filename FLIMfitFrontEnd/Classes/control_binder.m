@@ -53,8 +53,8 @@ classdef control_binder < handle
             for i=1:length(obj.bindings)
                 bd = obj.bindings{i};
                 
-                variable_callback =  @(~,~) variable_updated(obj,bd.control,bd.control_type,bd.parameter);
-                obj.flh{end+1} = addlistener(obj.bound_data_source,bd.parameter,'PostSet',variable_callback);
+                variable_callback =  @() variable_updated(obj,bd.control,bd.control_type,bd.parameter);
+                obj.flh{end+1} = addlistener(obj.bound_data_source,bd.parameter,'PostSet',@(~,~) escaped_callback(variable_callback));
                 variable_updated(obj,bd.control,bd.control_type,bd.parameter);
             end
         end
@@ -71,28 +71,14 @@ classdef control_binder < handle
                 obj.bindings{end+1} = struct('control',control,'control_type',control_type,'parameter',parameter);
                 
                 if ~isempty(obj.bound_data_source)
-                    variable_callback =  @(~,~) variable_updated(obj,control,control_type,parameter);
-                    obj.flh{end+1} = addlistener(obj.bound_data_source,parameter,'PostSet',variable_callback);
+                    variable_callback =  @() variable_updated(obj,control,control_type,parameter);
+                    obj.flh{end+1} = addlistener(obj.bound_data_source,parameter,'PostSet',@(~,~) escaped_callback(variable_callback));
                 end
                 
                 variable_updated(obj,control,control_type,parameter);
             end
         end
-%{
-        
-        function bind_control(obj,control,control_type,parameter)
-            if ~isempty(obj)
-                
-                control_callback = @(src,~) control_updated(obj,src,control_type,parameter);
-                set(control,'Callback',control_callback);
-                variable_callback =  @(~,~) variable_updated(obj,control,control_type,parameter);
-                obj.flh{end+1} = addlistener(obj.fit_params,parameter,'PostSet',variable_callback);
 
-                variable_updated(obj,control,control_type,parameter);
-            end
-        end
-        
-        %}
         
         function variable_updated(obj,control,control_type,parameter)
             

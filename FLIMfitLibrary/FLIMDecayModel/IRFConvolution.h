@@ -36,13 +36,18 @@
 #include <cmath>
 
 template <typename T>
-void alf2beta(int n, const T* alf, double beta[])
+void alf2beta(int n, const T* alf, T beta[])
 {
    // For example if there are four components
    // beta[0] =                              alf[0] 
    // beta[1] =                 alf[1]  * (1-alf[0])
    // beta[2] =    alf[2]  * (1-alf[1]) * (1-alf[0])
    // beta[3] = (1-alf[2]) * (1-alf[1]) * (1-alf[0])
+
+   // For example if there are three components
+   // beta[0] =                  alf[0] 
+   // beta[1] =     alf[1]  * (1-alf[0])
+   // beta[2] =  (1-alf[1]) * (1-alf[0])
 
    for(int i=0; i<n; i++)
       beta[i] = 1;
@@ -83,30 +88,17 @@ double beta_derv(int n_beta, int alf_idx, int beta_idx, const T alf[])
    else
       d = -1;
 
-   for(int k=0; k<(beta_idx-1); k++)
+   for(int k=0; k<(alf_idx); k++)
    {
       d *= (1-alf[k]);
    }
 
+   for (int k = alf_idx; k<(beta_idx-1); k++)
+   {
+      d *= (1 - alf[k]);
+   }
+
    return d;
-}
-
-
-
-
-inline double anscombe(double x)
-{
-   return 2 * sqrt(x + 0.375);
-}
-
-inline double inv_anscombe(double x)
-{
-   return x*x*0.25 - 0.375;
-}
-
-inline double anscombe_diff(double x)
-{
-   return 1 / sqrt(x + 0.375);
 }
 
 

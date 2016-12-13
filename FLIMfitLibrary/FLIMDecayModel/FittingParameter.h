@@ -54,12 +54,12 @@ public:
    {
    }
 
-   bool IsFixed() { return fitting_type == Fixed; }
-   bool IsFittedLocally() { return fitting_type == FittedLocally; }
-   bool IsFittedGlobally() { return fitting_type == FittedGlobally; }
-   
+   bool isFixed() { return fitting_type == Fixed; }
+   bool isFittedLocally() { return fitting_type == FittedLocally; }
+   bool isFittedGlobally() { return (fitting_type == FittedGlobally) && !constrained; }
+   bool isConstrained() { return constrained; }
    template<typename T, typename U>
-   T GetValue(const U* value, int& idx)
+   T getValue(const U* value, int& idx)
    {
       if (fitting_type == FittedGlobally)
          return static_cast<T>(value[idx++]);
@@ -67,7 +67,7 @@ public:
    }
 
    template<typename T, typename U>
-   T GetValue(const U* value, int& idx, const double* lin_value, int& lin_idx)
+   T getValue(const U* value, int& idx, const double* lin_value, int& lin_idx)
    {
       if (fitting_type == FittedGlobally)
          return static_cast<T>(value[idx++]);
@@ -76,11 +76,13 @@ public:
       return static_cast<T>(initial_value);
    }
 
+   void setConstrained(bool constrained_ = true) { constrained = constrained_; }
 
    std::string name;
    double initial_value;
    std::vector<ParameterFittingType> allowed_fitting_types;
    ParameterFittingType fitting_type;
+   bool constrained = false;
 
 private:
    

@@ -115,6 +115,7 @@ classdef flim_fit_ui
             handles.data_series_controller = flim_data_series_controller(handles);                                    
             handles.omero_logon_manager = flim_omero_logon_manager(handles);
             
+            handles.model_controller = flim_model_controller(handles.model_panel);            
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);
             handles.data_intensity_view = flim_data_intensity_view(handles);
@@ -128,12 +129,6 @@ classdef flim_fit_ui
             handles.corr_controller = flim_fit_corr_controller(handles);
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
-            
-            
-            % unless preferences specifically say not, then show OMERO logon
-            %if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
-            %   handles.omero_logon_manager.Omero_logon();
-            %end
             
             handles = obj.setup_menu(handles);            
             
@@ -216,7 +211,6 @@ classdef flim_fit_ui
             pause(0.00001);
             frame_h = get(obj.window,'JavaFrame');
             frame_h.setMaximized(true); 
-
             
             if wait
                 waitfor(obj.window);

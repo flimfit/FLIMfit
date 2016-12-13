@@ -56,7 +56,7 @@
 	<key>ScriptArgs</key>
 	<array/>
 	<key>ScriptPath</key>
-	<string>./DeployFiles/FLIMfit_platypus.sh</string>
+	<string>./DeployFiles/FLIMfit_platypus_versioned.sh</string>
 	<key>Secure</key>
 	<false/>
 	<key>ShowInDock</key>

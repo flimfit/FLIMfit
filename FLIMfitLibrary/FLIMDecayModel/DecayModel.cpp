@@ -112,8 +112,8 @@ int DecayModel::getNumNonlinearVariables()
    for (auto& group : decay_groups)
       n_nonlinear += group->getNumNonlinearParameters();
 
-   n_nonlinear += reference_parameter.IsFittedGlobally();
-   n_nonlinear += t0_parameter.IsFittedGlobally();
+   n_nonlinear += reference_parameter.isFittedGlobally();
+   n_nonlinear += t0_parameter.isFittedGlobally();
 
    return n_nonlinear;
 }
@@ -124,7 +124,7 @@ double DecayModel::getCurrentReferenceLifetime(const double* param_values, int& 
    if (dp->irf->type != Reference)
       return 0;
 
-   return reference_parameter.GetValue<double>(param_values, idx);
+   return reference_parameter.getValue<double>(param_values, idx);
 }
 
 double DecayModel::getCurrentT0(const double* param_values, int& idx)
@@ -132,7 +132,7 @@ double DecayModel::getCurrentT0(const double* param_values, int& idx)
    if (dp->irf->type != Reference)
       return 0;
 
-   return t0_parameter.GetValue<double>(param_values, idx);
+   return t0_parameter.getValue<double>(param_values, idx);
 }
 
 
@@ -217,11 +217,6 @@ int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, i
       for (int i = 0; i < decay_groups.size(); i++)
          col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap);
 
-#if _DEBUG
-      for (int i = 0; i < a.size(); i++)
-         assert(std::isfinite(a[i]));
-#endif
-
       /*
       MOVE THIS TO MULTIEXPONENTIAL MODEL
       if (constrain_nonlinear_parameters && kap.size() > 0)
@@ -302,7 +297,7 @@ int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, i
 
 int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap)
 {
-   //TODO
+   //TODO - reference lifetime derivatives
    /*
    double fact;
 
@@ -346,7 +341,7 @@ int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, vector<doub
 
 int DecayModel::addT0Derivatives(double* b, int bdim, vector<double>& kap)
 {
-   // TODO
+   // TODO - t0 derivatives
    /*
    if (fit_t0 != FIT)
       return 0;
@@ -423,9 +418,9 @@ void DecayModel::getInitialVariables(vector<double>& param, double mean_arrival_
    for (auto& g : decay_groups)
       idx += g->getInitialVariables(param.begin());
 
-   if (reference_parameter.IsFittedGlobally())
+   if (reference_parameter.isFittedGlobally())
       param[idx++] = reference_parameter.initial_value;
-   if (t0_parameter.IsFittedGlobally())
+   if (t0_parameter.isFittedGlobally())
       param[idx++] = t0_parameter.initial_value;
 
 }
@@ -534,7 +529,8 @@ void DecayModel::validateDerivatives()
             std::cout << "Variable: " << i << ", Column: " << j << "\n";
             std::cout << "   Mean err : " << mean_err << "\n";
 
-            //assert(mean_err > 0.75);
+            if (mean_err < 0.75)
+               throw std::runtime_error("Problem with derivatives detected!");
 
             m++;
          }

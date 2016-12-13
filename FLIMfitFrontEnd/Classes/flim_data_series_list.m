@@ -126,10 +126,10 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         end
         
         function data_set(obj)
-            obj.lh = addlistener(obj.data_series,'use','PostSet',@obj.data_update);
+            obj.lh = addlistener(obj.data_series,'use','PostSet',@(~,~) escaped_callback(@obj.data_update));
         end
         
-        function data_update(obj,~,~)
+        function data_update(obj)
             if ishandle(obj.handle)
                 if ~isempty(obj.data_series) && obj.data_series.init 
          

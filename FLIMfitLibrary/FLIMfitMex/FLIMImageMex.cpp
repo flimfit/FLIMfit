@@ -90,8 +90,7 @@ void setAcceptor(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nr
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsSingle(prhs[2]));
 
-   float* acceptor = reinterpret_cast<float*>(mxGetData(prhs[2]));
-   //d->setAcceptor(acceptor); // TODO
+   d->setAcceptor(getCvMat(prhs[2]));
 }
 
 
@@ -122,10 +121,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          }
          else if (isArgument(nrhs, prhs, "mapped_file"))
          {
-            std::string mapped_file = GetStringFromMatlab(getNamedArgument(nrhs, prhs, "mapped_file"));
+            std::string mapped_file = getStringFromMatlab(getNamedArgument(nrhs, prhs, "mapped_file"));
             int map_offset = mxGetScalar(getNamedArgument(nrhs, prhs, "data_offset"));
 
-            std::string data_class_str = GetStringFromMatlab(getNamedArgument(nrhs, prhs, "data_class"));
+            std::string data_class_str = getStringFromMatlab(getNamedArgument(nrhs, prhs, "data_class"));
             FLIMImage::DataClass data_class;
             if (data_class_str == "uint16")
                data_class = FLIMImage::DataUint16;
@@ -143,7 +142,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          }
 
          ptr_set.insert(image);
-         plhs[0] = PackageSharedPtrForMatlab(image);
+         plhs[0] = packageSharedPtrForMatlab(image);
          return;
       }
 
@@ -151,13 +150,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
-      auto& d = GetSharedPtrFromMatlab<FLIMImage>(prhs[0]);
+      auto& d = getSharedPtrFromMatlab<FLIMImage>(prhs[0]);
 
       // Get command
-      string command = GetStringFromMatlab(prhs[1]);
+      std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
-         ReleaseSharedPtrFromMatlab<FLIMImage>(prhs[0]);
+         releaseSharedPtrFromMatlab<FLIMImage>(prhs[0]);
       else if (command == "SetMask")
          setMask(d, nlhs, plhs, nrhs, prhs);
       else if (command == "SetAcceptor")

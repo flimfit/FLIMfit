@@ -35,21 +35,10 @@
 using namespace std;
 
 AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_anisotropy_populations, bool include_r_inf) :
-   MultiExponentialDecayGroup(n_lifetime_exponential, true, "Anisotropy Decay"),
+   MultiExponentialDecayGroupPrivate(n_lifetime_exponential, true, "Anisotropy Decay"),
    n_anisotropy_populations(n_anisotropy_populations),
    include_r_inf(include_r_inf)
 {
-   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-
-   for (int i = 0; i < n_anisotropy_populations; i++)
-   {
-      string name = "r_" + boost::lexical_cast<string>(i + 1);
-      double initial_value = 1000 + 5000 * i / (n_anisotropy_populations - 1);
-
-      auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
-      parameters.push_back(p);
-      theta_parameters.push_back(p);
-   }
 
    // TODO: MOVE ALL TO INIT
    //n_lin_components = n_anisotropy_populations + include_r_inf + 1;
@@ -58,17 +47,43 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    //anisotropy_buffer.resize(n_anisotropy_populations,
    //   vector<ExponentialPrecomputationBuffer>(n_exponential,
    //   ExponentialPrecomputationBuffer(acq))); 
+
+   setupParameters();
+}
+
+void AnisotropyDecayGroup::setNumExponential(int n_exponential_)
+{
+   n_exponential = n_exponential_;
+   setupParameters();
+}
+
+void AnisotropyDecayGroup::setNumAnisotropyPopulations(int n_anisotropy_populations_)
+{
+   n_anisotropy_populations = n_anisotropy_populations_;
+   setupParameters();
+}
+
+void AnisotropyDecayGroup::setIncludeRInf(bool include_r_inf_)
+{
+   include_r_inf = include_r_inf_;
+};
+
+
+void AnisotropyDecayGroup::setupParameters()
+{
+   setupParametersMultiExponential();
+   resizeLifetimeParameters(theta_parameters, n_anisotropy_populations, "theta_");
 }
 
 int AnisotropyDecayGroup::setVariables(const double* param_value)
 {
-   int idx = MultiExponentialDecayGroup::setVariables(param_value);
+   int idx = MultiExponentialDecayGroupPrivate::setVariables(param_value);
 
    theta.resize(n_anisotropy_populations);
 
    for (int i = 0; i<n_anisotropy_populations; i++)
    {
-      theta[i] = theta_parameters[i]->GetValue<double>(param_value, idx);
+      theta[i] = theta_parameters[i]->getValue<double>(param_value, idx);
       // TODO: constrain above 60ps
 
       for (int j = 0; j < n_exponential; j++)
@@ -93,7 +108,7 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
    // Set diagonal elements of incidence matrix for variable tau's   
    for (int i = 0; i<n_exponential; i++)
    {
-      if (tau_parameters[i]->IsFittedGlobally())
+      if (tau_parameters[i]->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
@@ -104,7 +119,7 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
    // Set diagonal elements of incidence matrix for variable beta's   
    for (int i = 0; i<n_exponential; i++)
    {
-      if (beta_parameters[0]->IsFittedGlobally())
+      if (beta_parameters[0]->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
             inc[inc_row + (inc_col + j) * 12] = 1;
@@ -117,7 +132,7 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
    // Set elements of incidence matrix for theta derivatives
    for (int i = 0; i<n_anisotropy_populations; i++)
    {
-      if (theta_parameters[i]->IsFittedGlobally())
+      if (theta_parameters[i]->isFittedGlobally())
       {
          inc[inc_row + inc_col * 12] = 1;
          inc_col++;
@@ -130,10 +145,10 @@ int AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, in
 
 int AnisotropyDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
 {
-   int output_idx = MultiExponentialDecayGroup::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
+   int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    for (int i = 0; i < n_anisotropy_populations; i++)
-      output[output_idx++] = theta_parameters[i]->GetValue<float>(nonlin_variables, nonlin_idx);
+      output[output_idx++] = theta_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    return output_idx;
 }
@@ -211,7 +226,7 @@ int AnisotropyDecayGroup::calculateDerivatives(double* b, int bdim, vector<doubl
 
 int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, vector<double>& kap)
 {
-   if (tau_parameters[idx]->IsFittedGlobally())
+   if (tau_parameters[idx]->isFittedGlobally())
    {
       memset(b, 0, bdim*sizeof(*b));
 
@@ -236,7 +251,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double* b, int
 
    for (int p = 0; p<n_anisotropy_populations; p++)
    {
-      if (theta_parameters[p]->IsFittedGlobally())
+      if (theta_parameters[p]->isFittedGlobally())
       {
          memset(b + col*bdim, 0, bdim*sizeof(*b));
 

@@ -3,7 +3,7 @@
 #include "MultiExponentialDecayGroup.h"
 #include <functional>
 
-class FretDecayGroup : public MultiExponentialDecayGroup
+class FretDecayGroup : public MultiExponentialDecayGroupPrivate
 {
    Q_OBJECT
 
@@ -16,6 +16,7 @@ public:
    Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE setIncludeDonorOnly USER true);
    Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE setIncludeAcceptor USER true);
    
+   void setNumExponential(int n_exponential_);
    void setNumFretPopulations(int n_fret_populations_);
    void setIncludeDonorOnly(bool include_donor_only_);
    void setIncludeAcceptor(bool include_acceptor_);
@@ -50,8 +51,8 @@ protected:
    void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
 
    vector<shared_ptr<FittingParameter>> tauT_parameters;
-   shared_ptr<FittingParameter> A0_parameter;
-   shared_ptr<FittingParameter> AD_parameter;
+   shared_ptr<FittingParameter> Q_parameter;
+   shared_ptr<FittingParameter> Qsigma_parameter;
    shared_ptr<FittingParameter> tauA_parameter;
 
    int n_fret_populations = 1;
@@ -61,8 +62,8 @@ protected:
    vector<vector<double>> a_star;
    vector<double> tau_transfer;
    vector<vector<double>> tau_fret;
-   double A0;
-   double AD;
+   double Q;
+   double Qsigma;
    double tauA;
 
    vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
@@ -70,10 +71,9 @@ protected:
    std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
    std::unique_ptr<ExponentialPrecomputationBuffer> direct_acceptor_buffer;
    vector<double> acceptor_channel_factors;
-   vector<double> direct_acceptor_channel_factors;
 
 protected:
-   int getNumPotentialChannels() { return 3; }
+   int getNumPotentialChannels() { return 2; }
    
 private:
    template<class Archive>
@@ -86,7 +86,7 @@ private:
 template<class Archive>
 void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
-   ar & boost::serialization::base_object<MultiExponentialDecayGroup>(*this);
+   ar & boost::serialization::base_object<MultiExponentialDecayGroupPrivate>(*this);
    ar & tauT_parameters;
    ar & A0_parameter;
    ar & AD_parameter;

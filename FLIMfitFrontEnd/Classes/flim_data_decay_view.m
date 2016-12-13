@@ -70,9 +70,9 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                             
             assign_handles(obj,handles)
 
-            addlistener(obj.roi_controller,'roi_updated',@obj.roi_update);
-            set(obj.highlight_display_mode_popupmenu,'Callback',@obj.display_mode_update);
-            set(obj.highlight_decay_mode_popupmenu,'Callback',@obj.display_mode_update);
+            addlistener(obj.roi_controller,'roi_updated',@(~,~) escaped_callback(@obj.roi_update));
+            set(obj.highlight_display_mode_popupmenu,'Callback',@(~,~) escaped_callback(@obj.display_mode_update));
+            set(obj.highlight_decay_mode_popupmenu,'Callback',@(~,~) escaped_callback(@obj.display_mode_update));
             
             obj.register_tab_function('Decay');
             
@@ -81,14 +81,14 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
         
         function data_set(obj)
             delete(obj.lh);
-            obj.lh = addlistener(obj.data_series,'masking_updated',@obj.data_update_evt);
+            obj.lh = addlistener(obj.data_series,'masking_updated',@(~,~) escaped_callback(@obj.data_update_evt));
         end
         
-        function display_mode_update(obj,~,~)
+        function display_mode_update(obj)
             obj.update_display();
         end
         
-        function roi_update(obj,~,~)
+        function roi_update(obj)
             obj.update_display();
         end
         

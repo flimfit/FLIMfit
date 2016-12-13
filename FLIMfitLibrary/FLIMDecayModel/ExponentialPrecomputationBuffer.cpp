@@ -63,8 +63,9 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
    if (rate_ == rate)
       return;
   
-   assert(std::isfinite(rate_));
-   
+   if (!std::isfinite(rate_))
+      throw(std::runtime_error("Rate not finite"));
+
    rate = rate_;
 
    ComputeIRFFactors(rate, irf_idx, t0_shift);

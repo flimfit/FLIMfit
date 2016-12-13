@@ -33,7 +33,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     % Main Tab
     fit_params_main_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
     
-    handles.model = model_interface(fit_params_main_layout);
+    handles.model_panel = uipanel('Parent',fit_params_main_layout);
     
     % Advanced tab
     fit_params_adv_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );

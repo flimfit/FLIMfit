@@ -2,7 +2,7 @@
 #include "MultiExponentialDecayGroup.h"
 
 
-class AnisotropyDecayGroup : public MultiExponentialDecayGroup
+class AnisotropyDecayGroup : public MultiExponentialDecayGroupPrivate
 {
    Q_OBJECT
 
@@ -14,8 +14,9 @@ public:
    Q_PROPERTY(int n_anisotropy_populations MEMBER n_anisotropy_populations WRITE setNumAnisotropyPopulations USER true);
    Q_PROPERTY(bool include_r_inf MEMBER include_r_inf WRITE setIncludeRInf USER true);
 
-   void setNumAnisotropyPopulations(int n_anisotropy_populations) {}; // TODO
-   void setIncludeRInf(bool include_r_inf) {};
+   void setNumExponential(int n_exponential_);
+   void setNumAnisotropyPopulations(int n_anisotropy_populations_);
+   void setIncludeRInf(bool include_r_inf_);
 
    int setVariables(const double* variables);
    int calculateModel(double* a, int adim, vector<double>& kap);

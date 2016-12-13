@@ -47,7 +47,7 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsChar(prhs[2]));
 
-   string group_type = GetStringFromMatlab(prhs[2]);
+   string group_type = getStringFromMatlab(prhs[2]);
 
    shared_ptr<AbstractDecayGroup> group;
 
@@ -61,10 +61,14 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
       int n_components = (nrhs >= 4) ? mxGetScalar(prhs[3]) : 1;
       int n_fret = (nrhs >= 5) ? mxGetScalar(prhs[4]) : 1;
       group = std::make_shared<FretDecayGroup>(n_components, n_fret);
-
    }
-   //else if (group_type == "Anisotropy Decay")
-   //   group = std::make_shared<AnisotropyDecayGroup>();
+   else if (group_type == "Anisotropy Decay")
+   {
+      int n_components = (nrhs >= 4) ? mxGetScalar(prhs[3]) : 1;
+      int n_anisotropy = (nrhs >= 5) ? mxGetScalar(prhs[4]) : 1;
+      bool inc_r_inf = (nrhs >= 6) ? mxGetScalar(prhs[5]) : false;
+      group = std::make_shared<AnisotropyDecayGroup>(n_components, n_anisotropy, inc_r_inf);
+   }
 
    if (group)
       model->addDecayGroup(group);
@@ -114,41 +118,51 @@ mxArray* getParameters(shared_ptr<QDecayModel> model, int group_idx)
    int n_properties = group_meta->propertyCount() - 1; // ignore objectName
 
    std::vector<const char*> field_names(n_properties);
+   int n_user_properties = 0;
    for (int i = 0; i < n_properties; i++)
    {
       const auto& prop = group_meta->property(i + 1);
-      field_names[i] = prop.name();
+      if (prop.isUser())
+         field_names[n_user_properties++] = prop.name();
    }
 
-   mxArray* s = mxCreateStructMatrix(1, 1, n_properties, field_names.data());
+   mxArray* s = mxCreateStructMatrix(1, 1, n_user_properties, field_names.data());
 
+   int idx = 0;
    for (int i = 0; i < n_properties; i++)
    {
       const auto& prop = group_meta->property(i + 1);
-      QVariant v = prop.read(group.get());
-
-      mxArray* vv;
-      QByteArray vs;
-      switch (v.type())
+      
+      if (prop.isUser())
       {
-      case QMetaType::Bool:
-         mxSetFieldByNumber(s, 0, i, mxCreateLogicalScalar(v.toDouble()));
-         break;
-      case QMetaType::Int:
-      case QMetaType::UInt:
-      case QMetaType::Long:
-         vv = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
-         static_cast<int64_t*>(mxGetData(vv))[0] = v.toInt();
-         mxSetFieldByNumber(s, 0, i, vv);
-         break;
-      case QMetaType::Char:
-      case QMetaType::QString:
-         vs = v.toString().toLocal8Bit();
-         vv = mxCreateStringFromNChars(vs.constData(), vs.length());
-         mxSetFieldByNumber(s, 0, i, vv);
-         break;
-      default:
-         mxSetFieldByNumber(s, 0, i, mxCreateDoubleScalar(0));
+
+         QVariant v = prop.read(group.get());
+
+         mxArray* vv;
+         QByteArray vs;
+         switch (v.type())
+         {
+         case QMetaType::Bool:
+            mxSetFieldByNumber(s, 0, idx, mxCreateLogicalScalar(v.toDouble()));
+            break;
+         case QMetaType::Int:
+         case QMetaType::UInt:
+         case QMetaType::Long:
+            vv = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
+            static_cast<int64_t*>(mxGetData(vv))[0] = v.toInt();
+            mxSetFieldByNumber(s, 0, idx, vv);
+            break;
+         case QMetaType::Char:
+         case QMetaType::QString:
+            vs = v.toString().toLocal8Bit();
+            vv = mxCreateStringFromNChars(vs.constData(), vs.length());
+            mxSetFieldByNumber(s, 0, idx, vv);
+            break;
+         default:
+            mxSetFieldByNumber(s, 0, idx, mxCreateDoubleScalar(0));
+         }
+
+         idx++;
       }
    }
 
@@ -164,7 +178,7 @@ void setParameter(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int 
 
    auto group = model->getGroup(group_idx);
 
-   std::string name = GetStringFromMatlab(prhs[3]);
+   std::string name = getStringFromMatlab(prhs[3]);
    double value = mxGetScalar(prhs[4]);
 
    group->setProperty(name.c_str(), value);
@@ -216,6 +230,59 @@ void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
    }
 }
 
+void getChannelFactorNames(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+   AssertInputCondition(nrhs >= 3);
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   auto group = model->getGroup(group_idx);
+   auto names = group->getChannelFactorNames();
+
+   plhs[0] = mxCreateCellMatrix(1, names.size());
+
+   for (int i = 0; i < names.size(); i++)
+      mxSetCell(plhs[0], i, mxCreateString(names[i].c_str()));
+}
+
+void getChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+   AssertInputCondition(nrhs >= 4);
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   int channel_idx = mxGetScalar(prhs[3]) - 1;
+
+   auto group = model->getGroup(group_idx);
+   auto channel_factors = group->getChannelFactors(channel_idx);
+
+   plhs[0] = mxCreateDoubleMatrix(1, channel_factors.size(), mxREAL);
+   double* ch_ptr = reinterpret_cast<double*>(mxGetData(plhs[0]));
+
+   std::copy(channel_factors.begin(), channel_factors.end(), ch_ptr);
+}
+
+
+void setChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 5);
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   int channel_idx = mxGetScalar(prhs[3]) - 1;
+   auto channel_factors = getVector<double>(prhs[4]);
+
+   auto group = model->getGroup(group_idx);
+   group->setChannelFactors(channel_idx, channel_factors);
+}
+
+
+
 void openUI(shared_ptr<QDecayModel> model)
 {
    
@@ -233,7 +300,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          AssertInputCondition(nlhs > 0);
          auto model = std::make_shared<QDecayModel>();
          ptr_set.insert(model);
-         plhs[0] = PackageSharedPtrForMatlab(model);
+         plhs[0] = packageSharedPtrForMatlab(model);
          return;
       }
 
@@ -242,16 +309,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
-      auto& model = GetSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+      auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
 
       if (ptr_set.find(model) == ptr_set.end())
          mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
 
       // Get command
-      string command = GetStringFromMatlab(prhs[1]);
+      string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
-         ReleaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+         releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
       else if (command == "AddDecayGroup")
          addDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "RemoveDecayGroup")
@@ -262,6 +329,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          setVariables(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetParameter")
          setParameter(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetChannelFactorNames")
+         getChannelFactorNames(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetChannelFactors")
+         setChannelFactors(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetChannelFactors")
+         getChannelFactors(model, nlhs, plhs, nrhs, prhs);
       else if (command == "OpenUI")
          openUI(model);
    }

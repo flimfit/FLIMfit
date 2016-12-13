@@ -1,22 +1,37 @@
 #pragma once 
 
 #include "AbstractDecayGroup.h"
+#include "IRFConvolution.h"
 
+template<class T> // TODO: make this part of class
+int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[])
+{
+   alf2beta(n_beta_free, alf, beta);
 
+   int idx = 0;
+   for (int i = 0; i < beta_parameters.size(); i++)
+   {
+      if (!beta_parameters[i]->isFixed())
+         beta[i] = beta[idx++] * (1 - fixed_beta);
+   }
 
+   for (int i = 0; i < beta_parameters.size(); i++)
+   {
+      if (beta_parameters[i]->isFixed())
+         beta[i] = beta_parameters[i]->initial_value;
+   }
 
-class MultiExponentialDecayGroup : public AbstractDecayGroup
+   return n_beta_free - 1;
+}
+class MultiExponentialDecayGroupPrivate : public AbstractDecayGroup
 {
    Q_OBJECT
 
 public:
 
-   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay");
+   MultiExponentialDecayGroupPrivate(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay");
 
-   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
-   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);
-
-   void setNumExponential(int n_exponential);
+   virtual void setNumExponential(int n_exponential);
    void setContributionsGlobal(bool contributions_global);
 
    virtual const vector<double>& getChannelFactors(int index);
@@ -31,9 +46,11 @@ public:
    virtual void getLinearOutputParamNames(vector<string>& names);
 
 protected:
-   
+  
    virtual void init();
    void setupParametersMultiExponential();
+
+   void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
 
    int addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
    int addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);
@@ -55,12 +72,15 @@ private:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
    
+   const double* beta_param_values = nullptr;
+   int n_beta_free;
+   double fixed_beta;
    friend class boost::serialization::access;
    
 };
 
 template<class Archive>
-void MultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int version)
+void MultiExponentialDecayGroupPrivate::serialize(Archive & ar, const unsigned int version)
 {
    ar & tau_parameters;
    ar & beta_parameters;
@@ -68,6 +88,23 @@ void MultiExponentialDecayGroup::serialize(Archive & ar, const unsigned int vers
    ar & contributions_global;
    ar & channel_factors;
    ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
+};
+
+class MultiExponentialDecayGroup : public MultiExponentialDecayGroupPrivate
+{
+   Q_OBJECT
+
+public:
+
+   MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay") :
+      MultiExponentialDecayGroupPrivate(n_exponential_, contributions_global_, name)
+   {
+
+   }
+
+   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
+   Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);
+
 };
 
 /*

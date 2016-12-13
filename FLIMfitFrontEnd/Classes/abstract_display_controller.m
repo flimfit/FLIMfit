@@ -59,7 +59,7 @@ classdef abstract_display_controller < handle
                         
             assign_handles(obj,handles);
 
-            addlistener(obj.data_series_list,'selection_updated',@obj.selection_updated);
+            addlistener(obj.data_series_list,'selection_updated',@(~,~) escaped_callback(@obj.selection_updated));
             
             obj.selected = obj.data_series_list.selected;
 
@@ -243,7 +243,7 @@ classdef abstract_display_controller < handle
         function plot_fit_update(obj) 
         end
         
-        function selection_updated(obj,~,~)
+        function selection_updated(obj)
             obj.selected = obj.data_series_list.selected;
             obj.update_display();
         end
