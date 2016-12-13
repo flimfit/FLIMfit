@@ -11,8 +11,12 @@ project(FLIMfit)
 
 hunter_add_package(OpenCV)
 hunter_add_package(Boost COMPONENTS system filesystem serialization date_time)
+hunter_add_package(Qt COMPONENTS qtbase)
 
 find_package(OpenCV)
+find_package(Qt5Widgets)
+find_package(Qt5PrintSupport)
+
 
 set(CMAKE_DEBUG_POSTFIX "")
 set(FLIMreaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)

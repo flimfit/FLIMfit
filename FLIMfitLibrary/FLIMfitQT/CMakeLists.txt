@@ -2,7 +2,6 @@ project(FLIMfitQT)
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
-find_package(Qt5OpenGL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(BOOST REQUIRED COMPONENTS system serialization)
 
@@ -80,8 +79,5 @@ target_link_libraries(FLIMfitQT
                            Qt5::Widgets 
                            Qt5::PrintSupport
                            Qt5::Gui
-                           Qt5::OpenGL
-                           ${LAPACKBLAS_LIB_NAMES}
-                           ${F2C_LIB_NAME}
                            ${OpenCV_LIBS}
                            ${FLIMDecayModel_LIBRARIES})
