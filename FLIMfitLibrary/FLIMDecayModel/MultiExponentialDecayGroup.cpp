@@ -367,8 +367,8 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int
    int ji = 0;
    if (contributions_global)
    {
-      for (int j = 0; j < n_exponential; j++)
-         if (beta_parameters[j]->isFittedGlobally())
+      for (int j = 0; j < n_exponential - 1; j++)
+         if (!beta_parameters[j]->isFixed())
          {
             memset(b + col*bdim, 0, bdim * sizeof(*b));
             int ki = ji;
