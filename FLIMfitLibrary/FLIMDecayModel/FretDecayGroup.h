@@ -51,8 +51,8 @@ protected:
    void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
 
    vector<shared_ptr<FittingParameter>> tauT_parameters;
-   shared_ptr<FittingParameter> A0_parameter;
-   shared_ptr<FittingParameter> AD_parameter;
+   shared_ptr<FittingParameter> Q_parameter;
+   shared_ptr<FittingParameter> Qsigma_parameter;
    shared_ptr<FittingParameter> tauA_parameter;
 
    int n_fret_populations = 1;
@@ -62,8 +62,8 @@ protected:
    vector<vector<double>> a_star;
    vector<double> tau_transfer;
    vector<vector<double>> tau_fret;
-   double A0;
-   double AD;
+   double Q;
+   double Qsigma;
    double tauA;
 
    vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
@@ -71,10 +71,9 @@ protected:
    std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
    std::unique_ptr<ExponentialPrecomputationBuffer> direct_acceptor_buffer;
    vector<double> acceptor_channel_factors;
-   vector<double> direct_acceptor_channel_factors;
 
 protected:
-   int getNumPotentialChannels() { return 3; }
+   int getNumPotentialChannels() { return 2; }
    
 private:
    template<class Archive>
