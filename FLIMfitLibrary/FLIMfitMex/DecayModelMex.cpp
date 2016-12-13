@@ -230,6 +230,60 @@ void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
    }
 }
 
+void getChannelFactorNames(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+   AssertInputCondition(nrhs >= 3);
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   auto group = model->getGroup(group_idx);
+   auto names = group->getChannelFactorNames();
+
+   plhs[0] = mxCreateCellMatrix(1, names.size());
+
+   for (int i = 0; i < names.size(); i++)
+      mxSetCell(plhs[0], i, mxCreateString(names[i].c_str()));
+}
+
+void getChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+   AssertInputCondition(nrhs >= 4);
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   int channel_idx = mxGetScalar(prhs[3]) - 1;
+
+   auto group = model->getGroup(group_idx);
+   auto channel_factors = group->getChannelFactors(channel_idx);
+
+   plhs[0] = mxCreateDoubleMatrix(1, channel_factors.size(), mxREAL);
+   double* ch_ptr = reinterpret_cast<double*>(mxGetData(plhs[0]));
+
+   std::copy(channel_factors.begin(), channel_factors.end(), ch_ptr);
+}
+
+
+void setChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+   AssertInputCondition(nrhs >= 5);
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   int channel_idx = mxGetScalar(prhs[3]) - 1;
+   auto channel_factors = getVector<double>(prhs[4]);
+
+   auto group = model->getGroup(group_idx);
+   group->setChannelFactors(channel_idx, channel_factors);
+}
+
+
+
 void openUI(shared_ptr<QDecayModel> model)
 {
    
@@ -276,6 +330,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          setVariables(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetParameter")
          setParameter(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetChannelFactorNames")
+         getChannelFactorNames(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetChannelFactors")
+         setChannelFactors(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetChannelFactors")
+         getChannelFactors(model, nlhs, plhs, nrhs, prhs);
       else if (command == "OpenUI")
          openUI(model);
    }

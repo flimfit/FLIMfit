@@ -4,7 +4,7 @@ function model = model_interface(fh)
     fit_options = {'Fixed','Fitted Locally','Fitted Globally'};
     
     model = ff_DecayModel();    
-    ff_DecayModel(model,'AddDecayGroup','Multi-Exponential Decay',1);
+    ff_DecayModel(model,'AddDecayGroup','FRET Decay',1);
    
     groups = ff_DecayModel(model,'GetGroups');
 
@@ -22,14 +22,22 @@ function model = model_interface(fh)
         uicontrol('Style','pushbutton','String','Add','Callback',{@add_group,add_popup},'Parent',add_layout);
         add_layout.Widths = [75 -1 75];
 
-        
         groups = ff_DecayModel(model,'GetGroups');
 
         for i=1:length(groups)
             draw_group(main_layout,groups(i),i);
         end
+        
+        uicontrol('Style','text','String','Channel Factors','Parent',main_layout,...
+            'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor','w');
 
+        
+        for i=1:length(groups)
+            draw_channel(main_layout,groups(i),i);
+        end
+        
         uix.Empty('Parent',main_layout);
+
         main_layout.Heights = [22*ones(1,length(main_layout.Children)-1) -1];
         
     end
@@ -92,6 +100,20 @@ function model = model_interface(fh)
         uicontrol('Style','popupmenu','String',fit_options(variable.AllowedFittingTypes),'Value',idx,'Parent',layout,...
             'Callback',@(src,evt) update_fitting_option(group_idx, variable_idx, variable.AllowedFittingTypes(src.Value)));
         layout.Widths = [75 -1 -1];
+    end
+
+    function draw_channel(parent, group, idx)
+        
+        channel_names = ff_DecayModel(model,'GetChannelFactorNames',idx);
+        
+        for i=1:length(channel_names)        
+            layout = uix.HBox('Parent',parent,'Spacing',2,'BackgroundColor','w'); 
+            uicontrol('Style','text','String',['[' num2str(idx) '] ' channel_names{i}],'Parent',layout,'BackgroundColor','w');
+            channel_factors = ff_DecayModel(model,'GetChannelFactors',idx,i);
+            for j=1:length(channel_factors)
+                uicontrol('Style','edit','String',num2str(channel_factors(j)),'Parent',layout,'BackgroundColor','w');
+            end
+        end
     end
 
     function add_group(~,~,add_popup)
