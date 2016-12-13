@@ -39,17 +39,6 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    n_anisotropy_populations(n_anisotropy_populations),
    include_r_inf(include_r_inf)
 {
-   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-
-   for (int i = 0; i < n_anisotropy_populations; i++)
-   {
-      string name = "r_" + boost::lexical_cast<string>(i + 1);
-      double initial_value = 1000 + 5000 * i / (n_anisotropy_populations - 1);
-
-      auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
-      parameters.push_back(p);
-      theta_parameters.push_back(p);
-   }
 
    // TODO: MOVE ALL TO INIT
    //n_lin_components = n_anisotropy_populations + include_r_inf + 1;
@@ -58,6 +47,32 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    //anisotropy_buffer.resize(n_anisotropy_populations,
    //   vector<ExponentialPrecomputationBuffer>(n_exponential,
    //   ExponentialPrecomputationBuffer(acq))); 
+
+   setupParameters();
+}
+
+void AnisotropyDecayGroup::setNumExponential(int n_exponential_)
+{
+   n_exponential = n_exponential_;
+   setupParameters();
+}
+
+void AnisotropyDecayGroup::setNumAnisotropyPopulations(int n_anisotropy_populations_)
+{
+   n_anisotropy_populations = n_anisotropy_populations_;
+   setupParameters();
+}
+
+void AnisotropyDecayGroup::setIncludeRInf(bool include_r_inf_)
+{
+   include_r_inf = include_r_inf_;
+};
+
+
+void AnisotropyDecayGroup::setupParameters()
+{
+   setupParametersMultiExponential();
+   resizeLifetimeParameters(theta_parameters, n_anisotropy_populations, "theta_");
 }
 
 int AnisotropyDecayGroup::setVariables(const double* param_value)

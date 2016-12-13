@@ -1,6 +1,6 @@
 function model = model_interface(fh)
 
-    decay_types = {'Multi-Exponential Decay','FRET Decay','Anistropy Decay'};
+    decay_types = {'Multi-Exponential Decay','FRET Decay','Anisotropy Decay'};
     fit_options = {'Fixed','Fitted Locally','Fitted Globally'};
     
     model = ff_DecayModel();    

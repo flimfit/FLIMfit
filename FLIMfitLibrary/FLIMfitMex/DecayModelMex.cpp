@@ -61,10 +61,14 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
       int n_components = (nrhs >= 4) ? mxGetScalar(prhs[3]) : 1;
       int n_fret = (nrhs >= 5) ? mxGetScalar(prhs[4]) : 1;
       group = std::make_shared<FretDecayGroup>(n_components, n_fret);
-
    }
-   //else if (group_type == "Anisotropy Decay")
-   //   group = std::make_shared<AnisotropyDecayGroup>();
+   else if (group_type == "Anisotropy Decay")
+   {
+      int n_components = (nrhs >= 4) ? mxGetScalar(prhs[3]) : 1;
+      int n_anisotropy = (nrhs >= 5) ? mxGetScalar(prhs[4]) : 1;
+      bool inc_r_inf = (nrhs >= 6) ? mxGetScalar(prhs[5]) : false;
+      group = std::make_shared<AnisotropyDecayGroup>(n_components, n_anisotropy, inc_r_inf);
+   }
 
    if (group)
       model->addDecayGroup(group);

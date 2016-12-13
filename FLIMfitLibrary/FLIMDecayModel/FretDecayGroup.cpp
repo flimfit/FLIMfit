@@ -38,10 +38,7 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    MultiExponentialDecayGroupPrivate(n_donor_exponential, true, "FRET Decay"),
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
-{
-   n_exponential = n_donor_exponential;
-   contributions_global = true;
-   
+{   
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    A0_parameter = make_shared<FittingParameter>("A0", 1, fixed_or_global, FittedGlobally);
    AD_parameter = make_shared<FittingParameter>("AD", 0.1, fixed_or_global, FittedGlobally);
@@ -62,19 +59,7 @@ void FretDecayGroup::setupParameters()
       channel_factor_names.push_back("Direct Acceptor");
    }
 
-   tauT_parameters.clear();
-
-   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-
-   for (int i = 0; i < n_fret_populations; i++)
-   {
-      string name = "tauT_" + boost::lexical_cast<string>(i + 1);
-      double initial_value = 4000 / n_fret_populations;
-
-      auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
-      parameters.push_back(p);
-      tauT_parameters.push_back(p);
-   }
+   resizeLifetimeParameters(tauT_parameters, n_fret_populations, "tauT_");
 
    if (include_acceptor)
    {

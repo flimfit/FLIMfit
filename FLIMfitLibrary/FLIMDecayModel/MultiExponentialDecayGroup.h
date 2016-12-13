@@ -50,6 +50,8 @@ protected:
    virtual void init();
    void setupParametersMultiExponential();
 
+   void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
+
    int addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
    int addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);
    int addContributionDerivatives(double* b, int bdim, vector<double>& kap);

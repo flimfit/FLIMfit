@@ -33,7 +33,6 @@
 using namespace std;
 
 
-
 MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(int n_exponential, bool contributions_global, const QString& name) :
    AbstractDecayGroup(name),
    n_exponential(n_exponential),
@@ -44,26 +43,39 @@ MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(int n_expon
    setupParametersMultiExponential();
 }
 
-void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
+void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix)
 {
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    
-   if (tau_parameters.size() > n_exponential)
+   if (params.size() > new_size)
+      params.resize(new_size);
+   
+   for (auto& p : params)
+      parameters.push_back(p);
+
+   if (params.size() < new_size)
    {
-      tau_parameters.resize(n_exponential);
-   }
-   else
-   {
-      size_t old_size = tau_parameters.size();
-      for (size_t i = old_size; i < n_exponential; i++)
+      size_t old_size = params.size();
+      for (size_t i = old_size; i < new_size; i++)
       {
-         string name = "tau_" + boost::lexical_cast<std::string>(i + 1);
+         string name = name_prefix + boost::lexical_cast<std::string>(i + 1);
          double initial_value = 3000 / (i + 1);
 
          auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, Fixed);
-         tau_parameters.push_back(p);
+         params.push_back(p);
+         parameters.push_back(p);
       }
    }
+
+}
+
+void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
+{   
+   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+
+   parameters.clear();
+
+   resizeLifetimeParameters(tau_parameters, n_exponential, "tau_");
 
    if (contributions_global && (n_exponential > 1))
    {
@@ -89,9 +101,6 @@ void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
       beta_parameters.clear();
    }
 
-   parameters.clear();
-   for (auto p : tau_parameters)
-      parameters.push_back(p);
    for (auto p : beta_parameters)
       parameters.push_back(p);
 
