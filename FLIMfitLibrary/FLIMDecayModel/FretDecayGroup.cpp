@@ -352,14 +352,14 @@ void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, in
 {
    if (include_acceptor)
    {
-      double a_start_sum = 0;
+      double a_star_sum = 0;
       for (int j = 0; j < n_exponential; j++)
       {
          acceptor_fret_buffer[i][j].AddDecay(-factor * beta[j] * a_star[i][j], reference_lifetime, a); // rise time
-         a_start_sum += beta[j] * a_star[i][j];
+         a_star_sum += beta[j] * a_star[i][j];
       }
 
-      acceptor_buffer->AddDecay(factor * a_start_sum, reference_lifetime, a);
+      acceptor_buffer->AddDecay(factor * a_star_sum, reference_lifetime, a);
    }
 }
 
