@@ -88,13 +88,12 @@ function load_selected_files(obj,selected)
                 s = selected(j);
                 currentFile = ceil(s./selPerFile);
                 filename = obj.file_names{currentFile};
-                plane = s - ((currentFile -1) .* selPerFile);
+                plane = s - ((currentFile-1) .* selPerFile);
                
                 [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,1);
                 
                 if ~success
                     disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
-  
                 end
                 
                 data = obj.data_series_mem(:,:,:,:,1);
@@ -122,11 +121,10 @@ function load_selected_files(obj,selected)
                 s = selected(j);
                 currentFile = ceil(s./selPerFile);
                 filename = obj.file_names{currentFile};
-                plane = s - ((currentFile -1) .* selPerFile);
+                plane = s - ((currentFile-1) .* selPerFile);
                 
                 [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,s);
-                
-                
+               
                 if ~success
                     disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
                 end
