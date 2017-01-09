@@ -201,10 +201,7 @@ classdef flim_fit_ui
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
-            
-          
-            close all;
-            
+                        
             set(obj.window,'Visible','on');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                        
