@@ -203,16 +203,37 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
                                 end
                                 
                             else
-                                % old-style (not auto-saved) LaVision ome-tiff
-                                % Foreced to assume z is actually t
-                                if  sizeZCT(1) > 1
-                                    physZ = omeMeta.getPixelsPhysicalSizeZ(0);
-                                    if ~isempty(physZ)
-                                        physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
-                                        dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                                k = strfind(xml,'Fast Delay Box TValueList');
+                                if ~isempty(k)
+                                    % auto-saved LaVision ome-tiff with
+                                    % Delay Box
+                                    xml = xml(k(1):k(1)+100);    % pull out this section of the xml
+                                    k = strfind(xml,'Value="');
+                                    uns = xml(k(1)+7:end);
+                                    e = strfind(uns,'"') -1;
+                                    uns = uns(1:e(1));
+                                    delays = str2num(uns);
+                                    if length(delays) == sizeZCT(1)
+                                        dims.delays = delays;
                                         dims.modulo = 'ModuloAlongZ';
-                                        dims.FLIM_type = 'TCSPC';
+                                        dims.FLIM_type = 'Gated';
                                         dims.sizeZCT = sizeZCT;
+                                    end
+                                        
+                                    
+                                else
+                                    
+                                    % old-style (not auto-saved) LaVision ome-tiff
+                                    % Foreced to assume z is actually t
+                                    if  sizeZCT(1) > 1
+                                        physZ = omeMeta.getPixelsPhysicalSizeZ(0);
+                                        if ~isempty(physZ)
+                                            physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
+                                            dims.delays = (0:sizeZCT(1)-1)*physSizeZ;
+                                            dims.modulo = 'ModuloAlongZ';
+                                            dims.FLIM_type = 'TCSPC';
+                                            dims.sizeZCT = sizeZCT;
+                                        end
                                     end
                                 end
                             end
