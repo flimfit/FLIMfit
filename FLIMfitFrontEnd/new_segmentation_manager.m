@@ -55,7 +55,7 @@ function new_segmentation_manager(data_series_controller)
         seg_button_layout = uix.HBox('Parent',seg_layout,'Spacing',pad);
         uix.Empty('Parent',seg_button_layout);
         handles.segment_selected_button = uicontrol('Style','pushbutton','String','Segment Selected','Parent',seg_button_layout);
-        handles.segment_all_button = uicontrol('Style','pushbutton','String','Segment All','Parent',seg_button_layout);
+        handles.segment_button = uicontrol('Style','pushbutton','String','Segment All','Parent',seg_button_layout);
         set(seg_button_layout,'Widths',[-1 100 100])
         set(seg_layout,'Heights',[22 -1 22])
 
