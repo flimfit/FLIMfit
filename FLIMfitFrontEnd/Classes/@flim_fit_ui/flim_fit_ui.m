@@ -99,23 +99,21 @@ classdef flim_fit_ui
                 'MenuBar', 'none', ...
                 'Toolbar', 'none', ...
                 'HandleVisibility', 'off', ...
-                'Visible','off', ...
-                'Units','normalized', ...
-                'OuterPosition',[0 0.03 1 0.97]);
+                'Visible','off'); %, ...
+                %'Units','normalized', ...
+                %'OuterPosition',[0 0.03 1 0.97]);
             
             coords = get(0,'MonitorPositions');             
             %position only in main monitor
-            
-            hostname = getenv('COMPUTERNAME');
-            
+                        
             monitor = 1;                       
             coords = coords(monitor,:);
             
             % Allow for taskbar if we're on windows
             comp = computer;
             if strcmp(comp(1:2),'PC')
-                coords(4) = coords(4) - 30;
-                coords(2) = coords(2) + 30;
+                coords(4) = coords(4) - 40;
+                coords(2) = coords(2) + 40;
             end
             
             try 
@@ -124,7 +122,7 @@ classdef flim_fit_ui
                disp('Warning: could not maximise window'); 
             end
             handles = guidata(obj.window); 
-                                                
+             
         
             handles.version = v;
             handles.window = obj.window;
