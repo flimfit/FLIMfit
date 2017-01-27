@@ -45,7 +45,9 @@ function [param_data, mask] = get_image(obj,dataset,param,indexing)
     p_mask = libpointer('uint16Ptr', NaN(sz));
     p_param_data = libpointer('singlePtr', NaN(sz));
 
-    err = calllib(obj.lib_name,'GetParameterImage', dll_id, dataset-1, param-1, p_mask, p_param_data);
+    if ~isempty(dll_id)
+        err = calllib(obj.lib_name,'GetParameterImage', dll_id, dataset-1, param-1, p_mask, p_param_data);
+    end
     
     mask = p_mask.Value;
     mask = reshape(mask, sz);
