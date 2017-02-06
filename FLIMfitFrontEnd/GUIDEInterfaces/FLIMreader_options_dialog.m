@@ -1,4 +1,4 @@
-function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignment)
+function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignment, bidirectional)
 
     persistent last_options
 
@@ -9,6 +9,25 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     if nargin < 3
         supports_realignment = false;
     end
+    if nargin < 4
+        bidirectional = false;
+    end
+    
+    for i=1:4
+        num = num2str(2^(i-1));
+        binning{i} = [num 'x' num];
+    end
+
+    timebin = max_timebins;
+    timebins = {};
+    t_res = dt;
+    while timebin > 2
+        timebins{end+1} = [ num2str(timebin) '  (' num2str(t_res,'%.0f') ' ps/bin)' ];
+        timebin = timebin / 2;
+        t_res = t_res * 2;
+    end
+    
+    
     
     fh = figure('Name','Loading Options','NumberTitle',...
                 'off','MenuBar','none','WindowStyle','modal','KeyPress',@keypress);
@@ -25,28 +44,26 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     fig_layout = uiextras.VBox('Parent',fh, 'Spacing', 5, 'Padding', 5);
     
     layout = uiextras.Grid('Parent', fig_layout, 'Spacing', 5);
+
     uicontrol('Style','text','String','Spatial binning','Parent',layout,'HorizontalAlignment','left');
     uicontrol('Style','text','String','Time bins','Parent',layout,'HorizontalAlignment','left');
+    if bidirectional
+        uicontrol('Style','text','String','Bidir. Phase','Parent',layout,'HorizontalAlignment','left');
+    end
+    
     uiextras.Empty('Parent',layout);
-
-    for i=1:4
-        num = num2str(2^(i-1));
-        binning{i} = [num 'x' num];
-    end
-
-    timebin = max_timebins;
-    timebins = {};
-    t_res = dt;
-    while timebin > 2
-        timebins{end+1} = [ num2str(timebin) '  (' num2str(t_res,'%.0f') ' ps/bin)' ];
-        timebin = timebin / 2;
-        t_res = t_res * 2;
-    end
     
     spatial_popup = uicontrol('Style','popupmenu','Parent',layout,'String',binning);
     timebins_popup = uicontrol('Style','popupmenu','Parent',layout,'String',timebins);
     
-    set(layout,'RowSizes',[22 22],'ColumnSizes',[100 200]);
+    if bidirectional
+        phase_edit = uicontrol('Style','edit','Parent',layout,'String','0');
+        row_size = [22 22 22];
+    else 
+        row_size = [22 22];
+    end
+        
+    set(layout,'RowSizes',row_size,'ColumnSizes',[100 200]);
 
 
     realign_panel = uipanel('Parent',fig_layout,'Title','Realignment');
@@ -68,16 +85,11 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
         setPopupByNumber(realign_frame_popup, last_options.realignment.frame_binning);
         setPopupByNumber(realign_points_popup, last_options.realignment.n_resampling_points);
         set(realign_popup,'Value',last_options.realignment.type + 1);
+        set(phase_edit,'String',num2str(last_options.phase));
         realign_callback();
     end
     
-    
-    if supports_realignment      
-        fig_sizes = [49 130 22];
-    else
-        fig_sizes = [49 0 22];
-    end
-    
+    fig_sizes = [sum(row_size+5) 130 * supports_realignment 22];
     
     function realign_callback()
         mode = get(realign_popup,'Value');
@@ -100,10 +112,7 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     
     uicontrol('Style','pushbutton','Parent',fig_layout,'String','OK','Callback',@(~,~) uiresume(fh));
 
-    
     set(fig_layout,'Sizes',fig_sizes)
-    
-    
     
     % move to centre
     set(fh, 'Units', 'pixels');
@@ -134,6 +143,16 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
 
     options.spatial_binning = getNumberFromPopup(spatial_popup);
     options.num_temporal_bits = ceil(log2(max_timebins)) - get(timebins_popup,'Value') + 1; 
+    
+    if bidirectional
+        options.phase = str2double(get(phase_edit,'String'));
+    else
+        options.phase = 0;
+    end
+    if ~isfinite(options.phase)
+        options.phase = 0;
+    end
+    
     options.realignment.type = get(realign_popup,'Value')-1;
     options.realignment.spatial_binning = getNumberFromPopup(realign_spatial_popup);
     options.realignment.frame_binning = getNumberFromPopup(realign_frame_popup);
