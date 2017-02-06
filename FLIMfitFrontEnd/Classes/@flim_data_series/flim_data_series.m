@@ -106,6 +106,7 @@ classdef flim_data_series < handle & h5_serializer
         data_type = 'uint16';
         use;
         
+        use_smoothing = false;
         data_subsampling = 1;
         irf_subsampling = 1;
     end
