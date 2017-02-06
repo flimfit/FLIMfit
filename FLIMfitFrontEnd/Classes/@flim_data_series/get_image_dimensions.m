@@ -232,7 +232,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
             
             
-        case {'.pt3','.ptu','.bin2','.ffd'}
+        case {'.pt3','.ptu','.bin2','.ffd','.ffh'}
             
             
             r = FLIMreaderMex(file);

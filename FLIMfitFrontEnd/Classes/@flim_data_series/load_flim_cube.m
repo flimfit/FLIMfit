@@ -285,7 +285,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
            
 
-        case {'.pt3', '.ptu', '.bin2', '.ffd'}
+        case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh'}
             
             r = FLIMreaderMex(file);
             FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
