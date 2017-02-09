@@ -53,7 +53,7 @@ function load_single(obj,files,polarisation_resolved)
     end
     
     % must be done after test for .raw as load_raw_data requires mem mapping
-    if is64
+    if is64 && nfiles == 1
         obj.use_memory_mapping = false;
     end
     
