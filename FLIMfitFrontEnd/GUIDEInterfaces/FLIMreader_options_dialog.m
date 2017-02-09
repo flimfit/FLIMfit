@@ -22,7 +22,7 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     timebins = {};
     t_res = dt;
     while timebin > 2
-        timebins{end+1} = [ num2str(timebin) '  (' num2str(t_res,'%.0f') ' ps/bin)' ];
+        timebins{end+1} = [ num2str(ceil(timebin)) '  (' num2str(t_res,'%.0f') ' ps/bin)' ];
         timebin = timebin / 2;
         t_res = t_res * 2;
     end
@@ -85,7 +85,9 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
         setPopupByNumber(realign_frame_popup, last_options.realignment.frame_binning);
         setPopupByNumber(realign_points_popup, last_options.realignment.n_resampling_points);
         set(realign_popup,'Value',last_options.realignment.type + 1);
-        set(phase_edit,'String',num2str(last_options.phase));
+        if exist('phase_edit','var')
+            set(phase_edit,'String',num2str(last_options.phase));
+        end
         realign_callback();
     end
     

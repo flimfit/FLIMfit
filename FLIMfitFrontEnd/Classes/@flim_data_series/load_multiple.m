@@ -29,7 +29,15 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     % get dimensions from first file
     reader = get_flim_reader(obj.file_names{1});
     [dims,~,obj.reader_settings] = obj.get_image_dimensions(obj.file_names{1});
-        
+    obj.data_type = dims.data_type;
+    
+    if isempty(dims.delays)     % cancelled out
+        if ~isempty(dims.error_message)
+            errordlg(dims.error_message);
+        end
+        return;
+    end
+    
     % this routine should load only FLIM data
     if length(reader.delays) < 2
         throw(MException('FLIMfit:dataNotTimeResolved','Data does not appear to be time resolved'));

@@ -61,21 +61,9 @@ function update_display(obj)
         
         if obj.filtered_mask == 1
             mask_filtered = zeros(size(cim));
-            mask = zeros(size(cim));
-            bmask = zeros(size(cim));
         else
             mask_filtered = double(obj.filtered_mask(:,:,selected));
-            mask = double(obj.mask(:,:,selected));
-    
-            bmask = mask > 0;
-            se = strel('disk',1);
-            bmaske = imerode(bmask,se);
-            bmask = bmask & ~bmaske;
         end
-            
-            
-        alpha = 0.5*ones(size(mask_filtered));
-        alpha(mask_filtered == 0) = 0;
         
         if ~isempty(aim)
             if trim_outliers
@@ -94,46 +82,35 @@ function update_display(obj)
             cim = [cim; aim];
             cmask = [mask_filtered; mask_filtered];
             
-            bmask = [bmask; bmask];
-            alpha = [alpha; alpha];
-            
         else
             cmask = mask_filtered;
         end
-                        
-        cmask = (1 + cmask/max(cmask(:))) * m + 1;
- 
-        colormap(obj.segmentation_axes,[gray(m);[1 0 0];jet(m)]);
-
-        obj.segmentation_im = image(cim,'Parent',obj.segmentation_axes);
-        hold(obj.segmentation_axes,'on');
+               
+        colors = lines(255);
+         
+        m = cmask > 0;
+        m = repmat(m,[1 1 3]);
         
-        image(ones(size(bmask))*(m+1),'Parent',obj.segmentation_axes,'AlphaData',bmask);
-        obj.mask_im = image(cmask,'Parent',obj.segmentation_axes, 'AlphaData',alpha);
+        cim = ind2rgb(cim,gray(255));
+        cmask = ind2rgb(cmask,colors);
+                
+        im = cim;
+        im(m) = (cim(m) + cmask(m)) / 2;
         
-        paint = repmat(reshape([1 0 0],[1 1 3]),[size(cmask) 1]);
-        obj.paint_im = image(paint, 'AlphaData',zeros(size(cmask)));
-        hold(obj.segmentation_axes,'off');
-        
-        set(obj.segmentation_axes,'XTick',[],'YTick',[]);
-        daspect(obj.segmentation_axes,[1 1 1]);
+        set(obj.segmentation_im,'CData',im);
+        set(obj.segmentation_axes,'XLim',[1 size(im,2)],'YLim',[1 size(im,1)]);
     
         obj.n_regions = max(mask_filtered(:));
         
         % find centroids for labels
         stats = regionprops(mask_filtered,'Centroid');
                 
-       colors = jet(length(stats));
-       for i=1:length(stats)
+        delete(obj.labels);
+        obj.labels = gobjects(size(stats));
+        for i=1:length(stats)
             c = stats(i).Centroid;
-            
-            if (mean(colors(i,:))) < 0.6
-                text_col = 'w';
-            else 
-                text_col = 'k';
-            end
-            
-            text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,'Color',text_col,'HorizontalAlignment','center');
+            obj.labels(i) = text(c(1),c(2),num2str(i),'Parent',obj.segmentation_axes,...
+                'Color','k','HorizontalAlignment','center','BackgroundColor','w');
         end
 
         

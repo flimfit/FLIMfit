@@ -29,7 +29,15 @@ function [ext,r] = init_bfreader(obj,file)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-   
+    [~,~,ext] = fileparts(file);
+    non_bioreader_formats = {'.ffd','.ffh','.pt3','.ptu','.bin2'};
+    
+    if any(strcmp(ext,non_bioreader_formats))
+        r = [];
+        return;
+    end
+    
+    
     try
         % Get the channel filler
         r = loci.formats.ChannelFiller();

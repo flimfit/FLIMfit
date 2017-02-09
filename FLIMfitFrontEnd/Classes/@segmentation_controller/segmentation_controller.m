@@ -66,14 +66,11 @@ classdef segmentation_controller < flim_data_series_observer
         trim_outliers_checkbox;
         
         data_series_list;
-        
-        waiting = false;
-        
+                
         selected = 1;
         
         segmentation_im;
         mask_im;
-        paint_im;
         
         brush_width = 5;
         
@@ -85,14 +82,16 @@ classdef segmentation_controller < flim_data_series_observer
         cancel_button;
         figure1;
         
+        labels;
+        
         region_filter_table;
         combine_regions_checkbox;
         apply_filtering_pushbutton;
                 
         filters = {'Min. Intensity LQ';'Min. Acceptor UQ';'Min. Size';'Min. Roundness Factor';'Max. Roundness Factor'};
         
-        paint_active = false;
-        paint_mask;
+        toggle_active;
+        flex_h;
         
         slh = [];
     end
@@ -129,11 +128,10 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.tool_roi_circle_toggle,'State','off');
             set(obj.tool_roi_paint_toggle,'State','off');
                        
-            set(obj.tool_roi_rect_toggle,'OnCallback',@obj.on_callback);
-            set(obj.tool_roi_poly_toggle,'OnCallback',@obj.on_callback);
-            set(obj.tool_roi_circle_toggle,'OnCallback',@obj.on_callback);
-            set(obj.tool_roi_paint_toggle,'OnCallback',@obj.on_callback);
-            set(obj.tool_roi_paint_toggle,'OffCallback',@obj.on_callback);
+            set(obj.tool_roi_rect_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
+            set(obj.tool_roi_poly_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
+            set(obj.tool_roi_circle_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
+            set(obj.tool_roi_paint_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
             
             set(obj.trim_outliers_checkbox,'Callback',@(~,~) obj.update_display)
             
@@ -193,9 +191,13 @@ classdef segmentation_controller < flim_data_series_observer
                 obj.filtered_mask = obj.data_series.seg_mask;
             end
             
+            obj.segmentation_im = image(0,'Parent',obj.segmentation_axes);
+            set(obj.segmentation_axes,'XTick',[],'YTick',[]);
+            daspect(obj.segmentation_axes,[1 1 1]);
+
             obj.update_display();
             obj.slh = addlistener(obj.data_series_list,'selection_updated',@(~,~) escaped_callback(@obj.selection_updated));
-
+            
         end
         
         function set_brush_width(obj)
@@ -377,11 +379,8 @@ classdef segmentation_controller < flim_data_series_observer
                         
                     end
 
-
-                    im_mask = im_mask > 0;
-
-                    if ~combine_regions
-                        im_mask = bwlabel(im_mask);
+                    if combine_regions
+                        im_mask = im_mask > 0;
                     end
 
                 end

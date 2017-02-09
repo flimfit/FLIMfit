@@ -75,7 +75,7 @@ function new_segmentation_manager(data_series_controller)
         check_panel = uipanel('Title','Options','Parent',options_layout);
         check_layout = uix.VBox('Parent',check_panel,'Padding',pad);
         handles.replicate_mask_checkbox = uicontrol('Style','checkbox','String','Apply manual regions to all','Parent',check_layout);
-        handles.trim_outliers_checkbox = uicontrol('Style','checkbox','String','Trim outliers for display','Parent',check_layout);
+        handles.trim_outliers_checkbox = uicontrol('Style','checkbox','String','Trim outliers for display','Value',1,'Parent',check_layout);
 
         brush_layout = uix.HBox('Parent',check_layout);
         uicontrol('Style','text','String','Brush Width','Parent',brush_layout);

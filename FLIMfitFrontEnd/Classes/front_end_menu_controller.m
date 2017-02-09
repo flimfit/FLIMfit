@@ -316,6 +316,22 @@ classdef front_end_menu_controller < handle
             end
         end
         
+        function set_default_path(obj,path)
+            obj.default_path = path; 
+
+            if ~any(strcmp(path,obj.recent_default_path))
+                obj.recent_default_path = [path; obj.recent_default_path];
+            end
+            if length(obj.recent_default_path) > 20
+                obj.recent_default_path = obj.recent_default_path(1:20);
+            end
+            setpref('GlobalAnalysisFrontEnd','RecentDefaultPath',obj.recent_default_path);
+
+            setpref('GlobalAnalysisFrontEnd','DefaultFolder',path);
+            obj.update_recent_default_list();
+            obj.update_recent_irf_list();
+        end
+        
         
         %------------------------------------------------------------------
         % Default Path
@@ -330,19 +346,7 @@ classdef front_end_menu_controller < handle
         function menu_file_set_default_path_callback(obj)
             path = uigetdir(obj.default_path,'Select default path');
             if path ~= 0
-                obj.default_path = path; 
-                
-                if ~any(strcmp(path,obj.recent_default_path))
-                    obj.recent_default_path = [path; obj.recent_default_path];
-                end
-                if length(obj.recent_default_path) > 20
-                    obj.recent_default_path = obj.recent_default_path(1:20);
-                end
-                setpref('GlobalAnalysisFrontEnd','RecentDefaultPath',obj.recent_default_path);
-                
-                setpref('GlobalAnalysisFrontEnd','DefaultFolder',path);
-                obj.update_recent_default_list();
-                obj.update_recent_irf_list();
+                set_default_path(path);
             end
         end
         
@@ -648,19 +652,8 @@ classdef front_end_menu_controller < handle
             end
             obj.data_series_controller.data_series = flim_data_series();
             obj.data_series_controller.load_single([path files]); 
-            if strcmp(obj.default_path,obj.platform_default_path)
-                obj.default_path = path;
-            end
-            
-            
-            %[file,path] = uigetfile('*.*','Select a file from the data',obj.default_path);
-            %if file ~= 0
-            %    obj.data_series_controller.data_series = flim_data_series();
-            %    obj.data_series_controller.load_single([path file]); 
-            %    if strcmp(obj,default_path,obj.platform_default_path)
-            %        obj.default_path = path;
-            %    end
-            %end
+            obj.set_default_path(path);
+                        
         end
         
         function menu_file_load_widefield_callback(obj)
@@ -673,9 +666,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
-                if strcmp(obj.default_path,obj.platform_default_path)
-                    obj.default_path = path;
-                end
+                obj.set_default_path(folder);
             end
         end
         
@@ -688,9 +679,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                if strcmp(obj.default_path,obj.platform_default_path)
-                    obj.default_path = path;
-                end
+                obj.set_default_path(path);
             end
         end
         
@@ -705,9 +694,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_plate([path file]); 
-                if strcmp(obj.default_path,obj.platform_default_path)
-                    obj.default_path = path;
-                end
+                obj.set_default_path(path);
             end
         end
         
@@ -720,9 +707,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
-                if strcmp(obj.default_path,obj.platform_default_path)
-                    obj.default_path = path;
-                end
+                obj.set_default_path(path);
             end
                 end
         
@@ -735,9 +720,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
-                if strcmp(obj.default_path,obj.platform_default_path)
-                    obj.default_path = path;
-                end
+                obj.set_default_path(path);
             end
         end
         

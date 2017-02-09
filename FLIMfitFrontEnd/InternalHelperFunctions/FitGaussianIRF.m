@@ -4,7 +4,9 @@ function [irf_final,t_final] = FitGaussianIRF(td, d, T, ax)
     t = -max(td):1:max(td);
     dc = [];
 
-    opts = optimset('Display', 'iter', 'MaxFunEvals', 1000);
+    d = d / max(d);
+    
+    opts = optimset('Display', 'iter', 'MaxFunEvals', 10000);
 
     tau0 = 4000;
     sigma0 = 200;
@@ -13,7 +15,7 @@ function [irf_final,t_final] = FitGaussianIRF(td, d, T, ax)
     t0 = td(idx) - sigma0;
 
     count = 0;
-    x = fminsearch(@fit, [tau0, t0, sigma0, I0, 0], opts);
+    x = fminsearch(@fit, [tau0, t0, sigma0, 0], opts);
     
     % Display Results
     disp(['t0: ' num2str(x(2)) ' ps']);
@@ -26,9 +28,12 @@ function [irf_final,t_final] = FitGaussianIRF(td, d, T, ax)
         tau = x(1);
         t0 = x(2);
         sigma = x(3);
-        I = x(4);
-        offset = x(5);
+        offset = x(4);
+        I = 1;
+        
         [dc,irfc,irft] = generate_decay(I, tau, t0, sigma, offset);
+        
+        dc = dc / max(dc);
         
         if mod(count,20) == 0
             plot(td,d,'ob','MarkerSize',3);

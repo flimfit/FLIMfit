@@ -301,15 +301,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
             data = FLIMreaderMex(r, 'GetData', chan);
             
-            expected_size = size(target);
-            expected_size((length(expected_size)+1):4) = 1;
-            actual_size = size(data);
-            actual_size((length(actual_size)+1):4) = 1;
-            if all(actual_size==expected_size(1:4))        
-                target(:,:,:,:,write_selected) = data;
-            else
-                disp(['File "' file '" was unexpected size']);
-            end
+            target(:,:,:,:,write_selected) = data;
             FLIMreaderMex(r,'Delete');
         
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

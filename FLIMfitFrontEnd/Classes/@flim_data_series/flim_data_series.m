@@ -103,7 +103,7 @@
         n_chan = 1;
         polarisation_resolved = false;
         data_size;
-        data_type = 'uint16';
+        data_type = 'single';
         use;
         
         use_smoothing = false;
