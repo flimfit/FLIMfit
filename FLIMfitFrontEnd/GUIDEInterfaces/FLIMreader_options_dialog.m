@@ -22,7 +22,7 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
     timebins = {};
     t_res = dt;
     while timebin > 2
-        timebins{end+1} = [ num2str(timebin) '  (' num2str(t_res,'%.0f') ' ps/bin)' ];
+        timebins{end+1} = [ num2str(ceil(timebin)) '  (' num2str(t_res,'%.0f') ' ps/bin)' ];
         timebin = timebin / 2;
         t_res = t_res * 2;
     end
