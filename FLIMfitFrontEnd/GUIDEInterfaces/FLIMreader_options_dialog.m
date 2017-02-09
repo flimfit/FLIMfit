@@ -85,7 +85,9 @@ function options = FLIMreader_options_dialog(max_timebins, dt, supports_realignm
         setPopupByNumber(realign_frame_popup, last_options.realignment.frame_binning);
         setPopupByNumber(realign_points_popup, last_options.realignment.n_resampling_points);
         set(realign_popup,'Value',last_options.realignment.type + 1);
-        set(phase_edit,'String',num2str(last_options.phase));
+        if exists('phase_edit','var')
+            set(phase_edit,'String',num2str(last_options.phase));
+        end
         realign_callback();
     end
     
