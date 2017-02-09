@@ -110,7 +110,9 @@ function update_display(obj)
         
         image(ones(size(bmask))*(m+1),'Parent',obj.segmentation_axes,'AlphaData',bmask);
         obj.mask_im = image(cmask,'Parent',obj.segmentation_axes, 'AlphaData',alpha);
-        obj.paint_im = image(ones([size(cmask) 3]), 'AlphaData',zeros(size(cmask)));
+        
+        paint = repmat(reshape([1 0 0],[1 1 3]),[size(cmask) 1]);
+        obj.paint_im = image(paint, 'AlphaData',zeros(size(cmask)));
         hold(obj.segmentation_axes,'off');
         
         set(obj.segmentation_axes,'XTick',[],'YTick',[]);

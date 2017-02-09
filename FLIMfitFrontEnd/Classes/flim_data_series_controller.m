@@ -31,6 +31,7 @@ classdef flim_data_series_controller < handle
         
         data_series;
         fitting_params_controller;
+        display_smoothed_popupmenu;
         window;
         version;
                 
@@ -53,6 +54,13 @@ classdef flim_data_series_controller < handle
             if isempty(obj.data_series) 
                 obj.data_series = flim_data_series();
             end
+            
+            set(obj.display_smoothed_popupmenu,'Callback',@obj.set_use_smoothing);
+            
+        end
+        
+        function set_use_smoothing(obj,src,~)
+            obj.data_series.use_smoothing = src.Value == 1;
         end
         
         function file_name = save_settings(obj)
@@ -115,7 +123,7 @@ classdef flim_data_series_controller < handle
         
         function load_raw(obj,file,setting_file_name)
             % save settings from previous dataset if it exists
-            saved_setting_file_name = obj.data_settings_filename{1}
+            saved_setting_file_name = obj.data_settings_filename{1};
             
             obj.data_series = flim_data_series();
             obj.data_series.load_raw_data(file);

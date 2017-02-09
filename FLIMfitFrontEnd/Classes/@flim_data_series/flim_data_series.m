@@ -106,6 +106,7 @@
         data_type = 'uint16';
         use;
         
+        use_smoothing = false;
         data_subsampling = 1;
         irf_subsampling = 1;
     end

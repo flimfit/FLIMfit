@@ -60,6 +60,7 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
                  dir([root_path '*.ptu']);
                  dir([root_path '*.bin2']);
                  dir([root_path '*.ffd']);
+                 dir([root_path '*.ffh']);
                  dir([root_path '*.spc'])]; 
              
         n_datasets = length(files);

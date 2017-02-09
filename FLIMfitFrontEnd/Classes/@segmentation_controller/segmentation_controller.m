@@ -468,7 +468,7 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.parameter_table, 'tooltipString', tooltip);
             
             
-            set(obj.parameter_table,'Data',default_values);
+            set(obj.parameter_table,'Data',default_values,'ColumnEditable',true,'ColumnName',[]);
             set(obj.parameter_table,'RowName',params);
         end
                         

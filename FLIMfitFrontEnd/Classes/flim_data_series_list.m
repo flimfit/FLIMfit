@@ -73,7 +73,8 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         function list_callback(obj,src,evtData)            
             if ~isempty(evtData.Indices)
                 sel = evtData.Indices(1);
-                if ~isempty(sel)
+                if ~isempty(sel) ... 
+                   && evtData.Indices(2) > 1 % don't update on check 
                     obj.selected = sel;
                     
                     notify(obj,'selection_updated');

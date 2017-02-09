@@ -32,7 +32,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
     end
     
     if nargin < 3
-        no_smoothing = false;
+        no_smoothing = ~obj.use_smoothing;
     end
 
     calculated = false;
@@ -41,7 +41,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         % arbitrary size threshold
         d_size = obj.data_size;
-        if (d_size(1) * d_size(3) * d_size(4)) > 16000000
+        if prod(d_size) > 16e6 && ~no_smoothing
             wbar = waitbar(1,'Transforming! Please wait...');
         else
             wbar = [];

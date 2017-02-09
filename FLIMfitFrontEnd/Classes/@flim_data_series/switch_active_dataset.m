@@ -27,7 +27,7 @@ function switch_active_dataset(obj, dataset, no_smoothing)
     % Author : Sean Warren
 
     if nargin < 3
-        no_smoothing = false;
+        no_smoothing = ~obj.use_smoothing;
     end
     
     if (dataset == obj.active && (no_smoothing || obj.cur_smoothed)) ...
