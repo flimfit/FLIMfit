@@ -28,6 +28,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     % get dimensions from first file
     [dims,~,obj.reader_settings] = obj.get_image_dimensions(obj.file_names{1});
+    obj.data_type = dims.data_type;
     
     if isempty(dims.delays)     % cancelled out
         if ~isempty(dims.error_message)

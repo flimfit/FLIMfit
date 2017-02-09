@@ -36,6 +36,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
     dims.FLIM_type = [];
     dims.sizeZCT = [];
     dims.error_message = [];
+    dims.data_type = 'single'; % default
  
   
     [ext,r] = obj.init_bfreader(file);
@@ -264,6 +265,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                 dims.chan_info{i} = ['Channel ' num2str(i-1)];
             end
             
+            dims.data_type = 'uint16';
+            
             % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.tif','.tiff'}
             
@@ -281,14 +284,18 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             
             first = [path filesep files{1}];
             info = imfinfo(first);
-                        
-             %NB dimensions reversed to retain compatibility with earlier
-             %code
-             dims.sizeXY = [ info.Height info.Width ];
-             %dims.sizeXY = [ info.Width info.Height ];
-             dims.FLIM_type = 'Gated';  
-             dims.sizeZCT = [1 1 1];
-             dims.modulo = []; 
+            
+            if info.BitDepth <= 16
+                dims.data_type = 'uint16';
+            end
+            
+            %NB dimensions reversed to retain compatibility with earlier
+            %code
+            dims.sizeXY = [ info.Height info.Width ];
+            %dims.sizeXY = [ info.Width info.Height ];
+            dims.FLIM_type = 'Gated';  
+            dims.sizeZCT = [1 1 1];
+            dims.modulo = []; 
             
         % single pixel txt files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
         case {'.csv','.txt'} 

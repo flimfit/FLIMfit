@@ -74,14 +74,11 @@ function load_selected_files(obj,selected)
         selPerFile = length(obj.names)./nfiles;
         
         if obj.use_memory_mapping
-            
-            
-            obj.data_series_mem = single(zeros([mem_size' 1]));
-            
-            obj.data_type = 'single';
-            
+                        
             mapfile_name = global_tempname;
             mapfile = fopen(mapfile_name,'w');
+            
+            data = zeros(mem_size',obj.data_type);
             
             for j=1:num_sel
                
@@ -90,23 +87,17 @@ function load_selected_files(obj,selected)
                 filename = obj.file_names{currentFile};
                 plane = s - ((currentFile -1) .* selPerFile);
                
-                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,1);
+                [success, data] = obj.load_flim_cube(data, filename,plane,1);
                 
                 if ~success
                     disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
-  
                 end
-                
-                data = obj.data_series_mem(:,:,:,:,1);
-                
-                c1=fwrite(mapfile,data,'single');
-                
+                                
+                c1=fwrite(mapfile,data,obj.data_type);
                 
                 if using_popup
                     waitbar(j./num_sel,wait_handle)
                 end
-                
-                
                 
             end
             
