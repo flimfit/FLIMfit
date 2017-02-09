@@ -85,7 +85,7 @@ function on_callback(obj,src,evtData)
         delete(obj.flex_h);
         obj.flex_h = [];
 
-        set(src,'State','off');
+        obj.on_callback(src); % repeat segmentation
     end
 
 end
