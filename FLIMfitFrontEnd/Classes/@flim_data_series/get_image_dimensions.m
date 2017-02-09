@@ -55,10 +55,18 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
            
             seriesCount = r.getSeriesCount;
             
+            data_type = char(omeMeta.getPixelsType(0));
+            
+            if ~any(strcmp(data_type,{'float','uint32','uint16'}))
+                data_type = float;
+            end
+            
+            dims.data_type = data_type;
+            
             if seriesCount > 1
                 if omeMeta.getPlateCount > 0
                     % plate! so check imageSeries has been setup or throw error
-                    if obj.imageSeries == -1 | length(obj.imageSeries) ~= length(obj.file_names)
+                    if obj.imageSeries == -1 || length(obj.imageSeries) ~= length(obj.file_names)
                         dims.error_message = ' This file contains Plate data. Please load using the appropriate menu item';
                         return;
                     end

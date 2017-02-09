@@ -60,6 +60,7 @@ public:
 
    int  SetData(float data[]);
    int  SetData(uint16_t data[]);
+   int  SetData(uint32_t data[]);
    int  SetData(char* data_file, int data_class, int data_skip);
 
    int  SetAcceptor(float acceptor[]);

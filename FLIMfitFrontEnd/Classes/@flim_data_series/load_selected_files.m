@@ -106,7 +106,7 @@ function load_selected_files(obj,selected)
             obj.init_memory_mapping(mem_size, num_sel, mapfile_name);
         else
             
-            obj.data_series_mem = single(zeros([mem_size' num_sel]));
+            obj.data_series_mem = zeros([mem_size' num_sel],obj.data_type);
             
             for j=1:num_sel
                 

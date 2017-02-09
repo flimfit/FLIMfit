@@ -194,6 +194,8 @@ function err = call_fitting_lib(obj,roi_mask,selected)
     
     if d.use_memory_mapping && ~obj.bin
         switch(d.data_type)
+            case 'uint32'
+                data_class = 2;
             case 'uint16'
                 data_class = 1;
             case 'single'

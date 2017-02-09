@@ -216,10 +216,12 @@ void StartDataLoaderThread(void* wparams)
    DataLoaderThreadParams* params = (DataLoaderThreadParams*) wparams;
    FLIMData* data = params->data;
   
-   if (data->data_class == DATA_UINT16)
-      data->DataLoaderThread<uint16_t>(params->only_load_non_empty_images, params->load_region);
-   else
+   if (data->data_class == DATA_FLOAT)
       data->DataLoaderThread<float>(params->only_load_non_empty_images, params->load_region);
+   else if (data->data_class == DATA_UINT32)
+      data->DataLoaderThread<uint32_t>(params->only_load_non_empty_images, params->load_region);
+   else
+      data->DataLoaderThread<uint16_t>(params->only_load_non_empty_images, params->load_region);
 
    delete params;
 }
@@ -318,6 +320,8 @@ int FLIMData::SetData(char* data_file, int data_class, int data_skip)
    int err = 0;
    if (data_class == DATA_FLOAT)
       err = CalculateRegions<float>();
+   else if (data_class == DATA_UINT32)
+      err = CalculateRegions<uint32_t>();
    else
       err = CalculateRegions<uint16_t>();
 
@@ -354,6 +358,20 @@ int FLIMData::SetData(uint16_t* data)
 
    return err;
 }
+
+int FLIMData::SetData(uint32_t* data)
+{
+   this->data = (void*)data;
+   data_mode = DATA_DIRECT;
+   data_class = DATA_UINT32;
+
+   int err = CalculateRegions<uint32_t>();
+
+   has_data = true;
+
+   return err;
+}
+
 
 double FLIMData::GetPhotonsPerCount()
 {
