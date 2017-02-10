@@ -58,6 +58,7 @@ function update_display(obj)
         cim(cim < 0) = 0;
         cim(cim > 1) = 1;
         cim = cim * m;
+        cim = uint8(cim);
         
         if obj.filtered_mask == 1
             mask_filtered = zeros(size(cim));
