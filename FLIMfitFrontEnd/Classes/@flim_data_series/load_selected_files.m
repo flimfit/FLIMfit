@@ -103,6 +103,7 @@ function load_selected_files(obj,selected)
         filename = obj.file_names{file_idx};
         
         if ~strcmp(last_filename,filename) % cache the reader
+            delete(reader);
             reader = get_flim_reader(filename,obj.reader_settings);
             last_filename = filename;
         end

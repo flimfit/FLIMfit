@@ -87,5 +87,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     end
    
     obj.init_dataset(data_setting_file);
-      
+   
+    delete(reader);
+    
 end

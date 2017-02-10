@@ -59,7 +59,7 @@ classdef flimreader_reader < base_data_reader
             FLIMreaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
             FLIMreaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
             
-            data = FLIMreaderMex(r, 'GetData', channels);
+            data = FLIMreaderMex(r, 'GetData', channels - 1);
             
             FLIMreaderMex(r,'Delete');
             
