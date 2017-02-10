@@ -21,7 +21,7 @@ class FLIMImage
 {
 public:
 
-   enum DataClass { DataUint16, DataFloat };
+   enum DataClass { DataUint16, DataUint32, DataFloat };
    enum DataMode { InMemory, MappedFile };
 
    template<typename T>

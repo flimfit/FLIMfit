@@ -35,6 +35,8 @@ FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, 
    {
    case DataUint16:
       setData(static_cast<uint16_t*>(data_));
+   case DataUint32:
+      setData(static_cast<uint32_t*>(data_));
    case DataFloat:
       setData(static_cast<float*>(data_));
    }
@@ -55,6 +57,8 @@ void FLIMImage::init()
    {
       if (data_class == DataFloat)
          stored_type = typeid(float);
+      else if (data_class == DataUint32)
+         stored_type = typeid(uint32_t);
       else if (data_class == DataUint16)
          stored_type = typeid(uint16_t);
    }
@@ -70,6 +74,8 @@ void FLIMImage::init()
    
    int n_bytes = 1;
    if (data_class == DataFloat)
+      n_bytes = 4;
+   else if (data_class == DataUint32)
       n_bytes = 4;
    else if (data_class == DataUint16)
       n_bytes = 2;

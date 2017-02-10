@@ -193,6 +193,9 @@ public:
          case FLIMImage::DataFloat:
             transformData<float>();
             break;
+         case FLIMImage::DataUint32:
+            transformData<uint32_t>();
+            break;
          case FLIMImage::DataUint16:
             transformData<uint16_t>();
             break;
@@ -223,6 +226,9 @@ private:
       {
          case FLIMImage::DataFloat:
             calculateMask<float>();
+            break;
+         case FLIMImage::DataUint32:
+            calculateMask<uint32_t>();
             break;
          case FLIMImage::DataUint16:
             calculateMask<uint16_t>();

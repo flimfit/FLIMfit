@@ -61,7 +61,6 @@ std::shared_ptr<AcquisitionParameters> getAcquisitionParameters(const mxArray* a
    int n_x = getValueFromStruct(acq_params_struct, "n_x");
    int n_y = getValueFromStruct(acq_params_struct, "n_y");
 
-
    std::vector<double> t = getVectorFromStruct<double>(acq_params_struct, "t");
    std::vector<double> t_int = getVectorFromStruct<double>(acq_params_struct, "t_int");
 
@@ -112,6 +111,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             FLIMImage::DataClass data_class;
             if (mxIsUint16(data))
                data_class = FLIMImage::DataUint16;
+            if (mxIsUint32(data))
+               data_class = FLIMImage::DataUint32;
             if (mxIsSingle(data))
                data_class = FLIMImage::DataFloat;
             else
@@ -128,12 +129,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             FLIMImage::DataClass data_class;
             if (data_class_str == "uint16")
                data_class = FLIMImage::DataUint16;
+            else if (data_class_str == "uint32")
+               data_class = FLIMImage::DataUint32;
             else if (data_class_str == "float" || data_class_str == "single")
                data_class = FLIMImage::DataFloat;
             else
-               mexErrMsgIdAndTxt("FLIMfit:unknownDataClass", "Data class is not recognised; should be uint16 or float/single");
+               mexErrMsgIdAndTxt("FLIMfit:unknownDataClass", "Data class is not recognised; should be uint16, uint32 or float/single");
 
-            
             image = std::make_shared<FLIMImage>(acq, mapped_file, data_class, map_offset);
          }
          else

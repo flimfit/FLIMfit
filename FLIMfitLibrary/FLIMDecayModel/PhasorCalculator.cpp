@@ -78,6 +78,8 @@ void PhasorCalculator::calculate()
       
       if (data_class == FLIMImage::DataUint16)
          phasors[im] = calculatePhasor<uint16_t>(im, channel);
+      if (data_class == FLIMImage::DataUint32)
+         phasors[im] = calculatePhasor<uint32_t>(im, channel);
       else if (data_class == FLIMImage::DataFloat)
          phasors[im] = calculatePhasor<double>(im, channel);
       
