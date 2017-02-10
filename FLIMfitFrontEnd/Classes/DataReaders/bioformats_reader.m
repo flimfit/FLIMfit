@@ -3,14 +3,16 @@ classdef bioformats_reader < base_data_reader
     properties
         bf_reader;
         modulo;
+        image_series;
     end
     
     methods
        
-        function obj = bioformats_reader(filename, bf_reader)
+        function obj = bioformats_reader(filename)
+            
             obj.filename = filename;
-            obj.bf_reader = bf_reader;
-
+            obj.init_reader();
+            
             obj.ome_meta = obj.bf_reader.getMetadataStore();
             series_count = obj.bf_reader.getSeriesCount;
 
@@ -157,155 +159,81 @@ classdef bioformats_reader < base_data_reader
         % WELCOME TO THE READER
         %====================================
         
-        function target = read(obj, read_selected)
+        function data = read(obj, zct, channels)
                         
             if verbose
                 w = waitbar(0, 'Loading FLIMage....');
                 drawnow;
             end
-
-            Zarr = obj.ZCT{1}-1;
-            Carr = obj.ZCT{2}-1;
-            Tarr = obj.ZCT{3}-1;
                    
             r = obj.bf_reader;
  
+            %{
+            TODO
             if length(obj.image_series) > 1   % if image_series is a vector indicates a plate
                 r.setSeries(obj.image_series(read_selected) - 1);
                 read_selected= 1;
             else
                 r.setSeries(obj.image_series -1);
             end
-               
-            %check that image dimensions match those read from first
-            %file
+            %}
+            
+            data = zeros([length(obj.delays) length(channels) obj.sizeXY], obj.data_type);
+
+            %check that image dimensions match those read from first file
             % note the dimension inversion here
             if sizeX ~= r.getSizeY ||sizeY ~= r.getSizeX
-                success = false;
                 return;
             end
-                      
-            % Get pixel type
-            pixel_type = r.getPixelType();
-            bpp = loci.formats.FormatTools.getBytesPerPixel(pixel_type);
-            fp = loci.formats.FormatTools.isFloatingPoint(pixel_type);
-            sgn = loci.formats.FormatTools.isSigned(pixel_type);
-            % assume for now all our data is unsigned (see bfgetPlane for examples of signed)
-            little = r.isLittleEndian();
-                
-            switch bpp
-                case 1
-                    type = 'uint8';
-                case 2
-                    type = 'uint16';
-                case 4
-                    type = 'uint32';
-                case 8
-                    type = 'uint64';
-            end
-          
-            for zplane = 1:length(Zarr)
-                Z = Zarr(zplane);
-                
-                for c = 1:length(Carr)
-                    C = Carr(c);
                     
-                    for time = 1:length(Tarr)
-                        T = Tarr(time);
+            nt = length(obj.delays);
+            switch obj.modulo
+                case 'ModuloAlongZ'
+                    t_inc = [1 0 0];
+                    t_mod = [nt 1 1];
+                case 'ModuloAlongC'
+                    t_inc = [0 1 0];
+                    t_mod = [1 nt 1];
+                case 'ModuloAlongT'
+                    t_inc = [0 0 1];
+                    t_mod = [1 1 nt];
+            end
                         
-                        % check that we are supposed to load this FLIM cube
-                        if ctr == read_selected  ||  polarisation_resolved 
-                          
-                            t = 0;
-                            for block = 0:nblocks - 1
-                                nplanes = nplanesInBlock(block + 1);
-                                
-                                switch obj.modulo
-                                    case 'ModuloAlongT'
-                                        Tt = T * sizet;
-                                        if ~sgn
-                                            for p = 1:nplanes
-                                                % unsigned moduloAlongT
-                                                % this is the loop that needs to be
-                                                % optimised for speed
-                                                index = r.getIndex(Z, C ,Tt + t);
-                                                t = t + 1;
-                                                rawPlane = r.openBytes(index);
-                                                I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
-                                                I = typecast(I, type);
-                                                target(t,pctr,:,:,write_selected) = reshape(I, sizeY, sizeX)';
-                                                
-                                            end
-                                        else  % signed
-                                            for p = 1:nplanes
-                                                index = r.getIndex(Z, C ,Tt + t);
-                                                t = t + 1;
-                                                plane = bfGetPlane(r,index + 1);
-                                                target(t,pctr,:,:,write_selected) = plane;
-                                            end
-                                        end
-                                        
-                                    case 'ModuloAlongZ'
-                                        Zt = Z * sizet;
-                                        for p = 1:nplanes
-                                            index = r.getIndex(Zt + t, C ,T);
-                                            t = t + 1;
-                                            plane = bfGetPlane(r,index + 1);
-                                            target(t,pctr,:,:,write_selected) = plane;
-                                        end
-                                        
-                                    case 'ModuloAlongC'
-                                        Ct = C * sizet;
-                                        for p = 1:nplanes
-                                            index = r.getIndex(Z, Ct + t ,T);
-                                            t = t + 1;
-                                            plane = bfGetPlane(r,index + 1);
-                                            target(t,pctr,:,:,write_selected) = plane;
-                                        end
-                                        
-                                end  % end switch
-                                
-                                
-                                if verbose
-                                    totalPlane = totalPlane + nplanes;
-                                    waitbar(totalPlane /totalPlanes,w);
-                                    drawnow;
-                                end
-                                
-                            end    % end nblocks
-                        end     % end if read_selected
-                        
-                        if polarisation_resolved
-                            pctr = pctr + 1;
-                        else
-                            ctr = ctr + 1;
-                        end
-                        
+            for c = 1:length(channels)
+                ch = channels(c);
+                
+                for t=1:nt
+                    idx = (zct - 1) * t_mod + (t-1) * t_inc;
+                    
+                    if zct(2) == -1
+                        idx(2) = ch - 1;
                     end
-                end     % nchans
+                    
+                    index = r.getIndex(idx(1),idx(2),idx(3));
+                    rawPlane = r.openBytes(index);
+                    I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
+                    I = typecast(I, obj.data_type);
+                    data(t,ch,:,:) = reshape(I, sizeY, sizeX)';
+                end
             end           
 
             if verbose
                 delete(w);
                 drawnow;
             end
-
-            if strcmp('TCSPC',obj.mode)
-                
-                %Kludge to suppress bright line artefact on RHS in BH .sdt files
-                
-                if strcmp(obj.ext,'.sdt')  && sizeX > 1 && sizeY > 1
-                    target(:,:,:,end,:) = 0;
-                end
-                
-            else    % Not TCSPC
-                if min(target(target > 0)) > 32500
-                    target = target - 32768;    % clear the sign bit which is set by labview
-                end
-            end
             
         end
-        
+       
+        function init_reader(obj)
+            r = loci.formats.ChannelFiller();
+            r = loci.formats.ChannelSeparator(r);
+
+            OMEXMLService = loci.formats.services.OMEXMLServiceImpl();
+            r.setMetadataStore(OMEXMLService.createOMEXMLMetadata());
+
+            r.setId(obj.filename);
+            obj.bf_reader = r;
+        end
     end
     
 end

@@ -29,7 +29,7 @@ function load_background(obj, file_or_image, time_average)
     
     im = [];
     
-    if strcmp(class(file_or_image),'char')  % file or dir
+    if ischar(file_or_image)  % file or dir
         file = file_or_image;
         [~,~,ext] = fileparts_inc_OME(file);
         if strcmp(ext,'.xml')
@@ -112,7 +112,7 @@ function load_background(obj, file_or_image, time_average)
      im = medfilt2(im,[extent extent],'symmetric');
 
      if any(size(im) ~= [obj.height obj.width])
-         throw(MException('GlobalAnalysis:BackgroundIncorrectShape','Error loading background, file has different dimensions to the data'));
+         throw(MException('FLIMfit:backgroundIncorrectShape','Error loading background, file has different dimensions to the data'));
      else
          obj.background_image = im;
          obj.background_type = 2;   % this runs obj.compute_tr_data()

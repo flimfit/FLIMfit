@@ -1,4 +1,4 @@
-function [ path,name,ext ] = fileparts_inc_OME( file )
+function [path,name,ext] = fileparts_inc_OME(file)
 % split filename into 3 allowing for ome_tiffs
 
     % Copyright (C) 2013 Imperial College London.
@@ -34,7 +34,7 @@ function [ path,name,ext ] = fileparts_inc_OME( file )
          if length(name) > 3
              tail = (name(end-3:end));
              if strcmpi(tail,'.ome')  || strcmpi(tail,'.o.e')
-                ext = '.ome';
+                ext = [tail ext];
                 name = name(1:end-4);
              end
          end

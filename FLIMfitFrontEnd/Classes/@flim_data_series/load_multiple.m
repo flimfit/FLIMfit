@@ -28,13 +28,12 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     % get dimensions from first file
     reader = get_flim_reader(obj.file_names{1});
-    [dims,~,obj.reader_settings] = obj.get_image_dimensions(obj.file_names{1});
-    obj.data_type = dims.data_type;
+    obj.data_type = reader.data_type;
     
-    if isempty(dims.delays)     % cancelled out
-        if ~isempty(dims.error_message)
-            errordlg(dims.error_message);
-        end
+    if strcmp(reader.error_message,'cancelled')
+        return
+    elseif ~isempty(reader.error_message)
+        errordlg(reader.error_message);
         return;
     end
     
@@ -43,67 +42,43 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
         throw(MException('FLIMfit:dataNotTimeResolved','Data does not appear to be time resolved'));
     end;
     
-    chan_info = dims.chan_info;
+    chan_info = reader.chan_info;
     obj.mode = reader.FLIM_type;
     obj.reader_settings = reader.settings;
+    obj.data_type = reader.data_type;
     
     % Determine which planes we need to load 
-    obj.ZCT = obj.get_ZCT( dims, polarisation_resolved, reader.chan_info );
+    [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,[],chan_info);
+    [Z,C,T] = meshgrid(z,c,t);
+    obj.ZCT = [Z(:) C(:) T(:)];
     
-    if isempty(obj.ZCT)
-        return;
-    end
-    
+    obj.channels = channels;
     if polarisation_resolved
-        n_chan = 2;
-    else
-        n_chan = 1;
+        assert(length(channels) == 2);
     end
     
-    % handle exception where  multiple Z, C or T are allowed
-    % for the time being assume only 1 dimension can be > 1 
-    % (as enforced in ZCT_selection) otherwise this will go horribly wrong !
-    allowed = [ 1 n_chan 1 ];
-    prefix = ['Z' 'C' 'T'];
+    images_per_file = size(obj.ZCT,1);
+    n_images = length(obj.file_names);
     
-    dim = find(cellfun(@length,obj.ZCT) > allowed,1);    
-    if ~isempty(dim)
-        p = prefix(dim);
-        D = obj.ZCT{dim};
+    [~,names] = cellfun(@fileparts,obj.file_names,'UniformOutput',false);
+    names = reshape(names,[1 length(obj.file_names)]);
+    names = repmat(names,[images_per_file,1]);
+    obj.names = names(:);    
 
-        names = cell(1,length(D)*length(obj.file_names));
-        filename = names;
-        metadata = struct();
-        
-        na = 1;
-        for f = 1:length(obj.file_names)
-            name = obj.names{f};
-            for d = 1:length(D)
-                if p == 'C' && ~isempty(chan_info)
-                    names{na} = [ p num2str(D(d) -1) '-' chan_info{D(d)} ];
-                    metadata.(p){na} = chan_info{D(d)};
-                else
-                    names{na} = [ p num2str(D(d)-1) '-' name ];
-                    metadata.(p){na} = D(d)-1;
-                end
-                filename{na} = name;
-                na = na + 1;
-            end
-        end
-        obj.load_multiple_planes = dim;
-        obj.metadata = extract_metadata(filename,metadata);
-        obj.names = names;
-        obj.n_datasets = length(obj.names);
-    end
-        
-    obj.t = dims.delays;
-    obj.channels = obj.ZCT{2};
-
-    obj.data_size = [length(dims.delays) n_chan dims.sizeXY obj.n_datasets];
-     
+    % Extract metadata 
     if isempty(obj.metadata)
-        obj.metadata = extract_metadata(obj.names);
+        metadata.Z = num2cell(repmat(Z(:),n_images));
+        if ~all(C == -1)
+            metadata.C = repmat(chan_info(C),n_images);
+        end
+        metadata.T = num2cell(repmat(Z(:),n_images));   
+        obj.metadata = extract_metadata(names,metadata);
     end
+    
+    obj.n_datasets = n_images * images_per_file;
+    
+    obj.t = reader.delays;
+    obj.data_size = [length(reader.delays) length(channels) reader.sizeXY obj.n_datasets];
        
     if obj.lazy_loading
         obj.load_selected_files(1);

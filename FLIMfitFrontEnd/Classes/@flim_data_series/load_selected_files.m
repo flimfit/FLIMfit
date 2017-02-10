@@ -29,21 +29,15 @@ function load_selected_files(obj,selected)
         selected = 1:obj.n_datasets;
     end
     
-    if ~isempty(obj.loaded)
-        already_loaded = true;
-        for i=1:length(selected)
-            if ~obj.loaded(selected(i))
-                already_loaded = false;
-            end
-        end
-        
-        if already_loaded
-            return
-        end
+    last_filename = '';
+    reader = [];
+    
+    if numel(selected) == numel(obj.loaded) && all(selected == obj.loaded)
+        return
     end
     
-    if obj.use_popup && length(selected) > 1 && ~obj.raw
-        wait_handle=waitbar(0,'Opening files...');
+    if obj.use_popup && ~obj.raw
+        wait_handle = waitbar(0,'Opening files...');
         using_popup = true;
     else
         using_popup = false;
@@ -58,75 +52,34 @@ function load_selected_files(obj,selected)
         obj.loaded(selected(j)) = true;
     end
     
-    if obj.hdf5
-        
-        %...
-        
-    elseif obj.raw
+    if obj.raw
         
         obj.init_memory_mapping(obj.data_size(1:4), num_sel, obj.mapfile_name);
         
     else
         
-        mem_size = obj.data_size(1:4);
-        
-        nfiles = length(obj.file_names);
-        selPerFile = length(obj.names)./nfiles;
+        mem_size = obj.data_size(1:4)';
+        images_per_file = size(obj.ZCT,1);
         
         if obj.use_memory_mapping
                         
             mapfile_name = global_tempname;
             mapfile = fopen(mapfile_name,'w');
-            
-            data = zeros(mem_size',obj.data_type);
-            
+                        
             for j=1:num_sel
-               
-                s = selected(j);
-                currentFile = ceil(s./selPerFile);
-                filename = obj.file_names{currentFile};
-                plane = s - ((currentFile-1) .* selPerFile);
-               
-                [success, data] = obj.load_flim_cube(data, filename,plane,1);
-                
-                if ~success
-                    disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
-                end
-                                
-                c1=fwrite(mapfile,data,obj.data_type);
-                
-                if using_popup
-                    waitbar(j./num_sel,wait_handle)
-                end
-                
+                data = read(j);
+                fwrite(mapfile,data,obj.data_type);
             end
             
             fclose(mapfile);
-            
             obj.init_memory_mapping(mem_size, num_sel, mapfile_name);
+
         else
             
-            obj.data_series_mem = zeros([mem_size' num_sel],obj.data_type);
+            obj.data_series_mem = zeros([mem_size num_sel],obj.data_type);
             
             for j=1:num_sel
-                
-                s = selected(j);
-                currentFile = ceil(s./selPerFile);
-                filename = obj.file_names{currentFile};
-                plane = s - ((currentFile-1) .* selPerFile);
-                
-                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,s);
-               
-                if ~success
-                    disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
-                end
-                
-                
-                if using_popup
-                    waitbar(j./num_sel,wait_handle)
-                end
-                
-                
+                obj.data_series_mem(:,:,:,:,j) = read(j);                
             end
             
             obj.active = 1;
@@ -136,13 +89,34 @@ function load_selected_files(obj,selected)
         
     end
     
-    
-    
     if using_popup
         close(wait_handle)
     end
     
     obj.compute_tr_data(false);
     
+    function data = read(j)
+        s = selected(j) - 1;
+        file_idx = floor(s / images_per_file) + 1;
+        zct_idx = mod(s, images_per_file) + 1;
+
+        filename = obj.file_names{file_idx};
+        
+        if ~strcmp(last_filename,filename) % cache the reader
+            reader = get_flim_reader(filename,obj.reader_settings);
+            last_filename = filename;
+        end
+        
+        data = reader.read(obj.ZCT(zct_idx,:),obj.channels);
+
+        if ~all(size(data) == mem_size)
+            data = zeros(mem_size,obj.data_type);
+            disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
+        end
+        
+        if using_popup
+            waitbar(j./num_sel,wait_handle)
+        end
+    end
     
 end

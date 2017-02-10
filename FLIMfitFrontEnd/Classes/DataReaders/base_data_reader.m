@@ -12,11 +12,12 @@ classdef (Abstract) base_data_reader < handle
     	FLIM_type;
         sizeZCT;
         sizeXY;
+        data_type = 'single';
         error_message;
     end
     
     methods(Abstract)
-        data = read(obj, selected);
+        data = read(obj, zct, channels);
     end
     
 end

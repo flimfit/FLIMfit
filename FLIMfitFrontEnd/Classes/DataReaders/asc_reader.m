@@ -41,14 +41,14 @@ classdef asc_reader < base_data_reader
 
                     if length(data_unselected) <  1025
                         nbins = length(data_unselected);
-                        obj.im_data = reshape(data_unselected,nbins,1,1);
+                        obj.im_data = reshape(data_unselected,[nbins,1,1,1]);
                         obj.delays = (0:nbins-1)*12500.0/nbins;
                     else
                         % too long for a single-point decay so assume a square
                         % image res by res & assume 64 time bins 
                         % TODO : wtf?
                         res = sqrt(length(data_unselected)/64);
-                        obj.im_data = reshape(data_unselected, 64, res, res);
+                        obj.im_data = reshape(data_unselected, [64, 1, res, res]);
                         obj.delays = (0:63)*12500.0/64;
                     end
                 end
@@ -68,8 +68,10 @@ classdef asc_reader < base_data_reader
             
         end
         
-        function data = read(obj, selected)
-            data = obj.im_data(:,selected);
+        function data = read(obj, zct, channels)
+            assert(all(channels == 1));
+            assert(all(zct==1));
+            data = obj.im_data;
         end
         
     end

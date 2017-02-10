@@ -8,7 +8,7 @@ classdef checkable_list < handle
         scroll_panel;
         check_layout;
         slider;
-        checkboxes;
+        checkboxes = gobjects(0);
         top_position;
         fig;
         abs_position;
@@ -17,14 +17,20 @@ classdef checkable_list < handle
     methods
 
         function obj = checkable_list(parent,options)
-        
+            
             panel = uipanel('Parent',parent,'BorderType','none');
             sub_layout = uix.HBox('Parent',panel,'Padding',5);
             obj.scroll_panel = uipanel('Parent',sub_layout,'BackgroundColor','w','BorderType','none','Units','pixels');
             obj.check_layout = uix.VBox('Parent',obj.scroll_panel,'Padding',5,'BackgroundColor','w','Units','pixels');
             obj.slider = uicontrol('Style','slider','Parent',sub_layout,'Callback',@obj.update_position);
+            
+            if isnumeric(options)
+                options = arrayfun(@num2str,options,'UniformOutput',false);
+            end
+            
             for i=1:length(options)
-                obj.checkboxes(i) = uicontrol('Style','check','String',num2str(options(i)),'Parent',obj.check_layout,'BackgroundColor','w');
+                obj.checkboxes(i) = uicontrol('Style','check','String',options{i},'Callback',@(src,evt) obj.checked(src,evt,i),...
+                    'Parent',obj.check_layout,'BackgroundColor','w','Value',true);
             end
             obj.check_layout.Heights = [20*ones(1,length(options))];
             sub_layout.Widths = [-1 20];
@@ -43,6 +49,9 @@ classdef checkable_list < handle
             
         end
         
+        function checked(obj,src,evt,idx)
+            
+        end
         
         function mouse_scroll(obj,src,evt,last_fcn)
             
@@ -121,11 +130,9 @@ classdef checkable_list < handle
         end
         
         function v = get_check(obj)
-            v = 1;
-            
-%            n = 1:length(obj.checkboxes);
-%            v = logical([obj.checkboxes.Value]);
-%            v = n(v);
+            n = 1:length(obj.checkboxes);
+            v = logical([obj.checkboxes.Value]);
+            v = n(v);
         end
     end
     

@@ -144,11 +144,12 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             in = trapz(obj.t,obj.cur_tr_data,1)/1000;
         end
         
-        if obj.polarisation_resolved
-            in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
-        end
+        %if obj.polarisation_resolved
+        %    in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
+        %end
      
-        obj.intensity = reshape(in,obj.data_size(3:4)');
+        in = sum(in,2);
+         obj.intensity = squeeze(in);
         
 
         
