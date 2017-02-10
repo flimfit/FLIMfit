@@ -346,7 +346,7 @@ classdef front_end_menu_controller < handle
         function menu_file_set_default_path_callback(obj)
             path = uigetdir(obj.default_path,'Select default path');
             if path ~= 0
-                set_default_path(path);
+                obj.set_default_path(path);
             end
         end
         
