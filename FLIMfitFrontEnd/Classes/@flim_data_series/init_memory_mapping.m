@@ -80,7 +80,7 @@ function init_memory_mapping(obj, data_size, n_datasets, mapfile_name)
 
         format = obj.data_type;
         
-        obj.memmap = memmapfile(obj.mapfile_name,'Writable',true,'Repeat',repeat,'Format',{format, data_size', 'data_series' },'Offset',obj.mapfile_offset);
+        obj.memmap = memmapfile(obj.mapfile_name,'Writable',true,'Repeat',repeat,'Format',{format, data_size, 'data_series'},'Offset',obj.mapfile_offset);
 
         obj.cur_data = obj.memmap.Data(1).data_series;
 

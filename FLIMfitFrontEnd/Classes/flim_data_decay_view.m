@@ -138,9 +138,11 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 d = obj.data_series;                        
                 mask = obj.roi_controller.roi_mask;
 
+                dataset = 1;
                 if ~isempty(obj.data_series_list)
                     dataset = obj.data_series_list.selected;
-                else
+                end
+                if dataset < 1
                     dataset = 1;
                 end
 
