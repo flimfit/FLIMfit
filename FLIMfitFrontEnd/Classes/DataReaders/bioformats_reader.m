@@ -12,12 +12,13 @@ classdef bioformats_reader < base_data_reader
             
             obj.filename = filename;
             obj.init_reader();
+            r = obj.bf_reader;
             
-            obj.ome_meta = obj.bf_reader.getMetadataStore();
+            ome_meta = obj.bf_reader.getMetadataStore();
             series_count = obj.bf_reader.getSeriesCount;
 
             if series_count > 1
-                if obj.ome_meta.getPlateCount > 0
+                if ome_meta.getPlateCount > 0
                     % plate! so check image_series has been setup or throw error
                     if obj.image_series == -1 || length(obj.image_series) ~= length(obj.file_names)
                         obj.error_message = ' This file contains Plate data. Please load using the appropriate menu item';
@@ -44,15 +45,19 @@ classdef bioformats_reader < base_data_reader
             obj.sizeXY = [r.getSizeY r.getSizeX];
             obj.sizeZCT = [r.getSizeZ r.getSizeC r.getSizeT];
 
+            obj.data_type = char(ome_meta.getPixelsType(0));            
+            assert(any(strcmp(obj.data_type,{'float','uint32','uint16'})));
+
+            
             % check for presence of an Xml modulo Annotation  containing 'lifetime'
 
-            search = {'T','C','Z'};
+            search = {'Z','C','T'};
             modlo = [];
             for i=1:length(search)
                 mod = eval(['r.getModulo' search{i} '();']);
-                if strfind(lower(mod.type),'lifetime')
+                if strfind(lower(char(mod.type)),'lifetime')
                     modlo = mod;
-                    obj.modulo = ['ModuloAlong' search{i}];
+                    obj.modulo = i;
                     break;
                 end
             end
@@ -112,22 +117,22 @@ classdef bioformats_reader < base_data_reader
                             obj.FLIM_type = 'TCSPC';
                             if lifetime_steps == obj.sizeZCT(1)
                                 obj.delays = (0:obj.sizeZCT(1)-1).* physical_unit;
-                                obj.modulo = 'ModuloAlongZ';
+                                obj.modulo = 1;
                             end
                             if lifetime_steps == obj.sizeZCT(3)
                                 obj.delays = (0:obj.sizeZCT(3)-1).*physical_unit;
-                                obj.modulo = 'ModuloAlongT';
+                                obj.modulo = 3;
                             end
 
                         else
                             % old-style (not auto-saved) LaVision ome-tiff
                             % Foreced to assume z is actually t
                             if obj.sizeZCT(1) > 1
-                                physZ = obj.ome_meta.getPixelsPhysicalSizeZ(0);
+                                physZ = ome_meta.getPixelsPhysicalSizeZ(0);
                                 if ~isempty(physZ)
                                     physSizeZ = physZ.value.doubleValue() .*1000;     % assume this is in ns so convert to ps
                                     obj.delays = (0:sizeZCT(1)-1)*physSizeZ;
-                                    obj.modulo = 'ModuloAlongZ';
+                                    obj.modulo = 1;
                                     obj.FLIM_type = 'TCSPC';
                                     obj.sizeZCT = sizeZCT;
                                 end
@@ -137,11 +142,13 @@ classdef bioformats_reader < base_data_reader
                 end
             end
 
+            obj.sizeZCT(obj.modulo) = obj.sizeZCT(obj.modulo) / length(obj.delays);
+            
             % get channel_names
-            for c = 1:sizeZCT(2)
-                obj.chan_info{c} = char(obj.ome_meta.getChannelName(0,c-1));
+            for c = 1:obj.sizeZCT(2)
+                obj.chan_info{c} = char(ome_meta.getChannelName(0,c-1));
                 if isempty(obj.chan_info{c})
-                    obj.chan_info{c} = char(obj.ome_meta.getChannelEmissionWavelength(0,c-1));
+                    obj.chan_info{c} = char(ome_meta.getChannelEmissionWavelength(0,c-1));
                 end
                 if isempty(obj.chan_info{c})
                     obj.chan_info{c} = ['Channel ' num2str(c-1)];
@@ -160,13 +167,14 @@ classdef bioformats_reader < base_data_reader
         %====================================
         
         function data = read(obj, zct, channels)
-                        
-            if verbose
-                w = waitbar(0, 'Loading FLIMage....');
-                drawnow;
-            end
-                   
+                                           
             r = obj.bf_reader;
+            
+            r.setSeries(0);            
+            pixelType = r.getPixelType();
+            bpp = javaMethod('getBytesPerPixel', 'loci.formats.FormatTools', pixelType);
+            fp = javaMethod('isFloatingPoint', 'loci.formats.FormatTools', pixelType);
+            little = r.isLittleEndian();
  
             %{
             TODO
@@ -178,32 +186,20 @@ classdef bioformats_reader < base_data_reader
             end
             %}
             
-            data = zeros([length(obj.delays) length(channels) obj.sizeXY], obj.data_type);
-
-            %check that image dimensions match those read from first file
-            % note the dimension inversion here
-            if sizeX ~= r.getSizeY ||sizeY ~= r.getSizeX
-                return;
-            end
-                    
             nt = length(obj.delays);
-            switch obj.modulo
-                case 'ModuloAlongZ'
-                    t_inc = [1 0 0];
-                    t_mod = [nt 1 1];
-                case 'ModuloAlongC'
-                    t_inc = [0 1 0];
-                    t_mod = [1 nt 1];
-                case 'ModuloAlongT'
-                    t_inc = [0 0 1];
-                    t_mod = [1 1 nt];
-            end
-                        
+            data = zeros([nt length(channels) obj.sizeXY], obj.data_type);
+            
+            t_inc = [0 0 0];
+            t_mod = [1 1 1];
+            
+            t_inc(obj.modulo) = 1;
+            t_mod(obj.modulo) = nt;
+                                    
             for c = 1:length(channels)
                 ch = channels(c);
                 
                 for t=1:nt
-                    idx = (zct - 1) * t_mod + (t-1) * t_inc;
+                    idx = (zct - 1) .* t_mod + (t-1) .* t_inc;
                     
                     if zct(2) == -1
                         idx(2) = ch - 1;
@@ -211,17 +207,12 @@ classdef bioformats_reader < base_data_reader
                     
                     index = r.getIndex(idx(1),idx(2),idx(3));
                     rawPlane = r.openBytes(index);
-                    I = loci.common.DataTools.makeDataArray(rawPlane,bpp, fp, little);
+                    I = loci.common.DataTools.makeDataArray(rawPlane, bpp, fp, little);
                     I = typecast(I, obj.data_type);
-                    data(t,ch,:,:) = reshape(I, sizeY, sizeX)';
+                    data(t,ch,:,:) = reshape(I, obj.sizeXY(2), obj.sizeXY(1))';
                 end
             end           
 
-            if verbose
-                delete(w);
-                drawnow;
-            end
-            
         end
        
         function init_reader(obj)
