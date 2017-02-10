@@ -40,7 +40,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
         modulo = obj.modulo; 
-        no_mix = true;   
+        no_preset = true;   
     else
         delays = dims.delays;
         nfiles = 1;   % only a single file except for the data
@@ -50,7 +50,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         modulo = dims.modulo;
         % allow file types bio-formats cannot recognise to be mixed 
         % with those it can for irfs etc
-        no_mix = false;
+        no_preset = false;
     end
     
     success = true; 
@@ -85,9 +85,9 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     else
         [ext,r] = obj.init_bfreader(file);
         % if first file was bio-formats readable then all others must be
-        % unless no_mix flag specifically allows for irfs
+        % unless no_preset flag specifically allows for irfs etc
         if ~isempty(obj.bfReader)
-            if ~strcmp(ext,'.bio') && no_mix
+            if ~strcmp(ext,'.bio') && no_preset
                 success = false;
                 return;
             end
