@@ -75,13 +75,7 @@ function init_dataset(obj,setting_file_name)
     obj.t_irf_max = max(obj.t_irf);
     
     obj.irf_background = 0;
-        
-    if obj.polarisation_resolved
-        obj.n_chan = 2;
-    else
-        obj.n_chan = 1;
-    end
-     
+             
     obj.data_size = size(obj.cur_data);
     obj.data_size = [obj.data_size ones(1,4-length(obj.data_size))];
 
@@ -103,7 +97,7 @@ function init_dataset(obj,setting_file_name)
     end
     
     % if single-pixel, single line or single column image then force no smoothing
-    if obj.data_size(3) == 1 | obj.data_size(4) == 1
+    if obj.data_size(3) == 1 || obj.data_size(4) == 1
         obj.binning = 0;
         notify(obj,'masking_updated');
     end

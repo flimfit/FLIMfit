@@ -111,9 +111,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             FLIMImage::DataClass data_class;
             if (mxIsUint16(data))
                data_class = FLIMImage::DataUint16;
-            if (mxIsUint32(data))
+            else if (mxIsUint32(data))
                data_class = FLIMImage::DataUint32;
-            if (mxIsSingle(data))
+            else if (mxIsSingle(data))
                data_class = FLIMImage::DataFloat;
             else
                mexErrMsgIdAndTxt("FLIMfit:invalidDataClass", "data must be single precision floating point or uint16");

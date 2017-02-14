@@ -1,4 +1,9 @@
-function [Z,C,T,channels] = zct_selection_dialog(zct_size,max_sel,chan_info)
+function [Z,C,T,channels] = zct_selection_dialog(zct_size,chan_info,options)
+
+    if nargin < 3
+        options.allow_multiple_images = true;
+        options.expected_channels = [];
+    end
 
     assert(length(zct_size) == 3)
     
@@ -6,6 +11,20 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,max_sel,chan_info)
     c = 1:zct_size(2);
     t = 1:zct_size(3);
 
+    prod_zt = zct_size(1) * zct_size(3);
+    prod_zct = prod(zct_size);
+    
+    
+    
+    if prod_zct == 1 || ...
+       ((prod_zt == 1) && any(zct_size(2) == options.expected_channels))
+        Z = z;
+        C = -1;
+        T = t;
+        channels = c;
+        return;
+    end
+    
     if nargin >= 3 && numel(chan_info) == zct_size(2)
         c = chan_info;
     end
@@ -18,17 +37,35 @@ function [Z,C,T,channels] = zct_selection_dialog(zct_size,max_sel,chan_info)
     
     layout.Heights = [-1 22];
     
+    if options.allow_multiple_images
+        lims = 1;
+    else
+        lims = [1 1];
+    end
     
-    z_check = checkable_list(uipanel('Parent',sel_layout,'Title','Z'),z);
-    t_check = checkable_list(uipanel('Parent',sel_layout,'Title','T'),t);
+    z_check = checkable_list(uipanel('Parent',sel_layout,'Title','Z'),z,lims);
+    t_check = checkable_list(uipanel('Parent',sel_layout,'Title','T'),t,lims);
 
     c_panel = uipanel('Parent',sel_layout,'Title','C');
     c_layout = uix.VBox('Parent',c_panel);
     c_opt_layout = uix.HBox('Parent',c_layout,'Padding',5,'Spacing',2);
     uicontrol('Style','text','String','Load as:','HorizontalAlignment','left','Parent',c_opt_layout);
-    c_type = uicontrol('Style','popupmenu','String',{'Channels','Images'},'Parent',c_opt_layout);
+    
+    if ~isempty(options.expected_channels) || ~options.allow_multiple_images
+        types = {'Channels'};
+    else
+        types = {'Channels','Images'};
+    end
+    
+    c_type = uicontrol('Style','popupmenu','String',types,'Parent',c_opt_layout);
 
-    c_check = checkable_list(c_layout,c);
+    if isempty(options.expected_channels)
+        lims = 1;
+    else
+        lims = [options.expected_channels options.expected_channels];
+    end
+    
+    c_check = checkable_list(c_layout,c,lims);
     
     c_opt_layout.Widths = [50 -1];
     c_layout.Heights = [30 -1];

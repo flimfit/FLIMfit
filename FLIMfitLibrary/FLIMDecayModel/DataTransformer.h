@@ -289,7 +289,7 @@ void DataTransformer::calculateMask()
       if (transform.limit > 0)
       {
          for(int i=0; i<n_meas_full; i++)
-            if (transform.limit > 0 && ptr[i] >= transform.limit)
+            if (ptr[i] >= (T) transform.limit)
             {
                final_mask[p] = 0;
                break;

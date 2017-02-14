@@ -61,14 +61,18 @@ void AbstractDecayGroup::setTransformedDataParameters(shared_ptr<TransformedData
 {
    dp = dp_;
 
-   if (!dp) return;
+   if (dp)
+      setNumChannels(dp->n_chan);
+}
 
+void AbstractDecayGroup::setNumChannels(int n_chan)
+{
    // Make sure all the channel factors are the right size
    size_t n_channel_factors = getNumPotentialChannels();
    for (int i = 0; i < n_channel_factors; i++)
    { 
       auto v = getChannelFactors(i);
-      v.resize(dp->n_chan, 1.0);
+      v.resize(n_chan, 1.0);
       setChannelFactors(i, v);
    }
 }

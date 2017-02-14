@@ -282,10 +282,20 @@ void setChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 }
 
 
+void setNumChannels(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 4);
+
+   int n_chan = mxGetScalar(prhs[2]);
+   AssertInputCondition(n_chan > 0);
+
+   model->setNumChannels(n_chan);
+}
+
+
 
 void openUI(shared_ptr<QDecayModel> model)
 {
-   
    auto widget = new FittingParametersWidget();
    widget->setDecayModel(model);
    widget->show();
@@ -335,6 +345,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          setChannelFactors(model, nlhs, plhs, nrhs, prhs);
       else if (command == "GetChannelFactors")
          getChannelFactors(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetNumChannels")
+         setNumChannels(model, nlhs, plhs, nrhs, prhs);
       else if (command == "OpenUI")
          openUI(model);
    }

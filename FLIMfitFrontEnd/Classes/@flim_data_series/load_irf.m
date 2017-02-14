@@ -43,48 +43,39 @@ function load_irf(obj,file_or_image,load_as_image)
         end
     else
         
-        [dims,~,reader_settings] = obj.get_image_dimensions(file_or_image);
-        
-        if isempty(dims.delays) 
+        reader = get_flim_reader(file_or_image);
+                
+        if isempty(reader.delays) 
             return;
         end
         
         if obj.polarisation_resolved
-            if dims.sizeZCT(2) < 2
+            if reader.sizeZCT(2) < 2
                 errordlg('IRF must have at least 2 channels!');
                 return;
             end
         end
-  
-        chan_info = dims.chan_info;
-       
-        % Determine which channels we need to load (param 4 disallows the
-        % selection of multiple planes )
-        ZCT = obj.get_ZCT( dims, obj.polarisation_resolved, chan_info, false);
-    
-        if isempty(ZCT)
-            return;
-        end;
+      
+        options.expected_channels = obj.n_chan;
+        options.allow_multiple_images = false;
+        [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,reader.chan_info,options);
+        
+%        if isempty(ZCT)
+%            return;
+%        end;
 
 
         if nargin < 3
             load_as_image = false;
         end
         
-        t_irf = dims.delays;
+        t_irf = reader.delays;
         sizet = length(t_irf);
-        sizeX = dims.sizeXY(1);
-        sizeY = dims.sizeXY(2);
+        sizeX = reader.sizeXY(1);
+        sizeY = reader.sizeXY(2);
         
-        if obj.polarisation_resolved
-            n_chan = 2;
-        else
-            n_chan = 1;
-        end
-        
-        irf_image_data = zeros(sizet, n_chan, sizeX, sizeY, 1);
-        [~ , irf_image_data] = obj.load_flim_cube(irf_image_data, file_or_image, 1, 1, reader_settings, dims, ZCT);
-        irf = reshape(irf_image_data,[sizet n_chan sizeX * sizeY]);
+        irf_image_data = reader.read([z c t],channels);
+        irf = reshape(irf_image_data,[sizet obj.n_chan sizeX * sizeY]);
         irf = mean(irf,3);
          
 

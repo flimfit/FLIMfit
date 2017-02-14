@@ -110,7 +110,7 @@ function load_selected_files(obj,selected)
         
         data = reader.read(obj.ZCT(zct_idx,:),obj.channels);
 
-        if ~all(size(data) == mem_size)
+        if ~(all(size(data) == mem_size(1:ndims(data))) && all(mem_size(ndims(data)+1:end)==1))
             data = zeros(mem_size,obj.data_type);
             disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
         end

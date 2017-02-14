@@ -1,4 +1,4 @@
-function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_file,selected,channel)   
+function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_file,selected)   
     %> Load a series of FLIM data files
     
     % Copyright (C) 2013 Imperial College London.
@@ -26,9 +26,6 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
 
     % Author : Sean Warren
     
-    if nargin < 7
-        channel = [];
-    end
     if nargin < 6
         selected = [];
     end

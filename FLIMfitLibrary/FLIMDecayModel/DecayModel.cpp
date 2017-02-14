@@ -53,6 +53,14 @@ void DecayModel::setTransformedDataParameters(shared_ptr<TransformedDataParamete
    photons_per_count = static_cast<float>(1.0 / dp->counts_per_photon);
 }
 
+void DecayModel::setNumChannels(int n_chan)
+{
+   if (dp) return;
+
+   for (auto g : decay_groups)
+      g->setNumChannels(n_chan);
+}
+
 void DecayModel::init()
 {
    if (dp->irf == nullptr)

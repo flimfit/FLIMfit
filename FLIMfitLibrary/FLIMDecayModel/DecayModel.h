@@ -75,6 +75,8 @@ public:
    shared_ptr<TransformedDataParameters> getTransformedDataParameters() { return dp; }
    void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_);
 
+   void setNumChannels(int n_chan);
+
    void init();
 
    void   setupIncMatrix(std::vector<int>& inc);

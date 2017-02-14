@@ -112,10 +112,10 @@ classdef flim_fit_ui
             handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
+            handles.model_controller = flim_model_controller(handles.model_panel);            
             handles.data_series_controller = flim_data_series_controller(handles);                                    
             handles.omero_logon_manager = flim_omero_logon_manager(handles);
             
-            handles.model_controller = flim_model_controller(handles.model_panel);            
             handles.fitting_params_controller = flim_fitting_params_controller(handles);
             handles.data_series_list = flim_data_series_list(handles);
             handles.data_intensity_view = flim_data_intensity_view(handles);

@@ -69,6 +69,7 @@ public:
    int getNumNonlinearParameters() { return n_nl_parameters; };
 
    void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp);
+   void setNumChannels(int n_chan);
    virtual void init() = 0;
 
    virtual int setVariables(const double* variables) = 0;
@@ -127,7 +128,7 @@ void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & constrain_nonlinear_parameters;
    ar & n_lin_components;
    ar & n_nl_parameters;
-//   ar & parameters;
+   ar & parameters;
    ar & dp;
    ar & fit_t0;
 };

@@ -608,13 +608,7 @@
         function set.polarisation_resolved(obj,polarisation_resolved)
            
             obj.polarisation_resolved = polarisation_resolved;
-            
-            if polarisation_resolved
-                obj.n_chan = 2;
-            else
-                obj.n_chan = 1;
-            end
-            
+                       
         end
         
         function set.suspend_transformation(obj,suspend_transformation)

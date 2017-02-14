@@ -12,11 +12,24 @@ classdef checkable_list < handle
         top_position;
         fig;
         abs_position;
+        lims;
+        check_order;
     end
     
     methods
 
-        function obj = checkable_list(parent,options)
+        function obj = checkable_list(parent,options,lims)
+                        
+            if nargin < 3
+                lims = [1 length(options)];
+            elseif length(lims) == 1
+                lims(2) = length(options);
+            end
+            
+            obj.lims = lims;
+            assert(lims(2) >= lims(1));
+            
+            obj.check_order = 1:lims(2);
             
             panel = uipanel('Parent',parent,'BorderType','none');
             sub_layout = uix.HBox('Parent',panel,'Padding',5);
@@ -29,10 +42,10 @@ classdef checkable_list < handle
             end
             
             for i=1:length(options)
-                obj.checkboxes(i) = uicontrol('Style','check','String',options{i},'Callback',@(src,evt) obj.checked(src,evt,i),...
-                    'Parent',obj.check_layout,'BackgroundColor','w','Value',true);
+                obj.checkboxes(i) = uicontrol('Style','check','String',options{i},'Callback',@(src,evt) obj.checked(src,i),...
+                    'Parent',obj.check_layout,'BackgroundColor','w','Value',i<=lims(2));
             end
-            obj.check_layout.Heights = [20*ones(1,length(options))];
+            obj.check_layout.Heights = 20*ones(1,length(options));
             sub_layout.Widths = [-1 20];
 
             obj.setup_slider(true);
@@ -49,8 +62,26 @@ classdef checkable_list < handle
             
         end
         
-        function checked(obj,src,evt,idx)
+        function checked(obj,src,idx)
+            % Enforce limits
             
+            v_new = logical([obj.checkboxes.Value]);
+            
+            if sum(v_new) > obj.lims(2)
+                last = obj.check_order(1);
+                v_new(last) = false;
+                obj.check_order(1) = [];
+            elseif sum(v_new) < obj.lims(1)
+                v_new(idx) = true;
+            end
+                        
+            if src.Value
+                obj.check_order(end+1) = idx;
+            else
+                obj.check_order(obj.check_order==idx) = [];
+            end
+            
+            arrayfun(@(cb,v) set(cb,'Value',v),obj.checkboxes,v_new);
         end
         
         function mouse_scroll(obj,src,evt,last_fcn)

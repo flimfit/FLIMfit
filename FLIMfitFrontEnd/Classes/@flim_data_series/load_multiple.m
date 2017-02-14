@@ -48,9 +48,11 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     obj.data_type = reader.data_type;
     
     % Determine which planes we need to load 
-    [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,[],chan_info);
+    [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,chan_info);
     [Z,C,T] = meshgrid(z,c,t);
     obj.ZCT = [Z(:) C(:) T(:)];
+    obj.n_chan = length(channels);
+
     
     obj.channels = channels;
     if polarisation_resolved
@@ -79,7 +81,9 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     
     obj.t = reader.delays;
     obj.data_size = [length(reader.delays) length(channels) reader.sizeXY obj.n_datasets];
-       
+   
+    delete(reader);
+    
     if obj.lazy_loading
         obj.load_selected_files(1);
     else
@@ -87,7 +91,5 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     end
    
     obj.init_dataset(data_setting_file);
-   
-    delete(reader);
-    
+       
 end

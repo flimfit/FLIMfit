@@ -29,6 +29,12 @@ classdef flim_model_controller < handle
             obj.draw();
             
         end
+        
+        function set_n_channel(obj,n_channel)
+            obj.n_channel = n_channel;
+            ff_DecayModel(obj.model,'SetNumChannel',n_channel);
+            obj.draw();
+        end
     
         function draw(obj)    
 
@@ -37,7 +43,7 @@ classdef flim_model_controller < handle
             add_layout = uix.HBox('Parent',obj.main_layout,'Spacing',5,'BackgroundColor','w');
             uicontrol('Style','text','String','New: ','Parent',add_layout,'BackgroundColor','w');
             add_popup = uicontrol('Style','popupmenu','String',obj.decay_types,'Parent',add_layout);
-            uicontrol('Style','pushbutton','String','Add','Callback',{@add_group,add_popup},'Parent',add_layout);
+            uicontrol('Style','pushbutton','String','Add','Callback',{@obj.add_group,add_popup},'Parent',add_layout);
             add_layout.Widths = [75 -1 75];
 
             obj.groups = ff_DecayModel(obj.model,'GetGroups');
@@ -67,7 +73,7 @@ classdef flim_model_controller < handle
 
             uicontrol('Style','text','String',display_name,'Parent',layout,...
                 'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor','w');
-            uicontrol('Style','pushbutton','String','Remove','Parent',layout,'Callback',{@remove_group, idx});
+            uicontrol('Style','pushbutton','String','Remove','Parent',layout,'Callback',{@obj.remove_group, idx});
             layout.Widths = [-1 75];
 
             params = fieldnames(group.Parameters);
@@ -110,7 +116,7 @@ classdef flim_model_controller < handle
             layout = uix.HBox('Parent',parent,'Spacing',5,'BackgroundColor','w');
             uicontrol('Style','text','String',variable.Name,'Parent',layout,'FontWeight','bold','BackgroundColor','w');
             uicontrol('Style','edit','String',num2str(variable.InitialValue),'Parent',layout,...
-                'Callback',@(src,evt) update_initial_value(group_idx, variable_idx, str2double(src.String)));
+                'Callback',@(src,evt) obj.update_initial_value(group_idx, variable_idx, str2double(src.String)));
 
             idx = 1:length(variable.AllowedFittingTypes);
             idx = idx(variable.AllowedFittingTypes == variable.FittingType);
@@ -164,7 +170,7 @@ classdef flim_model_controller < handle
 
         function update_variables(obj,group_idx)
            ff_DecayModel(obj.model,'SetVariables',group_idx,obj.groups(group_idx).Variables);
-           draw();
+           obj.draw();
         end
         
         function channel_factors = get_channel_factors(obj,group_idx,idx)

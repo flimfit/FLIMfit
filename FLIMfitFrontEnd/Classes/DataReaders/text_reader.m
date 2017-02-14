@@ -2,21 +2,23 @@ classdef text_reader < base_data_reader
    
     properties
         dlm;
+        txtInfoRead;
     end
     
     methods
         
         function obj = text_reader(filename)
             obj.filename = filename;
+            [~,~,ext] = fileparts(filename);
             
             
-            if strcmp(obj.ext,'.txt')
+            if strcmp(ext,'.txt')
                 obj.dlm = '\t';
             else
                 obj.dlm = ',';
             end
 
-            fid = fopen(file);
+            fid = fopen(filename);
             header_data = cell(0,0);
             textl = fgetl(fid);
 
@@ -81,8 +83,8 @@ classdef text_reader < base_data_reader
               end
             end
 
-            ir = dlmread(file,dlm,n_header_lines,0);
-            obj.txtInfoRead = ir;    % save ir into class
+            ir = dlmread(obj.filename,obj.dlm,n_header_lines,0);
+            obj.txtInfoRead = ir(:,2:end);    % save ir into class
 
             delays(1,:) = ir(:,1);
 
@@ -101,31 +103,13 @@ classdef text_reader < base_data_reader
 
         end
         
-        function data = read(obj, selected)
-        
-            ir = [];
-            
-            % if this is the same file from which we got the image
-            % dimensions
-            if ~isempty(obj.file_names)  && ~isempty(obj.txtInfoRead)
-                if strcmp(file,obj.file_names(1) )
-                    ir = obj.txtInfoRead;
-                end
+        function data = read(obj, zct, channels)
+                    
+            if all(channels == -1)
+                channels = zct(:,2);
             end
-            
-            if isempty(ir)
-                % decode the header & load the data
-                header_data = obj.parse_csv_txt_header(file);
-                if isempty(header_data)
-                    n_header_lines = 0;
-                else
-                    n_header_lines = length(header_data);
-                end
-                ir = dlmread(file,obj.dlm,n_header_lines,0);
-               
-            end
-            
-            data = ir(:,selected);
+                        
+            data = obj.txtInfoRead(:,channels);
                         
         end
         
