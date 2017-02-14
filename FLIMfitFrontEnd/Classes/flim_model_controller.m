@@ -189,7 +189,15 @@ classdef flim_model_controller < handle
             for i=1:length(channel_factors)
                 obj.channel_controls{group_idx}{factor_idx}{i}.String = num2str(channel_factors(i));
             end
-            
+        end
+        
+        function save(obj,filename)
+            ff_DecayModel(obj.model,'SaveModel',filename);
+        end
+        
+        function load(obj,filename)
+            ff_DecayModel(obj.model,'LoadModel',filename);
+            obj.draw();
         end
         
     end

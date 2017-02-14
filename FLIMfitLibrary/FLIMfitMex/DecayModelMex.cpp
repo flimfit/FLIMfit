@@ -29,7 +29,12 @@
 
 #pragma warning(disable: 4244 4267)
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/export.hpp>
+
 #include "DecayModel.h"
+#include "BackgroundLightDecayGroup.h"
 #include "MultiExponentialDecayGroup.h"
 #include "FretDecayGroup.h"
 #include "AnisotropyDecayGroup.h"
@@ -284,13 +289,40 @@ void setChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 
 void setNumChannels(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   AssertInputCondition(nrhs >= 4);
+   AssertInputCondition(nrhs >= 3);
 
    int n_chan = mxGetScalar(prhs[2]);
    AssertInputCondition(n_chan > 0);
 
    model->setNumChannels(n_chan);
 }
+
+void saveModel(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsChar(prhs[2]));
+
+   std::string filename = getStringFromMatlab(prhs[2]);
+
+   std::ofstream ofs(filename);
+   boost::archive::text_oarchive oa(ofs);
+  
+   oa << *(model.get());
+}
+
+void loadModel(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsChar(prhs[2]));
+
+   std::string filename = getStringFromMatlab(prhs[2]);
+
+   std::ifstream ifs(filename);
+   boost::archive::text_iarchive ia(ifs);
+
+   ia >> *(model.get());
+}
+
 
 
 
@@ -300,6 +332,12 @@ void openUI(shared_ptr<QDecayModel> model)
    widget->setDecayModel(model);
    widget->show();
 }
+
+BOOST_CLASS_EXPORT_GUID(BackgroundLightDecayGroup, "BackgroundLightDecayGroup");
+BOOST_CLASS_EXPORT_GUID(AnisotropyDecayGroup, "AnisotropyDecayGroup");
+BOOST_CLASS_EXPORT_GUID(MultiExponentialDecayGroup, "MultiExponentialDecayGroup");
+BOOST_CLASS_EXPORT_GUID(FretDecayGroup, "FretDecayGroup");
+
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -347,6 +385,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          getChannelFactors(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetNumChannels")
          setNumChannels(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SaveModel")
+         saveModel(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "LoadModel")
+         loadModel(model, nlhs, plhs, nrhs, prhs);
       else if (command == "OpenUI")
          openUI(model);
    }

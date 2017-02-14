@@ -176,6 +176,7 @@ classdef front_end_menu_controller < handle
         
         menu_batch_batch_fitting;
         
+        model_controller;
         data_series_list;
         data_series_controller;
         data_decay_view;
@@ -856,16 +857,16 @@ classdef front_end_menu_controller < handle
         % Import/Export Fit Parameters
         %------------------------------------------------------------------
         function menu_file_export_fit_params_callback(obj)
-            [filename, pathname, dataset] = uiputfile({'fit_parameters.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+            [filename, pathname] = uiputfile({'fit_parameters.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
-                obj.fitting_params_controller.save_fitting_params([pathname filename]);         
+                obj.model_controller.save([pathname filename]);         
             end
         end
 
         function menu_file_import_fit_params_callback(obj)
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
-                obj.fitting_params_controller.load_fitting_params([pathname filename]);           
+                obj.model_controller.load([pathname filename]);           
             end
         end
         

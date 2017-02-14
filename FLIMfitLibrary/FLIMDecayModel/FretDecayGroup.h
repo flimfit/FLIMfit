@@ -88,14 +88,13 @@ void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
    ar & boost::serialization::base_object<MultiExponentialDecayGroupPrivate>(*this);
    ar & tauT_parameters;
-   ar & A0_parameter;
-   ar & AD_parameter;
+   ar & Q_parameter;
+   ar & Qsigma_parameter;
    ar & tauA_parameter;
    ar & n_fret_populations;
    ar & include_donor_only;
    ar & include_acceptor;
    ar & acceptor_channel_factors;
-   ar & direct_acceptor_channel_factors;
 };
 
 /*
