@@ -76,7 +76,7 @@
     
     
     % Determine which datasets we need to load and make sure they're loaded
-    if p.global_fitting < 2 || p.global_variable == 0
+    if p.global_scope < 2 || p.global_variable == 0
         if false && d.lazy_loading && p.split_fit
             obj.n_rounds = ceil(d.n_datasets/p.n_thread);
 
@@ -212,8 +212,7 @@
     data = ff_FLIMData('images',im,...
                        'data_transformation_settings',transform,...
                        'irf',irf,...
-                       'background_value',d.background_value,...
-                       'global_mode',p.global_fitting);
+                       'background_value',d.background_value);
        
     ff_FLIMImage(im,'Release');
                    
@@ -225,7 +224,7 @@
     fit_settings.calculate_errors = p.calculate_errs;
     fit_settings.weighting = p.weighting_mode;
     fit_settings.global_algorithm = 1;
-    fit_settings.global_mode = 0;
+    fit_settings.global_scope = p.global_scope;
     fit_settings.algorithm = p.fitting_algorithm;
     % TODO ...
      

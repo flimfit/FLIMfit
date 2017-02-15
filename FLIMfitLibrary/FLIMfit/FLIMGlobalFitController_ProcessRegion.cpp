@@ -51,7 +51,7 @@ void FitController::processRegion(int g, int region, int px, int thread)
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    START_SPAN("Processing Data");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   if (data->global_mode == MODE_PIXELWISE)
+   if (data->global_scope == MODE_PIXELWISE)
    {      
       local_region_data = region_data[0].GetPixel(px);
       region_results = results->getPixel(g, region, px);

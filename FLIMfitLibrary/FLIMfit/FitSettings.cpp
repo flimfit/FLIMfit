@@ -33,10 +33,10 @@
 #include <cstring>
 
 
-FitSettings::FitSettings(int algorithm_, int global_mode_, int global_algorithm_, int weighting_, int n_thread_, int runAsync_, int (*callback_)())
+FitSettings::FitSettings(int algorithm_, int global_scope_, int global_algorithm_, int weighting_, int n_thread_, int runAsync_, int (*callback_)())
 {
    algorithm = algorithm_;
-   global_mode = global_mode_;
+   global_scope = global_scope_;
    global_algorithm = global_algorithm_;
    weighting = weighting_;
 

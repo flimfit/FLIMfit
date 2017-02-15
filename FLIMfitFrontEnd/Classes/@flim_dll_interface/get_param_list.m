@@ -38,7 +38,7 @@ function [data, column_headers] = get_param_list(obj)
     
     % Column Headers
     % -------------------
-    if p.global_fitting == 0 && ~obj.bin
+    if p.global_scope == 0 && ~obj.bin
         column_headers = {'im_group'; 'region'; 'success %'; 'iterations'; 'pixels'};
     else
         column_headers = {'im_group'; 'region'; 'return code'; 'iterations'; 'pixels'};

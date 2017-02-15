@@ -30,7 +30,7 @@ classdef flim_fitting_params < handle & h5_serializer
 
         model;
         
-        global_fitting = 0;
+        global_scope = 0;
         global_variable = 0;
         
         polarisation_resolved = false;

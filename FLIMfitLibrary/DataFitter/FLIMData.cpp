@@ -59,14 +59,14 @@ transform(transform)
 }
 
 
-void FLIMData::setGlobalMode(int global_mode_)
+void FLIMData::setGlobalScope(int global_scope_)
 {
    // TODO(P:Low)
    // So that we can calculate errors properly
-   //if (global_mode_ == MODE_PIXELWISE && n_x == 1 && n_y == 1)
-   //   global_mode_ = MODE_IMAGEWISE;
+   //if (global_scope_ == MODE_PIXELWISE && n_x == 1 && n_y == 1)
+   //   global_scope_ = MODE_IMAGEWISE;
 
-   global_mode = global_mode_;
+   global_scope = global_scope_;
 }
 
 
@@ -237,9 +237,9 @@ void FLIMData::setData(const vector<shared_ptr<FLIMImage>>& images_)
 
 int FLIMData::getMaxFitSize()
 {
-   if (global_mode == MODE_GLOBAL)
+   if (global_scope == MODE_GLOBAL)
       return n_masked_px;
-   else if (global_mode == MODE_IMAGEWISE)
+   else if (global_scope == MODE_IMAGEWISE)
       return max_px_per_image;
    else
       return 1;
@@ -247,7 +247,7 @@ int FLIMData::getMaxFitSize()
 
 int FLIMData::getMaxRegionSize()
 {
-   if (global_mode == MODE_GLOBAL)
+   if (global_scope == MODE_GLOBAL)
       return n_masked_px;
    else
       return max_px_per_image;
@@ -278,7 +278,7 @@ int FLIMData::SetData(const char* data_file, int data_class, int data_skip)
       err = CalculateRegions<uint16_t>();
 
    // We can't stream data globally with more than one region
-   if (global_mode == MODE_GLOBAL && n_regions_total > 1)
+   if (global_scope == MODE_GLOBAL && n_regions_total > 1)
       stream_data = false;
 
    return err;
@@ -372,7 +372,7 @@ int FLIMData::getRegionIndex(int im, int region)
 {
    // If fitting globally, set im=-1 to get index of region for all datasets
 
-   if (global_mode == MODE_GLOBAL)
+   if (global_scope == MODE_GLOBAL)
          im++;
 
    return region_idx[im][region];
@@ -417,7 +417,7 @@ int FLIMData::getRegionData(int thread, int group, int region, RegionData& regio
    region_data.Clear();
 
    
-   if ( global_mode == MODE_PIXELWISE || global_mode == MODE_IMAGEWISE )
+   if ( global_scope == MODE_PIXELWISE || global_scope == MODE_IMAGEWISE )
    {
       s_expected = getRegionCount(group, region);
       region_data.GetPointersForInsertion(s_expected, masked_data, irf_idx);
@@ -427,7 +427,7 @@ int FLIMData::getRegionData(int thread, int group, int region, RegionData& regio
       
       assert( s == s_expected );
    }
-   else if ( global_mode == MODE_GLOBAL )
+   else if ( global_scope == MODE_GLOBAL )
    {
       
       int start = getRegionPos(0, region);

@@ -103,7 +103,7 @@ struct ModelParametersStruct
 struct FitSettingsStruct
 {
    int    algorithm;
-   int    global_mode;
+   int    global_scope;
    int    global_algorithm;
    int    weighting;
 
@@ -147,7 +147,7 @@ FITDLL_API int SetupGlobalPolarisationFit(int c_idx, int global_algorithm, int i
                              int n_thread, int runAsync, int use_callback, int (*callback)());
 
 FITDLL_API int SetDataParams(int c_idx, int n_im, int n_x, int n_y, int n_chan, int n_t_full, double t[], double t_int[], int t_skip[], int n_t,
-                             int data_type, int* use_im, uint8_t *mask, int merge_regions, int threshold, int limit, double counts_per_photon, int global_mode, int smoothing_factor, int use_autosampling);
+                             int data_type, int* use_im, uint8_t *mask, int merge_regions, int threshold, int limit, double counts_per_photon, int global_scope, int smoothing_factor, int use_autosampling);
 
 FITDLL_API int SetDataFloat(int c_idx, float* data);
 FITDLL_API int SetDataUInt16(int c_idx, uint16_t* data);

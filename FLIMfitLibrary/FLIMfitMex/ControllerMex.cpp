@@ -56,7 +56,7 @@ void setFitSettings(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int 
    FitSettings settings;
 
    settings.global_algorithm = getValueFromStruct(prhs[2],"global_algorithm", 1);
-   settings.global_mode = getValueFromStruct(prhs[2], "global_mode", 0);
+   settings.global_scope = getValueFromStruct(prhs[2], "global_scope", 0);
    settings.algorithm = getValueFromStruct(prhs[2], "algorithm", 0);
    settings.weighting = getValueFromStruct(prhs[2], "weighting");
    settings.n_thread = getValueFromStruct(prhs[2], "n_thread", 4);

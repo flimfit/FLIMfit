@@ -54,6 +54,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'weighting_mode','popupmenu');
             obj.bind_control(handles,'calculate_errs','checkbox');
             obj.bind_control(handles,'n_thread','edit');
+            obj.bind_control(handles,'global_scope','popupmenu');
             obj.bind_control(handles,'image_irf_mode','popupmenu');
             obj.bind_control(handles,'fitting_algorithm','popupmenu');
             

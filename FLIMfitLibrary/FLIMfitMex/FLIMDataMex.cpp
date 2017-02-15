@@ -151,14 +151,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
          auto data = std::make_shared<FLIMData>(images, transformation_settings);
 
-         if (isArgument(nrhs, prhs, "global_mode"))
-         {
-            const mxArray* global_mode_ = getNamedArgument(nrhs, prhs, "global_mode");
-            AssertInputCondition(mxIsScalar(global_mode_));
-            int global_mode = mxGetScalar(global_mode_);
-            data->setGlobalMode(global_mode);
-         }
-
          plhs[0] = packageSharedPtrForMatlab(data);
          return;
       }

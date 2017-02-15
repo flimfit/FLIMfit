@@ -66,6 +66,7 @@ FitController::FitController(const FitSettings& fit_settings) :
 void FitController::setFitSettings(const FitSettings& settings)
 {
    *static_cast<FitSettings*>(this) = settings;
+   data->setGlobalScope(global_scope);
 }
 
 void FitController::stopFit()
@@ -116,7 +117,7 @@ void FitController::workerThread(int thread)
    // on a region, thread 0 gets the data for the next thread and processing
    // begins again. Use active_lock to ensure processes are kept in order
    //=============================================================================
-   if (global_mode == MODE_PIXELWISE)
+   if (global_scope == MODE_PIXELWISE)
    {
       int n_active_thread = n_thread;
       for(int im=0; im<data->n_im_used; im++)
@@ -200,7 +201,7 @@ void FitController::workerThread(int thread)
    // In imagewise mode, each region from each image is processed seperately. 
    // Each thread processes every n_thread'th region in the dataset
    //=============================================================================
-   else if (data->global_mode == MODE_IMAGEWISE)
+   else if (global_scope == MODE_IMAGEWISE)
    {
       int im0 = 0;
       int process_idx = 0;
@@ -338,7 +339,7 @@ void FitController::waitForFit()
 void FitController::setData(shared_ptr<FLIMData> data_)
 {
    data = data_;
-   data->setGlobalMode(global_mode);
+   data->setGlobalScope(global_scope);
 }
 
 
@@ -370,14 +371,14 @@ void FitController::init()
    if (n_thread > max_px_per_image)
       n_thread = max_px_per_image;
    
-    if (data->global_mode == MODE_GLOBAL || (data->global_mode == MODE_IMAGEWISE && max_px_per_image > 1))
+    if (data->global_scope == MODE_GLOBAL || (data->global_scope == MODE_IMAGEWISE && max_px_per_image > 1))
       algorithm = ALG_LM;
 
    
    int n_regions_total = data->getNumRegionsTotal();
    
    
-   if (data->global_mode == MODE_PIXELWISE)
+   if (data->global_scope == MODE_PIXELWISE)
    {
       n_fits = data->n_masked_px;
       n_fitters = min(max_region_size,n_thread);

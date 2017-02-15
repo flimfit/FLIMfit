@@ -78,7 +78,7 @@ public:
    FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform);
    FLIMData(std::shared_ptr<FLIMImage> image, const DataTransformationSettings& transform);
 
-   void setGlobalMode(int global_mode);
+   void setGlobalScope(int global_scope);
 
    RegionData* getNewRegionData();
 
@@ -123,7 +123,7 @@ public:
 
    double* image_t0_shift = nullptr;
 
-   int global_mode = MODE_PIXELWISE;
+   int global_scope = MODE_PIXELWISE;
    
    vector<int> use_im;
    int n_im_used = 0;
@@ -237,7 +237,7 @@ int FLIMData::calculateRegions()
    n_output_regions_total = r_idx;
 
    //Calculate global region indices
-   if (global_mode == MODE_GLOBAL)
+   if (global_scope == MODE_GLOBAL)
    {
       cur_pos = 0;
       r_idx = 0;
