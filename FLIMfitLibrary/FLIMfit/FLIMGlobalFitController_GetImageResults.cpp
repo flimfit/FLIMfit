@@ -542,15 +542,15 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
             uint32_t idx = fit_loc[i];
             if (idx < nel && mask[idx] == rg)
             {
+               for (uint32_t j = last_idx; j<idx; j++)
+                  lin_idx += (mask[j] == rg);
+               last_idx = idx;
+
                results->getNonLinearParams(im, rg, lin_idx, nl_params);
                results->getLinearParams(im, rg, lin_idx, l_params);
 
                fitters[thread].GetFit(idx, nl_params, l_params.data(), fit+n_meas*i);
                n_valid++;
-
-               for(uint32_t j=last_idx; j<idx; j++)
-                  lin_idx += (mask[j] == rg);
-               last_idx = idx;
 
             }    
          }
