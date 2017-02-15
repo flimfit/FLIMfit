@@ -29,9 +29,11 @@ function load_raw_data(obj,file)
     
     % retained for compatibility with old .raw files
     ser_len = fread(mapfile,1,'uint16');
+    offset = 2;
     
     % new style raw file so length is now 64 bits
     if ser_len == 0
+        offset = offset + 8;
         ser_len = fread(mapfile,1,'uint64');
     end
     
@@ -65,7 +67,7 @@ function load_raw_data(obj,file)
     obj.suspend_transformation = false;
             
     obj.raw = true;
-    obj.mapfile_offset = ser_len + 2;
+    obj.mapfile_offset = ser_len + offset;
     obj.mapfile_name = file;
         
     if size(obj.irf,2) > size(obj.irf,1)
