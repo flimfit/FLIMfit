@@ -131,6 +131,8 @@ function handles = setup_layout(obj, handles)
     
     intensity_container = uicontainer( 'Parent', intensity_layout ); 
     handles.intensity_axes = axes( 'Parent', intensity_container );
+    set(handles.intensity_axes,'Units','normalized','Position',[0.02 0.02 0.94 0.94]);
+
     
     set( intensity_layout, 'Heights', [22,-1] );
     set( dataset_layout, 'Widths', [-1,-2], 'MinimumWidths', [150 0] );
