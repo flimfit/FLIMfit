@@ -103,6 +103,7 @@ function fit(obj,varargin) %roi_mask,dataset,grid)
     catch e
         
         obj.fit_in_progress = false;
+        obj.display_fit_end();
         throw(e);
     end
         

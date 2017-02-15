@@ -24,7 +24,7 @@ classdef flimreader_reader < base_data_reader
             if nargin < 2 || isempty(settings)
                 obj.settings = FLIMreader_options_dialog(length(obj.delays), dt, supports_realignment);
                 if isempty(obj.settings)
-                    obj.error = 'cancelled';
+                    obj.error_message = 'cancelled';
                 end
             else
                 obj.settings = settings;

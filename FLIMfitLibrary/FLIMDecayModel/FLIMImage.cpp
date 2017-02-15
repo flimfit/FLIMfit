@@ -20,6 +20,7 @@ FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, const std::string& m
    map_offset(map_offset),
    stored_type(typeid(void))
 {
+   has_data = true;
    init();
 }
 

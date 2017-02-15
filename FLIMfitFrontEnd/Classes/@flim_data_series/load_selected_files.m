@@ -52,13 +52,14 @@ function load_selected_files(obj,selected)
         obj.loaded(selected(j)) = true;
     end
     
+    mem_size = obj.data_size(1:4)';
+    
     if obj.raw
         
-        obj.init_memory_mapping(obj.data_size(1:4), num_sel, obj.mapfile_name);
+        obj.init_memory_mapping(mem_size, num_sel, obj.mapfile_name);
         
     else
         
-        mem_size = obj.data_size(1:4)';
         images_per_file = size(obj.ZCT,1);
         
         if obj.use_memory_mapping
