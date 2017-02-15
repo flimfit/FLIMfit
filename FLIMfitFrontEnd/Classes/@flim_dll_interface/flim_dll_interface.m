@@ -107,7 +107,7 @@ classdef flim_dll_interface < handle
          end
          
          function terminate_fit(obj)
-             clear obj.data obj.p_data obj.mask obj.p_beta obj.p_I0 obj.p_chi2 obj.p_ierr obj.p_tau obj.p_t0 obj.p_offset obj.p_scatter;
+            ff_Controller(obj.dll_id,'StopFit');
          end
         
         function obj = flim_dll_interface()
