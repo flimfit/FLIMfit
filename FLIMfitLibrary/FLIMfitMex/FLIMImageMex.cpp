@@ -76,12 +76,11 @@ std::shared_ptr<AcquisitionParameters> getAcquisitionParameters(const mxArray* a
 void setMask(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
-   AssertInputCondition(mxIsUint8(prhs[2]));
-   AssertInputCondition(mxGetNumberOfElements(prhs[2]) == d->getAcquisitionParameters()->n_px);
+   AssertInputCondition(mxIsUint16(prhs[2]));
    
-   uint8_t* mask = reinterpret_cast<uint8_t*>(mxGetData(prhs[3]));
-
-   d->setSegmentationMask(mask);
+   int numel = mxGetNumberOfElements(prhs[2]);
+   mask_type* mask = reinterpret_cast<mask_type*>(mxGetData(prhs[2]));
+   d->setSegmentationMask(mask, numel);
 }
 
 void setAcceptor(std::shared_ptr<FLIMImage> d, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

@@ -518,7 +518,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
    if (iml == -1)
       return 0;
    
-   uint32_t nel = mask.size();
+   uint32_t nel = (uint32_t) mask.size();
 
    vector<double> nl_params(model->getNumNonlinearVariables());
    vector<float> l_params(model->getNumColumns());

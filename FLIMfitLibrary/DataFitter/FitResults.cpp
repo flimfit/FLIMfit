@@ -471,7 +471,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
       return -1;
 
    // Get mask
-   vector<uint8_t>& im_mask = mask[im];
+   vector<mask_type>& im_mask = mask[im];
    int n_px = (int) im_mask.size();
    
    if (ret_mask)

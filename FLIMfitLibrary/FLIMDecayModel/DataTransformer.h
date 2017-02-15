@@ -204,7 +204,7 @@ public:
       return transformed_data;
    }
 
-   const std::vector<uint8_t>& getMask() { return final_mask; }
+   const std::vector<mask_type>& getMask() { return final_mask; }
    
    const std::vector<float>& getSteadyStateAnisotropy();
    
@@ -249,7 +249,7 @@ private:
    std::vector<float> tr_row_buf;
    std::vector<float> y_smoothed_buf;
    
-   std::vector<uint8_t> final_mask;
+   std::vector<mask_type> final_mask;
    std::vector<float> transformed_data;
    std::vector<float> r_ss;
    
@@ -261,7 +261,7 @@ private:
 template <typename T>
 void DataTransformer::calculateMask()
 {
-   const std::vector<uint8_t> seg_mask = image->getSegmentationMask();
+   const std::vector<mask_type> seg_mask = image->getSegmentationMask();
    cv::Mat intensity = image->getIntensity();
    bool has_seg_mask = seg_mask.size() > 0;
 
@@ -310,7 +310,7 @@ void DataTransformer::transformData()
 {
    if (already_transformed)
       return;
-   
+
    auto acq = image->getAcquisitionParameters();
    int n_x = acq->n_x;
    int n_y = acq->n_y;
@@ -320,18 +320,19 @@ void DataTransformer::transformData()
    y_smoothed_buf.resize(acq->n_px);
    tr_row_buf.resize(acq->n_y);
 
-   
+
    transformed_data.resize(n_x * n_y * dp->n_meas);
    float* tr_data = transformed_data.data();
-   
+
    T* tr_buf = image->getDataPointerForRead<T>();
    T* cur_data_ptr = tr_buf;
-   
-   float photons_per_count = (float) (1/acq->counts_per_photon);
-   
-   
-   
-   if ( transform.smoothing_factor == 0 )
+
+   float photons_per_count = (float)(1 / acq->counts_per_photon);
+
+   int s = transform.smoothing_factor;
+   int s_min = 2 * s + 1;
+
+   if ((s == 0) || (n_x < s_min) || (n_y < s_min))
    {
       float* tr_ptr = tr_data;
       // Copy data from source to tr_data, skipping cropped time points

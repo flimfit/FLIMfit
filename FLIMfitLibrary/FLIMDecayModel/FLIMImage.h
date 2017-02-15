@@ -17,6 +17,8 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
+typedef uint16_t mask_type;
+
 class FLIMImage
 {
 public:
@@ -36,18 +38,23 @@ public:
    
    void init();
 
-   void setSegmentationMask(const std::vector<uint8_t>& mask_)
+   void setSegmentationMask(const std::vector<mask_type>& mask_)
    {
       if (mask_.size() != acq->n_px)
-         throw std::runtime_error("Mask is incorrect size");
+         throw std::runtime_error("Mask was unexpected size");
 
-      std::copy(mask_.begin(), mask_.end(), mask.begin());
+      mask.resize(acq->n_px);
+      std::copy_n(mask_.begin(), acq->n_px, mask.begin());
    }
 
    // Caller must ensure that size of mask_ is greater or equal to n_px
-   void setSegmentationMask(const uint8_t* mask_)
+   void setSegmentationMask(const mask_type* mask_, int numel)
    {
-      std::copy(mask_, mask_ + acq->n_px, mask.begin());
+      if (numel != acq->n_px)
+         throw(std::runtime_error("Mask was unexpected size"));
+
+      mask.resize(acq->n_px);
+      std::copy_n(mask_, acq->n_px, mask.begin());
    }
 
 
@@ -71,7 +78,7 @@ public:
    void setName(const std::string& name_) { name = name_; }
    DataClass getDataClass() { return data_class; }
    cv::Mat getAcceptor() { return acceptor; }
-   const std::vector<uint8_t>& getSegmentationMask() { return mask; }
+   const std::vector<mask_type>& getSegmentationMask() { return mask; }
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() const { return acq; }
    
    bool isPolarisationResolved() { return acq->polarisation_resolved; }
@@ -107,7 +114,7 @@ protected:
    std::shared_ptr<AcquisitionParameters> acq;
    DataClass data_class;
    std::vector<uint8_t> data;
-   std::vector<uint8_t> mask;
+   std::vector<mask_type> mask;
    std::type_index stored_type;
    std::string name;
    cv::Mat intensity;

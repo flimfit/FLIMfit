@@ -74,7 +74,7 @@ public:
    void computeRegionStats(float confidence_factor);
    int getParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
-   vector<uint8_t>& getMask(int im) { return mask[im]; }
+   vector<mask_type>& getMask(int im) { return mask[im]; }
    
    int getNumX(int im);
    int getNumY(int im);
@@ -117,7 +117,7 @@ private:
    
    vector<int> ierr;
    vector<float> success; 
-   vector<vector<uint8_t>> mask;
+   vector<vector<mask_type>> mask;
 
 
    int calculate_errors;
