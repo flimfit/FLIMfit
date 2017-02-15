@@ -58,14 +58,13 @@ function load_raw_data(obj,file)
             new_field = fields{i};
         end
         
-        eval(['obj.' new_field '= dinfo.' fields{i} ';']);
-
+        obj.(new_field) = dinfo.(fields{i});
     end
     
     obj.suspend_transformation = false;
             
     obj.raw = true;
-    obj.mapfile_offset = ser_len + 2;
+    obj.mapfile_offset = ser_len + 10;
     obj.mapfile_name = file;
         
     if size(obj.irf,2) > size(obj.irf,1)

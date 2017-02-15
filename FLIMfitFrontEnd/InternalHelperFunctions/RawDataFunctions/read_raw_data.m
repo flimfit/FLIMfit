@@ -29,6 +29,10 @@ function [data,t] = read_raw_data(file,index)
     mapfile = fopen(file,'r');
     
     ser_len = fread(mapfile,1,'uint16');
+    if ser_len == 0
+        ser_len = fread(mapfile,1,'uint64');
+    end
+    
     ser_info = fread(mapfile,ser_len,'uint8');
 
     fname = [global_tempname '.mat'];

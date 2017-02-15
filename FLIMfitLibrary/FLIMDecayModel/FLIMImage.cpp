@@ -22,6 +22,13 @@ FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, const std::string& m
 {
    has_data = true;
    init();
+
+   if (data_class == DataUint16)
+      compute<uint16_t>();
+   else if (data_class == DataUint32)
+      compute<uint32_t>();
+   else if (data_class == DataFloat)
+      compute<float>();
 }
 
 FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_) : 
