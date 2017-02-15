@@ -79,19 +79,6 @@ void DecayModel::init()
 #endif
 }
 
-/*
-DecayModel::DecayModel(const DecayModel &obj) :
-   acq(obj.acq),
-   reference_parameter(obj.reference_parameter),
-   t0_parameter(obj.t0_parameter)
-{
-   for (auto& g : obj.decay_groups)
-      decay_groups.emplace_back(g->clone());
-
-   photons_per_count = obj.photons_per_count;
-   SetupAdjust();
-}
-*/
 
 void DecayModel::addDecayGroup(shared_ptr<AbstractDecayGroup> group)
 {
@@ -537,7 +524,7 @@ void DecayModel::validateDerivatives()
             std::cout << "Variable: " << i << ", Column: " << j << "\n";
             std::cout << "   Mean err : " << mean_err << "\n";
 
-            if (mean_err < 0.75)
+            if (mean_err < 0.5)
                throw std::runtime_error("Problem with derivatives detected!");
 
             m++;

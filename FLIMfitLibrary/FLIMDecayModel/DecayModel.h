@@ -72,6 +72,20 @@ public:
          decay_groups.erase(iter, iter);
    }
 
+
+   DecayModel(const DecayModel &obj) :
+      reference_parameter(obj.reference_parameter),
+      t0_parameter(obj.t0_parameter),
+      dp(obj.dp),
+      photons_per_count(photons_per_count),
+      channel_factor(channel_factor)
+   {
+      for (auto& g : obj.decay_groups)
+         decay_groups.emplace_back(g->clone());
+
+      init();
+   }
+   
    shared_ptr<TransformedDataParameters> getTransformedDataParameters() { return dp; }
    void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_);
 

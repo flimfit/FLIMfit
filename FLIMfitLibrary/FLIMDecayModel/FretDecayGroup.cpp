@@ -47,6 +47,20 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    setupParameters();
 }
 
+FretDecayGroup::FretDecayGroup(const FretDecayGroup& obj) : 
+   MultiExponentialDecayGroupPrivate(obj)
+{
+   n_fret_populations = obj.n_fret_populations;
+   include_donor_only = obj.include_donor_only;
+   Q_parameter = obj.Q_parameter;
+   Qsigma_parameter = obj.Qsigma_parameter;
+   tauA_parameter = obj.tauA_parameter;
+   tauT_parameters = obj.tauT_parameters;
+
+   setupParameters();
+   init();
+}
+
 void FretDecayGroup::setupParameters()
 {
    setupParametersMultiExponential();

@@ -9,7 +9,10 @@ class AnisotropyDecayGroup : public MultiExponentialDecayGroupPrivate
 public:
    
    AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
-   
+   AnisotropyDecayGroup(const AnisotropyDecayGroup& obj);
+
+   AbstractDecayGroup* clone() const { return new AnisotropyDecayGroup(*this); }
+
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
    Q_PROPERTY(int n_anisotropy_populations MEMBER n_anisotropy_populations WRITE setNumAnisotropyPopulations USER true);
    Q_PROPERTY(bool include_r_inf MEMBER include_r_inf WRITE setIncludeRInf USER true);

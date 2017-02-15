@@ -43,6 +43,17 @@ MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(int n_expon
    setupParametersMultiExponential();
 }
 
+MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(const MultiExponentialDecayGroupPrivate& obj) :
+   AbstractDecayGroup(obj)
+{
+   n_exponential = obj.n_exponential;
+   contributions_global = obj.contributions_global;
+   tau_parameters = obj.tau_parameters;
+   beta_parameters = obj.beta_parameters;
+   channel_factors = obj.channel_factors;
+}
+
+
 void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix)
 {
    vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };

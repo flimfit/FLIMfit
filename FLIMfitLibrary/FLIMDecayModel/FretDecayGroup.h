@@ -10,7 +10,10 @@ class FretDecayGroup : public MultiExponentialDecayGroupPrivate
 public:
 
    FretDecayGroup(int n_donor_exponential_ = 1, int n_fret_populations_ = 1, bool include_donor_only = false);
-   
+   FretDecayGroup(const FretDecayGroup& obj);
+
+   AbstractDecayGroup* clone() const { return new FretDecayGroup(*this); }
+
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
    Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE setNumFretPopulations USER true);
    Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE setIncludeDonorOnly USER true);

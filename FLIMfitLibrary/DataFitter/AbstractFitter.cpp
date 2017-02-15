@@ -44,16 +44,18 @@ using std::pair;
 
 
 
-AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
-   model(model),
+AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model_, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
    max_region_size(max_region_size), 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
    reporter(reporter),
-   lifetime_estimator(model->getTransformedDataParameters()),
+   lifetime_estimator(model_->getTransformedDataParameters()),
    inc(96),
    inc_full(96)
 {
+   // We need our own copy
+   model = std::make_shared<DecayModel>(*model_);
+
    irf_idx_0 = 0;
    variable_phi = false;
 

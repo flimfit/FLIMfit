@@ -57,9 +57,19 @@ public:
       setObjectName(name);
    }
 
+   AbstractDecayGroup(const AbstractDecayGroup& obj)
+   {
+      constrain_nonlinear_parameters = obj.constrain_nonlinear_parameters;
+      channel_factor_names = obj.channel_factor_names;
+      dp = obj.dp;
+      fit_t0 = obj.fit_t0;
+   };
 
+   virtual AbstractDecayGroup* clone() const = 0;
 
    virtual ~AbstractDecayGroup() {};
+   
+   
    vector<shared_ptr<FittingParameter>>& getParameters() { return parameters; }
    const vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
    virtual const vector<double>& getChannelFactors(int index) = 0;
@@ -97,16 +107,17 @@ protected:
 
    void parametersChanged() { emit parametersUpdated(); };
    virtual int getNumPotentialChannels() { return 1; }
+   
    bool constrain_nonlinear_parameters = true;
-
-   int n_lin_components = 0;
-   int n_nl_parameters = 0;
 
    vector<std::shared_ptr<FittingParameter>> parameters;
    vector<std::string> channel_factor_names;
 
    std::shared_ptr<TransformedDataParameters> dp;
    bool fit_t0 = false;
+
+   int n_lin_components = 0;
+   int n_nl_parameters = 0;
 
    // RUNTIME VARIABLE PARAMETERS
    int irf_idx = 0;

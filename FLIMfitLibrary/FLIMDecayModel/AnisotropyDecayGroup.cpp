@@ -51,6 +51,17 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    setupParameters();
 }
 
+AnisotropyDecayGroup::AnisotropyDecayGroup(const AnisotropyDecayGroup& obj) : 
+   MultiExponentialDecayGroupPrivate(obj)
+{
+   n_anisotropy_populations = obj.n_anisotropy_populations;
+   include_r_inf = obj.include_r_inf;
+   theta_parameters = obj.theta_parameters;
+
+   setupParameters();
+   init();
+}
+
 void AnisotropyDecayGroup::setNumExponential(int n_exponential_)
 {
    n_exponential = n_exponential_;

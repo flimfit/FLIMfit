@@ -31,6 +31,8 @@ public:
 
    MultiExponentialDecayGroupPrivate(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay");
 
+   MultiExponentialDecayGroupPrivate(const MultiExponentialDecayGroupPrivate& obj);
+
    virtual void setNumExponential(int n_exponential);
    void setContributionsGlobal(bool contributions_global);
 
@@ -99,8 +101,17 @@ public:
    MultiExponentialDecayGroup(int n_exponential_ = 1, bool contributions_global_ = false, const QString& name = "Multi-Exponential Decay") :
       MultiExponentialDecayGroupPrivate(n_exponential_, contributions_global_, name)
    {
-
    }
+
+
+   MultiExponentialDecayGroup(const MultiExponentialDecayGroup& obj) :
+      MultiExponentialDecayGroupPrivate(obj)
+   {
+      setupParametersMultiExponential();
+      init();
+   }
+
+   AbstractDecayGroup* clone() const { return new MultiExponentialDecayGroup(*this); }
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
    Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);
