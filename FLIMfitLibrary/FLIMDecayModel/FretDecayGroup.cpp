@@ -84,12 +84,14 @@ void FretDecayGroup::init()
       n_nl_parameters += tauA_parameter->isFittedGlobally();
    }
 
+   fret_buffer.clear();
    fret_buffer.resize(n_fret_populations, 
       vector<ExponentialPrecomputationBuffer>(n_exponential,
         ExponentialPrecomputationBuffer(dp)));
 
    if (include_acceptor)
    {
+      acceptor_fret_buffer.clear();
       acceptor_fret_buffer.resize(n_fret_populations,
          vector<ExponentialPrecomputationBuffer>(n_exponential,
          ExponentialPrecomputationBuffer(dp)));

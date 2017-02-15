@@ -142,7 +142,7 @@ void MultiExponentialDecayGroupPrivate::init()
       else
          n_beta_free++;
 
-
+   buffer.clear();
    buffer.resize(n_exponential,
       ExponentialPrecomputationBuffer(dp));
 
