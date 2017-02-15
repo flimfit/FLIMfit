@@ -178,7 +178,7 @@ classdef flim_model_controller < handle
             len = length(channel_factors);
             channel_factors = channel_factors(1:min(len,obj.n_channel));
             n_pad = obj.n_channel - len;
-            channel_factors = [channel_factors ones([n_pad, 1])];
+            channel_factors = [channel_factors ones([1, n_pad])];
         end
         
         function update_channel_factor(obj,group_idx,factor_idx,channel_idx,value)
