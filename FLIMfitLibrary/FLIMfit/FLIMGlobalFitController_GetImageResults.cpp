@@ -502,7 +502,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
 
 int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& n_valid)
 {
-   if (n_fits_complete != n_fits)
+   if (!has_fit)
       throw(std::runtime_error("Fit not yet complete"));
    
    int thread = 0;
