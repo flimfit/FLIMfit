@@ -149,34 +149,50 @@
     acq.polarisation_resolved = d.polarisation_resolved;
     acq.n_chan = d.n_chan;
     acq.counts_per_photon = d.counts_per_photon;
-    acq.n_x = d.width;
-    acq.n_y = d.height;
-    acq.t = d.t;
-    acq.t_int = d.t_int;
     
-    % todo: get this from data
-    if d.use_memory_mapping
-        offset_step = 4 * d.n_t * d.n_chan * d.height * d.width;
-
-        for i=1:length(use)
-           offset = (use(i)-1) * offset_step + d.mapfile_offset;
-           im(i) = ff_FLIMImage('acquisition_parmeters',acq,'mapped_file',d.mapfile_name,'data_offset',offset,'data_class',d.data_type); 
-        end
+    if obj.bin
+        acq.n_x = 1;
+        acq.n_y = 1;
+        acq.t = d.tr_t;
+        acq.t_int = d.tr_t_int;
+    
+        data = single(d.get_roi(roi_mask,selected));
+        
+%        data = single(d.cur_tr_data(:,:,roi_mask));
+        data = mean(data,3);
+        im(1) = ff_FLIMImage('acquisition_parmeters',acq,'data',data); 
+        
+       
     else
-        for i=1:length(use)
-           im(i) = ff_FLIMImage('acquisition_parmeters',acq,'data',d.data_series_mem(:,:,:,:,i)); 
-        end
-    end
+        acq.n_x = d.width;
+        acq.n_y = d.height;
+        acq.t = d.t;
+        acq.t_int = d.t_int;
     
-    if ~isempty(d.acceptor)
-       for i=1:length(use) 
-           ff_FLIMImage(im(i),'SetAcceptor',d.acceptor(:,:,use(i)));
-       end
-    end
-    if ~isempty(d.seg_mask)
-       for i=1:length(use)
-           ff_FLIMImage(im(i),'SetMask',d.mask(:,:,use(i)));
-       end
+        % todo: get this from data
+        if d.use_memory_mapping
+            offset_step = 4 * d.n_t * d.n_chan * d.height * d.width;
+
+            for i=1:length(use)
+               offset = (use(i)-1) * offset_step + d.mapfile_offset;
+               im(i) = ff_FLIMImage('acquisition_parmeters',acq,'mapped_file',d.mapfile_name,'data_offset',offset,'data_class',d.data_type); 
+            end
+        else
+            for i=1:length(use)
+               im(i) = ff_FLIMImage('acquisition_parmeters',acq,'data',d.data_series_mem(:,:,:,:,i)); 
+            end
+        end
+
+        if ~isempty(d.acceptor)
+           for i=1:length(use) 
+               ff_FLIMImage(im(i),'SetAcceptor',d.acceptor(:,:,use(i)));
+           end
+        end
+        if ~isempty(d.seg_mask)
+           for i=1:length(use)
+               ff_FLIMImage(im(i),'SetMask',d.mask(:,:,use(i)));
+           end
+        end
     end
     
     transform = struct();
@@ -187,9 +203,9 @@
     transform.limit = d.gate_max;
     
     irf = struct();
-    irf.irf = d.irf;
-    irf.timebin_t0 = d.t_irf(1);
-    irf.timebin_width = d.t_irf(2) - d.t_irf(1);
+    irf.irf = d.tr_irf;
+    irf.timebin_t0 = d.tr_t_irf(1);
+    irf.timebin_width = d.tr_t_irf(2) - d.tr_t_irf(1);
     irf.ref_reconvolution = d.irf_type;
     irf.ref_lifetime_guess = d.ref_lifetime;
             
