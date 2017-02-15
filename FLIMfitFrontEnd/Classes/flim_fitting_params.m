@@ -38,6 +38,8 @@ classdef flim_fitting_params < handle & h5_serializer
         calculate_errs = false;
         split_fit = false;
         use_memory_mapping = false;
+        
+        fitting_algorithm = 1;
                 
         image_irf_mode = 0;
         

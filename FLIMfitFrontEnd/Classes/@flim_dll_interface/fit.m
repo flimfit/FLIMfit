@@ -226,7 +226,7 @@
     fit_settings.weighting = p.weighting_mode;
     fit_settings.global_algorithm = 1;
     fit_settings.global_mode = 0;
-    fit_settings.algorithm = 0;
+    fit_settings.algorithm = p.fitting_algorithm;
     % TODO ...
      
     obj.dll_id = ff_Controller();
