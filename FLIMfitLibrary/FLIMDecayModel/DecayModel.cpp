@@ -43,6 +43,19 @@ DecayModel::DecayModel() :
 
 }
 
+DecayModel::DecayModel(const DecayModel &obj) :
+   reference_parameter(obj.reference_parameter),
+   t0_parameter(obj.t0_parameter),
+   dp(obj.dp),
+   photons_per_count(obj.photons_per_count),
+   channel_factor(obj.channel_factor)
+{
+   for (auto& g : obj.decay_groups)
+      decay_groups.emplace_back(g->clone());
+
+   init();
+}
+
 void DecayModel::setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
 {
    dp = dp_;
