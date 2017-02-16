@@ -77,5 +77,7 @@ function load_raw_data(obj,file)
         obj.root_path = ensure_trailing_slash(fileparts(file));
     end
     
+    obj.n_chan = obj.data_size(2);
+    
     obj.init_dataset([]);
 end

@@ -47,7 +47,7 @@ function handles = add_fitting_params_panel(obj,handles,parent)
 
 
     add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
-    add_fitting_param_control('adv','global_mode','popupmenu','Global Mode', {'Pixel-wise','Image-wise','Global'});
+    add_fitting_param_control('adv','global_scope','popupmenu','Global Mode', {'Pixel-wise','Image-wise','Global'});
     add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Variable Projection' 'Maximum Likelihood'});
     add_fitting_param_control('adv','weighting_mode','popupmenu','Weighting Mode', {'Average Data','Pixelwise Data','Model'});
     add_fitting_param_control('adv','use_autosampling','popupmenu','Use Autosampling', {'No','Yes'});
