@@ -28,10 +28,11 @@ function on_callback(obj,src,evtData)
 
     toggles = [obj.tool_roi_rect_toggle 
                obj.tool_roi_poly_toggle
+               obj.tool_roi_freehand_toggle
                obj.tool_roi_circle_toggle
                obj.tool_roi_paint_toggle];
-    toggle_type = {'rect','poly','ellipse',obj.brush_width};
-    toggle_fcn = {@flex_roi,@flex_roi,@flex_roi,@paint_roi};
+    toggle_type = {'rect','poly','freehand','ellipse',obj.brush_width};
+    toggle_fcn = {@flex_roi,@flex_roi,@flex_roi,@flex_roi,@paint_roi};
            
     sz = size(obj.mask);
     sz = sz(1:2);
