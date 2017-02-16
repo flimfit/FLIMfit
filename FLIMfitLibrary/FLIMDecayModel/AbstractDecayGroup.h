@@ -83,7 +83,7 @@ public:
    virtual void init() = 0;
 
    virtual int setVariables(const double* variables) = 0;
-   virtual int calculateModel(double* a, int adim, vector<double>& kap) = 0;
+   virtual int calculateModel(double* a, int adim, vector<double>& kap, int bin_shift = 0) = 0;
    virtual int calculateDerivatives(double* b, int bdim, vector<double>& kap) = 0;
    virtual void addConstantContribution(float* a) {}
 

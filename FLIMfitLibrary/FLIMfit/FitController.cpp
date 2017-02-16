@@ -66,7 +66,8 @@ FitController::FitController(const FitSettings& fit_settings) :
 void FitController::setFitSettings(const FitSettings& settings)
 {
    *static_cast<FitSettings*>(this) = settings;
-   data->setGlobalScope(global_scope);
+   if (data)
+      data->setGlobalScope(global_scope);
 }
 
 void FitController::stopFit()

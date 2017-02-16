@@ -221,6 +221,8 @@ int MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, int
       }
    }
 
+   inc_col = contributions_global ? 1 : n_exponential;
+
    return 0;
 }
 
@@ -310,11 +312,11 @@ int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_vari
 }
 
 
-int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, vector<double>& kap, int bin_shift)
 {
    int sz = contributions_global ? 1 : n_exponential;
    memset(a, 0, sz*adim*sizeof(*a));
-   return addDecayGroup(buffer, a, adim, kap);
+   return addDecayGroup(buffer, a, adim, kap, bin_shift);
 }
 
 int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, vector<double>& kap)
@@ -328,7 +330,7 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim,
 }
 
 
-int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap, int bin_shift)
 {
    int col = 0;
     
@@ -344,7 +346,7 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPre
          addIRF(irf_buf.data(), irf_idx, t0_shift, a + col*adim, channel_factors);
 
       double factor = contributions_global ? beta[j] : 1;
-      buffers[j].AddDecay(factor, reference_lifetime, a + col*adim);
+      buffers[j].AddDecay(factor, reference_lifetime, a + col*adim, bin_shift);
 
       if (!contributions_global)
          col++;

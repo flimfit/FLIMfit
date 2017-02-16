@@ -334,28 +334,28 @@ void FretDecayGroup::getLinearOutputParamNames(vector<string>& names)
 }
 
 
-int FretDecayGroup::calculateModel(double* a, int adim, vector<double>& kap)
+int FretDecayGroup::calculateModel(double* a, int adim, vector<double>& kap, int bin_shift)
 {
    int col = 0;
 
    if (include_donor_only)
    {
       memset(a + col*adim, 0, adim*sizeof(*a));
-      addDecayGroup(buffer, a + col*adim, adim, kap);
+      addDecayGroup(buffer, a + col*adim, adim, kap, bin_shift);
       if (include_acceptor)   
-         direct_acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim);
+         direct_acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim, bin_shift);
       col++;
    }
 
    for (int i = 0; i < fret_buffer.size(); i++)
    {
       memset(a + col*adim, 0, adim*sizeof(*a));
-      addDecayGroup(fret_buffer[i], a + col*adim, adim, kap);
+      addDecayGroup(fret_buffer[i], a + col*adim, adim, kap, bin_shift);
       
       if (include_acceptor)
       {
-         addAcceptorContribution(i, Q, a + col*adim, adim, kap);
-         direct_acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim);
+         addAcceptorContribution(i, Q, a + col*adim, adim, kap, bin_shift);
+         direct_acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim, bin_shift);
       }
       
       col++;
@@ -364,18 +364,18 @@ int FretDecayGroup::calculateModel(double* a, int adim, vector<double>& kap)
    return col;
 }
 
-void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap)
+void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap, int bin_shift)
 {
    if (include_acceptor)
    {
       double a_star_sum = 0;
       for (int j = 0; j < n_exponential; j++)
       {
-         acceptor_fret_buffer[i][j].AddDecay(-factor * beta[j] * a_star[i][j], reference_lifetime, a); // rise time
+         acceptor_fret_buffer[i][j].AddDecay(-factor * beta[j] * a_star[i][j], reference_lifetime, a, bin_shift); // rise time
          a_star_sum += beta[j] * a_star[i][j];
       }
 
-      acceptor_buffer->AddDecay(factor * a_star_sum, reference_lifetime, a);
+      acceptor_buffer->AddDecay(factor * a_star_sum, reference_lifetime, a, bin_shift);
    }
 }
 

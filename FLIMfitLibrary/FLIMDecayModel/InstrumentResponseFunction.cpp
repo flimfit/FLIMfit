@@ -94,14 +94,15 @@ double* InstrumentResponseFunction::GetIRF(int irf_idx, double t0_shift, double*
 {
    if (image_irf)
       return irf.data() + irf_idx * n_irf * n_chan;
-   else if (t0_image)
-   {
-      ShiftIRF(t0_image[irf_idx], storage);
-      return storage;
-   }
-   else
+
+   if (t0_image)
+      t0_shift = t0_image[irf_idx];
+
+   if (t0_shift == 0.0)
       return irf.data();
 
+   ShiftIRF(t0_shift, storage);
+   return storage;
 }
 
 
@@ -110,6 +111,7 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
 {
    int i;
 
+   shift = -shift;
    shift /= timebin_width;
 
    int c_shift = (int) floor(shift); 

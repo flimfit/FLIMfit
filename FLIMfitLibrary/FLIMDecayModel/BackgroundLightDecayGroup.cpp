@@ -120,8 +120,10 @@ void BackgroundLightDecayGroup::getLinearOutputParamNames(vector<string>& names)
          names.push_back(names[i]);
 }
 
-int BackgroundLightDecayGroup::calculateModel(double* a, int adim, vector<double>& kap)
+int BackgroundLightDecayGroup::calculateModel(double* a, int adim, vector<double>& kap, int bin_shift)
 {
+   // TODO: include bin shift
+
    int col = 0;
    
    col += addOffsetColumn(a + col*adim, adim, kap);

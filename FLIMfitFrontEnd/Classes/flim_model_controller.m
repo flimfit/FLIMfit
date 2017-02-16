@@ -6,11 +6,14 @@ classdef flim_model_controller < handle
         fit_options = {'Fixed','Fitted Locally','Fitted Globally'};
         
         groups;
+        model_variables;
         main_layout;
         model;
         n_channel = 1;
         
         channel_controls = {};
+        
+        title_color = [0.8 0.8 0.8];
         
     end
     
@@ -20,7 +23,7 @@ classdef flim_model_controller < handle
         function obj = flim_model_controller(fh)
 
             obj.model = ff_DecayModel();    
-            ff_DecayModel(obj.model,'AddDecayGroup','FRET Decay',1);
+            ff_DecayModel(obj.model,'AddDecayGroup','Multi-Exponential Decay',1);
 
             obj.groups = ff_DecayModel(obj.model,'GetGroups');
 
@@ -52,9 +55,16 @@ classdef flim_model_controller < handle
                 obj.draw_group(obj.main_layout,obj.groups(i),i);
             end
 
-            uicontrol('Style','text','String','Channel Factors','Parent',obj.main_layout,...
-                'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor','w');
+            uicontrol('Style','text','String','Model Parameters','Parent',obj.main_layout,...
+                'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor',obj.title_color);
 
+            obj.model_variables = ff_DecayModel(obj.model,'GetModelVariables');
+            for i=1:length(obj.model_variables)
+                obj.draw_variable(obj.main_layout,0,i,obj.model_variables(i));
+            end
+            
+            uicontrol('Style','text','String','Channel Factors','Parent',obj.main_layout,...
+                'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor',obj.title_color);
 
             for i=1:length(obj.groups)
                 obj.draw_channel(obj.main_layout,obj.groups(i),i);
@@ -62,17 +72,18 @@ classdef flim_model_controller < handle
 
             uix.Empty('Parent',obj.main_layout);
 
-            obj.main_layout.Heights = [22*ones(1,length(obj.main_layout.Children)-1) -1];
-
+            obj.main_layout.Heights = 22*ones(1,length(obj.main_layout.Children));
+            obj.main_layout.Heights(end) = -1;
+            
         end
 
         function draw_group(obj, parent, group, idx)
-            layout = uix.HBox('Parent',parent);
+            layout = uix.HBox('Parent',parent,'BackgroundColor',obj.title_color);
 
             display_name = ['[' num2str(idx) '] ' group.Name];
 
             uicontrol('Style','text','String',display_name,'Parent',layout,...
-                'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor','w');
+                'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor',obj.title_color);
             uicontrol('Style','pushbutton','String','Remove','Parent',layout,'Callback',{@obj.remove_group, idx});
             layout.Widths = [-1 75];
 
@@ -116,17 +127,17 @@ classdef flim_model_controller < handle
             layout = uix.HBox('Parent',parent,'Spacing',5,'BackgroundColor','w');
             uicontrol('Style','text','String',variable.Name,'Parent',layout,'FontWeight','bold','BackgroundColor','w');
             uicontrol('Style','edit','String',num2str(variable.InitialValue),'Parent',layout,...
-                'Callback',@(src,evt) obj.update_initial_value(group_idx, variable_idx, str2double(src.String)));
+                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialValue', str2double(src.String)));
 
             idx = 1:length(variable.AllowedFittingTypes);
             idx = idx(variable.AllowedFittingTypes == variable.FittingType);
 
             uicontrol('Style','popupmenu','String',obj.fit_options(variable.AllowedFittingTypes),'Value',idx,'Parent',layout,...
-                'Callback',@(src,evt) obj.update_fitting_option(group_idx, variable_idx, variable.AllowedFittingTypes(src.Value)));
+                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'FittingType', variable.AllowedFittingTypes(src.Value)));
             layout.Widths = [75 -1 -1];
         end
 
-        function draw_channel(obj, parent, group, idx)
+        function draw_channel(obj, parent, ~, idx)
 
             channel_names = ff_DecayModel(obj.model,'GetChannelFactorNames',idx);
 
@@ -154,23 +165,19 @@ classdef flim_model_controller < handle
         end
 
         function update_parameter(obj,group_idx,name,value)
-            ff_DecayModel(obj.model,'SetParameter',group_idx,name,value);
+            ff_DecayModel(obj.model,'SetGroupParameter',group_idx,name,value);
             obj.draw();
         end
-
-        function update_initial_value(obj,group_idx, variable_idx, value)
-            obj.groups(group_idx).Variables(variable_idx).InitialValue = value;
-            obj.update_variables(group_idx);
-        end
-
-        function update_fitting_option(obj,group_idx, variable_idx, value)
-            obj.groups(group_idx).Variables(variable_idx).FittingType = value;
-            obj.update_variables(group_idx);
-        end
-
-        function update_variables(obj,group_idx)
-           ff_DecayModel(obj.model,'SetVariables',group_idx,obj.groups(group_idx).Variables);
-           obj.draw();
+        
+        function update_variable_option(obj, group_idx, variable_idx, opt, value)
+            if group_idx == 0
+                obj.model_variables.(opt) = value;
+                ff_DecayModel(obj.model,'SetModelVariables',group_idx,obj.model_variables);
+            else
+                obj.groups(group_idx).Variables(variable_idx).(opt) = value;
+                ff_DecayModel(obj.model,'SetGroupVariables',group_idx,obj.groups(group_idx).Variables);
+            end
+            obj.draw();
         end
         
         function channel_factors = get_channel_factors(obj,group_idx,idx)

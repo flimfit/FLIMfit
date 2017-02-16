@@ -29,7 +29,7 @@ public:
 
 
    int setVariables(const double* variables);
-   int calculateModel(double* a, int adim, vector<double>& kap);
+   int calculateModel(double* a, int adim, vector<double>& kap, int bin_shift = 0);
    int calculateDerivatives(double* b, int bdim, vector<double>& kap);
 
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
@@ -50,7 +50,7 @@ protected:
    int addAcceptorLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
    int addDirectAcceptorDerivatives(double* b, int bdim, vector<double>& kap);
 
-   void addAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap);
+   void addAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap, int bin_shift = 0);
    void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
 
    vector<shared_ptr<FittingParameter>> tauT_parameters;

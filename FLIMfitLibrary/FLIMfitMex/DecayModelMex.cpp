@@ -87,13 +87,8 @@ void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], 
    model->removeDecayGroup(group_idx);
 }
 
-mxArray* getVariables(shared_ptr<QDecayModel> model, int group_idx)
+mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> parameters)
 {
-   AssertInputCondition(group_idx < model->getNumGroups());
-
-   auto group = model->getGroup(group_idx);
-   auto& parameters = group->getParameters();
-
    const char* field_names[4] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes"};
    mxArray* s = mxCreateStructMatrix(1, parameters.size(), 4, field_names);
 
@@ -189,31 +184,64 @@ void setParameter(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int 
    group->setProperty(name.c_str(), value);
 }
 
-void setVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setVariables(shared_ptr<QDecayModel> model, std::vector<std::shared_ptr<FittingParameter>> parameters, const mxArray* new_parameters)
 {
-   AssertInputCondition(nrhs >= 4);
-   AssertInputCondition(mxIsStruct(prhs[3]));
-
-   int group_idx = mxGetScalar(prhs[2])-1;
-   AssertInputCondition(group_idx < model->getNumGroups());
-
-   auto group = model->getGroup(group_idx);
-   auto& parameters = group->getParameters();
-
    for (int i = 0; i < parameters.size(); i++)
    {
-      parameters[i]->initial_value = mxGetScalar(mxGetField(prhs[3], i, "InitialValue"));
-      ParameterFittingType type = static_cast<ParameterFittingType>((int) mxGetScalar(mxGetField(prhs[3], i, "FittingType"))-1);
+      parameters[i]->initial_value = mxGetScalar(mxGetField(new_parameters, i, "InitialValue"));
+      ParameterFittingType type = static_cast<ParameterFittingType>((int)mxGetScalar(mxGetField(new_parameters, i, "FittingType")) - 1);
 
       int is_allowed = false;
       auto& allowed_types = parameters[i]->allowed_fitting_types;
       for (int j = 0; j < allowed_types.size(); j++)
          is_allowed |= (type == allowed_types[j]);
-      
+
       if (is_allowed)
          parameters[i]->fitting_type = type;
    }
 }
+
+void getModelVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+
+   auto& parameters = model->getParameters();
+   plhs[0] = getVariables(parameters);
+}
+
+void setModelVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsStruct(prhs[3]));
+
+   auto& parameters = model->getParameters();
+
+   setVariables(model, parameters, prhs[3]);
+}
+
+mxArray* getGroupVariables(shared_ptr<QDecayModel> model, int group_idx)
+{
+   AssertInputCondition(group_idx < model->getNumGroups());
+   auto group = model->getGroup(group_idx);
+   auto& parameters = group->getParameters();
+
+   return getVariables(parameters);
+}
+
+void setGroupVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 4);
+   AssertInputCondition(mxIsStruct(prhs[3]));
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx < model->getNumGroups());
+
+   auto group = model->getGroup(group_idx);
+   auto& parameters = group->getParameters();
+
+   setVariables(model, parameters, prhs[3]);
+}
+
 
 void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -231,7 +259,7 @@ void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
 
       mxSetFieldByNumber(plhs[0], i, 0, mxCreateString(group->objectName().toLocal8Bit()));
       mxSetFieldByNumber(plhs[0], i, 1, getParameters(model, i));
-      mxSetFieldByNumber(plhs[0], i, 2, getVariables(model, i));
+      mxSetFieldByNumber(plhs[0], i, 2, getGroupVariables(model, i));
    }
 }
 
@@ -367,15 +395,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
       if (command == "Release")
          releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+      else if (command == "GetModelVariables")
+         getModelVariables(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetModelVariables")
+         setModelVariables(model, nlhs, plhs, nrhs, prhs);
       else if (command == "AddDecayGroup")
          addDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "RemoveDecayGroup")
          removeDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "GetGroups")
          getGroups(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetVariables")
-         setVariables(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetParameter")
+      else if (command == "SetGroupVariables")
+         setGroupVariables(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetGroupParameter")
          setParameter(model, nlhs, plhs, nrhs, prhs);
       else if (command == "GetChannelFactorNames")
          getChannelFactorNames(model, nlhs, plhs, nrhs, prhs);

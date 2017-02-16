@@ -40,7 +40,7 @@ public:
    virtual void setChannelFactors(int index, const vector<double>& channel_factors);
 
    virtual int setVariables(const double* variables);
-   virtual int calculateModel(double* a, int adim, vector<double>& kap);
+   virtual int calculateModel(double* a, int adim, vector<double>& kap, int bin_shift = 0);
    virtual int calculateDerivatives(double* b, int bdim, vector<double>& kap);
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
@@ -54,7 +54,7 @@ protected:
 
    void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
 
-   int addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap);
+   int addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap, int bin_shift = 0);
    int addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap);
    int addContributionDerivatives(double* b, int bdim, vector<double>& kap);
    int normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);

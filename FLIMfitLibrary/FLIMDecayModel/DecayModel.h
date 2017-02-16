@@ -97,12 +97,13 @@ public:
 
    void decayGroupUpdated();
 
+   const std::vector<std::shared_ptr<FittingParameter>> getParameters() { return parameters; }
+
 protected:
 
    void validateDerivatives();
 
    double getCurrentReferenceLifetime(const double* param_values, int& idx);
-   double getCurrentT0(const double* param_values, int& idx);
 
    int addReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
    int addT0Derivatives(double* b, int bdim, vector<double>& kap);
@@ -111,8 +112,10 @@ protected:
    
    shared_ptr<TransformedDataParameters> dp;
 
-   FittingParameter reference_parameter;
-   FittingParameter t0_parameter;
+   std::shared_ptr<FittingParameter> reference_parameter;
+   std::shared_ptr<FittingParameter> t0_parameter;
+
+   std::vector<std::shared_ptr<FittingParameter>> parameters;
 
    vector<shared_ptr<AbstractDecayGroup>> decay_groups;
 

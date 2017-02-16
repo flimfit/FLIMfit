@@ -205,14 +205,14 @@ void AnisotropyDecayGroup::getLinearOutputParamNames(vector<string>& names)
 }
 
 
-int AnisotropyDecayGroup::calculateModel(double* a, int adim, vector<double>& kap)
+int AnisotropyDecayGroup::calculateModel(double* a, int adim, vector<double>& kap, int bin_shift)
 {
    int col = 0;
 
-   col += addDecayGroup(buffer, a, adim, kap);
+   col += addDecayGroup(buffer, a, adim, kap, bin_shift);
 
    for (int i = 0; i < anisotropy_buffer.size(); i++)
-      col += addDecayGroup(anisotropy_buffer[i], a, adim, kap);
+      col += addDecayGroup(anisotropy_buffer[i], a, adim, kap, bin_shift);
    // TODO: channel factors need to be sorted here!!!
    return col;
 }
