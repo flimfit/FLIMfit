@@ -26,8 +26,8 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    int n_irf = irf->n_irf;
 
    vector<double> storage(n_meas);
-   double *lirf = irf->GetIRF(idx, 0, storage.data());
-   double t_irf0 = irf->GetT0();
+   double *lirf = irf->getIRF(idx, 0, storage.data());
+   double t_irf0 = irf->getT0();
    double dt_irf = irf->timebin_width;
 
    auto& t = dp->getTimepoints();

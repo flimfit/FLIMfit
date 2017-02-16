@@ -74,8 +74,8 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
 
 void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx, double t0_shift)
 {
-   double* lirf = irf->GetIRF(irf_idx, t0_shift, irf_working.data()); // TODO: add image irf shifting to GetIRF
-   double t0 = irf->GetT0();
+   double* lirf = irf->getIRF(irf_idx, t0_shift, irf_working.data()); // TODO: add image irf shifting to GetIRF
+   double t0 = irf->getT0();
    double dt_irf = irf->timebin_width;
 
    // IRF exponential factor
@@ -305,7 +305,7 @@ void ExponentialPrecomputationBuffer::CalculateIRFMax()
    irf_max.assign(dp->n_meas, 0);
    auto t = dp->getTimepoints();
    
-   double t0 = irf->GetT0();
+   double t0 = irf->getT0();
    double dt_irf = irf->timebin_width;
    int n_irf = irf->n_irf;
    

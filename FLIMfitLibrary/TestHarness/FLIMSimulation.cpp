@@ -145,7 +145,7 @@ InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
        irf_data[i] /= sum;
 
    InstrumentResponseFunction irf;
-   irf.SetIRF(n_t_full, n_chan, dt, 0.0, &irf_data[0]);
+   irf.setIRF(n_t_full, n_chan, dt, 0.0, &irf_data[0]);
 
    return irf;
 

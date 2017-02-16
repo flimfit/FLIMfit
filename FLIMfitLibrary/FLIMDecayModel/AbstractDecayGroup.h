@@ -157,8 +157,8 @@ void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T
    shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    auto& t = dp->getTimepoints();
    
-   double* lirf = irf->GetIRF(irf_idx, t0_shift, irf_buf);
-   double t_irf0 = irf->GetT0();
+   double* lirf = irf->getIRF(irf_idx, t0_shift, irf_buf);
+   double t_irf0 = irf->getT0();
    double dt_irf = irf->timebin_width;
    int n_irf = irf->n_irf;
 

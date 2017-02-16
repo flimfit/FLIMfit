@@ -52,7 +52,7 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
 }
 
 
-void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, double* irf)
+void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, double* irf)
 {
    n_chan       = n_chan_;
    n_irf_rep    = 1;
@@ -63,7 +63,7 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_
    timebin_t0    = timebin_t0_;
    timebin_width = timebin_width_; 
 
-   CopyIRF(n_t, irf);
+   copyIRF(n_t, irf);
 
    // Check normalisation of IRF
    for (int i = 0; i < n_chan; i++)
@@ -75,22 +75,22 @@ void InstrumentResponseFunction::SetIRF(int n_t, int n_chan_, double timebin_t0_
          throw std::runtime_error("IRF is not correctly normalised");
    }
 
-   CalculateGFactor();
+   calculateGFactor();
 }
 
-void InstrumentResponseFunction::SetReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess)
+void InstrumentResponseFunction::setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess)
 {
    // TODO
 //   this->ref_reconvolution = ref_reconvolution;
 //   this->ref_lifetime_guess = ref_lifetime_guess;
 }
 
-double InstrumentResponseFunction::GetT0()
+double InstrumentResponseFunction::getT0()
 {
    return timebin_t0 + t0;
 }
 
-double* InstrumentResponseFunction::GetIRF(int irf_idx, double t0_shift, double* storage)
+double* InstrumentResponseFunction::getIRF(int irf_idx, double t0_shift, double* storage)
 {
    if (image_irf)
       return irf.data() + irf_idx * n_irf * n_chan;
@@ -101,13 +101,13 @@ double* InstrumentResponseFunction::GetIRF(int irf_idx, double t0_shift, double*
    if (t0_shift == 0.0)
       return irf.data();
 
-   ShiftIRF(t0_shift, storage);
+   shiftIRF(t0_shift, storage);
    return storage;
 }
 
 
 
-void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
+void InstrumentResponseFunction::shiftIRF(double shift, double storage[])
 {
    int i;
 
@@ -133,7 +133,7 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
       // will read y[0]...y[3]
       assert(i+c_shift-1 < (n_irf-3));
       assert(i+c_shift-1 >= 0);
-      storage[i] = CubicInterpolate(irf.data()+i+c_shift-1,f_shift);
+      storage[i] = cubicInterpolate(irf.data()+i+c_shift-1,f_shift);
    }
 
    for(i=end; i<n_irf; i++)
@@ -141,7 +141,7 @@ void InstrumentResponseFunction::ShiftIRF(double shift, double storage[])
 
 }
 
-void InstrumentResponseFunction::AllocateBuffer(int n_irf_raw)
+void InstrumentResponseFunction::allocateBuffer(int n_irf_raw)
 {
    n_irf = (int) ( ceil(n_irf_raw / 2.0) * 2 );
    int irf_size = n_irf * n_chan * n_irf_rep;
@@ -149,12 +149,12 @@ void InstrumentResponseFunction::AllocateBuffer(int n_irf_raw)
    irf.resize(irf_size);
 }
 
-void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* irf_)
+void InstrumentResponseFunction::copyIRF(int n_irf_raw, double* irf_)
 {
    // Copy IRF, padding to ensure we have an even number of points so we can 
    // use SSE primatives in convolution
    //------------------------------
-   AllocateBuffer(n_irf_raw);
+   allocateBuffer(n_irf_raw);
       
    for(int j=0; j<n_irf_rep; j++)
    {
@@ -175,7 +175,7 @@ void InstrumentResponseFunction::CopyIRF(int n_irf_raw, double* irf_)
  * g factor gives relative sensitivity of parallel and perpendicular channels, 
  * and so can be determined from the ratio of the IRF's for the two channels 
 */
-double InstrumentResponseFunction::CalculateGFactor()
+double InstrumentResponseFunction::calculateGFactor()
 {
 
    if (n_chan == 2)
@@ -200,7 +200,7 @@ double InstrumentResponseFunction::CalculateGFactor()
 
 
 // http://paulbourke.net/miscellaneous/interpolation/
-double InstrumentResponseFunction::CubicInterpolate(double  y[], double mu)
+double InstrumentResponseFunction::cubicInterpolate(double  y[], double mu)
 {
    // mu - distance between y1 and y2
    double a0,a1,a2,a3,mu2;

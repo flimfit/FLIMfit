@@ -46,13 +46,13 @@ class InstrumentResponseFunction
 public:
    InstrumentResponseFunction();
 
-   void SetIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, double* irf);
-   void SetImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double* irf);
-   void SetIRFShiftMap(double* t0);
-   void SetReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
+   void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, double* irf);
+   void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double* irf);
+   void setIRFShiftMap(double* t0);
+   void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
-   double* GetIRF(int irf_idx, double t0_shift, double* storage);
-   double GetT0();
+   double* getIRF(int irf_idx, double t0_shift, double* storage);
+   double getT0();
 
    double timebin_width;
    double timebin_t0;
@@ -68,13 +68,13 @@ public:
    IRFType type; 
 
 private:
-   void CopyIRF(int n_irf_raw, double* irf);
-   void ShiftIRF(double shift, double storage[]);
-   double CalculateGFactor();
+   void copyIRF(int n_irf_raw, double* irf);
+   void shiftIRF(double shift, double storage[]);
+   double calculateGFactor();
 
-   void AllocateBuffer(int n_irf_raw);
+   void allocateBuffer(int n_irf_raw);
 
-   static double CubicInterpolate(double  y[], double mu);
+   static double cubicInterpolate(double  y[], double mu);
 
    std::vector<double, boost::alignment::aligned_allocator<double, 16> > irf;
    
