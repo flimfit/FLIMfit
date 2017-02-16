@@ -123,21 +123,24 @@ void InstrumentResponseFunction::shiftIRF(double shift, double storage[])
    start = min(start, n_irf-1);
    end   = max(end, 1);
 
-
-   for(i=0; i<start; i++)
-       storage[i] = irf[0];
-
-
-   for(i=start; i<end; i++)
+   for (int c = 0; c < n_chan; c++)
    {
-      // will read y[0]...y[3]
-      assert(i+c_shift-1 < (n_irf-3));
-      assert(i+c_shift-1 >= 0);
-      storage[i] = cubicInterpolate(irf.data()+i+c_shift-1,f_shift);
-   }
+      int offset = n_irf * c;
+      for (i = 0; i<start; i++)
+         storage[i + offset] = irf[offset];
 
-   for(i=end; i<n_irf; i++)
-      storage[i] = irf[n_irf-1];
+
+      for (i = start; i<end; i++)
+      {
+         // will read y[0]...y[3]
+         assert(i + c_shift - 1 < (n_irf - 3));
+         assert(i + c_shift - 1 >= 0);
+         storage[i + offset] = cubicInterpolate(irf.data() + i + c_shift - 1 + offset, f_shift);
+      }
+
+      for (i = end; i<n_irf; i++)
+         storage[i + offset] = irf[n_irf - 1 + offset];
+   }
 
 }
 
