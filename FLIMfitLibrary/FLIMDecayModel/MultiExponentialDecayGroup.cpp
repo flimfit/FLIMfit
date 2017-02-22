@@ -237,7 +237,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
    {
       tau[i] = tau_parameters[i]->getValue<double>(param_value, idx);
       tau[i] = tau[i] < 50.0 ? 50.0 : tau[i];
-      buffer[i].Compute(1 / tau[i], irf_idx, t0_shift, channel_factors, fit_t0);
+      buffer[i].Compute(1 / tau[i], irf_idx, t0_shift, channel_factors);
    }
 
    // Get contributions
@@ -305,8 +305,10 @@ int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_vari
 
    int output_idx = 0;
    output[output_idx++] = (float) I;
-   for (int i = 0; i < n; i++)
-      output[output_idx++] = (float) (lin_variables[lin_idx++] / I);
+
+   if (n > 1)
+      for (int i = 0; i < n; i++)
+         output[output_idx++] = (float) (lin_variables[lin_idx++] / I);
 
    return output_idx;
 }

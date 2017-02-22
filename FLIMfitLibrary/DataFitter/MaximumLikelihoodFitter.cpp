@@ -119,9 +119,13 @@ int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int*
                       * info[8]= # Jacobian evaluations
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
-   assert(info[6] != 7);
+
+   if (info[6] == 7)
+      throw std::runtime_error("Non-finite entry in model");
+
    for (int i = 0; i < 5; i++)
-      assert(std::isfinite(info[i]));
+      if (!std::isfinite(info[i]))
+         ret = -1; //TODO: //throw std::runtime_error("Non-finite entry in returned minimisation parameters");
 
    *cur_chi2 = (info[1] / chi2_norm);
 

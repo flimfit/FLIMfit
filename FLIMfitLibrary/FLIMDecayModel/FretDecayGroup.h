@@ -72,7 +72,6 @@ protected:
    vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
    vector<vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
    std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
-   std::unique_ptr<ExponentialPrecomputationBuffer> direct_acceptor_buffer;
    vector<double> acceptor_channel_factors;
 
 protected:
@@ -99,34 +98,3 @@ void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & include_acceptor;
    ar & acceptor_channel_factors;
 };
-
-/*
-class QFretDecayGroup : virtual public QAbstractDecayGroup, virtual public FretDecayGroup
-{
-   Q_OBJECT
-
-public:
-
-   QFretDecayGroup(const QString& name = "FRET Decay", QObject* parent = 0) :
-      FretDecayGroup(1, 1, false),
-      QAbstractDecayGroup(name, parent) {};
-
-   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
-   Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE SetNumFretPopulations USER true);
-   Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE SetIncludeDonorOnly USER true);
-   Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE SetIncludeAcceptor USER true);
-
-private:
-   template<class Archive>
-   void serialize(Archive & ar, const unsigned int version);
-   
-   friend class boost::serialization::access;
-   
-};
-
-template<class Archive>
-void QFretDecayGroup::serialize(Archive & ar, const unsigned int version)
-{
-   ar & boost::serialization::base_object<FretDecayGroup>(*this);
-};
-*/

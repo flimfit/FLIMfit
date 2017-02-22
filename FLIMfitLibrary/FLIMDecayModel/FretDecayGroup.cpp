@@ -111,7 +111,7 @@ void FretDecayGroup::init()
          ExponentialPrecomputationBuffer(dp)));
 
       acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
-      direct_acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
+      acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
    }
    
    acceptor_channel_factors.resize(dp->n_chan, 1);
@@ -275,7 +275,6 @@ int FretDecayGroup::setVariables(const double* param_values)
 
       
       acceptor_buffer->Compute(1 / tauA, irf_idx, t0_shift, acceptor_channel_factors, false);
-      direct_acceptor_buffer->Compute(1 / tauA, irf_idx, t0_shift, acceptor_channel_factors, false);
 
       for (int i = 0; i < n_fret_populations; i++)
          for (int j = 0; j < n_exponential; j++)
@@ -323,13 +322,19 @@ void FretDecayGroup::getLinearOutputParamNames(vector<string>& names)
 {
    names.push_back("I_0");
 
-   if (include_donor_only)
-      names.push_back("gamma_0");
+   int n = n_fret_populations + include_donor_only;
 
-   for (int i = 0; i < n_fret_populations; i++)
+   if (n > 1)
    {
-      string name = "gamma_" + boost::lexical_cast<std::string>(i + 1);
-      names.push_back(name);
+      if (include_donor_only)
+         names.push_back("gamma_0");
+
+      if (n)
+         for (int i = 0; i < n_fret_populations; i++)
+         {
+            string name = "gamma_" + boost::lexical_cast<std::string>(i + 1);
+            names.push_back(name);
+         }
    }
 }
 
@@ -343,7 +348,7 @@ int FretDecayGroup::calculateModel(double* a, int adim, vector<double>& kap, int
       memset(a + col*adim, 0, adim*sizeof(*a));
       addDecayGroup(buffer, a + col*adim, adim, kap, bin_shift);
       if (include_acceptor)   
-         direct_acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim, bin_shift);
+         acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim, bin_shift);
       col++;
    }
 
@@ -355,7 +360,7 @@ int FretDecayGroup::calculateModel(double* a, int adim, vector<double>& kap, int
       if (include_acceptor)
       {
          addAcceptorContribution(i, Q, a + col*adim, adim, kap, bin_shift);
-         direct_acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim, bin_shift);
+         acceptor_buffer->AddDecay(Qsigma, reference_lifetime, a + col*adim, bin_shift);
       }
       
       col++;
@@ -497,7 +502,7 @@ int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, vector<dou
       for (int i = 0; i < n_fret_group; i++)
       {
          memset(b + idx, 0, bdim*sizeof(*b));
-         direct_acceptor_buffer->AddDecay(1.0, reference_lifetime, b + idx);
+         acceptor_buffer->AddDecay(1.0, reference_lifetime, b + idx);
 
          col++;
          idx += bdim;
@@ -539,7 +544,7 @@ int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, vector<d
       if (include_donor_only)
       {
          memset(b + idx, 0, bdim*sizeof(*b));
-         direct_acceptor_buffer->AddDerivative(Qsigma / (tauA * tauA), reference_lifetime, b + idx);
+         acceptor_buffer->AddDerivative(Qsigma / (tauA * tauA), reference_lifetime, b + idx);
          
          col++;
          idx += bdim;
@@ -558,7 +563,7 @@ int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, vector<d
             addAcceptorDerivativeContribution(i, j, fact, b + idx, bdim, kap);
          }
 
-         direct_acceptor_buffer->AddDerivative(Qsigma / (tauA * tauA), reference_lifetime, b + idx);
+         acceptor_buffer->AddDerivative(Qsigma / (tauA * tauA), reference_lifetime, b + idx);
 
          col++;
          idx += bdim;

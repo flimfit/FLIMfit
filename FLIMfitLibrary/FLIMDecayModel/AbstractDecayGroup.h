@@ -62,7 +62,6 @@ public:
       constrain_nonlinear_parameters = obj.constrain_nonlinear_parameters;
       channel_factor_names = obj.channel_factor_names;
       dp = obj.dp;
-      fit_t0 = obj.fit_t0;
    };
 
    virtual AbstractDecayGroup* clone() const = 0;
@@ -114,7 +113,6 @@ protected:
    vector<std::string> channel_factor_names;
 
    std::shared_ptr<TransformedDataParameters> dp;
-   bool fit_t0 = false;
 
    int n_lin_components = 0;
    int n_nl_parameters = 0;
@@ -141,7 +139,6 @@ void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & n_nl_parameters;
    ar & parameters;
    ar & dp;
-   ar & fit_t0;
 };
 
 

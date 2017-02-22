@@ -41,12 +41,12 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include "MexUtils.h"
-#include "PointerMap.h"
 
 using std::string;
 
-PointerMap<FitController> pointer_map;
+std::unordered_set<std::shared_ptr<FitController>> ptr_set;
 
 void setFitSettings(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -57,7 +57,7 @@ void setFitSettings(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int 
 
    settings.global_algorithm = getValueFromStruct(prhs[2],"global_algorithm", 1);
    settings.global_scope = getValueFromStruct(prhs[2], "global_scope", 0);
-   settings.algorithm = getValueFromStruct(prhs[2], "algorithm", 0);
+    settings.algorithm = getValueFromStruct(prhs[2], "algorithm", 0);
    settings.weighting = getValueFromStruct(prhs[2], "weighting");
    settings.n_thread = getValueFromStruct(prhs[2], "n_thread", 4);
    settings.run_async = getValueFromStruct(prhs[2], "run_async", 1);
@@ -93,8 +93,7 @@ void startFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
 
 void clearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   c->init();
-   c->runWorkers();
+// TODO
 }
 
 void stopFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -177,8 +176,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       if (nrhs == 0 && nlhs > 0)
       {
          AssertInputCondition(nlhs > 0);
-         int idx = pointer_map.CreateObject();
-         plhs[0] = mxCreateDoubleScalar(idx);
+         auto c = std::make_shared<FitController>();
+         ptr_set.insert(c);
+         plhs[0] = packageSharedPtrForMatlab(c);
          return;
       }
 
@@ -186,18 +186,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsScalar(prhs[0]));
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      int c_idx = mxGetScalar(prhs[0]);
-      
       // Get controller
-      auto controller = pointer_map.Get(c_idx);
-      if (controller == nullptr)
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerIndex", "Controller index is not valid");
+      auto& controller = getSharedPtrFromMatlab<FitController>(prhs[0]);
+      
+      if (ptr_set.find(controller) == ptr_set.end())
+         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerPointer", "Invalid controller pointer");
 
       // Get command
       string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
-         pointer_map.Clear(c_idx);
+         releaseSharedPtrFromMatlab<FitController>(prhs[0]);
       else if (command == "SetFitSettings")
          setFitSettings(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "SetData")
