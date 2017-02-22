@@ -270,7 +270,11 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             cla(ra);
             
             if ~isempty(obj.data)
-                txt = [obj.roi_controller.click_pos_txt ' Total Intensity = ' num2str(sum(obj.data)) ];
+                int = sum(obj.data);
+                txt = [obj.roi_controller.click_pos_txt ' Total Intensity = ' num2str(int) ];
+                if length(int) > 1
+                    txt = [txt ', [' num2str(int/min(int(int>0))) ']'];
+                end
                 set(obj.decay_pos_text,'String',txt);
                 plot_fcn(ha,obj.t,obj.data,'o');
                 hold(ha,'on');

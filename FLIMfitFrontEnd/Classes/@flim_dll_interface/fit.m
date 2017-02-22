@@ -241,7 +241,6 @@
     ff_Controller(obj.dll_id,'StartFit');
     
     if err ~= 0
-        obj.clear_temp_vars();
         return;
     end
                    

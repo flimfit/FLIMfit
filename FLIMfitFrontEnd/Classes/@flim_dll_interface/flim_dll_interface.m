@@ -103,6 +103,7 @@ classdef flim_dll_interface < handle
          end
 
          function unload_global_library(obj)
+            obj.clear_fit();
             clear ff_FLIMImage ff_FLIMData ff_FitResult ff_DecayModel ff_Controller
          end
          
@@ -120,11 +121,12 @@ classdef flim_dll_interface < handle
        
         function clear_fit(obj)
             for r=1:length(obj.result_objs)
-                ff_FitResults(obj.result_objs(r),'Release');
+                ff_FitResults(obj.result_objs(r),'Clear');
             end
             obj.result_objs = struct('type',{},'pointer',{},'valid',{});
             if ~isempty(obj.dll_id)
-                ff_Controller(obj.dll_id,'Release');
+                ff_Controller(obj.dll_id,'Clear');
+                obj.dll_id = [];
             end
         end
         
