@@ -7,6 +7,7 @@ classdef flim_model_controller < handle
         
         groups;
         model_variables;
+        scroll_panel;
         main_layout;
         model;
         n_channel = 1;
@@ -27,8 +28,19 @@ classdef flim_model_controller < handle
 
             obj.groups = ff_DecayModel(obj.model,'GetGroups');
 
-            obj.main_layout = uix.VBox('Parent',fh,'Padding',5,'Spacing',2,'BackgroundColor','w');
+            layout = uix.VBox('Parent',fh,'Padding',5,'Spacing',2,'BackgroundColor','w');
 
+            add_layout = uix.HBox('Parent',layout,'Spacing',5,'BackgroundColor','w');
+            uicontrol('Style','text','String','New: ','Parent',add_layout,'BackgroundColor','w');
+            add_popup = uicontrol('Style','popupmenu','String',obj.decay_types,'Parent',add_layout);
+            uicontrol('Style','pushbutton','String','Add','Callback',{@obj.add_group,add_popup},'Parent',add_layout);
+            add_layout.Widths = [75 -1 75];
+
+            obj.scroll_panel = uix.ScrollingPanel('Parent',layout,'BackgroundColor','w');
+            obj.main_layout = uix.VBox('Parent',obj.scroll_panel,'Spacing',2,'BackgroundColor','w');
+            
+            
+            layout.Heights = [22 -1];
             obj.draw();
             
         end
@@ -42,13 +54,7 @@ classdef flim_model_controller < handle
         function draw(obj)    
 
             delete(obj.main_layout.Contents);
-
-            add_layout = uix.HBox('Parent',obj.main_layout,'Spacing',5,'BackgroundColor','w');
-            uicontrol('Style','text','String','New: ','Parent',add_layout,'BackgroundColor','w');
-            add_popup = uicontrol('Style','popupmenu','String',obj.decay_types,'Parent',add_layout);
-            uicontrol('Style','pushbutton','String','Add','Callback',{@obj.add_group,add_popup},'Parent',add_layout);
-            add_layout.Widths = [75 -1 75];
-
+            
             obj.groups = ff_DecayModel(obj.model,'GetGroups');
 
             for i=1:length(obj.groups)
@@ -74,6 +80,8 @@ classdef flim_model_controller < handle
 
             obj.main_layout.Heights = 22*ones(1,length(obj.main_layout.Children));
             obj.main_layout.Heights(end) = -1;
+            
+            obj.scroll_panel.Heights = 24*length(obj.main_layout.Children);
             
         end
 
