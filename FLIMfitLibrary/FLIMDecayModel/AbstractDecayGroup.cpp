@@ -75,7 +75,7 @@ void AbstractDecayGroup::setNumChannels(int n_chan)
    for (int i = 0; i < n_channel_factors; i++)
    { 
       auto v = getChannelFactors(i);
-      v.resize(n_chan, 1.0);
+      v.resize(n_chan, 0.0);
       setChannelFactors(i, v);
    }
 }

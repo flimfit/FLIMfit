@@ -56,6 +56,7 @@ FretDecayGroup::FretDecayGroup(const FretDecayGroup& obj) :
    Qsigma_parameter = obj.Qsigma_parameter;
    tauA_parameter = obj.tauA_parameter;
    tauT_parameters = obj.tauT_parameters;
+   acceptor_channel_factors = obj.acceptor_channel_factors;
 
    setupParameters();
    init();

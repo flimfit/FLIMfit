@@ -155,6 +155,11 @@ void ExponentialPrecomputationBuffer::ComputeModelFactors(double rate, const vec
    auto& t = dp->getTimepoints();
    auto& t_int = dp->getGateIntegrationTimes();
    
+   double factor_sum = 0;
+   for (auto f : channel_factors)
+      factor_sum += f;
+   fact /= factor_sum;
+
    double de = exp((t[0] - t[1]) * rate);
 
    if (dp->equally_spaced_gates)
