@@ -802,7 +802,7 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
 
    int a_dim1 = nmax;
    
-   double* rj = r.data() + idx * n;
+   double* rj = r.data() + idx * nmax;
 
    chi2[idx] = (float) enorm(n-l, rj+l); 
    chi2[idx] *= chi2[idx] / chi2_norm;
