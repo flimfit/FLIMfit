@@ -213,7 +213,7 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
    // Set elements of incidence matrix for Q 
    if (include_acceptor && Q_parameter->isFittedGlobally())
    {
-      for (int i = 0; i < n_fret_group; i++)
+      for (int i = include_donor_only; i < n_fret_group; i++)
          inc[inc_row + (inc_col0 + i) * 12] = 1;
       inc_row++;
    }
