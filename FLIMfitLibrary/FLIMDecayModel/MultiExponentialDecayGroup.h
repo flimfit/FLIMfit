@@ -6,13 +6,18 @@
 template<class T> // TODO: make this part of class
 int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[])
 {
+   int n_vars_used = 0;
+   
    alf2beta(n_beta_free, alf, beta);
 
    int idx = 0;
    for (int i = 0; i < beta_parameters.size(); i++)
    {
       if (!beta_parameters[i]->isFixed())
+      {
          beta[i] = beta[idx++] * (1 - fixed_beta);
+         n_vars_used++;
+      }
    }
 
    for (int i = 0; i < beta_parameters.size(); i++)
@@ -21,7 +26,7 @@ int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, double 
          beta[i] = beta_parameters[i]->initial_value;
    }
 
-   return n_beta_free - 1;
+   return n_vars_used;
 }
 class MultiExponentialDecayGroupPrivate : public AbstractDecayGroup
 {

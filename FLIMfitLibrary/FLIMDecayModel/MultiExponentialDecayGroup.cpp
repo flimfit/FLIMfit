@@ -354,6 +354,9 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPre
          col++;
    }
 
+   if (contributions_global)
+      col++;
+
    return col;
 }
 
