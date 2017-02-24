@@ -27,11 +27,19 @@ std::string getStringFromMatlab(const mxArray* dat)
    return std::string();
 }
 
-void CheckSize(const mxArray* array, int needed)
+void checkSize(const mxArray* array, int needed)
 {
    if (needed != mxGetNumberOfElements(array))
       mexErrMsgIdAndTxt("MATLAB:mxmalloc:invalidInput",
          "Input array is the wrong size");
+}
+
+mxArray* mxCreateUint64Scalar(uint64_t v)
+{
+   mxArray* m = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+   uint64_t* mp = (uint64_t*)mxGetData(m);
+   mp[0] = v;
+   return m;
 }
 
 mxArray* getFieldFromStruct(const mxArray* s, const char *field)

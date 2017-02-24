@@ -84,13 +84,15 @@ void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], 
    AssertInputCondition(nrhs >= 3);
 
    int group_idx = mxGetScalar(prhs[2])-1;
+   AssertInputCondition(group_idx >= 0 && group_idx < model->getNumGroups());
+
    model->removeDecayGroup(group_idx);
 }
 
 mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> parameters)
 {
-   const char* field_names[4] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes"};
-   mxArray* s = mxCreateStructMatrix(1, parameters.size(), 4, field_names);
+   const char* field_names[] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes", "id"};
+   mxArray* s = mxCreateStructMatrix(1, parameters.size(), 5, field_names);
 
    for (int i = 0; i < parameters.size(); i++)
    { 
@@ -104,6 +106,7 @@ mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> param
       for (int j = 0; j < allowed_types.size(); j++)
          ap[j] = allowed_types[j] + 1;
       mxSetFieldByNumber(s, i, 3, a);
+      mxSetFieldByNumber(s, i, 4, mxCreateUint64Scalar((uint64_t) parameters[i].get()));
    }
 
    return s;
@@ -248,8 +251,8 @@ void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
    AssertInputCondition(nlhs >= 1);
 
    int n_group = model->getNumGroups();
-   const char* field_names[3] = { "Name", "Parameters", "Variables" };
-   plhs[0] = mxCreateStructMatrix(1, n_group, 3, field_names);
+   const char* field_names[] = { "Name", "Parameters", "Variables", "id" };
+   plhs[0] = mxCreateStructMatrix(1, n_group, 4, field_names);
 
    for (int i = 0; i < n_group; i++)
    {
@@ -260,6 +263,7 @@ void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
       mxSetFieldByNumber(plhs[0], i, 0, mxCreateString(group->objectName().toLocal8Bit()));
       mxSetFieldByNumber(plhs[0], i, 1, getParameters(model, i));
       mxSetFieldByNumber(plhs[0], i, 2, getGroupVariables(model, i));
+      mxSetFieldByNumber(plhs[0], i, 3, mxCreateUint64Scalar((uint64_t) group.get()));
    }
 }
 

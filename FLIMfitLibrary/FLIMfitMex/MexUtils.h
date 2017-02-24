@@ -14,6 +14,8 @@ std::string getStringFromMatlab(const mxArray* dat);
 void checkSize(const mxArray* array, int needed);
 void checkInput(int nrhs, int needed);
 
+mxArray* mxCreateUint64Scalar(uint64_t v);
+
 /*
    Structure handling
 */
