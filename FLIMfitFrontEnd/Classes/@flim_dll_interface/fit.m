@@ -134,6 +134,7 @@
     if obj.bin
         obj.datasets = 1;
         use = 1;
+        sel = 1;
     else
         obj.datasets = sel;
         use = datasets(d.loaded);
@@ -173,13 +174,13 @@
         if d.use_memory_mapping
             offset_step = 4 * d.n_t * d.n_chan * d.height * d.width;
 
-            for i=1:length(use)
-               offset = (use(i)-1) * offset_step + d.mapfile_offset;
+            for i=1:length(sel)
+               offset = (sel(i)-1) * offset_step + d.mapfile_offset;
                im(i) = ff_FLIMImage('acquisition_parmeters',acq,'mapped_file',d.mapfile_name,'data_offset',offset,'data_class',d.data_type); 
             end
         else
-            for i=1:length(use)
-               im(i) = ff_FLIMImage('acquisition_parmeters',acq,'data',d.data_series_mem(:,:,:,:,i)); 
+            for i=1:length(sel)
+               im(i) = ff_FLIMImage('acquisition_parmeters',acq,'data',d.data_series_mem(:,:,:,:,sel(i))); 
             end
         end
 
