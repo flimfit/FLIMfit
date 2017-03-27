@@ -238,7 +238,6 @@ function compile(exit_on_error)
                 % Package app with platypus
                 package_name = ['FLIMfit ' v];
                 
-                
                 [major,minor] = mcrversion;
                 
                 % Setup platypus script
@@ -252,8 +251,6 @@ function compile(exit_on_error)
                 fid = fopen([deployFiles_folder filesep 'FLIMfit_platypus_versioned.sh'],'w');
                 fwrite(fid,script);
                 fclose(fid);
-                
-                
 
                 cmd = ['/usr/local/bin/platypus -y -P FLIMfit.platypus -a "' package_name '" -V ' v ' ' deploy_folder '/' package_name];
 
@@ -264,7 +261,10 @@ function compile(exit_on_error)
                 system(cmd);
                 pause(3)
                 movefile([deploy_folder '/FLIMfit.app'], [final_folder '/' package_name '.app']);
-
+                
+                cd('DeployLibraries')
+                zip(['flimfit_libraries_maci64_' v '.zip'],{'*.dylib','*.mexmaci64'})
+                cd('..')
         end
     end
     
