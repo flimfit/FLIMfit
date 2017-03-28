@@ -80,7 +80,7 @@ function handles = setup_menu(obj,handles)
       
     % OMERO MEGA MENU    
     %=================================
-    
+    %{
     menu_OMERO = uimenu(obj.window,'Label','OMERO');
 
     handles.menu_login = uimenu(menu_OMERO,'Label','Log in to OMERO...');
@@ -130,7 +130,7 @@ function handles = setup_menu(obj,handles)
     % both OMERO and file-side
     %handles.menu_OMERO_Export_Fitting_Results = uimenu(menu_OMERO,'Label','Export Fitting Results','Separator','on','Enable','off');
     %handles.menu_OMERO_Import_Fitting_Results = uimenu(menu_OMERO,'Label','Import Fitting Results for visualizing','Enable','off');        
-
+    %}
     %===============================
        
     menu_irf       = uimenu(obj.window,'Label','IRF');
