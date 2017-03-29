@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
-if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
+if [ -z ${BIO+x} ]; then export BIO=5.4; echo "Setting BIO=5.4"; fi
 
 export CC=/usr/local/bin/gcc-6
 export CXX=/usr/local/bin/g++-6
@@ -43,7 +43,6 @@ unzip -o bfmatlab.zip
 rm bfmatlab.zip
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
 rm -rf bfmatlab
-
 
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar
