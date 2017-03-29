@@ -188,7 +188,6 @@ classdef flim_fit_ui
                     path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
                 end
                 if ~isempty(path) && exist(path, 'file') == 2
-                    % not used when OMERO menu comented out
                     javaaddpath(path);
                 else 
                      assert('Cannot automatically locate an OMEuiUtils JAR file');
