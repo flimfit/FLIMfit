@@ -45,7 +45,7 @@ function update_plots(obj,file_root)
         save = false;
     end
 
-    if ~save && obj.dataset_selected == 0;
+    if ~save && obj.dataset_selected == 0
         return
     end;
     
@@ -61,7 +61,7 @@ function update_plots(obj,file_root)
         indexing = 'result';
     end
     
-    if ~save()
+    if ~save
         pos = get(obj.plot_panel,'Position');
         pos(1:2) = 10;
         pos(3:4) = pos(3:4) - 20;
@@ -119,8 +119,13 @@ function update_plots(obj,file_root)
         end      
     end
     
-    if ~save && f.n_plots > 0
+    if ~save 
+        if f.n_plots > 0
             montage(figs,'Size',[m n],'Parent',obj.plot_axes);
+    
+        else
+            cla(obj.plot_axes)
+        end
     end
 end
 
