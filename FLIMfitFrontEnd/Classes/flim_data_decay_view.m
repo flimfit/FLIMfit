@@ -268,7 +268,12 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             cla(ra);
             
             if ~isempty(obj.data)
-                txt = [obj.roi_controller.click_pos_txt ' Total Intensity = ' num2str(sum(obj.data)) ];
+                
+                sum_t = sum(obj.data);
+                avg_t = mean(obj.data);
+                
+                txt = [obj.roi_controller.click_pos_txt ' Total Intensity = ' num2str(sum_t)];
+                txt = [txt ', Average / Timepoint = ' num2str(avg_t)];
                 set(obj.decay_pos_text,'String',txt);
                 plot_fcn(ha,obj.t,obj.data,'o');
                 hold(ha,'on');
@@ -408,7 +413,10 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 file_name = [path name ext];
            
                 f=fopen(file_name,'w');
-                fprintf(f,obj.data_type);
+                fprintf(f,'t');
+                for i=1:size(obj.data,2)
+                   fprintf(f,[obj.data_type '_ch' num2str(i-1)]); 
+                end
                 if ~isempty(obj.fit)
                     fprintf(f,',Fit,Normalised Residual');
                 end
@@ -418,7 +426,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 dlmwrite(file_name,export_data,'-append','delimiter',',');
             end
 
-            if ~isempty(obj.irf)
+            if length(obj.irf) > 3
                 
                 irf_data = [];
                 
