@@ -165,50 +165,34 @@ classdef flim_fit_ui
             
             % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
             % bfCheckJavaPath
-            
-            % first check they aren't already in the dynamic path
-            jPath = javaclasspath('-dynamic');
-            utilJarInPath = false;
-            ini4jInPath = false;
-            for i = 1:length(jPath)
-                if strfind(jPath{i},'OMEuiUtils.jar');
-                    utilJarInPath = true;
-                end
-                if strfind(jPath{i},'ini4j.jar');
-                    ini4jInPath = true;
-                end
-                if utilJarInPath && ini4jInPath
-                    break;
-                end
-            end
+
+            jPath = javaclasspath;
+
+            function findAndAddJar(jar)
+               
+                already_in_path = any(cellfun(@(x) ~isempty(strfind(x,jar)),jPath));
                 
-            if ~utilJarInPath
-                path = which('OMEuiUtils.jar');
-                if isempty(path)
-                    path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+                if ~already_in_path
+                    path = which(jar);
+                    if isempty(path)
+                        path = fullfile(fileparts(mfilename('fullpath')), jar);
+                    end
+                    if ~isempty(path) && exist(path, 'file') == 2
+                        javaaddpath(path);
+                        disp(['Added ' jar])
+                    else 
+                        assert(['Cannot automatically locate ' jar]);
+                    end
                 end
-                if ~isempty(path) && exist(path, 'file') == 2
-                    javaaddpath(path);
-                else 
-                     assert('Cannot automatically locate an OMEuiUtils JAR file');
-                end
+                
             end
             
-            if ~ini4jInPath
-                path = which('ini4j.jar');
-                if isempty(path)
-                    path = fullfile(fileparts(mfilename('fullpath')), 'ini4j.jar');
-                end
-                if ~isempty(path) && exist(path, 'file') == 2
-                    javaaddpath(path);
-                else 
-                     disp('Cannot automatically locate an ini4j JAR file');
-                     close all;
-                     return;
-                end
+            disp(['is deployed: ' num2str(isdeployed)]);
+            
+            if ~isdeployed
+                findAndAddJar('OMEuiUtils.jar')
+                findAndAddJar('ini4j.jar')
             end
-            
-            
    
             % verify that enough memory is allocated for bio-formats
             bfCheckJavaMemory();
