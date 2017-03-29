@@ -1,4 +1,4 @@
-function ret = parse_modulo_annotation(obj, s, sizeZCT)
+function dims = parse_modulo_annotation(obj, s, sizeZCT, dims)
     % parses the string returned form a 'Lifetime' modulo annotation
     % to find Modulo & delays
 
@@ -26,7 +26,6 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
     % and The Wellcome Trust through a grant entitled 
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
-    ret = [];
     
     if ~isempty(s)      % found correct ModuloAlong XmlAnnotation
     
@@ -39,13 +38,13 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
         modlo = [];
         if isfield(tree,'ModuloAlongC')
             modlo = tree.ModuloAlongC;
-            ret.modulo = 'ModuloAlongC';
+            dims.modulo = 'ModuloAlongC';
         elseif isfield(tree,'ModuloAlongT')
             modlo = tree.ModuloAlongT;
-            ret.modulo = 'ModuloAlongT';
+            dims.modulo = 'ModuloAlongT';
         elseif  isfield(tree,'ModuloAlongZ')
             modlo = tree.ModuloAlongZ;
-            ret.modulo = 'ModuloAlongZ';
+            dims.modulo = 'ModuloAlongZ';
         end;  
         
         
@@ -56,24 +55,24 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
             mo = val.Modulo;
             if isfield(mo,'ModuloAlongC')
                 modlo = mo.ModuloAlongC;
-                ret.modulo = 'ModuloAlongC'
+                dims.modulo = 'ModuloAlongC'
             elseif isfield(mo,'ModuloAlongT')
                 modlo = mo.ModuloAlongT;
-                ret.modulo = 'ModuloAlongT';
+                dims.modulo = 'ModuloAlongT';
             elseif  isfield(mo,'ModuloAlongZ')
                 modlo = mo.ModuloAlongZ;
-                ret.modulo = 'ModuloAlongZ';
+                dims.modulo = 'ModuloAlongZ';
             end;  
             
             if isempty(modlo) 
-                ret = [];
+                dims = [];
                 return;
             end
         end
         
         if isfield(modlo.ATTRIBUTE,'Type')
             if isempty(strfind(modlo.ATTRIBUTE.Type,'lifetime'))
-                ret = [];
+                dims = [];
                 return;
             end
         end
@@ -87,65 +86,65 @@ function ret = parse_modulo_annotation(obj, s, sizeZCT)
             nsteps = round((e - start)/step);
             delays = 0:nsteps;
             delays = delays .* step;
-            ret.delays = delays + start;
+            dims.delays = delays + start;
            
         else
             if isnumeric(modlo.Label)
-                ret.delays = modlo.Label;
+                dims.delays = modlo.Label;
             else
-                ret.delays = cell2mat(modlo.Label);
+                dims.delays = cell2mat(modlo.Label);
             end
         end
         
         if isfield(modlo.ATTRIBUTE,'Unit')
             if ~isempty(strfind(modlo.ATTRIBUTE.Unit,'NS')) || ~isempty(strfind(modlo.ATTRIBUTE.Unit,'ns'))
-                ret.delays = ret.delays.* 1000;
+                dims.delays = dims.delays.* 1000;
             end
         end
        
         
         % Deprecated. Replaced by "TypeDescription" To be removed when safe.
         if isfield(modlo.ATTRIBUTE,'Description')        
-            ret.FLIM_type = modlo.ATTRIBUTE.Description;
+            dims.FLIM_type = modlo.ATTRIBUTE.Description;
         end
         
          if isfield(modlo.ATTRIBUTE,'TypeDescription')        
-            ret.FLIM_type = modlo.ATTRIBUTE.TypeDescription;
+            dims.FLIM_type = modlo.ATTRIBUTE.TypeDescription;
          end
         
     end
     
                         
         
-   if ~isempty(ret)
+   if ~isempty(dims)
         
        
         % validity check
         % crude test for nonsense in the Annotation
-        sizet = length(ret.delays);
-        switch ret.modulo
+        sizet = length(dims.delays);
+        switch dims.modulo
             case 'ModuloAlongZ'
                 SizeZ = sizeZCT(1);
                 nZplanes = floor(SizeZ/sizet);
                 if nZplanes * sizet ~= SizeZ
-                    ret = [];   
+                    dims = [];   
                 end
             case 'ModuloAlongC'
                 SizeC = sizeZCT(2);
                 nchannels = floor(SizeC/sizet);
                 if nchannels * sizet ~= SizeC
-                    ret = [];   
+                    dims = [];   
                 end
             case 'ModuloAlongT'
                 SizeT = sizeZCT(3);
                 nTpoints = floor(SizeT/sizet);
                 if nTpoints * sizet ~= SizeT
-                    ret = [];   
+                    dims = [];   
                 end
             
         end
         
-        ret.sizeZCT = sizeZCT;
+        dims.sizeZCT = sizeZCT;
    end
    
    

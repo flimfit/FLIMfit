@@ -186,9 +186,7 @@ classdef flim_fit_ui
                 end
                 
             end
-            
-            disp(['is deployed: ' num2str(isdeployed)]);
-            
+                        
             if ~isdeployed
                 findAndAddJar('OMEuiUtils.jar')
                 findAndAddJar('ini4j.jar')
