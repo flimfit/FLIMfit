@@ -48,13 +48,13 @@ function DownloadZipIntoFolder
 
 $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
 $bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/bfmatlab.zip'
+$loci_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/loci_tools.zip'
 $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
 $OMEuiUtils_url = 'https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.5.jar'
 $gs_url = 'http://downloads.flimfit.org/gs/gs916w64.exe'
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
 $OMEuiUtils_dir = "$pwd\FLIMfitFrontEnd\OMEuiUtils"
-
 $BFMatlab_dir = "$pwd\FLIMfitFrontEnd\BFMatlab"
 
 echo "Downloading Ghostscript"
@@ -67,7 +67,11 @@ Remove-Item "$omero_matlab_libs_dir\slf4j-log4j12.jar"
 Remove-Item "$omero_matlab_libs_dir\slf4j-api.jar"
 Remove-Item "$omero_matlab_libs_dir\log4j.jar"
 
-DownloadZipIntoFolder $bf_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
+DownloadZipIntoFolder $bf_url "$BFMatlab_dir"
+Remove-Item "$BFMatlab_dir\bioformats_package.jar"
+
+echo "Downloading loci_tools.jar"
+((new-object net.webclient).DownloadFile($loci_url, "$BFMatlab_dir\loci_tools.jar"))
 
 echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
