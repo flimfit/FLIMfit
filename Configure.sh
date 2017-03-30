@@ -48,7 +48,11 @@ zip -d bfmatlab/bioformats_package.jar 'org/slf4j/impl/*'
 
 # Install toolbox files into FLIMfit
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
+rm FLIMfitFrontEnd/BFMatlab/bioformats_package.jar
 rm -rf bfmatlab
+
+curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$BIO/artifacts/loci_tools.jar
+mv loci_tools.jar FLIMfitFrontEnd/BFMatlab/loci_tools.jar
 
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar
