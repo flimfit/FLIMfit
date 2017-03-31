@@ -43,6 +43,10 @@ curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$BIO/artifacts/bf
 unzip -o bfmatlab.zip
 rm bfmatlab.zip
 
+# Massage bioformats_package.jar to exclude the SLF4J bindings
+# See: https://github.com/flimfit/FLIMfit/issues/299
+zip -d bfmatlab/bioformats_package.jar 'org/slf4j/impl/*'
+
 # Install toolbox files into FLIMfit
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
 rm -rf bfmatlab
