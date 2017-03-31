@@ -39,14 +39,17 @@ rm FLIMfitFrontEnd/OMEROMatlab/libs/log4j.jar
 # Download bio-formats Matlab toolbox
 curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$BIO/artifacts/bfmatlab.zip
 
+# Unpack the toolbox
 unzip -o bfmatlab.zip
 rm bfmatlab.zip
-mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
-rm FLIMfitFrontEnd/BFMatlab/bioformats_package.jar
-rm -rf bfmatlab
 
-curl -OL http://downloads.openmicroscopy.org/latest/bio-formats$BIO/artifacts/loci_tools.jar
-mv loci_tools.jar FLIMfitFrontEnd/BFMatlab/loci_tools.jar
+# Massage bioformats_package.jar to exclude the SLF4J bindings
+# See: https://github.com/flimfit/FLIMfit/issues/299
+zip -d bfmatlab/bioformats_package.jar 'org/slf4j/impl/*'
+
+# Install toolbox files into FLIMfit
+mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
+rm -rf bfmatlab
 
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar

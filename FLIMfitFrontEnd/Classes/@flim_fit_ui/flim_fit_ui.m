@@ -165,7 +165,7 @@ classdef flim_fit_ui
             
             % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
             % bfCheckJavaPath
-                        
+
             jPath = javaclasspath;
 
             function findAndAddJar(jar)
