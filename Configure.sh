@@ -45,7 +45,7 @@ rm bfmatlab.zip
 
 # Massage bioformats_package.jar to exclude the SLF4J bindings
 # See: https://github.com/flimfit/FLIMfit/issues/299
-zip -d bfmatlab/bioformats_package.jar 'org/slf4j/impl/*'
+zip -d bfmatlab/bioformats_package.jar 'org/slf4j/impl/StaticLoggerBinder.class'
 
 # Install toolbox files into FLIMfit
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
