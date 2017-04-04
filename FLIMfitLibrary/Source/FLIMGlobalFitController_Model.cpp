@@ -650,7 +650,7 @@ void FLIMGlobalFitController::ShiftIRF(double shift, double s_irf[])
    int end   = min(n_irf,n_irf-c_shift-3);
 
    start = min(start, n_irf-1);
-   end   = max(end, 1);
+   end   = max(end, 0);
 
 
 
