@@ -1105,7 +1105,8 @@ classdef front_end_menu_controller < handle
         function menu_tools_create_irf_shift_map_callback(obj)
                         
             mask=obj.data_masking_controller.roi_controller.roi_mask;
-            t0_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
+            sel = obj.data_series_list.selected;
+            t0_data = obj.data_series_controller.data_series.generate_t0_map(mask,sel);
             
             OMEROsave = false;
             
