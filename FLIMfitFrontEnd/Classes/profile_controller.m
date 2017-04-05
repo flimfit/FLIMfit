@@ -14,6 +14,7 @@ classdef profile_controller
             profile_def.Data.Automatically_Estimate_IRF_Background = true;
             profile_def.Data.Default_Camera_Background = 0;
             profile_def.Data.Default_Rep_Rate = 80;
+            profile_def.Data.Default_Gate_Max = 1e8;
 
             % Fitting Preferences
             profile_def.Fitting.Maximum_Iterations = 100;
@@ -100,71 +101,16 @@ classdef profile_controller
         function set_profile(obj)
             
             global prof;
-
-            % Setup Figures
-
-            f = figure(56);
-
-            set(f,'Name','FLIMfit Preferences',...
-                  'NumberTitle', 'off', ...
-                  'Toolbar','none',...
-                  'MenuBar','none');
-
-            clf(f);
-            layout = uix.VBox( 'Parent', f );
-
-            tab_panel = uix.TabPanel( 'Parent', layout, 'TabWidth', 80 );
-            button_layout = uix.HBox( 'Parent', layout );
-
-            uicontrol( 'Style', 'pushbutton', ... 
-                       'String', 'Cancel', ...
-                       'Callback', @cancel_callback, ...
-                       'Parent', button_layout );
-
-            uicontrol( 'Style', 'pushbutton', ... 
-                       'String', 'OK', ...
-                       'Callback', @ok_callback, ...
-                       'Parent', button_layout );   
-
-            layout.Heights = [-1 22];
-
+            
             % Get preference definitions
             profile_def = obj.profile_definitions();
             groups = fieldnames(profile_def);
 
             com.mathworks.mwswing.MJUtilities.initJIDE();
             
-            % Setup tab panels
-            for i=1:length(groups)
-                h(i) = uipanel( 'Parent', tab_panel );
+            [~,prof] = propertiesGUI(profile_def);
+            save(obj.profile_file,'prof');
 
-                if isfield( prof, groups{i} )
-                    cur_profile = prof.(groups{i});
-                else
-                    cur_profile = struct();
-                end
-
-                propertiesGUI(h(i),profile_def.(groups{i}),cur_profile,i);
-            end
-
-            tab_panel.TabTitles = groups;
-            tab_panel.Selection = 1;
-
-
-            function cancel_callback(~,~,~)
-                close(f);
-            end
-
-            function ok_callback(~,~,~)
-
-                for j=1:length(groups)
-                    prof.(groups{j}) = getappdata(h(j),'mirror');
-                end
-                
-                save(obj.profile_file,'prof');
-
-                close(f);
-            end
         end
     end  
 end
