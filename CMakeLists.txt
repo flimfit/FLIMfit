@@ -2,9 +2,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.14.29.tar.gz"
-    SHA1 "9c29c30fff99b7c1479b2e9d4926dcc3f8d364e0"
-    LOCAL
+    URL "https://github.com/ruslo/hunter/archive/v0.18.29.tar.gz"
+    SHA1 "ebea5d2fa4aa70de1234b05c4bf1b69705abb1ba"
+	LOCAL
 )
 
 project(FLIMfit)
