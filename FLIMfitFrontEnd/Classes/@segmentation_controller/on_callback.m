@@ -37,11 +37,12 @@ function on_callback(obj,src,evtData)
     sz = size(obj.mask);
     sz = sz(1:2);
     
+    toggle_type = toggle_type{toggles == src};
+    toggle_fcn = toggle_fcn{toggles == src};
+    
     if strcmp(src.State,'on')
         set(toggles(toggles ~= src),'State','off');
-
-        toggle_fcn = toggle_fcn{toggles == src};
-        obj.flex_h = toggle_fcn(obj.figure1,obj.segmentation_axes,toggle_type{toggles == src},sz,@roiCallback);
+        obj.flex_h = toggle_fcn(obj.figure1,obj.segmentation_axes,toggle_type,sz,@roiCallback);
         obj.toggle_active = src;
     else
         if obj.toggle_active == src && ~isempty(obj.flex_h)
@@ -49,13 +50,23 @@ function on_callback(obj,src,evtData)
         end
     end
     
-    function roiCallback(roi_mask)
+    function roiCallback(roi_mask,first_pos)
         modifier = get(gcbf,'currentmodifier');
         erase_toggle = get(obj.tool_roi_erase_toggle,'State');
         erase = strcmp(erase_toggle,'on') || ~isempty(modifier);
 
         obj.n_regions = obj.n_regions + 1;
 
+        % if we're painting and started on an area, continue that region
+        new_area = obj.n_regions;
+        if isnumeric(toggle_type) % paint
+            first_pos = round(first_pos);
+            old = obj.mask(first_pos(2),first_pos(1),obj.data_series_list.selected);
+            if old > 0
+                new_area = old;
+            end
+        end
+        
         d = obj.data_series;
 
         if ~isempty(d.acceptor)
@@ -72,7 +83,7 @@ function on_callback(obj,src,evtData)
         if erase
             obj.mask(m) = 0;
         else
-            obj.mask(m) = obj.n_regions;
+            obj.mask(m) = new_area;
         end
 
         if get(obj.replicate_mask_checkbox,'Value')
