@@ -1077,7 +1077,7 @@ classdef front_end_menu_controller < handle
         end
 
         function menu_tools_preferences_callback(obj)
-            profile = profile_controller();
+            profile = profile_controller.get_instance();
             profile.set_profile();
         end
 

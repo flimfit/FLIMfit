@@ -80,7 +80,7 @@ classdef flim_fit_ui
            
            
            
-            profile = profile_controller();
+            profile = profile_controller.get_instance();
             profile.load_profile();
             
 

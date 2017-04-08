@@ -28,7 +28,7 @@ function prof = get_profile()
     % Author : Sean Warren
     
 
-    pc = profile_controller();
+    pc = profile_controller.get_instance();
     prof = pc.get_profile();
 
 end
