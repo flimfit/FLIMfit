@@ -7,15 +7,13 @@ export CC=/usr/local/bin/gcc-6
 export CXX=/usr/local/bin/g++-6
 
 echo "Checking for homebrew install..."
-(brew | grep "command not found") \
+(brew update | grep "command not found") \
 	&& rruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
 	|| echo "Homebrew installed"
 
-brew update
-
 echo "Ensure cmake, gcc and boost are installed..."
 # Ensure gcc, ghostscript, cmake, LAPACK are installed using Homebrew
-(brew list | grep gcc6) || brew install homebrew/versions/gcc6
+(brew list | grep gcc6) || brew install homebrew/versions/gcc6 --without-multilib
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 (brew list | grep platypus) && echo " installed" || brew install platypus
