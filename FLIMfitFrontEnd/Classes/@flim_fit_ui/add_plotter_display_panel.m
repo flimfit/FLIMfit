@@ -43,29 +43,38 @@ function handles = add_plotter_display_panel(obj,handles,parent)
         
     uicontrol( 'Style', 'text', 'String', 'Combine  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Error bars  ', 'Parent', param_layout, ...
+    uicontrol( 'Style', 'text', 'String', 'Weighting  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
     
     handles.graph_grouping_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'By Pixel' 'By Region' 'By FOV' 'By Well'}, 'Parent', param_layout );       
-    handles.error_type_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Standard Deviation', 'Standard Error', '95% Confidence'}, 'Parent', param_layout );
+    handles.graph_weighting_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'None','Intensity Weighted'}, 'Parent', param_layout );       
         
+    uicontrol( 'Style', 'text', 'String', 'Error bars  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
     uicontrol( 'Style', 'text', 'String', 'Display  ', 'Parent', param_layout, ...
                'HorizontalAlignment', 'right' );
-%     uix.Empty( 'Parent', param_layout );
-    uicontrol( 'Style', 'text', 'String', 'Data cursor  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-           
+
+    handles.error_type_popupmenu = uicontrol( 'Style', 'popupmenu', ...
+            'String', {'Standard Deviation', 'Standard Error', '95% Confidence'}, 'Parent', param_layout );
     handles.graph_display_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Line' 'Line with Scatter' 'Box Plot'}, 'Parent', param_layout );       
-%     uix.Empty( 'Parent', param_layout );
+
+        
+    uicontrol( 'Style', 'text', 'String', 'Data cursor  ', 'Parent', param_layout, ...
+               'HorizontalAlignment', 'right' );
+    uix.Empty( 'Parent', param_layout );
+           
+    
+
     handles.graph_dcm_popupmenu = uicontrol( 'Style', 'popupmenu', ...
             'String', {'Off' 'Datatip' 'Window'}, 'Parent', param_layout ); 
+    uix.Empty( 'Parent', param_layout );
     
         
     set( param_layout, 'Heights', [22,22] );
-    set( param_layout, 'Widths', [90,90,90,90,90,90] );
+    set( param_layout, 'Widths', [90,90,90,90,90,90,90,90] );
     
     set( layout, 'Heights', [-1 70]) 
     
