@@ -86,7 +86,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Time Min. ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'IRF Shift ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     
-    handles.irf_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'Scatter', 'Reference', 'Ref using deconvolution)'}, 'Parent', irf_transformation_layout );
+    handles.irf_type_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'Scatter', 'Reference'}, 'Parent', irf_transformation_layout );
     handles.irf_background_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', irf_transformation_layout );
     handles.t_irf_min_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', irf_transformation_layout );
     handles.t0_edit = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', irf_transformation_layout );    

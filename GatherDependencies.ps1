@@ -1,10 +1,8 @@
 $OME = $env:OME
 $BIO = $env:BIO
-$MSVC_VER = $env:MSVC_VER
 
 if (!$OME) { $OME=5.2 }
-if (!$BIO) { $BIO=5.2 }
-if (!$MSVC_VER) { $MSVC_VER=12 }
+if (!$BIO) { $BIO=5.4 }
 
 echo "OMERO version = " $OME
 echo "Bio-Formats version = " $BIO

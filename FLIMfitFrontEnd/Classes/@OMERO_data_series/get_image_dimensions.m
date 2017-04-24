@@ -1,4 +1,3 @@
-
 function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
 
 % Finds the dimensions of an OMERO image or set of images including 
@@ -32,7 +31,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
     % instead
     
     
-    if findstr(class(image),'char')
+    if strfind(class(image),'char')
         [dims,t_int,reader_settings] = get_image_dimensions@flim_data_series(obj, image);
         return;
     end
@@ -44,6 +43,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
     dims.modulo = 'none';
     dims.FLIM_type = [];
     dims.sizeZCT = [];
+    dims.data_type = 'single';
     
     
     dims.chan_info = [];
@@ -88,10 +88,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
         end
     
     else
-        rdims = obj.parse_modulo_annotation(s, sizeZCT );
-        if ~isempty(rdims)
-            dims = rdims;
-        end
+        dims = obj.parse_modulo_annotation(s, sizeZCT, dims);
       
         % get channel_names 
         pixelsService = session.getPixelsService();

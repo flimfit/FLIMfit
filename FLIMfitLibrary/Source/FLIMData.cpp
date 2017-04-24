@@ -656,6 +656,8 @@ int FLIMData::GetMaskedData(int thread, int im, int region, float* masked_data, 
 
    if (data_class == DATA_FLOAT)
       TransformImage<float>(thread, im);
+   else if (data_class == DATA_UINT32)
+      TransformImage<uint32_t>(thread, im);
    else
       TransformImage<uint16_t>(thread, im);
 

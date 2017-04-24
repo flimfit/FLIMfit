@@ -72,8 +72,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                     end
                 else
                     str = num2str((0:seriesCount - 1)');
-                    prompt = [{sprintf(['This file holds ' num2str(seriesCount) ' images. Numbered 0-' num2str(seriesCount -1) '\nPlease select one'])} {''}];
-                    imageSeries = listdlg('PromptString',prompt,'SelectionMode','single','ListString',str);
+                    prompt = [{sprintf(['This file holds ' num2str(seriesCount) ' images. Numbered 0-' num2str(seriesCount -1) '\nPlease select one!'])} {''}];
+                    imageSeries = listdlg('PromptString',prompt,'SelectionMode','single','ListString',str,'ListSize',[260 120]);
                     if isempty(imageSeries)
                         return;
                     end
@@ -249,6 +249,10 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
             supports_realignment = FLIMreaderMex(r,'SupportsRealignment');
             bidirectional = FLIMreaderMex(r,'IsBidirectional');
+            
+            if isdeployed
+                supports_realignment = false;
+            end
             
             if length(dims.delays) > 1
                 dt = dims.delays(2) - dims.delays(1);

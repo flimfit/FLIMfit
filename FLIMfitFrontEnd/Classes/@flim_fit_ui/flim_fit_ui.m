@@ -28,7 +28,6 @@ classdef flim_fit_ui
    
     properties
         window
-        model
     end
     
     methods
@@ -49,6 +48,7 @@ classdef flim_fit_ui
             end
                         
             if ~isdeployed
+                addpath_global_analysis();
                 if ispc
                     path_ = [pwd '\pdftops.exe'];
                 end
@@ -80,7 +80,7 @@ classdef flim_fit_ui
            
            
            
-            profile = profile_controller();
+            profile = profile_controller.get_instance();
             profile.load_profile();
             
 
@@ -99,12 +99,31 @@ classdef flim_fit_ui
                 'MenuBar', 'none', ...
                 'Toolbar', 'none', ...
                 'HandleVisibility', 'off', ...
-                'Visible','off',...
-                'Units','normalized',...
-                'OuterPosition',[0 0 1 1]);
-                                    
+                'Visible','off'); %, ...
+                %'Units','normalized', ...
+                %'OuterPosition',[0 0.03 1 0.97]);
+            
+            coords = get(0,'MonitorPositions');             
+            %position only in main monitor
+                        
+            monitor = 1;                       
+            coords = coords(monitor,:);
+            
+            % Allow for taskbar if we're on windows
+            comp = computer;
+            if strcmp(comp(1:2),'PC')
+                coords(4) = coords(4) - 40;
+                coords(2) = coords(2) + 40;
+            end
+            
+            try 
+                set(obj.window,'Units','Pixels','OuterPosition',coords);
+            catch e %#ok
+               disp('Warning: could not maximise window'); 
+            end
             handles = guidata(obj.window); 
-                                                
+             
+        
             handles.version = v;
             handles.window = obj.window;
             handles.use_popup = true;
@@ -112,7 +131,6 @@ classdef flim_fit_ui
             handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
-            handles.model_controller = flim_model_controller(handles.model_panel);            
             handles.data_series_controller = flim_data_series_controller(handles);                                    
             handles.omero_logon_manager = flim_omero_logon_manager(handles);
             
@@ -130,6 +148,12 @@ classdef flim_fit_ui
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
             
+            
+            % unless preferences specifically say not, then show OMERO logon
+            %if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
+            %   handles.omero_logon_manager.Omero_logon();
+            %end
+            
             handles = obj.setup_menu(handles);            
             
             handles.menu_controller = front_end_menu_controller(handles);
@@ -141,50 +165,32 @@ classdef flim_fit_ui
             
             % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
             % bfCheckJavaPath
-            
-            % first check they aren't already in the dynamic path
-            jPath = javaclasspath('-dynamic');
-            utilJarInPath = false;
-            ini4jInPath = false;
-            for i = 1:length(jPath)
-                if strfind(jPath{i},'OMEuiUtils.jar')
-                    utilJarInPath = true;
-                end
-                if strfind(jPath{i},'ini4j.jar')
-                    ini4jInPath = true;
-                end
-                if utilJarInPath && ini4jInPath
-                    break;
-                end
-            end
+
+            jPath = javaclasspath;
+
+            function findAndAddJar(jar)
+               
+                already_in_path = any(cellfun(@(x) ~isempty(strfind(x,jar)),jPath));
                 
-            if ~utilJarInPath
-                path = which('OMEuiUtils.jar');
-                if isempty(path)
-                    path = fullfile(fileparts(mfilename('fullpath')), 'OMEuiUtils.jar');
+                if ~already_in_path
+                    path = which(jar);
+                    if isempty(path)
+                        path = fullfile(fileparts(mfilename('fullpath')), jar);
+                    end
+                    if ~isempty(path) && exist(path, 'file') == 2
+                        javaaddpath(path);
+                        disp(['Added ' jar])
+                    else 
+                        assert(['Cannot automatically locate ' jar]);
+                    end
                 end
-                if ~isempty(path) && exist(path, 'file') == 2
-                    javaaddpath(path);
-                else 
-                     assert('Cannot automatically locate an OMEuiUtils JAR file');
-                end
+                
             end
-            
-            if ~ini4jInPath
-                path = which('ini4j.jar');
-                if isempty(path)
-                    path = fullfile(fileparts(mfilename('fullpath')), 'ini4j.jar');
-                end
-                if ~isempty(path) && exist(path, 'file') == 2
-                    javaaddpath(path);
-                else 
-                     disp('Cannot automatically locate an ini4j JAR file');
-                     close all;
-                     return;
-                end
+                        
+            if ~isdeployed
+                findAndAddJar('OMEuiUtils.jar')
+                findAndAddJar('ini4j.jar')
             end
-            
-            
    
             % verify that enough memory is allocated for bio-formats
             bfCheckJavaMemory();
@@ -201,14 +207,13 @@ classdef flim_fit_ui
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
-                        
+            
+          
+            close all;
+            
             set(obj.window,'Visible','on');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                        
-            pause(0.00001);
-            frame_h = get(obj.window,'JavaFrame');
-            frame_h.setMaximized(true); 
-            
             if wait
                 waitfor(obj.window);
             end
@@ -270,6 +275,10 @@ classdef flim_fit_ui
             end
             
             clear all;
+
+             
+          
+            
             
         end
         

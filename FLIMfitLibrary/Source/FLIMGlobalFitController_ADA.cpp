@@ -122,7 +122,7 @@ void DecayModel::SetupIncMatrix(int* inc)
    {
       for(i=0; i<( n_pol_group * n_fret_group * n_exp_phi ); i++)
       {
-         inc[inc_row + i*12]++;
+         inc[inc_row +(inc_col+i)*12]++;
       }
       inc_row++;
    }

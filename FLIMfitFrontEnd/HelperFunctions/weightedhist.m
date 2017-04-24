@@ -126,17 +126,17 @@ else
       linkBehavior.DataSourceFcn = {@localDataChange linkBehavior N};
       if ~isempty(varName)
           if ~isvector(y)
-              linkBehavior.DataSource = getcolumn(varName,k,'expression');
+              linkBehavior.YDataSource = getcolumn(varName,k,'expression');
           else
-              linkBehavior.DataSource = varName;
+              linkBehavior.YDataSource = varName;
           end
       end
       linkBehavior.BrushFcn = {@localBrushFunc linkBehavior x};
-      linkBehavior.LinkBrushFcn = {@localSetLinkedBrushing};
+      linkBehavior.LinkBrushQueryFcn = {@localSetLinkedBrushing};
       brushBehavior = hggetbehavior(histPatch(k),'Brush');
       brushBehavior.DrawFcn = {@localDrawFunc brushBehavior histPatch(k)};
       if isempty(get(histPatch(k),'DisplayName'))
-          set(histPatch(k),'DisplayName',linkBehavior.DataSource)
+          set(histPatch(k),'DisplayName',linkBehavior.YDataSource)
       end
       datacursorBehavior = hggetbehavior(histPatch(k),'datacursor');
       set(datacursorBehavior,'UpdateDataCursorFcn',...

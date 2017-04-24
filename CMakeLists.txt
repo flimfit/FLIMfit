@@ -2,11 +2,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.14.29.tar.gz"
-    SHA1 "9c29c30fff99b7c1479b2e9d4926dcc3f8d364e0"
+    URL "https://github.com/ruslo/hunter/archive/v0.18.43.tar.gz"
+    SHA1 "d2c8c42cd07f7cefe18fd9a9b9c13114b1a15a27"
     LOCAL
 )
-
 project(FLIMfit)
 
 hunter_add_package(OpenCV)

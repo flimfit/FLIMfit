@@ -175,6 +175,8 @@ try
         metadata.FileName = new_strings;
     end
     
+    metadata.ImgNum = num2cell(1:n);
+    
     
     names = fieldnames(metadata);
 
