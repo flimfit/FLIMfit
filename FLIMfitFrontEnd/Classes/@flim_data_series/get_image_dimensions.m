@@ -250,6 +250,10 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             supports_realignment = FLIMreaderMex(r,'SupportsRealignment');
             bidirectional = FLIMreaderMex(r,'IsBidirectional');
             
+            if isdeployed
+                supports_realignment = false;
+            end
+            
             if length(dims.delays) > 1
                 dt = dims.delays(2) - dims.delays(1);
             else
