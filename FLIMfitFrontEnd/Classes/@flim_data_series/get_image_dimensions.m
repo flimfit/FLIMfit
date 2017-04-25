@@ -1,5 +1,5 @@
 
-function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
+function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
 
 % Finds the dimensions of an image file or set of files including 
 % the units along the time dimension (delays)
@@ -30,7 +30,9 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
 
     reader_settings = struct();
     
-    t_int = [];
+    meta.rep_rate = nan;
+    
+    dims.t_int = [];
     dims.delays = [];
     dims.modulo = [];
     dims.FLIM_type = [];
@@ -249,6 +251,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             dims.delays = FLIMreaderMex(r,'GetTimePoints');
             supports_realignment = FLIMreaderMex(r,'SupportsRealignment');
             bidirectional = FLIMreaderMex(r,'IsBidirectional');
+            meta.rep_rate = FLIMreaderMex(r,'GetRepRate') * 1e-6;
             
             if isdeployed
                 supports_realignment = false;
@@ -427,8 +430,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
     
    
     
-    if length(t_int) ~= length(dims.delays)
-        t_int = ones(size(dims.delays));
+    if length(dims.t_int) ~= length(dims.delays)
+        dims.t_int = ones(size(dims.delays));
     end
 
 end

@@ -27,8 +27,9 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     % Author : Sean Warren
     
     % get dimensions from first file
-    [dims,~,obj.reader_settings] = obj.get_image_dimensions(obj.file_names{1});
+    [dims,obj.reader_settings,meta] = obj.get_image_dimensions(obj.file_names{1});
     obj.data_type = dims.data_type;
+    obj.rep_rate = meta.rep_rate;
     
     if isempty(dims.delays)     % cancelled out
         if ~isempty(dims.error_message)

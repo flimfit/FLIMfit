@@ -43,7 +43,7 @@ function load_irf(obj,file_or_image,load_as_image)
         end
     else
         
-        [dims,~,reader_settings] = obj.get_image_dimensions(file_or_image);
+        [dims,reader_settings] = obj.get_image_dimensions(file_or_image);
         
         if isempty(dims.delays) 
             return;

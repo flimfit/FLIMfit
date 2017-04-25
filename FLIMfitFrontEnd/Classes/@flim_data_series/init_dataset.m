@@ -48,7 +48,9 @@ function init_dataset(obj,setting_file_name)
         end
     end
     
-    obj.rep_rate = prof.Data.Default_Rep_Rate;
+    if ~isfinite(obj.rep_rate)
+        obj.rep_rate = prof.Data.Default_Rep_Rate;
+    end
     
     obj.background_image = [];
     

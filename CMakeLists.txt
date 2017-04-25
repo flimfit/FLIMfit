@@ -10,6 +10,7 @@ project(FLIMfit)
 
 hunter_add_package(OpenCV)
 hunter_add_package(Boost COMPONENTS system filesystem)
+hunter_add_package(dlib)
 
 set(FLIMreaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)
 

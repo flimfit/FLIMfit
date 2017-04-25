@@ -70,7 +70,7 @@ classdef flim_data_series < handle & h5_serializer
         background_type = 0;
         background_value = 0;
         
-        rep_rate = 80;
+        rep_rate = nan;
  
         t0 = 0;
         
@@ -257,6 +257,9 @@ classdef flim_data_series < handle & h5_serializer
             end
             
             warning('on','MATLAB:DELETE:Permission');
+            
+            prof = get_profile();
+            obj.rep_rate = prof.Data.Default_Rep_Rate;
             
         end
         

@@ -48,7 +48,7 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Time Max. ',    'HorizontalAlignment', 'right', 'Parent', data_transformation_layout );
     uix.Empty( 'Parent', data_transformation_layout );
     
-    handles.rep_rate_edit          = uicontrol( 'Style', 'edit', 'String', '80', 'Parent', data_transformation_layout );
+    handles.rep_rate_edit          = uicontrol( 'Style', 'edit', 'String', '0', 'Parent', data_transformation_layout );
     handles.gate_max_edit          = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
     handles.t_max_edit             = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', data_transformation_layout );
     uix.Empty( 'Parent', data_transformation_layout );

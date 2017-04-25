@@ -42,7 +42,7 @@ function load_tvb(obj,file_or_image)
         end
     else
     
-        [dims,~,reader_settings] = obj.get_image_dimensions(file_or_image);
+        [dims,reader_settings] = obj.get_image_dimensions(file_or_image);
         
         if isempty(dims.delays)
             return;
