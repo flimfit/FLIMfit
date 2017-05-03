@@ -25,6 +25,11 @@ function load_irf(obj,file_or_image,load_as_image)
 
     % Author : Sean Warren
 
+    if ~obj.init
+        errordlg('Please load your data before loading an IRF','Error');
+        return;
+    end
+    
      prof = get_profile();    
    
      if strcmp(class(file_or_image),'char')
