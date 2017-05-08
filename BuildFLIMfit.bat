@@ -1,7 +1,7 @@
 @echo off
 
 IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2016b
-IF NOT DEFINED MSVC_VER SET MSVC_VER=15
+IF NOT DEFINED MSVC_VER SET MSVC_VER=14
 
 if %MSVC_VER%==11 SET MSVC_YEAR=2012
 if %MSVC_VER%==12 SET MSVC_YEAR=2013
@@ -13,8 +13,8 @@ SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64
 echo rmdir %PROJECT_DIR% /s /q
 echo mkdir %PROJECT_DIR%
 
-if %MSVC_VER%==15 set GENERATOR="Visual Studio %MSVC_VER% Win64"
-else set GENERATOR="Visual Studio %MSVC_VER% %MSVC_YEAR% Win64"
+if %MSVC_VER%==15 (set GENERATOR="Visual Studio %MSVC_VER% Win64"
+) else set GENERATOR="Visual Studio %MSVC_VER% %MSVC_YEAR% Win64"
 
 echo Generating CMake Project in: %PROJECT_DIR%
 echo Using Generator: %GENERATOR%

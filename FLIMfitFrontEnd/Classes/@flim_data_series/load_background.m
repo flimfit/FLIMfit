@@ -50,7 +50,7 @@ function load_background(obj, file_or_image, time_average)
     
     if isempty(im)  % not a .tif
     
-        [dims, ~, reader_settings] = obj.get_image_dimensions(file_or_image);
+        [dims, reader_settings] = obj.get_image_dimensions(file_or_image);
         
         % Determine which plane we need to load (param 5 disallows the
         % selection of multiple planes )

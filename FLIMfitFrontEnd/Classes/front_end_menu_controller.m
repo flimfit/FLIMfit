@@ -680,7 +680,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                obj.set_default_path(path);
+                obj.set_default_path(folder);
             end
         end
         
@@ -721,7 +721,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
-                obj.set_default_path(path);
+                obj.set_default_path(folder);
             end
         end
         

@@ -1,4 +1,4 @@
-function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
+function[dims,reader_settings,meta] = get_image_dimensions(obj, image)
 
 % Finds the dimensions of an OMERO image or set of images including 
 % the units along the time dimension (delays)
@@ -32,13 +32,15 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
     
     
     if strfind(class(image),'char')
-        [dims,t_int,reader_settings] = get_image_dimensions@flim_data_series(obj, image);
+        [dims,reader_settings,meta] = get_image_dimensions@flim_data_series(obj, image);
         return;
+    else
+        meta.rep_rate = nan;
     end
     
     reader_settings = struct();
     
-    t_int = [];
+    dims.t_int = [];
     dims.delays = [];
     dims.modulo = 'none';
     dims.FLIM_type = [];
@@ -120,8 +122,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
         dims.error_message = 'Unable to load! Not time resolved data.';
     end
     
-    if length(t_int) ~= length(dims.delays)
-        t_int = ones(size(dims.delays));
+    if length(dims.t_int) ~= length(dims.delays)
+        dims.t_int = ones(size(dims.delays));
     end
         
 end

@@ -41,7 +41,7 @@ function load_acceptor_images(obj,path)
             
             % check dimensions of the first file
             file_name = options.background;
-            [dims,~,reader_settings] = obj.get_image_dimensions(file_name);
+            [dims,reader_settings] = obj.get_image_dimensions(file_name);
             if length(dims.delays) > 1 
                 errordlg('Not yet implemented for time-resolved data data');
                 return;
@@ -89,7 +89,7 @@ function load_acceptor_images(obj,path)
         else
             
             % check dimensions of the first file
-            [dims,~,reader_settings] = obj.get_image_dimensions(file_names{1});
+            [dims,reader_settings] = obj.get_image_dimensions(file_names{1});
             if sum(dims.sizeZCT) > 3 
                 errordlg('Not yet implemented for multi-plane data');
                 return;

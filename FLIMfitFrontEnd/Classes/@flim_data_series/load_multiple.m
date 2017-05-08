@@ -29,6 +29,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file)
     % get dimensions from first file
     reader = get_flim_reader(obj.file_names{1});
     obj.data_type = reader.data_type;
+    %obj.rep_rate = meta.rep_rate; % TODO: rep rate
     
     if strcmp(reader.error_message,'cancelled')
         return
