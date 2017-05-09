@@ -4,6 +4,9 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
     t = -max(td):1:max(td);
     dc = [];
     
+    dvalid = d > 0;
+
+    
     opts = optimset('Display', 'iter', 'MaxFunEvals', 10000);
 
     tau0 = 4000;
@@ -41,7 +44,10 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
         dc = I * dc;
         
         n_free = length(d) - length(x);
-        chi2 = sum((d-dc).^2./d)/n_free;
+
+        % Use maximum likelihood estimator
+        A = d(dvalid) .* log(dc(dvalid)./d(dvalid));
+        chi2 = -2 * ( sum(d-dc) + sum(A)) / n_free;
         
         if mod(count,20) == 0
             label = ['\chi^2 = ' num2str(chi2,4)];
@@ -73,6 +79,7 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
 
     function [dc,binned_irf,binned_t] = generate_decay(I, tau, mu, sigma, lambda, offset)
         irf = exp(lambda/2.*(2*mu+lambda*sigma^2-2*t)).*erfc((mu+lambda*sigma^2-t)/(sqrt(2)*sigma));
+        irf(~isfinite(irf)) = 0;
         
         [binned_irf, binned_t] = bin_decay(irf);
         dc = I * conv_irf(binned_t,binned_irf,tau);
