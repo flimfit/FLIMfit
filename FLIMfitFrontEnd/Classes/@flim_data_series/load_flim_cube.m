@@ -292,11 +292,11 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
 
         case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh'}
             
-            r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
-            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
-            FLIMreaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
-            FLIMreaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
+            r = FlimReaderMex(file);
+            FlimReaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FlimReaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            FlimReaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
+            FlimReaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
 
             if ~polarisation_resolved && length(Carr) > 1 
                 chan = Carr(read_selected); % load channels sequentially
@@ -304,10 +304,10 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 chan = Carr;
             end
             
-            data = FLIMreaderMex(r, 'GetData', chan);
+            data = FlimReaderMex(r, 'GetData', chan);
             
             target(:,:,:,:,write_selected) = data;
-            FLIMreaderMex(r,'Delete');
+            FlimReaderMex(r,'Delete');
         
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % No need to allow for multiple Z,C or T as this format can't store them
