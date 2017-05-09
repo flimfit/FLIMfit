@@ -263,7 +263,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
                 dt = 1;
             end
             
-            reader_settings = FlimReader_options_dialog(length(dims.delays), dt, supports_realignment, bidirectional);
+            reader_settings = FLIMreader_options_dialog(length(dims.delays), dt, supports_realignment, bidirectional);
             
             FlimReaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
             FlimReaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
