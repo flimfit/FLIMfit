@@ -236,7 +236,7 @@ classdef flim_fit_ui
             
             diagnostics('program','end');
             
-            %attempt to supress crash report on OSX
+            %attempt to supress crash report on OSX #315
             if ismac && isdeployed
                 setenv('MW_CRASH_MODE','none');
             end
