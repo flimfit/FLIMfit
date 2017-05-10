@@ -236,6 +236,11 @@ classdef flim_fit_ui
             
             diagnostics('program','end');
             
+            %attempt to supress crash report on OSX
+            if ismac && isdeployed
+                setenv('MW_CRASH_MODE','none');
+            end
+            
             handles = guidata(obj.window);
             client = handles.omero_logon_manager.client;
             
