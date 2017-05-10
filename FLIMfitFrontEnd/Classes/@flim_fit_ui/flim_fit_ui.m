@@ -218,6 +218,7 @@ classdef flim_fit_ui
                 waitfor(obj.window);
             end
             
+            
         end
         
         function vx = split_ver(obj,ver)
@@ -276,7 +277,7 @@ classdef flim_fit_ui
             %- TBD work out what's leaving it open
             h = get(0,'Children');
             if ~isempty(h)
-                close(h);
+                delete(h);
             end
             
             clear all;
