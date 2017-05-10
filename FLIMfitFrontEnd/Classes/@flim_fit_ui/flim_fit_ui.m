@@ -28,6 +28,7 @@ classdef flim_fit_ui
    
     properties
         window
+        closeRequestFlag = false;
     end
     
     methods
@@ -235,7 +236,8 @@ classdef flim_fit_ui
         
         function close_request_fcn(obj,~,~)
             
-            if isdeployed
+            if isdeployed & ~closeRequestFlag
+                closeRequestFlag = true;
                 exit()
             end
             
