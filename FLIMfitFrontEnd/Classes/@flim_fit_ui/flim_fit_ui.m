@@ -236,8 +236,8 @@ classdef flim_fit_ui
         
         function close_request_fcn(obj,~,~)
             
-            if isdeployed & ~closeRequestFlag
-                closeRequestFlag = true;
+            if isdeployed & ~obj.closeRequestFlag
+                obj.closeRequestFlag = true;
                 exit()
             end
             
