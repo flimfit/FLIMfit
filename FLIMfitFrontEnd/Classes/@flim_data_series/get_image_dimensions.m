@@ -60,7 +60,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             data_type = char(omeMeta.getPixelsType(0));
             
             if ~any(strcmp(data_type,{'float','uint32','uint16'}))
-                data_type = float;
+                data_type = 'float';
             end
             
             dims.data_type = data_type;
