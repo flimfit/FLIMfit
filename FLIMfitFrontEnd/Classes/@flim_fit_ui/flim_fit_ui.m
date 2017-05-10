@@ -234,13 +234,13 @@ classdef flim_fit_ui
         
         function close_request_fcn(obj,~,~)
             
-            diagnostics('program','end');
-            
-            %attempt to supress crash report on OSX #315
-            if ismac && isdeployed
-                setenv('MW_CRASH_MODE','none');
+            if isdeployed
+                exit()
             end
             
+            diagnostics('program','end');
+            
+           
             handles = guidata(obj.window);
             client = handles.omero_logon_manager.client;
             
