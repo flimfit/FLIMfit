@@ -260,7 +260,12 @@ function compile(exit_on_error)
                 pause(3)
                 system(cmd);
                 pause(3)
-                movefile([deploy_folder '/FLIMfit.app'], [final_folder '/' package_name '.app']);
+                
+                final_file = [final_folder '/' package_name '.app'];
+                movefile([deploy_folder '/FLIMfit.app'], final_file);
+                
+                % sign code - need to have certificate installed
+                system(['codesign -s P6MM899VL9 ' final_file]);
                 
                 cd('DeployLibraries')
                 zip(['flimfit_libraries_maci64_' v '.zip'],{'*.dylib','*.mexmaci64'})
