@@ -129,7 +129,7 @@ function im=display_flim(data,mask,lim,varargin)
         im = mapped_data;
     end
     
-    fonts = listfonts();
+    fonts = listTrueTypeFonts();
     font_options = {'Arial','Arial Unicode','Arial Unicode MS','Helvetica'};
     font_installed = cellfun(@(font) any(strcmp(fonts,font)), font_options);
     font_sel = find(font_installed,1,'first');
