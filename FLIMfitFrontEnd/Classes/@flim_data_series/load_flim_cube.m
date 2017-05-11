@@ -385,7 +385,12 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 
                 % check that we are supposed to load this FLIM cube
                 if ctr == read_selected  ||  polarisation_resolved  
-                    target(:,pctr,:,:,write_selected) = ir(:,chan);
+                    try 
+                        target(:,pctr,:,:,write_selected) = ir(:,chan);
+                    catch
+                        target(:,pctr,:,:,write_selected) = zeros(size(target(:,pctr,:,:,write_selected)));
+                        errordlg(['Possible size mismatch in ' file], 'Unable to load!');
+                    end
                 end
                 
                 if polarisation_resolved
