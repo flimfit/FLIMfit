@@ -42,7 +42,8 @@ export PATH;
 
 echo DYLD_LIBRARY_PATH is ${DYLD_LIBRARY_PATH};
 echo PATH is ${PATH};
-
+export MW_CRASH_MODE=none;
+echo MW_CRASH_MODE is ${MW_CRASH_MODE};
 
   args=
   while [ $# -gt 0 ]; do
