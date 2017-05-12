@@ -267,7 +267,7 @@ function compile(exit_on_error)
                 % sign code - need to have certificate installed
                 disp('Signing executable...')
                 [~,response] = system(['codesign -s P6MM899VL9 ' final_file '/']);
-                disp(reponse);
+                disp(response);
                 
                 cd('DeployLibraries')
                 zip(['flimfit_libraries_maci64_' v '.zip'],{'*.dylib','*.mexmaci64'})
