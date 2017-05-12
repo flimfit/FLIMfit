@@ -230,8 +230,8 @@ function compile(exit_on_error)
                     pause(2);
                 end
 
-                disp( ['copying ' deployFiles_folder '/microscopeGreen.icns' ' to ' resource_folder '/membrane.icns' ] );
-                copyfile( [deployFiles_folder '/microscopeGreen.icns'], [resource_folder '/membrane.icns' ],'f');
+                disp( ['copying ' deployFiles_folder '/FLIMfit-icon.icns' ' to ' resource_folder '/membrane.icns' ] );
+                copyfile( [deployFiles_folder '/FLIMfit-icon.icns'], [resource_folder '/membrane.icns' ],'f');
 
                 pause(1);
 
