@@ -235,7 +235,8 @@ classdef flim_fit_ui
         function close_request_fcn(obj,~,~)
             
             if ismac & isdeployed
-                setenv('MW_CRASH_MODE ','none');
+                settingCrashMode = 1
+                setenv('MW_CRASH_MODE','none');
             end
             
             diagnostics('program','end');
