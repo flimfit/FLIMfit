@@ -261,12 +261,12 @@ function compile(exit_on_error)
                 system(cmd);
                 pause(3)
                 
-                final_file = [final_folder '/' package_name '.app'];
+                final_file = [final_folder package_name '.app'];
                 movefile([deploy_folder '/FLIMfit.app'], final_file);
                 
                 % sign code - need to have certificate installed
                 disp('Signing executable...')
-                [~,response] = system(['codesign -s P6MM899VL9 ' final_file '/']);
+                [~,response] = system(['codesign -s P6MM899VL9 "' final_file '"/']);
                 disp(response);
                 
                 cd('DeployLibraries')
