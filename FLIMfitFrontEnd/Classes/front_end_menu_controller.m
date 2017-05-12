@@ -107,6 +107,7 @@ classdef front_end_menu_controller < handle
         menu_file_save_data_settings;
         
         menu_file_load_t_calibration;
+        menu_OMERO_import;
         
         menu_file_open_fit;
         menu_file_save_fit;
@@ -772,6 +773,49 @@ classdef front_end_menu_controller < handle
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.data_series_controller.data_series.load_data_settings([pathname filename]);         
+            end
+        end
+        
+        function menu_OMERO_import_callback(obj)
+            
+            if isempty(obj.omero_logon_manager.client)
+                errordlg('Please log on First!');
+                return;
+            end                
+     
+            obj.data_series_controller.data_series.clear();    % ensure delete if multiple handles
+            obj.data_series_controller.data_series = OMERO_data_series();
+            obj.data_series_controller.data_series.omero_logon_manager = obj.omero_logon_manager;
+            default_name = '';
+            chooser = OMEuiUtils.OMEROImageChooser(obj.omero_logon_manager.client, obj.omero_logon_manager.userid, int32(1));
+            dataset = chooser.getSelectedDataset();
+            clear chooser;
+            
+            while true
+                [filename,pathname] = uigetfile('*.*','Select next file for import then DELETION!');
+                if filename ~= 0
+            
+    files = dir([pathname '\*.tif']);
+    nfiles = length(files);
+    for l = 1:nfiles
+        filenames{l} =  files(l).name; 
+    end
+%                     before_list = [];
+
+    send_Images(obj.omero_logon_manager,pathname,filenames, dataset);
+
+                    % write to OMERO
+%                     obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
+
+%     add_Images(obj.omero_logon_manager,pathname,after_list, dataset);
+%     for p = 1:length(filenames)
+%     fpath = [dirpath filenames{p}];
+                    
+%                     before_list = [];
+%                     obj.data_series_controller.data_series.export_new_images(pathname,filename ,before_list, dataset);
+                else
+                    return;
+                end
             end
         end
         
