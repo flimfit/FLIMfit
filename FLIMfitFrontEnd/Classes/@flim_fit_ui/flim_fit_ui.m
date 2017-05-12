@@ -234,6 +234,8 @@ classdef flim_fit_ui
         
         function close_request_fcn(obj,~,~)
             
+            closeReqfnDebug = 1
+            
             diagnostics('program','end');
             
             handles = guidata(obj.window);
