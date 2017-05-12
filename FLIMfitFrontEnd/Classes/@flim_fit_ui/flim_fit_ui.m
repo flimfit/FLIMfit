@@ -218,6 +218,7 @@ classdef flim_fit_ui
                 waitfor(obj.window);
             end
             
+            
         end
         
         function vx = split_ver(obj,ver)
@@ -233,9 +234,21 @@ classdef flim_fit_ui
 
         
         function close_request_fcn(obj,~,~)
+        
+            if isdeployed
+                exit()
+            else
+                obj.close_all();
+            end
+        end
+            
+            
+        function close_all(obj)
+            
             
             diagnostics('program','end');
             
+           
             handles = guidata(obj.window);
             client = handles.omero_logon_manager.client;
             
@@ -271,7 +284,7 @@ classdef flim_fit_ui
             %- TBD work out what's leaving it open
             h = get(0,'Children');
             if ~isempty(h)
-                close(h);
+                delete(h);
             end
             
             clear all;
