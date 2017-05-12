@@ -40,14 +40,14 @@ function on_callback(obj,src,evtData)
     toggle_type = toggle_type{toggles == src};
     toggle_fcn = toggle_fcn{toggles == src};
     
+    if ~isempty(obj.flex_h)
+        delete(obj.flex_h)
+    end
+    
     if strcmp(src.State,'on')
         set(toggles(toggles ~= src),'State','off');
         obj.flex_h = toggle_fcn(obj.figure1,obj.segmentation_axes,toggle_type,sz,@roiCallback);
         obj.toggle_active = src;
-    else
-        if obj.toggle_active == src && ~isempty(obj.flex_h)
-            delete(obj.flex_h)
-        end
     end
     
     function roiCallback(roi_mask,first_pos)
@@ -61,9 +61,12 @@ function on_callback(obj,src,evtData)
         new_area = obj.n_regions;
         if isnumeric(toggle_type) % paint
             first_pos = round(first_pos);
-            old = obj.mask(first_pos(2),first_pos(1),obj.data_series_list.selected);
-            if old > 0
-                new_area = old;
+            
+            if all(first_pos > 0) & all(first_pos <= size(obj.mask)) 
+                old = obj.mask(first_pos(2),first_pos(1),obj.data_series_list.selected);
+                if old > 0
+                    new_area = old;
+                end
             end
         end
         
