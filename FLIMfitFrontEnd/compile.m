@@ -230,8 +230,8 @@ function compile(exit_on_error)
                     pause(2);
                 end
 
-                disp( ['copying ' deployFiles_folder '/FLIMfit-icon.icns' ' to ' resource_folder '/membrane.icns' ] );
-                copyfile( [deployFiles_folder '/FLIMfit-icon.icns'], [resource_folder '/membrane.icns' ],'f');
+                disp( ['copying ' deployFiles_folder '/FLIMfit-icon-grey.icns' ' to ' resource_folder '/membrane.icns' ] );
+                copyfile( [deployFiles_folder '/FLIMfit-icon-grey.icns'], [resource_folder '/membrane.icns' ],'f');
 
                 pause(1);
 
@@ -265,7 +265,9 @@ function compile(exit_on_error)
                 movefile([deploy_folder '/FLIMfit.app'], final_file);
                 
                 % sign code - need to have certificate installed
-                system(['codesign -s P6MM899VL9 ' final_file]);
+                disp('Signing executable...')
+                [~,response] = system(['codesign -s P6MM899VL9 ' final_file '/']);
+                disp(reponse);
                 
                 cd('DeployLibraries')
                 zip(['flimfit_libraries_maci64_' v '.zip'],{'*.dylib','*.mexmaci64'})
