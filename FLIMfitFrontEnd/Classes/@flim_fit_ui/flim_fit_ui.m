@@ -193,20 +193,20 @@ classdef flim_fit_ui
             end
    
             % verify that enough memory is allocated for bio-formats
-            bfCheckJavaMemory();
+            %bfCheckJavaMemory();
           
             % load both bioformats & OMERO
-            autoloadBioFormats = 1;
+            %autoloadBioFormats = 1;
 
             % load the Bio-Formats library into the MATLAB environment
-            status = bfCheckJavaPath(autoloadBioFormats);
-            assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
-                'to the static Java path or add it to the Matlab path.']);
+            %status = bfCheckJavaPath(autoloadBioFormats);
+            %assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
+            %    'to the static Java path or add it to the Matlab path.']);
             
             
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
-            loci.common.DebugTools.enableLogging('ERROR');
+            %loci.common.DebugTools.enableLogging('ERROR');
             
           
             close all;
