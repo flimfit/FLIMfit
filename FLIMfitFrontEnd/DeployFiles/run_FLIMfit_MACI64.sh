@@ -21,6 +21,8 @@ else
   export DYLD_LIBRARY_PATH;
   export XAPPLRESDIR;
   echo DYLD_LIBRARY_PATH is ${DYLD_LIBRARY_PATH};
+  export MW_CRASH_MODE=none;
+  echo MW_CRASH_MODE is ${MW_CRASH_MODE};
   shift 1
   args=
   while [ $# -gt 0 ]; do
