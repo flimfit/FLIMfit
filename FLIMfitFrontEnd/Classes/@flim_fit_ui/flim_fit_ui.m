@@ -234,17 +234,14 @@ classdef flim_fit_ui
         
         function close_request_fcn(obj,~,~)
             
-            if ismac & isdeployed
-                settingCrashMode = 1
-                setenv('MW_CRASH_MODE','none');
-            end
+            
             
             diagnostics('program','end');
             
             handles = guidata(obj.window);
             client = handles.omero_logon_manager.client;
             
-            delete(handles.data_series_controller.data_series)
+            %delete(handles.data_series_controller.data_series)
             
             if ~isempty(client)                
                 
@@ -256,30 +253,31 @@ classdef flim_fit_ui
                 
             end
             
-        
+            exit()
+            
             % Make sure we clean up all the left over classes
-            names = fieldnames(handles);
+            %names = fieldnames(handles);
                       
-            for i=1:length(names)
+           % for i=1:length(names)
                 % Check the field is actually a handle and isn't the window
                 % which we need to close right at the end
-                if ~strcmp(names{i},'window') && all(ishandle(handles.(names{i})))
-                    delete(handles.(names{i}));
-                end
-            end
+            %    if ~strcmp(names{i},'window') && all(ishandle(handles.(names{i})))
+            %        delete(handles.(names{i}));
+            %    end
+            %end
             
        
             % Finally actually close window
-            delete(handles.window);
+            %delete(handles.window);
            
             % kluge to close the left over figure 
             %- TBD work out what's leaving it open
-            h = get(0,'Children');
-            if ~isempty(h)
-                close(h);
-            end
+           % h = get(0,'Children');
+           % if ~isempty(h)
+           %     close(h);
+           % end
             
-            clear all;
+           % clear all;
 
              
           
