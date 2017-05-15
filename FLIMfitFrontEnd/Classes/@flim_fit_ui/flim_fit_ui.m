@@ -263,9 +263,10 @@ classdef flim_fit_ui
                 end
             end
             
-       
+            %close(obj.window)
+            
             % Finally actually close window
-            delete(handles.window);
+            close(handles.window);
            
             % kluge to close the left over figure 
             %- TBD work out what's leaving it open
