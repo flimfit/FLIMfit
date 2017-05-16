@@ -252,7 +252,7 @@ classdef flim_fit_ui
                 
             end
             
-            exit()
+            %exit()
             
             % Make sure we clean up all the left over classes
             %names = fieldnames(handles);
