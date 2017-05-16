@@ -252,7 +252,7 @@ classdef flim_fit_ui
                 
             end
             
-            %exit()
+            delete(gcf);
             
             % Make sure we clean up all the left over classes
             %names = fieldnames(handles);
@@ -267,7 +267,7 @@ classdef flim_fit_ui
             
        
             % Finally actually close window
-            close(handles.window);
+            %close(handles.window);
            
             % kluge to close the left over figure 
             %- TBD work out what's leaving it open
