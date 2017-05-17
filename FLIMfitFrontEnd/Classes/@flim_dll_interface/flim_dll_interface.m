@@ -158,10 +158,10 @@
         
         function delete(obj)
             obj.clear_fit();
-            if libisloaded(obj.lib_name)
-                calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
-                calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
-            end
+            %if libisloaded(obj.lib_name)
+             %   calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
+             %   calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
+            %end
         end
        
         

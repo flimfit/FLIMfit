@@ -271,9 +271,6 @@ classdef flim_fit_ui
             
            % clear all;
 
-             
-          
-            
             
      %   end
         
