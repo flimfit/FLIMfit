@@ -52,6 +52,15 @@ classdef flim_omero_logon_manager < handle
         end
                                         
         function delete(obj)
+            if ~isempty(obj.client)                
+                
+                disp('Closing OMERO session');
+                obj.client.closeSession();
+                
+                obj.session = [];
+                obj.client = [];
+                
+            end
         end
         
         function setDataset(obj, dset) 
