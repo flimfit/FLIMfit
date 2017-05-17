@@ -252,7 +252,8 @@ classdef flim_fit_ui
                 
             end
             
-            delete(gcf);
+            delete(findobj('Type', 'figure'))
+            
             
             % Make sure we clean up all the left over classes
             %names = fieldnames(handles);
