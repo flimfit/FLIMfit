@@ -243,7 +243,7 @@ classdef flim_fit_ui
             %delete(handles.data_series_controller.data_series)
             
             
-            
+            disp('attempting to close!')
             delete(findobj('Type', 'figure'))
             
             
