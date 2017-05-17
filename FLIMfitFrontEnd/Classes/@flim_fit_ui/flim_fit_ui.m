@@ -212,7 +212,7 @@ classdef flim_fit_ui
             close all;
             
             set(obj.window,'Visible','on');
-            set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
+            %set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                        
             if wait
                 waitfor(obj.window);
@@ -232,7 +232,7 @@ classdef flim_fit_ui
         end
 
         
-        function close_request_fcn(obj,~,~)
+       % function close_request_fcn(obj,~,~)
             
 
             %diagnostics('program','end');
@@ -243,8 +243,8 @@ classdef flim_fit_ui
             %delete(handles.data_series_controller.data_series)
             
             
-            disp('attempting to close!')
-            delete(findobj('Type', 'figure'))
+        %    disp('attempting to close!')
+         %   delete(findobj('Type', 'figure'))
             
             
             % Make sure we clean up all the left over classes
@@ -275,7 +275,7 @@ classdef flim_fit_ui
           
             
             
-        end
+     %   end
         
     end
     
