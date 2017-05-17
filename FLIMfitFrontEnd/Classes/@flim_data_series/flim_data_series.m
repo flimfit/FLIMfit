@@ -70,7 +70,7 @@ classdef flim_data_series < handle & h5_serializer
         background_type = 0;
         background_value = 0;
         
-        rep_rate = 80;
+        rep_rate = nan;
  
         t0 = 0;
         
@@ -258,6 +258,9 @@ classdef flim_data_series < handle & h5_serializer
             
             warning('on','MATLAB:DELETE:Permission');
             
+            prof = get_profile();
+            obj.rep_rate = prof.Data.Default_Rep_Rate;
+            
         end
         
         function post_serialize(obj)
@@ -317,11 +320,9 @@ classdef flim_data_series < handle & h5_serializer
                 file = [];
             end
             if obj.init
-                
                 if isempty(file) && ~obj.batch_mode % i.e. not batch
-                    choice = questdlg('Would you like to save the current settings?', ...
-                    'Save Data Settings in the current directory', ...
-                    'Yes','No','No');
+                    title = char(strcat({'In the current directory.'}));
+                    choice = questdlg('Would you like to save the current settings?', title ,'Yes','No','No');
                     if strcmp(choice,'Yes')
                         pol_idx = obj.polarisation_resolved + 1;
                         file = [obj.root_path obj.data_settings_filename{pol_idx}];     

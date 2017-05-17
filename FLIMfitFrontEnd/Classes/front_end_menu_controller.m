@@ -679,7 +679,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
-                obj.set_default_path(path);
+                obj.set_default_path(folder);
             end
         end
         
@@ -720,7 +720,7 @@ classdef front_end_menu_controller < handle
                 end
                 obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
-                obj.set_default_path(path);
+                obj.set_default_path(folder);
             end
         end
         
@@ -1081,14 +1081,14 @@ classdef front_end_menu_controller < handle
         end
 
         function menu_tools_preferences_callback(obj)
-            profile = profile_controller();
+            profile = profile_controller.get_instance();
             profile.set_profile();
         end
 
         
         function menu_tools_estimate_irf_callback(obj)
             d = obj.data_series_controller.data_series;
-            estimate_irf(d.tr_t_irf,d.tr_irf);
+            estimate_irf_shift(d.tr_t_irf,d.tr_irf);
         end
         
         
@@ -1109,7 +1109,8 @@ classdef front_end_menu_controller < handle
         function menu_tools_create_irf_shift_map_callback(obj)
                         
             mask=obj.data_masking_controller.roi_controller.roi_mask;
-            t0_data = obj.data_series_controller.data_series.generate_t0_map(mask,1);
+            sel = obj.data_series_list.selected;
+            t0_data = obj.data_series_controller.data_series.generate_t0_map(mask,sel);
             
             OMEROsave = false;
             
@@ -1142,11 +1143,7 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_tools_fit_gaussian_irf_callback(obj)
-
-            fh = figure(100);
-            set(fh,'Name','Estimate Gaussian IRF','NumberTitle','off');
-            ax = axes();
-           
+            
             d = obj.data_series_controller.data_series;
             mask = obj.data_masking_controller.roi_controller.roi_mask;
 
@@ -1154,24 +1151,9 @@ classdef front_end_menu_controller < handle
             
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
-            data = mean(double(data),3);
+            data = sum(double(data),3);
             
-            for i=1:size(data,2)
-                [irf(:,i), t_final] = FitGaussianIRF(t,data(:,i),T,ax);
-            end
-
-            dat = table();
-            dat.t = t_final;
-            for i=1:size(irf,2)
-                dat.(['irf_ch' num2str(i)]) = irf(:,i);
-            end
-            
-            [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',obj.default_path);
-            if file~=0
-                writetable(dat,[path file]);
-            end
-            
-            close(fh);
+            estimate_irf_interface(t,data,T,obj.default_path);
             
         end
         

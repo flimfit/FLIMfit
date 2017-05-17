@@ -39,7 +39,8 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeX = obj.data_size(3);
         sizeY = obj.data_size(4);
         ZCT = obj.ZCT;
-        modulo = obj.modulo;      
+        modulo = obj.modulo; 
+        no_preset = true;   
     else
         delays = dims.delays;
         nfiles = 1;   % only a single file except for the data
@@ -47,6 +48,9 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
         sizeX = dims.sizeXY(1);
         sizeY = dims.sizeXY(2);
         modulo = dims.modulo;
+        % allow file types bio-formats cannot recognise to be mixed 
+        % with those it can for irfs etc
+        no_preset = false;
     end
     
     success = true; 
@@ -81,8 +85,9 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     else
         [ext,r] = obj.init_bfreader(file);
         % if first file was bio-formats readable then all others must be
+        % unless no_preset flag specifically allows for irfs etc
         if ~isempty(obj.bfReader)
-            if ~strcmp(ext,'.bio')
+            if ~strcmp(ext,'.bio') && no_preset
                 success = false;
                 return;
             end
@@ -287,11 +292,11 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
 
         case {'.pt3', '.ptu', '.bin2', '.ffd', '.ffh'}
             
-            r = FLIMreaderMex(file);
-            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
-            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
-            FLIMreaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
-            FLIMreaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
+            r = FlimReaderMex(file);
+            FlimReaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FlimReaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            FlimReaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
+            FlimReaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
 
             if ~polarisation_resolved && length(Carr) > 1 
                 chan = Carr(read_selected); % load channels sequentially
@@ -299,10 +304,10 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 chan = Carr;
             end
             
-            data = FLIMreaderMex(r, 'GetData', chan);
+            data = FlimReaderMex(r, 'GetData', chan);
             
             target(:,:,:,:,write_selected) = data;
-            FLIMreaderMex(r,'Delete');
+            FlimReaderMex(r,'Delete');
         
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % No need to allow for multiple Z,C or T as this format can't store them
@@ -380,7 +385,12 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
                 
                 % check that we are supposed to load this FLIM cube
                 if ctr == read_selected  ||  polarisation_resolved  
-                    target(:,pctr,:,:,write_selected) = ir(:,chan);
+                    try 
+                        target(:,pctr,:,:,write_selected) = ir(:,chan);
+                    catch
+                        target(:,pctr,:,:,write_selected) = zeros(size(target(:,pctr,:,:,write_selected)));
+                        errordlg(['Possible size mismatch in ' file], 'Unable to load!');
+                    end
                 end
                 
                 if polarisation_resolved

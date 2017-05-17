@@ -6,6 +6,7 @@ IF NOT DEFINED MSVC_VER SET MSVC_VER=14
 if %MSVC_VER%==11 SET MSVC_YEAR=2012
 if %MSVC_VER%==12 SET MSVC_YEAR=2013
 if %MSVC_VER%==14 SET MSVC_YEAR=2015
+if %MSVC_VER%==15 SET MSVC_YEAR=2017
 
 echo Cleaning CMake Project
 SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64
@@ -13,7 +14,9 @@ rmdir %PROJECT_DIR% /s /q
 mkdir %PROJECT_DIR%
 cd %PROJECT_DIR%
 
-set GENERATOR="Visual Studio %MSVC_VER% %MSVC_YEAR% Win64"
+if %MSVC_VER%==15 (set GENERATOR="Visual Studio %MSVC_VER% Win64"
+) else set GENERATOR="Visual Studio %MSVC_VER% %MSVC_YEAR% Win64"
+
 echo Generating CMake Project in: %PROJECT_DIR%
 echo Using Generator: %GENERATOR%
 cmake -G %GENERATOR% ..\..\

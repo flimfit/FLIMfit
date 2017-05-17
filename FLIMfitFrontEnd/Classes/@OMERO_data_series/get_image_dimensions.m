@@ -1,5 +1,4 @@
-
-function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
+function[dims,reader_settings,meta] = get_image_dimensions(obj, image)
 
 % Finds the dimensions of an OMERO image or set of images including 
 % the units along the time dimension (delays)
@@ -32,18 +31,21 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
     % instead
     
     
-    if findstr(class(image),'char')
-        [dims,t_int,reader_settings] = get_image_dimensions@flim_data_series(obj, image);
+    if strfind(class(image),'char')
+        [dims,reader_settings,meta] = get_image_dimensions@flim_data_series(obj, image);
         return;
+    else
+        meta.rep_rate = nan;
     end
     
     reader_settings = struct();
     
-    t_int = [];
+    dims.t_int = [];
     dims.delays = [];
     dims.modulo = 'none';
     dims.FLIM_type = [];
     dims.sizeZCT = [];
+    dims.data_type = 'single';
     
     
     dims.chan_info = [];
@@ -65,6 +67,13 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
     % OMERO !
     sizeXY(1) = pixels.getSizeY.getValue();
     sizeXY(2) = pixels.getSizeX.getValue();
+    
+    data_type = char(pixels.getPixelsType().getValue().getValue());
+    if ~any(strcmp(data_type,{'uint32','uint16'}))
+        data_type = 'single';
+    end
+    dims.data_type = data_type;
+    
     
     session = obj.omero_logon_manager.session;
         
@@ -88,10 +97,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
         end
     
     else
-        rdims = obj.parse_modulo_annotation(s, sizeZCT );
-        if ~isempty(rdims)
-            dims = rdims;
-        end
+        dims = obj.parse_modulo_annotation(s, sizeZCT, dims);
       
         % get channel_names 
         pixelsService = session.getPixelsService();
@@ -123,8 +129,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, image)
         dims.error_message = 'Unable to load! Not time resolved data.';
     end
     
-    if length(t_int) ~= length(dims.delays)
-        t_int = ones(size(dims.delays));
+    if length(dims.t_int) ~= length(dims.delays)
+        dims.t_int = ones(size(dims.delays));
     end
         
 end

@@ -50,8 +50,11 @@ function save_segmentation(obj,folder)
     
     for i=1:d.n_datasets
        
-        file = [folder d.names{i} ' segmentation.tif'];
-        SaveUInt16Tiff(obj.filtered_mask(:,:,i),file);
+        m = obj.filtered_mask(:,:,i);
+        if sum(m(:)) > 0 % only save if we have some regions
+            file = [folder d.names{i} ' segmentation.tif'];
+            SaveUInt16Tiff(m,file);
+        end
         
     end
 

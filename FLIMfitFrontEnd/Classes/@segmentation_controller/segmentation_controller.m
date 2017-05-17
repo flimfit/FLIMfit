@@ -44,6 +44,7 @@ classdef segmentation_controller < flim_data_series_observer
         
         tool_roi_rect_toggle;
         tool_roi_poly_toggle;
+        tool_roi_freehand_toggle;
         tool_roi_circle_toggle;
         tool_roi_erase_toggle;
         tool_roi_paint_toggle;
@@ -122,16 +123,15 @@ classdef segmentation_controller < flim_data_series_observer
             set(obj.delete_all_button,'Callback',@obj.delete_all_pressed);
             set(obj.copy_to_all_button,'Callback',@obj.copy_to_all_pressed);
             
+            tools = [obj.tool_roi_rect_toggle
+                     obj.tool_roi_poly_toggle
+                     obj.tool_roi_freehand_toggle
+                     obj.tool_roi_circle_toggle
+                     obj.tool_roi_paint_toggle];
             
-            set(obj.tool_roi_rect_toggle,'State','off');
-            set(obj.tool_roi_poly_toggle,'State','off');
-            set(obj.tool_roi_circle_toggle,'State','off');
-            set(obj.tool_roi_paint_toggle,'State','off');
+            set(tools,'State','off');
                        
-            set(obj.tool_roi_rect_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
-            set(obj.tool_roi_poly_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
-            set(obj.tool_roi_circle_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
-            set(obj.tool_roi_paint_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
+            set(tools,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
             
             set(obj.trim_outliers_checkbox,'Callback',@(~,~) obj.update_display)
             
@@ -202,6 +202,9 @@ classdef segmentation_controller < flim_data_series_observer
         
         function set_brush_width(obj)
             obj.brush_width = get(obj.brush_width_popup,'Value');
+            if strcmp(obj.tool_roi_paint_toggle.State,'on')
+               obj.on_callback(obj.tool_roi_paint_toggle) 
+            end
         end
         
         function ok_pressed(obj,src,~)
@@ -210,9 +213,8 @@ classdef segmentation_controller < flim_data_series_observer
                 obj.filtered_mask = [];
             end
             
-            
             obj.data_series.seg_mask = obj.filtered_mask;
-            
+
             obj.save_segmentation_params();
             fh = ancestor(src,'figure');
             delete(fh);

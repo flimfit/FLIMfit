@@ -48,7 +48,9 @@ function init_dataset(obj,setting_file_name)
         end
     end
     
-    obj.rep_rate = prof.Data.Default_Rep_Rate;
+    if ~isfinite(obj.rep_rate)
+        obj.rep_rate = prof.Data.Default_Rep_Rate;
+    end
     
     obj.background_image = [];
     
@@ -64,7 +66,7 @@ function init_dataset(obj,setting_file_name)
     
     obj.binning = 1;
     obj.thresh_min = 1;
-    obj.gate_max = 2^16-1;
+    obj.gate_max = prof.Data.Default_Gate_Max;
     
     obj.t_min = min(obj.t);
     obj.t_max = max(obj.t);  

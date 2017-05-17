@@ -56,6 +56,7 @@ const int N_STATS = 11;
 //----------------------------------------------
 #define DATA_FLOAT 0
 #define DATA_UINT16 1
+#define DATA_UINT32 2
 
 //----------------------------------------------
 #define MODE_PIXELWISE 0

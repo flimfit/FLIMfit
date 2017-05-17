@@ -1,5 +1,5 @@
 
-function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
+function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
 
 % Finds the dimensions of an image file or set of files including 
 % the units along the time dimension (delays)
@@ -30,7 +30,9 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
 
     reader_settings = struct();
     
-    t_int = [];
+    meta.rep_rate = nan;
+    
+    dims.t_int = [];
     dims.delays = [];
     dims.modulo = [];
     dims.FLIM_type = [];
@@ -58,7 +60,7 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             data_type = char(omeMeta.getPixelsType(0));
             
             if ~any(strcmp(data_type,{'float','uint32','uint16'}))
-                data_type = float;
+                data_type = 'single';
             end
             
             dims.data_type = data_type;
@@ -72,8 +74,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
                     end
                 else
                     str = num2str((0:seriesCount - 1)');
-                    prompt = [{sprintf(['This file holds ' num2str(seriesCount) ' images. Numbered 0-' num2str(seriesCount -1) '\nPlease select one'])} {''}];
-                    imageSeries = listdlg('PromptString',prompt,'SelectionMode','single','ListString',str);
+                    prompt = [{sprintf(['This file holds ' num2str(seriesCount) ' images. Numbered 0-' num2str(seriesCount -1) '\nPlease select one!'])} {''}];
+                    imageSeries = listdlg('PromptString',prompt,'SelectionMode','single','ListString',str,'ListSize',[260 120]);
                     if isempty(imageSeries)
                         return;
                     end
@@ -244,11 +246,16 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
         case {'.pt3','.ptu','.bin2','.ffd','.ffh'}
             
             
-            r = FLIMreaderMex(file);
-            n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
-            dims.delays = FLIMreaderMex(r,'GetTimePoints');
-            supports_realignment = FLIMreaderMex(r,'SupportsRealignment');
-            bidirectional = FLIMreaderMex(r,'IsBidirectional');
+            r = FlimReaderMex(file);
+            n_channels = FlimReaderMex(r,'GetNumberOfChannels');
+            dims.delays = FlimReaderMex(r,'GetTimePoints');
+            supports_realignment = FlimReaderMex(r,'SupportsRealignment');
+            bidirectional = FlimReaderMex(r,'IsBidirectional');
+            meta.rep_rate = FlimReaderMex(r,'GetRepRate') * 1e-6;
+            
+            if isdeployed
+                supports_realignment = false;
+            end
             
             if length(dims.delays) > 1
                 dt = dims.delays(2) - dims.delays(1);
@@ -258,16 +265,16 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
             
             reader_settings = FLIMreader_options_dialog(length(dims.delays), dt, supports_realignment, bidirectional);
             
-            FLIMreaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
-            FLIMreaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
-            FLIMreaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
-            FLIMreaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
+            FlimReaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FlimReaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            FlimReaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
+            FlimReaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
             
             dims.sizeZCT = [ 1 n_channels 1 ];
             dims.FLIM_type = 'TCSPC';
-            dims.delays = FLIMreaderMex(r,'GetTimePoints');
-            dims.sizeXY = FLIMreaderMex(r,'GetImageSize');
-            FLIMreaderMex(r,'Delete');
+            dims.delays = FlimReaderMex(r,'GetTimePoints');
+            dims.sizeXY = FlimReaderMex(r,'GetImageSize');
+            FlimReaderMex(r,'Delete');
             
             for i=1:n_channels
                 dims.chan_info{i} = ['Channel ' num2str(i-1)];
@@ -423,8 +430,8 @@ function[dims,t_int,reader_settings] = get_image_dimensions(obj, file)
     
    
     
-    if length(t_int) ~= length(dims.delays)
-        t_int = ones(size(dims.delays));
+    if length(dims.t_int) ~= length(dims.delays)
+        dims.t_int = ones(size(dims.delays));
     end
 
 end

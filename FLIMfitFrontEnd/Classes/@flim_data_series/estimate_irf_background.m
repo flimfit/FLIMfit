@@ -40,9 +40,27 @@ function estimate_irf_background(obj)
         
         if sum(ir==0) > 0.5 * length(ir)
             bg(i) = 0;
-        else
-            gauss_fit = fitgmdist(ir,2,'Replicates',10);
-            bg(i) = min(gauss_fit.mu); %#ok
+        else            
+
+            [xData, yData] = prepareCurveData(obj.t_irf, ir);
+
+            % Fit gaussian with offset
+            ft = fittype( 'a*exp(-b*(x-x0)^2)+c', 'independent', 'x', 'dependent', 'y' );
+            opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
+            opts.Display = 'Off';
+            opts.Robust = 'LAR';
+            opts.Lower = [0 0 0 min(obj.t_irf)];
+
+            % Set sensible start points
+            [max_irf,max_loc] = max(ir);
+            t_max = obj.t_irf(max_loc);
+            opts.StartPoint = [max_irf 1e-5 min(ir) t_max];
+
+            % Fit model to data.
+            [fitresult] = fit( xData, yData, ft, opts );
+
+            bg(i) = fitresult.c;
+            
         end
         
     end

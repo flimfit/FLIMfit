@@ -128,19 +128,26 @@ function im=display_flim(data,mask,lim,varargin)
     else
         im = mapped_data;
     end
+    
+    fonts = listTrueTypeFonts();
+    font_options = {'Arial','Arial Unicode','Arial Unicode MS','Helvetica'};
+    font_installed = cellfun(@(font) any(strcmp(fonts,font)), font_options);
+    font_sel = find(font_installed,1,'first');
+    font = font_options{font_sel};
+    
    
     if options.show_limits
         font_size = ceil(size(data,1) * 0.03);
         font_size = max(font_size,8);
         im = insertText(im,[size(data,2) 1],num2str(lim(2)),'AnchorPoint','RightTop',...
-            'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
+            'Font',font,'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
         im = insertText(im,[size(data,2) size(data,1)],num2str(lim(1)),'AnchorPoint','RightBottom',...
-            'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
+            'Font',font,'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
     end
     
     if ~strcmp(options.t,'')
         im = insertText(im,[0,0],options.t,'AnchorPoint','LeftTop',...
-            'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
+            'Font',font,'FontSize',font_size,'TextColor','white','BoxColor','black','BoxOpacity',1);
     end
     
 end
