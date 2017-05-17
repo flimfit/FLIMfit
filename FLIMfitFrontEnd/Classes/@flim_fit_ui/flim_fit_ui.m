@@ -235,22 +235,14 @@ classdef flim_fit_ui
         function close_request_fcn(obj,~,~)
             
 
-            diagnostics('program','end');
+            %diagnostics('program','end');
             
-            handles = guidata(obj.window);
-            client = handles.omero_logon_manager.client;
+            %handles = guidata(obj.window);
+            %client = handles.omero_logon_manager.client;
             
             %delete(handles.data_series_controller.data_series)
             
-            if ~isempty(client)                
-                
-                disp('Closing OMERO session');
-                client.closeSession();
-                %
-                handles.omero_logon_manager.session = [];
-                handles.omero_logon_manager.client = [];
-                
-            end
+            
             
             delete(findobj('Type', 'figure'))
             
