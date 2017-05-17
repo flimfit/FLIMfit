@@ -962,6 +962,11 @@ classdef flim_data_series < handle & h5_serializer
         function delete(obj)
            
            obj.save_data_settings();
+           % close any bioformats readers saved in class
+           r=obj.bfReader;
+           if ~isempty(r)
+               r.close();
+           end
            % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
            
