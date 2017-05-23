@@ -19,18 +19,8 @@ classdef phasor_segmentation_controller < flim_data_series_observer
         
         data_series_list;
                 
-        selected = 1;
-        
         segmentation_im;
-        phasor_im;
-        mask_im;
-        
-        brush_width = 5;
-        
-        mask = uint16(1);
-        filtered_mask = uint16(1);
-        n_regions = 0;
-        
+                
         ok_button;
         cancel_button;
         figure1;
@@ -43,6 +33,8 @@ classdef phasor_segmentation_controller < flim_data_series_observer
         histograms = segmentation_correlation_display.empty;
                 
         slh = [];
+        
+        xml;
     end
     
     methods
@@ -75,7 +67,12 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             
             obj.calculate();
             
-            obj.add_correlation();
+            settings_file = obj.data_series_controller.data_series.multid_filters_file;
+            if exist(settings_file,'file')
+                obj.load_settings(settings_file);
+            else
+                obj.add_correlation();                
+            end
             
             obj.update_display();
             obj.slh = addlistener(obj.data_series_list,'selection_updated',@(~,~) escaped_callback(@obj.selection_updated));
@@ -108,15 +105,11 @@ classdef phasor_segmentation_controller < flim_data_series_observer
                 return
             end
             
-            m = 256;
-
             selected = obj.data_series_list.selected;
 
             %trim_outliers = get(obj.trim_outliers_checkbox,'Value');
 
             cim = obj.data_series_controller.selected_intensity(selected,false);
-            d = obj.data_series_controller.data_series;
-
             
             cim = uint8(255 * cim / prctile(cim(:),99));
             cim = repmat(cim,[1 1 3]);
@@ -124,12 +117,7 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             set(obj.segmentation_im,'CData',cim);
             set(obj.segmentation_axes,'XLim',[1 size(cim,2)],'YLim',[1 size(cim,1)]);
 
-            m = true;
-            for i=1:length(obj.histograms)
-                if ~isempty(obj.histograms(i).mask)
-                    m = m & obj.histograms(i).mask;
-                end
-            end
+            m = obj.get_mask();
             
             im_mask = zeros(size(cim));
             im_mask(:,:,1) = 255;
@@ -140,20 +128,79 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             set(obj.segmentation_im,'CData',cim);
             set(obj.segmentation_axes,'XLim',[1 size(cim,2)],'YLim',[1 size(cim,1)]);
 
+            for h=obj.histograms
+                h.update()
+            end
             
         end
                    
-            
-        
-        function ok_pressed(obj,src,evt)
+        function mask = get_mask(obj)
+            mask = true;
+            for i=1:length(obj.histograms)
+                if isvalid(obj.histograms(i)) && ~isempty(obj.histograms(i).mask)
+                    mask = mask & obj.histograms(i).mask;
+                end
+            end
         end
         
-        function cancel_pressed(obj,src,evt)
+        function ok_pressed(obj,~,~)
+            
+            d = obj.data_series_controller.data_series;
+
+            % Save filters
+            obj.save_settings(d.multid_filters_file);
+            
+            d.multid_mask = zeros([d.data_size(2:3)' d.n_datasets],'uint8');
+            
+            % Apply filters to all datasets
+            hb = waitbar(0,'Segmenting...');
+            for i=1:d.n_datasets
+                d.switch_active_dataset(i);
+                obj.calculate();
+                for h=obj.histograms
+                    h.update();
+                end
+                mask = obj.get_mask();
+                d.multid_mask(:,:,i) = mask;
+                waitbar(i/d.n_datasets,hb);
+            end
+            close(hb);
+            
+            delete(obj.figure1);            
+        end
+        
+        function cancel_pressed(obj,~,~)
             delete(obj.figure1);
         end
         
         function data_update(obj)
             
+        end
+        
+        function save_settings(obj, filename)
+            doc = [];
+            for i=1:length(obj.histograms)
+                info = obj.histograms(i).get_info();
+                doc = serialise_object(info,doc,'correlation_filter');
+            end
+            xmlwrite(filename, doc);
+        end
+        
+        function load_settings(obj, filename)
+            % Load new filtes from file
+            h = marshal_struct(filename,'correlation_filter');
+            
+            % Remove old filters
+            for i=1:length(obj.histograms)
+                obj.histograms.remove();
+            end
+            
+            % Load filters into correlation plots
+            obj.histograms = segmentation_correlation_display.empty;
+            for i=1:length(h)
+                obj.add_correlation();
+                obj.histograms(end).set_info(h(i));
+            end
         end
         
         function selection_updated(obj) 

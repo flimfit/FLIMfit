@@ -9,6 +9,7 @@ classdef segmentation_correlation_display < handle
        im;
        
        mask;
+       circle_h;
        
        x_listbox;
        y_listbox;
@@ -22,7 +23,7 @@ classdef segmentation_correlation_display < handle
        toggle_active;
        flex_h;
     end
-        
+            
     methods
        
         function obj = segmentation_correlation_display(controller,parent)
@@ -31,6 +32,35 @@ classdef segmentation_correlation_display < handle
             
             obj.setup_layout();
             obj.update();
+        end
+        
+        function info = get_info(obj)
+            info.x_name = obj.x_listbox.String{obj.x_listbox.Value};
+            info.y_name = obj.y_listbox.String{obj.y_listbox.Value};
+            
+            if ~isempty(obj.flex_h) && isvalid(obj.flex_h)
+                info.flex_type = class(obj.flex_h);
+                info.flex_pos = obj.flex_h.getPosition();
+            else
+                info.flex_type = 'none';
+                info.flex_pos = [];
+            end
+        end
+        
+        function set_info(obj,info)
+            
+            obj.x_listbox.Value = find(strcmp(obj.x_listbox.String, info.x_name),1);
+            obj.y_listbox.Value = find(strcmp(obj.y_listbox.String, info.y_name),1);
+            
+            obj.update();
+
+            delete(obj.flex_h)
+            if ~strcmp(info.flex_type,'none')
+                obj.flex_h = eval([info.flex_type '(obj.ax,info.flex_pos)']);
+                obj.flex_h.addNewPositionCallback(@obj.roi_callback);
+                obj.roi_callback();
+            end
+                        
         end
         
         function setup_layout(obj)
@@ -49,13 +79,11 @@ classdef segmentation_correlation_display < handle
             obj.tool_roi_poly_toggle = uicontrol(control_layout,'Style','togglebutton','CData',icons.poly_icon,'ToolTipString','Polygon','Callback',@obj.toggle_callback);
             obj.tool_roi_circle_toggle = uicontrol(control_layout,'Style','togglebutton','CData',icons.ellipse_icon,'ToolTipString','Ellipse','Callback',@obj.toggle_callback);  
             
-            uicontrol(control_layout,'Style','text','String','X');
             obj.x_listbox = uicontrol(control_layout,'Style','popupmenu','String',labels,'Callback',@obj.update);
-            uicontrol(control_layout,'Style','text','String','Y');
             obj.y_listbox = uicontrol(control_layout,'Style','popupmenu','String',labels,'Value',2,'Callback',@obj.update);
             uicontrol(control_layout,'Style','pushbutton','String','-','Callback',@obj.remove);
             uicontrol(control_layout,'Style','pushbutton','String','+','Callback',@obj.add);
-            control_layout.Widths = [30 30 30 30 -1 30 -1 30 30];
+            control_layout.Widths = [30 30 30 -1 -1 30 30];
             display_layout.Heights = [-1 22];
 
             obj.im = image(0,'Parent',obj.ax);            
@@ -65,12 +93,12 @@ classdef segmentation_correlation_display < handle
             daspect(obj.ax,[1 1 1])
             set(obj.ax,'YDir','normal','XTick',[],'YTick',[]);
 
-            %{
-            hold(obj.phasor_axes,'on');
+            
+            hold(obj.ax,'on');
             theta = linspace(0,pi,1000);
             c = 0.5*(cos(theta) + 1i * sin(theta)) + 0.5;
-            plot(obj.phasor_axes,real(c), imag(c) ,'w');
-            %}
+            obj.circle_h = plot(obj.ax,real(c), imag(c) ,'w');
+            
             
             n_panel = length(obj.parent.Children);
             n_x = ceil(sqrt(n_panel));
@@ -80,29 +108,27 @@ classdef segmentation_correlation_display < handle
             
         end 
         
+        function data = get_data(obj,name)
+            data = obj.controller.dataset.(name);
+                        
+            switch name
+                case 'intensity'
+                    data = log10(data);
+                    data = data / 4;
+                case 'phasor_lifetime'
+                    data = data / 12;
+            end
+            
+            data(data > 1) = 1;
+        end
+        
         function update(obj,~,~)
             
             x_name = obj.x_listbox.String{obj.x_listbox.Value};
             y_name = obj.x_listbox.String{obj.y_listbox.Value};
             
-            obj.x_data = obj.controller.dataset.(x_name);
-            obj.y_data = obj.controller.dataset.(y_name);
-            
-            x_max = 1;
-            y_max = 1;
-            
-            if ~any(strcmp(x_name,{'p_r','p_i'}))
-                x_max = prctile(obj.x_data(:),99.9);
-            end
-            if ~any(strcmp(y_name,{'p_r','p_i'}))
-                y_max = prctile(obj.y_data(:),99.9);
-            end
-            
-            obj.x_data = obj.x_data / x_max;
-            obj.y_data = obj.y_data / y_max;
-            
-            obj.x_data(obj.x_data>1) = 1;
-            obj.y_data(obj.y_data>1) = 1;
+            obj.x_data = obj.get_data(x_name);
+            obj.y_data = obj.get_data(y_name);
             
             I = ones(size(obj.x_data));
 
@@ -117,6 +143,12 @@ classdef segmentation_correlation_display < handle
             n(n>1) = 1;
             set(obj.im,'CData',n);
             
+            if strcmp(x_name,'p_r') && strcmp(y_name,'p_i')
+                obj.circle_h.Visible = 'on';
+            else
+                obj.circle_h.Visible = 'off';
+            end
+            
         end
         
         function toggle_callback(obj,src,~)
@@ -124,15 +156,16 @@ classdef segmentation_correlation_display < handle
                obj.tool_roi_poly_toggle
                obj.tool_roi_circle_toggle];
             toggle_fcn = {@imrect,@impoly,@imellipse};
-
+            
             if src.Value == 1
+                delete(obj.flex_h);
                 set(toggles(toggles ~= src),'Value',0);
 
                 toggle_fcn = toggle_fcn{toggles == src};
                 obj.flex_h = toggle_fcn(obj.ax);
                 obj.flex_h.addNewPositionCallback(@obj.roi_callback);
-                obj.flex_h.setResizable(true);
                 obj.toggle_active = src;
+                obj.roi_callback();
             else
                 if obj.toggle_active == src && ~isempty(obj.flex_h)
                     delete(obj.flex_h)
@@ -141,14 +174,23 @@ classdef segmentation_correlation_display < handle
         end
         
         function roi_callback(obj,src,evt)
-            modifier = get(gcbf,'currentmodifier');
                         
-            if ~isempty(obj.flex_h) 
+            if ~isempty(obj.flex_h) && isvalid(obj.flex_h)
                pos = obj.flex_h.getPosition();
                sel = zeros(size(obj.x_data));
-               if isa(obj.flex_h,'imrect')
-                   sel = obj.x_data >= pos(1) & obj.x_data <= (pos(1) + pos(3)) & ...
-                         obj.y_data >= pos(2) & obj.y_data <= (pos(2) + pos(4));
+               flex_type = class(obj.flex_h);
+               switch flex_type
+                   case 'imrect'
+                        sel = obj.x_data >= pos(1) & obj.x_data <= (pos(1) + pos(3)) & ...
+                              obj.y_data >= pos(2) & obj.y_data <= (pos(2) + pos(4));
+                   case 'imellipse'
+                       rx = pos(3) / 2;
+                       ry = pos(4) / 2;
+                       cx = pos(1) + rx;
+                       cy = pos(2) + ry;
+                       sel = (((obj.x_data - cx) / rx).^2 + ((obj.y_data - cy) / ry).^2) < 1;
+                   case 'impoly'
+                       sel = inpolygon(obj.x_data,obj.y_data,pos(:,1),pos(:,2));
                end
                
                obj.mask = sel;
@@ -163,8 +205,10 @@ classdef segmentation_correlation_display < handle
         end
         
         function remove(obj,~,~)
-            delete(obj.panel);
-            delete(obj);
+            if isvalid(obj)
+                delete(obj.panel);
+                delete(obj);
+            end
         end
         
     end

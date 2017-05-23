@@ -31,6 +31,11 @@ function obj = marshal_object(doc_node,type,obj)
 
     obj_node = doc_node.getFirstChild();
     obj_name = char(obj_node.getNodeName);
+    
+    if strcmp(obj_name,'FLIMfit')
+        obj_node = obj_node.getFirstChild();
+        obj_name = char(obj_node.getNodeName);
+    end
 
     mc = meta.class.fromName(obj_name);
     mp = mc.Properties;

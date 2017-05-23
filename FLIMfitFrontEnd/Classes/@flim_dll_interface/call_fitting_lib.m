@@ -89,8 +89,15 @@ function err = call_fitting_lib(obj,roi_mask,selected)
             obj.p_irf = libpointer('doublePtr', d.tr_irf);
         end
         
-        if ~isempty(d.seg_mask)        
-            m = d.seg_mask;
+        if ~isempty(d.seg_mask) || ~isempty(d.multid_mask)        
+            if ~isempty(d.seg_mask)
+                m = d.seg_mask;
+            else
+                m = ones(size(d.multid_mask),'uint16');
+            end
+            if ~isempty(d.multid_mask)
+                m(~d.multid_mask) = 0; 
+            end
             obj.p_mask = libpointer('uint16Ptr', uint16(m));
         else
             obj.p_mask = [];

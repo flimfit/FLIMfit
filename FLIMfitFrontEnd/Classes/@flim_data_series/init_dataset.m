@@ -61,6 +61,7 @@ function init_dataset(obj,setting_file_name)
     obj.mask = [];
     obj.thresh_mask = [];
     obj.seg_mask = [];
+    obj.multid_mask = [];
 
     obj.use = true(obj.n_datasets,1);
     
