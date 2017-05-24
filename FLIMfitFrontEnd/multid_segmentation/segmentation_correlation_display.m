@@ -49,13 +49,20 @@ classdef segmentation_correlation_display < handle
         
         function set_info(obj,info)
             
-            obj.x_listbox.Value = find(strcmp(obj.x_listbox.String, info.x_name),1);
-            obj.y_listbox.Value = find(strcmp(obj.y_listbox.String, info.y_name),1);
+            x_idx = find(strcmp(obj.x_listbox.String, info.x_name),1);
+            y_idx = find(strcmp(obj.y_listbox.String, info.y_name),1);
+            
+            if ~isempty(x_idx)
+                obj.x_listbox.Value = x_idx;
+            end
+            if ~isempty(y_idx)
+                obj.y_listbox.Value = y_idx;
+            end
             
             obj.update();
 
             delete(obj.flex_h)
-            if ~strcmp(info.flex_type,'none')
+            if ~strcmp(info.flex_type,'none') && ~isempty(x_idx) && ~isempty(y_idx)
                 obj.flex_h = eval([info.flex_type '(obj.ax,info.flex_pos)']);
                 obj.flex_h.addNewPositionCallback(@obj.roi_callback);
                 obj.roi_callback();
@@ -148,7 +155,8 @@ classdef segmentation_correlation_display < handle
             else
                 obj.circle_h.Visible = 'off';
             end
-            
+           
+            obj.compute_mask();
         end
         
         function toggle_callback(obj,src,~)
@@ -173,8 +181,7 @@ classdef segmentation_correlation_display < handle
             end            
         end
         
-        function roi_callback(obj,src,evt)
-                        
+        function compute_mask(obj)           
             if ~isempty(obj.flex_h) && isvalid(obj.flex_h)
                pos = obj.flex_h.getPosition();
                sel = zeros(size(obj.x_data));
@@ -195,7 +202,10 @@ classdef segmentation_correlation_display < handle
                
                obj.mask = sel;
             end
+        end
             
+        function roi_callback(obj,src,evt)
+            obj.compute_mask();
             obj.controller.update_display();
             
         end

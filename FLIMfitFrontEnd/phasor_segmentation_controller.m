@@ -97,6 +97,10 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             obj.dataset.intensity = squeeze(I);
             obj.dataset.phasor_lifetime = d.rep_rate ./ (2*pi) .* obj.dataset.p_i ./ obj.dataset.p_r;
             
+            for h=obj.histograms
+                h.update();
+            end
+            
         end
 
         function update_display(obj)
@@ -150,16 +154,13 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             % Save filters
             obj.save_settings(d.multid_filters_file);
             
-            d.multid_mask = zeros([d.data_size(2:3)' d.n_datasets],'uint8');
+            d.multid_mask = zeros([d.height d.width d.n_datasets],'uint8');
             
             % Apply filters to all datasets
             hb = waitbar(0,'Segmenting...');
             for i=1:d.n_datasets
                 d.switch_active_dataset(i);
                 obj.calculate();
-                for h=obj.histograms
-                    h.update();
-                end
                 mask = obj.get_mask();
                 d.multid_mask(:,:,i) = mask;
                 waitbar(i/d.n_datasets,hb);
@@ -204,6 +205,11 @@ classdef phasor_segmentation_controller < flim_data_series_observer
         end
         
         function selection_updated(obj) 
+            d = obj.data_series_controller.data_series;
+            selected = obj.data_series_list.selected;
+            d.switch_active_dataset(selected);
+
+            
             obj.calculate();
             obj.update_display(); 
         end
