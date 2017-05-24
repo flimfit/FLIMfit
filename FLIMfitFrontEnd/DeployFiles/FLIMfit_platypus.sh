@@ -60,8 +60,7 @@ echo PATH is ${PATH};
     shift
   done
 
-  echo "Trying ulimit!"
-  ulimit -c unlimited
+
 
   eval "\"${exe_dir}/FLIMfit.app/Contents/MacOS/FLIMfit\"" $args
 
