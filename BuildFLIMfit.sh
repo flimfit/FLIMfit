@@ -16,7 +16,7 @@ mkdir -p Unix
 cd Unix
 
 echo "Generating CMake Project..."
-cmake ../../ -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=RELEASE \
+cmake ../../ -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=DEBUG \
    -DFLIMreaderMEX_OUT_DIR=../../FLIMfitFrontEnd
 
 echo "Building Project..."
