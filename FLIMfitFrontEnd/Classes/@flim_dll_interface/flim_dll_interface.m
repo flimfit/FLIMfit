@@ -165,6 +165,7 @@
             if libisloaded(obj.lib_name)
                 calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
                  disp('returned from Clear_Fit');
+                 unload_global_library(obj);
                 calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
                  disp('returned from clear_fit');
                   disp('returned from relinquish');
