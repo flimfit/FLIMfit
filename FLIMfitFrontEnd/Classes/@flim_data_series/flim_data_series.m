@@ -321,8 +321,8 @@ classdef flim_data_series < handle & h5_serializer
             end
             if obj.init
                 if isempty(file) && ~obj.batch_mode % i.e. not batch
-                    title = char(strcat({'In the current directory.'}));
-                    choice = questdlg('Would you like to save the current settings?', title ,'Yes','No','No');
+                    title = 'Save Settings?';
+                    choice = questdlg('Would you like to save the current data settings?', title ,'Yes','No','No');
                     if strcmp(choice,'Yes')
                         pol_idx = obj.polarisation_resolved + 1;
                         file = [obj.root_path obj.data_settings_filename{pol_idx}];     
