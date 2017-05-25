@@ -92,12 +92,6 @@ function load_irf(obj,file_or_image,load_as_image)
         irf = reshape(irf_image_data,[sizet n_chan sizeX * sizeY]);
         irf = mean(irf,3);
          
-
-        % export may be in ns not ps.
-        if max(t_irf) < 300
-           t_irf = t_irf * 1000; 
-        end
-
         % sort in time order
         t_irf = t_irf(:);
         [t_irf, sort_idx] = sort(t_irf);
