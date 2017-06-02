@@ -77,7 +77,7 @@ function load_acceptor_images(obj,path)
                     tifname = dir([path item.name filesep  '*' '.tif']);
                     file_names{i} = [path item.name filesep tifname(1).name];
                 else
-                    disp('not a dir')
+                    file_names{i} = [path item.name];
                 end
             end
             
@@ -88,40 +88,28 @@ function load_acceptor_images(obj,path)
             return;
         else
             
-            % check dimensions of the first file
-            [dims,reader_settings] = obj.get_image_dimensions(file_names{1});
-            if sum(dims.sizeZCT) > 3 
-                errordlg('Not yet implemented for multi-plane data');
-                return;
-            end
+%            % check dimensions of the first file
+%            [dims,reader_settings] = obj.get_image_dimensions(file_names{1});
+%            if sum(dims.sizeZCT) > 3 
+%                errordlg('Not yet implemented for multi-plane data');
+%                return;
+%            end
                 
         end
        
         obj.acceptor = zeros([obj.height obj.width obj.n_datasets]);
-        
-        
-        sizet = length(dims.delays);
-        acc_data = zeros(sizet, 1,  obj.height, obj.width);
-        
+                
         %h = waitbar(0,'Loading Acceptor Images...');
         for i=1:obj.n_datasets
             
-            if sizet > 1
-                % insert code to handle 3d images here
+            acc_data = imread(file_names{i});
+            %[success, acc_data] = obj.load_flim_cube(acc_data, file_names{i},1,i,reader_settings,dims,ZCT);
+            im = squeeze(acc_data);
                 
-            else
-                [success, acc_data] = obj.load_flim_cube(acc_data, file_names{i},1,i,reader_settings,dims,ZCT);
-                im = squeeze(acc_data);
-            end
-                
-            im = medfilt2(im,[7 7]);
+            %im = medfilt2(im,[7 7]);
 
-            if bg == 0
-                im = im - min(im(:));
-            else
-                im = im - bg;
-            end
-
+            im = im - bg;
+            
             if options.align
                 intensity = obj.integrated_intensity(i);
                 im = align_images(im, intensity, true);

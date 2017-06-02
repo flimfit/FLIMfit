@@ -90,11 +90,17 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             p_irf = CalculatePhasor(d.tr_t_irf,d.tr_irf);
             [p,I] = CalculatePhasor(d.t,d.cur_data,p_irf);
             
-            kern = ones(3,3);
+            acceptor = 0;
+            if ~isempty(d.acceptor)
+                acceptor = d.acceptor(:,:,d.active);
+            end
+            
+            kern = ones(5,5);
             kern = kern / sum(kern(:));
             obj.dataset.p_r = conv2(squeeze(real(p)),kern,'same');
             obj.dataset.p_i = conv2(squeeze(imag(p)),kern,'same');
             obj.dataset.intensity = squeeze(I);
+            obj.dataset.acceptor = acceptor;
             obj.dataset.phasor_lifetime = d.rep_rate ./ (2*pi) .* obj.dataset.p_i ./ obj.dataset.p_r;
             
             for h=obj.histograms

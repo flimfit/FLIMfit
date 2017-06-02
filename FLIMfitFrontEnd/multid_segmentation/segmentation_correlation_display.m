@@ -14,6 +14,11 @@ classdef segmentation_correlation_display < handle
        x_listbox;
        y_listbox;
        
+       x_min_edit;
+       x_max_edit;
+       y_min_edit;
+       y_max_edit;
+       
        x_data;
        y_data;
        
@@ -74,11 +79,28 @@ classdef segmentation_correlation_display < handle
             
             labels = fieldnames(obj.controller.dataset);
             
+            
             obj.panel = uipanel('Parent',obj.parent);
             display_layout = uix.VBox('Parent',obj.panel);
+            
+            % Limits layout
+            lims_layout = uix.HBox('Parent',display_layout);
+            uicontrol(lims_layout,'Style','text','String','x');
+            obj.x_min_edit = uicontrol(lims_layout,'Style','edit','String','0');
+            uicontrol(lims_layout,'Style','text','String','-');
+            obj.x_max_edit = uicontrol(lims_layout,'Style','edit','String','0');
+            uix.Empty('Parent',lims_layout);
+            uicontrol(lims_layout,'Style','text','String','y');
+            obj.y_min_edit = uicontrol(lims_layout,'Style','edit','String','0');
+            uicontrol(lims_layout,'Style','text','String','-');
+            obj.y_max_edit = uicontrol(lims_layout,'Style','edit','String','0');
+            lims_layout.Widths = [20 -1 20 -1 -4 20 -1 20 -1];
+            
+            % Axes
             obj.ax = axes('Parent',display_layout);
             set(obj.ax,'Units','normalized','Position',[0 0 1 1]);
 
+            % Control Layout
             control_layout = uix.HBox('Parent',display_layout);
             
             icons = load('icons.mat');
@@ -91,7 +113,7 @@ classdef segmentation_correlation_display < handle
             uicontrol(control_layout,'Style','pushbutton','String','-','Callback',@obj.remove);
             uicontrol(control_layout,'Style','pushbutton','String','+','Callback',@obj.add);
             control_layout.Widths = [30 30 30 -1 -1 30 30];
-            display_layout.Heights = [-1 22];
+            display_layout.Heights = [22 -1 22];
 
             obj.im = image(0,'Parent',obj.ax);            
             edges = linspace(0,1,256);
@@ -99,7 +121,6 @@ classdef segmentation_correlation_display < handle
             obj.im = imagesc(ed,ed,ones(256,256),'Parent',obj.ax);
             daspect(obj.ax,[1 1 1])
             set(obj.ax,'YDir','normal','XTick',[],'YTick',[]);
-
             
             hold(obj.ax,'on');
             theta = linspace(0,pi,1000);
@@ -122,6 +143,9 @@ classdef segmentation_correlation_display < handle
                 case 'intensity'
                     data = log10(data);
                     data = data / 4;
+                case 'acceptor'
+                    data = log10(data);
+                    data = data / 4;
                 case 'phasor_lifetime'
                     data = data / 12;
             end
@@ -137,13 +161,12 @@ classdef segmentation_correlation_display < handle
             obj.x_data = obj.get_data(x_name);
             obj.y_data = obj.get_data(y_name);
             
-            I = ones(size(obj.x_data));
+            I = obj.controller.dataset.intensity;
 
             pc = [obj.y_data(:) obj.x_data(:)];        
             n = histwv2(pc,I(:),0,1,256);
             n = n(2:255,2:255);
             %n(:,:,i) = ni; % / prctile(ni(:),99.9);
-
             %n = flip(n,3); % BGR -> RGB
 
             n = n / prctile(n(:),99.9);
@@ -169,9 +192,13 @@ classdef segmentation_correlation_display < handle
                 delete(obj.flex_h);
                 set(toggles(toggles ~= src),'Value',0);
 
-                toggle_fcn = toggle_fcn{toggles == src};
+                toggle_idx = find(toggles == src,1);
+                toggle_fcn = toggle_fcn{toggle_idx};
                 obj.flex_h = toggle_fcn(obj.ax);
                 obj.flex_h.addNewPositionCallback(@obj.roi_callback);
+                if toggle_idx ~= 2 % not poly
+                    obj.flex_h.setResizable(true);
+                end
                 obj.toggle_active = src;
                 obj.roi_callback();
             else
@@ -204,7 +231,7 @@ classdef segmentation_correlation_display < handle
             end
         end
             
-        function roi_callback(obj,src,evt)
+        function roi_callback(obj,~,~)
             obj.compute_mask();
             obj.controller.update_display();
             

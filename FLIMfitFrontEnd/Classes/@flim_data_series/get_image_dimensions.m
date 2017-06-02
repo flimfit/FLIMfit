@@ -293,7 +293,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             if sum(isnan(dims.delays)) > 0
                 dims.delays =[];
                 dims.t_int = [];
-                errordlg('Unrecognised file-name convention!')'
+                errordlg('Unrecognised file-name convention!');
                 return;
             end
             
