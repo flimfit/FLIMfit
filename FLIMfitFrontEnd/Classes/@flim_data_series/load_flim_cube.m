@@ -446,6 +446,11 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             
     end         % end switch
     
+    % close local bioformats reader if any to free up file for possible deletion
+    if  no_preset == false && ~isempty(r)
+        r.close();
+    end
+    
   
     
     
