@@ -212,7 +212,7 @@ classdef flim_fit_ui
             close all;
             
             set(obj.window,'Visible','on');
-            set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
+            %set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                        
             if wait
                 waitfor(obj.window);
@@ -232,55 +232,47 @@ classdef flim_fit_ui
         end
 
         
-        function close_request_fcn(obj,~,~)
+       % function close_request_fcn(obj,~,~)
             
-            diagnostics('program','end');
+
+            %diagnostics('program','end');
             
-            handles = guidata(obj.window);
-            client = handles.omero_logon_manager.client;
+            %handles = guidata(obj.window);
+            %client = handles.omero_logon_manager.client;
             
-            delete(handles.data_series_controller.data_series)
+            %delete(handles.data_series_controller.data_series)
             
-            if ~isempty(client)                
-                
-                disp('Closing OMERO session');
-                client.closeSession();
-                %
-                handles.omero_logon_manager.session = [];
-                handles.omero_logon_manager.client = [];
-                
-            end
             
-        
+        %    disp('attempting to close!')
+         %   delete(findobj('Type', 'figure'))
+            
+            
             % Make sure we clean up all the left over classes
-            names = fieldnames(handles);
+            %names = fieldnames(handles);
                       
-            for i=1:length(names)
+           % for i=1:length(names)
                 % Check the field is actually a handle and isn't the window
                 % which we need to close right at the end
-                if ~strcmp(names{i},'window') && all(ishandle(handles.(names{i})))
-                    delete(handles.(names{i}));
-                end
-            end
+            %    if ~strcmp(names{i},'window') && all(ishandle(handles.(names{i})))
+            %        delete(handles.(names{i}));
+            %    end
+            %end
             
        
             % Finally actually close window
-            delete(handles.window);
+            %close(handles.window);
            
             % kluge to close the left over figure 
             %- TBD work out what's leaving it open
-            h = get(0,'Children');
-            if ~isempty(h)
-                close(h);
-            end
+           % h = get(0,'Children');
+           % if ~isempty(h)
+           %     close(h);
+           % end
             
-            clear all;
+           % clear all;
 
-             
-          
             
-            
-        end
+     %   end
         
     end
     

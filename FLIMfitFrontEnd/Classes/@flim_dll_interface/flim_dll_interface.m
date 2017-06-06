@@ -151,16 +151,24 @@
         function clear_fit(obj)
             for id = obj.fit_dll_id
                 calllib(obj.lib_name,'FLIMGlobalClearFit',id);
+                disp('returned from Clear_Fit in clear');
                 calllib(obj.lib_name,'FLIMGlobalRelinquishID',id);
+                disp('returned from  relinquish in clear');
             end
             obj.fit_dll_id = [];
         end
         
         function delete(obj)
+            disp('starting dll delete');
             obj.clear_fit();
+            disp('returned from clear_fit');
             if libisloaded(obj.lib_name)
                 calllib(obj.lib_name,'FLIMGlobalClearFit',obj.dll_id);
+                 disp('returned from Clear_Fit');
+                 unload_global_library(obj);
                 calllib(obj.lib_name,'FLIMGlobalRelinquishID',obj.dll_id);
+                 disp('returned from clear_fit');
+                  disp('returned from relinquish');
             end
         end
        
