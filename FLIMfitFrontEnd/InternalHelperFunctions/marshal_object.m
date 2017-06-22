@@ -33,7 +33,7 @@ function obj = marshal_object(doc_node,type,obj)
     obj_name = char(obj_node.getNodeName);
     
     if strcmp(obj_name,'FLIMfit')
-        obj_node = obj_node.getFirstChild();
+        obj_node = obj_node.getChildNodes().item(1);
         obj_name = char(obj_node.getNodeName);
     end
 
