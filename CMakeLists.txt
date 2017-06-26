@@ -1,4 +1,5 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
+set(CMAKE_CXX_STANDARD 14)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
@@ -11,6 +12,7 @@ project(FLIMfit)
 hunter_add_package(Boost COMPONENTS system filesystem serialization date_time)
 hunter_add_package(OpenCV)
 hunter_add_package(dlib)
+hunter_add_package(Boost COMPONENTS system filesystem serialization date_time)
 
 find_package(Qt5Widgets)
 if(NOT Qt5Widgets_FOUND)

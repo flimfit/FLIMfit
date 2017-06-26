@@ -93,7 +93,7 @@ public:
    virtual void getNonlinearOutputParamNames(vector<string>& names);
    virtual void getLinearOutputParamNames(vector<string>& names) = 0;
 
-   int getInitialVariables(std::vector<double>::iterator& variables);
+   int getInitialVariables(std::vector<double>::iterator variables);
    void setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
 
    template <typename T>

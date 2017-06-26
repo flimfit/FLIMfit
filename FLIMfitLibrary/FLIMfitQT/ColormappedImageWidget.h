@@ -39,9 +39,9 @@ protected:
  
    void computeImage();
    void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
-   void mousePressEvent(QMouseEvent* event);
-   void mouseMoveEvent(QMouseEvent* event);
-   void mouseReleaseEvent(QMouseEvent* event);
+   void mousePressEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+   void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
+   void mouseReleaseEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
    
 private:
    

@@ -380,8 +380,6 @@ int DecayModel::addT0Derivatives(double* b, int bdim, vector<double>& kap)
    for (int i = 0; i < decay_groups.size(); i++)
       col += decay_groups[i]->calculateModel(b + col*bdim, bdim, kap, -1); // bin shift = +1
 
-   dp->irf->timebin_width;
-
    double idt = 0.5 / dp->irf->timebin_width;
    for (int i = 0; i<bdim*col; i++)
       b[i] *= idt;

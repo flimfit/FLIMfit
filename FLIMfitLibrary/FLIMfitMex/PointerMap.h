@@ -8,7 +8,6 @@ class PointerMap
 {
 public:
 
-   template<class ...Args>
    int CreateObject(Args... args)
    {
       int id = next_id;

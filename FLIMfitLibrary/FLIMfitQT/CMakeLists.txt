@@ -3,7 +3,10 @@ project(FLIMfitQT)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(OpenMP REQUIRED)
 find_package(BOOST REQUIRED COMPONENTS system serialization)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 qt5_wrap_ui(UI_HEADERS DecayWidget.ui
                        FLIMfitWindow.ui
@@ -66,9 +69,11 @@ add_executable(FLIMfitQT ${SOURCE}
                          ${HEADERS} 
                          ${UI_HEADERS} 
                          ${UI_RESOURCES}
-                         $<TARGET_OBJECTS:FLIMreader>)
+                         $<TARGET_OBJECTS:FlimReader>)
 
-set_target_properties(FLIMfitQT PROPERTIES LINK_FLAGS "/NODEFAULTLIB:library" )
+if (WINDOWS)
+   set_target_properties(FLIMfitQT PROPERTIES LINK_FLAGS "/NODEFAULTLIB:library" )
+endif()
 
 target_link_libraries(FLIMfitQT
                            FLIMDecayModel
@@ -80,4 +85,5 @@ target_link_libraries(FLIMfitQT
                            Qt5::PrintSupport
                            Qt5::Gui
                            ${OpenCV_LIBS}
+                           ${LEVMAR_LIBRARIES}
                            ${FLIMDecayModel_LIBRARIES})

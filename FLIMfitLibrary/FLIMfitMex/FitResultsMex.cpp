@@ -80,7 +80,7 @@ void getImageStats(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs
    auto& summary = r->getRegionSummary();
    const char* labels[] = { "image", "region", "size", "iterations", "success" };;
 
-   int num_regions = summary.size();
+   uint num_regions = summary.size();
 
    plhs[0] = mxCreateStructMatrix(1, 1, 5, labels);
    mxArray* image = mxCreateDoubleMatrix(1, num_regions, mxREAL);
@@ -115,8 +115,8 @@ void getImageStats(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs
 
    // Statistics
    auto& stats = r->getStats();
-   int num_params = stats.GetNumParams();
-   int num_stats = stats.GetNumStats();
+   uint num_params = stats.GetNumParams();
+   uint num_stats = stats.GetNumStats();
 
    mwSize dims[] = { num_stats, num_params, num_regions };
    plhs[1] = mxCreateNumericArray(3, dims, mxSINGLE_CLASS, mxREAL);

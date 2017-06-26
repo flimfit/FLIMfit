@@ -151,7 +151,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
-      auto& d = getSharedPtrFromMatlab<FLIMImage>(prhs[0]);
+      auto d = getSharedPtrFromMatlab<FLIMImage>(prhs[0]);
 
       // Get command
       std::string command = getStringFromMatlab(prhs[1]);

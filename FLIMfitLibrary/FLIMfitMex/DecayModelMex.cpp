@@ -389,7 +389,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
-      auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+      const auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
 
       if (ptr_set.find(model) == ptr_set.end())
          mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");

@@ -93,7 +93,7 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
       irf->setIRF(n_t, n_chan, timebin_t0, timebin_width, irf_data);
    }
 
-   bool ref_reconvolution = getValueFromStruct(irf_struct, "ref_reconvolution", false);
+   bool ref_reconvolution = (bool) getValueFromStruct(irf_struct, "ref_reconvolution", false);
    double ref_lifetime_guess = getValueFromStruct(irf_struct, "ref_lifetime_guess", 80.0);
    
    irf->setReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);

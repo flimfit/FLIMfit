@@ -63,7 +63,7 @@ public:
 
    int GetNumStats() const { return N_STATS; }
    int GetNumParams() const { return n_params; }
-   int GetNumRegions() const { return n_regions };
+   int GetNumRegions() const { return n_regions; };
 
    const vector<T>& GetStats() const { return params; } 
 
