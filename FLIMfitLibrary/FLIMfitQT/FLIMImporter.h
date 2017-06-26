@@ -3,7 +3,7 @@
 #include "FLIMImage.h"
 #include "ProgressReporter.h"
 #include "FLIMImageSet.h"
-#include "FLIMReader.h"
+#include "FlimReader.h"
 
 #include <QObject>
 #include <QFileInfoList>
@@ -80,13 +80,13 @@ std::shared_ptr<FLIMImage> FLIMImporter::importStackedFiles(QStringList stack_fi
 {
    assert(!stack_files.empty());
    std::string file = stack_files[0].toStdString();
-   auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file));
+   auto reader = std::shared_ptr<FlimReader>(FlimReader::createReader(file));
    //reader->setTemporalResolution(8);
    
    auto acq = std::make_shared<AcquisitionParameters>(0, 12500);
    acq->n_chan = channels.size() * stack_files.size();
    acq->setImageSize(reader->numX(), reader->numY());
-   acq->setT(reader->timepoints());
+   acq->setT(reader->getTimepoints());
    reader = nullptr;
    
    QFileInfo info(stack_files[0]);
@@ -111,7 +111,7 @@ std::shared_ptr<FLIMImage> FLIMImporter::importStackedFiles(QStringList stack_fi
       for (int j=0; j<n_stack; j++)
       {
          std::string file = stack_files[j].toStdString();
-         auto reader = std::unique_ptr<FLIMReader>(FLIMReader::createReader(file));
+         auto reader = std::unique_ptr<FlimReader>(FlimReader::createReader(file));
          //reader->setTemporalResolution(8);
          
          T* next_ptr = data_ptr + j * channels.size() * acq->n_t_full;

@@ -149,7 +149,7 @@ int main()
 
 
    auto irf_ = std::make_shared<InstrumentResponseFunction>();
-   irf_->SetIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
+   irf_->setIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
 
    auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
    acq->setT(t);

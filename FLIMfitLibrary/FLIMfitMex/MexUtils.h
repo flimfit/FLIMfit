@@ -7,7 +7,7 @@
 #include <cv.h>
 
 #define AssertInputCondition(x) checkInputCondition(#x, x);
-void checkInputCondition(char* text, bool condition);
+void checkInputCondition(const char* text, bool condition);
 
 std::string getStringFromMatlab(const mxArray* dat);
 
@@ -41,14 +41,6 @@ mxArray* convertCvMat(const cv::Mat im);
 /*
   Vector conversion
 */
-
-template<typename T>
-std::vector<T> getVectorFromStruct(const mxArray* s, const char *field)
-{
-   mxArray* v = getFieldFromStruct(s, field);
-   return getVector<T>(v);
-}
-
 
 template<typename T, typename U>
 std::vector<T> getUVector(const mxArray* v)
@@ -94,12 +86,20 @@ std::vector<T> getVector(const mxArray* v)
    return std::vector<T>();
 }
 
+template<typename T>
+std::vector<T> getVectorFromStruct(const mxArray* s, const char *field)
+{
+   mxArray* v = getFieldFromStruct(s, field);
+   return getVector<T>(v);
+}
+
+
 /*
    Pointer packaging
 */
 
 template<class T>
-mxArray* packageSharedPtrForMatlab(std::shared_ptr<T>& ptr)
+mxArray* packageSharedPtrForMatlab(const std::shared_ptr<T>& ptr)
 {
    // Create pointer reference
    mxArray* ptr_ptr = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);

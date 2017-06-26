@@ -154,7 +154,7 @@ void getFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, co
    int n_fit = mxGetNumberOfElements(prhs[3]);
    
    auto dp = c->getData()->GetTransformedDataParameters();  
-   mwSize dims[] = { dp->n_t, dp->n_chan, n_fit };
+   mwSize dims[] = { (uint) dp->n_t, (uint) dp->n_chan, (uint) n_fit };
 
    plhs[0] = mxCreateNumericArray(3, dims, mxDOUBLE_CLASS, mxREAL);
    double* fit = reinterpret_cast<double*>(mxGetData(plhs[0]));
@@ -187,7 +187,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(mxIsChar(prhs[1]));
 
       // Get controller
-      auto& controller = getSharedPtrFromMatlab<FitController>(prhs[0]);
+      const auto& controller = getSharedPtrFromMatlab<FitController>(prhs[0]);
       
       if (ptr_set.find(controller) == ptr_set.end())
          mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerPointer", "Invalid controller pointer");

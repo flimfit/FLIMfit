@@ -31,10 +31,10 @@ std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRFFromDialog()
 std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRF(const QString& filename)
 {
    std::string fname = filename.toStdString();
-   std::unique_ptr<FLIMReader> reader(FLIMReader::createReader(fname));
+   std::unique_ptr<FlimReader> reader(FlimReader::createReader(fname));
    
    int n_chan = reader->getNumChannels();
-   auto t = reader->timepoints();
+   auto t = reader->getTimepoints();
    
    if(t.size() <= 1)
       throw std::runtime_error("IRF should have at least two timepoints");
@@ -45,7 +45,7 @@ std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRF(const QStrin
    reader->readData<double>(cube);
    
    auto irf = std::make_shared<InstrumentResponseFunction>();
-   irf->SetIRF(t.size(), n_chan, t[0], timebin_width, cube->getDataPtr());
+   irf->setIRF(t.size(), n_chan, t[0], timebin_width, cube->getDataPtr());
    
    return irf;
 }
@@ -99,7 +99,7 @@ FileSet FLIMImporter::getValidFilesFromFolder(const QString& folder)
       return file_set;
    
    std::string file0 = file_set.files[0].absoluteFilePath().toStdString();
-   auto reader = std::shared_ptr<FLIMReader>(FLIMReader::createReader(file0));
+   auto reader = std::shared_ptr<FlimReader>(FlimReader::createReader(file0));
    file_set.n_channels = reader->getNumChannels();
    
    QString first_ext = file_set.files[0].completeSuffix();

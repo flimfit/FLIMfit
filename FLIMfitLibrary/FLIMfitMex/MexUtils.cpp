@@ -1,9 +1,7 @@
-#pragma once
-
 #include "MexUtils.h"
 #include <cv.h>
 
-void checkInputCondition(char* text, bool condition)
+void checkInputCondition(const char* text, bool condition)
 {
    if (!condition)
       mexErrMsgIdAndTxt("FLIMfitMex:invalidInput", text);
