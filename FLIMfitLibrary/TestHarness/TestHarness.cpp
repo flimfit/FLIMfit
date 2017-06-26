@@ -103,16 +103,17 @@ int main()
    vector<double> t;
    vector<double> t_int;
 
-   int n_x = 10;
-   int n_y = 10;
+   int n_x = 1;
+   int n_y = 1;
 
-   int N = 10000;
-   double tau = 2000;
-
+   int N = 20000;
+   vector<double> tau = { 3000, 1000 };
+ 
 
    sim.GenerateIRF(N, irf);
-   sim.GenerateImage(tau, N, n_x, n_y, image_data);
-   sim.GenerateImage(500, N, n_x, n_y, image_data);
+
+   for (auto taui : tau)
+      sim.GenerateImage(taui, N, n_x, n_y, image_data);
 
    int n_t = sim.GetTimePoints(t, t_int);
    int n_irf = n_t;
@@ -140,7 +141,7 @@ int main()
    int global_mode = MODE_PIXELWISE;
     */
    
-   int algorithm = ALG_ML;
+   int algorithm = ALG_LM;
 
    int data_type = DATA_TYPE_TCSPC;
    bool polarisation_resolved = false;
@@ -149,7 +150,7 @@ int main()
 
 
    auto irf_ = std::make_shared<InstrumentResponseFunction>();
-   irf_->SetIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
+   irf_->setIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
 
    auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
    acq->setT(t);
@@ -171,8 +172,20 @@ int main()
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
    
-   auto group = std::make_shared<MultiExponentialDecayGroup>(2);
+
+   std::vector<double> test = { 1500, 2000 };
+
+   auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
    model->addDecayGroup(group);
+
+   auto params = group->getParameters();
+   for (int i=0; i<params.size(); i++)
+   {
+      params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      params[i]->initial_value = test[i];
+      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
+   }
+
 
 
    FitController controller;   
