@@ -59,7 +59,7 @@ target_link_libraries(ff_FLIMData ${COMMON_LIBS})
 add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_Controller SRC ${COMMON_FILES} ControllerMex.cpp)
-target_link_libraries(ff_Controller ${COMMON_LIBS} levmar)
+target_link_libraries(ff_Controller ${COMMON_LIBS} levmar ${LEVMAR_LIBRARIES})
 add_custom_command(TARGET ff_Controller POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_Controller> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_FitResults SRC ${COMMON_FILES} FitResultsMex.cpp)
