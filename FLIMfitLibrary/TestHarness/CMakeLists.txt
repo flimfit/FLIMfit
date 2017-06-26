@@ -34,7 +34,8 @@ include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../F
 
 # Include the BOOST header files
 #===================================================
-FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem serialization)
+find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
+find_package(Qt5Core)
 
 # Set the source and header files
 #===================================================
@@ -61,9 +62,7 @@ link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
 target_link_libraries(TestHarness FLIMfit DataFitter FLIMDecayModel levmar
-                        ${LAPACKBLAS_LIB_NAMES}
-                        ${F2C_LIB_NAME}
-                        ${OpenCV_LIBS}
+                        ${OpenCV_LIBS} Qt5::Core
                         ${Boost_LIBRARIES})
 
 

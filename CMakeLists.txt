@@ -8,16 +8,20 @@ HunterGate(
 )
 project(FLIMfit)
 
-hunter_add_package(OpenCV)
 hunter_add_package(Boost COMPONENTS system filesystem serialization date_time)
-hunter_add_package(Qt COMPONENTS qtbase)
-
-find_package(OpenCV)
-find_package(Qt5Widgets)
-find_package(Qt5PrintSupport)
-
-hunter_add_package(Boost COMPONENTS system filesystem)
+hunter_add_package(OpenCV)
 hunter_add_package(dlib)
+
+find_package(Qt5Widgets)
+if(NOT Qt5Widgets_FOUND)
+   hunter_add_package(Qt COMPONENTS qtbase)
+endif()
+
+find_package(OpenCV CONFIG REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5PrintSupport)
+find_package(dlib)
+
 
 set(CMAKE_DEBUG_POSTFIX "")
 set(FLIMreaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)

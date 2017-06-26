@@ -497,6 +497,9 @@ int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx
    // Store masked values
    int idx = 0;
 
+   if (tr_data.empty())
+      throw std::runtime_error("Error retrieving transformed data");
+
    int n_px = static_cast<int>(mask.size());
    for(int p=0; p<n_px; p++)
    {
