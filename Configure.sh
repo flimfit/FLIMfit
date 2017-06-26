@@ -1,10 +1,7 @@
 #!/bin/bash
 
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
-if [ -z ${BIO+x} ]; then export BIO=5.1; echo "Setting BIO=5.1"; fi
-
-export CC=/usr/local/bin/gcc-6
-export CXX=/usr/local/bin/g++-6
+if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
 
 echo "Checking for homebrew install..."
 (brew | grep "command not found") \
@@ -15,11 +12,9 @@ brew update
 
 echo "Ensure cmake, gcc and boost are installed..."
 # Ensure gcc, ghostscript, cmake, LAPACK are installed using Homebrew
-(brew list | grep gcc6) || brew install homebrew/versions/gcc6
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 (brew list | grep platypus) && echo " installed" || brew install platypus
-(brew list | grep lapack) && echo " installed" || brew install homebrew/dupes/LAPACK
 (brew list | grep coreutils) && echo " installed" || brew install coreutils
 brew upgrade cmake
 

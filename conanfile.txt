@@ -1,0 +1,11 @@
+[requires]
+QtBase/5.7.1@russelltg/stable
+
+[generators]
+cmake
+
+[options]
+OpenCV:opencv_with_cuda=False
+OpenCV:opencv_with_ipp=False
+OpenCV:opencv_with_opengl=False
+OpenCV:opencv_with_qt=False
