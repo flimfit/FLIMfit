@@ -28,6 +28,7 @@ classdef flim_fit_ui
    
     properties
         window
+        model
     end
     
     methods
@@ -131,6 +132,7 @@ classdef flim_fit_ui
             handles = obj.setup_layout(handles);                        
             handles = obj.setup_toolbar(handles);
 
+            handles.model_controller = flim_model_controller(handles.model_panel);            
             handles.data_series_controller = flim_data_series_controller(handles);                                    
             handles.omero_logon_manager = flim_omero_logon_manager(handles);
             
