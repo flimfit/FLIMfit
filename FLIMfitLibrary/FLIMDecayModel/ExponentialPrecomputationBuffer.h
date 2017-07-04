@@ -50,20 +50,22 @@ class ExponentialPrecomputationBuffer
 {
 public:
    ExponentialPrecomputationBuffer(shared_ptr<TransformedDataParameters> dp);
-   void Compute(double rate, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models = false);
+   void compute(double rate, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models = false);
 
-   void AddDecay(double fact, double ref_lifetime, double a[], int bin_shift = 0) const;
-   void AddDerivative(double fact, double ref_lifetime, double b[]) const;
+   void addDecay(double fact, double ref_lifetime, double a[], int bin_shift = 0) const;
+   void addDerivative(double fact, double ref_lifetime, double b[]) const;
+
+   double getRate() const { return rate; };
 
 private:
 
-   void CalculateIRFMax();
+   void calculateIRFMax();
    
-   void ComputeIRFFactors(double rate, int irf_idx, double t0_shift);
-   void ComputeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models);
+   void computeIRFFactors(double rate, int irf_idx, double t0_shift);
+   void computeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models);
 
-   void Convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const;
-   void ConvolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const;
+   void convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const;
+   void convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const;
 
 
    vector<aligned_vector<double>> irf_exp_factor;
@@ -84,8 +86,6 @@ private:
    int n_chan;
    int n_t;
    std::vector<int> irf_max;
-   
-   friend class DecayModelWorkingBuffers;
 };
 
 /*

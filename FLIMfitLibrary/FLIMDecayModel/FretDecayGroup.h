@@ -29,8 +29,8 @@ public:
 
 
    int setVariables(const double* variables);
-   int calculateModel(double* a, int adim, vector<double>& kap, int bin_shift = 0);
-   int calculateDerivatives(double* b, int bdim, vector<double>& kap);
+   int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
+   int calculateDerivatives(double* b, int bdim, double kap_derv[]);
 
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
@@ -44,14 +44,14 @@ protected:
    void setupParameters();
    void init();
 
-   int addLifetimeDerivativesForFret(int idx, double* b, int bdim, vector<double>& kap);
-   int addFretEfficiencyDerivatives(double* b, int bdim, vector<double>& kap);
-   int addAcceptorIntensityDerivatives(double* b, int bdim, vector<double>& kap);
-   int addAcceptorLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
-   int addDirectAcceptorDerivatives(double* b, int bdim, vector<double>& kap);
+   int addLifetimeDerivativesForFret(int idx, double* b, int bdim, double kap_derv[]);
+   int addFretEfficiencyDerivatives(double* b, int bdim, double kap_derv[]);
+   int addAcceptorIntensityDerivatives(double* b, int bdim, double kap_derv[]);
+   int addAcceptorLifetimeDerivatives(double* b, int bdim, double kap_derv[]);
+   int addDirectAcceptorDerivatives(double* b, int bdim, double kap_derv[]);
 
-   void addAcceptorContribution(int i, double factor, double* a, int adim, vector<double>& kap, int bin_shift = 0);
-   void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, vector<double>& kap);
+   void addAcceptorContribution(int i, double factor, double* a, int adim, double& kap, int bin_shift = 0);
+   void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, double& kap_derv);
 
    vector<shared_ptr<FittingParameter>> tauT_parameters;
    shared_ptr<FittingParameter> Q_parameter;

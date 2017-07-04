@@ -48,6 +48,8 @@ set(SOURCE
    DataTransformer.cpp
    FLIMImage.cpp
    PhasorCalculator.cpp
+   ParameterConstraints.cpp
+
 )
 
 set(HEADERS   
@@ -67,6 +69,7 @@ set(HEADERS
    FLIMBackground.h
    cvmat_serialization.h
    PhasorCalculator.h
+   ParameterConstraints.h
 )
 
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)

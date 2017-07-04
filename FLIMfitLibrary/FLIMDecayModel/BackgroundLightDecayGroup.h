@@ -11,8 +11,8 @@ public:
    BackgroundLightDecayGroup();
 
    int setVariables(const double* variables);
-   int calculateModel(double* a, int adim, vector<double>& kap, int bin_shift = 0);
-   int calculateDerivatives(double* b, int bdim, vector<double>& kap);
+   int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
+   int calculateDerivatives(double* b, int bdim, double kap_derv[]);
    void addConstantContribution(float* a);
 
    int setupIncMatrix(std::vector<int>& inc, int& row, int& col);
@@ -27,14 +27,14 @@ protected:
    const vector<string> names;
    void setupParameters();
 
-   int addOffsetColumn(double* a, int adim, vector<double>& kap);
-   int addScatterColumn(double* a, int adim, vector<double>& kap);
-   int addTVBColumn(double* a, int adim, vector<double>& kap);
-   int addGlobalBackgroundLightColumn(double* a, int adim, vector<double>& kap);
+   int addOffsetColumn(double* a, int adim, double& kap);
+   int addScatterColumn(double* a, int adim, double& kap);
+   int addTVBColumn(double* a, int adim, double& kap);
+   int addGlobalBackgroundLightColumn(double* a, int adim, double& kap);
 
-   int addOffsetDerivatives(double* b, int bdim, vector<double>& kap);
-   int addScatterDerivatives(double* b, int bdim, vector<double>& kap);
-   int addTVBDerivatives(double* b, int bdim, vector<double>& kap);
+   int addOffsetDerivatives(double* b, int bdim, double& kap_derv);
+   int addScatterDerivatives(double* b, int bdim, double& kap_derv);
+   int addTVBDerivatives(double* b, int bdim, double& kap_derv);
 
    vector<double> channel_factors;
 

@@ -266,7 +266,7 @@ void DecayModel::CalculateCurrentFRETLifetimes(Buffers& wb, const vector<double>
 */
 
 /*
-int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
+int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<double>& b, int bdim, double kap_derv[], const vector<double>& alf, int irf_idx, int isel)
 {
    double ref_lifetime = GetCurrentReferenceLifetime(alf);
    double t0_shift = GetCurrentT0(alf);
@@ -368,7 +368,7 @@ int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<
 */
 
 /*
-int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
+int DecayModel::CalculateModel(Buffers& wb, vector<double>& a, int adim, vector<double>& b, int bdim, double kap_derv[], const vector<double>& alf, int irf_idx, int isel)
 {   
    double ref_lifetime = GetCurrentReferenceLifetime(alf);
    double t0_shift = GetCurrentT0(alf);

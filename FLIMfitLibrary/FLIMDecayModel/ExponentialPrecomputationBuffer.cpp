@@ -54,10 +54,10 @@ n_t(dp->n_t)
 
    irf_working.resize(n_irf * n_chan);
 
-   CalculateIRFMax();
+   calculateIRFMax();
 };
 
-void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models)
+void ExponentialPrecomputationBuffer::compute(double rate_, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models)
 {
    // Don't compute if rate is the same
    if (rate_ == rate)
@@ -66,13 +66,16 @@ void ExponentialPrecomputationBuffer::Compute(double rate_, int irf_idx, double 
    if (!std::isfinite(rate_))
       throw(std::runtime_error("Rate not finite"));
 
+   if (rate > 0.02) // 50ps
+      rate = 0.02;
+      
    rate = rate_;
 
-   ComputeIRFFactors(rate, irf_idx, t0_shift);
-   ComputeModelFactors(rate, channel_factors, compute_shifted_models);
+   computeIRFFactors(rate, irf_idx, t0_shift);
+   computeModelFactors(rate, channel_factors, compute_shifted_models);
 }
 
-void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx, double t0_shift)
+void ExponentialPrecomputationBuffer::computeIRFFactors(double rate, int irf_idx, double t0_shift)
 {
    double* lirf = irf->getIRF(irf_idx, t0_shift, irf_working.data()); // TODO: add image irf shifting to GetIRF
    double t0 = irf->getT0();
@@ -145,7 +148,7 @@ void ExponentialPrecomputationBuffer::ComputeIRFFactors(double rate, int irf_idx
 
 }
 
-void ExponentialPrecomputationBuffer::ComputeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models)
+void ExponentialPrecomputationBuffer::computeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models)
 {
    double fact = 1;
 
@@ -158,6 +161,10 @@ void ExponentialPrecomputationBuffer::ComputeModelFactors(double rate, const vec
    double factor_sum = 0;
    for (auto f : channel_factors)
       factor_sum += f;
+
+   if (factor_sum == 0)
+      throw std::runtime_error("Sum of channel factors was zero");
+
    fact /= factor_sum;
 
    double de = exp((t[0] - t[1]) * rate);
@@ -200,7 +207,7 @@ void ExponentialPrecomputationBuffer::ComputeModelFactors(double rate, const vec
 
 
 
-void ExponentialPrecomputationBuffer::Convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const
+void ExponentialPrecomputationBuffer::convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const
 {
    const auto& exp_irf_cum_buf = cum_irf_exp_factor[k];
    const auto& exp_irf_buf = irf_exp_factor[k];
@@ -219,7 +226,7 @@ void ExponentialPrecomputationBuffer::Convolve(int k, int i, double pulse_fact, 
 
 
 
-void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const
+void ExponentialPrecomputationBuffer::convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const
 {
    const auto& exp_irf_tirf_cum_buf = cum_irf_exp_t_factor[k];
    const auto& exp_irf_tirf_buf = irf_exp_t_factor[k];
@@ -248,7 +255,7 @@ void ExponentialPrecomputationBuffer::ConvolveDerivative(double t, int k, int i,
 
 
 
-void ExponentialPrecomputationBuffer::AddDecay(double fact, double ref_lifetime, double a[], int bin_shift) const
+void ExponentialPrecomputationBuffer::addDecay(double fact, double ref_lifetime, double a[], int bin_shift) const
 {
    double c;
 
@@ -267,7 +274,7 @@ void ExponentialPrecomputationBuffer::AddDecay(double fact, double ref_lifetime,
    {
       for (int i = 0; i<n_t; i++)
       {
-         Convolve(k, i, pulse_fact, bin_shift, c);
+         convolve(k, i, pulse_fact, bin_shift, c);
 
          int mi = i + bin_shift; // TODO: should there be a 1 here?
          mi = mi < 0 ? 0 : mi;
@@ -279,7 +286,7 @@ void ExponentialPrecomputationBuffer::AddDecay(double fact, double ref_lifetime,
    }
 }
 
-void ExponentialPrecomputationBuffer::AddDerivative(double fact, double ref_lifetime, double b[]) const
+void ExponentialPrecomputationBuffer::addDerivative(double fact, double ref_lifetime, double b[]) const
 {
    double c;
 
@@ -297,7 +304,7 @@ void ExponentialPrecomputationBuffer::AddDerivative(double fact, double ref_life
    {
       for (int i = 0; i<n_t; i++)
       {
-         ConvolveDerivative(t[i], k, i, pulse_fact, pulse_fact_der, ref_fact_a, ref_fact_b, c);
+         convolveDerivative(t[i], k, i, pulse_fact, pulse_fact_der, ref_fact_a, ref_fact_b, c);
          b[idx] += model_decay[k][i] * c * fact;
          idx++;
       }
@@ -305,7 +312,7 @@ void ExponentialPrecomputationBuffer::AddDerivative(double fact, double ref_life
 }
 
 
-void ExponentialPrecomputationBuffer::CalculateIRFMax()
+void ExponentialPrecomputationBuffer::calculateIRFMax()
 {
    irf_max.assign(dp->n_meas, 0);
    auto t = dp->getTimepoints();

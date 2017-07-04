@@ -10,10 +10,10 @@ classdef flimreader_reader < base_data_reader
             obj.filename = filename;
             obj.data_type = 'uint16';
 
-            r = FLIMreaderMex(obj.filename);
-            obj.n_channels = FLIMreaderMex(r,'GetNumberOfChannels');
-            obj.delays = FLIMreaderMex(r,'GetTimePoints');
-            supports_realignment = FLIMreaderMex(r,'SupportsRealignment');
+            r = FlimReaderMex(obj.filename);
+            obj.n_channels = FlimReaderMex(r,'GetNumberOfChannels');
+            obj.delays = FlimReaderMex(r,'GetTimePoints');
+            supports_realignment = FlimReaderMex(r,'SupportsRealignment');
             
             if length(obj.delays) > 1
                 dt = obj.delays(2) - obj.delays(1);
@@ -30,15 +30,15 @@ classdef flimreader_reader < base_data_reader
                 obj.settings = settings;
             end
             
-            FLIMreaderMex(r,'SetSpatialBinning',obj.settings.spatial_binning);
-            FLIMreaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
-            FLIMreaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
+            FlimReaderMex(r,'SetSpatialBinning',obj.settings.spatial_binning);
+            FlimReaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
+            FlimReaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
             
             obj.sizeZCT = [ 1 obj.n_channels 1 ];
             obj.FLIM_type = 'TCSPC';
-            obj.delays = FLIMreaderMex(r,'GetTimePoints');
-            obj.sizeXY = FLIMreaderMex(r,'GetImageSize');
-            FLIMreaderMex(r,'Delete');
+            obj.delays = FlimReaderMex(r,'GetTimePoints');
+            obj.sizeXY = FlimReaderMex(r,'GetImageSize');
+            FlimReaderMex(r,'Delete');
                         
             for i=1:obj.n_channels
                 obj.chan_info{i} = ['Channel ' num2str(i-1)];
@@ -55,13 +55,13 @@ classdef flimreader_reader < base_data_reader
             end
             
             r = FLIMreaderMex(obj.filename);
-            FLIMreaderMex(r,'SetSpatialBinning',obj.settings.spatial_binning);
-            FLIMreaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
-            FLIMreaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
+            FlimReaderMex(r,'SetSpatialBinning',obj.settings.spatial_binning);
+            FlimReaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
+            FlimReaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
             
-            data = FLIMreaderMex(r, 'GetData', channels - 1);
+            data = FlimReaderMex(r, 'GetData', channels - 1);
             
-            FLIMreaderMex(r,'Delete');
+            FlimReaderMex(r,'Delete');
             
         end
         

@@ -82,8 +82,8 @@ public:
    virtual void init() = 0;
 
    virtual int setVariables(const double* variables) = 0;
-   virtual int calculateModel(double* a, int adim, vector<double>& kap, int bin_shift = 0) = 0;
-   virtual int calculateDerivatives(double* b, int bdim, vector<double>& kap) = 0;
+   virtual int calculateModel(double* a, int adim, double& kap, int bin_shift = 0) = 0;
+   virtual int calculateDerivatives(double* b, int bdim, double kap_derv[]) = 0;
    virtual void addConstantContribution(float* a) {}
 
    virtual int setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;
@@ -107,6 +107,8 @@ protected:
    void parametersChanged() { emit parametersUpdated(); };
    virtual int getNumPotentialChannels() { return 1; }
    
+   void validateChannelFactors();
+
    bool constrain_nonlinear_parameters = true;
 
    vector<std::shared_ptr<FittingParameter>> parameters;

@@ -11,7 +11,8 @@ syntax: glob
 *.bak
 *.rej
 *.dll
-*.mexw64
+*.mex
+*.mex*
 *.dylib
 data_settings.xml
 FLIMGlobalAnalysisProto_*

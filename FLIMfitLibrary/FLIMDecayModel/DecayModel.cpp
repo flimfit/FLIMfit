@@ -238,9 +238,9 @@ int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, i
       int col = 0;
 
       for (int i = 0; i < decay_groups.size(); i++)
-         col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap);
+         col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap[0]);
 
-      /*
+      /* TODO
       MOVE THIS TO MULTIEXPONENTIAL MODEL
       if (constrain_nonlinear_parameters && kap.size() > 0)
       {
@@ -266,16 +266,18 @@ int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, i
    {
       int col = 0;
 
+      double* kap_derv = &kap[1]; // TODO tidy this a bit
+
       /*
       if (irf->ref_reconvolution == FIT_GLOBALLY)
       col += AddReferenceLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
       */
 
       if (t0_parameter->fitting_type == FittedGlobally)
-         col += addT0Derivatives(b.data() + col*bdim, bdim, kap);
+         col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv[col]);
 
       for (int i = 0; i < decay_groups.size(); i++)
-         col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, kap);
+         col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, &kap_derv[col]);
 
 #if _DEBUG
       //for (int i = 0; i < b.size(); i++)
@@ -318,7 +320,7 @@ int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, i
 }
 
 
-int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap)
+int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double& kap_derv)
 {
    //TODO - reference lifetime derivatives
    /*
@@ -362,9 +364,11 @@ int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, vector<doub
 
 
 
-int DecayModel::addT0Derivatives(double* b, int bdim, vector<double>& kap)
+int DecayModel::addT0Derivatives(double* b, int bdim, double& kap_derv)
 {
    // Compute numerical derivatives for t0
+
+   double kap = 0;
 
    // Add decay shifted by one bin
    int col = 0;

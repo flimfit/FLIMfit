@@ -28,7 +28,7 @@
 //=========================================================================
 
 #include "MultiExponentialDecayGroup.h"
-
+#include "ParameterConstraints.h" // TODO: move this code
 #include <boost/lexical_cast.hpp>
 using namespace std;
 
@@ -237,7 +237,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
    {
       tau[i] = tau_parameters[i]->getValue<double>(param_value, idx);
       tau[i] = tau[i] < 50.0 ? 50.0 : tau[i];
-      buffer[i].Compute(1 / tau[i], irf_idx, t0_shift, channel_factors);
+      buffer[i].compute(1 / tau[i], irf_idx, t0_shift, channel_factors);
    }
 
    // Get contributions
@@ -314,25 +314,25 @@ int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_vari
 }
 
 
-int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, vector<double>& kap, int bin_shift)
+int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, double& kap, int bin_shift)
 {
    int sz = contributions_global ? 1 : n_exponential;
    memset(a, 0, sz*adim*sizeof(*a));
    return addDecayGroup(buffer, a, adim, kap, bin_shift);
 }
 
-int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, double kap_derv[])
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
-      col += addLifetimeDerivative(i, b + col*bdim, bdim, kap);
+      col += addLifetimeDerivative(i, b + col*bdim, bdim, kap_derv[col]);
 
-   col += addContributionDerivatives(b + col*bdim, bdim, kap);
+   col += addContributionDerivatives(b + col*bdim, bdim, &kap_derv[col]);
    return col;
 }
 
 
-int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, vector<double>& kap, int bin_shift)
+int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, double& kap, int bin_shift)
 {
    int col = 0;
     
@@ -348,20 +348,22 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPre
          addIRF(irf_buf.data(), irf_idx, t0_shift, a + col*adim, channel_factors);
 
       double factor = contributions_global ? beta[j] : 1;
-      buffers[j].AddDecay(factor, reference_lifetime, a + col*adim, bin_shift);
+      buffers[j].addDecay(factor, reference_lifetime, a + col*adim, bin_shift);
 
       if (!contributions_global)
          col++;
+
+      kap += kappaLim(tau[j]);
    }
 
    if (contributions_global)
-      col++;
+      col++;      
 
    return col;
 }
 
 
-int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b, int bdim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b, int bdim, double& kap_derv)
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
@@ -370,7 +372,9 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b,
       double fact = 1 / (tau[idx] * tau[idx]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
       fact *= contributions_global ? beta[idx] : 1;
 
-      buffer[idx].AddDerivative(fact, reference_lifetime, b);
+      buffer[idx].addDerivative(fact, reference_lifetime, b);
+
+      kap_derv = - kappaLim(tau[idx]);
 
       return 1;
    }
@@ -378,7 +382,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b,
    return 0;
 }
 
-int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int bdim, vector<double>& kap)
+int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int bdim, double kap_derv[])
 {
    int col = 0;
 
@@ -394,7 +398,7 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int
                if (!beta_parameters[k]->isFixed())
                {
                   double factor = beta_derv(n_beta_free, ji, ki, beta_param_values) * (1-fixed_beta);
-                  buffer[k].AddDecay(factor, reference_lifetime, b + col*bdim);
+                  buffer[k].addDecay(factor, reference_lifetime, b + col*bdim);
                   ki++;
                }
 

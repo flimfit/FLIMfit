@@ -105,8 +105,8 @@ protected:
 
    double getCurrentReferenceLifetime(const double* param_values, int& idx);
 
-   int addReferenceLifetimeDerivatives(double* b, int bdim, vector<double>& kap);
-   int addT0Derivatives(double* b, int bdim, vector<double>& kap);
+   int addReferenceLifetimeDerivatives(double* b, int bdim, double& kap_derv);
+   int addT0Derivatives(double* b, int bdim, double& kap_derv);
 
    void setupAdjust();
    
