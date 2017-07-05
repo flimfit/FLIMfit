@@ -1,6 +1,11 @@
 function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
         
     dt = td(2)-td(1);
+    
+    if (dt > 250)
+        dt = 25;
+    end
+        
     t = -max(td):1:max(td);
     dc = [];
     
@@ -76,7 +81,12 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
         
         [binned_irf, binned_t] = bin_decay(irf);
         dc = I * conv_irf(binned_t,binned_irf,tau);
-        dc = dc((end-length(td)+1):end) + offset;
+        dc = dc + offset;
+        %dc = dc((end-length(td)+1):end) + offset;
+        
+        sel = arrayfun(@(x) any(td==x), binned_t);
+        dc = dc(sel);
+        
     end
 
     function [binned_decay, binned_t] = bin_decay(decay)

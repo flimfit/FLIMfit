@@ -1,5 +1,9 @@
 function [irf_final,t_final] = estimate_irf_interface(t, data, T, default_path)
 
+    if any(data==0)
+        warndlg('Decay contains zeros, please average over a larer region','Warning')
+    end
+
     screen_pos = get(0,'ScreenSize');
     pos = [100 100 screen_pos(3:4) - 200];
 
