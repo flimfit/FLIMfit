@@ -56,4 +56,4 @@ mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar
 
 # Download omeUiUtils
 curl -OL https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.6.jar
-mv OMEuiUtils-0.1.5.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar
+mv OMEuiUtils-0.1.6.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar
