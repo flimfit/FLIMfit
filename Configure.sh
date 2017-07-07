@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
-if [ -z ${BIO+x} ]; then export BIO=5.4; echo "Setting BIO=5.4"; fi
+if [ -z ${OME+x} ]; then export OME=5.3; echo "Setting OME=5.3"; fi
+if [ -z ${BIO+x} ]; then export BIO=5.5; echo "Setting BIO=5.5"; fi
 
 echo "Checking for homebrew install..."
 (brew update | grep "command not found") \
@@ -53,5 +53,5 @@ curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0
 mv ini4j-0.3.2.jar FLIMfitFrontEnd/OMEROMatlab/libs/ini4j.jar
 
 # Download omeUiUtils
-curl -OL https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.5.jar
+curl -OL https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.6.jar
 mv OMEuiUtils-0.1.5.jar FLIMfitFrontEnd/OMEuiUtils/OMEuiUtils.jar
