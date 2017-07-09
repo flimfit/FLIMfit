@@ -1,13 +1,11 @@
 #!/bin/bash
 
-if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
-if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
-
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
 
-export CC=/usr/local/bin/gcc-5
-export CXX=/usr/local/bin/g++-5
-export MACOSX_DEPLOYMENT_TARGET=10.9.5
+export CC=/usr/local/opt/llvm/bin/clang
+export CXX=/usr/local/opt/llvm/bin/clang++
+export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib"
+export MACOSX_DEPLOYMENT_TARGET=10.10
 
 echo "Cleaning CMake Project..."
 cd GeneratedProjects
