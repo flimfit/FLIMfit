@@ -19,7 +19,7 @@ function dims = parse_lavision_ome_xml(xml,dims)
             el = el.item(0);
             attr = el.getAttributes();
             for i=1:attr.getLength()
-                attr.item(i-1).getName()
+                attr.item(i-1).getName();
                 name = matlab.lang.makeValidName(char(attr.item(i-1).getName()));
                 element.(name) = char(attr.item(i-1).getValue());
             end
