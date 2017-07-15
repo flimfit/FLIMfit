@@ -177,7 +177,8 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
                         end
                     end
             
-            
+                end
+            end
              
             % get channel_names
             for c = 1:sizeZCT(2)
