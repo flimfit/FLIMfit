@@ -108,7 +108,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             modlo = [];
             mod = r.getModuloT();
           
-            type = lower(mod.type);
+            type = lower(char(mod.type));
             if strfind(type,'lifetime')
                 modlo = mod;
                 dims.modulo = 'ModuloAlongT';
