@@ -22,7 +22,7 @@ function varargout = ZCT_selection(varargin)
 
 % Edit the above text to modify the response to help ZCT_selection
 
-% Last Modified by GUIDE v2.5 06-Apr-2016 12:28:21
+% Last Modified by GUIDE v2.5 17-Jul-2017 13:37:08
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -96,6 +96,14 @@ if maxT > 1
 else
   set(handles.AllTpushbutton,'Visible','off'); 
 end
+
+if maxC > 1
+  set(handles.AllCpushbutton,'Visible','on');
+else
+  set(handles.AllCpushbutton,'Visible','off'); 
+end
+
+
 
 
 pol_resolved = varargin{4};
@@ -474,6 +482,31 @@ else
     set(handles.AllTpushbutton,'Enable','off');
 end
 
+if handles.nZ == 1 && handles.nT == 1
+    set(handles.AllCpushbutton,'Enable','on');
+else
+    set(handles.AllCpushbutton,'Enable','off');
+end
 
 
+
+% --- Executes on button press in AllCpushbutton.
+function AllCpushbutton_Callback(hObject, eventdata, handles)
+% hObject    handle to AllCpushbutton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+dataC = get(handles.uitableC,'Data');
+sizeC = handles.sizeC;
+
+% if already all set then clear 
+if handles.nC == sizeC
+    dataC(2:end,2)= num2cell( false(sizeC - 1,1));
+    handles.nC = 1;
+else
+    dataC(:,2)= num2cell( true(sizeC,1));
+    handles.nC = sizeC;
+end
+set(handles.uitableC,'Data',dataC);
+guidata(hObject,handles);
 
