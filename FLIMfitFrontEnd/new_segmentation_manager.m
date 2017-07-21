@@ -114,7 +114,7 @@ function new_segmentation_manager(data_series_controller)
         handles.tool_roi_poly_toggle = uitoggletool(handles.toolbar,'CData',icons.poly_icon,'ToolTipString','Polygon');
         handles.tool_roi_freehand_toggle = uitoggletool(handles.toolbar,'CData',icons.freehand_icon,'ToolTipString','Freehand');
         handles.tool_roi_circle_toggle = uitoggletool(handles.toolbar,'CData',icons.ellipse_icon,'ToolTipString','Ellipse');
-        handles.tool_roi_paint_toggle = uitoggletool(handles.toolbar,'CData',icons.paintbrush_icon,'ToolTipString','Ellipse');
+        handles.tool_roi_paint_toggle = uitoggletool(handles.toolbar,'CData',icons.paintbrush_icon,'ToolTipString','Paintbrush');
         handles.tool_roi_erase_toggle = uitoggletool(handles.toolbar,'CData',icons.eraser_icon,'ToolTipString','Erase');
 
         
