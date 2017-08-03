@@ -82,3 +82,12 @@ void AbstractDecayGroup::setNumChannels(int n_chan)
       setChannelFactors(i, v);
    }
 }
+
+shared_ptr<FittingParameter> AbstractDecayGroup::getParameter(const std::string& param)
+{
+   for(auto& p : parameters)
+      if (p->name == param)
+         return p;
+
+   return nullptr; // if none found
+}

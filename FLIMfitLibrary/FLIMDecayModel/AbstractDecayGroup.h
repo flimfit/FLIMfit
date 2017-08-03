@@ -68,7 +68,7 @@ public:
 
    virtual ~AbstractDecayGroup() {};
    
-   
+   shared_ptr<FittingParameter> getParameter(const std::string& param);
    vector<shared_ptr<FittingParameter>>& getParameters() { return parameters; }
    const vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
    virtual const vector<double>& getChannelFactors(int index) = 0;
