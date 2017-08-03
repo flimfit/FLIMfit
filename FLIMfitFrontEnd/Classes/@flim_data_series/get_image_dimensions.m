@@ -156,7 +156,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
                 % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strcmp(char(r.getFormat()), 'OME-TIFF')
                     % checking for out-of-date SCHEMA
-                    % hopefully faster than extracting all the xml
+                    % 4 x faster than extracting all the xml
                     parser = loci.formats.tiff.TiffParser(file);
                     service = loci.formats.services.OMEXMLServiceImpl();
                     version = char(service.getOMEXMLVersion(parser.getComment()));
