@@ -57,30 +57,6 @@ classdef flim_dll_interface < handle
         
     properties(Access='protected')
         use_image_irf;
-        
-        p_t;
-        p_t_int;
-        p_data;
-        p_mask;
-        p_tau_guess;
-        p_tau_min;
-        p_tau_max;
-        p_irf;
-        p_t_irf;
-        p_E_guess;
-        p_theta_guess;
-        p_ierr;
-        p_t0_image;
-        p_global_beta_group;
-        p_acceptor;
-        p_image_t0_shift;
-        
-        p_use;
-        p_background;
-
-        p_tvb_profile;
-        p_tvb_profile_single;
-        p_fixed_beta;
                 
         bin;
         

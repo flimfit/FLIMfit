@@ -54,7 +54,7 @@ classdef flimreader_reader < base_data_reader
                 channels = zct(2);
             end
             
-            r = FLIMreaderMex(obj.filename);
+            r = FlimReaderMex(obj.filename);
             FlimReaderMex(r,'SetSpatialBinning',obj.settings.spatial_binning);
             FlimReaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
             FlimReaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
