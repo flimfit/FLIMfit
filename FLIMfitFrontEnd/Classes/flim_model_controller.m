@@ -192,9 +192,9 @@ classdef flim_model_controller < handle
             elseif isnumeric(value)
                 set(h.control,'String',num2str(value,'Callback',@(src,evt) obj.update_parameter(group_idx, name, str2double(src.String))));
             else
-                uix.Empty('Parent',layout);
+                uix.Empty('Parent',h.layout);
             end
-            layout.Widths = [75 -1 -1];
+            h.layout.Widths = [75 -1 -1];
         end
         
         
