@@ -29,7 +29,7 @@ function dims = parse_lavision_ome_xml(xml,dims)
     if isempty(get_element('ImspectorVersion'))
         throw(MException('FLIMfit:errorProcessingLavision','Not a LaVision file'));
     end
-        
+    
     % Detect time gated file
     fast_delay = get_element('Fast_Delay_Box_Is_Active');
 
@@ -44,7 +44,7 @@ function dims = parse_lavision_ome_xml(xml,dims)
             throw(MException('FLIMfit:errorProcessingLavision','Could not find fast delay values'));
         end
         
-        dims.delays = str2num(delay_values.Value);
+        dims.delays = str2double(delay_values.Value);
         dims.FLIM_type = 'Gated';
         
     % TCSPC
@@ -53,9 +53,11 @@ function dims = parse_lavision_ome_xml(xml,dims)
         lifetime_axis = [];
         for ax=1:3
             axis = get_element(['Axis' num2str(ax-1)]);
-            if strcmp(axis.AxisName,'lifetime')
-                axis.Number = ax-1;
-                lifetime_axis = axis;
+            if ~isempty(axis)
+                if strcmp(axis.AxisName,'lifetime')
+                    axis.Number = ax-1;
+                    lifetime_axis = axis;
+                end
             end
         end
         
