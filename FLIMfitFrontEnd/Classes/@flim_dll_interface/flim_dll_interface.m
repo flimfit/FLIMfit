@@ -80,7 +80,7 @@ classdef flim_dll_interface < handle
 
          function unload_global_library(obj)
             obj.clear_fit();
-            clear ff_FLIMImage ff_FLIMData ff_FitResult ff_DecayModel ff_Controller
+            %clear ff_FLIMImage ff_FLIMData ff_FitResult ff_DecayModel ff_Controller
          end
          
          function terminate_fit(obj)
