@@ -155,10 +155,8 @@ else
     buttonSize = get(handles.selectButton,'Position');
     buttonSize(1) = buttonSize(1) - perpSize(3);
     set(handles.selectButton,'Position',buttonSize)
-
     
 end
-
 
 
 % Update handles structure
@@ -443,6 +441,7 @@ else
     handles.nZ = sizeZ;
 end
 set(handles.uitableZ,'Data',dataZ);
+AllpushbuttonCheck(handles);
 guidata(hObject,handles);
 
 
@@ -465,6 +464,7 @@ else
     handles.nT = sizeT;
 end
 set(handles.uitableT,'Data',dataT);
+AllpushbuttonCheck(handles);
 guidata(hObject,handles);
 
 % --- Check if "All" buttons should be enabled
@@ -508,5 +508,9 @@ else
     handles.nC = sizeC;
 end
 set(handles.uitableC,'Data',dataC);
+AllpushbuttonCheck(handles);
 guidata(hObject,handles);
+
+
+
 
