@@ -167,7 +167,7 @@ void InstrumentResponseFunction::copyIRF(int n_irf_raw, double* irf_)
              irf[(j*n_chan+k)*n_irf+i] = irf_[(j*n_chan+k)*n_irf_raw+i];
       for(; i<n_irf; i++)
          for(int k=0; k<n_chan; k++)
-            irf[(j*n_chan+k)*n_irf+i] = irf_[(j*n_chan+k)*n_irf+i-1];
+            irf[(j*n_chan+k)*n_irf+i] = 0;
    }
 
 }

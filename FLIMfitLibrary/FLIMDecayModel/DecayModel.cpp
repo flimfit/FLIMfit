@@ -266,7 +266,7 @@ int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, i
    {
       int col = 0;
 
-      double* kap_derv = &kap[1]; // TODO tidy this a bit
+      double* kap_derv = kap.data() + 1; // TODO tidy this a bit
 
       /*
       if (irf->ref_reconvolution == FIT_GLOBALLY)
