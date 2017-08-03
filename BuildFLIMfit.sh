@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#
+# Using the Mex files - make sure to remove Qt libs from Matlab_R20XXb/bin/maci64
+# For llvm debugging, brew -unlink python
+#
+
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
 if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
 
