@@ -143,7 +143,7 @@ void DecayModel::setupAdjust()
    adjust_buf.resize(dp->n_meas);
 
    for (int i = 0; i < dp->n_meas; i++)
-      adjust_buf[i] *= 0;
+      adjust_buf[i] = 0;
 
    for (auto& group : decay_groups)
       group->addConstantContribution(adjust_buf.data()); // TODO: this only works for background ATM, which overwrites
@@ -500,8 +500,11 @@ void DecayModel::validateDerivatives()
 
    int dim = dp->n_meas;
 
-   vector<double> a(dim * (n_cols+1)), ap(dim*(n_cols+1)), b(dim*n_der), err(dim);
-   vector<double> kap(2);
+   vector<double> a(dim * (n_cols + 1));
+   vector<double> ap(dim*(n_cols + 1)); 
+   vector<double> b(dim*n_der);
+   vector<double> err(dim);
+   vector<double> kap(1+n_nonlinear);
 
    vector<double> alf(n_nonlinear);
    getInitialVariables(alf, 2000);

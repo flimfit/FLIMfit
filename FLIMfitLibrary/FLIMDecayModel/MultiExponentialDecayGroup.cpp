@@ -308,7 +308,9 @@ int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_vari
 
    if (n > 1)
       for (int i = 0; i < n; i++)
-         output[output_idx++] = (float) (lin_variables[lin_idx++] / I);
+         output[output_idx++] = (float)(lin_variables[lin_idx++] / I);
+   else
+      lin_idx++;
 
    return output_idx;
 }

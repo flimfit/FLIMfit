@@ -137,12 +137,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             transformation_settings.background = std::make_shared<FLIMBackground>(background_image);
          }
 
-         if (isArgument(nrhs, prhs, "tvb_profile") && isArgument(nrhs, prhs, "tvb_I_map"))
+         if (isArgument(nrhs, prhs, "tvb_profile"))
          {
             std::vector<float> tvb_profile = getVector<float>(getNamedArgument(nrhs, prhs, "tvb_profile"));
-            const mxArray* I_map_ = getNamedArgument(nrhs, prhs, "I_map");
-            cv::Mat I_map = getCvMat(I_map_);
-            FLIMBackground(tvb_profile, I_map, background_value);
+
+            if (isArgument(nrhs, prhs, "tvb_I_map"))
+            {
+               const mxArray* I_map_ = getNamedArgument(nrhs, prhs, "tvb_I_map");
+               cv::Mat I_map = getCvMat(I_map_);
+               transformation_settings.background = std::make_shared<FLIMBackground>(tvb_profile, I_map, background_value);
+            }
+            else
+            {
+               transformation_settings.background = std::make_shared<FLIMBackground>(tvb_profile, background_value);
+            }
          }
          else if (background_value != 0.0)
          {

@@ -35,22 +35,63 @@
 using namespace std;
 
 BackgroundLightDecayGroup::BackgroundLightDecayGroup() :
-   AbstractDecayGroup("Background Contribution"),
-   names({ "offset", "scatter", "tvb" })
+   AbstractDecayGroup("Background Contribution")
 {
    n_lin_components = 0;
    n_nl_parameters = 0;
 
-   vector<ParameterFittingType> any_type = { Fixed, FittedLocally, FittedGlobally };
+   vector<ParameterFittingType> any_type = { Fixed, FittedLocally }; // TODO support global fitting : , FittedGlobally};
 
-   auto offset_param = make_shared<FittingParameter>("offset", 0, any_type, FittedGlobally);
-   auto scatter_param = make_shared<FittingParameter>("offset", 0, any_type, FittedGlobally);
-   auto tvb_param = make_shared<FittingParameter>("offset", 0, any_type, FittedGlobally);
+   auto offset_param = make_shared<FittingParameter>("offset", 0, any_type, Fixed);
+   auto scatter_param = make_shared<FittingParameter>("scatter", 0, any_type, Fixed);
+   auto tvb_param = make_shared<FittingParameter>("tvb", 0, any_type, Fixed);
 
    parameters.push_back(offset_param);
    parameters.push_back(scatter_param);
    parameters.push_back(tvb_param);
+
+   channel_factor_names = { "Background" };
 }
+
+BackgroundLightDecayGroup::BackgroundLightDecayGroup(const BackgroundLightDecayGroup& obj) :
+   AbstractDecayGroup(obj)
+{
+   parameters = obj.parameters;
+}
+
+void BackgroundLightDecayGroup::init()
+{
+   n_lin_components = 0;
+   n_nl_parameters = 0;
+
+   for (auto& p : parameters)
+   {
+      if (p->isFittedLocally())
+         n_lin_components++;
+      else if (p->isFittedGlobally())
+         n_nl_parameters++;
+   }
+
+   channel_factors.resize(dp->n_chan, 1);
+}
+
+const vector<double>& BackgroundLightDecayGroup::getChannelFactors(int index)
+{
+   if (index == 0)
+      return channel_factors;
+
+   throw std::runtime_error("Bad channel factor index");
+}
+
+void BackgroundLightDecayGroup::setChannelFactors(int index, const vector<double>& channel_factors_)
+{
+   if (index == 0)
+      channel_factors = channel_factors_;
+   else
+      throw std::runtime_error("Bad channel factor index");
+
+}
+
 
 int BackgroundLightDecayGroup::setVariables(const double* param_values)
 {
@@ -113,11 +154,11 @@ int BackgroundLightDecayGroup::getLinearOutputs(float* lin_variables, float* out
 }
 
 
-void BackgroundLightDecayGroup::getLinearOutputParamNames(vector<string>& names)
+void BackgroundLightDecayGroup::getLinearOutputParamNames(vector<string>& output_names)
 {
    for (int i = 0; i < 3; i++)
-      if (parameters[i]->isFittedGlobally())
-         names.push_back(names[i]);
+      if (parameters[i]->isFittedLocally())
+         output_names.push_back(names[i]);
 }
 
 int BackgroundLightDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shift)
@@ -151,14 +192,15 @@ void BackgroundLightDecayGroup::addConstantContribution(float* a)
    float scatter_adj = parameters[1]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;
    float tvb_adj = parameters[2]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;
    
-   double scale_fact[2] = { 1, 0 };
+   if (scatter_adj != 0.0f)
+      addIRF(irf_buf.data(), 0, 0, a, channel_factors); // TODO : irf_shift?
+   else
+      std::fill_n(a, dp->n_meas, 0);
 
-   addIRF(irf_buf.data(), 0, 0, a, channel_factors, scale_fact); // TODO : irf_shift?
-   
    for (int i = 0; i < dp->n_meas; i++)
       a[i] = a[i] * scatter_adj + offset_adj;
 
-   if (!dp->tvb_profile.empty())
+   if (!dp->tvb_profile.empty() && tvb_adj != 0.0f)
    {
       for (int i = 0; i < dp->n_meas; i++)
          a[i] += (float)(dp->tvb_profile[i] * tvb_adj);
@@ -191,10 +233,10 @@ int BackgroundLightDecayGroup::addScatterColumn(double* a, int adim, double& kap
    // set constant phi value for scatterer
    if (parameters[1]->fitting_type == FittedLocally)
    {
-      memset(a, 0, adim*sizeof(*a));
+       memset(a, 0, adim*sizeof(*a));
       
       double scale_factor[2] = { 1.0, 0.0 };
-      addIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors, scale_factor);
+      addIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors);
       
       return 1;
    }
@@ -207,7 +249,7 @@ Add a TVB component to the matrix
 */
 int BackgroundLightDecayGroup::addTVBColumn(double* a, int adim, double& kap)
 {
-   if (parameters[1]->fitting_type == FittedLocally)
+   if (parameters[1]->fitting_type == FittedLocally && !dp->tvb_profile.empty())
    {
       for (int k = 0; k<dp->n_meas; k++)
             a[k] += dp->tvb_profile[k];
@@ -228,7 +270,7 @@ int BackgroundLightDecayGroup::addGlobalBackgroundLightColumn(double* a, int adi
    if (parameters[1]->isFittedGlobally())
    {
       double scale_factor[2] = { 1.0, 0.0 };
-      addIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors, scale_factor);
+      addIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors);
       for (int i = 0; i<dp->n_meas; i++)
          a[i] *= scatter;
    }
@@ -241,7 +283,7 @@ int BackgroundLightDecayGroup::addGlobalBackgroundLightColumn(double* a, int adi
    }
 
    // Add tvb
-   if (parameters[2]->isFittedGlobally())
+   if (parameters[2]->isFittedGlobally() && !dp->tvb_profile.empty())
    {
       for (int k = 0; k<dp->n_meas; k++)
             a[k] += dp->tvb_profile[k] * tvb;
@@ -273,7 +315,7 @@ int BackgroundLightDecayGroup::addScatterDerivatives(double* b, int bdim, double
       memset(b, 0, sizeof(*b)*bdim);
 
       double scale_factor[2] = { 1.0, 0.0 };
-      addIRF(irf_buf.data(), irf_idx, t0_shift, b, channel_factors, scale_factor);
+      addIRF(irf_buf.data(), irf_idx, t0_shift, b, channel_factors);
 
       return 1;
    }

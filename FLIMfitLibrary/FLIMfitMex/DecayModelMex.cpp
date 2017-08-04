@@ -74,9 +74,15 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
       bool inc_r_inf = (nrhs >= 6) ? mxGetScalar(prhs[5]) : false;
       group = std::make_shared<AnisotropyDecayGroup>(n_components, n_anisotropy, inc_r_inf);
    }
+   else if (group_type == "Background Light")
+   {
+      group = std::make_shared<BackgroundLightDecayGroup>();
+   }
 
    if (group)
       model->addDecayGroup(group);
+   else
+      mexWarnMsgTxt("Unrecognised decay group type");
 }
 
 void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])

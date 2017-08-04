@@ -10,7 +10,7 @@
 class FLIMBackground
 {
 public:
-   enum BackgroundType { ConstantBackground, ImageBackground, TimeVaryingBackground };
+   enum BackgroundType { ConstantBackground, ImageBackground, TimeVaryingBackground, SpatiallyVaryingTimeVaryingBackground };
 
    FLIMBackground(float background_value_ = 0)
    {
@@ -24,9 +24,21 @@ public:
       background_image = background_image_;
    }
    
-   FLIMBackground(std::vector<float> tvb_profile_, cv::Mat tvb_I_map_, float background_value_ = 0)
+   FLIMBackground(std::vector<float> tvb_profile_, float background_value_ = 0)
    {
       background_type = TimeVaryingBackground;
+      tvb_profile = tvb_profile_;
+      background_value = background_value_;
+
+      tvb_mean = 0;
+      for (auto& b : tvb_profile)
+         tvb_mean += b;
+      tvb_mean /= tvb_profile.size();
+   }
+   
+   FLIMBackground(std::vector<float> tvb_profile_, cv::Mat tvb_I_map_, float background_value_ = 0)
+   {
+      background_type = SpatiallyVaryingTimeVaryingBackground;
       tvb_profile = tvb_profile_;
       tvb_I_map = tvb_I_map_;
       background_value = background_value_;
@@ -36,7 +48,9 @@ public:
          tvb_mean += b;
       tvb_mean /= tvb_profile.size();
    }
-   
+  
+
+
    float getAverageBackgroundPerGate(int p)
    {
       switch ( background_type )
@@ -60,6 +74,8 @@ public:
          case ImageBackground:
             return background_image.at<float>(p);
          case TimeVaryingBackground:
+            return tvb_profile[m] + background_value;
+         case SpatiallyVaryingTimeVaryingBackground:
             return tvb_profile[m] * tvb_I_map.at<float>(p) + background_value;
       }
       return 0;

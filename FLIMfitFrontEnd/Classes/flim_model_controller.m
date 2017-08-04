@@ -2,7 +2,7 @@ classdef flim_model_controller < handle
 
     properties
        
-        decay_types = {'Multi-Exponential Decay','FRET Decay','Anisotropy Decay'};
+        decay_types = {'Multi-Exponential Decay','FRET Decay','Anisotropy Decay','Background Light'};
         fit_options = {'Fixed','Fitted Locally','Fitted Globally'};
         
         groups;

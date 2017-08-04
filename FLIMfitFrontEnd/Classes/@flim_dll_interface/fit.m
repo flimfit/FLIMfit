@@ -210,14 +210,22 @@
     irf.ref_reconvolution = d.irf_type;
     irf.ref_lifetime_guess = d.ref_lifetime;
             
+    if all(size(d.tvb_profile) == d.data_size(1:2)')
+        tvb = d.tvb_profile;
+    else
+        tvb = zeros(d.data_size(1:2)');
+    end
+    
     data = ff_FLIMData('images',im,...
                        'data_transformation_settings',transform,...
                        'irf',irf,...
-                       'background_value',d.background_value);
+                       'background_value',d.background_value,...
+                       'tvb_profile',tvb,...
+                       'tvb_I_map',d.tvb_I_image);
        
     ff_FLIMImage(im,'Release');
                    
-    % todo: background image, TVB
+    % todo: background image
     
     
     fit_settings = struct();

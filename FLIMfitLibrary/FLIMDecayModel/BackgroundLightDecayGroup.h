@@ -1,7 +1,6 @@
 #pragma once
 #include "AbstractDecayGroup.h"
 
-
 class BackgroundLightDecayGroup : public AbstractDecayGroup
 {
    Q_OBJECT
@@ -9,6 +8,7 @@ class BackgroundLightDecayGroup : public AbstractDecayGroup
 public:
 
    BackgroundLightDecayGroup();
+   BackgroundLightDecayGroup(const BackgroundLightDecayGroup& obj);
 
    int setVariables(const double* variables);
    int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
@@ -22,9 +22,16 @@ public:
    void getLinearOutputParamNames(vector<string>& names);
    int setParameters(double* parameters);
 
+   const vector<double>& getChannelFactors(int index);
+   void setChannelFactors(int index, const vector<double>& channel_factors);
+
+   AbstractDecayGroup* clone() const { return new BackgroundLightDecayGroup(*this); }
+
 protected:
 
-   const vector<string> names;
+   void init();
+
+   const std::array<string, 3> names = { "offset", "scatter", "tvb" };
    void setupParameters();
 
    int addOffsetColumn(double* a, int adim, double& kap);
@@ -42,19 +49,19 @@ protected:
    double offset = 0;
    double scatter = 0;
    double tvb = 0;
+
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+
+   friend class boost::serialization::access;
 };
 
-/*
-class QBackgroundLightDecayGroup : public QAbstractDecayGroup, public BackgroundLightDecayGroup
+template<class Archive>
+void BackgroundLightDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
-   Q_OBJECT
-
-public:
-
-   QBackgroundLightDecayGroup(const QString& name = "Background Light", QObject* parent = 0) :
-      QAbstractDecayGroup(name, parent) {};
-
-signals:
-   void Updated();
+   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
+   ar & parameters;
+   ar & channel_factors;
 };
-*/
+
+BOOST_CLASS_TRACKING(BackgroundLightDecayGroup, track_always)
