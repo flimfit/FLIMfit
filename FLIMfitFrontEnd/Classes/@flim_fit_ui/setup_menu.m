@@ -66,8 +66,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_file_export_exclusion_list = uimenu(menu_file,'Label','Export Exclusion List...');
     handles.menu_file_import_exclusion_list = uimenu(menu_file,'Label','Import Exclusion List...');    
     
-    handles.menu_file_export_fit_params = uimenu(menu_file,'Label','Export Initial Fit Parameters...','Separator','on');
-    handles.menu_file_import_fit_params = uimenu(menu_file,'Label','Import Initial Fit Parameters...');
+    handles.menu_file_save_model = uimenu(menu_file,'Label','Save Model...','Separator','on');
+    handles.menu_file_load_model = uimenu(menu_file,'Label','Load Model...');
     %handles.menu_file_export_fit_results = uimenu(menu_file,'Label','Export Fit Results as HDF...','Separator','on');    
     %handles.menu_file_import_fit_results = uimenu(menu_file,'Label','Import Fit Results as HDF...');
     
@@ -142,11 +142,7 @@ function handles = setup_menu(obj,handles)
     handles.menu_irf_estimate_background = uimenu(menu_irf,'Label','Estimate IRF Background','Separator','on');
     handles.menu_irf_estimate_t0 = uimenu(menu_irf,'Label','Estimate IRF Shift','Separator','on');
     handles.menu_irf_estimate_g_factor = uimenu(menu_irf,'Label','Estimate G Factor');
-    
-    
-    %handles.menu_irf_set_rectangular = uimenu(menu_irf,'Label','Set Rectangular IRF...');
-    %handles.menu_irf_set_gaussian = uimenu(menu_irf,'Label','Set Gaussian IRF...');
-    
+        
     menu_background = uimenu(obj.window,'Label','Background');
     handles.menu_background_background_load = uimenu(menu_background,'Label','Load Background...');
     handles.menu_background_background_load_average = uimenu(menu_background,'Label','Load time-averaged background ...');
@@ -168,7 +164,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_tools_fit_gaussian_irf = uimenu(menu_tools,'Label','Estimate IRF...');
     
     handles.menu_tools_preferences = uimenu(menu_tools,'Label','Preferences...','Separator','on');
-   
+    handles.menu_tools_edit_model_library = uimenu(menu_tools,'Label','Edit Model Library...');
+
     % NB odd naming in this menu allows easy movement of items back 
     % to their original location
     menu_advanced = uimenu(obj.window,'Label','Advanced');

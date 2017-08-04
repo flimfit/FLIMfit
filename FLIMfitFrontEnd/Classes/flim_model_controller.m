@@ -40,10 +40,14 @@ classdef flim_model_controller < handle
             layout = uix.VBox('Parent',fh,'Padding',5,'Spacing',2,'BackgroundColor','w');
 
             add_layout = uix.HBox('Parent',layout,'Spacing',5,'BackgroundColor','w');
+            
+            uicontrol('Style','pushbutton','String','L','Parent',add_layout,'Callback',@(~,~) obj.load_from_library);
+            
+            
             uicontrol('Style','text','String','Add: ','Parent',add_layout,'BackgroundColor','w');
             add_popup = uicontrol('Style','popupmenu','String',obj.decay_types,'Parent',add_layout);
             uicontrol('Style','pushbutton','String','Add','Callback',{@obj.add_group,add_popup},'Parent',add_layout);
-            add_layout.Widths = [75 -1 75];
+            add_layout.Widths = [22 75 -1 75];
 
             obj.scroll_panel = uix.ScrollingPanel('Parent',layout,'BackgroundColor','w');
             obj.main_layout = uix.VBox('Parent',obj.scroll_panel,'Spacing',2,'BackgroundColor','w');
@@ -293,6 +297,19 @@ classdef flim_model_controller < handle
         function load(obj,filename)
             ff_DecayModel(obj.model,'LoadModel',filename);
             obj.draw();
+        end
+        
+        function load_from_library(obj)
+            model_folder = [prefdir filesep 'FLIMfit_models' filesep];
+            models = dir([model_folder '*.xml']);
+            models = {models.name};
+            models = strrep(models,'.xml','');
+            [selection,ok] = listdlg('ListString',models,'SelectionMode','single',...
+                'Name','Load Model','PromptString','Select Model');
+            
+            if ok
+                obj.load([model_folder models{selection} '.xml']);
+            end
         end
         
     end

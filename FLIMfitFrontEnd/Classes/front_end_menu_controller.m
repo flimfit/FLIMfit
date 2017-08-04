@@ -118,8 +118,10 @@ classdef front_end_menu_controller < handle
         
         menu_file_export_fit_table;
         
-        menu_file_import_fit_params;
-        menu_file_export_fit_params;
+        menu_file_load_model;
+        menu_file_save_model;
+        menu_tools_edit_model_library;
+        
         
         menu_file_import_fit_results;
         menu_file_export_fit_results;
@@ -856,18 +858,22 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         % Import/Export Fit Parameters
         %------------------------------------------------------------------
-        function menu_file_export_fit_params_callback(obj)
-            [filename, pathname] = uiputfile({'fit_parameters.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
+        function menu_file_save_model_callback(obj)
+            [filename, pathname] = uiputfile({'model.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.model_controller.save([pathname filename]);         
             end
         end
 
-        function menu_file_import_fit_params_callback(obj)
+        function menu_file_load_model_callback(obj)
             [filename, pathname] = uigetfile({'*.xml', 'XML File (*.xml)'},'Select file name',obj.default_path);
             if filename ~= 0
                 obj.model_controller.load([pathname filename]);           
             end
+        end
+        
+        function menu_tools_edit_model_library_callback(obj)
+            model_library_ui(); 
         end
         
         function menu_OMERO_export_fit_params_callback(obj)
