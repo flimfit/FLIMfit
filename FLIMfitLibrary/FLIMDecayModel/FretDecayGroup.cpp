@@ -293,6 +293,8 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
 {
    int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
+   float* output_tauT = output + output_idx;
+
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
@@ -302,6 +304,14 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
       output[output_idx++] = Qsigma_parameter->getValue<float>(nonlin_variables, nonlin_idx);
       output[output_idx++] = tauA_parameter->getValue<float>(nonlin_variables, nonlin_idx);
    }
+
+   float tau_1 = output[0];
+   for (int i = 0; i < n_fret_populations; i++)
+   {
+      float tauF = 1.0f / (1.0f / tau_1 + 1.0f / output_tauT[i]);
+      output[output_idx++] = 1.0f - tauF / tau_1;
+   }
+
 
    return output_idx;
 }
@@ -334,6 +344,17 @@ void FretDecayGroup::getLinearOutputParamNames(vector<string>& names)
             string name = "gamma_" + boost::lexical_cast<std::string>(i + 1);
             names.push_back(name);
          }
+   }
+}
+
+void FretDecayGroup::getNonlinearOutputParamNames(vector<string>& names)
+{
+   AbstractDecayGroup::getNonlinearOutputParamNames(names);
+   
+   for (int i = 0; i < n_fret_populations; i++)
+   {
+      string name = "E_" + boost::lexical_cast<std::string>(i + 1);
+      names.push_back(name);
    }
 }
 

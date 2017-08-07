@@ -38,6 +38,7 @@ public:
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
 
    void getLinearOutputParamNames(vector<string>& names);
+   void getNonlinearOutputParamNames(vector<string>& names);
 
 protected:
 
