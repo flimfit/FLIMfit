@@ -165,6 +165,9 @@ classdef front_end_menu_controller < handle
         menu_tools_create_tvb_intensity_map;
         menu_tools_fit_gaussian_irf;
         menu_tools_preferences;
+        
+        menu_tools_add_pattern;
+        menu_tools_edit_pattern_library;
                 
         menu_test_test1;
         menu_test_test2;
@@ -1094,7 +1097,24 @@ classdef front_end_menu_controller < handle
             estimate_irf_shift(d.tr_t_irf,d.tr_irf);
         end
         
-        
+        function menu_tools_add_pattern_callback(obj)
+            
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            T = 1e6 / d.rep_rate;
+            
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = sum(double(data),3);
+            
+            generate_pattern_ui(t,data,d.tr_t_irf,d.tr_irf,T,obj.default_path);
+
+        end
+
+        function menu_tools_edit_pattern_library_callback(obj)
+        end
+
         %------------------------------------------------------------------
         % Views
         %------------------------------------------------------------------
@@ -1157,6 +1177,8 @@ classdef front_end_menu_controller < handle
             data = sum(double(data),3);
             
             estimate_irf_interface(t,data,T,obj.default_path);
+            
+            generate_pattern_ui(t,data,d.tr_t_irf,d.tr_irf,T,obj.default_path);
             
         end
         

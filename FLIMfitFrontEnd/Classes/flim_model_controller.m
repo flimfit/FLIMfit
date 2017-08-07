@@ -2,7 +2,7 @@ classdef flim_model_controller < handle
 
     properties
        
-        decay_types = {'Multi-Exponential Decay','FRET Decay','Anisotropy Decay','Background Light'};
+        decay_types = {'Multi-Exponential Decay','FRET Decay','Anisotropy Decay','Pattern','Background Light'};
         fit_options = {'Fixed','Fitted Locally','Fitted Globally'};
         
         groups;
@@ -247,7 +247,14 @@ classdef flim_model_controller < handle
 
         function add_group(obj,~,~,add_popup)
             type = add_popup.String{add_popup.Value};
-            ff_DecayModel(obj.model,'AddDecayGroup',type);
+            if strcmp(type,'Pattern')
+               [pattern,name] = get_library_pattern();
+               if ~isempty(pattern)
+                   ff_DecayModel(obj.model,'AddDecayGroup',type,pattern,name);
+               end
+            else
+                ff_DecayModel(obj.model,'AddDecayGroup',type)
+            end            
             obj.draw();
         end
 
