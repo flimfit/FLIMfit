@@ -165,7 +165,7 @@ classdef flim_fit_ui
             
             % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
             % bfCheckJavaPath
-                        
+
             jPath = javaclasspath;
 
             function findAndAddJar(jar)
@@ -190,7 +190,6 @@ classdef flim_fit_ui
             if ~isdeployed
                 findAndAddJar('OMEuiUtils.jar')
                 findAndAddJar('ini4j.jar')
-                findAndAddJar('loci_tools.jar')
             end
    
             % verify that enough memory is allocated for bio-formats
