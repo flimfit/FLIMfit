@@ -170,7 +170,7 @@ void FretDecayGroup::setChannelFactors(int index, const vector<double>& channel_
    Set up matrix indicating which parmeters affect which column.
    Each row of the matrix corresponds to a variable
 */
-int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
+void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
 {
    int n_fret_group = n_fret_populations + include_donor_only;
    int inc_col0 = inc_col;
@@ -236,8 +236,6 @@ int FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc
 
 
    inc_col += n_fret_populations;
-
-   return 0;
 }
 
 int FretDecayGroup::setVariables(const double* param_values)

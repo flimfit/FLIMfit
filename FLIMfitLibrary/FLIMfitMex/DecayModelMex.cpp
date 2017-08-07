@@ -38,6 +38,7 @@
 #include "MultiExponentialDecayGroup.h"
 #include "FretDecayGroup.h"
 #include "AnisotropyDecayGroup.h"
+#include "PatternDecayGroup.h"
 #include "MexUtils.h"
 #include "PointerMap.h"
 #include <unordered_set>
@@ -73,6 +74,23 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
       int n_anisotropy = (nrhs >= 5) ? mxGetScalar(prhs[4]) : 1;
       bool inc_r_inf = (nrhs >= 6) ? mxGetScalar(prhs[5]) : false;
       group = std::make_shared<AnisotropyDecayGroup>(n_components, n_anisotropy, inc_r_inf);
+   }
+   else if (group_type == "Pattern")
+   {
+      AssertInputCondition(nrhs >= 5);
+      AssertInputCondition(mxIsCell(prhs[3]));
+
+      vector<Pattern> patterns;
+      int n_chan = mxGetNumberOfElements(prhs[3]);
+      for (int i = 0; i < n_chan; i++)
+      {
+         mxArray* el = mxGetCell(prhs[3], i);
+         vector<double> params = getVector<double>(el);
+         patterns.push_back(Pattern(params));
+      }     
+
+      std::string name = getStringFromMatlab(prhs[4]);
+      group = std::make_shared<PatternDecayGroup>(patterns,QString::fromStdString(name));
    }
    else if (group_type == "Background Light")
    {

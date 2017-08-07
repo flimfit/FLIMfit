@@ -71,14 +71,13 @@ public:
    shared_ptr<FittingParameter> getParameter(const std::string& param);
    vector<shared_ptr<FittingParameter>>& getParameters() { return parameters; }
    const vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
-   virtual const vector<double>& getChannelFactors(int index) = 0;
-   virtual void setChannelFactors(int index, const vector<double>& channel_factors) = 0;
 
    int getNumComponents() { return n_lin_components; };
    int getNumNonlinearParameters() { return n_nl_parameters; };
 
    void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp);
    void setNumChannels(int n_chan);
+
    virtual void init() = 0;
 
    virtual int setVariables(const double* variables) = 0;
@@ -86,12 +85,15 @@ public:
    virtual int calculateDerivatives(double* b, int bdim, double kap_derv[]) = 0;
    virtual void addConstantContribution(float* a) {}
 
-   virtual int setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;
+   virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
 
    virtual void getNonlinearOutputParamNames(vector<string>& names);
    virtual void getLinearOutputParamNames(vector<string>& names) = 0;
+
+   virtual const vector<double>& getChannelFactors(int index) = 0;
+   virtual void setChannelFactors(int index, const vector<double>& channel_factors) = 0;
 
    int getInitialVariables(std::vector<double>::iterator variables);
    void setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);

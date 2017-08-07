@@ -60,6 +60,8 @@ public:
          case ImageBackground:
             return background_image.at<float>(p);
          case TimeVaryingBackground:
+            return tvb_mean + background_value;
+         case SpatiallyVaryingTimeVaryingBackground:
             return tvb_mean * tvb_I_map.at<float>(p) + background_value;
       }
       return 0;

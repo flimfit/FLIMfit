@@ -15,7 +15,7 @@ public:
    int calculateDerivatives(double* b, int bdim, double kap_derv[]);
    void addConstantContribution(float* a);
 
-   int setupIncMatrix(std::vector<int>& inc, int& row, int& col);
+   void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
 

@@ -42,6 +42,7 @@ set(SOURCE
    FretDecayGroup.cpp
    AnisotropyDecayGroup.cpp
    BackgroundLightDecayGroup.cpp
+   PatternDecayGroup.cpp
    ExponentialPrecomputationBuffer.cpp
    AcquisitionParameters.cpp
    DecayModel.cpp
@@ -58,6 +59,7 @@ set(HEADERS
    MultiExponentialDecayGroup.h
    AnisotropyDecayGroup.h
    BackgroundLightDecayGroup.h
+   PatternDecayGroup.h
    IRFConvolution.h
    InstrumentResponseFunction.h
    ExponentialPrecomputationBuffer.h

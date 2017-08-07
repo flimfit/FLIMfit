@@ -109,7 +109,7 @@ int BackgroundLightDecayGroup::setVariables(const double* param_values)
    return idx;
 }
 
-int BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
+void BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& inc_col)
 {
    for (int i = 0; i < 3; i++)
    {
@@ -128,7 +128,6 @@ int BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_ro
       }
    }
    */
-   return 0;
 }
 
 int BackgroundLightDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
