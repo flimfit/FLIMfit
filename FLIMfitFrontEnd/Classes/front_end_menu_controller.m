@@ -1108,7 +1108,7 @@ classdef front_end_menu_controller < handle
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = sum(double(data),3);
             
-            generate_pattern_ui(t,data,d.tr_t_irf,d.tr_irf,T,obj.default_path);
+            generate_pattern_ui(t,data,d.tr_t_irf,d.tr_irf,T);
 
         end
 
@@ -1177,8 +1177,6 @@ classdef front_end_menu_controller < handle
             data = sum(double(data),3);
             
             estimate_irf_interface(t,data,T,obj.default_path);
-            
-            generate_pattern_ui(t,data,d.tr_t_irf,d.tr_irf,T,obj.default_path);
             
         end
         
