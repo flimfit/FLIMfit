@@ -77,13 +77,13 @@ classdef flim_fit_controller < flim_data_series_observer
         show_colormap_popupmenu;
         show_limits_popupmenu;
         
-        display_normal = struct();
-        display_merged = struct();
+        display_normal = containers.Map('KeyType','char','ValueType','logical');
+        display_merged = containers.Map('KeyType','char','ValueType','logical');
         plot_names = {};
         plot_data;
         default_lims = {};
-        plot_lims = struct();
-        auto_lim = struct();
+        plot_lims = containers.Map('KeyType','char','ValueType','any');
+        auto_lim = containers.Map('KeyType','char','ValueType','logical');
 
         cur_lims = [];
         invert_colormap = false;
@@ -404,10 +404,10 @@ classdef flim_fit_controller < flim_data_series_observer
 
                     for i=1:n_items
                         if ~any(strcmp(old_names,names{i}))
-                            obj.display_normal.(names{i}) = false;
-                            obj.display_merged.(names{i}) = false;
-                            obj.auto_lim.(names{i}) = true;
-                            obj.plot_lims.(names{i}) = r.get_default_lims(i);
+                            obj.display_normal(names{i}) = false;
+                            obj.display_merged(names{i}) = false;
+                            obj.auto_lim(names{i}) = true;
+                            obj.plot_lims(names{i}) = r.get_default_lims(i);
                         end
                     end
 
@@ -432,19 +432,19 @@ classdef flim_fit_controller < flim_data_series_observer
                 table = cell(length(names),6);
                 for i=1:length(names)
 
-                    if obj.auto_lim.(names{i}) 
-                        obj.plot_lims.(names{i}) = r.get_default_lims(i);
+                    if obj.auto_lim(names{i}) 
+                        obj.plot_lims(names{i}) = r.get_default_lims(i);
                     end
 
                     table{i,1} = names{i};
-                    table{i,2} = obj.display_normal.(names{i});
-                    table{i,3} = obj.display_merged.(names{i});
-                    table(i,4:5) = num2cell(obj.plot_lims.(names{i}));
-                    table{i,6} = obj.auto_lim.(names{i});
+                    table{i,2} = obj.display_normal(names{i});
+                    table{i,3} = obj.display_merged(names{i});
+                    table(i,4:5) = num2cell(obj.plot_lims(names{i}));
+                    table{i,6} = obj.auto_lim(names{i});
                 end
 
                 for i=1:length(names) 
-                    obj.set_cur_lims(i, obj.plot_lims.(names{i}));
+                    obj.set_cur_lims(i, obj.plot_lims(names{i}));
                 end
 
                 set(obj.plot_select_table,'Data',table);
@@ -464,8 +464,8 @@ classdef flim_fit_controller < flim_data_series_observer
             
             for i=1:size(plots,1)
                name = plots{i,1};
-               obj.display_normal.(name) = plots{i,2};
-               obj.display_merged.(name) = plots{i,3};
+               obj.display_normal(name) = plots{i,2};
+               obj.display_merged(name) = plots{i,3};
                
                obj.n_plots = obj.n_plots + sum(cell2mat(plots(i,2:3))); 
                
@@ -474,12 +474,12 @@ classdef flim_fit_controller < flim_data_series_observer
                % Only update if min < max (locks out fat fingers)
                if new_lims(1) < new_lims(2)
                
-                   if any(new_lims ~= obj.plot_lims.(name))
-                       obj.auto_lim.(name) = false;
+                   if any(new_lims ~= obj.plot_lims(name))
+                       obj.auto_lim(name) = false;
                    else
-                       obj.auto_lim.(name) = plots{i,6};
+                       obj.auto_lim(name) = plots{i,6};
                    end
-                   obj.plot_lims.(name) = new_lims;
+                   obj.plot_lims(name) = new_lims;
                end
             end
             

@@ -90,7 +90,7 @@ function update_plots(obj,file_root)
 
             for plot_idx = 1:length(f.plot_names)
             
-                if f.display_normal.(f.plot_names{plot_idx})
+                if f.display_normal(f.plot_names{plot_idx})
                     
                     [fig,im_data] = obj.plot_figure2(cur_im, plot_idx, false, options, indexing);
                     figs(:,:,:,subplot_idx) = fig;
@@ -103,7 +103,7 @@ function update_plots(obj,file_root)
                 end
 
                 % Merge
-                if f.display_merged.(f.plot_names{plot_idx})
+                if f.display_merged(f.plot_names{plot_idx})
                     
                     fig = obj.plot_figure2(cur_im, plot_idx, true, options, indexing);
                     figs(:,:,:,subplot_idx) = fig;
