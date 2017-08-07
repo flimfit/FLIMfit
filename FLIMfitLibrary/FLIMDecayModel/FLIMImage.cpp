@@ -3,7 +3,7 @@
 
 using std::shared_ptr;
 
-FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode, const std::string& root) :
+FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode, const std::string& root) :
 acq(acq),
 stored_type(type),
 name(name),
@@ -13,7 +13,7 @@ root(root)
    init();
 }
 
-FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, int map_offset) :
+FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, int map_offset) :
    acq(acq),
    map_file_name(map_file_name),
    data_class(data_class),
@@ -31,7 +31,7 @@ FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, const std::string& m
       compute<float>();
 }
 
-FLIMImage::FLIMImage(shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_) : 
+FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_) : 
    acq(acq),
    data_mode(data_mode),
    data_class(data_class),

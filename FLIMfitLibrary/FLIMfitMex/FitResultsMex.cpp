@@ -48,11 +48,11 @@ int next_id = 0;
 PointerMap<FitResults> pointer_map;
 
 
-void getOutputParamNames(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getOutputParamNames(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
 
-   const vector<string>& names = r->getOutputParamNames();
+   const std::vector<std::string>& names = r->getOutputParamNames();
 
    plhs[0] = mxCreateCellMatrix(1, names.size());
 
@@ -63,7 +63,7 @@ void getOutputParamNames(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], in
    }
 }
 
-void getTotalNumOutputRegions(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getTotalNumOutputRegions(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
 
@@ -72,7 +72,7 @@ void getTotalNumOutputRegions(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[
 }
 
 
-void getImageStats(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getImageStats(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
     
@@ -126,7 +126,7 @@ void getImageStats(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs
    std::copy(stats_vector.begin(), stats_vector.end(), sf);
 }
 
-void getParameterImage(shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getParameterImage(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 2);
    AssertInputCondition(nrhs >= 4);
@@ -158,7 +158,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       auto results = getSharedPtrFromMatlab<FitResults>(prhs[0]);
 
       // Get command
-      string command = getStringFromMatlab(prhs[1]);
+      std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "GetOutputParamNames")
          getOutputParamNames(results, nlhs, plhs, nrhs, prhs);

@@ -37,10 +37,6 @@
 #include <vector>
 #include <memory>
 
-using std::shared_ptr;
-using std::string;
-using std::vector;
-
 // Aligned allocated
 template<class T, std::size_t Alignment = 16>
 using aligned_vector = std::vector<T,
@@ -49,8 +45,8 @@ using aligned_vector = std::vector<T,
 class ExponentialPrecomputationBuffer
 {
 public:
-   ExponentialPrecomputationBuffer(shared_ptr<TransformedDataParameters> dp);
-   void compute(double rate, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models = false);
+   ExponentialPrecomputationBuffer(std::shared_ptr<TransformedDataParameters> dp);
+   void compute(double rate, int irf_idx, double t0_shift, const std::vector<double>& channel_factors, bool compute_shifted_models = false);
 
    void addDecay(double fact, double ref_lifetime, double a[], int bin_shift = 0) const;
    void addDerivative(double fact, double ref_lifetime, double b[]) const;
@@ -62,23 +58,23 @@ private:
    void calculateIRFMax();
    
    void computeIRFFactors(double rate, int irf_idx, double t0_shift);
-   void computeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models);
+   void computeModelFactors(double rate, const std::vector<double>& channel_factors, bool compute_shifted_models);
 
    void convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const;
    void convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const;
 
 
-   vector<aligned_vector<double>> irf_exp_factor;
-   vector<aligned_vector<double>> cum_irf_exp_factor;
-   vector<aligned_vector<double>> irf_exp_t_factor;
-   vector<aligned_vector<double>> cum_irf_exp_t_factor;
-   vector<aligned_vector<double>> model_decay;
-   vector<aligned_vector<double>> shifted_model_decay_high;
-   vector<aligned_vector<double>> shifted_model_decay_low;
+   std::vector<aligned_vector<double>> irf_exp_factor;
+   std::vector<aligned_vector<double>> cum_irf_exp_factor;
+   std::vector<aligned_vector<double>> irf_exp_t_factor;
+   std::vector<aligned_vector<double>> cum_irf_exp_t_factor;
+   std::vector<aligned_vector<double>> model_decay;
+   std::vector<aligned_vector<double>> shifted_model_decay_high;
+   std::vector<aligned_vector<double>> shifted_model_decay_low;
    aligned_vector<double> irf_working;
 
-   shared_ptr<InstrumentResponseFunction> irf;
-   shared_ptr<TransformedDataParameters> dp;
+   std::shared_ptr<InstrumentResponseFunction> irf;
+   std::shared_ptr<TransformedDataParameters> dp;
    
    double rate;
 
@@ -94,7 +90,7 @@ class DecayModelWorkingBuffers : public AcquisitionParameters
    friend class DecayModel;
 
 public:
-   DecayModelWorkingBuffers(shared_ptr<DecayModel> model);
+   DecayModelWorkingBuffers(std::shared_ptr<DecayModel> model);
    ~DecayModelWorkingBuffers();
 
    //void add_decay(int tau_idx, int theta_idx, int fret_group_idx, double fact, double ref_lifetime, double a[], int bin_shift = 0);
@@ -103,17 +99,17 @@ public:
 
 private:
 
-   void PrecomputeExponentials(const vector<double>& new_alf, int irf_idx, double t0_shift);
-   int check_alf_mod(const vector<double>& new_alf, int irf_idx);
+   void PrecomputeExponentials(const std::vector<double>& new_alf, int irf_idx, double t0_shift);
+   int check_alf_mod(const std::vector<double>& new_alf, int irf_idx);
 
    //void Convolve(double rate, int row, int k, int i, double pulse_fact, int bin_shift, double& c);
    //void ConvolveDerivative(double t, double rate, int row, int k, int i, double pulse_fact, double ref_fact_a, double ref_fact_b, double& c);
 
 
 
-   shared_ptr<DecayModel> model;
+   std::shared_ptr<DecayModel> model;
 
-   vector<ExponentialPrecomputationBuffer> exp_buffer;
+   std::vector<ExponentialPrecomputationBuffer> exp_buffer;
 
    int n_irf;
    int n_exp;
@@ -125,7 +121,7 @@ private:
 
    int* irf_max;
 
-   shared_ptr<InstrumentResponseFunction> irf;
+   std::shared_ptr<InstrumentResponseFunction> irf;
 
    int cur_irf_idx;
 

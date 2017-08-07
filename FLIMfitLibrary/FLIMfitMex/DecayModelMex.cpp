@@ -48,14 +48,14 @@ std::unordered_set<std::shared_ptr<QDecayModel>> ptr_set;
 
 int loaded = 0;
 
-void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void addDecayGroup(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsChar(prhs[2]));
 
-   string group_type = getStringFromMatlab(prhs[2]);
+   std::string group_type = getStringFromMatlab(prhs[2]);
 
-   shared_ptr<AbstractDecayGroup> group;
+   std::shared_ptr<AbstractDecayGroup> group;
 
    if (group_type == "Multi-Exponential Decay")
    {
@@ -80,12 +80,12 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
       AssertInputCondition(nrhs >= 5);
       AssertInputCondition(mxIsCell(prhs[3]));
 
-      vector<Pattern> patterns;
+      std::vector<Pattern> patterns;
       int n_chan = mxGetNumberOfElements(prhs[3]);
       for (int i = 0; i < n_chan; i++)
       {
          mxArray* el = mxGetCell(prhs[3], i);
-         vector<double> params = getVector<double>(el);
+         std::vector<double> params = getVector<double>(el);
          patterns.push_back(Pattern(params));
       }     
 
@@ -103,7 +103,7 @@ void addDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int
       mexWarnMsgTxt("Unrecognised decay group type");
 }
 
-void removeDecayGroup(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void removeDecayGroup(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
@@ -136,7 +136,7 @@ mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> param
    return s;
 }
 
-mxArray* getParameters(shared_ptr<QDecayModel> model, int group_idx)
+mxArray* getParameters(std::shared_ptr<QDecayModel> model, int group_idx)
 {
    AssertInputCondition(group_idx < model->getNumGroups());
    auto group = model->getGroup(group_idx);
@@ -196,7 +196,7 @@ mxArray* getParameters(shared_ptr<QDecayModel> model, int group_idx)
    return s;
 }
 
-void setParameter(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setParameter(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 5);
 
@@ -211,7 +211,7 @@ void setParameter(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int 
    group->setProperty(name.c_str(), value);
 }
 
-void setVariables(shared_ptr<QDecayModel> model, std::vector<std::shared_ptr<FittingParameter>> parameters, const mxArray* new_parameters)
+void setVariables(std::shared_ptr<QDecayModel> model, std::vector<std::shared_ptr<FittingParameter>> parameters, const mxArray* new_parameters)
 {
    for (int i = 0; i < parameters.size(); i++)
    {
@@ -228,7 +228,7 @@ void setVariables(shared_ptr<QDecayModel> model, std::vector<std::shared_ptr<Fit
    }
 }
 
-void getModelVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getModelVariables(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
 
@@ -236,7 +236,7 @@ void getModelVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
    plhs[0] = getVariables(parameters);
 }
 
-void setModelVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setModelVariables(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsStruct(prhs[3]));
@@ -246,7 +246,7 @@ void setModelVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
    setVariables(model, parameters, prhs[3]);
 }
 
-mxArray* getGroupVariables(shared_ptr<QDecayModel> model, int group_idx)
+mxArray* getGroupVariables(std::shared_ptr<QDecayModel> model, int group_idx)
 {
    AssertInputCondition(group_idx < model->getNumGroups());
    auto group = model->getGroup(group_idx);
@@ -255,7 +255,7 @@ mxArray* getGroupVariables(shared_ptr<QDecayModel> model, int group_idx)
    return getVariables(parameters);
 }
 
-void setGroupVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setGroupVariables(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 4);
    AssertInputCondition(mxIsStruct(prhs[3]));
@@ -270,7 +270,7 @@ void setGroupVariables(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 }
 
 
-void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getGroups(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
 
@@ -291,7 +291,7 @@ void getGroups(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
    }
 }
 
-void getChannelFactorNames(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getChannelFactorNames(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
    AssertInputCondition(nrhs >= 3);
@@ -308,7 +308,7 @@ void getChannelFactorNames(shared_ptr<QDecayModel> model, int nlhs, mxArray *plh
       mxSetCell(plhs[0], i, mxCreateString(names[i].c_str()));
 }
 
-void getChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getChannelFactors(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
    AssertInputCondition(nrhs >= 4);
@@ -328,7 +328,7 @@ void getChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 }
 
 
-void setChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setChannelFactors(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 5);
 
@@ -343,7 +343,7 @@ void setChannelFactors(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 }
 
 
-void setNumChannels(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setNumChannels(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
@@ -353,7 +353,7 @@ void setNumChannels(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], in
    model->setNumChannels(n_chan);
 }
 
-void saveModel(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void saveModel(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsChar(prhs[2]));
@@ -366,7 +366,7 @@ void saveModel(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
    oa << *(model.get());
 }
 
-void loadModel(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void loadModel(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsChar(prhs[2]));
@@ -382,7 +382,7 @@ void loadModel(shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrh
 
 
 
-void openUI(shared_ptr<QDecayModel> model)
+void openUI(std::shared_ptr<QDecayModel> model)
 {
    auto widget = new FittingParametersWidget();
    widget->setDecayModel(model);
@@ -419,7 +419,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
 
       // Get command
-      string command = getStringFromMatlab(prhs[1]);
+      std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
          releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);

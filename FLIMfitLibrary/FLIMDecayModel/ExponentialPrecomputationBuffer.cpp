@@ -36,7 +36,7 @@
 #include <x86intrin.h>
 #endif
 
-ExponentialPrecomputationBuffer::ExponentialPrecomputationBuffer(shared_ptr<TransformedDataParameters> dp) :
+ExponentialPrecomputationBuffer::ExponentialPrecomputationBuffer(std::shared_ptr<TransformedDataParameters> dp) :
 dp(dp),
 irf(dp->irf),
 n_irf(irf->n_irf),
@@ -57,7 +57,7 @@ n_t(dp->n_t)
    calculateIRFMax();
 };
 
-void ExponentialPrecomputationBuffer::compute(double rate_, int irf_idx, double t0_shift, const vector<double>& channel_factors, bool compute_shifted_models)
+void ExponentialPrecomputationBuffer::compute(double rate_, int irf_idx, double t0_shift, const std::vector<double>& channel_factors, bool compute_shifted_models)
 {
    // Don't compute if rate is the same
    if (rate_ == rate)
@@ -148,7 +148,7 @@ void ExponentialPrecomputationBuffer::computeIRFFactors(double rate, int irf_idx
 
 }
 
-void ExponentialPrecomputationBuffer::computeModelFactors(double rate, const vector<double>& channel_factors, bool compute_shifted_models)
+void ExponentialPrecomputationBuffer::computeModelFactors(double rate, const std::vector<double>& channel_factors, bool compute_shifted_models)
 {
    double fact = 1;
 

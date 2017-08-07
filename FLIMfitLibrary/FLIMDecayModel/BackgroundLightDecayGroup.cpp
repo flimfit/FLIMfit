@@ -40,7 +40,7 @@ BackgroundLightDecayGroup::BackgroundLightDecayGroup() :
    n_lin_components = 0;
    n_nl_parameters = 0;
 
-   vector<ParameterFittingType> any_type = { Fixed, FittedLocally }; // TODO support global fitting : , FittedGlobally};
+   std::vector<ParameterFittingType> any_type = { Fixed, FittedLocally }; // TODO support global fitting : , FittedGlobally};
 
    auto offset_param = make_shared<FittingParameter>("offset", 0, any_type, Fixed);
    auto scatter_param = make_shared<FittingParameter>("scatter", 0, any_type, Fixed);
@@ -75,7 +75,7 @@ void BackgroundLightDecayGroup::init()
    channel_factors.resize(dp->n_chan, 1);
 }
 
-const vector<double>& BackgroundLightDecayGroup::getChannelFactors(int index)
+const std::vector<double>& BackgroundLightDecayGroup::getChannelFactors(int index)
 {
    if (index == 0)
       return channel_factors;
@@ -83,7 +83,7 @@ const vector<double>& BackgroundLightDecayGroup::getChannelFactors(int index)
    throw std::runtime_error("Bad channel factor index");
 }
 
-void BackgroundLightDecayGroup::setChannelFactors(int index, const vector<double>& channel_factors_)
+void BackgroundLightDecayGroup::setChannelFactors(int index, const std::vector<double>& channel_factors_)
 {
    if (index == 0)
       channel_factors = channel_factors_;
@@ -153,7 +153,7 @@ int BackgroundLightDecayGroup::getLinearOutputs(float* lin_variables, float* out
 }
 
 
-void BackgroundLightDecayGroup::getLinearOutputParamNames(vector<string>& output_names)
+void BackgroundLightDecayGroup::getLinearOutputParamNames(std::vector<std::string>& output_names)
 {
    for (int i = 0; i < 3; i++)
       if (parameters[i]->isFittedLocally())

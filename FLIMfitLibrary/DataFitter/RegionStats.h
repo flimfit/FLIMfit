@@ -65,7 +65,7 @@ public:
    int GetNumParams() const { return n_params; }
    int GetNumRegions() const { return n_regions; };
 
-   const vector<T>& GetStats() const { return params; } 
+   const std::vector<T>& GetStats() const { return params; } 
 
    T GetStat(int region, int param, int stat) const
    {

@@ -44,7 +44,7 @@ using std::min;
 
 
 
-FitResults::FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, int calculate_errors) :
+FitResults::FitResults(std::shared_ptr<DecayModel> model, std::shared_ptr<FLIMData> data, int calculate_errors) :
    model(model), data(data), calculate_errors(calculate_errors)
 {
    n_px = data->n_masked_px;
@@ -113,7 +113,7 @@ const FitResultsRegion FitResults::getPixel(int image, int region, int pixel)
 }
 
 
-void FitResults::getNonLinearParams(int image, int region, int pixel, vector<double>& params)
+void FitResults::getNonLinearParams(int image, int region, int pixel, std::vector<double>& params)
 {
    int idx;
    if (pixelwise)
@@ -127,7 +127,7 @@ void FitResults::getNonLinearParams(int image, int region, int pixel, vector<dou
       params[i] = alf[idx*nl + i];
 }
 
-void FitResults::getLinearParams(int image, int region, int pixel, vector<float>& params)
+void FitResults::getLinearParams(int image, int region, int pixel, std::vector<float>& params)
 {
    int start = data->getRegionPos(image, region) + pixel;
 
@@ -216,7 +216,7 @@ void FitResults::computeRegionStats(float confidence_factor)
 
    RegionStatsCalculator stats_calculator(n_aux, confidence_factor);
    
-   vector<float> param_buf;
+   std::vector<float> param_buf;
    
    for (int im = 0; im<n_im; im++)
    {
@@ -461,7 +461,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
    int start, s_local;
    int r_idx;
 
-   vector<float> buffer(n_output_params);
+   std::vector<float> buffer(n_output_params);
 
    float* param_data = NULL;
    int span;
@@ -471,7 +471,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
       return -1;
 
    // Get mask
-   vector<mask_type>& im_mask = mask[im];
+   std::vector<mask_type>& im_mask = mask[im];
    int n_px = (int) im_mask.size();
    
    if (ret_mask)

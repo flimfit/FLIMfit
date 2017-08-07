@@ -138,7 +138,7 @@ void FittingWidget::fitSelected()
     
     int mask = 0;
     int n_valid = 0;
-    vector<double> fit(2000);
+    std::vector<double> fit(2000);
     fit_controller->GetFit(0, 1, &mask, fit.data(), n_valid);
     
     std::ofstream os("C:/Users/sean/Documents/FLIMTestData/results.csv");
@@ -154,10 +154,10 @@ void FittingWidget::selectedFitComplete()
    int n_valid = 0;
    auto dp = fit_controller->getData()->GetTransformedDataParameters();
    
-   vector<double> raw_fit(dp->n_meas);
+   std::vector<double> raw_fit(dp->n_meas);
    fit_controller->getFit(0, 1, &mask, raw_fit.data(), n_valid);
    
-   vector<vector<double>> fit(dp->n_chan, vector<double>(dp->n_t));
+   std::vector<std::vector<double>> fit(dp->n_chan, std::vector<double>(dp->n_t));
    for(int i=0; i<dp->n_chan; i++)
       for(int j=0; j<dp->n_t; j++)
          fit[i][j] = raw_fit[i*dp->n_t+j];
@@ -191,7 +191,7 @@ void FittingWidget::fit()
       /*
        int mask = 0;
        int n_valid = 0;
-       vector<double> fit(2000);
+       std::vector<double> fit(2000);
        fit_controller->GetFit(0, 1, &mask, fit.data(), n_valid);
        
        std::ofstream os("C:/Users/sean/Documents/FLIMTestData/results.csv");

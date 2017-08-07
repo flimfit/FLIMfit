@@ -337,7 +337,7 @@ void FitController::waitForFit()
 }
 
 
-void FitController::setData(shared_ptr<FLIMData> data_)
+void FitController::setData(std::shared_ptr<FLIMData> data_)
 {
    data = data_;
    data->setGlobalScope(global_scope);

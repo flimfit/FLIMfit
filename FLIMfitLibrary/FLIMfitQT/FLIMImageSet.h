@@ -88,15 +88,15 @@ public:
       }
    }
    
-   shared_ptr<FLIMImage> getCurrentImage() { return current_image; }
+   std::shared_ptr<FLIMImage> getCurrentImage() { return current_image; }
 
 signals:
    void imagesUpdated();
-   void currentImageChanged(shared_ptr<FLIMImage> current_image);
+   void currentImageChanged(std::shared_ptr<FLIMImage> current_image);
 protected:
 
    std::vector<std::shared_ptr<FLIMImage>> images;
-   shared_ptr<FLIMImage> current_image;
+   std::shared_ptr<FLIMImage> current_image;
 
 private:
    template<class Archive>

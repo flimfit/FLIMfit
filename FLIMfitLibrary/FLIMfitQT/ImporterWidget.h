@@ -105,7 +105,7 @@ public:
             if (item->checkState() == Qt::Checked)
                selected_files.push_back(item->text());
          
-         vector<int> channels;
+         std::vector<int> channels;
          for(int i=0; i<channel_items.size(); i++)
             if (channel_items[i]->checkState() == Qt::Checked)
                channels.push_back(i);

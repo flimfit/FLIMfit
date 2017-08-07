@@ -26,12 +26,12 @@ using std::min;
 using std::max;
 
 #include <future>
-
+#include <iostream>
 #include "omp_stub.h"
 
 #include "ConcurrencyAnalysis.h"
 
-VariableProjector::VariableProjector(shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
+VariableProjector::VariableProjector(std::shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
     AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, reporter)
 {
    this->weighting = weighting;
@@ -149,7 +149,7 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double* x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr)
+int VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
 {
    INIT_CONCURRENCY;
 
@@ -159,7 +159,7 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
    double xtol = (double)sqrt(dpmpar(1));
    double epsfcn = (double)sqrt(dpmpar(1));
    double gtol = 0.;
-   double factor = 1;
+   double factor = 0.01;
 
    int nfev, info;
    double rnorm; 
@@ -252,6 +252,8 @@ int VariableProjector::FitFcn(int nl, vector<double>& alf, int itmax, int* niter
             ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
             &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
       }
+
+      std::cout << "info: " << std::to_string(info) << "\n";
 
       //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       START_SPAN("Computing Linear Parameters");
@@ -518,7 +520,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
    for(int i=0; i<n_thread; i++)
       norm_buf_[i*nmax] = 0;
 
-   #pragma omp parallel for num_threads(n_thread)
+   //#pragma omp parallel for num_threads(n_thread)
    
    // We'll apply this for all pixels
    auto fcn = [&](int omp_thread, int j)
@@ -616,7 +618,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
    }; // loop over pixels
 
    /*
-   vector<std::future<void>> futures;
+   std::vector<std::future<void>> futures;
    for (int t=0; t<n_thread; t++)
       futures.push_back(std::async(
          [&]() {
@@ -659,7 +661,7 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    float*  y = this->y + px * n;
    double* wp = wp_ + omp_thread * nmax;
    
-   vector<double>& a = variable_phi ? a_[omp_thread] : a_[0];
+   std::vector<double>& a = variable_phi ? a_[omp_thread] : a_[0];
 
    if (weighting == AVERAGE_WEIGHTING || n_call == 0)
    {
@@ -711,13 +713,13 @@ void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firs
 
    int i, m, k, kp1;
 
-   double* aw = aw_ + omp_thread * nmax * lp1;
+   double* aw = aw_ + omp_thread * nmax *  lp1;
    double* bw = bw_ + omp_thread * ndim * ( pmax + 3 );
    double* u  = u_  + omp_thread * l;
    double* wp = wp_ + omp_thread * nmax;
       
-   vector<double>& a = variable_phi ? a_[omp_thread] : a_[0]; 
-   vector<double>& b = variable_phi ? b_[omp_thread] : b_[0];
+   std::vector<double>& a = variable_phi ? a_[omp_thread] : a_[0]; 
+   std::vector<double>& b = variable_phi ? b_[omp_thread] : b_[0];
    
    if (firstca >= 0)
       for (m = firstca; m < lp1; ++m)

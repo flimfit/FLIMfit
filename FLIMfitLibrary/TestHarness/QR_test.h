@@ -22,8 +22,6 @@
 #endif
 
 
-
-using std::vector;
 using boost::random::normal_distribution;
 
 
@@ -60,8 +58,8 @@ void QR_test(int n, int m, int rep, double times[])
    gen.seed( 0 );
    
 
-   vector<double> J(m*n);
-   vector<double> f(m);
+   std::vector<double> J(m*n);
+   std::vector<double> f(m);
 
    double* J1 = new double[m*n];
    double* f1 = new double[m];
@@ -75,7 +73,7 @@ void QR_test(int n, int m, int rep, double times[])
    t = GetTickCount();
 #endif
     
-   vector<double> rb(rep+1); // to prevent optimisation out
+   std::vector<double> rb(rep+1); // to prevent optimisation out
 
    for(int k=0; k<rep; k++)
    {
@@ -93,11 +91,11 @@ void QR_test(int n, int m, int rep, double times[])
    // Householder
    //==================================================
 
-   vector<double> rdiag(n);
-   vector<double> acnorm(n);
-   vector<double> work(n);
-   vector<double> qtf(n);
-   vector<int> pvt(n);
+   std::vector<double> rdiag(n);
+   std::vector<double> acnorm(n);
+   std::vector<double> work(n);
+   std::vector<double> qtf(n);
+   std::vector<int> pvt(n);
 
 #ifdef _WINDOWS
    t = GetTickCount();
@@ -140,10 +138,10 @@ void QR_test(int n, int m, int rep, double times[])
    // Givens
    //==================================================
 
-   vector<double> cos(n);
-   vector<double> sin(n);
-   vector<double> b(n);
-   vector<double> r(n*n);
+   std::vector<double> cos(n);
+   std::vector<double> sin(n);
+   std::vector<double> b(n);
+   std::vector<double> r(n*n);
    double alpha;
 
 #ifdef _WINDOWS
@@ -188,11 +186,11 @@ void QR_test(int n, int m, int rep, double times[])
       omp_set_num_threads(n_thread);
       qtf.assign(n_thread*dim,0);
 
-      vector<double> wa1(dim * n_thread);
-      vector<double> wa2(dim * n_thread);
-      vector<double> wa3(dim * n_thread * n * n_jac_group);
-      vector<double> fjac(dim * dim * n_thread);
-      vector<double> fvec(n * n_thread * n_jac_group);
+      std::vector<double> wa1(dim * n_thread);
+      std::vector<double> wa2(dim * n_thread);
+      std::vector<double> wa3(dim * n_thread * n * n_jac_group);
+      std::vector<double> fjac(dim * dim * n_thread);
+      std::vector<double> fvec(n * n_thread * n_jac_group);
 
 #ifdef _WINDOWS
       t = GetTickCount();
@@ -204,7 +202,7 @@ void QR_test(int n, int m, int rep, double times[])
          //vector<double> f1 = f;
 
 
-         vector<double*> p(2);
+         std::vector<double*> p(2);
          p[0] = J.data();
          p[1] = f.data();
 

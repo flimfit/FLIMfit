@@ -520,8 +520,8 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
    
    uint32_t nel = (uint32_t) mask.size();
 
-   vector<double> nl_params(model->getNumNonlinearVariables());
-   vector<float> l_params(model->getNumColumns());
+   std::vector<double> nl_params(model->getNumNonlinearVariables());
+   std::vector<float> l_params(model->getNumColumns());
 
    getting_fit = true;
 

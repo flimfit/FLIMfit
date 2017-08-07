@@ -28,7 +28,7 @@ void PatternDecayGroup::init()
    if (pattern.size() != dp->n_chan)
       throw(std::runtime_error("Incorrect number of channels in pattern"));
 
-   vector<double> channel_factors(dp->n_chan);
+   std::vector<double> channel_factors(dp->n_chan);
 
    for (int i = 0; i < dp->n_chan; i++)
    {
@@ -90,20 +90,20 @@ int PatternDecayGroup::getLinearOutputs(float* lin_variables, float* output, int
    return 1;
 }
 
-void PatternDecayGroup::getNonlinearOutputParamNames(vector<string>& names)
+void PatternDecayGroup::getNonlinearOutputParamNames(std::vector<std::string>& names)
 {
 }
 
-void PatternDecayGroup::getLinearOutputParamNames(vector<string>& names)
+void PatternDecayGroup::getLinearOutputParamNames(std::vector<std::string>& names)
 {
    names.push_back("I0");
 }
 
-const vector<double>& PatternDecayGroup::getChannelFactors(int index)
+const std::vector<double>& PatternDecayGroup::getChannelFactors(int index)
 {
    return channel_factors;
 }
 
-void PatternDecayGroup::setChannelFactors(int index, const vector<double>& channel_factors)
+void PatternDecayGroup::setChannelFactors(int index, const std::vector<double>& channel_factors)
 {
 }

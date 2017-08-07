@@ -56,7 +56,7 @@ MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(const Multi
 
 void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix)
 {
-   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    
    if (params.size() > new_size)
       params.resize(new_size);
@@ -82,7 +82,7 @@ void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std
 
 void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
 {   
-   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
 
    parameters.clear();
 
@@ -172,7 +172,7 @@ void MultiExponentialDecayGroupPrivate::setContributionsGlobal(bool contribution
    setupParametersMultiExponential();
 }
 
-const vector<double>& MultiExponentialDecayGroupPrivate::getChannelFactors(int index)
+const std::vector<double>& MultiExponentialDecayGroupPrivate::getChannelFactors(int index)
 {
    if (index == 0)
       return channel_factors;
@@ -180,7 +180,7 @@ const vector<double>& MultiExponentialDecayGroupPrivate::getChannelFactors(int i
    throw std::runtime_error("Bad channel factor index");
 }
 
-void MultiExponentialDecayGroupPrivate::setChannelFactors(int index, const vector<double>& channel_factors_)
+void MultiExponentialDecayGroupPrivate::setChannelFactors(int index, const std::vector<double>& channel_factors_)
 {
    if (index == 0)
       channel_factors = channel_factors_;
@@ -278,7 +278,7 @@ int MultiExponentialDecayGroupPrivate::getLinearOutputs(float* lin_variables, fl
    return output_idx;
 }
 
-void MultiExponentialDecayGroupPrivate::getLinearOutputParamNames(vector<string>& names)
+void MultiExponentialDecayGroupPrivate::getLinearOutputParamNames(std::vector<std::string>& names)
 {
    if (!contributions_global)
    {
@@ -332,7 +332,7 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim,
 }
 
 
-int MultiExponentialDecayGroupPrivate::addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, double& kap, int bin_shift)
+int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, double& kap, int bin_shift)
 {
    int col = 0;
     

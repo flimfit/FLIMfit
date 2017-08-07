@@ -50,23 +50,23 @@ class AbstractFitter
 {
 public:
 
-   AbstractFitter(shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
+   AbstractFitter(std::shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
 
    virtual ~AbstractFitter() {};
    //virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
 
-   virtual int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
+   virtual int FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
    virtual int GetLinearParams() = 0;
    
    int Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
-   int GetFit(int irf_idx, const vector<double>& alf, float* lin_params, double* fit);
+   int GetFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);
    double ErrMinFcn(double x);
    int CalculateErrors(double conf_limit);
 
-   void GetParams(int nl, const vector<double>& alf);
+   void GetParams(int nl, const std::vector<double>& alf);
    
    void SetAlf(const double* alf_);
-   double* GetModel(const vector<double>& alf, int irf_idx, int isel, int thread);
+   double* GetModel(const std::vector<double>& alf, int irf_idx, int isel, int thread);
 
 
    double* GetModel(const double* alf, int irf_idx, int isel, int thread);
@@ -76,13 +76,13 @@ protected:
 
    int Init();
 
-   shared_ptr<DecayModel> model;
-   vector<DecayModel> models;
-   shared_ptr<ProgressReporter> reporter;
+   std::shared_ptr<DecayModel> model;
+   std::vector<DecayModel> models;
+   std::shared_ptr<ProgressReporter> reporter;
    
-   vector<double> alf;
-   vector<double> err_lower;
-   vector<double> err_upper;
+   std::vector<double> alf;
+   std::vector<double> err_lower;
+   std::vector<double> err_upper;
 
    // Used by variable projection
    std::vector<int> inc;
@@ -91,13 +91,13 @@ protected:
    //int     nconp1;
    int     philp1;
 
-   vector<vector<double>> a_;
-   vector<vector<double>> b_;
-   vector<double> r;
-   vector<double> kap;
-   vector<double> params; 
-   vector<double> alf_err;
-   vector<double> alf_buf;
+   std::vector<std::vector<double>> a_;
+   std::vector<std::vector<double>> b_;
+   std::vector<double> r;
+   std::vector<double> kap;
+   std::vector<double> params;
+   std::vector<double> alf_err;
+   std::vector<double> alf_buf;
 
    int     n;
    int     nl;
@@ -113,8 +113,8 @@ protected:
    int     max_region_size;
 
    float*  y;
-   vector<float> w;
-   vector<float> avg_y;
+   std::vector<float> w;
+   std::vector<float> avg_y;
    float *lin_params;
    float *chi2;
    int    *irf_idx;

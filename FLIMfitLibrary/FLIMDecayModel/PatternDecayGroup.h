@@ -11,7 +11,7 @@ public:
       if (params.size() % 2 == 0)
          throw std::runtime_error("Params should take form tau_1 beta_1 ... tau_n beta_n offset");
 
-      int n_exp = (params.size() - 1) / 2;
+      size_t n_exp = (params.size() - 1) / 2;
       tau.resize(n_exp);
       beta.resize(n_exp);
 
@@ -54,11 +54,11 @@ public:
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
 
-   void getNonlinearOutputParamNames(vector<string>& names);
-   void getLinearOutputParamNames(vector<string>& names);
+   void getNonlinearOutputParamNames(std::vector<std::string>& names);
+   void getLinearOutputParamNames(std::vector<std::string>& names);
 
-   const vector<double>& getChannelFactors(int index);
-   void setChannelFactors(int index, const vector<double>& channel_factors);
+   const std::vector<double>& getChannelFactors(int index);
+   void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
 
    AbstractDecayGroup* clone() const { return new PatternDecayGroup(*this); }

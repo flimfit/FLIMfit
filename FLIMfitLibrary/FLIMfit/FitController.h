@@ -67,8 +67,8 @@ public:
    ~FitController();
 
    void setFitSettings(const FitSettings& fit_settings);
-   void setData(shared_ptr<FLIMData> data);
-   void setModel(shared_ptr<DecayModel> model_) { model = model_; }
+   void setData(std::shared_ptr<FLIMData> data);
+   void setModel(std::shared_ptr<DecayModel> model_) { model = model_; }
    
    void init();
    int runWorkers();
@@ -116,7 +116,7 @@ private:
    int threads_active;
    int threads_started;
    int threads_running;
-   vector<int> cur_im;
+   std::vector<int> cur_im;
 
    bool is_init = false;
    bool has_fit = false;

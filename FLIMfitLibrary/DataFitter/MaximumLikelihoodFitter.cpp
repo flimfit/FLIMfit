@@ -55,7 +55,7 @@ void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
    f->mle_jacb(alf, fjac, nl, nfunc);
 }
 
-MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter) :
+MaximumLikelihoodFitter::MaximumLikelihoodFitter(std::shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter) :
     AbstractFitter(model, model->getNumColumns(), 1, MODE_GLOBAL_BINNING, 1, reporter)
 {
    nfunc = n + 1; // +1 for kappa
@@ -65,7 +65,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(shared_ptr<DecayModel> model, s
    expA = new double[nfunc];
 }
 
-int MaximumLikelihoodFitter::FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr)
+int MaximumLikelihoodFitter::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
 {
 
    for(int i=0; i<n; i++)
@@ -163,7 +163,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, 
    int i,j;
    float* adjust;
 
-   vector<double>& a = a_[0];
+   std::vector<double>& a = a_[0];
    GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->getConstantAdjustment();
    double* A = alf + nl;
@@ -196,8 +196,8 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
    int i,j,k;
    float* adjust;
 
-   vector<double>& a = a_[0];
-   vector<double>& b = b_[0];
+   std::vector<double>& a = a_[0];
+   std::vector<double>& b = b_[0];
 
    GetModel(alf, irf_idx[0], 1, 0);
    adjust = model->getConstantAdjustment();

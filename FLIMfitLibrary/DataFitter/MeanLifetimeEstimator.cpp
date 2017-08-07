@@ -4,7 +4,7 @@
 
 using namespace std;
 
-MeanLifetimeEstimator::MeanLifetimeEstimator(shared_ptr<TransformedDataParameters> dp) :
+MeanLifetimeEstimator::MeanLifetimeEstimator(std::shared_ptr<TransformedDataParameters> dp) :
    dp(dp)
 {
    DetermineStartPosition(0);
@@ -20,12 +20,12 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    int j_last = 0;
    start = 0;
 
-   shared_ptr<InstrumentResponseFunction> irf = dp->irf;
+   std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    int n_meas = dp->n_meas;
    int n_t = dp->n_t;
    int n_irf = irf->n_irf;
 
-   vector<double> storage(n_meas);
+   std::vector<double> storage(n_meas);
    double *lirf = irf->getIRF(idx, 0, storage.data());
    double t_irf0 = irf->getT0();
    double dt_irf = irf->timebin_width;
@@ -94,7 +94,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
 }
 
 
-double MeanLifetimeEstimator::EstimateMeanLifetime(const vector<float>& decay, int data_type)
+double MeanLifetimeEstimator::EstimateMeanLifetime(const std::vector<float>& decay, int data_type)
 {
    if (data_type == DATA_TYPE_TCSPC)
       return EstimateMeanLifetimeTCSPC(decay);
@@ -106,13 +106,13 @@ double MeanLifetimeEstimator::EstimateMeanLifetime(const vector<float>& decay, i
    For TCSPC data, calculate the mean arrival time and apply a correction for
    the data censoring (i.e. finite measurement window)
 */
-double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const vector<float>& decay)
+double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const std::vector<float>& decay)
 {
    double t_mean = 0;
    double n = 0;
 
    int n_t = dp->n_t;
-   shared_ptr<InstrumentResponseFunction> irf = dp->irf;
+   std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    auto& t = dp->getTimepoints();
 
    for (int i = start; i<n_t; i++)
@@ -160,7 +160,7 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const vector<float>& dec
 /*
    For widefield data, apply linearised model
 */
-double MeanLifetimeEstimator::EstimateMeanLifetimeGated(const vector<float>& decay)
+double MeanLifetimeEstimator::EstimateMeanLifetimeGated(const std::vector<float>& decay)
 {
    double sum_t = 0;
    double sum_t2 = 0;

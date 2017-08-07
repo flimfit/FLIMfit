@@ -5,7 +5,7 @@
 #include "AnisotropyDecayGroup.h"
 #include <QMetaProperty>
 
-ParameterListItem::ParameterListItem(shared_ptr<QDecayModel> model)
+ParameterListItem::ParameterListItem(std::shared_ptr<QDecayModel> model)
 {
    m_type = Root;
    m_parent = nullptr;
@@ -16,7 +16,7 @@ ParameterListItem::ParameterListItem(shared_ptr<QDecayModel> model)
       m_children.append(new ParameterListItem(model->getGroup(i), i, this));
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, int index, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(std::shared_ptr<AbstractDecayGroup> group, int index, ParameterListItem* parent)
 {
    m_type = Group;
    m_parent = parent;
@@ -52,7 +52,7 @@ void ParameterListItem::refresh()
    }
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(std::shared_ptr<AbstractDecayGroup> group, const QMetaProperty prop, ParameterListItem* parent)
 {
    m_type = Option;
    m_parent = parent;
@@ -61,7 +61,7 @@ ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, const
    m_decay_group = group;
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(std::shared_ptr<AbstractDecayGroup> group, ParameterListItem* parent)
 {
    m_type = SubParameters;
    m_parent = parent;
@@ -71,7 +71,7 @@ ParameterListItem::ParameterListItem(shared_ptr<AbstractDecayGroup> group, Param
    refresh();
 }
 
-ParameterListItem::ParameterListItem(shared_ptr<FittingParameter> parameter, ParameterListItem* parent)
+ParameterListItem::ParameterListItem(std::shared_ptr<FittingParameter> parameter, ParameterListItem* parent)
 {
    m_parent = parent;
    m_type = Parameter;
@@ -92,7 +92,7 @@ int ParameterListItem::row() const
    return 0;
 }
 
-ParameterListModel::ParameterListModel(shared_ptr<QDecayModel> decay_model, QObject* parent) :
+ParameterListModel::ParameterListModel(std::shared_ptr<QDecayModel> decay_model, QObject* parent) :
    QAbstractItemModel(parent),
    decay_model(decay_model)
 {
@@ -303,7 +303,7 @@ void ParameterListModel::removeGroup(const QModelIndex index)
 void ParameterListModel::addGroup(int group_type)
 {
 
-   shared_ptr<AbstractDecayGroup> new_group;
+   std::shared_ptr<AbstractDecayGroup> new_group;
    if (group_type == 0)
       new_group = std::make_shared<MultiExponentialDecayGroup>();
    else if (group_type == 1)

@@ -21,9 +21,6 @@
 #include <numeric>
 #include <vector>
 
-using std::vector;
-
-
 const double t_rep_default = 12500.0;
 
 class FLIMSimulation : public AcquisitionParameters
@@ -32,10 +29,10 @@ public:
    FLIMSimulation(int data_type);
    
    template <class U>
-   void GenerateDecay(double tau, int N, vector<U>& decay);
+   void GenerateDecay(double tau, int N, std::vector<U>& decay);
 
    template <class U>
-   void GenerateImage(double tau, int N, int n_x, int n_y, vector<U>& decay);
+   void GenerateImage(double tau, int N, int n_x, int n_y, std::vector<U>& decay);
    
    InstrumentResponseFunction GenerateIRF(int N);
   
@@ -52,8 +49,8 @@ protected:
    double dt;
 
    
-   virtual void GenerateDecay(double tau, int N, vector<int>& decay) = 0;
-   virtual void GenerateIRF(int N, vector<double>& decay) = 0;
+   virtual void GenerateDecay(double tau, int N, std::vector<int>& decay) = 0;
+   virtual void GenerateIRF(int N, std::vector<double>& decay) = 0;
 
    boost::mt19937 gen;
    boost::random::normal_distribution<double> norm_dist;
@@ -66,11 +63,11 @@ class FLIMSimulationTCSPC : public FLIMSimulation
 public:
    FLIMSimulationTCSPC();
 
-   void GenerateIRF(int N, vector<double>& decay);
-   int GetTimePoints(vector<double>& t, vector<double>& t_int);
+   void GenerateIRF(int N, std::vector<double>& decay);
+   int GetTimePoints(std::vector<double>& t, std::vector<double>& t_int);
 
 private:
-   void GenerateDecay(double tau, int N, vector<int>& decay);
+   void GenerateDecay(double tau, int N, std::vector<int>& decay);
 
 };
 
@@ -80,10 +77,10 @@ class FLIMSimulationWF : public FLIMSimulation
 public:
    FLIMSimulationWF();
 
-   void GenerateIRF(int N, vector<double>& decay);
+   void GenerateIRF(int N, std::vector<double>& decay);
 
 private:
-   void GenerateDecay(double tau, int N, vector<int>& decay);
+   void GenerateDecay(double tau, int N, std::vector<int>& decay);
 
    double gate_width;
 
@@ -93,12 +90,12 @@ private:
 
 
 template <class U>
-void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, vector<U>& decay)
+void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, std::vector<U>& decay)
 {
 //   decay.assign(n_t * n_x * n_y, 0);
    decay.resize(n_t_full * n_x * n_y);
 
-   vector<int> buf(n_t_full);
+   std::vector<int> buf(n_t_full);
    GenerateDecay(tau, N, buf);
 
    for(int x=0; x<n_x; x++)
@@ -114,13 +111,13 @@ void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, vector<U
 }
 
 template <class U>
-void FLIMSimulation::GenerateDecay(double tau, int N, vector<U>& decay)
+void FLIMSimulation::GenerateDecay(double tau, int N, std::vector<U>& decay)
 {
    
    // Zero histogram
    decay.assign(n_t_full, 0);
 
-   vector<int> buf(n_t_full);
+   std::vector<int> buf(n_t_full);
    GenerateDecay(tau, N, buf);
 
    for(int i=0; i<n_t_full; i++)

@@ -35,7 +35,7 @@ using namespace std;
 
 DecayModel::DecayModel()
 {
-   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    reference_parameter = std::make_shared<FittingParameter>("ref_lifetime", 100, fixed_or_global, Fixed);
    t0_parameter = std::make_shared<FittingParameter>("t0", 0, fixed_or_global, Fixed);
 
@@ -57,7 +57,7 @@ DecayModel::DecayModel(const DecayModel &obj) :
 }
 
 
-void DecayModel::setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
+void DecayModel::setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp_)
 {
    dp = dp_;
    for (auto g : decay_groups)
@@ -94,7 +94,7 @@ void DecayModel::init()
 }
 
 
-void DecayModel::addDecayGroup(shared_ptr<AbstractDecayGroup> group)
+void DecayModel::addDecayGroup(std::shared_ptr<AbstractDecayGroup> group)
 {
    group->setTransformedDataParameters(dp);
    decay_groups.push_back(group);
@@ -152,7 +152,7 @@ void DecayModel::setupAdjust()
       adjust_buf[i] *= photons_per_count;
 }
 
-void DecayModel::getOutputParamNames(vector<string>& param_names, int& n_nl_output_params, int& n_lin_output_params)
+void DecayModel::getOutputParamNames(std::vector<std::string>& param_names, int& n_nl_output_params, int& n_lin_output_params)
 {
    for (auto& p : parameters)
       if (p->isFittedGlobally())
@@ -201,7 +201,7 @@ void DecayModel::setupIncMatrix(std::vector<int>& inc)
 
 int DecayModel::getNumDerivatives()
 {
-   vector<int> inc(96);
+   std::vector<int> inc(96);
 
    setupIncMatrix(inc);
 
@@ -212,7 +212,7 @@ int DecayModel::getNumDerivatives()
    return n;
 }
 
-int DecayModel::calculateModel(vector<double>& a, int adim, vector<double>& b, int bdim, vector<double>& kap, const vector<double>& alf, int irf_idx, int isel)
+int DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx, int isel)
 {
    int idx = 0;
 
@@ -392,7 +392,7 @@ int DecayModel::addT0Derivatives(double* b, int bdim, double& kap_derv)
 }
 
 
-void DecayModel::getWeights(float* y, const vector<double>& a, const vector<double>& alf, float* lin_params, double* w, int irf_idx)
+void DecayModel::getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx)
 {
    return;
 
@@ -433,7 +433,7 @@ void DecayModel::getWeights(float* y, const vector<double>& a, const vector<doub
 
 
 
-void DecayModel::getInitialVariables(vector<double>& param, double mean_arrival_time)
+void DecayModel::getInitialVariables(std::vector<double>& param, double mean_arrival_time)
 {
    // TODO: set initial tau's based on mean arrival time
 
@@ -500,13 +500,13 @@ void DecayModel::validateDerivatives()
 
    int dim = dp->n_meas;
 
-   vector<double> a(dim * (n_cols + 1));
-   vector<double> ap(dim*(n_cols + 1)); 
-   vector<double> b(dim*n_der);
-   vector<double> err(dim);
-   vector<double> kap(1+n_nonlinear);
+   std::vector<double> a(dim * (n_cols + 1));
+   std::vector<double> ap(dim*(n_cols + 1)); 
+   std::vector<double> b(dim*n_der);
+   std::vector<double> err(dim);
+   std::vector<double> kap(1+n_nonlinear);
 
-   vector<double> alf(n_nonlinear);
+   std::vector<double> alf(n_nonlinear);
    getInitialVariables(alf, 2000);
    
    calculateModel(a, dim, b, dim, kap, alf, 0, 1);
@@ -517,7 +517,7 @@ void DecayModel::validateDerivatives()
       {
          if (inc[i + j * 12])
          {
-            vector<double> alf_p(alf);
+            std::vector<double> alf_p(alf);
 
             double temp = eps * abs(alf[i]);
             if (temp == 0.0) temp = eps;

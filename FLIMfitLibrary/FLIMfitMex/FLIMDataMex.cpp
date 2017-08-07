@@ -170,7 +170,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       auto data = getSharedPtrFromMatlab<FLIMData>(prhs[0]);
 
       // Get command
-      string command = getStringFromMatlab(prhs[1]);
+      std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
          releaseSharedPtrFromMatlab<FLIMData>(prhs[0]);

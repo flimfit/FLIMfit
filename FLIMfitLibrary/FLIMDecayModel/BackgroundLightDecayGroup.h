@@ -19,11 +19,11 @@ public:
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
 
-   void getLinearOutputParamNames(vector<string>& names);
+   void getLinearOutputParamNames(std::vector<std::string>& names);
    int setParameters(double* parameters);
 
-   const vector<double>& getChannelFactors(int index);
-   void setChannelFactors(int index, const vector<double>& channel_factors);
+   const std::vector<double>& getChannelFactors(int index);
+   void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
    AbstractDecayGroup* clone() const { return new BackgroundLightDecayGroup(*this); }
 
@@ -31,7 +31,7 @@ protected:
 
    void init();
 
-   const std::array<string, 3> names = { "offset", "scatter", "tvb" };
+   const std::array<std::string, 3> names = { "offset", "scatter", "tvb" };
    void setupParameters();
 
    int addOffsetColumn(double* a, int adim, double& kap);
@@ -43,7 +43,7 @@ protected:
    int addScatterDerivatives(double* b, int bdim, double& kap_derv);
    int addTVBDerivatives(double* b, int bdim, double& kap_derv);
 
-   vector<double> channel_factors;
+   std::vector<double> channel_factors;
 
    // RUNTIME VARIABLE PARAMETERS
    double offset = 0;

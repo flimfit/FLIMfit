@@ -4,7 +4,7 @@
 #include "IRFConvolution.h"
 
 template<class T> // TODO: make this part of class
-int getBeta(const vector<shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[])
+int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[])
 {
    int n_vars_used = 0;
    
@@ -41,8 +41,8 @@ public:
    virtual void setNumExponential(int n_exponential);
    void setContributionsGlobal(bool contributions_global);
 
-   virtual const vector<double>& getChannelFactors(int index);
-   virtual void setChannelFactors(int index, const vector<double>& channel_factors);
+   virtual const std::vector<double>& getChannelFactors(int index);
+   virtual void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
    virtual int setVariables(const double* variables);
    virtual int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
@@ -50,7 +50,7 @@ public:
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
-   virtual void getLinearOutputParamNames(vector<string>& names);
+   virtual void getLinearOutputParamNames(std::vector<std::string>& names);
 
 protected:
   
@@ -59,21 +59,21 @@ protected:
 
    void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
 
-   int addDecayGroup(const vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, double& kap, int bin_shift = 0);
+   int addDecayGroup(const std::vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, double& kap, int bin_shift = 0);
    int addLifetimeDerivative(int idx, double* b, int bdim, double& kap_derv);
    int addContributionDerivatives(double* b, int bdim, double kap_derv[]);
    int normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);
 
-   vector<shared_ptr<FittingParameter>> tau_parameters;
-   vector<shared_ptr<FittingParameter>> beta_parameters;
+   std::vector<std::shared_ptr<FittingParameter>> tau_parameters;
+   std::vector<std::shared_ptr<FittingParameter>> beta_parameters;
 
    int n_exponential;
    bool contributions_global;
 
-   vector<double> tau;
-   vector<double> beta;
-   vector<ExponentialPrecomputationBuffer> buffer;
-   vector<double> channel_factors;
+   std::vector<double> tau;
+   std::vector<double> beta;
+   std::vector<ExponentialPrecomputationBuffer> buffer;
+   std::vector<double> channel_factors;
 
 protected:
    template<class Archive>

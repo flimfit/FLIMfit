@@ -45,7 +45,9 @@
 #include <cmath>
 #include "FitController.h"
 #include "MultiExponentialDecayGroup.h"
+#include "BackgroundLightDecayGroup.h"
 #include "FLIMImage.h"
+#include "PatternDecayGroup.h"
 
 //using namespace boost::unit_test;
 
@@ -55,7 +57,7 @@ void add_decay(int n_t, double* t, double tau, double I, float* decay)
       decay[i] += (float) (I * exp(-t[i]/tau));
 }
 
-bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_names, vector<float>& data, const char* param, int region, float expected_value, float rel_tol )
+bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_names, std::vector<float>& data, const char* param, int region, float expected_value, float rel_tol )
 {
    if (region >= n_regions)
       return false;
@@ -98,16 +100,16 @@ int main()
    FLIMSimulationTCSPC sim;
 
 
-   vector<double> irf;
-   vector<float>  image_data;
-   vector<double> t;
-   vector<double> t_int;
+   std::vector<double> irf;
+   std::vector<float>  image_data;
+   std::vector<double> t;
+   std::vector<double> t_int;
 
    int n_x = 1;
    int n_y = 1;
 
    int N = 20000;
-   vector<double> tau = { 3000, 1000 };
+   std::vector<double> tau = { 3000, 1000 };
  
 
    sim.GenerateIRF(N, irf);
@@ -120,7 +122,7 @@ int main()
 
    // Data Parameters
    //===========================
-   vector<int> use_im(n_x, 1);
+   std::vector<int> use_im(n_x, 1);
    
    
    /*
@@ -175,8 +177,16 @@ int main()
 
    std::vector<double> test = { 1500, 2000 };
 
-   auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
+   //auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
+   //model->addDecayGroup(group);
+
+
+   std::vector<Pattern> patterns(1, Pattern({ 1500, 0.5, 2000, 0.5, 0 }));
+
+   auto group = std::make_shared<PatternDecayGroup>(patterns);
    model->addDecayGroup(group);
+
+   
 
    auto params = group->getParameters();
    for (int i=0; i<params.size(); i++)
@@ -186,6 +196,11 @@ int main()
       std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
 
+   //auto bg_group = std::make_shared<BackgroundLightDecayGroup>();
+   //model->addDecayGroup(bg_group);
+   //bg_group->getParameter("offset")->fitting_type = FittedLocally;
+   //bg_group->getParameter("scatter")->fitting_type = FittedLocally;
+   //bg_group->getParameter("tvb")->fitting_type = FittedLocally;
 
 
    FitController controller;   
@@ -225,12 +240,12 @@ int main()
 
    // Result storage
    int n_regions;
-   vector<int>   image((n_regions_total));
-   vector<int>   regions((n_regions_total));
-   vector<int>   region_size((n_regions_total));
-   vector<float> success((n_regions_total));
-   vector<int>   iterations((n_regions_total));
-   vector<float> stats((n_output_params * n_regions_total * n_stats));
+   std::vector<int>   image((n_regions_total));
+   std::vector<int>   regions((n_regions_total));
+   std::vector<int>   region_size((n_regions_total));
+   std::vector<float> success((n_regions_total));
+   std::vector<int>   iterations((n_regions_total));
+   std::vector<float> stats((n_output_params * n_regions_total * n_stats));
 
    BOOST_ASSERT(n_regions_total > 0);
 
@@ -252,10 +267,10 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    FLIMSimulationTCSPC sim;
    
    
-   vector<double> irf;
-   vector<float>  image_data;
-   vector<double> t;
-   vector<double> t_int;
+   std::vector<double> irf;
+   std::vector<float>  image_data;
+   std::vector<double> t;
+   std::vector<double> t_int;
 
    int n_x = 10;
    int n_y = 10;
@@ -272,7 +287,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    
    // Data Parameters
    //===========================
-   vector<int> use_im(n_x, 1);
+   std::vector<int> use_im(n_x, 1);
    int t_skip = 0;
    int n_trim_end = 0;
    int n_regions_expected = 1;
@@ -319,12 +334,12 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    
    // Result storage
    int n_regions;
-   vector<int>   image( (n_regions_total) );
-   vector<int>   regions( (n_regions_total) );
-   vector<int>   region_size( (n_regions_total) );
-   vector<float> success( (n_regions_total) );
-   vector<int>   iterations( (n_regions_total) );
-   vector<float> stats( (n_output_params * n_regions_total * n_stats) );
+   std::vector<int>   image( (n_regions_total) );
+   std::vector<int>   regions( (n_regions_total) );
+   std::vector<int>   region_size( (n_regions_total) );
+   std::vector<float> success( (n_regions_total) );
+   std::vector<int>   iterations( (n_regions_total) );
+   std::vector<float> stats( (n_output_params * n_regions_total * n_stats) );
    
    BOOST_ASSERT( n_regions_total > 0 );
 

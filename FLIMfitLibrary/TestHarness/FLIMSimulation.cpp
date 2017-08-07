@@ -18,8 +18,8 @@ FLIMSimulationTCSPC::FLIMSimulationTCSPC() :
    dt = t_rep / n_t_full;
 
 
-   vector<double> t_;
-   vector<double> t_int_;
+   std::vector<double> t_;
+   std::vector<double> t_int_;
 
    t_.assign(n_t_full, 0);
 
@@ -43,8 +43,8 @@ FLIMSimulationWF::FLIMSimulationWF() :
    dt = 25;
    n_t_irf = ceil( (gate_width + irf_mu + 4 * irf_sigma) / dt ); // make sure we record enough of the IRF
 
-   vector<double> t_;
-   vector<double> t_int_;
+   std::vector<double> t_;
+   std::vector<double> t_int_;
 
    t_.assign(n_t_full, 0);
 
@@ -73,7 +73,7 @@ FLIMSimulation::FLIMSimulation(int data_type) :
 
 
 
-void FLIMSimulationTCSPC::GenerateDecay(double tau, int N, vector<int>& decay)
+void FLIMSimulationTCSPC::GenerateDecay(double tau, int N, std::vector<int>& decay)
 {
    boost::random::exponential_distribution<double> exp_dist(1/tau);
    
@@ -97,7 +97,7 @@ void FLIMSimulationTCSPC::GenerateDecay(double tau, int N, vector<int>& decay)
 }
 
 
-void FLIMSimulationWF::GenerateDecay(double tau, int N, vector<int>& decay)
+void FLIMSimulationWF::GenerateDecay(double tau, int N, std::vector<int>& decay)
 {
    boost::random::exponential_distribution<double> exp_dist(1/tau);
    
@@ -133,7 +133,7 @@ void FLIMSimulationWF::GenerateDecay(double tau, int N, vector<int>& decay)
 
 InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
 {
-   vector<double> irf_data;
+   std::vector<double> irf_data;
 
    GenerateIRF(N, irf_data);
 
@@ -151,7 +151,7 @@ InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
 
 }
 
-void FLIMSimulationTCSPC::GenerateIRF(int N, vector<double>& decay)
+void FLIMSimulationTCSPC::GenerateIRF(int N, std::vector<double>& decay)
 {
    decay.assign(n_t_full, 0);
    
@@ -179,7 +179,7 @@ void FLIMSimulationTCSPC::GenerateIRF(int N, vector<double>& decay)
 }
 
 
-void FLIMSimulationWF::GenerateIRF(int N, vector<double>& decay)
+void FLIMSimulationWF::GenerateIRF(int N, std::vector<double>& decay)
 {
 
    // Calculate number of photons in each gate acquisition (note these will not necessarily fall in the gate)
@@ -216,7 +216,7 @@ double FLIMSimulation::SampleIRF()
    return norm_dist(gen);
 }
 
-int FLIMSimulationTCSPC::GetTimePoints(vector<double>& t, vector<double>& t_int)
+int FLIMSimulationTCSPC::GetTimePoints(std::vector<double>& t, std::vector<double>& t_int)
 {
    t.assign(n_t_full, 0);
    for (int i=0; i<n_t_full; i++) {

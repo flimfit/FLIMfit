@@ -4,7 +4,7 @@
 #include "AnisotropyDecayGroup.h"
 #include <QMetaProperty>
 
-ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QDecayModel> model)
+ChannelFactorListItem::ChannelFactorListItem(std::shared_ptr<QDecayModel> model)
 {
    m_type = Root;
    m_parent = nullptr;
@@ -15,14 +15,14 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<QDecayModel> model)
       m_children.append(new ChannelFactorListItem(model->getGroup(i), this));
 }
 
-ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> group, ChannelFactorListItem* parent)
+ChannelFactorListItem::ChannelFactorListItem(std::shared_ptr<AbstractDecayGroup> group, ChannelFactorListItem* parent)
 {
    m_type = Group;
    m_parent = parent;
    m_name = group->objectName();
    m_decay_group = group;
 
-   const vector<std::string>& channel_factor_names = group->getChannelFactorNames();
+   const std::vector<std::string>& channel_factor_names = group->getChannelFactorNames();
 
    if (channel_factor_names.size() > 0)
    {
@@ -39,7 +39,7 @@ ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> grou
    }
 }
 
-ChannelFactorListItem::ChannelFactorListItem(shared_ptr<AbstractDecayGroup> group, int index, ChannelFactorListItem* parent)
+ChannelFactorListItem::ChannelFactorListItem(std::shared_ptr<AbstractDecayGroup> group, int index, ChannelFactorListItem* parent)
 {
    m_type = Channel;
    m_parent = parent;
@@ -61,7 +61,7 @@ int ChannelFactorListItem::row() const
    return 0;
 }
 
-ChannelFactorListModel::ChannelFactorListModel(shared_ptr<QDecayModel> decay_model, QObject* parent) :
+ChannelFactorListModel::ChannelFactorListModel(std::shared_ptr<QDecayModel> decay_model, QObject* parent) :
    QAbstractItemModel(parent),
    decay_model(decay_model)
 {
@@ -169,7 +169,7 @@ bool ChannelFactorListModel::setData(const QModelIndex & index, const QVariant &
    {
       auto decay_group = item->decayGroup();
       int i = item->decayGroupIndex();
-      vector<double> channel_factors = decay_group->getChannelFactors(i);
+      std::vector<double> channel_factors = decay_group->getChannelFactors(i);
       channel_factors[index.column() - 1] = value.toDouble();
       decay_group->setChannelFactors(i, channel_factors);
       changed = true;
@@ -228,7 +228,7 @@ void ChannelFactorListModel::removeGroup(const QModelIndex index)
 void ChannelFactorListModel::addGroup(int group_type)
 {
 
-   shared_ptr<AbstractDecayGroup> new_group;
+   std::shared_ptr<AbstractDecayGroup> new_group;
    if (group_type == 0)
       new_group = std::make_shared<MultiExponentialDecayGroup>();
    else if (group_type == 1)

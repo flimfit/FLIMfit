@@ -39,10 +39,10 @@ class MaximumLikelihoodFitter : public AbstractFitter
 {
 public:
 
-   MaximumLikelihoodFitter(shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter);
+   MaximumLikelihoodFitter(std::shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter);
    ~MaximumLikelihoodFitter();
 
-   int FitFcn(int nl, vector<double>& alf, int itmax, int* niter, int* ierr);
+   int FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr);
 
    int GetLinearParams() ;
 private:

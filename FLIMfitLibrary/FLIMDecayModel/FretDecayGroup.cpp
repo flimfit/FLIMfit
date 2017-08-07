@@ -32,17 +32,15 @@
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>
 
-using namespace std;
-
 FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
    MultiExponentialDecayGroupPrivate(n_donor_exponential, true, "FRET Decay"),
    n_fret_populations(n_fret_populations),
    include_donor_only(include_donor_only)
 {   
-   vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-   Q_parameter = make_shared<FittingParameter>("Q", 1, fixed_or_global, FittedGlobally);
-   Qsigma_parameter = make_shared<FittingParameter>("Qsigma", 0.1, fixed_or_global, FittedGlobally);
-   tauA_parameter = make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
+   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   Q_parameter = std::make_shared<FittingParameter>("Q", 1, fixed_or_global, FittedGlobally);
+   Qsigma_parameter = std::make_shared<FittingParameter>("Qsigma", 0.1, fixed_or_global, FittedGlobally);
+   tauA_parameter = std::make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
    
    setupParameters();
 }
@@ -101,18 +99,18 @@ void FretDecayGroup::init()
 
    fret_buffer.clear();
    fret_buffer.resize(n_fret_populations, 
-      vector<ExponentialPrecomputationBuffer>(n_exponential,
+      std::vector<ExponentialPrecomputationBuffer>(n_exponential,
         ExponentialPrecomputationBuffer(dp)));
 
    if (include_acceptor)
    {
       acceptor_fret_buffer.clear();
       acceptor_fret_buffer.resize(n_fret_populations,
-         vector<ExponentialPrecomputationBuffer>(n_exponential,
+         std::vector<ExponentialPrecomputationBuffer>(n_exponential,
          ExponentialPrecomputationBuffer(dp)));
 
-      acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
-      acceptor_buffer = unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
+      acceptor_buffer = std::unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
+      acceptor_buffer = std::unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
    }
    
    acceptor_channel_factors.resize(dp->n_chan, 1);
@@ -144,7 +142,7 @@ void FretDecayGroup::setIncludeAcceptor(bool include_acceptor_)
    setupParameters();
 }
 
-const vector<double>& FretDecayGroup::getChannelFactors(int index)
+const std::vector<double>& FretDecayGroup::getChannelFactors(int index)
 {
    if (index == 0)
       return channel_factors;
@@ -154,7 +152,7 @@ const vector<double>& FretDecayGroup::getChannelFactors(int index)
    throw std::runtime_error("Bad channel factor index");
 }
 
-void FretDecayGroup::setChannelFactors(int index, const vector<double>& channel_factors_)
+void FretDecayGroup::setChannelFactors(int index, const std::vector<double>& channel_factors_)
 {
    if (index == 0)
       channel_factors = channel_factors_;
@@ -242,7 +240,7 @@ int FretDecayGroup::setVariables(const double* param_values)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
 
-   tau_fret.resize(n_fret_populations, vector<double>(n_exponential));
+   tau_fret.resize(n_fret_populations, std::vector<double>(n_exponential));
    tau_transfer.resize(n_fret_populations, n_exponential);
 
    // Set tau's for FRET
@@ -264,7 +262,7 @@ int FretDecayGroup::setVariables(const double* param_values)
 
    if (include_acceptor)
    {
-      a_star.resize(n_fret_populations, vector<double>(n_exponential));
+      a_star.resize(n_fret_populations, std::vector<double>(n_exponential));
       
       Q = Q_parameter->getValue<double>(param_values, idx);
       Qsigma = Qsigma_parameter->getValue<double>(param_values, idx);
@@ -327,7 +325,7 @@ int FretDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& l
    return output_idx;
 }
 
-void FretDecayGroup::getLinearOutputParamNames(vector<string>& names)
+void FretDecayGroup::getLinearOutputParamNames(std::vector<std::string>& names)
 {
    names.push_back("I_0");
 
@@ -341,19 +339,19 @@ void FretDecayGroup::getLinearOutputParamNames(vector<string>& names)
       if (n)
          for (int i = 0; i < n_fret_populations; i++)
          {
-            string name = "gamma_" + boost::lexical_cast<std::string>(i + 1);
+            std::string name = "gamma_" + boost::lexical_cast<std::string>(i + 1);
             names.push_back(name);
          }
    }
 }
 
-void FretDecayGroup::getNonlinearOutputParamNames(vector<string>& names)
+void FretDecayGroup::getNonlinearOutputParamNames(std::vector<std::string>& names)
 {
    AbstractDecayGroup::getNonlinearOutputParamNames(names);
    
    for (int i = 0; i < n_fret_populations; i++)
    {
-      string name = "E_" + boost::lexical_cast<std::string>(i + 1);
+      std::string name = "E_" + boost::lexical_cast<std::string>(i + 1);
       names.push_back(name);
    }
 }

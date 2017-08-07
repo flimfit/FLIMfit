@@ -45,7 +45,7 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    //n_nl_parameters += n_anisotropy_populations;
 
    //anisotropy_buffer.resize(n_anisotropy_populations,
-   //   vector<ExponentialPrecomputationBuffer>(n_exponential,
+   //   std::vector<ExponentialPrecomputationBuffer>(n_exponential,
    //   ExponentialPrecomputationBuffer(acq))); 
 
    setupParameters();
@@ -187,7 +187,7 @@ int AnisotropyDecayGroup::getLinearOutputs(float* lin_variables, float* output, 
    return output_idx;
 }
 
-void AnisotropyDecayGroup::getLinearOutputParamNames(vector<string>& names)
+void AnisotropyDecayGroup::getLinearOutputParamNames(std::vector<std::string>& names)
 {
    names.push_back("I_0");
    names.push_back("r_0");

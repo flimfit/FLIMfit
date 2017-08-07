@@ -28,7 +28,7 @@ public:
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
 
-   void getLinearOutputParamNames(vector<string>& names);
+   void getLinearOutputParamNames(std::vector<std::string>& names);
 
 protected:
 
@@ -39,15 +39,15 @@ protected:
 
    void setupChannelFactors();
 
-   vector<shared_ptr<FittingParameter>> theta_parameters;
+   std::vector<std::shared_ptr<FittingParameter>> theta_parameters;
 
    int n_anisotropy_populations;
    bool include_r_inf;
    
-   vector<double> theta;
+   std::vector<double> theta;
 
-   vector<vector<ExponentialPrecomputationBuffer>> anisotropy_buffer;
-   vector<vector<double>> channel_factors;
+   std::vector<std::vector<ExponentialPrecomputationBuffer>> anisotropy_buffer;
+   std::vector<std::vector<double>> channel_factors;
    
 private:
    template<class Archive>
@@ -66,29 +66,3 @@ void AnisotropyDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & include_r_inf;
    ar & channel_factors;
 };
-
-/*
-class QAnisotropyDecayGroup : virtual public QAbstractDecayGroup, virtual public AnisotropyDecayGroup
-{
-   Q_OBJECT
-
-public:
-
-   Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE SetNumExponential USER true);
-   Q_PROPERTY(int n_anisotropy_populations MEMBER n_anisotropy_populations WRITE SetNumAnisotropyPopulations USER true);
-   Q_PROPERTY(bool include_r_inf MEMBER include_r_inf WRITE SetIncludeRInf USER true);
-
-private:
-   template<class Archive>
-   void serialize(Archive & ar, const unsigned int version);
-   
-   friend class boost::serialization::access;
-   
-};
-
-template<class Archive>
-void QAnisotropyDecayGroup::serialize(Archive & ar, const unsigned int version)
-{
-   ar & boost::serialization::base_object<AnisotropyDecayGroup>(*this);
-};
-*/

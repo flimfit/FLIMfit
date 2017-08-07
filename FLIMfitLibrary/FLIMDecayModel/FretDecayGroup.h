@@ -24,8 +24,8 @@ public:
    void setIncludeDonorOnly(bool include_donor_only_);
    void setIncludeAcceptor(bool include_acceptor_);
 
-   const vector<double>& getChannelFactors(int index);
-   void setChannelFactors(int index, const vector<double>& channel_factors);
+   const std::vector<double>& getChannelFactors(int index);
+   void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
 
    int setVariables(const double* variables);
@@ -37,8 +37,8 @@ public:
 
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
 
-   void getLinearOutputParamNames(vector<string>& names);
-   void getNonlinearOutputParamNames(vector<string>& names);
+   void getLinearOutputParamNames(std::vector<std::string>& names);
+   void getNonlinearOutputParamNames(std::vector<std::string>& names);
 
 protected:
 
@@ -54,26 +54,26 @@ protected:
    void addAcceptorContribution(int i, double factor, double* a, int adim, double& kap, int bin_shift = 0);
    void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, double& kap_derv);
 
-   vector<shared_ptr<FittingParameter>> tauT_parameters;
-   shared_ptr<FittingParameter> Q_parameter;
-   shared_ptr<FittingParameter> Qsigma_parameter;
-   shared_ptr<FittingParameter> tauA_parameter;
+   std::vector<std::shared_ptr<FittingParameter>> tauT_parameters;
+   std::shared_ptr<FittingParameter> Q_parameter;
+   std::shared_ptr<FittingParameter> Qsigma_parameter;
+   std::shared_ptr<FittingParameter> tauA_parameter;
 
    int n_fret_populations = 1;
    bool include_donor_only = true;
    bool include_acceptor = true;
    
-   vector<vector<double>> a_star;
-   vector<double> tau_transfer;
-   vector<vector<double>> tau_fret;
+   std::vector<std::vector<double>> a_star;
+   std::vector<double> tau_transfer;
+   std::vector<std::vector<double>> tau_fret;
    double Q;
    double Qsigma;
    double tauA;
 
-   vector<vector<ExponentialPrecomputationBuffer>> fret_buffer;
-   vector<vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
+   std::vector<std::vector<ExponentialPrecomputationBuffer>> fret_buffer;
+   std::vector<std::vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
    std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
-   vector<double> acceptor_channel_factors;
+   std::vector<double> acceptor_channel_factors;
 
 protected:
    int getNumPotentialChannels() { return 2; }

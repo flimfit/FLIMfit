@@ -32,8 +32,6 @@
 #include <cassert>
 #include <cmath>
 
-using std::vector;
-
 AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int polarisation_resolved, int n_chan , double counts_per_photon) :
    data_type(data_type),
    polarisation_resolved(polarisation_resolved),
@@ -45,7 +43,7 @@ AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int po
    n_meas_full = 0;
 }
 
-void AcquisitionParameters::setT(const vector<double>& t_)
+void AcquisitionParameters::setT(const std::vector<double>& t_)
 {
    t = t_;
 
@@ -84,7 +82,7 @@ void AcquisitionParameters::setImageSize(int n_x_, int n_y_)
 }
 
 
-void AcquisitionParameters::setIntegrationTimes(vector<double>& t_int_)
+void AcquisitionParameters::setIntegrationTimes(std::vector<double>& t_int_)
 {
    assert( t_int.size() == n_t_full );
    t_int = t_int_;

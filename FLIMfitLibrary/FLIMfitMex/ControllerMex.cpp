@@ -44,11 +44,9 @@
 #include <unordered_set>
 #include "MexUtils.h"
 
-using std::string;
-
 std::unordered_set<std::shared_ptr<FitController>> ptr_set;
 
-void setFitSettings(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setFitSettings(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    AssertInputCondition(mxIsStruct(prhs[2]));
@@ -69,7 +67,7 @@ void setFitSettings(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int 
    c->setFitSettings(settings);
 }
 
-void setData(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setData(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
 
@@ -77,7 +75,7 @@ void setData(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, c
    c->setData(data);
 }
 
-void setModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void setModel(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
    
@@ -85,23 +83,23 @@ void setModel(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, 
    c->setModel(model);
 }
 
-void startFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void startFit(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {   
    c->init();
    c->runWorkers();
 }
 
-void clearFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void clearFit(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
 // TODO
 }
 
-void stopFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void stopFit(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    c->stopFit();
 }
 
-void getFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getFitStatus(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 2);
    
@@ -135,13 +133,13 @@ void getFitStatus(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nr
    */
 }
 
-void getFitResults(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getFitResults(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nlhs >= 1);
    plhs[0] = packageSharedPtrForMatlab(c->getResults());
 }
 
-void getFit(shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void getFit(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 4);
    AssertInputCondition(nlhs >= 1);
@@ -193,7 +191,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerPointer", "Invalid controller pointer");
 
       // Get command
-      string command = getStringFromMatlab(prhs[1]);
+      std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
          releaseSharedPtrFromMatlab<FitController>(prhs[0]);

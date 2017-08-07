@@ -9,9 +9,9 @@ class ChannelFactorListItem
 public:
    enum Type { Root, Group, Channel };
    
-   ChannelFactorListItem(shared_ptr<QDecayModel> model);
-   ChannelFactorListItem(shared_ptr<AbstractDecayGroup> group, ChannelFactorListItem* parent);
-   ChannelFactorListItem(shared_ptr<AbstractDecayGroup> group, int index, ChannelFactorListItem* parent);
+   ChannelFactorListItem(std::shared_ptr<QDecayModel> model);
+   ChannelFactorListItem(std::shared_ptr<AbstractDecayGroup> group, ChannelFactorListItem* parent);
+   ChannelFactorListItem(std::shared_ptr<AbstractDecayGroup> group, int index, ChannelFactorListItem* parent);
 
    ~ChannelFactorListItem();
 
@@ -25,7 +25,7 @@ public:
    int childCount() { return m_children.size(); }
 
    const QString& name() { return m_name; }
-   shared_ptr<AbstractDecayGroup> decayGroup() { return m_decay_group; }
+   std::shared_ptr<AbstractDecayGroup> decayGroup() { return m_decay_group; }
    int decayGroupIndex() { return m_group_index; }
 
    void addChild(ChannelFactorListItem* child) { m_children.append(child); }
@@ -44,7 +44,7 @@ protected:
    ChannelFactorListItem* m_parent;
    int m_group_index;
 
-   shared_ptr<AbstractDecayGroup> m_decay_group;
+   std::shared_ptr<AbstractDecayGroup> m_decay_group;
 };
 
 class ChannelFactorListModel : public QAbstractItemModel
@@ -52,7 +52,7 @@ class ChannelFactorListModel : public QAbstractItemModel
    Q_OBJECT
 
 public:
-   ChannelFactorListModel(shared_ptr<QDecayModel> decay_model, QObject* parent = 0);
+   ChannelFactorListModel(std::shared_ptr<QDecayModel> decay_model, QObject* parent = 0);
    ~ChannelFactorListModel();
 
    void parseDecayModel();
@@ -74,6 +74,6 @@ protected:
 
    ChannelFactorListItem* GetItem(const QModelIndex& parent) const;
 
-   shared_ptr<QDecayModel> decay_model;
+   std::shared_ptr<QDecayModel> decay_model;
    ChannelFactorListItem *root_item;
 };

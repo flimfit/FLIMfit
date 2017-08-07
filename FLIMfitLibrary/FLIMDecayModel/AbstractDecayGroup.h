@@ -68,14 +68,14 @@ public:
 
    virtual ~AbstractDecayGroup() {};
    
-   shared_ptr<FittingParameter> getParameter(const std::string& param);
-   vector<shared_ptr<FittingParameter>>& getParameters() { return parameters; }
-   const vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
+   std::shared_ptr<FittingParameter> getParameter(const std::string& param);
+   std::vector<std::shared_ptr<FittingParameter>>& getParameters() { return parameters; }
+   const std::vector<std::string>& getChannelFactorNames() { return channel_factor_names; }
 
    int getNumComponents() { return n_lin_components; };
    int getNumNonlinearParameters() { return n_nl_parameters; };
 
-   void setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp);
+   void setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp);
    void setNumChannels(int n_chan);
 
    virtual void init() = 0;
@@ -89,17 +89,17 @@ public:
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
 
-   virtual void getNonlinearOutputParamNames(vector<string>& names);
-   virtual void getLinearOutputParamNames(vector<string>& names) = 0;
+   virtual void getNonlinearOutputParamNames(std::vector<std::string>& names);
+   virtual void getLinearOutputParamNames(std::vector<std::string>& names) = 0;
 
-   virtual const vector<double>& getChannelFactors(int index) = 0;
-   virtual void setChannelFactors(int index, const vector<double>& channel_factors) = 0;
+   virtual const std::vector<double>& getChannelFactors(int index) = 0;
+   virtual void setChannelFactors(int index, const std::vector<double>& channel_factors) = 0;
 
    int getInitialVariables(std::vector<double>::iterator variables);
    void setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
 
    template <typename T>
-   void addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor);
+   void addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor);
 
 signals:
    void parametersUpdated();
@@ -113,8 +113,8 @@ protected:
 
    bool constrain_nonlinear_parameters = true;
 
-   vector<std::shared_ptr<FittingParameter>> parameters;
-   vector<std::string> channel_factor_names;
+   std::vector<std::shared_ptr<FittingParameter>> parameters;
+   std::vector<std::string> channel_factor_names;
 
    std::shared_ptr<TransformedDataParameters> dp;
 
@@ -125,7 +125,7 @@ protected:
    int irf_idx = 0;
    double t0_shift = 0;
    double reference_lifetime;
-   vector<double> irf_buf;
+   std::vector<double> irf_buf;
    
 private:
    template<class Archive>
@@ -153,9 +153,9 @@ BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 
 // TODO: move this to InstrumentResponseFunction
 template <typename T>
-void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const vector<double>& channel_factor)
+void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor)
 {
-   shared_ptr<InstrumentResponseFunction> irf = dp->irf;
+   std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    auto& t = dp->getTimepoints();
    
    double* lirf = irf->getIRF(irf_idx, t0_shift, irf_buf);

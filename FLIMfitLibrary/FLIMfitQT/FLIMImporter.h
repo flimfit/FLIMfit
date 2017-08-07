@@ -31,12 +31,12 @@ public:
    
    std::shared_ptr<InstrumentResponseFunction> importIRFFromDialog();
    std::shared_ptr<InstrumentResponseFunction> importIRF(const QString& filename);
-   std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const vector<int>& channels, const QString& project_folder = 0);
-   std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const QStringList file_names, const vector<int>& channels, const QString& project_folder = 0);
+   std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const std::vector<int>& channels, const QString& project_folder = 0);
+   std::shared_ptr<FLIMImageSet> importFromFolder(const QString& folder, const QStringList file_names, const std::vector<int>& channels, const QString& project_folder = 0);
    FileSet getValidFilesFromFolder(const QString& folder);
    
    template <typename T>
-   std::shared_ptr<FLIMImageSet> importFiles(QFileInfoList files, const vector<int>& channels, const QString& root);
+   std::shared_ptr<FLIMImageSet> importFiles(QFileInfoList files, const std::vector<int>& channels, const QString& root);
    
    template <typename T>
    std::shared_ptr<FLIMImage> importStackedFiles(QStringList stack_files, const QString& root, const std::vector<int>& channels);
@@ -55,7 +55,7 @@ protected:
 
 
 template <typename T>
-std::shared_ptr<FLIMImageSet> FLIMImporter::importFiles(QFileInfoList files, const vector<int>& channels, const QString& root)
+std::shared_ptr<FLIMImageSet> FLIMImporter::importFiles(QFileInfoList files, const std::vector<int>& channels, const QString& root)
 {
    auto images = std::make_shared<FLIMImageSet>();
    
@@ -105,7 +105,7 @@ std::shared_ptr<FLIMImage> FLIMImporter::importStackedFiles(QStringList stack_fi
       int channel_stride = n_stack * channels.size();
       
       size_t sz = image->getImageSizeInBytes();
-      vector<char> data_buf(sz);
+      std::vector<char> data_buf(sz);
       T* data_ptr = reinterpret_cast<T*>(data_buf.data());
       
       for (int j=0; j<n_stack; j++)

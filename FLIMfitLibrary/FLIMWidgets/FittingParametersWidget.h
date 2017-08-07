@@ -26,5 +26,5 @@ protected:
    ChannelFactorListModel* channel_list_model;
    ChannelFactorListDelegate* channel_list_delegate;
 
-   shared_ptr<QDecayModel> decay_model;
+   std::shared_ptr<QDecayModel> decay_model;
 };

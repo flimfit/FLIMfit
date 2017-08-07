@@ -54,14 +54,14 @@ void AbstractDecayGroup::setIRFPosition(int irf_idx_, double t0_shift_, double r
    reference_lifetime = reference_lifetime_;
 }
 
-void AbstractDecayGroup::getNonlinearOutputParamNames(vector<string>& names)
+void AbstractDecayGroup::getNonlinearOutputParamNames(std::vector<std::string>& names)
 {
    for (auto p : parameters)
       if (!p->isFittedLocally())
          names.push_back(p->name);
 }
 
-void AbstractDecayGroup::setTransformedDataParameters(shared_ptr<TransformedDataParameters> dp_)
+void AbstractDecayGroup::setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp_)
 {
    dp = dp_;
 
@@ -84,7 +84,7 @@ void AbstractDecayGroup::setNumChannels(int n_chan)
    }
 }
 
-shared_ptr<FittingParameter> AbstractDecayGroup::getParameter(const std::string& param)
+std::shared_ptr<FittingParameter> AbstractDecayGroup::getParameter(const std::string& param)
 {
    for(auto& p : parameters)
       if (p->name == param)

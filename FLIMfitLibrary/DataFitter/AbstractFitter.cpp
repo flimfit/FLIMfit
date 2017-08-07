@@ -44,7 +44,7 @@ using std::pair;
 
 
 
-AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model_, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
+AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
    max_region_size(max_region_size), 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
@@ -90,8 +90,8 @@ AbstractFitter::AbstractFitter(shared_ptr<DecayModel> model_, int n_param_extra,
    a_size = nmax * (l+1);
    b_size = ndim * ( pmax + 3 );
 
-   a_.resize(n_thread, vector<double>(a_size));
-   b_.resize(n_thread, vector<double>(b_size));
+   a_.resize(n_thread, std::vector<double>(a_size));
+   b_.resize(n_thread, std::vector<double>(b_size));
    r.resize(nmax * max_region_size);
    kap.resize(nl + 1);
    params.resize(nl);
@@ -382,7 +382,7 @@ void AbstractFitter::SetAlf(const double* alf_)
    std::copy(alf_, alf_ + nl, alf.begin());
 }
 
-void AbstractFitter::GetParams(int nl, const vector<double>& alf)
+void AbstractFitter::GetParams(int nl, const std::vector<double>& alf)
 {
    int idx = 0;
    for(int i=0; i<nl; i++)
@@ -394,7 +394,7 @@ void AbstractFitter::GetParams(int nl, const vector<double>& alf)
    }
 }
 
-double* AbstractFitter::GetModel(const vector<double>& alf, int irf_idx, int isel, int thread)
+double* AbstractFitter::GetModel(const std::vector<double>& alf, int irf_idx, int isel, int thread)
 {
    return GetModel(alf.data(), irf_idx, isel, thread);
 }
@@ -418,8 +418,8 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
          params[i] = alf[idx++];
    }
 
-   vector<double>& a = a_[omp_thread];
-   vector<double>& b = b_[omp_thread];
+   std::vector<double>& a = a_[omp_thread];
+   std::vector<double>& b = b_[omp_thread];
 
    models[omp_thread].calculateModel(a, nmax, b, ndim, kap, params, irf_idx, isel);
 
@@ -444,10 +444,10 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    return params.data();
 }
 
-int AbstractFitter::GetFit(int irf_idx, const vector<double>& alf, float* lin_params, double* fit)
+int AbstractFitter::GetFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
 {
-   vector<double>& a = a_[0];
-   vector<double>& b = b_[0];
+   std::vector<double>& a = a_[0];
+   std::vector<double>& b = b_[0];
 
    float* adjust = model->getConstantAdjustment();
    model->calculateModel(a, nmax, b, ndim, kap, params, irf_idx, 1);

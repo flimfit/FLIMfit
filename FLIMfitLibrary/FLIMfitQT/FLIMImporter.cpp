@@ -50,7 +50,7 @@ std::shared_ptr<InstrumentResponseFunction> FLIMImporter::importIRF(const QStrin
    return irf;
 }
 
-std::shared_ptr<FLIMImageSet> FLIMImporter::importFromFolder(const QString& folder, const vector<int>& channels, const QString& project_folder)
+std::shared_ptr<FLIMImageSet> FLIMImporter::importFromFolder(const QString& folder, const std::vector<int>& channels, const QString& project_folder)
 {
    QFileInfoList matching_files = getValidFilesFromFolder(folder).files;
    QString first_ext = matching_files[0].completeSuffix();
@@ -63,7 +63,7 @@ std::shared_ptr<FLIMImageSet> FLIMImporter::importFromFolder(const QString& fold
       return importFiles<uint16_t>(matching_files, channels, project_folder);
 }
 
-std::shared_ptr<FLIMImageSet> FLIMImporter::importFromFolder(const QString& folder, const QStringList file_names, const vector<int>& channels, const QString& project_folder)
+std::shared_ptr<FLIMImageSet> FLIMImporter::importFromFolder(const QString& folder, const QStringList file_names, const std::vector<int>& channels, const QString& project_folder)
 {
    QDir dir(folder);
    QFileInfoList files;

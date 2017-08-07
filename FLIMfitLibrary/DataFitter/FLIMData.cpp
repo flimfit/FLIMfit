@@ -34,7 +34,7 @@
 
 using namespace std;
 
-FLIMData::FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform) :
+FLIMData::FLIMData(const std::vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform) :
 transform(transform)
 {
    image_t0_shift = NULL;
@@ -51,7 +51,7 @@ transform(transform)
    image_t0_shift = NULL;
    n_masked_px = 0;
    
-   vector<std::shared_ptr<FLIMImage>> images = {image};
+   std::vector<std::shared_ptr<FLIMImage>> images = {image};
    
    setData(images);
    
@@ -198,7 +198,7 @@ int FLIMData::getNumAuxillary()
    return num_aux;
 }
 
-void FLIMData::setData(const vector<shared_ptr<FLIMImage>>& images_)
+void FLIMData::setData(const std::vector<std::shared_ptr<FLIMImage>>& images_)
 {
    images = images_;
    
@@ -209,10 +209,10 @@ void FLIMData::setData(const vector<shared_ptr<FLIMImage>>& images_)
    for (int i = 0; i < n_im; i++)
       use_im[i] = i;
    
-   region_count.resize(n_im_used, vector<int>(MAX_REGION, 0));
-   region_pos.resize(n_im_used, vector<int>(MAX_REGION, 0));
-   region_idx.resize(n_im_used+1, vector<int>(MAX_REGION, -1));
-   output_region_idx.resize(n_im_used, vector<int>(MAX_REGION, -1));
+   region_count.resize(n_im_used, std::vector<int>(MAX_REGION, 0));
+   region_pos.resize(n_im_used, std::vector<int>(MAX_REGION, 0));
+   region_idx.resize(n_im_used+1, std::vector<int>(MAX_REGION, -1));
+   output_region_idx.resize(n_im_used, std::vector<int>(MAX_REGION, -1));
    
    
    
@@ -529,7 +529,7 @@ int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx
 }
 
 
-void FLIMData::getAuxParamNames(vector<string>& param_names)
+void FLIMData::getAuxParamNames(std::vector<std::string>& param_names)
 {   
    param_names.push_back("I");
 

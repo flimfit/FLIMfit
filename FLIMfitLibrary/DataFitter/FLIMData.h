@@ -52,9 +52,6 @@
 
 #define MAX_REGION 4095
 
-using std::vector;
-using std::string;
-
 class PoolTransformer
 {
 public:
@@ -75,7 +72,7 @@ class FLIMData
 
 public:
 
-   FLIMData(const vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform);
+   FLIMData(const std::vector<std::shared_ptr<FLIMImage>>& images, const DataTransformationSettings& transform);
    FLIMData(std::shared_ptr<FLIMImage> image, const DataTransformationSettings& transform);
 
    void setGlobalScope(int global_scope);
@@ -101,7 +98,7 @@ public:
    int getNumRegionsTotal() { return n_regions_total; }
    int getNumOutputRegionsTotal() { return n_output_regions_total; }
    int getNumAuxillary();
-   void getAuxParamNames(vector<string>& param_names);
+   void getAuxParamNames(std::vector<std::string>& param_names);
    
    int getImLoc(int im);
 
@@ -125,7 +122,7 @@ public:
 
    int global_scope = MODE_PIXELWISE;
    
-   vector<int> use_im;
+   std::vector<int> use_im;
    int n_im_used = 0;
 
    int data_type = DATA_TYPE_TCSPC;
@@ -133,7 +130,7 @@ public:
 private:
 
    int getMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results);
-   void setData(const vector<std::shared_ptr<FLIMImage>>& images);
+   void setData(const std::vector<std::shared_ptr<FLIMImage>>& images);
    
    void resizeBuffers();
 
@@ -149,14 +146,14 @@ private:
    std::vector<std::vector<int>> region_count;
    std::vector<std::vector<int>> region_pos;
 
-   vector<PoolTransformer> transformer_pool;
-   vector<int> pool_use_count;
+   std::vector<PoolTransformer> transformer_pool;
+   std::vector<int> pool_use_count;
    
    DataTransformer& getPooledTransformer(int im);
    void releasePooledTranformer(int im);
    std::mutex pool_mutex;
    
-   shared_ptr<ProgressReporter> reporter;
+   std::shared_ptr<ProgressReporter> reporter;
 
    bool has_acceptor = false;
    bool polarisation_resolved = false;
@@ -202,7 +199,7 @@ int FLIMData::calculateRegions()
 
          // Determine how many regions we have in each image
          //--------------------------------------------------------
-         vector<int>& region_count_ptr = region_count[i];
+         std::vector<int>& region_count_ptr = region_count[i];
          region_count_ptr.assign(MAX_REGION, 0);
          
          DataTransformer transformer(transform);

@@ -37,9 +37,6 @@
 #include <memory>
 #include <cv.h>
 
-using std::vector;
-using std::string;
-
 class FLIMData;
 class FitResultsRegion;
 
@@ -56,10 +53,10 @@ public:
 class FitResults
 {
 public:
-   FitResults(shared_ptr<DecayModel> model, shared_ptr<FLIMData> data, int calculate_errors);
+   FitResults(std::shared_ptr<DecayModel> model, std::shared_ptr<FLIMData> data, int calculate_errors);
    ~FitResults();
 
-   const vector<string>& getOutputParamNames() { return param_names; };
+   const std::vector<std::string>& getOutputParamNames() { return param_names; };
    int getNumOutputRegions() { return n_regions; }
    int getNumOutputParams() { return n_output_params; }
 
@@ -68,23 +65,23 @@ public:
    const FitResultsRegion getRegion(int image, int region);
    const FitResultsRegion getPixel(int image, int region, int pixel);
   
-   void getNonLinearParams(int image, int region, int pixel, vector<double>& params);
-   void getLinearParams(int image, int region, int pixel, vector<float>& params);
+   void getNonLinearParams(int image, int region, int pixel, std::vector<double>& params);
+   void getLinearParams(int image, int region, int pixel, std::vector<float>& params);
 
    void computeRegionStats(float confidence_factor);
    int getParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
-   vector<mask_type>& getMask(int im) { return mask[im]; }
+   std::vector<mask_type>& getMask(int im) { return mask[im]; }
    
    int getNumX(int im);
    int getNumY(int im);
    
    const RegionStats<float> getStats() { return stats; }
-   const vector<RegionSummary>& getRegionSummary() { return region_summary; }
+   const std::vector<RegionSummary>& getRegionSummary() { return region_summary; }
 
 private:
 
-   vector<RegionSummary> region_summary;
+   std::vector<RegionSummary> region_summary;
    RegionStats<float> stats;
    
    void calculateMeanLifetime();
@@ -95,8 +92,8 @@ private:
    void getPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2);
    void setFitStatus(int image, int region, int code);
 
-   shared_ptr<FLIMData> data;
-   shared_ptr<DecayModel> model;
+   std::shared_ptr<FLIMData> data;
+   std::shared_ptr<DecayModel> model;
 
    bool pixelwise;
    int n_px;
@@ -108,16 +105,16 @@ private:
 
    int n_aux;
 
-   vector<float> alf;
-   vector<float> alf_err_lower;
-   vector<float> alf_err_upper;
-   vector<float> lin_params; 
-   vector<float> chi2; 
-   vector<float> aux_data;
+   std::vector<float> alf;
+   std::vector<float> alf_err_lower;
+   std::vector<float> alf_err_upper;
+   std::vector<float> lin_params;
+   std::vector<float> chi2;
+   std::vector<float> aux_data;
    
-   vector<int> ierr;
-   vector<float> success; 
-   vector<vector<mask_type>> mask;
+   std::vector<int> ierr;
+   std::vector<float> success;
+   std::vector<std::vector<mask_type>> mask;
 
 
    int calculate_errors;
@@ -125,8 +122,8 @@ private:
    int n_output_params;
    int n_nl_output_params;
    int n_lin_output_params;
-   vector<const char*> param_names_ptr;
-   vector<string> param_names;
+   std::vector<const char*> param_names_ptr;
+   std::vector<std::string> param_names;
 
    std::vector<cv::Size> image_size;
 
