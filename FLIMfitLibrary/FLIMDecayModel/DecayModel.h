@@ -135,7 +135,15 @@ void DecayModel::serialize(Archive & ar, const unsigned int version)
    ar & decay_groups;
    ar & photons_per_count;
    ar & channel_factor;
+
+   if (version > 2)
+      ar & parameters;
+   else
+      parameters = { t0_parameter }; // get rid of this later
 }
+
+
+BOOST_CLASS_VERSION(DecayModel, 2)
 
 class QDecayModel : public QObject, public DecayModel
 {
