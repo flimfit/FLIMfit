@@ -225,14 +225,19 @@ classdef flim_fit_controller < flim_data_series_observer
         end
 
         
-        function [param_data, mask] = get_intensity(obj,im,indexing)
+        function [param_data, mask] = get_intensity(obj,im,param,indexing)
             
             if nargin < 3
                 indexing = 'dataset';
             end
             
-            param = obj.fit_result.intensity_idx;
+            if ischar(param)
+                param_idx = strcmp(obj.fit_result.params,param);
+                param = find(param_idx);
+            end
             
+            param = obj.get_intensity_idx(param);
+              
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
                     [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
             else            
@@ -253,8 +258,23 @@ classdef flim_fit_controller < flim_data_series_observer
             lims(2) = sd_round(lims(2),3,2); % round up to 3sf
         end
         
-        function lims = get_cur_intensity_lims(obj)      
-            param = obj.fit_result.intensity_idx;
+        function idx = get_intensity_idx(obj,param)
+           
+            group = obj.fit_result.group_idx(param);
+            
+            if (group == 0)
+                match = strcmp(obj.fit_result.params,'I');
+                idx = find(match,1);
+            else
+                match = strcmp(obj.fit_result.params,['[' num2str(group) '] I_0']);
+                idx = find(match,1);
+            end
+
+            
+        end
+        
+        function lims = get_cur_intensity_lims(obj,param)      
+            param = obj.get_intensity_idx(param);
             lims = obj.get_cur_lims(param);     
         end
         
@@ -413,10 +433,12 @@ classdef flim_fit_controller < flim_data_series_observer
 
                     for i=1:length(old_names)
                         if ~any(strcmp(obj.plot_names,old_names{i}))
-                            obj.display_normal = rmfield(obj.display_normal,old_names{i});
-                            obj.display_merged = rmfield(obj.display_merged,old_names{i});
-                            obj.auto_lim = rmfield(obj.auto_lim,old_names{i});
-                            obj.plot_lims = rmfield(obj.plot_lims,old_names{i});
+                            containers.Map
+                            
+                            remove(obj.display_normal,old_names{i});
+                            remove(obj.display_merged,old_names{i});
+                            remove(obj.auto_lim,old_names{i});
+                            remove(obj.plot_lims,old_names{i});
                         end
                     end   
                 end

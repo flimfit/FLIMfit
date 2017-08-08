@@ -134,7 +134,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                             im_plate(ri:ri+imh-1,ci:ci+imw-1) = im;   
                             
                             if merge
-                                im_I = f.get_intensity(sel_well(1),'result');
+                                im_I = f.get_intensity(sel_well(1),param,'result');
                                 im_I = imresize(im_I,[imh imw],'nearest');
                                 im_plate_I(ri:ri+imh-1,ci:ci+imw-1) = im_I;
                             end

@@ -220,7 +220,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     
                     %{
                     im_data1 = obj.fit_controller.get_image(sel(i),'offset','result');
-                    im_data2 = obj.fit_controller.get_image(sel(i),'I0','result');
+                    im_data2 = obj.fit_controller.get_image(sel(i),'I_0','result');
                     
                     im_data = im_data2 ./ im_data1;
                     %im_data = im_data2;
@@ -231,7 +231,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     %M(i) = im2frame(mdata);
                     
                     if merge
-                        I_data = f.get_intensity(sel(i),'result');
+                        I_data = f.get_intensity(sel(i),param,'result');
                         gallery_I_data(ci:ci+r.height-1,ri:ri+r.width-1) = I_data;
                     
                     end

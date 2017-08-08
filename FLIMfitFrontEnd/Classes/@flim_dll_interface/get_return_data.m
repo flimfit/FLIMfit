@@ -43,8 +43,8 @@ function get_return_data(obj)
     results = ff_Controller(obj.dll_id,'GetFitResults');
     [summary, stats] = ff_FitResults(results,'GetStats');
     
-    param_names = ff_FitResults(results,'GetOutputParamNames'); 
-    r.set_param_names(param_names);
+    [param_names, param_groups] = ff_FitResults(results,'GetOutputParamNames'); 
+    r.set_param_names(param_names, param_groups);
 
     names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
     r.stat_names = names;

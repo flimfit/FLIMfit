@@ -139,7 +139,7 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
             param_name = obj.fit_controller.fit_result.params{param};
             invert = obj.fit_controller.invert_colormap;
             
-            if strcmp(param_name,'I0') || strcmp(param_name,'I')
+            if ~isempty(strfind(param,'I_0')) || strcmp(param,'I') 
                 cscale = @gray;
             elseif invert && (~isempty(strfind(param_name,'tau')) || ~isempty(strfind(param_name,'theta')) || ~isempty(strfind(param_name,'r_ss')) )
                 cscale = @inv_jet;
@@ -157,7 +157,7 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
             
             f = obj.fit_controller;
 
-            intensity = f.get_intensity(dataset,'result');
+            intensity = f.get_intensity(dataset,param,'result');
             im_data = f.get_image(dataset,param,'result');
 
             

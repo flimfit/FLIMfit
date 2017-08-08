@@ -37,7 +37,7 @@ function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
         
     param = r.params{im};
     
-    if strcmp(param,'I0') || strcmp(param,'I')
+    if ~isempty(strfind(param,' I')) || strcmp(param,'I') 
         cscale = @gray;
     elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
         cscale = @inv_jet;
@@ -46,13 +46,13 @@ function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
     end
     
     lims = f.get_cur_lims(im);
-    options.int_lim = f.get_cur_intensity_lims();
+    options.int_lim = f.get_cur_intensity_lims(im);
     options.cscale = cscale;
     options.show_colormap = f.show_colormap;
     options.show_limits = f.show_limits;
     
     if merge
-        intensity = f.get_intensity(dataset,indexing);
+        intensity = f.get_intensity(dataset,im,indexing);
         fig = display_flim(im_data,isnan(im_data),lims,intensity,options);
     else
         fig = display_flim(im_data,isnan(im_data),lims,options);

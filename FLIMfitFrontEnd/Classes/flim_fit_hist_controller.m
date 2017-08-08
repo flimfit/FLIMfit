@@ -86,7 +86,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     
                     
                     new_data = obj.fit_controller.get_image(sel(i),param,indexing);
-                    new_I_data = obj.fit_controller.get_intensity(sel(i),indexing);
+                    new_I_data = obj.fit_controller.get_intensity(sel(i),param,indexing);
                         
                     filt = isfinite(new_data) & isfinite(new_I_data);
                     
@@ -277,7 +277,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 if ~isempty(param_data)
                     
                     if weighting == 2
-                        intensity = obj.fit_controller.get_intensity(i);
+                        intensity = obj.fit_controller.get_intensity(i,param,'result');
                         intensity = intensity( filt );
 
                         count(:,i) = weightedhist(param_data,intensity,x)';

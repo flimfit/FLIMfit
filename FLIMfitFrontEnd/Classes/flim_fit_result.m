@@ -57,6 +57,8 @@ classdef flim_fit_result < handle
         params = {};
         latex_params = {};
         
+        group_idx = [];
+        
         default_lims = []; 
         
         width;
@@ -88,8 +90,9 @@ classdef flim_fit_result < handle
         end
 
         
-        function set_param_names(obj,params)
+        function set_param_names(obj,params,group_idx)
             obj.params = params;
+            obj.group_idx = group_idx;
             obj.intensity_idx = find(strcmp(params,'I'));            
             obj.default_lims = NaN(length(params),2);
             
@@ -180,6 +183,7 @@ classdef flim_fit_result < handle
         end
         
         
+        % Some hideous OMERO stuff
         function set_stats_from_table(obj,table_data)
             
            stats_names = {'mean','w_mean','std','w_std','median','q1','q2','pct_01','pct_99','err_l','err_u'};
