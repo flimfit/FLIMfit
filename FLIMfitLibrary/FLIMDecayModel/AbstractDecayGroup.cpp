@@ -54,11 +54,13 @@ void AbstractDecayGroup::setIRFPosition(int irf_idx_, double t0_shift_, double r
    reference_lifetime = reference_lifetime_;
 }
 
-void AbstractDecayGroup::getNonlinearOutputParamNames(std::vector<std::string>& names)
+std::vector<std::string> AbstractDecayGroup::getNonlinearOutputParamNames()
 {
+   std::vector<std::string> names;
    for (auto p : parameters)
       if (!p->isFittedLocally())
          names.push_back(p->name);
+   return names;
 }
 
 void AbstractDecayGroup::setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp_)

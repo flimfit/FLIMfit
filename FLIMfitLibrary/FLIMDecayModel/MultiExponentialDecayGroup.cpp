@@ -278,8 +278,9 @@ int MultiExponentialDecayGroupPrivate::getLinearOutputs(float* lin_variables, fl
    return output_idx;
 }
 
-void MultiExponentialDecayGroupPrivate::getLinearOutputParamNames(std::vector<std::string>& names)
+std::vector<std::string> MultiExponentialDecayGroupPrivate::getLinearOutputParamNames()
 {
+   std::vector<std::string> names;
    if (!contributions_global)
    {
       names.push_back("I_0");
@@ -293,13 +294,14 @@ void MultiExponentialDecayGroupPrivate::getLinearOutputParamNames(std::vector<st
          }
       }
    }
+   return names;
 }
 
 int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx)
 {
    double I = 0;
    for (int i = 0; i < n; i++)
-      I += lin_variables[i];
+      I += lin_variables[lin_idx+i];
 
    int output_idx = 0;
    output[output_idx++] = (float) I;

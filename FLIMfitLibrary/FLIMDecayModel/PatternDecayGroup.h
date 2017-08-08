@@ -31,10 +31,27 @@ public:
          throw std::runtime_error("Expected tau and beta to be the same size");
    }
 
+   Pattern() {}
+
    std::vector<double> tau;
    std::vector<double> beta;
-   double offset;
+   double offset = 0;
+
+private:
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version);
+
+   friend class boost::serialization::access;
 };
+
+template<class Archive>
+void Pattern::serialize(Archive & ar, const unsigned int version)
+{
+   ar & tau;
+   ar & beta;
+   ar & offset;
+};
+
 
 class PatternDecayGroup : public AbstractDecayGroup
 {
@@ -42,7 +59,7 @@ class PatternDecayGroup : public AbstractDecayGroup
 
 public:
 
-   PatternDecayGroup(const std::vector<Pattern> pattern, const QString& name = "Pattern");
+   PatternDecayGroup(const std::vector<Pattern> pattern = {}, const QString& name = "Pattern");
    PatternDecayGroup(const PatternDecayGroup& obj);
 
    int setVariables(const double* variables);
@@ -54,8 +71,8 @@ public:
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
 
-   void getNonlinearOutputParamNames(std::vector<std::string>& names);
-   void getLinearOutputParamNames(std::vector<std::string>& names);
+   std::vector<std::string> getNonlinearOutputParamNames();
+   std::vector<std::string> getLinearOutputParamNames();
 
    const std::vector<double>& getChannelFactors(int index);
    void setChannelFactors(int index, const std::vector<double>& channel_factors);
@@ -80,9 +97,8 @@ protected:
 template<class Archive>
 void PatternDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
-   ar & boost::serialization::base_object<MultiExponentialDecayGroupPrivate>(*this);
+   ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
    ar & pattern;
 };
-
 
 BOOST_CLASS_TRACKING(PatternDecayGroup, track_always)

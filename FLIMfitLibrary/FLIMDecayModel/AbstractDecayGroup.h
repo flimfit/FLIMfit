@@ -89,8 +89,8 @@ public:
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
 
-   virtual void getNonlinearOutputParamNames(std::vector<std::string>& names);
-   virtual void getLinearOutputParamNames(std::vector<std::string>& names) = 0;
+   virtual std::vector<std::string> getNonlinearOutputParamNames();
+   virtual std::vector<std::string> getLinearOutputParamNames() = 0;
 
    virtual const std::vector<double>& getChannelFactors(int index) = 0;
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors) = 0;

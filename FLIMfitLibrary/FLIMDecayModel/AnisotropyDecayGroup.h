@@ -28,7 +28,7 @@ public:
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
 
-   void getLinearOutputParamNames(std::vector<std::string>& names);
+   std::vector<std::string> getLinearOutputParamNames();
 
 protected:
 

@@ -152,19 +152,38 @@ void DecayModel::setupAdjust()
       adjust_buf[i] *= photons_per_count;
 }
 
-void DecayModel::getOutputParamNames(std::vector<std::string>& param_names, int& n_nl_output_params, int& n_lin_output_params)
+void DecayModel::getOutputParamNames(std::vector<std::string>& param_names, std::vector<int>& param_group, int& n_nl_output_params, int& n_lin_output_params)
 {
    for (auto& p : parameters)
       if (p->isFittedGlobally())
+      {
          param_names.push_back(p->name);
+         param_group.push_back(0);
+      }
 
-   for (auto& group : decay_groups)
-      group->getNonlinearOutputParamNames(param_names);
-
+   for (int i=0; i<decay_groups.size(); i++)
+   {
+      std::string prefix = "[" + std::to_string(i+1) + "] ";
+      auto group_param_names = decay_groups[i]->getNonlinearOutputParamNames();
+      for (auto& name : group_param_names)
+      {
+         param_names.push_back(prefix + name);
+         param_group.push_back(i+1);
+      }
+   }
+      
    n_nl_output_params = (int) param_names.size();
 
-   for (auto& group : decay_groups)
-      group->getLinearOutputParamNames(param_names);
+   for (int i = 0; i<decay_groups.size(); i++)
+   {
+      std::string prefix = "[" + std::to_string(i+1) + "] ";
+      auto group_param_names = decay_groups[i]->getLinearOutputParamNames();
+      for (auto& name : group_param_names)
+      {
+         param_names.push_back(prefix + name);
+         param_group.push_back(i + 1);
+      }
+   }
 
    n_lin_output_params = (int) param_names.size() - n_nl_output_params;
 

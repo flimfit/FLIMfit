@@ -153,11 +153,13 @@ int BackgroundLightDecayGroup::getLinearOutputs(float* lin_variables, float* out
 }
 
 
-void BackgroundLightDecayGroup::getLinearOutputParamNames(std::vector<std::string>& output_names)
+std::vector<std::string> BackgroundLightDecayGroup::getLinearOutputParamNames()
 {
+   std::vector<std::string> names;
    for (int i = 0; i < 3; i++)
       if (parameters[i]->isFittedLocally())
-         output_names.push_back(names[i]);
+         names.push_back(names[i]);
+   return names;
 }
 
 int BackgroundLightDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shift)

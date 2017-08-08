@@ -90,13 +90,14 @@ int PatternDecayGroup::getLinearOutputs(float* lin_variables, float* output, int
    return 1;
 }
 
-void PatternDecayGroup::getNonlinearOutputParamNames(std::vector<std::string>& names)
+std::vector<std::string> PatternDecayGroup::getNonlinearOutputParamNames()
 {
+   return {};
 }
 
-void PatternDecayGroup::getLinearOutputParamNames(std::vector<std::string>& names)
+std::vector<std::string> PatternDecayGroup::getLinearOutputParamNames()
 {
-   names.push_back("I0");
+   return { "I_0" };
 }
 
 const std::vector<double>& PatternDecayGroup::getChannelFactors(int index)

@@ -50,7 +50,7 @@ public:
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
-   virtual void getLinearOutputParamNames(std::vector<std::string>& names);
+   virtual std::vector<std::string> getLinearOutputParamNames();
 
 protected:
   

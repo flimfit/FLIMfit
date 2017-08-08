@@ -18,13 +18,14 @@
 #include "FretDecayGroup.h"
 #include "AnisotropyDecayGroup.h"
 #include "BackgroundLightDecayGroup.h"
+#include "PatternDecayGroup.h"
 
 BOOST_CLASS_EXPORT(AbstractDecayGroup);
 BOOST_CLASS_EXPORT(MultiExponentialDecayGroup);
 BOOST_CLASS_EXPORT(FretDecayGroup);
 BOOST_CLASS_EXPORT(AnisotropyDecayGroup);
 BOOST_CLASS_EXPORT(BackgroundLightDecayGroup);
-
+BOOST_CLASS_EXPORT(PatternDecayGroup);
 
 static qint32 flimfit_project_format_version = 1;
 static std::string flimfit_project_magic_string = "FLIMfit Project File";

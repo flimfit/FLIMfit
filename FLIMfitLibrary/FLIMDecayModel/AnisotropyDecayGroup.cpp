@@ -187,8 +187,9 @@ int AnisotropyDecayGroup::getLinearOutputs(float* lin_variables, float* output, 
    return output_idx;
 }
 
-void AnisotropyDecayGroup::getLinearOutputParamNames(std::vector<std::string>& names)
+std::vector<std::string> AnisotropyDecayGroup::getLinearOutputParamNames()
 {
+   std::vector<std::string> names;
    names.push_back("I_0");
    names.push_back("r_0");
 
@@ -200,6 +201,7 @@ void AnisotropyDecayGroup::getLinearOutputParamNames(std::vector<std::string>& n
 
    if (include_r_inf)
       names.push_back("r_inf");
+   return names;
 }
 
 

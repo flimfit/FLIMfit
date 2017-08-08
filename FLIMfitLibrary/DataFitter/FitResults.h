@@ -57,6 +57,7 @@ public:
    ~FitResults();
 
    const std::vector<std::string>& getOutputParamNames() { return param_names; };
+   const std::vector<int>& getOutputParamGroup() { return param_group; };
    int getNumOutputRegions() { return n_regions; }
    int getNumOutputParams() { return n_output_params; }
 
@@ -124,6 +125,7 @@ private:
    int n_lin_output_params;
    std::vector<const char*> param_names_ptr;
    std::vector<std::string> param_names;
+   std::vector<int> param_group;
 
    std::vector<cv::Size> image_size;
 

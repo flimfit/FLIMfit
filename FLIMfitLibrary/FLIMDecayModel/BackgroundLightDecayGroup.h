@@ -19,7 +19,7 @@ public:
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
 
-   void getLinearOutputParamNames(std::vector<std::string>& names);
+   std::vector<std::string> getLinearOutputParamNames();
    int setParameters(double* parameters);
 
    const std::vector<double>& getChannelFactors(int index);

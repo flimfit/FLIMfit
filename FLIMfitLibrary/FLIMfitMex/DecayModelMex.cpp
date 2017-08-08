@@ -393,7 +393,7 @@ BOOST_CLASS_EXPORT_GUID(BackgroundLightDecayGroup, "BackgroundLightDecayGroup");
 BOOST_CLASS_EXPORT_GUID(AnisotropyDecayGroup, "AnisotropyDecayGroup");
 BOOST_CLASS_EXPORT_GUID(MultiExponentialDecayGroup, "MultiExponentialDecayGroup");
 BOOST_CLASS_EXPORT_GUID(FretDecayGroup, "FretDecayGroup");
-
+BOOST_CLASS_EXPORT_GUID(PatternDecayGroup, "PatternDecayGroup");
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {

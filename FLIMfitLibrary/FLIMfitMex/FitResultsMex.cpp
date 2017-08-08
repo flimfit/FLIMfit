@@ -52,14 +52,20 @@ void getOutputParamNames(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[
 {
    AssertInputCondition(nlhs >= 1);
 
-   const std::vector<std::string>& names = r->getOutputParamNames();
-
+   auto& names = r->getOutputParamNames();
    plhs[0] = mxCreateCellMatrix(1, names.size());
 
    for (int i = 0; i < names.size(); i++)
    {
       mxArray* s = mxCreateString(names[i].c_str());
       mxSetCell(plhs[0], i, s);
+   }
+
+   if (nlhs >= 2)
+   {
+      auto& group = r->getOutputParamGroup();
+      plhs[1] = mxCreateDoubleMatrix(1, group.size(), mxREAL);
+      std::copy(group.begin(), group.end(), (double*)mxGetData(plhs[1]));
    }
 }
 
@@ -101,7 +107,7 @@ void getImageStats(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int
    double* iterationsd = reinterpret_cast<double*>(mxGetData(iterations));
    double* successd = reinterpret_cast<double*>(mxGetData(success));
 
-   for (int i = 0; i < num_regions; i++)
+   for (uint i = 0; i < num_regions; i++)
    {
       imaged[i] = summary[i].image;
       regiond[i] = summary[i].region;

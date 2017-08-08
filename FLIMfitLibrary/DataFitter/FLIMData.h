@@ -98,7 +98,7 @@ public:
    int getNumRegionsTotal() { return n_regions_total; }
    int getNumOutputRegionsTotal() { return n_output_regions_total; }
    int getNumAuxillary();
-   void getAuxParamNames(std::vector<std::string>& param_names);
+   std::vector<std::string> getAuxParamNames();
    
    int getImLoc(int im);
 

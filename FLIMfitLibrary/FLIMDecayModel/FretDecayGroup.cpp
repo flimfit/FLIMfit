@@ -325,8 +325,9 @@ int FretDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& l
    return output_idx;
 }
 
-void FretDecayGroup::getLinearOutputParamNames(std::vector<std::string>& names)
+std::vector<std::string> FretDecayGroup::getLinearOutputParamNames()
 {
+   std::vector<std::string> names;
    names.push_back("I_0");
 
    int n = n_fret_populations + include_donor_only;
@@ -343,17 +344,20 @@ void FretDecayGroup::getLinearOutputParamNames(std::vector<std::string>& names)
             names.push_back(name);
          }
    }
+   return names;
 }
 
-void FretDecayGroup::getNonlinearOutputParamNames(std::vector<std::string>& names)
+std::vector<std::string> FretDecayGroup::getNonlinearOutputParamNames()
 {
-   AbstractDecayGroup::getNonlinearOutputParamNames(names);
+   auto names = AbstractDecayGroup::getNonlinearOutputParamNames();
    
    for (int i = 0; i < n_fret_populations; i++)
    {
       std::string name = "E_" + boost::lexical_cast<std::string>(i + 1);
       names.push_back(name);
    }
+
+   return names;
 }
 
 

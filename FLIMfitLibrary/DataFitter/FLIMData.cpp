@@ -529,8 +529,9 @@ int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx
 }
 
 
-void FLIMData::getAuxParamNames(std::vector<std::string>& param_names)
+std::vector<std::string> FLIMData::getAuxParamNames()
 {   
+   std::vector<std::string> param_names;
    param_names.push_back("I");
 
    if ( has_acceptor )
@@ -539,6 +540,7 @@ void FLIMData::getAuxParamNames(std::vector<std::string>& param_names)
    if ( polarisation_resolved )
       param_names.push_back("r_ss");
 
+   return param_names;
 }
 
 

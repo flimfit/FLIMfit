@@ -182,9 +182,17 @@ void FitResults::setFitStatus(int image, int region, int code)
 
 void FitResults::determineParamNames()
 {
-   model->getOutputParamNames(param_names, n_nl_output_params, n_lin_output_params);
-   data->getAuxParamNames(param_names);
+   model->getOutputParamNames(param_names, param_group, n_nl_output_params, n_lin_output_params);
+   
+   auto data_names = data->getAuxParamNames();
+   for (auto& name : data_names)
+   {
+      param_names.push_back(name);
+      param_group.push_back(0);
+   }
+
    param_names.push_back("chi2");
+   param_group.push_back(0);
 
    n_output_params = (int) param_names.size();
 
