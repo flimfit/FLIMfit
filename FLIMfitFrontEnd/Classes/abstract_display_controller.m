@@ -59,7 +59,7 @@ classdef abstract_display_controller < handle
                         
             assign_handles(obj,handles);
 
-            addlistener(obj.data_series_list,'selection_updated',@(~,~) escaped_callback(@obj.selection_updated));
+            addlistener(obj.data_series_list,'selection_updated',@(~,~) EC(@obj.selection_updated));
             
             obj.selected = obj.data_series_list.selected;
 

@@ -63,14 +63,14 @@ classdef roi_controller < flim_data_series_observer
             set(obj.tool_roi_poly_toggle,'State','off');
             set(obj.tool_roi_circle_toggle,'State','off');
                        
-            set(obj.tool_roi_rect_toggle,'OnCallback',@(evt,src) escaped_callback(@obj.on_callback,evt,src));
-            set(obj.tool_roi_rect_toggle,'OffCallback',@(evt,src) escaped_callback(@obj.off_callback,evt,src));
+            set(obj.tool_roi_rect_toggle,'OnCallback',@(evt,src) EC(@obj.on_callback,evt,src));
+            set(obj.tool_roi_rect_toggle,'OffCallback',@(evt,src) EC(@obj.off_callback,evt,src));
             
-            set(obj.tool_roi_poly_toggle,'OnCallback',@(evt,src) escaped_callback(@obj.on_callback,evt,src));
-            set(obj.tool_roi_poly_toggle,'OffCallback',@(evt,src) escaped_callback(@obj.off_callback,evt,src));
+            set(obj.tool_roi_poly_toggle,'OnCallback',@(evt,src) EC(@obj.on_callback,evt,src));
+            set(obj.tool_roi_poly_toggle,'OffCallback',@(evt,src) EC(@obj.off_callback,evt,src));
             
-            set(obj.tool_roi_circle_toggle,'OnCallback',@(evt,src) escaped_callback(@obj.on_callback,evt,src));
-            set(obj.tool_roi_circle_toggle,'OffCallback',@(evt,src) escaped_callback(@obj.off_callback,evt,src));
+            set(obj.tool_roi_circle_toggle,'OnCallback',@(evt,src) EC(@obj.on_callback,evt,src));
+            set(obj.tool_roi_circle_toggle,'OffCallback',@(evt,src) EC(@obj.off_callback,evt,src));
             
             
             obj.data_intensity_view.set_click_callback(@obj.click_callback);
@@ -145,8 +145,8 @@ classdef roi_controller < flim_data_series_observer
                 
                 if ~isempty(obj.roi_handle)
                 
-                    addlistener(obj.roi_handle,'ObjectBeingDestroyed',@(~,~) escaped_callback(@obj.roi_being_destroyed));
-                    obj.roi_callback_id = addNewPositionCallback(obj.roi_handle,@(~,~) escaped_callback(@obj.roi_change_callback));        
+                    addlistener(obj.roi_handle,'ObjectBeingDestroyed',@(~,~) EC(@obj.roi_being_destroyed));
+                    obj.roi_callback_id = addNewPositionCallback(obj.roi_handle,@(~,~) EC(@obj.roi_change_callback));        
                     obj.update_mask();
 
                     notify(obj,'roi_updated');
@@ -198,7 +198,7 @@ classdef roi_controller < flim_data_series_observer
                     
                 obj.roi_handle = impoint(obj.data_intensity_view.intensity_axes,click_pos);
                
-                addlistener(obj.roi_handle,'ObjectBeingDestroyed',@(~,~) escaped_callback(@obj.roi_being_destroyed));
+                addlistener(obj.roi_handle,'ObjectBeingDestroyed',@(~,~) EC(@obj.roi_being_destroyed));
                 
                 obj.update_mask();
                 notify(obj,'roi_updated');

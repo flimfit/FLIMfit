@@ -37,7 +37,7 @@ classdef flim_data_series_observer < handle
            obj.data_series_controller = data_series_controller; 
            
            if ~isempty(data_series_controller)
-               addlistener(data_series_controller,'data_series','PostSet',@(src,evt) escaped_callback(@obj.update_data_series,src,evt));
+               addlistener(data_series_controller,'data_series','PostSet',@(src,evt) EC(@obj.update_data_series,src,evt));
                obj.data_series = data_series_controller.data_series;
            end
         end
@@ -49,7 +49,7 @@ classdef flim_data_series_observer < handle
         function set.data_series(obj, data_series)
             obj.data_series = data_series; 
             delete(obj.ds_lh);
-            obj.ds_lh = addlistener(obj.data_series,'data_updated',@(~,~) escaped_callback(@obj.data_update_evt));
+            obj.ds_lh = addlistener(obj.data_series,'data_updated',@(~,~) EC(@obj.data_update_evt));
             obj.data_set();
             if obj.data_series.init
                 obj.data_update();
