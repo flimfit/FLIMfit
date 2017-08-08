@@ -155,7 +155,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 %}
                
                 lims = f.get_cur_lims(param);
-                I_lims = f.get_cur_intensity_lims;
+                I_lims = f.get_cur_intensity_lims(param);
                 
                 filt = param_data >= lims(1) & param_data <= lims(2);
                 

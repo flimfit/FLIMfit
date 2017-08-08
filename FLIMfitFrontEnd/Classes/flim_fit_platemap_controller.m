@@ -177,7 +177,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     if ~merge
                         im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale);
                     else
-                        I_lims = f.get_cur_intensity_lims;
+                        I_lims = f.get_cur_intensity_lims(params);
                         im = colorbar_flush(ax,ca,im_plate,isnan(im_plate),lims,cscale,[],im_plate_I,I_lims);
                     end
                     c = 'w';

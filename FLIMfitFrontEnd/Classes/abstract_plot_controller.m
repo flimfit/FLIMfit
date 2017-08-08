@@ -164,7 +164,7 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
             cscale = obj.colourscale(param);
 
             lims = f.get_cur_lims(param);
-            I_lims = f.get_cur_intensity_lims;
+            I_lims = f.get_cur_intensity_lims(param);
             if ~merge
                 im=colorbar_flush(h,hc,im_data,isnan(intensity),lims,cscale,text);
             else

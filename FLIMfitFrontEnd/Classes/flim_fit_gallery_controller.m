@@ -265,7 +265,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 
                 cscale = obj.colourscale(param);
                 lims = f.get_cur_lims(param);
-                I_lims = f.get_cur_intensity_lims;
+                I_lims = f.get_cur_intensity_lims(param);
                 
                 if ~merge
                     im=colorbar_flush(ax,cbar,gallery_data,isnan(gallery_data),lims,cscale,[]);
