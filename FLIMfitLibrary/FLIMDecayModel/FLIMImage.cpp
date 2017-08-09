@@ -103,6 +103,9 @@ void FLIMImage::ensureAllocated()
    {
       if (map_file_name.empty())
       {
+         // we can write to this file
+         writable = true;
+
          if (root.empty())
          {
             // Get temp filename
@@ -126,7 +129,8 @@ void FLIMImage::ensureAllocated()
       }
       
       // Create mapping
-      data_map_file = boost::interprocess::file_mapping(map_file_name.c_str(),boost::interprocess::read_write);
+      boost::interprocess::mode_t mode = (writable) ? boost::interprocess::mode_t::read_write : boost::interprocess::mode_t::read_only;
+      data_map_file = boost::interprocess::file_mapping(map_file_name.c_str(), mode);
    }
    
    allocated = true;

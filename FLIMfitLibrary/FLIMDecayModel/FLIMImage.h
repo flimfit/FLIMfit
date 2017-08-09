@@ -106,6 +106,7 @@ protected:
    
    void waitForData();
    
+   bool writable = false;
    bool has_acceptor = false;
    bool has_data = false;
    std::shared_future<void> reader_future;
@@ -229,20 +230,21 @@ T* FLIMImage::getDataPointer()
    if (clearing_future.valid())
       clearing_future.wait();
    
-   using namespace boost::interprocess;
-
    if (stored_type != typeid(T))
       throw std::runtime_error("Attempting to retrieve incorrect data type");
 
    open_pointers++;
    
+   // is mapped file writeable?
+   boost::interprocess::mode_t mode = (writable) ? boost::interprocess::mode_t::read_write : boost::interprocess::mode_t::read_only;
+
    switch (data_mode)
    {
       case MappedFile:
          
          // only create mapped region if we're the first
          if (open_pointers == 1)
-            data_map_view = mapped_region(data_map_file, read_write, map_offset, map_length);
+            data_map_view = boost::interprocess::mapped_region(data_map_file, mode, map_offset, map_length);
          
          return reinterpret_cast<T*>(data_map_view.get_address());
        
