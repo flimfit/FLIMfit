@@ -5,19 +5,23 @@ PatternDecayGroup::PatternDecayGroup(const std::vector<Pattern> pattern, const Q
    AbstractDecayGroup(name),
    pattern(pattern)
 {
+   std::vector<ParameterFittingType> fixed_or_local = { Fixed, FittedLocally };
+   fit = std::make_shared<FittingParameter>("Pattern", 0, fixed_or_local, FittedLocally);
+   parameters.push_back(fit);
 }
 
 PatternDecayGroup::PatternDecayGroup(const PatternDecayGroup& obj) :
    AbstractDecayGroup(obj)
 {
    pattern = obj.pattern;
+   fit = obj.fit;
 
    init();
 }
 
 void PatternDecayGroup::init()
 {
-   n_lin_components = 1; 
+   n_lin_components = fit->isFittedLocally(); 
    n_nl_parameters = 0;
 
    ExponentialPrecomputationBuffer buffer(dp);
@@ -58,6 +62,9 @@ int PatternDecayGroup::setVariables(const double* variables)
 
 int PatternDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shift)
 {
+   if (fit->isFixed())
+      return 0;
+
    for (int i = 0; i < dp->n_meas; i++)
       a[i] = decay[i];
 
@@ -71,12 +78,19 @@ int PatternDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv
 
 void PatternDecayGroup::addConstantContribution(float* a)
 {
-   return;
+   if (fit->isFittedLocally())
+      return;
+
+   float fact = fit->initial_value;
+
+   for (int i = 0; i < dp->n_meas; i++)
+      a[i] += fact * decay[i];
 }
 
 void PatternDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
 {
-   col++; // one column, no variables
+   if (fit->isFittedLocally())
+      col++; // one column, no variables
 }
 
 int PatternDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
@@ -86,7 +100,10 @@ int PatternDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* outpu
 
 int PatternDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
 {
-   output[0] = lin_variables[lin_idx++];
+   if (fit->isFittedLocally())
+      output[0] = lin_variables[lin_idx++];
+   else
+      output[0] = fit->initial_value;
    return 1;
 }
 

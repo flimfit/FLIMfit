@@ -89,6 +89,8 @@ protected:
 
    friend class boost::serialization::access;
 
+   std::shared_ptr<FittingParameter> fit;
+
    std::vector<Pattern> pattern;
    std::vector<double> channel_factors;
    std::vector<double> decay;
@@ -99,6 +101,10 @@ void PatternDecayGroup::serialize(Archive & ar, const unsigned int version)
 {
    ar & boost::serialization::base_object<AbstractDecayGroup>(*this);
    ar & pattern;
+
+   if (version >= 2)
+      ar & fit;
 };
 
 BOOST_CLASS_TRACKING(PatternDecayGroup, track_always)
+BOOST_CLASS_VERSION(PatternDecayGroup, 2)
