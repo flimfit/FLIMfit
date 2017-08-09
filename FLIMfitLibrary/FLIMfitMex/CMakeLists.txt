@@ -33,17 +33,11 @@ find_package(Qt5Core)
 find_package(OpenCV REQUIRED)
 find_package(Boost CONFIG REQUIRED COMPONENTS serialization)
 
-include("cmake/DeployQt.cmake")
-
 
 # MATLAB stuff
 #====================================
 
 # Find MATLAB
-set(MATLAB_ADDITIONAL_VERSIONS
-    "R2015b=8.6"
-    "R2015a=8.5"
-    "R2014b=8.4")
 set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
 
@@ -58,20 +52,23 @@ set (COMMON_FILES MexUtils.h MexUtils.cpp)
 
 matlab_add_mex(NAME ff_FLIMImage SRC ${COMMON_FILES} FLIMImageMex.cpp)
 target_link_libraries(ff_FLIMImage ${COMMON_LIBS})
-#add_custom_command(TARGET ff_FLIMImage POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMImage> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_FLIMData SRC ${COMMON_FILES} FLIMDataMex.cpp)
 target_link_libraries(ff_FLIMData ${COMMON_LIBS})
-#add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_Controller SRC ${COMMON_FILES} ControllerMex.cpp)
 target_link_libraries(ff_Controller ${COMMON_LIBS} levmar ${LEVMAR_LIBRARIES})
-#add_custom_command(TARGET ff_Controller POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_Controller> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_FitResults SRC ${COMMON_FILES} FitResultsMex.cpp)
 target_link_libraries(ff_FitResults ${COMMON_LIBS})
-#add_custom_command(TARGET ff_FitResults POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FitResults> ${MEX_OUT_DIR})
 
 matlab_add_mex(NAME ff_DecayModel SRC ${COMMON_FILES} DecayModelMex.cpp)
 target_link_libraries(ff_DecayModel FLIMWidgets ${COMMON_LIBS})
-#add_custom_command(TARGET ff_DecayModel POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_DecayModel> ${MEX_OUT_DIR})
+
+if (MSVC)
+add_custom_command(TARGET ff_FLIMImage POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMImage> ${MEX_OUT_DIR})
+add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${MEX_OUT_DIR})
+add_custom_command(TARGET ff_Controller POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_Controller> ${MEX_OUT_DIR})
+add_custom_command(TARGET ff_FitResults POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FitResults> ${MEX_OUT_DIR})
+add_custom_command(TARGET ff_DecayModel POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_DecayModel> ${MEX_OUT_DIR})
+endif()
