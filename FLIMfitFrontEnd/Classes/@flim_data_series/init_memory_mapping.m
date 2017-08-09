@@ -68,14 +68,10 @@ function init_memory_mapping(obj, data_size, n_datasets, mapfile_name)
 
         end
 
-        if ~is64
-            repeat = 1;
+        if obj.raw
+            repeat = obj.n_datasets;
         else
-            if obj.raw
-                repeat = obj.n_datasets;
-            else
-                repeat = n_datasets;
-            end
+            repeat = n_datasets;
         end
 
         format = obj.data_type;

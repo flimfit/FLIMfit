@@ -1324,15 +1324,7 @@ classdef front_end_menu_controller < handle
             %}
         end
         
-        
-        function menu_test_unload_dll_callback(obj)
-            if is64
-                unloadlibrary('FLIMGlobalAnalysis_64');
-            else
-                unloadlibrary('FLIMGlobalAnalysis_32');
-            end
-        end
-        
+               
         function menu_file_export_plots_callback(obj, ~, ~)
             [filename, pathname, ~] = uiputfile( ...
                         {'*.tiff', 'TIFF image (*.tiff)';...

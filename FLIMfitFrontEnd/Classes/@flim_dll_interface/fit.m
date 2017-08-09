@@ -172,7 +172,16 @@
     
         % todo: get this from data
         if d.use_memory_mapping
-            offset_step = 4 * d.n_t * d.n_chan * d.height * d.width;
+            
+            switch d.data_type
+                case 'single'
+                    data_size = 4;
+                case 'uint16'
+                    data_size = 2;
+            end
+            
+            
+            offset_step = data_size * d.n_t * d.n_chan * d.height * d.width;
 
             for i=1:length(sel)
                offset = (sel(i)-1) * offset_step + d.mapfile_offset;

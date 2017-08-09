@@ -48,17 +48,7 @@ function switch_active_dataset(obj, dataset, no_smoothing)
             end
 
             if ~isempty(obj.memmap)
-
-                if ~is64
-                    % Calculate size of single dataset
-                    offset_step = 4 * obj.n_t * obj.n_chan * obj.height * obj.width;
-                    obj.memmap.offset = (idx-1) * offset_step + obj.mapfile_offset;
-                    
-                    obj.cur_data = obj.memmap.Data(1).data_series;
-                else
-                    obj.cur_data = obj.memmap.Data(idx).data_series;
-                end
-
+                obj.cur_data = obj.memmap.Data(idx).data_series;
             end
 
         else
