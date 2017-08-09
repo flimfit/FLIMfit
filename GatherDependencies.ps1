@@ -43,7 +43,6 @@ function DownloadZipIntoFolder
 }
 
 
-
 $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
 $bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/bfmatlab.zip'
 $loci_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/loci_tools.jar’
