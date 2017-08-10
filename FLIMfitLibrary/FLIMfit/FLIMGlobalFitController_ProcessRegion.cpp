@@ -76,11 +76,11 @@ void FitController::processRegion(int g, int region, int px, int thread)
    int iter = 0; // used to use:status->iter[thread],
    double chi2 = 0; // used to use:
    
-   fitters[thread].Fit(local_region_data, region_results, itmax, iter, ierr_local, chi2);
+   fitters[thread]->Fit(local_region_data, region_results, itmax, iter, ierr_local, chi2);
     
    if (calculate_errors)
    {
-      fitters[thread].CalculateErrors(conf_interval);
+      fitters[thread]->CalculateErrors(conf_interval);
       // TODO: get errors
    }
   

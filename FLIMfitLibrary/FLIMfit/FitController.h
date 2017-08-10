@@ -45,10 +45,7 @@
 
 #include "ConcurrencyAnalysis.h"
 
-
-#include <boost/ptr_container/ptr_vector.hpp>
 #include <memory>
-
 #include <thread>
 #include <atomic>
 
@@ -106,9 +103,9 @@ private:
    std::recursive_mutex cleanup_mutex;
    std::recursive_mutex mutex;
 
-   ptr_vector<AbstractFitter> fitters;
-   ptr_vector<RegionData> region_data;
-   ptr_vector<std::thread> thread_handle;
+   std::vector<std::unique_ptr<AbstractFitter>> fitters;
+   std::vector<RegionData> region_data;
+   std::vector<std::thread> thread_handle;
    
    int cur_region;
    int next_pixel;

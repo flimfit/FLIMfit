@@ -71,10 +71,11 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
 
    n_param = nl + n_param_extra;
 
-
-   for (int i = 0; i < n_thread; i++)
-      models.push_back(*model);
-
+   if (n_thread > 1)
+      for (int i = 0; i < n_thread; i++)
+         models.push_back(std::make_shared<DecayModel>(*model));
+   else
+      models.push_back(model);
 
    // Check for valid input
    //----------------------------------
@@ -421,7 +422,7 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    std::vector<double>& a = a_[omp_thread];
    std::vector<double>& b = b_[omp_thread];
 
-   models[omp_thread].calculateModel(a, nmax, b, ndim, kap, params, irf_idx, isel);
+   models[omp_thread]->calculateModel(a, nmax, b, ndim, kap, params, irf_idx, isel);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)

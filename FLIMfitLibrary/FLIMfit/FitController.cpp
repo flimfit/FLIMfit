@@ -94,7 +94,7 @@ int FitController::runWorkers()
    omp_set_num_threads(n_omp_thread);
 
    for(int thread = 0; thread < n_fitters; thread++)
-      thread_handle.push_back(new std::thread(&FitController::workerThread, this, thread));
+      thread_handle.push_back(std::thread(&FitController::workerThread, this, thread));
    
    if (!run_async)
       waitForFit();
@@ -408,15 +408,18 @@ void FitController::init()
    results.reset( new FitResults(model, data, calculate_errors) );
 
    // Create fitting objects
+   fitters.clear();
+   region_data.clear();
+
    fitters.reserve(n_fitters);
    region_data.reserve(n_fitters);
 
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
-         fitters.push_back( new MaximumLikelihoodFitter(model, reporter) );
+         fitters.push_back( std::make_unique<MaximumLikelihoodFitter>(model, reporter) );
       else
-         fitters.push_back( new VariableProjector(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );
+         fitters.push_back( std::make_unique<VariableProjector>(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );
 
       region_data.push_back( data->getNewRegionData() );
    }
@@ -465,6 +468,6 @@ void FitController::cleanupTempVars()
    region_data.clear();
 
    for(auto& f : fitters)
-      f.ReleaseResidualMemory();
+      f->ReleaseResidualMemory();
 }
 

@@ -77,7 +77,7 @@ public:
 
    void setGlobalScope(int global_scope);
 
-   RegionData* getNewRegionData();
+   RegionData getNewRegionData();
 
    template <typename T>
    int calculateRegions();

@@ -27,8 +27,7 @@
 //
 //=========================================================================
 
-#ifndef _VARIABLEPROJECTOR_H
-#define _VARIABLEPROJECTOR_H
+#pragma once
 
 #include "AbstractFitter.h"
 
@@ -90,5 +89,3 @@ private:
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
 };
-
-#endif

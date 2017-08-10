@@ -179,9 +179,9 @@ void FLIMData::MarkCompleted(int slot)
 }
 */
 
-RegionData* FLIMData::getNewRegionData()
+RegionData FLIMData::getNewRegionData()
 {
-   return new RegionData(data_type, getMaxRegionSize(), dp->n_meas);
+   return RegionData(data_type, getMaxRegionSize(), dp->n_meas);
 }
 
 

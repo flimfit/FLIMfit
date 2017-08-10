@@ -27,10 +27,7 @@
 //
 //=========================================================================
 
-#ifndef _REGIONDATA_H_
-#define _REGIONDATA_H_
-
-#include <vector>
+#pragma once
 
 class RegionData
 {
@@ -39,6 +36,9 @@ public:
    RegionData(RegionData* region, int px);
    ~RegionData();
 
+   RegionData(const RegionData&) = delete; // delete copy constructor
+   
+   RegionData(RegionData&& other);
    RegionData& operator=( const RegionData& other );
 
    void Clear();
@@ -51,7 +51,7 @@ public:
 
    void GetAverageDecay(float* average_decay);
 
-   const RegionData GetPixel(int px);
+   RegionData GetPixel(int px);
 
    int data_type;
 
@@ -70,6 +70,3 @@ private:
 
    friend class FLIMData;
 };
-
-
-#endif

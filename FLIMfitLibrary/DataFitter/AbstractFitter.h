@@ -40,11 +40,9 @@
 #include "levmar.h"
 
 #include <cstdio>
+#include <iostream>
 
 #include <memory>
-#include <boost/ptr_container/ptr_vector.hpp>
-
-using boost::ptr_vector;
 
 class AbstractFitter
 {
@@ -52,8 +50,9 @@ public:
 
    AbstractFitter(std::shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
 
-   virtual ~AbstractFitter() {};
-   //virtual AbstractFitter* clone() const = 0; // for boost ptr_vector
+   virtual ~AbstractFitter() {
+      std::cout << "Deleted abstract fitter\n";
+   };
 
    virtual int FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
    virtual int GetLinearParams() = 0;
@@ -76,8 +75,8 @@ protected:
 
    int Init();
 
-   std::shared_ptr<DecayModel> model;
-   std::vector<DecayModel> models;
+   std::shared_ptr<DecayModel> model; // reference
+   std::vector<std::shared_ptr<DecayModel>> models; // for each thread
    std::shared_ptr<ProgressReporter> reporter;
    
    std::vector<double> alf;

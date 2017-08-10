@@ -64,6 +64,22 @@ RegionData::RegionData(RegionData* region, int px) :
    irf_idx = region->irf_idx + px;
 }
 
+RegionData::RegionData(RegionData&& other)
+{
+   is_shallow_ptr = other.is_shallow_ptr;
+
+   n_px_max = other.n_px_max;
+   n_px_cur = other.n_px_cur;
+
+   data = other.data;
+   irf_idx = other.irf_idx;
+
+   data_type = other.data_type;
+   n_meas = other.n_meas;
+
+   other.is_shallow_ptr = true; // so it doesn't delete data on close
+}
+
 RegionData& RegionData::operator=(const RegionData& other)
 {
    assert(is_shallow_ptr);
@@ -92,7 +108,7 @@ RegionData::~RegionData()
    }
 }
 
-const RegionData RegionData::GetPixel(int px)
+RegionData RegionData::GetPixel(int px)
 {
    assert(px < n_px_cur);
    return RegionData(this, px);
