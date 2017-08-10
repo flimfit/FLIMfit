@@ -46,7 +46,7 @@ function DownloadZipIntoFolder
 
 $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
 $bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/bfmatlab.zip'
-$loci_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/loci_tools.jar’
+$loci_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/loci_tools.zip'
 $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
 $OMEuiUtils_url = 'https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.5.jar'
 $gs_url = 'http://downloads.flimfit.org/gs/gs916w64.exe'
