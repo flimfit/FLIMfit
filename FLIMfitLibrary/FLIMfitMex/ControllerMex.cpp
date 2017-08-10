@@ -194,7 +194,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Clear")
+      {
+         ptr_set.erase(controller);
          releaseSharedPtrFromMatlab<FitController>(prhs[0]);
+      }
       else if (command == "SetFitSettings")
          setFitSettings(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "SetData")

@@ -150,18 +150,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       AssertInputCondition(nrhs >= 2);
       AssertInputCondition(mxIsChar(prhs[1]));
 
-      // Get controller
-      auto d = getSharedPtrFromMatlab<FLIMImage>(prhs[0]);
+      // Get image
+      auto image = getSharedPtrFromMatlab<FLIMImage>(prhs[0]);
 
       // Get command
       std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
+      {
+         ptr_set.erase(image);
          releaseSharedPtrFromMatlab<FLIMImage>(prhs[0]);
+      }
       else if (command == "SetMask")
-         setMask(d, nlhs, plhs, nrhs, prhs);
+         setMask(image, nlhs, plhs, nrhs, prhs);
       else if (command == "SetAcceptor")
-         setAcceptor(d, nlhs, plhs, nrhs, prhs);
+         setAcceptor(image, nlhs, plhs, nrhs, prhs);
       else
          mexErrMsgIdAndTxt("FLIMfitMex:invalidCommand", "Unrecognised command");
 

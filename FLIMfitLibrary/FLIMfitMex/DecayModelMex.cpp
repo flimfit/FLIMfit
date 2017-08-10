@@ -422,7 +422,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
+      {
+         ptr_set.erase(model);
          releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+      }
       else if (command == "GetModelVariables")
          getModelVariables(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetModelVariables")

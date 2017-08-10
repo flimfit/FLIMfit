@@ -160,6 +160,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          auto data = std::make_shared<FLIMData>(images, transformation_settings);
 
          plhs[0] = packageSharedPtrForMatlab(data);
+         ptr_set.insert(data);
          return;
       }
 
@@ -173,7 +174,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       std::string command = getStringFromMatlab(prhs[1]);
 
       if (command == "Release")
+      {
+         ptr_set.erase(data);
          releaseSharedPtrFromMatlab<FLIMData>(prhs[0]);
+      }
    }
    catch (std::runtime_error e)
    {

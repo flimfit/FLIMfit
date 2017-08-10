@@ -45,7 +45,7 @@
 
 int next_id = 0;
 
-PointerMap<FitResults> pointer_map;
+//PointerMap<FitResults> pointer_map;
 
 
 void getOutputParamNames(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
