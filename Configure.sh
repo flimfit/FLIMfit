@@ -10,7 +10,7 @@ echo "Checking for homebrew install..."
 
 echo "Ensure cmake, gcc and boost are installed..."
 # Ensure gcc, ghostscript, cmake, LAPACK are installed using Homebrew
-(brew list | grep gcc) || brew install gcc --without-multilib
+(brew list | grep llvm) || brew install llvm --with-lldb
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 (brew list | grep platypus) && echo " installed" || brew install platypus
