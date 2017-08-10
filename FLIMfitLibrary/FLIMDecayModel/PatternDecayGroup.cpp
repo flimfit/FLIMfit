@@ -15,7 +15,7 @@ PatternDecayGroup::PatternDecayGroup(const PatternDecayGroup& obj) :
 {
    pattern = obj.pattern;
    fit = obj.fit;
-
+   parameters.push_back(fit);
    init();
 }
 

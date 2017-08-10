@@ -136,7 +136,7 @@ void DecayModel::serialize(Archive & ar, const unsigned int version)
    ar & photons_per_count;
    ar & channel_factor;
 
-   if (version > 2)
+   if (version >= 2)
       ar & parameters;
    else
       parameters = { t0_parameter }; // get rid of this later

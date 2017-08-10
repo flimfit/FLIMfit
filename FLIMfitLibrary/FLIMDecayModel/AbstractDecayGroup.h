@@ -62,7 +62,6 @@ public:
       constrain_nonlinear_parameters = obj.constrain_nonlinear_parameters;
       channel_factor_names = obj.channel_factor_names;
       dp = obj.dp;
-      parameters = obj.parameters;
    };
 
    virtual AbstractDecayGroup* clone() const = 0;

@@ -59,6 +59,8 @@ protected:
    std::shared_ptr<FittingParameter> Qsigma_parameter;
    std::shared_ptr<FittingParameter> tauA_parameter;
 
+   std::vector<double> acceptor_channel_factors;
+
    int n_fret_populations = 1;
    bool include_donor_only = true;
    bool include_acceptor = true;
@@ -73,7 +75,6 @@ protected:
    std::vector<std::vector<ExponentialPrecomputationBuffer>> fret_buffer;
    std::vector<std::vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
    std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
-   std::vector<double> acceptor_channel_factors;
 
 protected:
    int getNumPotentialChannels() { return 2; }

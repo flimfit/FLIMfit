@@ -50,6 +50,7 @@ FretDecayGroup::FretDecayGroup(const FretDecayGroup& obj) :
 {
    n_fret_populations = obj.n_fret_populations;
    include_donor_only = obj.include_donor_only;
+   include_acceptor = obj.include_acceptor;
    Q_parameter = obj.Q_parameter;
    Qsigma_parameter = obj.Qsigma_parameter;
    tauA_parameter = obj.tauA_parameter;
@@ -107,9 +108,8 @@ void FretDecayGroup::init()
       acceptor_fret_buffer.clear();
       acceptor_fret_buffer.resize(n_fret_populations,
          std::vector<ExponentialPrecomputationBuffer>(n_exponential,
-         ExponentialPrecomputationBuffer(dp)));
+            ExponentialPrecomputationBuffer(dp)));
 
-      acceptor_buffer = std::unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
       acceptor_buffer = std::unique_ptr<ExponentialPrecomputationBuffer>(new ExponentialPrecomputationBuffer(dp));
    }
    
@@ -233,7 +233,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    }
 
 
-   inc_col += n_fret_populations;
+   inc_col += n_fret_group;
 }
 
 int FretDecayGroup::setVariables(const double* param_values)
