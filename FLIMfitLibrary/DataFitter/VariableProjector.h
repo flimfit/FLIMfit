@@ -40,23 +40,25 @@ class VariableProjector : public AbstractFitter
 public:
    VariableProjector(std::shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
    ~VariableProjector();
-   //VariableProjector* clone() const { return new VariableProjector(*this); };
 
-   int FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr);
+   void FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr);
 
-   int GetLinearParams(); 
+   void GetLinearParams(); 
 
 private:
 
    int varproj(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
-   
-   void transform_ab(int& isel, int px, int thread, int firstca, int firstcb);
+
+   int prepareJacobianCalculation(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
+   int getJacobianEntry(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
+
+   void transformAB(int px, int thread, bool transformB = true);
 
    void CalculateWeights(int px, const double* alf, int thread);
 
    void get_linear_params(int idx, double* a, double* u, double* x = 0);
-   int bacsub(int idx, double* a, volatile double* x);
-   int bacsub(volatile double *r, double *a, volatile double *x);
+   void bacsub(int idx, double* a, volatile double* x);
+   void bacsub(volatile double *r, double *a, volatile double *x);
 
    double d_sign(double *a, double *b);
 

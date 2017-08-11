@@ -110,7 +110,13 @@ int VariableProjectorCallback(void *p, int m, int n, int s_red, const double* x,
 {
    VariableProjector *vp = (VariableProjector*) p;
    vp->SetAlf(x);
-   return vp->varproj(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+
+   if (iflag == 0)
+      return vp->varproj(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+   else if (iflag == 1)
+      return vp->prepareJacobianCalculation(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+   else
+      return vp->getJacobianEntry(m, n, s_red, x, fnorm, fjrow, iflag - 2, thread);
 }
 
 int VariableProjectorDiffCallback(void *p, int m, int n, const double* x, double *fvec, int iflag)
@@ -149,10 +155,8 @@ int VariableProjectorDiffCallback(void *p, int m, int n, const double* x, double
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-int VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
+void VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
 {
-   INIT_CONCURRENCY;
-
    int nsls1 = (n-l); //(n-l) * s;
  
    double ftol = (double)sqrt(dpmpar(1));
@@ -255,10 +259,6 @@ int VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int* 
 
       std::cout << "info: " << std::to_string(info) << "\n";
 
-      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      START_SPAN("Computing Linear Parameters");
-      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
       // Get linear parameters
       if (info <= -8)
       {
@@ -277,35 +277,25 @@ int VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int* 
 
       fit_successful = true;
    }
-   catch (std::runtime_error e)
+   catch (FittingError e)
    {
-      info = -100;
+      info = e.code();
    }
-
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   END_SPAN;
-   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    if (info < 0)
       *ierr = info;
    else
       *ierr = *niter;
-  
-   return 0;
 }
 
-int VariableProjector::GetLinearParams() 
+void VariableProjector::GetLinearParams() 
 {
    if (fit_successful)
    {
       int nsls1 = (n - l) * s;
-
       varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -1, 0);
       //   varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -2, 0); TODO: do we need this?
-
    }   
-
-   return 0;
 }
 
 double VariableProjector::d_sign(double *a, double *b)
@@ -316,25 +306,92 @@ double VariableProjector::d_sign(double *a, double *b)
 }
 
 
-
-int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread)
+int VariableProjector::prepareJacobianCalculation(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int isel, int thread)
 {
+   if (!variable_phi)
+      GetModel(alf, irf_idx[0], 1, 0);
+   if (!iterative_weighting)
+      CalculateWeights(0, alf, 0);
 
-   int firstca, firstcb;
-   int get_lin, iterative_weighting_buf, weighting_buf;
-   int isel;
+   if (!variable_phi && !iterative_weighting)
+      transformAB(0, 0);
 
-   int is;
+   // Set kappa derivatives
+   *rnorm = kap[0];
+   for (int k = 0; k < nl; k++)
+      fjrow[k] = kap[k + 1];
 
-   int nml  = n - l;
+   return 0;
+}
 
-   // Matrix dimensions
-   int r_dim1 = nmax;
-   int y_dim1 = n;
-   int a_dim1 = nmax;
-   int b_dim1 = ndim;
-   
-   double r_sq, rj_norm, acum;
+int VariableProjector::getJacobianEntry(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int isel, int thread)
+{
+   int nml = n - l;
+
+   if (reporter->shouldTerminate())
+      return -9;
+
+   double* r_buf = r_buf_ + nmax*thread;
+
+   int idx = (iterative_weighting) ? thread : 0;
+   double* aw = aw_ + idx * nmax * (l + 1);
+   double* bw = bw_ + idx * ndim * (pmax + 3);
+
+   int mskip = s / s_red;
+   int is = isel;
+
+   for (int j = 0; j < n; j++)
+      r_buf[j] = 0;
+
+   int j_max = min(mskip, s - is*mskip);
+   for (int j = 0; j < j_max; j++)
+      for (int k = 0; k < n; k++)
+         r_buf[k] += r[(is*mskip + j) * nmax + k];
+
+   for (int j = 0; j < n; j++)
+      r_buf[j] /= j_max;
+
+   if (variable_phi)
+      GetModel(alf, irf_idx[is], 1, thread);
+
+   if (iterative_weighting)
+      CalculateWeights(is, alf, thread);
+
+   if (variable_phi | iterative_weighting)
+      transformAB(is, thread);
+
+   bacsub(r_buf, aw, r_buf);
+
+   for (int i = 0; i < nml; i++)
+   {
+      int ipl = i + l;
+      int m = 0;
+      for (int k = 0; k < nl; ++k)
+      {
+         double acum = (float)0.;
+         for (int j = 0; j < l; ++j)
+         {
+            if (inc[k + j * 12] != 0)
+            {
+               acum += bw[ipl + m * ndim] * r_buf[j];
+               ++m;
+            }
+         }
+
+         if (inc[k + l * 12] != 0)
+         {
+            acum += bw[ipl + m * ndim];
+            ++m;
+         }
+
+         fjrow[i*nl + k] = -acum;
+
+      }
+      rnorm[i] = r_buf[ipl];
+   }
+   return 0;
+}
+
 
 /*     ============================================================== */
 
@@ -361,14 +418,15 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
 /*        THROUGH L+K*(N-L). */
 
 /*     .................................................................. */
-
-   get_lin = false;
-   iterative_weighting_buf = iterative_weighting;
-   weighting_buf = weighting;
+int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread)
+{
+   int nml  = n - l;
+   int get_lin = false;
+   int iterative_weighting_buf = iterative_weighting;
+   int weighting_buf = weighting;
 
    if (iflag == -1)
    {
-      isel = 2;
       get_lin = true;
    }
    else if (iflag == -2)
@@ -384,138 +442,27 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
                   y[i+j*n] -= 1;
       }
 
-      isel = 2;
       get_lin = true;
       iterative_weighting = true;
       weighting = MODEL_WEIGHTING;
-      
-   }
-   else
-   {
-      if (use_numerical_derv)
-         isel = 2;
-      else
-         isel = iflag + 1;
-
-      if (reporter->shouldTerminate())
-         return -9;
    }
 
-
-   r_sq = 0;
-
-   switch (isel)
-   {
-   case 1:
-      firstca = 0;
-      firstcb = 0;
-      break;
-   case 2:
-      firstca = 0;
-      firstcb = -1;
-      break;
-   default:
-      firstca = 0;
-      firstcb = 0;
-   }  
+   if (reporter->shouldTerminate())
+      return -9;
 
 
-   if (isel == 3)
-   {   
-      if (!variable_phi)
-         GetModel(alf, irf_idx[0], isel, 0);
-      if (!iterative_weighting)
-         CalculateWeights(0, alf, 0);
+   double r_sq = 0;
 
-      if (!variable_phi && !iterative_weighting)
-         transform_ab(isel, 0, 0, firstca, firstcb);
-
-      // Set kappa derivatives
-      *rnorm = kap[0];
-      for(int k=0; k<nl; k++)
-         fjrow[k] = kap[k+1];
-      
-      return 0;
-   } 
-   else if (isel > 3)
-   {
-
-      double* r_buf = r_buf_ + nmax*thread;
-
-      int idx;
-      double *aw, *bw;
-      if (iterative_weighting)   
-         idx = thread;
-      else
-         idx = 0;
-
-      aw = aw_ + idx * nmax * (l+1);
-      bw = bw_ + idx * ndim * ( pmax + 3 );
-
-      int mskip = s/s_red;
-      is = isel - 4;
-      
-      for(int j=0; j<n; j++)
-         r_buf[j] = 0;
-
-      int j_max = min(mskip,s-is*mskip);
-      for(int j=0; j<j_max; j++)
-         for(int k=0; k<n; k++)
-            r_buf[k] += r[ (is*mskip + j) * r_dim1 + k ];
-
-      for(int j=0; j<n; j++)
-         r_buf[j] /= j_max;
-
-      if (variable_phi)
-         GetModel(alf, irf_idx[is], 3, thread);
-
-      if (iterative_weighting)
-         CalculateWeights(is, alf, thread); 
-      
-      if (variable_phi | iterative_weighting)
-         transform_ab(isel, is, thread, firstca, firstcb);
-
-      bacsub(r_buf, aw, r_buf);
-
-      for(int i=0; i<nml; i++)
-      {
-         int ipl = i+l;
-         int m = 0;
-         for (int k = 0; k < nl; ++k)
-         {
-            acum = (float)0.;
-            for (int j = 0; j < l; ++j) 
-            {
-               if (inc[k + j * 12] != 0) 
-               {
-                  acum += bw[ipl + m * b_dim1] * r_buf[j];
-                  ++m;
-               }
-            }
-
-            if (inc[k + l * 12] != 0)
-            {   
-               acum += bw[ipl + m * b_dim1];
-               ++m;
-            }
-
-            fjrow[i*nl+k] = -acum;
-
-         }
-         rnorm[i] = r_buf[ipl];
-      }
-
-      return 0;
-   }
       
    float* adjust = model->getConstantAdjustment();
    if (!variable_phi)
-      GetModel(alf, irf_idx[0], isel, 0);
+      GetModel(alf, irf_idx[0], 0, 0);
    if (!iterative_weighting)
       CalculateWeights(0, alf, 0);
 
+   bool transformB = false;
    if (!variable_phi && !iterative_weighting)
-      transform_ab(isel, 0, 0, firstca, firstcb);
+      transformAB(0, 0, transformB);
 
    for(int i=0; i<n_thread; i++)
       norm_buf_[i*nmax] = 0;
@@ -523,13 +470,13 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
    //#pragma omp parallel for num_threads(n_thread)
    
    // We'll apply this for all pixels
-   auto fcn = [&](int omp_thread, int j)
+   for (int j = 0; j<s; j++)
    {
       int idx;
-      //int omp_thread = omp_get_thread_num();
+      int omp_thread = 0; // omp_get_thread_num();
       
-      double* rj = r.data() + j * r_dim1;
-      float* yj = y + j * y_dim1;
+      double* rj = r.data() + j * nmax;
+      float* yj = y + j * n;
       double beta, acum;
     
       if (iterative_weighting)   
@@ -543,12 +490,12 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
       double* work = this->work_ + omp_thread * nmax;
 
       if (variable_phi)
-         GetModel(alf, irf_idx[j], isel, omp_thread);
+         GetModel(alf, irf_idx[j], 0, omp_thread);
       if (iterative_weighting)
          CalculateWeights(j, alf, omp_thread); 
       
       if (variable_phi | iterative_weighting)
-         transform_ab(isel, j, omp_thread, firstca, firstcb);
+         transformAB(j, omp_thread, transformB);
 
       // Get the data we're about to transform
       
@@ -562,7 +509,7 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
          else
          {
             for(int i=0; i < n; i++)
-               rj[i] = yj[i] - aw[i + l * a_dim1];
+               rj[i] = yj[i] - aw[i + l * nmax];
          } 
       }
       else
@@ -577,31 +524,29 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
             // Store the data in rj, subtracting the column l+1 which does not
             // have a linear parameter
             for(int i=0; i < n; i++)
-               rj[i] = (y[i + j * y_dim1]-adjust[i]) * wp[i] - aw[i + l * a_dim1];
+               rj[i] = (y[i + j * n]-adjust[i]) * wp[i] - aw[i + l * nmax];
          }  
       }
-
-
 
       // Transform Y, getting Q*Y=R 
       for (int k = 0; k < l; k++) 
       {
          int kp1 = k + 1;
-         beta = -aw[k + k * a_dim1] * u[k];
+         beta = -aw[k + k * nmax] * u[k];
 
          acum = u[k] * rj[k];
 
          for (int i = kp1; i < n; ++i) 
-            acum += aw[i + k * a_dim1] * rj[i];
+            acum += aw[i + k * nmax] * rj[i];
          acum /= beta;
 
          rj[k] -= u[k] * acum;
          for (int i = kp1; i < n; i++) 
-            rj[i] -= aw[i + k * a_dim1] * acum;
+            rj[i] -= aw[i + k * nmax] * acum;
       }
 
       // Calcuate the norm of the jth column and add to residual
-      rj_norm = enorm(n-l, rj+l);
+      double rj_norm = enorm(n-l, rj+l);
       //r_sq += rj_norm * rj_norm;
       norm_buf_[omp_thread*nmax] += rj_norm * rj_norm;
 
@@ -616,23 +561,6 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
          get_linear_params(j, aw, u, work);
 
    }; // loop over pixels
-
-   /*
-   std::vector<std::future<void>> futures;
-   for (int t=0; t<n_thread; t++)
-      futures.push_back(std::async(
-         [&]() {
-             for(int j=t; j<s; j+=n_thread)
-                fcn(t, j);
-         }));
-
-   for(auto& f : futures)
-      f.wait();
-   */
-   
-   for(int j=0; j<s; j++)
-      fcn(0, j);
-   
    
    for(int i=0; i<n_thread; i++)
       r_sq += norm_buf_[i*nmax];
@@ -651,8 +579,6 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
    iterative_weighting = iterative_weighting_buf;
    weighting = weighting_buf;
 
-   if (isel < 0)
-      iflag = isel;
    return iflag;
 }
 
@@ -701,89 +627,79 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    }
 }
 
-void VariableProjector::transform_ab(int& isel, int px, int omp_thread, int firstca, int firstcb)
+void VariableProjector::transformAB(int px, int omp_thread, bool transform_b)
 {
-   int lp1 = l+1;
+   int lp1 = l + 1;
 
-   int a_dim1 = nmax;
-   int b_dim1 = ndim;
-   
    double beta, acum;
    double alpha, d__1;
 
    int i, m, k, kp1;
 
    double* aw = aw_ + omp_thread * nmax *  lp1;
-   double* bw = bw_ + omp_thread * ndim * ( pmax + 3 );
-   double* u  = u_  + omp_thread * l;
+   double* bw = bw_ + omp_thread * ndim * (pmax + 3);
+   double* u = u_ + omp_thread * l;
    double* wp = wp_ + omp_thread * nmax;
-      
-   std::vector<double>& a = variable_phi ? a_[omp_thread] : a_[0]; 
-   std::vector<double>& b = variable_phi ? b_[omp_thread] : b_[0];
-   
-   if (firstca >= 0)
-      for (m = firstca; m < lp1; ++m)
-         for (int i = 0; i < n; ++i)
-            aw[i + m * a_dim1] = a[i + m * a_dim1] * wp[i];
 
-   if (firstcb >= 0)
-      for (m = firstcb; m < p; ++m)
+   std::vector<double>& a = variable_phi ? a_[omp_thread] : a_[0];
+   std::vector<double>& b = variable_phi ? b_[omp_thread] : b_[0];
+
+   for (m = 0; m < lp1; ++m)
+      for (int i = 0; i < n; ++i)
+         aw[i + m * nmax] = a[i + m * nmax] * wp[i];
+
+   if (transform_b)
+      for (m = 0; m < p; ++m)
          for (int i = 0; i < n; ++i)
-            bw[i + m * b_dim1] = b[i + m * b_dim1] * wp[i];
+            bw[i + m * ndim] = b[i + m * ndim] * wp[i];
 
    // Compute orthogonal factorisations by householder reflection (phi)
-   for (k = 0; k < l; ++k) 
+   for (k = 0; k < l; ++k)
    {
       kp1 = k + 1;
 
       // If *isel=1 or 2 reduce phi (first l columns of a) to upper triangular form
-      if (firstca >= 0)
-      {
-         d__1 = enorm(n-k, &aw[k + k * a_dim1]);
-         alpha = d_sign(&d__1, &aw[k + k * a_dim1]);
-         u[k] = aw[k + k * a_dim1] + alpha;
-         aw[k + k * a_dim1] = -alpha;
-         firstca = kp1;
-         if (alpha == (float)0.)
-         {
-            throw std::runtime_error("ISEL = -8");
-            isel = -8;
-            //goto L99;
-         }
-      }
 
-      beta = -aw[k + k * a_dim1] * u[k];
+      d__1 = enorm(n - k, &aw[k + k * nmax]);
+      alpha = d_sign(&d__1, &aw[k + k * nmax]);
+      u[k] = aw[k + k * nmax] + alpha;
+      aw[k + k * nmax] = -alpha;
+
+      int firstca = kp1;
+
+      if (alpha == (float)0.)
+         throw FittingError("alpha == 0",-8);
+
+
+      beta = -aw[k + k * nmax] * u[k];
 
       // Compute householder reflection of phi
-      if (firstca >= 0)
+      for (m = firstca; m < l; ++m)
       {
-         for (m = firstca; m < l; ++m)
-         {
-            acum = u[k] * aw[k + m * a_dim1];
+         acum = u[k] * aw[k + m * nmax];
 
-            for (i = kp1; i < n; ++i) 
-               acum += aw[i + k * a_dim1] * aw[i + m * a_dim1];
-            acum /= beta;
+         for (i = kp1; i < n; ++i)
+            acum += aw[i + k * nmax] * aw[i + m * nmax];
+         acum /= beta;
 
-            aw[k + m * a_dim1] -= u[k] * acum;
-            for (i = kp1; i < n; ++i) 
-               aw[i + m * a_dim1] -= aw[i + k * a_dim1] * acum;
-         }
+         aw[k + m * nmax] -= u[k] * acum;
+         for (i = kp1; i < n; ++i)
+            aw[i + m * nmax] -= aw[i + k * nmax] * acum;
       }
 
       // Transform J=D(phi)
-      if (firstcb >= 0) 
+      if (transform_b)
       {
          for (m = 0; m < p; ++m)
          {
-            acum = u[k] * bw[k + m * b_dim1];
-            for (i = kp1; i < n; ++i) 
-               acum += aw[i + k * a_dim1] * bw[i + m * b_dim1];
+            acum = u[k] * bw[k + m * ndim];
+            for (i = kp1; i < n; ++i)
+               acum += aw[i + k * nmax] * bw[i + m * ndim];
             acum /= beta;
 
-            bw[k + m * b_dim1] -= u[k] * acum;
-            for (i = kp1; i < n; ++i) 
-               bw[i + m * b_dim1] -= aw[i + k * a_dim1] * acum;
+            bw[k + m * ndim] -= u[k] * acum;
+            for (i = kp1; i < n; ++i)
+               bw[i + m * ndim] -= aw[i + k * nmax] * acum;
          }
       }
 
@@ -799,11 +715,6 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
    // Get linear parameters
    // Overwrite rj unless x is specified (length n)
 
-   int i, k, kback;
-   double acum;
-
-   int a_dim1 = nmax;
-   
    double* rj = r.data() + idx * nmax;
 
    chi2[idx] = (float) enorm(n-l, rj+l); 
@@ -811,69 +722,49 @@ void VariableProjector::get_linear_params(int idx, double* a, double* u, double*
 
    bacsub(rj, a, x);
    
-   for (kback = 0; kback < l; ++kback) 
+   for (int kback = 0; kback < l; ++kback) 
    {
-      k = l - kback - 1;
-      acum = 0;
+      int k = l - kback - 1;
+      double acum = 0;
 
-      for (i = k; i < n; ++i) 
-         acum += a[i + k * a_dim1] * x[i];   
+      for (int i = k; i < n; ++i) 
+         acum += a[i + k * nmax] * x[i];   
 
 
       lin_params[k + idx * lmax] = (float) x[k];
 
-      x[k] = acum / a[k + k * a_dim1];
-      acum = -acum / (u[k] * a[k + k * a_dim1]);
+      x[k] = acum / a[k + k * nmax];
+      acum = -acum / (u[k] * a[k + k * nmax]);
 
-      for (i = k+1; i < n; ++i) 
-         x[i] -= a[i + k * a_dim1] * acum;
+      for (int i = k+1; i < n; ++i) 
+         x[i] -= a[i + k * nmax] * acum;
    }
 }
 
-int VariableProjector::bacsub(int idx, double *a, volatile double *x)
+void VariableProjector::bacsub(int idx, double *a, volatile double *x)
 {
-/*
-   int a_dim1;
-   int i, j, iback;
-   double acum;
-   */
    double* rj = r.data() + idx * n;
-
    bacsub(rj, a, x);
-
-   return 0;
 }
 
-int VariableProjector::bacsub(volatile double *rj, double *a, volatile double *x)
+void VariableProjector::bacsub(volatile double *rj, double *a, volatile double *x)
 {
-   int a_dim1;
-   int i, j, iback;
-   double acum;
-
    // BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*RJ = B. 
    // THE SOLUTION IS STORED IN X (X MAY OVERWRITE RJ IF SPECIFIED)
 
-   a_dim1 = nmax;
-
-   x[l-1] = rj[l-1] / a[l-1 + (l-1) * a_dim1];
+   x[l-1] = rj[l-1] / a[l-1 + (l-1) * nmax];
    if (l > 1) 
    {
 
-      for (iback = 1; iback < l; ++iback) 
+      for (int iback = 1; iback < l; ++iback) 
       {
          // i = N-1, N-2, ..., 2, 1
-         i = l - iback - 1;
-         acum = rj[i];
-         for (j = i+1; j < l; ++j) 
-            acum -= a[i + j * a_dim1] * x[j];
+         int i = l - iback - 1;
+         double acum = rj[i];
+         for (int j = i+1; j < l; ++j) 
+            acum -= a[i + j * nmax] * x[j];
          
-         x[i] = acum / a[i + i * a_dim1];
+         x[i] = acum / a[i + i * nmax];
       }
    }
-
-   return 0;
 }
-
-
-
-//template VariableProjector<DecayModel>;

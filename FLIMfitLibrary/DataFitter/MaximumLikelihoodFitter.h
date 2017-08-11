@@ -42,9 +42,9 @@ public:
    MaximumLikelihoodFitter(std::shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter);
    ~MaximumLikelihoodFitter();
 
-   int FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr);
+   void FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr);
 
-   int GetLinearParams() ;
+   void GetLinearParams();
 private:
 
    void mle_funcs(double *alf, double *fvec, int nl, int nfunc);

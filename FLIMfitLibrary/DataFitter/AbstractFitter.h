@@ -44,18 +44,31 @@
 
 #include <memory>
 
+class FittingError : public std::runtime_error
+{
+public: 
+   FittingError(const std::string& description, int code) :
+      std::runtime_error(description), 
+      code_(code)
+   {
+   }
+   
+   int code() { return code_; }
+
+protected:
+   int code_;
+};
+
 class AbstractFitter
 {
 public:
 
    AbstractFitter(std::shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
 
-   virtual ~AbstractFitter() {
-      std::cout << "Deleted abstract fitter\n";
-   };
+   virtual ~AbstractFitter() {};
 
-   virtual int FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
-   virtual int GetLinearParams() = 0;
+   virtual void FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
+   virtual void GetLinearParams() = 0;
    
    int Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
    int GetFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);

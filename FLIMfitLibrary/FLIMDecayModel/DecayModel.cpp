@@ -231,7 +231,7 @@ int DecayModel::getNumDerivatives()
    return n;
 }
 
-int DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx, int isel)
+void DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int idx = 0;
 
@@ -248,94 +248,81 @@ int DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<dou
       idx += decay_groups[i]->setVariables(param_values + idx);
    }
 
-   switch (isel)
+   int col = 0;
+
+   for (int i = 0; i < decay_groups.size(); i++)
+      col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap[0]);
+
+   /* TODO
+   MOVE THIS TO MULTIEXPONENTIAL MODEL
+   if (constrain_nonlinear_parameters && kap.size() > 0)
    {
-   case 1:
-   case 2:
-   {
-
-      int col = 0;
-
-      for (int i = 0; i < decay_groups.size(); i++)
-         col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap[0]);
-
-      /* TODO
-      MOVE THIS TO MULTIEXPONENTIAL MODEL
-      if (constrain_nonlinear_parameters && kap.size() > 0)
-      {
-         kap[0] = 0;
-         for (int i = 1; i < n_v; i++)
-            kap[0] += kappa_spacer(alf[i], alf[i - 1]);
-         for (int i = 0; i < n_v; i++)
-            kap[0] += kappa_lim(alf[i]);
-         for (int i = 0; i < n_theta_v; i++)
-            kap[0] += kappa_lim(alf[alf_theta_idx + i]);
-      }
-      */
-
-      // Apply scaling to convert counts -> photons
-      for (int i = 0; i < adim*(col + 1); i++)
-         a[i] *= photons_per_count;
-
-      if (isel == 2 || getting_fit)
-         break;
-
+      kap[0] = 0;
+      for (int i = 1; i < n_v; i++)
+         kap[0] += kappa_spacer(alf[i], alf[i - 1]);
+      for (int i = 0; i < n_v; i++)
+         kap[0] += kappa_lim(alf[i]);
+      for (int i = 0; i < n_theta_v; i++)
+         kap[0] += kappa_lim(alf[alf_theta_idx + i]);
    }
-   case 3:
-   {
-      int col = 0;
+   */
 
-      double* kap_derv = kap.data() + 1; // TODO tidy this a bit
+   // Apply scaling to convert counts -> photons
+   for (int i = 0; i < adim*(col + 1); i++)
+      a[i] *= photons_per_count;
+}
 
-      /*
-      if (irf->ref_reconvolution == FIT_GLOBALLY)
-      col += AddReferenceLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
-      */
+void DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+{
+   int col = 0;
 
-      if (t0_parameter->fitting_type == FittedGlobally)
-         col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv[col]);
+   double* kap_derv = kap.data() + 1; // TODO tidy this a bit
 
-      for (int i = 0; i < decay_groups.size(); i++)
-         col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, &kap_derv[col]);
+   /*
+   if (irf->ref_reconvolution == FIT_GLOBALLY)
+   col += AddReferenceLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
+   */
+
+   if (t0_parameter->fitting_type == FittedGlobally)
+      col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv[col]);
+
+   for (int i = 0; i < decay_groups.size(); i++)
+      col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, &kap_derv[col]);
 
 #if _DEBUG
-      //for (int i = 0; i < b.size(); i++)
-      //   assert(std::isfinite(b[i]));
+   //for (int i = 0; i < b.size(); i++)
+   //   assert(std::isfinite(b[i]));
 #endif
-       
-           
-      for (int i = 0; i < col*bdim; i++)
-         b[i] *= photons_per_count;
 
-      /*
-      MOVE TO MULTIEXPONENTIAL MODEL
-      if (constrain_nonlinear_parameters && kap.size() != 0)
+
+   for (int i = 0; i < col*bdim; i++)
+      b[i] *= photons_per_count;
+
+   /*
+   MOVE TO MULTIEXPONENTIAL MODEL
+   if (constrain_nonlinear_parameters && kap.size() != 0)
+   {
+      double *kap_derv = kap.data() + 1;
+
+      for (int i = 0; i < nl; i++)
+         kap_derv[i] = 0;
+
+      for (int i = 0; i < n_v; i++)
       {
-         double *kap_derv = kap.data() + 1;
-
-         for (int i = 0; i < nl; i++)
-            kap_derv[i] = 0;
-
-         for (int i = 0; i < n_v; i++)
-         {
-            kap_derv[i] = -kappa_lim(wb.tau_buf[n_fix + i]);
-            if (i < n_v - 1)
-               kap_derv[i] += kappa_spacer(wb.tau_buf[n_fix + i + 1], wb.tau_buf[n_fix + i]);
-            if (i>0)
-               kap_derv[i] -= kappa_spacer(wb.tau_buf[n_fix + i], wb.tau_buf[n_fix + i - 1]);
-         }
-         for (int i = 0; i < n_theta_v; i++)
-         {
-            kap_derv[alf_theta_idx + i] = -kappa_lim(wb.theta_buf[n_theta_fix + i]);
-         }
-
-
+         kap_derv[i] = -kappa_lim(wb.tau_buf[n_fix + i]);
+         if (i < n_v - 1)
+            kap_derv[i] += kappa_spacer(wb.tau_buf[n_fix + i + 1], wb.tau_buf[n_fix + i]);
+         if (i>0)
+            kap_derv[i] -= kappa_spacer(wb.tau_buf[n_fix + i], wb.tau_buf[n_fix + i - 1]);
       }
-      */
-   }
-   }
+      for (int i = 0; i < n_theta_v; i++)
+      {
+         kap_derv[alf_theta_idx + i] = -kappa_lim(wb.theta_buf[n_theta_fix + i]);
+      }
 
-   return 0;
+
+   }
+   */
 }
 
 
@@ -528,7 +515,8 @@ void DecayModel::validateDerivatives()
    std::vector<double> alf(n_nonlinear);
    getInitialVariables(alf, 2000);
    
-   calculateModel(a, dim, b, dim, kap, alf, 0, 1);
+   calculateModel(a, dim, kap, alf, 0);
+   calculateDerivatives(b, dim, kap, alf, 0);
 
    int m = 0;
    for (int i = 0; i < n_nonlinear; i++)
@@ -542,7 +530,7 @@ void DecayModel::validateDerivatives()
             if (temp == 0.0) temp = eps;
             alf_p[i] += temp;
 
-            calculateModel(ap, dim, b, dim, kap, alf_p, 0, 2);
+            calculateModel(ap, dim, kap, alf_p, 0);
 
             double* fvec = a.data() + dim * j;
             double* fvecp = ap.data() + dim * j;

@@ -65,7 +65,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(std::shared_ptr<DecayModel> mod
    expA = new double[nfunc];
 }
 
-int MaximumLikelihoodFitter::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
+void MaximumLikelihoodFitter::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
 {
 
    for(int i=0; i<n; i++)
@@ -120,8 +120,8 @@ int MaximumLikelihoodFitter::FitFcn(int nl, std::vector<double>& alf, int itmax,
                       * info[9]= # linear systems solved, i.e. # attempts for reducing error
 */
 
-   if (info[6] == 7)
-      throw std::runtime_error("Non-finite entry in model");
+   //if (info[6] == 7)
+   //   throw std::runtime_error("Non-finite entry in model");
 
    for (int i = 0; i < 5; i++)
       if (!std::isfinite(info[i]))
@@ -141,21 +141,16 @@ int MaximumLikelihoodFitter::FitFcn(int nl, std::vector<double>& alf, int itmax,
       chi2[0] = (float) *cur_chi2;
    }
    
-
    if (ret < 0)
       *ierr = (int) info[6]; // reason for terminating
    else
       *ierr = (int) info[5]; // number of interations
-   return 0;
-
 }
 
 
 
-int MaximumLikelihoodFitter::GetLinearParams() 
-{
-   return 0;
-}
+void MaximumLikelihoodFitter::GetLinearParams() 
+{}
 
 
 void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, int nfunc)

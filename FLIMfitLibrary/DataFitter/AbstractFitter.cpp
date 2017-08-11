@@ -224,7 +224,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
    model->getInitialVariables(alf, tau_mean);
 
    // Fit!
-   int ret = FitFcn(nl, alf, itmax, &niter, &ierr);
+   FitFcn(nl, alf, itmax, &niter, &ierr);
 
    chi2_final = *cur_chi2;
 
@@ -244,7 +244,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
 
    results.setFitStatus(ierr);
 
-   return ret;
+   return 0;
 }
 
 
@@ -422,7 +422,9 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
    std::vector<double>& a = a_[omp_thread];
    std::vector<double>& b = b_[omp_thread];
 
-   models[omp_thread]->calculateModel(a, nmax, b, ndim, kap, params, irf_idx, isel);
+   models[omp_thread]->calculateModel(a, nmax, kap, params, irf_idx);
+   if (isel == 1)
+      models[omp_thread]->calculateDerivatives(b, ndim, kap, params, irf_idx);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)
@@ -451,7 +453,7 @@ int AbstractFitter::GetFit(int irf_idx, const std::vector<double>& alf, float* l
    std::vector<double>& b = b_[0];
 
    float* adjust = model->getConstantAdjustment();
-   model->calculateModel(a, nmax, b, ndim, kap, params, irf_idx, 1);
+   model->calculateModel(a, nmax, kap, params, irf_idx);
 
    int idx = 0;
    for(int i=0; i<n; i++)
