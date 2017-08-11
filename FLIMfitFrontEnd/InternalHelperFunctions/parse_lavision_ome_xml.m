@@ -44,7 +44,7 @@ function dims = parse_lavision_ome_xml(xml,dims)
             throw(MException('FLIMfit:errorProcessingLavision','Could not find fast delay values'));
         end
         
-        dims.delays = str2double(delay_values.Value);
+        dims.delays = str2num(delay_values.Value);
         dims.FLIM_type = 'Gated';
         
     % TCSPC
