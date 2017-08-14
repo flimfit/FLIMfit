@@ -257,7 +257,7 @@ void VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int*
             &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
       }
 
-      std::cout << "info: " << std::to_string(info) << "\n";
+//      std::cout << "info: " << std::to_string(info) << "\n";
 
       // Get linear parameters
       if (info <= -8)
@@ -267,12 +267,7 @@ void VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int*
       else
       {
          if (!getting_errs)
-         {
             varproj(nsls1, nl, s_red, alf.data(), fvec, fjac, -1, 0);
-
-            // Get optimal linear parameters by recalculating weighted by previous fit
-            //varproj(nsls1, nl, s_red, alf, fvec, fjac, -2, 0);
-         }
       }
 
       fit_successful = true;
@@ -294,7 +289,6 @@ void VariableProjector::GetLinearParams()
    {
       int nsls1 = (n - l) * s;
       varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -1, 0);
-      //   varproj(nsls1, nl, 1, alf.data(), fvec, fjac, -2, 0); TODO: do we need this?
    }   
 }
 
@@ -422,30 +416,10 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
 {
    int nml  = n - l;
    int get_lin = false;
-   int iterative_weighting_buf = iterative_weighting;
-   int weighting_buf = weighting;
 
    if (iflag == -1)
-   {
       get_lin = true;
-   }
-   else if (iflag == -2)
-   {
 
-      // remove gamma weighting correction to data
-      if (using_gamma_weighting)
-      {
-
-         for(int j=0; j<s; j++)
-            for (int i=0; i < n; ++i)
-              if (y[i+j*n] > 0)
-                  y[i+j*n] -= 1;
-      }
-
-      get_lin = true;
-      iterative_weighting = true;
-      weighting = MODEL_WEIGHTING;
-   }
 
    if (reporter->shouldTerminate())
       return -9;
@@ -576,9 +550,6 @@ int VariableProjector::varproj(int nsls1, int nls, int s_red, const double* alf,
 
    n_call++;
 
-   iterative_weighting = iterative_weighting_buf;
-   weighting = weighting_buf;
-
    return iflag;
 }
 
@@ -602,8 +573,6 @@ void VariableProjector::CalculateWeights(int px, const double* alf, int omp_thre
    }
    else // MODEL_WEIGHTING
    {
-      
-
       for(int i=0; i<n; i++)
       {
          wp[i] = 0;
