@@ -35,6 +35,8 @@ VariableProjector::VariableProjector(std::shared_ptr<DecayModel> model, int max_
     AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, reporter), weighting(weighting)
 {
 
+   nnls = std::make_unique<NonNegativeLeastSquares>(l, n);
+
    use_numerical_derv = false;
 
    iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
@@ -103,9 +105,16 @@ int VariableProjectorCallback(void *p, int m, int n, int s_red, const double* x,
    vp->SetAlf(x);
 
    if (iflag == 0)
-      return vp->getResidual(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+   {
+      //return vp->getResidual(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+      return vp->getResidualNonNegative(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+   }
    else if (iflag == 1)
+   {
+      double fn;
+      vp->getResidual(m, n, s_red, x, &fn, fjrow, iflag, thread);
       return vp->prepareJacobianCalculation(m, n, s_red, x, fnorm, fjrow, iflag, thread);
+   }
    else
       return vp->getJacobianEntry(m, n, s_red, x, fnorm, fjrow, iflag - 2, thread);
 }
@@ -258,7 +267,7 @@ void VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int*
       else
       {
          if (!getting_errs)
-            getResidual(nsls1, nl, s_red, alf.data(), fvec, fjac, -1, 0);
+            getResidualNonNegative(nsls1, nl, s_red, alf.data(), fvec, fjac, -1, 0);
       }
 
       fit_successful = true;
@@ -331,7 +340,7 @@ int VariableProjector::getJacobianEntry(int nsls1, int nls, int s_red, const dou
    int j_max = min(mskip, s - is*mskip);
    for (int j = 0; j < j_max; j++)
       for (int k = 0; k < n; k++)
-         r_buf[k] += r[(is*mskip + j) * nmax + k];
+         r_buf[k] +=  r[(is*mskip + j) * nmax + k];
 
    for (int j = 0; j < n; j++)
       r_buf[j] /= j_max;
@@ -378,6 +387,104 @@ int VariableProjector::getJacobianEntry(int nsls1, int nls, int s_red, const dou
 }
 
 
+int VariableProjector::getResidualNonNegative(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread)
+{
+   int nml = n - l;
+   int get_lin = false;
+
+   if (iflag == -1)
+      get_lin = true;
+
+   if (reporter->shouldTerminate())
+      return -9;
+
+   double r_sq = 0;
+
+   float* adjust = model->getConstantAdjustment();
+   if (!variable_phi)
+      GetModel(alf, irf_idx[0], 0, 0);
+   if (!iterative_weighting)
+      CalculateWeights(0, alf, 0);
+
+   for (int i = 0; i<n_thread; i++)
+      norm_buf_[i*nmax] = 0;
+
+   //#pragma omp parallel for num_threads(n_thread)
+
+   // We'll apply this for all pixels
+   for (int j = 0; j < s; j++)
+   {
+      int omp_thread = 0; // omp_get_thread_num();
+
+      double* rj = r.data() + j * nmax;
+      float* yj = y + j * n;
+
+      int idx = (iterative_weighting) ? omp_thread : 0;
+      std::vector<double>& a = variable_phi ? a_[omp_thread] : a_[0];
+      std::vector<double>& aw = aw_[idx];
+      std::vector<double>& wp = wp_[idx];
+      std::vector<double>& work = work_[omp_thread];
+
+      float* linj = lin_params + idx * lmax;
+
+      if (variable_phi)
+         GetModel(alf, irf_idx[j], 0, omp_thread);
+      if (iterative_weighting)
+         CalculateWeights(j, alf, omp_thread);
+     
+      // Get the data we're about to transform
+      if (!philp1)
+      {
+         for (int i = 0; i < n; i++)
+            rj[i] = (yj[i] - adjust[i]) * wp[i];
+      }
+      else
+      {
+         // Store the data in rj, subtracting the column l+1 which does not
+         // have a linear parameter
+         for (int i = 0; i < n; i++)
+            rj[i] = (yj[i] - adjust[i]) * wp[i] - a[i + l * nmax];
+      }
+
+      for (int k = 0; k < l; k++)
+      {
+         for (int i = 0; i < n; i++)
+            aw[i + k*nmax] = a[i + k*nmax] * wp[i];
+      }
+
+      double rj_norm;
+      nnls->compute(aw.data(), nmax, rj, work.data(), rj_norm);
+
+      // Calcuate the norm of the jth column and add to residual
+      norm_buf_[omp_thread*nmax] += rj_norm * rj_norm;
+
+      if (use_numerical_derv)
+         memcpy(rnorm + j*(n - l), rj + l, (n - l) * sizeof(double));
+
+      if (get_lin | iterative_weighting)
+         for (int i = 0; i < l; i++)
+            lin_params[i+j*lmax] = work[i];
+
+   } // loop over pixels
+
+   for (int i = 0; i<n_thread; i++)
+      r_sq += norm_buf_[i*nmax];
+
+   // Compute the norm of the residual matrix
+   *cur_chi2 = r_sq / (chi2_norm * s);
+
+   if (!use_numerical_derv)
+   {
+      r_sq += kap[0] * kap[0];
+      *rnorm = (double)sqrt(r_sq);
+   }
+
+   n_call++;
+
+   return iflag;
+
+}
+
 /*     ============================================================== */
 
 /*        COMPUTE THE NORM OF THE RESIDUAL (IF ISEL = 1 OR 2), OR THE */
@@ -410,7 +517,6 @@ int VariableProjector::getResidual(int nsls1, int nls, int s_red, const double* 
 
    if (iflag == -1)
       get_lin = true;
-
 
    if (reporter->shouldTerminate())
       return -9;
@@ -445,7 +551,7 @@ int VariableProjector::getResidual(int nsls1, int nls, int s_red, const double* 
       std::vector<double>& aw = aw_[idx];
       std::vector<double>& wp = wp_[idx];
       std::vector<double>& u = u_[idx];
-      std::vector<double>& work = work_[idx];
+      std::vector<double>& work = work_[omp_thread];
 
       if (variable_phi)
          GetModel(alf, irf_idx[j], 0, omp_thread);
@@ -602,7 +708,6 @@ void VariableProjector::transformAB(int px, int omp_thread, bool transform_b)
 
       if (alpha == (float)0.)
          throw FittingError("alpha == 0",-8);
-
 
       beta = -aw[k + k * nmax] * u[k];
 

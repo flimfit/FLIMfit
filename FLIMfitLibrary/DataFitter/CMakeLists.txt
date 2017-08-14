@@ -43,6 +43,7 @@ set(SOURCE
    lmstr.cpp
    lmstx.cpp
    lmdif.cpp
+   nnls.cpp
    fdjac2.cpp
    cminpack_support.cpp
    FitResults.cpp
@@ -54,6 +55,7 @@ set(HEADERS
    FLIMData.h
    RegionData.h
    VariableProjector.h
+   nnls.h
    AbstractFitter.h
    MaximumLikelihoodFitter.h
    cminpack.h

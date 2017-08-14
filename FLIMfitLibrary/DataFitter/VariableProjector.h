@@ -30,6 +30,7 @@
 #pragma once
 
 #include "AbstractFitter.h"
+#include "nnls.h"
 
 #define ANALYTICAL_DERV 0
 #define NUMERICAL_DERV  1
@@ -46,8 +47,10 @@ public:
    void GetLinearParams(); 
 
 private:
-
+   
    int getResidual(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
+   int getResidualNonNegative(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
+
    int prepareJacobianCalculation(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
    int getJacobianEntry(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
 
@@ -88,6 +91,9 @@ private:
    int using_gamma_weighting;
 
    bool fit_successful = false;
+
+   std::unique_ptr<NonNegativeLeastSquares> nnls;
+
 
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
