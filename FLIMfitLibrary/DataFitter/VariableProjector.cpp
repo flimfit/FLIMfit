@@ -49,7 +49,7 @@ VariableProjector::VariableProjector(std::shared_ptr<DecayModel> model, int max_
    norm_buf_ = new double[ nmax * n_thread ];
 
    for (int i = 0; i < n_thread; i++)
-      vp_buffer.push_back(VpBuffer(nmax, ndim, l, pmax, model));
+      vp_buffer.push_back(VpBuffer(n, nmax, ndim, l, p, pmax, model));
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -278,7 +278,7 @@ void VariableProjector::GetLinearParams()
    }   
 }
 
-double VariableProjector::d_sign(double *a, double *b)
+double VpBuffer::d_sign(double *a, double *b)
 {
    double x;
    x = (*a >= 0 ? *a : - *a);
@@ -299,7 +299,7 @@ int VariableProjector::prepareJacobianCalculation(const double* alf, double *rno
       calculateWeights(0, alf, B);
 
    if (!variable_phi && !iterative_weighting)
-      transformAB(0, B);
+      B.transformAB();
 
    // Set kappa derivatives
    *rnorm = kap[0];
@@ -331,7 +331,7 @@ int VariableProjector::getJacobianEntry(const double* alf, double *rnorm, double
       calculateWeights(row, alf, B);
 
    if (variable_phi | iterative_weighting)
-      transformAB(row, B);
+      B.transformAB();
 
    auto adjust = model->getConstantAdjustment();
 
@@ -537,67 +537,62 @@ void VariableProjector::calculateWeights(int px, const double* alf, VpBuffer& B)
    }
 }
 
-void VariableProjector::transformAB(int px, VpBuffer& B)
+void VpBuffer::transformAB()
 {
    int lp1 = l + 1;
 
-   double beta, acum;
-   double alpha, d__1;
-
-   int i, m, k, kp1;
-
-   for (m = 0; m < lp1; ++m)
+   for (int m = 0; m < lp1; ++m)
       for (int i = 0; i < n; ++i)
-         B.aw[i + m * nmax] = B.a[i + m * nmax] * B.wp[i];
+         aw[i + m * nmax] = a[i + m * nmax] * wp[i];
 
-   for (m = 0; m < p; ++m)
+   for (int m = 0; m < p; ++m)
       for (int i = 0; i < n; ++i)
-         B.bw[i + m * ndim] = B.b[i + m * ndim] * B.wp[i];
+         bw[i + m * ndim] = b[i + m * ndim] * wp[i];
 
    // Compute orthogonal factorisations by householder reflection (phi)
-   for (k = 0; k < l; ++k)
+   for (int k = 0; k < l; ++k)
    {
-      kp1 = k + 1;
+      int kp1 = k + 1;
 
       // If *isel=1 or 2 reduce phi (first l columns of a) to upper triangular form
 
-      d__1 = enorm(n - k, &B.aw[k + k * nmax]);
-      alpha = d_sign(&d__1, &B.aw[k + k * nmax]);
-      B.u[k] = B.aw[k + k * nmax] + alpha;
-      B.aw[k + k * nmax] = -alpha;
+      double d__1 = enorm(n - k, &aw[k + k * nmax]);
+      double alpha = d_sign(&d__1, &aw[k + k * nmax]);
+      u[k] = aw[k + k * nmax] + alpha;
+      aw[k + k * nmax] = -alpha;
 
       int firstca = kp1;
 
       if (alpha == (float)0.)
          throw FittingError("alpha == 0", -8);
 
-      beta = -B.aw[k + k * nmax] * B.u[k];
+      double beta = -aw[k + k * nmax] * u[k];
 
       // Compute householder reflection of phi
-      for (m = firstca; m < l; ++m)
+      for (int m = firstca; m < l; ++m)
       {
-         acum = B.u[k] * B.aw[k + m * nmax];
+         double acum = u[k] * aw[k + m * nmax];
 
-         for (i = kp1; i < n; ++i)
-            acum += B.aw[i + k * nmax] * B.aw[i + m * nmax];
+         for (int i = kp1; i < n; ++i)
+            acum += aw[i + k * nmax] * aw[i + m * nmax];
          acum /= beta;
 
-         B.aw[k + m * nmax] -= B.u[k] * acum;
-         for (i = kp1; i < n; ++i)
-            B.aw[i + m * nmax] -= B.aw[i + k * nmax] * acum;
+         aw[k + m * nmax] -= u[k] * acum;
+         for (int i = kp1; i < n; ++i)
+            aw[i + m * nmax] -= aw[i + k * nmax] * acum;
       }
 
       // Transform J=D(phi)
-      for (m = 0; m < p; ++m)
+      for (int m = 0; m < p; ++m)
       {
-         acum = B.u[k] * B.bw[k + m * ndim];
-         for (i = kp1; i < n; ++i)
-            acum += B.aw[i + k * nmax] * B.bw[i + m * ndim];
+         double acum = u[k] * bw[k + m * ndim];
+         for (int i = kp1; i < n; ++i)
+            acum += aw[i + k * nmax] * bw[i + m * ndim];
          acum /= beta;
 
-         B.bw[k + m * ndim] -= B.u[k] * acum;
-         for (i = kp1; i < n; ++i)
-            B.bw[i + m * ndim] -= B.aw[i + k * nmax] * acum;
+         bw[k + m * ndim] -= u[k] * acum;
+         for (int i = kp1; i < n; ++i)
+            bw[i + m * ndim] -= aw[i + k * nmax] * acum;
       }
 
    } // first k loop

@@ -37,7 +37,8 @@
 
 class VpBuffer
 {
-   VpBuffer(int nmax, int ndim, int l, int pmax, std::shared_ptr<DecayModel> model_)
+   VpBuffer(int n, int nmax, int ndim, int l, int p, int pmax, std::shared_ptr<DecayModel> model_) :
+      n(n), nmax(nmax), ndim(ndim), l(l), p(p), pmax(pmax)
    {
       r.resize(nmax);
       work.resize(nmax);
@@ -51,6 +52,11 @@ class VpBuffer
 
       model = std::make_shared<DecayModel>(*model_); // deep copy
    }
+
+   void transformAB();
+   double d_sign(double *a, double *b);
+
+   int n, nmax, ndim, l, p, pmax;
 
    std::vector<double> a, b;
    std::vector<double> work, aw, bw, wp, u, r;
@@ -74,19 +80,14 @@ public:
 
 private:
    
-   //int getResidual(int nsls1, int nls, int s, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
    int getResidualNonNegative(const double* alf, double *rnorm, double *fjrow, int isel, int thread);
 
    int prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread);
    int getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread);
 
-   void transformAB(int px, VpBuffer& B);
-
    void calculateWeights(int px, const double* alf, VpBuffer& B);
 
    void backSolve(std::vector<double>& r, std::vector<double>& a);
-
-   double d_sign(double *a, double *b);
 
    std::vector<double> w;
 
