@@ -47,7 +47,7 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
    w.resize(nmax);
 
    for (int i = 0; i < n_thread; i++)
-      vp_buffer.push_back(VpBuffer(n, nmax, ndim, nl, l, p, pmax, philp1, model));
+      vp.push_back(VariableProjector(n, nmax, ndim, nl, l, p, pmax, philp1, model));
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -265,7 +265,7 @@ void VariableProjectionFitter::GetLinearParams()
 
 int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread)
 {
-   auto& B = vp_buffer[thread];
+   auto& B = vp[thread];
    
    if (!variable_phi)
    {
@@ -293,7 +293,7 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
       return -9;
 
    int idx = (iterative_weighting) ? thread : 0;
-   auto& B = vp_buffer[idx];
+   auto& B = vp[idx];
 
    if (variable_phi)
    {
@@ -328,7 +328,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
    double r_sq = 0;
 
-   auto& B = vp_buffer[thread];
+   auto& B = vp[thread];
 
    if (!variable_phi)
       GetModel(alf, B.model, irf_idx[0], B.a);
@@ -342,7 +342,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    for (int j = 0; j < s; j++)
    {
       int omp_thread = 0; //omp_get_thread_num();
-      auto& B = vp_buffer[omp_thread];
+      auto& B = vp[omp_thread];
    
       int idx = (iterative_weighting) ? omp_thread : 0;
 
@@ -355,7 +355,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       B.setData(y + j * n);
 
       double rj_norm;
-      nnls->compute(B.aw.data(), nmax, B.r.data(), B.work.data(), rj_norm);
+      nnls->compute(B.aw, nmax, B.r, B.work, rj_norm);
 
       // Calcuate the norm of the jth column and add to residual
       r_sq += rj_norm * rj_norm;

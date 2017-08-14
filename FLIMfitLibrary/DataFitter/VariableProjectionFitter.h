@@ -58,7 +58,7 @@ private:
 
    std::vector<double> w;
 
-   std::vector<VpBuffer> vp_buffer;
+   std::vector<VariableProjector> vp;
 
    // Buffers used by levmar algorithm
    double *fjac;
