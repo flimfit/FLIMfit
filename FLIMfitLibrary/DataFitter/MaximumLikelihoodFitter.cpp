@@ -65,7 +65,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(std::shared_ptr<DecayModel> mod
    expA = new double[nfunc];
 }
 
-void MaximumLikelihoodFitter::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
+void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr)
 {
 
    for(int i=0; i<n; i++)
@@ -142,14 +142,14 @@ void MaximumLikelihoodFitter::FitFcn(int nl, std::vector<double>& alf, int itmax
    }
    
    if (ret < 0)
-      *ierr = (int) info[6]; // reason for terminating
+      ierr = (int) info[6]; // reason for terminating
    else
-      *ierr = (int) info[5]; // number of interations
+      ierr = (int) info[5]; // number of interations
 }
 
 
 
-void MaximumLikelihoodFitter::GetLinearParams() 
+void MaximumLikelihoodFitter::getLinearParams() 
 {}
 
 
@@ -159,7 +159,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, 
    float* adjust;
 
    std::vector<double>& a = a_[0];
-   GetModel(alf, model, irf_idx[0], a);
+   getModel(alf, model, irf_idx[0], a);
    adjust = model->getConstantAdjustment();
    double* A = alf + nl;
 
@@ -194,8 +194,8 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
    std::vector<double>& a = a_[0];
    std::vector<double>& b = b_[0];
 
-   GetModel(alf, model, irf_idx[0], a);
-   GetDerivatives(alf, model, irf_idx[0], b);
+   getModel(alf, model, irf_idx[0], a);
+   getDerivatives(alf, model, irf_idx[0], b);
    adjust = model->getConstantAdjustment();
 
    memset(fjac,0,nfunc*n_param*sizeof(double));

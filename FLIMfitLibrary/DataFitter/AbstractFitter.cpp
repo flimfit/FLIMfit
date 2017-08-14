@@ -102,7 +102,7 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
 
    getting_errs = false;
 
-   Init();
+   init();
 
    counts_per_photon = model->getTransformedDataParameters()->counts_per_photon;
 
@@ -112,28 +112,16 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
 
 }
 
-/*
-AbstractFitter* new_clone(AbstractFitter const& other)
-{
-   return other.clone();
-}
-*/
 
-int AbstractFitter::Init()
+int AbstractFitter::init()
 {
-   //int j, k, inckj;
-
    // Get inc matrix and check for valid input
    // Determine number of constant functions
    //------------------------------------------
 
    int lp1 = l+1;
-
-   //nconp1 = lp1;
    philp1 = l == 0;
    p = 0;
-
-   
 
    if ( l > 0 && nl > 0 )
    {
@@ -177,20 +165,17 @@ int AbstractFitter::Init()
          philp1 = philp1 | (inc[k + l * 12] == 1); 
    }
 
-   //ncon = nconp1 - 1;
-   
-
    return 0;
 }
 
-int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2)
+int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr_, double& c2)
 {
    cur_chi2   = &c2;
 
    fixed_param = -1;
    getting_errs = false;
 
-   Init();
+   init();
 
    region_data.GetAverageDecay(avg_y.data());
 
@@ -217,7 +202,7 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
    model->getInitialVariables(alf, tau_mean);
 
    // Fit!
-   FitFcn(nl, alf, itmax, &niter, &ierr);
+   fitFcn(nl, alf, itmax, niter, ierr_);
 
    chi2_final = *cur_chi2;
 
@@ -231,11 +216,11 @@ int AbstractFitter::Fit(RegionData& region_data, FitResultsRegion& results, int 
       s = region_data.GetSize();
       region_data.GetPointers(y, irf_idx);
 
-      GetLinearParams();
+      getLinearParams();
    }
 
 
-   results.setFitStatus(ierr);
+   results.setFitStatus(ierr_);
 
    return 0;
 }
@@ -249,7 +234,7 @@ double tol(double a, double b)
 }
 
 
-int AbstractFitter::CalculateErrors(double conf_limit)
+int AbstractFitter::calculateErrors(double conf_limit)
 {
    using namespace boost::math;
    using namespace boost::math::tools;
@@ -276,11 +261,9 @@ int AbstractFitter::CalculateErrors(double conf_limit)
 
    getting_errs = true;
 
-  
    // Get lower (lim=0) and upper (lim=1) limit
    for(int lim=0; lim<2; lim++)
    {
-
       for(int i=0; i<nl; i++)
       {
 
@@ -290,20 +273,19 @@ int AbstractFitter::CalculateErrors(double conf_limit)
          if(f_debug)
             fprintf(f_debug,"%d, %d, %f, %f, NaN, %f, NaN, NaN\n", i, lim, fixed_value_initial, fixed_value_initial, chi2_final);
    
-   
-         Init();
+         init();
 
          search_dir = lim;
 
          uintmax_t max = 20;
 
          errno = 0;
-         ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
+         ans = toms748_solve(boost::bind(&AbstractFitter::errMinFcn,this,_1), 
                      0.0, 0.1*fixed_value_initial, tol, max, c_policy());    
          
          if (errno != 0)
          {
-            ans = toms748_solve(boost::bind(&AbstractFitter::ErrMinFcn,this,_1), 
+            ans = toms748_solve(boost::bind(&AbstractFitter::errMinFcn,this,_1), 
                      0.1*fixed_value_initial, 0.8*fixed_value_initial, tol, max, c_policy());    
          }
 
@@ -328,7 +310,7 @@ int AbstractFitter::CalculateErrors(double conf_limit)
 
 }
 
-double AbstractFitter::ErrMinFcn(double x)
+double AbstractFitter::errMinFcn(double x)
 {
    using namespace boost::math;
    
@@ -355,7 +337,7 @@ double AbstractFitter::ErrMinFcn(double x)
       if (j!=fixed_param)
          alf_err[idx++] = alf_buf[j];
 
-   FitFcn(nl-1,alf_err,itmax,&niter,&ierr);
+   fitFcn(nl-1,alf_err,itmax,niter,ierr);
             
    F = (*cur_chi2-chi2_final)/chi2_final * nmp ;
    
@@ -371,12 +353,12 @@ double AbstractFitter::ErrMinFcn(double x)
    return F-F_crit;
 }
 
-void AbstractFitter::SetAlf(const double* alf_)
+void AbstractFitter::setAlf(const double* alf_)
 {
    std::copy(alf_, alf_ + nl, alf.begin());
 }
 
-void AbstractFitter::GetParams(int nl, const std::vector<double>& alf)
+void AbstractFitter::getParams(int nl, const std::vector<double>& alf)
 {
    int idx = 0;
    for(int i=0; i<nl; i++)
@@ -388,7 +370,7 @@ void AbstractFitter::GetParams(int nl, const std::vector<double>& alf)
    }
 }
 
-void AbstractFitter::GetModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a)
+void AbstractFitter::getModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a)
 {
    int idx = 0;
    for (int i = 0; i < nl; i++)
@@ -402,7 +384,7 @@ void AbstractFitter::GetModel(const double* alf, std::shared_ptr<DecayModel> mod
    model->calculateModel(a, nmax, kap, params, irf_idx);
 }
 
-void AbstractFitter::GetDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b)
+void AbstractFitter::getDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b)
 {
    int valid_cols = 0;
    int ignore_cols = 0;
@@ -428,7 +410,7 @@ void AbstractFitter::GetDerivatives(const double* alf, std::shared_ptr<DecayMode
    }
 }
 
-int AbstractFitter::GetFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
+int AbstractFitter::getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
 {
    std::vector<double>& a = a_[0];
    std::vector<double>& b = b_[0];
@@ -448,8 +430,4 @@ int AbstractFitter::GetFit(int irf_idx, const std::vector<double>& alf, float* l
    }
 
    return 0;
-}
-
-void AbstractFitter::ReleaseResidualMemory()
-{
 }

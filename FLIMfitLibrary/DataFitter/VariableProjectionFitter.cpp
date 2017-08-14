@@ -96,7 +96,7 @@ VariableProjectionFitter::~VariableProjectionFitter()
 int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double* x, double *fnorm, double *fjrow, int iflag, int thread)
 {
    VariableProjectionFitter *vp = (VariableProjectionFitter*) p;
-   vp->SetAlf(x);
+   vp->setAlf(x);
 
    if (iflag == 0)
       return vp->getResidualNonNegative(x, fnorm, fjrow, iflag, thread);
@@ -109,7 +109,7 @@ int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double*
 int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double* x, double *fvec, int iflag)
 {
    VariableProjectionFitter *vp = (VariableProjectionFitter*) p;
-   vp->SetAlf(x);
+   vp->setAlf(x);
    return vp->getResidualNonNegative(x, fvec, NULL, iflag, 0);
 }
 
@@ -142,10 +142,10 @@ int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double* x,
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-void VariableProjectionFitter::FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr)
+void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr)
 {
-   int nml = (n-l);
- 
+   fit_successful = false;
+
    double ftol = (double)sqrt(dpmpar(1));
    double xtol = (double)sqrt(dpmpar(1));
    double epsfcn = (double)sqrt(dpmpar(1));
@@ -155,14 +155,60 @@ void VariableProjectionFitter::FitFcn(int nl, std::vector<double>& alf, int itma
    int nfev, info;
    double rnorm; 
 
+   setupWeighting();
+
+   n_call = 0;
+
+   if (iterative_weighting)
+   {
+      getResidualNonNegative(alf.data(), fvec, fjac, 0, 0);
+      n_call = 1;
+   }
+
+   try
+   {
+      if (use_numerical_derv)
+         info = lmdif(VariableProjectionFitterDiffCallback, (void*) this, n-l, nl, alf.data(), fvec,
+            ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
+            &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4);
+      else
+      {
+
+         info = lmstx(VariableProjectionFitterCallback, (void*) this, n-l, nl, s, n_jac_group, alf.data(), fvec, fjac, nl,
+            ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
+            &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
+      }
+
+      // Get linear parameters
+      if (info <= -8)
+      {
+         SetNaN(alf.data(), nl);
+      }
+      else
+      {
+         if (!getting_errs)
+            getResidualNonNegative(alf.data(), fvec, fjac, -1, 0);
+      }
+
+      fit_successful = true;
+   }
+   catch (FittingError e)
+   {
+      info = e.code();
+   }
+
+   ierr = (info < 0) ? info : niter;
+}
+
+void VariableProjectionFitter::setupWeighting()
+{
    // Calculate weighting
    // If required use, gamma weighting from
    // "Parameter Estimation in Astronomy with Poisson-distributed Data"
    // Reference: http://iopscience.iop.org/0004-637X/518/1/380/
 
    using_gamma_weighting = false;
-   fit_successful = false;
-
+ 
    if (weighting == AVERAGE_WEIGHTING)
    {
       for(int i=0; i<n; i++)
@@ -172,7 +218,7 @@ void VariableProjectionFitter::FitFcn(int nl, std::vector<double>& alf, int itma
             break;
          }
    }
-   else if (weighting == PIXEL_WEIGHTING)
+   else // PIXEL_WEIGHTING
    {
       for(int i=0; i<s*n; i++)
          if (y[i] == 0.0f)
@@ -196,64 +242,9 @@ void VariableProjectionFitter::FitFcn(int nl, std::vector<double>& alf, int itma
       for (int i=0; i<n; i++)
          w[i] = 1/sqrt(avg_y[i]);
    }
-
-   n_call = 0;
-
-   if (iterative_weighting)
-   {
-      getResidualNonNegative(alf.data(), fvec, fjac, 0, 0);
-      n_call = 1;
-   }
-
-   if (false && weighting == AVERAGE_WEIGHTING && !getting_errs)
-   {
-      float* adjust = model->getConstantAdjustment();
-      for(int j=0; j<s; j++)
-         for (int i=0; i < n; ++i)
-               y[i + j * n] = (y[i + j * n]-adjust[i]) * (float) w[i];
-   }
-
-   try
-   {
-      if (use_numerical_derv)
-         info = lmdif(VariableProjectionFitterDiffCallback, (void*) this, nml, nl, alf.data(), fvec,
-            ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
-            &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4);
-      else
-      {
-
-         info = lmstx(VariableProjectionFitterCallback, (void*) this, nml, nl, s, n_jac_group, alf.data(), fvec, fjac, nl,
-            ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
-            &nfev, niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
-      }
-
-//      std::cout << "info: " << std::to_string(info) << "\n";
-
-      // Get linear parameters
-      if (info <= -8)
-      {
-         SetNaN(alf.data(), nl);
-      }
-      else
-      {
-         if (!getting_errs)
-            getResidualNonNegative(alf.data(), fvec, fjac, -1, 0);
-      }
-
-      fit_successful = true;
-   }
-   catch (FittingError e)
-   {
-      info = e.code();
-   }
-
-   if (info < 0)
-      *ierr = info;
-   else
-      *ierr = *niter;
 }
 
-void VariableProjectionFitter::GetLinearParams() 
+void VariableProjectionFitter::getLinearParams() 
 {
    if (fit_successful)
    {
@@ -269,8 +260,8 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
    
    if (!variable_phi)
    {
-      GetModel(alf, B.model, irf_idx[0], B.b);
-      GetDerivatives(alf, B.model, irf_idx[0], B.b);
+      getModel(alf, B.model, irf_idx[0], B.b);
+      getDerivatives(alf, B.model, irf_idx[0], B.b);
    }
    if (!iterative_weighting)
       calculateWeights(0, alf, B.wp);
@@ -297,8 +288,8 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
    if (variable_phi)
    {
-      GetModel(alf, B.model, irf_idx[row], B.a);
-      GetDerivatives(alf, B.model, irf_idx[row], B.b);
+      getModel(alf, B.model, irf_idx[row], B.a);
+      getDerivatives(alf, B.model, irf_idx[row], B.b);
    }
 
    if (iterative_weighting)
@@ -317,25 +308,19 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
 int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *rnorm, double *fjrow, int iflag, int thread)
 {
-   int nml = n - l;
-   int get_lin = false;
-
-   if (iflag == -1)
-      get_lin = true;
+   int get_lin = (iflag == -1);
 
    if (reporter->shouldTerminate())
       return -9;
 
-   double r_sq = 0;
-
    auto& B = vp[thread];
 
    if (!variable_phi)
-      GetModel(alf, B.model, irf_idx[0], B.a);
+      getModel(alf, B.model, irf_idx[0], B.a);
    if (!iterative_weighting)
       calculateWeights(0, alf, B.wp);
 
-   //#pragma omp parallel for num_threads(n_thread)
+   double r_sq = 0;
 
    // We'll apply this for all pixels
    //#pragma omp parallel reduction(+:r_sq) num_threads(n_thread)
@@ -347,7 +332,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       int idx = (iterative_weighting) ? omp_thread : 0;
 
       if (variable_phi)
-         GetModel(alf, B.model, irf_idx[j], B.a);
+         getModel(alf, B.model, irf_idx[j], B.a);
       if (iterative_weighting)
          calculateWeights(j, alf, B.wp);
      

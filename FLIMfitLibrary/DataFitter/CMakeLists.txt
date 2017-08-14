@@ -37,6 +37,7 @@ include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ${OpenCV_INCLUDE_D
 set(SOURCE
    FLIMData.cpp
    RegionData.cpp
+   VariableProjectionFitter.cpp
    VariableProjector.cpp
    MaximumLikelihoodFitter.cpp
    AbstractFitter.cpp
@@ -54,6 +55,7 @@ set(SOURCE
 set(HEADERS   
    FLIMData.h
    RegionData.h
+   VariableProjectionFitter.h
    VariableProjector.h
    nnls.h
    AbstractFitter.h

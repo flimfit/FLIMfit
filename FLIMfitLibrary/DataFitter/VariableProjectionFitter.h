@@ -43,12 +43,14 @@ public:
    VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
    ~VariableProjectionFitter();
 
-   void FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr);
+   void fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr);
 
-   void GetLinearParams(); 
+   void getLinearParams(); 
 
 private:
    
+   void setupWeighting();
+
    int getResidualNonNegative(const double* alf, double *rnorm, double *fjrow, int isel, int thread);
 
    int prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread);

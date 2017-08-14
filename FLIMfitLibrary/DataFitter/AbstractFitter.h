@@ -67,25 +67,24 @@ public:
 
    virtual ~AbstractFitter() {};
 
-   virtual void FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr) = 0;
-   virtual void GetLinearParams() = 0;
+   virtual void fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr) = 0;
+   virtual void getLinearParams() = 0;
    
-   int Fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
-   int GetFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);
-   double ErrMinFcn(double x);
-   int CalculateErrors(double conf_limit);
+   int fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
+   int getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);
+   double errMinFcn(double x);
+   int calculateErrors(double conf_limit);
 
-   void GetParams(int nl, const std::vector<double>& alf);
+   void getParams(int nl, const std::vector<double>& alf);
    
-   void SetAlf(const double* alf_);
-   void GetModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);
-   void GetDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b);
-   void ReleaseResidualMemory();
+   void setAlf(const double* alf_);
+   void getModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);
+   void getDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b);
 
 protected:
 
 
-   int Init();
+   int init();
 
    std::shared_ptr<DecayModel> model; // reference
    std::shared_ptr<ProgressReporter> reporter;

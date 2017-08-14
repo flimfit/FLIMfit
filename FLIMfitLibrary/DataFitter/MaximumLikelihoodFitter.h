@@ -27,8 +27,7 @@
 //
 //=========================================================================
 
-#ifndef _MAXIMIUMLIKELIHOODFITTER_H
-#define _MAXIMIUMLIKELIHOODFITTER_H
+#pragma once
 
 #define CONSTRAIN_FRACTIONS 0
 
@@ -42,9 +41,9 @@ public:
    MaximumLikelihoodFitter(std::shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter);
    ~MaximumLikelihoodFitter();
 
-   void FitFcn(int nl, std::vector<double>& alf, int itmax, int* niter, int* ierr);
+   void fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr);
 
-   void GetLinearParams();
+   void getLinearParams();
 private:
 
    void mle_funcs(double *alf, double *fvec, int nl, int nfunc);
@@ -61,7 +60,3 @@ private:
    friend void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa);
    friend void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa);
 };
-
-
-
-#endif

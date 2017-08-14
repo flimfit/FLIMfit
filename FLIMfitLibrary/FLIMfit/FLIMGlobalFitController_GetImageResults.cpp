@@ -549,7 +549,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
                results->getNonLinearParams(im, rg, lin_idx, nl_params);
                results->getLinearParams(im, rg, lin_idx, l_params);
 
-               fitters[thread]->GetFit(idx, nl_params, l_params.data(), fit+n_meas*i);
+               fitters[thread]->getFit(idx, nl_params, l_params.data(), fit+n_meas*i);
                n_valid++;
 
             }    
