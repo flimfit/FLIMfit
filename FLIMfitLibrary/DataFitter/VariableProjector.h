@@ -47,8 +47,7 @@ public:
 
 private:
 
-   int varproj(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
-
+   int getResidual(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
    int prepareJacobianCalculation(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
    int getJacobianEntry(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
 
@@ -56,15 +55,17 @@ private:
 
    void CalculateWeights(int px, const double* alf, int thread);
 
-   void get_linear_params(int idx, double* a, double* u, double* x = 0);
+   void get_linear_params(int idx, std::vector<double>& a, std::vector<double>& u, std::vector<double>& x);
    void bacsub(int idx, double* a, volatile double* x);
    void bacsub(volatile double *r, double *a, volatile double *x);
 
    double d_sign(double *a, double *b);
 
-   double *work_, *w; 
-   double *aw_, *bw_, *wp_, *u_;
+   std::vector<std::vector<double>> work_; 
+   std::vector<std::vector<double>> aw_, bw_, wp_, u_;
    
+   std::vector<double> w;
+
    // Buffers used by levmar algorithm
    double *fjac;
    double *fvec;
