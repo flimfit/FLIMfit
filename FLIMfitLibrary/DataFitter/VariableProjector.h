@@ -37,8 +37,8 @@
 
 class VpBuffer
 {
-   VpBuffer(int n, int nmax, int ndim, int l, int p, int pmax, std::shared_ptr<DecayModel> model_) :
-      n(n), nmax(nmax), ndim(ndim), l(l), p(p), pmax(pmax)
+   VpBuffer(int n, int nmax, int ndim, int nl, int l, int p, int pmax, int philp1, std::shared_ptr<DecayModel> model_) :
+      n(n), nmax(nmax), ndim(ndim), nl(nl), l(l), p(p), pmax(pmax), philp1(philp1)
    {
       r.resize(nmax);
       work.resize(nmax);
@@ -51,18 +51,25 @@ class VpBuffer
       b.resize(ndim * (pmax + 3));
 
       model = std::make_shared<DecayModel>(*model_); // deep copy
+      adjust = model->getConstantAdjustment();
    }
 
+   void setData(float* y);
    void transformAB();
+   void backSolve();
+   void weightModel();
+   void computeJacobian(const std::vector<int>& inc, double *residual, double *jacobian);
+
    double d_sign(double *a, double *b);
 
-   int n, nmax, ndim, l, p, pmax;
-
+   int n, nmax, ndim, nl, l, p, pmax, philp1;
+   
    std::vector<double> a, b;
    std::vector<double> work, aw, bw, wp, u, r;
 
    std::shared_ptr<DecayModel> model;
 
+   float* adjust;
 
    friend class VariableProjector;
 };
@@ -85,9 +92,7 @@ private:
    int prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread);
    int getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread);
 
-   void calculateWeights(int px, const double* alf, VpBuffer& B);
-
-   void backSolve(std::vector<double>& r, std::vector<double>& a);
+   void calculateWeights(int px, const double* alf, std::vector<double>& wp);
 
    std::vector<double> w;
 

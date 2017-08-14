@@ -49,7 +49,7 @@ VariableProjector::VariableProjector(std::shared_ptr<DecayModel> model, int max_
    norm_buf_ = new double[ nmax * n_thread ];
 
    for (int i = 0; i < n_thread; i++)
-      vp_buffer.push_back(VpBuffer(n, nmax, ndim, l, p, pmax, model));
+      vp_buffer.push_back(VpBuffer(n, nmax, ndim, nl, l, p, pmax, philp1, model));
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -194,19 +194,6 @@ void VariableProjector::FitFcn(int nl, std::vector<double>& alf, int itmax, int*
          for (int i=0; i < n; ++i)
                y[i + j * n] += min(y[i + j * n], 1.0f);
    }
-   else if (weighting == MODEL_WEIGHTING)
-   {
-      // Fit the first time with Neymann weighting 
-      // After first iteration will use model weighting
-      for (int i=0; i<n; i++)
-      {
-         
-         if (avg_y[i] == 0.0f)
-            w[i] = 1.0;
-         else
-            w[i] = 1.0/sqrt(avg_y[i]);
-      }
-   }
    else
    {
       for (int i=0; i<n; i++)
@@ -296,7 +283,7 @@ int VariableProjector::prepareJacobianCalculation(const double* alf, double *rno
       GetDerivatives(alf, B.model, irf_idx[0], B.b);
    }
    if (!iterative_weighting)
-      calculateWeights(0, alf, B);
+      calculateWeights(0, alf, B.wp);
 
    if (!variable_phi && !iterative_weighting)
       B.transformAB();
@@ -309,17 +296,71 @@ int VariableProjector::prepareJacobianCalculation(const double* alf, double *rno
    return 0;
 }
 
-int VariableProjector::getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread)
+void VpBuffer::setData(float* y)
+{
+   // Get the data we're about to transform
+   if (!philp1)
+   {
+      for (int i = 0; i < n; i++)
+         r[i] = (y[i] - adjust[i]) * wp[i];
+   }
+   else
+   {
+      // Store the data in rj, subtracting the column l+1 which does not
+      // have a linear parameter
+      for (int i = 0; i < n; i++)
+         r[i] = (y[i] - adjust[i]) * wp[i] - aw[i + l * nmax];
+   }
+}
+
+void VpBuffer::weightModel()
+{
+   int lp1 = l+1;
+   for (int k = 0; k < lp1; k++)
+      for (int i = 0; i < n; i++)
+         aw[i + k*nmax] = a[i + k*nmax] * wp[i];
+
+}
+
+void VpBuffer::computeJacobian(const std::vector<int>& inc, double residual[], double jacobian[])
 {
    int nml = n - l;
+   for (int i = 0; i < nml; i++)
+   {
+      int ipl = i + l;
+      int m = 0;
+      for (int k = 0; k < nl; ++k)
+      {
+         double acum = 0.;
+         for (int j = 0; j < l; ++j)
+         {
+            if (inc[k + j * 12] != 0)
+            {
+               acum += bw[ipl + m * ndim] * r[j];
+               ++m;
+            }
+         }
 
+         if (inc[k + l * 12] != 0)
+         {
+            acum += bw[ipl + m * ndim];
+            ++m;
+         }
+
+         jacobian[i*nl + k] = -acum;
+      }
+      residual[i] = r[ipl];
+   }
+}
+
+
+int VariableProjector::getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread)
+{
    if (reporter->shouldTerminate())
       return -9;
 
    int idx = (iterative_weighting) ? thread : 0;
    auto& B = vp_buffer[idx];
-
-   float* y__ = y + row * n;
 
    if (variable_phi)
    {
@@ -328,72 +369,15 @@ int VariableProjector::getJacobianEntry(const double* alf, double *rnorm, double
    }
 
    if (iterative_weighting)
-      calculateWeights(row, alf, B);
+      calculateWeights(row, alf, B.wp);
 
    if (variable_phi | iterative_weighting)
       B.transformAB();
 
-   auto adjust = model->getConstantAdjustment();
-
-   // Get the data we're about to transform
-   if (!philp1)
-   {
-      for (int i = 0; i < n; i++)
-         B.r[i] = (y__[i] - adjust[i]) * B.wp[i];
-   }
-   else
-   {
-      // Store the data in rj, subtracting the column l+1 which does not
-      // have a linear parameter
-      for (int i = 0; i < n; i++)
-         B.r[i] = (y__[i] - adjust[i]) * B.wp[i] - B.aw[i + l * nmax];
-   }
-
-   // Transform Y, getting Q*Y=R 
-   for (int k = 0; k < l; k++)
-   {
-      int kp1 = k + 1;
-      double beta = -B.aw[k + k * nmax] * B.u[k];
-      double acum = B.u[k] * B.r[k];
-
-      for (int i = kp1; i < n; ++i)
-         acum += B.aw[i + k * nmax] * B.r[i];
-      acum /= beta;
-
-      B.r[k] -= B.u[k] * acum;
-      for (int i = kp1; i < n; i++)
-         B.r[i] -= B.aw[i + k * nmax] * acum;
-   }
-
-   backSolve(B.r, B.aw);
-
-   for (int i = 0; i < nml; i++)
-   {
-      int ipl = i + l;
-      int m = 0;
-      for (int k = 0; k < nl; ++k)
-      {
-         double acum = (float)0.;
-         for (int j = 0; j < l; ++j)
-         {
-            if (inc[k + j * 12] != 0)
-            {
-               acum += B.bw[ipl + m * ndim] * B.r[j];
-               ++m;
-            }
-         }
-
-         if (inc[k + l * 12] != 0)
-         {
-            acum += B.bw[ipl + m * ndim];
-            ++m;
-         }
-
-         fjrow[i*nl + k] = -acum;
-
-      }
-      rnorm[i] = B.r[ipl];
-   }
+   B.setData(y + row * n);
+   B.backSolve();
+   B.computeJacobian(inc, rnorm, fjrow);
+   
    return 0;
 }
 
@@ -413,11 +397,10 @@ int VariableProjector::getResidualNonNegative(const double* alf, double *rnorm, 
 
    auto& B = vp_buffer[thread];
 
-   float* adjust = model->getConstantAdjustment();
    if (!variable_phi)
       GetModel(alf, B.model, irf_idx[0], B.a);
    if (!iterative_weighting)
-      calculateWeights(0, alf, B);
+      calculateWeights(0, alf, B.wp);
 
    for (int i = 0; i<n_thread; i++)
       norm_buf_[i*nmax] = 0;
@@ -425,46 +408,27 @@ int VariableProjector::getResidualNonNegative(const double* alf, double *rnorm, 
    //#pragma omp parallel for num_threads(n_thread)
 
    // We'll apply this for all pixels
+   //#pragma omp parallel reduction(+:r_sq) num_threads(n_thread)
    for (int j = 0; j < s; j++)
    {
-      int omp_thread = 0; // omp_get_thread_num();
-
-      float* yj = y + j * n;
-
+      int omp_thread = 0; //omp_get_thread_num();
+      auto& B = vp_buffer[omp_thread];
+   
       int idx = (iterative_weighting) ? omp_thread : 0;
-
-      float* linj = lin_params + idx * lmax;
 
       if (variable_phi)
          GetModel(alf, B.model, irf_idx[j], B.a);
       if (iterative_weighting)
-         calculateWeights(j, alf, B);
+         calculateWeights(j, alf, B.wp);
      
-      // Get the data we're about to transform
-      if (!philp1)
-      {
-         for (int i = 0; i < n; i++)
-            B.r[i] = (yj[i] - adjust[i]) * B.wp[i];
-      }
-      else
-      {
-         // Store the data in rj, subtracting the column l+1 which does not
-         // have a linear parameter
-         for (int i = 0; i < n; i++)
-            B.r[i] = (yj[i] - adjust[i]) * B.wp[i] - B.a[i + l * nmax];
-      }
-
-      for (int k = 0; k < l; k++)
-      {
-         for (int i = 0; i < n; i++)
-            B.aw[i + k*nmax] = B.a[i + k*nmax] * B.wp[i];
-      }
+      B.weightModel();      
+      B.setData(y + j * n);
 
       double rj_norm;
       nnls->compute(B.aw.data(), nmax, B.r.data(), B.work.data(), rj_norm);
 
       // Calcuate the norm of the jth column and add to residual
-      norm_buf_[omp_thread*nmax] += rj_norm * rj_norm;
+      r_sq += rj_norm * rj_norm;
 
       if (use_numerical_derv)
          memcpy(rnorm + j*(n - l), B.r.data() + l, (n - l) * sizeof(double));
@@ -478,9 +442,6 @@ int VariableProjector::getResidualNonNegative(const double* alf, double *rnorm, 
       }
 
    } // loop over pixels
-
-   for (int i = 0; i<n_thread; i++)
-      r_sq += norm_buf_[i*nmax];
 
    // Compute the norm of the residual matrix
    *cur_chi2 = r_sq / (chi2_norm * s);
@@ -497,31 +458,20 @@ int VariableProjector::getResidualNonNegative(const double* alf, double *rnorm, 
 
 }
 
-void VariableProjector::calculateWeights(int px, const double* alf, VpBuffer& B)
+void VariableProjector::calculateWeights(int px, const double* alf, std::vector<double>& wp)
 {
-   float*  y = this->y + px * n;
+   float* y = this->y + px * n;
    
    if (weighting == AVERAGE_WEIGHTING || n_call == 0)
    {
       for (int i=0; i<n; i++)
-         B.wp[i] = w[i];
+         wp[i] = w[i];
       return;
    }
    else if (weighting == PIXEL_WEIGHTING)
    {
       for (int i=0; i<n; i++)
-         B.wp[i] = y[i];
-   }
-   else // MODEL_WEIGHTING
-   {
-      for(int i=0; i<n; i++)
-      {
-         B.wp[i] = 0;
-         for(int j=0; j<l; j++)
-            B.wp[i] += B.a[n*j+i] * lin_params[px*lmax+j];
-         if (philp1)
-            B.wp[i] += B.a[n*l+i];
-      }
+         wp[i] = y[i];
    }
 
    //if (n_call != 0) // TODO : add this back
@@ -529,21 +479,18 @@ void VariableProjector::calculateWeights(int px, const double* alf, VpBuffer& B)
 
    for(int i=0; i<n; i++)
    {
-      if (B.wp[i] <= 0)
-         B.wp[i] = 1.0;
+      if (wp[i] <= 0)
+         wp[i] = 1.0;
       else
-         B.wp[i] = sqrt(1.0/B.wp[i]);
+         wp[i] = sqrt(1.0/wp[i]);
 
    }
 }
 
 void VpBuffer::transformAB()
 {
-   int lp1 = l + 1;
 
-   for (int m = 0; m < lp1; ++m)
-      for (int i = 0; i < n; ++i)
-         aw[i + m * nmax] = a[i + m * nmax] * wp[i];
+   weightModel();
 
    for (int m = 0; m < p; ++m)
       for (int i = 0; i < n; ++i)
@@ -599,23 +546,38 @@ void VpBuffer::transformAB()
 
 }
 
-void VariableProjector::backSolve(std::vector<double>& r, std::vector<double>& a)
+void VpBuffer::backSolve()
 {
+   // Transform Y, getting Q*Y=R 
+   for (int k = 0; k < l; k++)
+   {
+      int kp1 = k + 1;
+      double beta = -aw[k + k * nmax] * u[k];
+      double acum = u[k] * r[k];
+
+      for (int i = kp1; i < n; ++i)
+         acum += aw[i + k * nmax] * r[i];
+      acum /= beta;
+
+      r[k] -= u[k] * acum;
+      for (int i = kp1; i < n; i++)
+         r[i] -= aw[i + k * nmax] * acum;
+   }
+
    // BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*RJ = B. 
 
-   r[l-1] = r[l-1] / a[l-1 + (l-1) * nmax];
+   r[l-1] = r[l-1] / aw[l-1 + (l-1) * nmax];
    if (l > 1) 
    {
-
       for (int iback = 1; iback < l; ++iback) 
       {
          // i = N-1, N-2, ..., 2, 1
          int i = l - iback - 1;
          double acum = r[i];
          for (int j = i+1; j < l; ++j) 
-            acum -= a[i + j * nmax] * r[j];
+            acum -= aw[i + j * nmax] * r[j];
          
-         r[i] = acum / a[i + i * nmax];
+         r[i] = acum / aw[i + i * nmax];
       }
    }
 }

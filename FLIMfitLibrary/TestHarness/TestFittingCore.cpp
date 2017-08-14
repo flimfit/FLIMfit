@@ -161,7 +161,7 @@ int testFittingCore()
    pass &= checkResult(results, "[1] tau_2", tau[1], 0.01);
    pass &= checkResult(results, "[1] beta_1", beta1, 0.01);
 
-   __debugbreak();
+   //__debugbreak();
 
    return !pass;
 }

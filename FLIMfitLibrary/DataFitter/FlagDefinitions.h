@@ -89,7 +89,6 @@ const int N_STATS = 11;
 //----------------------------------------------
 #define AVERAGE_WEIGHTING 0
 #define PIXEL_WEIGHTING   1
-#define MODEL_WEIGHTING   2
 
 //----------------------------------------------
 #define MAX_CONTROLLER_IDX 255
