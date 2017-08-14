@@ -56,7 +56,7 @@ private:
    int prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread);
    int getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread);
 
-   void calculateWeights(int px, const double* alf, std::vector<double>& wp);
+   void calculateWeights(int px, const double* alf, double* wp);
 
    std::vector<double> w;
 
@@ -86,4 +86,5 @@ private:
 
    friend int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
+   friend class VariableProjector;
 };

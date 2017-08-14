@@ -464,6 +464,6 @@ int FitController::getErrorCode()
 void FitController::cleanupTempVars()
 {
    std::lock_guard<std::recursive_mutex> guard(cleanup_mutex);
-   region_data.clear();
+//   region_data.clear();
 }
 

@@ -143,7 +143,7 @@ int testFittingCore()
    }
 
    FitController controller;   
-   controller.setFitSettings(FitSettings(algorithm, MODE_IMAGEWISE));
+   controller.setFitSettings(FitSettings(algorithm, MODE_IMAGEWISE, AVERAGE_WEIGHTING, 4));
    controller.setModel(model);
 
    controller.setData(data);

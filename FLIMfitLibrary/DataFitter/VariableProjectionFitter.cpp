@@ -40,14 +40,19 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
 
    use_numerical_derv = false;
 
-   iterative_weighting = (weighting > AVERAGE_WEIGHTING) | variable_phi;
+   iterative_weighting = (weighting == PIXEL_WEIGHTING) | variable_phi;
 
    n_jac_group = (int) ceil(1024.0 / (nmax-l));
 
    w.resize(nmax);
 
-   for (int i = 0; i < n_thread; i++)
-      vp.push_back(VariableProjector(n, nmax, ndim, nl, l, p, pmax, philp1, model));
+   vp.push_back(VariableProjector(this));
+   
+   std::shared_ptr<std::vector<double>> wp = iterative_weighting ?  nullptr : vp[0].wp;
+   std::shared_ptr<std::vector<double>> a = variable_phi ? nullptr : vp[0].a;
+
+   for (int i = 1; i < n_thread; i++)
+      vp.push_back(VariableProjector(this, a, wp));
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -256,15 +261,15 @@ void VariableProjectionFitter::getLinearParams()
 
 int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread)
 {
-   auto& B = vp[thread];
+   auto& B = vp[0];
    
    if (!variable_phi)
    {
-      getModel(alf, B.model, irf_idx[0], B.b);
+      getModel(alf, B.model, irf_idx[0], *(B.a));
       getDerivatives(alf, B.model, irf_idx[0], B.b);
    }
    if (!iterative_weighting)
-      calculateWeights(0, alf, B.wp);
+      calculateWeights(0, alf, B.wp->data());
 
    if (!variable_phi && !iterative_weighting)
       B.transformAB();
@@ -288,12 +293,12 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
    if (variable_phi)
    {
-      getModel(alf, B.model, irf_idx[row], B.a);
+      getModel(alf, B.model, irf_idx[row], *(B.a));
       getDerivatives(alf, B.model, irf_idx[row], B.b);
    }
 
    if (iterative_weighting)
-      calculateWeights(row, alf, B.wp);
+      calculateWeights(row, alf, B.wp->data());
 
    if (variable_phi | iterative_weighting)
       B.transformAB();
@@ -313,28 +318,26 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    if (reporter->shouldTerminate())
       return -9;
 
-   auto& B = vp[thread];
+   auto& B = vp[0];
 
    if (!variable_phi)
-      getModel(alf, B.model, irf_idx[0], B.a);
+      getModel(alf, B.model, irf_idx[0], *(B.a));
    if (!iterative_weighting)
-      calculateWeights(0, alf, B.wp);
+      calculateWeights(0, alf, B.wp->data());
 
    double r_sq = 0;
 
    // We'll apply this for all pixels
-   //#pragma omp parallel reduction(+:r_sq) num_threads(n_thread)
+   #pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
    for (int j = 0; j < s; j++)
    {
-      int omp_thread = 0; //omp_get_thread_num();
+      int omp_thread = omp_get_thread_num();
       auto& B = vp[omp_thread];
    
-      int idx = (iterative_weighting) ? omp_thread : 0;
-
       if (variable_phi)
-         getModel(alf, B.model, irf_idx[j], B.a);
+         getModel(alf, B.model, irf_idx[j], *(B.a));
       if (iterative_weighting)
-         calculateWeights(j, alf, B.wp);
+         calculateWeights(j, alf, B.wp->data());
      
       B.weightModel();      
       B.setData(y + j * n);
@@ -373,7 +376,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
 }
 
-void VariableProjectionFitter::calculateWeights(int px, const double* alf, std::vector<double>& wp)
+void VariableProjectionFitter::calculateWeights(int px, const double* alf, double* wp)
 {
    float* y = this->y + px * n;
    

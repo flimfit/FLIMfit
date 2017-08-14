@@ -8,23 +8,11 @@ class VariableProjectionFitter;
 
 class VariableProjector
 {
-   VariableProjector(int n, int nmax, int ndim, int nl, int l, int p, int pmax, int philp1, std::shared_ptr<DecayModel> model_) :
-      n(n), nmax(nmax), ndim(ndim), nl(nl), l(l), p(p), pmax(pmax), philp1(philp1)
-   {
-      r.resize(nmax);
-      work.resize(nmax);
-      aw.resize(nmax * (l + 1));
-      bw.resize(ndim * (pmax + 3));
-      wp.resize(nmax);
-      u.resize(nmax);
-
-      a.resize(nmax * (l + 1));
-      b.resize(ndim * (pmax + 3));
-
-      model = std::make_shared<DecayModel>(*model_); // deep copy
-      adjust = model->getConstantAdjustment();
-   }
-
+public:
+   VariableProjector(VariableProjectionFitter* f, std::shared_ptr<std::vector<double>> a_ = nullptr, std::shared_ptr<std::vector<double>> wp_ = nullptr);
+   VariableProjector(VariableProjector&) = delete;
+   VariableProjector(VariableProjector&&) = default;
+protected:   
    void setData(float* y);
    void transformAB();
    void backSolve();
@@ -35,8 +23,10 @@ class VariableProjector
 
    int n, nmax, ndim, nl, l, p, pmax, philp1;
    
-   std::vector<double> a, b;
-   std::vector<double> work, aw, bw, wp, u, r;
+   std::vector<double> b;
+   std::vector<double> work, aw, bw, u, r;
+
+   std::shared_ptr<std::vector<double>> a, wp;
 
    std::shared_ptr<DecayModel> model;
 
