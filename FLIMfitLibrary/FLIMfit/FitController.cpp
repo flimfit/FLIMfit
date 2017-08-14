@@ -31,7 +31,7 @@
 
 #include "FitController.h"
 
-#include "VariableProjector.h"
+#include "VariableProjectionFitter.h"
 #include "MaximumLikelihoodFitter.h"
 #include "util.h"
 
@@ -419,7 +419,7 @@ void FitController::init()
       if (algorithm == ALG_ML)
          fitters.push_back( std::make_unique<MaximumLikelihoodFitter>(model, reporter) );
       else
-         fitters.push_back( std::make_unique<VariableProjector>(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );
+         fitters.push_back( std::make_unique<VariableProjectionFitter>(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );
 
       region_data.push_back( data->getNewRegionData() );
    }
