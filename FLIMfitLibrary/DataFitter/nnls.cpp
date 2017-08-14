@@ -42,9 +42,9 @@ double d_sign(double *a, double *b)
 
 /* Table of constant values */
 
-static integer c__1 = 1;
-static integer c__0 = 0;
-static integer c__2 = 2;
+integer c__1 = 1;
+integer c__0 = 0;
+integer c__2 = 2;
 
 /*     SUBROUTINE NNLS  (A,MDA,M,N,B,X,RNORM,W,ZZ,INDEX,MODE) */
 
@@ -107,21 +107,21 @@ static integer c__2 = 2;
    /* integer s_wsfe(), do_fio(), e_wsfe(); */
 
    /* Local variables */
-   static integer iter;
-   static doublereal temp, wmax;
-   static integer i__, j, l;
-   static doublereal t, alpha, asave;
-   static integer itmax, izmax, nsetp;
-   static doublereal dummy, unorm, ztest, cc;
-   static integer ii, jj, ip;
-   static doublereal sm;
-   static integer iz, jz;
-   static doublereal up, ss;
-   static integer rtnkey, iz1, iz2, npp1;
+   integer iter;
+   doublereal temp, wmax;
+   integer i__, j, l;
+   doublereal t, alpha, asave;
+   integer itmax, izmax, nsetp;
+   doublereal dummy, unorm, ztest, cc;
+   integer ii, jj, ip;
+   doublereal sm;
+   integer iz, jz;
+   doublereal up, ss;
+   integer rtnkey, iz1, iz2, npp1;
 
    /* Fortran I/O blocks */
    /* The following line was commented out after the f2c translation */
-   /* static cilist io___22 = { 0, 6, 0, "(/a)", 0 }; */
+   /* cilist io___22 = { 0, 6, 0, "(/a)", 0 }; */
 
 
    /*     ------------------------------------------------------------------
@@ -506,7 +506,7 @@ L400:
    /* double sqrt(), d_sign(); */
 
    /* Local variables */
-   static doublereal xr, yr;
+   doublereal xr, yr;
 
 
    /*     COMPUTE ORTHOGONAL ROTATION MATRIX.. */
@@ -602,12 +602,12 @@ L400:
    /* double sqrt(); */
 
    /* Local variables */
-   static integer incr;
-   static doublereal b;
-   static integer i__, j;
-   static doublereal clinv;
-   static integer i2, i3, i4;
-   static doublereal cl, sm;
+   integer incr;
+   doublereal b;
+   integer i__, j;
+   doublereal clinv;
+   integer i2, i3, i4;
+   doublereal cl, sm;
 
    /*     ------------------------------------------------------------------
    */
