@@ -78,18 +78,16 @@ public:
    void GetParams(int nl, const std::vector<double>& alf);
    
    void SetAlf(const double* alf_);
-   double* GetModel(const std::vector<double>& alf, int irf_idx, int isel, int thread);
-
-
-   double* GetModel(const double* alf, int irf_idx, int isel, int thread);
+   void GetModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);
+   void GetDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b);
    void ReleaseResidualMemory();
 
 protected:
 
+
    int Init();
 
    std::shared_ptr<DecayModel> model; // reference
-   std::vector<std::shared_ptr<DecayModel>> models; // for each thread
    std::shared_ptr<ProgressReporter> reporter;
    
    std::vector<double> alf;
@@ -99,13 +97,10 @@ protected:
    // Used by variable projection
    std::vector<int> inc;
    std::vector<int> inc_full;
-   //int     ncon;
-   //int     nconp1;
-   int     philp1;
+   int philp1;
 
    std::vector<std::vector<double>> a_;
    std::vector<std::vector<double>> b_;
-   std::vector<double> r;
    std::vector<double> kap;
    std::vector<double> params;
    std::vector<double> alf_err;

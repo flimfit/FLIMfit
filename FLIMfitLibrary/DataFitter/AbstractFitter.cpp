@@ -71,12 +71,6 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
 
    n_param = nl + n_param_extra;
 
-   if (n_thread > 1)
-      for (int i = 0; i < n_thread; i++)
-         models.push_back(std::make_shared<DecayModel>(*model));
-   else
-      models.push_back(model);
-
    // Check for valid input
    //----------------------------------
    if  (!(             l >= 0
@@ -93,7 +87,6 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
 
    a_.resize(n_thread, std::vector<double>(a_size));
    b_.resize(n_thread, std::vector<double>(b_size));
-   r.resize(nmax * max_region_size);
    kap.resize(nl + 1);
    params.resize(nl);
    alf_err.resize(nl);
@@ -395,36 +388,26 @@ void AbstractFitter::GetParams(int nl, const std::vector<double>& alf)
    }
 }
 
-double* AbstractFitter::GetModel(const std::vector<double>& alf, int irf_idx, int isel, int thread)
+void AbstractFitter::GetModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a)
 {
-   return GetModel(alf.data(), irf_idx, isel, thread);
-}
-
-
-/*
-   Get the model and derivatives, potentially removing a row if we're fitting
-   with a fixed column (to calculate errors)
-*/
-double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int omp_thread)
-{
-   int valid_cols  = 0;
-   int ignore_cols = 0;
-
    int idx = 0;
-   for(int i=0; i<nl; i++)
+   for (int i = 0; i < nl; i++)
    {
-      if (i==fixed_param)
-         params[i] = fixed_value_cur; 
+      if (i == fixed_param)
+         params[i] = fixed_value_cur;
       else
          params[i] = alf[idx++];
    }
 
-   std::vector<double>& a = a_[omp_thread];
-   std::vector<double>& b = b_[omp_thread];
+   model->calculateModel(a, nmax, kap, params, irf_idx);
+}
 
-   models[omp_thread]->calculateModel(a, nmax, kap, params, irf_idx);
-   if (isel == 1)
-      models[omp_thread]->calculateDerivatives(b, ndim, kap, params, irf_idx);
+void AbstractFitter::GetDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b)
+{
+   int valid_cols = 0;
+   int ignore_cols = 0;
+
+   model->calculateDerivatives(b, ndim, kap, params, irf_idx);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)
@@ -443,8 +426,6 @@ double* AbstractFitter::GetModel(const double* alf, int irf_idx, int isel, int o
 
       std::move(src, src + size, dest);      
    }
-
-   return params.data();
 }
 
 int AbstractFitter::GetFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
@@ -471,5 +452,4 @@ int AbstractFitter::GetFit(int irf_idx, const std::vector<double>& alf, float* l
 
 void AbstractFitter::ReleaseResidualMemory()
 {
-   r.clear();
 }

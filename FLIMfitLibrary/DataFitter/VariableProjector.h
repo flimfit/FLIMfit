@@ -35,6 +35,32 @@
 #define ANALYTICAL_DERV 0
 #define NUMERICAL_DERV  1
 
+class VpBuffer
+{
+   VpBuffer(int nmax, int ndim, int l, int pmax, std::shared_ptr<DecayModel> model_)
+   {
+      r.resize(nmax);
+      work.resize(nmax);
+      aw.resize(nmax * (l + 1));
+      bw.resize(ndim * (pmax + 3));
+      wp.resize(nmax);
+      u.resize(nmax);
+
+      a.resize(nmax * (l + 1));
+      b.resize(ndim * (pmax + 3));
+
+      model = std::make_shared<DecayModel>(*model_); // deep copy
+   }
+
+   std::vector<double> a, b;
+   std::vector<double> work, aw, bw, wp, u, r;
+
+   std::shared_ptr<DecayModel> model;
+
+
+   friend class VariableProjector;
+};
+
 class VariableProjector : public AbstractFitter
 {
 
@@ -48,26 +74,23 @@ public:
 
 private:
    
-   int getResidual(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
-   int getResidualNonNegative(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
+   //int getResidual(int nsls1, int nls, int s, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
+   int getResidualNonNegative(const double* alf, double *rnorm, double *fjrow, int isel, int thread);
 
-   int prepareJacobianCalculation(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
-   int getJacobianEntry(int nsls1, int nls, int s_red, const double* alf, double *rnorm, double *fjrow, int iflag, int thread);
+   int prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread);
+   int getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread);
 
-   void transformAB(int px, int thread, bool transformB = true);
+   void transformAB(int px, VpBuffer& B);
 
-   void CalculateWeights(int px, const double* alf, int thread);
+   void calculateWeights(int px, const double* alf, VpBuffer& B);
 
-   void get_linear_params(int idx, std::vector<double>& a, std::vector<double>& u, std::vector<double>& x);
-   void bacsub(int idx, double* a, volatile double* x);
-   void bacsub(volatile double *r, double *a, volatile double *x);
+   void backSolve(std::vector<double>& r, std::vector<double>& a);
 
    double d_sign(double *a, double *b);
 
-   std::vector<std::vector<double>> work_; 
-   std::vector<std::vector<double>> aw_, bw_, wp_, u_;
-   
    std::vector<double> w;
+
+   std::vector<VpBuffer> vp_buffer;
 
    // Buffers used by levmar algorithm
    double *fjac;
@@ -77,7 +100,6 @@ private:
    double *wa1, *wa2, *wa3, *wa4;
    int    *ipvt;
    
-   double* r_buf_;
    double* norm_buf_;
  
    int n_call;
@@ -96,5 +118,5 @@ private:
 
 
    friend int VariableProjectorDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
-   friend int VariableProjectorCallback(void *p, int m, int n, int s_red, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
+   friend int VariableProjectorCallback(void *p, int m, int n, int s, const double *x, double *fnorm, double *fjrow, int iflag, int thread);
 };
