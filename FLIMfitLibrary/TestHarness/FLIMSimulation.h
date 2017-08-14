@@ -98,6 +98,7 @@ void FLIMSimulation::GenerateImage(double tau, int N, int n_x, int n_y, std::vec
    std::vector<int> buf(n_t_full);
    GenerateDecay(tau, N, buf);
 
+   #pragma omp parallel for
    for(int x=0; x<n_x; x++)
    {
       for(int y=0; y<n_y; y++)

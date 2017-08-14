@@ -303,11 +303,19 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
       output[output_idx++] = tauA_parameter->getValue<float>(nonlin_variables, nonlin_idx);
    }
 
-   float tau_1 = output[0];
+   float* tau = output;
+   float* beta = output + n_exponential;
    for (int i = 0; i < n_fret_populations; i++)
    {
-      float tauF = 1.0f / (1.0f / tau_1 + 1.0f / output_tauT[i]);
-      output[output_idx++] = 1.0f - tauF / tau_1;
+      float E = 0;
+      for (int j = 0; j < n_exponential; j++)
+      {
+         float tauF = 1.0f / (1.0f / tau[j] + 1.0f / output_tauT[i]);
+         float Ei = 1.0f - tauF / tau[j];
+         float b = (n_exponential > 1) ? beta[j] : 1; // we only have beta reported if n_exp > 1
+         E += Ei * b;
+      }
+      output[output_idx++] = E;
    }
 
 

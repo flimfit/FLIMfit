@@ -56,14 +56,13 @@ FLIMSimulationWF::FLIMSimulationWF() :
 
    setT(t_);
    setIntegrationTimes(t_int_);
-
 }
 
 
 FLIMSimulation::FLIMSimulation(int data_type) :
    AcquisitionParameters(data_type, t_rep_default, MODE_STANDARD, 1, 1.0),
    irf_mu( 1000 ),
-   irf_sigma( 150 )
+   irf_sigma( 200 )
 {
    // Generate the IRF distribution
    norm_dist = boost::random::normal_distribution<double>(irf_mu, irf_sigma);
@@ -82,7 +81,7 @@ void FLIMSimulationTCSPC::GenerateDecay(double tau, int N, std::vector<int>& dec
    {
       double t_decay = exp_dist(gen);
       double t_irf   = SampleIRF();
-      double t_arrival = t_decay + t_irf;
+      double t_arrival = t_decay + t_irf + t_rep;
       
       // Wrap around to account for after pulsing
       t_arrival = fmod(t_arrival, t_rep); 
@@ -159,7 +158,7 @@ void FLIMSimulationTCSPC::GenerateIRF(int N, std::vector<double>& decay)
    for(int i=0; i<N; i++)
    {
       double t_arrival = SampleIRF();
-      
+
       // Determine which bin the sample falls in
       int idx = (int) floor(t_arrival/dt);
       

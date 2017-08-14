@@ -41,6 +41,7 @@ find_package(Qt5Core)
 #===================================================
 set(SOURCE
    TestHarness.cpp
+   TestFittingCore.cpp
    FLIMSimulation.cpp
 )
 

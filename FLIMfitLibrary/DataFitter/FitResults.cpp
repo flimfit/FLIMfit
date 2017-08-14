@@ -202,6 +202,14 @@ void FitResults::determineParamNames()
       param_names_ptr[i] = param_names[i].c_str();
 }
 
+int FitResults::getParamIndex(const std::string& param_name)
+{
+   for (int i = 0; i < param_names.size(); i++)
+      if (param_names[i] == param_name)
+         return i;
+   return -1;
+}
+
 int FitResults::getNumX(int im) { return image_size[im].width; } 
 int FitResults::getNumY(int im) { return image_size[im].height; }
 

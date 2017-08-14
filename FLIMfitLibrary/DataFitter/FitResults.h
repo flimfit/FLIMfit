@@ -72,6 +72,8 @@ public:
    void computeRegionStats(float confidence_factor);
    int getParameterImage(int im, int param, uint8_t ret_mask[], float image_data[]);
 
+   int getParamIndex(const std::string& param_name);
+
    std::vector<mask_type>& getMask(int im) { return mask[im]; }
    
    int getNumX(int im);

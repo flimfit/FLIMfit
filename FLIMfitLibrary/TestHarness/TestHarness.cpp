@@ -50,52 +50,16 @@
 #include "PatternDecayGroup.h"
 
 //using namespace boost::unit_test;
-
-void add_decay(int n_t, double* t, double tau, double I, float* decay)
-{
-   for(int i=0; i<n_t; i++)
-      decay[i] += (float) (I * exp(-t[i]/tau));
-}
-
-bool CheckResult( int n_stats, int n_params, int n_regions, const char** param_names, std::vector<float>& data, const char* param, int region, float expected_value, float rel_tol )
-{
-   if (region >= n_regions)
-      return false;
-   
-   for (int i=0; i<n_params; i++)
-   {
-      if (strcmp(param_names[i], param)==0)
-      {
-         float fitted = data[ n_stats * n_params * region * i + PARAM_MEAN ];
-         float std = data[ n_stats * n_params * region * i + PARAM_STD ];
-         float diff   = fitted - expected_value;
-         float rel    = fabs( diff ) / expected_value;
-         bool pass = (rel <= rel_tol);
-         
-         printf( "Compare %s, Region %d:\n", param, region );
-         printf( "   | Expected  : %f\n", expected_value );
-         printf( "   | Fitted    : %f\n", fitted );
-         printf( "   | Std D.    : %f\n", std );
-         printf( "   | Rel Error : %f\n", rel );
-         
-         if (pass)
-            printf( "   | PASS\n");
-         else
-            printf( "   | FAIL\n");
-         
-         return ( pass );
-      }
-   }
-   
-   printf("FAIL: Expected parameter %s not found", param);
-   
-   return false;
-}
-
-
 //BOOST_AUTO_TEST_CASE(TCSPC_Single)
 
+extern int testFittingCore();
+
 int main()
+{
+   int v = testFittingCore();
+}
+
+int main0()
 {
    FLIMSimulationTCSPC sim;
 
@@ -108,7 +72,7 @@ int main()
    int n_x = 1;
    int n_y = 1;
 
-   int N = 20000;
+   int N = 4000;
    std::vector<double> tau = { 3000, 1000 };
  
 
@@ -177,17 +141,17 @@ int main()
 
    std::vector<double> test = { 1500, 2000 };
 
-   //auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
-   //model->addDecayGroup(group);
+   auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
+   model->addDecayGroup(group);
 
 
    std::vector<Pattern> patterns(1, Pattern({ 1500, 0.5, 2000, 0.5, 0 }));
 
-   auto group = std::make_shared<PatternDecayGroup>(patterns);
-   model->addDecayGroup(group);
+   //auto pgroup = std::make_shared<PatternDecayGroup>(patterns);
+   //model->addDecayGroup(pgroup);
 
    
-
+   
    auto params = group->getParameters();
    for (int i=0; i<params.size(); i++)
    {
@@ -195,6 +159,7 @@ int main()
       params[i]->initial_value = test[i];
       std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
+   
 
    //auto bg_group = std::make_shared<BackgroundLightDecayGroup>();
    //model->addDecayGroup(bg_group);
@@ -257,6 +222,8 @@ int main()
 
    FLIMGlobalClearFit(-1);
    */
+
+   return 0;
 }
 
 /*

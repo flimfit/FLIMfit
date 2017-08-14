@@ -69,6 +69,9 @@ public:
 
    T GetStat(int region, int param, int stat) const
    {
+      if (param < 0)
+         return std::numeric_limits<T>::quiet_NaN();
+
       return params[stat + param * N_STATS + region * n_params * N_STATS];
    }
    
