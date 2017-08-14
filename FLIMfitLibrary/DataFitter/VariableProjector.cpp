@@ -462,8 +462,12 @@ int VariableProjector::getResidualNonNegative(int nsls1, int nls, int s_red, con
          memcpy(rnorm + j*(n - l), rj + l, (n - l) * sizeof(double));
 
       if (get_lin | iterative_weighting)
+      {
          for (int i = 0; i < l; i++)
-            lin_params[i+j*lmax] = work[i];
+            lin_params[i + j*lmax] = work[i];
+
+         chi2[j] = (float) rj_norm / chi2_norm;
+      }
 
    } // loop over pixels
 
