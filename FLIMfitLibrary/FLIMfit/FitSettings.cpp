@@ -33,7 +33,7 @@
 #include <cstring>
 
 
-FitSettings::FitSettings(int algorithm_, int global_scope_, int global_algorithm_, int weighting_, int n_thread_, int runAsync_, int (*callback_)())
+FitSettings::FitSettings(FittingAlgorithm algorithm_, GlobalScope global_scope_, GlobalAlgorithm global_algorithm_, WeightingMode weighting_, int n_thread_, int runAsync_, int(*callback_)())
 {
    algorithm = algorithm_;
    global_scope = global_scope_;
@@ -49,17 +49,8 @@ FitSettings::FitSettings(int algorithm_, int global_scope_, int global_algorithm
 
 }
 
-FitSettings::FitSettings(FitSettingsStruct& settings_) : 
-   FitSettingsStruct(settings_)
-{}
-
 void FitSettings::setCalculateErrors(int calculate_errors_, double conf_interval_)
 {
    calculate_errors = calculate_errors_;
    conf_interval = conf_interval_;
-}
-
-FitSettingsStruct FitSettings::getStruct()
-{
-   return (FitSettingsStruct) *this;
 }

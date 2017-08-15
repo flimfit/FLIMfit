@@ -104,10 +104,10 @@ int main0()
    double tau_max[1] = { 1e6 };
    double tau_guess[1] = { 2000 };
    double t0 = 0;
-   int global_mode = MODE_PIXELWISE;
+   int global_mode = Pixelwise;
     */
    
-   int algorithm = ALG_LM;
+   FittingAlgorithm algorithm = VariableProjection;
 
    int data_type = DATA_TYPE_TCSPC;
    bool polarisation_resolved = false;
@@ -141,7 +141,7 @@ int main0()
 
    std::vector<double> test = { 1500, 2000 };
 
-   auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
+   auto group = std::make_shared<MultiExponentialDecayGroup>((int)test.size());
    model->addDecayGroup(group);
 
 
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE( TCSPC_Single )
    double t0 = 0;
 
    int algorithm   = ALG_ML;
-   int global_mode = MODE_PIXELWISE;
+   int global_mode = Pixelwise;
 
    // Start Fit
    //===========================

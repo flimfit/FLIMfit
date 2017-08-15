@@ -255,7 +255,7 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
    float* nl_output_ = NULL;
    float* err_lower_output_ = NULL;
    float* err_upper_output_ = NULL;
-   if (data->global_scope == MODE_PIXELWISE)
+   if (data->global_scope == Pixelwise)
    {
       nl_output_ = new float[ n_nl_output_params * n_px * n_thread ];
       err_lower_output_ = new float[ n_nl_output_params * n_px * n_thread ];
@@ -305,10 +305,10 @@ int FitResults::GetImageStats(int& n_regions, int image[], int regions[], int re
             iterations[idx] = ierr[r_idx];
             success[idx] = this->success[r_idx];
          
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
                success[idx] /= s_local;
          
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
             {
                alf_group = alf + start * nl; 
 
@@ -435,7 +435,7 @@ int FitResults::GetParameterImage(int im, int param, uint8_t ret_mask[], float i
 
          if (r_param < n_nl_output_params)
          {
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
             {
                param_data = alf + start * nl;
                

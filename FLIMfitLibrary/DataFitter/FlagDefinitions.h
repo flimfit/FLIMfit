@@ -30,11 +30,31 @@
 #ifndef _FLAGDEFINITIONS_H
 #define _FLAGDEFINITIONS_H
 
-/*
-enum DataMappingMode { DATA_DIRECT, DATA_MAPPED };
-enum PolarisastionMode { MODE_STANDARD, MODE_POLARISATION };
-enum GlobalMode { MODE_GLOBAL_ANALYSIS, MODE_GLOBAL_BINNING };
-*/
+enum FittingAlgorithm
+{
+   VariableProjection = 0,
+   MaximumLikelihood = 1
+};
+
+enum GlobalScope
+{
+   Pixelwise = 0,
+   Imagewise = 1,
+   Global = 2
+};
+
+enum GlobalAlgorithm
+{
+   GlobalBinning = 0,
+   GlobalAnalysis = 1
+};
+
+enum WeightingMode
+{
+   AverageWeighting = 0,
+   PixelWeighting = 1
+};
+
 
 enum PARAM_IDX { PARAM_MEAN, PARAM_W_MEAN, PARAM_STD, PARAM_W_STD, PARAM_MEDIAN, 
                  PARAM_Q1, PARAM_Q2, PARAM_01, PARAM_99, PARAM_ERR_LOWER, PARAM_ERR_UPPER };
@@ -50,18 +70,8 @@ const int N_STATS = 11;
 #define MODE_POLARISATION 1
 
 //----------------------------------------------
-#define MODE_GLOBAL_BINNING  0
-#define MODE_GLOBAL_ANALYSIS 1
-
-
-//----------------------------------------------
 #define DATA_FLOAT 0
 #define DATA_UINT16 1
-
-//----------------------------------------------
-#define MODE_PIXELWISE 0
-#define MODE_IMAGEWISE 1
-#define MODE_GLOBAL    2
 
 //----------------------------------------------
 #define BG_NONE     0
@@ -73,10 +83,6 @@ const int N_STATS = 11;
 #define APPLY_ANSCOME_TRANSFORM  0
 
 //----------------------------------------------
-#define ALG_LM 0
-#define ALG_ML 1
-
-//----------------------------------------------
 #define FIX            0
 #define FIT_LOCALLY    1
 #define FIT_GLOBALLY   2
@@ -85,10 +91,6 @@ const int N_STATS = 11;
 //----------------------------------------------
 #define DATA_TYPE_TCSPC     0
 #define DATA_TYPE_TIMEGATED 1
-
-//----------------------------------------------
-#define AVERAGE_WEIGHTING 0
-#define PIXEL_WEIGHTING   1
 
 //----------------------------------------------
 #define MAX_CONTROLLER_IDX 255

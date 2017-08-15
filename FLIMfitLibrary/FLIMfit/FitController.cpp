@@ -118,7 +118,7 @@ void FitController::workerThread(int thread)
    // on a region, thread 0 gets the data for the next thread and processing
    // begins again. Use active_lock to ensure processes are kept in order
    //=============================================================================
-   if (global_scope == MODE_PIXELWISE)
+   if (global_scope == Pixelwise)
    {
       int n_active_thread = n_thread;
       for(int im=0; im<data->n_im_used; im++)
@@ -202,7 +202,7 @@ void FitController::workerThread(int thread)
    // In imagewise mode, each region from each image is processed seperately. 
    // Each thread processes every n_thread'th region in the dataset
    //=============================================================================
-   else if (global_scope == MODE_IMAGEWISE)
+   else if (global_scope == Imagewise)
    {
       int im0 = 0;
       int process_idx = 0;
@@ -372,14 +372,14 @@ void FitController::init()
    if (n_thread > max_px_per_image)
       n_thread = max_px_per_image;
    
-    if (data->global_scope == MODE_GLOBAL || (data->global_scope == MODE_IMAGEWISE && max_px_per_image > 1))
-      algorithm = ALG_LM;
+    if (data->global_scope == Global || (data->global_scope == Imagewise && max_px_per_image > 1))
+      algorithm = VariableProjection;
 
    
    int n_regions_total = data->getNumRegionsTotal();
    
    
-   if (data->global_scope == MODE_PIXELWISE)
+   if (data->global_scope == Pixelwise)
    {
       n_fits = data->n_masked_px;
       n_fitters = min(max_region_size,n_thread);
@@ -416,7 +416,7 @@ void FitController::init()
 
    for(int i=0; i<n_fitters; i++)
    {
-      if (algorithm == ALG_ML)
+      if (algorithm == MaximumLikelihood)
          fitters.push_back( std::make_unique<MaximumLikelihoodFitter>(model, reporter) );
       else
          fitters.push_back( std::make_unique<VariableProjectionFitter>(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );

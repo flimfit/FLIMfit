@@ -56,7 +56,7 @@ FitResults::FitResults(std::shared_ptr<DecayModel> model, std::shared_ptr<FLIMDa
    
    n_nl_output_params = nl; // TODO - redundant?
 
-   pixelwise = (data->global_scope == MODE_PIXELWISE);
+   pixelwise = (data->global_scope == Pixelwise);
 
    determineParamNames();
   
@@ -273,12 +273,12 @@ void FitResults::computeRegionStats(float confidence_factor)
             region_summary[idx].iterations = ierr[r_idx];
             region_summary[idx].success = success[r_idx];
 
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
                region_summary[idx].success /= s_local;
 
             int output_idx = 0;
 
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
             {
                float* alf_group = alf.data() + start * nl;
              
@@ -336,7 +336,7 @@ int FitResults::getImageStats(int& n_regions, int image[], int regions[], int re
    float* nl_output_ = NULL;
    float* err_lower_output_ = NULL;
    float* err_upper_output_ = NULL;
-   if (data->global_scope == MODE_PIXELWISE)
+   if (data->global_scope == Pixelwise)
    {
       nl_output_ = new float[n_nl_output_params * n_px * n_thread];
       err_lower_output_ = new float[n_nl_output_params * n_px * n_thread];
@@ -386,10 +386,10 @@ int FitResults::getImageStats(int& n_regions, int image[], int regions[], int re
             iterations[idx] = ierr[r_idx];
             success[idx] = this->success[r_idx];
 
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
                success[idx] /= s_local;
 
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
             {
                alf_group = alf + start * nl;
 
@@ -516,7 +516,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
 
          if (r_param < n_nl_output_params)
          {
-            if (data->global_scope == MODE_PIXELWISE)
+            if (data->global_scope == Pixelwise)
             {
                param_data = alf.data() + start * nl;
 

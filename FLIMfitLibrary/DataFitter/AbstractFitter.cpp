@@ -44,7 +44,7 @@ using std::pair;
 
 
 
-AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
+AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_extra, int max_region_size, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
    max_region_size(max_region_size), 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
@@ -179,7 +179,7 @@ int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int 
 
    region_data.GetAverageDecay(avg_y.data());
 
-   if (global_algorithm == MODE_GLOBAL_ANALYSIS)
+   if (global_algorithm == GlobalAnalysis)
    {
       s = region_data.GetSize();
       region_data.GetPointers(y, irf_idx);
@@ -211,7 +211,7 @@ int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int 
       alf_results[i] = (float) alf[i];
 
 
-   if (global_algorithm == MODE_GLOBAL_BINNING)
+   if (global_algorithm == GlobalBinning)
    {
       s = region_data.GetSize();
       region_data.GetPointers(y, irf_idx);

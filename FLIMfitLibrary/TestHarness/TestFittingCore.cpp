@@ -104,7 +104,7 @@ int testFittingCore()
    std::vector<int> use_im(n_x, 1);
    
    
-   int algorithm = ALG_LM;
+   FitSettings fit_settings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4);
 
    int data_type = DATA_TYPE_TCSPC;
    bool polarisation_resolved = false;
@@ -143,7 +143,7 @@ int testFittingCore()
    }
 
    FitController controller;   
-   controller.setFitSettings(FitSettings(algorithm, MODE_IMAGEWISE, AVERAGE_WEIGHTING, 4));
+   controller.setFitSettings(fit_settings);
    controller.setModel(model);
 
    controller.setData(data);

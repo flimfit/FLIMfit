@@ -31,13 +31,24 @@
 #include "FLIMGlobalAnalysis.h"
 #include <cstring>
 
-class FitSettings : public FitSettingsStruct
+class FitSettings
 {
 public:
-   FitSettings(int algorithm = ALG_ML, int global_scope = MODE_PIXELWISE, int global_algorithm = MODE_GLOBAL_ANALYSIS, int weighting = AVERAGE_WEIGHTING, int n_thread = 1, int runAsync = true, int (*callback)() = NULL);
-   FitSettings(FitSettingsStruct& settings_);
+   FitSettings(FittingAlgorithm algorithm = MaximumLikelihood, GlobalScope global_scope = Pixelwise, GlobalAlgorithm global_algorithm = GlobalAnalysis, WeightingMode weighting = AverageWeighting, int n_thread = 1, int runAsync = true, int(*callback)() = NULL);
 
    void setCalculateErrors(int calculate_errors, double conf_interval = 0.05);
 
-   FitSettingsStruct getStruct();
+   FittingAlgorithm algorithm;
+   GlobalScope      global_scope;
+   GlobalAlgorithm  global_algorithm;
+   WeightingMode    weighting;
+
+   int    calculate_errors;
+   double conf_interval;
+
+   int    n_thread;
+   int    run_async;
+   int(*callback)();
+
+
 };

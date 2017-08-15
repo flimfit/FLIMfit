@@ -100,20 +100,6 @@ struct ModelParametersStruct
 
 };
 
-struct FitSettingsStruct
-{
-   int    algorithm;
-   int    global_scope;
-   int    global_algorithm;
-   int    weighting;
-
-   int    calculate_errors;
-   double conf_interval;
-
-   int    n_thread; 
-   int    run_async;
-   int    (*callback)();
-};
 
 FITDLL_API int SetupGlobalFit(int c_idx, int global_algorithm, int image_irf,
                               int n_irf, double t_irf[], double irf[], double pulse_pileup, double t0_image[],

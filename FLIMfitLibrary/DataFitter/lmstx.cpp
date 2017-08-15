@@ -528,26 +528,6 @@ TERMINATE:
 int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, int n_jac_group, double *x,
    double* fvec, double *fjac, int ldfjac, double *qtf, double *wa1, double *wa2, double *wa3, int n_thread)
 {
-   /*
-#ifdef TEST_FACTORISATION
-   double* qtf_true = new double[n];
-   double* fjac_true = new double[n*ldfjac];
-
-   memset(qtf_true, 0, n * sizeof(double));
-   memset(fjac_true, 0, n*ldfjac * sizeof(double));
-
-   int iflag = 1;
-   (*fcn)(p, m, n, s, x, fvec, wa3, iflag++, 0);
-   rwupdt(n, fjac_true, ldfjac, wa3, qtf_true, fvec, wa1, wa2);
-   for (int i = 0; i < s; ++i)
-   {
-      (*fcn)(p, m, n, s, x, fvec, wa3, iflag++, 0);
-      for (int j = 0; j < m; j++)
-         rwupdt(n, fjac_true, ldfjac, wa3 + n*j, qtf_true, fvec + j, wa1, wa2);
-   }
-#endif
-*/
-
    int dim = max(16, n);
 
    memset(qtf, 0, dim*n_thread * sizeof(double));
@@ -610,12 +590,6 @@ int factorise_jacobian(minpack_funcderstx_mn fcn, void *p, int m, int n, int s, 
 
    }
 
-#ifdef TEST_FACTORISATION
-   delete[] qtf_true;
-   delete[] fjac_true;
-#endif
-
    return 0;
-
 }
 

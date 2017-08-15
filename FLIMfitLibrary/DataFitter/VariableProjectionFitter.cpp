@@ -32,7 +32,7 @@ using std::max;
 #include "ConcurrencyAnalysis.h"
 
 
-VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, int weighting, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
+VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
     AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, reporter), weighting(weighting)
 {
 
@@ -40,7 +40,7 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
 
    use_numerical_derv = false;
 
-   iterative_weighting = (weighting == PIXEL_WEIGHTING) | variable_phi;
+   iterative_weighting = (weighting == PixelWeighting) | variable_phi;
 
    n_jac_group = (int) ceil(1024.0 / (nmax-l));
 
@@ -214,7 +214,7 @@ void VariableProjectionFitter::setupWeighting()
 
    using_gamma_weighting = false;
  
-   if (weighting == AVERAGE_WEIGHTING)
+   if (weighting == AverageWeighting)
    {
       for(int i=0; i<n; i++)
          if (avg_y[i] == 0.0f)
@@ -380,13 +380,13 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
 {
    float* y = this->y + px * n;
    
-   if (weighting == AVERAGE_WEIGHTING || n_call == 0)
+   if (weighting == AverageWeighting || n_call == 0)
    {
       for (int i=0; i<n; i++)
          wp[i] = w[i];
       return;
    }
-   else if (weighting == PIXEL_WEIGHTING)
+   else if (weighting == PixelWeighting)
    {
       for (int i=0; i<n; i++)
          wp[i] = y[i];
@@ -401,6 +401,5 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
          wp[i] = 1.0;
       else
          wp[i] = sqrt(1.0/wp[i]);
-
    }
 }

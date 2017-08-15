@@ -63,7 +63,7 @@ class AbstractFitter
 {
 public:
 
-   AbstractFitter(std::shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, int global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
+   AbstractFitter(std::shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
 
    virtual ~AbstractFitter() {};
 
@@ -144,7 +144,7 @@ private:
 
    MeanLifetimeEstimator lifetime_estimator;
 
-   int global_algorithm;
+   GlobalAlgorithm global_algorithm;
    double conf_limit;
 
    int search_dir;

@@ -53,10 +53,10 @@ void setFitSettings(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[],
 
    FitSettings settings;
 
-   settings.global_algorithm = getValueFromStruct(prhs[2],"global_algorithm", 1);
-   settings.global_scope = getValueFromStruct(prhs[2], "global_scope", 0);
-    settings.algorithm = getValueFromStruct(prhs[2], "algorithm", 0);
-   settings.weighting = getValueFromStruct(prhs[2], "weighting");
+   settings.global_algorithm = (GlobalAlgorithm)(int) getValueFromStruct(prhs[2],"global_algorithm", GlobalAnalysis);
+   settings.global_scope = (GlobalScope)(int) getValueFromStruct(prhs[2], "global_scope", Pixelwise);
+   settings.algorithm = (FittingAlgorithm)(int) getValueFromStruct(prhs[2], "algorithm", VariableProjection);
+   settings.weighting = (WeightingMode)(int) getValueFromStruct(prhs[2], "weighting", AverageWeighting);
    settings.n_thread = getValueFromStruct(prhs[2], "n_thread", 4);
    settings.run_async = getValueFromStruct(prhs[2], "run_async", 1);
 
