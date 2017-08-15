@@ -46,6 +46,9 @@ public:
    void getLinearParams();
 private:
 
+   std::vector<double> a;
+   std::vector<double> b;
+
    void mle_funcs(double *alf, double *fvec, int nl, int nfunc);
    void mle_jacb(double *alf, double *fjac, int nl, int nfunc);
 

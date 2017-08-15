@@ -69,8 +69,6 @@ private:
    double *qtf;
    double *wa1, *wa2, *wa3, *wa4;
    int    *ipvt;
-   
-   int n_call;
 
    int n_jac_group;
 
@@ -82,7 +80,7 @@ private:
 
    bool fit_successful = false;
 
-   std::unique_ptr<NonNegativeLeastSquares> nnls;
+   std::vector<std::unique_ptr<NonNegativeLeastSquares>> nnls;
 
    friend int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double *x, double *fnorm, double *fjrow, int iflag, int thread);

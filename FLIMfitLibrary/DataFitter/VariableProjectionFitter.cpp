@@ -36,7 +36,8 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
     AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, reporter), weighting(weighting)
 {
 
-   nnls = std::make_unique<NonNegativeLeastSquares>(l, n);
+   for(int i=0; i<n_thread; i++)
+      nnls.push_back(std::make_unique<NonNegativeLeastSquares>(l, n));
 
    use_numerical_derv = false;
 
@@ -59,10 +60,10 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
    int buf_dim = max(16,nl);
    
    diag = new double[buf_dim];
-   qtf  = new double[buf_dim];
-   wa1  = new double[buf_dim];
-   wa2  = new double[buf_dim];
-   wa3  = new double[buf_dim * nmax * n_jac_group];
+   qtf  = new double[buf_dim * n_thread];
+   wa1  = new double[buf_dim * n_thread];
+   wa2  = new double[buf_dim * n_thread];
+   wa3  = new double[buf_dim * nmax * n_jac_group * n_thread];
    ipvt = new int[buf_dim];
 
    if (use_numerical_derv)
@@ -73,14 +74,13 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
    }
    else
    {
-      fjac = new double[buf_dim * buf_dim];
+      fjac = new double[buf_dim * buf_dim * n_thread];
       wa4 = new double[buf_dim];
-      fvec = new double[nmax * n_jac_group];
+      fvec = new double[nmax * n_jac_group *  n_thread];
    }
 
    for(int i=0; i<nl; i++)
       diag[i] = 1;
-
 }
 
 
@@ -162,13 +162,8 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itma
 
    setupWeighting();
 
-   n_call = 0;
-
    if (iterative_weighting)
-   {
       getResidualNonNegative(alf.data(), fvec, fjac, 0, 0);
-      n_call = 1;
-   }
 
    try
    {
@@ -264,10 +259,7 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
    auto& B = vp[0];
    
    if (!variable_phi)
-   {
-      getModel(alf, B.model, irf_idx[0], *(B.a));
-      getDerivatives(alf, B.model, irf_idx[0], B.b);
-   }
+      getDerivatives(B.model, irf_idx[0], B.b);
    if (!iterative_weighting)
       calculateWeights(0, alf, B.wp->data());
 
@@ -292,10 +284,7 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    auto& B = vp[idx];
 
    if (variable_phi)
-   {
-      getModel(alf, B.model, irf_idx[row], *(B.a));
-      getDerivatives(alf, B.model, irf_idx[row], B.b);
-   }
+      getDerivatives(B.model, irf_idx[row], B.b);
 
    if (iterative_weighting)
       calculateWeights(row, alf, B.wp->data());
@@ -321,7 +310,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    auto& B = vp[0];
 
    if (!variable_phi)
-      getModel(alf, B.model, irf_idx[0], *(B.a));
+      getModel(B.model, irf_idx[0], *(B.a));
    if (!iterative_weighting)
       calculateWeights(0, alf, B.wp->data());
 
@@ -335,7 +324,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       auto& B = vp[omp_thread];
    
       if (variable_phi)
-         getModel(alf, B.model, irf_idx[j], *(B.a));
+         getModel(B.model, irf_idx[j], *(B.a));
       if (iterative_weighting)
          calculateWeights(j, alf, B.wp->data());
      
@@ -343,7 +332,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       B.setData(y + j * n);
 
       double rj_norm;
-      nnls->compute(B.aw, nmax, B.r, B.work, rj_norm);
+      nnls[omp_thread]->compute(B.aw, nmax, B.r, B.work, rj_norm);
 
       // Calcuate the norm of the jth column and add to residual
       r_sq += rj_norm * rj_norm;
@@ -370,17 +359,14 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       *rnorm = (double)sqrt(r_sq);
    }
 
-   n_call++;
-
    return iflag;
-
 }
 
 void VariableProjectionFitter::calculateWeights(int px, const double* alf, double* wp)
 {
    float* y = this->y + px * n;
    
-   if (weighting == AverageWeighting || n_call == 0)
+   if (weighting == AverageWeighting)
    {
       for (int i=0; i<n; i++)
          wp[i] = w[i];

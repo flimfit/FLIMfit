@@ -75,14 +75,14 @@ public:
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
 
-   void getParams(int nl, const std::vector<double>& alf);
    
    void setAlf(const double* alf_);
-   void getModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);
-   void getDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b);
+   void getModel(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);
+   void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b);
 
 protected:
 
+   void getParams(const double* alf);
 
    int init();
 
@@ -98,8 +98,7 @@ protected:
    std::vector<int> inc_full;
    int philp1;
 
-   std::vector<std::vector<double>> a_;
-   std::vector<std::vector<double>> b_;
+   std::vector<double> a;
    std::vector<double> kap;
    std::vector<double> params;
    std::vector<double> alf_err;

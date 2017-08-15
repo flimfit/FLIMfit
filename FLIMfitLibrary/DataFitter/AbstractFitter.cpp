@@ -80,15 +80,8 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
    {
       throw std::runtime_error("Invalid input");
    }
-   
-
-   a_size = nmax * (l+1);
-   b_size = ndim * ( pmax + 3 );
-
-   a_.resize(n_thread, std::vector<double>(a_size));
-   b_.resize(n_thread, std::vector<double>(b_size));
-   kap.resize(nl + 1);
    params.resize(nl);
+      kap.resize(nl + 1);
    alf_err.resize(nl);
    alf_buf.resize(nl);
    alf.resize(n_param);
@@ -98,18 +91,18 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
    avg_y.resize(n);
    w.resize(n); 
     
+   int a_size = nmax * (l + 1);
+   a.resize(a_size);
+
    fixed_param = -1;
 
    getting_errs = false;
 
    init();
-
-   counts_per_photon = model->getTransformedDataParameters()->counts_per_photon;
-
-
    if (pmax != p)
       throw std::runtime_error("Inc matrix incorrectly setup");
 
+   counts_per_photon = model->getTransformedDataParameters()->counts_per_photon;
 }
 
 
@@ -356,35 +349,23 @@ double AbstractFitter::errMinFcn(double x)
 void AbstractFitter::setAlf(const double* alf_)
 {
    std::copy(alf_, alf_ + nl, alf.begin());
-}
 
-void AbstractFitter::getParams(int nl, const std::vector<double>& alf)
-{
    int idx = 0;
-   for(int i=0; i<nl; i++)
-   {
-      if (i==fixed_param)
-         params[i] = fixed_value_cur; 
-      else
-         params[i] = alf[idx++];
-   }
-}
-
-void AbstractFitter::getModel(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a)
-{
-   int idx = 0;
-   for (int i = 0; i < nl; i++)
+   for (int i = 0; i<nl; i++)
    {
       if (i == fixed_param)
          params[i] = fixed_value_cur;
       else
          params[i] = alf[idx++];
    }
+}
 
+void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a)
+{
    model->calculateModel(a, nmax, kap, params, irf_idx);
 }
 
-void AbstractFitter::getDerivatives(const double* alf, std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b)
+void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b)
 {
    int valid_cols = 0;
    int ignore_cols = 0;
@@ -412,9 +393,6 @@ void AbstractFitter::getDerivatives(const double* alf, std::shared_ptr<DecayMode
 
 int AbstractFitter::getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
 {
-   std::vector<double>& a = a_[0];
-   std::vector<double>& b = b_[0];
-
    float* adjust = model->getConstantAdjustment();
    model->calculateModel(a, nmax, kap, params, irf_idx);
 

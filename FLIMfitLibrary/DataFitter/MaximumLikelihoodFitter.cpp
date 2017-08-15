@@ -46,12 +46,14 @@
 void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*)pa;
+   f->setAlf(alf);
    f->mle_funcs(alf, fvec, nl, nfunc);
 }
 
 void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
+   f->setAlf(alf);
    f->mle_jacb(alf, fjac, nl, nfunc);
 }
 
@@ -63,6 +65,11 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(std::shared_ptr<DecayModel> mod
    dy = new double[nfunc];
    work = new double[ LM_DER_WORKSZ(n_param, nfunc) ];
    expA = new double[nfunc];
+
+   int b_size = ndim * (pmax + 3);
+   b.resize(b_size);
+
+
 }
 
 void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr)
@@ -158,8 +165,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, 
    int i,j;
    float* adjust;
 
-   std::vector<double>& a = a_[0];
-   getModel(alf, model, irf_idx[0], a);
+   getModel(model, irf_idx[0], a);
    adjust = model->getConstantAdjustment();
    double* A = alf + nl;
 
@@ -191,11 +197,8 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
    int i,j,k;
    float* adjust;
 
-   std::vector<double>& a = a_[0];
-   std::vector<double>& b = b_[0];
-
-   getModel(alf, model, irf_idx[0], a);
-   getDerivatives(alf, model, irf_idx[0], b);
+   getModel(model, irf_idx[0], a);
+   getDerivatives(model, irf_idx[0], b);
    adjust = model->getConstantAdjustment();
 
    memset(fjac,0,nfunc*n_param*sizeof(double));
