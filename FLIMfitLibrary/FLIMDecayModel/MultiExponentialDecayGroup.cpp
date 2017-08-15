@@ -28,7 +28,7 @@
 //=========================================================================
 
 #include "MultiExponentialDecayGroup.h"
-#include "ParameterConstraints.h" // TODO: move this code
+#include "ParameterConstraints.h"
 #include <boost/lexical_cast.hpp>
 using namespace std;
 
@@ -211,7 +211,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
    if (contributions_global)
    {
       // Set diagonal elements of incidence matrix for variable beta's   
-      for (int i = 0; i<n_exponential; i++)
+      for (int i = 0; i<n_exponential - 1; i++)
       {
          if (beta_parameters[i]->isFittedGlobally())
          {

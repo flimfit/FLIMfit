@@ -146,7 +146,7 @@ void DecayModel::setupAdjust()
       adjust_buf[i] = 0;
 
    for (auto& group : decay_groups)
-      group->addConstantContribution(adjust_buf.data()); // TODO: this only works for background ATM, which overwrites
+      group->addConstantContribution(adjust_buf.data());
 
    for (int i = 0; i < dp->n_meas; i++)
       adjust_buf[i] *= photons_per_count;
@@ -441,8 +441,6 @@ void DecayModel::getWeights(float* y, const std::vector<double>& a, const std::v
 
 void DecayModel::getInitialVariables(std::vector<double>& param, double mean_arrival_time)
 {
-   // TODO: set initial tau's based on mean arrival time
-
    auto cur_param = param.begin();
 
    int idx = 0;

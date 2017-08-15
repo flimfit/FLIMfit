@@ -209,7 +209,6 @@ void FLIMImage::setData(T* data_)
    releaseModifiedPointer<T>();
 }
 
-// TODO: need some mutexes here
 template <typename T>
 T* FLIMImage::getDataPointerForRead()
 {

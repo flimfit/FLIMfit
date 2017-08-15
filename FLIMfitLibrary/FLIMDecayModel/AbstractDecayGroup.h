@@ -99,7 +99,7 @@ public:
    void setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
 
    template <typename T>
-   void addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor);
+   void addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor, double factor = 1);
 
 signals:
    void parametersUpdated();
@@ -149,11 +149,8 @@ void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
 BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 
 
-
-
-// TODO: move this to InstrumentResponseFunction
 template <typename T>
-void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor)
+void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor, double factor)
 {
    std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    auto& t = dp->getTimepoints();
@@ -172,7 +169,7 @@ void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T
          ii = (int)floor((t[i] - t_irf0) / dt_irf);
 
          if (ii >= 0 && ii<n_irf)
-            a[idx] += (T)(lirf[k*n_irf + ii] * channel_factor[k]); // TODO
+            a[idx] += (T)(lirf[k*n_irf + ii] * channel_factor[k] * factor);
          idx++;
       }
    }

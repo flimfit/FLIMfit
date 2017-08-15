@@ -194,9 +194,7 @@ void BackgroundLightDecayGroup::addConstantContribution(float* a)
    float tvb_adj = parameters[2]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;
    
    if (scatter_adj != 0.0f)
-      addIRF(irf_buf.data(), 0, 0, a, channel_factors); // TODO : irf_shift?
-   else
-      std::fill_n(a, dp->n_meas, 0);
+      addIRF(irf_buf.data(), 0, 0, a, channel_factors, scatter_adj); // TODO : irf_shift?
 
    for (int i = 0; i < dp->n_meas; i++)
       a[i] = a[i] * scatter_adj + offset_adj;

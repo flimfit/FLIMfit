@@ -54,7 +54,7 @@ FitResults::FitResults(std::shared_ptr<DecayModel> model, std::shared_ptr<FLIMDa
    n_im = data->n_im_used;
    n_regions = data->getNumOutputRegionsTotal();
    
-   n_nl_output_params = nl; // TODO - redundant?
+   n_nl_output_params = nl;
 
    pixelwise = (data->global_scope == Pixelwise);
 

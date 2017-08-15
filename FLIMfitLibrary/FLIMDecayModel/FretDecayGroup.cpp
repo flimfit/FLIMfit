@@ -185,7 +185,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    }
 
    // Set diagonal elements of incidence matrix for variable beta's   
-   for (int i = 0; i < n_exponential - 1; i++) // TODO
+   for (int i = 0; i < n_exponential - 1; i++)
    {
       if (beta_parameters[0]->isFittedGlobally())
       {
