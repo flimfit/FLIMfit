@@ -1,4 +1,5 @@
 
+#pragma once
 #include <vector>
 
 /*     SUBROUTINE NNLS  (A,MDA,M,N,B,X,RNORM,W,ZZ,INDEX,MODE) */

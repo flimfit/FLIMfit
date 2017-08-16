@@ -32,7 +32,7 @@
 #define CONSTRAIN_FRACTIONS 0
 
 #include "AbstractFitter.h"
-
+#include "nnls.h"
 
 class MaximumLikelihoodFitter : public AbstractFitter
 {
@@ -46,8 +46,9 @@ public:
    void getLinearParams();
 private:
 
-   std::vector<double> a;
    std::vector<double> b;
+
+   void setLinearFactors(double* alf);
 
    void mle_funcs(double *alf, double *fvec, int nl, int nfunc);
    void mle_jacb(double *alf, double *fjac, int nl, int nfunc);
@@ -59,6 +60,9 @@ private:
    double* expA;
 
    int nfunc;
+   double scaling;
+
+   std::unique_ptr<NonNegativeLeastSquares> nnls;
 
    friend void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa);
    friend void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa);
