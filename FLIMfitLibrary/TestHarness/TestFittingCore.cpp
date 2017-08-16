@@ -77,13 +77,13 @@ int testFittingCore()
    FLIMSimulationTCSPC sim;
    sim.setImageSize(20, 20);
 
-   bool use_background = true;
+   bool use_background = false;
 
    // Add decays to image
    int N_bg = 10;
-   int N = 5000;
-   std::vector<double> tau = { 1000 }; // , 3000};
-   double beta1 = 1; // tau[1] / (tau[0] + tau[1]); // equal photons for each decay
+   int N = 10000;
+   std::vector<double> tau = { 1000 , 3000 };
+   double beta1 = tau[1] / (tau[0] + tau[1]); // equal photons for each decay
 
    // Create images
    auto acq = std::make_shared<AcquisitionParameters>(sim);
@@ -115,7 +115,7 @@ int testFittingCore()
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
    
-   std::vector<double> test = { 2000 };//, 4000};
+   std::vector<double> test = { 2000, 4000 };
    auto group = std::make_shared<MultiExponentialDecayGroup>((int) test.size());
    model->addDecayGroup(group);
    
@@ -137,19 +137,11 @@ int testFittingCore()
 
    FitController controller;   
 
-   auto fitting_algs = { VariableProjection, MaximumLikelihood };
-   auto fitting_scopes = { Pixelwise, Imagewise };
-
    std::vector<FitSettings> settings;
-   //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
-   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
    settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
    settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4));
-   //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
-
+   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
+   
    bool pass = true;
 
    for (auto s : settings)
@@ -167,8 +159,8 @@ int testFittingCore()
       auto stats = results->getStats();
 
       pass &= checkResult(results, "[1] tau_1", tau[0], 0.01);
-     // pass &= checkResult(results, "[1] tau_2", tau[1], 0.1);
-     // pass &= checkResult(results, "[1] beta_1", beta1, 0.1);
+      pass &= checkResult(results, "[1] tau_2", tau[1], 0.1);
+      pass &= checkResult(results, "[1] beta_1", beta1, 0.1);
       if (use_background)
          pass &= checkResult(results, "[2] offset", N_bg, 0.5);
 
