@@ -42,8 +42,6 @@ function DownloadZipIntoFolder
 	Remove-Item $output_file
 }
 
-
-
 $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
 $bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/bfmatlab.zip'
 $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
@@ -66,6 +64,17 @@ Remove-Item "$omero_matlab_libs_dir\slf4j-api.jar"
 Remove-Item "$omero_matlab_libs_dir\log4j.jar"
 
 DownloadZipIntoFolder $bf_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
+
+# Remove sl4j from bioformat
+$zipfile = "$pwd\FLIMfitFrontEnd\BFMatlab\bioformats_package.jar"
+$files   = 'org/slf4j/impl/'
+$dst     = '$pwd\FLIMfitFrontEnd\BFMatlab'
+
+$app = New-Object -COM 'Shell.Application'
+$app.NameSpace($zipfile).Items() | ? { $files -contains $_.Name } | % {
+  $app.Namespace($dst).MoveHere($_)
+  Remove-Item (Join-Path $dst $_.Name)
+}
 
 echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
