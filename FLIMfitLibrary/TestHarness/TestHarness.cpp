@@ -53,9 +53,11 @@
 //BOOST_AUTO_TEST_CASE(TCSPC_Single)
 
 extern int testFittingCore();
+extern void testDecayResampler();
 
 int main()
 {
+   testDecayResampler();
    int v = testFittingCore();
 }
 

@@ -12,8 +12,10 @@ public:
    VariableProjector(VariableProjectionFitter* f, std::shared_ptr<std::vector<double>> a_ = nullptr, std::shared_ptr<std::vector<double>> wp_ = nullptr);
    VariableProjector(VariableProjector&) = delete;
    VariableProjector(VariableProjector&&) = default;
+
 protected:   
    void setData(float* y);
+   void setNumResampled(int nr_) { nr = nr_; }
    void transformAB();
    void backSolve();
    void weightModel();
@@ -21,7 +23,7 @@ protected:
 
    double d_sign(double *a, double *b);
 
-   int n, nmax, ndim, nl, l, p, pmax, philp1;
+   int n, nmax, ndim, nl, l, p, pmax, philp1, nr;
    
    std::vector<double> b;
    std::vector<double> work, aw, bw, u, r;

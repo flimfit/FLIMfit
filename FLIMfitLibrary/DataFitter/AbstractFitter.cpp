@@ -81,7 +81,7 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
       throw std::runtime_error("Invalid input");
    }
    params.resize(nl);
-      kap.resize(nl + 1);
+   kap.resize(nl + 1);
    alf_err.resize(nl);
    alf_buf.resize(nl);
    alf.resize(n_param);

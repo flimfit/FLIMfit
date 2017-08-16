@@ -61,15 +61,15 @@ int nnls_(double* a, int* mda, int* m, int* n, double* b, double* x,
 class NonNegativeLeastSquares
 {
 public:
-   NonNegativeLeastSquares(int n_linear, int n_meas) : 
-      n_linear(n_linear), n_meas(n_meas)
+   NonNegativeLeastSquares(int n_linear, int n_meas_max) : 
+      n_linear(n_linear), n_meas_max(n_meas_max)
    {
       w.resize(n_linear);
-      zz.resize(n_meas);
+      zz.resize(n_meas_max);
       index.resize(n_linear);
    }
 
-   double compute(std::vector<double>& a, int adim, std::vector<double>& b, std::vector<double>& x, double& rnorm)
+   double compute(std::vector<double>& a, int n_meas, int adim, std::vector<double>& b, std::vector<double>& x, double& rnorm)
    {
       nnls_(a.data(), &adim, &n_meas, &n_linear, b.data(), x.data(), &rnorm, w.data(), zz.data(), index.data(), &mode);
 
@@ -82,7 +82,7 @@ public:
 private:
 
    int n_linear;
-   int n_meas;
+   int n_meas_max;
    int mode;
    double rnorm;
 

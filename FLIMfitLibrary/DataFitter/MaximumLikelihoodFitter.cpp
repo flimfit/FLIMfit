@@ -88,7 +88,7 @@ void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int itmax
    double rnorm;
    std::vector<double> x(l);
 
-   nnls->compute(a, nmax, b, x, rnorm);
+   nnls->compute(a, n, nmax, b, x, rnorm);
 
    scaling = 1;
    for (int i = 0; i < l; i++)

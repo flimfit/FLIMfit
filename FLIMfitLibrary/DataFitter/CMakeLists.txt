@@ -71,6 +71,7 @@ set(HEADERS
    TrimmedMean.h
    RegionStatsCalculator.h
    ProgressReporter.h
+   DecayResampler.h   
 )
 
 # Make library

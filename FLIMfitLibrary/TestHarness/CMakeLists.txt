@@ -42,6 +42,7 @@ find_package(Qt5Core)
 set(SOURCE
    TestDecayModelDerivatives.cpp
    TestHarness.cpp
+   TestDecayResampler.cpp
    TestFittingCore.cpp
    FLIMSimulation.cpp
 )

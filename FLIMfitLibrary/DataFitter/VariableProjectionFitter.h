@@ -31,6 +31,7 @@
 
 #include "AbstractFitter.h"
 #include "VariableProjector.h"
+#include "DecayResampler.h"
 #include "nnls.h"
 
 #define ANALYTICAL_DERV 0
@@ -58,7 +59,10 @@ private:
 
    void calculateWeights(int px, const double* alf, double* wp);
 
+   void resample(std::vector<double>& a, int ndim, int ncol);
+
    std::vector<double> w;
+   std::vector<float> yr;
 
    std::vector<VariableProjector> vp;
 
@@ -75,12 +79,15 @@ private:
    WeightingMode weighting;
    int iterative_weighting;
 
-   int use_numerical_derv;
+   int nr;
+
+   int use_numerical_derv = false;
    int using_gamma_weighting;
 
    bool fit_successful = false;
 
    std::vector<std::unique_ptr<NonNegativeLeastSquares>> nnls;
+   std::unique_ptr<DecayResampler> resampler;
 
    friend int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double *x, double *fnorm, int iflag);
    friend int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double *x, double *fnorm, double *fjrow, int iflag, int thread);

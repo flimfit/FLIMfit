@@ -35,17 +35,17 @@ using std::max;
 VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
     AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, reporter), weighting(weighting)
 {
-
    for(int i=0; i<n_thread; i++)
       nnls.push_back(std::make_unique<NonNegativeLeastSquares>(l, n));
 
-   use_numerical_derv = false;
+   resampler = std::make_unique<DecayResampler>(n, nl+1);
 
    iterative_weighting = (weighting == PixelWeighting) | variable_phi;
 
    n_jac_group = (int) ceil(1024.0 / (nmax-l));
 
    w.resize(nmax);
+   yr.resize(nmax);
 
    vp.push_back(VariableProjector(this));
    
@@ -160,7 +160,15 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itma
    int nfev, info;
    double rnorm; 
 
+   resampler->determineSampling(avg_y.data());
+   nr = resampler->resampledSize();
+
+   for(auto& v : vp)
+      v.setNumResampled(nr);
+
+   resampler->resample(avg_y.data());
    setupWeighting();
+   
 
    if (iterative_weighting)
       getResidualNonNegative(alf.data(), fvec, fjac, 0, 0);
@@ -168,13 +176,13 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itma
    try
    {
       if (use_numerical_derv)
-         info = lmdif(VariableProjectionFitterDiffCallback, (void*) this, n-l, nl, alf.data(), fvec,
+         info = lmdif(VariableProjectionFitterDiffCallback, (void*) this, nr-l, nl, alf.data(), fvec,
             ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
             &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4);
       else
       {
 
-         info = lmstx(VariableProjectionFitterCallback, (void*) this, n-l, nl, s, n_jac_group, alf.data(), fvec, fjac, nl,
+         info = lmstx(VariableProjectionFitterCallback, (void*) this, nr-l, nl, s, n_jac_group, alf.data(), fvec, fjac, nl,
             ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
             &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
       }
@@ -211,7 +219,7 @@ void VariableProjectionFitter::setupWeighting()
  
    if (weighting == AverageWeighting)
    {
-      for(int i=0; i<n; i++)
+      for(int i=0; i<nr; i++)
          if (avg_y[i] == 0.0f)
          {
             using_gamma_weighting = true;
@@ -220,7 +228,7 @@ void VariableProjectionFitter::setupWeighting()
    }
    else // PIXEL_WEIGHTING
    {
-      for(int i=0; i<s*n; i++)
+      for(int i=0; i<s*nr; i++) // TODO: resampled
          if (y[i] == 0.0f)
          {
             using_gamma_weighting = true;
@@ -230,27 +238,24 @@ void VariableProjectionFitter::setupWeighting()
 
    if (using_gamma_weighting)
    {
-      for (int i=0; i<n; i++)
+      for (int i=0; i<nr; i++)
          w[i] = 1/sqrt(avg_y[i]+1.0f);
       
       for(int j=0; j<s; j++)
-         for (int i=0; i < n; ++i)
+         for (int i=0; i < nr; ++i)
                y[i + j * n] += min(y[i + j * n], 1.0f);
    }
    else
    {
-      for (int i=0; i<n; i++)
+      for (int i=0; i<nr; i++)
          w[i] = 1/sqrt(avg_y[i]);
    }
 }
 
-void VariableProjectionFitter::getLinearParams() 
+void VariableProjectionFitter::getLinearParams()
 {
    if (fit_successful)
-   {
-      int nsls1 = (n - l) * s;
       getResidualNonNegative(alf.data(), fvec, fjac, -1, 0);
-   }   
 }
 
 
@@ -259,7 +264,10 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
    auto& B = vp[0];
    
    if (!variable_phi)
+   {
       getDerivatives(B.model, irf_idx[0], B.b);
+      resample(B.b, ndim, p);
+   }
    if (!iterative_weighting)
       calculateWeights(0, alf, B.wp->data());
 
@@ -267,9 +275,9 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
       B.transformAB();
 
    // Set kappa derivatives
-   *rnorm = kap[0];
-   for (int k = 0; k < nl; k++)
-      fjrow[k] = kap[k + 1];
+   //*rnorm = kap[0];
+   //for (int k = 0; k < nl; k++)
+   //   fjrow[k] = kap[k + 1];
 
    return 0;
 }
@@ -284,7 +292,10 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    auto& B = vp[idx];
 
    if (variable_phi)
+   {
       getDerivatives(B.model, irf_idx[row], B.b);
+      resample(B.b, ndim, p);      
+   }
 
    if (iterative_weighting)
       calculateWeights(row, alf, B.wp->data());
@@ -292,7 +303,8 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    if (variable_phi | iterative_weighting)
       B.transformAB();
 
-   B.setData(y + row * n);
+   resampler->resample(y + row * n, yr.data());
+   B.setData(yr.data());
    B.backSolve();
    B.computeJacobian(inc, rnorm, fjrow);
    
@@ -310,7 +322,10 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    auto& B = vp[0];
 
    if (!variable_phi)
+   {
       getModel(B.model, irf_idx[0], *(B.a));
+      resample(*(B.a), nmax, l+1);
+   }
    if (!iterative_weighting)
       calculateWeights(0, alf, B.wp->data());
 
@@ -324,21 +339,25 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       auto& B = vp[omp_thread];
    
       if (variable_phi)
+      {
          getModel(B.model, irf_idx[j], *(B.a));
+         resample(*(B.a), nmax, l+1);
+      }
       if (iterative_weighting)
          calculateWeights(j, alf, B.wp->data());
      
-      B.weightModel();      
-      B.setData(y + j * n);
+      B.weightModel(); 
+      resampler->resample(y + j * n, yr.data());    
+      B.setData(yr.data());
 
       double rj_norm;
-      nnls[omp_thread]->compute(B.aw, nmax, B.r, B.work, rj_norm);
+      nnls[omp_thread]->compute(B.aw, nr, nmax, B.r, B.work, rj_norm);
 
       // Calcuate the norm of the jth column and add to residual
       r_sq += rj_norm * rj_norm;
 
       if (use_numerical_derv)
-         memcpy(rnorm + j*(n - l), B.r.data() + l, (n - l) * sizeof(double));
+         memcpy(rnorm + j*(nr - l), B.r.data() + l, (nr - l) * sizeof(double));
 
       if (get_lin | iterative_weighting)
       {
@@ -368,24 +387,31 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
    
    if (weighting == AverageWeighting)
    {
-      for (int i=0; i<n; i++)
+      for (int i=0; i<nr; i++)
          wp[i] = w[i];
       return;
    }
    else if (weighting == PixelWeighting)
    {
-      for (int i=0; i<n; i++)
-         wp[i] = y[i];
+      resampler->resample(y, wp);
    }
 
    //if (n_call != 0) // TODO : add this back
    //   models[omp_thread].GetWeights(y, a, alf, lin_params+px*lmax, wp, irf_idx[px]);
 
-   for(int i=0; i<n; i++)
+   for(int i=0; i<nr; i++)
    {
       if (wp[i] <= 0)
          wp[i] = 1.0;
       else
          wp[i] = sqrt(1.0/wp[i]);
    }
+}
+
+
+void VariableProjectionFitter::resample(std::vector<double>& a, int ndim, int ncol)
+{
+   double* a_ = a.data();
+   for(int i = 0; i < ncol; i++)
+      resampler->resample(a_ + i * ndim);
 }

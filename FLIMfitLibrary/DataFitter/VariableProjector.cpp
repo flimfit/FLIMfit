@@ -4,7 +4,7 @@
 
 
    VariableProjector::VariableProjector(VariableProjectionFitter* f, std::shared_ptr<std::vector<double>> a_, std::shared_ptr<std::vector<double>> wp_) :
-      n(f->n), nmax(f->nmax), ndim(f->ndim), nl(f->nl), l(f->l), p(f->p), pmax(f->pmax), philp1(f->philp1)
+      n(f->n), nmax(f->nmax), ndim(f->ndim), nl(f->nl), l(f->l), p(f->p), pmax(f->pmax), philp1(f->philp1), nr(f->n)
    {
       r.resize(nmax);
       work.resize(nmax);
@@ -34,14 +34,14 @@ void VariableProjector::setData(float* y)
    // Get the data we're about to transform
    if (!philp1)
    {
-      for (int i = 0; i < n; i++)
+      for (int i = 0; i < nr; i++)
          r[i] = (y[i] - adjust[i]) * (*wp)[i];
    }
    else
    {
       // Store the data in rj, subtracting the column l+1 which does not
       // have a linear parameter
-      for (int i = 0; i < n; i++)
+      for (int i = 0; i < nr; i++)
          r[i] = (y[i] - adjust[i]) * (*wp)[i] - aw[i + l * nmax];
    }
 }
@@ -50,14 +50,14 @@ void VariableProjector::weightModel()
 {
    int lp1 = l+1;
    for (int k = 0; k < lp1; k++)
-      for (int i = 0; i < n; i++)
+      for (int i = 0; i < nr; i++)
          aw[i + k*nmax] = (*a)[i + k*nmax] * (*wp)[i];
 
 }
 
 void VariableProjector::computeJacobian(const std::vector<int>& inc, double residual[], double jacobian[])
 {
-   int nml = n - l;
+   int nml = nr - l;
    for (int i = 0; i < nml; i++)
    {
       int ipl = i + l;
@@ -94,7 +94,7 @@ void VariableProjector::transformAB()
    weightModel();
 
    for (int m = 0; m < p; ++m)
-      for (int i = 0; i < n; ++i)
+      for (int i = 0; i < nr; ++i)
          bw[i + m * ndim] = b[i + m * ndim] * (*wp)[i];
 
    // Compute orthogonal factorisations by householder reflection (phi)
@@ -104,7 +104,7 @@ void VariableProjector::transformAB()
 
       // If *isel=1 or 2 reduce phi (first l columns of a) to upper triangular form
 
-      double d__1 = enorm(n - k, &aw[k + k * nmax]);
+      double d__1 = enorm(nr - k, &aw[k + k * nmax]);
       double alpha = d_sign(&d__1, &aw[k + k * nmax]);
       u[k] = aw[k + k * nmax] + alpha;
       aw[k + k * nmax] = -alpha;
@@ -121,12 +121,12 @@ void VariableProjector::transformAB()
       {
          double acum = u[k] * aw[k + m * nmax];
 
-         for (int i = kp1; i < n; ++i)
+         for (int i = kp1; i < nr; ++i)
             acum += aw[i + k * nmax] * aw[i + m * nmax];
          acum /= beta;
 
          aw[k + m * nmax] -= u[k] * acum;
-         for (int i = kp1; i < n; ++i)
+         for (int i = kp1; i < nr; ++i)
             aw[i + m * nmax] -= aw[i + k * nmax] * acum;
       }
 
@@ -134,12 +134,12 @@ void VariableProjector::transformAB()
       for (int m = 0; m < p; ++m)
       {
          double acum = u[k] * bw[k + m * ndim];
-         for (int i = kp1; i < n; ++i)
+         for (int i = kp1; i < nr; ++i)
             acum += aw[i + k * nmax] * bw[i + m * ndim];
          acum /= beta;
 
          bw[k + m * ndim] -= u[k] * acum;
-         for (int i = kp1; i < n; ++i)
+         for (int i = kp1; i < nr; ++i)
             bw[i + m * ndim] -= aw[i + k * nmax] * acum;
       }
 
@@ -156,12 +156,12 @@ void VariableProjector::backSolve()
       double beta = -aw[k + k * nmax] * u[k];
       double acum = u[k] * r[k];
 
-      for (int i = kp1; i < n; ++i)
+      for (int i = kp1; i < nr; ++i)
          acum += aw[i + k * nmax] * r[i];
       acum /= beta;
 
       r[k] -= u[k] * acum;
-      for (int i = kp1; i < n; i++)
+      for (int i = kp1; i < nr; i++)
          r[i] -= aw[i + k * nmax] * acum;
    }
 
