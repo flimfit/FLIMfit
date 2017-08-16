@@ -11,7 +11,6 @@
       aw.resize(nmax * (l + 1));
       bw.resize(ndim * (pmax + 3));
       u.resize(nmax);
-
       b.resize(ndim * (pmax + 3));
 
       if (wp_) 

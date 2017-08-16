@@ -275,9 +275,9 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
       B.transformAB();
 
    // Set kappa derivatives
-   //*rnorm = kap[0];
-   //for (int k = 0; k < nl; k++)
-   //   fjrow[k] = kap[k + 1];
+   *rnorm = kap[0];
+   for (int k = 0; k < nl; k++)
+      fjrow[k] = kap[k + 1];
 
    return 0;
 }

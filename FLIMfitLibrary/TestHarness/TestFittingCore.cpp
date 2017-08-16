@@ -144,10 +144,10 @@ int testFittingCore()
    //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
    settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
+   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4));
    //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
 
    bool pass = true;
