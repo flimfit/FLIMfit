@@ -40,6 +40,7 @@ find_package(Qt5Core)
 # Set the source and header files
 #===================================================
 set(SOURCE
+   TestDecayModelDerivatives.cpp
    TestHarness.cpp
    TestFittingCore.cpp
    FLIMSimulation.cpp

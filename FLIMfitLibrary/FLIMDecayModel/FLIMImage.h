@@ -27,8 +27,8 @@ public:
    enum DataMode { InMemory, MappedFile };
 
    template<typename T>
-   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_ = nullptr);
-   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_);
+   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, mask_type* mask_ = nullptr);
+   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_ = nullptr);
    FLIMImage(std::shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, int map_offset);
 
    // for loading ffdata
@@ -185,7 +185,7 @@ private:
 
 
 template<typename T>
-FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, uint8_t* mask_) :
+FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, mask_type* mask_) :
 acq(acq),
 stored_type(typeid(T)),
 data_mode(data_mode)
@@ -195,7 +195,7 @@ data_mode(data_mode)
    if (mask_ != nullptr)
    {
       mask.resize(acq->n_px);
-      memcpy(mask.data(), mask_, acq->n_px * sizeof(uint8_t));
+      memcpy(mask.data(), mask_, acq->n_px * sizeof(mask_type));
    }
    
    setData(data_);

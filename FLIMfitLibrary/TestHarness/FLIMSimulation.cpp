@@ -130,11 +130,11 @@ void FLIMSimulationWF::GenerateDecay(double tau, int N, std::vector<int>& decay)
 }
 
 
-InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
+std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GenerateIRF(int N)
 {
    std::vector<double> irf_data;
 
-   GenerateIRF(N, irf_data);
+   GenerateIRF_(N, irf_data);
 
    // Normalise IRF
    double sum = 0;
@@ -143,14 +143,13 @@ InstrumentResponseFunction FLIMSimulation::GenerateIRF(int N)
    for(int i=0; i<n_t_full; i++)
        irf_data[i] /= sum;
 
-   InstrumentResponseFunction irf;
-   irf.setIRF(n_t_full, n_chan, dt, 0.0, &irf_data[0]);
+   auto irf = std::make_shared<InstrumentResponseFunction>();
+   irf->setIRF(n_t_full, n_chan, 0.0, dt, &irf_data[0]);
 
    return irf;
-
 }
 
-void FLIMSimulationTCSPC::GenerateIRF(int N, std::vector<double>& decay)
+void FLIMSimulationTCSPC::GenerateIRF_(int N, std::vector<double>& decay)
 {
    decay.assign(n_t_full, 0);
    
@@ -178,7 +177,7 @@ void FLIMSimulationTCSPC::GenerateIRF(int N, std::vector<double>& decay)
 }
 
 
-void FLIMSimulationWF::GenerateIRF(int N, std::vector<double>& decay)
+void FLIMSimulationWF::GenerateIRF_(int N, std::vector<double>& decay)
 {
 
    // Calculate number of photons in each gate acquisition (note these will not necessarily fall in the gate)

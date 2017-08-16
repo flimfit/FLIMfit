@@ -81,6 +81,8 @@ void ExponentialPrecomputationBuffer::computeIRFFactors(double rate, int irf_idx
    double t0 = irf->getT0();
    double dt_irf = irf->timebin_width;
 
+   assert(dt_irf > 0);
+
    // IRF exponential factor
    //------------------------------------------------
    double e0 = exp(t0  * rate);

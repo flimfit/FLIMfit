@@ -1,6 +1,7 @@
 #include "DataTransformer.h"
 
-DataTransformationSettings::DataTransformationSettings()
+DataTransformationSettings::DataTransformationSettings(std::shared_ptr<InstrumentResponseFunction> irf) :
+   irf(irf)
 {
    background = std::make_shared<FLIMBackground>(0.0f);
 }

@@ -39,12 +39,15 @@ FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_m
 {
    init();
 
-   if (data_class == DataUint16)
-      setData(static_cast<uint16_t*>(data_));
-   else if (data_class == DataUint32)
-      setData(static_cast<uint32_t*>(data_));
-   else if (data_class == DataFloat)
-      setData(static_cast<float*>(data_));
+   if (data_)
+   {
+      if (data_class == DataUint16)
+         setData(static_cast<uint16_t*>(data_));
+      else if (data_class == DataUint32)
+         setData(static_cast<uint32_t*>(data_));
+      else if (data_class == DataFloat)
+         setData(static_cast<float*>(data_));
+   }
 }
 
 FLIMImage::~FLIMImage()

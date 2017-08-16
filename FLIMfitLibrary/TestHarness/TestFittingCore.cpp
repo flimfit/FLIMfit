@@ -51,7 +51,7 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
       float std = stats.GetStat(0, param_idx, PARAM_STD);
       float diff = mean - expected_value;
       float rel = fabs(diff) / expected_value;
-      bool pass = (rel <= rel_tol);
+      bool pass = (rel <= rel_tol) && std::isfinite(mean);
 
       printf("Compare %s\n", param_name.c_str());
       printf("   | Expected  : %f\n", expected_value);
@@ -73,65 +73,47 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
 
 int testFittingCore()
 {
+   // Create simulator
    FLIMSimulationTCSPC sim;
+   sim.setImageSize(10, 10);
 
-
-   std::vector<double> irf;
-   std::vector<float>  image_data;
-   std::vector<double> t;
-   std::vector<double> t_int;
-
-   int n_x = 20;
-   int n_y = 20;
-
+   // Add decays to image
+   int N_bg = 100;
    int N = 10000;
-   std::vector<double> tau = { 1000, 3000 };
- 
+   std::vector<double> tau = { 3000 }; // , 3000};
+   double beta1 = 1; // tau[1] / (tau[0] + tau[1]); // equal photons for each decay
 
-   sim.GenerateIRF(1e5, irf);
+   // Create images
+   auto acq = std::make_shared<AcquisitionParameters>(sim);
 
-   for (auto taui : tau)
-      sim.GenerateImage(taui, N, n_x, n_y, image_data);
+   std::vector<std::shared_ptr<FLIMImage>> images;
+
+   for (int i = 0; i < 2; i++)
+   {
+      auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
+
+      auto data_ptr = image->getDataPointer<uint16_t>();
+      int sz = image->getImageSizeInBytes();
+      std::fill_n((char*)data_ptr, sz, 0);
+      for (auto taui : tau)
+         sim.GenerateImage(taui, N, data_ptr);
+      sim.GenerateImageBackground(N_bg, data_ptr);
+      image->releaseModifiedPointer<uint16_t>();
+
+      images.push_back(image);
+   }
+
+   // Make data
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   DataTransformationSettings transform(irf);
+   auto data = std::make_shared<FLIMData>(images, transform);
    
-
-   double beta1 = tau[1] / (tau[0] + tau[1]); // equal photons for each decay
-
-   int n_t = sim.GetTimePoints(t, t_int);
-   int n_irf = n_t;
-
-   // Data Parameters
-   //===========================
-   std::vector<int> use_im(n_x, 1);
-   
-   
-   FitSettings fit_settings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4);
-
-   int data_type = DATA_TYPE_TCSPC;
-   bool polarisation_resolved = false;
-
-   int n_chan = 1;
-
-   auto irf_ = std::make_shared<InstrumentResponseFunction>();
-   irf_->setIRF(n_irf, n_chan, t[0], t[1] - t[0], irf.data());
-
-   auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep_default, polarisation_resolved, n_chan);
-   acq->setT(t);
-   acq->setImageSize(n_x, n_y);
-   
-   auto image = std::make_shared<FLIMImage>(acq, FLIMImage::DataMode::InMemory, image_data.data());
-   image->init();
-   
-   DataTransformationSettings transform;
-   transform.irf = irf_;
-   auto data = std::make_shared<FLIMData>(image, transform);
    
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
    
-
-   std::vector<double> test = { 1500, 2000 };
-
-   auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
+   std::vector<double> test = { 2000 };//, 4000};
+   auto group = std::make_shared<MultiExponentialDecayGroup>((int) test.size());
    model->addDecayGroup(group);
    
    auto params = group->getParameters();
@@ -142,26 +124,51 @@ int testFittingCore()
       std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
 
-   FitController controller;   
-   controller.setFitSettings(fit_settings);
-   controller.setModel(model);
+   auto bg = std::make_shared<BackgroundLightDecayGroup>();
+   bg->getParameter("offset")->fitting_type = ParameterFittingType::FittedLocally;
+   bg->getParameter("offset")->initial_value = N_bg;
+   model->addDecayGroup(bg);
 
-   controller.setData(data);
-   controller.init();
-   controller.runWorkers();
-   
-   controller.waitForFit();
-   
-   // Get results
-   auto results = controller.getResults();
-   auto stats = results->getStats();
+
+
+   FitController controller;   
+
+   auto fitting_algs = { VariableProjection, MaximumLikelihood };
+   auto fitting_scopes = { Pixelwise, Imagewise };
+
+   std::vector<FitSettings> settings;
+   settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
+   settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
+   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
+   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
 
    bool pass = true;
-   pass &= checkResult(results, "[1] tau_1", tau[0], 0.01);
-   pass &= checkResult(results, "[1] tau_2", tau[1], 0.01);
-   pass &= checkResult(results, "[1] beta_1", beta1, 0.01);
 
-   //__debugbreak();
+   for (auto s : settings)
+   {
+      controller.setFitSettings(s);
+      controller.setModel(model);
+      controller.setData(data);
+      controller.init();
+      controller.runWorkers();
 
-   return !pass;
+      controller.waitForFit();
+
+      // Get results
+      auto results = controller.getResults();
+      auto stats = results->getStats();
+
+      pass &= checkResult(results, "[1] tau_1", tau[0], 0.1);
+     // pass &= checkResult(results, "[1] tau_2", tau[1], 0.1);
+     // pass &= checkResult(results, "[1] beta_1", beta1, 0.1);
+      pass &= checkResult(results, "[2] offset", N_bg, 0.5);
+
+      assert(pass);
+   }
+
+   return 0;
 }

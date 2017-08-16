@@ -94,9 +94,10 @@ public:
 
    const std::vector<std::shared_ptr<FittingParameter>> getParameters() { return parameters; }
 
+   void validateDerivatives();
+
 protected:
 
-   void validateDerivatives();
 
    double getCurrentReferenceLifetime(const double* param_values, int& idx);
 

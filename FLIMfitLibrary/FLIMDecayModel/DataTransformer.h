@@ -11,13 +11,13 @@ class DataTransformationSettings
 {
 public:
    
-   DataTransformationSettings();
+   DataTransformationSettings(std::shared_ptr<InstrumentResponseFunction> irf = nullptr);
    
    int smoothing_factor = 0;
    int t_start = 0;
    int t_stop = 12000;
-   int threshold = 100;
-   int limit = 1<<30;
+   int threshold = 0;
+   int limit = 0;
    std::shared_ptr<FLIMBackground> background;
    std::shared_ptr<InstrumentResponseFunction> irf;
 };
@@ -93,7 +93,7 @@ public:
       equally_spaced_gates = acq->equally_spaced_gates;
       
       int dim_required = transform.smoothing_factor * 2 + 2;
-      if (acq->n_x >= dim_required && acq->n_y > dim_required)
+      if (acq->n_x >= dim_required && acq->n_y >= dim_required)
       {
          smoothing_factor = transform.smoothing_factor;
          smoothing_area = (float)(2 * smoothing_factor + 1)*(2 * smoothing_factor + 1);
