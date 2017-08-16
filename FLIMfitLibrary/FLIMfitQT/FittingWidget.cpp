@@ -93,7 +93,7 @@ void FittingWidget::fitSelected()
    try
    {
       fit_controller = std::make_shared<QFitController>();
-      fit_controller->setFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
+      fit_controller->setFitSettings(FitSettings(VariableProjection, Imagewise));
       connect(fit_controller.get(), &QFitController::fitComplete, this, &FittingWidget::selectedFitComplete);
 
       auto image = images->getCurrentImage();
@@ -177,7 +177,7 @@ void FittingWidget::fit()
    {
       
       fit_controller = std::make_shared<QFitController>();
-      fit_controller->setFitSettings(FitSettings(ALG_LM, MODE_IMAGEWISE));
+      fit_controller->setFitSettings(FitSettings(VariableProjection, Imagewise));
       
       auto data = std::make_shared<FLIMData>(images->getImages(), *transform.get());
       

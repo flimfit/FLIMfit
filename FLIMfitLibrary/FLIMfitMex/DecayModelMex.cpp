@@ -42,7 +42,8 @@
 #include "MexUtils.h"
 #include "PointerMap.h"
 #include <unordered_set>
-#include "FittingParametersWidget.h"
+
+#include <QMetaProperty>
 
 std::unordered_set<std::shared_ptr<QDecayModel>> ptr_set;
 
@@ -380,15 +381,6 @@ void loadModel(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], in
 }
 
 
-
-
-void openUI(std::shared_ptr<QDecayModel> model)
-{
-   auto widget = new FittingParametersWidget();
-   widget->setDecayModel(model);
-   widget->show();
-}
-
 BOOST_CLASS_EXPORT_GUID(BackgroundLightDecayGroup, "BackgroundLightDecayGroup");
 BOOST_CLASS_EXPORT_GUID(AnisotropyDecayGroup, "AnisotropyDecayGroup");
 BOOST_CLASS_EXPORT_GUID(MultiExponentialDecayGroup, "MultiExponentialDecayGroup");
@@ -452,8 +444,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          saveModel(model, nlhs, plhs, nrhs, prhs);
       else if (command == "LoadModel")
          loadModel(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "OpenUI")
-         openUI(model);
    }
    catch (std::runtime_error e)
    {
