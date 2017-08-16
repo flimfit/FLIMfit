@@ -70,7 +70,7 @@ protected:
    int n_exponential;
    bool contributions_global;
 
-   std::vector<double> tau;
+   std::vector<double> tau, tau_raw;
    std::vector<double> beta;
    std::vector<ExponentialPrecomputationBuffer> buffer;
    std::vector<double> channel_factors;

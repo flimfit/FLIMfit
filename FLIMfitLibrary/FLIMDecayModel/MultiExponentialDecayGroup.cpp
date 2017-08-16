@@ -231,10 +231,11 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
 
    // Get lifetimes
    tau.resize(n_exponential);
+   tau_raw.resize(n_exponential);
    for (int i = 0; i < n_exponential; i++)
    {
-      tau[i] = tau_parameters[i]->getValue<double>(param_value, idx);
-      tau[i] = tau[i] < 50.0 ? 50.0 : tau[i];
+      tau_raw[i] = tau_parameters[i]->getValue<double>(param_value, idx);
+      tau[i] = tau_raw[i] < 50.0 ? 50.0 : tau_raw[i];
       buffer[i].compute(1 / tau[i], irf_idx, t0_shift, channel_factors);
    }
 
@@ -355,7 +356,7 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<Exponenti
       if (!contributions_global)
          col++;
 
-      kap += kappaLim(tau[j]);
+      kap += kappaLim(tau_raw[j]);
    }
 
    if (contributions_global)
@@ -376,7 +377,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b,
 
       buffer[idx].addDerivative(fact, reference_lifetime, b);
 
-      kap_derv = - kappaLim(tau[idx]);
+      kap_derv = - kappaLim(tau_raw[idx]);
 
       return 1;
    }
