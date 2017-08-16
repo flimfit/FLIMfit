@@ -61,12 +61,18 @@ transform(transform)
 
 void FLIMData::setGlobalScope(GlobalScope global_scope_)
 {
+   bool changed = global_scope != global_scope_;
+   global_scope = global_scope_;
+
+   //if (changed)
+   //   updateRegions();
+
+
    // TODO(P:Low)
    // So that we can calculate errors properly
    //if (global_scope_ == Pixelwise && n_x == 1 && n_y == 1)
    //   global_scope_ = Imagewise;
 
-   global_scope = global_scope_;
 }
 
 
@@ -201,20 +207,29 @@ int FLIMData::getNumAuxillary()
 void FLIMData::setData(const std::vector<std::shared_ptr<FLIMImage>>& images_)
 {
    images = images_;
-   
+
    n_im = static_cast<int>(images.size());
    n_im_used = n_im;
    
    use_im.resize(n_im);
    for (int i = 0; i < n_im; i++)
       use_im[i] = i;
-   
+
+   //updateRegions();  
+}
+
+void FLIMData::updateRegions()
+{
+   // TODO: make this a bit cleaner
+   region_count.clear();
+   region_pos.clear();
+   region_idx.clear();
+   output_region_idx.clear();
+
    region_count.resize(n_im_used, std::vector<int>(MAX_REGION, 0));
    region_pos.resize(n_im_used, std::vector<int>(MAX_REGION, 0));
    region_idx.resize(n_im_used+1, std::vector<int>(MAX_REGION, -1));
    output_region_idx.resize(n_im_used, std::vector<int>(MAX_REGION, -1));
-   
-   
    
    // TODO(P:Low): make sure all data is of the same class
    data_class = images[0]->getDataClass();
@@ -231,8 +246,6 @@ void FLIMData::setData(const std::vector<std::shared_ptr<FLIMImage>>& images_)
    max_px_per_image = 0;
    for(auto& im : images)
       max_px_per_image = max(max_px_per_image, im->getAcquisitionParameters()->n_px);
-   
-
 }
 
 int FLIMData::getMaxFitSize()

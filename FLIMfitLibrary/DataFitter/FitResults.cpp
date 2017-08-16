@@ -60,7 +60,6 @@ FitResults::FitResults(std::shared_ptr<DecayModel> model, std::shared_ptr<FLIMDa
 
    determineParamNames();
   
-
    int alf_size;
    
    if (pixelwise)

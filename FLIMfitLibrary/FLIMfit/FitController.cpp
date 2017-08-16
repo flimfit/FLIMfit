@@ -362,6 +362,8 @@ void FitController::init()
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
    model->init();
 
+   data->updateRegions();
+
    if (n_thread < 1)
       n_thread = 1;
 

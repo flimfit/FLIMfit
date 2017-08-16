@@ -89,6 +89,8 @@ public:
 
    int getRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread);
 
+   void updateRegions();
+   
    std::shared_ptr<TransformedDataParameters> GetTransformedDataParameters() { return dp; }
    
    int getMaxFitSize();
@@ -193,42 +195,39 @@ int FLIMData::calculateRegions()
    
    for(int i=0; i<n_im_used; i++)
    {
-      //cp_async([&]()
-      //{
-         int im = use_im[i];
+      int im = use_im[i];
 
-         // Determine how many regions we have in each image
-         //--------------------------------------------------------
-         std::vector<int>& region_count_ptr = region_count[i];
-         region_count_ptr.assign(MAX_REGION, 0);
-         
-         DataTransformer transformer(transform);
-         transformer.setImage(images[im]);
-         
-         auto& mask = transformer.getMask();
-         
-         int n_px = static_cast<int>(mask.size());
-         
-         if (merge_regions)
-         {
-            for(int p=0; p<n_px; p++)
-               region_count_ptr[mask[p]>0]++;
-         }
-         else
-         {
-            for(int p=0; p<n_px; p++)
-               region_count_ptr[mask[p]]++;
-         }
+      // Determine how many regions we have in each image
+      //--------------------------------------------------------
+      std::vector<int>& region_count_ptr = region_count[i];
+      region_count_ptr.assign(MAX_REGION, 0);
+      
+      DataTransformer transformer(transform);
+      transformer.setImage(images[im]);
+      
+      auto& mask = transformer.getMask();
+      
+      int n_px = static_cast<int>(mask.size());
+      
+      if (merge_regions)
+      {
+         for(int p=0; p<n_px; p++)
+            region_count_ptr[mask[p]>0]++;
+      }
+      else
+      {
+         for(int p=0; p<n_px; p++)
+            region_count_ptr[mask[p]]++;
+      }
 
-         // Calculate region indexes
-         for(int r=1; r<MAX_REGION; r++)
-         {
-            region_pos[i][r] = cur_pos;
-            cur_pos += region_count[i][r];
-            if (region_count[i][r] > 0)
-               output_region_idx[i][r] = r_idx++;
-         }
-      //});
+      // Calculate region indexes
+      for(int r=1; r<MAX_REGION; r++)
+      {
+         region_pos[i][r] = cur_pos;
+         cur_pos += region_count[i][r];
+         if (region_count[i][r] > 0)
+            output_region_idx[i][r] = r_idx++;
+      }
    }
    
    n_output_regions_total = r_idx;
