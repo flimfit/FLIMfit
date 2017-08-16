@@ -36,6 +36,8 @@ function dims = parse_lavision_ome_xml(xml,dims)
     % Detect DC-TCSPC
     dc_tcspc = get_element('DC-TCSPC_Is_Active');
 
+    % Detect instrument mode
+    instrument_mode = get_element('InstrumentMode');    
     
     % Gated
     if ~isempty(fast_delay) && str2double(fast_delay.Value) == 1
@@ -49,7 +51,6 @@ function dims = parse_lavision_ome_xml(xml,dims)
         
     % TCSPC
     elseif ~isempty(dc_tcspc) && str2double(dc_tcspc.Value) == 1
-      
         lifetime_axis = [];
         for ax=1:3
             axis = get_element(['Axis' num2str(ax-1)]);
@@ -60,18 +61,22 @@ function dims = parse_lavision_ome_xml(xml,dims)
                 end
             end
         end
-        
-        if isempty(lifetime_axis) % assume Z, old style
-            pixels = get_element('Pixels');
-            lifetime_axis.Steps = dims.sizeZCT(1);
-            lifetime_axis.PhysicalUnit = str2double(pixels.PhysicalSizeZ); 
-        end
-        
+               
         steps = str2double(lifetime_axis.Steps);
         unit = str2double(lifetime_axis.PhysicalUnit);
         
         dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
         dims.FLIM_type = 'TCSPC';        
+    
+    % Legacy TCSPC
+    elseif ~isempty(instrument_mode) && strcmp(instrument_mode.InstrumentMode,'FLIM')  
+        pixels = get_element('Pixels');
+        steps = dims.sizeZCT(1);
+        unit = str2double(pixels.PhysicalSizeZ); 
+
+        dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
+        dims.FLIM_type = 'TCSPC';        
+    
     end
     
     modulo_options = 'ZCT';        
