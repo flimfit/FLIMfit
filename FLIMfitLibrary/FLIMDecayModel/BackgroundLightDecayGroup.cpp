@@ -135,8 +135,8 @@ int BackgroundLightDecayGroup::getNonlinearOutputs(float* nonlin_variables, floa
    int output_idx = 0;
 
    for (int i = 0; i < 3; i++)
-      if (parameters[i]->isFittedGlobally())
-         output[output_idx++] = nonlin_variables[nonlin_idx++];
+      if (!(parameters[i]->isFittedLocally()))
+         output[output_idx++] = parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    return output_idx;
 }
@@ -155,11 +155,11 @@ int BackgroundLightDecayGroup::getLinearOutputs(float* lin_variables, float* out
 
 std::vector<std::string> BackgroundLightDecayGroup::getLinearOutputParamNames()
 {
-   std::vector<std::string> names;
+   std::vector<std::string> param_names;
    for (int i = 0; i < 3; i++)
       if (parameters[i]->isFittedLocally())
-         names.push_back(names[i]);
-   return names;
+         param_names.push_back(names[i]);
+   return param_names;
 }
 
 int BackgroundLightDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shift)
@@ -197,7 +197,7 @@ void BackgroundLightDecayGroup::addConstantContribution(float* a)
       addIRF(irf_buf.data(), 0, 0, a, channel_factors, scatter_adj); // TODO : irf_shift?
 
    for (int i = 0; i < dp->n_meas; i++)
-      a[i] = a[i] * scatter_adj + offset_adj;
+      a[i] += offset_adj;
 
    if (!dp->tvb_profile.empty() && tvb_adj != 0.0f)
    {
