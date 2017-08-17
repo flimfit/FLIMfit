@@ -151,9 +151,10 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itma
 {
    fit_successful = false;
 
-   double ftol = (double)sqrt(dpmpar(1));
-   double xtol = (double)sqrt(dpmpar(1));
-   double epsfcn = (double)sqrt(dpmpar(1));
+   double tol = std::numeric_limits<double>::epsilon();
+   double ftol = tol;
+   double xtol = tol;
+   double epsfcn = tol;
    double gtol = 0.;
    double factor = 0.01;
 
