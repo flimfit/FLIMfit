@@ -239,11 +239,7 @@ void VariableProjectionFitter::setupWeighting()
    if (using_gamma_weighting)
    {
       for (int i=0; i<nr; i++)
-         w[i] = 1/sqrt(avg_y[i]+1.0f);
-      
-      for(int j=0; j<s; j++)
-         for (int i=0; i < nr; ++i)
-               y[i + j * n] += min(y[i + j * n], 1.0f);
+         w[i] = 1 / sqrt(avg_y[i] + 1);
    }
    else
    {
@@ -294,7 +290,7 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    if (variable_phi)
    {
       getDerivatives(B.model, irf_idx[row], B.b);
-      resample(B.b, ndim, p);      
+      resample(B.b, ndim, p);
    }
 
    if (iterative_weighting)
@@ -304,10 +300,14 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
       B.transformAB();
 
    resampler->resample(y + row * n, yr.data());
+
+   for (int i = 0; i < nr; ++i)
+      yr[i] += min(yr[i], 1.0f);
+
    B.setData(yr.data());
    B.backSolve();
    B.computeJacobian(inc, rnorm, fjrow);
-   
+
    return 0;
 }
 
@@ -354,7 +354,23 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       nnls[omp_thread]->compute(B.aw, nr, nmax, B.r, B.work, rj_norm);
 
       // Calcuate the norm of the jth column and add to residual
-      r_sq += rj_norm * rj_norm;
+      //r_sq += rj_norm * rj_norm;
+
+      B.weightModel();
+
+      for (int i = 0; i < nr; i++)
+         yr[i] += min(yr[i], 1.0f);
+
+      B.setData(yr.data());
+
+      for (int i = 0; i < nr; i++)
+      {
+         double m = 0;
+         for(int k=0; k<l; k++)
+            m += B.work[k] * B.aw[i+k*nmax];
+         m -= B.r[i];
+         r_sq += m*m;
+      }
 
       if (use_numerical_derv)
          memcpy(rnorm + j*(nr - l), B.r.data() + l, (nr - l) * sizeof(double));
@@ -375,7 +391,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    if (!use_numerical_derv)
    {
       r_sq += kap[0] * kap[0];
-      *rnorm = (double)sqrt(r_sq);
+      *rnorm = sqrt(r_sq);
    }
 
    return iflag;
@@ -394,6 +410,9 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
    else if (weighting == PixelWeighting)
    {
       resampler->resample(y, wp);
+      if (using_gamma_weighting)
+         for (int i = 0; i < nr; i++)
+            wp[i]++;     
    }
 
    //if (n_call != 0) // TODO : add this back
@@ -404,7 +423,7 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
       if (wp[i] <= 0)
          wp[i] = 1.0;
       else
-         wp[i] = sqrt(1.0/wp[i]);
+         wp[i] = sqrt(1.0 / wp[i]);
    }
 }
 
