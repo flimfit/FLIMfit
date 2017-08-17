@@ -84,9 +84,9 @@ void FretDecayGroup::setupParameters()
 
 void FretDecayGroup::init()
 {
-   for (auto& b : beta_parameters)
-      if (b->isFittedGlobally())
-         throw std::runtime_error("Fitting beta parameters in FRET model not currently implemented");
+   //for (auto& b : beta_parameters)
+   //   if (b->isFittedGlobally())
+   //      throw std::runtime_error("Fitting beta parameters in FRET model not currently implemented");
 
    MultiExponentialDecayGroupPrivate::init();
 
@@ -442,8 +442,7 @@ int FretDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv[])
       }
    }
 
-   // TODO: implement beta derivatives for FRET model
-   // col += addContributionDerivatives(b + col*bdim, bdim, &kap_derv[col]);
+   col += addContributionDerivativesForFret(b + col*bdim, bdim, &kap_derv[col]);
    col += addFretEfficiencyDerivatives(b + col*bdim, bdim, &kap_derv[col]);
 
    if (include_acceptor)
@@ -484,6 +483,44 @@ int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, do
 
       col++;
       idx += bdim;
+   }
+
+   return col;
+}
+
+int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, double kap_derv[])
+{
+   int col = 0;
+
+   for (int i = 0; i<n_fret_populations; i++)
+   {
+      int ji = 0;
+      for (int j = 0; j < n_exponential - 1; j++)
+         if (!beta_parameters[j]->isFixed())
+         {
+            memset(b + col*bdim, 0, bdim * sizeof(*b));
+            int ki = ji;
+            for (int k = j; k < n_exponential; k++)
+               if (!beta_parameters[k]->isFixed())
+               {
+                  double factor = beta_derv(n_beta_free, ji, ki, beta_param_values) * (1 - fixed_beta);
+                  if (i == 0 && include_donor_only)
+                  {
+                     buffer[k].addDecay(factor, reference_lifetime, b + col*bdim);
+                  }
+                  else
+                  {
+                     int fret_idx = i - include_donor_only;
+                     fret_buffer[fret_idx][k].addDecay(factor, reference_lifetime, b + col*bdim);
+                     acceptor_fret_buffer[fret_idx][k].addDecay(-Q * factor * a_star[fret_idx][k], reference_lifetime, b + col * bdim); // rise time
+                     acceptor_buffer->addDecay(Q * factor * a_star[fret_idx][k], reference_lifetime, b + col * bdim);
+                  }
+                  ki++;
+               }
+
+            col++;
+            ji++;
+         }
    }
 
    return col;
