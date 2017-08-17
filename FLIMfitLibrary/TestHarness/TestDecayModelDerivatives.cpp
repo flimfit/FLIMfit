@@ -40,43 +40,58 @@
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 
-int testDerivatives()
+void validate(std::shared_ptr<AbstractDecayGroup> g)
 {
+
+   std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n\n";
+   
+
    FLIMSimulationTCSPC sim;
-   sim.setImageSize(10, 10);
-
-   // Setup data
    std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
-
-
    auto acq = std::make_shared<AcquisitionParameters>(sim);
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
- 
-   auto data_ptr = image->getDataPointer<uint16_t>();
-   sim.GenerateImage(3000, 100, data_ptr);
-   image->releaseModifiedPointer<uint16_t>();
 
    DataTransformationSettings transform(irf);
    auto data = std::make_shared<FLIMData>(image, transform);
-   
+
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
-   
 
-   std::vector<double> test = { 1500, 2000 };
+   model->addDecayGroup(g);
 
-   auto group = std::make_shared<MultiExponentialDecayGroup>(test.size());
-   model->addDecayGroup(group);
-   
-   auto params = group->getParameters();
-   for (int i=0; i<params.size(); i++)
+
+   model->init();
+   model->validateDerivatives();
+}
+
+int testModelDerivatives()
+{
+   // Add a FRET group
    {
-      params[i]->fitting_type = ParameterFittingType::FittedGlobally;
-      params[i]->initial_value = test[i];
-      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
+      auto group = std::make_shared<FretDecayGroup>(2, 2, false);
+      auto params = group->getParameters();
+      for (int i = 0; i < params.size(); i++)
+         params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      validate(group);
    }
 
-   model->validateDerivatives();
+   // Add a multiexponential group
+   {
+      auto group = std::make_shared<MultiExponentialDecayGroup>(3);
+      auto params = group->getParameters();
+      for (int i = 0; i < params.size(); i++)
+         params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      validate(group);
+
+      // with global beta
+      group->setContributionsGlobal(true);
+      params = group->getParameters();
+      for (int i = 0; i < params.size(); i++)
+         params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      validate(group);
+   }
+
+
 
    return 0;
 }

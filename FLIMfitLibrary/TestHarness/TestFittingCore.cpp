@@ -40,7 +40,7 @@
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 
-bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_name, float expected_value, float rel_tol)
+bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_name, float expected_value, float rel_tol, float expected_std = 0)
 {
    auto stats = results->getStats();
    int param_idx = results->getParamIndex(param_name);
@@ -53,10 +53,13 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
       float rel = fabs(diff) / expected_value;
       bool pass = (rel <= rel_tol) && std::isfinite(mean);
 
+      if (expected_std > 0)
+         pass &= (std <= 2 * expected_std);
+
       printf("Compare %s\n", param_name.c_str());
       printf("   | Expected  : %f\n", expected_value);
       printf("   | Fitted    : %f\n", mean);
-      printf("   | Std D.    : %f\n", std);
+      printf("   | Std D.    : %f (%f)\n", std, expected_std);
       printf("   | Rel Error : %f (%f)\n", rel, rel_tol);
 
       if (pass)
@@ -254,8 +257,9 @@ int testFittingCoreSingle(double tau, int N)
       auto results = controller.getResults();
       auto stats = results->getStats();
 
+      double expected_std = tau / sqrt(N);
       double rel = std::max(0.0001, 6.0 / (sqrt(N - 1) * sqrt(n_x*n_x - 1)));
-      pass &= checkResult(results, "[1] tau_1", tau, rel);
+      pass &= checkResult(results, "[1] tau_1", tau, rel, expected_std);
       if (use_background)
          pass &= checkResult(results, "[2] offset", N_bg, 0.5);
 
