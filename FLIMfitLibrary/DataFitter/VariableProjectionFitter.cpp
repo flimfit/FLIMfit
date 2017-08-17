@@ -160,7 +160,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itma
    int nfev, info;
    double rnorm; 
 
-   resampler->determineSampling(avg_y.data());
+   //resampler->determineSampling(avg_y.data()); turn off resampling
    nr = resampler->resampledSize();
 
    for(auto& v : vp)
