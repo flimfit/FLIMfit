@@ -46,6 +46,7 @@ protected:
    void init();
 
    int addLifetimeDerivativesForFret(int idx, double* b, int bdim, double kap_derv[]);
+   int addContributionDerivativesForFret(int idx, double* b, int bdim, double kap_derv[]);
    int addFretEfficiencyDerivatives(double* b, int bdim, double kap_derv[]);
    int addAcceptorIntensityDerivatives(double* b, int bdim, double kap_derv[]);
    int addAcceptorLifetimeDerivatives(double* b, int bdim, double kap_derv[]);

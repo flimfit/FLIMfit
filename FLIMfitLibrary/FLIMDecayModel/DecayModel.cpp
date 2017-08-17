@@ -516,6 +516,11 @@ void DecayModel::validateDerivatives()
    calculateModel(a, dim, kap, alf, 0);
    calculateDerivatives(b, dim, kap, alf, 0);
 
+   std::vector<std::string> param_names;
+   std::vector<int> group;
+   int ax, bx;
+   getOutputParamNames(param_names, group, ax, bx);
+
    int m = 0;
    for (int i = 0; i < n_nonlinear; i++)
       for (int j = 0; j < n_cols; j++)
@@ -562,7 +567,7 @@ void DecayModel::validateDerivatives()
                mean_err += err[k];
             mean_err /= dim;
 
-            std::cout << "Variable: " << i << ", Column: " << j << "\n";
+            std::cout << "Variable: " << i << " (" << param_names[i] << ") "<< ", Column: " << j << "\n";
             std::cout << "   Mean err : " << mean_err << "\n";
 
             if (mean_err < 0.5)

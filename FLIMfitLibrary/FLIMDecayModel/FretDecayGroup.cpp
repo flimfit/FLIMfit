@@ -84,6 +84,10 @@ void FretDecayGroup::setupParameters()
 
 void FretDecayGroup::init()
 {
+   for (auto& b : beta_parameters)
+      if (b->isFittedGlobally())
+         throw std::runtime_error("Fitting beta parameters in FRET model not currently implemented");
+
    MultiExponentialDecayGroupPrivate::init();
 
    n_lin_components = n_fret_populations + include_donor_only;
@@ -438,7 +442,8 @@ int FretDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv[])
       }
    }
 
-   col += addContributionDerivatives(b + col*bdim, bdim, &kap_derv[col]);
+   // TODO: implement beta derivatives for FRET model
+   // col += addContributionDerivatives(b + col*bdim, bdim, &kap_derv[col]);
    col += addFretEfficiencyDerivatives(b + col*bdim, bdim, &kap_derv[col]);
 
    if (include_acceptor)
@@ -469,12 +474,11 @@ int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, do
 
       if (include_acceptor)
       {
-         double acceptor_fact = fact * Q * a_star[i][j];
-
+         double acceptor_fact = Q * a_star[i][j] * fact;
          acceptor_fret_buffer[i][j].addDerivative(-acceptor_fact, reference_lifetime, b + idx);
          
          acceptor_fact *= tau_transfer[i];
-         addAcceptorDerivativeContribution(i, j, acceptor_fact, b, bdim, kap_derv[col]);
+         addAcceptorDerivativeContribution(i, j, acceptor_fact, b + idx, bdim, kap_derv[col]);
       }
 
 

@@ -55,13 +55,12 @@
 extern int testFittingCoreDouble();
 extern void testDecayResampler();
 extern int testFittingCoreSingle(double tau, int N);
+extern int testModelDerivatives();
 
 int main()
 {
    testDecayResampler();
-
-   std::vector<int> N = { 100, 1000, 10000 };
-   std::vector<double> tau = { 1000, 5000 };
+   testModelDerivatives();
 
    for (int N_ : {100, 1000, 10000})
         testFittingCoreSingle(1000, N_);
