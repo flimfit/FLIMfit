@@ -52,13 +52,24 @@
 //using namespace boost::unit_test;
 //BOOST_AUTO_TEST_CASE(TCSPC_Single)
 
-extern int testFittingCore();
+extern int testFittingCoreDouble();
 extern void testDecayResampler();
+extern int testFittingCoreSingle(double tau, int N);
 
 int main()
 {
    testDecayResampler();
-   int v = testFittingCore();
+
+   std::vector<int> N = { 100, 1000, 10000 };
+   std::vector<double> tau = { 1000, 5000 };
+
+   for (int N_ : {100, 1000, 10000})
+        testFittingCoreSingle(1000, N_);
+
+   for (int N_ : {100, 1000, 10000})
+      testFittingCoreSingle(4000, N_);
+
+   testFittingCoreDouble();
 }
 
 int main0()

@@ -57,7 +57,7 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
       printf("   | Expected  : %f\n", expected_value);
       printf("   | Fitted    : %f\n", mean);
       printf("   | Std D.    : %f\n", std);
-      printf("   | Rel Error : %f\n", rel);
+      printf("   | Rel Error : %f (%f)\n", rel, rel_tol);
 
       if (pass)
          printf("   | PASS\n");
@@ -71,7 +71,7 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
    return false;
 }
 
-int testFittingCore()
+int testFittingCoreDouble()
 {
    // Create simulator
    FLIMSimulationTCSPC sim;
@@ -115,7 +115,7 @@ int testFittingCore()
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
    
-   std::vector<double> test = { 2000, 4000 };
+   std::vector<double> test = { 500, 4000 };
    auto group = std::make_shared<MultiExponentialDecayGroup>((int) test.size());
    model->addDecayGroup(group);
    
@@ -158,13 +158,109 @@ int testFittingCore()
       auto results = controller.getResults();
       auto stats = results->getStats();
 
-      pass &= checkResult(results, "[1] tau_1", tau[0], 0.01);
-      pass &= checkResult(results, "[1] tau_2", tau[1], 0.1);
-      pass &= checkResult(results, "[1] beta_1", beta1, 0.1);
+      pass &= checkResult(results, "[1] tau_1", tau[0], 0.02);
+      pass &= checkResult(results, "[1] tau_2", tau[1], 0.02);
+      pass &= checkResult(results, "[1] beta_1", beta1, 0.05);
       if (use_background)
          pass &= checkResult(results, "[2] offset", N_bg, 0.5);
 
       assert(pass);
+   }
+
+   return 0;
+}
+
+
+int testFittingCoreSingle(double tau, int N)
+{
+   // Create simulator
+
+   int n_x = 20;
+
+   FLIMSimulationTCSPC sim;
+   sim.setImageSize(n_x, n_x);
+
+   bool use_background = false;
+
+   // Add decays to image
+   int N_bg = 30;
+
+   auto acq = std::make_shared<AcquisitionParameters>(sim);
+
+   std::vector<std::shared_ptr<FLIMImage>> images;
+
+   for (int i = 0; i < 1; i++)
+   {
+      auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
+
+      auto data_ptr = image->getDataPointer<uint16_t>();
+      int sz = image->getImageSizeInBytes();
+      std::fill_n((char*)data_ptr, sz, 0);
+      sim.GenerateImage(tau, N, data_ptr);
+      if (use_background)
+         sim.GenerateImageBackground(N_bg, data_ptr);
+      image->releaseModifiedPointer<uint16_t>();
+
+      images.push_back(image);
+   }
+
+   // Make data
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   DataTransformationSettings transform(irf);
+   auto data = std::make_shared<FLIMData>(images, transform);
+
+
+   auto model = std::make_shared<DecayModel>();
+   model->setTransformedDataParameters(data->GetTransformedDataParameters());
+
+   std::vector<double> test = {2000};
+   auto group = std::make_shared<MultiExponentialDecayGroup>((int)test.size());
+   model->addDecayGroup(group);
+
+   auto params = group->getParameters();
+   for (int i = 0; i < params.size(); i++)
+   {
+      params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      params[i]->initial_value = test[i];
+   }
+
+   auto bg = std::make_shared<BackgroundLightDecayGroup>();
+   bg->getParameter("offset")->fitting_type = ParameterFittingType::FittedLocally;
+   bg->getParameter("offset")->initial_value = N_bg;
+   if (use_background)
+      model->addDecayGroup(bg);
+
+   std::vector<FitSettings> settings;
+   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, PixelWeighting, 1));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, PixelWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, PixelWeighting, 4));
+
+   FitController controller;
+
+
+   bool pass = true;
+   for (auto s : settings)
+   {
+      controller.setFitSettings(s);
+      controller.setModel(model);
+      controller.setData(data);
+      controller.init();
+      controller.runWorkers();
+
+      controller.waitForFit();
+
+      // Get results
+      auto results = controller.getResults();
+      auto stats = results->getStats();
+
+      double rel = std::max(0.0001, 6.0 / (sqrt(N - 1) * sqrt(n_x*n_x - 1)));
+      pass &= checkResult(results, "[1] tau_1", tau, rel);
+      if (use_background)
+         pass &= checkResult(results, "[2] offset", N_bg, 0.5);
+
+      if (!pass)
+         throw std::runtime_error("Failed test");
    }
 
    return 0;
