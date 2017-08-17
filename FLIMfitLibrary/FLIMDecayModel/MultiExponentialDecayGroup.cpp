@@ -236,8 +236,23 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
    {
       tau_raw[i] = tau_parameters[i]->getValue<double>(param_value, idx);
       tau[i] = tau_raw[i] < 50.0 ? 50.0 : tau_raw[i];
-      buffer[i].compute(1 / tau[i], irf_idx, t0_shift, channel_factors);
    }
+
+   /*
+   // Keep tau's in order
+   int last_idx = -1;
+   for (int i = 0; i < n_exponential; i++)
+   {
+      if (tau_parameters[i]->isFittedGlobally())
+      {
+         if (last_idx >= 0 && (tau[i] > tau[last_idx]))
+            tau[i] = tau[last_idx] - 50;        
+         last_idx = i;
+      }
+   }
+   */
+   for (int i = 0; i < n_exponential; i++)
+      buffer[i].compute(1 / tau[i], irf_idx, t0_shift, channel_factors); // TODO: only when changed
 
    // Get contributions
    if (contributions_global)
@@ -330,6 +345,23 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim,
    for (int i = 0; i < n_exponential; i++)
       col += addLifetimeDerivative(i, b + col*bdim, bdim, kap_derv[col]);
 
+   int last_idx = -1;
+   for (int i = 0; i < n_exponential; i++)
+   {
+      if (tau_parameters[i]->isFittedGlobally())
+      {
+         if (last_idx >= 0)
+         {
+            double k = kappaSpacer(tau[i], tau[last_idx]);
+            //kap_derv[i] -= tau[last_idx] * k;
+            //kap_derv[last_idx] += tau[i] * k;
+         }
+         last_idx = i;
+      }
+   }
+   
+
+
    col += addContributionDerivatives(b + col*bdim, bdim, &kap_derv[col]);
    return col;
 }
@@ -356,7 +388,19 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<Exponenti
       if (!contributions_global)
          col++;
 
-      kap += kappaLim(tau_raw[j]);
+      kap += kappaLim(tau[j]);      
+   }
+
+   // Keep tau's in order
+   int last_idx = -1;
+   for (int i = 0; i < n_exponential; i++)
+   {
+      if (tau_parameters[i]->isFittedGlobally())
+      {
+         if (last_idx >= 0)
+           // kap += kappaSpacer(tau[i], tau[last_idx]);
+         last_idx = i;
+      }
    }
 
    if (contributions_global)
@@ -377,11 +421,11 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b,
 
       buffer[idx].addDerivative(fact, reference_lifetime, b);
 
-      kap_derv = - kappaLim(tau_raw[idx]);
+      kap_derv = - kappaLim(tau[idx]);
 
       return 1;
    }
-
+   
    return 0;
 }
 
