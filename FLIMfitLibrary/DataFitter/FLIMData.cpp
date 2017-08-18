@@ -447,8 +447,7 @@ int FLIMData::getRegionData(int thread, int group, int region, RegionData& regio
        
       // we want dynamic with a chunk size of 1 as the data is being pulled from VM in order
       // TODO: #pragma omp parallel for reduction(+:s) schedule(dynamic, 1) num_threads(n_thread)
-      //for(int i=0; i<n_im_used; i++)
-      auto fcn = [&](int i)
+      for(int i=0; i<n_im_used; i++)
       {
          // add termination here?
             
@@ -457,20 +456,8 @@ int FLIMData::getRegionData(int thread, int group, int region, RegionData& regio
 
          region_data.GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
 
-         return getMaskedData(i, region, masked_data, irf_idx, results);
+         s += getMaskedData(i, region, masked_data, irf_idx, results);
       };
-      
-      std::vector<std::future<int>> futures;
-      for(int thread = 0; thread < n_thread; thread++)
-         futures.push_back(std::async([&]() {
-            int s = 0;
-            for(int i=0; i<n_im_used; i+=n_thread)
-               s += fcn(i);
-            return s;
-         }));
-      
-      for(auto& f : futures)
-         s += f.get();
       
    }
 
