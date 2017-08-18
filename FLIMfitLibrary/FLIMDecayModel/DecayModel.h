@@ -76,8 +76,8 @@ public:
    void init();
 
    void   setupIncMatrix(std::vector<int>& inc);
-   void   calculateModel(std::vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
-   void   calculateDerivatives(std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
+   int    calculateModel(std::vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
+   int    calculateDerivatives(std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
    void   getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx);
    float* getConstantAdjustment() { return adjust_buf.data(); };
 

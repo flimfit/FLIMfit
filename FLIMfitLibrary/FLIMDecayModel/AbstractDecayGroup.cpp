@@ -92,5 +92,5 @@ std::shared_ptr<FittingParameter> AbstractDecayGroup::getParameter(const std::st
       if (p->name == param)
          return p;
 
-   return nullptr; // if none found
+   throw std::runtime_error("Invalid parameter name");
 }

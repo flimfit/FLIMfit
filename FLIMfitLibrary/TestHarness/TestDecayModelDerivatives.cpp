@@ -40,6 +40,31 @@
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 
+void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups)
+{
+
+   FLIMSimulationTCSPC sim;
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   auto acq = std::make_shared<AcquisitionParameters>(sim);
+   auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
+
+   DataTransformationSettings transform(irf);
+   auto data = std::make_shared<FLIMData>(image, transform);
+
+   auto model = std::make_shared<DecayModel>();
+   model->setTransformedDataParameters(data->GetTransformedDataParameters());
+
+   for (auto& g : groups)
+   {
+      auto params = g->getParameters();
+      std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
+      model->addDecayGroup(g);
+   }
+   
+   model->init();
+
+}
+
 void validate(std::shared_ptr<AbstractDecayGroup> g)
 {
 
@@ -58,40 +83,84 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
 
    model->addDecayGroup(g);
-
-
    model->init();
-   model->validateDerivatives();
+
+   // Test with all free
+   auto params = g->getParameters();
+   std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
+   model->init();
+
+   // Test with one fixed
+   for (int i = 0; i < params.size(); i++)
+   {
+      std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
+      params[i]->setFittingType(Fixed);
+      model->init();
+   }
+
+   // Test with two fixed
+   for (int i = 0; i < params.size(); i++)
+   {
+      for (int j = i+1; j < params.size(); j++)
+      {
+         std::for_each(params.begin(), params.end(), [](auto& p) { p->setFittingType(FittedGlobally); });
+         params[i]->setFittingType(Fixed);
+         params[j]->setFittingType(Fixed);
+         model->init();
+      }
+   }
+
 }
 
 int testModelDerivatives()
 {
-   // Add a FRET group
+   // Test multiexponential group
+   for (int n_exp = 1; n_exp <= 4; n_exp++)
    {
-      auto group = std::make_shared<FretDecayGroup>(2, 2, false);
-      auto params = group->getParameters();
-      for (int i = 0; i < params.size(); i++)
-         params[i]->fitting_type = ParameterFittingType::FittedGlobally;
-      validate(group);
-   }
-
-   // Add a multiexponential group
-   {
-      auto group = std::make_shared<MultiExponentialDecayGroup>(3);
-      auto params = group->getParameters();
-      for (int i = 0; i < params.size(); i++)
-         params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      auto group = std::make_shared<MultiExponentialDecayGroup>(n_exp);
       validate(group);
 
       // with global beta
       group->setContributionsGlobal(true);
-      params = group->getParameters();
-      for (int i = 0; i < params.size(); i++)
-         params[i]->fitting_type = ParameterFittingType::FittedGlobally;
       validate(group);
    }
 
+   // Test FRET group
+   for(int n_fret = 0; n_fret <= 2; n_fret++)
+      for (int n_exp = 1; n_exp <= 3; n_exp++)
+      {
+         auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, true);
+         group->setIncludeAcceptor(false);
+         validate(group);
 
+         group->setIncludeAcceptor(true);
+         validate(group);
 
+         group->setIncludeDonorOnly(false);
+         validate(group);
+      }
+   
+   // Test some basic combinations of FRET groups
+   {
+      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+      groups.push_back(std::make_shared<FretDecayGroup>(1, 1, true));
+      groups.push_back(std::make_shared<FretDecayGroup>(1, 2, true));
+      validate(groups);
+   }
+
+   {
+      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+      groups.push_back(std::make_shared<FretDecayGroup>(1, 2, false));
+      groups.push_back(std::make_shared<FretDecayGroup>(1, 1, false));
+      validate(groups);
+   }
+
+   // Test combination of multiexponential groups
+   {
+      std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
+      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(3, true));
+      groups.push_back(std::make_shared<MultiExponentialDecayGroup>(2, true));
+      validate(groups);
+   }
    return 0;
 }

@@ -46,12 +46,13 @@ public:
 
    const static char* fitting_type_names[];
 
-   FittingParameter(const std::string& name, double initial_value, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type) :
+   FittingParameter(const std::string& name, double initial_value, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type_) :
       name(name),
       initial_value(initial_value),
-      allowed_fitting_types(allowed_fitting_types),
-      fitting_type(fitting_type)
+      allowed_fitting_types(allowed_fitting_types)
    {
+      fitting_type = Fixed;
+      setFittingType(fitting_type_);
    }
 
    bool isFixed() { return fitting_type == Fixed; }
@@ -78,14 +79,24 @@ public:
 
    void setConstrained(bool constrained_ = true) { constrained = constrained_; }
 
+   bool setFittingType(ParameterFittingType fitting_type_)
+   {
+      for (auto& allowed_type : allowed_fitting_types)
+         if (fitting_type_ == allowed_type)
+            fitting_type = fitting_type_;
+      return fitting_type_ == fitting_type;
+   }
+
+   ParameterFittingType getFittingType() { return fitting_type; }
+
    std::string name;
    double initial_value;
    std::vector<ParameterFittingType> allowed_fitting_types;
-   ParameterFittingType fitting_type;
    bool constrained = false;
 
 private:
    
+   ParameterFittingType fitting_type;
    FittingParameter() {}
    
    template<class Archive>

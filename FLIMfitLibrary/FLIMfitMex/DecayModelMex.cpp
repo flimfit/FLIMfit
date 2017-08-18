@@ -123,7 +123,7 @@ mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> param
    { 
       mxSetFieldByNumber(s, i, 0, mxCreateString(parameters[i]->name.c_str()));
       mxSetFieldByNumber(s, i, 1, mxCreateDoubleScalar(parameters[i]->initial_value));
-      mxSetFieldByNumber(s, i, 2, mxCreateDoubleScalar(parameters[i]->fitting_type + 1));
+      mxSetFieldByNumber(s, i, 2, mxCreateDoubleScalar(parameters[i]->getFittingType() + 1));
 
       auto& allowed_types = parameters[i]->allowed_fitting_types;
       mxArray* a = mxCreateNumericMatrix(1, allowed_types.size(), mxDOUBLE_CLASS, mxREAL);
@@ -218,14 +218,7 @@ void setVariables(std::shared_ptr<QDecayModel> model, std::vector<std::shared_pt
    {
       parameters[i]->initial_value = mxGetScalar(mxGetField(new_parameters, i, "InitialValue"));
       ParameterFittingType type = static_cast<ParameterFittingType>((int)mxGetScalar(mxGetField(new_parameters, i, "FittingType")) - 1);
-
-      int is_allowed = false;
-      auto& allowed_types = parameters[i]->allowed_fitting_types;
-      for (int j = 0; j < allowed_types.size(); j++)
-         is_allowed |= (type == allowed_types[j]);
-
-      if (is_allowed)
-         parameters[i]->fitting_type = type;
+      parameters[i]->setFittingType(type);
    }
 }
 

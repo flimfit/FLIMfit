@@ -198,11 +198,11 @@ void DecayModel::setupIncMatrix(std::vector<int>& inc)
    int row = 0;
    int col = 0;
 
-
+   int* id = inc.data();
    std::fill(inc.begin(), inc.end(), 0);
 
    int t0_row;
-   if (t0_parameter->fitting_type == FittedGlobally)
+   if (t0_parameter->isFittedGlobally())
    {
       t0_row = row;
       row++;
@@ -212,7 +212,7 @@ void DecayModel::setupIncMatrix(std::vector<int>& inc)
       group->setupIncMatrix(inc, row, col);
 
    // t0 parameter affects every column
-   if (t0_parameter->fitting_type == FittedGlobally)
+   if (t0_parameter->isFittedGlobally())
       for (int i = 0; i<col; i++)
          inc[t0_row + i * 12] = 1;
 
@@ -231,7 +231,7 @@ int DecayModel::getNumDerivatives()
    return n;
 }
 
-void DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+int DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int idx = 0;
 
@@ -270,9 +270,11 @@ void DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<do
    // Apply scaling to convert counts -> photons
    for (int i = 0; i < adim*(col + 1); i++)
       a[i] *= photons_per_count;
+
+   return col;
 }
 
-void DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+int DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int col = 0;
 
@@ -283,7 +285,7 @@ void DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vec
    col += AddReferenceLifetimeDerivatives(wb, ref_lifetime, b.data() + col*bdim, bdim);
    */
 
-   if (t0_parameter->fitting_type == FittedGlobally)
+   if (t0_parameter->isFittedGlobally())
       col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv[col]);
 
    for (int i = 0; i < decay_groups.size(); i++)
@@ -323,6 +325,8 @@ void DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vec
 
    }
    */
+
+   return col;
 }
 
 
@@ -499,7 +503,7 @@ void DecayModel::validateDerivatives()
    int n_cols = getNumColumns();
    int n_der = getNumDerivatives();
 
-   std::vector<int> inc(96);
+   std::vector<int> inc(12 * 12);
    setupIncMatrix(inc);
 
    int dim = dp->n_meas;
@@ -513,14 +517,24 @@ void DecayModel::validateDerivatives()
    std::vector<double> alf(n_nonlinear);
    getInitialVariables(alf, 2000);
    
-   calculateModel(a, dim, kap, alf, 0);
-   calculateDerivatives(b, dim, kap, alf, 0);
+   int n_col_real = calculateModel(a, dim, kap, alf, 0);
+   int n_der_real = calculateDerivatives(b, dim, kap, alf, 0);
 
-   std::vector<std::string> param_names;
-   std::vector<int> group;
-   int ax, bx;
-   getOutputParamNames(param_names, group, ax, bx);
+   if (n_col_real != n_cols)
+      throw std::runtime_error("Incorrect number of columns in model");
+   if (n_der_real != n_der)
+      throw std::runtime_error("Incorrect number of derivatives in model");
 
+   std::vector<std::string> names;
+   for (auto& p : parameters)
+      if (p->isFittedGlobally())
+         names.push_back(p->name);
+   for (auto& g : decay_groups)
+      for (auto& p : g->getParameters())
+         if (p->isFittedGlobally())
+            names.push_back(p->name);
+
+   bool pass = true;
    int m = 0;
    for (int i = 0; i < n_nonlinear; i++)
       for (int j = 0; j < n_cols; j++)
@@ -567,14 +581,20 @@ void DecayModel::validateDerivatives()
                mean_err += err[k];
             mean_err /= dim;
 
-            std::cout << "Variable: " << i << " (" << param_names[i] << ") "<< ", Column: " << j << "\n";
+            std::cout << "Variable: " << i << " (" << names[i] << "), Column: " << j << "\n";
             std::cout << "   Mean err : " << mean_err << "\n";
 
             if (mean_err < 0.5)
-               throw std::runtime_error("Problem with derivatives detected!");
+            {
+               std::cout << "   *********************************\n";
+               pass = false;
+            }
 
             m++;
          }
       }
-   
+
+   if (!pass)
+      throw std::runtime_error("Problem with derivatives detected!");
+
 }

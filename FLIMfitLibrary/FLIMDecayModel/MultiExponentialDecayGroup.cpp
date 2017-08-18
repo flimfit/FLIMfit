@@ -102,10 +102,10 @@ void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
             string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
             double initial_value = 1.0 / n_exponential;
 
-            auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
+            auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, Fixed);
             beta_parameters.push_back(p);
          }
-      }
+      } 
    }
    else
    {
@@ -208,10 +208,10 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
          cur_col++;
    }
 
-   if (contributions_global)
+   if (contributions_global && (n_exponential > 1))
    {
       // Set diagonal elements of incidence matrix for variable beta's   
-      for (int i = 0; i<n_exponential - 1; i++)
+      for (int i = 0; i<n_exponential; i++)
       {
          if (beta_parameters[i]->isFittedGlobally())
          {
@@ -259,8 +259,9 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
    {
       beta_param_values = param_value + idx;
       beta.resize(n_exponential);
+      beta_buf.resize(n_exponential);
       if (n_exponential > 1)
-         idx += getBeta(beta_parameters, fixed_beta, n_beta_free, param_value + idx, beta.data());
+         idx += getBeta(beta_parameters, fixed_beta, n_beta_free, param_value + idx, beta.data(), beta_buf.data());
       else
          beta[0] = 1;
    }
@@ -277,7 +278,8 @@ int MultiExponentialDecayGroupPrivate::getNonlinearOutputs(float* param_values, 
 
    if (contributions_global && n_exponential > 1)
    {
-      getBeta(beta_parameters, fixed_beta, n_beta_free, param_values + param_idx, output + output_idx);
+      beta_buf_float.resize(n_exponential);
+      getBeta(beta_parameters, fixed_beta, n_beta_free, param_values + param_idx, output + output_idx, beta_buf_float.data());
       output_idx += n_exponential;
    }
 
@@ -434,10 +436,10 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int
    int col = 0;
 
    int ji = 0;
-   if (contributions_global)
+   if (contributions_global && (n_exponential > 1))
    {
-      for (int j = 0; j < n_exponential - 1; j++)
-         if (!beta_parameters[j]->isFixed())
+      for (int j = 0; j < n_exponential; j++)
+         if (beta_parameters[j]->isFittedGlobally())
          {
             memset(b + col*bdim, 0, bdim * sizeof(*b));
             int ki = ji;

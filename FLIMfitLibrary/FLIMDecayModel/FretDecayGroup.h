@@ -24,6 +24,8 @@ public:
    void setIncludeDonorOnly(bool include_donor_only_);
    void setIncludeAcceptor(bool include_acceptor_);
 
+   void setContributionsGlobal(bool contributions_global) {}; // contributions must be global
+
    const std::vector<double>& getChannelFactors(int index);
    void setChannelFactors(int index, const std::vector<double>& channel_factors);
 

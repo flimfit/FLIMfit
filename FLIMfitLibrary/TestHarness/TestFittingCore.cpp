@@ -125,13 +125,13 @@ int testFittingCoreDouble()
    auto params = group->getParameters();
    for (int i=0; i<params.size(); i++)
    {
-      params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      params[i]->setFittingType(FittedGlobally);
       params[i]->initial_value = test[i];
-      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
+//      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
 
    auto bg = std::make_shared<BackgroundLightDecayGroup>();
-   bg->getParameter("offset")->fitting_type = ParameterFittingType::FittedLocally;
+   bg->getParameter("offset")->setFittingType(FittedLocally);
    bg->getParameter("offset")->initial_value = N_bg;
    if (use_background)
       model->addDecayGroup(bg);
@@ -223,12 +223,12 @@ int testFittingCoreSingle(double tau, int N)
    auto params = group->getParameters();
    for (int i = 0; i < params.size(); i++)
    {
-      params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      params[i]->setFittingType(FittedGlobally);
       params[i]->initial_value = test[i];
    }
 
    auto bg = std::make_shared<BackgroundLightDecayGroup>();
-   bg->getParameter("offset")->fitting_type = ParameterFittingType::FittedLocally;
+   bg->getParameter("offset")->setFittingType(FittedLocally);
    bg->getParameter("offset")->initial_value = N_bg;
    if (use_background)
       model->addDecayGroup(bg);

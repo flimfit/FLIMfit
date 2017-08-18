@@ -38,8 +38,9 @@
 //#include <boost/test/included/unit_test.hpp>
 //#include <boost/test/unit_test.hpp>
 
-#include "FLIMSimulation.h"
+#include "Cout2VisualStudioDebugOutput.h"
 
+#include "FLIMSimulation.h"
 #include <iostream>
 #include <string>
 #include <cmath>
@@ -49,9 +50,6 @@
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 
-//using namespace boost::unit_test;
-//BOOST_AUTO_TEST_CASE(TCSPC_Single)
-
 extern int testFittingCoreDouble();
 extern void testDecayResampler();
 extern int testFittingCoreSingle(double tau, int N);
@@ -59,6 +57,8 @@ extern int testModelDerivatives();
 
 int main()
 {
+   Cout2VisualStudioDebugOutput c2v;
+
    testDecayResampler();
    testModelDerivatives();
 
@@ -89,9 +89,9 @@ int main0()
    auto params = group->getParameters();
    for (int i=0; i<params.size(); i++)
    {
-      params[i]->fitting_type = ParameterFittingType::FittedGlobally;
+      params[i]->setFittingType(FittedGlobally);
       params[i]->initial_value = test[i];
-      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
+//      std::cout << params[i]->name << " " << params[i]->fitting_type << "\n";
    }
    
 

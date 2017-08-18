@@ -4,29 +4,26 @@
 #include "IRFConvolution.h"
 
 template<class T> // TODO: make this part of class
-int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[])
+int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[], T beta_buf[])
 {
    int n_vars_used = 0;
    
-   alf2beta(n_beta_free, alf, beta);
+   alf2beta(n_beta_free, alf, beta_buf);
 
    int idx = 0;
    for (int i = 0; i < beta_parameters.size(); i++)
    {
       if (!beta_parameters[i]->isFixed())
       {
-         beta[i] = beta[idx++] * (1 - fixed_beta);
+         beta[i] = beta_buf[idx++] * (1 - fixed_beta);
          n_vars_used++;
       }
-   }
-
-   for (int i = 0; i < beta_parameters.size(); i++)
-   {
-      if (beta_parameters[i]->isFixed())
+      else
+      {
          beta[i] = beta_parameters[i]->initial_value;
+      }
    }
-
-   return n_vars_used;
+   return max(n_beta_free-1, 0);
 }
 class MultiExponentialDecayGroupPrivate : public AbstractDecayGroup
 {
@@ -39,7 +36,7 @@ public:
    MultiExponentialDecayGroupPrivate(const MultiExponentialDecayGroupPrivate& obj);
 
    virtual void setNumExponential(int n_exponential);
-   void setContributionsGlobal(bool contributions_global);
+   virtual void setContributionsGlobal(bool contributions_global);
 
    virtual const std::vector<double>& getChannelFactors(int index);
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors);
@@ -71,7 +68,8 @@ protected:
    bool contributions_global;
 
    std::vector<double> tau, tau_raw;
-   std::vector<double> beta;
+   std::vector<double> beta, beta_buf;
+   std::vector<float> beta_buf_float;
    std::vector<ExponentialPrecomputationBuffer> buffer;
    std::vector<double> channel_factors;
 

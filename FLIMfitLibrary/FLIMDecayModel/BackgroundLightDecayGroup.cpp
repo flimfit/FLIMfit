@@ -212,7 +212,7 @@ Add a constant offset component to the matrix
 int BackgroundLightDecayGroup::addOffsetColumn(double* a, int adim, double& kap)
 {
    // set constant phi value for offset
-   if (parameters[0]->fitting_type == FittedLocally)
+   if (parameters[0]->isFittedLocally())
    {
       for (int k = 0; k<dp->n_meas; k++)
             a[k] = 1;
@@ -230,7 +230,7 @@ Use the current IRF
 int BackgroundLightDecayGroup::addScatterColumn(double* a, int adim, double& kap)
 {
    // set constant phi value for scatterer
-   if (parameters[1]->fitting_type == FittedLocally)
+   if (parameters[1]->isFittedLocally())
    {
        memset(a, 0, adim*sizeof(*a));
       
@@ -248,7 +248,7 @@ Add a TVB component to the matrix
 */
 int BackgroundLightDecayGroup::addTVBColumn(double* a, int adim, double& kap)
 {
-   if (parameters[1]->fitting_type == FittedLocally && !dp->tvb_profile.empty())
+   if (parameters[1]->isFittedLocally() && !dp->tvb_profile.empty())
    {
       for (int k = 0; k<dp->n_meas; k++)
             a[k] += dp->tvb_profile[k];
