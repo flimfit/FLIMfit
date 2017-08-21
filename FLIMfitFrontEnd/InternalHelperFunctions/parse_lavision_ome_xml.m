@@ -41,12 +41,30 @@ function dims = parse_lavision_ome_xml(xml,dims)
     
     % Gated
     if ~isempty(fast_delay) && str2double(fast_delay.Value) == 1
-        delay_values = get_element('Fast_Delay_Box_T_List_of_Values');
-        if isempty(delay_values)
-            throw(MException('FLIMfit:errorProcessingLavision','Could not find fast delay values'));
-        end
         
-        dims.delays = str2num(delay_values.Value);
+        use_list = get_element('Fast_Delay_Box_T_Use_List_Values');
+        if str2double(use_list.Value) == 0
+            % not a list of values so use start and stop
+            res = get_element('Fast_Delay_Box_T_Resolution');
+            nsteps = str2double(res.Value);
+            delays = 0:nsteps -1;
+            
+            len = get_element('Fast_Delay_Box_T_Length');
+            step =  str2double(len.Value)/(nsteps -1);
+            
+            delays = delays .* step;
+            
+            start = get_element('Fast_Delay_Box_T_StartDelay');
+            dims.delays =  delays + str2double(start.Value);
+            
+        else
+            
+            delay_values = get_element('Fast_Delay_Box_T_List_of_Values');
+            if isempty(delay_values)
+                throw(MException('FLIMfit:errorProcessingLavision','Could not find fast delay values'));
+            end
+            dims.delays = str2num(delay_values.Value);
+        end
         dims.FLIM_type = 'Gated';
         
     % TCSPC
