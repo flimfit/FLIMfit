@@ -23,7 +23,7 @@ int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameter
          beta[i] = beta_parameters[i]->initial_value;
       }
    }
-   return max(n_beta_free-1, 0);
+   return std::max(n_beta_free-1, 0);
 }
 class MultiExponentialDecayGroupPrivate : public AbstractDecayGroup
 {
