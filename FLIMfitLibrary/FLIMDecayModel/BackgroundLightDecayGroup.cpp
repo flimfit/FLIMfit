@@ -175,7 +175,7 @@ int BackgroundLightDecayGroup::calculateModel(double* a, int adim, double& kap, 
    return col;
 }
 
-int BackgroundLightDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv[])
+int BackgroundLightDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    

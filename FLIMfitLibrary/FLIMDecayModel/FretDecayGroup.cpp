@@ -430,30 +430,29 @@ void FretDecayGroup::addAcceptorDerivativeContribution(int i, int j, double fact
 }
 
 
-int FretDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv[])
+int FretDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
-   int iv = 0;
    for (int i = 0; i < n_exponential; i++)
    {
       if (tau_parameters[i]->isFittedGlobally())
       {
          if (include_donor_only)
-            col += addLifetimeDerivative(i, b + col*bdim, bdim, kap_derv[iv]);
-         col += addLifetimeDerivativesForFret(i, b + col*bdim, bdim, &kap_derv[iv]);
-         iv++;
+            col += addLifetimeDerivative(i, b + col*bdim, bdim);
+         col += addLifetimeDerivativesForFret(i, b + col*bdim, bdim, kap_derv);
+         addLifetimeKappaDerivative(i, kap_derv);
       }
    }
 
    // TODO: if we add kappa here, need to sort out col -> iv referencing
-   col += addContributionDerivativesForFret(b + col*bdim, bdim, &kap_derv[col]);
-   col += addFretEfficiencyDerivatives(b + col*bdim, bdim, &kap_derv[col]);
+   col += addContributionDerivativesForFret(b + col*bdim, bdim, kap_derv);
+   col += addFretEfficiencyDerivatives(b + col*bdim, bdim, kap_derv);
 
    if (include_acceptor)
    {
-      col += addAcceptorIntensityDerivatives(b + col*bdim, bdim, &kap_derv[col]);
-      col += addDirectAcceptorDerivatives(b + col*bdim, bdim, &kap_derv[col]);
-      col += addAcceptorLifetimeDerivatives(b + col*bdim, bdim, &kap_derv[col]);
+      col += addAcceptorIntensityDerivatives(b + col*bdim, bdim, kap_derv);
+      col += addDirectAcceptorDerivatives(b + col*bdim, bdim, kap_derv);
+      col += addAcceptorLifetimeDerivatives(b + col*bdim, bdim, kap_derv);
    }
 
    return col;
@@ -461,7 +460,7 @@ int FretDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv[])
 
 
 
-int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, double kap_derv[])
+int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -484,7 +483,6 @@ int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, do
          addAcceptorDerivativeContribution(i, j, acceptor_fact, b + idx, bdim, kap_derv[col]);
       }
 
-
       col++;
       idx += bdim;
    }
@@ -492,7 +490,7 @@ int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, do
    return col;
 }
 
-int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, double kap_derv[])
+int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, double_iterator& kap_derv)
 {
    if (n_exponential < 2)
       return 0;
@@ -530,13 +528,14 @@ int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, doubl
                }
             col++;
          }
+         kap_derv++;
          ji++;
       }
 
    return col;
 }
 
-int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, double kap_derv[])
+int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -558,7 +557,7 @@ int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, double kap
                acceptor_fret_buffer[i][j].addDerivative(acceptor_fact, reference_lifetime, b + idx);
 
                acceptor_fact = beta[j] * Q * a_star[i][j] * (1 / tauA - 1 / tau[j]);
-               addAcceptorDerivativeContribution(i, j, acceptor_fact, b + idx, bdim, kap_derv[col]);
+               addAcceptorDerivativeContribution(i, j, acceptor_fact, b + idx, bdim, *kap_derv);
             }
                        
          }
@@ -566,13 +565,14 @@ int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, double kap
 
          col++;
          idx += bdim;
+         kap_derv++;
       }
    }
 
    return col;
 }
 
-int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, double kap_derv[])
+int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -588,13 +588,14 @@ int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, double kap
          col++;
          idx += bdim;
       }
+      kap_derv++;
    }
 
    return col;
 }
 
 
-int FretDecayGroup::addAcceptorIntensityDerivatives(double* b, int bdim, double kap_derv[])
+int FretDecayGroup::addAcceptorIntensityDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -609,13 +610,14 @@ int FretDecayGroup::addAcceptorIntensityDerivatives(double* b, int bdim, double 
          col++;
          idx += bdim;
       }
+      kap_derv++;
    }
 
    return col;
 }
 
 
-int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, double kap_derv[])
+int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -642,7 +644,7 @@ int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, double k
             acceptor_buffer->addDerivative(fact, reference_lifetime, b + idx);
             
             fact *= - tau_transfer[i];
-            addAcceptorDerivativeContribution(i, j, fact, b + idx, bdim, kap_derv[col]);
+            addAcceptorDerivativeContribution(i, j, fact, b + idx, bdim, *kap_derv);
          }
 
          acceptor_buffer->addDerivative(Qsigma / (tauA * tauA), reference_lifetime, b + idx);
@@ -650,6 +652,7 @@ int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, double k
          col++;
          idx += bdim;
       }
+      kap_derv++;
    }
 
    return col;

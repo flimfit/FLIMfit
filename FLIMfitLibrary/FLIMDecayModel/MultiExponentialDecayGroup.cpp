@@ -341,11 +341,14 @@ int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, doubl
    return addDecayGroup(buffer, a, adim, kap, bin_shift);
 }
 
-int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, double kap_derv[])
+int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
-      col += addLifetimeDerivative(i, b + col*bdim, bdim, kap_derv[col]);
+   {
+      col += addLifetimeDerivative(i, b + col*bdim, bdim);
+      addLifetimeKappaDerivative(i, kap_derv);
+   }
 
    int last_idx = -1;
    for (int i = 0; i < n_exponential; i++)
@@ -362,9 +365,7 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim,
       }
    }
    
-
-
-   col += addContributionDerivatives(b + col*bdim, bdim, &kap_derv[col]);
+   col += addContributionDerivatives(b + col*bdim, bdim, kap_derv);
    return col;
 }
 
@@ -412,7 +413,7 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<Exponenti
 }
 
 
-int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b, int bdim, double& kap_derv)
+int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b, int bdim)
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
@@ -422,16 +423,20 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b,
       fact *= contributions_global ? beta[idx] : 1;
 
       buffer[idx].addDerivative(fact, reference_lifetime, b);
-
-      kap_derv = - kappaLim(tau[idx]);
-
       return 1;
    }
    
    return 0;
 }
 
-int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int bdim, double kap_derv[])
+void MultiExponentialDecayGroupPrivate::addLifetimeKappaDerivative(int idx, double_iterator& kap_derv)
+{
+   if (tau_parameters[idx]->isFittedGlobally())
+      *(kap_derv++) = -kappaLim(tau[idx]);
+}
+
+
+int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
 
@@ -453,6 +458,7 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int
 
             col++;
             ji++;
+            kap_derv++;
          }
    }
 

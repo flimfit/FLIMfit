@@ -64,7 +64,7 @@ public:
 
    int setVariables(const double* variables);
    int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
-   int calculateDerivatives(double* b, int bdim, double kap_derv[]);
+   int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
    void addConstantContribution(float* a);
 
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);

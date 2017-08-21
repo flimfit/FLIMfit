@@ -44,6 +44,7 @@
 #include "IRFConvolution.h"
 #include "FittingParameter.h"
 
+typedef std::vector<double>::iterator double_iterator;
 
 class AbstractDecayGroup : public QObject
 {
@@ -82,7 +83,7 @@ public:
 
    virtual int setVariables(const double* variables) = 0;
    virtual int calculateModel(double* a, int adim, double& kap, int bin_shift = 0) = 0;
-   virtual int calculateDerivatives(double* b, int bdim, double kap_derv[]) = 0;
+   virtual int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv) = 0;
    virtual void addConstantContribution(float* a) {}
 
    virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;

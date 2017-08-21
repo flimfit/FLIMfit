@@ -218,16 +218,17 @@ int AnisotropyDecayGroup::calculateModel(double* a, int adim, double& kap, int b
 }
 
 
-int AnisotropyDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv[])
+int AnisotropyDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
    {
-      col += addLifetimeDerivative(i, b + col*bdim, bdim, kap_derv[col]);
+      col += addLifetimeDerivative(i, b + col*bdim, bdim);
       col += addLifetimeDerivativesForAnisotropy(i, b + col*bdim, bdim, kap_derv[col]);
+      addLifetimeKappaDerivative(i, kap_derv);
    }
 
-   col += addContributionDerivatives(b + col*bdim, bdim, &kap_derv[col]);
+   col += addContributionDerivatives(b + col*bdim, bdim, kap_derv);
    col += addRotationalCorrelationTimeDerivatives(b + col*bdim, bdim, &kap_derv[col]);
 
    return col;

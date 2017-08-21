@@ -277,8 +277,9 @@ int DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<dou
 int DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int col = 0;
+   int var = 0;
 
-   double* kap_derv = kap.data() + 1; // TODO tidy this a bit
+   double_iterator kap_derv = kap.begin() + 1; // TODO tidy this a bit
 
    /*
    if (irf->ref_reconvolution == FIT_GLOBALLY)
@@ -286,10 +287,10 @@ int DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vect
    */
 
    if (t0_parameter->isFittedGlobally())
-      col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv[col]);
+      col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv);
 
    for (int i = 0; i < decay_groups.size(); i++)
-      col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, &kap_derv[col]);
+      col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, kap_derv);
 
 #if _DEBUG
    //for (int i = 0; i < b.size(); i++)
@@ -330,7 +331,7 @@ int DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vect
 }
 
 
-int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double& kap_derv)
+int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    //TODO - reference lifetime derivatives
    /*
@@ -374,7 +375,7 @@ int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double& kap
 
 
 
-int DecayModel::addT0Derivatives(double* b, int bdim, double& kap_derv)
+int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::iterator& kap_derv)
 {
    // Compute numerical derivatives for t0
 
@@ -512,7 +513,7 @@ void DecayModel::validateDerivatives()
    std::vector<double> ap(dim*(n_cols + 1)); 
    std::vector<double> b(dim*n_der);
    std::vector<double> err(dim);
-   std::vector<double> kap(1+n_nonlinear);
+   std::vector<double> kap(1+n_nonlinear+100);
 
    std::vector<double> alf(n_nonlinear);
    getInitialVariables(alf, 2000);

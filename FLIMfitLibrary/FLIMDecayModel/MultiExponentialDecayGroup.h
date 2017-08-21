@@ -43,7 +43,7 @@ public:
 
    virtual int setVariables(const double* variables);
    virtual int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
-   virtual int calculateDerivatives(double* b, int bdim, double kap_derv[]);
+   virtual int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
    virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
@@ -57,8 +57,9 @@ protected:
    void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
 
    int addDecayGroup(const std::vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, double& kap, int bin_shift = 0);
-   int addLifetimeDerivative(int idx, double* b, int bdim, double& kap_derv);
-   int addContributionDerivatives(double* b, int bdim, double kap_derv[]);
+   int addLifetimeDerivative(int idx, double* b, int bdim);
+   void addLifetimeKappaDerivative(int idx, double_iterator& kap_derv);
+   int addContributionDerivatives(double* b, int bdim, double_iterator& kap_derv);
    int normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);
 
    std::vector<std::shared_ptr<FittingParameter>> tau_parameters;

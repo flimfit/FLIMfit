@@ -96,23 +96,22 @@ public:
 
    void validateDerivatives();
 
+   std::shared_ptr<FittingParameter> reference_parameter;
+   std::shared_ptr<FittingParameter> t0_parameter;
+
 protected:
 
 
    double getCurrentReferenceLifetime(const double* param_values, int& idx);
 
-   int addReferenceLifetimeDerivatives(double* b, int bdim, double& kap_derv);
-   int addT0Derivatives(double* b, int bdim, double& kap_derv);
+   int addReferenceLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv);
+   int addT0Derivatives(double* b, int bdim, double_iterator& kap_derv);
 
    void setupAdjust();
    
    std::shared_ptr<TransformedDataParameters> dp;
 
-   std::shared_ptr<FittingParameter> reference_parameter;
-   std::shared_ptr<FittingParameter> t0_parameter;
-
    std::vector<std::shared_ptr<FittingParameter>> parameters;
-
    std::vector<std::shared_ptr<AbstractDecayGroup>> decay_groups;
 
    float photons_per_count;

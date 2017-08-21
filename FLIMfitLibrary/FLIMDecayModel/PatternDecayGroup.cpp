@@ -71,7 +71,7 @@ int PatternDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_
    return 1;
 }
 
-int PatternDecayGroup::calculateDerivatives(double* b, int bdim, double kap_derv[])
+int PatternDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
 {
    return 0;
 }

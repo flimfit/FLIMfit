@@ -82,6 +82,8 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
 
+   model->t0_parameter->setFittingType(FittedGlobally);
+
    model->addDecayGroup(g);
    model->init();
 
@@ -150,7 +152,7 @@ int testModelDerivatives()
 
    {
       std::vector<std::shared_ptr<AbstractDecayGroup>> groups;
-      groups.push_back(std::make_shared<FretDecayGroup>(1, 2, false));
+      groups.push_back(std::make_shared<FretDecayGroup>(2, 1, false));
       groups.push_back(std::make_shared<FretDecayGroup>(1, 1, false));
       validate(groups);
    }
