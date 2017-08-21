@@ -48,7 +48,7 @@ link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${MEX_OUT_DIR})
 
 set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core ${Boost_LIBRARIES})
-set (COMMON_FILES MexUtils.h MexUtils.cpp)
+set (COMMON_FILES MexUtils.h)
 
 matlab_add_mex(NAME ff_FLIMImage SRC ${COMMON_FILES} FLIMImageMex.cpp)
 target_link_libraries(ff_FLIMImage ${COMMON_LIBS})
