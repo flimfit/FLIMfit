@@ -6,8 +6,8 @@ if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
 
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
 
-export CC=/usr/local/bin/gcc-5
-export CXX=/usr/local/bin/g++-5
+export CC=/usr/local/bin/gcc-7
+export CXX=/usr/local/bin/g++-7
 export MACOSX_DEPLOYMENT_TARGET=10.9.5
 
 echo "Cleaning CMake Project..."
