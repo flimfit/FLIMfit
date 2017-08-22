@@ -50,7 +50,6 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 Source: "{#RepositoryRoot}\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#VSRedist}"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\Start_FLIMfit.bat"; DestDir: "{app}"; Flags: ignoreversion 64bit
-Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMGlobalAnalysis_64.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMfit.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "C:\Program Files\MATLAB\R{#MatlabVer}\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "{#RepositoryRoot}\InstallerSupport\FLIMfit-icon.ico"; DestDir: "{app}"
