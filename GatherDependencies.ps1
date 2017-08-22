@@ -63,18 +63,21 @@ Remove-Item "$omero_matlab_libs_dir\slf4j-log4j12.jar"
 Remove-Item "$omero_matlab_libs_dir\slf4j-api.jar"
 Remove-Item "$omero_matlab_libs_dir\log4j.jar"
 
-DownloadZipIntoFolder $bf_url "$pwd\FLIMfitFrontEnd\BFMatlab\"
+$bf_folder = "$pwd\FLIMfitFrontEnd\BFMatlab"
+DownloadZipIntoFolder $bf_url "$bf_folder\"
 
 # Remove sl4j from bioformat
-$zipfile = "$pwd\FLIMfitFrontEnd\BFMatlab\bioformats_package.jar"
-$files   = 'org/slf4j/impl/'
-$dst     = '$pwd\FLIMfitFrontEnd\BFMatlab'
+$jarfile = "$bf_folder\bioformats_package.jar"
+$zipfile = "$bf_folder\bioformats_package.zip"
+$files   = "\org\slf4j\impl\StaticLoggerBinder.class", "\org\slf4j\impl\StaticMarkerBinder.class", "\org\slf4j\impl\StaticMDCBinder.class"
 
-$app = New-Object -COM 'Shell.Application'
-$app.NameSpace($zipfile).Items() | ? { $files -contains $_.Name } | % {
-  $app.Namespace($dst).MoveHere($_)
-  Remove-Item (Join-Path $dst $_.Name)
+Rename-Item $jarfile $zipfile
+$shell = New-Object -com Shell.Application
+$files | Foreach-Object {
+   $shell.Namespace($bf_folder).MoveHere("$zipfile$_")
 }
+Rename-Item $zipfile $jarfile
+
 
 echo "Downloading ini4j.jar"
 ((new-object net.webclient).DownloadFile($ini4j_url, "$omero_matlab_libs_dir\ini4j.jar"))
