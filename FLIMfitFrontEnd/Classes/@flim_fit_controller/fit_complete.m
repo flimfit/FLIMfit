@@ -46,7 +46,6 @@ function fit_complete(obj,~,~)
     
     t_exec = toc(obj.start_time);    
     disp(['Total execution time: ' num2str(t_exec)]);
-    disp(['Overall Chi2: ' num2str(chi2,6)]);
     
     obj.selected = 1:obj.fit_result.n_results;
     

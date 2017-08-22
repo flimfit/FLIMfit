@@ -31,8 +31,9 @@ function new_folders = get_folders_recursive(root_path)
     folder_isdir = cell2mat(folders(4,:));
     folder_name = folders(1,:);
 
-    sel = folder_isdir == 1 & ~strncmp('.',folder_name,1);
-
+    % N.B.in  folder_isdir 0 indicates a folder
+    sel = folder_isdir == 0 & ~strncmp('.',folder_name,1);
+   
     folders = folder_name(sel);
 
     new_folders = [];

@@ -34,6 +34,8 @@ cd FLIMfitFrontEnd
 if [ -z ${VERSION+x} ]; then export VERSION=$(git describe); fi
 echo "VERSION = $VERSION"
 
+rm ../FLIMfitStandalone/BuiltApps/*.app
+
 cur_dir=$(grealpath .)
 if ! matlab -nodisplay -nosplash -r "cd('${cur_dir}'); compile(true); exit"; then
     echo 'Error building frontend'

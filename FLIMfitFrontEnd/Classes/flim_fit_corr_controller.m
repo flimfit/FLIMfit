@@ -137,9 +137,11 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 param_data_x = param_data_x( sel );
                 param_data_y = param_data_y( sel );
                 
+                n_bin = 64;
+                
                 if display == 1 % Pixels
-                    x_edge = linspace(x_lim(1),x_lim(2),128);
-                    y_edge = linspace(y_lim(1),y_lim(2),128);
+                    x_edge = linspace(x_lim(1),x_lim(2),n_bin);
+                    y_edge = linspace(y_lim(1),y_lim(2),n_bin);
 
                     c = histcn([param_data_y param_data_x],y_edge,x_edge);
                     

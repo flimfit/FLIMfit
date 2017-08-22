@@ -27,7 +27,7 @@ DefaultDirName={pf}\{#MyAppName}\{#MyAppName} {#AppVersion}
 DefaultGroupName={#MyAppName}
 OutputDir={#RepositoryRoot}\FLIMfitStandalone\Installer
 OutputBaseFilename=FLIMfit {#AppVersion} Setup x64
-SetupIconFile={#RepositoryRoot}\FLIMfitFrontEnd\DeployFiles\microscope.ico
+SetupIconFile={#RepositoryRoot}\FLIMfitFrontEnd\DeployFiles\FLIMfit-icon.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -53,15 +53,15 @@ Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\Start_FLIMfit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMGlobalAnalysis_64.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMfit.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "C:\Program Files\MATLAB\R{#MatlabVer}\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
-Source: "{#RepositoryRoot}\InstallerSupport\microscope.ico"; DestDir: "{app}"
+Source: "{#RepositoryRoot}\InstallerSupport\FLIMfit-icon.ico"; DestDir: "{app}"
 Source: "{#RepositoryRoot}\InstallerSupport\gs916w64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitFrontEnd\java.opts"; DestDir: "{app}";
 
 
 [Icons]
-Name: "{group}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; IconFilename: "{app}\microscope.ico"
-Name: "{commondesktop}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\microscope.ico"
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\microscope.ico"
+Name: "{group}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; IconFilename: "{app}\FLIMfit-icon.ico"
+Name: "{commondesktop}\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: desktopicon; IconFilename: "{app}\FLIMfit-icon.ico"
+Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName} {#AppVersion}"; Filename: "{app}\Start_FLIMfit.bat"; Tasks: quicklaunchicon;  IconFilename: "{app}\FLIMfit-icon.ico"
 
 
 [Messages]

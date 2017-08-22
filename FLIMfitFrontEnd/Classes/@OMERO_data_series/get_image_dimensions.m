@@ -68,6 +68,13 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, image)
     sizeXY(1) = pixels.getSizeY.getValue();
     sizeXY(2) = pixels.getSizeX.getValue();
     
+    data_type = char(pixels.getPixelsType().getValue().getValue());
+    if ~any(strcmp(data_type,{'uint32','uint16'}))
+        data_type = 'single';
+    end
+    dims.data_type = data_type;
+    
+    
     session = obj.omero_logon_manager.session;
         
     % check for presence of an Xml modulo Annotation  containing 'Lifetime'
