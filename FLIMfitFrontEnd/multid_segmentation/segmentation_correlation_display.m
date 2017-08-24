@@ -155,6 +155,10 @@ classdef segmentation_correlation_display < handle
         
         function update(obj,~,~)
             
+            if ~isvalid(obj)
+                return
+            end
+            
             x_name = obj.x_listbox.String{obj.x_listbox.Value};
             y_name = obj.x_listbox.String{obj.y_listbox.Value};
             

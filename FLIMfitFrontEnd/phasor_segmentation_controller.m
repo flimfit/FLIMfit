@@ -187,8 +187,10 @@ classdef phasor_segmentation_controller < flim_data_series_observer
         function save_settings(obj, filename)
             doc = [];
             for i=1:length(obj.histograms)
-                info = obj.histograms(i).get_info();
-                doc = serialise_object(info,doc,'correlation_filter');
+                if isvalid(obj.histograms(i))
+                    info = obj.histograms(i).get_info();
+                    doc = serialise_object(info,doc,'correlation_filter');
+                end
             end
             xmlwrite(filename, doc);
         end
