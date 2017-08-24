@@ -202,6 +202,9 @@ classdef segmentation_controller < flim_data_series_observer
         
         function set_brush_width(obj)
             obj.brush_width = get(obj.brush_width_popup,'Value');
+            if strcmp(obj.tool_roi_paint_toggle.State,'on')
+               obj.on_callback(obj.tool_roi_paint_toggle) 
+            end
         end
         
         function ok_pressed(obj,src,~)
@@ -211,7 +214,7 @@ classdef segmentation_controller < flim_data_series_observer
             end
             
             obj.data_series.seg_mask = obj.filtered_mask;
-            
+
             obj.save_segmentation_params();
             fh = ancestor(src,'figure');
             delete(fh);

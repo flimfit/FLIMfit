@@ -320,11 +320,9 @@
                 file = [];
             end
             if obj.init
-                
                 if isempty(file) && ~obj.batch_mode % i.e. not batch
-                    choice = questdlg('Would you like to save the current settings?', ...
-                    'Save Data Settings in the current directory', ...
-                    'Yes','No','No');
+                    title = 'Save Settings?';
+                    choice = questdlg('Would you like to save the current data settings?', title ,'Yes','No','No');
                     if strcmp(choice,'Yes')
                         pol_idx = obj.polarisation_resolved + 1;
                         file = [obj.root_path obj.data_settings_filename{pol_idx}];     
@@ -958,6 +956,11 @@
         function delete(obj)
            
            obj.save_data_settings();
+           % close any bioformats readers saved in class
+           r=obj.bfReader;
+           if ~isempty(r)
+               r.close();
+           end
            % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
            
