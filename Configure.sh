@@ -8,7 +8,7 @@ echo "Checking for homebrew install..."
 	&& rruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
 	|| echo "Homebrew installed"
 
-brew update
+export MACOSX_DEPLOYMENT_TARGET=10.9.5
 
 echo "Ensure cmake, gcc and boost are installed..."
 # Ensure gcc, ghostscript, cmake, LAPACK are installed using Homebrew

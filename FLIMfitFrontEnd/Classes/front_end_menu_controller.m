@@ -156,9 +156,9 @@ classdef front_end_menu_controller < handle
         menu_background_tvb_load;
         menu_background_tvb_use_selected;
         
-        menu_segmentation_manual;
         menu_segmentation_yuriy;
-        
+        menu_segmentation_phasor;
+
         menu_tools_photon_stats;
         menu_tools_estimate_irf;
         menu_tools_create_irf_shift_map;
@@ -1050,6 +1050,10 @@ classdef front_end_menu_controller < handle
         %------------------------------------------------------------------
         function menu_segmentation_yuriy_callback(obj)
             new_segmentation_manager(obj.data_series_controller);
+        end
+        
+        function menu_segmentation_phasor_callback(obj)
+            phasor_segmentation_manager(obj.data_series_controller);
         end
         
         %------------------------------------------------------------------

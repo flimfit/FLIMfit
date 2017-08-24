@@ -7,6 +7,18 @@ HunterGate(
     SHA1 "35b76b78b85bcf1dce81e0cef32cc1f728170abf"
     LOCAL
 )
+
+set(TARGET_SDKROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk")
+
+# check to see if SDK exists and use it if so
+if(APPLE)
+if(EXISTS ${TARGET_SDKROOT})
+    set(CMAKE_OSX_SYSROOT ${TARGET_SDKROOT})
+else()
+    message(WARNING "Could not find macOS 10.10 SDK, falling back on default")
+endif()
+endif()
+
 project(FLIMfit)
 
 hunter_add_package(Boost COMPONENTS system filesystem serialization date_time)
