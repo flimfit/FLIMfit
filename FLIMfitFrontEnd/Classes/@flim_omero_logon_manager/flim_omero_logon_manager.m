@@ -117,8 +117,13 @@ classdef flim_omero_logon_manager < handle
                     end    % end switch
                 end   % end catch
                 if ~isempty(obj.session)
+                    % Create an unsecure (not encrypted) client and session
+                    % Use this session to speed up data transfer
+                    obj.client = obj.client.createClient(false);
+                    obj.session = obj.client.getSession();
                     obj.client.enableKeepAlive(60); % Calls session.keepAlive() every 60 seconds
                     obj.userid = obj.session.getAdminService().getEventContext().userId;
+        
                 end
             end     % end while
             
