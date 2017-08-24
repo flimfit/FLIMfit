@@ -55,6 +55,7 @@ function on_callback(obj,src,evtData)
         erase_toggle = get(obj.tool_roi_erase_toggle,'State');
         erase = strcmp(erase_toggle,'on') || ~isempty(modifier);
 
+        d = obj.data_series;
         obj.n_regions = obj.n_regions + 1;
 
         % if we're painting and started on an area, continue that region
@@ -62,7 +63,7 @@ function on_callback(obj,src,evtData)
         if isnumeric(toggle_type) % paint
             first_pos = round(first_pos);
             
-            if all(first_pos > 0) & all(first_pos <= size(obj.mask)) 
+            if all(first_pos > 0) & all(first_pos <= [d.height d.width]) 
                 old = obj.mask(first_pos(2),first_pos(1),obj.data_series_list.selected);
                 if old > 0
                     new_area = old;
@@ -70,7 +71,6 @@ function on_callback(obj,src,evtData)
             end
         end
         
-        d = obj.data_series;
 
         if ~isempty(d.acceptor)
             roi_mask = roi_mask(1:d.height,1:d.width);
