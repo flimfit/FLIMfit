@@ -105,8 +105,7 @@ classdef phasor_segmentation_controller < flim_data_series_observer
                 acceptor = d.acceptor(:,:,d.active);
             end
             
-            kern = ones(5,5);
-            kern = kern / sum(kern(:));
+            kern = fspecial('disk',3);
             
             obj.n_chan = size(p,1);
             
