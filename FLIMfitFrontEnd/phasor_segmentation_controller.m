@@ -29,6 +29,7 @@ classdef phasor_segmentation_controller < flim_data_series_observer
         flex_h;
         
         dataset = struct();
+        n_chan;
         
         histograms = segmentation_correlation_display.empty;
                 
@@ -71,16 +72,25 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             if exist(settings_file,'file')
                 obj.load_settings(settings_file);
             else
-                obj.add_correlation();                
+                for i=1:obj.n_chan
+                    obj.add_correlation(i);                
+                end
             end
             
             obj.update_display();
-            obj.slh = addlistener(obj.data_series_list,'selection_updated',@(~,~) escaped_callback(@obj.selection_updated));
+            obj.slh = addlistener(obj.data_series_list,'selection_updated',@(~,~) EC(@obj.selection_updated));
             
         end
         
-        function add_correlation(obj)
-            obj.histograms(end+1) = segmentation_correlation_display(obj, obj.panel_layout);
+        function add_correlation(obj, default_idx)
+            if nargin >= 2
+                x_name = ['p_i_' num2str(default_idx)];
+                y_name = ['p_r_' num2str(default_idx)];
+
+                obj.histograms(end+1) = segmentation_correlation_display(obj, obj.panel_layout, x_name, y_name);
+            else
+                obj.histograms(end+1) = segmentation_correlation_display(obj, obj.panel_layout);
+            end
         end
         
         function calculate(obj)
@@ -97,11 +107,20 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             
             kern = ones(5,5);
             kern = kern / sum(kern(:));
-            obj.dataset.p_r = conv2(squeeze(real(p)),kern,'same');
-            obj.dataset.p_i = conv2(squeeze(imag(p)),kern,'same');
-            obj.dataset.intensity = squeeze(I);
+            
+            obj.n_chan = size(p,1);
+            
+            for i=1:obj.n_chan
+                ext = ['_' num2str(i)];
+                p_r = conv2(squeeze(real(p(i,:,:))),kern,'same');
+                p_i = conv2(squeeze(imag(p(i,:,:))),kern,'same');
+                obj.dataset.(['p_r' ext]) = p_r;
+                obj.dataset.(['p_i' ext]) = p_i;
+                obj.dataset.(['phasor_lifetime' ext]) = d.rep_rate ./ (2*pi) .* p_i ./ p_r;
+                obj.dataset.(['intensity' ext]) = squeeze(I(i,:,:));
+            end
+            obj.dataset.total_intensity = squeeze(sum(I,1));
             obj.dataset.acceptor = acceptor;
-            obj.dataset.phasor_lifetime = d.rep_rate ./ (2*pi) .* obj.dataset.p_i ./ obj.dataset.p_r;
             
             for h=obj.histograms
                 h.update();
@@ -160,7 +179,7 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             % Save filters
             obj.save_settings(d.multid_filters_file);
             
-            d.multid_mask = zeros([d.height d.width d.n_datasets],'uint8');
+            d.multid_mask = false([d.height d.width d.n_datasets]);
             
             % Apply filters to all datasets
             hb = waitbar(0,'Segmenting...');

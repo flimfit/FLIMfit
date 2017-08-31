@@ -31,12 +31,20 @@ classdef segmentation_correlation_display < handle
             
     methods
        
-        function obj = segmentation_correlation_display(controller,parent)
+        function obj = segmentation_correlation_display(controller,parent,x_name,y_name)
             obj.parent = parent;
             obj.controller = controller;
             
             obj.setup_layout();
             obj.update();
+            
+            if nargin >= 4
+                info.x_name = x_name;
+                info.y_name = y_name;
+                info.flex_type = 'none';
+                obj.set_info(info);
+            end
+            
         end
         
         function info = get_info(obj)
@@ -139,15 +147,14 @@ classdef segmentation_correlation_display < handle
         function data = get_data(obj,name)
             data = obj.controller.dataset.(name);
                         
-            switch name
-                case 'intensity'
-                    data = log10(data);
-                    data = data / 4;
-                case 'acceptor'
-                    data = log10(data);
-                    data = data / 4;
-                case 'phasor_lifetime'
-                    data = data / 12;
+            if contains(name,'intensity')
+                data = log10(data);
+                data = data / 4;
+            elseif contains(name,'acceptor')
+                data = log10(data);
+                data = data / 4;
+            elseif contains(name,'phasor_lifetime')
+                data = data / 24;
             end
             
             data(data > 1) = 1;
@@ -165,7 +172,7 @@ classdef segmentation_correlation_display < handle
             obj.x_data = obj.get_data(x_name);
             obj.y_data = obj.get_data(y_name);
             
-            I = obj.controller.dataset.intensity;
+            I = obj.controller.dataset.total_intensity;
 
             pc = [obj.y_data(:) obj.x_data(:)];        
             n = histwv2(pc,I(:),0,1,256);
