@@ -194,13 +194,21 @@
         end
 
         if ~isempty(d.acceptor)
-           for i=1:length(use) 
-               ff_FLIMImage(im(i),'SetAcceptor',d.acceptor(:,:,use(i)));
+           for i=1:length(sel) 
+               ff_FLIMImage(im(i),'SetAcceptor',d.acceptor(:,:,sel(i)));
            end
         end
-        if ~isempty(d.seg_mask)
-           for i=1:length(use)
-               ff_FLIMImage(im(i),'SetMask',d.mask(:,:,use(i)));
+        if ~isempty(d.seg_mask) || ~isempty(d.multid_mask)
+           for i=1:length(sel)
+               if isempty(d.seg_mask)
+                   mask = ones([d.height d.width],'uint16');
+               else
+                   mask = d.seg_mask(:,:,sel(i));
+               end
+               if ~isempty(d.multid_mask)
+                   mask(~d.multid_mask(:,:,sel(i))) = 0;
+               end
+               ff_FLIMImage(im(i),'SetMask',mask);
            end
         end
     end

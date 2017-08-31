@@ -56,7 +56,7 @@ function get_return_data(obj)
         
         im = obj.datasets(i);
                             
-        region_sel = (summary.image == (im-1) & summary.size > 0);
+        region_sel = (summary.image == (i-1) & summary.size > 0);
         
         if sum(region_sel) > 0
             region_size_sel = summary.size(region_sel);

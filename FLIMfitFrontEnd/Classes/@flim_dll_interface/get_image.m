@@ -38,8 +38,10 @@ function [param_data, mask] = get_image(obj,dataset,param,indexing)
     end
     
     [~,idx] = find(obj.fit_result.image == dataset); 
+    
+    assert(~isempty(idx));
     dll_id = obj.fit_result.dll_id(idx);
     
-    [param_data,mask] = ff_FitResults(dll_id,'GetParameterImage', dataset, param);
+    [param_data,mask] = ff_FitResults(dll_id,'GetParameterImage', idx, param);
     
 end
