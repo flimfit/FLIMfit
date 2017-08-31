@@ -56,13 +56,13 @@ end
 
 
 %% if x happen to be a filename than read the file
-if (numel(x)<256)
-  if (exist(x, 'file')==2)
-    fid = fopen(x,'rb');
-    x = fread(fid, 'uint8');             % read image file as a raw binary
-    fclose(fid);
-  end
-end
+%if (numel(x)<256)
+%  if (exist(x, 'file')==2)
+%    fid = fopen(x,'rb');
+%    x = fread(fid, 'uint8');             % read image file as a raw binary
+%    fclose(fid);
+%  end
+%end
 
 %% Perform conversion
 switch (alg)
