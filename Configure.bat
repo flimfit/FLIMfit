@@ -1,6 +1,6 @@
 @echo off
 
-IF NOT DEFINED MSVC_VER SET MSVC_VER=14
+IF NOT DEFINED MSVC_VER SET MSVC_VER=15
 
 :: Install Chocolatey
 choco.exe 2> NUL
@@ -8,7 +8,7 @@ if ERRORLEVEL 9009 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex 
 SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 
 :: Install cmake, gs and OMERO stuff
-choco install cmake.portable -y -version 3.7.0
+choco install cmake.portable -y
 
 :: The following packages must be installed as admin
 IF NOT DEFINED NOADMIN (

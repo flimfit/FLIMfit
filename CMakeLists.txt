@@ -3,8 +3,8 @@ set(CMAKE_CXX_STANDARD 14)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.75.tar.gz"
-    SHA1 "35b76b78b85bcf1dce81e0cef32cc1f728170abf"
+    URL "https://github.com/ruslo/hunter/archive/v0.19.79.tar.gz"
+    SHA1 "f4ac704bdf9f32b52f718b1ac520bb6aca2d9be4"
     LOCAL
 )
 
@@ -24,7 +24,6 @@ project(FLIMfit)
 hunter_add_package(Boost COMPONENTS system filesystem serialization date_time)
 hunter_add_package(OpenCV)
 hunter_add_package(dlib)
-hunter_add_package(Qt COMPONENTS qtbase)
 
 find_package(OpenCV CONFIG REQUIRED)
 find_package(Qt5Widgets REQUIRED)
