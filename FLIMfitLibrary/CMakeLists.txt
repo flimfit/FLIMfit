@@ -56,7 +56,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 
-add_subdirectory("FLIMreader/Source")
+add_subdirectory("FLIMreader")
 add_subdirectory( "levmar-2.6ML" )
 add_subdirectory("FLIMDecayModel")
 add_subdirectory("DataFitter")
