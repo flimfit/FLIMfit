@@ -11,7 +11,8 @@ SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 
 :: The following packages must be installed as admin
 IF NOT DEFINED NOADMIN (
-   choco install cmake.install
+   choco install curl -y
+   choco install cmake.portable -y
 	choco install innosetup -y
 	choco install ghostscript.app -y -version 9.16
 
