@@ -9,6 +9,8 @@ SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 
 :: Install cmake, gs and OMERO stuff
 
+SET NOADMIN=1
+
 :: The following packages must be installed as admin
 IF NOT DEFINED NOADMIN (
    choco install curl -y
@@ -22,13 +24,8 @@ IF NOT DEFINED NOADMIN (
 	del itd0.3.5.exe
 )
 
-IF "%MSVC_VER%"=="15" (
-   SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.11.25325\*
-) ELSE (
-   SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio %MSVC_VER%.0\VC\redist\*
-)
-FOR /D %%G in ("%REDIST_STR%") DO (
-	@ECHO %%G\vcredist_x64.exe>FLIMfitLibrary\VisualStudioRedistributablePath.txt
-	goto skip
-)
-:skip
+IF %MSVC_VER% EQU 15 SET REDIST_STR=%PROGRAMFILES(x86)%Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.11.25325\
+IF %MSVC_VER% NEQ 15 SET REDIST_STR=%PROGRAMFILES(x86)%Microsoft Visual Studio %MSVC_VER%.0\VC\redist\*
+
+ECHO %REDIST_STR%\vcredist_x64.exe>FLIMfitLibrary\VisualStudioRedistributablePath.txt
+
