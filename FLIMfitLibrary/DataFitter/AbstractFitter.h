@@ -59,6 +59,12 @@ protected:
    int code_;
 };
 
+struct FittingOptions
+{
+   int max_iterations = 100;
+   double initial_step_size = 0.01;
+};
+
 class AbstractFitter
 {
 public:
@@ -67,7 +73,7 @@ public:
 
    virtual ~AbstractFitter() {};
 
-   virtual void fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr) = 0;
+   virtual void fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr) = 0;
    virtual void getLinearParams() = 0;
    
    int fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
@@ -75,7 +81,9 @@ public:
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
 
-   
+   void setFittingOptions(const FittingOptions& options_) { options = options_; }
+   FittingOptions getFittingOptions() { return options; }
+
    void setAlf(const double* alf_);
    void getModel(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);
    void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b);
@@ -92,6 +100,8 @@ protected:
    std::vector<double> alf;
    std::vector<double> err_lower;
    std::vector<double> err_upper;
+
+   FittingOptions options;
 
    // Used by variable projection
    std::vector<int> inc;

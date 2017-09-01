@@ -44,7 +44,7 @@ public:
    VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
    ~VariableProjectionFitter();
 
-   void fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr);
+   void fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr);
 
    void getLinearParams(); 
 

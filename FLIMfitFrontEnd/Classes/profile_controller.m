@@ -40,7 +40,8 @@ classdef profile_controller < handle
             profile_def.Data.Default_Gate_Max = 1e8;
             
             % Fitting Preferences
-            profile_def.Fitting.Maximum_Iterations = 100;
+            profile_def.Fitting.Maximum_Iterations = 100; 
+            profile_def.Fitting.Initial_Step_Size = 0.01; 
             profile_def.Fitting.Confidence_Interval = 0.05;
 
             % Display Preferences

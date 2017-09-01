@@ -195,7 +195,7 @@ int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int 
    model->getInitialVariables(alf, tau_mean);
 
    // Fit!
-   fitFcn(nl, alf, itmax, niter, ierr_);
+   fitFcn(nl, alf, niter, ierr_);
 
    chi2_final = *cur_chi2;
 
@@ -330,7 +330,7 @@ double AbstractFitter::errMinFcn(double x)
       if (j!=fixed_param)
          alf_err[idx++] = alf_buf[j];
 
-   fitFcn(nl-1,alf_err,itmax,niter,ierr);
+   fitFcn(nl-1,alf_err,niter,ierr);
             
    F = (*cur_chi2-chi2_final)/chi2_final * nmp ;
    

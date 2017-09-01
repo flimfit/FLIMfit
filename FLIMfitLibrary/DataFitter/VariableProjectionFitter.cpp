@@ -147,7 +147,7 @@ int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double* x,
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr)
+void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr)
 {
    fit_successful = false;
 
@@ -156,7 +156,6 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itma
    double xtol = tol;
    double epsfcn = tol;
    double gtol = 0.;
-   double factor = 0.01;
 
    int nfev, info;
    double rnorm; 
@@ -178,13 +177,13 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int itma
    {
       if (use_numerical_derv)
          info = lmdif(VariableProjectionFitterDiffCallback, (void*) this, nr-l, nl, alf.data(), fvec,
-            ftol, xtol, gtol, itmax, epsfcn, diag, 1, factor, -1,
+            ftol, xtol, gtol, options.max_iterations, epsfcn, diag, 1, options.initial_step_size, -1,
             &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4);
       else
       {
 
          info = lmstx(VariableProjectionFitterCallback, (void*) this, nr-l, nl, s, n_jac_group, alf.data(), fvec, fjac, nl,
-            ftol, xtol, gtol, itmax, diag, 1, factor, -1, n_thread,
+            ftol, xtol, gtol, options.max_iterations, diag, 1, options.initial_step_size, -1, n_thread,
             &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
       }
 

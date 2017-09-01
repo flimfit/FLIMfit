@@ -426,6 +426,9 @@ void FitController::init()
       region_data.push_back( data->getNewRegionData() );
    }
 
+   for (auto& f : fitters)
+      f->setFittingOptions(options);
+
    /*
    TODO: replace this
    for(int i=0; i<n_fitters; i++)

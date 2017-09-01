@@ -67,6 +67,19 @@ void setFitSettings(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[],
    c->setFitSettings(settings);
 }
 
+void setFittingOptions(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 3);
+   AssertInputCondition(mxIsStruct(prhs[2]));
+
+   FittingOptions options;
+
+   options.max_iterations = (int)getValueFromStruct(prhs[2], "maX_iterations", options.max_iterations);
+   options.initial_step_size = getValueFromStruct(prhs[2], "maX_iterations", options.initial_step_size);
+
+   c->setFittingOptions(options);
+}
+
 void setData(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 3);
@@ -200,6 +213,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       }
       else if (command == "SetFitSettings")
          setFitSettings(controller, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetFittingOptions")
+         setFittingOptions(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "SetData")
          setData(controller, nlhs, plhs, nrhs, prhs);
       else if (command == "SetModel")

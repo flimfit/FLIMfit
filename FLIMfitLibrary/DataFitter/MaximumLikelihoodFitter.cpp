@@ -72,7 +72,7 @@ MaximumLikelihoodFitter::MaximumLikelihoodFitter(std::shared_ptr<DecayModel> mod
    nnls = std::make_unique<NonNegativeLeastSquares>(l, n);
 }
 
-void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int itmax, int& niter, int& ierr)
+void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr)
 {
 
    for(int i=0; i<n; i++)
@@ -119,13 +119,13 @@ void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int itmax
 
     
    double opt[4];
-   opt[0] = 1e-6;
+   opt[0] = options.initial_step_size;
    opt[1] = DBL_EPSILON;
    opt[2] = DBL_EPSILON;
    opt[3] = DBL_EPSILON;
    
 
-   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf.data(), dy, n_param, n+1, itmax, NULL, info, work, NULL, this);
+   int ret = dlevmar_der(MLEfuncsCallback, MLEjacbCallback, alf.data(), dy, n_param, n+1, options.max_iterations, opt, info, work, NULL, this);
    
    					           /* O: information regarding the minimization. Set to NULL if don't care
                       * info[0]= ||e||_2 at initial p.

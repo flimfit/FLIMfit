@@ -65,9 +65,7 @@
                 
     end
 
-    % Get new fitting object
-    %obj.get_new_id();
-
+    prof = get_profile();
     
     p = obj.fit_params;
     d = obj.data_series;
@@ -253,12 +251,16 @@
     fit_settings.global_scope = p.global_scope;
     fit_settings.algorithm = p.fitting_algorithm;
     % TODO ...
+    
+    fitting_options.max_iterations = prof.Fitting.Maximum_Iterations;
+    fitting_options.initial_step_size = prof.Fitting.Initial_Step_Size;
      
     obj.dll_id = ff_Controller();
     ff_Controller(obj.dll_id,'ClearFit');
     ff_Controller(obj.dll_id,'SetData',data);
     ff_Controller(obj.dll_id,'SetModel',p.model);
     ff_Controller(obj.dll_id,'SetFitSettings',fit_settings);
+    ff_Controller(obj.dll_id,'SetFittingOptions',fitting_options);
     
     ff_FLIMData(data,'Release')
     

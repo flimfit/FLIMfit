@@ -64,6 +64,7 @@ public:
    ~FitController();
 
    void setFitSettings(const FitSettings& fit_settings);
+   void setFittingOptions(const FittingOptions& options_) { options = options_; }
    void setData(std::shared_ptr<FLIMData> data);
    void setModel(std::shared_ptr<DecayModel> model_) { model = model_; }
    
@@ -107,6 +108,8 @@ private:
    std::vector<RegionData> region_data;
    std::vector<std::thread> thread_handle;
    
+   FittingOptions options;
+
    int cur_region;
    int next_pixel;
    int next_region;
