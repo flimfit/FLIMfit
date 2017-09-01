@@ -20,12 +20,13 @@ IF NOT DEFINED NOADMIN (
 	curl -LO http://www.sherlocksoftware.org/innotools/files/itd0.3.5.exe
 	itd0.3.5.exe /silent
 	del itd0.3.5.exe
-	)
-	Endlocal & SET MSVC_VER=%MSVC_VER%
-
 )
 
-SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio %MSVC_VER%.0\VC\redist\*
+IF "%MSVC_VER%"=="15" (
+   SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.11.25325\*
+) ELSE (
+   SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio %MSVC_VER%.0\VC\redist\*
+)
 FOR /D %%G in ("%REDIST_STR%") DO (
 	@ECHO %%G\vcredist_x64.exe>FLIMfitLibrary\VisualStudioRedistributablePath.txt
 	goto skip
