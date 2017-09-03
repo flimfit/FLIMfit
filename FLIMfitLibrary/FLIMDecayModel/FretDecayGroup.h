@@ -58,6 +58,7 @@ protected:
    void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, double& kap_derv);
 
    std::vector<std::shared_ptr<FittingParameter>> tauT_parameters;
+   std::shared_ptr<FittingParameter> A_parameter;
    std::shared_ptr<FittingParameter> Q_parameter;
    std::shared_ptr<FittingParameter> Qsigma_parameter;
    std::shared_ptr<FittingParameter> tauA_parameter;
@@ -71,6 +72,7 @@ protected:
    std::vector<std::vector<double>> a_star;
    std::vector<double> tau_transfer;
    std::vector<std::vector<double>> tau_fret;
+   double A;
    double Q;
    double Qsigma;
    double tauA;
@@ -102,4 +104,11 @@ void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & include_donor_only;
    ar & include_acceptor;
    ar & acceptor_channel_factors;
+
+   if (version >= 2)
+      ar & A_parameter;
+
+   setupParameters();
 };
+
+BOOST_CLASS_VERSION(FretDecayGroup, 2)

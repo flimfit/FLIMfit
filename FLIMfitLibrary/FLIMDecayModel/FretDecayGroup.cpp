@@ -38,6 +38,8 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    include_donor_only(include_donor_only)
 {   
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
+   std::vector<ParameterFittingType> fixed = { Fixed };
+   A_parameter = std::make_shared<FittingParameter>("A", 1, fixed, Fixed);
    Q_parameter = std::make_shared<FittingParameter>("Q", 1, fixed_or_global, FittedGlobally);
    Qsigma_parameter = std::make_shared<FittingParameter>("Qsigma", 0.1, fixed_or_global, FittedGlobally);
    tauA_parameter = std::make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
@@ -51,6 +53,7 @@ FretDecayGroup::FretDecayGroup(const FretDecayGroup& obj) :
    n_fret_populations = obj.n_fret_populations;
    include_donor_only = obj.include_donor_only;
    include_acceptor = obj.include_acceptor;
+   A_parameter = obj.A_parameter;
    Q_parameter = obj.Q_parameter;
    Qsigma_parameter = obj.Qsigma_parameter;
    tauA_parameter = obj.tauA_parameter;
@@ -65,11 +68,7 @@ void FretDecayGroup::setupParameters()
 {
    setupParametersMultiExponential();
 
-   channel_factor_names.clear();
-   channel_factor_names.push_back("Donor");
-   if (include_acceptor)
-      channel_factor_names.push_back("Acceptor");
-
+   parameters.push_back(A_parameter);
    resizeLifetimeParameters(tauT_parameters, n_fret_populations, "tauT_");
 
    if (include_acceptor)
@@ -78,6 +77,11 @@ void FretDecayGroup::setupParameters()
       parameters.push_back(Qsigma_parameter);
       parameters.push_back(tauA_parameter);
    }
+
+   channel_factor_names.clear();
+   channel_factor_names.push_back("Donor");
+   if (include_acceptor)
+      channel_factor_names.push_back("Acceptor");
 
    parametersChanged();
 }
@@ -245,6 +249,8 @@ int FretDecayGroup::setVariables(const double* param_values)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
 
+   A = A_parameter->initial_value;
+
    tau_fret.resize(n_fret_populations, std::vector<double>(n_exponential));
    tau_transfer.resize(n_fret_populations, n_exponential);
 
@@ -296,8 +302,9 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
 {
    int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
-   float* output_tauT = output + output_idx;
+   output[output_idx++] = A_parameter->getValue<float>(nonlin_variables, nonlin_idx);
 
+   float* output_tauT = output + output_idx;
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
@@ -401,6 +408,10 @@ int FretDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shi
       col++;
    }
 
+   // Scale for brightness
+   for (int i = 0; i < col*adim; i++)
+      a[i] *= A;
+
    return col;
 }
 
@@ -454,6 +465,11 @@ int FretDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& k
       col += addDirectAcceptorDerivatives(b + col*bdim, bdim, kap_derv);
       col += addAcceptorLifetimeDerivatives(b + col*bdim, bdim, kap_derv);
    }
+
+   // Scale for brightness
+   for (int i = 0; i < col*bdim; i++)
+      b[i] *= A;
+
 
    return col;
 }
