@@ -151,15 +151,17 @@ classdef flim_fit_ui
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
             
             
-            % unless preferences specifically say not, then show OMERO logon
-            %if ~ispref('GlobalAnalysisFrontEnd','NeverOMERO');            
-            %   handles.omero_logon_manager.Omero_logon();
-            %end
             
             handles = obj.setup_menu(handles);            
             
-            handles.menu_controller = front_end_menu_controller(handles);
-
+            handles.file_menu_controller = file_menu_controller(handles);
+            handles.omero_menu_controller = omero_menu_controller(handles);
+            handles.irf_menu_controller = irf_menu_controller(handles);
+            handles.misc_menu_controller = misc_menu_controller(handles);
+            handles.tools_menu_controller = tools_menu_controller(handles);
+            handles.help_menu_controller = help_menu_controller(handles);
+            handles.icy_menu_controller = icy_menu_controller(handles);
+            
             guidata(obj.window,handles);
             
          
@@ -278,10 +280,6 @@ classdef flim_fit_ui
             
             clear all;
 
-             
-          
-            
-            
         end
         
     end
