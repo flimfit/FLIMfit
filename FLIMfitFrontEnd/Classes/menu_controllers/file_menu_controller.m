@@ -43,35 +43,9 @@ classdef file_menu_controller < handle
     end
     
     methods(Access=private)
-        
-        function add_recent_irf(obj,path)
-            if ~any(strcmp(path,obj.recent_irf))
-                obj.recent_irf = [path; obj.recent_irf];
-            end
-            if length(obj.recent_irf) > 20
-                obj.recent_irf = obj.recent_irf(1:20);
-            end
-            setpref('GlobalAnalysisFrontEnd','RecentIRF',obj.recent_irf);
-            obj.update_recent_irf_list();
-        end
-        
-        function update_recent_irf_list(obj)
-            
-            function menu_call(file)
-                 obj.data_series_controller.data_series.load_irf(file);
-            end
-            
-            if ~isempty(obj.recent_irf)
-                names = create_relative_path(default_path,obj.recent_irf);
-
-                delete(get(obj.menu_irf_recent,'Children'));
-                add_menu_items(obj.menu_irf_recent,names,@menu_call,obj.recent_irf)
-            end
-        end
-        
+                
         function update_recent_default_list(obj)
             function menu_call(path)
-                 default_path = path;
                  setpref('GlobalAnalysisFrontEnd','DefaultFolder',path);
             end
             
@@ -84,8 +58,6 @@ classdef file_menu_controller < handle
         end
         
         function set_default_path(obj,path)
-            default_path = path; 
-
             if ~any(strcmp(path,obj.recent_default_path))
                 obj.recent_default_path = [path; obj.recent_default_path];
             end
@@ -96,7 +68,6 @@ classdef file_menu_controller < handle
 
             setpref('GlobalAnalysisFrontEnd','DefaultFolder',path);
             obj.update_recent_default_list();
-            obj.update_recent_irf_list();
         end
         
     end
@@ -112,7 +83,6 @@ classdef file_menu_controller < handle
             obj.recent_default_path = getpref('GlobalAnalysisFrontEnd','RecentDefaultPath',{});
             
             obj.update_recent_default_list();
-            obj.update_recent_irf_list();
 
         end
         
@@ -303,10 +273,10 @@ classdef file_menu_controller < handle
             end
         end
             
-        function menu_file_load_raw(obj)
-            [filename, pathname] = uigetfile({'*.raw', 'Raw File (*.raw)'},'Select file name',default_path);
-            if filename ~= 0
-                obj.data_series_controller.load_raw([pathname filename]);         
+        function menu_file_export_segmented_regions(obj)
+            pathname = uigetdir(default_path,'Select folder');
+            if pathname ~= 0
+                obj.data_series_controller.data_series.export_segmented_regions(pathname);         
             end
         end
         
