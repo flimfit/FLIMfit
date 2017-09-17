@@ -2,17 +2,15 @@
 
 IF NOT DEFINED MSVC_VER SET MSVC_VER=15
 
-:: Install Chocolatey
-choco.exe 2> NUL
-if ERRORLEVEL 9009 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"
-SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
-
 :: Install cmake, gs and OMERO stuff
-
-SET NOADMIN=1
-
-:: The following packages must be installed as admin
 IF NOT DEFINED NOADMIN (
+
+	:: Install Chocolatey
+	choco.exe -v 2> NUL
+	if ERRORLEVEL 9009 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"
+	SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
+
+   :: The following packages must be installed as admin
    choco install curl -y
    choco install cmake.portable -y
 	choco install innosetup -y
