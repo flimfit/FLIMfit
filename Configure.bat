@@ -6,7 +6,7 @@ IF NOT DEFINED MSVC_VER SET MSVC_VER=15
 IF NOT DEFINED NOADMIN (
 
 	:: Install Chocolatey
-	choco.exe -v 2> NUL
+	choco.exe -v 2> NUL	
 	if ERRORLEVEL 9009 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"
 	SET PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin
 
@@ -17,9 +17,9 @@ IF NOT DEFINED NOADMIN (
 	choco install ghostscript.app -y -version 9.16
 
 	:: Install Inno Downloader
-	curl -LO http://www.sherlocksoftware.org/innotools/files/itd0.3.5.exe
-	itd0.3.5.exe /silent
-	del itd0.3.5.exe
+	curl -LO https://bitbucket.org/mitrich_k/inno-download-plugin/downloads/idpsetup-1.5.1.exe
+	idpsetup-1.5.1.exe /silent
+	del idpsetup-1.5.1.exe
 )
 
 IF %MSVC_VER% EQU 15 SET REDIST_STR=%PROGRAMFILES(x86)%Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.11.25325\
