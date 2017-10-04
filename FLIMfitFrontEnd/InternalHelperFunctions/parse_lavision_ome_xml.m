@@ -79,23 +79,30 @@ function dims = parse_lavision_ome_xml(xml,dims)
                 end
             end
         end
-               
-        steps = str2double(lifetime_axis.Steps);
-        unit = str2double(lifetime_axis.PhysicalUnit);
         
-        dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
-        dims.FLIM_type = 'TCSPC';        
-    
-    % Legacy TCSPC
-    elseif ~isempty(instrument_mode) && strcmp(instrument_mode.InstrumentMode,'FLIM')  
-        pixels = get_element('Pixels');
-        steps = dims.sizeZCT(1);
-        unit = str2double(pixels.PhysicalSizeZ); 
-
-        dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
-        dims.FLIM_type = 'TCSPC';        
-    
+        if ~isempty(axis)
+            
+            steps = str2double(lifetime_axis.Steps);
+            unit = str2double(lifetime_axis.PhysicalUnit);
+            
+            dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
+            dims.FLIM_type = 'TCSPC';
+        else
+            % Legacy TCSPC
+            if ~isempty(instrument_mode) && strcmp(instrument_mode.InstrumentMode,'FLIM')
+                pixels = get_element('Pixels');
+                steps = dims.sizeZCT(1);
+                unit = str2double(pixels.PhysicalSizeZ);
+                
+                dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
+                dims.FLIM_type = 'TCSPC';
+                
+            end
+        end
+            
     end
+    
+    
     
     modulo_options = 'ZCT';        
     idx=find(dims.sizeZCT == length(dims.delays),1);
