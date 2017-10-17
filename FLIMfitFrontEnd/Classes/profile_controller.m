@@ -96,8 +96,9 @@ classdef profile_controller < handle
                 for j=1:length(params)
                     param = group.(params{j});
                     if iscell(param) && ~isempty(param)
-                        new_prof.(groups{i}).(params{j}) = param{1};
-                    end 
+                        param = param{1};
+                    end
+                    new_prof.(groups{i}).(params{j}) = param;
                 end
 
             end

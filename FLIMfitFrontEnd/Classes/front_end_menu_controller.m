@@ -164,6 +164,8 @@ classdef front_end_menu_controller < handle
         menu_tools_fit_gaussian_irf;
         menu_tools_preferences;
                 
+        menu_advanced_rewrite_ome;
+        
         menu_test_test1;
         menu_test_test2;
         menu_test_test3;
@@ -1359,6 +1361,18 @@ classdef front_end_menu_controller < handle
                     'IC_PHOTONICS');
             end
         end
+        
+        function menu_advanced_rewrite_ome_callback(obj, ~, ~)
+           
+            pathname = uigetdir(obj.default_path);
+            if pathname ~= 0
+               rewrite_ome_metadata(pathname); 
+            end
+            
+            msgbox('Done');
+            
+        end
+        
         
         function menu_help_about_callback(obj, ~, ~)
             ver = obj.data_series_controller.version;

@@ -2,9 +2,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.18.43.tar.gz"
-    SHA1 "d2c8c42cd07f7cefe18fd9a9b9c13114b1a15a27"
-    LOCAL
+   URL "https://github.com/ruslo/hunter/archive/v0.19.79.tar.gz"
+   SHA1 "f4ac704bdf9f32b52f718b1ac520bb6aca2d9be4"
+   LOCAL
 )
 
 set(TARGET_SDKROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk")

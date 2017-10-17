@@ -1,4 +1,4 @@
-function dims = parse_lavision_ome_xml(xml,dims)
+    function dims = parse_lavision_ome_xml(xml,dims)
 
     % The following avoids the need for file I/O:
     inputObject = java.io.StringBufferInputStream(xml);  % or: org.xml.sax.InputSource(java.io.StringReader(xmlString))
@@ -68,7 +68,9 @@ function dims = parse_lavision_ome_xml(xml,dims)
         dims.FLIM_type = 'Gated';
         
     % TCSPC
-    elseif ~isempty(dc_tcspc) && str2double(dc_tcspc.Value) == 1
+    elseif (~isempty(dc_tcspc) && str2double(dc_tcspc.Value) == 1) || ...
+           (~isempty(instrument_mode) && strcmp(instrument_mode.InstrumentMode,'FLIM')) 
+       
         lifetime_axis = [];
         for ax=1:3
             axis = get_element(['Axis' num2str(ax-1)]);
@@ -79,22 +81,22 @@ function dims = parse_lavision_ome_xml(xml,dims)
                 end
             end
         end
-               
-        steps = str2double(lifetime_axis.Steps);
-        unit = str2double(lifetime_axis.PhysicalUnit);
         
-        dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
-        dims.FLIM_type = 'TCSPC';        
-    
-    % Legacy TCSPC
-    elseif ~isempty(instrument_mode) && strcmp(instrument_mode.InstrumentMode,'FLIM')  
-        pixels = get_element('Pixels');
-        steps = dims.sizeZCT(1);
-        unit = str2double(pixels.PhysicalSizeZ); 
+        if ~isempty(lifetime_axis)
+            steps = str2double(lifetime_axis.Steps);
+            unit = str2double(lifetime_axis.PhysicalUnit);
+            
+            dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
+            dims.FLIM_type = 'TCSPC';        
+        else        
+            % Legacy TCSPC
+            pixels = get_element('Pixels');
+            steps = dims.sizeZCT(1);
+            unit = str2double(pixels.PhysicalSizeZ); 
 
-        dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
-        dims.FLIM_type = 'TCSPC';        
-    
+            dims.delays = (0:(steps-1)) * unit * 1e3; % ns->ps
+            dims.FLIM_type = 'TCSPC';        
+        end
     end
     
     modulo_options = 'ZCT';        
