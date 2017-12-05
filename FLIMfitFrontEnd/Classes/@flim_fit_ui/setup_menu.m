@@ -155,7 +155,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_background_tvb_use_selected = uimenu(menu_background,'Label','Use Selected Region as Time Varying Background');
     
     menu_segmentation = uimenu(obj.window,'Label','Segmentation');
-    handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager');
+    handles.menu_segmentation_yuriy = uimenu(menu_segmentation,'Label','Segmentation Manager...');
+    handles.menu_segmentation_phasor = uimenu(menu_segmentation,'Label','Phasor Segmentation...');
     
    
 

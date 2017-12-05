@@ -77,6 +77,11 @@ function compute_tr_irf(obj)
         obj.tr_irf = obj.irf(t_irf_inc,:);
         obj.tr_t_irf = obj.t_irf(t_irf_inc);
 
+        sz = size(obj.tr_t_irf);
+        if sz(1) < sz(2)
+            obj.tr_t_irf = obj.tr_t_irf';
+        end
+        
         % Calculate coarse shift for perp channel in number of bins
         if length(obj.t_irf) > 1
             dt = obj.t_irf(2) - obj.t_irf(1);

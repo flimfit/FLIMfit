@@ -1,4 +1,4 @@
-function [struct,obj_name] = marshal_struct(file)
+function [s,obj_name] = marshal_struct(file,search_name)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -25,20 +25,40 @@ function [struct,obj_name] = marshal_struct(file)
 
     % Author : Sean Warren
 
+    doc_node = xmlread(file);
 
-   try 
-        doc_node = xmlread(file);
+    obj_node = doc_node.getFirstChild();
+    obj_name = char(obj_node.getNodeName);
 
-        obj_node = doc_node.getFirstChild();
-        obj_name = char(obj_node.getNodeName);
-
-        mc = meta.class.fromName(obj_name);
-        mp = mc.Properties;
-
-        if isempty(mc)
-            MException('FLIM:UnrecognisedObject','Object specified by XML was not recognised')
+    s = [];
+    
+    if strcmp(obj_name,'FLIMfit')
+        nodes = obj_node.getChildNodes;
+        for k=1:nodes.getLength
+            next_node = nodes.item(k-1);
+            obj_name = char(next_node.getNodeName);
+            if strcmp(obj_name,search_name)
+                s_next = read_node(next_node);
+                if isempty(s)
+                    s = s_next;
+                else
+                    s(end+1) = s_next;
+                end
+            end
         end
-
+    elseif strcmp(obj_name,search_name)
+        s = read_node(obj_node);
+    end
+        
+        
+    
+    %mc = meta.class.fromName(obj_name);
+    
+    
+    function s = read_node(obj_node)
+    
+        s = struct();
+        
         child_nodes = obj_node.getChildNodes;
         n_nodes = child_nodes.getLength;
 
@@ -50,7 +70,7 @@ function [struct,obj_name] = marshal_struct(file)
              encoded = false;
              if child.hasAttributes
                  attr = child.getAttributes;
-                 for j=1:attr.getLength();
+                 for j=1:attr.getLength()
                      if strcmp(attr.item(j-1),'encoded="true"')
                          encoded = true;
                      end
@@ -69,11 +89,10 @@ function [struct,obj_name] = marshal_struct(file)
                      child_value = eval(child_value);
                  end
                  
-                 struct.(child_name) = child_value;
+                 s.(child_name) = child_value;
              end
          end
-    catch
-       warning('GlobalProcessing:LoadDataSettingsFailed','Failed to load data settings file'); 
+         
     end
          
 end

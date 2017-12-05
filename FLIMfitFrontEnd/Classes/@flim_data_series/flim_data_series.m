@@ -132,6 +132,7 @@ classdef flim_data_series < handle & h5_serializer
         metadata;
 
         seg_mask = [];
+        multid_mask = [];
         
         has_image_irf = 0;
         image_irf;
@@ -214,6 +215,8 @@ classdef flim_data_series < handle & h5_serializer
         
         txtInfoRead = [];
         
+        multid_filters_file;
+        
     end
     
     events
@@ -259,6 +262,10 @@ classdef flim_data_series < handle & h5_serializer
             end
             
             warning('on','MATLAB:DELETE:Permission');
+            
+            % set up a temporary file to save filters
+            obj.multid_filters_file = tempname;
+
             
             prof = get_profile();
             obj.rep_rate = prof.Data.Default_Rep_Rate;
@@ -380,6 +387,9 @@ classdef flim_data_series < handle & h5_serializer
             if ~isempty(obj.seg_mask)
                m = m & obj.seg_mask(:,:,idx) > 0; 
             end
+            if ~isempty(obj.multid_mask)
+               m = m & obj.multid_mask(:,:,idx);
+            end
             
             % Then roi_mask
             if ~isempty(roi_mask)
@@ -451,6 +461,9 @@ classdef flim_data_series < handle & h5_serializer
                 sel_intensity(obj.mask==0) = 0;
                 if ~isempty(obj.seg_mask)
                     sel_intensity(obj.seg_mask(:,:,sel)==0) = 0;
+                end
+                if ~isempty(obj.multid_mask)
+                    sel_intensity(~obj.multid_mask(:,:,sel)) = 0;
                 end
             end
         end
@@ -631,18 +644,23 @@ classdef flim_data_series < handle & h5_serializer
         end
         
         function set.seg_mask(obj,seg_mask)
-            %> Set data segmentation mask 
-            
-            % Check segmentation mask is the right size
             if ~isempty(seg_mask)
-                obj.seg_mask = seg_mask;
-                obj.compute_mask;
-                notify(obj,'masking_updated');
+               obj.seg_mask = seg_mask;
             else
-                obj.seg_mask = [];
-                obj.compute_mask;
-                notify(obj,'masking_updated');
+               obj.seg_mask = [];
             end
+            obj.compute_mask;
+            notify(obj,'masking_updated');
+        end
+        
+        function set.multid_mask(obj,multid_mask)
+            if ~isempty(multid_mask)
+                obj.multid_mask = multid_mask;
+            else
+                obj.multid_mask = [];
+            end
+             obj.compute_mask;
+             notify(obj,'masking_updated');
         end
         
         function set.binning(obj,binning)
@@ -849,6 +867,11 @@ classdef flim_data_series < handle & h5_serializer
                     obj.mask = seg;
                 end
                 
+                if ~isempty(obj.multid_mask)
+                    seg = obj.multid_mask(:,:,obj.active);
+                    obj.mask(~seg) = 0;
+                end
+                
             end
         end
 
@@ -962,7 +985,10 @@ classdef flim_data_series < handle & h5_serializer
         %===============================================================
         
         function delete(obj)
-           
+           if exist(obj.multid_filters_file,'file')
+              delete(obj.multid_filters_file);
+           end
+            
            obj.save_data_settings();
            % close any bioformats readers saved in class
            r=obj.bfReader;
