@@ -139,7 +139,7 @@ target_link_libraries(${LIB_NAME} levmar ${LEVMAR_LIBRARIES})
 
 # Make sure we don't have 'lib' prefix on UNIX
 #===================================================
-set_target_properties(${LIB_NAME} PROPERTIES PREFIX "")
+set_target_properties(${LIB_NAME} PROPERTIES PREFIX "" DEBUG_POSTFIX "")
 
 add_custom_command(TARGET ${LIB_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:FLIMGlobalAnalysis_64> ${OUT_DIR}
                                                  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/FLIMGlobalAnalysis.h" ${OUT_DIR}
