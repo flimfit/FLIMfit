@@ -234,9 +234,15 @@ classdef flim_fit_controller < flim_data_series_observer
             param = obj.fit_result.intensity_idx;
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
-                    [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
-            else            
+                [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
+            else
                 [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
+
+                norm = obj.data_series_controller.data_series.intensity_normalisation;
+                if ~isempty(norm)
+                    norm = norm(:,:,im);
+                    param_data = param_data ./ norm;
+                end
             end;
                         
         end

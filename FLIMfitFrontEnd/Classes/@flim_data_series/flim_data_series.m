@@ -121,6 +121,7 @@ classdef flim_data_series < handle & h5_serializer
         plateId = -1;
         
         acceptor;
+        intensity_normalisation;
         root_path;
         
         t;   
@@ -172,6 +173,7 @@ classdef flim_data_series < handle & h5_serializer
                 
         
         intensity = [];
+        
         mask = [];
         thresh_mask = [];
                 

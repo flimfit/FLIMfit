@@ -1,5 +1,5 @@
 
-function[success, target] = load_flim_cube(obj, target, file, read_selected, write_selected, reader_settings, dims, ZCT)
+function[success, target, intensity_normalisation] = load_flim_cube(obj, target, file, read_selected, write_selected, reader_settings, dims, ZCT)
 
     %  Loads FLIM_data from a file or set of files
 
@@ -55,6 +55,7 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
     
     success = true; 
     
+    intensity_normalisation = [];
 
     % convert to java/c++ numbering from 0
     Zarr  = ZCT{1}-1;
@@ -305,8 +306,10 @@ function[success, target] = load_flim_cube(obj, target, file, read_selected, wri
             end
             
             data = FlimReaderMex(r, 'GetData', chan);
-            
             target(:,:,:,:,write_selected) = data;
+            
+            intensity_normalisation = FlimReaderMex(r,'GetIntensityNormalisation');
+            
             FlimReaderMex(r,'Delete');
         
         % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

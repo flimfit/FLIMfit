@@ -87,8 +87,12 @@ function load_selected_files(obj,selected)
                 filename = obj.file_names{currentFile};
                 plane = s - ((currentFile -1) .* selPerFile);
                
-                [success, data] = obj.load_flim_cube(data, filename,plane,1);
+                [success, data, norm] = obj.load_flim_cube(data, filename,plane,1);
                 
+                if ~isempty(norm)
+                    obj.intensity_normalisation(:,:,j) = norm;
+                end
+                    
                 if ~success
                     disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
                 end
@@ -115,8 +119,11 @@ function load_selected_files(obj,selected)
                 filename = obj.file_names{currentFile};
                 plane = s - ((currentFile -1) .* selPerFile);
                 
-                [success, obj.data_series_mem] = obj.load_flim_cube(obj.data_series_mem, filename,plane,s);
+                [success, obj.data_series_mem, norm] = obj.load_flim_cube(obj.data_series_mem, filename,plane,s);
                 
+                if ~isempty(norm)
+                    obj.intensity_normalisation(:,:,j) = norm;
+                end
                 
                 if ~success
                     disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);

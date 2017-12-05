@@ -150,6 +150,11 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
      
         obj.intensity = reshape(in,obj.data_size(3:4)');
         
+        if ~isempty(obj.intensity_normalisation)
+            norm = obj.intensity_normalisation(:,:,obj.active);
+            norm = norm / max(norm);
+            obj.intensity = obj.intensity ./ norm;
+        end
 
         
         % Shift the perpendicular channel and crop in time
