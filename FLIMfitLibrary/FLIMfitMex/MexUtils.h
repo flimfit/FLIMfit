@@ -365,7 +365,10 @@ void releaseSharedPtrFromMatlab(const mxArray* a)
    std::shared_ptr<T>** ptrs = reinterpret_cast<std::shared_ptr<T>**>(mxGetData(ptr));
    int n = mxGetNumberOfElements(ptr);
    for (int i = 0; i < n; i++)
+   {
+      mxSetField(const_cast<mxArray*>(a), i, "valid", mxCreateLogicalScalar(false));
       delete ptrs[i];
+   }
 }
 
 

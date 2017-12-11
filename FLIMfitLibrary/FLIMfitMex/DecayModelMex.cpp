@@ -202,7 +202,7 @@ void setParameter(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
    AssertInputCondition(nrhs >= 5);
 
    int group_idx = mxGetScalar(prhs[2])-1;
-   AssertInputCondition(group_idx < model->getNumGroups());
+   AssertInputCondition((group_idx < model->getNumGroups()) && (group_idx >= 0));
 
    auto group = model->getGroup(group_idx);
 

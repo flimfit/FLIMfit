@@ -58,11 +58,11 @@ DataTransformationSettings getDataTransformationSettings(const mxArray* settings
 
    DataTransformationSettings settings;
 
-   settings.smoothing_factor = getValueFromStruct(settings_struct, "smoothing_factor");
+   settings.smoothing_factor = getValueFromStruct(settings_struct, "smoothing_factor", 0);
    settings.t_start = getValueFromStruct(settings_struct, "t_start");
    settings.t_stop = getValueFromStruct(settings_struct, "t_stop");
-   settings.threshold = getValueFromStruct(settings_struct, "threshold");
-   settings.limit = getValueFromStruct(settings_struct, "limit");
+   settings.threshold = getValueFromStruct(settings_struct, "threshold", 0);
+   settings.limit = getValueFromStruct(settings_struct, "limit", 0); // 0 = no limit
 
    return settings;
 }
