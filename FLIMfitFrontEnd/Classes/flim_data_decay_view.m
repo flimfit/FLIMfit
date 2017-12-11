@@ -318,8 +318,10 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                   'LineWidth'   , 1          , ...
                   'XColor'      , 'w');
               
-                m = nanmax(abs(obj.residual(:)));
-                if m>0 && isfinite(m)
+                m = abs(obj.residual);
+                m = m(isfinite(m));
+                m = max(m(:));
+                if ~isempty(m) && m>0
                     ylim(ra,[-m-1e-3 m+1e-3]);
                 end
                 set(obj.plot_handle,'uicontextmenu',obj.contextmenu);

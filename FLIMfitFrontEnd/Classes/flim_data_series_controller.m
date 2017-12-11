@@ -56,7 +56,8 @@ classdef flim_data_series_controller < handle
         end
         
         function set_use_smoothing(obj,src,~)
-            obj.data_series.use_smoothing = src.Value == 1;
+            obj.data_series.use_smoothing = src.Value == 2;
+            obj.data_series.compute_tr_data();
         end
         
         function file_name = save_settings(obj)

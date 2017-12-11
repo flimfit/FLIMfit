@@ -1,8 +1,8 @@
 $OME = $env:OME
 $BIO = $env:BIO
 
-if (!$OME) { $OME=5.2 }
-if (!$BIO) { $BIO=5.4 }
+if (!$OME) { $OME=5.3 }
+if (!$BIO) { $BIO=5.5 }
 
 echo "OMERO version = " $OME
 echo "Bio-Formats version = " $BIO
@@ -45,7 +45,7 @@ function DownloadZipIntoFolder
 $ome_url = 'http://downloads.openmicroscopy.org/latest/omero' + $OME + '/matlab.zip'
 $bf_url = 'http://downloads.openmicroscopy.org/latest/bio-formats' + $BIO + '/artifacts/bfmatlab.zip'
 $ini4j_url = 'http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar'
-$OMEuiUtils_url = 'https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.5.jar'
+$OMEuiUtils_url = 'https://dl.bintray.com/imperial-photonics/omeUiUtils/OMEuiUtils-0.1.6.jar'
 $gs_url = 'http://downloads.flimfit.org/gs/gs916w64.exe'
 
 $omero_matlab_libs_dir = "$pwd\FLIMfitFrontEnd\OMEROMatlab\libs\"
