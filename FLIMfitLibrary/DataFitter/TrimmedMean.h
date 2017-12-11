@@ -22,9 +22,15 @@
 #define SWAP(a,b) temp=(a);(a)=(b);(b)=temp;
 
 #include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
 #include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/weighted_variance.hpp>
+#include <boost/accumulators/statistics/tail_quantile.hpp>
+#include <boost/accumulators/statistics/median.hpp>
 #include <boost/accumulators/statistics/weighted_sum_kahan.hpp>
+
 
 /**
  * Classic quickselect algorithm
@@ -92,33 +98,31 @@ float Weighted(T x, T t1, T t2, T w1, T w2)
 }
 
 template <typename T>
-void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, RegionStats<T>& stats, int region)
+void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, RegionStats<T>& stats_, int region)
 {
    using namespace boost::accumulators;
 
-   T w1, w2, OS1, OS2, wt, q1, q2, median;
+   T w1, w2, OS1, OS2, wt, q1, q2, med;
    double p_mean, p_std, p_w_mean, p_w_std, p_err;
 
-   accumulator_set< double, features< tag::weighted_mean >, double > acc;
-   accumulator_set< double, features< tag::weighted_mean >, double > w_acc;
-
-   accumulator_set< double, features< tag::weighted_mean >, double > acc_m2;
-   accumulator_set< double, features< tag::weighted_mean >, double > w_acc_m2;
+   accumulator_set< double, features< tag::variance, tag::weighted_variance, tag::median > > acc0;
+   accumulator_set< double, features< tag::tail_quantile<left>, tag::tail_quantile<right> > > acc1( tag::tail<left>::cache_size = n, tag::tail<right>::cache_size = n );
 
    if (n == 0)
    {
       SetNaN(&q1,1);
-      stats.SetNextParam(region, q1);
+      stats_.SetNextParam(region, q1);
       return;
    }
 
+
+   /*
    OS1    = quickselect(x, n, K);
    q1     = quickselect(x, n, (unsigned long)(0.25*n));
    median = quickselect(x, n, (unsigned long)(0.5*n));
    q2     = quickselect(x, n, (unsigned long)(0.75*n));
    OS2    = quickselect(x, n, n-K-1);
 
-   
    // compute weights
    T a, b=0, c, d=0, dm=0, bm=0, r;
 
@@ -136,38 +140,43 @@ void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, RegionStats<T>& stat
    w1 = a/b;
    w2 = c/d;
 
+   */
+
+   q1 = 0;
+   q2 = 0;
+   med = 0;
+
+   OS1 = 0;
+   OS2 = 1;
+
    if (OS1==OS2)
    {
-      stats.SetNextParam(region, x[0]);
+      stats_.SetNextParam(region, x[0]);
    }
    else
    {
-	  double a = 0;
       for(int i=0; i<n; i++)
       {
-         wt = Weighted(x[i], OS1, OS2, w1, w2);
-         
-         acc(x[i], weight = wt);
-         w_acc(x[i], weight = (wt*w[i]));
-
-         acc_m2(x[i]*x[i], weight = wt);
-         w_acc_m2(x[i]*x[i], weight = (wt*w[i]));
-
-		 a = a + x[i]*x[i];
-
+         wt = 1.0; // Weighted(x[i], OS1, OS2, w1, w2);
+         acc0(x[i], weight = w[i]);
+         acc1(x[i]);
       } 
 
-      p_mean = mean(acc);
-      p_std  = mean(acc_m2) - p_mean*p_mean;
-	   p_std = sqrt(p_std);
+      OS1 = quantile(acc1, quantile_probability = 0.05);
+      q1 = quantile(acc1, quantile_probability = 0.25);
+      q2 = quantile(acc1, quantile_probability = 0.75);
+      OS2 = quantile(acc1, quantile_probability = 0.95);
+      med = median(acc0);
 
-	   p_w_mean = mean(w_acc);
-      p_w_std  = mean(w_acc_m2) - p_w_mean*p_w_mean;
-	   p_w_std = sqrt(p_w_std);
+      p_mean = mean(acc0);
+      p_std = sqrt(variance(acc0));
+
+	   p_w_mean = weighted_mean(acc0);
+      p_w_std = sqrt(weighted_variance(acc0));
 
       p_err = conf_factor * p_std / sqrt((double) n );
 
-      stats.SetNextParam(region, (T) p_mean, (T) p_w_mean, (T) p_std,  (T) p_w_std, median, q1, q2, OS1, OS2, (T) p_err, (T) p_err);
+      stats_.SetNextParam(region, (T) p_mean, (T) p_w_mean, (T) p_std,  (T) p_w_std, med, q1, q2, OS1, OS2, (T) p_err, (T) p_err);
 
    }
 

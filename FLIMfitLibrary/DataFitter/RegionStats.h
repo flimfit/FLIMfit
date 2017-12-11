@@ -112,16 +112,16 @@ public:
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
-      next_param[PARAM_STD] = (T) FP_NAN; 
-      next_param[PARAM_W_STD] = (T) FP_NAN; 
+      next_param[PARAM_STD] = std::numeric_limits<T>::quiet_NaN();
+      next_param[PARAM_W_STD] = std::numeric_limits<T>::quiet_NaN();
       next_param[PARAM_MEDIAN] = mean; 
       next_param[PARAM_Q1] = mean; 
       next_param[PARAM_Q2] = mean; 
       next_param[PARAM_01] = 0.99f*mean;  // These parameters are used for setting inital limits 
       next_param[PARAM_99] = 1.01f*mean;  // so must be different to mean for correct display
 
-      next_param[PARAM_ERR_LOWER] = (T) FP_NAN;
-      next_param[PARAM_ERR_UPPER] = (T) FP_NAN;
+      next_param[PARAM_ERR_LOWER] = std::numeric_limits<T>::quiet_NaN();
+      next_param[PARAM_ERR_UPPER] = std::numeric_limits<T>::quiet_NaN();
 
       param_idx[region]++;
 
@@ -138,8 +138,8 @@ public:
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
-      next_param[PARAM_STD] = (T) FP_NAN; 
-      next_param[PARAM_W_STD] = (T) FP_NAN; 
+      next_param[PARAM_STD] = std::numeric_limits<T>::quiet_NaN();
+      next_param[PARAM_W_STD] = std::numeric_limits<T>::quiet_NaN();
       next_param[PARAM_MEDIAN] = mean; 
       next_param[PARAM_Q1] = mean; 
       next_param[PARAM_Q2] = mean; 

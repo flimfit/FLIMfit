@@ -84,7 +84,8 @@ void AcquisitionParameters::setImageSize(int n_x_, int n_y_)
 
 void AcquisitionParameters::setIntegrationTimes(std::vector<double>& t_int_)
 {
-   assert( t_int.size() == n_t_full );
+   if (t_int.size() != n_t_full)
+      throw std::runtime_error("Length of t and t_int do not match");
    t_int = t_int_;
 }
 
