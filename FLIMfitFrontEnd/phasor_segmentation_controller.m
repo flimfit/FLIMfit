@@ -84,8 +84,8 @@ classdef phasor_segmentation_controller < flim_data_series_observer
         
         function add_correlation(obj, default_idx)
             if nargin >= 2
-                x_name = ['p_i_' num2str(default_idx)];
-                y_name = ['p_r_' num2str(default_idx)];
+                x_name = ['p_r_' num2str(default_idx)];
+                y_name = ['p_i_' num2str(default_idx)];
 
                 obj.histograms(end+1) = segmentation_correlation_display(obj, obj.panel_layout, x_name, y_name);
             else

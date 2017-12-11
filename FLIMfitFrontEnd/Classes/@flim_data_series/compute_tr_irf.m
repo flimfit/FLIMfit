@@ -241,14 +241,14 @@ function compute_tr_irf(obj)
         end
         
         new_irf(isnan(new_irf)) = 0;
-        obj.tr_irf = new_irf;
+        obj.tr_irf = double(new_irf);
         obj.tr_t_irf = new_t;
         
         % Normalise irf so it sums to unity
         if size(obj.tr_irf,1) > 0
             for i=1:size(obj.tr_irf,2) 
                 sm = sum(obj.tr_irf(:,i));
-                if sm > 0;
+                if sm > 0
                     obj.tr_irf(:,i) = obj.tr_irf(:,i) / sm;
                 end
             end

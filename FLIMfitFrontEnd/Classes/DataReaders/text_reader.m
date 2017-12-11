@@ -96,6 +96,7 @@ classdef text_reader < base_data_reader
             end
 
             obj.delays = delays;
+            obj.t_int = ones(size(delays));
             obj.chan_info = chan_info;
             obj.FLIM_type = 'TCSPC';
             obj.sizeZCT = [1 n_chan 1];
@@ -110,6 +111,7 @@ classdef text_reader < base_data_reader
             end
                         
             data = obj.txtInfoRead(:,channels);
+            data = single(data);
                         
         end
         

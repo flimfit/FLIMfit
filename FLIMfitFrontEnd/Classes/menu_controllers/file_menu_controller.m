@@ -33,6 +33,7 @@ classdef file_menu_controller < handle
         fit_controller;
         model_controller;
         hist_controller;
+        plot_controller;
         
         menu_irf_recent;
         menu_file_recent_default;

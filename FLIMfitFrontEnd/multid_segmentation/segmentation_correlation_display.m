@@ -184,7 +184,7 @@ classdef segmentation_correlation_display < handle
             n(n>1) = 1;
             set(obj.im,'CData',n);
             
-            if strcmp(x_name,'p_r') && strcmp(y_name,'p_i')
+            if strncmp(x_name,'p_r',3) && strncmp(y_name,'p_i',3)
                 obj.circle_h.Visible = 'on';
             else
                 obj.circle_h.Visible = 'off';

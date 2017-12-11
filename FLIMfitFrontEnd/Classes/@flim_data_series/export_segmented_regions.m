@@ -12,7 +12,7 @@ function export_segmented_regions(obj, path)
         n = max(mask(:));
         
         for j=1:n
-            data = obj.cur_data(:,:,mask == j);
+            data = obj.cur_tr_data(:,:,mask == j);
             data = sum(data,3);
             
             filename = [path filesep obj.names{i} '_R' num2str(j,'%03i') '.csv'];
