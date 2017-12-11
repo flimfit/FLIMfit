@@ -71,7 +71,7 @@ classdef flim_data_series_controller < handle
                 polarisation_resolved = false;
             end
                         
-            obj.data_series.load_data_series(root_path,mode,polarisation_resolved,setting_file_name,selected,channels);
+            obj.data_series.load_data_series(root_path,mode,polarisation_resolved);
                         
             if ~isempty(obj.window)
                 set(obj.window,'Name',[ obj.data_series.header_text ' (' obj.version ')']);
