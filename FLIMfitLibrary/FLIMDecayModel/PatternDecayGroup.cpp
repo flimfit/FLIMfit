@@ -89,7 +89,7 @@ void PatternDecayGroup::addConstantContribution(float* a)
 
 void PatternDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
 {
-   if (fit->isFittedLocally())
+   if (fit->isFittedLocally()) 
       col++; // one column, no variables
 }
 

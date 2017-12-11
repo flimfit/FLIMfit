@@ -15,7 +15,7 @@ public:
    
    int smoothing_factor = 0;
    int t_start = 0;
-   int t_stop = 12000;
+   int t_stop = 25000;
    int threshold = 0;
    int limit = 0;
    std::shared_ptr<FLIMBackground> background;
@@ -93,11 +93,13 @@ public:
       equally_spaced_gates = acq->equally_spaced_gates;
       
       int dim_required = transform.smoothing_factor * 2 + 2;
-      if (acq->n_x >= dim_required && acq->n_y >= dim_required)
-      {
+
+      if ((acq->n_x >= dim_required) && (acq->n_y >= dim_required))
          smoothing_factor = transform.smoothing_factor;
-         smoothing_area = (float)(2 * smoothing_factor + 1)*(2 * smoothing_factor + 1);
-      }
+      else
+         smoothing_factor = 0;
+
+      smoothing_area = (float)(2 * smoothing_factor + 1)*(2 * smoothing_factor + 1);
    }
 
    const std::vector<double>& getTimepoints() { return timepoints; }
@@ -214,7 +216,7 @@ private:
 
    void refresh()
    {
-      already_transformed = false;
+      //already_transformed = false;
       
       if (image == nullptr)
          return;
@@ -253,7 +255,7 @@ private:
    std::vector<float> transformed_data;
    std::vector<float> r_ss;
    
-   bool already_transformed = false;
+   //bool already_transformed = false;
 };
 
 
@@ -308,8 +310,8 @@ void DataTransformer::calculateMask()
 template <typename T>
 void DataTransformer::transformData()
 {
-   if (already_transformed)
-      return;
+   //if (already_transformed)
+   //   return;
 
    auto acq = image->getAcquisitionParameters();
    int n_x = acq->n_x;

@@ -304,14 +304,14 @@ terminated:
    
    std::thread::id cur_id = std::this_thread::get_id();
 
-   if (threads_running == 0 && run_async)
+   if (threads_running == 0)
    {
       for(auto& t : thread_handle)
          if ( t.joinable() && t.get_id() != cur_id )
             t.join();
-
       setFitComplete();
    }
+
 }
 
 void FitController::setFitComplete()
