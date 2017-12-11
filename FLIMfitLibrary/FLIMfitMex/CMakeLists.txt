@@ -31,7 +31,7 @@ project(FLIMfitMex)
 
 find_package(Qt5Core)
 find_package(OpenCV REQUIRED)
-find_package(Boost CONFIG REQUIRED COMPONENTS serialization)
+find_package(Boost REQUIRED COMPONENTS serialization)
 
 
 # MATLAB stuff

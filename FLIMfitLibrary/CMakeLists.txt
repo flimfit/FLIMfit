@@ -8,15 +8,9 @@
 ##=========================================================================
 
 project(FLIMfit)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.9)
 
 set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
-set(CMAKE_PREFIX_PATH /usr/local/opt/qt5) # for brew install of qt5
-
-if(MSVC)
-  set( Boost_USE_STATIC_LIBS ON )
-  add_definitions(-DBOOST_ALL_NO_LIB=1)
-endif()
 
 find_package(Qt5Core REQUIRED)
 find_package(OpenCV REQUIRED)

@@ -1,7 +1,5 @@
 @echo off
 
-IF NOT DEFINED MSVC_VER SET MSVC_VER=15
-
 :: Install cmake, gs and OMERO stuff
 IF NOT DEFINED NOADMIN (
 
@@ -21,9 +19,4 @@ IF NOT DEFINED NOADMIN (
 	idpsetup-1.5.1.exe /silent
 	del idpsetup-1.5.1.exe
 )
-
-IF %MSVC_VER% EQU 15 SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.11.25325
-IF %MSVC_VER% NEQ 15 SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio %MSVC_VER%.0\VC\redist\*
-
-ECHO %REDIST_STR%\vcredist_x64.exe>FLIMfitLibrary\VisualStudioRedistributablePath.txt
 
