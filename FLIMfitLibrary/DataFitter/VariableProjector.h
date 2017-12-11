@@ -4,12 +4,14 @@
 #include <vector>
 #include "DecayModel.h"
 
+typedef std::shared_ptr<std::vector<double>> spvd;
+
 class VariableProjectionFitter;
 
 class VariableProjector
 {
 public:
-   VariableProjector(VariableProjectionFitter* f, std::shared_ptr<std::vector<double>> a_ = nullptr, std::shared_ptr<std::vector<double>> wp_ = nullptr);
+   VariableProjector(VariableProjectionFitter* f, spvd a_ = nullptr, spvd b_ = nullptr, spvd wp_ = nullptr);
    VariableProjector(VariableProjector&) = delete;
    VariableProjector(VariableProjector&&) = default;
 
@@ -25,10 +27,9 @@ protected:
 
    int n, nmax, ndim, nl, l, p, pmax, philp1, nr;
    
-   std::vector<double> b;
    std::vector<double> work, aw, bw, u, r;
 
-   std::shared_ptr<std::vector<double>> a, wp;
+   std::shared_ptr<std::vector<double>> a, b, wp;
 
    std::shared_ptr<DecayModel> model;
 

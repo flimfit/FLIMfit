@@ -3,7 +3,7 @@
 #include "cminpack.h"
 
 
-   VariableProjector::VariableProjector(VariableProjectionFitter* f, std::shared_ptr<std::vector<double>> a_, std::shared_ptr<std::vector<double>> wp_) :
+   VariableProjector::VariableProjector(VariableProjectionFitter* f, spvd a_, spvd b_, spvd wp_) :
       n(f->n), nmax(f->nmax), ndim(f->ndim), nl(f->nl), l(f->l), p(f->p), pmax(f->pmax), philp1(f->philp1), nr(f->n)
    {
       r.resize(nmax);
@@ -11,7 +11,6 @@
       aw.resize(nmax * (l + 1));
       bw.resize(ndim * (pmax + 3));
       u.resize(nmax);
-      b.resize(ndim * (pmax + 3));
 
       if (wp_) 
          wp = wp_;
@@ -22,6 +21,11 @@
          a = a_;
       else
          a = std::make_shared<std::vector<double>>(nmax * (l + 1));
+
+      if (b_)
+         b = b_;
+      else
+         b = std::make_shared<std::vector<double>>(ndim * (pmax + 3));
 
       model = std::make_shared<DecayModel>(*(f->model)); // deep copy
       adjust = model->getConstantAdjustment();
@@ -41,7 +45,7 @@ void VariableProjector::setData(float* y)
       // Store the data in rj, subtracting the column l+1 which does not
       // have a linear parameter
       for (int i = 0; i < nr; i++)
-         r[i] = (y[i] - adjust[i]) * (*wp)[i] - aw[i + l * nmax];
+         r[i] = (y[i] - adjust[i] - aw[i + l * nmax]) * (*wp)[i];
    }
 }
 
@@ -94,7 +98,7 @@ void VariableProjector::transformAB()
 
    for (int m = 0; m < p; ++m)
       for (int i = 0; i < nr; ++i)
-         bw[i + m * ndim] = b[i + m * ndim] * (*wp)[i];
+         bw[i + m * ndim] = (*b)[i + m * ndim] * (*wp)[i];
 
    // Compute orthogonal factorisations by householder reflection (phi)
    for (int k = 0; k < l; ++k)

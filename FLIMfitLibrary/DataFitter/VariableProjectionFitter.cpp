@@ -49,11 +49,12 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
 
    vp.push_back(VariableProjector(this));
    
-   std::shared_ptr<std::vector<double>> wp = iterative_weighting ?  nullptr : vp[0].wp;
-   std::shared_ptr<std::vector<double>> a = variable_phi ? nullptr : vp[0].a;
+   spvd wp = iterative_weighting ?  nullptr : vp[0].wp;
+   spvd a = variable_phi ? nullptr : vp[0].a;
+   spvd b = variable_phi ? nullptr : vp[0].b;
 
    for (int i = 1; i < n_thread; i++)
-      vp.push_back(VariableProjector(this, a, wp));
+      vp.push_back(VariableProjector(this, a, b, wp));
 
    // Set up buffers for levmar algorithm
    //---------------------------------------------------
@@ -261,8 +262,8 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
    
    if (!variable_phi)
    {
-      getDerivatives(B.model, irf_idx[0], B.b);
-      resample(B.b, ndim, p);
+      getDerivatives(B.model, irf_idx[0], *(B.b));
+      resample(*(B.b), ndim, p);
    }
    if (!iterative_weighting)
       calculateWeights(0, alf, B.wp->data());
@@ -284,13 +285,12 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    if (reporter->shouldTerminate())
       return -9;
 
-   int idx = (iterative_weighting) ? thread : 0;
-   auto& B = vp[idx];
+   auto& B = vp[thread];
 
    if (variable_phi)
    {
-      getDerivatives(B.model, irf_idx[row], B.b);
-      resample(B.b, ndim, p);
+      getDerivatives(B.model, irf_idx[row], *(B.b));
+      resample(*(B.b), ndim, p);
    }
 
    if (iterative_weighting)
@@ -399,8 +399,9 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
 void VariableProjectionFitter::calculateWeights(int px, const double* alf, double* wp)
 {
-   float* y = this->y + px * n;
-   
+   float* yp = this->y + px * n;
+
+
    if (weighting == AverageWeighting)
    {
       for (int i=0; i<nr; i++)
@@ -409,7 +410,7 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
    }
    else if (weighting == PixelWeighting)
    {
-      resampler->resample(y, wp);
+      resampler->resample(yp, wp);
       if (using_gamma_weighting)
          for (int i = 0; i < nr; i++)
             wp[i]++;     
@@ -420,10 +421,10 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
 
    for(int i=0; i<nr; i++)
    {
-      if (wp[i] <= 0)
+      if (wp[i] <= 0.0)
          wp[i] = 1.0;
       else
-         wp[i] = sqrt(1.0 / wp[i]);
+         wp[i] = 1.0 / sqrt(wp[i]);
    }
 }
 
