@@ -40,7 +40,9 @@
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
 
-bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_name, float expected_value, float rel_tol, float expected_std = 0)
+#include <boost/math/distributions/students_t.hpp>
+
+bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_name, float expected_value, float expected_std = 0)
 {
    auto stats = results->getStats();
    int param_idx = results->getParamIndex(param_name);
@@ -49,18 +51,33 @@ bool checkResult(std::shared_ptr<FitResults> results, const std::string& param_n
    {
       float mean = stats.GetStat(0, param_idx, PARAM_MEAN);
       float std = stats.GetStat(0, param_idx, PARAM_STD);
-      float diff = mean - expected_value;
-      float rel = fabs(diff) / expected_value;
-      bool pass = (rel <= rel_tol) && std::isfinite(mean);
+      float err = stats.GetStat(0, param_idx, PARAM_ERR_LOWER);
+      float n = results->getRegionSummary()[0].size;
 
-      if (expected_std > 0)
-         pass &= (std <= 2 * expected_std);
+      float diff = mean - expected_value;
+
+      // If global, use expected value
+      if (!std::isfinite(std))
+         std = expected_std;
+
+      double t = diff * sqrt(n) / expected_std;
+      boost::math::students_t dist(n-1);
+      double q = boost::math::cdf(complement(dist, fabs(t)));
+
+      bool pass = q > 0.001;
+
+      float rel = fabs(diff) / expected_value;
+      //bool pass = (rel <= rel_tol) && std::isfinite(mean);
+
+      //if (expected_std > 0)
+      // pass &= (std <= 2 * expected_std);
 
       printf("Compare %s\n", param_name.c_str());
       printf("   | Expected  : %f\n", expected_value);
       printf("   | Fitted    : %f\n", mean);
       printf("   | Std D.    : %f (%f)\n", std, expected_std);
-      printf("   | Rel Error : %f (%f)\n", rel, rel_tol);
+      printf("   | Rel Error : %f\n", rel);
+      printf("   | p         : %f\n", q);
 
       if (pass)
          printf("   | PASS\n");
@@ -141,9 +158,10 @@ int testFittingCoreDouble()
    FitController controller;   
 
    std::vector<FitSettings> settings;
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
+   //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
+   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 4));
+   //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
    
    bool pass = true;
 
@@ -178,7 +196,7 @@ int testFittingCoreSingle(double tau, int N)
 {
    // Create simulator
 
-   int n_x = 20;
+   int n_x = 40;
 
    FLIMSimulationTCSPC sim;
    sim.setImageSize(n_x, n_x);
@@ -208,7 +226,7 @@ int testFittingCoreSingle(double tau, int N)
    }
 
    // Make data
-   std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e6);
    DataTransformationSettings transform(irf);
    auto data = std::make_shared<FLIMData>(images, transform);
 
@@ -216,7 +234,7 @@ int testFittingCoreSingle(double tau, int N)
    auto model = std::make_shared<DecayModel>();
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
 
-   std::vector<double> test = {2000};
+   std::vector<double> test = {1200};
    auto group = std::make_shared<MultiExponentialDecayGroup>((int)test.size());
    model->addDecayGroup(group);
 
@@ -234,10 +252,11 @@ int testFittingCoreSingle(double tau, int N)
       model->addDecayGroup(bg);
 
    std::vector<FitSettings> settings;
-   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, PixelWeighting, 1));
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, PixelWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, PixelWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, AverageWeighting, 1));
+   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
+   //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 1));
+   //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 4));
+   //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, PixelWeighting, 4));
 
    FitController controller;
 
@@ -258,8 +277,7 @@ int testFittingCoreSingle(double tau, int N)
       auto stats = results->getStats();
 
       double expected_std = tau / sqrt(N);
-      double rel = std::max(0.0001, 6.0 / (sqrt(N - 1) * sqrt(n_x*n_x - 1)));
-      pass &= checkResult(results, "[1] tau_1", tau, rel, expected_std);
+      pass &= checkResult(results, "[1] tau_1", tau, expected_std);
       if (use_background)
          pass &= checkResult(results, "[2] offset", N_bg, 0.5);
 

@@ -59,13 +59,13 @@ int main()
 {
    Cout2VisualStudioDebugOutput c2v;
 
-   testDecayResampler();
-   testModelDerivatives();
+//   testDecayResampler();
+//   testModelDerivatives();
 
-   for (int N_ : {100, 1000, 10000})
+   for (int N_ : {100, 200, 2000, 5000, 10000})
         testFittingCoreSingle(1000, N_);
 
-   for (int N_ : {100, 1000, 10000})
+   for (int N_ : {100, 200, 2000, 5000, 10000})
       testFittingCoreSingle(4000, N_);
 
    testFittingCoreDouble();
