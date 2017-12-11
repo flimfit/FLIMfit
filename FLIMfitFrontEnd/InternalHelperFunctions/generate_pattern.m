@@ -15,7 +15,7 @@ function pattern = generate_pattern(td, d, tirf, irf, T, fit_ax, res_ax)
 
     count = 0;
     
-    [x,chi2_final] = fminsearch(@fit,[500 3000 5000 0.33 0.33 0.33], opts);
+    [x,chi2_final] = fminsearch(@fit,[100 3000 5000 0.33 0.33 0.33], opts);
     
     count = 0;
     [~,I] =fit(x);
