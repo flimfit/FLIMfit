@@ -198,7 +198,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 
                 
                 set(ax,'YDir','normal')
-                set(ax,'XLim', x_lim,'YLim', y_lim);
+                set(ax,'XLim', x_lim + [-1e-10 1e-10],'YLim', y_lim + [-1e-10 1e-10]);
                 
                 pbaspect(ax,[1 1 1])
                 
