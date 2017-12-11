@@ -161,13 +161,43 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& nit
    int nfev, info;
    double rnorm; 
 
-   //resampler->determineSampling(avg_y.data()); turn off resampling
-   nr = resampler->resampledSize();
+   resampler = std::make_unique<DecayResampler>(n, 3);
 
+   //resampler->determineSampling(avg_y.data()); 
+   nr = resampler->resampledSize();
+   
    for(auto& v : vp)
       v.setNumResampled(nr);
 
    resampler->resample(avg_y.data());
+
+   /*
+   
+   int i;
+   for (i = 0; i < nr; i++)
+   {
+      assert(avg_y[i] > 0);
+   }
+   for (; i < n; i++)
+   {
+      assert(avg_y[i] == 0);
+   }
+
+   for (int i = 0; i < n; i++)
+      avg_y[i] = 1;
+   
+   resampler->resample(avg_y.data());
+   double s = 0;
+   for (int i = 0; i < nr; i++)
+      s += avg_y[i]; 
+   int xx = n - s;
+   assert(s == n);
+   
+
+
+   resampler->resample(avg_y.data());
+   */
+
    setupWeighting();
    
 
@@ -218,34 +248,40 @@ void VariableProjectionFitter::setupWeighting()
 
    using_gamma_weighting = false;
  
-   if (weighting == AverageWeighting)
+   if (n == nr)
    {
-      for(int i=0; i<nr; i++)
-         if (avg_y[i] == 0.0f)
-         {
-            using_gamma_weighting = true;
-            break;
-         }
+      if (weighting == AverageWeighting)
+      {
+         for (int i = 0; i<nr; i++)
+            if (avg_y[i] == 0.0f)
+            {
+               using_gamma_weighting = true;
+               break;
+            }
+      }
+      else // PIXEL_WEIGHTING
+      {
+
+         for (int i = 0; i<s*nr; i++) // TODO: resampled
+            if (y[i] == 0.0f)
+            {
+               using_gamma_weighting = true;
+               break;
+            }
+      }
    }
-   else // PIXEL_WEIGHTING
-   {
-      for(int i=0; i<s*nr; i++) // TODO: resampled
-         if (y[i] == 0.0f)
-         {
-            using_gamma_weighting = true;
-            break;
-         }
-   }
+
+   using_gamma_weighting = false;
 
    if (using_gamma_weighting)
    {
       for (int i=0; i<nr; i++)
-         w[i] = 1 / sqrt(avg_y[i] + 1);
+         w[i] = 1.0 / sqrt(avg_y[i] + 1);
    }
    else
    {
       for (int i=0; i<nr; i++)
-         w[i] = 1/sqrt(avg_y[i]);
+         w[i] = 1.0 / sqrt(avg_y[i]);
    }
 }
 
@@ -301,8 +337,9 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
    resampler->resample(y + row * n, yr.data());
 
-   for (int i = 0; i < nr; ++i)
-      yr[i] += min(yr[i], 1.0f);
+   if (using_gamma_weighting)
+      for (int i = 0; i < nr; ++i)
+         yr[i] += min(yr[i], 1.0f);
 
    B.setData(yr.data());
    B.backSolve();
@@ -332,10 +369,10 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    double r_sq = 0;
 
    // We'll apply this for all pixels
-   #pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
+   //#pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
    for (int j = 0; j < s; j++)
    {
-      int omp_thread = omp_get_thread_num();
+      int omp_thread = 0; // omp_get_thread_num();
       auto& B = vp[omp_thread];
    
       if (variable_phi)
@@ -343,23 +380,26 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
          getModel(B.model, irf_idx[j], *(B.a));
          resample(*(B.a), nmax, l+1);
       }
+
       if (iterative_weighting)
          calculateWeights(j, alf, B.wp->data());
-     
-      B.weightModel(); 
-      resampler->resample(y + j * n, yr.data());    
+      B.weightModel();
+
+      resampler->resample(y + j * n, yr.data());
       B.setData(yr.data());
 
       double rj_norm;
       nnls[omp_thread]->compute(B.aw, nr, nmax, B.r, B.work, rj_norm);
 
-      // Calcuate the norm of the jth column and add to residual
-      //r_sq += rj_norm * rj_norm;
+      r_sq += (rj_norm * rj_norm);
 
+      /*
       B.weightModel();
 
-      for (int i = 0; i < nr; i++)
-         yr[i] += min(yr[i], 1.0f);
+      resampler->resample(y + j * n, yr.data());
+      if (using_gamma_weighting)
+         for (int i = 0; i < nr; i++)
+            yr[i] += min(yr[i], 1.0f);
 
       B.setData(yr.data());
 
@@ -371,7 +411,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
          m -= B.r[i];
          r_sq += m*m;
       }
-
+      */
       if (use_numerical_derv)
          memcpy(rnorm + j*(nr - l), B.r.data() + l, (nr - l) * sizeof(double));
 
@@ -380,7 +420,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
          for (int i = 0; i < l; i++)
             lin_params[i + j*lmax] = B.work[i];
 
-         chi2[j] = (float) rj_norm / chi2_norm;
+         chi2[j] = (float) r_sq / chi2_norm;
       }
 
    } // loop over pixels
@@ -400,7 +440,11 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 void VariableProjectionFitter::calculateWeights(int px, const double* alf, double* wp)
 {
    float* yp = this->y + px * n;
+   
+   for (int i = 0; i<nr; i++)
+      wp[i] = 1.0;
 
+   return;
 
    if (weighting == AverageWeighting)
    {
