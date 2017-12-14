@@ -105,7 +105,7 @@ int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double*
    vp->setAlf(x);
 
    if (iflag == 0)
-      return vp->getResidualNonNegative(x, fnorm, fjrow, iflag, thread);
+      return vp->getResidualNonNegative(x, fnorm, iflag, thread);
    else if (iflag == 1)
       return vp->prepareJacobianCalculation(x, fnorm, fjrow, thread);
    else
@@ -116,7 +116,7 @@ int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double* x,
 {
    VariableProjectionFitter *vp = (VariableProjectionFitter*) p;
    vp->setAlf(x);
-   return vp->getResidualNonNegative(x, fvec, NULL, iflag, 0);
+   return vp->getResidualNonNegative(x, fvec, iflag, 0);
 }
 
 
@@ -199,10 +199,46 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& nit
    */
 
    setupWeighting();
-   
+
+   bool initial_grid_search = true;
+
+   if (initial_grid_search)
+   {
+
+      int n_initial = 10;
+      std::vector<double> initial_points(n_initial);
+      for (int i = 0; i < n_initial; i++)
+         initial_points[i] = 500 + 1000 * i;
+
+      int n_points_total = std::pow(n_initial, nl);
+
+      std::vector<double> best(nl);
+      double best_value = std::numeric_limits<double>::max();
+      for (int i = 0; i < n_points_total; i++)
+      {
+         std::vector<double> trial(nl);
+         for (int j = 0; j < nl; j++)
+         {
+            int idx = ((int)(i / std::pow(n_initial, j))) % n_initial;
+            trial[j] = initial_points[idx];
+         }
+
+         setAlf(trial.data());
+         getResidualNonNegative(trial.data(), &rnorm, 0, 0);
+         if (rnorm <= best_value)
+         {
+            best = trial;
+            best_value = rnorm;
+         }
+      }
+      alf = best;
+   }
 
    if (iterative_weighting)
-      getResidualNonNegative(alf.data(), fvec, fjac, 0, 0);
+   {
+      setAlf(alf.data());
+      getResidualNonNegative(alf.data(), fvec, 0, 0);
+   }
 
    try
    {
@@ -226,7 +262,10 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& nit
       else
       {
          if (!getting_errs)
-            getResidualNonNegative(alf.data(), fvec, fjac, -1, 0);
+         {
+            setAlf(alf.data());
+            getResidualNonNegative(alf.data(), fvec, -1, 0);
+         }
       }
 
       fit_successful = true;
@@ -288,7 +327,7 @@ void VariableProjectionFitter::setupWeighting()
 void VariableProjectionFitter::getLinearParams()
 {
    if (fit_successful)
-      getResidualNonNegative(alf.data(), fvec, fjac, -1, 0);
+      getResidualNonNegative(alf.data(), fvec, -1, 0);
 }
 
 
@@ -349,7 +388,7 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 }
 
 
-int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *rnorm, double *fjrow, int iflag, int thread)
+int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *rnorm, int iflag, int thread)
 {
    int get_lin = (iflag == -1);
 

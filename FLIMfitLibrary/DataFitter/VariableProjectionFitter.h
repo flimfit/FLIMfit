@@ -52,7 +52,7 @@ private:
    
    void setupWeighting();
 
-   int getResidualNonNegative(const double* alf, double *rnorm, double *fjrow, int isel, int thread);
+   int getResidualNonNegative(const double* alf, double *rnorm, int isel, int thread);
 
    int prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread);
    int getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread);
