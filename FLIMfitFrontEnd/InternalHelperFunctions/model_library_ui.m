@@ -24,6 +24,7 @@ function model_library_ui
     right_layout.Heights = [22 -1 22];
     top_layout.Widths = [80 -1];
     model_controller = flim_model_controller(handles.panel); 
+    model_controller.set_n_channel(3);
 
     get_models();
     
@@ -34,6 +35,8 @@ function model_library_ui
            name = [model_folder model_name '.xml'];
            handles.name.String = model_name;
            model_controller.load(name);
+        else
+            handles.list.Value = length(handles.list.String);
         end
     end
 

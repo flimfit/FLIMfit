@@ -114,6 +114,18 @@ void removeDecayGroup(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plh
    model->removeDecayGroup(group_idx);
 }
 
+void setDecayGroupName(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 4);
+
+   int group_idx = mxGetScalar(prhs[2]) - 1;
+   AssertInputCondition(group_idx >= 0 && group_idx < model->getNumGroups());
+
+   std::string new_name = getStringFromMatlab(prhs[3]);
+   model->getGroup(group_idx)->setObjectName(QString::fromStdString(new_name));
+}
+
+
 mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> parameters)
 {
    const char* field_names[] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes", "id"};
@@ -419,6 +431,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          addDecayGroup(model, nlhs, plhs, nrhs, prhs);
       else if (command == "RemoveDecayGroup")
          removeDecayGroup(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetDecayGroupName")
+         setDecayGroupName(model, nlhs, plhs, nrhs, prhs);
       else if (command == "GetGroups")
          getGroups(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetGroupVariables")

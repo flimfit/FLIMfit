@@ -138,7 +138,14 @@ classdef flim_model_controller < handle
             if obj.map.isKey(group.id)
                 h = obj.map(group.id);
             else
-                h.box = uix.BoxPanel('Parent',parent,'BackgroundColor','w');
+                h.box = uix.VBox('Parent',parent,'BackgroundColor','w');
+                title_layout = uix.HBox('Parent',h.box);
+                h.title = uicontrol('Parent',title_layout,'Style','text','String','','BackgroundColor',obj.title_color,...
+                    'FontSize',10,'FontWeight','bold','HorizontalAlignment','left');
+                h.rename_button = uicontrol('Parent',title_layout,'Style','pushbutton','String','Rename');
+                h.close_button = uicontrol('Parent',title_layout,'Style','pushbutton','String','x');
+                title_layout.Widths = [-1, 60, 22];
+                
                 h.layout = uix.VBox('Parent',h.box,'Spacing',2,'BackgroundColor','w');
                 %h.label = uicontrol('Style','text','Parent',h.layout,...
                 %    'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor',obj.title_color);
@@ -150,8 +157,9 @@ classdef flim_model_controller < handle
                 end
             end
             
-            h.box.Title = ['[' num2str(idx) '] ' group.Name];
-            h.box.CloseRequestFcn = {@obj.remove_group, idx};
+            h.title.String = ['[' num2str(idx) '] ' group.Name];
+            h.close_button.Callback = {@obj.remove_group, idx};
+            h.rename_button.Callback = {@obj.rename_group, idx, group.Name};
 
             for j=1:length(params)
                obj.refresh_parameter_control(h.params{j}, idx, params{j}, group.Parameters.(params{j})); 
@@ -264,6 +272,15 @@ classdef flim_model_controller < handle
             obj.draw();
         end
 
+        function rename_group(obj,~,~,idx,cur_name)
+            
+            name = inputdlg('Group Name','Rename Group',1,{cur_name});
+            
+            ff_DecayModel(obj.model,'SetDecayGroupName',idx,name{1});
+            obj.draw();
+        end
+
+        
         function update_parameter(obj,group_idx,name,value)
             ff_DecayModel(obj.model,'SetGroupParameter',group_idx,name,value);
             obj.draw();
