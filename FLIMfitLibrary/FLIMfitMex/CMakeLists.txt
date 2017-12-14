@@ -27,12 +27,16 @@
 #
 #=========================================================================
 
+cmake_minimum_required(VERSION 3.9)
 project(FLIMfitMex)
 
-find_package(Qt5Core)
+include("cmake/DeployQt.cmake")
+
+find_package(Qt5 COMPONENTS Widgets)
 find_package(OpenCV REQUIRED)
 find_package(Boost REQUIRED COMPONENTS serialization)
 
+set(CMAKE_AUTOMOC ON)
 
 # MATLAB stuff
 #====================================
@@ -65,10 +69,12 @@ target_link_libraries(ff_FitResults ${COMMON_LIBS})
 matlab_add_mex(NAME ff_DecayModel SRC ${COMMON_FILES} DecayModelMex.cpp)
 target_link_libraries(ff_DecayModel ${COMMON_LIBS})
 
+add_executable(Dummy DummyMain.cpp)
+target_link_libraries(Dummy Qt5::Widgets ff_FLIMImage ff_FLIMData ff_Controller ff_FitResults ff_DecayModel)
+deployqt(Dummy INCLUDE_MODULES ${QTLIBS})
+
+
 if (MSVC)
-add_custom_command(TARGET ff_FLIMImage POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMImage> ${MEX_OUT_DIR})
-add_custom_command(TARGET ff_FLIMData POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FLIMData> ${MEX_OUT_DIR})
-add_custom_command(TARGET ff_Controller POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_Controller> ${MEX_OUT_DIR})
-add_custom_command(TARGET ff_FitResults POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_FitResults> ${MEX_OUT_DIR})
-add_custom_command(TARGET ff_DecayModel POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ff_DecayModel> ${MEX_OUT_DIR})
+add_custom_command(TARGET Dummy POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:Dummy> ${MEX_OUT_DIR})
 endif()
+
