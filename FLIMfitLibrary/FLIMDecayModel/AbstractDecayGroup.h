@@ -130,25 +130,49 @@ protected:
    
 private:
    template<class Archive>
-   void serialize(Archive & ar, const unsigned int version);
-   
+   void load(Archive & ar, const unsigned int version);
+
+   template<class Archive>
+   void save(Archive & ar, const unsigned int version) const;
+
    friend class boost::serialization::access;
-   
+   BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
 template<class Archive>
-void AbstractDecayGroup::serialize(Archive & ar, const unsigned int version)
+void AbstractDecayGroup::load(Archive & ar, const unsigned int version)
 {
    ar & constrain_nonlinear_parameters;
    ar & n_lin_components;
    ar & n_nl_parameters;
    ar & parameters;
    ar & dp;
+
+   if (version >= 2)
+   {
+      std::string name;
+      ar >> name;
+      setObjectName(QString::fromStdString(name));
+   }
+};
+
+template<class Archive>
+void AbstractDecayGroup::save(Archive & ar, const unsigned int version) const
+{
+   ar & constrain_nonlinear_parameters;
+   ar & n_lin_components;
+   ar & n_nl_parameters;
+   ar & parameters;
+   ar & dp;
+
+   if (version >= 2)
+      ar & objectName().toStdString();
 };
 
 
-BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 
+BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
+BOOST_CLASS_VERSION(AbstractDecayGroup, 2)
 
 template <typename T>
 void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor, double factor)
