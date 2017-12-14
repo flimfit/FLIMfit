@@ -28,9 +28,11 @@ function handles = setup_layout(obj, handles)
 
     % Start layout
     %---------------------------------------
-    %main_layout = uix.VBoxFlex( 'Parent', obj.window, 'Spacing', 5, 'Padding', 0, 'DividerMarkings', 'on' );
     top_layout = uix.HBoxFlex( 'Parent', obj.window, 'Spacing', 5, 'Padding', 0, 'DividerMarkings', 'on' );
-    left_layout = uix.VBoxFlex( 'Parent', top_layout, 'Spacing', 5, 'Padding', 0, 'DividerMarkings', 'on' );
+    mid_layout = uix.VBoxFlex( 'Parent', top_layout, 'Spacing', 5, 'Padding', 0, 'DividerMarkings', 'on' );
+    
+    fitting_panel = uix.BoxPanel( 'Parent', top_layout, 'Title', 'Fitting Options' );
+    left_layout = uix.VBox( 'Parent', fitting_panel, 'Spacing', 5, 'Padding', 0 );
     
 
     % Decay Display
@@ -69,7 +71,7 @@ function handles = setup_layout(obj, handles)
     handles.show_limits_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel, 'Value', 2 );    
     
     set(colormap_panel, 'Widths', [-1 -1], 'Heights', [22 22 22]);
-    set(display_params_panel, 'Heights', [-1 -1 76] );
+    set(display_params_panel, 'Heights', [-1.5 -1 76] );
     
     set( topright_layout, 'Widths', [-1, 0] );
    
@@ -103,19 +105,11 @@ function handles = setup_layout(obj, handles)
     % Dataset Panel
     %---------------------------------------
         
-    dataset_panel = uix.BoxPanel( 'Parent', left_layout, 'Title', 'Dataset' );
-    dataset_layout = uix.HBoxFlex( 'Parent', dataset_panel, 'Padding', 3, 'Spacing', 5 );
+    dataset_panel = uix.BoxPanel( 'Parent', mid_layout, 'Title', 'Dataset' );
+    dataset_layout = uix.VBoxFlex( 'Parent', dataset_panel, 'Padding', 3, 'Spacing', 5 );
 
-    dataset_layout_left = uix.VBox( 'Parent', dataset_layout, 'Padding', 3 );
-    handles.data_series_table = uitable( 'Parent', dataset_layout_left );
-    
-    handles.data_series_sel_all = uicontrol( 'Style', 'pushbutton', 'String', 'Select Multiple...', 'Parent', dataset_layout_left );
-    
-    set( dataset_layout_left, 'Heights', [-1,22] );
-    
     % Intensity View
     %---------------------------------------
-    
     intensity_layout = uix.VBox( 'Parent', dataset_layout, 'Spacing', 3 );
     
     intensity_opts_layout = uix.HBox( 'Parent', intensity_layout, 'Spacing', 3 );
@@ -132,19 +126,24 @@ function handles = setup_layout(obj, handles)
     intensity_container = uicontainer( 'Parent', intensity_layout ); 
     handles.intensity_axes = axes( 'Parent', intensity_container );
     set(handles.intensity_axes,'Units','normalized','Position',[0.02 0.02 0.94 0.94]);
+    set( intensity_layout, 'Heights', [22,-1] );
 
     
-    set( intensity_layout, 'Heights', [22,-1] );
-    set( dataset_layout, 'Widths', [-1,-2], 'MinimumWidths', [150 0] );
+    
+    dataset_layout_left = uix.VBox( 'Parent', dataset_layout, 'Padding', 3 );
+    handles.data_series_table = uitable( 'Parent', dataset_layout_left );
+    
+    handles.data_series_sel_all = uicontrol( 'Style', 'pushbutton', 'String', 'Select Multiple...', 'Parent', dataset_layout_left );
+    
+    set( dataset_layout_left, 'Heights', [-1,22] );
+    
+    set( dataset_layout, 'Heights', [-1,-2], 'MinimumHeights', [150 0] );
 
     
     % Data Transformation Panel
     %---------------------------------------
     handles = obj.add_data_transformation_panel(handles,left_layout);
  
-
-    
-    %set(main_layout,'Widths',[-4,-1]);
     
     % Fitting Params Panel
     %---------------------------------------
@@ -157,10 +156,10 @@ function handles = setup_layout(obj, handles)
 
     set(fit_button_layout,'Widths',[-1,-2]);
     
-    set(left_layout,'Heights',[-1,125,400,30])
+    set(left_layout,'Heights',[125,-1,30])
     
         
-    set(top_layout,'Widths',[-1,-2],'MinimumWidths',[500 0]);
+    set(top_layout,'Widths',[-1, 500, -2],'MinimumWidths',[200, 500, 0]);
     
 
 %    dragzoom([handles.highlight_axes handles.residuals_axes])
