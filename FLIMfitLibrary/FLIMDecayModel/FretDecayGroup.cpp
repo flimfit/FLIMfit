@@ -40,9 +40,9 @@ FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, 
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    std::vector<ParameterFittingType> fixed = { Fixed };
    A_parameter = std::make_shared<FittingParameter>("A", 1, fixed, Fixed);
-   Q_parameter = std::make_shared<FittingParameter>("Q", 1, fixed_or_global, FittedGlobally);
-   Qsigma_parameter = std::make_shared<FittingParameter>("Qsigma", 0.1, fixed_or_global, FittedGlobally);
-   tauA_parameter = std::make_shared<FittingParameter>("tauA", 4000, fixed_or_global, FittedGlobally);
+   Q_parameter = std::make_shared<FittingParameter>("Q", 1, fixed_or_global, Fixed);
+   Qsigma_parameter = std::make_shared<FittingParameter>("Qsigma", 0.1, fixed_or_global, Fixed);
+   tauA_parameter = std::make_shared<FittingParameter>("tauA", 4000, fixed_or_global, Fixed);
    
    setupParameters();
 }
