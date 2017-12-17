@@ -46,9 +46,24 @@ public:
 
    const static char* fitting_type_names[];
 
+   FittingParameter(const std::string& name, double initial_value, double initial_min, double initial_max, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type_) :
+      name(name),
+      initial_value(initial_value),
+      initial_min(initial_min),
+      initial_max(initial_max),
+      initial_search(true),
+      allowed_fitting_types(allowed_fitting_types)
+   {
+      fitting_type = Fixed;
+      setFittingType(fitting_type_);
+   }
+
    FittingParameter(const std::string& name, double initial_value, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type_) :
       name(name),
       initial_value(initial_value),
+      initial_min(0),
+      initial_max(0),
+      initial_search(false),
       allowed_fitting_types(allowed_fitting_types)
    {
       fitting_type = Fixed;
@@ -91,6 +106,10 @@ public:
 
    std::string name;
    double initial_value;
+   
+   bool initial_search = false;
+   double initial_min;
+   double initial_max;
    std::vector<ParameterFittingType> allowed_fitting_types;
    bool constrained = false;
 
@@ -105,6 +124,8 @@ private:
    friend class boost::serialization::access;
 };
 
+BOOST_CLASS_VERSION(FittingParameter, 2)
+
 template<class Archive>
 void FittingParameter::serialize(Archive & ar, const unsigned int version)
 {
@@ -112,4 +133,11 @@ void FittingParameter::serialize(Archive & ar, const unsigned int version)
    ar & initial_value;
    ar & allowed_fitting_types;
    ar & fitting_type;
+
+   if (version >= 2)
+   {
+      ar & initial_search;
+      ar & initial_min;
+      ar & initial_max;
+   }
 }

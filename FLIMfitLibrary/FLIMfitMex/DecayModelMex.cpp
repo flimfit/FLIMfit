@@ -128,22 +128,25 @@ void setDecayGroupName(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *pl
 
 mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> parameters)
 {
-   const char* field_names[] = { "Name", "InitialValue", "FittingType", "AllowedFittingTypes", "id"};
-   mxArray* s = mxCreateStructMatrix(1, parameters.size(), 5, field_names);
+   const char* field_names[] = { "Name", "InitialValue", "InitialSearch", "InitialMin", "InitialMax", "FittingType", "AllowedFittingTypes", "id"};
+   mxArray* s = mxCreateStructMatrix(1, parameters.size(), 8, field_names);
 
    for (int i = 0; i < parameters.size(); i++)
    { 
       mxSetFieldByNumber(s, i, 0, mxCreateString(parameters[i]->name.c_str()));
       mxSetFieldByNumber(s, i, 1, mxCreateDoubleScalar(parameters[i]->initial_value));
-      mxSetFieldByNumber(s, i, 2, mxCreateDoubleScalar(parameters[i]->getFittingType() + 1));
+      mxSetFieldByNumber(s, i, 2, mxCreateLogicalScalar(parameters[i]->initial_search));
+      mxSetFieldByNumber(s, i, 3, mxCreateDoubleScalar(parameters[i]->initial_min));
+      mxSetFieldByNumber(s, i, 4, mxCreateDoubleScalar(parameters[i]->initial_max));
+      mxSetFieldByNumber(s, i, 5, mxCreateDoubleScalar(parameters[i]->getFittingType() + 1));
 
       auto& allowed_types = parameters[i]->allowed_fitting_types;
       mxArray* a = mxCreateNumericMatrix(1, allowed_types.size(), mxDOUBLE_CLASS, mxREAL);
       double* ap = mxGetPr(a);
       for (int j = 0; j < allowed_types.size(); j++)
          ap[j] = allowed_types[j] + 1;
-      mxSetFieldByNumber(s, i, 3, a);
-      mxSetFieldByNumber(s, i, 4, mxCreateUint64Scalar((uint64_t) parameters[i].get()));
+      mxSetFieldByNumber(s, i, 6, a);
+      mxSetFieldByNumber(s, i, 7, mxCreateUint64Scalar((uint64_t) parameters[i].get()));
    }
 
    return s;
@@ -229,6 +232,9 @@ void setVariables(std::shared_ptr<QDecayModel> model, std::vector<std::shared_pt
    for (int i = 0; i < parameters.size(); i++)
    {
       parameters[i]->initial_value = mxGetScalar(mxGetField(new_parameters, i, "InitialValue"));
+      parameters[i]->initial_search = mxGetScalar(mxGetField(new_parameters, i, "InitialSearch"));
+      parameters[i]->initial_min = mxGetScalar(mxGetField(new_parameters, i, "InitialMin"));
+      parameters[i]->initial_max = mxGetScalar(mxGetField(new_parameters, i, "InitialMax"));
       ParameterFittingType type = static_cast<ParameterFittingType>((int)mxGetScalar(mxGetField(new_parameters, i, "FittingType")) - 1);
       parameters[i]->setFittingType(type);
    }

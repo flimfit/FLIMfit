@@ -485,6 +485,21 @@ int DecayModel::getLinearOutputs(float* lin_variables, float* outputs)
    return idx;
 }
 
+const std::vector<std::shared_ptr<FittingParameter>> DecayModel::getAllParameters()
+{
+   std::vector<std::shared_ptr<FittingParameter>> params = parameters;
+
+   for (auto& g : decay_groups)
+   {
+      auto& group_params = g->getParameters();
+      for (auto& p : group_params)
+         params.push_back(p);
+   }
+
+   return params;
+}
+
+
 
 /*
 * Based on fortran77 subroutine CHKDER by

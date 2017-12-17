@@ -204,23 +204,39 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& nit
 
    if (initial_grid_search)
    {
+      auto& params = model->getAllParameters();
+      std::vector<std::shared_ptr<FittingParameter>> global_parameters;
+      int n_search = 0;
+      for (auto& p : params)
+         if (p->isFittedGlobally())
+         {
+            global_parameters.push_back(p);
+            if (p->initial_search)
+               n_search++;
+         }
+
 
       int n_initial = 10;
-      std::vector<double> initial_points(n_initial);
-      for (int i = 0; i < n_initial; i++)
-         initial_points[i] = 500 + 1000 * i;
 
-      int n_points_total = std::pow(n_initial, nl);
 
-      std::vector<double> best(nl);
-      double best_value = std::numeric_limits<double>::max();
+      int n_points_total = std::pow(n_initial, n_search);
+
+      // Initial point
+      std::vector<double> best = alf;
+      setAlf(best.data());
+      getResidualNonNegative(best.data(), &rnorm, 0, 0);
+      double best_value = rnorm;
+
       for (int i = 0; i < n_points_total; i++)
       {
-         std::vector<double> trial(nl);
-         for (int j = 0; j < nl; j++)
+         std::vector<double> trial = alf;
+         for (int j = 0; j < global_parameters.size(); j++)
          {
-            int idx = ((int)(i / std::pow(n_initial, j))) % n_initial;
-            trial[j] = initial_points[idx];
+            if (global_parameters[j]->initial_search)
+            {
+               int idx = ((int)(i / std::pow(n_initial, j))) % n_initial;
+               trial[j] = global_parameters[j]->initial_min + idx * (global_parameters[j]->initial_max - global_parameters[j]->initial_min) / (n_initial - 1);
+            }
          }
 
          setAlf(trial.data());

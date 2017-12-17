@@ -19,6 +19,8 @@ pdftops.txt
 FLIMGlobalAnalysisProto_*
 .DS_Store
 FLIMFitLibrary/Minpack/*
+FLIMfitLibrary/GeneratedProjects/*
+FLIMfitLibrary/Libraries/*
 TestDatasets/*
 GeneratedProjects/*
 FLIMFitFrontEnd/FLIMGlobalAnalysis_64_thunk_*
@@ -29,6 +31,5 @@ FLIMfitFrontEnd/OMEuiUtils/*
 FLIMFitFrontEnd/BFMatlab/*
 FLIMFitFrontEndStandalone/*
 FLIMfitStandalone/*
-FLIMfitLibrary/GeneratedProjects/*
 Boost/* 
 .vscode/*

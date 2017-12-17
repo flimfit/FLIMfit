@@ -72,7 +72,7 @@ void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std
          string name = name_prefix + boost::lexical_cast<std::string>(i + 1);
          double initial_value = 3000 / (i + 1);
 
-         auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, FittedGlobally);
+         auto p = make_shared<FittingParameter>(name, initial_value, 200, 6000, fixed_or_global, FittedGlobally);
          params.push_back(p);
          parameters.push_back(p);
       }
@@ -102,7 +102,7 @@ void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
             string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
             double initial_value = 1.0 / n_exponential;
 
-            auto p = make_shared<FittingParameter>(name, initial_value, fixed_or_global, Fixed);
+            auto p = make_shared<FittingParameter>(name, initial_value, 0, 1, fixed_or_global, Fixed);
             beta_parameters.push_back(p);
          }
       } 

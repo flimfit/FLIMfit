@@ -94,6 +94,9 @@ public:
 
    const std::vector<std::shared_ptr<FittingParameter>> getParameters() { return parameters; }
 
+   const std::vector<std::shared_ptr<FittingParameter>> getAllParameters();
+
+
    void validateDerivatives();
 
    std::shared_ptr<FittingParameter> reference_parameter;

@@ -173,7 +173,7 @@ classdef flim_model_controller < handle
             obj.touched(end+1) = group.id;
         end
 
-        function h = draw_parameter(obj, parent, value)
+        function h = draw_parameter(~, parent, value)
             h.layout = uix.HBox('Parent',parent,'Spacing',5,'BackgroundColor','w');
             uix.Empty('Parent',h.layout);
             h.label = uicontrol('Style','text','Parent',h.layout,'FontWeight','bold','BackgroundColor','w');
@@ -190,7 +190,7 @@ classdef flim_model_controller < handle
             else
                 uix.Empty('Parent',h.layout);
             end
-            h.layout.Widths = [75 -1 -1];
+            h.layout.Widths = [102 -1 -1];
         end
         
         
@@ -207,7 +207,7 @@ classdef flim_model_controller < handle
             else
                 uix.Empty('Parent',h.layout);
             end
-            h.layout.Widths = [75 -1 -1];
+            h.layout.Widths = [102 -1 -1];
         end
         
         
@@ -219,20 +219,33 @@ classdef flim_model_controller < handle
             else
                 h.box = uix.HBox('Parent',parent,'Spacing',5,'BackgroundColor','w');
                 h.label = uicontrol('Style','text','Parent',h.box,'FontWeight','bold','BackgroundColor','w');
+                h.search_check = uicontrol('Style','checkbox','Parent',h.box,'BackgroundColor','w');
                 h.initial_edit = uicontrol('Style','edit','Parent',h.box);
+                h.initial_min_edit = uicontrol('Style','edit','Parent',h.box);
+                h.initial_max_edit = uicontrol('Style','edit','Parent',h.box);
                 h.popup = uicontrol('Style','popupmenu','Parent',h.box);
-                h.box.Widths = [75 -1 -1];
+                h.box.Widths = [75 22 -1 -1 -1 -1];
             end
             
             set(h.label,'String',variable.Name);
+
+            set(h.search_check,'Value',variable.InitialSearch,...
+                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialSearch', logical(src.Value), h));
+            
             set(h.initial_edit,'String',num2str(variable.InitialValue),...
-                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialValue', str2double(src.String)));
+                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialValue', str2double(src.String), h));
+            set(h.initial_min_edit,'String',num2str(variable.InitialMin),...
+                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialMin', str2double(src.String), h));
+            set(h.initial_max_edit,'String',num2str(variable.InitialMax),...
+                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialMax', str2double(src.String), h));
 
             idx = 1:length(variable.AllowedFittingTypes);
             idx = idx(variable.AllowedFittingTypes == variable.FittingType);
 
             set(h.popup,'String',obj.fit_options(variable.AllowedFittingTypes),'Value',idx,...
-                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'FittingType', variable.AllowedFittingTypes(src.Value)));
+                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'FittingType', variable.AllowedFittingTypes(src.Value), h));
+            
+            obj.update_variable_display(variable, h);
             
             obj.map(variable.id) = h;
             obj.touched(end+1) = variable.id;
@@ -286,15 +299,41 @@ classdef flim_model_controller < handle
             obj.draw();
         end
         
-        function update_variable_option(obj, group_idx, variable_idx, opt, value)
+        function update_variable_option(obj, group_idx, variable_idx, opt, value, h)
             if group_idx == 0
                 obj.model_variables.(opt) = value;
                 ff_DecayModel(obj.model,'SetModelVariables',group_idx,obj.model_variables);
+                var = obj.model_variables;
             else
                 obj.groups(group_idx).Variables(variable_idx).(opt) = value;
                 ff_DecayModel(obj.model,'SetGroupVariables',group_idx,obj.groups(group_idx).Variables);
+                var = obj.groups(group_idx).Variables(variable_idx);
             end
+            
+            obj.update_variable_display(var, h);
             obj.draw();
+        end
+        
+        function update_variable_display(obj, var, h)
+            if var.FittingType == 3
+                h.search_check.Visible = 'on';
+            else
+                h.search_check.Visible = 'off';
+            end
+            
+            if var.InitialSearch && var.FittingType == 3
+                h.initial_min_edit.Visible = 'on';
+                h.initial_max_edit.Visible = 'on';
+                h.initial_edit.Visible = 'off';
+            elseif var.FittingType ~= 2
+                h.initial_min_edit.Visible = 'off';
+                h.initial_max_edit.Visible = 'off';
+                h.initial_edit.Visible = 'on';    
+            else
+                h.initial_min_edit.Visible = 'off';
+                h.initial_max_edit.Visible = 'off';
+                h.initial_edit.Visible = 'off';    
+            end
         end
         
         function channel_factors = get_channel_factors(obj,group_idx,idx)
