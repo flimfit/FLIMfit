@@ -45,7 +45,7 @@ void VariableProjector::setData(float* y)
       // Store the data in rj, subtracting the column l+1 which does not
       // have a linear parameter
       for (int i = 0; i < nr; i++)
-         r[i] = (y[i] - adjust[i] - aw[i + l * nmax]) * (*wp)[i];
+         r[i] = (y[i] - adjust[i]) * (*wp)[i] - aw[i + l * nmax];
    }
 }
 
