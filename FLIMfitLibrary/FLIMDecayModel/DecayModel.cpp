@@ -36,8 +36,8 @@ using namespace std;
 DecayModel::DecayModel()
 {
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-   reference_parameter = std::make_shared<FittingParameter>("ref_lifetime", 100, fixed_or_global, Fixed);
-   t0_parameter = std::make_shared<FittingParameter>("t0", 0, fixed_or_global, Fixed);
+   reference_parameter = std::make_shared<FittingParameter>("ref_lifetime", 100, 1e-3, fixed_or_global, Fixed);
+   t0_parameter = std::make_shared<FittingParameter>("t0", 0, 1, fixed_or_global, Fixed);
 
    parameters = { t0_parameter };
 }

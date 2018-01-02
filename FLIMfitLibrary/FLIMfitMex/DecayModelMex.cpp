@@ -229,6 +229,7 @@ void setParameter(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 
 void setVariables(std::shared_ptr<QDecayModel> model, std::vector<std::shared_ptr<FittingParameter>> parameters, const mxArray* new_parameters)
 {
+   AssertInputCondition(mxGetNumberOfElements(new_parameters) == parameters.size());
    for (int i = 0; i < parameters.size(); i++)
    {
       parameters[i]->initial_value = mxGetScalar(mxGetField(new_parameters, i, "InitialValue"));

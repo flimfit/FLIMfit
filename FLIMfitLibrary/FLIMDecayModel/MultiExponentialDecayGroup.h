@@ -56,7 +56,7 @@ protected:
 
    void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
 
-   int addDecayGroup(const std::vector<ExponentialPrecomputationBuffer>& buffers, double* a, int adim, double& kap, int bin_shift = 0);
+   int addDecayGroup(const std::vector<ExponentialPrecomputationBuffer>& buffers, double factor, double* a, int adim, double& kap, int bin_shift = 0);
    int addLifetimeDerivative(int idx, double* b, int bdim);
    void addLifetimeKappaDerivative(int idx, double_iterator& kap_derv);
    int addContributionDerivatives(double* b, int bdim, double_iterator& kap_derv);

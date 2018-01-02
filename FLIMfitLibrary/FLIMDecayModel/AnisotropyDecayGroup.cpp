@@ -209,10 +209,10 @@ int AnisotropyDecayGroup::calculateModel(double* a, int adim, double& kap, int b
 {
    int col = 0;
 
-   col += addDecayGroup(buffer, a, adim, kap, bin_shift);
+   col += addDecayGroup(buffer, 1, a, adim, kap, bin_shift);
 
    for (int i = 0; i < anisotropy_buffer.size(); i++)
-      col += addDecayGroup(anisotropy_buffer[i], a, adim, kap, bin_shift);
+      col += addDecayGroup(anisotropy_buffer[i], 1, a, adim, kap, bin_shift);
    // TODO: channel factors need to be sorted here!!!
    return col;
 }

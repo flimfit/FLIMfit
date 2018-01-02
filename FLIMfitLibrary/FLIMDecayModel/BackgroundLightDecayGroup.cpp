@@ -42,9 +42,9 @@ BackgroundLightDecayGroup::BackgroundLightDecayGroup() :
 
    std::vector<ParameterFittingType> any_type = { Fixed, FittedLocally }; // TODO support global fitting : , FittedGlobally};
 
-   auto offset_param = make_shared<FittingParameter>("offset", 0, any_type, Fixed);
-   auto scatter_param = make_shared<FittingParameter>("scatter", 0, any_type, Fixed);
-   auto tvb_param = make_shared<FittingParameter>("tvb", 0, any_type, Fixed);
+   auto offset_param = make_shared<FittingParameter>("offset", 0, 1, any_type, Fixed);
+   auto scatter_param = make_shared<FittingParameter>("scatter", 0, 1, any_type, Fixed);
+   auto tvb_param = make_shared<FittingParameter>("tvb", 0, 1, any_type, Fixed);
 
    parameters.push_back(offset_param);
    parameters.push_back(scatter_param);

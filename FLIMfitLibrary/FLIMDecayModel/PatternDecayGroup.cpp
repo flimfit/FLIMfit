@@ -6,7 +6,7 @@ PatternDecayGroup::PatternDecayGroup(const std::vector<Pattern> pattern, const Q
    pattern(pattern)
 {
    std::vector<ParameterFittingType> fixed_or_local = { Fixed, FittedLocally };
-   fit = std::make_shared<FittingParameter>("Pattern", 0, fixed_or_local, FittedLocally);
+   fit = std::make_shared<FittingParameter>("Pattern", 0, 1, fixed_or_local, FittedLocally);
    parameters.push_back(fit);
 }
 

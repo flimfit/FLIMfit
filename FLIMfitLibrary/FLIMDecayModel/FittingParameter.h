@@ -46,24 +46,26 @@ public:
 
    const static char* fitting_type_names[];
 
-   FittingParameter(const std::string& name, double initial_value, double initial_min, double initial_max, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type_) :
+   FittingParameter(const std::string& name, double initial_value, double initial_min, double initial_max, double scale, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type_) :
       name(name),
       initial_value(initial_value),
       initial_min(initial_min),
       initial_max(initial_max),
       initial_search(true),
+      scale(scale),
       allowed_fitting_types(allowed_fitting_types)
    {
       fitting_type = Fixed;
       setFittingType(fitting_type_);
    }
 
-   FittingParameter(const std::string& name, double initial_value, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type_) :
+   FittingParameter(const std::string& name, double initial_value, double scale, const std::vector<ParameterFittingType>& allowed_fitting_types, ParameterFittingType fitting_type_) :
       name(name),
       initial_value(initial_value),
       initial_min(0),
       initial_max(0),
       initial_search(false),
+      scale(scale),
       allowed_fitting_types(allowed_fitting_types)
    {
       fitting_type = Fixed;
@@ -110,6 +112,9 @@ public:
    bool initial_search = false;
    double initial_min;
    double initial_max;
+
+   double scale = 1;
+
    std::vector<ParameterFittingType> allowed_fitting_types;
    bool constrained = false;
 
@@ -124,7 +129,7 @@ private:
    friend class boost::serialization::access;
 };
 
-BOOST_CLASS_VERSION(FittingParameter, 2)
+BOOST_CLASS_VERSION(FittingParameter, 3)
 
 template<class Archive>
 void FittingParameter::serialize(Archive & ar, const unsigned int version)
@@ -139,5 +144,9 @@ void FittingParameter::serialize(Archive & ar, const unsigned int version)
       ar & initial_search;
       ar & initial_min;
       ar & initial_max;
+   }
+   if (version >= 3)
+   {
+      ar & scale;
    }
 }
