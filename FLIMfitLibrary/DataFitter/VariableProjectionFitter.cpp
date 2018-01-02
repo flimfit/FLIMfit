@@ -32,8 +32,8 @@ using std::max;
 #include "ConcurrencyAnalysis.h"
 
 
-VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
-    AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, reporter), weighting(weighting)
+VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, FittingOptions options, std::shared_ptr<ProgressReporter> reporter) :
+    AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, options, reporter), weighting(weighting)
 {
    for(int i=0; i<n_thread; i++)
       nnls.push_back(std::make_unique<NonNegativeLeastSquares>(l, n));
@@ -67,7 +67,7 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
    wa3  = new double[buf_dim * nmax * n_jac_group * n_thread];
    ipvt = new int[buf_dim];
 
-   if (use_numerical_derv)
+   if (options.use_numerical_derivatives)
    {
       fjac = new double[nmax * max_region_size * n];
       wa4  = new double[nmax * max_region_size]; 
@@ -148,7 +148,7 @@ int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double* x,
 /*         info = 8  gtol is too small. fvec is orthogonal to the */
 /*                   columns of the jacobian to machine precision. */
 
-void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr)
+void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int& niter, int& ierr)
 {
    fit_successful = false;
 
@@ -200,20 +200,23 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& nit
 
    setupWeighting();
 
-   bool initial_grid_search = true;
+   auto& params = model->getAllParameters();
+   std::vector<std::shared_ptr<FittingParameter>> global_parameters;
+   std::vector<double> scale;
+   int n_search = 0;
+   for (auto& p : params)
+      if (p->isFittedGlobally())
+      {
+         global_parameters.push_back(p);
+         if (p->initial_search)
+            n_search++;
+         scale.push_back(p->scale);
+      }
 
+
+   bool initial_grid_search = !options.use_numerical_derivatives;
    if (initial_grid_search)
    {
-      auto& params = model->getAllParameters();
-      std::vector<std::shared_ptr<FittingParameter>> global_parameters;
-      int n_search = 0;
-      for (auto& p : params)
-         if (p->isFittedGlobally())
-         {
-            global_parameters.push_back(p);
-            if (p->initial_search)
-               n_search++;
-         }
 
 
       int n_initial = 10;
@@ -222,14 +225,14 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& nit
       int n_points_total = std::pow(n_initial, n_search);
 
       // Initial point
-      std::vector<double> best = alf;
-      setAlf(best.data());
-      getResidualNonNegative(best.data(), &rnorm, 0, 0);
+      setAlf(initial.data());
+      getResidualNonNegative(initial.data(), &rnorm, 0, 0);
       double best_value = rnorm;
 
       for (int i = 0; i < n_points_total; i++)
       {
-         std::vector<double> trial = alf;
+         std::vector<double> trial(nl);
+         std::copy_n(initial.begin(), nl, trial.begin());
          for (int j = 0; j < global_parameters.size(); j++)
          {
             if (global_parameters[j]->initial_search)
@@ -243,44 +246,43 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& alf, int& nit
          getResidualNonNegative(trial.data(), &rnorm, 0, 0);
          if (rnorm <= best_value)
          {
-            best = trial;
+            std::copy(trial.begin(), trial.end(), initial.begin());;
             best_value = rnorm;
          }
       }
-      alf = best;
    }
 
    if (iterative_weighting)
    {
-      setAlf(alf.data());
-      getResidualNonNegative(alf.data(), fvec, 0, 0);
+      setAlf(initial.data());
+      getResidualNonNegative(initial.data(), fvec, 0, 0);
    }
 
    try
    {
-      if (use_numerical_derv)
-         info = lmdif(VariableProjectionFitterDiffCallback, (void*) this, nr-l, nl, alf.data(), fvec,
-            ftol, xtol, gtol, options.max_iterations, epsfcn, diag, 1, options.initial_step_size, -1,
+      if (options.use_numerical_derivatives)
+         info = lmdif(VariableProjectionFitterDiffCallback, (void*) this, nr-l, nl, initial.data(), fvec,
+            ftol, xtol, gtol, options.max_iterations, epsfcn, scale.data(), 2, options.initial_step_size, -1,
             &nfev, fjac, nmax*max_region_size, ipvt, qtf, wa1, wa2, wa3, wa4);
       else
       {
 
-         info = lmstx(VariableProjectionFitterCallback, (void*) this, nr-l, nl, s, n_jac_group, alf.data(), fvec, fjac, nl,
-            ftol, xtol, gtol, options.max_iterations, diag, 1, options.initial_step_size, -1, n_thread,
+         info = lmstx(VariableProjectionFitterCallback, (void*) this, nr-l, nl, s, n_jac_group, initial.data(), fvec, fjac, nl,
+            ftol, xtol, gtol, options.max_iterations, scale.data(), 2, options.initial_step_size, -1, n_thread,
             &nfev, &niter, &rnorm, ipvt, qtf, wa1, wa2, wa3, wa4);
       }
 
       // Get linear parameters
       if (info <= -8)
       {
-         SetNaN(alf.data(), nl);
+         SetNaN(initial.data(), nl);
       }
       else
       {
          if (!getting_errs)
          {
-            setAlf(alf.data());
-            getResidualNonNegative(alf.data(), fvec, -1, 0);
+            setAlf(initial.data());
+            getResidualNonNegative(initial.data(), fvec, -1, 0);
          }
       }
 
@@ -423,8 +425,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
    double r_sq = 0;
 
-   // We'll apply this for all pixels
-   //#pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
+    //#pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
    for (int j = 0; j < s; j++)
    {
       int omp_thread = 0; // omp_get_thread_num();
@@ -467,7 +468,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
          r_sq += m*m;
       }
       */
-      if (use_numerical_derv)
+      if (options.use_numerical_derivatives)
          memcpy(rnorm + j*(nr - l), B.r.data() + l, (nr - l) * sizeof(double));
 
       if (get_lin | iterative_weighting)
@@ -483,7 +484,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    // Compute the norm of the residual matrix
    *cur_chi2 = r_sq / (chi2_norm * s);
 
-   if (!use_numerical_derv)
+   if (!options.use_numerical_derivatives)
    {
       r_sq += kap[0] * kap[0];
       *rnorm = sqrt(r_sq);

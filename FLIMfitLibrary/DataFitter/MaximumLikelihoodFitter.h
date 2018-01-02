@@ -38,7 +38,7 @@ class MaximumLikelihoodFitter : public AbstractFitter
 {
 public:
 
-   MaximumLikelihoodFitter(std::shared_ptr<DecayModel> model, std::shared_ptr<ProgressReporter> reporter);
+   MaximumLikelihoodFitter(std::shared_ptr<DecayModel> model, FittingOptions options, std::shared_ptr<ProgressReporter> reporter);
    ~MaximumLikelihoodFitter();
 
    void fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr);

@@ -43,10 +43,7 @@ classdef flim_dll_interface < handle
         
         fit_round = 1;
         n_rounds = 0;
-        
-        lib_name;
-        flim_fit;
-        
+                
         progress_bar;
     end
     

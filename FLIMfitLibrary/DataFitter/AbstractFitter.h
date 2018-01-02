@@ -62,14 +62,15 @@ protected:
 struct FittingOptions
 {
    int max_iterations = 100;
-   double initial_step_size = 0.01;
+   double initial_step_size = 0.1;
+   bool use_numerical_derivatives = false;
 };
 
 class AbstractFitter
 {
 public:
 
-   AbstractFitter(std::shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
+   AbstractFitter(std::shared_ptr<DecayModel> model, int n_param_extra, int max_region_size, GlobalAlgorithm global_algorithm, int n_thread, FittingOptions fit_settings, std::shared_ptr<ProgressReporter> reporter);
 
    virtual ~AbstractFitter() {};
 
@@ -80,9 +81,6 @@ public:
    int getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
-
-   void setFittingOptions(const FittingOptions& options_) { options = options_; }
-   FittingOptions getFittingOptions() { return options; }
 
    void setAlf(const double* alf_);
    void getModel(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);

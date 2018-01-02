@@ -419,15 +419,12 @@ void FitController::init()
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == MaximumLikelihood)
-         fitters.push_back( std::make_unique<MaximumLikelihoodFitter>(model, reporter) );
+         fitters.push_back( std::make_unique<MaximumLikelihoodFitter>(model, options, reporter) );
       else
-         fitters.push_back( std::make_unique<VariableProjectionFitter>(model, max_fit_size, weighting, global_algorithm, n_omp_thread, reporter) );
+         fitters.push_back( std::make_unique<VariableProjectionFitter>(model, max_fit_size, weighting, global_algorithm, n_omp_thread, options, reporter) );
 
       region_data.push_back( data->getNewRegionData() );
    }
-
-   for (auto& f : fitters)
-      f->setFittingOptions(options);
 
    /*
    TODO: replace this

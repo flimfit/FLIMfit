@@ -41,7 +41,7 @@ class VariableProjectionFitter : public AbstractFitter
 {
 
 public:
-   VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter);
+   VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, FittingOptions options, std::shared_ptr<ProgressReporter> reporter);
    ~VariableProjectionFitter();
 
    void fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr);
@@ -81,7 +81,6 @@ private:
 
    int nr;
 
-   int use_numerical_derv = false;
    int using_gamma_weighting;
 
    bool fit_successful = false;

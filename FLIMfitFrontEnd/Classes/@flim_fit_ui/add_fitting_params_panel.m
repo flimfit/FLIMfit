@@ -48,8 +48,9 @@ function handles = add_fitting_params_panel(obj,handles,parent)
 
     add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
     add_fitting_param_control('adv','global_scope','popupmenu','Global Mode', {'Pixel-wise','Image-wise','Global'});
-    add_fitting_param_control('adv','fitting_algorithm','popupmenu','Algorithm', {'Variable Projection' 'Maximum Likelihood'});
-    add_fitting_param_control('adv','weighting_mode','popupmenu','Weighting Mode', {'Average Data','Pixelwise Data','Model'});
+    add_fitting_param_control('adv','fitting_algorithm','popupmenu','Use Numerical Derivatives', {'Variable Projection' 'Maximum Likelihood'});
+    add_fitting_param_control('adv','use_numerical_derivatives','popupmenu','Algorithm', {'No', 'Yes'});
+    add_fitting_param_control('adv','weighting_mode','popupmenu','Weighting Mode', {'Average Data','Pixelwise Data'});
     add_fitting_param_control('adv','use_autosampling','popupmenu','Use Autosampling', {'No','Yes'});
     add_fitting_param_control('adv','image_irf_mode','popupmenu','IRF',{'Single Point', 'Use SV IRF', 'Use IRF Shift Map'});
 

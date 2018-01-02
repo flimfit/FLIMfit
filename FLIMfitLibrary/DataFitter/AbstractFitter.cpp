@@ -44,10 +44,11 @@ using std::pair;
 
 
 
-AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_extra, int max_region_size, GlobalAlgorithm global_algorithm, int n_thread, std::shared_ptr<ProgressReporter> reporter) :
+AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_extra, int max_region_size, GlobalAlgorithm global_algorithm, int n_thread, FittingOptions options, std::shared_ptr<ProgressReporter> reporter) :
    max_region_size(max_region_size), 
    global_algorithm(global_algorithm), 
    n_thread(n_thread), 
+   options(options),
    reporter(reporter),
    lifetime_estimator(model_->getTransformedDataParameters()),
    inc(96),
@@ -191,17 +192,18 @@ int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int 
    chi2_norm = n - ((float)(nl))/s - l;
 
    // Assign initial guesses to nonlinear variables  
+   std::vector<double> initial_alf(nl + l);
    double tau_mean = lifetime_estimator.EstimateMeanLifetime(avg_y, region_data.data_type);
-   model->getInitialVariables(alf, tau_mean);
+   model->getInitialVariables(initial_alf, tau_mean);
 
    // Fit!
-   fitFcn(nl, alf, niter, ierr_);
+   fitFcn(nl, initial_alf, niter, ierr_);
 
    chi2_final = *cur_chi2;
 
 
    for(int i=0; i<nl; i++)
-      alf_results[i] = (float) alf[i];
+      alf_results[i] = (float) initial_alf[i];
 
 
    if (global_algorithm == GlobalBinning)

@@ -57,6 +57,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
             obj.bind_control(handles,'global_scope','popupmenu');
             obj.bind_control(handles,'image_irf_mode','popupmenu');
             obj.bind_control(handles,'fitting_algorithm','popupmenu');
+            obj.bind_control(handles,'use_numerical_derivatives','popupmenu');
             
             obj.bound_all_controls = true;
             obj.set_polarisation_mode(false);

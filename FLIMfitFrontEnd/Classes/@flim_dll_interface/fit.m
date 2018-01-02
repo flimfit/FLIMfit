@@ -254,6 +254,7 @@
     
     fitting_options.max_iterations = prof.Fitting.Maximum_Iterations;
     fitting_options.initial_step_size = prof.Fitting.Initial_Step_Size;
+    fitting_options.use_numerical_derivatives = p.use_numerical_derivatives;
      
     obj.dll_id = ff_Controller();
     ff_Controller(obj.dll_id,'ClearFit');

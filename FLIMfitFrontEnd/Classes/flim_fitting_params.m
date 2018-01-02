@@ -45,6 +45,8 @@ classdef flim_fitting_params < handle & h5_serializer
         
         weighting_mode = 0;
         
+        use_numerical_derivatives = false;
+        
         merge_regions = false;
         
         n_thread = 8;

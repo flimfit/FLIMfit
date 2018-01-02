@@ -74,9 +74,9 @@ void setFittingOptions(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs
 
    FittingOptions options;
 
-   options.max_iterations = (int)getValueFromStruct(prhs[2], "maX_iterations", options.max_iterations);
-   options.initial_step_size = getValueFromStruct(prhs[2], "maX_iterations", options.initial_step_size);
-
+   options.max_iterations = (int)getValueFromStruct(prhs[2], "max_iterations", options.max_iterations);
+   options.initial_step_size = getValueFromStruct(prhs[2], "initial_step_size", options.initial_step_size);
+   options.use_numerical_derivatives = getValueFromStruct(prhs[2], "use_numerical_derivatives", false);
    c->setFittingOptions(options);
 }
 
