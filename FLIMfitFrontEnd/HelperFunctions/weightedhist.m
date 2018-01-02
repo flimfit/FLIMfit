@@ -29,7 +29,7 @@ function [no,xo] = weightedhist(varargin)
 %   $Revision: 5.20.4.19 $  $Date: 2010/08/23 23:07:38 $
 
 % Parse possible Axes input
-error(nargchk(1,inf,nargin,'struct'));
+narginchk(1,inf)
 [cax,args,nargs] = axescheck(varargin{:});
 
 y = args{1};
