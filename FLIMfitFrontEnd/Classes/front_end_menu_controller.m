@@ -738,14 +738,14 @@ classdef front_end_menu_controller < handle
         end
         
         function menu_file_import_acceptor_callback(obj)
-            [file path] = uigetfile({'*.tiff'},'Select the exported acceptor image file',obj.default_path);
+            [file, path] = uigetfile({'*.tiff;*.tif'},'Select the exported acceptor image file',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.load_acceptor_images([path file]);
             end
         end
         
         function menu_file_export_acceptor_callback(obj)
-            [file path] = uiputfile({'*.tiff'},'Select exported acceptor image file name',obj.default_path);
+            [file, path] = uiputfile({'*.tif'},'Select exported acceptor image file name',obj.default_path);
             if file ~= 0
                 obj.data_series_controller.data_series.export_acceptor_images([path file]);
             end
@@ -763,7 +763,7 @@ classdef front_end_menu_controller < handle
         
          function menu_OMERO_save_data_settings_callback(obj)
           
-            [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.xml');
+            [filename, ~, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.xml');
             if filename ~= 0
                 obj.data_series_controller.data_series.save_data_settings(filename, dataset);         
             end
@@ -1314,7 +1314,7 @@ classdef front_end_menu_controller < handle
         
         function menu_file_export_plots_callback(obj, ~, ~)
             [filename, pathname, ~] = uiputfile( ...
-                        {'*.tiff', 'TIFF image (*.tiff)';...
+                        {'*.tif', 'TIFF image (*.tif)';...
                          '*.pdf','PDF document (*.pdf)';...
                          '*.png','PNG image (*.png)';...
                          '*.eps','EPS image (*.eps)';...
