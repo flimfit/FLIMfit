@@ -215,13 +215,24 @@ classdef flim_fit_controller < flim_data_series_observer
                 param_idx = strcmp(obj.fit_result.params,param);
                 param = find(param_idx);
             end
-                                    
+                                                
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
                     [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
             else            
                 [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
-            end;
-                                        
+            end
+            
+            param_name = obj.fit_result.params{param};
+            if contains(param_name,' I') || strcmp(param_name,'I') 
+                norm = obj.data_series_controller.data_series.intensity_normalisation;
+                if ~isempty(norm)
+                    norm = norm(:,:,im);
+                    norm = norm / max(norm(:));
+                    param_data = param_data ./ norm;
+                end
+    
+            end
+            
         end
 
         
@@ -239,10 +250,17 @@ classdef flim_fit_controller < flim_data_series_observer
             param = obj.get_intensity_idx(param);
               
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
-                    [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
-            else            
+                [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
+            else
                 [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
-            end;
+
+                norm = obj.data_series_controller.data_series.intensity_normalisation;
+                if ~isempty(norm)
+                    norm = norm(:,:,im);
+                    norm = norm / max(norm(:));
+                    param_data = param_data ./ norm;
+                end
+            end
                         
         end
         

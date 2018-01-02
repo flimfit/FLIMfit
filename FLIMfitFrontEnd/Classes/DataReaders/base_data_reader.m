@@ -61,6 +61,10 @@ classdef (Abstract) base_data_reader < handle
             
         end
         
+        function norm = getIntensityNormalisation(obj, zct)
+            norm = [];
+        end
+        
         
     end
         

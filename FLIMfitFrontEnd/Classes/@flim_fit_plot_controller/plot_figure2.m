@@ -1,4 +1,4 @@
-function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
+function [fig,im_data,lims] = plot_figure2(obj,dataset,im,merge,options,indexing)
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -37,9 +37,9 @@ function [fig,im_data] = plot_figure2(obj,dataset,im,merge,options,indexing)
         
     param = r.params{im};
     
-    if ~isempty(strfind(param,' I')) || strcmp(param,'I') 
+    if contains(param,' I') || strcmp(param,'I') 
         cscale = @gray;
-    elseif invert && (~isempty(strfind(param,'tau')) || ~isempty(strfind(param,'theta')))
+    elseif invert && (contains(param,'tau') || contains(param,'theta'))
         cscale = @inv_jet;
     else
         cscale = @jet;

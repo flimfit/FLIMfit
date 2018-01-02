@@ -116,6 +116,13 @@ function load_selected_files(obj,selected)
             disp(['Warning: unable to load ' filename, '. Data size/type mismatch!']);
         end
         
+        norm = reader.getIntensityNormalisation(obj.ZCT(zct_idx,:));
+        if ~isempty(norm)
+            obj.intensity_normalisation(:,:,j) = norm;
+        else
+            obj.intensity_normalisation(:,:,j) = ones([obj.height obj.width]);
+        end
+
         if using_popup
             waitbar(j./num_sel,wait_handle)
         end

@@ -121,6 +121,7 @@
         plateId = -1;
         
         acceptor;
+        intensity_normalisation;
         root_path;
         
         t;   
@@ -173,6 +174,7 @@
                 
         
         intensity = [];
+        
         mask = [];
         thresh_mask = [];
                 
