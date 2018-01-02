@@ -80,8 +80,8 @@ function update_display(obj)
             aim(aim > 1) = 1;
             aim = aim * m;
 
-            cim = [cim; aim];
-            cmask = [mask_filtered; mask_filtered];
+            cim = [cim aim];
+            cmask = [mask_filtered mask_filtered];
             
         else
             cmask = mask_filtered;

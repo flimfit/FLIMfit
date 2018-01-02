@@ -37,6 +37,10 @@ function on_callback(obj,src,evtData)
     sz = size(obj.mask);
     sz = sz(1:2);
     
+    if ~isempty(obj.data_series.acceptor)
+        sz(2) = sz(2) * 2;
+    end
+    
     toggle_type = toggle_type{toggles == src};
     toggle_fcn = toggle_fcn{toggles == src};
     
@@ -73,7 +77,7 @@ function on_callback(obj,src,evtData)
         
 
         if ~isempty(d.acceptor)
-            roi_mask = roi_mask(1:d.height,1:d.width);
+            roi_mask = roi_mask(1:d.height,1:d.width) + roi_mask(1:d.height,(1:d.width) + d.width);
         end
 
         if get(obj.replicate_mask_checkbox,'Value')
