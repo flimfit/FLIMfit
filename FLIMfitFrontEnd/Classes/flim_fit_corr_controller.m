@@ -104,24 +104,31 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 
                 param_data_x = [];
                 param_data_y = [];
+                param_weight = [];
+                
                 md = {};
                 for i=1:length(sel)
                     
                     if display == 1 % Pixels
                         new_x = f.get_image(sel(i),param(1),indexing);
                         new_y = f.get_image(sel(i),param(2),indexing);
+                        new_weight_x = f.get_intensity(sel(i),param(1),indexing);
+                        new_weight_y = f.get_intensity(sel(i),param(2),indexing);
 
                         filt = isfinite( new_x ) & isfinite( new_y );
 
                         new_x = new_x(filt);
                         new_y = new_y(filt);
+                        new_weight = sqrt(new_weight_x(filt) .* new_weight_y(filt));
                     else % Regions
                         new_x = r.region_stats{sel(i)}.mean(param(1),:)';
                         new_y = r.region_stats{sel(i)}.mean(param(2),:)';
+                        new_weight = ones(size(new_x));
                     end
                     
                     param_data_x = [param_data_x; new_x];
                     param_data_y = [param_data_y; new_y];
+                    param_weight = [param_weight; new_weight];
                     
                     if display == 2 &&  ~strcmp(obj.ind_param,'-')  
                         md = [md r.metadata.(obj.ind_param)(sel(i))];
@@ -136,6 +143,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 
                 param_data_x = param_data_x( sel );
                 param_data_y = param_data_y( sel );
+                param_weight = param_weight( sel )
                 
                 n_bin = 64;
                 
@@ -143,7 +151,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                     x_edge = linspace(x_lim(1),x_lim(2),n_bin);
                     y_edge = linspace(y_lim(1),y_lim(2),n_bin);
 
-                    c = histcn([param_data_y param_data_x],y_edge,x_edge);
+                    c = histcn([param_data_y param_data_x],y_edge,x_edge,'AccumData',param_weight);
                     
                     if scale == 2 % display logarithmic
                         c = log(c);
@@ -165,6 +173,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                     if ( ax == obj.plot_handle )
                         set(im,'uicontextmenu',obj.contextmenu);
                     end
+                    
                 else % Regions
                     
                     
