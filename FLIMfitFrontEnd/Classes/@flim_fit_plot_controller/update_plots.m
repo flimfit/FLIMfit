@@ -47,7 +47,7 @@ function update_plots(obj,file_root)
 
     if ~save && obj.dataset_selected == 0
         return
-    end;
+    end
     
     n = ceil(sqrt(f.n_plots));   
     m = ceil(f.n_plots/n);
@@ -86,17 +86,27 @@ function update_plots(obj,file_root)
 
         subplot_idx = 1;
         
+        if save
+            if any(strcmp({'tif','tiff'},ext))
+                description_field_name = 'Description';
+            else
+                description_field_name = 'Comment';
+            end
+        end
+        
         if f.n_plots > 0
 
             for plot_idx = 1:length(f.plot_names)
             
                 if f.display_normal.(f.plot_names{plot_idx})
                     
-                    [fig,im_data] = obj.plot_figure2(cur_im, plot_idx, false, options, indexing);
+                    [fig, im_data, lims] = obj.plot_figure2(cur_im, plot_idx, false, options, indexing);
                     figs(:,:,:,subplot_idx) = fig;
                     
+                    description = ['Limits: ' num2str(lims(1)) ' - ' num2str(lims(2))];
+                                        
                     if save
-                        imwrite(uint8(fig*255),[name_root ' ' r.params{plot_idx} '.' ext]);
+                        imwrite(uint8(fig*255),[name_root ' ' r.params{plot_idx} '.' ext],description_field_name,description);
                         SaveFPTiff(im_data,[name_root ' ' r.params{plot_idx} ' raw.tif'])
                     end
                     subplot_idx = subplot_idx + 1;
@@ -105,12 +115,14 @@ function update_plots(obj,file_root)
                 % Merge
                 if f.display_merged.(f.plot_names{plot_idx})
                     
-                    fig = obj.plot_figure2(cur_im, plot_idx, true, options, indexing);
+                    [fig, ~, lims] = obj.plot_figure2(cur_im, plot_idx, true, options, indexing);
                     figs(:,:,:,subplot_idx) = fig;
+                    
+                    description = ['Limits: ' num2str(lims(1)) ' - ' num2str(lims(2))];
                     
                     subplot_idx = subplot_idx + 1;
                     if save
-                        imwrite(uint8(fig*255),[name_root ' ' r.params{plot_idx} ' merge.' ext]);
+                        imwrite(uint8(fig*255),[name_root ' ' r.params{plot_idx} ' merge.' ext],description_field_name,description);
                     end
                 end
                 
