@@ -152,7 +152,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         if ~isempty(obj.intensity_normalisation)
             norm = obj.intensity_normalisation(:,:,obj.active);
-            norm = norm / max(norm);
+            norm = norm / max(norm(:));
             obj.intensity = obj.intensity ./ norm;
         end
 

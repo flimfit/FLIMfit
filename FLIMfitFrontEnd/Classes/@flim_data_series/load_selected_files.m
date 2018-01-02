@@ -91,6 +91,8 @@ function load_selected_files(obj,selected)
                 
                 if ~isempty(norm)
                     obj.intensity_normalisation(:,:,j) = norm;
+                else
+                    obj.intensity_normalisation(:,:,j) = ones([obj.height obj.width]);
                 end
                     
                 if ~success
