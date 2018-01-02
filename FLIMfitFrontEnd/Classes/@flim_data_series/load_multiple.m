@@ -1,4 +1,4 @@
-function load_multiple(obj, polarisation_resolved, data_setting_file)   
+function load_multiple(obj, polarisation_resolved, data_setting_file, channels)   
     %> Load a series of FLIM data files
     
     % Copyright (C) 2013 Imperial College London.

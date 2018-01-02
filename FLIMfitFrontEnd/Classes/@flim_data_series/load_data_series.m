@@ -1,4 +1,4 @@
-function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_file,selected)   
+function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_file,selected,channels)   
     %> Load a series of FLIM data files
     
     % Copyright (C) 2013 Imperial College London.
@@ -44,11 +44,12 @@ function load_data_series(obj,root_path,mode,polarisation_resolved,data_setting_
     obj.root_path = root_path;
     obj.polarisation_resolved = polarisation_resolved;
     
-    if strcmp(mode,'bio-formats')
+    if ~strcmp(mode,'tif-stack')
 
         files = [dir([root_path '*.sdt']); 
                  dir([root_path '*.txt']); 
                  dir([root_path '*.tif']); 
+                 dir([root_path '*.csv']); 
                  dir([root_path '*.tiff']); 
                  dir([root_path '*.msr']); 
                  dir([root_path '*.asc']); 
