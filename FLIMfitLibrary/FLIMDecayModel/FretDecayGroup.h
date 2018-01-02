@@ -3,6 +3,47 @@
 #include "MultiExponentialDecayGroup.h"
 #include <functional>
 
+class KappaFactor
+{
+public:
+
+   KappaFactor(int n) : 
+      n(n), f(n), p(n)
+   {
+      if (n == 1)
+      {
+         f[0] = 1;
+         p[0] = 1;
+      }
+      else
+      {
+         double df = 4.0 / n;
+         double p0 = log(2.0 + sqrt(3.0));
+
+         double norm = 0;
+         for (int i = 0; i < n; i++)
+         {
+            f[i] = (i + 1) * df;
+            p[i] = p0;
+            if (f[i] >= 1.0)
+               p[i] += log(sqrt(f[i]) + sqrt(f[i] - 1));
+            p[i] /= (2.0 * sqrt(3.0 * f[i]));
+            norm += p[i];
+         }
+
+         for (int i = 0; i < n; i++)
+            p[i] /= norm;
+      }
+   }
+
+   int size() { return n; }
+
+   std::vector<double> f;
+   std::vector<double> p;
+   int n;
+};
+
+
 class FretDecayGroup : public MultiExponentialDecayGroupPrivate
 {
    Q_OBJECT
@@ -55,7 +96,7 @@ protected:
    int addDirectAcceptorDerivatives(double* b, int bdim, double_iterator& kap_derv);
 
    void addAcceptorContribution(int i, double factor, double* a, int adim, double& kap, int bin_shift = 0);
-   void addAcceptorDerivativeContribution(int i, int j, double fact, double* b, int bdim, double& kap_derv);
+   void addAcceptorDerivativeContribution(int i, int j, int k, double fact, double* b, int bdim, double& kap_derv);
 
    std::vector<std::shared_ptr<FittingParameter>> tauT_parameters;
    std::shared_ptr<FittingParameter> A_parameter;
@@ -69,17 +110,20 @@ protected:
    bool include_donor_only = true;
    bool include_acceptor = true;
    
-   std::vector<std::vector<double>> a_star;
-   std::vector<double> tau_transfer;
-   std::vector<std::vector<double>> tau_fret;
+   std::vector<std::vector<std::vector<double>>> a_star;
+   std::vector<std::vector<double>> tau_transfer;
+   std::vector<std::vector<std::vector<double>>> tau_fret;
    double A;
    double Q;
    double Qsigma;
    double tauA;
 
-   std::vector<std::vector<ExponentialPrecomputationBuffer>> fret_buffer;
-   std::vector<std::vector<ExponentialPrecomputationBuffer>> acceptor_fret_buffer;
+   std::vector<std::vector<std::vector<ExponentialPrecomputationBuffer>>> fret_buffer;
+   std::vector<std::vector<std::vector<ExponentialPrecomputationBuffer>>> acceptor_fret_buffer;
    std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
+
+   int n_kappa = 100;
+   KappaFactor kappa_factor;
 
 protected:
    int getNumPotentialChannels() { return 2; }
