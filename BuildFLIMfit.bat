@@ -27,6 +27,7 @@ if %MSVC_VER%==15 (set GENERATOR="Visual Studio %MSVC_VER% Win64"
 echo Generating CMake Project in: %PROJECT_DIR%
 echo Using Generator: %GENERATOR%
 cmake -G %GENERATOR% ..\..\ -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%"
+if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 
 echo Building 64bit Project in Release mode
 cmake --build . --config Release
