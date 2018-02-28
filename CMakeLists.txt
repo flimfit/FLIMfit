@@ -16,5 +16,4 @@ project(FLIMfit)
 
 set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)
 
-add_subdirectory(FLIMreader)
 add_subdirectory(FLIMfitLibrary)
