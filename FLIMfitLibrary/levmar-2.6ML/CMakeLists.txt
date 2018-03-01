@@ -4,7 +4,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(LEVMAR)
 
-FIND_PACKAGE(LAPACK)
+#FIND_PACKAGE(LAPACK)
 
 SET(HAVE_LAPACK ${LAPACK_FOUND} CACHE BOOL "Do we have LAPACK/BLAS?")
 # the directory where the lapack/blas/f2c libraries reside
