@@ -5,3 +5,6 @@
 [submodule "FLIMfitFrontEnd/matlab-ui-common"]
 	path = FLIMfitFrontEnd/matlab-ui-common
 	url = https://github.com/flimfit/matlab-ui-common.git
+[submodule "FLIMfitLibrary/FLIMReader"]
+	path = FLIMfitLibrary/FLIMReader
+	url = https://github.com/flimfit/FlimReader.git
