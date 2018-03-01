@@ -1098,15 +1098,15 @@ void FLIMGlobalFitController::Init()
    for(int i=0; i<n_fitters; i++)
    {
       if (algorithm == ALG_ML)
-         projectors.push_back( new MaximumLikelihoodFitter(this, l, nl, n, ndim, p, t, &(status->terminate)) );
+         projectors.push_back( std::make_shared<MaximumLikelihoodFitter>(this, l, nl, n, ndim, p, t, &(status->terminate)) );
       else
-         projectors.push_back( new VariableProjector(this, s, l, nl, n, ndim, p, t, variable_phi, weighting, n_omp_thread, &(status->terminate)) );
+         projectors.push_back( std::make_shared<VariableProjector>(this, s, l, nl, n, ndim, p, t, variable_phi, weighting, n_omp_thread, &(status->terminate)) );
    }
 
    for(int i=0; i<n_fitters; i++)
    {
-      if (projectors[i].err != 0)
-         error = projectors[i].err;
+      if (projectors[i]->err != 0)
+         error = projectors[i]->err;
    }
 
 
@@ -1376,12 +1376,8 @@ void FLIMGlobalFitController::CleanupTempVars()
    
    ClearVariable(y);
 
-   boost::ptr_vector<AbstractFitter>::iterator iter = projectors.begin();
-   while (iter != projectors.end())
-   {
-        iter->ReleaseResidualMemory();
-        iter++;
-   }
+   for(auto p : projectors)
+      p->ReleaseResidualMemory();
 
    //_ASSERTE(_CrtCheckMemory());
 }

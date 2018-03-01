@@ -45,7 +45,8 @@
 #include "FLIMGlobalAnalysis.h"
 #include "tinythread.h"
 
-#include <boost/ptr_container/ptr_vector.hpp>
+#include <vector>
+#include <memory>
 #include <boost/interprocess/mapped_region.hpp>
 
 #include "AbstractFitter.h"
@@ -314,7 +315,7 @@ private:
 
    std::vector<std::string> param_names;
 
-   boost::ptr_vector<AbstractFitter> projectors;
+   std::vector<std::shared_ptr<AbstractFitter>> projectors;
 
    int cur_region;
    int next_pixel;

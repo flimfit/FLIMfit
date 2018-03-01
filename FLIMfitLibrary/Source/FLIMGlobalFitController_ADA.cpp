@@ -28,7 +28,7 @@
 //=========================================================================
 
 #include "ModelADA.h"
-#include "FlimGlobalFitController.h"
+#include "FLIMGlobalFitController.h"
 #include "IRFConvolution.h"
 
 
