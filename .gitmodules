@@ -1,6 +1,6 @@
 [submodule "FLIMfitLibrary/FLIMreader"]
 	path = FLIMfitLibrary/FLIMreader
-	url = https://github.com/seanwarren/FLIMreader.git
+	url = https://github.com/flimfit/FlimReader.git
    branch=flim-realignment
 [submodule "FLIMfitFrontEnd/matlab-ui-common"]
 	path = FLIMfitFrontEnd/matlab-ui-common
