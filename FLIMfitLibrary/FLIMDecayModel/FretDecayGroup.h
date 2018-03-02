@@ -18,8 +18,8 @@ public:
       else
       {
          double df = 4.0 / n;
-         double p0 = log(2.0 + sqrt(3.0));
-
+         double p0 = log(2.0 + sqrt(3.0))/sqrt(3.0);
+/*
          double norm = 0;
          for (int i = 0; i < n; i++)
          {
@@ -30,9 +30,18 @@ public:
             p[i] /= (2.0 * sqrt(3.0 * f[i]));
             norm += p[i];
          }
-
+*/
          for (int i = 0; i < n; i++)
-            p[i] /= norm;
+         {
+            double f0 = i * df;
+            double f1 = f0 + df;
+            f[i] = f0;
+            
+            p[i] = p0 * (sqrt(f1) - sqrt(f0));
+            if (f[i] >= 1.0)
+               p[i] -= ((sqrt(f1)*log(sqrt(f1)+sqrt(f1-1))-sqrt(f1-1)) - 
+                       (sqrt(f0)*log(sqrt(f0)+sqrt(f0-1))-sqrt(f0-1))) / sqrt(3);            
+         }
       }
    }
 
