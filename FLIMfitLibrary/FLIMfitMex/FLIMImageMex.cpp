@@ -122,7 +122,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          else if (isArgument(nrhs, prhs, "mapped_file"))
          {
             std::string mapped_file = getStringFromMatlab(getNamedArgument(nrhs, prhs, "mapped_file"));
-            int map_offset = mxGetScalar(getNamedArgument(nrhs, prhs, "data_offset"));
+            size_t map_offset = mxGetScalar(getNamedArgument(nrhs, prhs, "data_offset"));
 
             std::string data_class_str = getStringFromMatlab(getNamedArgument(nrhs, prhs, "data_class"));
             FLIMImage::DataClass data_class;

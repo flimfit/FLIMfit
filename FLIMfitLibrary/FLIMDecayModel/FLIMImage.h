@@ -29,7 +29,7 @@ public:
    template<typename T>
    FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, T* data_, mask_type* mask_ = nullptr);
    FLIMImage(std::shared_ptr<AcquisitionParameters> acq, DataMode data_mode, DataClass data_class, void* data_ = nullptr);
-   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, int map_offset);
+   FLIMImage(std::shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, size_t map_offset);
 
    // for loading ffdata
    FLIMImage(std::shared_ptr<AcquisitionParameters> acq, std::type_index type, const std::string& name, DataMode data_mode = MappedFile, const std::string& root = "");
