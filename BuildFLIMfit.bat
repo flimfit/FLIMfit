@@ -36,7 +36,7 @@ SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64_FLIMreader
 rmdir %PROJECT_DIR% /s /q
 mkdir %PROJECT_DIR%
 echo Generating CMake Project in: %PROJECT_DIR%, using %GENERATOR%
-cmake -G %GENERATOR% -HFLIMfitLibrary\FLIMreader -B%PROJECT_DIR% -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%" -DFlimReaderMEX_OUT_DIR="%CD%\FLIMfitLibrary\Libraries\"
+cmake -G %GENERATOR% -HFLIMfitLibrary\FLIMreader -B%PROJECT_DIR% -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%" -DFlimReaderMEX_OUT_DIR="%CD%\FLIMfitLibrary\Libraries"
 if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 echo Building 64bit Project in Release mode
 cmake --build %PROJECT_DIR% --config Release
