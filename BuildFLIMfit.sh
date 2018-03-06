@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2017b; echo "Setting MATLAB_VER=R2017b"; fi
+if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
 
 # Build FlimReader Mex file
 #--------------------------------------------
