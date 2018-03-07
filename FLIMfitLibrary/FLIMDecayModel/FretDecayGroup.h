@@ -117,9 +117,9 @@ protected:
    double Qsigma;
    double tauA;
 
-   std::vector<std::vector<std::vector<ExponentialPrecomputationBuffer>>> fret_buffer;
-   std::vector<std::vector<std::vector<ExponentialPrecomputationBuffer>>> acceptor_fret_buffer;
-   std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
+   std::vector<std::vector<std::vector<std::shared_ptr<AbstractConvolver>>>> fret_buffer;
+   std::vector<std::vector<std::vector<std::shared_ptr<AbstractConvolver>>>> acceptor_fret_buffer;
+   std::shared_ptr<AbstractConvolver> acceptor_buffer;
 
    int n_kappa = 100;
    KappaFactor kappa_factor;

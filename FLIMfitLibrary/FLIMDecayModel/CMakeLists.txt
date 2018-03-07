@@ -43,14 +43,15 @@ set(SOURCE
    AnisotropyDecayGroup.cpp
    BackgroundLightDecayGroup.cpp
    PatternDecayGroup.cpp
-   ExponentialPrecomputationBuffer.cpp
    AcquisitionParameters.cpp
    DecayModel.cpp
    DataTransformer.cpp
    FLIMImage.cpp
    PhasorCalculator.cpp
    ParameterConstraints.cpp
-
+   AbstractConvolver.cpp
+   MeasuredIrfConvolver.cpp
+   
 )
 
 set(HEADERS   
@@ -62,7 +63,6 @@ set(HEADERS
    PatternDecayGroup.h
    IRFConvolution.h
    InstrumentResponseFunction.h
-   ExponentialPrecomputationBuffer.h
    AcquisitionParameters.h
    DecayModel.h
    FittingParameter.h
@@ -72,6 +72,8 @@ set(HEADERS
    cvmat_serialization.h
    PhasorCalculator.h
    ParameterConstraints.h
+   AbstractConvolver.h
+   MeasuredIrfConvolver.h
 )
 
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)

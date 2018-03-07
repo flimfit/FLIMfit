@@ -1,4 +1,4 @@
-//=========================================================================
+ //=========================================================================
 //
 // Copyright (C) 2013 Imperial College London.
 // All rights reserved.
@@ -28,7 +28,7 @@
 //=========================================================================
 
 
-#include "ExponentialPrecomputationBuffer.h"
+#include "MeasuredIrfConvolver.h"
 #include <iostream>
 #include <cmath>
 
@@ -36,28 +36,22 @@
 #include <x86intrin.h>
 #endif
 
-ExponentialPrecomputationBuffer::ExponentialPrecomputationBuffer(std::shared_ptr<TransformedDataParameters> dp) :
-dp(dp),
-irf(dp->irf),
-n_irf(irf->n_irf),
-n_chan(dp->n_chan),
-n_t(dp->n_t)
+MeasuredIrfConvolver::MeasuredIrfConvolver(std::shared_ptr<TransformedDataParameters> dp) :
+   AbstractConvolver(dp), n_irf(irf->n_irf)
 {
    irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
    cum_irf_exp_factor.resize(n_chan, aligned_vector<double>(n_irf));
    irf_exp_t_factor.resize(n_chan, aligned_vector<double>(n_irf));
    cum_irf_exp_t_factor.resize(n_chan, aligned_vector<double>(n_irf));
    irf_exp_factor.resize(n_chan, aligned_vector<double>(n_t));
-   model_decay.resize(n_chan, aligned_vector<double>(n_t));
-   shifted_model_decay_high.resize(n_chan, aligned_vector<double>(n_t));
-   shifted_model_decay_low.resize(n_chan, aligned_vector<double>(n_t));
+   model_decay.resize(n_t);
 
    irf_working.resize(n_irf * n_chan);
 
    calculateIRFMax();
 };
 
-void ExponentialPrecomputationBuffer::compute(double rate_, int irf_idx, double t0_shift, const std::vector<double>& channel_factors, bool compute_shifted_models)
+void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, const std::vector<double>& channel_factors)
 {
    // Don't compute if rate is the same
    if (rate_ == rate)
@@ -72,10 +66,10 @@ void ExponentialPrecomputationBuffer::compute(double rate_, int irf_idx, double 
    rate = rate_;
 
    computeIRFFactors(rate, irf_idx, t0_shift);
-   computeModelFactors(rate, channel_factors, compute_shifted_models);
+   computeModelFactors(rate, channel_factors);
 }
 
-void ExponentialPrecomputationBuffer::computeIRFFactors(double rate, int irf_idx, double t0_shift)
+void MeasuredIrfConvolver::computeIRFFactors(double rate, int irf_idx, double t0_shift)
 {
    double* lirf = irf->getIRF(irf_idx, t0_shift, irf_working.data()); // TODO: add image irf shifting to GetIRF
    double t0 = irf->getT0();
@@ -150,8 +144,10 @@ void ExponentialPrecomputationBuffer::computeIRFFactors(double rate, int irf_idx
 
 }
 
-void ExponentialPrecomputationBuffer::computeModelFactors(double rate, const std::vector<double>& channel_factors, bool compute_shifted_models)
+void MeasuredIrfConvolver::computeModelFactors(double rate, const std::vector<double>& channel_factors_)
 {
+   channel_factors = channel_factors_;
+
    double fact = 1;
 
    if (irf->type == Reference)
@@ -174,42 +170,24 @@ void ExponentialPrecomputationBuffer::computeModelFactors(double rate, const std
    if (dp->equally_spaced_gates)
    {
       double e0 = exp(-t[0] * rate);
-      for (int k = 0; k < n_chan; k++)
+      double ej = e0;
+      for (int j = 0; j < n_t; j++)
       {
-         double ej = e0 * channel_factors[k];
-         for (int j = 0; j < n_t; j++)
-         {
-            model_decay[k][j] = fact * ej * t_int[j];
-            ej *= de;
-         }
+         model_decay[j] = fact * ej * t_int[j];
+         ej *= de;
       }
    }
    else
    {
-      for (int k = 0; k < n_chan; k++)
-         for (int j = 0; j < n_t; j++)
-            model_decay[k][j] = fact * exp(-t[j] * rate) * channel_factors[k] * t_int[j];
-   }
-
-   // Calculated shifted model functions
-   if (compute_shifted_models)
-   {
-      double inv_de = 1 / de;
-      for (int k = 0; k < n_chan; k++)
-      {
-         for (int j = 0; j < n_irf; j++)
-         {
-            shifted_model_decay_high[k][j] = model_decay[k][j] * de;
-            shifted_model_decay_high[k][j] = model_decay[k][j] * inv_de;
-         }
-      }
+      for (int j = 0; j < n_t; j++)
+         model_decay[j] = fact * exp(-t[j] * rate) * t_int[j];
    }
 }
 
 
 
 
-void ExponentialPrecomputationBuffer::convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const
+void MeasuredIrfConvolver::convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const
 {
    const auto& exp_irf_cum_buf = cum_irf_exp_factor[k];
    const auto& exp_irf_buf = irf_exp_factor[k];
@@ -228,7 +206,7 @@ void ExponentialPrecomputationBuffer::convolve(int k, int i, double pulse_fact, 
 
 
 
-void ExponentialPrecomputationBuffer::convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const
+void MeasuredIrfConvolver::convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const
 {
    const auto& exp_irf_tirf_cum_buf = cum_irf_exp_t_factor[k];
    const auto& exp_irf_tirf_buf = irf_exp_t_factor[k];
@@ -257,7 +235,7 @@ void ExponentialPrecomputationBuffer::convolveDerivative(double t, int k, int i,
 
 
 
-void ExponentialPrecomputationBuffer::addDecay(double fact, double ref_lifetime, double a[], int bin_shift) const
+void MeasuredIrfConvolver::addDecay(double fact, double ref_lifetime, double a[], int bin_shift) const
 {
    double c;
 
@@ -282,13 +260,12 @@ void ExponentialPrecomputationBuffer::addDecay(double fact, double ref_lifetime,
          mi = mi < 0 ? 0 : mi;
          mi = mi >= n_t ? n_t - 1 : mi;
 
-         a[idx] += model_decay[k][mi] * c * fact;
-         idx++;
+         a[i+k*n_t] += model_decay[mi] * c * fact * channel_factors[k];
       }
    }
 }
 
-void ExponentialPrecomputationBuffer::addDerivative(double fact, double ref_lifetime, double b[]) const
+void MeasuredIrfConvolver::addDerivative(double fact, double ref_lifetime, double b[]) const
 {
    double c;
 
@@ -301,20 +278,18 @@ void ExponentialPrecomputationBuffer::addDerivative(double fact, double ref_life
 
    auto& t = dp->getTimepoints();
    
-   int idx = 0;
    for (int k = 0; k<n_chan; k++)
    {
       for (int i = 0; i<n_t; i++)
       {
          convolveDerivative(t[i], k, i, pulse_fact, pulse_fact_der, ref_fact_a, ref_fact_b, c);
-         b[idx] += model_decay[k][i] * c * fact;
-         idx++;
+         b[i + k*n_t] += model_decay[i] * c * fact * channel_factors[k];
       }
    }
 }
 
 
-void ExponentialPrecomputationBuffer::calculateIRFMax()
+void MeasuredIrfConvolver::calculateIRFMax()
 {
    irf_max.assign(dp->n_meas, 0);
    auto t = dp->getTimepoints();

@@ -24,7 +24,7 @@ void PatternDecayGroup::init()
    n_lin_components = fit->isFittedLocally(); 
    n_nl_parameters = 0;
 
-   ExponentialPrecomputationBuffer buffer(dp);
+   auto buffer = AbstractConvolver::make(dp);
 
    decay.clear();
    decay.resize(dp->n_meas, 0.0);
@@ -43,8 +43,8 @@ void PatternDecayGroup::init()
 
       for (int j = 0; j < n_exp; j++)
       {
-         buffer.compute(1 / pattern[i].tau[j], 0, 0, channel_factors);
-         buffer.addDecay(pattern[i].beta[j], reference_lifetime, decay.data());
+         buffer->compute(1 / pattern[i].tau[j], 0, 0, channel_factors);
+         buffer->addDecay(pattern[i].beta[j], reference_lifetime, decay.data());
       }
    }
 

@@ -46,7 +46,7 @@ protected:
    
    std::vector<double> theta;
 
-   std::vector<std::vector<ExponentialPrecomputationBuffer>> anisotropy_buffer;
+   std::vector<std::vector<std::shared_ptr<AbstractConvolver>>> anisotropy_buffer;
    std::vector<std::vector<double>> channel_factors;
    
 private:

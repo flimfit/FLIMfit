@@ -38,7 +38,7 @@
 #include <memory>
 #include <QObject>
 
-#include "ExponentialPrecomputationBuffer.h"
+#include "MeasuredIrfConvolver.h"
 #include "InstrumentResponseFunction.h"
 #include "DataTransformer.h"
 #include "IRFConvolution.h"

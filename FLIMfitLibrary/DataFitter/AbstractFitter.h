@@ -30,7 +30,7 @@
 #pragma once
 
 #include "DecayModel.h"
-#include "ExponentialPrecomputationBuffer.h"
+#include "MeasuredIrfConvolver.h"
 #include "FitResults.h"
 #include "RegionData.h"
 #include "MeanLifetimeEstimator.h"
