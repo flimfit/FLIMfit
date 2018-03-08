@@ -48,6 +48,7 @@ set(SOURCE
 )
 
 set(HEADERS
+   catch.hpp
    FLIMSimulation.h
    QR_test.h
 )

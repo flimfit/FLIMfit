@@ -28,15 +28,6 @@
 //
 //=========================================================================
 
-/*
-#define BOOST_TEST_MODULE FLIMfitTest
-#define BOOST_TEST_SHOW_PROGRESS yes
-#define BOOST_TEST_LOG_LEVEL all
-#define BOOST_TEST_AUTO_START_DBG yes
-#define BOOST_TEST_RESULT_CODE no
-*/
-//#include <boost/test/included/unit_test.hpp>
-//#include <boost/test/unit_test.hpp>
 
 #include "Cout2VisualStudioDebugOutput.h"
 
@@ -52,22 +43,41 @@
 
 extern int testFittingCoreDouble();
 extern void testDecayResampler();
-extern int testFittingCoreSingle(double tau, int N);
+extern int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf);
 extern int testModelDerivatives();
 
-int main()
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+
+
+TEST_CASE("Gaussian IRF", "[irf]")
 {
-   Cout2VisualStudioDebugOutput c2v;
+   FLIMSimulationTCSPC sim;
+   sim.GenerateIRF(10000);
 
-//   testDecayResampler();
-//   testModelDerivatives();
+   double sigma = sim.getIrfSigma();
+   double mu = sim.getIrfMu();
+   double offset = 0;
 
+   auto irf_normal = sim.GenerateIRF(10000);
+
+   auto irf_gaussian = std::make_shared<InstrumentResponseFunction>();
+   irf_gaussian->setGaussianIRF(sigma, mu, offset);
+
+}
+
+TEST_CASE("Model derivatives", "[model]") 
+{
+   testModelDerivatives();
+   REQUIRE(1);
+}
+
+TEST_CASE("Fitting", "[fitting]") 
+{
    for (int N_ : {100, 200, 2000, 5000, 10000})
-        testFittingCoreSingle(1000, N_);
-
+        testFittingCoreSingle(1000, N_, true);      
    for (int N_ : {100, 200, 2000, 5000, 10000})
-      testFittingCoreSingle(4000, N_);
-
+      testFittingCoreSingle(4000, N_, true);
    testFittingCoreDouble();
 }
 

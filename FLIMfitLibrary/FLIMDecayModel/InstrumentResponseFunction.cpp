@@ -78,6 +78,15 @@ void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_
    calculateGFactor();
 }
 
+void InstrumentResponseFunction::setGaussianIRF(double sigma, double mu, double offset)
+{
+   gaussian_sigma = sigma;
+   gaussian_mu = mu;
+   gaussian_offset = offset;
+   type = Gaussian;
+}
+
+
 void InstrumentResponseFunction::setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess)
 {
    // TODO

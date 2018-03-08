@@ -102,7 +102,7 @@ void TrimmedMean(T x[], T w[], int n, int K, T conf_factor, RegionStats<T>& stat
 {
    using namespace boost::accumulators;
 
-   T w1, w2, OS1, OS2, wt, q1, q2, med;
+   T OS1, OS2, wt, q1, q2, med;
    double p_mean, p_std, p_w_mean, p_w_std, p_err;
 
    accumulator_set< double, features< tag::variance, tag::weighted_variance, tag::median > > acc0;

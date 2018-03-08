@@ -38,7 +38,8 @@
 enum IRFType
 {
    Scatter,
-   Reference
+   Reference,
+   Gaussian
 };
 
 class InstrumentResponseFunction
@@ -48,11 +49,15 @@ public:
 
    void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, double* irf);
    void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double* irf);
+   void setGaussianIRF(double sigma, double mu, double offset);
+   
    void setIRFShiftMap(double* t0);
    void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
    double* getIRF(int irf_idx, double t0_shift, double* storage);
    double getT0();
+
+   bool isGaussian() { return type == Gaussian; }
 
    double timebin_width;
    double timebin_t0;
@@ -64,6 +69,10 @@ public:
    int n_irf_rep;
 
    double g_factor;
+
+   double gaussian_sigma;
+   double gaussian_mu;
+   double gaussian_offset;
    
    IRFType type; 
 
@@ -96,8 +105,17 @@ private:
       ar & g_factor;
       ar & type;
       ar & irf;
+
+      if (version >= 2)
+      {
+         ar & gaussian_sigma;
+         ar & gaussian_mu;
+         ar & gaussian_offset;
+      }
    }
    
    friend class boost::serialization::access;
    
 };
+
+//BOOST_CLASS_VERSION(InstrumentResponseFunction, 2)

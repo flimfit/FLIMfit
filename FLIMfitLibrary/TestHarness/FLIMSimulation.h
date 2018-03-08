@@ -40,7 +40,11 @@ public:
    void GenerateImageBackground(int N, U* decay);
 
    std::shared_ptr<InstrumentResponseFunction> GenerateIRF(int N);
-  
+   std::shared_ptr<InstrumentResponseFunction> GetGaussianIRF();
+
+   double getIrfSigma() { return irf_sigma; }
+   double getIrfMu() { return irf_mu; }
+
 protected:
 
    double SampleIRF();
