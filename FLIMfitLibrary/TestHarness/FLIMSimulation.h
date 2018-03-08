@@ -12,6 +12,7 @@
 #include "InstrumentResponseFunction.h"
 
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/exponential_distribution.hpp>
 #include <boost/random/poisson_distribution.hpp>
@@ -60,7 +61,7 @@ protected:
    virtual void GenerateDecay(double tau, int N, std::vector<int>& decay) = 0;
    virtual void GenerateIRF_(int N, std::vector<double>& decay) = 0;
 
-   boost::mt19937 gen;
+   boost::lagged_fibonacci44497 gen;
    boost::random::normal_distribution<double> norm_dist;
 };
 
