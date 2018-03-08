@@ -158,7 +158,7 @@ std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GenerateIRF(int N)
 std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GetGaussianIRF()
 {
    auto irf = std::make_shared<InstrumentResponseFunction>();
-   irf->setGaussianIRF(irf_sigma, irf_mu - dt / 2, 0);
+   irf->setGaussianIRF(irf_sigma, irf_mu, 0);
    return irf;
 }
 

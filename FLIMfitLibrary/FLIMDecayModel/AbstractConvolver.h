@@ -20,6 +20,7 @@ public:
    double getRate() const { return rate; };
 
    static std::shared_ptr<AbstractConvolver> make(std::shared_ptr<TransformedDataParameters> dp);
+   static std::vector<std::shared_ptr<AbstractConvolver>> make_vector(size_t n, std::shared_ptr<TransformedDataParameters> dp);
 
 protected:
 

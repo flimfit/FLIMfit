@@ -17,3 +17,11 @@ std::shared_ptr<AbstractConvolver> AbstractConvolver::make(std::shared_ptr<Trans
    else
       return std::make_shared<MeasuredIrfConvolver>(dp);
 }
+
+std::vector<std::shared_ptr<AbstractConvolver>> AbstractConvolver::make_vector(size_t n, std::shared_ptr<TransformedDataParameters> dp)
+{
+   std::vector<std::shared_ptr<AbstractConvolver>> v;
+   v.reserve(n);
+   for (size_t i = 0; i < n; i++)
+      v.push_back(make(dp));
+}

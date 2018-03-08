@@ -10,7 +10,22 @@ GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParame
    sigma = dp->irf->gaussian_sigma;
    mu = dp->irf->gaussian_mu;
    T = dp->t_rep;
+
+   a = 1.0 / (sqrt(2) * sigma);
+
+   auto& t = dp->getTimepoints();
+
+   if (!dp->equally_spaced_gates)
+      std::runtime_error("Gates must be equally spaced");
+
+   dt = t[1] - t[0];
+   t0 = t[0];
+
+   P.resize(t.size() + 1);
+   for (int i = 0; i < P.size(); i++)
+      P[i] = 0.5 * erf((t0 + i * dt - mu) * a);
 };
+
 
 void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, const std::vector<double>& channel_factors_)
 {
@@ -31,23 +46,39 @@ void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, c
    double tau = 1.0 / rate;
    double tau_p = eps * abs(tau);
    if (tau_p == 0.0) tau_p = eps;
-   rate1 = 1.0 / (tau + tau_p);
+   double rate_p = 1.0 / (tau + tau_p);
 
-   a = sqrt(2) * sigma;
-   b = (sigma * sigma * rate + mu) / a;
-   c = erf(b);
-   d = (c - erf(b - T / a)) / (exp(T * rate) - 1);
-   A = 0.5 * exp(rate * (0.5 * sigma * sigma * rate + mu));
-
-   b1 = (sigma * sigma * rate1 + mu) / a;
-   c1 = erf(b1);
-   d1 = (c1 - erf(b1 - T / a)) / (exp(T * rate1) - 1);
-   A1 = 0.5 * exp(rate1 * (0.5 * sigma * sigma * rate1 + mu));
+   computeVariables(rate, v);
+   computeVariables(rate_p, vp);
 }
 
-double GaussianIrfConvolver::compute(double t) const
+
+void GaussianIrfConvolver::computeVariables(double rate, GaussianVariables& v)
 {
-   return A * exp(-t * rate) * (c - erf(b - t / a) + d);
+   v.Q.resize(n_t + 1);
+   v.R.resize(n_t + 1);
+
+   v.tau = 1.0 / rate;
+
+   double f = exp(T * rate);
+
+   double b = (sigma * sigma * rate + mu) * a;
+   v.c = (erf(b - T * a) - f * erf(b)) / (f - 1);
+   v.d = 0.5 * v.tau * exp(rate * (0.5 * sigma * sigma * rate + mu));
+
+   double e0 = exp(-t0 * rate);
+   double de = exp(-dt * rate);
+   for (int i = 0; i < v.Q.size(); i++)
+   {
+      v.Q[i] = erf(b - (i*dt + t0) * a);
+      v.R[i] = e0;
+      e0 *= de;
+   }
+}
+
+double GaussianIrfConvolver::computeTimepoint(int i, const GaussianVariables& v) const
+{
+   return (v.tau * (P[i + 1] - P[i]) + v.d * (v.R[i + 1] * (v.Q[i + 1] + v.c) - v.R[i] * (v.Q[i] + v.c))) / dt;
 }
 
 void GaussianIrfConvolver::addDecay(double fact, double ref_lifetime, double decay[], int bin_shift) const
@@ -55,7 +86,7 @@ void GaussianIrfConvolver::addDecay(double fact, double ref_lifetime, double dec
    auto& t = dp->getTimepoints();
    for (int i = 0; i < n_t; i++)
    {
-      double D = A * exp(-t[i] * rate) * (c - erf(b - t[i] / a) + d);
+      double D = computeTimepoint(i, v);
       for (int k = 0; k < n_chan; k++)
          decay[i + k*n_t] += D * channel_factors[k];
    }
@@ -66,9 +97,7 @@ void GaussianIrfConvolver::addDerivative(double fact, double ref_lifetime, doubl
    auto& t = dp->getTimepoints();
    for (int i = 0; i < n_t; i++)
    {
-      double D0 = A * exp(-t[i] * rate) * (c - erf(b - t[i] / a) + d);
-      double D1 = A1 * exp(-t[i] * rate1) * (c1 - erf(b1 - t[i] / a) + d1);
-      double D = (D1 - D0) / eps * rate;
+      double D = (computeTimepoint(i, vp) - computeTimepoint(i, v)) / eps * rate;
       for (int k = 0; k < n_chan; k++)
          derv[i + k*n_t] += D * channel_factors[k];
    }

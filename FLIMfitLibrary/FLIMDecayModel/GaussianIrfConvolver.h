@@ -6,6 +6,12 @@
 #include <vector>
 #include <memory>
 
+struct GaussianVariables
+{
+   double tau, c, d;
+   std::vector<double> Q, R;
+};
+
 class GaussianIrfConvolver : public AbstractConvolver
 {
 
@@ -19,14 +25,18 @@ public:
 
 private:
 
-   double compute(double t) const;
+   void computeVariables(double rate, GaussianVariables& v);
+   double computeTimepoint(int i, const GaussianVariables& v) const;
 
    double dt;
+   double t0;
    double sigma;
    double mu;
    double T;
 
-   double a, b, c, d, A;
-   double b1, c1, d1, A1;
-   double eps, rate1;
+   std::vector<double> P;
+   double a;
+
+   GaussianVariables v, vp;
+   double eps;
 };

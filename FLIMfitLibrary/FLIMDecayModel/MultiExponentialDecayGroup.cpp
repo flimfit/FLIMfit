@@ -155,8 +155,9 @@ void MultiExponentialDecayGroupPrivate::init()
          n_beta_free++;
 
    buffer.clear();
-   buffer.resize(n_exponential,
-      AbstractConvolver::make(dp));
+   for (int i = 0; i < n_exponential; i++)
+      buffer.push_back(AbstractConvolver::make(dp));
+
 
    channel_factors.resize(dp->n_chan, 1);
 }

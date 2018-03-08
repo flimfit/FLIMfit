@@ -111,18 +111,24 @@ void FretDecayGroup::init()
    }
 
    fret_buffer.clear();
-   fret_buffer.resize(n_fret_populations, 
-      std::vector<std::vector<std::shared_ptr<AbstractConvolver>>>(n_kappa,
-      std::vector<std::shared_ptr<AbstractConvolver>>(n_exponential,
-        AbstractConvolver::make(dp))));
-
+   fret_buffer.resize(n_fret_populations);
+   for (int i = 0; i < n_fret_populations; i++)
+   {
+      fret_buffer[i].resize(n_kappa);
+      for (int j = 0; j < n_kappa; j++)
+         fret_buffer[i][j] = AbstractConvolver::make_vector(n_exponential, dp);
+   }
+ 
    if (include_acceptor)
    {
       acceptor_fret_buffer.clear();
-      acceptor_fret_buffer.resize(n_fret_populations,
-         std::vector<std::vector<std::shared_ptr<AbstractConvolver>>>(n_kappa,
-            std::vector<std::shared_ptr<AbstractConvolver>>(n_exponential,
-               AbstractConvolver::make(dp))));
+      acceptor_fret_buffer.resize(n_fret_populations);
+      for (int i = 0; i < n_fret_populations; i++)
+      {
+         acceptor_fret_buffer[i].resize(n_kappa);
+         for (int j = 0; j < n_kappa; j++)
+            acceptor_fret_buffer[i][j] = AbstractConvolver::make_vector(n_exponential, dp);
+      }
 
       acceptor_buffer = AbstractConvolver::make(dp);
    }
