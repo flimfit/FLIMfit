@@ -143,6 +143,7 @@ classdef flim_fit_ui
             handles.fit_controller = flim_fit_controller(handles);    
             handles.data_decay_view = flim_data_decay_view(handles);
             handles.data_masking_controller = flim_data_masking_controller(handles);
+            handles.irf_controller = irf_controller(handles);
             handles.plot_controller = flim_fit_plot_controller(handles);
             handles.gallery_controller = flim_fit_gallery_controller(handles);
             handles.hist_controller = flim_fit_hist_controller(handles);

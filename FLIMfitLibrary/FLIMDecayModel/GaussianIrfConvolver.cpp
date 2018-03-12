@@ -1,70 +1,56 @@
 #include "GaussianIrfConvolver.h"
 
-
-GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParameters> dp) :
-   AbstractConvolver(dp)
+GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& params, const std::vector<double>& timepoints, double T_)
 {
    double epsmch = std::numeric_limits<double>::epsilon();
    eps = sqrt(epsmch);
 
-   sigma = dp->irf->gaussian_sigma;
-   mu = dp->irf->gaussian_mu;
-   T = dp->t_rep;
+   sigma = params.sigma;
+   mu = params.mu;
+   T = T_;
 
    a = 1.0 / (sqrt(2) * sigma);
 
-   auto& t = dp->getTimepoints();
+   dt = timepoints[1] - timepoints[0];
+   t0 = timepoints[0];
+   n_t = size(timepoints);
+}
 
-   if (!dp->equally_spaced_gates)
-      std::runtime_error("Gates must be equally spaced");
-
-   dt = t[1] - t[0];
-   t0 = t[0];
-
-   P.resize(t.size() + 1);
-   for (int i = 0; i < P.size(); i++)
-      P[i] = 0.5 * erf((t0 + i * dt - mu) * a);
-};
-
-
-void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, const std::vector<double>& channel_factors_)
+void GaussianChannelConvolver::compute(double rate, double t0_shift_)
 {
-   channel_factors = channel_factors_;
-   
-   // Don't compute if rate is the same
-   if (rate_ == rate)
-      return;
-  
-   if (!std::isfinite(rate_))
-      throw(std::runtime_error("Rate not finite"));
-
-   if (rate > 0.02) // 50ps
-      rate = 0.02;
-      
-   rate = rate_;
-
    double tau = 1.0 / rate;
    double tau_p = eps * abs(tau);
    if (tau_p == 0.0) tau_p = eps;
    double rate_p = 1.0 / (tau + tau_p);
+
+   t0_shift = t0_shift_;
+
+   P.resize(n_t + 1);
+   for (int i = 0; i < P.size(); i++)
+      P[i] = 0.5 * erf((t0 + i * dt - mu - t0_shift) * a);
+
 
    computeVariables(rate, v);
    computeVariables(rate_p, vp);
 }
 
 
-void GaussianIrfConvolver::computeVariables(double rate, GaussianVariables& v)
+void GaussianChannelConvolver::computeVariables(double rate_, GaussianVariables& v)
 {
    v.Q.resize(n_t + 1);
    v.R.resize(n_t + 1);
 
+   if(rate_ > 0.02) // 50ps
+      rate_ = 0.02;
+
+   rate = rate_;
    v.tau = 1.0 / rate;
 
    double f = exp(T * rate);
 
-   double b = (sigma * sigma * rate + mu) * a;
+   double b = (sigma * sigma * rate + mu + t0_shift) * a;
    v.c = (erf(b - T * a) - f * erf(b)) / (f - 1);
-   v.d = 0.5 * v.tau * exp(rate * (0.5 * sigma * sigma * rate + mu));
+   v.d = 0.5 * v.tau * exp(rate * (0.5 * sigma * sigma * rate + mu + t0_shift));
 
    double e0 = exp(-t0 * rate);
    double de = exp(-dt * rate);
@@ -76,31 +62,68 @@ void GaussianIrfConvolver::computeVariables(double rate, GaussianVariables& v)
    }
 }
 
-double GaussianIrfConvolver::computeTimepoint(int i, const GaussianVariables& v) const
+double GaussianChannelConvolver::compute(int i, const GaussianVariables& v) const
 {
    return (v.tau * (P[i + 1] - P[i]) + v.d * (v.R[i + 1] * (v.Q[i + 1] + v.c) - v.R[i] * (v.Q[i] + v.c))) / dt;
 }
 
-void GaussianIrfConvolver::addDecay(double fact, double ref_lifetime, double decay[], int bin_shift) const
+double GaussianChannelConvolver::computeDecay(int i) const
 {
-   auto& t = dp->getTimepoints();
-   for (int i = 0; i < n_t; i++)
-   {
-      double D = computeTimepoint(i, v);
-      for (int k = 0; k < n_chan; k++)
-         decay[i + k*n_t] += D * channel_factors[k];
-   }
+   return compute(i, v);
 }
 
-void GaussianIrfConvolver::addDerivative(double fact, double ref_lifetime, double derv[]) const
+double GaussianChannelConvolver::computeDerivative(int i) const
+{
+   return (compute(i, vp) - compute(i, v)) / (eps * rate);
+}
+
+
+GaussianIrfConvolver::GaussianIrfConvolver(std::shared_ptr<TransformedDataParameters> dp) :
+   AbstractConvolver(dp)
 {
    auto& t = dp->getTimepoints();
-   for (int i = 0; i < n_t; i++)
-   {
-      double D = (computeTimepoint(i, vp) - computeTimepoint(i, v)) / eps * rate;
-      for (int k = 0; k < n_chan; k++)
-         derv[i + k*n_t] += D * channel_factors[k];
-   }
+
+   if (!dp->equally_spaced_gates)
+      std::runtime_error("Gates must be equally spaced");
+
+   for (auto& p : irf->gaussian_params)
+      convolver.push_back(GaussianChannelConvolver(p, t, dp->t_rep));
+};
+
+
+void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
+{
+   // Don't compute if rate is the same
+   if (rate_ == rate)
+      return;
+
+   if (!std::isfinite(rate_))
+      throw(std::runtime_error("Rate not finite"));
+
+   if (rate > 0.02) // 50ps
+      rate = 0.02;
+
+   rate = rate_;
+
+   for (auto& c : convolver)
+      c.compute(rate, t0_shift);
+
+}
+
+void GaussianIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double decay[], int bin_shift) const
+{
+   auto& t = dp->getTimepoints();
+   for (int k = 0; k < n_chan; k++)
+      for (int i = 0; i < n_t; i++)
+         decay[i + k*n_t] += fact * convolver[k].computeDecay(i) * channel_factors[k];
+}
+
+void GaussianIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double derv[]) const
+{
+   auto& t = dp->getTimepoints();
+   for (int k = 0; k < n_chan; k++)
+      for (int i = 0; i < n_t; i++)
+        derv[i + k*n_t] += fact * convolver[k].computeDerivative(i) * channel_factors[k];
 }
 
 

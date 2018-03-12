@@ -53,15 +53,15 @@ void setFitSettings(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[],
 
    FitSettings settings;
 
-   settings.global_algorithm = (GlobalAlgorithm)(int) getValueFromStruct(prhs[2],"global_algorithm", GlobalAnalysis);
-   settings.global_scope = (GlobalScope)(int) getValueFromStruct(prhs[2], "global_scope", Pixelwise);
-   settings.algorithm = (FittingAlgorithm)(int) getValueFromStruct(prhs[2], "algorithm", VariableProjection);
-   settings.weighting = (WeightingMode)(int) getValueFromStruct(prhs[2], "weighting", AverageWeighting);
-   settings.n_thread = getValueFromStruct(prhs[2], "n_thread", 4);
-   settings.run_async = getValueFromStruct(prhs[2], "run_async", 1);
+   settings.global_algorithm = (GlobalAlgorithm)(int) getValueFromStruct(prhs[2], 0,"global_algorithm", GlobalAnalysis);
+   settings.global_scope = (GlobalScope)(int) getValueFromStruct(prhs[2], 0, "global_scope", Pixelwise);
+   settings.algorithm = (FittingAlgorithm)(int) getValueFromStruct(prhs[2], 0, "algorithm", VariableProjection);
+   settings.weighting = (WeightingMode)(int) getValueFromStruct(prhs[2], 0, "weighting", AverageWeighting);
+   settings.n_thread = getValueFromStruct(prhs[2], 0, "n_thread", 4);
+   settings.run_async = getValueFromStruct(prhs[2], 0, "run_async", 1);
 
-   int calculate_errors = getValueFromStruct(prhs[2], "calculate_errors", 0);
-   double conf_interval = getValueFromStruct(prhs[2], "conf_interval", 0.05);
+   int calculate_errors = getValueFromStruct(prhs[2], 0, "calculate_errors", 0);
+   double conf_interval = getValueFromStruct(prhs[2], 0, "conf_interval", 0.05);
    settings.setCalculateErrors(calculate_errors, conf_interval);
 
    c->setFitSettings(settings);
@@ -74,9 +74,9 @@ void setFittingOptions(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs
 
    FittingOptions options;
 
-   options.max_iterations = (int)getValueFromStruct(prhs[2], "max_iterations", options.max_iterations);
-   options.initial_step_size = getValueFromStruct(prhs[2], "initial_step_size", options.initial_step_size);
-   options.use_numerical_derivatives = getValueFromStruct(prhs[2], "use_numerical_derivatives", false);
+   options.max_iterations = (int)getValueFromStruct(prhs[2], 0, "max_iterations", options.max_iterations);
+   options.initial_step_size = getValueFromStruct(prhs[2], 0, "initial_step_size", options.initial_step_size);
+   options.use_numerical_derivatives = getValueFromStruct(prhs[2], 0, "use_numerical_derivatives", false);
    c->setFittingOptions(options);
 }
 

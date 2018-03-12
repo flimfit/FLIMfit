@@ -67,7 +67,8 @@ public:
          decay_groups.erase(iter, iter);
    }
 
-   
+   DecayModel* clone() const { return new DecayModel(*this); }
+
    std::shared_ptr<TransformedDataParameters> getTransformedDataParameters() { return dp; }
    void setTransformedDataParameters(std::shared_ptr<TransformedDataParameters> dp_);
 

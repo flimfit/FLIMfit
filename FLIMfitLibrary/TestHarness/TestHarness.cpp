@@ -55,31 +55,33 @@ TEST_CASE("Gaussian IRF", "[irf]")
    FLIMSimulationTCSPC sim;
    sim.GenerateIRF(10000);
 
-   double sigma = sim.getIrfSigma();
-   double mu = sim.getIrfMu();
-   double offset = 0;
+   auto params = sim.getIrfParameters();
 
    auto irf_normal = sim.GenerateIRF(10000);
 
    auto irf_gaussian = std::make_shared<InstrumentResponseFunction>();
-   irf_gaussian->setGaussianIRF(sigma, mu, offset);
+   irf_gaussian->setGaussianIRF({params});
 
 }
 
 TEST_CASE("Model derivatives", "[model]") 
 {
    testModelDerivatives();
-   REQUIRE(1);
 }
 
-TEST_CASE("Fitting", "[fitting]") 
+TEST_CASE("Single fit", "[fitting]") 
 {
    for (int N_ : {100, 200, 2000, 5000, 10000})
         testFittingCoreSingle(1000, N_, true);      
    for (int N_ : {100, 200, 2000, 5000, 10000})
       testFittingCoreSingle(4000, N_, true);
+}
+
+TEST_CASE("Double fit", "[fitting]")
+{
    testFittingCoreDouble();
 }
+
 
 int main0()
 {

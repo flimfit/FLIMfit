@@ -38,8 +38,7 @@ function obj = marshal_object(doc_node,type,obj)
     end
 
     mc = meta.class.fromName(obj_name);
-    mp = mc.Properties;
-
+    
     if isempty(mc)
         MException('FLIM:UnrecognisedObject','Object specified by XML was not recognised')
     end
@@ -63,7 +62,7 @@ function obj = marshal_object(doc_node,type,obj)
          encoded = false;
          if child.hasAttributes
              attr = child.getAttributes;
-             for j=1:attr.getLength();
+             for j=1:attr.getLength()
                  if strcmp(attr.item(j-1),'encoded="true"')
                      encoded = true;
                  end
@@ -81,8 +80,11 @@ function obj = marshal_object(doc_node,type,obj)
              else
                  child_value = eval(child_value);
              end
-
-             obj.(child_name) = child_value;
+             try 
+                obj.(child_name) = child_value;
+             catch
+                warning('FLIMfit:LoadDataSettingsFailed',['Failed to load setting: ' child_name]); 
+             end
          end
      end
 

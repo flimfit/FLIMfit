@@ -74,6 +74,7 @@ protected:
    std::vector<float> beta_buf_float;
    std::vector<std::shared_ptr<AbstractConvolver>> buffer;
    std::vector<double> channel_factors;
+   std::vector<double> norm_channel_factors;
 
 protected:
    template<class Archive>

@@ -4,14 +4,9 @@ function emission = simulate(D, A, kt0, mode, system, n_photon)
     
     nd = length(D.tau);
     
-    n_donor = binornd(n_photon,D.sigma/(D.sigma + A.sigma));
-    n_acceptor = n_photon - n_donor;
-
-    n_donor = mnrnd(n_photon,D.beta);
-    
-    pA = [A.kf A.knf];
-    pA = pA / sum(pA);
-    
+    %n_donor = binornd(n_photon,D.sigma/(D.sigma + A.sigma));
+    n_donor = mnrnd(n_photon * D.sigma,D.beta);
+        
     for i=1:nd       
         
         if strcmp(mode,'static')
@@ -44,9 +39,9 @@ function emission = simulate(D, A, kt0, mode, system, n_photon)
         
     end
     
+    
     % Direct acceptor
-    n = mnrnd(n_acceptor,pA);
-    n_direct_acceptor_emission = n(1);
+    n_direct_acceptor_emission = binornd(n_photon * A.sigma,A.kf/(A.kf + A.knf));
     
     t = exprnd(A.tau,[n_direct_acceptor_emission 1]);
     w = distribute_photons(n_direct_acceptor_emission, A.spectra);

@@ -50,6 +50,7 @@ include_directories(${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayMo
 link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${MEX_OUT_DIR})
+set(CMAKE_PDB_OUTPUT_DIRECTORY ${MEX_OUT_DIR})
 
 set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core ${Boost_LIBRARIES})
 set (COMMON_FILES MexUtils.h)

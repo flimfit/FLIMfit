@@ -158,8 +158,8 @@ void MultiExponentialDecayGroupPrivate::init()
    for (int i = 0; i < n_exponential; i++)
       buffer.push_back(AbstractConvolver::make(dp));
 
-
    channel_factors.resize(dp->n_chan, 1);
+   normaliseChannelFactors(channel_factors, norm_channel_factors);
 }
 
 void MultiExponentialDecayGroupPrivate::setNumExponential(int n_exponential_)
@@ -254,7 +254,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
    }
    */
    for (int i = 0; i < n_exponential; i++)
-      buffer[i]->compute(1 / tau[i], irf_idx, t0_shift, channel_factors); // TODO: only when changed
+      buffer[i]->compute(1 / tau[i], irf_idx, t0_shift); // TODO: only when changed
 
    // Get contributions
    if (contributions_global)
@@ -379,16 +379,16 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
    int using_reference_reconvolution = dp->irf->type == Reference; // TODO: Clean this up
 
    if (using_reference_reconvolution && contributions_global)
-      addIRF(irf_buf.data(), irf_idx, t0_shift, a, channel_factors);
+      addIRF(irf_buf.data(), irf_idx, t0_shift, a, norm_channel_factors);
 
    for (int j = 0; j < buffers.size(); j++)
    {
       // If we're doing delta-function reconvolution add contribution from reference
       if (using_reference_reconvolution && !contributions_global)
-         addIRF(irf_buf.data(), irf_idx, t0_shift, a + col*adim, channel_factors);
+         addIRF(irf_buf.data(), irf_idx, t0_shift, a + col*adim, norm_channel_factors);
 
       double c_factor = contributions_global ? beta[j] : 1;
-      buffers[j]->addDecay(factor * c_factor, reference_lifetime, a + col*adim, bin_shift);
+      buffers[j]->addDecay(factor * c_factor, norm_channel_factors, reference_lifetime, a + col*adim, bin_shift);
 
       if (!contributions_global)
          col++;
@@ -424,7 +424,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b,
       double fact = 1 / (tau[idx] * tau[idx]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
       fact *= contributions_global ? beta[idx] : 1;
 
-      buffer[idx]->addDerivative(fact, reference_lifetime, b);
+      buffer[idx]->addDerivative(fact, norm_channel_factors, reference_lifetime, b);
       return 1;
    }
    
@@ -454,7 +454,7 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int
                if (!beta_parameters[k]->isFixed())
                {
                   double factor = beta_derv(n_beta_free, ji, ki, beta_param_values) * (1-fixed_beta);
-                  buffer[k]->addDecay(factor, reference_lifetime, b + col*bdim);
+                  buffer[k]->addDecay(factor, norm_channel_factors, reference_lifetime, b + col*bdim);
                   ki++;
                }
 

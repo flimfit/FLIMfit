@@ -66,19 +66,13 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         
         % Crop timegates  
         t_inc = obj.tr_t_all >= obj.t_min & obj.tr_t_all <= obj.t_max;
-        
-
-        % If there is a IRF ensure that we don't have data points before the IRF
-        %if ~isempty(obj.tr_t_irf)
-        %    t_inc = t_inc & obj.t >= min(obj.tr_t_irf);
-        %end
-        
+                
         % For polarisation resolved data, attempt to line up the two
         % polarisation channels to within a timegate. This allows the user
         % to sensibly crop the data
         if length(obj.t) > 1
             dt = obj.t(2) - obj.t(1);
-            coarse_shift = round(obj.irf_perp_shift/dt);      
+            coarse_shift = round(obj.irf.perp_shift/dt);      
         else
             coarse_shift = 0;
         end
@@ -94,22 +88,14 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         % If shifting the perp channel pushes us over the edge crop both 
         % data channels
         if sum(t_inc_perp) < sum(t_inc)
-            if obj.irf_perp_shift < 0
+            if obj.irf.perp_shift < 0
                n = find(t_inc_perp, 1, 'first') - 2;
                t_inc(end-n:end) = 0;             
             else
                n = length(t_inc_perp) - find(t_inc_perp, 1, 'last');
                t_inc(1:n) = 0;
             end
-        end
-        
-        if obj.data_subsampling > 1
-            subs = 1:length(t_inc);
-            subs = mod(subs,obj.data_subsampling) == 1;
-
-            t_inc = t_inc & subs;
-        end
-        
+        end        
         
         obj.t_skip = [find(t_inc,1,'first') find(t_inc_perp,1,'first')]-1;
         
@@ -143,11 +129,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
         else
             in = trapz(obj.t,obj.cur_tr_data,1)/1000;
         end
-        
-        %if obj.polarisation_resolved
-        %    in = in(1,1,:,:) + in(1,2,:,:); % 2*obj.g_factor*
-        %end
-     
+       
         in = sum(in,2);
         obj.intensity = squeeze(in);
         
@@ -156,7 +138,6 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
             norm = norm / max(norm(:));
             obj.intensity = obj.intensity ./ norm;
         end
-
         
         % Shift the perpendicular channel and crop in time
         if obj.polarisation_resolved
@@ -175,7 +156,7 @@ function calculated = compute_tr_data(obj,notify_update,no_smoothing)
        
         obj.cur_smoothed = ~no_smoothing;
         
-        obj.compute_tr_irf();
+        obj.irf.compute_tr_irf();
         
         obj.compute_intensity();
         obj.compute_tr_tvb_profile();  

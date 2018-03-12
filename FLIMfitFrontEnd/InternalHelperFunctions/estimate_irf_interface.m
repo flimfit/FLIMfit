@@ -1,4 +1,4 @@
-function [irf_final,t_final] = estimate_irf_interface(t, data, T, default_path)
+function estimate_irf_interface(t, data, T, analytical, default_path)
 
     if any(data==0)
         warndlg('Decay contains zeros, please average over a larer region','Warning')
@@ -36,39 +36,68 @@ function [irf_final,t_final] = estimate_irf_interface(t, data, T, default_path)
     button_layout.Widths = [-1 200 200];
     layout.Heights = [-1 30];
 
-    
-    for i=1:n_chan
-        tabs.Selection = i;
-        [irf(:,i), t_final, chi2(i)] = estimate_irf(t,data(:,i),T,fit_ax(i),res_ax(i));
-    end
-    
-    valid = max(irf,[],2) > 1e-10; 
-    idx_start = find(valid,1);
-    idx_end = find(valid,1,'last');
-    
-    irf = irf(idx_start:idx_end,:);
-    t_final = t_final(idx_start:idx_end);
-
-    
-    save_button.Enable = 'on';
-    
-    function save(~,~)
-        dat = table();
-        dat.t = t_final;
-        for j=1:size(irf,2)
-            dat.(['irf_ch' num2str(j)]) = irf(:,j);
-        end
-
-        if max(chi2) > 1.3
-           h = warndlg({'The quality of fit produced with the estimated IRF is relatively low,',...
-                    'you might need to directly measure the IRF'},'Warning');
-           waitfor(h);
+    if analytical
+        
+        for i=1:n_chan
+            tabs.Selection = i;
+            [analytical_parameters(i), chi2(i)] = estimate_analytical_irf(t,data(:,i),T,fit_ax(i),res_ax(i));
         end
         
-        [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',default_path);
-        if file~=0
-            writetable(dat,[path file]);
-            close(fh);
+    else
+        
+        for i=1:n_chan
+            tabs.Selection = i;
+            [irf(:,i), t_final, chi2(i)] = estimate_analytical_irf(t,data(:,i),T,fit_ax(i),res_ax(i));
+        end
+
+        valid = max(irf,[],2) > 1e-10; 
+        idx_start = find(valid,1);
+        idx_end = find(valid,1,'last');
+
+        irf = irf(idx_start:idx_end,:);
+        t_final = t_final(idx_start:idx_end);
+        
+    end
+
+
+    save_button.Enable = 'on';
+
+    function save(~,~)
+        
+        if analytical
+
+            if max(chi2) > 1.3
+               h = warndlg({'The quality of fit produced with the estimated IRF is relatively low,',...
+                        'you might need to directly measure the IRF'},'Warning');
+               waitfor(h);
+            end
+            
+            text = jsonencode(analytical_parameters);
+            
+            [file, path] = uiputfile({'*.json', 'JSON file (*.json)'},'Select file name',default_path);
+
+            f = fopen([path file],'w');
+            fprintf(f,text);
+            fclose(f);
+            
+        else
+            dat = table();
+            dat.t = t_final;
+            for j=1:size(irf,2)
+                dat.(['irf_ch' num2str(j)]) = irf(:,j);
+            end
+
+            if max(chi2) > 1.3
+               h = warndlg({'The quality of fit produced with the estimated IRF is relatively low,',...
+                        'you might need to directly measure the IRF'},'Warning');
+               waitfor(h);
+            end
+
+            [file, path] = uiputfile({'*.csv', 'CSV File (*.csv)'},'Select file name',default_path);
+            if file~=0
+                writetable(dat,[path file]);
+                close(fh);
+            end
         end
     end
 

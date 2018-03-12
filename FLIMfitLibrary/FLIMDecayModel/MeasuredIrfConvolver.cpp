@@ -51,7 +51,7 @@ MeasuredIrfConvolver::MeasuredIrfConvolver(std::shared_ptr<TransformedDataParame
    calculateIRFMax();
 };
 
-void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, const std::vector<double>& channel_factors)
+void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
 {
    // Don't compute if rate is the same
    if (rate_ == rate)
@@ -66,7 +66,7 @@ void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift, c
    rate = rate_;
 
    computeIRFFactors(rate, irf_idx, t0_shift);
-   computeModelFactors(rate, channel_factors);
+   computeModelFactors(rate);
 }
 
 void MeasuredIrfConvolver::computeIRFFactors(double rate, int irf_idx, double t0_shift)
@@ -144,10 +144,8 @@ void MeasuredIrfConvolver::computeIRFFactors(double rate, int irf_idx, double t0
 
 }
 
-void MeasuredIrfConvolver::computeModelFactors(double rate, const std::vector<double>& channel_factors_)
+void MeasuredIrfConvolver::computeModelFactors(double rate)
 {
-   channel_factors = channel_factors_;
-
    double fact = 1;
 
    if (irf->type == Reference)
@@ -156,15 +154,6 @@ void MeasuredIrfConvolver::computeModelFactors(double rate, const std::vector<do
    auto& t = dp->getTimepoints();
    auto& t_int = dp->getGateIntegrationTimes();
    
-   double factor_sum = 0;
-   for (auto f : channel_factors)
-      factor_sum += f;
-
-   if (factor_sum == 0)
-      throw std::runtime_error("Sum of channel factors was zero");
-
-   fact /= factor_sum;
-
    double de = exp((t[0] - t[1]) * rate);
 
    if (dp->equally_spaced_gates)
@@ -235,7 +224,7 @@ void MeasuredIrfConvolver::convolveDerivative(double t, int k, int i, double pul
 
 
 
-void MeasuredIrfConvolver::addDecay(double fact, double ref_lifetime, double a[], int bin_shift) const
+void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[], int bin_shift) const
 {
    double c;
 
@@ -265,7 +254,7 @@ void MeasuredIrfConvolver::addDecay(double fact, double ref_lifetime, double a[]
    }
 }
 
-void MeasuredIrfConvolver::addDerivative(double fact, double ref_lifetime, double b[]) const
+void MeasuredIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double b[]) const
 {
    double c;
 

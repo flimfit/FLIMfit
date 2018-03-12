@@ -50,23 +50,11 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             obj.bind_control(handles,'gate_max','edit');
             obj.bind_control(handles,'t_min','edit');
             obj.bind_control(handles,'t_max','edit');
-            obj.bind_control(handles,'t_irf_min','edit');
-            obj.bind_control(handles,'t_irf_max','edit');
-            obj.bind_control(handles,'irf_background','edit');
-            obj.bind_control(handles,'g_factor','edit');
-            obj.bind_control(handles,'afterpulsing_correction','popupmenu');
             obj.bind_control(handles,'background_value','edit');
             obj.bind_control(handles,'background_type','popupmenu');
-            obj.bind_control(handles,'ref_lifetime','edit');
             obj.bind_control(handles,'rep_rate','edit');
-            obj.bind_control(handles,'irf_type','popupmenu');
-            obj.bind_control(handles,'t0','edit');
             obj.bind_control(handles,'counts_per_photon','edit')
-            obj.bind_control(handles,'use_image_t0_correction','checkbox');
-            
-            obj.bind_control(handles,'data_subsampling','edit')
-            obj.bind_control(handles,'irf_subsampling','edit')
-                       
+                                  
             obj.update_controls();
             
         end

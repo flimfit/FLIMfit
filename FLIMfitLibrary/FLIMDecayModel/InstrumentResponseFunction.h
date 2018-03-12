@@ -32,8 +32,28 @@
 
 #include <boost/align/aligned_allocator.hpp>
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/version.hpp>
 #include <vector>
+ 
+class GaussianParameters
+{
+public:
+   GaussianParameters(double mu = 1000, double sigma = 100, double offset = 0) :
+      mu(mu), sigma(sigma), offset(offset)
+   {}
 
+   double mu;
+   double sigma;
+   double offset;
+
+   template<class Archive>
+   void serialize(Archive & ar, const unsigned int version)
+   {
+      ar & mu;
+      ar & sigma;
+      ar & offset;
+   }
+};
 
 enum IRFType
 {
@@ -49,8 +69,8 @@ public:
 
    void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, double* irf);
    void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double* irf);
-   void setGaussianIRF(double sigma, double mu, double offset);
-   
+   void setGaussianIRF(std::vector<GaussianParameters> gaussian_params);
+
    void setIRFShiftMap(double* t0);
    void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
@@ -59,20 +79,19 @@ public:
 
    bool isGaussian() { return type == Gaussian; }
 
+   int getNumChan();
+
    double timebin_width;
    double timebin_t0;
 
    bool variable_irf;
 
    int n_irf;
-   int n_chan;
    int n_irf_rep;
 
    double g_factor;
 
-   double gaussian_sigma;
-   double gaussian_mu;
-   double gaussian_offset;
+   std::vector<GaussianParameters> gaussian_params;
    
    IRFType type; 
 
@@ -91,7 +110,8 @@ private:
    double* t0_image;
 
    double t0;
-   
+   int n_chan;
+
    
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version)
@@ -107,15 +127,11 @@ private:
       ar & irf;
 
       if (version >= 2)
-      {
-         ar & gaussian_sigma;
-         ar & gaussian_mu;
-         ar & gaussian_offset;
-      }
+         ar & gaussian_params;
    }
    
    friend class boost::serialization::access;
    
 };
 
-//BOOST_CLASS_VERSION(InstrumentResponseFunction, 2)
+BOOST_CLASS_VERSION(InstrumentResponseFunction, 2)

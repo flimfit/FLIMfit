@@ -153,7 +153,7 @@ classdef checkable_list < handle
             end
         end
 
-        function update_position(obj,src,evt)
+        function update_position(obj,src,~)
             %# slider value
             offset = src.Value;
             p = obj.check_layout.Position;

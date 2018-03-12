@@ -91,7 +91,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    else if (irf->type == Gaussian)
    {
       start = 0;
-      double start_time = irf->gaussian_mu;
+      double start_time = irf->gaussian_params[0].mu;
       for (int j = 0; j<n_t; j++)
          if (t[j] > start_time)
          {

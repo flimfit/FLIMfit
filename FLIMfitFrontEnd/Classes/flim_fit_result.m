@@ -191,8 +191,8 @@ classdef flim_fit_result < handle
             
            [rows, cols] = size(table_data);
             
-           for k = 1 : cols,
-            if strcmp(char(table_data(1,k)),'pixels'), break, end; 
+           for k = 1 : cols
+            if strcmp(char(table_data(1,k)),'pixels'), break, end
            end
            offset = k + 1;
            
@@ -214,7 +214,7 @@ classdef flim_fit_result < handle
                    metadatafilename = filenamecontainerlist{fovind}; % FOV name
                    if ~ischar(metadatafilename) % might happen...
                         metadatafilename = num2str(metadatafilename); 
-                   end;                
+                   end                
                    % find start and end index in the table
                    startind = 0;
                    endind = rows;
@@ -224,11 +224,11 @@ classdef flim_fit_result < handle
                         %
                         if ~ischar(datafilename) 
                             datafilename = num2str(datafilename); 
-                        end;
+                        end
                         %
                         if ~ischar(previous_datafilename) 
                             previous_datafilename = num2str(previous_datafilename); 
-                        end;                        
+                        end                      
                         %
                         if strcmp(metadatafilename,datafilename) && ~strcmp(metadatafilename,previous_datafilename)
                             startind  = tablind;
@@ -247,7 +247,7 @@ classdef flim_fit_result < handle
                    %
                    % stats ASSIGNMENT....                   
                    NNUMCOLS = n_stats*n_params;
-                   for c = offset : NNUMCOLS,
+                   for c = offset : NNUMCOLS
                                        curstr = char(table_data(1,c));
                                        sepstart = strfind(curstr,' - ');
                                        A = curstr(1:sepstart-1);
@@ -263,13 +263,13 @@ classdef flim_fit_result < handle
                                        
                                        %find param index
                                        for p=1:n_params
-                                           if strcmp(cur_param_name,obj.params{p}), break, end;
+                                           if strcmp(cur_param_name,obj.params{p}), break, end
                                        end
                                        param_ind = p;
                                        
                                        %find stat index
                                        for s=1:n_stats
-                                           if strcmp(cur_stat_name,stats_names{s}), break, end;
+                                           if strcmp(cur_stat_name,stats_names{s}), break, end
                                        end
                                        stat_ind = s;
                                        

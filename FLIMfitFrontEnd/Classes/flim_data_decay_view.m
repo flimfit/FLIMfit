@@ -154,15 +154,15 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 end
 
                 obj.t = d.tr_t(:);
-                obj.t_irf = obj.data_series.tr_t_irf(:);
+                obj.t_irf = obj.data_series.irf.tr_t_irf(:);
 
                 switch decay_mode
                     case 1
                         [obj.data, obj.irf] = obj.data_series.get_roi(mask,dataset);
                     case 2
-                        obj.data = obj.data_series.irf;
-                        obj.t = d.t_irf;
-                        obj.bg_line = ones(size(obj.t))*d.irf_background;
+                        obj.data = obj.data_series.irf.irf;
+                        obj.t = d.irf.t_irf;
+                        obj.bg_line = ones(size(obj.t))*d.irf.irf_background;
                     case 3
                         obj.data = obj.data_series.tr_tvb_profile;
                     case 4

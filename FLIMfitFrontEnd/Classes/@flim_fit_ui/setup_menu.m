@@ -138,10 +138,7 @@ function handles = setup_menu(obj,handles)
   
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');
     
-    handles.menu_irf_set_delta = uimenu(menu_irf,'Label','Set Delta Function IRF','Separator','on');
-    
     handles.menu_irf_estimate_background = uimenu(menu_irf,'Label','Estimate IRF Background','Separator','on');
-    handles.menu_irf_estimate_t0 = uimenu(menu_irf,'Label','Estimate IRF Shift','Separator','on');
     handles.menu_irf_estimate_g_factor = uimenu(menu_irf,'Label','Estimate G Factor');
         
     menu_background = uimenu(obj.window,'Label','Background');

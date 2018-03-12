@@ -43,8 +43,7 @@ public:
    std::shared_ptr<InstrumentResponseFunction> GenerateIRF(int N);
    std::shared_ptr<InstrumentResponseFunction> GetGaussianIRF();
 
-   double getIrfSigma() { return irf_sigma; }
-   double getIrfMu() { return irf_mu; }
+   GaussianParameters getIrfParameters() { return irf; };
 
 protected:
 
@@ -53,8 +52,7 @@ protected:
    int mode;
    
    // IRF properties
-   double irf_mu;
-   double irf_sigma;
+   GaussianParameters irf;
 
    double dt;
    

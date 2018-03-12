@@ -58,13 +58,34 @@ DataTransformationSettings getDataTransformationSettings(const mxArray* settings
 
    DataTransformationSettings settings;
 
-   settings.smoothing_factor = getValueFromStruct(settings_struct, "smoothing_factor", 0);
-   settings.t_start = getValueFromStruct(settings_struct, "t_start");
-   settings.t_stop = getValueFromStruct(settings_struct, "t_stop");
-   settings.threshold = getValueFromStruct(settings_struct, "threshold", 0);
-   settings.limit = getValueFromStruct(settings_struct, "limit", 0); // 0 = no limit
+   settings.smoothing_factor = getValueFromStruct(settings_struct, 0, "smoothing_factor", 0);
+   settings.t_start = getValueFromStruct(settings_struct, 0, "t_start");
+   settings.t_stop = getValueFromStruct(settings_struct, 0, "t_stop");
+   settings.threshold = getValueFromStruct(settings_struct, 0, "threshold", 0);
+   settings.limit = getValueFromStruct(settings_struct, 0, "limit", 0); // 0 = no limit
 
    return settings;
+}
+
+std::shared_ptr<InstrumentResponseFunction> getAnalyticalIRF(const mxArray* irf_struct)
+{
+   AssertInputCondition(mxIsStruct(irf_struct));
+
+   int n_chan = mxGetNumberOfElements(irf_struct);
+
+   std::vector<GaussianParameters> params;
+   params.reserve(n_chan);
+   for (int i = 0; i < n_chan; i++)
+   {
+      params.push_back(GaussianParameters(
+         getValueFromStruct(irf_struct, i, "mu"),
+         getValueFromStruct(irf_struct, i, "sigma"),
+         getValueFromStruct(irf_struct, i, "offset", 0)));
+   }
+
+   auto irf = std::make_shared<InstrumentResponseFunction>();
+   irf->setGaussianIRF(params);
+   return irf;
 }
 
 std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
@@ -73,10 +94,10 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
    
    auto irf = std::make_shared<InstrumentResponseFunction>();
 
-   double timebin_t0 = getValueFromStruct(irf_struct, "timebin_t0");
-   double timebin_width = getValueFromStruct(irf_struct, "timebin_width");
+   double timebin_t0 = getValueFromStruct(irf_struct, 0, "timebin_t0");
+   double timebin_width = getValueFromStruct(irf_struct, 0, "timebin_width");
 
-   const mxArray* irf_ = getFieldFromStruct(irf_struct, "irf");
+   const mxArray* irf_ = getFieldFromStruct(irf_struct, 0, "irf");
    AssertInputCondition(mxIsDouble(irf_) && mxGetNumberOfDimensions(irf_) == 2);
 
    int n_t = mxGetM(irf_);
@@ -93,8 +114,8 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
       irf->setIRF(n_t, n_chan, timebin_t0, timebin_width, irf_data);
    }
 
-   bool ref_reconvolution = (bool) getValueFromStruct(irf_struct, "ref_reconvolution", false);
-   double ref_lifetime_guess = getValueFromStruct(irf_struct, "ref_lifetime_guess", 80.0);
+   bool ref_reconvolution = (bool) getValueFromStruct(irf_struct, 0, "ref_reconvolution", false);
+   double ref_lifetime_guess = getValueFromStruct(irf_struct, 0, "ref_lifetime_guess", 80.0);
    
    irf->setReferenceReconvolution(ref_reconvolution, ref_lifetime_guess);
 
@@ -119,6 +140,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          {
             const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "irf");
             transformation_settings.irf = getIRF(irf_struct);
+         }
+
+         if (isArgument(nrhs, prhs, "analytical_irf"))
+         {
+            const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "analytical_irf");
+            transformation_settings.irf = getAnalyticalIRF(irf_struct);
          }
 
          double background_value = 0.0;

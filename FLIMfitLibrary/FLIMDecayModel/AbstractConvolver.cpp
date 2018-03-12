@@ -24,4 +24,6 @@ std::vector<std::shared_ptr<AbstractConvolver>> AbstractConvolver::make_vector(s
    v.reserve(n);
    for (size_t i = 0; i < n; i++)
       v.push_back(make(dp));
+
+   return v;
 }

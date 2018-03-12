@@ -70,7 +70,7 @@ inline std::string getStringFromMatlab(const mxArray* dat)
 */
 
 
-inline mxArray* getFieldFromStruct(const mxArray* s, const char *field)
+inline mxArray* getFieldFromStruct(const mxArray* s, int idx, const char *field)
 {
    int field_number = mxGetFieldNumber(s, field);
    if (field_number == -1)
@@ -79,16 +79,16 @@ inline mxArray* getFieldFromStruct(const mxArray* s, const char *field)
       mexErrMsgIdAndTxt("FLIMfit:missingField", err.c_str());
    }
 
-   return mxGetFieldByNumber(s, 0, field_number);
+   return mxGetFieldByNumber(s, idx, field_number);
 }
 
-inline double getValueFromStruct(const mxArray* s, const char *field, double default_value)
+inline double getValueFromStruct(const mxArray* s, int idx, const char *field, double default_value)
 {
    int field_number = mxGetFieldNumber(s, field);
    if (field_number == -1)
       return default_value;
 
-   const mxArray* v = mxGetFieldByNumber(s, 0, field_number);
+   const mxArray* v = mxGetFieldByNumber(s, idx, field_number);
 
    if (!mxIsScalar(v))
    {
@@ -99,10 +99,9 @@ inline double getValueFromStruct(const mxArray* s, const char *field, double def
    return mxGetScalar(v);
 }
 
-inline double getValueFromStruct(const mxArray* s, const char *field)
+inline double getValueFromStruct(const mxArray* s, int idx, const char *field)
 {
-   const mxArray* v = getFieldFromStruct(s, field);
-
+   const mxArray* v = getFieldFromStruct(s, idx, field);
    if (!mxIsScalar(v))
    {
       std::string err = std::string("Expected field to be scalar: ").append(field);
@@ -275,7 +274,7 @@ std::vector<T> getVector(const mxArray* v)
 template<typename T>
 std::vector<T> getVectorFromStruct(const mxArray* s, const char *field)
 {
-   mxArray* v = getFieldFromStruct(s, field);
+   mxArray* v = getFieldFromStruct(s, 0, field);
    return getVector<T>(v);
 }
 
@@ -312,16 +311,16 @@ mxArray* validateSharedPointer(const mxArray* a)
       mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
          "Structure not recognised");
 
-   std::string type = getStringFromMatlab(getFieldFromStruct(a, "type"));
+   std::string type = getStringFromMatlab(getFieldFromStruct(a, 0, "type"));
    if (type != typeid(T).name())
       mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
          "Incorrect type");
 
-   if (getValueFromStruct(a, "valid") != 1.0)
+   if (getValueFromStruct(a, 0, "valid") != 1.0)
       mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
          "Pointer not valid");
 
-   mxArray* ptr = getFieldFromStruct(a, "pointer");
+   mxArray* ptr = getFieldFromStruct(a, 0, "pointer");
    if (!mxIsUint64(ptr))
       mexErrMsgIdAndTxt("MATLAB:FLIMfit:invalidInput",
          "Pointer not valid");

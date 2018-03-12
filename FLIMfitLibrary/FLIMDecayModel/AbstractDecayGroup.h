@@ -110,7 +110,7 @@ protected:
    void parametersChanged() { emit parametersUpdated(); };
    virtual int getNumPotentialChannels() { return 1; }
    
-   void validateChannelFactors();
+   void normaliseChannelFactors(const std::vector<double>& channel_factors, std::vector<double>& norm_channel_factors);
 
    bool constrain_nonlinear_parameters = true;
 

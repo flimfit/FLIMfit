@@ -78,17 +78,24 @@ void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_
    calculateGFactor();
 }
 
-void InstrumentResponseFunction::setGaussianIRF(double sigma, double mu, double offset)
+void InstrumentResponseFunction::setGaussianIRF(std::vector<GaussianParameters> gaussian_params_)
 {
-   gaussian_sigma = sigma;
-   gaussian_mu = mu;
-   gaussian_offset = offset;
+   gaussian_params = gaussian_params_;
    type = Gaussian;
 }
 
+int InstrumentResponseFunction::getNumChan()
+{
+   if (isGaussian())
+      return (int) gaussian_params.size();
+   else
+      return n_chan;
+}
+
+
 
 void InstrumentResponseFunction::setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess)
-{
+{ 
    // TODO
 //   this->ref_reconvolution = ref_reconvolution;
 //   this->ref_lifetime_guess = ref_lifetime_guess;
