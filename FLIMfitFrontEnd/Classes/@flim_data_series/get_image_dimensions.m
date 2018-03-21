@@ -51,8 +51,6 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
          % bioformats files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
          case '.bio'
              
-            s = [];
-            
             omeMeta = r.getMetadataStore();
            
             seriesCount = r.getSeriesCount;
@@ -109,17 +107,17 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             mod = r.getModuloT();
           
             type = lower(char(mod.type));
-            if strfind(type,'lifetime')
+            if contains(type,'lifetime')
                 modlo = mod;
                 dims.modulo = 'ModuloAlongT';
             else
                 mod = r.getModuloC();
-                if strfind(type,'lifetime')
+                if contains(type,'lifetime')
                     modlo = mod;
                     dims.modulo = 'ModuloAlongC';
                 else
                     mod = r.getModuloZ();
-                    if strfind(type,'lifetime')
+                    if contains(type,'lifetime')
                         modlo = mod;
                         dims.modulo = 'ModuloAlongZ';
                     end
@@ -129,7 +127,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             if ~isempty(modlo)
                 
                  if ~isempty(modlo.labels)
-                     dims.delays = str2num(modlo.labels)';
+                     dims.delays = str2num(modlo.labels)'; %#ok
                  end
                 
                  if ~isempty(modlo.start)
@@ -181,6 +179,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             end
              
             % get channel_names
+            chan_info = cell(1,sizeZCT(2));
             for c = 1:sizeZCT(2)
                 chan_info{c} = char(omeMeta.getChannelName( 0 ,  c -1 ));
                 if isempty(chan_info{c})
@@ -293,7 +292,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
                   header_info{i} = parts(2:end);
                   tag = parts{1};
                   % find which line describes wavelength
-                  if strfind(lower(tag),'wave')
+                  if contains(lower(tag),'wave')
                       wave_no = i;
                   end
                   n_chan(i) = length(header_info{i});
@@ -308,7 +307,7 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
               end
               
               % catch headerless or unreadable headers
-              if isempty(n_chan) | n_chan < 1
+              if isempty(n_chan) || n_chan < 1
                   n_chan = 1;
                   chan_info{1} = '1';
               end

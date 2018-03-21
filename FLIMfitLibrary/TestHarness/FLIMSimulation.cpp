@@ -16,8 +16,10 @@ using std::vector;
 FLIMSimulationTCSPC::FLIMSimulationTCSPC() :
    FLIMSimulation(DATA_TYPE_TCSPC)
 {
+   double Tmax = 12500;
+
    n_t_full = 512;
-   dt = t_rep / n_t_full;
+   dt = Tmax / n_t_full;
 
 
    std::vector<double> t_;
@@ -43,7 +45,7 @@ FLIMSimulationWF::FLIMSimulationWF() :
    n_t_full = 5;
 
    dt = 25;
-   n_t_irf = ceil((gate_width + irf_mu + 4 * irf_sigma) / dt); // make sure we record enough of the IRF
+   n_t_irf = ceil((gate_width + irf.mu + 4 * irf.sigma) / dt); // make sure we record enough of the IRF
 
    std::vector<double> t_;
    std::vector<double> t_int_;
@@ -62,12 +64,11 @@ FLIMSimulationWF::FLIMSimulationWF() :
 
 
 FLIMSimulation::FLIMSimulation(int data_type) :
-   AcquisitionParameters(data_type, t_rep_default, MODE_STANDARD, 1, 1.0),
-   irf_mu(1000),
-   irf_sigma(200)
+   AcquisitionParameters(data_type, t_rep_default, MODE_STANDARD, 1, 1.0), 
+   irf(2000, 100)
 {
    // Generate the IRF distribution
-   norm_dist = boost::random::normal_distribution<double>(irf_mu, irf_sigma);
+   norm_dist = boost::random::normal_distribution<double>(irf.mu, irf.sigma);
 
    gen.seed(100);
    //gen.seed( (uint32_t) time(NULL) );   
@@ -154,6 +155,14 @@ std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GenerateIRF(int N)
 
    return irf;
 }
+
+std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GetGaussianIRF()
+{
+   auto irf_ = std::make_shared<InstrumentResponseFunction>();
+   irf_->setGaussianIRF({irf});
+   return irf_;
+}
+
 
 void FLIMSimulationTCSPC::GenerateIRF_(int N, std::vector<double>& decay)
 {

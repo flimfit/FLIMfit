@@ -70,7 +70,7 @@
     p = obj.fit_params;
     d = obj.data_series;
     
-    obj.use_image_irf = d.has_image_irf && ~obj.bin && p.image_irf_mode == 1;
+    obj.use_image_irf = d.irf.has_image_irf && ~obj.bin && p.image_irf_mode == 1;
     
     
     % Determine which datasets we need to load and make sure they're loaded
@@ -192,9 +192,9 @@
         end
 
         if ~isempty(d.acceptor)
-           for i=1:length(sel) 
-               ff_FLIMImage(im(i),'SetAcceptor',d.acceptor(:,:,sel(i)));
-           end
+           %for i=1:length(sel) 
+           %    ff_FLIMImage(im(i),'SetAcceptor',single(d.acceptor(:,:,sel(i))));
+           %end
         end
         if ~isempty(d.seg_mask) || ~isempty(d.multid_mask)
            for i=1:length(sel)
@@ -218,13 +218,19 @@
     transform.threshold = d.thresh_min;
     transform.limit = d.gate_max;
     
-    irf = struct();
-    irf.irf = d.tr_irf;
-    irf.timebin_t0 = d.tr_t_irf(1);
-    irf.timebin_width = d.tr_t_irf(2) - d.tr_t_irf(1);
-    irf.ref_reconvolution = d.irf_type;
-    irf.ref_lifetime_guess = d.ref_lifetime;
-            
+    if d.irf.is_analytical
+        irf_type = 'analytical_irf';
+        irf = d.irf.gaussian_parameters;
+    else
+        irf_type = 'irf';
+        irf = struct();
+        irf.irf = d.irf.tr_irf;
+        irf.timebin_t0 = d.irf.tr_t_irf(1);
+        irf.timebin_width = d.irf.tr_t_irf(2) - d.irf.tr_t_irf(1);
+        irf.ref_reconvolution = d.irf.irf_type;
+        irf.ref_lifetime_guess = d.irf.ref_lifetime;
+    end
+    
     if all(size(d.tvb_profile) == d.data_size(1:2)')
         tvb = d.tvb_profile;
     else
@@ -233,7 +239,7 @@
     
     data = ff_FLIMData('images',im,...
                        'data_transformation_settings',transform,...
-                       'irf',irf,...
+                       irf_type,irf,...
                        'background_value',d.background_value); %,...
                        %'tvb_profile',tvb,...
                        %'tvb_I_map',d.tvb_I_image);

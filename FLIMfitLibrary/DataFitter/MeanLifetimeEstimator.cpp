@@ -36,7 +36,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    // If we have a scatter IRF use data after cumulative sum of IRF is
    // 95% of total sum (so we ignore any potential tail etc)
    //===================================================
-   if (!(irf->type == Reference))
+   if (irf->type == Reference)
    {
       // Determine 95% of IRF
       double irf_95 = 0;
@@ -68,7 +68,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    // If we have reference IRF, use data after peak of reference which should roughly
    // correspond to end of gate
    //===================================================
-   else
+   else if (irf->type == Scatter)
    {
       // Cycle through IRF, if IRF is larger then previously seen find the find the 
       // time gate in the data immediately after this time. Repeat until end of IRF.
@@ -87,6 +87,17 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
                }
          }
       }
+   }
+   else if (irf->type == Gaussian)
+   {
+      start = 0;
+      double start_time = irf->gaussian_params[0].mu;
+      for (int j = 0; j<n_t; j++)
+         if (t[j] > start_time)
+         {
+            start = j;
+            break;
+         }
    }
 
 

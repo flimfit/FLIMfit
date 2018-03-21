@@ -44,7 +44,8 @@ void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups)
 {
 
    FLIMSimulationTCSPC sim;
-   std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   //std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF();
    auto acq = std::make_shared<AcquisitionParameters>(sim);
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 
@@ -68,7 +69,7 @@ void validate(std::vector<std::shared_ptr<AbstractDecayGroup>> groups)
 void validate(std::shared_ptr<AbstractDecayGroup> g)
 {
 
-   std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n\n";
+   std::cout << "\nTesting derivatives for " << g->objectName().toStdString() << "\n================\n";
    
 
    FLIMSimulationTCSPC sim;
@@ -117,6 +118,7 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
 int testModelDerivatives()
 {
    // Test multiexponential group
+   
    for (int n_exp = 1; n_exp <= 4; n_exp++)
    {
       auto group = std::make_shared<MultiExponentialDecayGroup>(n_exp);
@@ -126,9 +128,9 @@ int testModelDerivatives()
       group->setContributionsGlobal(true);
       validate(group);
    }
-
+   
    // Test FRET group
-   for(int n_fret = 0; n_fret <= 2; n_fret++)
+   for(int n_fret = 1; n_fret <= 2; n_fret++)
       for (int n_exp = 1; n_exp <= 3; n_exp++)
       {
          auto group = std::make_shared<FretDecayGroup>(n_exp, n_fret, true);

@@ -62,7 +62,8 @@ function init_dataset(obj,setting_file_name)
     obj.thresh_mask = [];
     obj.seg_mask = [];
     obj.multid_mask = [];
-
+    obj.intensity_normalisation = [];
+    
     obj.use = true(obj.n_datasets,1);
     
     obj.binning = 1;
@@ -72,13 +73,11 @@ function init_dataset(obj,setting_file_name)
     obj.t_min = min(obj.t);
     obj.t_max = max(obj.t);  
    
-    obj.t0 = 0;
-    
-    obj.t_irf_min = min(obj.t_irf);
-    obj.t_irf_max = max(obj.t_irf);
-    
-    obj.irf_background = 0;
-             
+    obj.irf.polarisation_resolved = obj.polarisation_resolved;
+    obj.irf.data_t_min = obj.t_min;
+    obj.irf.n_chan = obj.n_chan;
+    obj.irf.init();
+                 
     obj.data_size = size(obj.cur_data);
     obj.data_size = [obj.data_size ones(1,4-length(obj.data_size))];
 
@@ -92,11 +91,8 @@ function init_dataset(obj,setting_file_name)
         end
     end
     
-    
     if nargin >= 2
        obj.load_data_settings(setting_file_name); 
-    else
-        obj.set_delta_irf();
     end
     
     % if single-pixel, single line or single column image then force no smoothing

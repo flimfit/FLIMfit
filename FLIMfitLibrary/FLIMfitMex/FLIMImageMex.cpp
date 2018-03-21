@@ -52,14 +52,14 @@ std::shared_ptr<AcquisitionParameters> getAcquisitionParameters(const mxArray* a
 {
    AssertInputCondition(mxIsStruct(acq_params_struct));
 
-   int data_type = getValueFromStruct(acq_params_struct, "data_type");
-   double t_rep = getValueFromStruct(acq_params_struct, "t_rep");
-   int polarisation_resolved = getValueFromStruct(acq_params_struct, "polarisation_resolved");
-   int n_chan = getValueFromStruct(acq_params_struct, "n_chan");
-   double counts_per_photon = getValueFromStruct(acq_params_struct, "counts_per_photon");
+   int data_type = getValueFromStruct(acq_params_struct, 0, "data_type");
+   double t_rep = getValueFromStruct(acq_params_struct, 0, "t_rep");
+   int polarisation_resolved = getValueFromStruct(acq_params_struct, 0, "polarisation_resolved");
+   int n_chan = getValueFromStruct(acq_params_struct, 0, "n_chan");
+   double counts_per_photon = getValueFromStruct(acq_params_struct, 0, "counts_per_photon");
 
-   int n_x = getValueFromStruct(acq_params_struct, "n_x");
-   int n_y = getValueFromStruct(acq_params_struct, "n_y");
+   int n_x = getValueFromStruct(acq_params_struct, 0, "n_x");
+   int n_y = getValueFromStruct(acq_params_struct, 0, "n_y");
 
    std::vector<double> t = getVectorFromStruct<double>(acq_params_struct, "t");
    std::vector<double> t_int = getVectorFromStruct<double>(acq_params_struct, "t_int");
@@ -122,7 +122,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          else if (isArgument(nrhs, prhs, "mapped_file"))
          {
             std::string mapped_file = getStringFromMatlab(getNamedArgument(nrhs, prhs, "mapped_file"));
-            int map_offset = mxGetScalar(getNamedArgument(nrhs, prhs, "data_offset"));
+            size_t map_offset = mxGetScalar(getNamedArgument(nrhs, prhs, "data_offset"));
 
             std::string data_class_str = getStringFromMatlab(getNamedArgument(nrhs, prhs, "data_class"));
             FLIMImage::DataClass data_class;

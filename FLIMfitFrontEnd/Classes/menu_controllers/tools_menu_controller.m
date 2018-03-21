@@ -89,7 +89,7 @@ classdef tools_menu_controller < handle
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = sum(double(data),3);
             
-            estimate_irf_interface(t,data,T,default_path);
+            estimate_irf_interface(t,data,T,true,default_path);
             
         end
         

@@ -13,7 +13,7 @@ root(root)
    init();
 }
 
-FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, int map_offset) :
+FLIMImage::FLIMImage(std::shared_ptr<AcquisitionParameters> acq, const std::string& map_file_name, DataClass data_class, size_t map_offset) :
    acq(acq),
    map_file_name(map_file_name),
    data_class(data_class),
@@ -90,7 +90,7 @@ void FLIMImage::init()
    else if (data_class == DataUint16)
       n_bytes = 2;
    
-   map_length = acq->n_px * acq->n_meas_full * n_bytes;
+   map_length = static_cast<size_t>(acq->n_px) * acq->n_meas_full * n_bytes;
 }
 
 void FLIMImage::ensureAllocated()

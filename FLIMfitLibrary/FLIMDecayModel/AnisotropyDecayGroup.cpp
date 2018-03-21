@@ -45,8 +45,8 @@ AnisotropyDecayGroup::AnisotropyDecayGroup(int n_lifetime_exponential, int n_ani
    //n_nl_parameters += n_anisotropy_populations;
 
    //anisotropy_buffer.resize(n_anisotropy_populations,
-   //   std::vector<ExponentialPrecomputationBuffer>(n_exponential,
-   //   ExponentialPrecomputationBuffer(acq))); 
+   //   std::vector<MeasuredIrfConvolver>(n_exponential,
+   //   MeasuredIrfConvolver(acq))); 
 
    setupParameters();
 }
@@ -100,7 +100,7 @@ int AnisotropyDecayGroup::setVariables(const double* param_value)
       for (int j = 0; j < n_exponential; j++)
       {
          double rate = 1 / tau[j] + 1 / theta[i];
-         anisotropy_buffer[i][j].compute(rate, irf_idx, t0_shift, channel_factors[i]); // TODO: check channel factors
+         anisotropy_buffer[i][j]->compute(rate, irf_idx, t0_shift); // TODO: check channel factors
       }
    }
 
@@ -247,7 +247,7 @@ int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int idx, double* b
          double fact = 1 / (tau[idx] * tau[idx]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
          fact *= beta[idx];
 
-         buffer[idx].addDerivative(fact, reference_lifetime, b);
+         buffer[idx]->addDerivative(fact, channel_factors[idx], reference_lifetime, b);
       }
 
 
@@ -270,7 +270,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double* b, int
          for (int j = 0; j < n_exponential; j++)
          {
             double factor = beta[j] / theta[p] / theta[p]; // TODO: * TransformRangeDerivative(wb.theta_buf[p], 0, 1000000);
-            anisotropy_buffer[p][j].addDerivative(factor, reference_lifetime, b + col * bdim);
+            anisotropy_buffer[p][j]->addDerivative(factor, channel_factors[p], reference_lifetime, b + col * bdim);
          }
 
          col++;

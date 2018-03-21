@@ -94,3 +94,18 @@ std::shared_ptr<FittingParameter> AbstractDecayGroup::getParameter(const std::st
 
    throw std::runtime_error("Invalid parameter name");
 }
+
+void AbstractDecayGroup::normaliseChannelFactors(const std::vector<double>& channel_factors, std::vector<double>& norm_channel_factors)
+{
+   norm_channel_factors.resize(channel_factors.size());
+
+   double factor_sum = 0;
+   for (auto f : channel_factors)
+      factor_sum += f;
+
+   if (factor_sum == 0)
+      throw std::runtime_error("Sum of channel factors was zero");
+
+   for (int i = 0; i < channel_factors.size(); i++)
+      norm_channel_factors[i] = channel_factors[i] / factor_sum;
+}

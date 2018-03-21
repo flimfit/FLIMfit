@@ -50,6 +50,15 @@ sum(p2.*f)
 plot(f,p1/df)
 hold on
 
+
+df = f(2)-f(1);
+p = log(2 + sqrt(3)) / sqrt(3) * (sqrt(f+df) - sqrt(f));
+p = p - heaviside(f - 1) .* ((sqrt(f+df).*log(sqrt(f+df)+sqrt(f+df-1))-sqrt(f+df-1)) - ...
+                             (sqrt(f).*log(sqrt(f)+sqrt(f-1))-sqrt(f-1))) / sqrt(3);
+                        
+plot(f,p)
+    
+
 %%
 
 

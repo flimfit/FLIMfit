@@ -52,7 +52,7 @@ classdef irf_menu_controller < handle
         function update_recent_irf_list(obj)
             
             function menu_call(file)
-                 obj.data_series_controller.data_series.load_irf(file);
+                 obj.data_series_controller.data_series.irf.load_irf(file);
             end
             
             if ~isempty(obj.recent_irf)
@@ -82,7 +82,7 @@ classdef irf_menu_controller < handle
         function menu_irf_load(obj)
             [file,path] = uigetfile('*.*','Select a file from the irf',default_path);
             if file ~= 0
-                obj.data_series_controller.data_series.load_irf([path file]);
+                obj.data_series_controller.data_series.irf.load_irf([path file]);
                 obj.add_recent_irf([path file]);
             end
         end
@@ -90,24 +90,8 @@ classdef irf_menu_controller < handle
         function menu_irf_image_load(obj)
             [file,path] = uigetfile('*.*','Select a file from the irf',default_path);
             if file ~= 0
-                obj.data_series_controller.data_series.load_irf([path file],true);
+                obj.data_series_controller.data_series.irf.load_irf([path file],true);
             end
-        end
-        
-        function menu_irf_set_delta(obj)
-            obj.data_series_controller.data_series.set_delta_irf();
-        end
-        
-        function menu_irf_set_rectangular(obj)
-            width = inputdlg('IRF Width','IRF Width',1,{'500'});
-            width = str2double(width);
-            obj.data_series_controller.data_series.set_rectangular_irf(width);
-        end
-        
-        function menu_irf_set_gaussian(obj)
-            width = inputdlg('IRF Width','IRF Width',1,{'500'});
-            width = str2double(width);
-            obj.data_series_controller.data_series.set_gaussian_irf(width);
         end
         
         function menu_irf_estimate_background(obj)

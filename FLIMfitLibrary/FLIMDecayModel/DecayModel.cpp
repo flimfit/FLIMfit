@@ -80,7 +80,7 @@ void DecayModel::init()
    if (dp->irf == nullptr)
       throw std::runtime_error("No IRF loaded");
    
-   if (dp->n_chan != dp->irf->n_chan)
+   if (dp->n_chan != dp->irf->getNumChan())
       throw std::runtime_error("IRF must have the same number of channels as the data");
    
    for (auto g : decay_groups)

@@ -2,6 +2,7 @@
 
 #include "AbstractDecayGroup.h"
 #include "IRFConvolution.h"
+#include "AbstractConvolver.h"
 
 template<class T> // TODO: make this part of class
 int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[], T beta_buf[])
@@ -56,7 +57,7 @@ protected:
 
    void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
 
-   int addDecayGroup(const std::vector<ExponentialPrecomputationBuffer>& buffers, double factor, double* a, int adim, double& kap, int bin_shift = 0);
+   int addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double* a, int adim, double& kap, int bin_shift = 0);
    int addLifetimeDerivative(int idx, double* b, int bdim);
    void addLifetimeKappaDerivative(int idx, double_iterator& kap_derv);
    int addContributionDerivatives(double* b, int bdim, double_iterator& kap_derv);
@@ -71,8 +72,9 @@ protected:
    std::vector<double> tau, tau_raw;
    std::vector<double> beta, beta_buf;
    std::vector<float> beta_buf_float;
-   std::vector<ExponentialPrecomputationBuffer> buffer;
+   std::vector<std::shared_ptr<AbstractConvolver>> buffer;
    std::vector<double> channel_factors;
+   std::vector<double> norm_channel_factors;
 
 protected:
    template<class Archive>

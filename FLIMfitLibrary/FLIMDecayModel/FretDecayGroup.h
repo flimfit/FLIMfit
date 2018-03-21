@@ -17,31 +17,22 @@ public:
       }
       else
       {
+         double sump = 0;
          double df = 4.0 / n;
-         double p0 = log(2.0 + sqrt(3.0))/sqrt(3.0);
-/*
-         double norm = 0;
-         for (int i = 0; i < n; i++)
-         {
-            f[i] = (i + 1) * df;
-            p[i] = p0;
-            if (f[i] >= 1.0)
-               p[i] += log(sqrt(f[i]) + sqrt(f[i] - 1));
-            p[i] /= (2.0 * sqrt(3.0 * f[i]));
-            norm += p[i];
-         }
-*/
+         double p0 = log(2.0 + sqrt(3.0)) / sqrt(3.0);
          for (int i = 0; i < n; i++)
          {
             double f0 = i * df;
             double f1 = f0 + df;
-            f[i] = f0;
+            f[i] = f0 + 0.5 * df;
             
             p[i] = p0 * (sqrt(f1) - sqrt(f0));
             if (f[i] >= 1.0)
                p[i] -= ((sqrt(f1)*log(sqrt(f1)+sqrt(f1-1))-sqrt(f1-1)) - 
-                       (sqrt(f0)*log(sqrt(f0)+sqrt(f0-1))-sqrt(f0-1))) / sqrt(3);            
-         }
+                       (sqrt(f0)*log(sqrt(f0)+sqrt(f0-1))-sqrt(f0-1))) / sqrt(3.0);       
+
+            sump += p[i];
+         }         
       }
    }
 
@@ -114,6 +105,7 @@ protected:
    std::shared_ptr<FittingParameter> tauA_parameter;
 
    std::vector<double> acceptor_channel_factors;
+   std::vector<double> norm_acceptor_channel_factors;
 
    int n_fret_populations = 1;
    bool include_donor_only = true;
@@ -127,9 +119,8 @@ protected:
    double Qsigma;
    double tauA;
 
-   std::vector<std::vector<std::vector<ExponentialPrecomputationBuffer>>> fret_buffer;
-   std::vector<std::vector<std::vector<ExponentialPrecomputationBuffer>>> acceptor_fret_buffer;
-   std::unique_ptr<ExponentialPrecomputationBuffer> acceptor_buffer;
+   std::vector<std::vector<std::vector<std::shared_ptr<AbstractConvolver>>>> fret_buffer;
+   std::shared_ptr<AbstractConvolver> acceptor_buffer;
 
    int n_kappa = 100;
    KappaFactor kappa_factor;

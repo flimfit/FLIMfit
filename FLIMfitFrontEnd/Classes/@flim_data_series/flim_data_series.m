@@ -1,4 +1,4 @@
-  classdef flim_data_series < handle & h5_serializer
+classdef flim_data_series < handle & h5_serializer
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -28,15 +28,12 @@
    
     properties
         mode;
-        
-        t_irf = [-1; 0; 1];
-        irf = [0; 1; 0];
-        irf_name;
-        t0_image;
-                              
+                                      
         tvb_profile = 0;
         tvb_I_image;
           
+        irf instrument_response_function = instrument_response_function();
+        
         subtract_background = false;
         
     end
@@ -54,35 +51,20 @@
         t_max = 0;
         thresh_min = 0;
         gate_max = 2^16-1;
-        t_irf_min = 0;
-        t_irf_max = 0;
-        
-        irf_type = 0;
-        irf_background = 0;
-        afterpulsing_correction = false;
-        irf_downsampling = 1;
-        ref_lifetime = 80;
-        
-        g_factor = 1;
-        
+                
         counts_per_photon = 1;
 
         background_type = 0;
         background_value = 0;
         
         rep_rate = nan;
- 
-        t0 = 0;
         
         background_image = 0;
         
         use_t_calibration = false;
         cal_t_nominal = 0:10:20e3;
         cal_t_meas = 0:10:20e3;
-        cal_dt = 10;
-        
-        use_image_t0_correction = 0;
-        
+        cal_dt = 10;        
     end
     
     properties(Dependent)
@@ -101,14 +83,11 @@
     properties(SetObservable,Transient)
         suspend_transformation = false;
         n_chan = 1;
-        polarisation_resolved = false;
         data_size;
         data_type = 'single';
         use;
         
         use_smoothing = false;
-        data_subsampling = 1;
-        irf_subsampling = 1;
     end
         
     properties(SetObservable,Dependent)
@@ -119,6 +98,9 @@
         
         datasetId = -1;   %Set invalid OMERO dataset/plate Id as default
         plateId = -1;
+        
+        polarisation_resolved = false;
+
         
         acceptor;
         intensity_normalisation;
@@ -133,10 +115,7 @@
 
         seg_mask = [];
         multid_mask = [];
-        
-        has_image_irf = 0;
-        image_irf;
-        
+                
         all_Z_volume_loading = false;
         batch_mode = false;
         
@@ -179,15 +158,10 @@
         thresh_mask = [];
                 
         tr_t_all;
-        tr_t_irf;
         tr_t_int;
-        tr_irf;
-        tr_image_irf;
         
         t_skip;
         
-        irf_perp_shift = 0;
-
         tr_t;
         
         tr_tvb_profile;
@@ -238,7 +212,6 @@
             end
         end
         
-        
     end
     
     methods
@@ -270,6 +243,8 @@
             prof = get_profile();
             obj.rep_rate = prof.Data.Default_Rep_Rate;
             
+            addlistener(obj.irf,'updated',@(~,~) notify(obj,'data_updated'));
+            
         end
         
         function post_serialize(obj)
@@ -288,7 +263,7 @@
             try
                 h5create(obj.file,path,sz,'Datatype',datatype,'ChunkSize',ch_sz);
             catch err
-                if ~strcmp(err.identifier,'MATLAB:imagesci:h5create:datasetAlreadyExists');
+                if ~strcmp(err.identifier,'MATLAB:imagesci:h5create:datasetAlreadyExists')
                     throw(err);
                 end
             end
@@ -404,14 +379,15 @@
             
             data = data(:,:,roi_mask);
 
-            if obj.has_image_irf
-                irf = obj.tr_image_irf(:,:,roi_mask);
+            % TODO : move this to IRF
+            if obj.irf.has_image_irf
+                irf = obj.irf.tr_image_irf(:,:,roi_mask);
                 irf = mean(irf,3);
-            elseif ~isempty(obj.t0_image)
-                offset = mean(obj.t0_image(roi_mask));
-                irf = interp1(obj.tr_t_irf,obj.tr_irf,obj.tr_t_irf+offset,'pchip','extrap');
+            elseif ~isempty(obj.irf.t0_image)
+                offset = mean(obj.irf.t0_image(roi_mask));
+                irf = interp1(obj.irf.tr_t_irf,obj.irf.tr_irf,obj.irf.tr_t_irf+offset,'pchip','extrap');
             else
-                irf = obj.tr_irf;
+                irf = obj.irf.tr_irf;
             end
             
             
@@ -468,11 +444,9 @@
             end
         end
         
-        function [perp_shift] = shifted_perp(obj,perp)
-           
-            perp_shift = interp1(obj.tr_t,perp,obj.tr_t-obj.irf_perp_shift)';
-            
-        end
+        %function [perp_shift] = shifted_perp(obj,perp)           
+        %    perp_shift = interp1(obj.tr_t,perp,obj.tr_t-obj.irf_perp_shift)';
+        %end
         
         function [g,err] = get_g_factor_roi(obj,roi_mask,dataset)
             
@@ -497,30 +471,24 @@
             
             if obj.polarisation_resolved
                 data = obj.get_roi(roi_mask,dataset);
-                
-                if ndims(data) == 3
-                    n_px = size(data,3);
-                else
-                    n_px = 1;
-                end
-                                
+                                                
                 data = nanmean(data,3);
                 
                 para = data(:,1);
                 perp = data(:,2);
-                perp_shift = obj.shifted_perp(perp) * obj.g_factor;
-                magic_irf = obj.tr_irf(:,1);
+                %perp_shift = obj.shifted_perp(perp) * obj.g_factor;
+                %magic_irf = obj.irf.tr_irf(:,1);
 
-                parac = conv(para,obj.tr_irf(:,2));
-                perpc = conv(perp,obj.tr_irf(:,1));
-                magic_irf = conv(obj.tr_irf(:,1),obj.tr_irf(:,2));
+                parac = conv(para,obj.irf.tr_irf(:,2));
+                perpc = conv(perp,obj.irf.tr_irf(:,1));
+                magic_irf = conv(obj.irf.tr_irf(:,1),obj.irf.tr_irf(:,2));
                 
-                [~,n] = max(obj.tr_irf(:,1));
+                [~,n] = max(obj.irf.tr_irf(:,1));
                 
                 magic = (parac+2*perpc);
                 
                 magic = magic((1:size(data,1))+n,:);
-                magic_irf = magic_irf((1:size(obj.tr_irf))+n);
+                magic_irf = magic_irf((1:size(obj.irf.tr_irf))+n);
                 
             else
                 magic = [];
@@ -537,19 +505,15 @@
                 
                 para = data(:,1);
                 perp = data(:,2);
-                perp_shift = obj.shifted_perp(perp) * obj.g_factor;
                 
-                anis = (para-perp_shift)./(para+2*perp_shift);
+                %perp_shift = obj.shifted_perp(perp) * obj.g_factor;
+                %anis = (para-perp_shift)./(para+2*perp_shift);
                 
-                parac = conv(para,obj.tr_irf(:,2));
-                perpc = conv(perp,obj.tr_irf(:,1));
-                [~,n] = max(obj.tr_irf(:,1));
+                parac = conv(para,obj.irf.tr_irf(:,2));
+                perpc = conv(perp,obj.irf.tr_irf(:,1));
+                [~,n] = max(obj.irf.tr_irf(:,1));
                 anis = (parac-perpc)./(parac+2*perpc);
-                anis = anis((1:size(data,1))+n,:);
-                
-                anis = anis;
-                
-                
+                anis = anis((1:size(data,1))+n,:);                
                 
             else
                 anis = [];
@@ -560,19 +524,12 @@
         
         function estimate_g_factor(obj)
             
-            [g std] = obj.get_g_factor_roi(1,1);
-            
+            [g, std] = obj.get_g_factor_roi(1,1);
             gf = g(std<0.2);
-            
-            [~, peak] = max(gf);
-            grad = gradient(gf);
-            
+                        
             gauss_fit = gmdistribution.fit(gf,2,'Replicates',10);
             [~,idx] = max(gauss_fit.PComponents);
             obj.g_factor = gauss_fit.mu(idx);
-            
-            
-
         end
         
         
@@ -620,13 +577,7 @@
             s = length(data_size);
             obj.data_size = [data_size(:); ones(5-s,1)];
         end
-        
-        function set.polarisation_resolved(obj,polarisation_resolved)
-           
-            obj.polarisation_resolved = polarisation_resolved;
-                       
-        end
-        
+                
         function set.suspend_transformation(obj,suspend_transformation)
            
             obj.suspend_transformation = suspend_transformation;
@@ -688,25 +639,7 @@
             obj.t_max = t_max;
             obj.compute_tr_data;
         end
-        
-        function set.t_irf_max(obj,t_irf_max)
-            obj.t_irf_max = t_irf_max;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-        
-        function set.t_irf_min(obj,t_irf_min)
-            obj.t_irf_min = t_irf_min;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-        
-        function set.irf_background(obj,irf_background)
-            obj.irf_background = irf_background;
-            obj.compute_tr_irf;
-            notify(obj,'data_updated');
-        end
-        
+                
         function set.background_type(obj,background_type)
             obj.background_type = background_type;
             obj.compute_tr_data();
@@ -716,58 +649,6 @@
             obj.background_value = background_value;
             obj.compute_tr_data();
         end
-        
-        function set.ref_lifetime(obj,ref_lifetime)
-            obj.ref_lifetime = ref_lifetime;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-        
-        function set.irf_type(obj,irf_type)
-            obj.irf_type = irf_type;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-            
-        
-        function set.g_factor(obj,g_factor)
-            obj.g_factor = g_factor;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-        
-        function set.data_subsampling(obj,data_subsampling)
-            obj.data_subsampling = data_subsampling;
-            obj.compute_tr_data();
-        end
-       
-        function set.irf_subsampling(obj,irf_subsampling)
-            obj.irf_subsampling = irf_subsampling;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-
-        function set.t0(obj,t0)
-            obj.t0 = t0;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-        
-        function set.afterpulsing_correction(obj,afterpulsing_correction)
-            obj.afterpulsing_correction = afterpulsing_correction;
-            obj.compute_tr_irf();
-            notify(obj,'data_updated');
-        end
-        
-        function set.use_image_t0_correction(obj,use_image_t0_correction)
-           if ~isfield(obj.metadata,'t0') || ~all(cellfun(@isnumeric,obj.metadata.t0))
-               use_image_t0_correction = false;
-           end
-           obj.use_image_t0_correction = use_image_t0_correction;
-           obj.compute_tr_irf();
-           notify(obj,'data_updated');
-        end
-        
         
         %===============================================================
         
@@ -798,48 +679,6 @@
         function n_masked = get.n_masked(obj)
             n_masked = sum(obj.mask(:));
         end
-        
-        
-        %===============================================================
-        
-        function set_delta_irf(obj)
-           obj.t_irf = [-1; 0; 1];
-           obj.irf = [0; 1; 0];
-           
-           obj.t_irf_min = -1;
-           obj.t_irf_max = 1;
-           
-           
-           obj.compute_tr_irf();
-           notify(obj,'data_updated');
-        end
-        
-        function set_gaussian_irf(obj,width)
-            hw = width / 2;
-            ext = 2;
-            n_irf = 100;
-            obj.t_irf = (1:n_irf) * (hw * ext) / n_irf - (hw * 0.5 * ext);
-            obj.irf = 1/(hw*sqrt(2*pi)) * exp(-0.5*(obj.t_irf/hw).^2);  
-            
-            obj.compute_tr_irf();
-            
-            notify(obj,'data_updated');
-        end
-        
-        function set_rectangular_irf(obj,width)
-            n_irf = 100;
-            
-            obj.t_irf = (1:n_irf) * width/n_irf;
-            obj.irf = ones(size(obj.t_irf));
-            
-            obj.t_irf = [ min(obj.t_irf)-1 obj.t_irf max(obj.t_irf)+1 ]'; %#ok
-            obj.irf = [0 obj.irf 0]';
-            
-            obj.compute_tr_irf();
-            
-            notify(obj,'data_updated');
-        end
-
         
         %===============================================================
 
@@ -924,10 +763,10 @@
             tline = fgetl(f);
             
             exclude = [];
-            if strcmp(tline,'FOV') && isfield(obj.metadata,tline);
+            if strcmp(tline,'FOV') && isfield(obj.metadata,tline)
                 while ischar(tline)
                     tline = fgetl(f);
-                    exclude(end+1) = str2double(tline);
+                    exclude(end+1) = str2double(tline); %#ok
                 end
             else
                 warning('Only FOV exclusion currently supported');

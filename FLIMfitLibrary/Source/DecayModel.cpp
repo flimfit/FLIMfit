@@ -28,10 +28,10 @@
 //=========================================================================
 
 #include "DecayModel.h"
-#include "ExponentialPrecomputationBuffer.h"
+#include "MeasuredIrfConvolver.h"
 #include "IRFConvolution.h"
 #include "ModelADA.h"
-#include "ExponentialPrecomputationBuffer.h"
+#include "MeasuredIrfConvolver.h"
 
 #include <stdio.h>
 #include "util.h"
@@ -778,7 +778,7 @@ DecayModelWorkingBuffers::DecayModelWorkingBuffers(shared_ptr<DecayModel> model)
    cur_alf   = new double[ model->nl ]; //ok
 
    //exp_buffer.resize(n_exp * model->n_fret_group * model->n_pol_group,
-   //   ExponentialPrecomputationBuffer(this)
+   //   MeasuredIrfConvolver(this)
    //   );
 
    this->model = model;

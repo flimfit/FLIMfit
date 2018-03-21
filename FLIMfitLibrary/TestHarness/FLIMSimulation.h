@@ -12,6 +12,7 @@
 #include "InstrumentResponseFunction.h"
 
 #include <boost/random/mersenne_twister.hpp>
+#include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/exponential_distribution.hpp>
 #include <boost/random/poisson_distribution.hpp>
@@ -40,7 +41,10 @@ public:
    void GenerateImageBackground(int N, U* decay);
 
    std::shared_ptr<InstrumentResponseFunction> GenerateIRF(int N);
-  
+   std::shared_ptr<InstrumentResponseFunction> GetGaussianIRF();
+
+   GaussianParameters getIrfParameters() { return irf; };
+
 protected:
 
    double SampleIRF();
@@ -48,15 +52,14 @@ protected:
    int mode;
    
    // IRF properties
-   double irf_mu;
-   double irf_sigma;
+   GaussianParameters irf;
 
    double dt;
    
    virtual void GenerateDecay(double tau, int N, std::vector<int>& decay) = 0;
    virtual void GenerateIRF_(int N, std::vector<double>& decay) = 0;
 
-   boost::mt19937 gen;
+   boost::lagged_fibonacci44497 gen;
    boost::random::normal_distribution<double> norm_dist;
 };
 
