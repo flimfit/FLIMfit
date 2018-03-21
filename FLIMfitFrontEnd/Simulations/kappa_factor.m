@@ -34,10 +34,21 @@ E = 1 ./ (1 + nud);
 histogram(nud);
 
 %%
-f = linspace(0,4,1000);
 
-p = (log(2 + sqrt(3)) - heaviside(f - 1) .* log(sqrt(f) + sqrt(f-1))) ./ (2 * sqrt(3 * f));
-plot(f,p)
+n = 100 ;
+df = 4/n;
+f = (0:(n-1))*df;
+
+p1 = (log(2 + sqrt(3)) - heaviside(f - 1) .* log(sqrt(f) + sqrt(f-1))) ./ (2 * sqrt(3 * f)) * df;
+
+% Integrated over df
+p2 = log(2+sqrt(3))/sqrt(3) * (sqrt(f+df)-sqrt(f));
+p2 = p2 - heaviside(f-1) / sqrt(3) .* ((sqrt(f+df).*log(sqrt(f+df)+sqrt(f+df-1))-sqrt(f+df-1)) - (sqrt(f).*log(sqrt(f)+sqrt(f-1))-sqrt(f-1)));
+
+sum(p2.*f)
+
+plot(f,p1/df)
+hold on
 
 %%
 

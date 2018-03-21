@@ -7,7 +7,7 @@ function emission = simulate(D, A, kt0, mode, system, n_photon)
     n_donor = binornd(n_photon,D.sigma/(D.sigma + A.sigma));
     n_acceptor = n_photon - n_donor;
 
-    n_donor = mnrnd(n_photon,D.beta);
+    n_donor = mnrnd(n_donor,D.beta);
     
     pA = [A.kf A.knf];
     pA = pA / sum(pA);
