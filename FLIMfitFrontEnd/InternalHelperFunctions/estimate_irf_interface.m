@@ -47,7 +47,7 @@ function estimate_irf_interface(t, data, T, analytical, default_path)
         
         for i=1:n_chan
             tabs.Selection = i;
-            [irf(:,i), t_final, chi2(i)] = estimate_analytical_irf(t,data(:,i),T,fit_ax(i),res_ax(i));
+            [irf(:,i), t_final, chi2(i)] = estimate_irf(t,data(:,i),T,fit_ax(i),res_ax(i));
         end
 
         valid = max(irf,[],2) > 1e-10; 

@@ -1,15 +1,8 @@
-function pattern = generate_pattern(td, d, tirf, irf, T, fit_ax, res_ax)
+function pattern = generate_pattern_analytical(td, d, mu, sigma, T, fit_ax, res_ax)
             
-    dtirf = tirf(2)-tirf(1);
-    
+    dt = td(2)-td(1);
     dvalid = d > 0;
     
-    extra = ((tirf(end) + dtirf):dtirf:(td(end)+dtirf))';  
-    tirf = [tirf; extra];
-    irf = [irf; zeros(size(extra))];
-    
-    sel = arrayfun(@(x) any(abs(td-x)<0.1), tirf);
-
     
     opts = optimset('MaxIter', 10000);
 
@@ -18,33 +11,28 @@ function pattern = generate_pattern(td, d, tirf, irf, T, fit_ax, res_ax)
     tau = [500 1000 5000];
     beta = [0.33 0.33 0.33];
     offset = 0;
-    
-    tau = log(tau - 50); 
-    
-    [x,chi2_final] = fminsearch(@fit,[tau beta(1:(end-1)) offset], opts);
-    
-    count = 0;
-    [~,I] =fit(x);
+    I = 1;
         
+    fminsearch(@fit,[log(tau-50) beta(1:(end-1)) offset], opts);
+       
     beta = beta * I;
     offset = offset * I;
-    
-    
     
     pattern = [tau(1) beta(1) tau(2) beta(2) tau(3) beta(3) offset];
     tau
     beta
+    offset
             
-    function [chi2,I] = fit(x)
+    function chi2 = fit(x)
         x = min(x,1e4);
-        tau = exp(x(1:3)) + 50;
+        tau = exp(x(1:3)) + 50; % Constrain tau above 50ps
         beta = x(4:5);
         beta(3) = 1 - sum(beta);
         offset = x(6);
 
         dc = offset;
         for i=1:length(tau)
-            dc = dc + beta(i) * generate_decay(1, tau(i));
+            dc = dc + beta(i) * generate_decay_analytical_irf(td, dt, T, tau(i), mu, sigma);
         end
         
         I = dc \ d;
@@ -80,33 +68,6 @@ function pattern = generate_pattern(td, d, tirf, irf, T, fit_ax, res_ax)
             drawnow
         end
         count = count + 1;
-    end
-
-    function [dc] = generate_decay(I, tau)
-        dc = I * conv_irf(tirf,irf,tau);
-        dc = dc(sel);        
-    end
-
-    function D = conv_irf(tg,g,tau)
-       
-        % See thesis page: 69-70
-        
-        rhoi = exp(tg/tau);
-        G = g.*rhoi;
-        G = cumsum(G);
-        G = circshift(G,1);
-        G(1) = 0;
-        rho = exp(dtirf / tau);
-        
-        A = tau.^2/dtirf* (1-rho)^2/rho;
-        B = tau.^2/dtirf * (dtirf / tau - 1 + 1/rho);
-        
-        C = A * G + B * g .* rhoi;
-        
-        f = 1 / (exp(T/tau)-1);
-        
-        D = (C + f * C(end))./ rhoi * dtirf;
-        
     end
 
 end

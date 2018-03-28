@@ -1,28 +1,33 @@
-function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
+function [irf,t_irf,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
         
     dt = td(2)-td(1);
     
     if (dt > 250)
         dt = 25;
     end
-        
-    t = -max(td):1:max(td);
-    dc = [];
+       
+    t_end = max(td);
+    t_start = -round(0.2 * max(td) / dt) * dt;
+    t = t_start:t_end;
+    
+    t_irf = (t_start:dt:t_end)';
+    t_sel = arrayfun(@(x) any(td==x), t_irf);
     
     dvalid = d > 0;
-
     
-    opts = optimset('Display', 'iter', 'MaxFunEvals', 10000);
+    opts = optimset('MaxFunEvals', 100000);
 
     tau0 = 4000;
-    sigma0 = 100;
-    lambda0 = 1/100;
+    tau2 = 1000;
+    beta = 1;
+    sigma0 = 300;
+    lambda0 = 1/50;
 
     [~,idx] = max(d);
     t0 = td(idx) - sigma0;
 
     count = 0;
-    [x,chi2_final] = fminsearch(@fit, [tau0, t0, sigma0, lambda0 0], opts);
+    [x,chi2_final] = fminsearch(@fit, [tau0, tau2, beta, t0, sigma0, lambda0, 0], opts);
     
     count = 0;
     fit(x);
@@ -31,20 +36,24 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
     disp(['t0: ' num2str(x(2)) ' ps']);
     disp(['sigma: ' num2str(x(3)) ' ps']);
     disp(['tau: ' num2str(x(1)) ' ps']);
-    
-    irf_final = irfc;
-    t_final = irft;    
-        
+    disp(['offset: ' num2str(x(5))]);
+            
     function chi2 = fit(x)
         tau = x(1);
-        t0 = x(2);
-        sigma = x(3);
-        lambda = x(4);
-        offset = x(5);
-        I = 1;
+        tau2 = x(2);
+        beta = x(3);
+        t0 = x(4);
+        sigma = x(5);
+        lambda = x(6);
+        offset = x(7);
         
-        [dc,irfc,irft] = generate_decay(I, tau, t0, sigma, lambda, offset);
-        
+        irf = generate_irf(t0, sigma, lambda);
+        dc = generate_decay_measured_irf(t_irf,irf,T,tau);
+        dc2 = generate_decay_measured_irf(t_irf,irf,T,tau2);
+
+        dc = beta * dc + (1-beta) * dc2 + offset; 
+        dc = dc(t_sel);
+
         I = dc \ d;
         dc = I * dc;
         
@@ -54,7 +63,7 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
         A = d(dvalid) .* log(dc(dvalid)./d(dvalid));
         chi2 = -2 * ( sum(d-dc) + sum(A)) / n_free;
         
-        if mod(count,20) == 0
+        if mod(count,100) == 0
             label = ['\chi^2 = ' num2str(chi2,4)];
             if chi2 < 1.3
                 label_color = 'g';
@@ -65,7 +74,7 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
             plot(fit_ax,td,d,'ob','MarkerSize',3);
             hold(fit_ax,'on');
             plot(fit_ax,td,dc,'-b');
-            plot(fit_ax,irft,irfc/max(irfc)*max(d),'r');
+            plot(fit_ax,t_irf,irf/max(irf)*max(d),'r');
             xlim(fit_ax,[min(td),max(td)])
             ylim(fit_ax,[0 1.2*max(d)])
             hold(fit_ax,'off');
@@ -82,47 +91,16 @@ function [irf_final,t_final,chi2_final] = estimate_irf(td, d, T, fit_ax, res_ax)
         count = count + 1;
     end
 
-    function [dc,binned_irf,binned_t] = generate_decay(I, tau, mu, sigma, lambda, offset)
+    function [irf] = generate_irf(mu, sigma, lambda)
+        
+        % Generate IRF at 1ps sampling
         irf = exp(lambda/2.*(2*mu+lambda*sigma^2-2*t)).*erfc((mu+lambda*sigma^2-t)/(sqrt(2)*sigma));
+%        irf = exp(-((t-mu)/sigma).^2)/(sqrt(2)*sigma);                       
         irf(~isfinite(irf)) = 0;
         
-        [binned_irf, binned_t] = bin_decay(irf);
-        dc = I * conv_irf(binned_t,binned_irf,tau);
-        dc = dc + offset;
-        %dc = dc((end-length(td)+1):end) + offset;
-        
-        sel = arrayfun(@(x) any(td==x), binned_t);
-        dc = dc(sel);
-        
-    end
-
-    function [binned_decay, binned_t] = bin_decay(decay)
+        % Bin the IRF
         tg = ceil(t / dt);
         tgm = min(tg);
-        binned_decay = accumarray(tg'-tgm+1,decay');
-        binned_t = tgm*dt + (0:(length(binned_decay)-1))' * dt;
+        irf = accumarray(tg'-tgm+1,irf');
     end
-
-    function D = conv_irf(tg,g,tau)
-       
-        % See thesis page: 69-70
-        
-        rhoi = exp(tg/tau);
-        G = g.*rhoi;
-        G = cumsum(G);
-        G = circshift(G,1);
-        G(1) = 0;
-        rho = exp(dt / tau);
-        
-        A = tau.^2/dt * (1-rho)^2/rho;
-        B = tau.^2/dt * (dt / tau - 1 + 1/rho);
-        
-        C = A * G + B * g .* rhoi;
-        
-        f = 1 / (exp(T/tau)-1);
-        
-        D = (C + f * C(end))./ rhoi / tau * dt;
-        
-    end
-
 end

@@ -1,4 +1,4 @@
-function generate_pattern_ui(t, data, tirf, irf, T)
+function generate_pattern_ui(t, data, irf, T)
 
     if any(data==0)
         warndlg('Decay contains zeros, please average over a larer region','Warning')
@@ -39,7 +39,14 @@ function generate_pattern_ui(t, data, tirf, irf, T)
     
     for i=1:n_chan
         tabs.Selection = i;
-        pattern{i} = generate_pattern(t,data(:,i),tirf,irf(:,i),T,fit_ax(i),res_ax(i));
+        
+        if irf.is_analytical    
+            mu = irf.gaussian_parameters(i).mu;
+            sigma = irf.gaussian_parameters(i).sigma;
+            pattern{i} = generate_pattern_analytical(t,data(:,i),mu,sigma,T,fit_ax(i),res_ax(i));
+        else
+            pattern{i} = generate_pattern(t,data(:,i),tirf,irf(:,i),T,fit_ax(i),res_ax(i));
+        end
     end
     
     save_button.Enable = 'on';
