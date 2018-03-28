@@ -89,9 +89,29 @@ classdef tools_menu_controller < handle
             data = d.get_roi(mask,obj.data_series_list.selected);
             data = sum(double(data),3);
             
-            estimate_irf_interface(t,data,T,true,default_path);
+            analytical = false;
+            
+            estimate_irf_interface(t,data,T,analytical,default_path);
             
         end
+
+        function menu_tools_fit_analytical_irf(obj)
+            
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            T = 1e6 / d.rep_rate;
+            
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = sum(double(data),3);
+            
+            analytical = true;
+            
+            estimate_irf_interface(t,data,T,analytical,default_path);
+            
+        end
+
         
         function menu_tools_create_tvb_intensity_map(obj)
 
@@ -163,9 +183,9 @@ classdef tools_menu_controller < handle
             
             t = d.tr_t(:);
             data = d.get_roi(mask,obj.data_series_list.selected);
-            data = sum(double(data),3);
+            data = mean(double(data),3);
             
-            generate_pattern_ui(t,data,d.tr_t_irf,d.tr_irf,T);
+            generate_pattern_ui(t,data,d.irf,T);
 
         end
 

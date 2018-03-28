@@ -191,6 +191,8 @@ classdef flim_data_series < handle & h5_serializer
         
         multid_filters_file;
         
+        lh = event.listener.empty();
+        
     end
     
     events
@@ -243,7 +245,7 @@ classdef flim_data_series < handle & h5_serializer
             prof = get_profile();
             obj.rep_rate = prof.Data.Default_Rep_Rate;
             
-            addlistener(obj.irf,'updated',@(~,~) notify(obj,'data_updated'));
+            obj.lh(end+1) = addlistener(obj.irf,'updated',@(~,~) notify(obj,'data_updated'));
             
         end
         

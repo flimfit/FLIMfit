@@ -97,7 +97,7 @@ classdef phasor_segmentation_controller < flim_data_series_observer
            
             d = obj.data_series_controller.data_series;
 
-            p_irf = CalculatePhasor(d.tr_t_irf,d.tr_irf);
+            p_irf = CalculatePhasor(d.irf.tr_t_irf,d.irf.tr_irf);
             [p,I] = CalculatePhasor(d.t,d.cur_data,p_irf);
             
             acceptor = 0;
