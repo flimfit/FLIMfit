@@ -83,6 +83,7 @@ public:
 protected:
 
    void init();
+   void compute();
 
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
@@ -94,6 +95,8 @@ protected:
    std::vector<Pattern> pattern;
    std::vector<double> channel_factors;
    std::vector<double> decay;
+
+   double last_t0;
 };
 
 template<class Archive>

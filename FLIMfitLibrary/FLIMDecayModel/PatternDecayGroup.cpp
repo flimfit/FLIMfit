@@ -8,6 +8,7 @@ PatternDecayGroup::PatternDecayGroup(const std::vector<Pattern> pattern, const Q
    std::vector<ParameterFittingType> fixed_or_local = { Fixed, FittedLocally };
    fit = std::make_shared<FittingParameter>("Pattern", 0, 1, fixed_or_local, FittedLocally);
    parameters.push_back(fit);
+   last_t0 = std::numeric_limits<double>::infinity();
 }
 
 PatternDecayGroup::PatternDecayGroup(const PatternDecayGroup& obj) :
@@ -16,22 +17,30 @@ PatternDecayGroup::PatternDecayGroup(const PatternDecayGroup& obj) :
    pattern = obj.pattern;
    fit = obj.fit;
    parameters.push_back(fit);
+   last_t0 = std::numeric_limits<double>::infinity();
    init();
 }
 
 void PatternDecayGroup::init()
 {
-   n_lin_components = fit->isFittedLocally(); 
+   n_lin_components = fit->isFittedLocally();
    n_nl_parameters = 0;
-
-   auto buffer = AbstractConvolver::make(dp);
-
-   decay.clear();
-   decay.resize(dp->n_meas, 0.0);
 
    if (pattern.size() != dp->n_chan)
       throw(std::runtime_error("Incorrect number of channels in pattern"));
 
+   compute();
+}
+
+void PatternDecayGroup::compute()
+{
+   if (last_t0 == t0_shift) return;
+
+   decay.clear();
+   decay.resize(dp->n_meas, 0.0);
+
+
+   auto buffer = AbstractConvolver::make(dp);
    std::vector<double> channel_factors(dp->n_chan);
 
    for (int i = 0; i < dp->n_chan; i++)
@@ -43,7 +52,7 @@ void PatternDecayGroup::init()
 
       for (int j = 0; j < n_exp; j++)
       {
-         buffer->compute(1 / pattern[i].tau[j], 0, 0);
+         buffer->compute(1 / pattern[i].tau[j], irf_idx, t0_shift);
          buffer->addDecay(pattern[i].beta[j], channel_factors, reference_lifetime, decay.data());
       }
    }
@@ -53,6 +62,8 @@ void PatternDecayGroup::init()
       for (int j = 0; j < dp->n_t; j++)
          decay[i*dp->n_t + j] += pattern[i].offset;
    }
+
+   last_t0 = t0_shift;
 }
 
 int PatternDecayGroup::setVariables(const double* variables)
@@ -64,6 +75,8 @@ int PatternDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_
 {
    if (fit->isFixed())
       return 0;
+
+   compute();
 
    for (int i = 0; i < dp->n_meas; i++)
       a[i] = decay[i];
@@ -80,6 +93,8 @@ void PatternDecayGroup::addConstantContribution(float* a)
 {
    if (fit->isFittedLocally())
       return;
+
+   compute();
 
    float fact = fit->initial_value;
 
