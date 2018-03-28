@@ -86,13 +86,13 @@ classdef bioformats_reader < base_data_reader
             else
             % if no modulo annotation check for Imspector produced ome-tiffs.
                 if strcmp(char(r.getFormat()), 'OME-TIFF')
-                    parser = loci.formats.tiff.TiffParser(file);
+                    parser = loci.formats.tiff.TiffParser(filename);
                     service = loci.formats.services.OMEXMLServiceImpl();
                     version = char(service.getOMEXMLVersion(parser.getComment()));
 
                     if strcmp(version,'2008-02') % Try to load lavision
                         % attempt to extract metadata
-                        ras = loci.common.RandomAccessInputStream(file,16);
+                        ras = loci.common.RandomAccessInputStream(filename,16);
                         tp = loci.formats.tiff.TiffParser(ras);
                         firstIFD = tp.getFirstIFD();
                         xml = char(firstIFD.getComment());
