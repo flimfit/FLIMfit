@@ -32,10 +32,6 @@ project(FLIMfitMex)
 
 include("cmake/DeployQt.cmake")
 
-find_package(Qt5 COMPONENTS Widgets)
-find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED COMPONENTS serialization)
-
 set(CMAKE_AUTOMOC ON)
 
 # MATLAB stuff
@@ -46,7 +42,6 @@ set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
 
 
-include_directories(${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter ../FLIMfit)
 link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${MEX_OUT_DIR})

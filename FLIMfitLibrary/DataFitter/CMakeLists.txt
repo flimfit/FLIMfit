@@ -29,9 +29,6 @@
 
 project(DataFitter)
 
-find_package(OpenCV REQUIRED)
-
-include_directories( ${LEVMAR_INCLUDE_DIRS} ../FLIMDecayModel ${OpenCV_INCLUDE_DIRS})
 # Set the source and header files
 #===================================================
 set(SOURCE
@@ -77,4 +74,6 @@ set(HEADERS
 # Make library
 #===================================================
 add_library(DataFitter STATIC ${SOURCE} ${HEADERS})
-target_link_libraries(DataFitter Qt5::Core)
+target_link_libraries(DataFitter Qt5::Core FLIMDecayModel)
+target_include_directories(DataFitter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+                                      PUBLIC ${LEVMAR_INCLUDE_DIRS})

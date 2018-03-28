@@ -12,9 +12,9 @@ cmake_minimum_required(VERSION 3.9)
 
 set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 
-find_package(Qt5Core REQUIRED)
-find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
+#find_package(Qt5Core REQUIRED)
+#find_package(OpenCV REQUIRED)
+#find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -30,7 +30,7 @@ endif()
 # Include optimisation flags in Visual Studio
 #===================================================
 if(MSVC)
-   set(PLATFORM_FLAGS_ALL "/Oi /fp:fast /INCREMENTAL /ZI")
+   set(PLATFORM_FLAGS_ALL "/Oi /fp:fast /INCREMENTAL /ZI /arch:AVX")
    set(PLATFORM_FLAGS_RELEASE "/Ox /Ot /Ob2")
    set(PLATFORM_FLAGS_RELWITHDEBINFO "/Ox /Ot /Ob2")
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
@@ -39,7 +39,7 @@ if(MSVC)
 endif(MSVC)
 
 if(UNIX)
-   set(PLATFORM_FLAGS_ALL "-msse3")
+   set(PLATFORM_FLAGS_ALL "-mavx")
    set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
    set(PLATFORM_FLAGS_DEBUG "-D_DEBUG")
 endif(UNIX)
@@ -51,7 +51,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 
 add_subdirectory("FLIMreader")
-add_subdirectory( "levmar-2.6ML" )
+add_subdirectory("levmar-2.6ML")
 add_subdirectory("FLIMDecayModel")
 add_subdirectory("DataFitter")
 add_subdirectory("FLIMfit")

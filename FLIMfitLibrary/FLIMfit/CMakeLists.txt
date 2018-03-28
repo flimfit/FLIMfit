@@ -28,9 +28,6 @@
 #=========================================================================
 
 project(FLIMfit)
-find_package(OpenCV REQUIRED)
-
-include_directories(${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} ../FLIMDecayModel ../DataFitter )
 
 
 # Set the source and header files
@@ -53,9 +50,9 @@ set(HEADERS
 
 # Make library
 #===================================================
-add_library(FLIMfit STATIC ${SOURCE} ${HEADERS} )
-target_link_libraries(FLIMfit Qt5::Core)
-
-set( FLIMfit_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
+add_library(FLIMfit STATIC ${SOURCE} ${HEADERS})
+target_link_libraries(FLIMfit Qt5::Core FLIMDecayModel DataFitter)
+target_include_directories(FLIMfit INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+                                   PUBLIC ${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 set( FLIMfit_LIB_DIR ${OUT_DIR} PARENT_SCOPE )
 

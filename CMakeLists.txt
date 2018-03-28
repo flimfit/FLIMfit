@@ -14,10 +14,8 @@ endif()
 
 project(FLIMfit)
 
-find_package(OpenCV CONFIG REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport)
-find_package(dlib)
 
 
 set(CMAKE_DEBUG_POSTFIX "")
