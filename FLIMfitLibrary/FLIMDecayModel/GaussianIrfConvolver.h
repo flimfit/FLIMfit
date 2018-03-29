@@ -8,8 +8,7 @@
 
 struct GaussianVariables
 {
-   double tau, c, d;
-   std::vector<double> Q, R;
+   std::vector<double> Q;
 };
 
 class GaussianChannelConvolver
@@ -20,13 +19,14 @@ public:
 
    void compute(double rate, double t0_shift);
 
-   double computeDecay(int i) const;
-   double computeDerivative(int i) const;
+   void addDecay(double fact, double* decay) const;
+   void addDerivative(double fact, double* derv) const;
 
 protected:
 
-   void computeVariables(double rate, GaussianVariables& v);
-   double compute(int i, const GaussianVariables& v) const;
+   void computeQ(double rate, std::vector<double>& Q);
+
+   void add(double fact, double* decay, const std::vector<double>& Q) const;
 
    int n_t;
    double dt;
@@ -36,10 +36,12 @@ protected:
    double mu;
    double T;
 
+   int n_tm;
+
    std::vector<double> P;
    double a;
 
-   GaussianVariables v, vp;
+   std::vector<double> Q, Qp;
    double eps;
    double rate;
    double t0_shift;
