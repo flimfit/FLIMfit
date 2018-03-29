@@ -4,7 +4,7 @@
 #include <vector>
 #include "DecayModel.h"
 
-typedef std::shared_ptr<std::vector<double>> spvd;
+typedef std::shared_ptr<aligned_vector<double>> spvd;
 
 class VariableProjectionFitter;
 
@@ -29,7 +29,7 @@ protected:
    
    std::vector<double> work, aw, bw, u, r;
 
-   std::shared_ptr<std::vector<double>> a, b, wp;
+   spvd a, b, wp;
 
    std::shared_ptr<DecayModel> model;
 

@@ -24,9 +24,9 @@ public:
 
 protected:
 
-   void computeQ(double rate, std::vector<double>& Q);
+   void computeQ(double rate, aligned_vector<double>& Q);
 
-   void add(double fact, double* decay, const std::vector<double>& Q) const;
+   void add(double fact, double* decay, const aligned_vector<double>& Q) const;
 
    int n_t;
    double dt;
@@ -38,10 +38,10 @@ protected:
 
    int n_tm;
 
-   std::vector<double> P;
+   aligned_vector<double> P;
    double a;
 
-   std::vector<double> Q, Qp;
+   aligned_vector<double> Q, Qp;
    double eps;
    double rate;
    double t0_shift;

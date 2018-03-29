@@ -83,8 +83,8 @@ public:
    int calculateErrors(double conf_limit);
 
    void setAlf(const double* alf_);
-   void getModel(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a);
-   void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b);
+   void getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a);
+   void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b);
 
 protected:
 
@@ -106,7 +106,7 @@ protected:
    std::vector<int> inc_full;
    int philp1;
 
-   std::vector<double> a;
+   aligned_vector<double> a;
    std::vector<double> kap;
    std::vector<double> params;
    std::vector<double> alf_err;

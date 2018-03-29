@@ -69,9 +69,9 @@ public:
       index.resize(n_linear);
    }
 
-   double compute(std::vector<double>& a, int n_meas, int adim, std::vector<double>& b, std::vector<double>& x, double& rnorm)
+   double compute(double* a, int n_meas, int adim, double* b, double* x, double& rnorm)
    {
-      nnls_(a.data(), &adim, &n_meas, &n_linear, b.data(), x.data(), &rnorm, w.data(), zz.data(), index.data(), &mode);
+      nnls_(a, &adim, &n_meas, &n_linear, b, x, &rnorm, w.data(), zz.data(), index.data(), &mode);
 
       if (mode == 2)
          throw std::runtime_error("Incorrect dimensionality in nonnegative least squares problem");

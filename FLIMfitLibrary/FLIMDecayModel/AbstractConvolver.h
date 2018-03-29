@@ -6,6 +6,14 @@
 #include <vector>
 #include <memory>
 
+#include <boost/align/aligned_allocator.hpp>
+
+// Aligned allocated
+template<class T, std::size_t Alignment = 32>
+using aligned_vector = std::vector<T,
+   boost::alignment::aligned_allocator<T, Alignment> >;
+
+
 class AbstractConvolver
 {
 protected:

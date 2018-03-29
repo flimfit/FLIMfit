@@ -32,14 +32,9 @@
 
 #include "AbstractConvolver.h"
 
-#include <boost/align/aligned_allocator.hpp>
 #include <vector>
 #include <memory>
 
-// Aligned allocated
-template<class T, std::size_t Alignment = 16>
-using aligned_vector = std::vector<T,
-   boost::alignment::aligned_allocator<T, Alignment> >;
 
 class MeasuredIrfConvolver : public AbstractConvolver
 {

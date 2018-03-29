@@ -46,7 +46,7 @@ public:
    void getLinearParams();
 private:
 
-   std::vector<double> b;
+   aligned_vector<double> b;
 
    void setLinearFactors(double* alf);
 

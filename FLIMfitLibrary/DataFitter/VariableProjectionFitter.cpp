@@ -445,7 +445,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
       B.setData(yr.data());
 
       double rj_norm;
-      nnls[omp_thread]->compute(B.aw, nr, nmax, B.r, B.work, rj_norm);
+      nnls[omp_thread]->compute(B.aw.data(), nr, nmax, B.r.data(), B.work.data(), rj_norm);
 
       r_sq += (rj_norm * rj_norm);
 
@@ -529,7 +529,7 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
 }
 
 
-void VariableProjectionFitter::resample(std::vector<double>& a, int ndim, int ncol)
+void VariableProjectionFitter::resample(aligned_vector<double>& a, int ndim, int ncol)
 {
    double* a_ = a.data();
    for(int i = 0; i < ncol; i++)

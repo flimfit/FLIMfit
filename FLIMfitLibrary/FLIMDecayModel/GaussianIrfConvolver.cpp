@@ -55,7 +55,7 @@ void GaussianChannelConvolver::compute(double rate, double t0_shift_)
 }
 
 
-void GaussianChannelConvolver::computeQ(double rate_, std::vector<double>& Q)
+void GaussianChannelConvolver::computeQ(double rate_, aligned_vector<double>& Q)
 {
    Q.resize(n_tm * 4);
 
@@ -79,8 +79,8 @@ void GaussianChannelConvolver::computeQ(double rate_, std::vector<double>& Q)
 
 #ifdef AVX
 
-   std::vector<double> Qi(n_tm * 4);
-   std::vector<double> btav(n_tm * 4);
+   aligned_vector<double> Qi(n_tm * 4);
+   aligned_vector<double> btav(n_tm * 4);
 
    __m256d dtam = _mm256_set1_pd(dta * 4);
    __m256d* btavm = (__m256d*) btav.data();
@@ -119,9 +119,9 @@ void GaussianChannelConvolver::computeQ(double rate_, std::vector<double>& Q)
       __m256d Ptau = _mm256_mul_pd(taum, Pm[i]);
       Qm[i] = _mm256_add_pd(Qm[i], Ptau);
    }
-//#endif //else 
 
-   std::vector<double> A(n_t);
+#else 
+
    double Qlast = 0;
    double Qthis = (erf(bta) + c) * e0;
    for (int i = 0; i < A.size(); i++)
@@ -130,13 +130,13 @@ void GaussianChannelConvolver::computeQ(double rate_, std::vector<double>& Q)
       bta += dta;
       e0 *= de;
       Qthis = (erf(bta) + c) * e0;
-      A[i] = (Qthis - Qlast) + tau * P[i];
+      Qm[i] = (Qthis - Qlast) + tau * P[i];
    }
 #endif
 
 }
 
-void GaussianChannelConvolver::add(double fact, double* decay, const std::vector<double>& Q) const
+void GaussianChannelConvolver::add(double fact, double* decay, const aligned_vector<double>& Q) const
 {
 #ifdef AVX
    __m256d factm = _mm256_set1_pd(fact / dt);

@@ -59,7 +59,7 @@ private:
 
    void calculateWeights(int px, const double* alf, double* wp);
 
-   void resample(std::vector<double>& a, int ndim, int ncol);
+   void resample(aligned_vector<double>& a, int ndim, int ncol);
 
    std::vector<double> w;
    std::vector<float> yr;

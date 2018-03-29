@@ -231,7 +231,7 @@ int DecayModel::getNumDerivatives()
    return n;
 }
 
-int DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int idx = 0;
 
@@ -274,7 +274,7 @@ int DecayModel::calculateModel(std::vector<double>& a, int adim, std::vector<dou
    return col;
 }
 
-int DecayModel::calculateDerivatives(std::vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int col = 0;
    int var = 0;
@@ -524,9 +524,9 @@ void DecayModel::validateDerivatives()
 
    int dim = dp->n_meas;
 
-   std::vector<double> a(dim * (n_cols + 1));
-   std::vector<double> ap(dim*(n_cols + 1)); 
-   std::vector<double> b(dim*n_der);
+   aligned_vector<double> a(dim * (n_cols + 1));
+   aligned_vector<double> ap(dim*(n_cols + 1)); 
+   aligned_vector<double> b(dim*n_der);
    std::vector<double> err(dim);
    std::vector<double> kap(1+n_nonlinear+100);
 

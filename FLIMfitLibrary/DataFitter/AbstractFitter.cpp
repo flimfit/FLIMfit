@@ -362,12 +362,12 @@ void AbstractFitter::setAlf(const double* alf_)
    }
 }
 
-void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& a)
+void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a)
 {
    model->calculateModel(a, nmax, kap, params, irf_idx);
 }
 
-void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, std::vector<double>& b)
+void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b)
 {
    int valid_cols = 0;
    int ignore_cols = 0;

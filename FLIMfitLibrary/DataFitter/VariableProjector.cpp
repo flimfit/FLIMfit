@@ -15,17 +15,17 @@
       if (wp_) 
          wp = wp_;
       else 
-         wp = std::make_shared<std::vector<double>>(nmax);
+         wp = std::make_shared<aligned_vector<double>>(nmax);
 
       if (a_)
          a = a_;
       else
-         a = std::make_shared<std::vector<double>>(nmax * (l + 1));
+         a = std::make_shared<aligned_vector<double>>(nmax * (l + 1));
 
       if (b_)
          b = b_;
       else
-         b = std::make_shared<std::vector<double>>(ndim * (pmax + 3));
+         b = std::make_shared<aligned_vector<double>>(ndim * (pmax + 3));
 
       model = std::make_shared<DecayModel>(*(f->model)); // deep copy
       adjust = model->getConstantAdjustment();
