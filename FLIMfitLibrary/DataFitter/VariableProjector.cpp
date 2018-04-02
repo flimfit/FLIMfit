@@ -3,14 +3,17 @@
 #include "cminpack.h"
 
 
-   VariableProjector::VariableProjector(VariableProjectionFitter* f, spvd a_, spvd b_, spvd wp_) :
-      n(f->n), nmax(f->nmax), ndim(f->ndim), nl(f->nl), l(f->l), p(f->p), pmax(f->pmax), philp1(f->philp1), nr(f->n)
-   {
-      r.resize(nmax);
-      work.resize(nmax);
-      aw.resize(nmax * (l + 1));
-      bw.resize(ndim * (pmax + 3));
-      u.resize(nmax);
+VariableProjector::VariableProjector(VariableProjectionFitter* f, spvd a_, spvd b_, spvd wp_) :
+   n(f->n), nmax(f->nmax), ndim(f->ndim), nl(f->nl), l(f->l), p(f->p), pmax(f->pmax), philp1(f->philp1), nr(f->n)
+{
+   r.resize(nmax);
+   work.resize(nmax);
+   aw.resize(nmax * (l + 1));
+   bw.resize(ndim * (pmax + 3));
+   u.resize(nmax);
+
+   model = std::make_shared<DecayModel>(*(f->model)); // deep copy
+   adjust = model->getConstantAdjustment();
 
       if (wp_) 
          wp = wp_;
@@ -27,10 +30,21 @@
       else
          b = std::make_shared<aligned_vector<double>>(ndim * (pmax + 3));
 
-      model = std::make_shared<DecayModel>(*(f->model)); // deep copy
-      adjust = model->getConstantAdjustment();
-   }
+   la = l;
+   active.resize(l, true);
+}
 
+void VariableProjector::setActiveColumns(const std::vector<bool>& active_)
+{
+   if (active.size() != l)
+      throw std::runtime_error("Incorrect number of active columns");
+
+   std::copy(active_.begin(), active_.end(), active.begin());
+
+   la = 0;
+   for(int i=0; i<l; i++)
+      la += active[i];
+}
 
 void VariableProjector::setData(float* y)
 {
@@ -55,29 +69,42 @@ void VariableProjector::weightModel()
    for (int k = 0; k < lp1; k++)
       for (int i = 0; i < nr; i++)
          aw[i + k*nmax] = (*a)[i + k*nmax] * (*wp)[i];
+}
 
+void VariableProjector::weightActiveModel()
+{
+   int lp1 = l+1;
+   int ka = 0;
+   for (int k = 0; k < lp1; k++)
+      if (active[k])   
+      {
+         for (int i = 0; i < nr; i++)
+            aw[i + ka*nmax] = (*a)[i + k*nmax] * (*wp)[i];   
+         ka++;
+      }
 }
 
 void VariableProjector::computeJacobian(const std::vector<int>& inc, double residual[], double jacobian[])
 {
-   int nml = nr - l;
+   int nml = nr - la;
    for (int i = 0; i < nml; i++)
    {
-      int ipl = i + l;
+      int ipl = i + la;
       int m = 0;
       for (int k = 0; k < nl; ++k)
       {
+         int ja = 0;
          double acum = 0.;
-         for (int j = 0; j < l; ++j)
+         for (int j = 0; j < la; ++j)
          {
-            if (inc[k + j * 12] != 0)
+            if (active[j] && inc[k + j * 12])
             {
                acum += bw[ipl + m * ndim] * r[j];
                ++m;
             }
          }
 
-         if (inc[k + l * 12] != 0)
+         if (inc[k + l * 12])
          {
             acum += bw[ipl + m * ndim];
             ++m;
@@ -91,17 +118,26 @@ void VariableProjector::computeJacobian(const std::vector<int>& inc, double resi
 
 
 
-void VariableProjector::transformAB()
+void VariableProjector::transformAB(const std::vector<int>& inc)
 {
+   weightActiveModel();
 
-   weightModel();
-
-   for (int m = 0; m < p; ++m)
-      for (int i = 0; i < nr; ++i)
-         bw[i + m * ndim] = (*b)[i + m * ndim] * (*wp)[i];
+   int m = 0, ma = 0;
+   for (int k = 0; k < nl; ++k)
+      for (int j = 0; j < l; ++j)
+         if (inc[k + j * 12])
+         {
+            if (active[j])
+            {
+               for (int i = 0; i < nr; ++i)
+                  bw[i + ma * ndim] = (*b)[i + m * ndim] * (*wp)[i];
+               ma++;
+            }
+            m++;
+         }
 
    // Compute orthogonal factorisations by householder reflection (phi)
-   for (int k = 0; k < l; ++k)
+   for (int k = 0; k < la; ++k)
    {
       int kp1 = k + 1;
 
@@ -120,7 +156,7 @@ void VariableProjector::transformAB()
       double beta = -aw[k + k * nmax] * u[k];
 
       // Compute householder reflection of phi
-      for (int m = firstca; m < l; ++m)
+      for (int m = firstca; m < la; ++m)
       {
          double acum = u[k] * aw[k + m * nmax];
 
@@ -153,7 +189,7 @@ void VariableProjector::transformAB()
 void VariableProjector::backSolve()
 {
    // Transform Y, getting Q*Y=R 
-   for (int k = 0; k < l; k++)
+   for (int k = 0; k < la; k++)
    {
       int kp1 = k + 1;
       double beta = -aw[k + k * nmax] * u[k];
@@ -170,15 +206,15 @@ void VariableProjector::backSolve()
 
    // BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*RJ = B. 
 
-   r[l-1] = r[l-1] / aw[l-1 + (l-1) * nmax];
-   if (l > 1) 
+   r[la-1] = r[la-1] / aw[la-1 + (la-1) * nmax];
+   if (la > 1) 
    {
-      for (int iback = 1; iback < l; ++iback) 
+      for (int iback = 1; iback < la; ++iback) 
       {
          // i = N-1, N-2, ..., 2, 1
-         int i = l - iback - 1;
+         int i = la - iback - 1;
          double acum = r[i];
-         for (int j = i+1; j < l; ++j) 
+         for (int j = i+1; j < la; ++j) 
             acum -= aw[i + j * nmax] * r[j];
          
          r[i] = acum / aw[i + i * nmax];

@@ -362,7 +362,7 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
       calculateWeights(0, alf, B.wp->data());
 
    if (!variable_phi && !iterative_weighting)
-      B.transformAB();
+      B.transformAB(inc);
 
    // Set kappa derivatives
    *rnorm = kap[0];
@@ -390,7 +390,7 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
       calculateWeights(row, alf, B.wp->data());
 
    if (variable_phi | iterative_weighting)
-      B.transformAB();
+      B.transformAB(inc);
 
    resampler->resample(y + row * n, yr.data());
 
