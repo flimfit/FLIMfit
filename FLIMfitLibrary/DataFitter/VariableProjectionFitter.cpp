@@ -425,6 +425,8 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
    double r_sq = 0;
 
+   std::vector<int> n_active(l, true);
+
     //#pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
    for (int j = 0; j < s; j++)
    {
@@ -446,6 +448,9 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
       double rj_norm;
       nnls[omp_thread]->compute(B.aw.data(), nr, nmax, B.r.data(), B.work.data(), rj_norm);
+
+      for (int i = 0; i<l; i++) // TODO: this needs to be outside loop!!!!
+         n_active[i] += (B.work[i] > 0.);
 
       r_sq += (rj_norm * rj_norm);
 
@@ -481,6 +486,12 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
    } // loop over pixels
 
+   // Determine which columns have active pixels
+   std::vector<bool> active(l + 1, true);
+   for (int i = 0; i < l; i++)
+      active[i] = n_active[i] > (1e-4 * s);
+   B.setActiveColumns(active);
+     
    // Compute the norm of the residual matrix
    *cur_chi2 = r_sq / (chi2_norm * s);
 

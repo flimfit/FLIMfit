@@ -15,28 +15,28 @@ VariableProjector::VariableProjector(VariableProjectionFitter* f, spvd a_, spvd 
    model = std::make_shared<DecayModel>(*(f->model)); // deep copy
    adjust = model->getConstantAdjustment();
 
-      if (wp_) 
-         wp = wp_;
-      else 
-         wp = std::make_shared<aligned_vector<double>>(nmax);
+   if (wp_)
+      wp = wp_;
+   else
+      wp = std::make_shared<aligned_vector<double>>(nmax);
 
-      if (a_)
-         a = a_;
-      else
-         a = std::make_shared<aligned_vector<double>>(nmax * (l + 1));
+   if (a_)
+      a = a_;
+   else
+      a = std::make_shared<aligned_vector<double>>(nmax * (l + 1));
 
-      if (b_)
-         b = b_;
-      else
-         b = std::make_shared<aligned_vector<double>>(ndim * (pmax + 3));
+   if (b_)
+      b = b_;
+   else
+      b = std::make_shared<aligned_vector<double>>(ndim * (pmax + 3));
 
    la = l;
-   active.resize(l, true);
+   active.resize(l+1, true);
 }
 
 void VariableProjector::setActiveColumns(const std::vector<bool>& active_)
 {
-   if (active.size() != l)
+   if (active.size() != (l+1))
       throw std::runtime_error("Incorrect number of active columns");
 
    std::copy(active_.begin(), active_.end(), active.begin());
