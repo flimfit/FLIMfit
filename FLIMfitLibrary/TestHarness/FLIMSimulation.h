@@ -26,16 +26,16 @@ const double t_rep_default = 12500.0;
 class FLIMSimulation : public AcquisitionParameters
 {
 public:
-   FLIMSimulation(int data_type);
+   FLIMSimulation(int data_type, int n_chan = 1);
    
    template <class U>
    void GenerateDecay(double tau, int N, std::vector<U>& decay);
 
    template <class U>
-   void GenerateImage(double tau, int N, std::vector<U>& decay);
+   void GenerateImage(double tau, int N, int chan, std::vector<U>& decay);
    
    template <class U>
-   void GenerateImage(double tau, int N, U* decay);
+   void GenerateImage(double tau, int N, int chan, U* decay);
 
    template <class U>
    void GenerateImageBackground(int N, U* decay);
@@ -68,7 +68,7 @@ protected:
 class FLIMSimulationTCSPC : public FLIMSimulation
 {
 public:
-   FLIMSimulationTCSPC();
+   FLIMSimulationTCSPC(int n_chan = 1);
 
    int GetTimePoints(std::vector<double>& t, std::vector<double>& t_int);
 
@@ -95,14 +95,14 @@ protected:
 
 
 template <class U>
-void FLIMSimulation::GenerateImage(double tau, int N, std::vector<U>& decay)
+void FLIMSimulation::GenerateImage(double tau, int N, int chan, std::vector<U>& decay)
 {
-   decay.resize(n_t_full * n_x * n_y);
+   decay.resize(n_meas_full * n_x * n_y);
    GenerateImage(tau, N, decay.data());
 }
 
 template <class U>
-void FLIMSimulation::GenerateImage(double tau, int N, U* decay)
+void FLIMSimulation::GenerateImage(double tau, int N, int chan, U* decay)
 {
    #pragma omp parallel for
    for(int x=0; x<n_x; x++)
@@ -113,24 +113,9 @@ void FLIMSimulation::GenerateImage(double tau, int N, U* decay)
          int pos = y + n_y*x;
          GenerateDecay(tau, N, buf); 
          for(int i=0; i<n_t_full; i++)
-            decay[pos * n_t_full + i] += (U) buf[i];
+            decay[(pos * n_chan + chan) * n_t_full + i] += (U) buf[i];
       }
    }
-}
-
-template <class U>
-void FLIMSimulation::GenerateDecay(double tau, int N, std::vector<U>& decay)
-{
-   
-   // Zero histogram
-   decay.assign(n_t_full, 0);
-
-   std::vector<int> buf(n_t_full);
-   GenerateDecay(tau, N, buf);
-
-   for(int i=0; i<n_t_full; i++)
-      decay[i] = (U) buf[i];
-
 }
 
 template <class U>
@@ -143,11 +128,25 @@ void FLIMSimulation::GenerateImageBackground(int N, U* decay)
       for (int y = 0; y < n_y; y++)
       {
          int pos = y + n_y*x;
-         for (int i = 0; i < n_t_full; i++)
-            decay[pos * n_t_full + i] += (U) poisson_dist(gen);
+         for (int i = 0; i < n_meas_full; i++)
+            decay[pos * n_meas_full + i] += (U) poisson_dist(gen);
       }
    }
 }
 
 
+template <class U>
+void FLIMSimulation::GenerateDecay(double tau, int N, std::vector<U>& decay)
+{
+
+   // Zero histogram
+   decay.assign(n_t_full, 0);
+
+   std::vector<int> buf(n_t_full);
+   GenerateDecay(tau, N, buf);
+
+   for (int i = 0; i<n_t_full; i++)
+      decay[i] = (U)buf[i];
+
+}
 

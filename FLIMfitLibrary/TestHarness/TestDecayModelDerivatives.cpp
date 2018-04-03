@@ -73,7 +73,8 @@ void validate(std::shared_ptr<AbstractDecayGroup> g)
    
 
    FLIMSimulationTCSPC sim;
-   std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   //std::shared_ptr<InstrumentResponseFunction> irf = sim.GenerateIRF(1e5);
+   std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF();
    auto acq = std::make_shared<AcquisitionParameters>(sim);
    auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 

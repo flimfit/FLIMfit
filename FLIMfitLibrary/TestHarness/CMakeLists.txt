@@ -45,6 +45,8 @@ set(SOURCE
    TestDecayResampler.cpp
    TestFittingCore.cpp
    FLIMSimulation.cpp
+   FLIMSimulationTCSPC.cpp
+   FLIMSimulationWF.cpp
 )
 
 set(HEADERS

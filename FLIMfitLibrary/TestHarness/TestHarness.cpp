@@ -45,6 +45,7 @@ extern int testFittingCoreDouble();
 extern void testDecayResampler();
 extern int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf);
 extern int testModelDerivatives();
+extern int testFittingCoreMultiChannel();
 
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
@@ -72,7 +73,7 @@ TEST_CASE("Model derivatives", "[model]")
 TEST_CASE("Single fit", "[fitting]") 
 {
    for (int N_ : {100, 200, 2000, 5000, 10000})
-        testFittingCoreSingle(1000, N_, true);      
+      testFittingCoreSingle(1000, N_, true);
    for (int N_ : {100, 200, 2000, 5000, 10000})
       testFittingCoreSingle(4000, N_, true);
 }
@@ -80,6 +81,19 @@ TEST_CASE("Single fit", "[fitting]")
 TEST_CASE("Double fit", "[fitting]")
 {
    testFittingCoreDouble();
+}
+
+TEST_CASE("Multichannel fit", "[fitting2]")
+{
+   testFittingCoreMultiChannel();
+}
+
+TEST_CASE("FRET", "[fret]")
+{
+   auto group = std::make_shared<FretDecayGroup>(1, 1, false);
+   group->setIncludeAcceptor(true);
+   //validate(group);
+
 }
 
 
