@@ -52,11 +52,11 @@ function compile(exit_on_error)
         fwrite(fid,v);
         fclose(fid);
 
-        if ~isempty(strfind(computer,'PCWIN'))
+        if contains(computer,'PCWIN')
             platform = 'WIN';
             lib_ext = '.dll';
             exe_ext = '.exe';
-        elseif ~isempty(strfind(computer,'MAC'))
+        elseif contains(computer,'MAC')
             platform = 'MAC';
             lib_ext = '.dylib';
             exe_ext = '.app';

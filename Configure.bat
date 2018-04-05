@@ -2,14 +2,8 @@
 
 IF NOT DEFINED MSVC_VER SET MSVC_VER=15
 
-:: Install cmake, gs and OMERO stuff
-IF NOT DEFINED NOADMIN (
-
-	:: Install Chocolatey
-	choco.exe -v 2> NUL	
-	if ERRORLEVEL 9009 @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"
-	SET PATH="%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
-
+IF DEFINED INSTALL_REQUIRED (
+	:: Please install chocolatey first from : https://chocolatey.org/
    :: The following packages must be installed as admin
    choco install curl -y
    choco install cmake.portable -y
@@ -22,7 +16,9 @@ IF NOT DEFINED NOADMIN (
 	del idpsetup-1.5.1.exe
 )
 
-IF %MSVC_VER% EQU 15 SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.11.25325
+:: vcpkg install opencv[core,tiff]:x64-windows-static boost:x64-windows-static dlib:x64-windows-static
+
+IF %MSVC_VER% EQU 15 SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.10.25008
 IF %MSVC_VER% NEQ 15 SET REDIST_STR=%PROGRAMFILES(x86)%\Microsoft Visual Studio %MSVC_VER%.0\VC\redist\*
 
 ECHO %REDIST_STR%\vcredist_x64.exe>FLIMfitLibrary\VisualStudioRedistributablePath.txt
