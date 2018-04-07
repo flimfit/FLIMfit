@@ -2,7 +2,7 @@ $OME = $env:OME
 $BIO = $env:BIO
 
 if (!$OME) { $OME=5.3 }
-if (!$BIO) { $BIO=5.5 }
+if (!$BIO) { $BIO=5.8 }
 
 echo "OMERO version = " $OME
 echo "Bio-Formats version = " $BIO
