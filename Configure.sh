@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z ${OME+x} ]; then export OME=5.3; echo "Setting OME=5.3"; fi
-if [ -z ${BIO+x} ]; then export BIO=5.5; echo "Setting BIO=5.5"; fi
+if [ -z ${BIO+x} ]; then export BIO=5.8; echo "Setting BIO=5.8"; fi
 
 echo "Checking for homebrew install..."
 (brew update | grep "command not found") \
