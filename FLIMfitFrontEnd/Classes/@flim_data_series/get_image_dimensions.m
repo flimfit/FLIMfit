@@ -231,13 +231,12 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             dims.FLIM_type = 'TCSPC';
             dims.delays = FlimReaderMex(r,'GetTimePoints');
             dims.sizeXY = FlimReaderMex(r,'GetImageSize');
+            dims.data_type = FlimReaderMex(r,'GetNativeType');
             FlimReaderMex(r,'Delete');
             
             for i=1:n_channels
                 dims.chan_info{i} = ['Channel ' num2str(i-1)];
             end
-            
-            dims.data_type = 'uint16';
             
             % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.tif','.tiff'}
