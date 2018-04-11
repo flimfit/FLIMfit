@@ -333,9 +333,9 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
               
               delays = delays(~isnan(delays));
               
-              if max(delays) < 1000
-                  delays = delays * 1000;
-              end
+              %if max(delays) < 1000
+              %    delays = delays * 1000;
+              %end
               
               dims.delays = delays;
              
