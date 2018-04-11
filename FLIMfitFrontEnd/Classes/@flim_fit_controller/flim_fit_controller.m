@@ -226,7 +226,6 @@ classdef flim_fit_controller < flim_data_series_observer
                 norm = obj.data_series_controller.data_series.intensity_normalisation;
                 if ~isempty(norm)
                     norm = norm(:,:,im);
-                    norm = norm / max(norm(:));
                     param_data = param_data ./ norm;
                 end
     
@@ -251,7 +250,6 @@ classdef flim_fit_controller < flim_data_series_observer
                 norm = obj.data_series_controller.data_series.intensity_normalisation;
                 if ~isempty(norm)
                     norm = norm(:,:,im);
-                    norm = norm / max(norm(:));
                     param_data = param_data ./ norm;
                 end
             end
