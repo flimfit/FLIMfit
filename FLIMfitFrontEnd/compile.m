@@ -199,10 +199,11 @@ function compile(exit_on_error)
                 v_inno = regexprep(v_inno,'([^\d\.]+)','');
 
                 if ~exist('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt', 'file')
-                    disp('No VS Redistributable location found. Please run Configure_WIN.bat in repository root');
+                    disp('No VS Redistributable location found.');
                 end
                 fid = fopen('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt','r');
                 redist_file = fgetl(fid);
+                redist_file = [strrep(redist_file,'/','\') '\vcredist_x64.exe'];
                 fclose(fid);
 
                 root = [cd '\..'];
