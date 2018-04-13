@@ -14,9 +14,3 @@ endif()
 
 project(FLIMfit)
 add_subdirectory(FLIMfitLibrary)
-
-# Output Visual Studio Redistributable path for Matlab
-if (WIN32)
-    include(InstallRequiredSystemLibraries)
-    file(WRITE "${CMAKE_SOURCE_DIR}/VisualStudioRedistributablePath.txt" "${MSVC_REDIST_DIR}")
-endif()
