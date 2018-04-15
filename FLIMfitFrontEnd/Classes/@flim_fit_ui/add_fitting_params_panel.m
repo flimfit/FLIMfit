@@ -150,9 +150,9 @@ function handles = add_fitting_params_panel(obj,handles,parent)
                            'HorizontalAlignment', 'right', 'Parent', label_layout ); 
         control = uicontrol( 'Style', style, 'String', string, 'Parent', opt_layout);
         
-        eval(['handles.' name '_label = label;']);
-        eval(['handles.' name '_' style ' = control;']);
-
+        handles.([name '_label']) = label;
+        handles.([name '_' style]) = control;
+        
         label_layout_sizes = get(label_layout,'Heights');
         label_layout_sizes(end) = 22;
         

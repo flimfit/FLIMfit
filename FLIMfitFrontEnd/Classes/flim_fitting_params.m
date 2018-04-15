@@ -49,7 +49,7 @@ classdef flim_fitting_params < handle & h5_serializer
         pulsetrain_correction = true;
         fit_reference = false;
         
-        fitting_algorithm = 0;
+        fitting_algorithm = 1; % ML by default
         
         tau_guess = [2000];
         
