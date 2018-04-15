@@ -65,7 +65,7 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             set(obj.segmentation_axes,'XTick',[],'YTick',[]);
             daspect(obj.segmentation_axes,[1 1 1]);
             
-            obj.calculate();
+            obj.selection_updated();
             
             settings_file = obj.data_series_controller.data_series.multid_filters_file;
             if exist(settings_file,'file')
