@@ -14,13 +14,13 @@ cur_dir=$(grealpath .)
 
 echo "Generating CMake Project..."
 if ! cmake -HFLIMfitLibrary/FLIMreader -B${project_dir} -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release \
-   -DBUILD_OPENCV=ON -DFlimReaderMEX_OUT_DIR=${cur_dir}/FLIMfitLibrary/Libraries/; then 
+   -DBUILD_OPENCV=ON -DFlimReaderMEX_OUT_DIR=${cur_dir}/FLIMfitFrontEnd/Libraries/; then 
    echo 'Error generating project'
    exit 1
 fi
 
 echo "Building Project..."
-if ! cmake --build ${project_dir}; then
+if ! cmake --build ${project_dir} --target install; then
     echo 'Error building project'
     exit 1
 fi
