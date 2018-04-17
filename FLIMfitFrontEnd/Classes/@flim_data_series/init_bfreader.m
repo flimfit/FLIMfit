@@ -30,7 +30,7 @@ function [ext,r] = init_bfreader(obj,file)
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
 
     [~,~,ext] = fileparts(file);
-    non_bioreader_formats = {'.ffd','.ffh','.pt3','.ptu','.bin2'};
+    non_bioreader_formats = {'.ffd','.ffh','.pt3','.ptu','.bin2','.spc'};
     
     if any(strcmp(ext,non_bioreader_formats))
         r = [];

@@ -295,7 +295,7 @@ function[success, target, intensity_normalisation] = load_flim_cube(obj, target,
             
             r = FlimReaderMex(file);
             FlimReaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
-            FlimReaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            FlimReaderMex(r,'SetTemporalDownsampling',reader_settings.temporal_downsampling);
             FlimReaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
             FlimReaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
 

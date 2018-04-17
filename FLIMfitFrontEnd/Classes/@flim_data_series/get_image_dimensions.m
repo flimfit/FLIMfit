@@ -200,12 +200,12 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
             
             
-        case {'.pt3','.ptu','.bin2','.ffd','.ffh'}
+        case {'.pt3','.ptu','.bin2','.ffd','.ffh','.spc'}
             
             
             r = FlimReaderMex(file);
             n_channels = FlimReaderMex(r,'GetNumberOfChannels');
-            dims.delays = FlimReaderMex(r,'GetTimePoints');
+            dims.delays = FlimReaderMex(r,'GetNativeTimePoints');
             supports_realignment = FlimReaderMex(r,'SupportsRealignment');
             bidirectional = FlimReaderMex(r,'IsBidirectional');
             meta.rep_rate = FlimReaderMex(r,'GetRepRate') * 1e-6;
@@ -220,10 +220,11 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
                 dt = 1;
             end
             
+            
             reader_settings = FLIMreader_options_dialog(length(dims.delays), dt, supports_realignment, bidirectional);
             
             FlimReaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
-            FlimReaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
+            FlimReaderMex(r,'SetTemporalDownsampling',reader_settings.temporal_downsampling);
             FlimReaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
             FlimReaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
             

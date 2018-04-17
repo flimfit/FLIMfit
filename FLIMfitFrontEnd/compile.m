@@ -179,7 +179,7 @@ function compile(exit_on_error)
                 fprintf(f,'FLIMfit.exe \r\n pause');
                 fclose(f);
 
-                copyfile(['..\FLIMfitLibrary\Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
+                copyfile(['Libraries\FLIMGlobalAnalysis_' sys lib_ext],deploy_folder);
 
                 matlab_v = version('-release');
                 [major, minor] = mcrversion;
