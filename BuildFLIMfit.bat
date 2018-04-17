@@ -37,7 +37,7 @@ cmake -G %GENERATOR% -HFLIMfitLibrary\FLIMreader -B%PROJECT_DIR% -DCMAKE_TOOLCHA
       -DVCPKG_TARGET_TRIPLET=x64-windows-static -DFlimReaderMEX_OUT_DIR="%CD%\FLIMfitFrontEnd\Libraries" -DCMAKE_BUILD_TYPE=Release
 if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 echo Building 64bit Project in Release mode
-cmake --build %PROJECT_DIR% --config Release
+cmake --build %PROJECT_DIR% --config Release --target install
 if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 
 
