@@ -196,7 +196,7 @@ classdef segmentation_controller < flim_data_series_observer
             daspect(obj.segmentation_axes,[1 1 1]);
 
             obj.update_display();
-            obj.slh = addlistener(obj.data_series_list,'selection_updated',@(~,~) escaped_callback(@obj.selection_updated));
+            obj.slh = addlistener(obj.data_series_list,'selection_updated',@(~,~) EC(@obj.selection_updated));
             
         end
         

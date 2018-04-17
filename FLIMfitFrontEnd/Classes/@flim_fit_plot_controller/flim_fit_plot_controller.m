@@ -53,7 +53,7 @@
             assign_handles(obj,handles);
             
             set(obj.plot_panel,'ResizeFcn',@obj.panel_resized);
-            addlistener(obj.data_series_list,'selection_updated',@(src,evt) escaped_callback(@obj.dataset_selected_update,src,evt));
+            addlistener(obj.data_series_list,'selection_updated',@(src,evt) EC(@obj.dataset_selected_update,src,evt));
             
         end
         
