@@ -119,11 +119,6 @@ function compile(exit_on_error)
 
                 case 'MAC'
 
-                    try 
-                        rmdir('DeployLibraries','s');
-                    catch
-                    end
-
                     system('DeployFiles/dylibbundler -of -x Libraries/FLIMGlobalAnalysis_64.dylib -b  -d Libraries -p @loader_path');
                     system('DeployFiles/dylibbundler -of -x Libraries/FlimReaderMex.mexmaci64 -b  -d Libraries -p @loader_path');
 
@@ -267,7 +262,7 @@ function compile(exit_on_error)
                 [~,response] = system(['codesign -s P6MM899VL9 "' final_file '"/']);
                 disp(response);
                 
-                cd('DeployLibraries')
+                cd('Libraries')
                 zip(['flimfit_libraries_maci64_' v '.zip'],{'*.dylib','*.mexmaci64'})
                 cd('..')
         end
