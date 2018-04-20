@@ -41,7 +41,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     % this routine should load only FLIM data
     if length(reader.delays) < 2
         throw(MException('FLIMfit:dataNotTimeResolved','Data does not appear to be time resolved'));
-    end;
+    end
     
     chan_info = reader.chan_info;
     obj.mode = reader.FLIM_type;

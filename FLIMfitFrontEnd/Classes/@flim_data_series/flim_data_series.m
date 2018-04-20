@@ -191,7 +191,7 @@ classdef flim_data_series < handle & h5_serializer
         
         multid_filters_file;
         
-        lh = event.listener.empty();
+        lh;
         
     end
     
@@ -245,8 +245,17 @@ classdef flim_data_series < handle & h5_serializer
             prof = get_profile();
             obj.rep_rate = prof.Data.Default_Rep_Rate;
             
-            obj.lh(end+1) = addlistener(obj.irf,'updated',@(~,~) notify(obj,'data_updated'));
+            obj.lh = addlistener(obj.irf,'updated',@(src,evt) obj.n(src,evt));
             
+        end
+        
+        function n(obj,src,evt)
+            try
+                notify(obj,'data_updated')
+            catch e
+                disp(e)
+            end
+                
         end
         
         function post_serialize(obj)
@@ -812,14 +821,15 @@ classdef flim_data_series < handle & h5_serializer
                 % clear intensity display
                 obj.intensity(:) = 0;
                 notify(obj,'data_updated');
-                obj.delete();
+                obj.cleanup();
             end
         end
             
         
         %===============================================================
         
-        function delete(obj)
+        function cleanup(obj)
+        
            if exist(obj.multid_filters_file,'file')
               delete(obj.multid_filters_file);
            end
@@ -830,9 +840,14 @@ classdef flim_data_series < handle & h5_serializer
            if ~isempty(r)
                r.close();
            end
+           
+        end
+        
+        function delete(obj)
+           obj.cleanup();
+           
            % On object deletion, clear mapped data 
            obj.clear_memory_mapping();
-           
         end
         
         
