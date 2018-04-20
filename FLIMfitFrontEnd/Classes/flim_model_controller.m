@@ -21,7 +21,7 @@ classdef flim_model_controller < handle
         
         title_color = [0.8 0.8 0.8];
         
-        map = containers.Map('KeyType','uint64','ValueType','any');
+        map;
                 
         touched;
         
@@ -31,7 +31,9 @@ classdef flim_model_controller < handle
         
         
         function obj = flim_model_controller(fh)
-
+            
+            obj.map = containers.Map('KeyType','uint64','ValueType','any');
+            
             obj.model = ff_DecayModel();    
             ff_DecayModel(obj.model,'AddDecayGroup','Multi-Exponential Decay',1);
 
