@@ -34,19 +34,22 @@ if (MKL_INCLUDE_DIRS AND MKL_LIBRARIES AND MKL_INTERFACE_LIBRARY AND
   set (MKL_FIND_QUIETLY TRUE)
 endif()
 
-if(NOT BUILD_SHARED_LIBS)
-  set(INT_LIB "libmkl_intel_ilp64.a")
-  set(SEQ_LIB "libmkl_sequential.a")
-  set(THR_LIB "libmkl_intel_thread.a")
-  set(COR_LIB "libmkl_core.a")
-else()
-  set(INT_LIB "mkl_intel_ilp64")
-  set(SEQ_LIB "mkl_sequential")
-  set(THR_LIB "mkl_intel_thread")
-  set(COR_LIB "mkl_core")
-endif()
+if (MSVC)
+  set(SHARED_EXT .lib)
+else ()
+  set(SHARED_EXT _dll.lib)
+endif ()
+
+set(INT_LIB "mkl_intel_ilp64${SHARED_EXT}")
+set(SEQ_LIB "mkl_sequential${SHARED_EXT}")
+set(THR_LIB "mkl_intel_thread${SHARED_EXT}")
+set(COR_LIB "mkl_core${SHARED_EXT}")
 
 find_path(MKL_INCLUDE_DIR NAMES mkl.h HINTS $ENV{MKLROOT}/include)
+
+message(BUILD_SHARED_LIBS)
+message(INT_LIB: ${INT_LIB})
+message(MKL: $ENV{MKLROOT})
 
 find_library(MKL_INTERFACE_LIBRARY
              NAMES ${INT_LIB}
