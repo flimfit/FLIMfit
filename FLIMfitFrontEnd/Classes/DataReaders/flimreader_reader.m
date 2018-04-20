@@ -9,12 +9,12 @@ classdef flimreader_reader < base_data_reader
        
         function obj = flimreader_reader(filename,settings)
             obj.filename = filename;
-            obj.data_type = 'uint16';
 
             obj.reader = FlimReaderMex(obj.filename);
             r = obj.reader;
             obj.n_channels = FlimReaderMex(r,'GetNumberOfChannels');
             obj.delays = FlimReaderMex(r,'GetTimePoints');
+            obj.data_type = FlimReaderMex(r,'GetNativeType');
             supports_realignment = FlimReaderMex(r,'SupportsRealignment');
             
             if length(obj.delays) > 1

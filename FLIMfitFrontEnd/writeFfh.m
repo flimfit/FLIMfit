@@ -39,6 +39,8 @@ function writeFfh(filename, data, timepoints, metadata)
             writeTag(fields{i},metadata.(fields{i}));
         end
     end
+    
+    compressed_data = zlibencode(typecast(data(:),'uint8'));
         
     writeTag('NumTimeBins',int64(size(data,1)));
     writeTag('NumChannels',int64(size(data,2)));
@@ -47,6 +49,8 @@ function writeFfh(filename, data, timepoints, metadata)
     writeTag('TimeBins',double(timepoints));
     writeTag('DataType',data_type);
     writeTag('CreationDate',char(datetime('now','Format','uuuu-MM-dd''T''HH:mm:ss')));
+    writeTag('Compressed',true);
+    writeTag('CompressedSize',length(compressed_data));
     writeEndTag();
     
     data_pos = ftell(f);
@@ -55,7 +59,9 @@ function writeFfh(filename, data, timepoints, metadata)
     fwrite(f,data_pos,'uint32');
     
     fseek(f,data_pos,-1);
-    fwrite(f,data,class(data));
+    fwrite(f,compressed_data,class(compressed_data));
+    
+    fclose(f);
     
     function writeTag(name, value)
         value_type = class(value);
