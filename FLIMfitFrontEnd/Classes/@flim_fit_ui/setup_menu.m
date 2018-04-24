@@ -165,9 +165,11 @@ function handles = setup_menu(obj,handles)
 
     handles.menu_tools_add_pattern = uimenu(menu_tools,'Label','Add Pattern to Library...','Separator','on');
     handles.menu_tools_edit_pattern_library = uimenu(menu_tools,'Label','Edit Pattern Library...');
-
     handles.menu_tools_edit_model_library = uimenu(menu_tools,'Label','Edit Model Library...','Separator','on');
-
+    
+    handles.menu_tools_denoise = uimenu(menu_tools,'Label','Denoise datasets...','Separator','on');
+    
+    
     handles.menu_tools_preferences = uimenu(menu_tools,'Label','Preferences...','Separator','on');
     
     % NB odd naming in this menu allows easy movement of items back 

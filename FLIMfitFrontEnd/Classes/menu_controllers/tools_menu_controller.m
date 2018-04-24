@@ -188,8 +188,32 @@ classdef tools_menu_controller < handle
             generate_pattern_ui(t,data,d.irf,T);
 
         end
-
+		
         function menu_tools_edit_pattern_library(obj)
+        end
+        
+        function menu_tools_denoise(obj)
+            
+            [file,path] = uigetfile({'*.sdt;*.tif;*.tiff;*.msr;*.bin;*.pt3;*.ptu;*.ffd;*.ffh;*.spc'},...
+                'Choose Files',default_path,'MultiSelect','on');
+            path = ensure_trailing_slash(path);
+            if ~isempty(file)
+                if ~iscell(file)
+                    file = {file};
+                end
+                settings = denoise([path file{1}]);
+                h = waitbar(0,'Denoising...');
+                nfiles = length(file);
+                parfor i=1:nfiles
+                    denoise([path file{i}],settings);
+                end
+                close(h);
+            end
+        end
+        
+        function menu_tools_estimate_q_q_sigma(obj)
+            d = obj.data_series_controller.data_series;
+
         end
         
     end
