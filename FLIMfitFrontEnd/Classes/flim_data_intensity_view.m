@@ -103,17 +103,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     lim = prctile(flt,[0.01 99.9]);
                     
                     cmap = gray(m-1);
-                    
-                    intensity = obj.data_series.cur_data;
-                    intensity = sum(intensity,1);
-                    intensity = permute(intensity,[3 4 2 1]);
-                    
-                    intensity = intensity(:,:,2) ./ intensity(:,:,1);
-                    lim = prctile(intensity(isfinite(intensity)),[0.05 95]);
-                    
-                    cmap = jet(m-1);
-
-                    
+                                        
                 case 3 % TVB I background
                     intensity = obj.data_series.tvb_I_image;
                     
@@ -133,6 +123,15 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                     flt = intensity(isfinite(intensity));
                     lim = prctile(flt,[0.01 99.9]);
 
+                    cmap = jet(m-1);
+                case 6 % ratio
+                    intensity = obj.data_series.cur_data;
+                    intensity = sum(intensity,1);
+                    intensity = permute(intensity,[3 4 2 1]);
+                    
+                    intensity = intensity(:,:,2) ./ intensity(:,:,1);
+                    lim = prctile(intensity(isfinite(intensity)),[0.05 95]);
+                    
                     cmap = jet(m-1);
                 end
                 

@@ -118,7 +118,7 @@ function handles = setup_layout(obj, handles)
     uicontrol( 'Style', 'text', 'String', 'Mode ', 'Parent', intensity_opts_layout, ...
                'HorizontalAlignment', 'right' );
     handles.intensity_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Integrated Intensity','Background','TVB Intensity Map','SV IRF','IRF Shift Map'}, 'Parent', intensity_opts_layout );
+            'String', {'Integrated Intensity','Background','TVB Intensity Map','SV IRF','IRF Shift Map','Intensity Ratio'}, 'Parent', intensity_opts_layout );
     
     set( intensity_opts_layout, 'Widths', [80,-1,200] );
     
