@@ -33,7 +33,7 @@ classdef flimreader_reader < base_data_reader
             end
             
             FlimReaderMex(r,'SetSpatialBinning',obj.settings.spatial_binning);
-            FlimReaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
+            FlimReaderMex(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
             FlimReaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
             
             obj.sizeZCT = [ 1 obj.n_channels 1 ];
@@ -61,7 +61,7 @@ classdef flimreader_reader < base_data_reader
             
             r = obj.reader;
             FlimReaderMex(r,'SetSpatialBinning',obj.settings.spatial_binning);
-            FlimReaderMex(r,'SetNumTemporalBits',obj.settings.num_temporal_bits);
+            FlimReaderMex(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
             FlimReaderMex(r,'SetRealignmentParameters',obj.settings.realignment);
             
             data = FlimReaderMex(r, 'GetData', channels - 1);
