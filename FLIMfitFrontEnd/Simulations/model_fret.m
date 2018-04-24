@@ -1,4 +1,4 @@
-function total_decay = model(D, A, kt0, mode, system)
+function total_decay = model_fret(D, A, kt0, mode, system)
 
     if strcmp(mode,'static')
         f = linspace(0,4,100);
@@ -43,8 +43,8 @@ function total_decay = model(D, A, kt0, mode, system)
         
     
     function h = H(t, tau) 
-        a = 1 / (sqrt(2) * sigma);
-        b = (sigma^2 ./ tau + mu) * a;
+        a = 1 ./ (sqrt(2) * sigma);
+        b = (sigma.^2 ./ tau + mu) .* a;
         c = (erf(b - T * a) - exp(T./tau) .* erf(b)) ./ (exp(T./tau) - 1);
         d = 0.5 * tau .* exp(0.5*(sigma./tau).^2+mu./tau);
         

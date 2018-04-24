@@ -43,8 +43,8 @@ for mode = {'static'}
     for c = [cons]
         for i=1:length(kt)
 
-            decay = simulate(c.donor, c.acceptor, kt(i), mode, system, n_photon);
-            decaym = n_photon * model(c.donor, c.acceptor, kt(i), mode, system);
+            decay = simulate_fret(c.donor, c.acceptor, kt(i), mode, system, n_photon);
+            decaym = n_photon * model_fret(c.donor, c.acceptor, kt(i), mode, system);
 
             %decay = decay / max(decay(:));
             %decaym = decaym / max(decaym(:));
