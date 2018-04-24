@@ -74,7 +74,7 @@ classdef flim_fit_ui
             
             % Fix for inverted text in segmentation on one PC
             % use software to do graphics where available
-            if ~isempty(strfind(computer,'PCWIN'))
+            if contains(computer,'PCWIN')
                 opengl software;
             end
             
@@ -175,7 +175,7 @@ classdef flim_fit_ui
 
             function findAndAddJar(jar)
                
-                already_in_path = any(cellfun(@(x) ~isempty(strfind(x,jar)),jPath));
+                already_in_path = any(cellfun(@(x) contains(x,jar),jPath));
                 
                 if ~already_in_path
                     path = which(jar);

@@ -104,7 +104,7 @@ function load_irf(obj,file_or_image,load_as_image)
         obj.t_irf = t_irf;
         obj.irf = irf;
         obj.irf_name = 'irf';
-
+        obj.is_analytical = false;
 
         
     end

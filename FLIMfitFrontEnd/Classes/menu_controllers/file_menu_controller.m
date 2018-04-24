@@ -122,11 +122,6 @@ classdef file_menu_controller < handle
                     return;
                 end
             end
-            % clear & delete existing data series 
-            if isvalid(obj.data_series_controller.data_series)
-                obj.data_series_controller.data_series.clear();
-            end
-            obj.data_series_controller.data_series = flim_data_series();
             obj.data_series_controller.load_single([path files]); 
             obj.set_default_path(path);
                         
@@ -135,12 +130,7 @@ classdef file_menu_controller < handle
         function menu_file_load_widefield(obj)
             
             folder = uigetdir(default_path,'Select the folder containing the datasets');
-            if folder ~= 0
-                % clear & delete existing data series 
-                if isvalid(obj.data_series_controller.data_series)
-                    obj.data_series_controller.data_series.clear();
-                end
-                obj.data_series_controller.data_series = flim_data_series();
+            if folder ~= 0 
                 obj.data_series_controller.load_data_series(folder,'tif-stack'); 
                 obj.set_default_path(folder);
             end
@@ -149,11 +139,6 @@ classdef file_menu_controller < handle
         function menu_file_load_tcspc(obj)
             folder = uigetdir(default_path,'Select the folder containing the datasets');
             if folder ~= 0
-                % clear & delete existing data series
-                if isvalid(obj.data_series_controller.data_series)
-                    obj.data_series_controller.data_series.clear();
-                end
-                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats');
                 obj.set_default_path(folder);
             end
@@ -164,11 +149,6 @@ classdef file_menu_controller < handle
             
             [file,path] = uigetfile('*.ome.tiff;*.OME.tiff;*.ome.tif;;*.OME.tif','Select an ome.tiff containing plate data',default_path);
             if file ~= 0
-                % clear & delete existing data series
-                if isvalid(obj.data_series_controller.data_series)
-                    obj.data_series_controller.data_series.clear();
-                end
-                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_plate([path file]); 
                 obj.set_default_path(path);
             end
@@ -177,11 +157,6 @@ classdef file_menu_controller < handle
         function menu_file_load_single_pol(obj)
             [file,path] = uigetfile('*.*','Select a file from the data',default_path);
             if file ~= 0
-                % clear & delete existing data series
-                if isvalid(obj.data_series_controller.data_series)
-                    obj.data_series_controller.data_series.clear();
-                end
-                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_single([path file],true); 
                 obj.set_default_path(path);
             end
@@ -190,11 +165,6 @@ classdef file_menu_controller < handle
         function menu_file_load_tcspc_pol(obj)
             folder = uigetdir(default_path,'Select the folder containing the datasets');
             if folder ~= 0
-                % clear & delete existing data series
-                if isvalid(obj.data_series_controller.data_series)
-                    obj.data_series_controller.data_series.clear();
-                end
-                obj.data_series_controller.data_series = flim_data_series();
                 obj.data_series_controller.load_data_series(folder,'bio-formats',true);
                 obj.set_default_path(folder);
             end
