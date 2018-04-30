@@ -32,7 +32,7 @@ classdef flim_data_series < handle & h5_serializer
         tvb_profile = 0;
         tvb_I_image;
           
-        irf instrument_response_function = instrument_response_function();
+        irf instrument_response_function;
         
         subtract_background = false;
         
@@ -240,11 +240,11 @@ classdef flim_data_series < handle & h5_serializer
             
             % set up a temporary file to save filters
             obj.multid_filters_file = tempname;
-
             
             prof = get_profile();
             obj.rep_rate = prof.Data.Default_Rep_Rate;
-            
+
+            obj.irf = instrument_response_function();            
             obj.lh = addlistener(obj.irf,'updated',@(src,evt) obj.n(src,evt));
             
         end

@@ -58,22 +58,16 @@ classdef flim_data_series_observer < handle
         end
         
         function data_update_evt(obj)
-            disp(class(obj))
             if ~ishandle(obj.data_series) && obj.data_series.init
                 obj.data_update();
             end
-            disp('*')
         end
 
         % override this
         function data_set(obj) 
         end
 
-         
-        function delete(obj)
-            disp(['deleted ' class(obj)])
-        end
-        
+                 
     end
     
     methods(Abstract = true)
