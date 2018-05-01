@@ -59,9 +59,6 @@ void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
   
    if (!std::isfinite(rate_))
       throw(std::runtime_error("Rate not finite"));
-
-   if (rate > 0.02) // 50ps
-      rate = 0.02;
       
    rate = rate_;
 
@@ -189,7 +186,7 @@ void MeasuredIrfConvolver::convolve(int k, int i, double pulse_fact, int bin_shi
 
    c = exp_irf_cum_buf[idx] - 0.5*exp_irf_buf[idx];
 
-   if (pulse_fact > 0)
+   if (pulse_fact > 0 && pulse_fact < HUGE_VAL)
       c += (exp_irf_cum_buf[n_irf - 1] - 0.5*exp_irf_buf[n_irf - 1]) / pulse_fact;
 }
 

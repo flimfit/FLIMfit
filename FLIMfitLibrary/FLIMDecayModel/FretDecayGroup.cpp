@@ -323,14 +323,22 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
    for (int i = 0; i < n_fret_populations; i++)
    {
       float E = 0;
+      float tauDF2 = 0;
+      float tauDF = 0;
       for (int j = 0; j < n_exponential; j++)
       {
-         float tauF = 1.0f / (1.0f / tau[j] + 1.0f / output_tauT[i]);
-         float Ei = 1.0f - tauF / tau[j];
          float b = (n_exponential > 1) ? beta[j] : 1; // we only have beta reported if n_exp > 1
-         E += Ei * b;
+         for (int k = 0; k < kappa_factor.n; k++)
+         {
+            float tauDFi = 1.0f / (1.0f / tau[j] + kappa_factor.f[k] / output_tauT[i]);
+            float Ei = 1.0f - tauDFi / tau[j];
+            E += Ei * b * kappa_factor.p[k];
+            tauDF += tauDFi * b * kappa_factor.p[k];
+            tauDF2 += tauDFi * tauDFi * b * kappa_factor.p[k];
+         }
       }
       output[output_idx++] = E;
+      output[output_idx++] = tauDF2 / tauDF;
    }
 
    return output_idx;
@@ -375,8 +383,11 @@ std::vector<std::string> FretDecayGroup::getNonlinearOutputParamNames()
    
    for (int i = 0; i < n_fret_populations; i++)
    {
-      std::string name = "E_" + boost::lexical_cast<std::string>(i + 1);
-      names.push_back(name);
+      std::string E_name = "E_" + boost::lexical_cast<std::string>(i + 1);
+      names.push_back(E_name);
+
+      std::string tauDF_name = "tauDF_" + boost::lexical_cast<std::string>(i + 1);
+      names.push_back(tauDF_name);
    }
 
    return names;

@@ -59,16 +59,13 @@ void GaussianChannelConvolver::computeQ(double rate_, aligned_vector<double>& Q)
 {
    Q.resize(n_tm * 4);
 
-   if (rate_ > 0.02) // 50ps
-      rate_ = 0.02;
-
    rate = rate_;
    double tau = 1.0 / rate;
 
-   double f = exp(T * rate);
-
    double b = (sigma * sigma * rate + mu + t0_shift) * a;
-   double c = (erf(b - T * a) - f * erf(b)) / (f - 1);
+
+   double f = exp(T * rate);
+   double c = f < HUGE_VAL ? (erf(b - T * a) - f * erf(b)) / (f - 1) : -1.0;
    double d = 0.5 * tau * exp(rate * (0.5 * sigma * sigma * rate + mu + t0_shift));
 
    double e0 = d * exp(-t0 * rate);
@@ -190,9 +187,6 @@ void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
 
    if (!std::isfinite(rate_))
       throw(std::runtime_error("Rate not finite"));
-
-   if (rate > 0.02) // 50ps
-      rate = 0.02;
 
    rate = rate_;
 
