@@ -65,7 +65,6 @@ set(HEADERS
    util.h
    MeanLifetimeEstimator.h
    RegionStats.h
-   TrimmedMean.h
    RegionStatsCalculator.h
    ProgressReporter.h
    DecayResampler.h   

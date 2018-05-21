@@ -9,7 +9,7 @@
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// but WITHOUfloat ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
@@ -28,11 +28,22 @@
 //=========================================================================
 
 #pragma once 
-#include "RegionStats.h"
-#include "TrimmedMean.h"
+#include "util.h"
 
-#include <vector>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/statistics/weighted_mean.hpp>
+#include <boost/accumulators/statistics/weighted_variance.hpp>
+#include <boost/accumulators/statistics/tail_quantile.hpp>
+#include <boost/accumulators/statistics/median.hpp>
+#include <boost/accumulators/statistics/weighted_sum_kahan.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
+
+#include <limits>
+#include <vector>
+
 
 class RegionStatsCalculator
 {
@@ -42,6 +53,48 @@ public:
       confidence_factor(confidence_factor)
    {
    }
+
+   template <typename T>
+   void computeStatistics(float x[], float w[], int n, int K, float conf_factor, RegionStats<T>& stats_, int region)
+   {
+      using namespace boost::accumulators;
+
+      accumulator_set< T, stats< tag::mean, tag::variance, tag::median > > acc00;
+      accumulator_set< T, stats< tag::weighted_mean, tag::weighted_variance >, float > acc0;
+      accumulator_set< T, stats< tag::tail_quantile<left>, tag::tail_quantile<right> > > acc1(tag::tail<left>::cache_size = n, tag::tail<right>::cache_size = n);
+
+      if (n == 0)
+      {
+         double nan = std::numeric_limits<double>::quiet_NaN();
+         stats_.SetNextParam(region, nan);
+         return;
+      }
+
+      for (int i = 0; i < n; i++)
+      {
+         acc0(x[i], weight = w[i]);
+         acc00(x[i]);
+         acc1(x[i]);
+      }
+
+      float OS1 = quantile(acc1, quantile_probability = 0.05);
+      float q1 = quantile(acc1, quantile_probability = 0.25);
+      float q2 = quantile(acc1, quantile_probability = 0.75);
+      float OS2 = quantile(acc1, quantile_probability = 0.95);
+
+      float p_median = median(acc00);
+      float p_mean = mean(acc00);
+      float p_std = sqrt(variance(acc00));
+
+      float p_w_mean = weighted_mean(acc0);
+      float p_w_std = sqrt(weighted_variance(acc0));
+
+      float p_err = conf_factor * p_std / sqrt((double)n);
+
+      stats_.SetNextParam(region, p_mean, p_w_mean, p_std, p_w_std, p_median, q1, q2, OS1, OS2, p_err, p_err);
+
+   }
+
 
    int CalculateRegionStats(int n_parameters, int region_size, const float* data, float intensity[], RegionStats<float>& stats, int region)
    {
@@ -66,7 +119,7 @@ public:
             }
          }
          int K = int(0.05 * idx);
-         TrimmedMean(buf.data(), intensity, idx, K, confidence_factor, stats, region);
+         computeStatistics(buf.data(), intensity, idx, K, confidence_factor, stats, region);
       }
 
       return n_parameters;
