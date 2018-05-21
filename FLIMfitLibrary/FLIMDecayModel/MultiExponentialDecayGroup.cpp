@@ -237,7 +237,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
    for (int i = 0; i < n_exponential; i++)
    {
       tau_raw[i] = tau_parameters[i]->getValue<double>(param_value, idx);
-      tau[i] = tau_raw[i] < 50.0 ? 50.0 : tau_raw[i];
+      tau[i] = tau_raw[i] < 5.0 ? 5.0 : tau_raw[i];
    }
 
    /*

@@ -270,7 +270,6 @@ int FretDecayGroup::setVariables(const double* param_values)
    for (int i = 0; i<n_fret_populations; i++)
    {
       double tau_transfer_0 = tauT_parameters[i]->getValue<double>(param_values, idx);
-      tau_transfer_0 = std::max(tau_transfer_0, 50.0);
       
       for (int k = 0; k < n_kappa; k++)
       {
@@ -291,9 +290,6 @@ int FretDecayGroup::setVariables(const double* param_values)
       Q = Q_parameter->getValue<double>(param_values, idx);
       Qsigma = Qsigma_parameter->getValue<double>(param_values, idx);
       tauA = tauA_parameter->getValue<double>(param_values, idx);
-
-      tauA = std::max(tauA, 50.0);
-
       
       acceptor_buffer->compute(1 / tauA, irf_idx, t0_shift);
 
@@ -320,13 +316,13 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
 
    float* output_tauT = output + output_idx;
    for (int i = 0; i < n_fret_populations; i++)
-      output[output_idx++] = std::max(tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx), 50.f);
+      output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
    if (include_acceptor)
    {
       output[output_idx++] = Q_parameter->getValue<float>(nonlin_variables, nonlin_idx);
       output[output_idx++] = Qsigma_parameter->getValue<float>(nonlin_variables, nonlin_idx);
-      output[output_idx++] = std::max(tauA_parameter->getValue<float>(nonlin_variables, nonlin_idx), 50.f);
+      output[output_idx++] = tauA_parameter->getValue<float>(nonlin_variables, nonlin_idx);
    }
 
    float* tau = output;

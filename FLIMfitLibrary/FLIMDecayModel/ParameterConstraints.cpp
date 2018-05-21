@@ -26,7 +26,7 @@ double kappaLim(double tau)
    //return 0;
 
    double diff_max = 30;
-   double tau_min = 50;
+   double tau_min = 5;
 
    double diff = - tau + tau_min;
 
