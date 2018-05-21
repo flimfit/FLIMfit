@@ -46,9 +46,11 @@ function phasor_segmentation_manager(data_series_controller)
         set(layout,'Widths',[200,-1]);
         
         menu_file = uimenu(fh,'Label','File');
-        handles.menu_file_load_segmentation = uimenu(menu_file,'Label','Load Segmentation Images...');
-        handles.menu_file_load_single_segmentation = uimenu(menu_file,'Label','Load Single Segmentation Image...');
-        handles.menu_file_save_segmentation = uimenu(menu_file,'Label','Save Segmentation Images...');
+        %handles.menu_file_load_segmentation = uimenu(menu_file,'Label','Load Segmentation Images...');
+        %handles.menu_file_load_single_segmentation = uimenu(menu_file,'Label','Load Single Segmentation Image...');
+        %handles.menu_file_save_segmentation = uimenu(menu_file,'Label','Save Segmentation Images...');
+        handles.menu_file_export_phasor_images = uimenu(menu_file,'Label','Export Phasor Images...','Separator','on');
+        handles.menu_file_export_backgated_image = uimenu(menu_file,'Label','Export Backgated Image...');
 
     end
 

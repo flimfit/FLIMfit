@@ -2,9 +2,8 @@ classdef phasor_segmentation_controller < flim_data_series_observer
   
     properties
         
-        menu_file_load_segmentation;
-        menu_file_save_segmentation;
-        menu_file_load_single_segmentation;
+        menu_file_export_phasor_images;
+        menu_file_export_backgated_image;
         
         tool_roi_rect_toggle;
         tool_roi_poly_toggle;
@@ -61,7 +60,10 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             set(obj.tool_roi_poly_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
             set(obj.tool_roi_circle_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
             set(obj.tool_roi_paint_toggle,'OnCallback',@obj.on_callback,'OffCallback',@obj.on_callback);
-                                 
+
+            set(obj.menu_file_export_phasor_images,'Callback',@obj.export_phasor_callback);
+            set(obj.menu_file_export_backgated_image,'Callback',@obj.export_backgated_callback);
+            
             obj.segmentation_im = image(0,'Parent',obj.segmentation_axes);
             set(obj.segmentation_axes,'XTick',[],'YTick',[]);
             daspect(obj.segmentation_axes,[1 1 1]);
@@ -99,16 +101,17 @@ classdef phasor_segmentation_controller < flim_data_series_observer
 
             p_irf = CalculatePhasor(d.irf.tr_t_irf,d.irf.tr_irf);
             [p,I] = CalculatePhasor(d.t,d.cur_data,p_irf);
+            sp = CalculateSpectralPhasor(I);
             
             acceptor = 0;
             if ~isempty(d.acceptor)
                 acceptor = d.acceptor(:,:,d.active);
             end
-            
+                        
             kern = fspecial('disk',3);
             
             obj.n_chan = size(p,1);
-            
+                        
             for i=1:obj.n_chan
                 ext = ['_' num2str(i)];
                 p_r = conv2(squeeze(real(p(i,:,:))),kern,'same');
@@ -118,6 +121,16 @@ classdef phasor_segmentation_controller < flim_data_series_observer
                 obj.dataset.(['phasor_lifetime' ext]) = d.rep_rate ./ (2*pi) .* p_i ./ p_r;
                 obj.dataset.(['intensity' ext]) = squeeze(I(i,:,:));
             end
+            for j=1:size(I,1)
+                for k=(j+1):size(I,1)
+                    obj.dataset.(['ratio_I' num2str(k) '_I' num2str(j)]) = squeeze(I(k,:,:) ./ I(j,:,:));
+                end
+            end
+            
+            obj.dataset.('s_r') = conv2(real(sp),kern,'same');
+            obj.dataset.('s_i') = conv2(imag(sp),kern,'same');
+
+            
             obj.dataset.total_intensity = squeeze(sum(I,1));
             obj.dataset.acceptor = acceptor;
             
@@ -147,11 +160,21 @@ classdef phasor_segmentation_controller < flim_data_series_observer
 
             m = obj.get_mask();
             
-            im_mask = zeros(size(cim));
-            im_mask(:,:,1) = 255;
+            %im_mask = zeros(size(cim));
+            %im_mask(:,:,1) = 255;
 
             m = repmat(m,[1 1 3]);
-            cim(~m) = im_mask(~m);
+            
+            m1 = m;
+            m1(:,:,2:3) = 0;
+            
+            m2 = m;
+            m2(:,:,1) = 0;
+
+            
+            cim(m1) = 255;
+            
+            cim(m2) = min(2*cim(m2),200);
             
             set(obj.segmentation_im,'CData',cim);
             set(obj.segmentation_axes,'XLim',[1 size(cim,2)],'YLim',[1 size(cim,1)]);
@@ -161,7 +184,33 @@ classdef phasor_segmentation_controller < flim_data_series_observer
             end
             
         end
-                   
+        
+        function export_phasor_callback(obj,~,~)
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+            [file, path] = uiputfile('*.tif','Select file name',default_path);
+            
+            if file ~= 0
+                for h = obj.histograms
+                    im = h.get_histogram();
+                    [x_name, y_name] = h.get_names();
+                    h_file = strrep(file,'.tif',[' ' x_name ' vs ' y_name '.tif']);
+                    imwrite(uint8(im*255),[path filesep h_file]);
+                end
+            end
+        end
+        
+        function export_backgated_callback(obj,~,~)
+            default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+            name = obj.data_series_controller.data_series.names{obj.data_series_list.selected};
+
+            [file, path] = uiputfile('*.tif','Select file name',[default_path name '-backgated.tif']);
+            
+            
+            if file ~= 0
+               imwrite(obj.get_mask(),[path filesep file]);            
+            end
+        end
+        
         function mask = get_mask(obj)
             mask = true;
             for i=1:length(obj.histograms)

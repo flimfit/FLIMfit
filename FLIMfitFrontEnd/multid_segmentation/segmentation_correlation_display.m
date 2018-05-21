@@ -18,9 +18,14 @@ classdef segmentation_correlation_display < handle
        x_max_edit;
        y_min_edit;
        y_max_edit;
+       x_label;
+       y_label;
        
        x_data;
        y_data;
+       
+       x_lim = [0 1];
+       y_lim = [0 1];
        
        tool_roi_circle_toggle;
        tool_roi_rect_toggle; 
@@ -50,6 +55,8 @@ classdef segmentation_correlation_display < handle
         function info = get_info(obj)
             info.x_name = obj.x_listbox.String{obj.x_listbox.Value};
             info.y_name = obj.y_listbox.String{obj.y_listbox.Value};
+            info.x_lim = obj.x_lim;
+            info.y_lim = obj.y_lim;
             
             if ~isempty(obj.flex_h) && isvalid(obj.flex_h)
                 info.flex_type = class(obj.flex_h);
@@ -70,6 +77,17 @@ classdef segmentation_correlation_display < handle
             end
             if ~isempty(y_idx)
                 obj.y_listbox.Value = y_idx;
+            end
+            
+            if isfield(info,'x_lim')
+                obj.x_lim = info.x_lim;
+                set(obj.x_min_edit,'String',num2str(info.x_lim(1)));
+                set(obj.x_max_edit,'String',num2str(info.x_lim(2)));
+            end
+            if isfield(info,'y_lim')
+                obj.y_lim = info.y_lim;
+                set(obj.y_min_edit,'String',num2str(info.y_lim(1)));
+                set(obj.y_max_edit,'String',num2str(info.y_lim(2)));
             end
             
             obj.update();
@@ -93,16 +111,16 @@ classdef segmentation_correlation_display < handle
             
             % Limits layout
             lims_layout = uix.HBox('Parent',display_layout);
-            uicontrol(lims_layout,'Style','text','String','x');
-            obj.x_min_edit = uicontrol(lims_layout,'Style','edit','String','0');
+            obj.x_label = uicontrol(lims_layout,'Style','text','String','x','HorizontalAlignment','right');
+            obj.x_min_edit = uicontrol(lims_layout,'Style','edit','String','0','Callback',@obj.limits_callback);
             uicontrol(lims_layout,'Style','text','String','-');
-            obj.x_max_edit = uicontrol(lims_layout,'Style','edit','String','0');
+            obj.x_max_edit = uicontrol(lims_layout,'Style','edit','String','1','Callback',@obj.limits_callback);
             uix.Empty('Parent',lims_layout);
-            uicontrol(lims_layout,'Style','text','String','y');
-            obj.y_min_edit = uicontrol(lims_layout,'Style','edit','String','0');
+            obj.y_label = uicontrol(lims_layout,'Style','text','String','y','HorizontalAlignment','right');
+            obj.y_min_edit = uicontrol(lims_layout,'Style','edit','String','0','Callback',@obj.limits_callback);
             uicontrol(lims_layout,'Style','text','String','-');
-            obj.y_max_edit = uicontrol(lims_layout,'Style','edit','String','0');
-            lims_layout.Widths = [20 -1 20 -1 -4 20 -1 20 -1];
+            obj.y_max_edit = uicontrol(lims_layout,'Style','edit','String','1','Callback',@obj.limits_callback);
+            lims_layout.Widths = [75 -1 75 -1 -4 75 -1 75 -1];
             
             % Axes
             obj.ax = axes('Parent',display_layout);
@@ -129,6 +147,7 @@ classdef segmentation_correlation_display < handle
             obj.im = imagesc(ed,ed,ones(256,256),'Parent',obj.ax);
             daspect(obj.ax,[1 1 1])
             set(obj.ax,'YDir','normal','XTick',[],'YTick',[]);
+            set(obj.ax,'Colormap',gray(256));
             
             hold(obj.ax,'on');
             theta = linspace(0,pi,1000);
@@ -155,6 +174,10 @@ classdef segmentation_correlation_display < handle
                 data = data / 4;
             elseif contains(name,'phasor_lifetime')
                 data = data / 24;
+            elseif contains(name,'ratio')
+                data = data / 5;
+            elseif startsWith(name,'s_')
+                data = (data + 1) / 2;
             end
             
             data(data > 1) = 1;
@@ -166,20 +189,21 @@ classdef segmentation_correlation_display < handle
                 return
             end
             
-            x_name = obj.x_listbox.String{obj.x_listbox.Value};
-            y_name = obj.x_listbox.String{obj.y_listbox.Value};
+            [x_name,y_name] = obj.get_names(); 
             
-            obj.x_data = obj.get_data(x_name);
-            obj.y_data = obj.get_data(y_name);
+            obj.x_label.String = [x_name '  '];
+            obj.y_label.String = [y_name '  '];
+            
+            obj.x_data = (obj.get_data(x_name) - obj.x_lim(1)) / (obj.x_lim(2) - obj.x_lim(1));
+            obj.y_data = (obj.get_data(y_name) - obj.y_lim(1)) / (obj.y_lim(2) - obj.y_lim(1));
             
             I = obj.controller.dataset.total_intensity;
-
             pc = [obj.y_data(:) obj.x_data(:)];        
             n = histwv2(pc,I(:),0,1,256);
             n = n(2:255,2:255);
-            %n(:,:,i) = ni; % / prctile(ni(:),99.9);
-            %n = flip(n,3); % BGR -> RGB
 
+            n = n.^0.4;
+            
             n = n / prctile(n(:),99.9);
             n(n>1) = 1;
             set(obj.im,'CData',n);
@@ -191,6 +215,15 @@ classdef segmentation_correlation_display < handle
             end
            
             obj.compute_mask();
+        end
+        
+        function im = get_histogram(obj)
+            im = flipud(obj.im.CData);
+        end
+        
+        function [x_name, y_name] = get_names(obj)
+            x_name = obj.x_listbox.String{obj.x_listbox.Value};
+            y_name = obj.x_listbox.String{obj.y_listbox.Value};
         end
         
         function toggle_callback(obj,src,~)
@@ -217,6 +250,15 @@ classdef segmentation_correlation_display < handle
                     delete(obj.flex_h)
                 end
             end            
+        end
+        
+        function limits_callback(obj,~,~)
+           
+            obj.x_lim = [str2double(obj.x_min_edit.String) str2double(obj.x_max_edit.String)];
+            obj.y_lim = [str2double(obj.y_min_edit.String) str2double(obj.y_max_edit.String)];
+            
+            obj.update();
+            
         end
         
         function compute_mask(obj)           
