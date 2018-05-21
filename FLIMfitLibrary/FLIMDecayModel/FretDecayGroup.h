@@ -59,11 +59,13 @@ public:
    Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE setNumFretPopulations USER true);
    Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE setIncludeDonorOnly USER true);
    Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE setIncludeAcceptor USER true);
-   
+   Q_PROPERTY(bool use_static_model MEMBER use_static_model WRITE setUseStaticModel USER true);
+
    void setNumExponential(int n_exponential_);
    void setNumFretPopulations(int n_fret_populations_);
    void setIncludeDonorOnly(bool include_donor_only_);
    void setIncludeAcceptor(bool include_acceptor_);
+   void setUseStaticModel(bool use_static_model_);
 
    void setContributionsGlobal(bool contributions_global) {}; // contributions must be global
 
@@ -110,6 +112,7 @@ protected:
    int n_fret_populations = 1;
    bool include_donor_only = true;
    bool include_acceptor = true;
+   bool use_static_model = true;
    
    std::vector<std::vector<std::vector<double>>> a_star;
    std::vector<std::vector<double>> tau_transfer;

@@ -63,6 +63,7 @@ FretDecayGroup::FretDecayGroup(const FretDecayGroup& obj) :
    tauA_parameter = obj.tauA_parameter;
    tauT_parameters = obj.tauT_parameters;
    acceptor_channel_factors = obj.acceptor_channel_factors;
+   use_static_model = obj.use_static_model;
 
    setupParameters();
    init();
@@ -97,6 +98,9 @@ void FretDecayGroup::init()
    //      throw std::runtime_error("Fitting beta parameters in FRET model not currently implemented");
 
    MultiExponentialDecayGroupPrivate::init();
+
+   n_kappa = use_static_model ? 100 : 1;
+   kappa_factor = KappaFactor(n_kappa);
 
    n_lin_components = n_fret_populations + include_donor_only;
 
@@ -149,6 +153,13 @@ void FretDecayGroup::setIncludeAcceptor(bool include_acceptor_)
    include_acceptor = include_acceptor_;
    setupParameters();
 }
+
+void FretDecayGroup::setUseStaticModel(bool use_static_model_)
+{
+   use_static_model = use_static_model_;
+   setupParameters();
+}
+
 
 const std::vector<double>& FretDecayGroup::getChannelFactors(int index)
 {
