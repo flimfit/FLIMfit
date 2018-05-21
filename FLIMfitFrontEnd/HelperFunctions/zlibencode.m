@@ -1,4 +1,4 @@
-function output = zlibencode(input)
+function output_size = zlibencode(input, filename)
 %ZLIBENCODE Compress input bytes with ZLIB.
 %
 %    output = zlibencode(input)
@@ -10,18 +10,29 @@ function output = zlibencode(input)
 %
 % See also zlibdecode typecast
 
-error(nargchk(1, 1, nargin));
+%error(nargchk(1, 1, nargin));
 error(javachk('jvm'));
 if ischar(input), input = uint8(input); end
 if ~isa(input, 'int8') && ~isa(input, 'uint8')
     error('Input must be either char, int8 or uint8.');
 end
 
-buffer = java.io.ByteArrayOutputStream();
-zlib = java.util.zip.DeflaterOutputStream(buffer);
-zlib.write(input, 0, numel(input));
+fos = java.io.FileOutputStream(filename, true); % append
+zlib = java.util.zip.DeflaterOutputStream(fos);
+
+input = input(:);
+
+blocksize = 1024*1024;
+nblock = ceil(length(input) / blocksize);
+
+output_size = 0;
+for i=1:nblock
+    block_start = (i-1)*blocksize+1;
+    block_end = min(block_start+blocksize-1,length(input));
+    block = input(block_start:block_end);
+    zlib.write(block, 0, numel(block));
+end
 zlib.close();
-output = typecast(buffer.toByteArray(), 'uint8')';
+fos.close();
 
 end
-
