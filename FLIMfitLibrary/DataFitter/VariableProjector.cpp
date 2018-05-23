@@ -97,14 +97,14 @@ void VariableProjector::computeJacobian(const std::vector<int>& inc, double resi
          double acum = 0.;
          for (int j = 0; j < la; ++j)
          {
-            if (active[j] && inc[k + j * 12])
+            if (active[j] && inc[k + j * MAX_VARIABLES])
             {
                acum += bw[ipl + m * ndim] * r[j];
                ++m;
             }
          }
 
-         if (inc[k + l * 12])
+         if (inc[k + l * MAX_VARIABLES])
          {
             acum += bw[ipl + m * ndim];
             ++m;
@@ -125,7 +125,7 @@ void VariableProjector::transformAB(const std::vector<int>& inc)
    int m = 0, ma = 0;
    for (int k = 0; k < nl; ++k)
       for (int j = 0; j < l; ++j)
-         if (inc[k + j * 12])
+         if (inc[k + j * MAX_VARIABLES])
          {
             if (active[j])
             {

@@ -224,7 +224,7 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
    {
          for(int j=0; j<l; j++)
          {
-            if (inc[k + j * 12] != 0)
+            if (inc[k + j * MAX_VARIABLES] != 0)
             {
                for (int i = 0; i < n; i++)
                   fjac[n_param*i + k] += expA[j] * b[ndim*m + i];
@@ -232,7 +232,7 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
                m++;
             }
          }
-         if (inc[k + l * 12] != 0)
+         if (inc[k + l * MAX_VARIABLES] != 0)
          {
             for (int i=0; i<n; i++)
                fjac[n_param*i+k] += b[ndim*m+i];

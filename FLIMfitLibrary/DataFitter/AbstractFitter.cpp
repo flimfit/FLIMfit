@@ -37,7 +37,6 @@
 #include <limits>
 #include <exception>
 
-
 //#include "util.h"
 
 using std::pair;
@@ -51,8 +50,8 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
    options(options),
    reporter(reporter),
    lifetime_estimator(model_->getTransformedDataParameters()),
-   inc(96),
-   inc_full(96)
+   inc(INC_ENTRIES),
+   inc_full(INC_ENTRIES)
 {
    // We need our own copy
    model = std::make_shared<DecayModel>(*model_);
@@ -129,12 +128,12 @@ int AbstractFitter::init()
             if (k != fixed_param)
             {
                for (int j = 0; j < lp1; ++j) 
-                  inc[idx + j * 12] = inc[k + j * 12];
+                  inc[idx + j * MAX_VARIABLES] = inc[k + j * MAX_VARIABLES];
                idx++;
             }
          }
          for (int j = 0; j < lp1; ++j) 
-            inc[idx + j * 12] = 0;
+            inc[idx + j * MAX_VARIABLES] = 0;
       }
 
       p = 0;
@@ -144,7 +143,7 @@ int AbstractFitter::init()
          //   nconp1 = j + 1;
          for (int k = 0; k < nl; ++k) 
          {
-            int inckj = inc[k + j * 12];
+            int inckj = inc[k + j * MAX_VARIABLES];
             if (inckj != 0 && inckj != 1)
                break;
             if (inckj == 1)
@@ -156,7 +155,7 @@ int AbstractFitter::init()
       //---------------------------------------------
       philp1 = false;
       for (int k = 0; k < nl; ++k) 
-         philp1 = philp1 | (inc[k + l * 12] == 1); 
+         philp1 = philp1 | (inc[k + l * MAX_VARIABLES] == 1);
    }
 
    return 0;
@@ -380,10 +379,10 @@ void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_i
    
       for (int k = 0; k < fixed_param; ++k)
          for (int j = 0; j < l; ++j) 
-            valid_cols += inc_full[k + j * 12];
+            valid_cols += inc_full[k + j * MAX_VARIABLES];
 
       for (int j = 0; j < l; ++j)
-         ignore_cols += inc_full[fixed_param + j * 12];
+         ignore_cols += inc_full[fixed_param + j * MAX_VARIABLES];
 
       auto src = b.begin() + ndim * (valid_cols + ignore_cols);
       auto dest = b.begin() + ndim * valid_cols;

@@ -200,7 +200,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
       if (tau_parameters[i]->isFittedGlobally())
       {
          for (int j = 0; j < n_fret_group; j++)
-            inc[inc_row + (inc_col + j) * 12] = 1;
+            inc[inc_row + (inc_col + j) * MAX_VARIABLES] = 1;
          inc_row++;
       }
    }
@@ -212,7 +212,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
          if (beta_parameters[i]->isFittedGlobally())
          {
             for (int j = 0; j < n_fret_group; j++)
-               inc[inc_row + (inc_col + j) * 12] = 1;
+               inc[inc_row + (inc_col + j) * MAX_VARIABLES] = 1;
             inc_row++;
          }
       }
@@ -225,7 +225,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    {
       if (tauT_parameters[i]->isFittedGlobally())
       {
-         inc[inc_row + (inc_col + i) * 12] = 1;
+         inc[inc_row + (inc_col + i) * MAX_VARIABLES] = 1;
          inc_row++;
       }
    }
@@ -234,7 +234,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    if (include_acceptor && Q_parameter->isFittedGlobally())
    {
       for (int i = include_donor_only; i < n_fret_group; i++)
-         inc[inc_row + (inc_col0 + i) * 12] = 1;
+         inc[inc_row + (inc_col0 + i) * MAX_VARIABLES] = 1;
       inc_row++;
    }
 
@@ -242,7 +242,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    if (include_acceptor && Qsigma_parameter->isFittedGlobally())
    {
       for (int i = 0; i < n_fret_group; i++)
-         inc[inc_row + (inc_col0 + i) * 12] = 1;
+         inc[inc_row + (inc_col0 + i) * MAX_VARIABLES] = 1;
       inc_row++;
    }
 
@@ -250,7 +250,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    if (include_acceptor && tauA_parameter->isFittedGlobally())
    {
       for (int i = 0; i < n_fret_group; i++)
-         inc[inc_row + (inc_col0 + i) * 12] = 1;
+         inc[inc_row + (inc_col0 + i) * MAX_VARIABLES] = 1;
       inc_row++;
    }
 

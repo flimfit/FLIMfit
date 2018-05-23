@@ -122,7 +122,7 @@ void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, i
       if (tau_parameters[i]->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
-            inc[inc_row + (inc_col + j) * 12] = 1;
+            inc[inc_row + (inc_col + j) * MAX_VARIABLES] = 1;
          inc_row++;
       }
    }
@@ -133,7 +133,7 @@ void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, i
       if (beta_parameters[0]->isFittedGlobally())
       {
          for (int j = 0; j<n_anisotropy_group; j++)
-            inc[inc_row + (inc_col + j) * 12] = 1;
+            inc[inc_row + (inc_col + j) * MAX_VARIABLES] = 1;
          inc_row++;
       }
    }
@@ -145,7 +145,7 @@ void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, i
    {
       if (theta_parameters[i]->isFittedGlobally())
       {
-         inc[inc_row + inc_col * 12] = 1;
+         inc[inc_row + inc_col * MAX_VARIABLES] = 1;
          inc_col++;
          inc_row++;
       }

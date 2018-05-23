@@ -123,7 +123,7 @@ void BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_r
    {
       if (parameters[i]->isFittedGlobally())
       {
-         inc[inc_row + inc_col * 12] = 1;
+         inc[inc_row + inc_col * MAX_VARIABLES] = 1;
          inc_col++;
       }
    }

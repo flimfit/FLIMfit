@@ -44,6 +44,9 @@
 #include "IRFConvolution.h"
 #include "FittingParameter.h"
 
+#define INC_ENTRIES     256
+#define MAX_VARIABLES   32
+
 typedef std::vector<double>::iterator double_iterator;
 
 class AbstractDecayGroup : public QObject

@@ -202,7 +202,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
    {
       if (tau_parameters[i]->isFittedGlobally())
       {
-         inc[inc_row + (inc_col + cur_col) * 12] = 1;
+         inc[inc_row + (inc_col + cur_col) * MAX_VARIABLES] = 1;
          inc_row++;
       }
 
@@ -217,7 +217,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
       {
          if (beta_parameters[i]->isFittedGlobally())
          {
-            inc[inc_row + inc_col * 12] = 1;
+            inc[inc_row + inc_col * MAX_VARIABLES] = 1;
             inc_row++;
          }
       }
