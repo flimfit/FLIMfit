@@ -29,6 +29,9 @@
 
 #pragma once
 
+#include <omp.h>
+
+/*
 #ifdef USE_OMP
 
 #include <omp.h>
@@ -46,7 +49,7 @@ int omp_get_num_threads();
 #endif
 
 #endif
-
+*/
 /*
 
 Incorporating grand central dispatch...

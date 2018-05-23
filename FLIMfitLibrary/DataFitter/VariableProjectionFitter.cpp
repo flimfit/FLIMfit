@@ -20,7 +20,7 @@
 #include "cminpack.h"
 #include <cmath>
 #include <algorithm>
-//#include "util.h"
+#include <atomic>
 
 using std::min;
 using std::max;
@@ -45,11 +45,10 @@ VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> m
    n_jac_group = (int) ceil(1024.0 / (nmax-l));
 
    w.resize(nmax);
-   yr.resize(nmax);
 
    vp.push_back(VariableProjector(this));
    
-   spvd wp = iterative_weighting ?  nullptr : vp[0].wp;
+   spvd wp = iterative_weighting ? nullptr : vp[0].wp;
    spvd a = variable_phi ? nullptr : vp[0].a;
    spvd b = variable_phi ? nullptr : vp[0].b;
 
@@ -362,7 +361,8 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
       calculateWeights(0, alf, B.wp->data());
 
    if (!variable_phi && !iterative_weighting)
-      B.transformAB(inc);
+      for(auto& B : vp)
+         B.transformAB(inc);
 
    // Set kappa derivatives
    *rnorm = kap[0];
@@ -396,13 +396,13 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    if (variable_phi | iterative_weighting)
       B.transformAB(inc);
 
-   resampler->resample(y + row * n, yr.data());
+   resampler->resample(y + row * n, B.yr.data());
 
    if (using_gamma_weighting)
       for (int i = 0; i < nr; ++i)
-         yr[i] += min(yr[i], 1.0f);
+         B.yr[i] += min(B.yr[i], 1.0f);
 
-   B.setData(yr.data());
+   B.setData(B.yr.data());
    B.backSolve();
    B.computeJacobian(inc, rnorm, fjrow);
 
@@ -429,12 +429,12 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
    double r_sq = 0;
 
-   std::vector<int> n_active(l, true);
+   std::vector<std::atomic<int>> n_active(l);
 
-   //#pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
+   #pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
    for (int j = 0; j < s; j++)
    {
-      int omp_thread = 0; // omp_get_thread_num();
+      int omp_thread = omp_get_thread_num();
       auto& B = vp[omp_thread];
    
       if (variable_phi)
@@ -447,8 +447,8 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
          calculateWeights(j, alf, B.wp->data());
       B.weightModel();
 
-      resampler->resample(y + j * n, yr.data());
-      B.setData(yr.data());
+      resampler->resample(y + j * n, B.yr.data());
+      B.setData(B.yr.data());
 
       double rj_norm;
       nnls[omp_thread]->compute(B.aw.data(), nr, nmax, B.r.data(), B.work.data(), rj_norm);

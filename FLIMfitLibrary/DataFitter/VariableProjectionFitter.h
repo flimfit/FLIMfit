@@ -62,7 +62,6 @@ private:
    void resample(aligned_vector<double>& a, int ndim, int ncol);
 
    std::vector<double> w;
-   std::vector<float> yr;
 
    std::vector<VariableProjector> vp;
 

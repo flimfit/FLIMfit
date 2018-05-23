@@ -11,6 +11,7 @@ VariableProjector::VariableProjector(VariableProjectionFitter* f, spvd a_, spvd 
    aw.resize(nmax * (l + 1));
    bw.resize(ndim * (pmax + 3));
    u.resize(nmax);
+   yr.resize(nr);
 
    model = std::make_shared<DecayModel>(*(f->model)); // deep copy
    adjust = model->getConstantAdjustment();

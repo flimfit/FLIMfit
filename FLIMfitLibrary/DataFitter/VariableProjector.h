@@ -31,6 +31,7 @@ protected:
    int n, nmax, ndim, nl, l, la,  p, pmax, philp1, nr;
    
    std::vector<double> work, aw, bw, u, r;
+   std::vector<float> yr;
 
    spvd a, b, wp;
 

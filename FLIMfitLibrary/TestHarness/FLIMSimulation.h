@@ -105,7 +105,7 @@ void FLIMSimulation::GenerateImage(double tau, int N, int chan, std::vector<U>& 
 template <class U>
 void FLIMSimulation::GenerateImage(double tau, int N, int chan, U* decay)
 {
-   #pragma omp parallel for
+   //#pragma omp parallel for
    for(int x=0; x<n_x; x++)
    {
       std::vector<int> buf(n_t_full);

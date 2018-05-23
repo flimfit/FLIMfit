@@ -12,9 +12,7 @@ cmake_minimum_required(VERSION 3.9)
 
 set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
 
-#find_package(Qt5Core REQUIRED)
-#find_package(OpenCV REQUIRED)
-#find_package(Boost REQUIRED COMPONENTS system filesystem serialization)
+find_package(OpenCV REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -25,6 +23,7 @@ if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
    set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-reorder")
 endif()
+
 
 
 # Include optimisation flags in Visual Studio
@@ -46,7 +45,7 @@ endif(UNIX)
 
 # Add platform specific flags
 #===================================================
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL} ${OpenMP_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 
