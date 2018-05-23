@@ -20,6 +20,7 @@
 
 #include <numeric>
 #include <vector>
+#include <algorithm>
 
 const double t_rep_default = 12500.0;
 
@@ -56,7 +57,7 @@ protected:
 
    double dt;
    
-   virtual void GenerateDecay(double tau, int N, std::vector<int>& decay) = 0;
+   virtual void GenerateDecay_(double tau, int N, std::vector<int>& decay) = 0;
    virtual void GenerateIRF_(int N, std::vector<double>& decay) = 0;
 
    boost::lagged_fibonacci44497 gen;
@@ -73,7 +74,7 @@ public:
    int GetTimePoints(std::vector<double>& t, std::vector<double>& t_int);
 
 protected:
-   void GenerateDecay(double tau, int N, std::vector<int>& decay);
+   void GenerateDecay_(double tau, int N, std::vector<int>& decay);
    void GenerateIRF_(int N, std::vector<double>& decay);
 
 };
@@ -86,7 +87,7 @@ public:
 
 
 protected:
-   void GenerateDecay(double tau, int N, std::vector<int>& decay);
+   void GenerateDecay_(double tau, int N, std::vector<int>& decay);
    void GenerateIRF_(int N, std::vector<double>& decay);
 
    double gate_width;
@@ -110,7 +111,7 @@ void FLIMSimulation::GenerateImage(double tau, int N, int chan, U* decay)
       std::vector<int> buf(n_t_full);
       for(int y=0; y<n_y; y++)
       {
-         int pos = y + n_y*x;
+         size_t pos = y + n_y*x;
          GenerateDecay(tau, N, buf); 
          for(int i=0; i<n_t_full; i++)
             decay[(pos * n_chan + chan) * n_t_full + i] += (U) buf[i];
@@ -127,7 +128,7 @@ void FLIMSimulation::GenerateImageBackground(int N, U* decay)
    {
       for (int y = 0; y < n_y; y++)
       {
-         int pos = y + n_y*x;
+         size_t pos = y + n_y*x;
          for (int i = 0; i < n_meas_full; i++)
             decay[pos * n_meas_full + i] += (U) poisson_dist(gen);
       }
@@ -143,10 +144,10 @@ void FLIMSimulation::GenerateDecay(double tau, int N, std::vector<U>& decay)
    decay.assign(n_t_full, 0);
 
    std::vector<int> buf(n_t_full);
-   GenerateDecay(tau, N, buf);
+   GenerateDecay_(tau, N, buf);
 
    for (int i = 0; i<n_t_full; i++)
-      decay[i] = (U)buf[i];
+      decay[i] = (U) std::min(buf[i], std::numeric_limits<U>::max());
 
 }
 

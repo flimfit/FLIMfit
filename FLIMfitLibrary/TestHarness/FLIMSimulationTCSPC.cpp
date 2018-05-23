@@ -6,7 +6,7 @@ FLIMSimulationTCSPC::FLIMSimulationTCSPC(int n_chan) :
 {
    double Tmax = 12500;
 
-   n_t_full = 256;
+   n_t_full = 64;
    dt = Tmax / n_t_full;
 
 
@@ -26,7 +26,7 @@ FLIMSimulationTCSPC::FLIMSimulationTCSPC(int n_chan) :
 
 }
 
-void FLIMSimulationTCSPC::GenerateDecay(double tau, int N, std::vector<int>& decay)
+void FLIMSimulationTCSPC::GenerateDecay_(double tau, int N, std::vector<int>& decay)
 {
    boost::random::exponential_distribution<double> exp_dist(1 / tau);
    boost::random::poisson_distribution<int> poisson_dist(N);
@@ -67,7 +67,6 @@ void FLIMSimulationTCSPC::GenerateIRF_(int N, std::vector<double>& decay)
       // Make sure we're not outside of the sample window
       if (idx >= 0 && idx < n_t_full)
          decay[idx]++;
-
    }
 
    // Normalise IRF

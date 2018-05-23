@@ -25,7 +25,7 @@ FLIMSimulationWF::FLIMSimulationWF() :
    setIntegrationTimes(t_int_);
 }
 
-void FLIMSimulationWF::GenerateDecay(double tau, int N, std::vector<int>& decay)
+void FLIMSimulationWF::GenerateDecay_(double tau, int N, std::vector<int>& decay)
 {
    boost::random::exponential_distribution<double> exp_dist(1 / tau);
 
