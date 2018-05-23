@@ -223,7 +223,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
       }
    }
 
-   inc_col = contributions_global ? 1 : n_exponential;
+   inc_col += (contributions_global ? 1 : n_exponential);
 }
 
 
