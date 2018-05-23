@@ -55,6 +55,7 @@ set(SOURCE
    AbstractConvolver.cpp
    MeasuredIrfConvolver.cpp
    GaussianIrfConvolver.cpp   
+   Aberration.cpp
 )
 
 set(HEADERS   
@@ -78,6 +79,7 @@ set(HEADERS
    AbstractConvolver.h
    MeasuredIrfConvolver.h
    GaussianIrfConvolver.h
+   Aberration.h
 )
 
 add_definitions(-DBOOST_DATE_TIME_NO_LIB)

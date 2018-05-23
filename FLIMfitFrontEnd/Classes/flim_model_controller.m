@@ -7,7 +7,10 @@ classdef flim_model_controller < handle
         
         groups;
         model_variables;
+        model_parameters;
         scroll_panel;
+        
+        model_param_controls;
         
         main_layout;
         group_layout;
@@ -74,7 +77,7 @@ classdef flim_model_controller < handle
         
         function set_n_channel(obj,n_channel)
             obj.n_channel = n_channel;
-            ff_DecayModel(obj.model,'SetNumChannel',n_channel);
+            ff_DecayModel(obj.model,'SetNumChannels',n_channel);
             obj.draw();
         end
     
@@ -86,6 +89,19 @@ classdef flim_model_controller < handle
 
             for i=1:length(obj.groups)
                 obj.draw_group(obj.group_layout,obj.groups(i),i);
+            end
+            
+            obj.model_parameters = ff_DecayModel(obj.model,'GetModelParameters');
+            params = fieldnames(obj.model_parameters);
+            if isempty(obj.model_param_controls)
+                for i=1:length(params)
+                    obj.model_param_controls{i} = obj.draw_parameter(obj.model_layout, obj.model_parameters.(params{i})); 
+                end
+            else                
+                params = fieldnames(obj.model_parameters);
+                for i=1:length(params)
+                   obj.refresh_parameter_control(obj.model_param_controls{i}, 0, params{i}, obj.model_parameters.(params{i})); 
+                end
             end
             
             obj.model_variables = ff_DecayModel(obj.model,'GetModelVariables');
@@ -149,10 +165,6 @@ classdef flim_model_controller < handle
                 title_layout.Widths = [-1, 60, 22];
                 
                 h.layout = uix.VBox('Parent',h.box,'Spacing',2,'BackgroundColor','w');
-                %h.label = uicontrol('Style','text','Parent',h.layout,...
-                %    'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor',obj.title_color);
-                %h.remove_button = uicontrol('Style','pushbutton','String','Remove','Parent',h.layout,'Callback',{@obj.remove_group, idx});
-                %h.layout.Widths = [-1 75];
                 
                 for j=1:length(params)
                     h.params{j} = obj.draw_parameter(h.layout, group.Parameters.(params{j})); 
@@ -297,7 +309,11 @@ classdef flim_model_controller < handle
 
         
         function update_parameter(obj,group_idx,name,value)
-            ff_DecayModel(obj.model,'SetGroupParameter',group_idx,name,value);
+            if group_idx == 0
+                ff_DecayModel(obj.model,'SetModelParameter',name,value);
+            else
+                ff_DecayModel(obj.model,'SetGroupParameter',group_idx,name,value);
+            end
             obj.draw();
         end
         

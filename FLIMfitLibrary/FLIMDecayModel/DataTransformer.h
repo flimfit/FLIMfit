@@ -91,6 +91,9 @@ public:
       t_int = acq->t_int;
       t_rep = acq->t_rep;
       equally_spaced_gates = acq->equally_spaced_gates;
+
+      n_x = acq->n_x;
+      n_y = acq->n_y;
       
       int dim_required = transform.smoothing_factor * 2 + 2;
 
@@ -113,6 +116,8 @@ public:
    int n_meas;
    int n_chan;
    int t_skip;
+   int n_x;
+   int n_y;
    std::shared_ptr<InstrumentResponseFunction> irf;
    double counts_per_photon;
    double t_rep;
@@ -136,6 +141,8 @@ private:
    friend class boost::serialization::access;
 };
 
+BOOST_CLASS_VERSION(TransformedDataParameters, 2)
+
 template<class Archive>
 void TransformedDataParameters::serialize(Archive & ar, const unsigned int version)
 {
@@ -154,6 +161,11 @@ void TransformedDataParameters::serialize(Archive & ar, const unsigned int versi
    ar & acq;
    ar & t_int;
    ar & timepoints;
+   if (version >= 2)
+   {
+      ar & n_x;
+      ar & n_y;
+   }
 }
 
 

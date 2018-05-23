@@ -38,13 +38,13 @@
 #include "AbstractDecayGroup.h"
 #include "MultiExponentialDecayGroup.h"
 #include "FretDecayGroup.h"
+#include "Aberration.h"
 
+#include <vector>
+#include <memory>
+#include <cmath>
 
 #include <QObject>
-#include <cmath>
-#include <vector>
-
-#include <memory>
 
 class DecayModel
 {
@@ -78,7 +78,7 @@ public:
 
    void   setupIncMatrix(std::vector<int>& inc);
    int    calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
-   int    calculateDerivatives(aligned_vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
+   int    calculateDerivatives(aligned_vector<double>& b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
    void   getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx);
    float* getConstantAdjustment() { return adjust_buf.data(); };
 
@@ -91,10 +91,14 @@ public:
    int getNumColumns();
    int getNumDerivatives();
 
+   bool isSpatiallyVariant();
+
    void decayGroupUpdated();
 
-   const std::vector<std::shared_ptr<FittingParameter>> getParameters() { return parameters; }
+   void setUseSpectralCorrection(bool use_spectral_correction_);
+   void setZernikeOrder(int zernike_order_);
 
+   const std::vector<std::shared_ptr<FittingParameter>> getParameters() { return parameters; }
    const std::vector<std::shared_ptr<FittingParameter>> getAllParameters();
 
 
@@ -112,7 +116,8 @@ protected:
    int addT0Derivatives(double* b, int bdim, double_iterator& kap_derv);
 
    void setupAdjust();
-   
+   void setupSpectralCorrection();
+
    std::shared_ptr<TransformedDataParameters> dp;
 
    std::vector<std::shared_ptr<FittingParameter>> parameters;
@@ -122,11 +127,16 @@ protected:
    std::vector<std::vector<double>> channel_factor;
    std::vector<float> adjust_buf;
 
+   bool use_spectral_correction = false;
+   int zernike_order = 1;
+
 private:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
    
    friend class boost::serialization::access;
+
+   std::vector<std::shared_ptr<Aberration>> spectral_correction;
    
 };
 
@@ -145,10 +155,16 @@ void DecayModel::serialize(Archive & ar, const unsigned int version)
       ar & parameters;
    else
       parameters = { t0_parameter }; // get rid of this later
+
+   if (version >= 3)
+   {
+      ar & use_spectral_correction;
+      ar & zernike_order;
+   }
 }
 
 
-BOOST_CLASS_VERSION(DecayModel, 2)
+BOOST_CLASS_VERSION(DecayModel, 3)
 
 class QDecayModel : public QObject, public DecayModel
 {
@@ -156,6 +172,8 @@ class QDecayModel : public QObject, public DecayModel
 
 public:
 
+   Q_PROPERTY(bool use_spectral_correction MEMBER use_spectral_correction WRITE setUseSpectralCorrection USER true);
+   Q_PROPERTY(int zernike_order MEMBER zernike_order WRITE setZernikeOrder USER true);
 
    void addDecayGroup(std::shared_ptr<AbstractDecayGroup> group) 
    {

@@ -57,7 +57,7 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
    model = std::make_shared<DecayModel>(*model_);
 
    irf_idx_0 = 0;
-   variable_phi = false;
+   variable_phi = model->isSpatiallyVariant();
 
    nl = model->getNumNonlinearVariables();
    l = model->getNumColumns();
@@ -366,12 +366,12 @@ void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, al
    model->calculateModel(a, nmax, kap, params, irf_idx);
 }
 
-void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b)
+void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a)
 {
    int valid_cols = 0;
    int ignore_cols = 0;
 
-   model->calculateDerivatives(b, ndim, kap, params, irf_idx);
+   model->calculateDerivatives(b, ndim, a, nmax, l, kap, params, irf_idx);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)

@@ -30,6 +30,7 @@
 
 #include "DecayModel.h"
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -48,7 +49,10 @@ DecayModel::DecayModel(const DecayModel &obj) :
    dp(obj.dp),
    photons_per_count(obj.photons_per_count),
    channel_factor(obj.channel_factor),
-   parameters(obj.parameters)
+   parameters(obj.parameters),
+   spectral_correction(obj.spectral_correction),
+   use_spectral_correction(obj.use_spectral_correction),
+   zernike_order(obj.zernike_order)
 {
    for (auto& g : obj.decay_groups)
       decay_groups.emplace_back(g->clone());
@@ -64,13 +68,57 @@ void DecayModel::setTransformedDataParameters(std::shared_ptr<TransformedDataPar
       g->setTransformedDataParameters(dp);
 
    if (!dp) return;
+
+   spectral_correction.resize(dp->n_chan - 1);
+   setupSpectralCorrection();
+
    photons_per_count = static_cast<float>(1.0 / dp->counts_per_photon);
 }
+
+void DecayModel::setupSpectralCorrection()
+{
+   parameters = { t0_parameter };
+
+   if (use_spectral_correction)
+   {
+      for (int c = 0; c < spectral_correction.size(); c++)
+      {
+         if (!spectral_correction[c])
+            spectral_correction[c] = std::make_shared<Aberration>(c + 1, zernike_order);
+
+         if (dp)
+            spectral_correction[c]->setTransformedDataParameters(dp);
+
+         auto& s_params = spectral_correction[c]->getParameters();
+         parameters.insert(parameters.end(), s_params.begin(), s_params.end());
+      }
+   }
+   else
+   {
+      spectral_correction.clear();
+   }
+}
+
+void DecayModel::setUseSpectralCorrection(bool use_spectral_correction_)
+{ 
+   use_spectral_correction = use_spectral_correction_; 
+   setupSpectralCorrection();
+}
+
+void DecayModel::setZernikeOrder(int zernike_order_)
+{ 
+   zernike_order = zernike_order_;
+   for (auto& s : spectral_correction)
+      s->setOrder(zernike_order);
+}
+
+
 
 void DecayModel::setNumChannels(int n_chan)
 {
    if (dp) return;
 
+   spectral_correction.resize(n_chan - 1);
    for (auto g : decay_groups)
       g->setNumChannels(n_chan);
 }
@@ -121,8 +169,8 @@ int DecayModel::getNumNonlinearVariables()
    for (auto& group : decay_groups)
       n_nonlinear += group->getNumNonlinearParameters();
 
-   n_nonlinear += reference_parameter->isFittedGlobally();
-   n_nonlinear += t0_parameter->isFittedGlobally();
+   n_nonlinear += std::count_if(parameters.begin(), parameters.end(), 
+      [](auto& p) { return p->isFittedGlobally(); });
 
    return n_nonlinear;
 }
@@ -135,7 +183,6 @@ double DecayModel::getCurrentReferenceLifetime(const double* param_values, int& 
 
    return reference_parameter->getValue<double>(param_values, idx);
 }
-
 
 
 void DecayModel::setupAdjust()
@@ -195,40 +242,44 @@ Each row of the matrix corresponds to a variable
 */
 void DecayModel::setupIncMatrix(std::vector<int>& inc)
 {
-   int row = 0;
-   int col = 0;
-
-   int* id = inc.data();
+   // Clear inc and ensure correct size
+   inc.resize(INC_ENTRIES);
    std::fill(inc.begin(), inc.end(), 0);
 
-   int t0_row;
+   // Set up inc matrix for groups in buffer
+   int g_row = 0, col = 0;
+   std::vector<int> group_inc(INC_ENTRIES, 0);
+   for (auto& group : decay_groups)
+      group->setupIncMatrix(group_inc, g_row, col);
+
+   // Setup t0 and spectral correction parameters which affect each column
+   int row = 0;
    if (t0_parameter->isFittedGlobally())
    {
-      t0_row = row;
+      for (int i = 0; i<col; i++)
+         inc[row + i * MAX_VARIABLES] = 1;
       row++;
    }
-   
-   for (auto& group : decay_groups)
-      group->setupIncMatrix(inc, row, col);
 
-   // t0 parameter affects every column
-   if (t0_parameter->isFittedGlobally())
-      for (int i = 0; i<col; i++)
-         inc[t0_row + i * 12] = 1;
+   for (auto& s : spectral_correction)
+      s->setupIncMatrix(inc, row, col);
 
+   // Copy entries from group inc matrix into main inc matrix
+   for (int r = 0; r < g_row; r++)
+      for (int c = 0; c < col; c++)
+         inc[(r + row) + c * MAX_VARIABLES] = group_inc[r + c * MAX_VARIABLES];
 }
 
 int DecayModel::getNumDerivatives()
 {
-   std::vector<int> inc(96);
-
+   std::vector<int> inc(INC_ENTRIES);
    setupIncMatrix(inc);
+   return std::count(inc.begin(), inc.end(), 1);
+}
 
-   int n = 0;
-   for (int i = 0; i < 96; i++)
-      n += inc[i];
-
-   return n;
+bool DecayModel::isSpatiallyVariant()
+{
+   return use_spectral_correction;
 }
 
 int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
@@ -242,6 +293,9 @@ int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<
    double reference_lifetime = getCurrentReferenceLifetime(param_values, idx);
    double t0_shift = t0_parameter->getValue<double>(param_values, idx);
 
+   for(auto& s : spectral_correction)
+      idx += s->setVariables(param_values + idx);
+
    for (int i = 0; i < decay_groups.size(); i++)
    {
       decay_groups[i]->setIRFPosition(irf_idx, t0_shift, reference_lifetime);
@@ -253,28 +307,20 @@ int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<
    for (int i = 0; i < decay_groups.size(); i++)
       col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap[0]);
 
-   /* TODO
-   MOVE THIS TO MULTIEXPONENTIAL MODEL
-   if (constrain_nonlinear_parameters && kap.size() > 0)
-   {
-      kap[0] = 0;
-      for (int i = 1; i < n_v; i++)
-         kap[0] += kappa_spacer(alf[i], alf[i - 1]);
-      for (int i = 0; i < n_v; i++)
-         kap[0] += kappa_lim(alf[i]);
-      for (int i = 0; i < n_theta_v; i++)
-         kap[0] += kappa_lim(alf[alf_theta_idx + i]);
-   }
-   */
-
    // Apply scaling to convert counts -> photons
    for (int i = 0; i < adim*(col + 1); i++)
       a[i] *= photons_per_count;
+ 
+   int x = irf_idx % dp->n_x;
+   int y = irf_idx / dp->n_x;
+
+   for (auto& s : spectral_correction)
+      s->apply(x, y, a.begin(), adim, col + 1);
 
    return col;
 }
 
-int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int col = 0;
    int var = 0;
@@ -289,43 +335,21 @@ int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, std::v
    if (t0_parameter->isFittedGlobally())
       col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv);
 
+   int x = irf_idx % dp->n_x;
+   int y = irf_idx / dp->n_x;
+   for (auto& s : spectral_correction)
+      col += s->calculateDerivatives(x, y, a, adim, n_col, b.begin() + col * bdim, bdim);
+
+   int model_col = col;
+
    for (int i = 0; i < decay_groups.size(); i++)
       col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, kap_derv);
 
-#if _DEBUG
-   //for (int i = 0; i < b.size(); i++)
-   //   assert(std::isfinite(b[i]));
-#endif
-
+   for (auto& s : spectral_correction)
+      s->apply(x, y, b.begin() + bdim * model_col, bdim, col - model_col);
 
    for (int i = 0; i < col*bdim; i++)
       b[i] *= photons_per_count;
-
-   /*
-   MOVE TO MULTIEXPONENTIAL MODEL
-   if (constrain_nonlinear_parameters && kap.size() != 0)
-   {
-      double *kap_derv = kap.data() + 1;
-
-      for (int i = 0; i < nl; i++)
-         kap_derv[i] = 0;
-
-      for (int i = 0; i < n_v; i++)
-      {
-         kap_derv[i] = -kappa_lim(wb.tau_buf[n_fix + i]);
-         if (i < n_v - 1)
-            kap_derv[i] += kappa_spacer(wb.tau_buf[n_fix + i + 1], wb.tau_buf[n_fix + i]);
-         if (i>0)
-            kap_derv[i] -= kappa_spacer(wb.tau_buf[n_fix + i], wb.tau_buf[n_fix + i - 1]);
-      }
-      for (int i = 0; i < n_theta_v; i++)
-      {
-         kap_derv[alf_theta_idx + i] = -kappa_lim(wb.theta_buf[n_theta_fix + i]);
-      }
-
-
-   }
-   */
 
    return col;
 }
@@ -487,7 +511,7 @@ int DecayModel::getLinearOutputs(float* lin_variables, float* outputs)
 
 const std::vector<std::shared_ptr<FittingParameter>> DecayModel::getAllParameters()
 {
-   std::vector<std::shared_ptr<FittingParameter>> params = parameters;
+   auto params = parameters;
 
    for (auto& g : decay_groups)
    {
@@ -519,13 +543,13 @@ void DecayModel::validateDerivatives()
    int n_cols = getNumColumns();
    int n_der = getNumDerivatives();
 
-   std::vector<int> inc(12 * 12);
+   std::vector<int> inc(INC_ENTRIES);
    setupIncMatrix(inc);
 
    int dim = dp->n_meas;
 
    aligned_vector<double> a(dim * (n_cols + 1));
-   aligned_vector<double> ap(dim*(n_cols + 1)); 
+   aligned_vector<double> ap(dim * (n_cols + 1)); 
    aligned_vector<double> b(dim*n_der);
    std::vector<double> err(dim);
    std::vector<double> kap(1+n_nonlinear+100);
@@ -534,7 +558,7 @@ void DecayModel::validateDerivatives()
    getInitialVariables(alf, 2000);
    
    int n_col_real = calculateModel(a, dim, kap, alf, 0);
-   int n_der_real = calculateDerivatives(b, dim, kap, alf, 0);
+   int n_der_real = calculateDerivatives(b, dim, a, dim, n_col_real, kap, alf, 0);
 
    if (n_col_real != n_cols)
       throw std::runtime_error("Incorrect number of columns in model");
@@ -555,7 +579,7 @@ void DecayModel::validateDerivatives()
    for (int i = 0; i < n_nonlinear; i++)
       for (int j = 0; j < n_cols; j++)
       {
-         if (inc[i + j * 12])
+         if (inc[i + j * MAX_VARIABLES])
          {
             std::vector<double> alf_p(alf);
 

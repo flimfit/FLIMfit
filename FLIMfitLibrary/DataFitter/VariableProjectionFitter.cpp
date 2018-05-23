@@ -355,7 +355,7 @@ int VariableProjectionFitter::prepareJacobianCalculation(const double* alf, doub
    
    if (!variable_phi)
    {
-      getDerivatives(B.model, irf_idx[0], *(B.b));
+      getDerivatives(B.model, irf_idx[0], *(B.b), *(B.a));
       resample(*(B.b), ndim, p);
    }
    if (!iterative_weighting)
@@ -382,7 +382,11 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
    if (variable_phi)
    {
-      getDerivatives(B.model, irf_idx[row], *(B.b));
+      getModel(B.model, irf_idx[row], *(B.a));
+      resample(*(B.a), nmax, l + 1);
+      B.weightModel();
+
+      getDerivatives(B.model, irf_idx[row], *(B.b), *(B.a));
       resample(*(B.b), ndim, p);
    }
 
@@ -427,7 +431,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
    std::vector<int> n_active(l, true);
 
-    //#pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
+   //#pragma omp parallel for reduction(+:r_sq) num_threads(n_thread)
    for (int j = 0; j < s; j++)
    {
       int omp_thread = 0; // omp_get_thread_num();

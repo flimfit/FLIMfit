@@ -84,7 +84,7 @@ public:
 
    void setAlf(const double* alf_);
    void getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a);
-   void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b);
+   void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a);
 
 protected:
 

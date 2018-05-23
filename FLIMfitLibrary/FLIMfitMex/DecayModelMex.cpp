@@ -152,12 +152,10 @@ mxArray* getVariables(const std::vector<std::shared_ptr<FittingParameter>> param
    return s;
 }
 
-mxArray* getParameters(std::shared_ptr<QDecayModel> model, int group_idx)
+mxArray* getParametersFromObject(QObject* obj)
 {
-   AssertInputCondition(group_idx < model->getNumGroups());
-   auto group = model->getGroup(group_idx);
 
-   const QMetaObject* group_meta = group->metaObject();
+   const QMetaObject* group_meta = obj->metaObject();
    int n_properties = group_meta->propertyCount() - 1; // ignore objectName
 
    std::vector<const char*> field_names(n_properties);
@@ -179,7 +177,7 @@ mxArray* getParameters(std::shared_ptr<QDecayModel> model, int group_idx)
       if (prop.isUser())
       {
 
-         QVariant v = prop.read(group.get());
+         QVariant v = prop.read(obj);
 
          mxArray* vv;
          QByteArray vs;
@@ -212,7 +210,15 @@ mxArray* getParameters(std::shared_ptr<QDecayModel> model, int group_idx)
    return s;
 }
 
-void setParameter(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+mxArray* getGroupParameters(std::shared_ptr<QDecayModel> model, int group_idx)
+{
+   AssertInputCondition(group_idx < model->getNumGroups());
+   auto group = model->getGroup(group_idx);
+   return getParametersFromObject(group.get());
+}
+
+
+void setGroupParameter(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
    AssertInputCondition(nrhs >= 5);
 
@@ -226,6 +232,23 @@ void setParameter(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[],
 
    group->setProperty(name.c_str(), value);
 }
+
+void getModelParameters(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nlhs >= 1);
+   plhs[0] = getParametersFromObject(model.get());
+}
+
+void setModelParameter(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+   AssertInputCondition(nrhs >= 4);
+
+   std::string name = getStringFromMatlab(prhs[2]);
+   double value = mxGetScalar(prhs[3]);
+
+   model->setProperty(name.c_str(), value);
+}
+
 
 void setVariables(std::shared_ptr<QDecayModel> model, std::vector<std::shared_ptr<FittingParameter>> parameters, const mxArray* new_parameters)
 {
@@ -298,7 +321,7 @@ void getGroups(std::shared_ptr<QDecayModel> model, int nlhs, mxArray *plhs[], in
       group->objectName();
 
       mxSetFieldByNumber(plhs[0], i, 0, mxCreateString(group->objectName().toLocal8Bit()));
-      mxSetFieldByNumber(plhs[0], i, 1, getParameters(model, i));
+      mxSetFieldByNumber(plhs[0], i, 1, getGroupParameters(model, i));
       mxSetFieldByNumber(plhs[0], i, 2, getGroupVariables(model, i));
       mxSetFieldByNumber(plhs[0], i, 3, mxCreateUint64Scalar((uint64_t) group.get()));
    }
@@ -445,7 +468,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       else if (command == "SetGroupVariables")
          setGroupVariables(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetGroupParameter")
-         setParameter(model, nlhs, plhs, nrhs, prhs);
+         setGroupParameter(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "GetModelParameters")
+         getModelParameters(model, nlhs, plhs, nrhs, prhs);
+      else if (command == "SetModelParameter")
+         setModelParameter(model, nlhs, plhs, nrhs, prhs);
       else if (command == "GetChannelFactorNames")
          getChannelFactorNames(model, nlhs, plhs, nrhs, prhs);
       else if (command == "SetChannelFactors")

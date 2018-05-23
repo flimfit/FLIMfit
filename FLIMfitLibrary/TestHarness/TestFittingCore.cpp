@@ -119,7 +119,7 @@ int testFittingCoreDouble()
       auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 
       auto data_ptr = image->getDataPointer<uint16_t>();
-      int sz = image->getImageSizeInBytes();
+      size_t sz = image->getImageSizeInBytes();
       std::fill_n((char*)data_ptr, sz, 0);
       for (auto taui : tau)
          sim.GenerateImage(taui, N, 0, data_ptr);
@@ -221,7 +221,7 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
       auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
 
       auto data_ptr = image->getDataPointer<uint16_t>();
-      int sz = image->getImageSizeInBytes();
+      size_t sz = image->getImageSizeInBytes();
       std::fill_n((char*)data_ptr, sz, 0);
       sim.GenerateImage(tau, N, 0, data_ptr);
       if (use_background)
@@ -304,18 +304,21 @@ int testFittingCoreSingle(double tau, int N, bool use_gaussian_irf)
 int testFittingCoreMultiChannel()
 {
    std::vector<double> tau = { 1000 , 3000 };
-   std::vector<double> test = { 700, 4000, 100 };
+   std::vector<double> test = { 700, 4000 };
+
+   //std::vector<std::vector<double>> channel_factors = { { 0.5, 0.25, 0.25 },{ 0.25, 0.5, 0.25 }, { 0.33, 0.33, 0.34 } };
+   std::vector<std::vector<double>> channel_factors = { { 0.75, 0.25 },{ 0.25, 0.75 } };
 
    // Create simulator
    FLIMSimulationTCSPC sim(test.size());
-   sim.setImageSize(10, 10);
+   sim.setImageSize(100, 100);
 
    bool use_background = false;
 
    int n_image = 1;
 
    // Add decays to image
-   int N = 100000;
+   int N = 5000;
 
    // Create images
    auto acq = std::make_shared<AcquisitionParameters>(sim);
@@ -323,14 +326,15 @@ int testFittingCoreMultiChannel()
 
    for (int i = 0; i < n_image; i++)
    {
-      auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint16);
+      auto image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, FLIMImage::DataUint32);
 
-      auto data_ptr = image->getDataPointer<uint16_t>();
-      int sz = image->getImageSizeInBytes();
+      auto data_ptr = image->getDataPointer<uint32_t>();
+      size_t sz = image->getImageSizeInBytes();
       std::fill_n((char*)data_ptr, sz, 0);
       for (int j = 0; j < tau.size(); j++)
-         sim.GenerateImage(tau[j], N, j, data_ptr);
-      image->releaseModifiedPointer<uint16_t>();
+         for (int c = 0; c < channel_factors.size(); c++)
+            sim.GenerateImage(tau[j], N * channel_factors[j][c], c, data_ptr);
+      image->releaseModifiedPointer<uint32_t>();
 
       images.push_back(image);
    }
@@ -342,17 +346,14 @@ int testFittingCoreMultiChannel()
 
 
    auto model = std::make_shared<DecayModel>();
+   model->setZernikeOrder(1);
+   model->setUseSpectralCorrection(true);
    model->setTransformedDataParameters(data->GetTransformedDataParameters());
 
    for (int i = 0; i < test.size(); i++)
    {
       auto group = std::make_shared<MultiExponentialDecayGroup>(1);
-      std::vector<double> channel_factors(test.size(), 0);
-      if (i < 2)
-         channel_factors[i] = 1;
-      else
-         channel_factors = { 0.5, 1, 0.5 };
-      group->setChannelFactors(0, channel_factors);
+      group->setChannelFactors(0, channel_factors[i]);
       model->addDecayGroup(group);
 
       auto params = group->getParameters();
@@ -366,15 +367,19 @@ int testFittingCoreMultiChannel()
 
    std::vector<FitSettings> settings;
    //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
-   settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 1));
+   //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
-   //settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
+
+   FittingOptions opts;
+   opts.initial_step_size = 0.1;
 
    bool pass = true;
 
    for (auto s : settings)
    {
       controller.setFitSettings(s);
+      controller.setFittingOptions(opts);
       controller.setModel(model);
       controller.setData(data);
       controller.init();
