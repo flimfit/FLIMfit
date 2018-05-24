@@ -2,6 +2,10 @@
 folder = '\\gagri\griw\InvasionAndMetastasis\Sean Warren\Bottleneck Sean\180419 - 172 CFP-YFP calibration\segmented_regions\';
 irf_file = '\\gagri\griw\InvasionAndMetastasis\Sean Warren\Bottleneck Sean\180419 - 172 CFP-YFP calibration\analytical irf 2.json';
 
+%%folder = '\\gagri\griw\InvasionAndMetastasis\Andrew\Akt\In vitro imaging\180424 - Akt AF controls\Segmented Regions\';
+%%irf_file = '\\gagri\griw\InvasionAndMetastasis\Andrew\Akt\In vitro imaging\180424 - Akt AF controls\2018-04-24 analytical_irf.json';
+
+
 files = dir([folder '*.csv']);
 
 clear results;
@@ -20,7 +24,7 @@ for i=1:length(files)
     json_data = fileread(irf_file);
     irf = jsondecode(json_data);
    
-    results(i) = interactiveQ(t,data,irf);
+    results(i) = Q_Qsigma_estimation_matlab(t,data,irf);
     
 end
 
@@ -29,7 +33,7 @@ results = struct2table(results);
 %%
 
 
-sel = results.E > 0.03;
+sel = results.E > 0.01;
 
 r = results(sel,:);
 

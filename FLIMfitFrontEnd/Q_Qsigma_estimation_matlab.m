@@ -4,7 +4,7 @@ addpath('Simulations');
 
 
 model.donor = make_fluorphore(3950, 1, 1, 1, [1 2.58]);
-model.acceptor = make_fluorphore(3120, 1, 1, 0.1, [1 0]);
+model.acceptor = make_fluorphore(3120, 1, 1, 0.04, [1 0]);
 model.system.t0 = 200;
 model.system.kt0 = 1/10000;
 
@@ -18,7 +18,7 @@ system.nchan = 2;
 vars(1) = struct('name','kt0','group','system','constrain_positive',true);
 vars(2) = struct('name','t0','group','system','constrain_positive',false);
 
-model = optimise_model(model,vars,@(m) evaluate_model(m,[1]));
+[model,fval] = optimise_model(model,vars,@(m) evaluate_model(m,[1]));
 
 vars(1) = struct('name','Q','group','acceptor','constrain_positive',true);
 vars(2) = struct('name','sigma','group','acceptor','constrain_positive',true);
