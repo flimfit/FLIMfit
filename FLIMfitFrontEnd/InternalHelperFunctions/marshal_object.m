@@ -41,21 +41,25 @@ function obj = marshal_object(doc_node,type,obj)
         MException('FLIM:UnexpectedObject','Object specified by XML was not of the type expected')
     end
     
-    obj = marshal(obj_node, obj_name);
+    obj = marshal(obj_node, obj_name, obj);
 
 end
     
-function obj = marshal(obj_node, obj_name)   
+function obj = marshal(obj_node, obj_name, obj)   
 
-    mc = meta.class.fromName(obj_name);
-    
-    if isempty(mc)
-        MException('FLIM:UnrecognisedObject','Object specified by XML was not recognised')
-    end
+    if strcmp(obj_name,'struct')
+        obj = struct();
+    elseif nargin < 3
+        mc = meta.class.fromName(obj_name);
 
-    if nargin < 3
-        fcn = str2func(obj_name); % get constructor function handle
-        obj = fcn(); % call constructor
+        if isempty(mc)
+            MException('FLIM:UnrecognisedObject','Object specified by XML was not recognised')
+        end
+
+        if nargin < 3
+            fcn = str2func(obj_name); % get constructor function handle
+            obj = fcn(); % call constructor
+        end
     end
 
     child_nodes = obj_node.getChildNodes;
@@ -75,7 +79,7 @@ function obj = marshal(obj_node, obj_name)
              end
          end
 
-         if child.hasChildNodes && ~isempty(findprop(obj,child_name))
+         if child.hasChildNodes && (isstruct(obj) || ~isempty(findprop(obj,child_name)))
              
              if child.getChildNodes.getLength == 1             
                  val = child.getFirstChild;
@@ -94,13 +98,24 @@ function obj = marshal(obj_node, obj_name)
                     warning('FLIMfit:LoadDataSettingsFailed',['Failed to load setting: ' child_name]); 
                  end
              else
+                 idx = 0;
                  for j=1:child.getChildNodes.getLength
                      item = child.getChildNodes.item(j-1);
                      name = char(item.getNodeName);
-                     if ~strcmp(name,'#text') && ~isempty(meta.class.fromName(name))
-                         obj.(child_name) = marshal(item, name);
+                     if ~strcmp(name,'#text') 
+                         child_mc = meta.class.fromName(name);
+                         if ~isempty(child_mc)
+                             child_obj = marshal(item, name);
+                             if ismethod(child_obj,'init')
+                                 child_obj.init();
+                             end
+                             disp(child_obj)
+                             idx = idx + 1;
+                             obj.(child_name)(idx) = child_obj;
+                         end
                      end
                  end
+                 obj.(child_name) = obj.(child_name)(1:idx);
              end
          end
      end     

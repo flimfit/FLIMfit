@@ -10,7 +10,7 @@ classdef instrument_response_function < handle
         data_t_min = 0; % first data point
         
         is_analytical = false;
-        gaussian_parameters = struct('mu',1000,'sigma',100);
+        gaussian_parameters = struct('mu',{},'sigma',{},'offset',{});
     end
     
     properties(SetObservable)
@@ -80,15 +80,18 @@ classdef instrument_response_function < handle
         end
         
         function init(obj)
-            obj.t0 = 0;
     
             obj.t_irf_min = min(obj.t_irf);
             obj.t_irf_max = max(obj.t_irf);
 
-            obj.irf_background = 0;
+            %obj.t0 = 0;
+            %obj.irf_background = 0;
             
             obj.is_init = true;
+            obj.compute_tr_irf();
+            notify(obj,'updated');
         end
+            
         
         function set.t_irf_max(obj,t_irf_max)
             obj.t_irf_max = t_irf_max;
@@ -139,9 +142,6 @@ classdef instrument_response_function < handle
         end
         
         function set.use_image_t0_correction(obj,use_image_t0_correction)
-           if ~isfield(obj.metadata,'t0') || ~all(cellfun(@isnumeric,obj.metadata.t0))
-               use_image_t0_correction = false;
-           end
            obj.use_image_t0_correction = use_image_t0_correction;
            obj.compute_tr_irf();
            notify(obj,'updated');

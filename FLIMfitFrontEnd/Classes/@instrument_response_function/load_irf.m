@@ -117,11 +117,6 @@ function load_irf(obj,file_or_image,load_as_image)
         obj.estimate_irf_background();
     end
     
-    obj.is_init = true;
-    
-    obj.compute_tr_irf();
-    
-    notify(obj,'updated');
-
+    obj.init();
     
 end

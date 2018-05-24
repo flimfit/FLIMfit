@@ -48,11 +48,11 @@ function doc_node = serialise_object(root_obj,input,name)
     
 end
 
-function root_element = serialise(obj,doc_node)
+function root_element = serialise(obj,doc_node,name)
 
     if isstruct(obj)
         if nargin < 3
-            name = 'data';
+            name = 'struct';
         end
         flds = fieldnames(obj); 
     else        
@@ -71,10 +71,12 @@ function root_element = serialise(obj,doc_node)
     for i=1:length(flds)
         val = obj.(flds{i});
         this_element = doc_node.createElement(flds{i}); 
-        if isobject(val)
-            sub_element = serialise(val,doc_node);
-            this_element.appendChild(sub_element);
-        elseif ~isstruct(val) && ~iscell(val) && ~isjava(val)                            
+        if isobject(val) || isstruct(val)
+            for j=1:length(val)
+                sub_element = serialise(val(j),doc_node);
+                this_element.appendChild(sub_element);
+            end
+        elseif ~iscell(val) && ~isjava(val)                            
 
             if all(size(val)>1)% check for a multidimensional matrix
                 str = serialize(val);
