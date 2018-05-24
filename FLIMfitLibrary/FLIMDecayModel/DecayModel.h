@@ -130,6 +130,8 @@ protected:
    bool use_spectral_correction = false;
    int zernike_order = 1;
 
+   int n_chan = 0; // for before transformed data parameters has been set
+
 private:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);

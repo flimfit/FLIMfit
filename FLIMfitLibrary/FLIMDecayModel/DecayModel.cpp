@@ -81,6 +81,8 @@ void DecayModel::setupSpectralCorrection()
 
    if (use_spectral_correction)
    {
+      int ns = max(0, n_chan - 1);
+      spectral_correction.resize(ns);
       for (int c = 0; c < spectral_correction.size(); c++)
       {
          if (!spectral_correction[c])
@@ -110,15 +112,19 @@ void DecayModel::setZernikeOrder(int zernike_order_)
    zernike_order = zernike_order_;
    for (auto& s : spectral_correction)
       s->setOrder(zernike_order);
+   setupSpectralCorrection();
 }
 
 
 
-void DecayModel::setNumChannels(int n_chan)
+void DecayModel::setNumChannels(int n_chan_)
 {
+   n_chan = n_chan_;
+
    if (dp) return;
 
-   spectral_correction.resize(n_chan - 1);
+   setupSpectralCorrection();
+
    for (auto g : decay_groups)
       g->setNumChannels(n_chan);
 }

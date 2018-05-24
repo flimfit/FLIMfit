@@ -319,9 +319,9 @@ classdef flim_model_controller < handle
         
         function update_variable_option(obj, group_idx, variable_idx, opt, value, h)
             if group_idx == 0
-                obj.model_variables.(opt) = value;
+                obj.model_variables(variable_idx).(opt) = value;
                 ff_DecayModel(obj.model,'SetModelVariables',group_idx,obj.model_variables);
-                var = obj.model_variables;
+                var = obj.model_variables(variable_idx);
             else
                 obj.groups(group_idx).Variables(variable_idx).(opt) = value;
                 ff_DecayModel(obj.model,'SetGroupVariables',group_idx,obj.groups(group_idx).Variables);
