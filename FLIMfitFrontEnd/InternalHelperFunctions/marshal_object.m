@@ -31,11 +31,21 @@ function obj = marshal_object(doc_node,type,obj)
 
     obj_node = doc_node.getFirstChild();
     obj_name = char(obj_node.getNodeName);
-    
+
     if strcmp(obj_name,'FLIMfit')
         obj_node = obj_node.getChildNodes().item(1);
         obj_name = char(obj_node.getNodeName);
     end
+    
+    if nargin == 4 && ~strcmp(obj_name,type)
+        MException('FLIM:UnexpectedObject','Object specified by XML was not of the type expected')
+    end
+    
+    obj = marshal(obj_node, obj_name);
+
+end
+    
+function obj = marshal(obj_node, obj_name)   
 
     mc = meta.class.fromName(obj_name);
     
@@ -43,12 +53,9 @@ function obj = marshal_object(doc_node,type,obj)
         MException('FLIM:UnrecognisedObject','Object specified by XML was not recognised')
     end
 
-    if nargin == 2 && ~strcmp(obj_name,type)
-        MException('FLIM:UnexpectedObject','Object specified by XML was not of the type expected')
-    end
-
     if nargin < 3
-        eval(['obj = ' obj_name '();']);
+        fcn = str2func(obj_name); % get constructor function handle
+        obj = fcn(); % call constructor
     end
 
     child_nodes = obj_node.getChildNodes;
@@ -57,7 +64,6 @@ function obj = marshal_object(doc_node,type,obj)
      for i = 1:n_nodes
          child = child_nodes.item(i-1);
          child_name = char(child.getNodeName);
-
 
          encoded = false;
          if child.hasAttributes
@@ -70,23 +76,32 @@ function obj = marshal_object(doc_node,type,obj)
          end
 
          if child.hasChildNodes && ~isempty(findprop(obj,child_name))
-             val = child.getFirstChild;
-             child_value = char(val.getData);
+             
+             if child.getChildNodes.getLength == 1             
+                 val = child.getFirstChild;
+                 child_value = char(val.getData);
 
-             if encoded
-                 child_value = base64decode(child_value);
-                 child_value = deserialize(child_value);
+                 if encoded
+                     child_value = base64decode(child_value);
+                     child_value = deserialize(child_value);
 
+                 else
+                     child_value = eval(child_value);
+                 end
+                 try 
+                    obj.(child_name) = child_value;
+                 catch
+                    warning('FLIMfit:LoadDataSettingsFailed',['Failed to load setting: ' child_name]); 
+                 end
              else
-                 child_value = eval(child_value);
-             end
-             try 
-                obj.(child_name) = child_value;
-             catch
-                warning('FLIMfit:LoadDataSettingsFailed',['Failed to load setting: ' child_name]); 
+                 for j=1:child.getChildNodes.getLength
+                     item = child.getChildNodes.item(j-1);
+                     name = char(item.getNodeName);
+                     if ~strcmp(name,'#text') && ~isempty(meta.class.fromName(name))
+                         obj.(child_name) = marshal(item, name);
+                     end
+                 end
              end
          end
-     end
-
-         
+     end     
 end
