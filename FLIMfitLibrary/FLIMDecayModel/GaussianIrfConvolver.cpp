@@ -18,7 +18,7 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
 
    dt = timepoints[1] - timepoints[0];
    t0 = timepoints[0];
-   n_t = size(timepoints);
+   n_t = timepoints.size();
 
    n_tm = (int)std::ceil((n_t + 1) / 4.0);
 }

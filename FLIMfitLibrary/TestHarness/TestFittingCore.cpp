@@ -39,6 +39,7 @@
 #include "BackgroundLightDecayGroup.h"
 #include "FLIMImage.h"
 #include "PatternDecayGroup.h"
+#include "Attenuator.h"
 
 #include <boost/math/distributions/students_t.hpp>
 
@@ -309,9 +310,12 @@ int testFittingCoreMultiChannel()
    //std::vector<std::vector<double>> channel_factors = { { 0.5, 0.25, 0.25 },{ 0.25, 0.5, 0.25 }, { 0.33, 0.33, 0.34 } };
    std::vector<std::vector<double>> channel_factors = { { 0.75, 0.25 },{ 0.25, 0.75 } };
 
+   int n_x = 50;
+   int n_y = 50;
+
    // Create simulator
    FLIMSimulationTCSPC sim(test.size());
-   sim.setImageSize(100, 100);
+   sim.setImageSize(n_x, n_y);
 
    bool use_background = false;
 
@@ -338,6 +342,15 @@ int testFittingCoreMultiChannel()
 
       images.push_back(image);
    }
+
+   std::vector<std::shared_ptr<Attenuator>> attenuator;
+   attenuator.push_back(std::make_shared<Attenuator>([&](int x, int y) { return (0.2 * x) / n_x + 0.4; }, 1));
+   //attenuator.push_back(std::make_shared<Attenuator>([&](int x, int y) { return (0.2 * y) / n_y + 0.4; }, 2));
+
+   for(auto& im : images)
+      for(auto& a : attenuator)
+         a->attenuate(im);
+
 
    // Make data
    std::shared_ptr<InstrumentResponseFunction> irf = sim.GetGaussianIRF(); //sim.GenerateIRF(1e5);
@@ -369,10 +382,10 @@ int testFittingCoreMultiChannel()
    //settings.push_back(FitSettings(MaximumLikelihood, Pixelwise, GlobalAnalysis, AverageWeighting, 4));
    //settings.push_back(FitSettings(VariableProjection, Pixelwise, GlobalAnalysis, PixelWeighting, 1));
    //settings.push_back(FitSettings(VariableProjection, Imagewise, GlobalAnalysis, AverageWeighting, 1));
-   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 4));
+   settings.push_back(FitSettings(VariableProjection, Global, GlobalAnalysis, AverageWeighting, 8));
 
    FittingOptions opts;
-   opts.initial_step_size = 0.1;
+   opts.initial_step_size = 0.01;
 
    bool pass = true;
 
