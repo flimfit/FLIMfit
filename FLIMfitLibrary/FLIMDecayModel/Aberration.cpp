@@ -45,8 +45,8 @@ void Aberration::setTransformedDataParameters(std::shared_ptr<TransformedDataPar
             double r = sqrt(dx * dx + dy * dy);
 
             rho.at<double>(y, x) = r / image_radius;
-            sin_theta.at<double>(y, x) = (r == 0) ? 0 : dy / r;
-            cos_theta.at<double>(y, x) = (r == 0) ? 0 : dx / r;
+            sin_theta.at<double>(y, x) = (r == 0) ? 0 : dx / r;
+            cos_theta.at<double>(y, x) = (r == 0) ? 0 : dy / r;
          }
 
       cv::Mat rho_rho = rho.mul(rho);
