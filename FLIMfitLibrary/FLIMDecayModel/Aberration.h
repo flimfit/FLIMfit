@@ -36,5 +36,4 @@ private:
    int n_t, chan;
    int order;
    std::vector<cv::Mat> z;
-   std::vector<std::string> names;
 };

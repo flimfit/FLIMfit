@@ -6,8 +6,8 @@ Aberration::Aberration(int chan, int order) :
 {
 
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-   std::vector<std::string> names = { "z0", "z10", "z11", "z20", "z21", "z22" };
-   std::vector<double> initial = { 1, 0.1, 0.1, 0, 0, 0 };
+   std::vector<std::string> names = { "piston", "tilt_x", "tilt_y", "defocus", "astig_oblq", "astig_vert" };
+   std::vector<double> initial = { 1, 0.0, 0.0, 0, 0, 0 };
 
    for (int i=0; i<names.size(); i++)
    {
@@ -56,8 +56,8 @@ void Aberration::setTransformedDataParameters(std::shared_ptr<TransformedDataPar
       z.push_back(cv::Mat(n_y, n_x, CV_64F, cv::Scalar(1.0)));
       z.push_back(2.0 * rho.mul(sin_theta));
       z.push_back(2.0 * rho.mul(cos_theta));
-      z.push_back(sqrt(6.0) * 2.0 * rho_rho_cos_theta.mul(sin_theta));
       z.push_back(sqrt(3.0) * (2.0 * rho_rho - 1.0));
+      z.push_back(sqrt(6.0) * 2.0 * rho_rho_cos_theta.mul(sin_theta));
       z.push_back(sqrt(6.0) * (2.0 * rho_rho_cos_theta.mul(cos_theta) - 1.0));
    }
 }
