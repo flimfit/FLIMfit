@@ -125,7 +125,7 @@ double Aberration::computeChannelFactor(int x, int y)
 }
 
 
-void Aberration::apply(int x, int y, aligned_iterator& a, int adim, int n_col)
+void Aberration::apply(int x, int y, aligned_iterator a, int adim, int n_col)
 {
    double chan_factor = computeChannelFactor(x, y);
 
@@ -134,7 +134,7 @@ void Aberration::apply(int x, int y, aligned_iterator& a, int adim, int n_col)
          a[t + chan * n_t + i * adim] *= chan_factor;
 }
 
-int Aberration::calculateDerivatives(int x, int y, const aligned_vector<double>& a, int adim, int n_col, aligned_iterator& b, int bdim)
+int Aberration::calculateDerivatives(int x, int y, const aligned_vector<double>& a, int adim, int n_col, aligned_iterator b, int bdim)
 {
    double chan_factor = 1.0 / computeChannelFactor(x, y);
 

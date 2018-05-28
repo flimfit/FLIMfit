@@ -8,18 +8,18 @@
 if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
 if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
 
-if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2016b; echo "Setting MATLAB_VER=R2016b"; fi
+if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2017b; echo "Setting MATLAB_VER=R2017b"; fi
 
 export CC=/usr/local/opt/llvm/bin/clang
 export CXX=/usr/local/opt/llvm/bin/clang++
 export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib"
-export MACOSX_DEPLOYMENT_TARGET=10.10
 
-conan install . -s compiler=clang -s compiler.version=4.0 --build missing
+if ! cmake -G"Unix Makefiles" -H. -BGeneratedProjects/Unix; then
+   echo 'Error configuring project'
+   exit 1
+fi
 
-cmake -G"Unix Makefiles" -H. -BGeneratedProjects/Unix
-
-if ! cmake --build "GeneratedProjects/Unix" --config Debug; then
+if ! cmake --build "GeneratedProjects/Unix" --config RelWithDebInfo; then
     echo 'Error building project'
     exit 1
 fi

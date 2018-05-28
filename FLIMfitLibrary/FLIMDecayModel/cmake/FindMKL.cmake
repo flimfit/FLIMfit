@@ -36,8 +36,8 @@ endif()
 
 if (MSVC)
   set(SHARED_EXT .lib)
-else ()
-  set(SHARED_EXT _dll.lib)
+elseif (APPLE)
+  set(SHARED_EXT .a)
 endif ()
 
 set(INT_LIB "mkl_intel_ilp64${SHARED_EXT}")
@@ -52,21 +52,21 @@ message(INT_LIB: ${INT_LIB})
 message(MKL: $ENV{MKLROOT})
 
 find_library(MKL_INTERFACE_LIBRARY
-             NAMES ${INT_LIB}
+             NAMES ${INT_LIB} lib${INT_LIB}
              PATHS $ENV{MKLROOT}/lib
                    $ENV{MKLROOT}/lib/intel64
                    $ENV{INTEL}/mkl/lib/intel64
              NO_DEFAULT_PATH)
 
 find_library(MKL_SEQUENTIAL_LAYER_LIBRARY
-             NAMES ${SEQ_LIB}
+             NAMES ${SEQ_LIB} lib${SEQ_LIB}
              PATHS $ENV{MKLROOT}/lib
                    $ENV{MKLROOT}/lib/intel64
                    $ENV{INTEL}/mkl/lib/intel64
              NO_DEFAULT_PATH)
 
 find_library(MKL_CORE_LIBRARY
-             NAMES ${COR_LIB}
+             NAMES ${COR_LIB} lib${COR_LIB}
              PATHS $ENV{MKLROOT}/lib
                    $ENV{MKLROOT}/lib/intel64
                    $ENV{INTEL}/mkl/lib/intel64
