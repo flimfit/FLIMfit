@@ -326,7 +326,7 @@ int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<
    return col;
 }
 
-int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+int DecayModel::calculateDerivatives(aligned_vector<double> b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
 {
    int col = 0;
    int var = 0;

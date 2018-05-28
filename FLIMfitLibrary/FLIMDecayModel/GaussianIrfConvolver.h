@@ -1,10 +1,10 @@
-
 #pragma once
 
 #include "AbstractConvolver.h"
 
 #include <vector>
 #include <memory>
+#include <immintrin.h>
 
 struct GaussianVariables
 {

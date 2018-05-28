@@ -16,9 +16,9 @@ public:
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
    int setVariables(const double* params);
 
-   void apply(int x, int y, aligned_iterator& a, int adim, int n_col);
+   void apply(int x, int y, aligned_iterator a, int adim, int n_col);
 
-   int calculateDerivatives(int x, int y, const aligned_vector<double>& a, int adim, int n_col, aligned_iterator& b, int bdim);
+   int calculateDerivatives(int x, int y, const aligned_vector<double>& a, int adim, int n_col, aligned_iterator b, int bdim);
 
    const std::vector<std::shared_ptr<FittingParameter>>& getParameters() { return active_parameters; };
 
