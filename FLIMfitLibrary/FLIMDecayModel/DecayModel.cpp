@@ -288,30 +288,37 @@ bool DecayModel::isSpatiallyVariant()
    return use_spectral_correction;
 }
 
-int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+void DecayModel::setVariables(const std::vector<double>& alf)
 {
-   int idx = 0;
-
    const double* param_values = alf.data();
 
-   int getting_fit = false; //TODO
+   int getting_fit = false; //TODO 
 
+   int idx = 0;
    double reference_lifetime = getCurrentReferenceLifetime(param_values, idx);
    double t0_shift = t0_parameter->getValue<double>(param_values, idx);
 
-   for(auto& s : spectral_correction)
+   for (auto& s : spectral_correction)
       idx += s->setVariables(param_values + idx);
 
    for (int i = 0; i < decay_groups.size(); i++)
    {
-      decay_groups[i]->setIRFPosition(irf_idx, t0_shift, reference_lifetime);
+      decay_groups[i]->setT0Shift(t0_shift);
+      decay_groups[i]->setReferenceLifetime(reference_lifetime);
       idx += decay_groups[i]->setVariables(param_values + idx);
    }
+}
 
+int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, int irf_idx)
+{
+   int idx = 0;
    int col = 0;
 
    for (int i = 0; i < decay_groups.size(); i++)
-      col += decay_groups[i]->calculateModel(a.data() + col*adim, adim, kap[0]);
+   {
+      decay_groups[i]->setIRFPosition(irf_idx);
+      col += decay_groups[i]->calculateModel(a.data() + col * adim, adim, kap[0]);
+   }
 
    // Apply scaling to convert counts -> photons
    for (int i = 0; i < adim*(col + 1); i++)
@@ -326,7 +333,7 @@ int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<
    return col;
 }
 
-int DecayModel::calculateDerivatives(aligned_vector<double> b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx)
+int DecayModel::calculateDerivatives(aligned_vector<double> b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx)
 {
    int col = 0;
    int var = 0;
@@ -414,7 +421,7 @@ int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::itera
    // Add decay shifted by one bin
    int col = 0;
    for (int i = 0; i < decay_groups.size(); i++)
-      col += decay_groups[i]->calculateModel(b + col*bdim, bdim, kap, 1); // bin_shift = -1
+      col += decay_groups[i]->calculateModel(b + col*bdim, bdim, kap);
 
    // Make negative
    for (int i = 0; i<bdim*col; i++)
@@ -563,8 +570,9 @@ void DecayModel::validateDerivatives()
    std::vector<double> alf(n_nonlinear);
    getInitialVariables(alf, 2000);
    
-   int n_col_real = calculateModel(a, dim, kap, alf, 0);
-   int n_der_real = calculateDerivatives(b, dim, a, dim, n_col_real, kap, alf, 0);
+   setVariables(alf);
+   int n_col_real = calculateModel(a, dim, kap, 0);
+   int n_der_real = calculateDerivatives(b, dim, a, dim, n_col_real, kap, 0);
 
    if (n_col_real != n_cols)
       throw std::runtime_error("Incorrect number of columns in model");
@@ -593,7 +601,8 @@ void DecayModel::validateDerivatives()
             if (temp == 0.0) temp = eps;
             alf_p[i] += temp;
 
-            calculateModel(ap, dim, kap, alf_p, 0);
+            setVariables(alf_p);
+            calculateModel(ap, dim, kap, 0);
 
             double* fvec = a.data() + dim * j;
             double* fvecp = ap.data() + dim * j;

@@ -347,7 +347,7 @@ double AbstractFitter::errMinFcn(double x)
    return F-F_crit;
 }
 
-void AbstractFitter::setAlf(const double* alf_)
+void AbstractFitter::setVariables(const double* alf_)
 {
    std::copy(alf_, alf_ + nl, alf.begin());
 
@@ -359,11 +359,13 @@ void AbstractFitter::setAlf(const double* alf_)
       else
          params[i] = alf[idx++];
    }
+
+   model->setVariables(params);
 }
 
 void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a)
 {
-   model->calculateModel(a, nmax, kap, params, irf_idx);
+   model->calculateModel(a, nmax, kap, irf_idx);
 }
 
 void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a)
@@ -371,7 +373,7 @@ void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_i
    int valid_cols = 0;
    int ignore_cols = 0;
 
-   model->calculateDerivatives(b, ndim, a, nmax, l, kap, params, irf_idx);
+   model->calculateDerivatives(b, ndim, a, nmax, l, kap, irf_idx);
 
    // If required remove derivatives associated with fixed columns
    if (fixed_param >= 0)
@@ -395,7 +397,7 @@ void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_i
 int AbstractFitter::getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
 {
    float* adjust = model->getConstantAdjustment();
-   model->calculateModel(a, nmax, kap, params, irf_idx);
+   model->calculateModel(a, nmax, kap, irf_idx);
 
    int idx = 0;
    for(int i=0; i<n; i++)

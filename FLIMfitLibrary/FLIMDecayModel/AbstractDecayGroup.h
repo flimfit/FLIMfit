@@ -100,7 +100,10 @@ public:
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors) = 0;
 
    int getInitialVariables(std::vector<double>::iterator variables);
-   void setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_);
+
+   void setIRFPosition(int irf_idx_) { irf_idx = irf_idx_; }
+   void setT0Shift(double t0_shift_) { t0_shift = t0_shift_; }
+   void setReferenceLifetime(double reference_lifetime_) { reference_lifetime = reference_lifetime_; }
 
    template <typename T>
    void addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor, double factor = 1);

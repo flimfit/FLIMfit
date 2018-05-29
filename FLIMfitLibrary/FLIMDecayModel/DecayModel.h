@@ -76,10 +76,11 @@ public:
 
    void init();
 
-   void   setupIncMatrix(std::vector<int>& inc);
-   int    calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
-   int    calculateDerivatives(aligned_vector<double> b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, const std::vector<double>& alf, int irf_idx);
-   void   getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx);
+   void setupIncMatrix(std::vector<int>& inc);
+   void setVariables(const std::vector<double>& alf);
+   int calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, int irf_idx);
+   int calculateDerivatives(aligned_vector<double> b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx);
+   void getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx);
    float* getConstantAdjustment() { return adjust_buf.data(); };
 
    void getInitialVariables(std::vector<double>& variables, double mean_arrival_time);

@@ -47,12 +47,6 @@ int AbstractDecayGroup::getInitialVariables(std::vector<double>::iterator variab
     return idx;
 }
 
-void AbstractDecayGroup::setIRFPosition(int irf_idx_, double t0_shift_, double reference_lifetime_)
-{
-   irf_idx = irf_idx_;
-   t0_shift = t0_shift_;
-   reference_lifetime = reference_lifetime_;
-}
 
 std::vector<std::string> AbstractDecayGroup::getNonlinearOutputParamNames()
 {

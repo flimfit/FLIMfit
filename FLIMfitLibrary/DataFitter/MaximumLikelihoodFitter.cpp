@@ -46,14 +46,14 @@
 void MLEfuncsCallback(double *alf, double *fvec, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*)pa;
-   f->setAlf(alf);
+   f->setVariables(alf);
    f->mle_funcs(alf, fvec, nl, nfunc);
 }
 
 void MLEjacbCallback(double *alf, double *fjac, int nl, int nfunc, void* pa)
 {
    MaximumLikelihoodFitter* f = (MaximumLikelihoodFitter*) pa;
-   f->setAlf(alf);
+   f->setVariables(alf);
    f->mle_jacb(alf, fjac, nl, nfunc);
 }
 
@@ -79,7 +79,7 @@ void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int& nite
       dy[i] = y[i];
    dy[n] = 1;
    
-   setAlf(alf.data());
+   setVariables(alf.data());
    getModel(model, irf_idx[0], a);
 
    for (int i = 0; i < n; i++)

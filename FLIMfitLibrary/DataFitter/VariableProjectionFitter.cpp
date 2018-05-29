@@ -101,7 +101,7 @@ VariableProjectionFitter::~VariableProjectionFitter()
 int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double* x, double *fnorm, double *fjrow, int iflag, int thread)
 {
    VariableProjectionFitter *vp = (VariableProjectionFitter*) p;
-   vp->setAlf(x);
+   vp->setVariables(x);
 
    if (iflag == 0)
       return vp->getResidualNonNegative(x, fnorm, iflag, thread);
@@ -114,7 +114,7 @@ int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double*
 int VariableProjectionFitterDiffCallback(void *p, int m, int n, const double* x, double *fvec, int iflag)
 {
    VariableProjectionFitter *vp = (VariableProjectionFitter*) p;
-   vp->setAlf(x);
+   vp->setVariables(x);
    return vp->getResidualNonNegative(x, fvec, iflag, 0);
 }
 
@@ -224,7 +224,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       int n_points_total = std::pow(n_initial, n_search);
 
       // Initial point
-      setAlf(initial.data());
+      setVariables(initial.data());
       getResidualNonNegative(initial.data(), &rnorm, 0, 0);
       double best_value = rnorm;
 
@@ -241,7 +241,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
             }
          }
 
-         setAlf(trial.data());
+         setVariables(trial.data());
          getResidualNonNegative(trial.data(), &rnorm, 0, 0);
          if (rnorm <= best_value)
          {
@@ -253,7 +253,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
 
    if (iterative_weighting)
    {
-      setAlf(initial.data());
+      setVariables(initial.data());
       getResidualNonNegative(initial.data(), fvec, 0, 0);
    }
 
@@ -280,7 +280,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       {
          if (!getting_errs)
          {
-            setAlf(initial.data());
+            setVariables(initial.data());
             getResidualNonNegative(initial.data(), fvec, -1, 0);
          }
       }

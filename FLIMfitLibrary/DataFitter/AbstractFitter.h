@@ -82,13 +82,11 @@ public:
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
 
-   void setAlf(const double* alf_);
+   void setVariables(const double* alf_);
    void getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a);
    void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a);
 
 protected:
-
-   void getParams(const double* alf);
 
    int init();
 
