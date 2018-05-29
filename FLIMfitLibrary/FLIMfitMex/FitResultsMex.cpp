@@ -150,36 +150,27 @@ void getParameterImage(std::shared_ptr<FitResults> r, int nlhs, mxArray *plhs[],
 }
 
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void FitResultsMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+   AssertInputCondition(nrhs >= 2);
+   AssertInputCondition(mxIsChar(prhs[1]));
 
-   try
-   {
-      AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsChar(prhs[1]));
+   auto results = getSharedPtrFromMatlab<FitResults>(prhs[0]);
 
-      auto results = getSharedPtrFromMatlab<FitResults>(prhs[0]);
+   // Get command
+   std::string command = getStringFromMatlab(prhs[1]);
 
-      // Get command
-      std::string command = getStringFromMatlab(prhs[1]);
+   if (command == "GetOutputParamNames")
+      getOutputParamNames(results, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetTotalNumOutputRegions")
+      getTotalNumOutputRegions(results, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetStats")
+      getImageStats(results, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetParameterImage")
+      getParameterImage(results, nlhs, plhs, nrhs, prhs);
+   else if (command == "Clear")
+      releaseSharedPtrFromMatlab<FitResults>(prhs[0]);
+   else
+      mexErrMsgIdAndTxt2("FLIMfitMex:invalidIndex", "Unrecognised command");
 
-      if (command == "GetOutputParamNames")
-         getOutputParamNames(results, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetTotalNumOutputRegions")
-         getTotalNumOutputRegions(results, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetStats")
-         getImageStats(results, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetParameterImage")
-         getParameterImage(results, nlhs, plhs, nrhs, prhs);
-      else if (command == "Clear")
-         releaseSharedPtrFromMatlab<FitResults>(prhs[0]);
-      else
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");
-
-   }
-   catch (std::runtime_error e)
-   {
-      mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
-         e.what());
-   }
 }

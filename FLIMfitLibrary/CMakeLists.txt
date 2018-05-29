@@ -29,7 +29,7 @@ endif()
 # Include optimisation flags in Visual Studio
 #===================================================
 if(MSVC)
-   set(PLATFORM_FLAGS_ALL "/Oi /fp:fast /INCREMENTAL /ZI /arch:AVX")
+   set(PLATFORM_FLAGS_ALL "/Oi /fp:fast /INCREMENTAL /Zi /arch:AVX")
    set(PLATFORM_FLAGS_RELEASE "/Ox /Ot /Ob2")
    set(PLATFORM_FLAGS_RELWITHDEBINFO "/Ox /Ot /Ob2")
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)

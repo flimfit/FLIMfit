@@ -30,25 +30,12 @@
 #pragma warning(disable: 4244 4267)
 
 #include "FitStatus.h"
-#include "InstrumentResponseFunction.h"
-#include "ModelADA.h" 
-#include "FLIMGlobalAnalysis.h"
 #include "FLIMData.h"
-#include "tinythread.h"
-#include <assert.h>
-#include <utility>
 
 #include <memory>
 #include <unordered_set>
 #include "MexUtils.h"
 
-#ifdef _WINDOWS
-#ifdef _DEBUG
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#endif
-#endif
 
 std::unordered_set<std::shared_ptr<FLIMData>> ptr_set;
 
@@ -124,91 +111,83 @@ std::shared_ptr<InstrumentResponseFunction> getIRF(const mxArray* irf_struct)
    return irf;
 }
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void FLIMDataMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   try
+   if (nlhs > 0 && nrhs > 0 && !mxIsScalar(prhs[0]))
    {
-      if (nlhs > 0 && nrhs > 0 && !mxIsScalar(prhs[0]))
+      const mxArray* image_ptrs = getNamedArgument(nrhs, prhs, "images");
+      auto images = getSharedPtrVectorFromMatlab<FLIMImage>(image_ptrs);
+
+      const mxArray* settings_struct = getNamedArgument(nrhs, prhs, "data_transformation_settings");
+      auto transformation_settings = getDataTransformationSettings(settings_struct);
+
+      if (isArgument(nrhs, prhs, "irf"))
       {
-         const mxArray* image_ptrs = getNamedArgument(nrhs, prhs, "images");
-         auto images = getSharedPtrVectorFromMatlab<FLIMImage>(image_ptrs);
-
-         const mxArray* settings_struct = getNamedArgument(nrhs, prhs, "data_transformation_settings");
-         auto transformation_settings = getDataTransformationSettings(settings_struct);
-
-         if (isArgument(nrhs, prhs, "irf"))
-         {
-            const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "irf");
-            transformation_settings.irf = getIRF(irf_struct);
-         }
-
-         if (isArgument(nrhs, prhs, "analytical_irf"))
-         {
-            const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "analytical_irf");
-            transformation_settings.irf = getAnalyticalIRF(irf_struct);
-         }
-
-         double background_value = 0.0;
-
-         if (isArgument(nrhs, prhs, "background_value"))
-         {
-            const mxArray* background_value_ = getNamedArgument(nrhs, prhs, "background_value");
-            AssertInputCondition(mxIsScalar(background_value_));
-            background_value = mxGetScalar(background_value_);
-         }
-
-         if (isArgument(nrhs, prhs, "background_image"))
-         {
-            const mxArray* background_image_ = getNamedArgument(nrhs, prhs, "background_image");
-            cv::Mat background_image = getCvMat(background_image_);
-            transformation_settings.background = std::make_shared<FLIMBackground>(background_image);
-         }
-
-         if (isArgument(nrhs, prhs, "tvb_profile"))
-         {
-            std::vector<float> tvb_profile = getVector<float>(getNamedArgument(nrhs, prhs, "tvb_profile"));
-
-            if (isArgument(nrhs, prhs, "tvb_I_map"))
-            {
-               const mxArray* I_map_ = getNamedArgument(nrhs, prhs, "tvb_I_map");
-               cv::Mat I_map = getCvMat(I_map_);
-               transformation_settings.background = std::make_shared<FLIMBackground>(tvb_profile, I_map, background_value);
-            }
-            else
-            {
-               transformation_settings.background = std::make_shared<FLIMBackground>(tvb_profile, background_value);
-            }
-         }
-         else if (background_value != 0.0)
-         {
-            transformation_settings.background = std::make_shared<FLIMBackground>(background_value);
-         }
-
-         auto data = std::make_shared<FLIMData>(images, transformation_settings);
-
-         plhs[0] = packageSharedPtrForMatlab(data);
-         ptr_set.insert(data);
-         return;
+         const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "irf");
+         transformation_settings.irf = getIRF(irf_struct);
       }
 
-
-      AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsChar(prhs[1]));
-
-      auto data = getSharedPtrFromMatlab<FLIMData>(prhs[0]);
-
-      // Get command
-      std::string command = getStringFromMatlab(prhs[1]);
-
-      if (command == "Release")
+      if (isArgument(nrhs, prhs, "analytical_irf"))
       {
-         ptr_set.erase(data);
-         releaseSharedPtrFromMatlab<FLIMData>(prhs[0]);
+         const mxArray* irf_struct = getNamedArgument(nrhs, prhs, "analytical_irf");
+         transformation_settings.irf = getAnalyticalIRF(irf_struct);
       }
+
+      double background_value = 0.0;
+
+      if (isArgument(nrhs, prhs, "background_value"))
+      {
+         const mxArray* background_value_ = getNamedArgument(nrhs, prhs, "background_value");
+         AssertInputCondition(mxIsScalar(background_value_));
+         background_value = mxGetScalar(background_value_);
+      }
+
+      if (isArgument(nrhs, prhs, "background_image"))
+      {
+         const mxArray* background_image_ = getNamedArgument(nrhs, prhs, "background_image");
+         cv::Mat background_image = getCvMat(background_image_);
+         transformation_settings.background = std::make_shared<FLIMBackground>(background_image);
+      }
+
+      if (isArgument(nrhs, prhs, "tvb_profile"))
+      {
+         std::vector<float> tvb_profile = getVector<float>(getNamedArgument(nrhs, prhs, "tvb_profile"));
+
+         if (isArgument(nrhs, prhs, "tvb_I_map"))
+         {
+            const mxArray* I_map_ = getNamedArgument(nrhs, prhs, "tvb_I_map");
+            cv::Mat I_map = getCvMat(I_map_);
+            transformation_settings.background = std::make_shared<FLIMBackground>(tvb_profile, I_map, background_value);
+         }
+         else
+         {
+            transformation_settings.background = std::make_shared<FLIMBackground>(tvb_profile, background_value);
+         }
+      }
+      else if (background_value != 0.0)
+      {
+         transformation_settings.background = std::make_shared<FLIMBackground>(background_value);
+      }
+
+      auto data = std::make_shared<FLIMData>(images, transformation_settings);
+
+      plhs[0] = packageSharedPtrForMatlab(data);
+      ptr_set.insert(data);
+      return;
    }
-   catch (std::runtime_error e)
+
+   AssertInputCondition(nrhs >= 2);
+   AssertInputCondition(mxIsChar(prhs[1]));
+
+   std::shared_ptr<FLIMData> data = getSharedPtrFromMatlab<FLIMData>(prhs[0]);
+
+   // Get command
+   std::string command = getStringFromMatlab(prhs[1]);
+
+   if (command == "Release")
    {
-      mexErrMsgIdAndTxt("FLIMfitMex:exceptionOccurred",
-         e.what());
+      ptr_set.erase(data);
+      releaseSharedPtrFromMatlab<FLIMData>(prhs[0]);
    }
+
 }

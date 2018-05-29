@@ -422,75 +422,67 @@ BOOST_CLASS_EXPORT_GUID(MultiExponentialDecayGroup, "MultiExponentialDecayGroup"
 BOOST_CLASS_EXPORT_GUID(FretDecayGroup, "FretDecayGroup");
 BOOST_CLASS_EXPORT_GUID(PatternDecayGroup, "PatternDecayGroup");
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void DecayModelMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   try
+   if (nrhs == 0 && nlhs > 0)
    {
-      if (nrhs == 0 && nlhs > 0)
-      {
-         AssertInputCondition(nlhs > 0);
-         auto model = std::make_shared<QDecayModel>();
-         ptr_set.insert(model);
-         plhs[0] = packageSharedPtrForMatlab(model);
-         return;
-      }
-
-      AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsScalar(prhs[0]));
-      AssertInputCondition(mxIsChar(prhs[1]));
-
-      // Get controller
-      const auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
-
-      if (ptr_set.find(model) == ptr_set.end())
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
-
-      // Get command
-      std::string command = getStringFromMatlab(prhs[1]);
-
-      if (command == "Release")
-      {
-         ptr_set.erase(model);
-         releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
-      }
-      else if (command == "GetModelVariables")
-         getModelVariables(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetModelVariables")
-         setModelVariables(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "AddDecayGroup")
-         addDecayGroup(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "RemoveDecayGroup")
-         removeDecayGroup(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetDecayGroupName")
-         setDecayGroupName(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetGroups")
-         getGroups(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetGroupVariables")
-         setGroupVariables(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetGroupParameter")
-         setGroupParameter(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetModelParameters")
-         getModelParameters(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetModelParameter")
-         setModelParameter(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetChannelFactorNames")
-         getChannelFactorNames(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetChannelFactors")
-         setChannelFactors(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetChannelFactors")
-         getChannelFactors(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetNumChannels")
-         setNumChannels(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "SaveModel")
-         saveModel(model, nlhs, plhs, nrhs, prhs);
-      else if (command == "LoadModel")
-         loadModel(model, nlhs, plhs, nrhs, prhs);
+      AssertInputCondition(nlhs > 0);
+      auto model = std::make_shared<QDecayModel>();
+      ptr_set.insert(model);
+      plhs[0] = packageSharedPtrForMatlab(model);
+      return;
    }
-   catch (std::runtime_error e)
+
+   AssertInputCondition(nrhs >= 2);
+   AssertInputCondition(mxIsScalar(prhs[0]));
+   AssertInputCondition(mxIsChar(prhs[1]));
+
+   // Get controller
+   const auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
+
+   if (ptr_set.find(model) == ptr_set.end())
+      mexErrMsgIdAndTxt2("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
+
+   // Get command
+   std::string command = getStringFromMatlab(prhs[1]);
+
+   if (command == "Release")
    {
-      mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
-         e.what());
+      ptr_set.erase(model);
+      releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
    }
+   else if (command == "GetModelVariables")
+      getModelVariables(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetModelVariables")
+      setModelVariables(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "AddDecayGroup")
+      addDecayGroup(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "RemoveDecayGroup")
+      removeDecayGroup(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetDecayGroupName")
+      setDecayGroupName(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetGroups")
+      getGroups(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetGroupVariables")
+      setGroupVariables(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetGroupParameter")
+      setGroupParameter(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetModelParameters")
+      getModelParameters(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetModelParameter")
+      setModelParameter(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetChannelFactorNames")
+      getChannelFactorNames(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetChannelFactors")
+      setChannelFactors(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetChannelFactors")
+      getChannelFactors(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetNumChannels")
+      setNumChannels(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "SaveModel")
+      saveModel(model, nlhs, plhs, nrhs, prhs);
+   else if (command == "LoadModel")
+      loadModel(model, nlhs, plhs, nrhs, prhs);
 }
 
 

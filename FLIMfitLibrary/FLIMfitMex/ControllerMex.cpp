@@ -35,8 +35,6 @@
 #include "ModelADA.h" 
 #include "FLIMGlobalAnalysis.h"
 #include "FLIMData.h"
-#include "tinythread.h"
-#include <assert.h>
 #include <utility>
 
 #include <memory>
@@ -180,62 +178,53 @@ void getFit(std::shared_ptr<FitController> c, int nlhs, mxArray *plhs[], int nrh
 
 
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+void ControllerMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-   try
+   if (nrhs == 0 && nlhs > 0)
    {
-      if (nrhs == 0 && nlhs > 0)
-      {
-         AssertInputCondition(nlhs > 0);
-         auto c = std::make_shared<FitController>();
-         ptr_set.insert(c);
-         plhs[0] = packageSharedPtrForMatlab(c);
-         return;
-      }
-
-      AssertInputCondition(nrhs >= 2);
-      AssertInputCondition(mxIsScalar(prhs[0]));
-      AssertInputCondition(mxIsChar(prhs[1]));
-
-      // Get controller
-      const auto& controller = getSharedPtrFromMatlab<FitController>(prhs[0]);
-      
-      if (ptr_set.find(controller) == ptr_set.end())
-         mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerPointer", "Invalid controller pointer");
-
-      // Get command
-      std::string command = getStringFromMatlab(prhs[1]);
-
-      if (command == "Clear")
-      {
-         ptr_set.erase(controller);
-         releaseSharedPtrFromMatlab<FitController>(prhs[0]);
-      }
-      else if (command == "SetFitSettings")
-         setFitSettings(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetFittingOptions")
-         setFittingOptions(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetData")
-         setData(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "SetModel")
-         setModel(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "StartFit")
-         startFit(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "StopFit")
-         stopFit(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetFitStatus")
-         getFitStatus(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetFit")
-         getFit(controller, nlhs, plhs, nrhs, prhs);
-      else if (command == "GetFitResults")
-         getFitResults(controller, nlhs, plhs, nrhs, prhs);
-
+      AssertInputCondition(nlhs >= 1);
+      auto c = std::make_shared<FitController>();
+      ptr_set.insert(c);
+      plhs[0] = packageSharedPtrForMatlab(c);
+      return;
    }
-   catch (std::runtime_error e)
+
+   AssertInputCondition(nrhs >= 2);
+   AssertInputCondition(mxIsScalar(prhs[0]));
+   AssertInputCondition(mxIsChar(prhs[1]));
+
+   // Get controller
+   const auto& controller = getSharedPtrFromMatlab<FitController>(prhs[0]);
+
+   if (ptr_set.find(controller) == ptr_set.end())
+      mexErrMsgIdAndTxt2("FLIMfitMex:invalidControllerPointer", "Invalid controller pointer");
+
+   // Get command
+   std::string command = getStringFromMatlab(prhs[1]);
+
+   if (command == "Clear")
    {
-      mexErrMsgIdAndTxt("FLIMReaderMex:exceptionOccurred",
-         e.what());
+      ptr_set.erase(controller);
+      releaseSharedPtrFromMatlab<FitController>(prhs[0]);
    }
+   else if (command == "SetFitSettings")
+      setFitSettings(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetFittingOptions")
+      setFittingOptions(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetData")
+      setData(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "SetModel")
+      setModel(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "StartFit")
+      startFit(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "StopFit")
+      stopFit(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetFitStatus")
+      getFitStatus(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetFit")
+      getFit(controller, nlhs, plhs, nrhs, prhs);
+   else if (command == "GetFitResults")
+      getFitResults(controller, nlhs, plhs, nrhs, prhs);
 }
  
 
