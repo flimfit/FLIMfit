@@ -43,7 +43,7 @@ public:
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
    virtual int setVariables(const double* variables);
-   virtual int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
+   virtual int calculateModel(double* a, int adim, double& kap);
    virtual int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
    virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
@@ -57,7 +57,7 @@ protected:
 
    void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
 
-   int addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double* a, int adim, double& kap, int bin_shift = 0);
+   int addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double* a, int adim, double& kap);
    int addLifetimeDerivative(int idx, double* b, int bdim);
    void addLifetimeKappaDerivative(int idx, double_iterator& kap_derv);
    int addContributionDerivatives(double* b, int bdim, double_iterator& kap_derv);

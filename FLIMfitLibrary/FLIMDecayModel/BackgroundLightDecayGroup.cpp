@@ -162,7 +162,7 @@ std::vector<std::string> BackgroundLightDecayGroup::getLinearOutputParamNames()
    return param_names;
 }
 
-int BackgroundLightDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shift)
+int BackgroundLightDecayGroup::calculateModel(double* a, int adim, double& kap)
 {
    // TODO: include bin shift
 

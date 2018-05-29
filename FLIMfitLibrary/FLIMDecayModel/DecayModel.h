@@ -79,7 +79,7 @@ public:
    void setupIncMatrix(std::vector<int>& inc);
    void setVariables(const std::vector<double>& alf);
    int calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, int irf_idx);
-   int calculateDerivatives(aligned_vector<double> b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx);
+   int calculateDerivatives(aligned_vector<double>& b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx);
    void getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx);
    float* getConstantAdjustment() { return adjust_buf.data(); };
 
@@ -134,6 +134,10 @@ protected:
    int n_chan = 0; // for before transformed data parameters has been set
 
 private:
+
+   double t0_shift;
+   double reference_lifetime;
+
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
    

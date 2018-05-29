@@ -24,7 +24,7 @@ protected:
 public:
    virtual void compute(double rate, int irf_idx, double t0_shift) = 0;
 
-   virtual void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[], int bin_shift = 0) const = 0;
+   virtual void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[]) const = 0;
    virtual void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double b[]) const = 0;
 
    double getRate() const { return rate; };

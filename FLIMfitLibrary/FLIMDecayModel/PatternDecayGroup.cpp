@@ -45,7 +45,7 @@ void PatternDecayGroup::compute()
 
    for (int i = 0; i < dp->n_chan; i++)
    {
-      int n_exp = pattern[i].tau.size();
+      int n_exp = (int) pattern[i].tau.size();
 
       for (int j = 0; j < dp->n_chan; j++)
          channel_factors[j] = (j == i);
@@ -71,7 +71,7 @@ int PatternDecayGroup::setVariables(const double* variables)
    return 0;
 }
 
-int PatternDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shift)
+int PatternDecayGroup::calculateModel(double* a, int adim, double& kap)
 {
    if (fit->isFixed())
       return 0;

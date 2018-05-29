@@ -173,16 +173,13 @@ void MeasuredIrfConvolver::computeModelFactors(double rate)
 
 
 
-void MeasuredIrfConvolver::convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const
+void MeasuredIrfConvolver::convolve(int k, int i, double pulse_fact, double& c) const
 {
    const auto& exp_irf_cum_buf = cum_irf_exp_factor[k];
    const auto& exp_irf_buf = irf_exp_factor[k];
 
    int j = k*n_t + i;
-   int idx = irf_max[j] + bin_shift;
-
-   idx = idx < 0 ? 0 : idx;
-   idx = idx >= n_irf ? n_irf - 1 : idx;
+   int idx = irf_max[j];
 
    c = exp_irf_cum_buf[idx] - 0.5*exp_irf_buf[idx];
 
@@ -221,7 +218,7 @@ void MeasuredIrfConvolver::convolveDerivative(double t, int k, int i, double pul
 
 
 
-void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[], int bin_shift) const
+void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[]) const
 {
    double c;
 
@@ -240,13 +237,8 @@ void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& chan
    {
       for (int i = 0; i<n_t; i++)
       {
-         convolve(k, i, pulse_fact, bin_shift, c);
-
-         int mi = i + bin_shift; // TODO: should there be a 1 here?
-         mi = mi < 0 ? 0 : mi;
-         mi = mi >= n_t ? n_t - 1 : mi;
-
-         a[i+k*n_t] += model_decay[mi] * c * fact * channel_factors[k];
+         convolve(k, i, pulse_fact, c);
+         a[i+k*n_t] += model_decay[i] * c * fact * channel_factors[k];
       }
    }
 }

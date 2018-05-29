@@ -11,7 +11,7 @@ public:
    BackgroundLightDecayGroup(const BackgroundLightDecayGroup& obj);
 
    int setVariables(const double* variables);
-   int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
+   int calculateModel(double* a, int adim, double& kap);
    int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
    void addConstantContribution(float* a);
 

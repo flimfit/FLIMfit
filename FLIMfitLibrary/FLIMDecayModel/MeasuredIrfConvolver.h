@@ -44,7 +44,7 @@ public:
 
    void compute(double rate, int irf_idx, double t0_shift);
 
-   void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[], int bin_shift = 0) const;
+   void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[]) const;
    void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double b[]) const;
 
 private:
@@ -54,7 +54,7 @@ private:
    void computeIRFFactors(double rate, int irf_idx, double t0_shift);
    void computeModelFactors(double rate);
 
-   void convolve(int k, int i, double pulse_fact, int bin_shift, double& c) const;
+   void convolve(int k, int i, double pulse_fact, double& c) const;
    void convolveDerivative(double t, int k, int i, double pulse_fact, double pulse_fact_der, double ref_fact_a, double ref_fact_b, double& c) const;
 
 

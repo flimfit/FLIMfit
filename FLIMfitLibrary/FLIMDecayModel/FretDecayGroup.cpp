@@ -401,16 +401,16 @@ std::vector<std::string> FretDecayGroup::getNonlinearOutputParamNames()
 }
 
 
-int FretDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shift)
+int FretDecayGroup::calculateModel(double* a, int adim, double& kap)
 {
    int col = 0;
 
    if (include_donor_only)
    {
       memset(a + col*adim, 0, adim*sizeof(*a));
-      addDecayGroup(buffer, 1, a + col*adim, adim, kap, bin_shift);
+      addDecayGroup(buffer, 1, a + col*adim, adim, kap);
       if (include_acceptor)   
-         acceptor_buffer->addDecay(Qsigma, norm_acceptor_channel_factors, reference_lifetime, a + col*adim, bin_shift);
+         acceptor_buffer->addDecay(Qsigma, norm_acceptor_channel_factors, reference_lifetime, a + col*adim);
       col++;
    }
 
@@ -418,12 +418,12 @@ int FretDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shi
    {
       memset(a + col*adim, 0, adim*sizeof(*a));
       for(int k=0; k<n_kappa; k++)
-         addDecayGroup(fret_buffer[i][k], kappa_factor.p[k], a + col*adim, adim, kap, bin_shift);
+         addDecayGroup(fret_buffer[i][k], kappa_factor.p[k], a + col*adim, adim, kap);
       
       if (include_acceptor)
       {
-         addAcceptorContribution(i, Q, a + col*adim, adim, kap, bin_shift);
-         acceptor_buffer->addDecay(Qsigma, norm_acceptor_channel_factors, reference_lifetime, a + col*adim, bin_shift);
+         addAcceptorContribution(i, Q, a + col*adim, adim, kap);
+         acceptor_buffer->addDecay(Qsigma, norm_acceptor_channel_factors, reference_lifetime, a + col*adim);
       }
       
 //TODO      kap += kappaLim(tau_transfer[i]);
@@ -441,7 +441,7 @@ int FretDecayGroup::calculateModel(double* a, int adim, double& kap, int bin_shi
    return col;
 }
 
-void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, int adim, double& kap, int bin_shift)
+void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, int adim, double& kap)
 {
    if (include_acceptor)
    {
@@ -450,11 +450,11 @@ void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, in
          for (int k = 0; k < n_kappa; k++)
          {
             double f = factor * kappa_factor.p[k] * beta[j] * a_star[i][k][j];
-            fret_buffer[i][k][j]->addDecay(-f, norm_acceptor_channel_factors, reference_lifetime, a, bin_shift); // rise time
+            fret_buffer[i][k][j]->addDecay(-f, norm_acceptor_channel_factors, reference_lifetime, a); // rise time
             a_star_sum += f;
          }
       
-      acceptor_buffer->addDecay(a_star_sum, norm_acceptor_channel_factors, reference_lifetime, a, bin_shift);
+      acceptor_buffer->addDecay(a_star_sum, norm_acceptor_channel_factors, reference_lifetime, a);
    }
 }
 

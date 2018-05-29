@@ -336,11 +336,11 @@ int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_vari
 }
 
 
-int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, double& kap, int bin_shift)
+int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, double& kap)
 {
    int sz = contributions_global ? 1 : n_exponential;
    memset(a, 0, sz*adim*sizeof(*a));
-   return addDecayGroup(buffer, 1, a, adim, kap, bin_shift);
+   return addDecayGroup(buffer, 1, a, adim, kap);
 }
 
 int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
@@ -372,7 +372,7 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim,
 }
 
 
-int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double* a, int adim, double& kap, int bin_shift)
+int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double* a, int adim, double& kap)
 {
    int col = 0;
     
@@ -388,7 +388,7 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
          addIRF(irf_buf.data(), irf_idx, t0_shift, a + col*adim, norm_channel_factors);
 
       double c_factor = contributions_global ? beta[j] : 1;
-      buffers[j]->addDecay(factor * c_factor, norm_channel_factors, reference_lifetime, a + col*adim, bin_shift);
+      buffers[j]->addDecay(factor * c_factor, norm_channel_factors, reference_lifetime, a + col*adim);
 
       if (!contributions_global)
          col++;

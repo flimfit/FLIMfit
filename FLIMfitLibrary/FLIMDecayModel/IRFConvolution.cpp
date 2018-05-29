@@ -98,7 +98,7 @@ for(j=i; j<n_tau;     j++)
 // TODO: can we eliminate requirement for irf_max?
 
 /*
-void DecayModelWorkingBuffers::Convolve(double rate, int row, int k, int i, double pulse_fact, int bin_shift, double& c)
+void DecayModelWorkingBuffers::Convolve(double rate, int row, int k, int i, double pulse_fact, double& c)
 {
    const auto& exp_irf_cum_buf = exp_buffer[row].cum_irf_exp_factor[k];
    const auto& exp_irf_buf = exp_buffer[row].irf_exp_factor[k];

@@ -18,7 +18,7 @@ GaussianChannelConvolver::GaussianChannelConvolver(const GaussianParameters& par
 
    dt = timepoints[1] - timepoints[0];
    t0 = timepoints[0];
-   n_t = timepoints.size();
+   n_t = (int) timepoints.size();
 
    n_tm = (int)std::ceil((n_t + 1) / 4.0);
 }
@@ -195,7 +195,7 @@ void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
 
 }
 
-void GaussianIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double decay[], int bin_shift) const
+void GaussianIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double decay[]) const
 {
    auto& t = dp->getTimepoints();
    for (int k = 0; k < n_chan; k++)

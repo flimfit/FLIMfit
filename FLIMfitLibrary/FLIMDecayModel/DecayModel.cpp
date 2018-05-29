@@ -142,9 +142,9 @@ void DecayModel::init()
    
    setupAdjust();
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
    validateDerivatives();
-#endif
+//#endif
 }
 
 
@@ -295,8 +295,8 @@ void DecayModel::setVariables(const std::vector<double>& alf)
    int getting_fit = false; //TODO 
 
    int idx = 0;
-   double reference_lifetime = getCurrentReferenceLifetime(param_values, idx);
-   double t0_shift = t0_parameter->getValue<double>(param_values, idx);
+   reference_lifetime = getCurrentReferenceLifetime(param_values, idx);
+   t0_shift = t0_parameter->getValue<double>(param_values, idx);
 
    for (auto& s : spectral_correction)
       idx += s->setVariables(param_values + idx);
@@ -333,7 +333,7 @@ int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<
    return col;
 }
 
-int DecayModel::calculateDerivatives(aligned_vector<double> b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx)
+int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx)
 {
    int col = 0;
    int var = 0;
@@ -361,8 +361,43 @@ int DecayModel::calculateDerivatives(aligned_vector<double> b, int bdim, const a
    for (auto& s : spectral_correction)
       s->apply(x, y, b.begin() + bdim * model_col, bdim, col - model_col);
 
-   for (int i = 0; i < col*bdim; i++)
+   for (int i = model_col*bdim; i < col*bdim; i++)
       b[i] *= photons_per_count;
+
+   return col;
+}
+
+
+int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::iterator& kap_derv)
+{
+   // Compute numerical derivatives for t0
+
+   double kap = 0;
+   double dt = 1;
+
+   // Add decay shifted by one bin
+   int col = 0;
+   for (int i = 0; i < decay_groups.size(); i++)
+   {
+      decay_groups[i]->setT0Shift(t0_shift + dt);
+      col += decay_groups[i]->calculateModel(b + col * bdim, bdim, kap);
+   }
+
+   // Make negative
+   for (int i = 0; i<bdim*col; i++)
+      b[i] *= -1;
+
+   // Add decay shifted the other way
+   col = 0;
+   for (int i = 0; i < decay_groups.size(); i++)
+   {
+      decay_groups[i]->setT0Shift(t0_shift);
+      col += decay_groups[i]->calculateModel(b + col * bdim, bdim, kap);
+
+   }
+
+   for (int i = 0; i<bdim*col; i++)
+      b[i] *= -dt;
 
    return col;
 }
@@ -408,35 +443,6 @@ int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double_iter
    */
 
    return 0;
-}
-
-
-
-int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::iterator& kap_derv)
-{
-   // Compute numerical derivatives for t0
-
-   double kap = 0;
-
-   // Add decay shifted by one bin
-   int col = 0;
-   for (int i = 0; i < decay_groups.size(); i++)
-      col += decay_groups[i]->calculateModel(b + col*bdim, bdim, kap);
-
-   // Make negative
-   for (int i = 0; i<bdim*col; i++)
-      b[i] *= -1;
-
-   // Add decay shifted the other way
-   col = 0;
-   for (int i = 0; i < decay_groups.size(); i++)
-      col += decay_groups[i]->calculateModel(b + col*bdim, bdim, kap, -1); // bin shift = +1
-
-   double idt = 0.5 / dp->irf->timebin_width;
-   for (int i = 0; i<bdim*col; i++)
-      b[i] *= idt;
-
-   return col;
 }
 
 

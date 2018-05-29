@@ -22,7 +22,7 @@ public:
    void setIncludeRInf(bool include_r_inf_);
 
    int setVariables(const double* variables);
-   int calculateModel(double* a, int adim, double& kap, int bin_shift = 0);
+   int calculateModel(double* a, int adim, double& kap);
    int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
    int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
    int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
