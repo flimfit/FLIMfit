@@ -365,6 +365,7 @@ void AbstractFitter::setVariables(const double* alf_)
 
 void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a)
 {
+   model->setVariables(params);
    model->calculateModel(a, nmax, kap, irf_idx);
 }
 

@@ -34,31 +34,16 @@ include("cmake/DeployQt.cmake")
 
 set(CMAKE_AUTOMOC ON)
 
-# MATLAB stuff
-#====================================
-
 # Find MATLAB
 set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
 
 link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${MEX_OUT_DIR})
-set(CMAKE_PDB_OUTPUT_DIRECTORY ${MEX_OUT_DIR})
+set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core ${Boost_LIBRARIES} levmar ${LEVMAR_LIBRARIES})
+set (COMMON_FILES MexUtils.h FLIMfitMex.h FLIMfitMex.cpp DecayModelMex.cpp FitResultsMex.cpp ControllerMex.cpp FLIMDataMex.cpp FLIMImageMex.cpp)
 
-set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core ${Boost_LIBRARIES})
-set (COMMON_FILES MexUtils.h FLIMfitMex.h)
+matlab_add_mex(NAME FLIMfitMex SRC ${COMMON_FILES} LINK_TO ${COMMON_LIBS})
 
-matlab_add_mex(NAME FLIMfitMex SRC ${COMMON_FILES} FLIMfitMex.cpp DecayModelMex.cpp FitResultsMex.cpp ControllerMex.cpp FLIMDataMex.cpp FLIMImageMex.cpp)
-target_link_libraries(FLIMfitMex ${COMMON_LIBS} levmar ${LEVMAR_LIBRARIES})
-
-
-add_executable(Dummy DummyMain.cpp)
-target_link_libraries(Dummy Qt5::Widgets FLIMfitMex)
-deployqt(Dummy INCLUDE_MODULES ${QTLIBS})
-
-
-if (MSVC)
-add_custom_command(TARGET Dummy POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:Dummy> ${MEX_OUT_DIR})
-endif()
-
+deployqt(FLIMfitMex INCLUDE_MODULES ${QTLIBS})
+add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:FLIMfitMex> ${MEX_OUT_DIR})
