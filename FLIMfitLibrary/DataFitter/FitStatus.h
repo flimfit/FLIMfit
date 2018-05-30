@@ -27,10 +27,10 @@
 //
 //=========================================================================
 
-#ifndef _FITSTATUS_H
-#define _FITSTATUS_H
+#pragma once
 
-#include "tinythread.h"
+#include <thread>
+#include <mutex>
 #include <list>
 
 //class DecayModel;
@@ -41,7 +41,7 @@ using std::list;
 
 class FitStatus
 {
-   tthread::recursive_mutex running_mutex;
+   std::recursive_mutex running_mutex;
    int (*callback)();
 
 public:
@@ -75,10 +75,7 @@ public:
    bool Finished();
    bool HasFit();
    bool IsRunning();
-   void AddConditionVariable(tthread::condition_variable* cond);
+   void AddConditionVariable(std::condition_variable* cond);
 
-   list<tthread::condition_variable*> cond_list;
+   list<std::condition_variable*> cond_list;
 };
-
-
-#endif

@@ -30,7 +30,6 @@
 #pragma warning(disable: 4244 4267)
 
 #include "FLIMImage.h"
-#include "tinythread.h"
 #include <assert.h>
 #include <utility>
 

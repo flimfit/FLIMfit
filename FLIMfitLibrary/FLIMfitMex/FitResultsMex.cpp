@@ -35,7 +35,6 @@
 #include "FLIMGlobalAnalysis.h"
 #include "FLIMData.h"
 #include "PointerMap.h"
-#include "tinythread.h"
 #include <assert.h>
 #include <utility>
 
