@@ -22,14 +22,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    catch (std::runtime_error e)
    {
       if (nlhs >= 1)
-      {
          plhs[0] = mxCreateString(e.what());
-      }
       else
-      {
-         mexErrMsgIdAndTxt2("FLIMfitMex:exceptionOccurred",
-            e.what());
-      }
-
+         mexErrMsgIdAndTxt2("FLIMfitMex:runtimeErrorOccurred", e.what());
+   }
+   catch (std::exception e)
+   {
+      if (nlhs >= 1)
+         plhs[0] = mxCreateString(e.what());
+      else
+         mexErrMsgIdAndTxt2("FLIMfitMex:exceptionOccurred", e.what());
    }
 }
