@@ -54,11 +54,9 @@ function compile(exit_on_error)
 
         if contains(computer,'PCWIN')
             platform = 'WIN';
-            lib_ext = '.dll';
             exe_ext = '.exe';
         elseif contains(computer,'MAC')
             platform = 'MAC';
-            lib_ext = '.dylib';
             exe_ext = '.app';
         else
             platform = 'LINUX';
@@ -193,16 +191,9 @@ function compile(exit_on_error)
                 end
                 v_inno = regexprep(v_inno,'([^\d\.]+)','');
 
-                if ~exist('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt', 'file')
-                    disp('No VS Redistributable location found. Please run Configure_WIN.bat in repository root');
-                end
-                fid = fopen('..\FLIMfitLibrary\VisualStudioRedistributablePath.txt','r');
-                redist_file = fgetl(fid);
-                fclose(fid);
-
                 root = [cd '\..'];
                 cmd = ['"C:\Program Files (x86)\Inno Setup 5\iscc" /dMcrVer="' mcr_v '" /dMatlabVer="' matlab_v ...
-                       '" /dAppVersion="' v '" /dInnoAppVersion="' v_inno '" /dRepositoryRoot="' root '" /dVSRedist="' redist_file '" "InstallerScript.iss"'];
+                       '" /dAppVersion="' v '" /dInnoAppVersion="' v_inno '" /dRepositoryRoot="' root '" InstallerScript.iss"'];
                 disp(cmd);
                 system(cmd);
 

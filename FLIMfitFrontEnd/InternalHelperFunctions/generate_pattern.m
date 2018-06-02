@@ -21,7 +21,7 @@ function pattern = generate_pattern(td, d, tirf, irf, T, fit_ax, res_ax)
     
     tau = log(tau - 50); 
     
-    [x,chi2_final] = fminsearch(@fit,[tau beta(1:(end-1)) offset], opts);
+    [x,chi2_final] = fminsearch(@fit,[tau beta(1:(end-1))], opts);
     
     count = 0;
     [~,I] =fit(x);
@@ -31,7 +31,7 @@ function pattern = generate_pattern(td, d, tirf, irf, T, fit_ax, res_ax)
     
     
     
-    pattern = [tau(1) beta(1) tau(2) beta(2) tau(3) beta(3) offset];
+    pattern = [tau(1) beta(1) tau(2) beta(2) tau(3) beta(3) 0];
     tau
     beta
             
@@ -40,7 +40,7 @@ function pattern = generate_pattern(td, d, tirf, irf, T, fit_ax, res_ax)
         tau = exp(x(1:3)) + 50;
         beta = x(4:5);
         beta(3) = 1 - sum(beta);
-        offset = x(6);
+        offset = 0; %x(6);
 
         dc = offset;
         for i=1:length(tau)

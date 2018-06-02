@@ -48,7 +48,6 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 
 [Files]
 Source: "{#RepositoryRoot}\InstallerSupport\unzip.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
-Source: "{#VSRedist}"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\Start_FLIMfit.bat"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "{#RepositoryRoot}\FLIMfitStandalone\FLIMfit_{#AppVersion}\FLIMfit.exe"; DestDir: "{app}"; Flags: ignoreversion 64bit
 Source: "C:\Program Files\MATLAB\R{#MatlabVer}\bin\win64\tbb.dll"; DestDir: "{app}"; Flags: ignoreversion 64bit
@@ -73,10 +72,7 @@ procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode : Integer;
 begin
- if CurStep=ssPostInstall then begin //Lets install those files that were downloaded for us
-  // Install Visual Studio Redist
-  Exec(expandconstant('{tmp}\vcredist_x64.exe'), '/passive /norestart', expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
-  
+ if CurStep=ssPostInstall then begin //Lets install those files that were downloaded for us  
   Exec(expandconstant('{tmp}\unzip.exe'), expandconstant('{tmp}\gs916w64.exe'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
   Exec(expandconstant('{tmp}\setupgs.exe'), expandconstant('"{pf}\gs"'), expandconstant('{tmp}'), SW_SHOW, ewWaitUntilTerminated, ResultCode)
 

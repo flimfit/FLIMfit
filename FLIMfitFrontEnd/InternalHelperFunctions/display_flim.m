@@ -49,7 +49,7 @@ function im=display_flim(data,mask,lim,varargin)
         options.t = '';
     end
     if ~isfield(options,'int_lim')
-        options.int_lim = prctile(intensity(:),95);
+        options.int_lim = [0 prctile(intensity(:),95)];
     end
     if ~isfield(options,'gamma')
         prof = get_profile();  

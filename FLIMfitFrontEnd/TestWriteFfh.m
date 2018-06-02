@@ -7,11 +7,11 @@ writeFfh('test.ffh',data,t);
 
 %%
 
-r = FlimReaderMex('test.ffh');
+r = FlimReader('test.ffh');
 
-t = FlimReaderMex(r,'GetTimePoints')
-d = FlimReaderMex(r,'GetData',0);
+t = FlimReader(r,'GetTimePoints')
+d = FlimReader(r,'GetData',0);
 
-FlimReaderMex(r,'Delete')
+FlimReader(r,'Delete')
 
 clear FlimReaderMex

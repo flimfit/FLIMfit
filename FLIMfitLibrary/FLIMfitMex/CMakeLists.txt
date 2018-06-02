@@ -45,5 +45,7 @@ set (COMMON_FILES MexUtils.h FLIMfitMex.h FLIMfitMex.cpp DecayModelMex.cpp FitRe
 
 matlab_add_mex(NAME FLIMfitMex SRC ${COMMON_FILES} LINK_TO ${COMMON_LIBS})
 
+set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
+
 deployqt(FLIMfitMex INCLUDE_MODULES ${QTLIBS})
 add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:FLIMfitMex> ${MEX_OUT_DIR})

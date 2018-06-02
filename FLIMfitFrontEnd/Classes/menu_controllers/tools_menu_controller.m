@@ -54,7 +54,7 @@ classdef tools_menu_controller < handle
                 choice = questdlg('Do you want to export t0 shift data to the current OMERO server or save on disk?', ' ', ...
                                         'Omero' , ...
                                         'disk','Cancel','Cancel');  
-                if strcmp( choice, 'Cancel'), return, end; 
+                if strcmp( choice, 'Cancel'), return, end 
                 if strcmp( choice, 'Omero')
                     [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.xml');
                     OMEROsave = true;
@@ -201,11 +201,13 @@ classdef tools_menu_controller < handle
                 if ~iscell(file)
                     file = {file};
                 end
+                h = parfor_progressbar(length(file),'Denoising...');
                 settings = denoise([path file{1}]);
-                h = waitbar(0,'Denoising...');
+                h.iterate(1);
                 nfiles = length(file);
-                parfor i=1:nfiles
+                parfor i=2:nfiles
                     denoise([path file{i}],settings);
+                    h.iterate(1);
                 end
                 close(h);
             end
@@ -213,9 +215,8 @@ classdef tools_menu_controller < handle
         
         function menu_tools_estimate_q_q_sigma(obj)
             d = obj.data_series_controller.data_series;
-
         end
-        
+                
     end
     
 end

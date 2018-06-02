@@ -19,7 +19,7 @@ find_package(Qt5PrintSupport)
 
 
 set(CMAKE_DEBUG_POSTFIX "")
-set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)
+set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries)
 set(MEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)
 
 add_subdirectory(FLIMfitLibrary)

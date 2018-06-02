@@ -118,6 +118,7 @@ public:
    }
 
    AbstractDecayGroup* clone() const { return new MultiExponentialDecayGroup(*this); }
+   void init() { MultiExponentialDecayGroupPrivate::init(); }
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
    Q_PROPERTY(bool contributions_global MEMBER contributions_global WRITE setContributionsGlobal USER true);

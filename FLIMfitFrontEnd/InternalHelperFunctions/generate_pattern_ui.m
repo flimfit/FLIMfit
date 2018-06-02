@@ -45,7 +45,7 @@ function generate_pattern_ui(t, data, irf, T)
             sigma = irf.gaussian_parameters(i).sigma;
             pattern{i} = generate_pattern_analytical(t,data(:,i),mu,sigma,T,fit_ax(i),res_ax(i));
         else
-            pattern{i} = generate_pattern(t,data(:,i),tirf,irf(:,i),T,fit_ax(i),res_ax(i));
+            pattern{i} = generate_pattern(t,data(:,i),irf.tr_t_irf,irf.tr_irf(:,i),T,fit_ax(i),res_ax(i));
         end
     end
     

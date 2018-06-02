@@ -26,10 +26,7 @@ function addpath_global_analysis()
 % Author : Sean Warren
 
     if ~isdeployed
-        
-        get_gui_layout_toolbox();
-        get_iterVSTpoisson();
-        
+                
         thisdir = fileparts( mfilename( 'fullpath' ) );
         addpath( thisdir,...
                 [thisdir filesep 'Classes'],...
@@ -53,6 +50,9 @@ function addpath_global_analysis()
                 [thisdir filesep 'FLIMfitMex'],...
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
         
+        get_gui_layout_toolbox();
+        get_iterVSTpoisson();    
+            
         addpath( ...
                 [thisdir filesep 'OMEROMatlab'],... 
                 [thisdir filesep 'OMEROMatlab' filesep 'helper'],... 
