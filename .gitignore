@@ -29,6 +29,7 @@ FLIMFitFrontEnd/GeneratedFiles/*
 FLIMFitFrontEnd/OMEROMatlab/*
 FLIMfitFrontEnd/OMEuiUtils/*
 FLIMFitFrontEnd/BFMatlab/*
+FLIMfitFrontEnd/Libraries/*
 FLIMFitFrontEndStandalone/*
 FLIMfitStandalone/*
 Boost/* 
