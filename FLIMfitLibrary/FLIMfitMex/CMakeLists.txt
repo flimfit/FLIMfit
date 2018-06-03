@@ -47,5 +47,13 @@ matlab_add_mex(NAME FLIMfitMex SRC ${COMMON_FILES} LINK_TO ${COMMON_LIBS})
 
 set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
 
-deployqt(FLIMfitMex INCLUDE_MODULES ${QTLIBS})
-add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:FLIMfitMex> ${MEX_OUT_DIR})
+if (WIN32)
+   # For windows, use deployqt to marshall all dlls etc
+   deployqt(FLIMfitMex INCLUDE_MODULES ${QTLIBS})
+   add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E 
+      copy_directory $<TARGET_FILE_DIR:FLIMfitMex> ${MEX_OUT_DIR})
+else ()
+   # On mac, just copy the build file
+   add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E 
+      copy $<TARGET_FILE:FLIMfitMex> ${MEX_OUT_DIR})
+endif ()

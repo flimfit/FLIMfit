@@ -107,9 +107,3 @@ set_target_properties(FLIMfitMex PROPERTIES LINK_FLAGS "/export:mexFunction" )
 set_target_properties(FLIMfitMex PROPERTIES SUFFIX ".mexw64")
 
 target_link_libraries(FLIMfitMex FLIMfit levmar FLIMDecayModel)
-
-
-add_custom_command(TARGET FLIMfitMex POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:FLIMfitMex> ${OUT_DIR})
-
-set( FGP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE )
-set( FGP_LIB_DIR ${OUT_DIR} PARENT_SCOPE )

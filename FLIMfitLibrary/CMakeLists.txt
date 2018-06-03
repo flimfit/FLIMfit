@@ -10,9 +10,8 @@
 project(FLIMfit)
 cmake_minimum_required(VERSION 3.9)
 
-set(OUT_DIR ${CMAKE_BINARY_DIR}/../../Libraries)
-
 find_package(OpenCV REQUIRED)
+find_package(OpenMP REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 

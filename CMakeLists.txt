@@ -12,14 +12,32 @@ else()
 endif()
 endif()
 
+option(BUILD_OPENCV "Build OpenCV (will produce static libs)" OFF)
+
+if (BUILD_OPENCV)
+   include("cmake/HunterGate.cmake")
+   HunterGate(
+      URL "https://github.com/ruslo/hunter/archive/v0.20.13.tar.gz"
+      SHA1 "d92042d6e22522516183b86da10e56fb1af73f7a"
+   )
+endif ()
+
+
 project(FLIMfit)
+
+if (BUILD_OPENCV)
+   hunter_add_package(OpenCV)
+   hunter_add_package(Tiff)
+   # Prefer static libraries so we don't mess with Matlab 
+   set(CMAKE_FIND_LIBRARY_SUFFIXES .a .tbd .dylib .so)
+endif ()
 
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5PrintSupport)
 
 
 set(CMAKE_DEBUG_POSTFIX "")
-set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries)
-set(MEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitLibrary/Libraries/)
+set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitFrontEnd/Libraries)
+set(MEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitFrontEnd/Libraries/)
 
 add_subdirectory(FLIMfitLibrary)

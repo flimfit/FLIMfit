@@ -37,7 +37,7 @@
 #include "MexUtils.h"
 
 
-std::unordered_set<std::shared_ptr<FLIMData>> ptr_set;
+std::unordered_set<std::shared_ptr<FLIMData>> data_ptr;
 
 DataTransformationSettings getDataTransformationSettings(const mxArray* settings_struct)
 {
@@ -172,7 +172,7 @@ void FLIMDataMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       auto data = std::make_shared<FLIMData>(images, transformation_settings);
 
       plhs[0] = packageSharedPtrForMatlab(data);
-      ptr_set.insert(data);
+      data_ptr.insert(data);
       return;
    }
 
@@ -186,7 +186,7 @@ void FLIMDataMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
    if (command == "Release")
    {
-      ptr_set.erase(data);
+      data_ptr.erase(data);
       releaseSharedPtrFromMatlab<FLIMData>(prhs[0]);
    }
 

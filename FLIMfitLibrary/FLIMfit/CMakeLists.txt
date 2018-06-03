@@ -54,5 +54,3 @@ add_library(FLIMfit STATIC ${SOURCE} ${HEADERS})
 target_link_libraries(FLIMfit Qt5::Core FLIMDecayModel DataFitter)
 target_include_directories(FLIMfit INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
                                    PUBLIC ${LEVMAR_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
-set( FLIMfit_LIB_DIR ${OUT_DIR} PARENT_SCOPE )
-

@@ -45,7 +45,7 @@
 
 #include <QMetaProperty>
 
-std::unordered_set<std::shared_ptr<QDecayModel>> ptr_set;
+std::unordered_set<std::shared_ptr<QDecayModel>> model_ptr;
 
 int loaded = 0;
 
@@ -428,7 +428,7 @@ void DecayModelMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    {
       AssertInputCondition(nlhs > 0);
       auto model = std::make_shared<QDecayModel>();
-      ptr_set.insert(model);
+      model_ptr.insert(model);
       plhs[0] = packageSharedPtrForMatlab(model);
       return;
    }
@@ -440,7 +440,7 @@ void DecayModelMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    // Get controller
    const auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
 
-   if (ptr_set.find(model) == ptr_set.end())
+   if (model_ptr.find(model) == model_ptr.end())
       mexErrMsgIdAndTxt2("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
 
    // Get command
@@ -448,7 +448,7 @@ void DecayModelMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
    if (command == "Release")
    {
-      ptr_set.erase(model);
+      model_ptr.erase(model);
       releaseSharedPtrFromMatlab<QDecayModel>(prhs[0]);
    }
    else if (command == "GetModelVariables")

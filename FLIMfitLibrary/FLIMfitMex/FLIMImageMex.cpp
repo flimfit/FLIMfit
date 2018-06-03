@@ -37,7 +37,7 @@
 #include <unordered_set>
 #include "MexUtils.h"
 
-std::unordered_set<std::shared_ptr<FLIMImage>> ptr_set;
+std::unordered_set<std::shared_ptr<FLIMImage>> image_ptr;
 
 #ifdef _WINDOWS
 #ifdef _DEBUG
@@ -139,7 +139,7 @@ void FLIMImageMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          mexErrMsgIdAndTxt2("FLIMfit:dataNotProvided", "Data must be provided using 'data' or 'mapped_file' named arguments");
       }
 
-      ptr_set.insert(image);
+      image_ptr.insert(image);
       plhs[0] = packageSharedPtrForMatlab(image);
       return;
    }
@@ -155,7 +155,7 @@ void FLIMImageMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
    if (command == "Release")
    {
-      ptr_set.erase(image);
+      image_ptr.erase(image);
       releaseSharedPtrFromMatlab<FLIMImage>(prhs[0]);
    }
    else if (command == "SetMask")

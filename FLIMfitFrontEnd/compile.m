@@ -60,7 +60,6 @@ function compile(exit_on_error)
             exe_ext = '.app';
         else
             platform = 'LINUX';
-            lib_ext = '.so';
             exe_ext = '';
         end
 
@@ -72,8 +71,6 @@ function compile(exit_on_error)
         dll_interface = flim_dll_interface();
         dll_interface.unload_global_library();
         dll_interface.load_global_library();
-
-        sys = '64'; % deprecate support for 32 bit
 
         % Build compiled Matlab project
         %------------------------------------------------
@@ -97,7 +94,7 @@ function compile(exit_on_error)
             switch platform
                 case 'WIN'
                     mcc -m FLIMfit.m -v -d DeployFiles ...
-                        -a ../FLIMfitLibrary/Libraries/* ...
+                        -a Libraries/* ...
                         -a segmentation_funcs.mat ...
                         -a icons.mat ...
                         -a SegmentationFunctions/*  ...
@@ -114,21 +111,11 @@ function compile(exit_on_error)
 
                 case 'MAC'
 
-                    try 
-                        rmdir('DeployLibraries','s');
-                    catch
-                    end
-
-                    copyfile('../FLIMfitLibrary/Libraries/*.dylib','DeployLibraries')
-                    copyfile('../FLIMfitLibrary/Libraries/*.mexmaci64','DeployLibraries')
-
-                    system('DeployFiles/dylibbundler -of -x DeployLibraries/FLIMGlobalAnalysis_64.dylib -b  -d DeployLibraries -p @loader_path');
-                    system('DeployFiles/dylibbundler -of -x DeployLibraries/FlimReaderMex.mexmaci64 -b  -d DeployLibraries -p @loader_path');
-
+                    system('DeployFiles/dylibbundler -of -x Libraries/FLIMfitMex.mexmaci64 -b  -d Libraries -p @loader_path');
+                    system('DeployFiles/dylibbundler -of -x Libraries/FlimReaderMex.mexmaci64 -b  -d Libraries -p @loader_path');
+                    
                     mcc -m FLIMfit.m -v -d DeployFiles ...
-                        -a DeployLibraries/* ...
-                        -a FLIMGlobalAnalysis_64_thunk_maci64.dylib ...
-                        -a FLIMGlobalAnalysisProto_MACI64.m  ...
+                        -a Libraries/* ...
                         -a segmentation_funcs.mat ...
                         -a icons.mat ...
                         -a SegmentationFunctions/* ...
@@ -227,9 +214,7 @@ function compile(exit_on_error)
                 [major,minor] = mcrversion;
                 
                 % Setup platypus script
-                fid = fopen([deployFiles_folder filesep 'FLIMfit_platypus.sh'],'r');
-                script = fread(fid);
-                fclose(fid);
+                script = fileread([deployFiles_folder filesep 'FLIMfit_platypus.sh']);
                 script = strrep(script,'[MCR_VERSION_MAJOR]',num2str(major));
                 script = strrep(script,'[MCR_VERSION_MINOR]',num2str(minor));
                 script = strrep(script,'[MATLAB_VERSION]',version('-release'));
@@ -248,14 +233,19 @@ function compile(exit_on_error)
                 pause(3)
                 
                 final_file = [final_folder package_name '.app'];
-                movefile([deploy_folder '/FLIMfit.app'], final_file);
+                
+                if exist(final_file,'dir')
+                   rmdir([final_file '/'],'s')
+                end
+                
+                movefile([deploy_folder '/FLIMfit.app'], final_file, 'f');
                 
                 % sign code - need to have certificate installed
                 disp('Signing executable...')
                 [~,response] = system(['codesign -s P6MM899VL9 "' final_file '"/']);
                 disp(response);
                 
-                cd('DeployLibraries')
+                cd('Libraries')
                 zip(['flimfit_libraries_maci64_' v '.zip'],{'*.dylib','*.mexmaci64'})
                 cd('..')
         end

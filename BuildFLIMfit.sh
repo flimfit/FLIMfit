@@ -24,8 +24,6 @@ if ! cmake --build "GeneratedProjects/Unix" --config RelWithDebInfo; then
     exit 1
 fi
 
-# we don't want to compile the front end yet
-exit 0;
 
 export PATH=/Applications/MATLAB_${MATLAB_VER}.app/bin:$PATH
 # compile the Matlab code to generate the FLIMfit_MACI64.app

@@ -34,5 +34,5 @@ public:
 
 #else
 class Cout2VisualStudioDebugOutput {
-}
+};
 #endif
