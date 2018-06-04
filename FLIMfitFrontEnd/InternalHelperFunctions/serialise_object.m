@@ -39,7 +39,7 @@ function doc_node = serialise_object(root_obj,input,name)
         doc_node = com.mathworks.xml.XMLUtils.createDocument('FLIMfit');
     end
         
-    root_element = serialise(root_obj,doc_node);    
+    root_element = serialise(root_obj,doc_node,name);    
     doc_node.getDocumentElement().appendChild(root_element);
 
     if ~isempty(file)

@@ -79,7 +79,7 @@ classdef phasor_segmentation_controller < flim_data_series_observer
                 end
             end
             
-            obj.update_display();
+            obj.selection_updated();
             obj.slh = addlistener(obj.data_series_list,'selection_updated',@(~,~) EC(@obj.selection_updated));
             
         end

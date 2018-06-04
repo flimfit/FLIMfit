@@ -67,6 +67,7 @@ classdef flim_data_series_controller < handle
         end
         
         function clear_data_series(obj)
+            delete(obj.data_series);
             obj.data_series = flim_data_series();
         end
         
