@@ -58,7 +58,7 @@ classdef flim_data_series_observer < handle
         end
         
         function data_update_evt(obj)
-            if ~ishandle(obj.data_series) && obj.data_series.init
+            if isvalid(obj.data_series) && obj.data_series.init
                 obj.data_update();
             end
         end
