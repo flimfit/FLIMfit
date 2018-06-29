@@ -14,7 +14,10 @@ export CC=/usr/local/opt/llvm/bin/clang
 export CXX=/usr/local/opt/llvm/bin/clang++
 export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib"
 
-if ! cmake -G"Unix Makefiles" -H. -BGeneratedProjects/Unix; then
+export PATH="/usr/local/opt/qt5/bin:$PATH"
+
+rm -rf GeneratedProjects/Unix
+if ! cmake -G"Unix Makefiles" -H. -BGeneratedProjects/Unix -DTOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DBUILD_OPENCV:bool=TRUE; then
    echo 'Error configuring project'
    exit 1
 fi
