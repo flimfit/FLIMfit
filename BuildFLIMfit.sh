@@ -13,8 +13,8 @@ if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2017b; echo "Setting MATLAB_V
 export CC=/usr/local/opt/llvm/bin/clang
 export CXX=/usr/local/opt/llvm/bin/clang++
 export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib"
-
 export PATH="/usr/local/opt/qt5/bin:$PATH"
+export MKLROOT=/opt/intel/mkl
 
 rm -rf GeneratedProjects/Unix
 if ! cmake -G"Unix Makefiles" -H. -BGeneratedProjects/Unix -DTOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DBUILD_OPENCV:bool=TRUE; then
