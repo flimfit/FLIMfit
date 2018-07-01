@@ -17,7 +17,7 @@ export PATH="/usr/local/opt/qt5/bin:$PATH"
 export MKLROOT=/opt/intel/mkl
 
 rm -rf GeneratedProjects/Unix
-if ! cmake -G"Unix Makefiles" -H. -BGeneratedProjects/Unix -DTOOLCHAIN_FILE=${TOOLCHAIN_FILE} -DBUILD_OPENCV:bool=TRUE; then
+if ! cmake -GNinja -H. -BGeneratedProjects/Unix -DBUILD_OPENCV:bool=TRUE; then
    echo 'Error configuring project'
    exit 1
 fi

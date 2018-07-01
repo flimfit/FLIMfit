@@ -38,12 +38,17 @@ set(CMAKE_AUTOMOC ON)
 set(MATLAB_FIND_DEBUG TRUE)
 find_package(Matlab COMPONENTS MEX_COMPILER MX_LIBRARY REQUIRED)
 
-link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
-
-set (COMMON_LIBS FLIMfit DataFitter FLIMDecayModel Qt5::Core ${Boost_LIBRARIES} levmar ${LEVMAR_LIBRARIES})
-set (COMMON_FILES MexUtils.h FLIMfitMex.h FLIMfitMex.cpp DecayModelMex.cpp FitResultsMex.cpp ControllerMex.cpp FLIMDataMex.cpp FLIMImageMex.cpp)
-
-matlab_add_mex(NAME FLIMfitMex SRC ${COMMON_FILES} LINK_TO ${COMMON_LIBS})
+matlab_add_mex(NAME FLIMfitMex SRC MexUtils.h 
+                                   FLIMfitMex.h 
+                                   FLIMfitMex.cpp 
+                                   DecayModelMex.cpp 
+                                   FitResultsMex.cpp 
+                                   ControllerMex.cpp 
+                                   FLIMDataMex.cpp 
+                                   FLIMImageMex.cpp
+               LINK_TO FLIMfit 
+                       DataFitter 
+                       FLIMDecayModel)
 
 set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
 
