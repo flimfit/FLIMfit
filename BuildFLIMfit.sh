@@ -16,7 +16,7 @@ export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib"
 export PATH="/usr/local/opt/qt5/bin:$PATH"
 export MKLROOT=/opt/intel/mkl
 
-rm -rf GeneratedProjects/Unix
+[ "$1" == "--clean" ] && rm -rf GeneratedProjects/Unix
 if ! cmake -GNinja -H. -BGeneratedProjects/Unix -DBUILD_OPENCV:bool=TRUE; then
    echo 'Error configuring project'
    exit 1

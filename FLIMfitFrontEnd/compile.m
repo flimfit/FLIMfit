@@ -111,9 +111,16 @@ function compile(exit_on_error)
 
                 case 'MAC'
 
-                    system('DeployFiles/dylibbundler -of -x Libraries/FLIMfitMex.mexmaci64 -b  -d Libraries -p @loader_path');
-                    system('DeployFiles/dylibbundler -of -x Libraries/FlimReaderMex.mexmaci64 -b  -d Libraries -p @loader_path');
-                    
+                    mklroot = getenv('MKLROOT');
+                    if ~isempty(mklroot)
+                        for lib = {'FLIMfitMex', 'FlimReaderMex'}
+                            for mkllib = {'libmkl_intel_lp64', 'libmkl_sequential', 'libmkl_core'}
+                                system(cell2mat(['install_name_tool -change @rpath/' mkllib '.dylib ' mklroot '/lib/' mkllib '.dylib Libraries/' lib '.mexmaci64']))
+                            end
+                            system(cell2mat(['DeployFiles/dylibbundler -of -x Libraries/' lib '.mexmaci64 -b  -d Libraries -p @loader_path']));
+                        end 
+                    end
+
                     mcc -m FLIMfit.m -v -d DeployFiles ...
                         -a Libraries/* ...
                         -a segmentation_funcs.mat ...
