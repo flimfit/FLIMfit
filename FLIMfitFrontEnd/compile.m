@@ -111,6 +111,12 @@ function compile(exit_on_error)
 
                 case 'MAC'
 
+                    % Manually fix Qt references
+                    rmdir('Libraries/QtCore.framework','s')
+                    copyfile('/usr/local/opt/qt/lib/QtCore.framework/','Libraries/QtCore.framework/');
+                    system('install_name_tool -change /usr/local/opt/qt/lib/QtCore.framework/Versions/5/QtCore @loader_path/QtCore.framework/Versions/5/QtCore Libraries/FLIMfitMex.mexmaci64')
+
+                    % Manually fix MKL references
                     mklroot = getenv('MKLROOT');
                     if ~isempty(mklroot)
                         for lib = {'FLIMfitMex', 'FlimReaderMex'}
