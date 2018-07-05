@@ -20,7 +20,7 @@ if ! cmake -HFLIMfitLibrary/FLIMreader -B${project_dir} -G "Unix Makefiles" -DCM
 fi
 
 echo "Building Project..."
-if ! cmake --build ${project_dir} --target install; then
+if ! cmake --build ${project_dir}; then
     echo 'Error building project'
     exit 1
 fi
@@ -28,8 +28,8 @@ fi
 # Build FLIMfit library
 #--------------------------------------------
 
-export CC=/usr/local/bin/gcc-7
-export CXX=/usr/local/bin/g++-7
+export CC=/usr/local/bin/gcc-8
+export CXX=/usr/local/bin/g++-8
 
 echo "Cleaning CMake Project..."
 rm -rf GeneratedProjects/Unix
