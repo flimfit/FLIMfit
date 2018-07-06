@@ -132,7 +132,7 @@ void conv_irf_deriv(FLIMGlobalFitController *gc, double t, double rate, double e
       c_rep /= pulse_fact;
       c += c_rep;
 
-      c += (exp_irf_cum_buf[gc->n_irf - 1] - 0.5*exp_irf_buf[gc->n_irf - 1]) / pulse_fact_der;
+      c += (exp_irf_cum_buf[irf_end] - 0.5*exp_irf_buf[irf_end]) * ref_fact_a / pulse_fact_der;
    }
    
 }
