@@ -118,9 +118,16 @@ function compile(exit_on_error)
                         -a LicenseFiles/*.txt
 
                 case 'MAC'
-
-                    system('DeployFiles/dylibbundler -of -x Libraries/FLIMGlobalAnalysis_64.dylib -b  -d Libraries -p @loader_path');
-                    system('DeployFiles/dylibbundler -of -x Libraries/FlimReaderMex.mexmaci64 -b  -d Libraries -p @loader_path');
+                    
+                    mklroot = getenv('MKLROOT');
+                    for lib = {'FLIMGlobalAnalysis_64.dylib', 'FlimReaderMex.mexmaci64'}
+                        if ~isempty(mklroot)
+                            for mkllib = {'libmkl_intel_lp64', 'libmkl_sequential', 'libmkl_core'}
+                                system(cell2mat(['install_name_tool -change @rpath/' mkllib '.dylib ' mklroot '/lib/' mkllib '.dylib Libraries/' lib]))
+                            end
+                        end
+                        system(cell2mat(['DeployFiles/dylibbundler -of -x Libraries/' lib ' -b  -d Libraries -p @loader_path']));
+                    end 
 
                     mcc -m FLIMfit.m -v -d DeployFiles ...
                         -a Libraries/* ...
