@@ -5,3 +5,9 @@
 [submodule "FLIMfitFrontEnd/matlab-ui-common"]
 	path = FLIMfitFrontEnd/matlab-ui-common
 	url = https://github.com/flimfit/matlab-ui-common.git
+[submodule "FLIMfitLibrary/bm3d"]
+	path = FLIMfitLibrary/bm3d
+	url = https://github.com/seanwarren/bm3d
+[submodule "FLIMfitLibrary/da3d"]
+	path = FLIMfitLibrary/da3d
+	url = https://github.com/seanwarren/da3d
