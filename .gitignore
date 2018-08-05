@@ -18,9 +18,7 @@ FLIMGlobalAnalysisProto_*
 TestDatasets/*
 GeneratedProjects/*
 FLIMFitFrontEnd/FLIMGlobalAnalysis_64_thunk_*
-FLIMFitFrontEnd/OMEROMatlab/*
-FLIMFitFrontEnd/BFMatlab/*
-FLIMFitFrontEnd/OMEuiUtils/*
+FLIMFitFrontEnd/ThirdParty
 FLIMFitFrontEnd/DeployFiles/*
 FLIMFitFrontEnd/Libraries/*
 FLIMFitFrontEndStandalone/*

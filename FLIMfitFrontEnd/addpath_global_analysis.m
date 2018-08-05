@@ -26,6 +26,13 @@ function addpath_global_analysis()
 % Author : Sean Warren
 
     if ~isdeployed
+
+        if ~exist(['matlab-ui-common' filesep 'iconsz.mat'],'file')
+           
+            disp('Warning: Submodules have not been checked out.');
+            disp('Please run "git submodule update --recursive" on the commandline first');
+            
+        end
         
         thisdir = fileparts( mfilename( 'fullpath' ) );
         addpath( thisdir,...
@@ -42,10 +49,12 @@ function addpath_global_analysis()
                 [thisdir filesep 'HelperFunctions' filesep 'altmany-export_fig'],...
                 [thisdir filesep 'Libraries'],...
                 [thisdir filesep 'OMEROUtilities'],...
-                [thisdir filesep 'BFMatlab'],...
-                [thisdir filesep 'OMEuiUtils'],...
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
         
+        get_bioformats('ThirdParty','5.8.2');
+        get_omero('ThirdParty','5.3');
+
+            
         if (verLessThan('matlab', '8.4'))
             % using Matlab before v2014b, use old GUILayout
             addpath([thisdir filesep 'HelperFunctions' filesep 'GUILayout-v1p17'], ...
@@ -53,13 +62,6 @@ function addpath_global_analysis()
         else
             addpath([thisdir filesep 'Toolboxes' filesep 'GUI Layout Toolbox' filesep 'layout']);
         end
-
-        addpath( ...
-                [thisdir filesep 'OMEROMatlab'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'helper'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'io'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'libs'],... 
-                [thisdir filesep 'OMEROMatlab' filesep 'roi']);
             
         nicyDirs = dir([thisdir filesep 'ICY_Matlab']); 
         if length(nicyDirs) > 3
