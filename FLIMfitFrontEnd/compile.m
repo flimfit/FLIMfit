@@ -122,7 +122,7 @@ function compile(exit_on_error)
                     mklroot = getenv('MKLROOT');
                     if ~isempty(mklroot)
                         for lib = {'FLIMfitMex', 'FlimReaderMex'}
-                            for mkllib = {'libmkl_intel_lp64', 'libmkl_sequential', 'libmkl_core'}
+                            for mkllib = {'libmkl_intel_lp64', 'libmkl_sequential', 'libmkl_core', 'libmkl_rt'}
                                 system(cell2mat(['install_name_tool -change @rpath/' mkllib '.dylib ' mklroot '/lib/' mkllib '.dylib Libraries/' lib '.mexmaci64']))
                             end
                             system(cell2mat(['DeployFiles/dylibbundler -of -x Libraries/' lib '.mexmaci64 -b  -d Libraries -p @loader_path']));
