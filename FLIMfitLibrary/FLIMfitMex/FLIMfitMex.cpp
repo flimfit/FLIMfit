@@ -25,6 +25,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          plhs[0] = mxCreateString(e.what());
       else
          mexErrMsgIdAndTxt2("FLIMfitMex:runtimeErrorOccurred", e.what());
+
+      for (int i = 1; i < nlhs; i++) plhs[i] = mxCreateDoubleScalar(0);
    }
    catch (std::exception e)
    {
@@ -32,5 +34,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          plhs[0] = mxCreateString(e.what());
       else
          mexErrMsgIdAndTxt2("FLIMfitMex:exceptionOccurred", e.what());
+
+      for (int i = 1; i < nlhs; i++) plhs[i] = mxCreateDoubleScalar(0);
    }
 }

@@ -67,11 +67,16 @@ classdef flim_dll_interface < handle
         use;
         
         dll_id;
-        result_objs = struct('type',{},'pointer',{},'valid',{});
+        result_objs;
     end
         
     methods
     
+         function obj = flim_dll_interface()
+            obj.result_objs = struct('type',{},'pointer',{},'valid',{});
+            obj.load_global_library();
+         end
+        
          function load_global_library(obj) 
          end
 
@@ -83,11 +88,7 @@ classdef flim_dll_interface < handle
          function terminate_fit(obj)
             ff_Controller(obj.dll_id,'StopFit');
          end
-        
-        function obj = flim_dll_interface()
-            obj.load_global_library();
-        end
-        
+                
         function delete(obj)
             obj.unload_global_library();
         end

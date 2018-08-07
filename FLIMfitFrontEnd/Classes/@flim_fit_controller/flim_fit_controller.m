@@ -77,13 +77,13 @@ classdef flim_fit_controller < flim_data_series_observer
         show_colormap_popupmenu;
         show_limits_popupmenu;
         
-        display_normal = containers.Map('KeyType','char','ValueType','logical');
-        display_merged = containers.Map('KeyType','char','ValueType','logical');
-        plot_names = {};
+        display_normal;
+        display_merged;
+        plot_names;
         plot_data;
-        default_lims = {};
-        plot_lims = containers.Map('KeyType','char','ValueType','any');
-        auto_lim = containers.Map('KeyType','char','ValueType','logical');
+        default_lims;
+        plot_lims;
+        auto_lim;
 
         cur_lims = [];
         invert_colormap = false;
@@ -119,8 +119,15 @@ classdef flim_fit_controller < flim_data_series_observer
             end
             
             obj = obj@flim_data_series_observer(handles.data_series_controller);
-            
             assign_handles(obj,handles);
+            
+            obj.display_normal = containers.Map('KeyType','char','ValueType','logical');
+            obj.display_merged = containers.Map('KeyType','char','ValueType','logical');
+            obj.plot_names = {};
+            obj.default_lims = {};
+            obj.plot_lims = containers.Map('KeyType','char','ValueType','any');
+            obj.auto_lim = containers.Map('KeyType','char','ValueType','logical');
+            
             
             obj.fit_result = flim_fit_result();
             obj.dll_interface = flim_dll_interface();
@@ -279,7 +286,6 @@ classdef flim_fit_controller < flim_data_series_observer
         function idx = get_intensity_idx(obj,param)
            
             group = obj.fit_result.group_idx(param);
-            
             if (group == 0)
                 match = strcmp(obj.fit_result.params,'I');
                 idx = find(match,1);
