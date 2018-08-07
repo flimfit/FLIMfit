@@ -46,14 +46,13 @@ DecayModel::DecayModel()
 DecayModel::DecayModel(const DecayModel &obj) :
    reference_parameter(obj.reference_parameter),
    t0_parameter(obj.t0_parameter),
-   dp(obj.dp),
    photons_per_count(obj.photons_per_count),
    channel_factor(obj.channel_factor),
    parameters(obj.parameters),
-   spectral_correction(obj.spectral_correction),
    use_spectral_correction(obj.use_spectral_correction),
    zernike_order(obj.zernike_order)
 {
+   setTransformedDataParameters(obj.dp);
    for (auto& g : obj.decay_groups)
       decay_groups.emplace_back(g->clone());
 
@@ -69,6 +68,7 @@ void DecayModel::setTransformedDataParameters(std::shared_ptr<TransformedDataPar
 
    if (!dp) return;
 
+   n_chan = dp->n_chan;
    spectral_correction.resize(dp->n_chan - 1);
    setupSpectralCorrection();
 
@@ -142,9 +142,9 @@ void DecayModel::init()
    
    setupAdjust();
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
    validateDerivatives();
-//#endif
+#endif
 }
 
 
