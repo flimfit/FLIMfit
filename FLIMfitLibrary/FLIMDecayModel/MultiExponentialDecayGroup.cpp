@@ -82,8 +82,7 @@ void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std
 
 void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
 {   
-  // std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-   std::vector<ParameterFittingType> fixed_or_global = { Fixed }; // TEMP
+   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
 
    parameters.clear();
 
@@ -294,6 +293,8 @@ int MultiExponentialDecayGroupPrivate::getLinearOutputs(float_iterator lin_varia
 
    if (!contributions_global)
       output_idx += normaliseLinearParameters(lin_variables, n_exponential, output + output_idx, lin_idx);
+   else
+      output[output_idx++] += lin_variables[lin_idx++];
 
    return output_idx;
 }
@@ -301,10 +302,10 @@ int MultiExponentialDecayGroupPrivate::getLinearOutputs(float_iterator lin_varia
 std::vector<std::string> MultiExponentialDecayGroupPrivate::getLinearOutputParamNames()
 {
    std::vector<std::string> names;
+   names.push_back("I_0");
+   
    if (!contributions_global)
    {
-      names.push_back("I_0");
-
       if (n_exponential > 1)
       {
          for (int i = 0; i < n_exponential; i++)
