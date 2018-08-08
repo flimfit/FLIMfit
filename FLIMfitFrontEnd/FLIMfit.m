@@ -26,13 +26,12 @@ function ui = FLIMfit()
 
 % Author : Sean Warren
 
-
 addpath_global_analysis();
 
 % workaround for this bug: https://www.mathworks.com/support/bugreports/1293244
-if ispc;
+if ispc
     javax.swing.UIManager.setLookAndFeel('com.sun.java.swing.plaf.windows.WindowsLookAndFeel');
-else ismac;
+else ismac
     javax.swing.UIManager.setLookAndFeel('com.apple.laf.AquaLookAndFeel');
 end
 
