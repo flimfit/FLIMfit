@@ -27,11 +27,9 @@ function addpath_global_analysis()
 
     if ~isdeployed
 
-        if ~exist(['matlab-ui-common' filesep 'iconsz.mat'],'file')
-           
+        if ~exist(['matlab-ui-common' filesep 'icons.mat'],'file')
             disp('Warning: Submodules have not been checked out.');
             disp('Please run "git submodule update --recursive" on the commandline first');
-            
         end
         
         thisdir = fileparts( mfilename( 'fullpath' ) );
@@ -51,8 +49,12 @@ function addpath_global_analysis()
                 [thisdir filesep 'OMEROUtilities'],...
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
         
-        get_bioformats('ThirdParty','5.8.2');
-        get_omero('ThirdParty','5.3');
+        thirdpartydir = [thisdir filesep 'ThirdParty'];
+        if ~exist(thirdpartydir,'dir')
+            mkdir(thirdpartydir)
+        end
+        get_bioformats(thirdpartydir,'5.8.2');
+        get_omero(thirdpartydir,'5.3');
 
             
         if (verLessThan('matlab', '8.4'))
