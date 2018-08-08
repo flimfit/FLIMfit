@@ -304,6 +304,7 @@ void VariableProjectionFitter::setupWeighting()
 
    using_gamma_weighting = false;
  
+   /*
    MultiExponentialDecayGroup g(1);
    std::vector<double> alf(1, 1000);
    g.setTransformedDataParameters(model->getTransformedDataParameters());
@@ -314,8 +315,9 @@ void VariableProjectionFitter::setupWeighting()
    
    for (int i = 0; i < nr; i++)
       w[i] = 1.0 / sqrt(w[i] + 1);
+   */
 
-   /*
+   
    if (n == nr)
    {
       if (weighting == AverageWeighting)
@@ -349,7 +351,7 @@ void VariableProjectionFitter::setupWeighting()
       for (int i=0; i<nr; i++)
          w[i] = 1.0 / sqrt(avg_y[i]);
    }
-   */
+   
 }
 
 void VariableProjectionFitter::getLinearParams()
@@ -505,10 +507,10 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
 {
    float* yp = this->y + px * n;
    
-   //for (int i = 0; i<nr; i++)
-   //   wp[i] = 1.0;
+   for (int i = 0; i<nr; i++)
+      wp[i] = 1.0;
 
-   //return;
+   return;
 
    if (weighting == AverageWeighting)
    {
