@@ -257,7 +257,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    inc_col += n_fret_populations;
 }
 
-int FretDecayGroup::setVariables(const double* param_values)
+int FretDecayGroup::setVariables(const_double_iterator param_values)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
 
@@ -308,13 +308,13 @@ int FretDecayGroup::setVariables(const double* param_values)
    return idx;
 }
 
-int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int FretDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx)
 {
    int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    output[output_idx++] = A_parameter->getValue<float>(nonlin_variables, nonlin_idx);
 
-   float* output_tauT = output + output_idx;
+   float_iterator output_tauT = output + output_idx;
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
@@ -325,8 +325,8 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
       output[output_idx++] = tauA_parameter->getValue<float>(nonlin_variables, nonlin_idx);
    }
 
-   float* tau = output;
-   float* beta = output + n_exponential;
+   float_iterator tau = output;
+   float_iterator beta = output + n_exponential;
    for (int i = 0; i < n_fret_populations; i++)
    {
       float E = 0;
@@ -352,7 +352,7 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
 }
 
 
-int FretDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int FretDecayGroup::getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx)
 {
    int output_idx = 0;
 

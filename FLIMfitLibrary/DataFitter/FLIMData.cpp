@@ -471,8 +471,8 @@ int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx
    auto transformer = getPooledTransformer(iml);
    int s = getRegionCount(im, region);
 
-   float *masked_intensity, *masked_r_ss, *masked_acceptor;
-   float *aux_data = results.getAuxDataPtr(im, region);
+   float_iterator masked_intensity, masked_r_ss, masked_acceptor;
+   float_iterator aux_data = results.getAuxDataPtr(im, region);
    auto& mask = results.getMask(im);
    
    int n_aux = getNumAuxillary();
@@ -517,7 +517,7 @@ int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx
             masked_data[idx*n_meas+i] = tr_data[p*n_meas+i];
 
 
-         irf_idx[idx] = iml*n_px+p;
+         irf_idx[idx] = p;
          idx++;
       }
    }

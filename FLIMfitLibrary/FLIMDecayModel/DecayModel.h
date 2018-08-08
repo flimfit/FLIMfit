@@ -85,8 +85,8 @@ public:
 
    void getInitialVariables(std::vector<double>& variables, double mean_arrival_time);
    void getOutputParamNames(std::vector<std::string>& param_names, std::vector<int>& param_group, int& n_nl_output_params, int& n_lin_output_params);
-   int getNonlinearOutputs(float* nonlin_variables, float* outputs);
-   int getLinearOutputs(float* lin_variables, float* outputs);
+   int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator outputs);
+   int getLinearOutputs(float_iterator lin_variables, float_iterator outputs);
 
    int getNumNonlinearVariables();
    int getNumColumns();
@@ -111,7 +111,7 @@ public:
 protected:
 
 
-   double getCurrentReferenceLifetime(const double* param_values, int& idx);
+   double getCurrentReferenceLifetime(const_double_iterator& param_values, int& idx);
 
    int addReferenceLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv);
    int addT0Derivatives(double* b, int bdim, double_iterator& kap_derv);

@@ -66,7 +66,7 @@ void PatternDecayGroup::compute()
    last_t0 = t0_shift;
 }
 
-int PatternDecayGroup::setVariables(const double* variables)
+int PatternDecayGroup::setVariables(const_double_iterator variables)
 {
    return 0;
 }
@@ -108,12 +108,12 @@ void PatternDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row, int& col
       col++; // one column, no variables
 }
 
-int PatternDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int PatternDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx)
 {
    return 0;
 }
 
-int PatternDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int PatternDecayGroup::getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx)
 {
    if (fit->isFittedLocally())
       output[0] = lin_variables[lin_idx++];

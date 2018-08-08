@@ -73,12 +73,12 @@ public:
    void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
 
-   int setVariables(const double* variables);
+   int setVariables(const_double_iterator variables);
    int calculateModel(double* a, int adim, double& kap);
    int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
 
-   int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
-   int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
+   int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
 
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
 

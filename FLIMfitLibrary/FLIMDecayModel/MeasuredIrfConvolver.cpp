@@ -212,7 +212,7 @@ void MeasuredIrfConvolver::convolveDerivative(double t, int k, int i, double pul
       c_rep /= pulse_fact;
       c += c_rep;
 
-      c += (exp_irf_cum_buf[n_irf - 1] - 0.5*exp_irf_buf[n_irf - 1]) / pulse_fact_der;
+      c += (exp_irf_cum_buf[n_irf - 1] - 0.5*exp_irf_buf[n_irf - 1]) * ref_fact_a / pulse_fact_der;
    }
 }
 

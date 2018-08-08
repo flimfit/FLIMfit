@@ -82,7 +82,9 @@ public:
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
 
-   void setVariables(const double* alf_);
+   template<typename it>
+   void setVariables(it alf_);
+
    void getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a);
    void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a);
 
@@ -126,8 +128,8 @@ protected:
    float*  y;
    std::vector<float> w;
    std::vector<float> avg_y;
-   float *lin_params;
-   float *chi2;
+   float_iterator lin_params;
+   float_iterator chi2;
    int    *irf_idx;
 
    float chi2_norm;
@@ -161,3 +163,21 @@ private:
 
    int irf_idx_0;
 };
+
+
+template<typename it>
+void AbstractFitter::setVariables(it alf_)
+{
+   std::copy(alf_, alf_ + nl, alf.begin());
+
+   int idx = 0;
+   for (int i = 0; i<nl; i++)
+   {
+      if (i == fixed_param)
+         params[i] = fixed_value_cur;
+      else
+         params[i] = alf[idx++];
+   }
+
+   model->setVariables(params);
+}

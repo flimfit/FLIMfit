@@ -50,6 +50,8 @@ public:
    float success;
 };
 
+typedef std::vector<float>::iterator float_iterator;
+
 class FitResults
 {
 public:
@@ -61,7 +63,7 @@ public:
    int getNumOutputRegions() { return n_regions; }
    int getNumOutputParams() { return n_output_params; }
 
-   float* getAuxDataPtr(int image, int region);
+   float_iterator getAuxDataPtr(int image, int region);
    
    const FitResultsRegion getRegion(int image, int region);
    const FitResultsRegion getPixel(int image, int region, int pixel);
@@ -92,7 +94,7 @@ private:
 
    int processLinearParams(float lin_params[], float lin_params_std[], float output_params[], float output_params_std[]);  
    
-   void getPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2);
+   void getPointers(int image, int region, int pixel, float_iterator& non_linear_params, float_iterator& linear_params, float_iterator& chi2);
    void setFitStatus(int image, int region, int code);
 
    std::shared_ptr<FLIMData> data;
@@ -148,7 +150,7 @@ public:
   FitResultsRegion(FitResults* results, int image, int region, int pixel) : 
       results(results), image(image), region(region), pixel(pixel), is_pixel(true) {};
 
-  void getPointers(float*& non_linear_params, float*& linear_params, float*& chi2);
+  void getPointers(float_iterator& non_linear_params, float_iterator& linear_params, float_iterator& chi2);
   void setFitStatus(int code);
 
 private:

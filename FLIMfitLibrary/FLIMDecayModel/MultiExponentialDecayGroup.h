@@ -4,8 +4,8 @@
 #include "IRFConvolution.h"
 #include "AbstractConvolver.h"
 
-template<class T> // TODO: make this part of class
-int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, const T* alf, T beta[], T beta_buf[])
+template<typename it_alf, typename it_beta> // TODO: make this part of class
+int getBeta(const std::vector<std::shared_ptr<FittingParameter>>& beta_parameters, double fixed_beta, int n_beta_free, it_alf alf, it_beta beta, it_beta beta_buf)
 {
    int n_vars_used = 0;
    
@@ -42,11 +42,11 @@ public:
    virtual const std::vector<double>& getChannelFactors(int index);
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
-   virtual int setVariables(const double* variables);
+   virtual int setVariables(const_double_iterator variables);
    virtual int calculateModel(double* a, int adim, double& kap);
    virtual int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
-   virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
-   virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   virtual int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
+   virtual int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
    virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
    virtual std::vector<std::string> getLinearOutputParamNames();
 
@@ -61,7 +61,7 @@ protected:
    int addLifetimeDerivative(int idx, double* b, int bdim);
    void addLifetimeKappaDerivative(int idx, double_iterator& kap_derv);
    int addContributionDerivatives(double* b, int bdim, double_iterator& kap_derv);
-   int normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx);
+   int normaliseLinearParameters(float_iterator lin_variables, int n, float_iterator output, int& lin_idx);
 
    std::vector<std::shared_ptr<FittingParameter>> tau_parameters;
    std::vector<std::shared_ptr<FittingParameter>> beta_parameters;
@@ -80,7 +80,7 @@ protected:
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version);
    
-   const double* beta_param_values = nullptr;
+   const_double_iterator beta_param_values;
    int n_beta_free;
    double fixed_beta;
    friend class boost::serialization::access;

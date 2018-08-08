@@ -93,7 +93,7 @@ void BackgroundLightDecayGroup::setChannelFactors(int index, const std::vector<d
 }
 
 
-int BackgroundLightDecayGroup::setVariables(const double* param_values)
+int BackgroundLightDecayGroup::setVariables(const_double_iterator param_values)
 {
    int idx = 0;
 
@@ -130,7 +130,7 @@ void BackgroundLightDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_r
    */
 }
 
-int BackgroundLightDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int BackgroundLightDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx)
 {
    int output_idx = 0;
 
@@ -141,7 +141,7 @@ int BackgroundLightDecayGroup::getNonlinearOutputs(float* nonlin_variables, floa
    return output_idx;
 }
 
-int BackgroundLightDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int BackgroundLightDecayGroup::getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx)
 {
    int output_idx = 0;
 

@@ -47,7 +47,9 @@
 #define INC_ENTRIES     256
 #define MAX_VARIABLES   32
 
+typedef std::vector<double>::const_iterator const_double_iterator;
 typedef std::vector<double>::iterator double_iterator;
+typedef std::vector<float>::iterator float_iterator;
 
 class AbstractDecayGroup : public QObject
 {
@@ -84,14 +86,14 @@ public:
 
    virtual void init() = 0;
 
-   virtual int setVariables(const double* variables) = 0;
+   virtual int setVariables(const_double_iterator variables) = 0;
    virtual int calculateModel(double* a, int adim, double& kap) = 0;
    virtual int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv) = 0;
    virtual void addConstantContribution(float* a) {}
 
    virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;
-   virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
-   virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
+   virtual int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx) = 0;
+   virtual int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx) = 0;
 
    virtual std::vector<std::string> getNonlinearOutputParamNames();
    virtual std::vector<std::string> getLinearOutputParamNames() = 0;

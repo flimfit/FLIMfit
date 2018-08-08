@@ -86,7 +86,7 @@ void AnisotropyDecayGroup::setupParameters()
    resizeLifetimeParameters(theta_parameters, n_anisotropy_populations, "theta_");
 }
 
-int AnisotropyDecayGroup::setVariables(const double* param_value)
+int AnisotropyDecayGroup::setVariables(const_double_iterator param_value)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_value);
 
@@ -152,7 +152,7 @@ void AnisotropyDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, i
    }
 }
 
-int AnisotropyDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int AnisotropyDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx)
 {
    int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
@@ -162,7 +162,7 @@ int AnisotropyDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* ou
    return output_idx;
 }
 
-int AnisotropyDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int AnisotropyDecayGroup::getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx)
 {
    int output_idx = 0;
    

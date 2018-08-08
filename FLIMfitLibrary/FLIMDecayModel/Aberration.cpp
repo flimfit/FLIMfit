@@ -103,7 +103,7 @@ void Aberration::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
    }
 }
 
-int Aberration::setVariables(const double* params)
+int Aberration::setVariables(const_double_iterator params)
 {
    int idx = 0;
    int i = 0;

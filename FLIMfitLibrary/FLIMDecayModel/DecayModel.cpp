@@ -48,8 +48,8 @@ DecayModel::DecayModel(const DecayModel &obj) :
    t0_parameter(obj.t0_parameter),
    photons_per_count(obj.photons_per_count),
    channel_factor(obj.channel_factor),
-   parameters(obj.parameters),
    use_spectral_correction(obj.use_spectral_correction),
+   spectral_correction(obj.spectral_correction),
    zernike_order(obj.zernike_order)
 {
    setTransformedDataParameters(obj.dp);
@@ -182,7 +182,7 @@ int DecayModel::getNumNonlinearVariables()
 }
 
 
-double DecayModel::getCurrentReferenceLifetime(const double* param_values, int& idx)
+double DecayModel::getCurrentReferenceLifetime(const_double_iterator& param_values, int& idx)
 {
    if (dp->irf->type != Reference)
       return 0;
@@ -290,7 +290,7 @@ bool DecayModel::isSpatiallyVariant()
 
 void DecayModel::setVariables(const std::vector<double>& alf)
 {
-   const double* param_values = alf.data();
+   auto param_values = alf.begin();
 
    int getting_fit = false; //TODO 
 
@@ -501,7 +501,7 @@ void DecayModel::getInitialVariables(std::vector<double>& param, double mean_arr
 }
 
 
-int DecayModel::getNonlinearOutputs(float* nonlin_variables, float* outputs)
+int DecayModel::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator outputs)
 {
    int idx = 0;
    int nonlin_idx = 0;
@@ -517,7 +517,7 @@ int DecayModel::getNonlinearOutputs(float* nonlin_variables, float* outputs)
    return idx;
 }
 
-int DecayModel::getLinearOutputs(float* lin_variables, float* outputs)
+int DecayModel::getLinearOutputs(float_iterator lin_variables, float_iterator outputs)
 {
    int idx = 0;
    int lin_idx = 0;

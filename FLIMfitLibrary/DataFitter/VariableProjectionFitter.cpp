@@ -224,7 +224,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       int n_points_total = std::pow(n_initial, n_search);
 
       // Initial point
-      setVariables(initial.data());
+      setVariables(initial.begin());
       getResidualNonNegative(initial.data(), &rnorm, 0, 0);
       double best_value = rnorm;
 
@@ -241,7 +241,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
             }
          }
 
-         setVariables(trial.data());
+         setVariables(trial.begin());
          getResidualNonNegative(trial.data(), &rnorm, 0, 0);
          if (rnorm <= best_value)
          {
@@ -253,7 +253,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
 
    if (iterative_weighting)
    {
-      setVariables(initial.data());
+      setVariables(initial.begin());
       getResidualNonNegative(initial.data(), fvec, 0, 0);
    }
 
@@ -280,7 +280,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       {
          if (!getting_errs)
          {
-            setVariables(initial.data());
+            setVariables(initial.begin());
             getResidualNonNegative(initial.data(), fvec, -1, 0);
          }
       }
@@ -304,6 +304,18 @@ void VariableProjectionFitter::setupWeighting()
 
    using_gamma_weighting = false;
  
+   MultiExponentialDecayGroup g(1);
+   std::vector<double> alf(1, 1000);
+   g.setTransformedDataParameters(model->getTransformedDataParameters());
+   g.init();
+
+   g.setVariables(alf.begin());
+   g.calculateModel(w.data(), w.size(), alf[0]);
+   
+   for (int i = 0; i < nr; i++)
+      w[i] = 1.0 / sqrt(w[i] + 1);
+
+   /*
    if (n == nr)
    {
       if (weighting == AverageWeighting)
@@ -326,9 +338,7 @@ void VariableProjectionFitter::setupWeighting()
             }
       }
    }
-
-   using_gamma_weighting = false;
-
+   
    if (using_gamma_weighting)
    {
       for (int i=0; i<nr; i++)
@@ -339,6 +349,7 @@ void VariableProjectionFitter::setupWeighting()
       for (int i=0; i<nr; i++)
          w[i] = 1.0 / sqrt(avg_y[i]);
    }
+   */
 }
 
 void VariableProjectionFitter::getLinearParams()
@@ -398,9 +409,9 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
 
    resampler->resample(y + row * n, B.yr.data());
 
-   if (using_gamma_weighting)
-      for (int i = 0; i < nr; ++i)
-         B.yr[i] += min(B.yr[i], 1.0f);
+   //if (using_gamma_weighting)
+   //   for (int i = 0; i < nr; ++i)
+   //      B.yr[i] += min(B.yr[i], 1.0f);
 
    B.setData(B.yr.data());
    B.backSolve();
@@ -445,6 +456,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
       if (iterative_weighting)
          calculateWeights(j, alf, B.wp->data());
+
       B.weightModel();
 
       resampler->resample(y + j * n, B.yr.data());
@@ -458,25 +470,6 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
       r_sq += (rj_norm * rj_norm);
 
-      /*
-      B.weightModel();
-
-      resampler->resample(y + j * n, yr.data());
-      if (using_gamma_weighting)
-         for (int i = 0; i < nr; i++)
-            yr[i] += min(yr[i], 1.0f);
-
-      B.setData(yr.data());
-
-      for (int i = 0; i < nr; i++)
-      {
-         double m = 0;
-         for(int k=0; k<l; k++)
-            m += B.work[k] * B.aw[i+k*nmax];
-         m -= B.r[i];
-         r_sq += m*m;
-      }
-      */
       if (options.use_numerical_derivatives)
          memcpy(rnorm + j*(nr - l), B.r.data() + l, (nr - l) * sizeof(double));
 
@@ -485,7 +478,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
          for (int i = 0; i < l; i++)
             lin_params[i + j*lmax] = B.work[i];
 
-         chi2[j] = (float) r_sq / chi2_norm;
+         chi2[j] = (float) rj_norm * rj_norm / chi2_norm;
       }
 
    } // loop over pixels
@@ -512,10 +505,10 @@ void VariableProjectionFitter::calculateWeights(int px, const double* alf, doubl
 {
    float* yp = this->y + px * n;
    
-   for (int i = 0; i<nr; i++)
-      wp[i] = 1.0;
+   //for (int i = 0; i<nr; i++)
+   //   wp[i] = 1.0;
 
-   return;
+   //return;
 
    if (weighting == AverageWeighting)
    {

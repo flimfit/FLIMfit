@@ -227,7 +227,7 @@ void MultiExponentialDecayGroupPrivate::setupIncMatrix(std::vector<int>& inc, in
 }
 
 
-int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
+int MultiExponentialDecayGroupPrivate::setVariables(const_double_iterator param_value)
 {
    int idx = 0;
 
@@ -263,7 +263,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
       beta.resize(n_exponential);
       beta_buf.resize(n_exponential);
       if (n_exponential > 1)
-         idx += getBeta(beta_parameters, fixed_beta, n_beta_free, param_value + idx, beta.data(), beta_buf.data());
+         idx += getBeta(beta_parameters, fixed_beta, n_beta_free, param_value + idx, beta.begin(), beta_buf.begin());
       else
          beta[0] = 1;
    }
@@ -271,7 +271,7 @@ int MultiExponentialDecayGroupPrivate::setVariables(const double* param_value)
    return idx;
 }
 
-int MultiExponentialDecayGroupPrivate::getNonlinearOutputs(float* param_values, float* output, int& param_idx)
+int MultiExponentialDecayGroupPrivate::getNonlinearOutputs(float_iterator param_values, float_iterator output, int& param_idx)
 {
    int output_idx = 0;
 
@@ -281,14 +281,14 @@ int MultiExponentialDecayGroupPrivate::getNonlinearOutputs(float* param_values, 
    if (contributions_global && n_exponential > 1)
    {
       beta_buf_float.resize(n_exponential);
-      getBeta(beta_parameters, fixed_beta, n_beta_free, param_values + param_idx, output + output_idx, beta_buf_float.data());
+      getBeta(beta_parameters, fixed_beta, n_beta_free, param_values + param_idx, output + output_idx, beta_buf_float.begin());
       output_idx += n_exponential;
    }
 
    return output_idx;
 }
 
-int MultiExponentialDecayGroupPrivate::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int MultiExponentialDecayGroupPrivate::getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx)
 {
    int output_idx = 0;
 
@@ -317,7 +317,7 @@ std::vector<std::string> MultiExponentialDecayGroupPrivate::getLinearOutputParam
    return names;
 }
 
-int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float* lin_variables, int n, float* output, int& lin_idx)
+int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float_iterator lin_variables, int n, float_iterator output, int& lin_idx)
 {
    double I = 0;
    for (int i = 0; i < n; i++)

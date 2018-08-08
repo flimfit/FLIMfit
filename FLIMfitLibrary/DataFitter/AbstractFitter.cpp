@@ -185,7 +185,7 @@ int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int 
    }
 
 
-   float *alf_results;
+   float_iterator alf_results;
    results.getPointers(alf_results, lin_params, chi2);
 
    chi2_norm = n - ((float)(nl))/s - l;
@@ -345,22 +345,6 @@ double AbstractFitter::errMinFcn(double x)
       F = F_crit;
 
    return F-F_crit;
-}
-
-void AbstractFitter::setVariables(const double* alf_)
-{
-   std::copy(alf_, alf_ + nl, alf.begin());
-
-   int idx = 0;
-   for (int i = 0; i<nl; i++)
-   {
-      if (i == fixed_param)
-         params[i] = fixed_value_cur;
-      else
-         params[i] = alf[idx++];
-   }
-
-   model->setVariables(params);
 }
 
 void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a)

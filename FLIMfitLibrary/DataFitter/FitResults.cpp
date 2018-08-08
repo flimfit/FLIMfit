@@ -136,13 +136,13 @@ void FitResults::getLinearParams(int image, int region, int pixel, std::vector<f
 }
 
 
-float* FitResults::getAuxDataPtr(int image, int region)
+float_iterator FitResults::getAuxDataPtr(int image, int region)
 {
    int pos =  data->getRegionPos(image,region);
-   return aux_data.data() + pos * n_aux;
+   return aux_data.begin() + pos * n_aux;
 }
 
-void FitResults::getPointers(int image, int region, int pixel, float*& non_linear_params, float*& linear_params, float*& chi2_)
+void FitResults::getPointers(int image, int region, int pixel, float_iterator& non_linear_params, float_iterator& linear_params, float_iterator& chi2_)
 {
 
    int start = data->getRegionPos(image, region) + pixel;
@@ -153,9 +153,9 @@ void FitResults::getPointers(int image, int region, int pixel, float*& non_linea
    else
       idx = data->getRegionIndex(image, region);
 
-   non_linear_params = alf.data() + idx * nl;
-   linear_params     = lin_params.data() + start * lmax;
-   chi2_             = chi2.data() + start;
+   non_linear_params = alf.begin() + idx * nl;
+   linear_params     = lin_params.begin() + start * lmax;
+   chi2_             = chi2.begin() + start;
 
 }
 
@@ -213,7 +213,7 @@ int FitResults::getNumX(int im) { return image_size[im].width; }
 int FitResults::getNumY(int im) { return image_size[im].height; }
 
 
-void FitResultsRegion::getPointers(float*& non_linear_params, float*& linear_params,  float*& chi2)
+void FitResultsRegion::getPointers(float_iterator& non_linear_params, float_iterator& linear_params, float_iterator& chi2)
 {
    results->getPointers(image, region, pixel, non_linear_params, linear_params, chi2);
 }
@@ -266,25 +266,25 @@ void FitResults::computeRegionStats(float confidence_factor)
 
             if (data->global_scope == Pixelwise)
             {
-               float* alf_group = alf.data() + start * nl;
+               auto alf_group = alf.begin() + start * nl;
              
                for (int i = 0; i < s_local; i++)
-                  output_idx += model->getNonlinearOutputs(alf_group + i*nl, param_buf.data() + output_idx);
+                  output_idx += model->getNonlinearOutputs(alf_group + i*nl, param_buf.begin() + output_idx);
 
                stats_calculator.CalculateRegionStats(n_nl_output_params, s_local, param_buf.data(), intensity, stats, idx);
             }
             else
             {
-               float* alf_group = alf.data() + nl * r_idx;
+               auto alf_group = alf.begin() + nl * r_idx;
 
-               model->getNonlinearOutputs(alf_group, param_buf.data());
+               model->getNonlinearOutputs(alf_group, param_buf.begin());
 
                for (int i = 0; i<n_nl_output_params; i++)
                   stats.SetNextParam(idx, param_buf[i]);
             }
             
             for(int i=0; i<s_local; i++)
-               model->getLinearOutputs(lin_params.data() + (start+i)*lmax, param_buf.data() + i*n_lin_output_params);
+               model->getLinearOutputs(lin_params.begin() + (start+i)*lmax, param_buf.begin() + i*n_lin_output_params);
             
             stats_calculator.CalculateRegionStats(n_lin_output_params, s_local, param_buf.data(), intensity, stats, idx);
             stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
@@ -304,7 +304,7 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
 
    std::vector<float> buffer(n_output_params);
 
-   float* param_data = NULL;
+   float_iterator param_data;
    int span;
 
    if (param < 0 || param >= n_output_params
@@ -343,13 +343,13 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
          {
             if (data->global_scope == Pixelwise)
             {
-               param_data = alf.data() + start * nl;
+               param_data = alf.begin() + start * nl;
 
                int j = 0;
                for (int i = 0; i<n_px; i++)
                   if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
                   {
-                     model->getNonlinearOutputs(param_data + j*nl, buffer.data());
+                     model->getNonlinearOutputs(param_data + j*nl, buffer.begin());
                      image_data[i] = buffer[r_param];
                      j++;
                   }
@@ -357,8 +357,8 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
             }
             else
             {
-               param_data = alf.data() + r_idx * nl;
-               model->getNonlinearOutputs(param_data, buffer.data());
+               param_data = alf.begin() + r_idx * nl;
+               model->getNonlinearOutputs(param_data, buffer.begin());
                float p = buffer[r_param];
 
                for (int i = 0; i<n_px; i++)
@@ -375,18 +375,17 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
 
             if (r_param < n_lin_output_params)
             {
-               param_data = lin_params.data() + start * lmax;
+               param_data = lin_params.begin() + start * lmax;
 
                int j = 0;
-               if (param_data != NULL)
-                  for (int i = 0; i<n_px; i++)
-                     if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
-                     {
-                        model->getLinearOutputs(param_data + j*lmax, buffer.data());
-                        image_data[i] = buffer[r_param];
-                        j++;
-                     }
-                        
+               for (int i = 0; i < n_px; i++)
+                  if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
+                  {
+                     model->getLinearOutputs(param_data + j * lmax, buffer.begin());
+                     image_data[i] = buffer[r_param];
+                     j++;
+                  }
+
 
             }
             else
@@ -395,19 +394,18 @@ int FitResults::getParameterImage(int im, int param, uint8_t ret_mask[], float i
 
                if (r_param < n_aux)
                {
-                  param_data = aux_data.data() + start * n_aux + r_param;
+                  param_data = aux_data.begin() + start * n_aux + r_param;
                   span = n_aux;
                } r_param -= n_aux;
 
                if (r_param == 0)
-                  param_data = chi2.data() + start;
+                  param_data = chi2.begin() + start;
                r_param -= 1;
 
                int j = 0;
-               if (param_data != NULL)
-                  for (int i = 0; i < n_px; i++)
-                     if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
-                        image_data[i] = param_data[span*(j++)];
+               for (int i = 0; i < n_px; i++)
+                  if (im_mask[i] == rg || (merge_regions && im_mask[i] > rg))
+                     image_data[i] = param_data[span*(j++)];
             }
          }
 
