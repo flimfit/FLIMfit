@@ -5,6 +5,7 @@
 #include "DecayModel.h"
 
 typedef std::shared_ptr<aligned_vector<double>> spvd;
+typedef std::vector<float>::const_iterator const_float_iterator;
 
 class VariableProjectionFitter;
 
@@ -18,7 +19,7 @@ public:
    void setActiveColumns(const std::vector<bool>& active);
 
 protected:   
-   void setData(float* y);
+   void setData(const_float_iterator y);
    void setNumResampled(int nr_) { nr = nr_; }
    void transformAB(const std::vector<int>& inc);
    void backSolve();

@@ -74,8 +74,8 @@ public:
 
 
    int setVariables(const_double_iterator variables);
-   int calculateModel(double* a, int adim, double& kap);
-   int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
+   int calculateModel(double_iterator a, int adim, double& kap);
+   int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
 
    int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
    int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
@@ -90,15 +90,15 @@ protected:
    void setupParameters();
    void init();
 
-   int addLifetimeDerivativesForFret(int idx, double* b, int bdim, double_iterator& kap_derv);
-   int addContributionDerivativesForFret(double* b, int bdim, double_iterator& kap_derv);
-   int addFretEfficiencyDerivatives(double* b, int bdim, double_iterator& kap_derv);
-   int addAcceptorIntensityDerivatives(double* b, int bdim, double_iterator& kap_derv);
-   int addAcceptorLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv);
-   int addDirectAcceptorDerivatives(double* b, int bdim, double_iterator& kap_derv);
+   int addLifetimeDerivativesForFret(int idx, double_iterator b, int bdim, double_iterator& kap_derv);
+   int addContributionDerivativesForFret(double_iterator b, int bdim, double_iterator& kap_derv);
+   int addFretEfficiencyDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
+   int addAcceptorIntensityDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
+   int addAcceptorLifetimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
+   int addDirectAcceptorDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
 
-   void addAcceptorContribution(int i, double factor, double* a, int adim, double& kap);
-   void addAcceptorDerivativeContribution(int i, int j, int k, double fact, double* b, int bdim, double& kap_derv);
+   void addAcceptorContribution(int i, double factor, double_iterator a, int adim, double& kap);
+   void addAcceptorDerivativeContribution(int i, int j, int k, double fact, double_iterator b, int bdim, double& kap_derv);
 
    std::vector<std::shared_ptr<FittingParameter>> tauT_parameters;
    std::shared_ptr<FittingParameter> A_parameter;

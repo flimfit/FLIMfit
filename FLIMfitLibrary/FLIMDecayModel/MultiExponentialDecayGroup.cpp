@@ -337,14 +337,14 @@ int MultiExponentialDecayGroupPrivate::normaliseLinearParameters(float_iterator 
 }
 
 
-int MultiExponentialDecayGroupPrivate::calculateModel(double* a, int adim, double& kap)
+int MultiExponentialDecayGroupPrivate::calculateModel(double_iterator a, int adim, double& kap)
 {
    int sz = contributions_global ? 1 : n_exponential;
-   memset(a, 0, sz*adim*sizeof(*a));
+   std::fill_n(a, sz*adim, 0);
    return addDecayGroup(buffer, 1, a, adim, kap);
 }
 
-int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int MultiExponentialDecayGroupPrivate::calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
@@ -373,20 +373,20 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double* b, int bdim,
 }
 
 
-int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double* a, int adim, double& kap)
+int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double_iterator a, int adim, double& kap)
 {
    int col = 0;
     
    int using_reference_reconvolution = dp->irf->type == Reference; // TODO: Clean this up
 
    if (using_reference_reconvolution && contributions_global)
-      addIRF(irf_buf.data(), irf_idx, t0_shift, a, norm_channel_factors);
+      addIRF(irf_buf.begin(), irf_idx, t0_shift, a, norm_channel_factors);
 
    for (int j = 0; j < buffers.size(); j++)
    {
       // If we're doing delta-function reconvolution add contribution from reference
       if (using_reference_reconvolution && !contributions_global)
-         addIRF(irf_buf.data(), irf_idx, t0_shift, a + col*adim, norm_channel_factors);
+         addIRF(irf_buf.begin(), irf_idx, t0_shift, a + col*adim, norm_channel_factors);
 
       double c_factor = contributions_global ? beta[j] : 1;
       buffers[j]->addDecay(factor * c_factor, norm_channel_factors, reference_lifetime, a + col*adim);
@@ -416,11 +416,11 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
 }
 
 
-int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double* b, int bdim)
+int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_iterator b, int bdim)
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
-      memset(b, 0, bdim*sizeof(*b));
+      std::fill_n(b, bdim, 0);
 
       double fact = 1 / (tau[idx] * tau[idx]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
       fact *= contributions_global ? beta[idx] : 1;
@@ -439,7 +439,7 @@ void MultiExponentialDecayGroupPrivate::addLifetimeKappaDerivative(int idx, doub
 }
 
 
-int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
 
@@ -449,7 +449,7 @@ int MultiExponentialDecayGroupPrivate::addContributionDerivatives(double* b, int
       for (int j = 0; j < n_exponential; j++)
          if (beta_parameters[j]->isFittedGlobally())
          {
-            memset(b + col*bdim, 0, bdim * sizeof(*b));
+            std::fill_n(b + col * bdim, bdim, 0);
             int ki = ji;
             for (int k = j; k < n_exponential; k++)
                if (!beta_parameters[k]->isFixed())

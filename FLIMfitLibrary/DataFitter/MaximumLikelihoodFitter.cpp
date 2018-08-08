@@ -79,7 +79,7 @@ void MaximumLikelihoodFitter::fitFcn(int nl, std::vector<double>& alf, int& nite
       dy[i] = y[i];
    dy[n] = 1;
    
-   setVariables(alf.data());
+   setVariables(alf.begin());
    getModel(model, irf_idx[0], a);
 
    for (int i = 0; i < n; i++)

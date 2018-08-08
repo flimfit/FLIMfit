@@ -47,7 +47,7 @@ void VariableProjector::setActiveColumns(const std::vector<bool>& active_)
       la += active[i];
 }
 
-void VariableProjector::setData(float* y)
+void VariableProjector::setData(const_float_iterator y)
 {
    // Get the data we're about to transform
    if (!philp1)
@@ -206,8 +206,9 @@ void VariableProjector::backSolve()
    }
 
    // BACKSOLVE THE N X N UPPER TRIANGULAR SYSTEM A*RJ = B. 
-
-   r[la-1] = r[la-1] / aw[la-1 + (la-1) * nmax];
+   if (la > 0)
+      r[la-1] = r[la-1] / aw[la-1 + (la-1) * nmax];
+   
    if (la > 1) 
    {
       for (int iback = 1; iback < la; ++iback) 

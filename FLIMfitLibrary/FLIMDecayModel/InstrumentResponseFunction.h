@@ -62,19 +62,23 @@ enum IRFType
    Gaussian
 };
 
+typedef std::vector<double>::iterator double_iterator;
+
 class InstrumentResponseFunction
 {
 public:
    InstrumentResponseFunction();
 
-   void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, double* irf);
-   void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double* irf);
+   template<typename it>
+   void setIRF(int n_t, int n_chan, double timebin_t0, double timebin_width, it irf);
+
+   void setImageIRF(int n_t, int n_chan, int n_irf_rep, double timebin_t0, double timebin_width, double_iterator irf);
    void setGaussianIRF(std::vector<GaussianParameters> gaussian_params);
 
    void setIRFShiftMap(double* t0);
    void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
-   double* getIRF(int irf_idx, double t0_shift, double* storage);
+   double_iterator getIRF(int irf_idx, double t0_shift, double_iterator storage);
    double getT0();
 
    bool isGaussian() { return type == Gaussian; }
@@ -96,8 +100,10 @@ public:
    IRFType type; 
 
 private:
-   void copyIRF(int n_irf_raw, double* irf);
-   void shiftIRF(double shift, double storage[]);
+   template<typename it>
+   void copyIRF(int n_irf_raw, it irf);
+
+   void shiftIRF(double shift, double_iterator storage);
    double calculateGFactor();
 
    void allocateBuffer(int n_irf_raw);
@@ -133,5 +139,53 @@ private:
    friend class boost::serialization::access;
    
 };
+
+template<typename it>
+void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, it irf)
+{
+   n_chan = n_chan_;
+   n_irf_rep = 1;
+   image_irf = false;
+   t0_image = NULL;
+   variable_irf = false;
+
+   timebin_t0 = timebin_t0_;
+   timebin_width = timebin_width_;
+
+   copyIRF(n_t, irf);
+
+   // Check normalisation of IRF
+   for (int i = 0; i < n_chan; i++)
+   {
+      double sum = 0;
+      for (int j = 0; j < n_t; j++)
+         sum += irf[n_t * i + j];
+      if (fabs(sum - 1.0) > 0.1)
+         throw std::runtime_error("IRF is not correctly normalised");
+   }
+
+   calculateGFactor();
+}
+
+template<typename it>
+void InstrumentResponseFunction::copyIRF(int n_irf_raw, it irf_)
+{
+   // Copy IRF, padding to ensure we have an even number of points so we can 
+   // use SSE primatives in convolution
+   //------------------------------
+   allocateBuffer(n_irf_raw);
+
+   for (int j = 0; j<n_irf_rep; j++)
+   {
+      int i;
+      for (i = 0; i<n_irf_raw; i++)
+         for (int k = 0; k<n_chan; k++)
+            irf[(j*n_chan + k)*n_irf + i] = irf_[(j*n_chan + k)*n_irf_raw + i];
+      for (; i<n_irf; i++)
+         for (int k = 0; k<n_chan; k++)
+            irf[(j*n_chan + k)*n_irf + i] = 0;
+   }
+
+}
 
 BOOST_CLASS_VERSION(InstrumentResponseFunction, 2)

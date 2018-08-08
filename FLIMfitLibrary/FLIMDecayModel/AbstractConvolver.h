@@ -14,7 +14,7 @@ using aligned_vector = std::vector<T,
    boost::alignment::aligned_allocator<T, Alignment> >;
 
 typedef aligned_vector<double>::iterator aligned_iterator;
-
+typedef std::vector<double>::iterator double_iterator;
 
 class AbstractConvolver
 {
@@ -24,8 +24,8 @@ protected:
 public:
    virtual void compute(double rate, int irf_idx, double t0_shift) = 0;
 
-   virtual void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[]) const = 0;
-   virtual void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double b[]) const = 0;
+   virtual void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator a) const = 0;
+   virtual void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator b) const = 0;
 
    double getRate() const { return rate; };
 

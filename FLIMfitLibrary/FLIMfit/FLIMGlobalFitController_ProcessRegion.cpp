@@ -46,14 +46,14 @@ void FitController::processRegion(int g, int region, int px, int thread)
    int ierr_local = 0;
 
    FitResultsRegion region_results;
-   RegionData local_region_data;
+   std::shared_ptr<RegionData> local_region_data;
 
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    START_SPAN("Processing Data");
    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    if (data->global_scope == Pixelwise)
    {      
-      local_region_data = region_data[0].GetPixel(px);
+      local_region_data = region_data[0]->GetPixel(px);
       region_results = results->getPixel(g, region, px);
    }
    else
@@ -69,7 +69,7 @@ void FitController::processRegion(int g, int region, int px, int thread)
 
    // Check for termination requestion and that we have at least one px to fit
    //-------------------------------
-   if (local_region_data.GetSize() == 0 || reporter->shouldTerminate())
+   if (local_region_data->GetSize() == 0 || reporter->shouldTerminate())
       return;
    
    int itmax = 100;

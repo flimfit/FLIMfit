@@ -68,7 +68,7 @@ void MeasuredIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
 
 void MeasuredIrfConvolver::computeIRFFactors(double rate, int irf_idx, double t0_shift)
 {
-   double* lirf = irf->getIRF(irf_idx, t0_shift, irf_working.data()); // TODO: add image irf shifting to GetIRF
+   double_iterator lirf = irf->getIRF(irf_idx, t0_shift, irf_working.begin()); // TODO: add image irf shifting to GetIRF
    double t0 = irf->getT0();
    double dt_irf = irf->timebin_width;
 
@@ -88,7 +88,7 @@ void MeasuredIrfConvolver::computeIRFFactors(double rate, int irf_idx, double t0
       __m128d  de_ = _mm_set1_pd(de*de);
 
       __m128d* dest_ = (__m128d*) irf_exp_factor[k].data();
-      __m128d* irf_ = (__m128d*) (lirf + k*n_irf);
+      __m128d* irf_ = (__m128d*) (&lirf[k * n_irf]);
 
       for (int j = 0; j < n_loop; j++)
       {
@@ -218,7 +218,7 @@ void MeasuredIrfConvolver::convolveDerivative(double t, int k, int i, double pul
 
 
 
-void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[]) const
+void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator a) const
 {
    double c;
 
@@ -243,7 +243,7 @@ void MeasuredIrfConvolver::addDecay(double fact, const std::vector<double>& chan
    }
 }
 
-void MeasuredIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double b[]) const
+void MeasuredIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator b) const
 {
    double c;
 

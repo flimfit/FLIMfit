@@ -205,7 +205,7 @@ std::vector<std::string> AnisotropyDecayGroup::getLinearOutputParamNames()
 }
 
 
-int AnisotropyDecayGroup::calculateModel(double* a, int adim, double& kap)
+int AnisotropyDecayGroup::calculateModel(double_iterator a, int adim, double& kap)
 {
    int col = 0;
 
@@ -218,7 +218,7 @@ int AnisotropyDecayGroup::calculateModel(double* a, int adim, double& kap)
 }
 
 
-int AnisotropyDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int AnisotropyDecayGroup::calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
@@ -236,11 +236,11 @@ int AnisotropyDecayGroup::calculateDerivatives(double* b, int bdim, double_itera
 
 
 
-int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, double& kap_derv)
+int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int idx, double_iterator b, int bdim, double& kap_derv)
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
-      memset(b, 0, bdim*sizeof(*b));
+      std::fill_n(b, 0, bdim);
 
       for (int j = 0; j < n_anisotropy_populations; j++)
       {
@@ -257,7 +257,7 @@ int AnisotropyDecayGroup::addLifetimeDerivativesForAnisotropy(int idx, double* b
    return 0;
 }
 
-int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double* b, int bdim, double kap_derv[])
+int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double kap_derv[])
 {
    int col = 0;
 
@@ -265,7 +265,7 @@ int AnisotropyDecayGroup::addRotationalCorrelationTimeDerivatives(double* b, int
    {
       if (theta_parameters[p]->isFittedGlobally())
       {
-         memset(b + col*bdim, 0, bdim*sizeof(*b));
+         std::fill_n(b + col*bdim, 0, bdim);
 
          for (int j = 0; j < n_exponential; j++)
          {

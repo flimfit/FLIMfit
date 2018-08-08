@@ -133,11 +133,11 @@ void GaussianChannelConvolver::computeQ(double rate_, aligned_vector<double>& Q)
 
 }
 
-void GaussianChannelConvolver::add(double fact, double* decay, const aligned_vector<double>& Q) const
+void GaussianChannelConvolver::add(double fact, double_iterator decay, const aligned_vector<double>& Q) const
 {
 #ifdef AVX
    __m256d factm = _mm256_set1_pd(fact / dt);
-   __m256d* decaym = (__m256d*) decay;
+   __m256d* decaym = (__m256d*) &decay[0];
    __m256d* Qm = (__m256d*) Q.data();
    for (int i = 0; i < n_tm; i++)
    {
@@ -151,12 +151,12 @@ void GaussianChannelConvolver::add(double fact, double* decay, const aligned_vec
 #endif
 }
 
-void GaussianChannelConvolver::addDecay(double fact, double* decay) const
+void GaussianChannelConvolver::addDecay(double fact, double_iterator decay) const
 {
    add(fact, decay, Q);
 }
 
-void GaussianChannelConvolver::addDerivative(double fact, double* derv) const
+void GaussianChannelConvolver::addDerivative(double fact, double_iterator derv) const
 {
    fact /= (eps * rate);
    add(fact, derv, Qp);
@@ -195,18 +195,18 @@ void GaussianIrfConvolver::compute(double rate_, int irf_idx, double t0_shift)
 
 }
 
-void GaussianIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double decay[]) const
+void GaussianIrfConvolver::addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator decay) const
 {
    auto& t = dp->getTimepoints();
    for (int k = 0; k < n_chan; k++)
-      convolver[k].addDecay(fact * channel_factors[k], &decay[k*n_t]);
+      convolver[k].addDecay(fact * channel_factors[k], decay + k*n_t);
 }
 
-void GaussianIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double derv[]) const
+void GaussianIrfConvolver::addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator derv) const
 {
    auto& t = dp->getTimepoints();
    for (int k = 0; k < n_chan; k++)
-      convolver[k].addDerivative(fact * channel_factors[k], &derv[k*n_t]);
+      convolver[k].addDerivative(fact * channel_factors[k], derv + k*n_t);
 }
 
 

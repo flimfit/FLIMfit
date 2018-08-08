@@ -11,8 +11,8 @@ public:
    BackgroundLightDecayGroup(const BackgroundLightDecayGroup& obj);
 
    int setVariables(const_double_iterator variables);
-   int calculateModel(double* a, int adim, double& kap);
-   int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
+   int calculateModel(double_iterator a, int adim, double& kap);
+   int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    void addConstantContribution(float* a);
 
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
@@ -20,7 +20,7 @@ public:
    int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
 
    std::vector<std::string> getLinearOutputParamNames();
-   int setParameters(double* parameters);
+   int setParameters(double_iterator parameters);
 
    const std::vector<double>& getChannelFactors(int index);
    void setChannelFactors(int index, const std::vector<double>& channel_factors);
@@ -34,14 +34,14 @@ protected:
    const std::array<std::string, 3> names = { "offset", "scatter", "tvb" };
    void setupParameters();
 
-   int addOffsetColumn(double* a, int adim, double& kap);
-   int addScatterColumn(double* a, int adim, double& kap);
-   int addTVBColumn(double* a, int adim, double& kap);
-   int addGlobalBackgroundLightColumn(double* a, int adim, double& kap);
+   int addOffsetColumn(double_iterator a, int adim, double& kap);
+   int addScatterColumn(double_iterator a, int adim, double& kap);
+   int addTVBColumn(double_iterator a, int adim, double& kap);
+   int addGlobalBackgroundLightColumn(double_iterator a, int adim, double& kap);
 
-   int addOffsetDerivatives(double* b, int bdim, double& kap_derv);
-   int addScatterDerivatives(double* b, int bdim, double& kap_derv);
-   int addTVBDerivatives(double* b, int bdim, double& kap_derv);
+   int addOffsetDerivatives(double_iterator b, int bdim, double& kap_derv);
+   int addScatterDerivatives(double_iterator b, int bdim, double& kap_derv);
+   int addTVBDerivatives(double_iterator b, int bdim, double& kap_derv);
 
    std::vector<double> channel_factors;
 

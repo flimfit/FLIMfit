@@ -185,9 +185,9 @@ void FLIMData::MarkCompleted(int slot)
 }
 */
 
-RegionData FLIMData::getNewRegionData()
+std::shared_ptr<RegionData> FLIMData::getNewRegionData()
 {
-   return RegionData(data_type, getMaxRegionSize(), dp->n_meas);
+   return std::make_shared<RegionData>(data_type, getMaxRegionSize(), dp->n_meas);
 }
 
 
@@ -419,21 +419,21 @@ int FLIMData::getImLoc(int im)
    return -1;
 }
 
-int FLIMData::getRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread)
+int FLIMData::getRegionData(int thread, int group, int region, std::shared_ptr<RegionData> region_data, FitResults& results, int n_thread)
 {
    int s = 0;
    int s_expected;
    
-   float* masked_data;
-   int* irf_idx;
+   float_iterator masked_data;
+   int_iterator irf_idx;
    
-   region_data.Clear();
+   region_data->Clear();
 
    
    if ( global_scope == Pixelwise || global_scope == Imagewise )
    {
       s_expected = getRegionCount(group, region);
-      region_data.GetPointersForInsertion(s_expected, masked_data, irf_idx);
+      region_data->GetPointersForInsertion(s_expected, masked_data, irf_idx);
 
       s = getMaskedData( group, region, masked_data, irf_idx, results);
       
@@ -454,7 +454,7 @@ int FLIMData::getRegionData(int thread, int group, int region, RegionData& regio
          int pos = getRegionPos(i, region) - start;
          int s_expected = getRegionCount(i, region);
 
-         region_data.GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
+         region_data->GetPointersForArbitaryInsertion(pos, s_expected, masked_data, irf_idx);
 
          s += getMaskedData(i, region, masked_data, irf_idx, results);
       };
@@ -465,7 +465,7 @@ int FLIMData::getRegionData(int thread, int group, int region, RegionData& regio
 }
 
 
-int FLIMData::getMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results)
+int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, FitResults& results)
 {
    int iml = use_im[im];
    auto transformer = getPooledTransformer(iml);

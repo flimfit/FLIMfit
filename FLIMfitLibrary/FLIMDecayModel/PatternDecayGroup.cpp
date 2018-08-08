@@ -53,7 +53,7 @@ void PatternDecayGroup::compute()
       for (int j = 0; j < n_exp; j++)
       {
          buffer->compute(1 / pattern[i].tau[j], irf_idx, t0_shift);
-         buffer->addDecay(pattern[i].beta[j], channel_factors, reference_lifetime, decay.data());
+         buffer->addDecay(pattern[i].beta[j], channel_factors, reference_lifetime, decay.begin());
       }
    }
 
@@ -71,7 +71,7 @@ int PatternDecayGroup::setVariables(const_double_iterator variables)
    return 0;
 }
 
-int PatternDecayGroup::calculateModel(double* a, int adim, double& kap)
+int PatternDecayGroup::calculateModel(double_iterator a, int adim, double& kap)
 {
    if (fit->isFixed())
       return 0;
@@ -84,7 +84,7 @@ int PatternDecayGroup::calculateModel(double* a, int adim, double& kap)
    return 1;
 }
 
-int PatternDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int PatternDecayGroup::calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    return 0;
 }

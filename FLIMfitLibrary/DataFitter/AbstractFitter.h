@@ -77,7 +77,7 @@ public:
    virtual void fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr) = 0;
    virtual void getLinearParams() = 0;
    
-   int fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
+   int fit(std::shared_ptr<RegionData> region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
    int getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
@@ -112,25 +112,25 @@ protected:
    std::vector<double> alf_err;
    std::vector<double> alf_buf;
 
-   int     n;
-   int     nl;
-   int     ndim;
-   int     nmax;
-   int     s;
-   int     l;
-   int     lmax;
-   int     n_param;
-   int     p;
-   int     pmax;
+   int n;
+   int nl;
+   int ndim;
+   int nmax;
+   int s;
+   int l;
+   int lmax;
+   int n_param;
+   int p;
+   int pmax;
 
-   int     max_region_size;
+   int max_region_size;
 
-   float*  y;
+   float_iterator y;
    std::vector<float> w;
    std::vector<float> avg_y;
    float_iterator lin_params;
    float_iterator chi2;
-   int    *irf_idx;
+   int_iterator irf_idx;
 
    float chi2_norm;
    double* cur_chi2;
@@ -161,7 +161,7 @@ private:
    int a_size;
    int b_size;
 
-   int irf_idx_0;
+   std::vector<int> irf_idx_0 = {0};
 };
 
 

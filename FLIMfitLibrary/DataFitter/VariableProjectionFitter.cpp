@@ -168,7 +168,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
    for(auto& v : vp)
       v.setNumResampled(nr);
 
-   resampler->resample(avg_y.data());
+   resampler->resample(avg_y.begin());
 
    /*
    
@@ -185,7 +185,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
    for (int i = 0; i < n; i++)
       avg_y[i] = 1;
    
-   resampler->resample(avg_y.data());
+   resampler->resample(avg_y.begin());
    double s = 0;
    for (int i = 0; i < nr; i++)
       s += avg_y[i]; 
@@ -194,7 +194,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
    
 
 
-   resampler->resample(avg_y.data());
+   resampler->resample(avg_y.begin());
    */
 
    setupWeighting();
@@ -409,13 +409,13 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    if (variable_phi | iterative_weighting)
       B.transformAB(inc);
 
-   resampler->resample(y + row * n, B.yr.data());
+   resampler->resample(y + row * n, B.yr.begin());
 
    //if (using_gamma_weighting)
    //   for (int i = 0; i < nr; ++i)
    //      B.yr[i] += min(B.yr[i], 1.0f);
 
-   B.setData(B.yr.data());
+   B.setData(B.yr.begin());
    B.backSolve();
    B.computeJacobian(inc, rnorm, fjrow);
 
@@ -461,8 +461,8 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
       B.weightModel();
 
-      resampler->resample(y + j * n, B.yr.data());
-      B.setData(B.yr.data());
+      resampler->resample(y + j * n, B.yr.begin());
+      B.setData(B.yr.begin());
 
       double rj_norm;
       nnls[omp_thread]->compute(B.aw.data(), nr, nmax, B.r.data(), B.work.data(), rj_norm);
@@ -505,7 +505,7 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
 
 void VariableProjectionFitter::calculateWeights(int px, const double* alf, double* wp)
 {
-   float* yp = this->y + px * n;
+   auto yp = this->y + px * n;
    
    for (int i = 0; i<nr; i++)
       wp[i] = 1.0;

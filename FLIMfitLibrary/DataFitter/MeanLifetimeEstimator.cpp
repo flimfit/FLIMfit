@@ -26,7 +26,7 @@ int MeanLifetimeEstimator::DetermineStartPosition(int idx)
    int n_irf = irf->n_irf;
 
    std::vector<double> storage(n_meas);
-   double *lirf = irf->getIRF(idx, 0, storage.data());
+   double_iterator lirf = irf->getIRF(idx, 0, storage.begin());
    double t_irf0 = irf->getT0();
    double dt_irf = irf->timebin_width;
 

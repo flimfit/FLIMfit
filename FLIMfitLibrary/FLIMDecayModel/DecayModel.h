@@ -113,8 +113,8 @@ protected:
 
    double getCurrentReferenceLifetime(const_double_iterator& param_values, int& idx);
 
-   int addReferenceLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv);
-   int addT0Derivatives(double* b, int bdim, double_iterator& kap_derv);
+   int addReferenceLifetimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
+   int addT0Derivatives(double_iterator b, int bdim, double_iterator& kap_derv);
 
    void setupAdjust();
    void setupSpectralCorrection();

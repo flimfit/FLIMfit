@@ -317,7 +317,7 @@ int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<
    for (int i = 0; i < decay_groups.size(); i++)
    {
       decay_groups[i]->setIRFPosition(irf_idx);
-      col += decay_groups[i]->calculateModel(a.data() + col * adim, adim, kap[0]);
+      col += decay_groups[i]->calculateModel(a.begin() + col * adim, adim, kap[0]);
    }
 
    // Apply scaling to convert counts -> photons
@@ -346,7 +346,7 @@ int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const 
    */
 
    if (t0_parameter->isFittedGlobally())
-      col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv);
+      col += addT0Derivatives(b.begin() + col*bdim, bdim, kap_derv);
 
    int x = irf_idx % dp->n_x;
    int y = irf_idx / dp->n_x;
@@ -356,7 +356,7 @@ int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const 
    int model_col = col;
 
    for (int i = 0; i < decay_groups.size(); i++)
-      col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, kap_derv);
+      col += decay_groups[i]->calculateDerivatives(b.begin() + col*bdim, bdim, kap_derv);
 
    for (auto& s : spectral_correction)
       s->apply(x, y, b.begin() + bdim * model_col, bdim, col - model_col);
@@ -368,7 +368,7 @@ int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const 
 }
 
 
-int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::iterator& kap_derv)
+int DecayModel::addT0Derivatives(double_iterator b, int bdim, std::vector<double>::iterator& kap_derv)
 {
    // Compute numerical derivatives for t0
 
@@ -403,7 +403,7 @@ int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::itera
 }
 
 
-int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int DecayModel::addReferenceLifetimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    //TODO - reference lifetime derivatives
    /*

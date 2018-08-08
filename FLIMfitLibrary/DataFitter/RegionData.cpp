@@ -48,8 +48,11 @@ RegionData::RegionData(int data_type, int n_px_max, int n_meas) :
    data_type(data_type),
    is_shallow_ptr(false)
 {
-   data = new float[n_px_max * n_meas];
-   irf_idx = new int[n_px_max];
+   data.assign(n_px_max * n_meas, 0);
+   irf_idx.assign(n_px_max, 0);
+
+   data_it = data.begin();
+   irf_idx_it = irf_idx.begin();
 }
 
 RegionData::RegionData(RegionData* region, int px) :
@@ -60,10 +63,11 @@ RegionData::RegionData(RegionData* region, int px) :
    n_meas = region->n_meas;
    data_type = region->data_type;
 
-   data = region->data + px * n_meas;
-   irf_idx = region->irf_idx + px;
+   data_it = region->data_it + px * n_meas;
+   irf_idx_it = region->irf_idx_it + px;
 }
 
+/*
 RegionData::RegionData(RegionData&& other)
 {
    is_shallow_ptr = other.is_shallow_ptr;
@@ -71,15 +75,15 @@ RegionData::RegionData(RegionData&& other)
    n_px_max = other.n_px_max;
    n_px_cur = other.n_px_cur;
 
-   data = other.data;
-   irf_idx = other.irf_idx;
+   data = std::move(other.data);
+   irf_idx = std::move(other.irf_idx);
+
+   data_it = other.data_it;
+   irf_idx_it = other.irf_idx_it;
 
    data_type = other.data_type;
    n_meas = other.n_meas;
-
-   other.is_shallow_ptr = true; // so it doesn't delete data on close
 }
-
 RegionData& RegionData::operator=(const RegionData& other)
 {
    assert(is_shallow_ptr);
@@ -89,39 +93,30 @@ RegionData& RegionData::operator=(const RegionData& other)
    n_px_max = other.n_px_max;
    n_px_cur = other.n_px_cur; // to stop the copy modifying the data
 
-   data = other.data;
-   irf_idx = other.irf_idx;
+   data_it = other.data_it;
+   irf_idx_it = other.irf_idx_it;
 
    data_type = other.data_type;
    n_meas = other.n_meas;
 
    return *this;
 }
+*/
 
-
-RegionData::~RegionData()
-{
-   if (!is_shallow_ptr)
-   {
-      delete[] data;
-      delete[] irf_idx;
-   }
-}
-
-RegionData RegionData::GetPixel(int px)
+std::shared_ptr<RegionData> RegionData::GetPixel(int px)
 {
    assert(px < n_px_cur);
-   return RegionData(this, px);
+   return std::make_shared<RegionData>(this, px);
 }
 
-const RegionData RegionData::GetBinnedRegion()
+std::shared_ptr<RegionData> RegionData::GetBinnedRegion()
 {
-   RegionData binned_region(data_type, 1, n_meas);
+   auto binned_region = std::make_shared<RegionData>(data_type, 1, n_meas);
 
-   float* binned_data;
-   int*   binned_irf_idx;
+   float_iterator binned_data;
+   int_iterator   binned_irf_idx;
 
-   binned_region.GetPointersForInsertion(1, binned_data, binned_irf_idx);
+   binned_region->GetPointersForInsertion(1, binned_data, binned_irf_idx);
 
    GetAverageDecay(binned_data);
    binned_irf_idx[0] = 0;
@@ -135,45 +130,45 @@ void RegionData::Clear()
    n_px_cur = 0;
 }
 
-void RegionData::GetPointersForInsertion(int n, float*& data_, int*& irf_idx_)
+void RegionData::GetPointersForInsertion(int n, float_iterator& data_, int_iterator& irf_idx_)
 {
    assert(!is_shallow_ptr);
    assert( n + n_px_cur <= n_px_max );
 
-   data_    = data + n_px_cur * n_meas;
-   irf_idx_ = irf_idx  + n_px_cur;
+   data_    = data_it + n_px_cur * n_meas;
+   irf_idx_ = irf_idx_it  + n_px_cur;
 
    n_px_cur += n;
 }
 
 
-void RegionData::GetPointersForArbitaryInsertion(int pos, int n, float*& data_, int*& irf_idx_)
+void RegionData::GetPointersForArbitaryInsertion(int pos, int n, float_iterator& data_, int_iterator& irf_idx_)
 {
    assert(!is_shallow_ptr);
    assert( n + pos <= n_px_max );
 
-   data_    = data + pos * n_meas;
-   irf_idx_ = irf_idx  + pos;
+   data_    = data_it + pos * n_meas;
+   irf_idx_ = irf_idx_it  + pos;
 
    n_px_cur = std::max(n_px_cur, pos + n);
 }
 
-void RegionData::GetAverageDecay(float* average_decay)
+void RegionData::GetAverageDecay(float_iterator average_decay)
 {
-   memset(average_decay, 0, n_meas * sizeof(float));
+   std::fill_n(average_decay, n_meas, 0);
 
    for(int i=0; i<n_px_cur; i++)
       for(int j=0; j<n_meas; j++)
-         average_decay[j] += data[i*n_meas + j];
+         average_decay[j] += data_it[i*n_meas + j];
       
    for(int j=0; j<n_meas; j++)
       average_decay[j] /= n_px_cur;
 }
 
-void RegionData::GetPointers(float*& data, int*& irf_idx)
+void RegionData::GetPointers(float_iterator& data_, int_iterator& irf_idx_)
 {
-   data = this->data;
-   irf_idx = this->irf_idx;
+   data_ = data_it;
+   irf_idx_ = irf_idx_it;
 }
 
 int RegionData::GetSize()

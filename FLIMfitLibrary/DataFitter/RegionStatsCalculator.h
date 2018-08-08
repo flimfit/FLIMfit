@@ -45,17 +45,20 @@
 #include <vector>
 
 
+typedef std::vector<float>::const_iterator const_float_iterator;
+typedef std::vector<float>::iterator float_iterator;
+
 class RegionStatsCalculator
 {
 public:
-   RegionStatsCalculator( int intensity_stride, float confidence_factor) :
+   RegionStatsCalculator(int intensity_stride, float confidence_factor) :
       intensity_stride(intensity_stride),
       confidence_factor(confidence_factor)
    {
    }
 
    template <typename T>
-   void computeStatistics(float x[], float w[], int n, int K, float conf_factor, RegionStats<T>& stats_, int region)
+   void computeStatistics(const_float_iterator x, const_float_iterator w, int n, int K, float conf_factor, RegionStats<T>& stats_, int region)
    {
       using namespace boost::accumulators;
 
@@ -96,7 +99,7 @@ public:
    }
 
 
-   int CalculateRegionStats(int n_parameters, int region_size, const float* data, float intensity[], RegionStats<float>& stats, int region)
+   int CalculateRegionStats(int n_parameters, int region_size, const_float_iterator data, const_float_iterator intensity, RegionStats<float>& stats, int region)
    {
       if (buf.size() < region_size)
       {
@@ -114,12 +117,12 @@ public:
             if (boost::math::isfinite(data_ij) && boost::math::isfinite(data_ij * data_ij))
             {
                buf[idx] = data_ij;
-               I_buf[idx] = intensity[i + j*intensity_stride];
+               I_buf[idx] = intensity[j*intensity_stride];
                idx++;
             }
          }
          int K = int(0.05 * idx);
-         computeStatistics(buf.data(), intensity, idx, K, confidence_factor, stats, region);
+         computeStatistics(buf.begin(), intensity, idx, K, confidence_factor, stats, region);
       }
 
       return n_parameters;

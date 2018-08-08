@@ -63,8 +63,8 @@ public:
    PatternDecayGroup(const PatternDecayGroup& obj);
 
    int setVariables(const_double_iterator variables);
-   int calculateModel(double* a, int adim, double& kap);
-   int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
+   int calculateModel(double_iterator a, int adim, double& kap);
+   int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    void addConstantContribution(float* a);
 
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);

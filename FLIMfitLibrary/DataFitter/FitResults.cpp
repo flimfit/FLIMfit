@@ -245,7 +245,7 @@ void FitResults::computeRegionStats(float confidence_factor)
 
             int start = data->getRegionPos(im, rg);
             int s_local = data->getRegionCount(im, rg);
-            float* intensity = aux_data.data() + start;
+            auto intensity = aux_data.begin() + start;
 
             if (param_buf.size() < n_output_params*s_local)
                param_buf.resize(n_output_params*s_local);
@@ -271,7 +271,7 @@ void FitResults::computeRegionStats(float confidence_factor)
                for (int i = 0; i < s_local; i++)
                   output_idx += model->getNonlinearOutputs(alf_group + i*nl, param_buf.begin() + output_idx);
 
-               stats_calculator.CalculateRegionStats(n_nl_output_params, s_local, param_buf.data(), intensity, stats, idx);
+               stats_calculator.CalculateRegionStats(n_nl_output_params, s_local, param_buf.begin(), intensity, stats, idx);
             }
             else
             {
@@ -286,9 +286,9 @@ void FitResults::computeRegionStats(float confidence_factor)
             for(int i=0; i<s_local; i++)
                model->getLinearOutputs(lin_params.begin() + (start+i)*lmax, param_buf.begin() + i*n_lin_output_params);
             
-            stats_calculator.CalculateRegionStats(n_lin_output_params, s_local, param_buf.data(), intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.data(), intensity, stats, idx);
-            stats_calculator.CalculateRegionStats(1, s_local, chi2.data() + start, intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(n_lin_output_params, s_local, param_buf.begin(), intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(n_aux, s_local, aux_data.begin(), intensity, stats, idx);
+            stats_calculator.CalculateRegionStats(1, s_local, chi2.begin() + start, intensity, stats, idx);
          }
       }
    }
