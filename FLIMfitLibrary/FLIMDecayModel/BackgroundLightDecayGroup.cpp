@@ -187,7 +187,7 @@ int BackgroundLightDecayGroup::calculateDerivatives(double_iterator b, int bdim,
 }
 
 
-void BackgroundLightDecayGroup::addConstantContribution(float* a)
+void BackgroundLightDecayGroup::addConstantContribution(float_iterator a)
 {
    float offset_adj = parameters[0]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;
    float scatter_adj = parameters[1]->isFixed() ? (float) parameters[0]->initial_value : 0.0f;

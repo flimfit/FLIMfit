@@ -40,7 +40,7 @@ protected:
 
    std::shared_ptr<DecayModel> model;
 
-   float* adjust;
+   float_iterator adjust;
 
    friend class VariableProjectionFitter;
 };

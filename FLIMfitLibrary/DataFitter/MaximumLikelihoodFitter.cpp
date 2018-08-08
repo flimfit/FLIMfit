@@ -193,7 +193,7 @@ void MaximumLikelihoodFitter::mle_funcs(double *alf, double *fvec, int n_param, 
 {
    setLinearFactors(alf);
    getModel(model, irf_idx[0], a);
-   float* adjust = model->getConstantAdjustment();
+   float_iterator adjust = model->getConstantAdjustment();
 
    for (int i=0; i<n; i++)
    {
@@ -214,7 +214,7 @@ void MaximumLikelihoodFitter::mle_jacb(double* alf, double *fjac, int n_param, i
    setLinearFactors(alf);
    getModel(model, irf_idx[0], a);
    getDerivatives(model, irf_idx[0], b, a);
-   float* adjust = model->getConstantAdjustment();
+   float_iterator adjust = model->getConstantAdjustment();
 
    memset(fjac,0,nfunc*n_param*sizeof(double));
 

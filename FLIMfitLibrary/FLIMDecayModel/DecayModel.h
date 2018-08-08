@@ -80,8 +80,8 @@ public:
    void setVariables(const std::vector<double>& alf);
    int calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, int irf_idx);
    int calculateDerivatives(aligned_vector<double>& b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx);
-   void getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx);
-   float* getConstantAdjustment() { return adjust_buf.data(); };
+   void getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, int irf_idx);
+   float_iterator getConstantAdjustment() { return adjust_buf.begin(); };
 
    void getInitialVariables(std::vector<double>& variables, double mean_arrival_time);
    void getOutputParamNames(std::vector<std::string>& param_names, std::vector<int>& param_group, int& n_nl_output_params, int& n_lin_output_params);

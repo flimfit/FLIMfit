@@ -78,7 +78,7 @@ public:
    virtual void getLinearParams() = 0;
    
    int fit(std::shared_ptr<RegionData> region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
-   int getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);
+   int getFit(int irf_idx, const std::vector<double>& alf, float_iterator lin_params, double* fit);
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
 

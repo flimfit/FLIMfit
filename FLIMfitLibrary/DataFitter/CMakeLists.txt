@@ -45,7 +45,6 @@ set(SOURCE
    fdjac2.cpp
    cminpack_support.cpp
    FitResults.cpp
-   util.cpp
    MeanLifetimeEstimator.cpp
 )
 

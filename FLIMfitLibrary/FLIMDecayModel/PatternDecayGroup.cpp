@@ -89,7 +89,7 @@ int PatternDecayGroup::calculateDerivatives(double_iterator b, int bdim, double_
    return 0;
 }
 
-void PatternDecayGroup::addConstantContribution(float* a)
+void PatternDecayGroup::addConstantContribution(float_iterator a)
 {
    if (fit->isFittedLocally())
       return;

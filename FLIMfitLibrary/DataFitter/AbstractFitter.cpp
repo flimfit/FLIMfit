@@ -378,9 +378,9 @@ void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_i
    }
 }
 
-int AbstractFitter::getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
+int AbstractFitter::getFit(int irf_idx, const std::vector<double>& alf, float_iterator lin_params, double* fit)
 {
-   float* adjust = model->getConstantAdjustment();
+   float_iterator adjust = model->getConstantAdjustment();
    model->setVariables(alf);
    model->calculateModel(a, nmax, kap, irf_idx);
 

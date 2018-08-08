@@ -199,7 +199,7 @@ void DecayModel::setupAdjust()
       adjust_buf[i] = 0;
 
    for (auto& group : decay_groups)
-      group->addConstantContribution(adjust_buf.data());
+      group->addConstantContribution(adjust_buf.begin());
 
    for (int i = 0; i < dp->n_meas; i++)
       adjust_buf[i] *= photons_per_count;
@@ -446,7 +446,7 @@ int DecayModel::addReferenceLifetimeDerivatives(double_iterator b, int bdim, dou
 }
 
 
-void DecayModel::getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx)
+void DecayModel::getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, int irf_idx)
 {
    return;
 
