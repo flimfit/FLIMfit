@@ -559,7 +559,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
 
    // Correct for smoothing
    double smoothing_area = data->GetTransformedDataParameters()->smoothing_area;
-   int n = n_meas * n_valid;
+   int n = n_meas * n_fit;
    for (int i = 0; i < n; i++)
       fit[i] /= smoothing_area;
 
