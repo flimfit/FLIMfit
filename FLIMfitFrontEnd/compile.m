@@ -166,7 +166,7 @@ function compile(exit_on_error)
             case 'WIN'
                 % Make installer using Inno Setup
 
-                get_file('InstallerSupport\gs916w64.exe','http://downloads.flimfit.org/gs/gs916w64.exe')
+                get_file('..\InstallerSupport\gs916w64.exe','http://downloads.flimfit.org/gs/gs916w64.exe')
                 
                 copyfile(exe,deploy_folder);
 
