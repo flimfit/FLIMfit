@@ -83,7 +83,7 @@ if(MSVC)
 endif(MSVC)
 
 if(UNIX)
-   set(PLATFORM_FLAGS_ALL "-msse3 -std=c++11")
+   set(PLATFORM_FLAGS_ALL "-msse3")
    set(PLATFORM_FLAGS_RELEASE "-O3 -ffast-math -ftree-vectorize")
    set(PLATFORM_FLAGS_DEBUG "")
 endif(UNIX)

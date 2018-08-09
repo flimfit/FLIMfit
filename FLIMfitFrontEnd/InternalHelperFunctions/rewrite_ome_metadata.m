@@ -9,7 +9,8 @@ function rewrite_ome_metadata(folder)
         t = Tiff([folder filesep files(i).name],'r+');
         info = getTag(t,'ImageDescription');
 
-        info = regexprep(info,'SizeT="\d+" SizeC="\d+"','SizeT="1" SizeC="1"');
+        info = regexprep(info,'SizeT="\d+"','SizeT="1"');
+        info = regexprep(info,'SizeC="\d+"','SizeC="1"');
 
         setTag(t,'ImageDescription',info);
         rewriteDirectory(t)

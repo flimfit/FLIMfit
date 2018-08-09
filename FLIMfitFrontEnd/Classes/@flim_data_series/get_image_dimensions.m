@@ -199,15 +199,15 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
             dims.sizeXY = sizeXY;
             
             
-        case {'.pt3','.ptu','.bin2','.ffd','.ffh'}
+        case {'.pt3','.ptu','.bin2','.ffd','.ffh','.spc'}
             
             
-            r = FlimReaderMex(file);
-            n_channels = FlimReaderMex(r,'GetNumberOfChannels');
-            dims.delays = FlimReaderMex(r,'GetTimePoints');
-            supports_realignment = FlimReaderMex(r,'SupportsRealignment');
-            bidirectional = FlimReaderMex(r,'IsBidirectional');
-            meta.rep_rate = FlimReaderMex(r,'GetRepRate') * 1e-6;
+            r = FlimReader(file);
+            n_channels = FlimReader(r,'GetNumberOfChannels');
+            dims.delays = FlimReader(r,'GetNativeTimePoints');
+            supports_realignment = FlimReader(r,'SupportsRealignment');
+            bidirectional = FlimReader(r,'IsBidirectional');
+            meta.rep_rate = FlimReader(r,'GetRepRate') * 1e-6;
             
             if isdeployed
                 supports_realignment = false;
@@ -219,24 +219,24 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
                 dt = 1;
             end
             
+            
             reader_settings = FLIMreader_options_dialog(length(dims.delays), dt, supports_realignment, bidirectional);
             
-            FlimReaderMex(r,'SetSpatialBinning',reader_settings.spatial_binning);
-            FlimReaderMex(r,'SetNumTemporalBits',reader_settings.num_temporal_bits);
-            FlimReaderMex(r,'SetRealignmentParameters',reader_settings.realignment);
-            FlimReaderMex(r,'SetBidirectionalPhase',reader_settings.phase);
+            FlimReader(r,'SetSpatialBinning',reader_settings.spatial_binning);
+            FlimReader(r,'SetTemporalDownsampling',reader_settings.temporal_downsampling);
+            FlimReader(r,'SetRealignmentParameters',reader_settings.realignment);
+            FlimReader(r,'SetBidirectionalPhase',reader_settings.phase);
             
             dims.sizeZCT = [ 1 n_channels 1 ];
             dims.FLIM_type = 'TCSPC';
-            dims.delays = FlimReaderMex(r,'GetTimePoints');
-            dims.sizeXY = FlimReaderMex(r,'GetImageSize');
-            FlimReaderMex(r,'Delete');
+            dims.delays = FlimReader(r,'GetTimePoints');
+            dims.sizeXY = FlimReader(r,'GetImageSize');
+            dims.data_type = FlimReader(r,'GetNativeType');
+            FlimReader(r,'Delete');
             
             for i=1:n_channels
                 dims.chan_info{i} = ['Channel ' num2str(i-1)];
             end
-            
-            dims.data_type = 'uint16';
             
             % .tif files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         case {'.tif','.tiff'}
@@ -333,9 +333,9 @@ function[dims,reader_settings,meta] = get_image_dimensions(obj, file)
               
               delays = delays(~isnan(delays));
               
-              if max(delays) < 1000
-                  delays = delays * 1000;
-              end
+              %if max(delays) < 1000
+              %    delays = delays * 1000;
+              %end
               
               dims.delays = delays;
              
