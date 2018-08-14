@@ -136,16 +136,17 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
         
         function cscale = colourscale(obj,param)
             
-            param_name = obj.fit_controller.fit_result.params{param};
-            invert = obj.fit_controller.invert_colormap;
+            param = obj.fit_controller.fit_result.params{param};
             
-            if ~isempty(strfind(param,'I_0')) || strcmp(param,'I') 
+            invert = obj.fit_controller.invert_colormap;
+            if contains(param,' I') || strcmp(param,'I') 
                 cscale = @gray;
-            elseif invert && (~isempty(strfind(param_name,'tau')) || ~isempty(strfind(param_name,'theta')) || ~isempty(strfind(param_name,'r_ss')) )
+            elseif invert && (contains(param,'tau') || contains(param,'theta'))
                 cscale = @inv_jet;
             else
                 cscale = @jet;
             end
+
             
         end
         
