@@ -147,7 +147,7 @@ classdef segmentation_correlation_display < handle
             obj.im = imagesc(ed,ed,ones(256,256),'Parent',obj.ax);
             daspect(obj.ax,[1 1 1])
             set(obj.ax,'YDir','normal','XTick',[],'YTick',[]);
-            set(obj.ax,'Colormap',gray(256));
+            colormap(obj.ax,gray(256));
             
             hold(obj.ax,'on');
             theta = linspace(0,pi,1000);
