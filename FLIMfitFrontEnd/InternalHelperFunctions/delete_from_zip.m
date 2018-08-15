@@ -1,5 +1,4 @@
 function delete_from_zip(zipfile, files)
-    zipfile = fullfile(pwd, zipfile);
     zip_path = ['jar:file:/' zipfile];
     zip_path = java.lang.String(strrep(zip_path,'\','/'));
         
