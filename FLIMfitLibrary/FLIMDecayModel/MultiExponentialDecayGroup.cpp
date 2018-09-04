@@ -54,7 +54,7 @@ MultiExponentialDecayGroupPrivate::MultiExponentialDecayGroupPrivate(const Multi
 }
 
 
-void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix)
+void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, double tau0)
 {
    std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
    
@@ -70,7 +70,7 @@ void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std
       for (size_t i = old_size; i < new_size; i++)
       {
          string name = name_prefix + boost::lexical_cast<std::string>(i + 1);
-         double initial_value = 3000 / (i + 1);
+         double initial_value = tau0 / (i + 1);
 
          auto p = make_shared<FittingParameter>(name, initial_value, 200, 6000, 1e-3, fixed_or_global, FittedGlobally);
          params.push_back(p);
@@ -80,40 +80,44 @@ void MultiExponentialDecayGroupPrivate::resizeLifetimeParameters(std::vector<std
 
 }
 
+void MultiExponentialDecayGroupPrivate::resizeContributionParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, std::vector<ParameterFittingType> allowed_fitting)
+{
+   if (new_size == 1)
+   {
+      params.clear();
+   }
+   else if (params.size() > new_size)
+   {
+      params.resize(new_size);
+   }
+   else
+   {
+      size_t old_size = params.size();
+      for (size_t i = old_size; i < new_size; i++)
+      {
+         string name = name_prefix + boost::lexical_cast<std::string>(i + 1);
+         double initial_value = 1.0 / new_size;
+
+         auto p = make_shared<FittingParameter>(name, initial_value, 0, 1, 1, allowed_fitting, Fixed);
+         params.push_back(p);
+      }
+   }
+
+   for (auto p : params)
+      parameters.push_back(p);
+}
+
+
 void MultiExponentialDecayGroupPrivate::setupParametersMultiExponential()
 {   
-   std::vector<ParameterFittingType> fixed_or_global = { Fixed, FittedGlobally };
-
    parameters.clear();
 
    resizeLifetimeParameters(tau_parameters, n_exponential, "tau_");
 
-   if (contributions_global && (n_exponential > 1))
-   {
-      if (beta_parameters.size() > n_exponential)
-      {
-         beta_parameters.resize(n_exponential);
-      }
-      else
-      {
-         size_t old_size = beta_parameters.size();
-         for (size_t i = old_size; i < n_exponential; i++)
-         {
-            string name = "beta_" + boost::lexical_cast<std::string>(i + 1);
-            double initial_value = 1.0 / n_exponential;
-
-            auto p = make_shared<FittingParameter>(name, initial_value, 0, 1, 1, fixed_or_global, Fixed);
-            beta_parameters.push_back(p);
-         }
-      } 
-   }
+   if (contributions_global)
+      resizeContributionParameters(beta_parameters, n_exponential, "beta_");
    else
-   {
-      beta_parameters.clear();
-   }
-
-   for (auto p : beta_parameters)
-      parameters.push_back(p);
+      beta_parameters.clear(); 
 
    parametersChanged();
 }

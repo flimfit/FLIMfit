@@ -7,7 +7,7 @@ class KappaFactor
 {
 public:
 
-   KappaFactor(int n) : 
+   KappaFactor(int n = 1) : 
       n(n), f(n), p(n)
    {
       if (n == 1)
@@ -27,7 +27,7 @@ public:
             f[i] = f0 + 0.5 * df;
             
             p[i] = p0 * (sqrt(f1) - sqrt(f0));
-            if (f[i] >= 1.0)
+            if (f0 >= 1.0)
                p[i] -= ((sqrt(f1)*log(sqrt(f1)+sqrt(f1-1))-sqrt(f1-1)) - 
                        (sqrt(f0)*log(sqrt(f0)+sqrt(f0-1))-sqrt(f0-1))) / sqrt(3.0);       
 
@@ -56,12 +56,14 @@ public:
    AbstractDecayGroup* clone() const { return new FretDecayGroup(*this); }
 
    Q_PROPERTY(int n_exponential MEMBER n_exponential WRITE setNumExponential USER true);
+   Q_PROPERTY(int n_acceptor_exponential MEMBER n_acceptor_exponential WRITE setNumAcceptorExponential USER true);
    Q_PROPERTY(int n_fret_populations MEMBER n_fret_populations WRITE setNumFretPopulations USER true);
    Q_PROPERTY(bool include_donor_only MEMBER include_donor_only WRITE setIncludeDonorOnly USER true);
    Q_PROPERTY(bool include_acceptor MEMBER include_acceptor WRITE setIncludeAcceptor USER true);
    Q_PROPERTY(bool use_static_model MEMBER use_static_model WRITE setUseStaticModel USER true);
 
    void setNumExponential(int n_exponential_);
+   void setNumAcceptorExponential(int n_acceptor_exponential_);
    void setNumFretPopulations(int n_fret_populations_);
    void setIncludeDonorOnly(bool include_donor_only_);
    void setIncludeAcceptor(bool include_acceptor_);
@@ -98,34 +100,39 @@ protected:
    int addDirectAcceptorDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
 
    void addAcceptorContribution(int i, double factor, double_iterator a, int adim, double& kap);
-   void addAcceptorDerivativeContribution(int i, int j, int k, double fact, double_iterator b, int bdim, double& kap_derv);
+   void addAcceptorDerivativeContribution(int i, int j, int k, int m, double fact, double_iterator b, int bdim, double& kap_derv);
 
    std::vector<std::shared_ptr<FittingParameter>> tauT_parameters;
    std::shared_ptr<FittingParameter> A_parameter;
    std::shared_ptr<FittingParameter> Q_parameter;
    std::shared_ptr<FittingParameter> Qsigma_parameter;
-   std::shared_ptr<FittingParameter> tauA_parameter;
+   std::vector<std::shared_ptr<FittingParameter>> tauA_parameters;
+   std::vector<std::shared_ptr<FittingParameter>> betaA_parameters;
 
    std::vector<double> acceptor_channel_factors;
    std::vector<double> norm_acceptor_channel_factors;
 
+   int n_acceptor_exponential_requested = 1;
+   int n_acceptor_exponential = 1;
    int n_fret_populations = 1;
    bool include_donor_only = true;
    bool include_acceptor = true;
    bool use_static_model = true;
    
-   std::vector<std::vector<std::vector<double>>> a_star;
+   std::vector<std::vector<std::vector<std::vector<double>>>> a_star;
    std::vector<std::vector<double>> tau_transfer;
    std::vector<std::vector<std::vector<double>>> tau_fret;
    double A;
    double Q;
    double Qsigma;
-   double tauA;
+   
+   std::vector<double> tauA;
+   std::vector<double> betaA;
 
    std::vector<std::vector<std::vector<std::shared_ptr<AbstractConvolver>>>> fret_buffer;
-   std::shared_ptr<AbstractConvolver> acceptor_buffer;
+   std::vector<std::shared_ptr<AbstractConvolver>> acceptor_buffer;
 
-   int n_kappa = 100;
+   int n_kappa = 1;
    KappaFactor kappa_factor;
 
 protected:
@@ -146,7 +153,18 @@ void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & tauT_parameters;
    ar & Q_parameter;
    ar & Qsigma_parameter;
-   ar & tauA_parameter;
+
+   if (version >= 3)
+   {
+      ar & tauA_parameters;
+   } 
+   else
+   {
+      std::shared_ptr<FittingParameter> t;
+      ar & t;
+      tauA_parameters = { t };
+   }
+
    ar & n_fret_populations;
    ar & include_donor_only;
    ar & include_acceptor;
@@ -158,4 +176,4 @@ void FretDecayGroup::serialize(Archive & ar, const unsigned int version)
    setupParameters();
 };
 
-BOOST_CLASS_VERSION(FretDecayGroup, 2)
+BOOST_CLASS_VERSION(FretDecayGroup, 3)

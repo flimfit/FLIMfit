@@ -55,7 +55,8 @@ protected:
    virtual void init();
    void setupParametersMultiExponential();
 
-   void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix);
+   void resizeLifetimeParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, double tau0 = 3000);
+   void resizeContributionParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, std::vector<ParameterFittingType> allowed_fitting = { Fixed, FittedGlobally });
 
    int addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double_iterator a, int adim, double& kap);
    int addLifetimeDerivative(int idx, double_iterator b, int bdim);
