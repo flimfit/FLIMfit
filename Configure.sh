@@ -15,4 +15,4 @@ echo "Ensure cmake, gcc and boost are installed..."
 (brew list | grep coreutils) && echo " installed" || brew install coreutils
 (brew list | grep dlib) && echo " installed" || brew install dlib
 (brew list | grep boost) && echo " installed" || brew install boost
-brew update cmake
+brew upgrade cmake
