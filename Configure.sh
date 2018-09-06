@@ -8,14 +8,15 @@ echo "Checking for homebrew install..."
 	&& rruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" \
 	|| echo "Homebrew installed"
 
-export MACOSX_DEPLOYMENT_TARGET=10.9.5
-
 echo "Ensure cmake, gcc and boost are installed..."
 # Ensure gcc, ghostscript, cmake, LAPACK are installed using Homebrew
 (brew list | grep ghostscript) && echo " installed" || brew install ghostscript
 (brew list | grep cmake) && echo " installed" || brew install cmake
 (brew list | grep platypus) && echo " installed" || brew install platypus
 (brew list | grep coreutils) && echo " installed" || brew install coreutils
+(brew list | grep dlib) && echo " installed" || brew install --build-from-source dlib
+(brew list | grep boost) && echo " installed" || brew install boost
+(brew list | grep opencv) && echo " installed" || brew install opencv
 brew upgrade cmake
 
 # Download OMERO Matlab plug-in
@@ -38,7 +39,6 @@ unzip -o bfmatlab.zip
 rm bfmatlab.zip
 mv bfmatlab/* FLIMfitFrontEnd/BFMatlab/
 rm -rf bfmatlab
-
 
 # Download ini4j.jar
 curl -OL http://artifacts.openmicroscopy.org/artifactory/maven/org/ini4j/ini4j/0.3.2/ini4j-0.3.2.jar
