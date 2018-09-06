@@ -90,7 +90,7 @@ function compile(exit_on_error)
                         delete(exe);
                     end
                 case 'MAC'
-                    if isfolder(exe)
+                    if exist(exe,'dir')
                         rmdir(exe,'s');
                     end
             end
