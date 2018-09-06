@@ -37,7 +37,7 @@ classdef flim_model_controller < handle
             
             obj.map = containers.Map('KeyType','uint64','ValueType','any');
             
-            obj.model = ff_DecayModel();    
+            obj.new_model();
             ff_DecayModel(obj.model,'AddDecayGroup','Multi-Exponential Decay',1);
 
             obj.groups = ff_DecayModel(obj.model,'GetGroups');
@@ -180,7 +180,14 @@ classdef flim_model_controller < handle
             end
 
             for j=1:length(group.Variables)
-               obj.draw_variable(h.layout, idx, j, group.Variables(j)); 
+               var_layout(j) = obj.draw_variable(h.layout, idx, j, group.Variables(j)); 
+            end
+            
+            % Make sure variables are in order
+            pos = arrayfun(@(vl) find(h.layout.Children==vl), var_layout);
+            new_pos = sort(pos,'descend');
+            if ~all(pos==new_pos)
+                h.layout.Children(new_pos) = h.layout.Children(pos);
             end
             
             obj.map(group.id) = h;
@@ -227,7 +234,7 @@ classdef flim_model_controller < handle
         
 
 
-        function draw_variable(obj, parent, group_idx, variable_idx, variable)
+        function box = draw_variable(obj, parent, group_idx, variable_idx, variable)
             if obj.map.isKey(variable.id)
                 h = obj.map(variable.id);
             else
@@ -263,6 +270,7 @@ classdef flim_model_controller < handle
             
             obj.map(variable.id) = h;
             obj.touched(end+1) = variable.id;
+            box = h.box;
         end
 
         function draw_channel(obj, parent, ~, idx)
@@ -401,6 +409,15 @@ classdef flim_model_controller < handle
             if ~isempty(name)
                 obj.save([model_folder name{1} '.xml']);
             end
+        end
+        
+        function clear_model(obj)
+            ff_DecayModel(obj.model,'Release');
+            obj.model = [];
+        end
+        
+        function new_model(obj)
+            obj.model = ff_DecayModel();    
         end
         
     end

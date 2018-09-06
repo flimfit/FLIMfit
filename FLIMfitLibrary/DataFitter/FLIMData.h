@@ -77,7 +77,7 @@ public:
 
    void setGlobalScope(GlobalScope global_scope);
 
-   RegionData getNewRegionData();
+   std::shared_ptr<RegionData> getNewRegionData();
 
    template <typename T>
    int calculateRegions();
@@ -87,7 +87,7 @@ public:
    int getRegionPos(int im, int region);
    int getRegionCount(int im, int region);
 
-   int getRegionData(int thread, int group, int region, RegionData& region_data, FitResults& results, int n_thread);
+   int getRegionData(int thread, int group, int region, std::shared_ptr<RegionData> region_data, FitResults& results, int n_thread);
 
    void updateRegions();
    
@@ -131,7 +131,7 @@ public:
    
 private:
 
-   int getMaskedData(int im, int region, float* masked_data, int* irf_idx, FitResults& results);
+   int getMaskedData(int im, int region, float_iterator masked_data, int_iterator irf_idx, FitResults& results);
    void setData(const std::vector<std::shared_ptr<FLIMImage>>& images);
    
    void resizeBuffers();

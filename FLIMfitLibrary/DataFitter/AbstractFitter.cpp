@@ -56,7 +56,6 @@ AbstractFitter::AbstractFitter(std::shared_ptr<DecayModel> model_, int n_param_e
    // We need our own copy
    model = std::make_shared<DecayModel>(*model_);
 
-   irf_idx_0 = 0;
    variable_phi = model->isSpatiallyVariant();
 
    nl = model->getNumNonlinearVariables();
@@ -161,7 +160,7 @@ int AbstractFitter::init()
    return 0;
 }
 
-int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr_, double& c2)
+int AbstractFitter::fit(std::shared_ptr<RegionData> region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr_, double& c2)
 {
    cur_chi2   = &c2;
 
@@ -170,29 +169,29 @@ int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int 
 
    init();
 
-   region_data.GetAverageDecay(avg_y.data());
+   region_data->GetAverageDecay(avg_y.begin());
 
    if (global_algorithm == GlobalAnalysis)
    {
-      s = region_data.GetSize();
-      region_data.GetPointers(y, irf_idx);
+      s = region_data->GetSize();
+      region_data->GetPointers(y, irf_idx);
    }
    else
    {
       s = 1;
-      y = avg_y.data();
-      irf_idx = &irf_idx_0;
+      y = avg_y.begin();
+      irf_idx = irf_idx_0.begin();
    }
 
 
-   float *alf_results;
+   float_iterator alf_results;
    results.getPointers(alf_results, lin_params, chi2);
 
    chi2_norm = n - ((float)(nl))/s - l;
 
    // Assign initial guesses to nonlinear variables  
    std::vector<double> initial_alf(nl + l);
-   double tau_mean = lifetime_estimator.EstimateMeanLifetime(avg_y, region_data.data_type);
+   double tau_mean = lifetime_estimator.EstimateMeanLifetime(avg_y, region_data->data_type);
    model->getInitialVariables(initial_alf, tau_mean);
 
    // Fit!
@@ -207,8 +206,8 @@ int AbstractFitter::fit(RegionData& region_data, FitResultsRegion& results, int 
 
    if (global_algorithm == GlobalBinning)
    {
-      s = region_data.GetSize();
-      region_data.GetPointers(y, irf_idx);
+      s = region_data->GetSize();
+      region_data->GetPointers(y, irf_idx);
 
       getLinearParams();
    }
@@ -347,22 +346,6 @@ double AbstractFitter::errMinFcn(double x)
    return F-F_crit;
 }
 
-void AbstractFitter::setVariables(const double* alf_)
-{
-   std::copy(alf_, alf_ + nl, alf.begin());
-
-   int idx = 0;
-   for (int i = 0; i<nl; i++)
-   {
-      if (i == fixed_param)
-         params[i] = fixed_value_cur;
-      else
-         params[i] = alf[idx++];
-   }
-
-   model->setVariables(params);
-}
-
 void AbstractFitter::getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a)
 {
    model->setVariables(params);
@@ -395,9 +378,10 @@ void AbstractFitter::getDerivatives(std::shared_ptr<DecayModel> model, int irf_i
    }
 }
 
-int AbstractFitter::getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit)
+int AbstractFitter::getFit(int irf_idx, const std::vector<double>& alf, float_iterator lin_params, double* fit)
 {
-   float* adjust = model->getConstantAdjustment();
+   float_iterator adjust = model->getConstantAdjustment();
+   model->setVariables(alf);
    model->calculateModel(a, nmax, kap, irf_idx);
 
    int idx = 0;

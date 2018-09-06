@@ -27,37 +27,13 @@
 //
 //=========================================================================
 
-#ifndef _UTIL_H
-#define _UTIL_H
+#pragma once
 
-#include <cstring>
-
-template<typename T>
-void ClearVariable(T*& var)
+template<typename it>
+void SetNaN(it var, int n)
 {
-   if (var!=NULL)
-   {
-      delete[] var;
-      var = NULL;
-   }
-};
+   typedef typename std::iterator_traits<it>::value_type T;
 
-
-
-
-void SetNaN(double* var, int n);
-void SetNaN(float* var, int n);
-
-//double NaN();
-
-/*
-#ifndef _MSVC
-
-#define _ASSERTE(x)
-#define _ASSERT(x)
-
-int _CrtCheckMemory( );
-
-#endif
-*/
-#endif 
+   for (int i = 0; i < n; i++)
+      var[i] = std::numeric_limits<T>::quiet_NaN();
+}

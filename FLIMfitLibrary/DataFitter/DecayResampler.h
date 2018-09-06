@@ -17,9 +17,10 @@ public:
       incr.resize(n, true);
    }
 
-   template<typename T>
-   void determineSampling(const T* decay)
+   template<typename it>
+   void determineSampling(it decay)
    {
+      typedef typename std::iterator_traits<it>::value_type T;
       T eps = std::numeric_limits<T>::min();
 
       std::fill(incr.begin(), incr.end(), true);
@@ -89,17 +90,18 @@ public:
       
    }
 
-   template<typename T, typename U>
-   void resample(T* decay, U* resampled)
+   template<typename itT, typename itU>
+   void resample(itT decay, itU resampled)
    {
+      typedef typename std::iterator_traits<itU>::value_type U;
       for(int i=0; i<n; i++)
-         resampled[i] = (U) decay[i];
+         resampled[i] = static_cast<U>(decay[i]);
       resample(resampled);
    }
 
 
-   template<typename T>
-   void resample(T* decay)
+   template<typename itT>
+   void resample(itT decay)
    {
       int idx = 0;
       for(int i=0; i<n; i++)

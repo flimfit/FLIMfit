@@ -44,8 +44,8 @@ public:
 
    void compute(double rate, int irf_idx, double t0_shift);
 
-   void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[]) const;
-   void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double b[]) const;
+   void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator a) const;
+   void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator b) const;
 
 private:
 

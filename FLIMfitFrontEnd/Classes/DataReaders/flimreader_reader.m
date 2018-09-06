@@ -34,7 +34,10 @@ classdef flimreader_reader < base_data_reader
             
             FlimReader(r,'SetSpatialBinning',obj.settings.spatial_binning);
             FlimReader(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
-            FlimReader(r,'SetRealignmentParameters',obj.settings.realignment);
+            
+            if isfield(obj.settings,'realignment')
+                FlimReader(r,'SetRealignmentParameters',obj.settings.realignment);
+            end
             
             obj.sizeZCT = [ 1 obj.n_channels 1 ];
             obj.FLIM_type = 'TCSPC';
@@ -62,7 +65,11 @@ classdef flimreader_reader < base_data_reader
             r = obj.reader;
             FlimReader(r,'SetSpatialBinning',obj.settings.spatial_binning);
             FlimReader(r,'SetTemporalDownsampling',obj.settings.temporal_downsampling);
-            FlimReader(r,'SetRealignmentParameters',obj.settings.realignment);
+
+            if isfield(obj.settings,'realignment')
+                FlimReader(r,'SetRealignmentParameters',obj.settings.realignment);
+            end
+
             
             data = FlimReader(r, 'GetData', channels - 1);
             

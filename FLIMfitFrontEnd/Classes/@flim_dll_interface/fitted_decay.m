@@ -55,8 +55,6 @@ function decay = fitted_decay(obj,t,im_mask,selected)
     loc = uint32(loc);
     
     [decay, n_valid] = ff_Controller(obj.dll_id, 'GetFit', im, loc);
-    
-    decay = nansum(decay,3);
-    decay = decay / double(n_valid);
+    decay = nanmean(decay,3);
            
 end

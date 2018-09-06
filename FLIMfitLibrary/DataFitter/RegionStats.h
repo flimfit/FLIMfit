@@ -82,7 +82,7 @@ public:
    {
       assert( param_idx[region] < n_params );
 
-      T* next_param = params.data() + region * n_params * N_STATS + param_idx[region] * N_STATS;
+      auto next_param = params.begin() + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = w_mean; 
@@ -108,7 +108,7 @@ public:
    {
       assert( param_idx[region] < n_params );
 
-      T* next_param = params.data() + region * n_params * N_STATS + param_idx[region] * N_STATS;
+      auto next_param = params.begin() + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 
@@ -132,9 +132,9 @@ public:
     */
    void SetNextParam(int region, T mean, T err_lower, T err_upper)
    {
-      _ASSERT( param_idx[region] < n_params );
+      assert( param_idx[region] < n_params );
 
-      T* next_param = params.data() + region * n_params * N_STATS + param_idx[region] * N_STATS;
+      auto next_param = params.begin() + region * n_params * N_STATS + param_idx[region] * N_STATS;
 
       next_param[PARAM_MEAN] = mean; 
       next_param[PARAM_W_MEAN] = mean; 

@@ -46,14 +46,13 @@ DecayModel::DecayModel()
 DecayModel::DecayModel(const DecayModel &obj) :
    reference_parameter(obj.reference_parameter),
    t0_parameter(obj.t0_parameter),
-   dp(obj.dp),
    photons_per_count(obj.photons_per_count),
    channel_factor(obj.channel_factor),
-   parameters(obj.parameters),
-   spectral_correction(obj.spectral_correction),
    use_spectral_correction(obj.use_spectral_correction),
+   spectral_correction(obj.spectral_correction),
    zernike_order(obj.zernike_order)
 {
+   setTransformedDataParameters(obj.dp);
    for (auto& g : obj.decay_groups)
       decay_groups.emplace_back(g->clone());
 
@@ -69,6 +68,7 @@ void DecayModel::setTransformedDataParameters(std::shared_ptr<TransformedDataPar
 
    if (!dp) return;
 
+   n_chan = dp->n_chan;
    spectral_correction.resize(dp->n_chan - 1);
    setupSpectralCorrection();
 
@@ -142,9 +142,9 @@ void DecayModel::init()
    
    setupAdjust();
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
    validateDerivatives();
-//#endif
+#endif
 }
 
 
@@ -182,7 +182,7 @@ int DecayModel::getNumNonlinearVariables()
 }
 
 
-double DecayModel::getCurrentReferenceLifetime(const double* param_values, int& idx)
+double DecayModel::getCurrentReferenceLifetime(const_double_iterator& param_values, int& idx)
 {
    if (dp->irf->type != Reference)
       return 0;
@@ -199,7 +199,7 @@ void DecayModel::setupAdjust()
       adjust_buf[i] = 0;
 
    for (auto& group : decay_groups)
-      group->addConstantContribution(adjust_buf.data());
+      group->addConstantContribution(adjust_buf.begin());
 
    for (int i = 0; i < dp->n_meas; i++)
       adjust_buf[i] *= photons_per_count;
@@ -290,7 +290,7 @@ bool DecayModel::isSpatiallyVariant()
 
 void DecayModel::setVariables(const std::vector<double>& alf)
 {
-   const double* param_values = alf.data();
+   auto param_values = alf.begin();
 
    int getting_fit = false; //TODO 
 
@@ -317,7 +317,7 @@ int DecayModel::calculateModel(aligned_vector<double>& a, int adim, std::vector<
    for (int i = 0; i < decay_groups.size(); i++)
    {
       decay_groups[i]->setIRFPosition(irf_idx);
-      col += decay_groups[i]->calculateModel(a.data() + col * adim, adim, kap[0]);
+      col += decay_groups[i]->calculateModel(a.begin() + col * adim, adim, kap[0]);
    }
 
    // Apply scaling to convert counts -> photons
@@ -346,7 +346,7 @@ int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const 
    */
 
    if (t0_parameter->isFittedGlobally())
-      col += addT0Derivatives(b.data() + col*bdim, bdim, kap_derv);
+      col += addT0Derivatives(b.begin() + col*bdim, bdim, kap_derv);
 
    int x = irf_idx % dp->n_x;
    int y = irf_idx / dp->n_x;
@@ -356,7 +356,7 @@ int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const 
    int model_col = col;
 
    for (int i = 0; i < decay_groups.size(); i++)
-      col += decay_groups[i]->calculateDerivatives(b.data() + col*bdim, bdim, kap_derv);
+      col += decay_groups[i]->calculateDerivatives(b.begin() + col*bdim, bdim, kap_derv);
 
    for (auto& s : spectral_correction)
       s->apply(x, y, b.begin() + bdim * model_col, bdim, col - model_col);
@@ -368,7 +368,7 @@ int DecayModel::calculateDerivatives(aligned_vector<double>& b, int bdim, const 
 }
 
 
-int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::iterator& kap_derv)
+int DecayModel::addT0Derivatives(double_iterator b, int bdim, std::vector<double>::iterator& kap_derv)
 {
    // Compute numerical derivatives for t0
 
@@ -403,7 +403,7 @@ int DecayModel::addT0Derivatives(double* b, int bdim, std::vector<double>::itera
 }
 
 
-int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int DecayModel::addReferenceLifetimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    //TODO - reference lifetime derivatives
    /*
@@ -446,7 +446,7 @@ int DecayModel::addReferenceLifetimeDerivatives(double* b, int bdim, double_iter
 }
 
 
-void DecayModel::getWeights(float* y, const std::vector<double>& a, const std::vector<double>& alf, float* lin_params, double* w, int irf_idx)
+void DecayModel::getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, int irf_idx)
 {
    return;
 
@@ -501,7 +501,7 @@ void DecayModel::getInitialVariables(std::vector<double>& param, double mean_arr
 }
 
 
-int DecayModel::getNonlinearOutputs(float* nonlin_variables, float* outputs)
+int DecayModel::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator outputs)
 {
    int idx = 0;
    int nonlin_idx = 0;
@@ -517,7 +517,7 @@ int DecayModel::getNonlinearOutputs(float* nonlin_variables, float* outputs)
    return idx;
 }
 
-int DecayModel::getLinearOutputs(float* lin_variables, float* outputs)
+int DecayModel::getLinearOutputs(float_iterator lin_variables, float_iterator outputs)
 {
    int idx = 0;
    int lin_idx = 0;

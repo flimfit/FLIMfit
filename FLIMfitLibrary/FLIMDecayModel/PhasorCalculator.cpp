@@ -97,7 +97,7 @@ Phasor PhasorCalculator::getIRFPhasor(std::shared_ptr<InstrumentResponseFunction
    
    
    std::vector<double> buf(n_t * irf->getNumChan());
-   double* data = irf->getIRF(0, 0, buf.data()) + n_t * channel;
+   double_iterator data = irf->getIRF(0, 0, buf.begin()) + n_t * channel;
    
    double g = 0;
    double s = 0;

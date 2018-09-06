@@ -53,7 +53,7 @@ void PatternDecayGroup::compute()
       for (int j = 0; j < n_exp; j++)
       {
          buffer->compute(1 / pattern[i].tau[j], irf_idx, t0_shift);
-         buffer->addDecay(pattern[i].beta[j], channel_factors, reference_lifetime, decay.data());
+         buffer->addDecay(pattern[i].beta[j], channel_factors, reference_lifetime, decay.begin());
       }
    }
 
@@ -66,12 +66,12 @@ void PatternDecayGroup::compute()
    last_t0 = t0_shift;
 }
 
-int PatternDecayGroup::setVariables(const double* variables)
+int PatternDecayGroup::setVariables(const_double_iterator variables)
 {
    return 0;
 }
 
-int PatternDecayGroup::calculateModel(double* a, int adim, double& kap)
+int PatternDecayGroup::calculateModel(double_iterator a, int adim, double& kap)
 {
    if (fit->isFixed())
       return 0;
@@ -84,12 +84,12 @@ int PatternDecayGroup::calculateModel(double* a, int adim, double& kap)
    return 1;
 }
 
-int PatternDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int PatternDecayGroup::calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    return 0;
 }
 
-void PatternDecayGroup::addConstantContribution(float* a)
+void PatternDecayGroup::addConstantContribution(float_iterator a)
 {
    if (fit->isFittedLocally())
       return;
@@ -108,12 +108,12 @@ void PatternDecayGroup::setupIncMatrix(std::vector<int>& inc, int& row, int& col
       col++; // one column, no variables
 }
 
-int PatternDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int PatternDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx)
 {
    return 0;
 }
 
-int PatternDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int PatternDecayGroup::getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx)
 {
    if (fit->isFittedLocally())
       output[0] = lin_variables[lin_idx++];

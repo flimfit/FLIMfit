@@ -47,7 +47,9 @@
 #define INC_ENTRIES     256
 #define MAX_VARIABLES   32
 
+typedef std::vector<double>::const_iterator const_double_iterator;
 typedef std::vector<double>::iterator double_iterator;
+typedef std::vector<float>::iterator float_iterator;
 
 class AbstractDecayGroup : public QObject
 {
@@ -84,14 +86,14 @@ public:
 
    virtual void init() = 0;
 
-   virtual int setVariables(const double* variables) = 0;
-   virtual int calculateModel(double* a, int adim, double& kap) = 0;
-   virtual int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv) = 0;
-   virtual void addConstantContribution(float* a) {}
+   virtual int setVariables(const_double_iterator variables) = 0;
+   virtual int calculateModel(double_iterator a, int adim, double& kap) = 0;
+   virtual int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv) = 0;
+   virtual void addConstantContribution(float_iterator a) {}
 
    virtual void setupIncMatrix(std::vector<int>& inc, int& row, int& col) = 0;
-   virtual int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx) = 0;
-   virtual int getLinearOutputs(float* lin_variables, float* output, int& lin_idx) = 0;
+   virtual int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx) = 0;
+   virtual int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx) = 0;
 
    virtual std::vector<std::string> getNonlinearOutputParamNames();
    virtual std::vector<std::string> getLinearOutputParamNames() = 0;
@@ -99,14 +101,14 @@ public:
    virtual const std::vector<double>& getChannelFactors(int index) = 0;
    virtual void setChannelFactors(int index, const std::vector<double>& channel_factors) = 0;
 
-   int getInitialVariables(std::vector<double>::iterator variables);
+   int getInitialVariables(double_iterator variables);
 
    void setIRFPosition(int irf_idx_) { irf_idx = irf_idx_; }
    void setT0Shift(double t0_shift_) { t0_shift = t0_shift_; }
    void setReferenceLifetime(double reference_lifetime_) { reference_lifetime = reference_lifetime_; }
 
-   template <typename T>
-   void addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor, double factor = 1);
+   template <typename it>
+   void addIRF(double_iterator irf_buf, int irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor = 1);
 
 signals:
    void parametersUpdated();
@@ -180,13 +182,14 @@ void AbstractDecayGroup::save(Archive & ar, const unsigned int version) const
 BOOST_CLASS_TRACKING(AbstractDecayGroup, track_always)
 BOOST_CLASS_VERSION(AbstractDecayGroup, 2)
 
-template <typename T>
-void AbstractDecayGroup::addIRF(double* irf_buf, int irf_idx, double t0_shift, T a[], const std::vector<double>& channel_factor, double factor)
+template <typename it>
+void AbstractDecayGroup::addIRF(double_iterator irf_buf, int irf_idx, double t0_shift, it a, const std::vector<double>& channel_factor, double factor)
 {
+   typedef typename std::iterator_traits<it>::value_type T;
    std::shared_ptr<InstrumentResponseFunction> irf = dp->irf;
    auto& t = dp->getTimepoints();
    
-   double* lirf = irf->getIRF(irf_idx, t0_shift, irf_buf);
+   double_iterator lirf = irf->getIRF(irf_idx, t0_shift, irf_buf);
    double t_irf0 = irf->getT0();
    double dt_irf = irf->timebin_width;
    int n_irf = irf->n_irf;

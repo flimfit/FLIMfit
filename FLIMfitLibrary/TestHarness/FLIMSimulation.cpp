@@ -42,7 +42,7 @@ std::shared_ptr<InstrumentResponseFunction> FLIMSimulation::GenerateIRF(int N)
          irf_data[c*n_t_full + i] = irf_data[i];
 
    auto irf = std::make_shared<InstrumentResponseFunction>();
-   irf->setIRF(n_t_full, n_chan, 0.0, dt, &irf_data[0]);
+   irf->setIRF(n_t_full, n_chan, 0.0, dt, irf_data.begin());
 
    return irf;
 }

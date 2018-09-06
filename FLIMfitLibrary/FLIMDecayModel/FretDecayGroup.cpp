@@ -257,7 +257,7 @@ void FretDecayGroup::setupIncMatrix(std::vector<int>& inc, int& inc_row, int& in
    inc_col += n_fret_populations;
 }
 
-int FretDecayGroup::setVariables(const double* param_values)
+int FretDecayGroup::setVariables(const_double_iterator param_values)
 {
    int idx = MultiExponentialDecayGroupPrivate::setVariables(param_values);
 
@@ -308,13 +308,13 @@ int FretDecayGroup::setVariables(const double* param_values)
    return idx;
 }
 
-int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx)
+int FretDecayGroup::getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx)
 {
    int output_idx = MultiExponentialDecayGroupPrivate::getNonlinearOutputs(nonlin_variables, output, nonlin_idx);
 
    output[output_idx++] = A_parameter->getValue<float>(nonlin_variables, nonlin_idx);
 
-   float* output_tauT = output + output_idx;
+   float_iterator output_tauT = output + output_idx;
    for (int i = 0; i < n_fret_populations; i++)
       output[output_idx++] = tauT_parameters[i]->getValue<float>(nonlin_variables, nonlin_idx);
 
@@ -325,8 +325,8 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
       output[output_idx++] = tauA_parameter->getValue<float>(nonlin_variables, nonlin_idx);
    }
 
-   float* tau = output;
-   float* beta = output + n_exponential;
+   float_iterator tau = output;
+   float_iterator beta = output + n_exponential;
    for (int i = 0; i < n_fret_populations; i++)
    {
       float E = 0;
@@ -352,7 +352,7 @@ int FretDecayGroup::getNonlinearOutputs(float* nonlin_variables, float* output, 
 }
 
 
-int FretDecayGroup::getLinearOutputs(float* lin_variables, float* output, int& lin_idx)
+int FretDecayGroup::getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx)
 {
    int output_idx = 0;
 
@@ -401,13 +401,13 @@ std::vector<std::string> FretDecayGroup::getNonlinearOutputParamNames()
 }
 
 
-int FretDecayGroup::calculateModel(double* a, int adim, double& kap)
+int FretDecayGroup::calculateModel(double_iterator a, int adim, double& kap)
 {
    int col = 0;
 
    if (include_donor_only)
    {
-      memset(a + col*adim, 0, adim*sizeof(*a));
+      std::fill_n(a + col * adim, adim, 0);
       addDecayGroup(buffer, 1, a + col*adim, adim, kap);
       if (include_acceptor)   
          acceptor_buffer->addDecay(Qsigma, norm_acceptor_channel_factors, reference_lifetime, a + col*adim);
@@ -416,7 +416,7 @@ int FretDecayGroup::calculateModel(double* a, int adim, double& kap)
 
    for (int i = 0; i < fret_buffer.size(); i++)
    {
-      memset(a + col*adim, 0, adim*sizeof(*a));
+      std::fill_n(a + col * adim, adim, 0);
       for(int k=0; k<n_kappa; k++)
          addDecayGroup(fret_buffer[i][k], kappa_factor.p[k], a + col*adim, adim, kap);
       
@@ -441,7 +441,7 @@ int FretDecayGroup::calculateModel(double* a, int adim, double& kap)
    return col;
 }
 
-void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, int adim, double& kap)
+void FretDecayGroup::addAcceptorContribution(int i, double factor, double_iterator a, int adim, double& kap)
 {
    if (include_acceptor)
    {
@@ -458,7 +458,7 @@ void FretDecayGroup::addAcceptorContribution(int i, double factor, double* a, in
    }
 }
 
-void FretDecayGroup::addAcceptorDerivativeContribution(int i, int j, int k, double fact, double* b, int bdim, double& kap_derv)
+void FretDecayGroup::addAcceptorDerivativeContribution(int i, int j, int k, double fact, double_iterator b, int bdim, double& kap_derv)
 {
    if (include_acceptor)
    {
@@ -469,7 +469,7 @@ void FretDecayGroup::addAcceptorDerivativeContribution(int i, int j, int k, doub
 }
 
 
-int FretDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int FretDecayGroup::calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    for (int i = 0; i < n_exponential; i++)
@@ -504,7 +504,7 @@ int FretDecayGroup::calculateDerivatives(double* b, int bdim, double_iterator& k
 
 
 
-int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, double_iterator& kap_derv)
+int FretDecayGroup::addLifetimeDerivativesForFret(int j, double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -512,7 +512,7 @@ int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, do
    // d(fret)/d(tau)
    for (int i = 0; i<n_fret_populations; i++)
    {
-      memset(b + idx, 0, bdim*sizeof(*b));
+      std::fill_n(b + idx, bdim, 0);
 
       double fact = beta[j] / (tau[j] * tau[j]);
       
@@ -539,7 +539,7 @@ int FretDecayGroup::addLifetimeDerivativesForFret(int j, double* b, int bdim, do
    return col;
 }
 
-int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, double_iterator& kap_derv)
+int FretDecayGroup::addContributionDerivativesForFret(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    if (n_exponential < 2)
       return 0;
@@ -553,7 +553,7 @@ int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, doubl
       {
          for (int i = 0; i < n_fret_group; i++)
          {
-            memset(b + col*bdim, 0, bdim * sizeof(*b));
+            std::fill_n(b + col * bdim, bdim, 0);
             int qi = ji;
             for (int q = j; q < n_exponential; q++)
                if (!beta_parameters[q]->isFixed())
@@ -576,8 +576,8 @@ int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, doubl
                            acceptor_buffer->addDecay(Q * factor_k * a_star[fret_idx][k][q], norm_acceptor_channel_factors, reference_lifetime, b + col * bdim);
                         }
                      }
-                     qi++;
                   }
+                  qi++;
                }
             col++;
          }
@@ -588,7 +588,7 @@ int FretDecayGroup::addContributionDerivativesForFret(double* b, int bdim, doubl
    return col;
 }
 
-int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int FretDecayGroup::addFretEfficiencyDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -597,7 +597,7 @@ int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, double_ite
    {
       if (tauT_parameters[i]->isFittedGlobally())
       {
-         memset(b + idx, 0, bdim*sizeof(*b));
+         std::fill_n(b + idx, bdim, 0);
 
          for (int k = 0; k < n_kappa; k++)
          {
@@ -630,7 +630,7 @@ int FretDecayGroup::addFretEfficiencyDerivatives(double* b, int bdim, double_ite
    return col;
 }
 
-int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int FretDecayGroup::addDirectAcceptorDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -640,7 +640,7 @@ int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, double_ite
       int n_fret_group = n_fret_populations + include_donor_only;
       for (int i = 0; i < n_fret_group; i++)
       {
-         memset(b + idx, 0, bdim*sizeof(*b));
+         std::fill_n(b + idx, bdim, 0);
          acceptor_buffer->addDecay(1.0, norm_acceptor_channel_factors, reference_lifetime, b + idx);
 
          col++;
@@ -653,7 +653,7 @@ int FretDecayGroup::addDirectAcceptorDerivatives(double* b, int bdim, double_ite
 }
 
 
-int FretDecayGroup::addAcceptorIntensityDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int FretDecayGroup::addAcceptorIntensityDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -662,7 +662,7 @@ int FretDecayGroup::addAcceptorIntensityDerivatives(double* b, int bdim, double_
    {
       for (int i = 0; i < n_fret_populations; i++)
       {
-         memset(b + idx, 0, bdim*sizeof(*b));
+         std::fill_n(b + idx, bdim, 0);
          addAcceptorContribution(i, 1.0, b + idx, bdim, kap_derv[col]);
          
          col++;
@@ -675,7 +675,7 @@ int FretDecayGroup::addAcceptorIntensityDerivatives(double* b, int bdim, double_
 }
 
 
-int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, double_iterator& kap_derv)
+int FretDecayGroup::addAcceptorLifetimeDerivatives(double_iterator b, int bdim, double_iterator& kap_derv)
 {
    int col = 0;
    int idx = 0;
@@ -684,7 +684,7 @@ int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, double_i
    {
       if (include_donor_only)
       {
-         memset(b + idx, 0, bdim*sizeof(*b));
+         std::fill_n(b + idx, bdim, 0);
          acceptor_buffer->addDerivative(Qsigma / (tauA * tauA), norm_acceptor_channel_factors, reference_lifetime, b + idx);
          
          col++;
@@ -693,7 +693,7 @@ int FretDecayGroup::addAcceptorLifetimeDerivatives(double* b, int bdim, double_i
 
       for (int i = 0; i < n_fret_populations; i++)
       {
-         memset(b + idx, 0, bdim * sizeof(*b));
+         std::fill_n(b + idx, bdim, 0);
 
          for (int j = 0; j < n_exponential; j++)
          {

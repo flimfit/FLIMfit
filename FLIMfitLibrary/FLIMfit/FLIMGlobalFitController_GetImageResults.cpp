@@ -549,7 +549,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
                results->getNonLinearParams(im, rg, lin_idx, nl_params);
                results->getLinearParams(im, rg, lin_idx, l_params);
 
-               fitters[thread]->getFit(idx, nl_params, l_params.data(), fit+n_meas*i);
+               fitters[thread]->getFit(idx, nl_params, l_params.begin(), fit+n_meas*i);
                n_valid++;
 
             }    
@@ -559,7 +559,7 @@ int FitController::getFit(int im, int n_fit, uint fit_loc[], double fit[], int& 
 
    // Correct for smoothing
    double smoothing_area = data->GetTransformedDataParameters()->smoothing_area;
-   int n = n_meas * n_valid;
+   int n = n_meas * n_fit;
    for (int i = 0; i < n; i++)
       fit[i] /= smoothing_area;
 

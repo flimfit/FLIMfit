@@ -19,14 +19,14 @@ public:
 
    void compute(double rate, double t0_shift);
 
-   void addDecay(double fact, double* decay) const;
-   void addDerivative(double fact, double* derv) const;
+   void addDecay(double fact, double_iterator decay) const;
+   void addDerivative(double fact, double_iterator derv) const;
 
 protected:
 
    void computeQ(double rate, aligned_vector<double>& Q);
 
-   void add(double fact, double* decay, const aligned_vector<double>& Q) const;
+   void add(double fact, double_iterator decay, const aligned_vector<double>& Q) const;
 
    int n_t;
    double dt;
@@ -56,8 +56,8 @@ public:
 
    void compute(double rate, int irf_idx, double t0_shift);
 
-   void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double a[]) const;
-   void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double b[]) const;
+   void addDecay(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator a) const;
+   void addDerivative(double fact, const std::vector<double>& channel_factors, double ref_lifetime, double_iterator b) const;
 
 private:
 

@@ -14,7 +14,7 @@ public:
    void setOrder(int order);
 
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
-   int setVariables(const double* params);
+   int setVariables(std::vector<double>::const_iterator params);
 
    void apply(int x, int y, aligned_iterator a, int adim, int n_col);
 

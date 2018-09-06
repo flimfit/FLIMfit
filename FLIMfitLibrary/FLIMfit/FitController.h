@@ -105,7 +105,7 @@ private:
    std::recursive_mutex mutex;
 
    std::vector<std::unique_ptr<AbstractFitter>> fitters;
-   std::vector<RegionData> region_data;
+   std::vector<std::shared_ptr<RegionData>> region_data;
    std::vector<std::thread> thread_handle;
    
    FittingOptions options;

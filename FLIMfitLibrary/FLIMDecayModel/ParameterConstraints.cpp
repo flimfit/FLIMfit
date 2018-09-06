@@ -3,8 +3,6 @@
 #define halfPI    1.570796327
 #define invPI     0.318309886
 
-#define MIN_LIFETIME 50
-
 #include <cmath>
 
 double kappaSpacer(double tau2, double tau1)

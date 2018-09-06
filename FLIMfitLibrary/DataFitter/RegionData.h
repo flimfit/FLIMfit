@@ -29,42 +29,50 @@
 
 #pragma once
 
+#include <vector>
+#include <memory>
+
+typedef std::vector<float>::iterator float_iterator;
+typedef std::vector<int>::iterator int_iterator;
+
 class RegionData
 {
 public:
    RegionData();
+   RegionData(int data_type, int n_px, int n_meas);
    RegionData(RegionData* region, int px);
-   ~RegionData();
 
    RegionData(const RegionData&) = delete; // delete copy constructor
    
-   RegionData(RegionData&& other);
-   RegionData& operator=( const RegionData& other );
+   RegionData(RegionData&& other) = delete;
+   RegionData& operator=( const RegionData& other ) = delete;
 
    void Clear();
-   void GetPointersForInsertion(int n, float*& y, int*& irf_idx);
-   void GetPointersForArbitaryInsertion(int pos, int n, float*& y, int*& irf_idx);
-   void  GetPointers(float*& y, int*& irf_idx);
-   const RegionData GetBinnedRegion();
+   void GetPointersForInsertion(int n, float_iterator& y, int_iterator& irf_idx);
+   void GetPointersForArbitaryInsertion(int pos, int n, float_iterator& y, int_iterator& irf_idx);
+   void  GetPointers(float_iterator& y, int_iterator& irf_idx);
+   std::shared_ptr<RegionData> GetBinnedRegion();
    int GetSize();
 
 
-   void GetAverageDecay(float* average_decay);
+   void GetAverageDecay(float_iterator average_decay);
 
-   RegionData GetPixel(int px);
+   std::shared_ptr<RegionData> GetPixel(int px);
 
    int data_type;
 
 private:
 
-   RegionData(int data_type, int n_px, int n_meas);
    
    int n_px_max;
    int n_px_cur;
    int n_meas;
 
-   float* data;
-   int* irf_idx;
+   float_iterator data_it;
+   int_iterator irf_idx_it;
+
+   std::vector<float> data;
+   std::vector<int> irf_idx;
 
    bool is_shallow_ptr;
 

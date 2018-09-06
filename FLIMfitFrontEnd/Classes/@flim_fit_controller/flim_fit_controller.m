@@ -77,13 +77,13 @@ classdef flim_fit_controller < flim_data_series_observer
         show_colormap_popupmenu;
         show_limits_popupmenu;
         
-        display_normal = containers.Map('KeyType','char','ValueType','logical');
-        display_merged = containers.Map('KeyType','char','ValueType','logical');
-        plot_names = {};
+        display_normal;
+        display_merged;
+        plot_names;
         plot_data;
-        default_lims = {};
-        plot_lims = containers.Map('KeyType','char','ValueType','any');
-        auto_lim = containers.Map('KeyType','char','ValueType','logical');
+        default_lims;
+        plot_lims;
+        auto_lim;
 
         cur_lims = [];
         invert_colormap = false;
@@ -119,8 +119,15 @@ classdef flim_fit_controller < flim_data_series_observer
             end
             
             obj = obj@flim_data_series_observer(handles.data_series_controller);
-            
             assign_handles(obj,handles);
+            
+            obj.display_normal = containers.Map('KeyType','char','ValueType','logical');
+            obj.display_merged = containers.Map('KeyType','char','ValueType','logical');
+            obj.plot_names = {};
+            obj.default_lims = {};
+            obj.plot_lims = containers.Map('KeyType','char','ValueType','any');
+            obj.auto_lim = containers.Map('KeyType','char','ValueType','logical');
+            
             
             obj.fit_result = flim_fit_result();
             obj.dll_interface = flim_dll_interface();
@@ -224,13 +231,7 @@ classdef flim_fit_controller < flim_data_series_observer
             
             param_name = obj.fit_result.params{param};
             if contains(param_name,' I') || strcmp(param_name,'I') 
-                norm = obj.data_series_controller.data_series.intensity_normalisation;
-                if ~isempty(norm)
-                    norm = norm(:,:,im);
-                    norm = norm / max(norm(:));
-                    param_data = param_data ./ norm;
-                end
-    
+                param_data = obj.normalise_intensity(param_data,im,indexing);
             end
             
         end
@@ -253,15 +254,20 @@ classdef flim_fit_controller < flim_data_series_observer
                 [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
             else
                 [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
-
-                norm = obj.data_series_controller.data_series.intensity_normalisation;
-                if ~isempty(norm)
-                    norm = norm(:,:,im);
-                    norm = norm / max(norm(:));
-                    param_data = param_data ./ norm;
-                end
+                param_data = obj.normalise_intensity(param_data,im,indexing);
             end
                         
+        end
+        
+        function param_data = normalise_intensity(obj,param_data,im,indexing)
+            if strcmp(indexing,'result')
+                im = obj.fit_result.image(im);
+            end
+            norm = obj.data_series_controller.data_series.intensity_normalisation;
+            if ~isempty(norm)
+                norm = norm(:,:,im);
+                param_data = param_data ./ norm;
+            end            
         end
         
         function lims = get_cur_lims(obj,param)
@@ -279,7 +285,6 @@ classdef flim_fit_controller < flim_data_series_observer
         function idx = get_intensity_idx(obj,param)
            
             group = obj.fit_result.group_idx(param);
-            
             if (group == 0)
                 match = strcmp(obj.fit_result.params,'I');
                 idx = find(match,1);
@@ -337,10 +342,10 @@ classdef flim_fit_controller < flim_data_series_observer
         function decay = fitted_decay(obj,t,im_mask,selected)
             
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
-                    decay = NaN;
+                decay = NaN;
             else            
-                    decay = obj.dll_interface.fitted_decay(t,im_mask,selected);
-            end;
+                decay = obj.dll_interface.fitted_decay(t,im_mask,selected);
+            end
 
         end
         

@@ -407,7 +407,7 @@ void FitController::init()
       n_omp_thread = 1;
    
    // TODO: add exception handling here
-   results.reset( new FitResults(model, data, calculate_errors) );
+   results = std::make_shared<FitResults>(model, data, calculate_errors);
 
    // Create fitting objects
    fitters.clear();

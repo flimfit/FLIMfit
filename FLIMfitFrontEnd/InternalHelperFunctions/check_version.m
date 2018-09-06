@@ -5,8 +5,10 @@ function check_version(quiet)
     end
 
     try
-        url = 'http://www.flimfit.org/current-version.txt';
-        new_version = webread(url);
+        url = 'https://www.flimfit.org/current-version.txt';
+        options=weboptions; 
+        options.CertificateFilename=(''); 
+        new_version = webread(url,options);
         [new_version, new_version_str] = process_version(new_version);
         
         if quiet && ispref('GlobalAnalysisFrontEnd','IgnoreNewVersion')

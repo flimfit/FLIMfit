@@ -103,7 +103,7 @@ void Aberration::setupIncMatrix(std::vector<int>& inc, int& row, int& col)
    }
 }
 
-int Aberration::setVariables(const double* params)
+int Aberration::setVariables(const_double_iterator params)
 {
    int idx = 0;
    int i = 0;
@@ -141,11 +141,14 @@ int Aberration::calculateDerivatives(int x, int y, const aligned_vector<double>&
    int col = 0;
    for (int i = 0; i < coeff.size(); i++)
    {
-      for (int j = 0; j < n_col; j++)
+      if (active_parameters[i]->isFittedGlobally())
       {
-         for (int t = 0; t < n_t; t++)
-            b[t + chan * n_t + col * bdim] = a[t + chan * n_t + j * adim] * chan_factor * z[i].at<double>(y, x); // we need to take channel factor out here
-         col++;
+         for (int j = 0; j < n_col; j++)
+         {
+            for (int t = 0; t < n_t; t++)
+               b[t + chan * n_t + col * bdim] = a[t + chan * n_t + j * adim] * chan_factor * z[i].at<double>(y, x); // we need to take channel factor out here
+            col++;
+         }
       }
    }
 

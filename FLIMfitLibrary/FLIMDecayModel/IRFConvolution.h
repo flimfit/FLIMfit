@@ -27,16 +27,15 @@
 //
 //=========================================================================
 
-#ifndef _IRFCONV_H
-#define _IRFCONV_H
+#pragma once
 
 //void alf2beta(int n, const double* alf, double beta[]);
 //double beta_derv(int n_beta, int alf_idx, int beta_idx, const double alf[]);
 
 #include <cmath>
 
-template <typename T>
-void alf2beta(int n, const T* alf, T beta[])
+template <typename ita, typename itb>
+void alf2beta(int n, const ita alf, itb beta)
 {
    // For example if there are four components
    // beta[0] =                              alf[0] 
@@ -61,8 +60,9 @@ void alf2beta(int n, const T* alf, T beta[])
 
 }
 
-template <typename T>
-T alf2beta(int n, const T* alf, int j)
+/*
+template <typename it>
+T alf2beta(int n, const it alf, int j)
 {
    T beta = 1;
    for(int i=0; i<(j-1); i++)
@@ -75,9 +75,10 @@ T alf2beta(int n, const T* alf, int j)
 
    return beta;
 }
+*/
 
-template <typename T>
-double beta_derv(int n_beta, int alf_idx, int beta_idx, const T alf[])
+template <typename it>
+double beta_derv(int n_beta, int alf_idx, int beta_idx, it alf)
 {
    double d;
 
@@ -101,6 +102,3 @@ double beta_derv(int n_beta, int alf_idx, int beta_idx, const T alf[])
    return d;
 }
 
-
-
-#endif

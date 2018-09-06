@@ -21,11 +21,11 @@ public:
    void setNumAnisotropyPopulations(int n_anisotropy_populations_);
    void setIncludeRInf(bool include_r_inf_);
 
-   int setVariables(const double* variables);
-   int calculateModel(double* a, int adim, double& kap);
-   int calculateDerivatives(double* b, int bdim, double_iterator& kap_derv);
-   int getNonlinearOutputs(float* nonlin_variables, float* output, int& nonlin_idx);
-   int getLinearOutputs(float* lin_variables, float* output, int& lin_idx);
+   int setVariables(const_double_iterator variables);
+   int calculateModel(double_iterator a, int adim, double& kap);
+   int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
+   int getNonlinearOutputs(float_iterator nonlin_variables, float_iterator output, int& nonlin_idx);
+   int getLinearOutputs(float_iterator lin_variables, float_iterator output, int& lin_idx);
    void setupIncMatrix(std::vector<int>& inc, int& row, int& col);
 
    std::vector<std::string> getLinearOutputParamNames();
@@ -34,8 +34,8 @@ protected:
 
    void setupParameters();
    
-   int addLifetimeDerivativesForAnisotropy(int idx, double* b, int bdim, double& kap);
-   int addRotationalCorrelationTimeDerivatives(double* b, int bdim, double kap_derv[]);
+   int addLifetimeDerivativesForAnisotropy(int idx, double_iterator b, int bdim, double& kap);
+   int addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double kap_derv[]);
 
    void setupChannelFactors();
 

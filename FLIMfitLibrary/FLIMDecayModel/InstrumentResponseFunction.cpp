@@ -52,32 +52,6 @@ InstrumentResponseFunction::InstrumentResponseFunction() :
 }
 
 
-void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_, double timebin_width_, double* irf)
-{
-   n_chan       = n_chan_;
-   n_irf_rep    = 1;
-   image_irf    = false;
-   t0_image     = NULL;
-   variable_irf = false;
-
-   timebin_t0    = timebin_t0_;
-   timebin_width = timebin_width_; 
-
-   copyIRF(n_t, irf);
-
-   // Check normalisation of IRF
-   for (int i = 0; i < n_chan; i++)
-   {
-      double sum = 0;
-      for (int j = 0; j < n_t; j++)
-         sum += irf[n_t * i + j];
-      if(fabs(sum - 1.0) > 0.1)
-         throw std::runtime_error("IRF is not correctly normalised");
-   }
-
-   calculateGFactor();
-}
-
 void InstrumentResponseFunction::setGaussianIRF(std::vector<GaussianParameters> gaussian_params_)
 {
    gaussian_params = gaussian_params_;
@@ -92,8 +66,6 @@ int InstrumentResponseFunction::getNumChan()
       return n_chan;
 }
 
-
-
 void InstrumentResponseFunction::setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess)
 { 
    // TODO
@@ -106,16 +78,16 @@ double InstrumentResponseFunction::getT0()
    return timebin_t0 + t0;
 }
 
-double* InstrumentResponseFunction::getIRF(int irf_idx, double t0_shift, double* storage)
+double_iterator InstrumentResponseFunction::getIRF(int irf_idx, double t0_shift, double_iterator storage)
 {
    if (image_irf)
-      return irf.data() + irf_idx * n_irf * n_chan;
+      return irf.begin() + irf_idx * n_irf * n_chan;
 
    if (t0_image)
       t0_shift = t0_image[irf_idx];
 
    if (t0_shift == 0.0)
-      return irf.data();
+      return irf.begin();
 
    shiftIRF(t0_shift, storage);
    return storage;
@@ -123,7 +95,7 @@ double* InstrumentResponseFunction::getIRF(int irf_idx, double t0_shift, double*
 
 
 
-void InstrumentResponseFunction::shiftIRF(double shift, double storage[])
+void InstrumentResponseFunction::shiftIRF(double shift, double_iterator storage)
 {
    int i;
 
@@ -168,25 +140,6 @@ void InstrumentResponseFunction::allocateBuffer(int n_irf_raw)
    irf.resize(irf_size);
 }
 
-void InstrumentResponseFunction::copyIRF(int n_irf_raw, double* irf_)
-{
-   // Copy IRF, padding to ensure we have an even number of points so we can 
-   // use SSE primatives in convolution
-   //------------------------------
-   allocateBuffer(n_irf_raw);
-      
-   for(int j=0; j<n_irf_rep; j++)
-   {
-      int i;
-      for(i=0; i<n_irf_raw; i++)
-         for(int k=0; k<n_chan; k++)
-             irf[(j*n_chan+k)*n_irf+i] = irf_[(j*n_chan+k)*n_irf_raw+i];
-      for(; i<n_irf; i++)
-         for(int k=0; k<n_chan; k++)
-            irf[(j*n_chan+k)*n_irf+i] = 0;
-   }
-
-}
 
 /** 
  * Calculate g factor for polarisation resolved data

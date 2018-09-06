@@ -76,16 +76,16 @@ public:
    bool isFittedLocally() { return fitting_type == FittedLocally; }
    bool isFittedGlobally() { return (fitting_type == FittedGlobally) && !constrained; }
    bool isConstrained() { return constrained; }
-   template<typename T, typename U>
-   T getValue(const U* value, int& idx)
+   template<typename T, typename it>
+   T getValue(it value, int& idx)
    {
       if (fitting_type == FittedGlobally)
          return static_cast<T>(value[idx++]);
       return static_cast<T>(initial_value);
    }
 
-   template<typename T, typename U>
-   T getValue(const U* value, int& idx, const double* lin_value, int& lin_idx)
+   template<typename T, typename it>
+   T getValue(it value, int& idx, const double* lin_value, int& lin_idx)
    {
       if (fitting_type == FittedGlobally)
          return static_cast<T>(value[idx++]);

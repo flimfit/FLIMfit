@@ -33,13 +33,9 @@ function appDir = getapplicationdatadir(appicationName, doCreate, local)
 
 if ispc
     if local
-        allAppDir = winqueryreg('HKEY_CURRENT_USER',...
-            ['Software\Microsoft\Windows\CurrentVersion\' ...
-            'Explorer\Shell Folders'],'Local AppData');
+        allAppDir = getenv('localappdata');
     else
-        allAppDir = winqueryreg('HKEY_CURRENT_USER',...
-            ['Software\Microsoft\Windows\CurrentVersion\' ...
-            'Explorer\Shell Folders'],'AppData');
+        allAppDir = getenv('appdata');  
     end
     appDir = fullfile(allAppDir, appicationName,[]);
 else

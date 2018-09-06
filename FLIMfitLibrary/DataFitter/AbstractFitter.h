@@ -77,12 +77,14 @@ public:
    virtual void fitFcn(int nl, std::vector<double>& alf, int& niter, int& ierr) = 0;
    virtual void getLinearParams() = 0;
    
-   int fit(RegionData& region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
-   int getFit(int irf_idx, const std::vector<double>& alf, float* lin_params, double* fit);
+   int fit(std::shared_ptr<RegionData> region_data, FitResultsRegion& results, int itmax, int& niter, int &ierr, double& c2);
+   int getFit(int irf_idx, const std::vector<double>& alf, float_iterator lin_params, double* fit);
    double errMinFcn(double x);
    int calculateErrors(double conf_limit);
 
-   void setVariables(const double* alf_);
+   template<typename it>
+   void setVariables(it alf_);
+
    void getModel(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& a);
    void getDerivatives(std::shared_ptr<DecayModel> model, int irf_idx, aligned_vector<double>& b, const aligned_vector<double>& a);
 
@@ -110,25 +112,25 @@ protected:
    std::vector<double> alf_err;
    std::vector<double> alf_buf;
 
-   int     n;
-   int     nl;
-   int     ndim;
-   int     nmax;
-   int     s;
-   int     l;
-   int     lmax;
-   int     n_param;
-   int     p;
-   int     pmax;
+   int n;
+   int nl;
+   int ndim;
+   int nmax;
+   int s;
+   int l;
+   int lmax;
+   int n_param;
+   int p;
+   int pmax;
 
-   int     max_region_size;
+   int max_region_size;
 
-   float*  y;
+   float_iterator y;
    std::vector<float> w;
    std::vector<float> avg_y;
-   float *lin_params;
-   float *chi2;
-   int    *irf_idx;
+   float_iterator lin_params;
+   float_iterator chi2;
+   int_iterator irf_idx;
 
    float chi2_norm;
    double* cur_chi2;
@@ -159,5 +161,23 @@ private:
    int a_size;
    int b_size;
 
-   int irf_idx_0;
+   std::vector<int> irf_idx_0 = {0};
 };
+
+
+template<typename it>
+void AbstractFitter::setVariables(it alf_)
+{
+   std::copy(alf_, alf_ + nl, alf.begin());
+
+   int idx = 0;
+   for (int i = 0; i<nl; i++)
+   {
+      if (i == fixed_param)
+         params[i] = fixed_value_cur;
+      else
+         params[i] = alf[idx++];
+   }
+
+   model->setVariables(params);
+}
