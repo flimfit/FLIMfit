@@ -34,6 +34,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/version.hpp>
 #include <vector>
+#include <cmath>
  
 class GaussianParameters
 {
@@ -160,7 +161,7 @@ void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_
       double sum = 0;
       for (int j = 0; j < n_t; j++)
          sum += irf[n_t * i + j];
-      if (fabs(sum - 1.0) > 0.1)
+      if (std::fabs(sum - 1.0) > 0.1)
          throw std::runtime_error("IRF is not correctly normalised");
    }
 
