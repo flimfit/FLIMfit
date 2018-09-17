@@ -29,6 +29,9 @@
 
 project(DataFitter)
 
+find_package(dlib REQUIRED)
+set_target_properties(dlib::dlib PROPERTIES MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
+
 # Set the source and header files
 #===================================================
 set(SOURCE
@@ -72,6 +75,6 @@ set(HEADERS
 # Make library
 #===================================================
 add_library(DataFitter STATIC ${SOURCE} ${HEADERS})
-target_link_libraries(DataFitter PUBLIC Qt5::Core FLIMDecayModel levmar ${LEVMAR_LIBRARIES})
+target_link_libraries(DataFitter PUBLIC Qt5::Core FLIMDecayModel levmar ${LEVMAR_LIBRARIES} dlib::dlib)
 target_include_directories(DataFitter INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
                                       PUBLIC ${LEVMAR_INCLUDE_DIRS})
