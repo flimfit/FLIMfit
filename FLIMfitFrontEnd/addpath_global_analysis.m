@@ -27,12 +27,12 @@ function addpath_global_analysis()
 
     if ~isdeployed
 
-        if ~exist(['matlab-ui-common' filesep 'icons.mat'],'file')
+        thisdir = [fileparts( mfilename( 'fullpath' ) ) filesep];
+        if ~exist([thisdir 'matlab-ui-common' filesep 'icons.mat'],'file')
             disp('Warning: Submodules have not been checked out.');
             disp('Please run "git submodule update --recursive" on the commandline first');
         end
         
-        thisdir = fileparts( mfilename( 'fullpath' ) );
         addpath( thisdir,...
                 [thisdir filesep 'Classes'],...
                 [thisdir filesep 'Classes' filesep 'DataReaders'],...
@@ -54,7 +54,7 @@ function addpath_global_analysis()
                 [thisdir filesep 'FLIMfitMex'],...
                 [matlabroot filesep 'toolbox' filesep 'images' filesep 'images']);
         
-        thirdpartydir = [thisdir filesep 'ThirdParty'];
+        thirdpartydir = [thisdir 'ThirdParty'];
         if ~exist(thirdpartydir,'dir')
             mkdir(thirdpartydir)
         end
@@ -64,12 +64,11 @@ function addpath_global_analysis()
         get_iterVSTpoisson();    
 
             
-            
-        nicyDirs = dir([thisdir filesep 'ICY_Matlab']); 
+        nicyDirs = dir([thisdir 'ICY_Matlab']); 
         if length(nicyDirs) > 3
             addpath( ...
-                [thisdir filesep 'ICY_Matlab' filesep 'matlabcommunicator'],... 
-                [thisdir filesep 'ICY_Matlab' filesep 'matlabxserver']);  
+                [thisdir 'ICY_Matlab' filesep 'matlabcommunicator'],... 
+                [thisdir 'ICY_Matlab' filesep 'matlabxserver']);  
         end
                                         
         

@@ -79,7 +79,8 @@ function new_segmentation_manager(data_series_controller)
 
         brush_layout = uix.HBox('Parent',check_layout);
         uicontrol('Style','text','String','Brush Width','Parent',brush_layout);
-        handles.brush_width_popup = uicontrol('Style','popupmenu','String',{'1','2','3','4','5','6','7','8','9','10'},'Parent',brush_layout,'Value',6);
+        brush_widths = arrayfun(@num2str,1:20,'UniformOutput',false);
+        handles.brush_width_popup = uicontrol('Style','popupmenu','String',brush_widths,'Parent',brush_layout,'Value',6);
         set(brush_layout,'Width',[70 -1]);
         uix.Empty('Parent',check_layout);
         

@@ -15,4 +15,3 @@ echo "Ensure cmake, gcc and boost are installed..."
 (brew list | grep dlib) && echo " installed" || brew install --build-from-source dlib
 (brew list | grep boost) && echo " installed" || brew install boost
 (brew list | grep opencv) && echo " installed" || brew install opencv
-brew upgrade cmake
