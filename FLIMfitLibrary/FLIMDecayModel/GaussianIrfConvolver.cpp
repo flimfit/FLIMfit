@@ -121,13 +121,13 @@ void GaussianChannelConvolver::computeQ(double rate_, aligned_vector<double>& Q)
 
    double Qlast = 0;
    double Qthis = (erf(bta) + c) * e0;
-   for (int i = 0; i < A.size(); i++)
+   for (int i = 0; i < P.size(); i++)
    {
       Qlast = Qthis;
       bta += dta;
       e0 *= de;
       Qthis = (erf(bta) + c) * e0;
-      Qm[i] = (Qthis - Qlast) + tau * P[i];
+      Q[i] = (Qthis - Qlast) + tau * P[i];
    }
 #endif
 
@@ -135,12 +135,12 @@ void GaussianChannelConvolver::computeQ(double rate_, aligned_vector<double>& Q)
 
 void GaussianChannelConvolver::add(double fact, double_iterator decay, const aligned_vector<double>& Q) const
 {
-#ifdef AVX
+#ifdef _TODO_AVX_ // decay may not be multiple of 4
    __m256d factm = _mm256_set1_pd(fact / dt);
    __m256d* decaym = (__m256d*) &decay[0];
    __m256d* Qm = (__m256d*) Q.data();
    for (int i = 0; i < n_tm; i++)
-   {
+   {  
       __m256d Qfm = _mm256_mul_pd(Qm[i], factm);
       decaym[i] = _mm256_add_pd(decaym[i], Qfm);
    }
