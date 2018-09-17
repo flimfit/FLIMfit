@@ -109,6 +109,9 @@ protected:
    std::vector<std::shared_ptr<FittingParameter>> tauA_parameters;
    std::vector<std::shared_ptr<FittingParameter>> betaA_parameters;
 
+   double a_star(int i, int k, int j, int m);
+   double k_transfer(int i, int k);
+
    std::vector<double> acceptor_channel_factors;
    std::vector<double> norm_acceptor_channel_factors;
 
@@ -119,14 +122,12 @@ protected:
    bool include_acceptor = true;
    bool use_static_model = true;
    
-   std::vector<std::vector<std::vector<std::vector<double>>>> a_star;
-   std::vector<std::vector<double>> tau_transfer;
-   std::vector<std::vector<std::vector<double>>> tau_fret;
    double A;
    double Q;
    double Qsigma;
    
-   std::vector<double> tauA;
+   std::vector<double> k_transfer_0;
+   std::vector<double> k_A;
    std::vector<double> betaA;
 
    std::vector<std::vector<std::vector<std::shared_ptr<AbstractConvolver>>>> fret_buffer;
