@@ -65,7 +65,7 @@ else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
 
 
-link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
+#link_directories(${LAPACKBLAS_DIR}) # lapack doesn't give us the right path
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 
 target_link_libraries(TestHarness FLIMfit DataFitter FLIMDecayModel levmar
