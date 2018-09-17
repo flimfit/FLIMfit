@@ -13,7 +13,6 @@ template<class T, std::size_t Alignment = 32>
 using aligned_vector = std::vector<T,
    boost::alignment::aligned_allocator<T, Alignment> >;
 
-typedef aligned_vector<double>::iterator aligned_iterator;
 typedef std::vector<double>::iterator double_iterator;
 
 class AbstractConvolver

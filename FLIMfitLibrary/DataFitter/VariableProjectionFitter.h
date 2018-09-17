@@ -52,12 +52,14 @@ private:
    
    void setupWeighting();
 
-   int getResidualNonNegative(const double* alf, double *rnorm, int isel, int thread);
+   template<typename it>
+   int getResidualNonNegative(const it alf, double *rnorm, int isel, int thread);
 
    int prepareJacobianCalculation(const double* alf, double *rnorm, double *fjrow, int thread);
    int getJacobianEntry(const double* alf, double *rnorm, double *fjrow, int row, int thread);
 
-   void calculateWeights(int px, const double* alf, double* wp);
+   template<typename it>
+   void calculateWeights(int px, it alf, double* wp);
 
    void resample(aligned_vector<double>& a, int ndim, int ncol);
 

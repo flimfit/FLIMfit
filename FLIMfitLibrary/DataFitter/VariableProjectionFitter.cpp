@@ -22,6 +22,8 @@
 #include <algorithm>
 #include <atomic>
 
+#include <dlib/global_optimization.h>
+
 using std::min;
 using std::max;
 
@@ -31,6 +33,8 @@ using std::max;
 
 #include "ConcurrencyAnalysis.h"
 
+
+typedef dlib::matrix<double, 0, 1> column_vector;
 
 VariableProjectionFitter::VariableProjectionFitter(std::shared_ptr<DecayModel> model, int max_region_size, WeightingMode weighting, GlobalAlgorithm global_algorithm, int n_thread, FittingOptions options, std::shared_ptr<ProgressReporter> reporter) :
     AbstractFitter(model, 0, max_region_size, global_algorithm, n_thread, options, reporter), weighting(weighting)
@@ -213,11 +217,47 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       }
 
 
-   bool initial_grid_search = !options.use_numerical_derivatives;
+   int n_grid = std::count_if(global_parameters.begin(), global_parameters.end(), [](std::shared_ptr<FittingParameter>& p) { return p->initial_search; });
+   bool initial_grid_search = !options.use_numerical_derivatives && (n_grid > 0);
    if (initial_grid_search)
    {
+      auto get_all = [&](column_vector x) -> std::vector<double>
+      {
+         std::vector<double> x0(nl);
+         auto it = x0.begin();
+         auto xit = x.begin();
+         for (auto& p : global_parameters)
+            *(it++) = (p->initial_search) ? *(xit++) : p->initial_value;
+         return x0;
+      };
 
+      auto fcn = [&](column_vector x) -> double
+      {
+         double rnorm;
+         auto x0 = get_all(x);
+         setVariables(x0.begin());
+         getResidualNonNegative(x0.begin(), &rnorm, 0, 0);
+         return rnorm;
+      };
 
+      column_vector lb(n_grid), ub(n_grid);
+      int idx = 0;
+      for (auto& p : global_parameters)
+      {
+         if (p->initial_search)
+         {
+            lb(idx) = p->initial_min;
+            ub(idx) = p->initial_max;
+            idx++;
+         }
+      }
+
+      auto ans = dlib::find_min_global(fcn, lb, ub, dlib::max_function_calls(100));
+
+      auto x0 = get_all(ans.x);
+      std::copy(x0.begin(), x0.end(), initial.begin());
+
+      /*
       int n_initial = 10;
 
 
@@ -249,6 +289,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
             best_value = rnorm;
          }
       }
+      */
    }
 
    if (iterative_weighting)
@@ -357,7 +398,7 @@ void VariableProjectionFitter::setupWeighting()
 void VariableProjectionFitter::getLinearParams()
 {
    if (fit_successful)
-      getResidualNonNegative(alf.data(), fvec, -1, 0);
+      getResidualNonNegative(alf.begin(), fvec, -1, 0);
 }
 
 
@@ -422,8 +463,8 @@ int VariableProjectionFitter::getJacobianEntry(const double* alf, double *rnorm,
    return 0;
 }
 
-
-int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *rnorm, int iflag, int thread)
+template<typename it>
+int VariableProjectionFitter::getResidualNonNegative(it alf, double *rnorm, int iflag, int thread)
 {
    int get_lin = (iflag == -1);
 
@@ -503,7 +544,8 @@ int VariableProjectionFitter::getResidualNonNegative(const double* alf, double *
    return iflag;
 }
 
-void VariableProjectionFitter::calculateWeights(int px, const double* alf, double* wp)
+template<typename it>
+void VariableProjectionFitter::calculateWeights(int px, it alf, double* wp)
 {
    auto yp = this->y + px * n;
    

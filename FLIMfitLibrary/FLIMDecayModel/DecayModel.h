@@ -78,8 +78,8 @@ public:
 
    void setupIncMatrix(std::vector<int>& inc);
    void setVariables(const std::vector<double>& alf);
-   int calculateModel(aligned_vector<double>& a, int adim, std::vector<double>& kap, int irf_idx);
-   int calculateDerivatives(aligned_vector<double>& b, int bdim, const aligned_vector<double>& a, int adim, int n_col, std::vector<double>& kap, int irf_idx);
+   int calculateModel(double_iterator a, int adim, double_iterator kap, int irf_idx);
+   int calculateDerivatives(double_iterator b, int bdim, const_double_iterator a, int adim, int n_col, double_iterator kap, int irf_idx);
    void getWeights(float_iterator y, float_iterator a, const std::vector<double>& alf, float_iterator lin_params, double_iterator w, int irf_idx);
    float_iterator getConstantAdjustment() { return adjust_buf.begin(); };
 
@@ -134,6 +134,8 @@ protected:
    int n_chan = 0; // for before transformed data parameters has been set
 
 private:
+
+   std::vector<std::vector<double>> last_variables;
 
    double t0_shift;
    double reference_lifetime;
