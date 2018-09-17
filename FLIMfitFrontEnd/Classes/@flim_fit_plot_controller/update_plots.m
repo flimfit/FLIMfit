@@ -101,7 +101,7 @@ function update_plots(obj,file_root)
                 if f.display_normal(f.plot_names{plot_idx})
                     
                     [fig, im_data, lims] = obj.plot_figure2(cur_im, plot_idx, false, options, indexing);
-                    figs{subplot_idx} = fig;
+                    figs{subplot_idx} = double(fig);
                     
                     description = ['Limits: ' num2str(lims(1)) ' - ' num2str(lims(2))];
                                         
@@ -116,7 +116,7 @@ function update_plots(obj,file_root)
                 if f.display_merged(f.plot_names{plot_idx})
                     
                     [fig, ~, lims] = obj.plot_figure2(cur_im, plot_idx, true, options, indexing);
-                    figs{subplot_idx} = fig;
+                    figs{subplot_idx} = double(fig);
                     
                     description = ['Limits: ' num2str(lims(1)) ' - ' num2str(lims(2))];
                     
@@ -133,6 +133,12 @@ function update_plots(obj,file_root)
     
     if ~save 
         if f.n_plots > 0
+            
+            if verLessThan('matlab','9.4')
+                figs = reshape(figs,[1 1 1 length(figs)]);
+                figs = cell2mat(figs);            
+            end
+            
             montage(figs,'Size',[m n],'Parent',obj.plot_axes);
     
         else
