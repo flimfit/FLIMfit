@@ -190,6 +190,7 @@ classdef tools_menu_controller < handle
         end
 		
         function menu_tools_edit_pattern_library(obj)
+            pattern_library_ui();
         end
         
         function menu_tools_denoise(obj)

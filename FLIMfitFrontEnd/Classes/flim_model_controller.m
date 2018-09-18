@@ -293,6 +293,7 @@ classdef flim_model_controller < handle
             type = add_popup.String{add_popup.Value};
             if strcmp(type,'Pattern')
                [pattern,name] = get_library_pattern();
+               pattern = mat2cell(pattern,size(pattern,1),ones(1,size(pattern,2)));
                if ~isempty(pattern)
                    ff_DecayModel(obj.model,'AddDecayGroup',type,pattern,name);
                end

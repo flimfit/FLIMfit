@@ -28,6 +28,8 @@ function ui = FLIMfit()
 
 addpath_global_analysis();
 
+upgrade_pattern_library();
+
 ui = flim_fit_ui(false);
 check_version(true);
 
