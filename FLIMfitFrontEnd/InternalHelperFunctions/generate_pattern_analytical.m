@@ -8,17 +8,17 @@ function pattern = generate_pattern_analytical(td, d, mu, sigma, T, fit_ax, res_
 
     count = 0;
     
-    tau = [500 1000 5000];
+    tau = [100 1000 8000];
     beta = [0.33 0.33 0.33];
     offset = 0;
     I = 1;
         
-    fminsearch(@fit,[log(tau-50) beta(1:(end-1)) offset], opts);
+    fminsearch(@fit,[log(tau-50) beta(1:(end-1))], opts);
        
     beta = beta * I;
     offset = offset * I;
     
-    pattern = [tau(1) beta(1) tau(2) beta(2) tau(3) beta(3) offset];
+    pattern = [tau(1) beta(1) tau(2) beta(2) tau(3) beta(3) 0];
     tau
     beta
     offset
@@ -28,7 +28,7 @@ function pattern = generate_pattern_analytical(td, d, mu, sigma, T, fit_ax, res_
         tau = exp(x(1:3)) + 50; % Constrain tau above 50ps
         beta = x(4:5);
         beta(3) = 1 - sum(beta);
-        offset = x(6);
+        %offset = x(6);
 
         dc = offset;
         for i=1:length(tau)
