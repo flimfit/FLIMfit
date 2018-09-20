@@ -111,6 +111,22 @@ classdef tools_menu_controller < handle
             estimate_irf_interface(t,data,T,analytical,default_path);
             
         end
+        
+        function menu_tools_fit_pol_resolved_irf(obj)
+
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            T = 1e6 / d.rep_rate;
+            
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = sum(double(data),3);
+            
+            estimate_polarisation_resolved_irf_interface(t,data,T,default_path);
+            
+        end
+
 
         
         function menu_tools_create_tvb_intensity_map(obj)
@@ -124,7 +140,7 @@ classdef tools_menu_controller < handle
                 choice = questdlg('Do you want to export t0 shift data to the current OMERO server or save to disk?', ' ', ...
                                         'Omero' , ...
                                         'disk','Cancel','Cancel');  
-                if strcmp( choice, 'Cancel'), return, end; 
+                if strcmp( choice, 'Cancel'), return, end
                 if strcmp( choice, 'Omero')
                     [filename,pathname, dataset] = obj.data_series_controller.data_series.prompt_for_export('filename', '', '.xml');
                     OMEROsave = true;
@@ -173,7 +189,7 @@ classdef tools_menu_controller < handle
             d = obj.data_series_controller.data_series;
             estimate_irf_shift(d.tr_t_irf,d.tr_irf);
         end
-        
+                
         function menu_tools_add_pattern(obj)
             
             d = obj.data_series_controller.data_series;
