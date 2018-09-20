@@ -224,7 +224,7 @@ classdef flim_model_controller < handle
             elseif islogical(value)
                 set(h.control,'Value',value+1,'Callback',@(src,evt) obj.update_parameter(group_idx, name, src.Value-1));
             elseif isnumeric(value)
-                set(h.control,'String',num2str(value,'Callback',@(src,evt) obj.update_parameter(group_idx, name, str2double(src.String))));
+                set(h.control,'String',num2str(value),'Callback',@(src,evt) obj.update_parameter(group_idx, name, str2double(src.String)));
             else
                 uix.Empty('Parent',h.layout);
             end
