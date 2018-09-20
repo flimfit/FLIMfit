@@ -27,7 +27,7 @@
 #
 #=========================================================================
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.5)
 
 project(TestHarness)
 
@@ -50,15 +50,6 @@ else(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
 endif()
 
 
-# Include the BOOST header files
-#===================================================
-FIND_PACKAGE(Boost)
-if(Boost_FOUND)
-    INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-else()
-    include_directories( "../Boost" )
-endif()
-
 # Set the source and header files
 #===================================================
 set(SOURCE
@@ -70,17 +61,6 @@ set(HEADERS
    FLIMSimulation.h
    QR_test.h
 )
-
-# Add _32/_64 appendix to library
-#===================================================
-if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_64" )
-else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-   set( LIB_NAME "FLIMGlobalAnalysis_32" ) 
-endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-
-
-
 
 add_executable(TestHarness ${SOURCE} ${HEADERS} )
 

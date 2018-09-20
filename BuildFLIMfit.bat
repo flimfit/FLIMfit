@@ -18,7 +18,8 @@ if %MSVC_VER%==15 (set GENERATOR="Visual Studio %MSVC_VER% Win64"
 :: Build main library
 echo Cleaning CMake Project
 SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64
-rmdir %PROJECT_DIR% /s /q
+
+if "%1"=="--clean" rmdir %PROJECT_DIR% /s /q
 mkdir %PROJECT_DIR%
 echo Generating CMake Project in: %PROJECT_DIR%, using %GENERATOR%
 cmake -G %GENERATOR% -H. -B%PROJECT_DIR% -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%"
@@ -30,11 +31,11 @@ if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 :: Build FlimReader mex file
 echo Cleaning CMake Project
 SET PROJECT_DIR=GeneratedProjects\MSVC%MSVC_VER%_64_FLIMreader
-rmdir %PROJECT_DIR% /s /q
+if "%1"=="--clean" rmdir %PROJECT_DIR% /s /q
 mkdir %PROJECT_DIR%
 echo Generating CMake Project in: %PROJECT_DIR%, using %GENERATOR%
 cmake -G %GENERATOR% -HFLIMfitLibrary\FLIMreader -B%PROJECT_DIR% -DCMAKE_TOOLCHAIN_FILE="%TOOLCHAIN_FILE%" -DNO_CUDA=1^
-      -DVCPKG_TARGET_TRIPLET=x64-windows-static -DFlimReaderMEX_OUT_DIR="%CD%\FLIMfitFrontEnd\Libraries" -DCMAKE_BUILD_TYPE=Release
+      -DVCPKG_TARGET_TRIPLET=x64-windows-static -DFlimReaderMEX_OUT_DIR="%CD%\FLIMfitFrontEnd\Libraries"
 if %ERRORLEVEL% GEQ 1 EXIT /B %ERRORLEVEL%
 echo Building 64bit Project in Release mode
 cmake --build %PROJECT_DIR% --config Release
