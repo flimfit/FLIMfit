@@ -998,9 +998,9 @@ function(matlab_add_mex)
       set(_previous_link_flags)
     endif()
 
-    #set_target_properties(${${prefix}_NAME} 
-    #  PROPERTIES
-    #    LINK_FLAGS "${_previous_link_flags} /EXPORT:mexFunction")
+    set_target_properties(${${prefix}_NAME} 
+      PROPERTIES
+        LINK_FLAGS "${_previous_link_flags} /EXPORT:mexFunction")
   endif()
 
   if(WIN32)
