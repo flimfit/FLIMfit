@@ -9,6 +9,10 @@ function export_segmented_regions(obj, path)
             mask = obj.seg_mask(:,:,i);            
         end
         
+        if ~isempty(obj.multid_mask)
+            mask(~obj.multid_mask(:,:,i)) = 0;
+        end
+        
         n = max(mask(:));
         
         for j=1:n
