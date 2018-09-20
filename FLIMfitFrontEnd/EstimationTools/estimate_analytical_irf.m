@@ -8,15 +8,15 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, T, f
     opts = optimset('MaxFunEvals', 10000);
 
     tau0 = 4000;
-    tau2 = 1000;
-    beta = 1;
+    theta0 = 400;
+    a0 = 0.55;
     sigma0 = 300;
 
     [~,idx] = max(decay);
     t0 = t(idx) - sigma0;
 
     count = 0;
-    [x,chi2_final] = fminsearch(@fit, [tau0, tau2, beta, t0, sigma0, 1e-1], opts);
+    [x,chi2_final] = fminsearch(@fit, [tau0, theta0, a0, t0, sigma0, 1e-1], opts);
     
     count = 0;
     fit(x);
@@ -28,22 +28,24 @@ function [analytical_params,chi2_final] = estimate_analytical_irf(t, decay, T, f
     % Display Results
     disp(['t0: ' num2str(x(4)) ' ps']);
     disp(['sigma: ' num2str(x(5)) ' ps']);
-    disp(['tau: ' num2str(x(1)) ' ps']);
-    disp(['offset: ' num2str(x(4))]);
+    disp(['tau: ' num2str(x(1:2)) ' ps, ' num2str(x(3))]);
+    disp(['offset: ' num2str(x(6))]);
     
     function chi2 = fit(x)
         tau = x(1);
-        tau2 = x(2);
-        beta = x(3);
+        theta = x(2);
+        a = x(3);
         t0 = x(4);
         sigma = x(5);
-        offset = x(6);
+        offset = 0;  x(6);
         
         irf = normpdf(t_irf, t0, sigma);
-        analytical_decay = generate_decay_analytical_irf(t, dt, T, tau, t0, sigma);
-        analytical_decay2 = generate_decay_analytical_irf(t, dt, T, tau2, t0, sigma);
+        F = generate_decay_analytical_irf(t, dt, T, tau, t0, sigma);
+        Fr = generate_decay_analytical_irf(t, dt, T, 1/(1/tau+1/theta), t0, sigma);
         
-        analytical_decay = beta * analytical_decay + (1-beta) * analytical_decay2 + offset;
+        g = 0.9;
+        
+        analytical_decay = (1+g) * F + (2*g-1)*(1-a) / 0.9 * Fr + offset;
         
         I = analytical_decay \ decay;
         analytical_decay = I * analytical_decay;
