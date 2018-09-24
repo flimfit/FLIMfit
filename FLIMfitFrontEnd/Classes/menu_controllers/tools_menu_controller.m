@@ -78,57 +78,6 @@ classdef tools_menu_controller < handle
                         
         end
         
-        function menu_tools_fit_gaussian_irf(obj)
-            
-            d = obj.data_series_controller.data_series;
-            mask = obj.data_masking_controller.roi_controller.roi_mask;
-
-            T = 1e6 / d.rep_rate;
-            
-            t = d.tr_t(:);
-            data = d.get_roi(mask,obj.data_series_list.selected);
-            data = sum(double(data),3);
-            
-            analytical = false;
-            
-            estimate_irf_interface(t,data,T,analytical,default_path);
-            
-        end
-
-        function menu_tools_fit_analytical_irf(obj)
-            
-            d = obj.data_series_controller.data_series;
-            mask = obj.data_masking_controller.roi_controller.roi_mask;
-
-            T = 1e6 / d.rep_rate;
-            
-            t = d.tr_t(:);
-            data = d.get_roi(mask,obj.data_series_list.selected);
-            data = sum(double(data),3);
-            
-            analytical = true;
-            
-            estimate_irf_interface(t,data,T,analytical,default_path);
-            
-        end
-        
-        function menu_tools_fit_pol_resolved_irf(obj)
-
-            d = obj.data_series_controller.data_series;
-            mask = obj.data_masking_controller.roi_controller.roi_mask;
-
-            T = 1e6 / d.rep_rate;
-            
-            t = d.tr_t(:);
-            data = d.get_roi(mask,obj.data_series_list.selected);
-            data = sum(double(data),3);
-            
-            estimate_polarisation_resolved_irf_interface(t,data,T,default_path);
-            
-        end
-
-
-        
         function menu_tools_create_tvb_intensity_map(obj)
 
             mask=obj.data_masking_controller.roi_controller.roi_mask;
@@ -228,6 +177,17 @@ classdef tools_menu_controller < handle
                 end
                 close(h);
             end
+        end
+        
+        function menu_tools_spectral_calibration(obj)
+
+            [file,path] = uigetfile({'*.sdt;*.tif;*.tiff;*.msr;*.bin;*.pt3;*.ptu;*.ffd;*.ffh;*.spc'},...
+                'Choose Files',default_path);
+           
+            if file ~= 0
+                GenerateDetectorCorrection([path filesep file]);
+            end
+            
         end
         
         function menu_tools_estimate_q_q_sigma(obj)

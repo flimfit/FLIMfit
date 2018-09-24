@@ -138,6 +138,10 @@ function handles = setup_menu(obj,handles)
   
     handles.menu_irf_recent = uimenu(menu_irf,'Label','Load Recent');
     
+    handles.menu_irf_fit_gaussian_irf = uimenu(menu_irf,'Label','Estimate IRF ...','Separator','on');
+    handles.menu_irf_fit_analytical_irf = uimenu(menu_irf,'Label','Estimate IRF (Analytical Gaussian)...');
+    handles.menu_irf_fit_pol_resolved_irf = uimenu(menu_irf,'Label','Estimate Polarisation Resolved IRF (Analytical Gaussian)...');
+    
     handles.menu_irf_estimate_background = uimenu(menu_irf,'Label','Estimate IRF Background','Separator','on');
     handles.menu_irf_estimate_g_factor = uimenu(menu_irf,'Label','Estimate G Factor');
         
@@ -160,8 +164,7 @@ function handles = setup_menu(obj,handles)
     %handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
     handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
     handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
-    handles.menu_tools_fit_gaussian_irf = uimenu(menu_tools,'Label','Estimate IRF ...');
-    handles.menu_tools_fit_analytical_irf = uimenu(menu_tools,'Label','Estimate IRF (Analytical Gaussian)...');
+    handles.menu_tools_spectral_calibration = uimenu(menu_tools,'Label','Generate Detector Spectral Calibration...','Separator','on');
 
     handles.menu_tools_add_pattern = uimenu(menu_tools,'Label','Add Pattern to Library...','Separator','on');
     handles.menu_tools_edit_pattern_library = uimenu(menu_tools,'Label','Edit Pattern Library...');

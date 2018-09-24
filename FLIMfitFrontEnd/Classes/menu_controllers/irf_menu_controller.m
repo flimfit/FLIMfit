@@ -30,6 +30,7 @@ classdef irf_menu_controller < handle
     properties  
         data_series_controller;
         data_masking_controller;
+        data_series_list;
         
         menu_irf_recent;
         
@@ -76,9 +77,6 @@ classdef irf_menu_controller < handle
             obj.update_recent_irf_list();
         end
         
-        %------------------------------------------------------------------
-        % IRF
-        %------------------------------------------------------------------
         function menu_irf_load(obj)
             [file,path] = uigetfile('*.*','Select a file from the irf',default_path);
             if file ~= 0
@@ -105,6 +103,57 @@ classdef irf_menu_controller < handle
         function menu_irf_estimate_g_factor(obj)
             obj.data_masking_controller.g_factor_guess();    
         end        
+        
+        
+        function menu_irf_fit_gaussian_irf(obj)
+            
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            T = 1e6 / d.rep_rate;
+            
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = sum(double(data),3);
+            
+            analytical = false;
+            
+            estimate_irf_interface(t,data,T,analytical,default_path);
+            
+        end
+
+        function menu_irf_fit_analytical_irf(obj)
+            
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            T = 1e6 / d.rep_rate;
+            
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = sum(double(data),3);
+            
+            analytical = true;
+            
+            estimate_irf_interface(t,data,T,analytical,default_path);
+            
+        end
+        
+        function menu_irf_fit_pol_resolved_irf(obj)
+
+            d = obj.data_series_controller.data_series;
+            mask = obj.data_masking_controller.roi_controller.roi_mask;
+
+            T = 1e6 / d.rep_rate;
+            
+            t = d.tr_t(:);
+            data = d.get_roi(mask,obj.data_series_list.selected);
+            data = sum(double(data),3);
+            
+            estimate_polarisation_resolved_irf_interface(t,data,T,default_path);
+            
+        end
+
         
     end
     
