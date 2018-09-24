@@ -2,7 +2,7 @@
 
 SETLOCAL
 
-IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2018a
+IF NOT DEFINED MATLAB_VER SET MATLAB_VER=R2018b
 
 SET PATH=%PATH%;%VCPKG_ROOT%\installed\x64-windows\bin;%VCPKG_ROOT%\installed\x64-windows\debug\bin
 SET TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake
