@@ -8,6 +8,7 @@ classdef (Abstract) base_data_reader < handle
         chan_info;
         delays;
         t_int;
+        rep_rate;
         
     	FLIM_type;
         sizeZCT;

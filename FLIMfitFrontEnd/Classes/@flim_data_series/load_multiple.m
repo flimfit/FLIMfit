@@ -82,6 +82,10 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     
     obj.t = reader.delays;
     obj.data_size = [length(reader.delays) length(channels) reader.sizeXY obj.n_datasets];
+    
+    if isfinite(reader.rep_rate)
+        obj.rep_rate = reader.rep_rate / 1e6;
+    end
    
     delete(reader);
     

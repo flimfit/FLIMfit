@@ -15,6 +15,7 @@ classdef flimreader_reader < base_data_reader
             obj.n_channels = FlimReader(r,'GetNumberOfChannels');
             obj.delays = FlimReader(r,'GetTimePoints');
             obj.data_type = FlimReader(r,'GetNativeType');
+            obj.rep_rate = FlimReader(r,'GetRepRate');  
             supports_realignment = FlimReader(r,'SupportsRealignment');
             
             if length(obj.delays) > 1
