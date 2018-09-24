@@ -105,7 +105,9 @@ VariableProjectionFitter::~VariableProjectionFitter()
 int VariableProjectionFitterCallback(void *p, int m, int n, int s, const double* x, double *fnorm, double *fjrow, int iflag, int thread)
 {
    VariableProjectionFitter *vp = (VariableProjectionFitter*) p;
-   vp->setVariables(x);
+
+   if (iflag <= 1)
+      vp->setVariables(x);
 
    if (iflag == 0)
       return vp->getResidualNonNegative(x, fnorm, iflag, thread);
