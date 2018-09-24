@@ -34,6 +34,36 @@
 #include <stdio.h>
 #include <boost/lexical_cast.hpp>
 
+KappaFactor::KappaFactor(int n) :
+   n(n), f(n), p(n)
+{
+   if (n == 1)
+   {
+      f[0] = 1;
+      p[0] = 1;
+   }
+   else
+   {
+      double logf0 = -5;
+      double logf4 = std::log10(4);
+      double dlogf = (logf4 - logf0) / n;
+
+      double p0 = log(2.0 + sqrt(3.0)) / sqrt(3.0);
+      for (int i = 0; i < n; i++)
+      {
+         double f0 = std::pow(10, i * dlogf + logf0);
+         double f1 = std::pow(10, (i + 1) * dlogf + logf0);
+         f[i] = 0.5 * (f0 + f1);
+
+         p[i] = p0 * (sqrt(f1) - sqrt(f0));
+         if (f0 >= 1.0)
+            p[i] -= ((sqrt(f1)*log(sqrt(f1) + sqrt(f1 - 1)) - sqrt(f1 - 1)) -
+            (sqrt(f0)*log(sqrt(f0) + sqrt(f0 - 1)) - sqrt(f0 - 1))) / sqrt(3.0);
+      }
+   }
+}
+
+
 FretDecayGroup::FretDecayGroup(int n_donor_exponential, int n_fret_populations, bool include_donor_only) :
    MultiExponentialDecayGroupPrivate(n_donor_exponential, true, "FRET Decay"),
    n_fret_populations(n_fret_populations),

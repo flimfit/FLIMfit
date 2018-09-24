@@ -2,39 +2,13 @@
 
 #include "MultiExponentialDecayGroup.h"
 #include <functional>
+#include <cmath>
 
 class KappaFactor
 {
 public:
 
-   KappaFactor(int n = 1) : 
-      n(n), f(n), p(n)
-   {
-      if (n == 1)
-      {
-         f[0] = 1;
-         p[0] = 1;
-      }
-      else
-      {
-         double sump = 0;
-         double df = 4.0 / n;
-         double p0 = log(2.0 + sqrt(3.0)) / sqrt(3.0);
-         for (int i = 0; i < n; i++)
-         {
-            double f0 = i * df;
-            double f1 = f0 + df;
-            f[i] = f0 + 0.5 * df;
-            
-            p[i] = p0 * (sqrt(f1) - sqrt(f0));
-            if (f0 >= 1.0)
-               p[i] -= ((sqrt(f1)*log(sqrt(f1)+sqrt(f1-1))-sqrt(f1-1)) - 
-                       (sqrt(f0)*log(sqrt(f0)+sqrt(f0-1))-sqrt(f0-1))) / sqrt(3.0);       
-
-            sump += p[i];
-         }         
-      }
-   }
+   KappaFactor(int n = 1);
 
    int size() { return n; }
 
