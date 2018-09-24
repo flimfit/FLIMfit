@@ -13,6 +13,7 @@
 #include <functional>
 #include <mutex>
 #include <condition_variable>
+#include <memory>
 
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -81,7 +82,7 @@ public:
    const std::vector<mask_type>& getSegmentationMask() { return mask; }
    std::shared_ptr<AcquisitionParameters> getAcquisitionParameters() const { return acq; }
    
-   bool isPolarisationResolved() { return acq->polarisation_resolved; }
+//   bool isPolarisationResolved() { return acq->polarisation_resolved; }
    bool hasAcceptor() { return has_acceptor; }
    
    size_t getImageSizeInBytes() { return map_length; }

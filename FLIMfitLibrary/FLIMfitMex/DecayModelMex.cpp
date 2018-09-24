@@ -184,24 +184,27 @@ mxArray* getParametersFromObject(QObject* obj)
          switch (v.type())
          {
          case QMetaType::Bool:
-            mxSetFieldByNumber(s, 0, idx, mxCreateLogicalScalar(v.toDouble()));
+            vv = mxCreateLogicalScalar(v.toDouble());
             break;
          case QMetaType::Int:
          case QMetaType::UInt:
          case QMetaType::Long:
             vv = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
             static_cast<int64_t*>(mxGetData(vv))[0] = v.toInt();
-            mxSetFieldByNumber(s, 0, idx, vv);
             break;
+         case QMetaType::Double:
+         case QMetaType::Float:
+            vv = mxCreateDoubleScalar(v.toDouble());
+            mxSetFieldByNumber(s, 0, idx, vv);
          case QMetaType::Char:
          case QMetaType::QString:
             vs = v.toString().toLocal8Bit();
             vv = mxCreateStringFromNChars(vs.constData(), vs.length());
-            mxSetFieldByNumber(s, 0, idx, vv);
             break;
          default:
-            mxSetFieldByNumber(s, 0, idx, mxCreateDoubleScalar(0));
+            vv = mxCreateDoubleScalar(0);
          }
+         mxSetFieldByNumber(s, 0, idx, vv);
 
          idx++;
       }

@@ -32,15 +32,15 @@
 #include <cassert>
 #include <cmath>
 
-AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int polarisation_resolved, int n_chan , double counts_per_photon) :
+AcquisitionParameters::AcquisitionParameters(int data_type, double t_rep, int n_chan , double counts_per_photon) :
    data_type(data_type),
-   polarisation_resolved(polarisation_resolved),
    n_chan(n_chan),
    t_rep(t_rep),
    counts_per_photon(counts_per_photon)
 {
    n_t_full = 0;
    n_meas_full = 0;
+   polarisation.assign(n_chan, Unpolarised);
 }
 
 void AcquisitionParameters::setT(const std::vector<double>& t_)
@@ -72,6 +72,12 @@ void AcquisitionParameters::setT(int n_t_full, double t_[], double t_int_[])
 
    checkGateSpacing();
 }
+
+void AcquisitionParameters::setPolarisation(const std::vector<Polarisation>& polarisation_)
+{
+   polarisation = polarisation_;
+}
+
 
 void AcquisitionParameters::setImageSize(int n_x_, int n_y_)
 {

@@ -134,6 +134,7 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const std::vector<float>
    }
 
    // If polarisation resolevd add perp decay using I = para + 2*g*perp
+   /*
    if (dp->polarisation_resolved)
    {
       for (int i = start; i<n_t; i++)
@@ -142,7 +143,8 @@ double MeanLifetimeEstimator::EstimateMeanLifetimeTCSPC(const std::vector<float>
          n += 2 * irf->g_factor * decay[i + n_t];
       }
    }
-
+   */
+   
    t_mean = t_mean / n;
 
    // Apply correction for measurement window

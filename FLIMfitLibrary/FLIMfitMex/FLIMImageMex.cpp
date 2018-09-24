@@ -53,7 +53,6 @@ std::shared_ptr<AcquisitionParameters> getAcquisitionParameters(const mxArray* a
 
    int data_type = getValueFromStruct(acq_params_struct, 0, "data_type");
    double t_rep = getValueFromStruct(acq_params_struct, 0, "t_rep");
-   int polarisation_resolved = getValueFromStruct(acq_params_struct, 0, "polarisation_resolved");
    int n_chan = getValueFromStruct(acq_params_struct, 0, "n_chan");
    double counts_per_photon = getValueFromStruct(acq_params_struct, 0, "counts_per_photon");
 
@@ -63,7 +62,7 @@ std::shared_ptr<AcquisitionParameters> getAcquisitionParameters(const mxArray* a
    std::vector<double> t = getVectorFromStruct<double>(acq_params_struct, "t");
    std::vector<double> t_int = getVectorFromStruct<double>(acq_params_struct, "t_int");
 
-   auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep, polarisation_resolved, n_chan, counts_per_photon);
+   auto acq = std::make_shared<AcquisitionParameters>(data_type, t_rep, n_chan, counts_per_photon);
    acq->setT(t);
    acq->setIntegrationTimes(t_int);
    acq->setImageSize(n_x, n_y);

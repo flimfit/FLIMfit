@@ -14,7 +14,7 @@
 using std::vector;
 
 FLIMSimulation::FLIMSimulation(int data_type, int n_chan) :
-   AcquisitionParameters(data_type, t_rep_default, MODE_STANDARD, n_chan, 1.0), 
+   AcquisitionParameters(data_type, t_rep_default, n_chan, 1.0), 
    irf(2000, 100)
 {
    // Generate the IRF distribution

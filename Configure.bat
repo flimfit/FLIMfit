@@ -14,4 +14,4 @@ IF DEFINED INSTALL_REQUIRED (
 	del idpsetup-1.5.1.exe
 )
 
-:: vcpkg install opencv[core,tiff]:x64-windows-static boost:x64-windows-static dlib:x64-windows-static
+:: vcpkg install opencv[core,tiff]:x64-windows boost-filesystem:x64-windows boost-iostreams:x64-windows boost-serialization:x64-windows boost-log:x64-windows boost-date-time:x64-windows boost-system:x64-windows dlib:x64-windows

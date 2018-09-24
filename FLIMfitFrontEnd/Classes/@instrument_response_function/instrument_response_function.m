@@ -23,6 +23,7 @@ classdef instrument_response_function < handle
         ref_lifetime = 80;
         
         g_factor = 1;
+        pol_angle = 0;
         
         t0 = 0;
         use_image_t0_correction = 0;

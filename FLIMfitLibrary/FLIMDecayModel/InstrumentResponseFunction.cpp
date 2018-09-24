@@ -147,6 +147,7 @@ void InstrumentResponseFunction::allocateBuffer(int n_irf_raw)
  * g factor gives relative sensitivity of parallel and perpendicular channels, 
  * and so can be determined from the ratio of the IRF's for the two channels 
 */
+/*
 double InstrumentResponseFunction::calculateGFactor()
 {
 
@@ -169,7 +170,7 @@ double InstrumentResponseFunction::calculateGFactor()
 
    return g_factor;
 }
-
+*/
 
 // http://paulbourke.net/miscellaneous/interpolation/
 double InstrumentResponseFunction::cubicInterpolate(double  y[], double mu)

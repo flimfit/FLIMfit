@@ -59,7 +59,11 @@ protected:
    void resizeContributionParameters(std::vector<std::shared_ptr<FittingParameter>>& params, int new_size, const std::string& name_prefix, std::vector<ParameterFittingType> allowed_fitting = { Fixed, FittedGlobally });
 
    int addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double_iterator a, int adim, double& kap);
+   int addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double_iterator a, int adim, double& kap, const std::vector<double>& channel_factors);
+
    int addLifetimeDerivative(int idx, double_iterator b, int bdim);
+   int addLifetimeDerivative(int idx, double_iterator b, int bdim, const std::vector<double>& channel_factors);
+
    void addLifetimeKappaDerivative(int idx, double_iterator& kap_derv);
    int addContributionDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
    int normaliseLinearParameters(float_iterator lin_variables, int n, float_iterator output, int& lin_idx);

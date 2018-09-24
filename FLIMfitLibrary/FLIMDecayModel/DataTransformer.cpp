@@ -12,6 +12,7 @@ const std::vector<float>& DataTransformer::getSteadyStateAnisotropy()
    
    auto acq = image->getAcquisitionParameters();
    
+   /* TODO : do we still want to calculate this?
    // Calculate Steady State Anisotropy
    if (acq->polarisation_resolved)
    {
@@ -46,7 +47,8 @@ const std::vector<float>& DataTransformer::getSteadyStateAnisotropy()
          
          r_ptr++;
       }
+      
    }
-   
+   */
    return r_ss;
 }

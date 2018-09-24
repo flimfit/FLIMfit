@@ -54,6 +54,8 @@ classdef flim_data_series < handle & h5_serializer
                 
         counts_per_photon = 1;
 
+        polarisation Polarisation = Polarisation.Unpolarised;
+        
         background_type = 0;
         background_value = 0;
         

@@ -143,10 +143,6 @@ void DecayModel::init()
       g->init();
    
    setupAdjust();
-
-#ifdef _DEBUG
-   validateDerivatives();
-#endif
 }
 
 
@@ -261,6 +257,7 @@ void DecayModel::setupIncMatrix(std::vector<int>& inc)
       group->setupIncMatrix(group_inc, g_row, col);
 
    // Setup t0 and spectral correction parameters which affect each column
+
    int row = 0;
    if (t0_parameter->isFittedGlobally())
    {
@@ -303,7 +300,7 @@ void DecayModel::setVariables(const std::vector<double>& alf)
    for (auto& s : spectral_correction)
       idx += s->setVariables(param_values + idx);
 
-   //last_variables.clear();
+   last_variables.clear();
    last_variables.resize(decay_groups.size());
 
    for (int i = 0; i < decay_groups.size(); i++)

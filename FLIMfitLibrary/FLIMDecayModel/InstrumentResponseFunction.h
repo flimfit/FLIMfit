@@ -79,6 +79,8 @@ public:
    void setIRFShiftMap(double* t0);
    void setReferenceReconvolution(int ref_reconvolution, double ref_lifetime_guess);
 
+   void setPolarisation(double g_factor, double polarisation_angle);
+
    double_iterator getIRF(int irf_idx, double t0_shift, double_iterator storage);
    double getT0();
 
@@ -94,7 +96,8 @@ public:
    int n_irf;
    int n_irf_rep;
 
-   double g_factor;
+   double g_factor = 1.0;
+   double polarisation_angle = 0.0;
 
    std::vector<GaussianParameters> gaussian_params;
    
@@ -105,7 +108,7 @@ private:
    void copyIRF(int n_irf_raw, it irf);
 
    void shiftIRF(double shift, double_iterator storage);
-   double calculateGFactor();
+   //double calculateGFactor();
 
    void allocateBuffer(int n_irf_raw);
 
@@ -135,6 +138,8 @@ private:
 
       if (version >= 2)
          ar & gaussian_params;
+      if (version >= 3)
+         ar & polarisation_angle;
    }
    
    friend class boost::serialization::access;
@@ -165,7 +170,7 @@ void InstrumentResponseFunction::setIRF(int n_t, int n_chan_, double timebin_t0_
          throw std::runtime_error("IRF is not correctly normalised");
    }
 
-   calculateGFactor();
+   //calculateGFactor();
 }
 
 template<typename it>
@@ -189,4 +194,4 @@ void InstrumentResponseFunction::copyIRF(int n_irf_raw, it irf_)
 
 }
 
-BOOST_CLASS_VERSION(InstrumentResponseFunction, 2)
+BOOST_CLASS_VERSION(InstrumentResponseFunction, 3)

@@ -99,10 +99,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
             opt = optimset('PlotFcns',{@optimplotfval}); %,'TolX',0.05);
             t0_min = fminsearch(@f,obj.data_series.t0,opt);
 
-            obj.data_series.t0 = t0_min;
-
-            
-            
+            obj.data_series.t0 = t0_min;         
         end
         
         function tvb_define_callback(obj,~,~)

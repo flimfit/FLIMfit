@@ -219,7 +219,9 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
 
    int n_grid = std::count_if(global_parameters.begin(), global_parameters.end(), [](std::shared_ptr<FittingParameter>& p) { return p->initial_search; });
    bool initial_grid_search = !options.use_numerical_derivatives && (n_grid > 0);
-   if (initial_grid_search)
+
+   bool initial_global_optimisation = false;
+   if (initial_global_optimisation)
    {
       auto get_all = [&](column_vector x) -> std::vector<double>
       {
@@ -256,10 +258,11 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
 
       auto x0 = get_all(ans.x);
       std::copy(x0.begin(), x0.end(), initial.begin());
+   }
 
-      /*
+   if (initial_grid_search)
+   {
       int n_initial = 10;
-
 
       int n_points_total = std::pow(n_initial, n_search);
 
@@ -289,7 +292,7 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
             best_value = rnorm;
          }
       }
-      */
+
    }
 
    if (iterative_weighting)

@@ -8,7 +8,7 @@ class AnisotropyDecayGroup : public MultiExponentialDecayGroupPrivate
 
 public:
    
-   AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = true);
+   AnisotropyDecayGroup(int n_lifetime_exponential_ = 1, int n_anisotropy_populations_ = 1, bool include_r_inf = false);
    AnisotropyDecayGroup(const AnisotropyDecayGroup& obj);
 
    AbstractDecayGroup* clone() const { return new AnisotropyDecayGroup(*this); }
@@ -32,9 +32,11 @@ public:
 
 protected:
 
+   void init();
    void setupParameters();
    
    int addLifetimeDerivativesForAnisotropy(int idx, double_iterator b, int bdim, double& kap);
+   int addContributionDerivativesForAnisotropy(double_iterator b, int bdim, double_iterator kap);
    int addRotationalCorrelationTimeDerivatives(double_iterator b, int bdim, double kap_derv[]);
 
    void setupChannelFactors();
@@ -43,11 +45,12 @@ protected:
 
    int n_anisotropy_populations;
    bool include_r_inf;
-   
+
    std::vector<double> theta;
 
    std::vector<std::vector<std::shared_ptr<AbstractConvolver>>> anisotropy_buffer;
-   std::vector<std::vector<double>> channel_factors;
+   std::vector<double> ss_channel_factors;
+   std::vector<double> pol_channel_factors;
    
 private:
    template<class Archive>
@@ -64,5 +67,4 @@ void AnisotropyDecayGroup::serialize(Archive & ar, const unsigned int version)
    ar & theta_parameters;
    ar & n_anisotropy_populations;
    ar & include_r_inf;
-   ar & channel_factors;
 };

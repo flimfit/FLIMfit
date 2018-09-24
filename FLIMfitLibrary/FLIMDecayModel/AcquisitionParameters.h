@@ -38,11 +38,19 @@
 #include <vector>
 #include <memory>
 
+
+enum Polarisation
+{
+   Unpolarised = 0,
+   Parallel = 1,
+   Perpendicular = 2
+};
+
 class AcquisitionParameters
 {
 public:
 
-   AcquisitionParameters(int data_type = 0, double t_rep = 12500.0, int polarisation_resolved = false, int n_chan = 1, double counts_per_photon = 1);
+   AcquisitionParameters(int data_type = 0, double t_rep = 12500.0, int n_chan = 1, double counts_per_photon = 1);
 
    void setImageSize(int n_x, int n_y);
    void setT(int n_t_full, double t_[], double t_int_[]);
@@ -50,11 +58,12 @@ public:
    void setT(const std::vector<double>& t_);
    void setIntegrationTimes(std::vector<double>& t_int_);
    
+   void setPolarisation(const std::vector<Polarisation>& pol_);
+
    double* getT();
    const std::vector<double>& getTimePoints();
    
    int data_type;
-   bool polarisation_resolved;
 
    int n_x = 1;
    int n_y = 1;
@@ -67,6 +76,7 @@ public:
    
    std::vector<double> t;
    std::vector<double> t_int;
+   std::vector<Polarisation> polarisation;
 
    // Computed parameters
    int n_px;
@@ -85,11 +95,17 @@ private:
    friend class boost::serialization::access;
 };
 
+BOOST_CLASS_VERSION(AcquisitionParameters, 2)
+
+
 template<class Archive>
 void AcquisitionParameters::serialize(Archive & ar, const unsigned int version)
 {
+   bool polarisation_resolved;
+
    ar & data_type;
-   ar & polarisation_resolved;
+   if (version <= 1)
+      ar & polarisation_resolved;
    ar & n_x;
    ar & n_y;
    ar & n_t_full;
@@ -98,6 +114,8 @@ void AcquisitionParameters::serialize(Archive & ar, const unsigned int version)
    ar & t_rep;
    ar & t;
    ar & t_int;
+   if (version >= 2)
+      ar & polarisation;
    ar & n_px;
    ar & n_meas_full;
    ar & equally_spaced_gates;

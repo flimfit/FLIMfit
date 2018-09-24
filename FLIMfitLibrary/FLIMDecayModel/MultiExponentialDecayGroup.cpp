@@ -376,24 +376,29 @@ int MultiExponentialDecayGroupPrivate::calculateDerivatives(double_iterator b, i
    return col;
 }
 
-
 int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double_iterator a, int adim, double& kap)
+{
+   return  addDecayGroup(buffers, factor, a, adim, kap, norm_channel_factors);
+}
+
+
+int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shared_ptr<AbstractConvolver>>& buffers, double factor, double_iterator a, int adim, double& kap, const std::vector<double>& channel_factors)
 {
    int col = 0;
     
    int using_reference_reconvolution = dp->irf->type == Reference; // TODO: Clean this up
 
    if (using_reference_reconvolution && contributions_global)
-      addIRF(irf_buf.begin(), irf_idx, t0_shift, a, norm_channel_factors);
+      addIRF(irf_buf.begin(), irf_idx, t0_shift, a, channel_factors);
 
    for (int j = 0; j < buffers.size(); j++)
    {
       // If we're doing delta-function reconvolution add contribution from reference
       if (using_reference_reconvolution && !contributions_global)
-         addIRF(irf_buf.begin(), irf_idx, t0_shift, a + col*adim, norm_channel_factors);
+         addIRF(irf_buf.begin(), irf_idx, t0_shift, a + col*adim, channel_factors);
 
       double c_factor = contributions_global ? beta[j] : 1;
-      buffers[j]->addDecay(factor * c_factor, norm_channel_factors, reference_lifetime, a + col*adim);
+      buffers[j]->addDecay(factor * c_factor, channel_factors, reference_lifetime, a + col*adim);
 
       if (!contributions_global)
          col++;
@@ -419,8 +424,13 @@ int MultiExponentialDecayGroupPrivate::addDecayGroup(const std::vector<std::shar
    return col;
 }
 
-
 int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_iterator b, int bdim)
+{
+   return addLifetimeDerivative(idx, b, bdim, norm_channel_factors);
+}
+
+
+int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_iterator b, int bdim, const std::vector<double>& channel_factors)
 {
    if (tau_parameters[idx]->isFittedGlobally())
    {
@@ -429,7 +439,7 @@ int MultiExponentialDecayGroupPrivate::addLifetimeDerivative(int idx, double_ite
       double fact = 1 / (tau[idx] * tau[idx]); // TODO: *TransformRangeDerivative(wb.tau_buf[j], tau_min[j], tau_max[j]);
       fact *= contributions_global ? beta[idx] : 1;
 
-      buffer[idx]->addDerivative(fact, norm_channel_factors, reference_lifetime, b);
+      buffer[idx]->addDerivative(fact, channel_factors, reference_lifetime, b);
       return 1;
    }
    

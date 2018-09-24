@@ -95,40 +95,45 @@ function handles = add_data_transformation_panel(obj,handles,parent)
     uicontrol( 'Style', 'text', 'String', 'Reference Lifetime ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'BG is Afterpulsing ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
     uicontrol( 'Style', 'text', 'String', 'Time Max. ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
-    uicontrol( 'Style', 'text', 'String', 'G Factor ', 'HorizontalAlignment', 'right', 'Parent', irf_transformation_layout );
-       
+    uix.Empty( 'Parent', irf_transformation_layout );
+    
+    
     handles.ref_lifetime_edit = uicontrol( 'Style', 'edit', 'String', '80', 'Parent', irf_transformation_layout );
     handles.afterpulsing_correction_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No', 'Yes'}, 'Parent', irf_transformation_layout );
     handles.t_irf_max_edit = uicontrol( 'Style', 'edit', 'String', '1e10', 'Parent', irf_transformation_layout );
-    handles.g_factor_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', irf_transformation_layout );
+    uix.Empty( 'Parent', irf_transformation_layout );
     
     
     set(irf_transformation_layout,'Heights',[22 22 22 22]);
     set(irf_transformation_layout,'Widths',[120 120 120 120]);
 
     
-    % testing
-    testing_layout = uix.VBox( 'Parent', dataset_panel );
-    testing_layout = uix.Grid( 'Parent', testing_layout, 'Spacing', 1, 'Padding', 3  );
-    
-    uicontrol( 'Style', 'text', 'String', 'Data Subsampling ', 'HorizontalAlignment', 'right', 'Parent', testing_layout );
-    uicontrol( 'Style', 'text', 'String', 'IRF Subsampling ', 'HorizontalAlignment', 'right', 'Parent', testing_layout );
-    
-    handles.data_subsampling_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', testing_layout );
-    handles.irf_subsampling_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', testing_layout );
-    
-    
-    set(testing_layout,'Heights',[22 22]);
-    set(testing_layout,'Widths',[120 120]);
+    % polarisation
+    pol_layout = uix.HBox( 'Parent', dataset_panel, 'Spacing', 1, 'Padding', 3  );
+
+    pol_left_layout = uix.Grid( 'Parent', pol_layout, 'Spacing', 1, 'Padding', 0 );
+
+    uicontrol( 'Style', 'text', 'String', 'G Factor ', 'HorizontalAlignment', 'right', 'Parent', pol_left_layout );
+    uicontrol( 'Style', 'text', 'String', 'Polarisation Angle ', 'HorizontalAlignment', 'right', 'Parent', pol_left_layout );
+    handles.g_factor_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', pol_left_layout );
+    handles.pol_angle_edit = uicontrol( 'Style', 'edit', 'String', '1', 'Parent', pol_left_layout );
     
     
+    handles.pol_table = uitable('Parent', pol_layout,... 
+        'Data', {'0','Unpolarised'},...
+        'ColumnWidth', {120 120},...
+        'ColumnName', {'Channel','Polarisation'},...
+        'ColumnFormat', {'numeric',{'Unpolarised','Parallel','Perpendicular'}},...
+        'ColumnEditable', [false, true],...
+        'RowName',[]);  
     
-    
-    
-    
-    set(dataset_panel, 'TabTitles', {'Data'; 'Background'; 'IRF'; 'Testing'});
-    set(dataset_panel, 'Selection', 1);
+    set(pol_left_layout,'Heights',[22 22]);
+    set(pol_left_layout,'Widths',[120 120]);
 
     
+    set(pol_layout,'Widths',[241 -1]);   
+    
+    set(dataset_panel, 'TabTitles', {'Data'; 'Background'; 'IRF'; 'Polarisation'});
+    set(dataset_panel, 'Selection', 1);
 
 end

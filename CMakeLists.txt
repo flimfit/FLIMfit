@@ -22,6 +22,7 @@ if (BUILD_OPENCV)
    )
 endif ()
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 project(FLIMfit)
 
@@ -37,7 +38,7 @@ find_package(Qt5PrintSupport)
 
 
 set(CMAKE_DEBUG_POSTFIX "")
-set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitFrontEnd/Libraries)
+set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitFrontEnd/Libraries/)
 set(MEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitFrontEnd/Libraries/)
 
 add_subdirectory(FLIMfitLibrary)

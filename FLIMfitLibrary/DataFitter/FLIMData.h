@@ -158,7 +158,7 @@ private:
    std::shared_ptr<ProgressReporter> reporter;
 
    bool has_acceptor = false;
-   bool polarisation_resolved = false;
+   //bool polarisation_resolved = false;
    int max_px_per_image;
    
    DataTransformationSettings transform;

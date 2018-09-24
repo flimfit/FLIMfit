@@ -87,9 +87,9 @@ public:
       // Copy the things we don't change
       irf = transform.irf;
       counts_per_photon = acq->counts_per_photon;
-      polarisation_resolved = acq->polarisation_resolved;
       t_int = acq->t_int;
       t_rep = acq->t_rep;
+      polarisation = acq->polarisation;
       equally_spaced_gates = acq->equally_spaced_gates;
 
       n_x = acq->n_x;
@@ -107,8 +107,8 @@ public:
 
    const std::vector<double>& getTimepoints() { return timepoints; }
    const std::vector<double>& getGateIntegrationTimes() { return t_int; }
-   
-   bool polarisation_resolved;
+   const std::vector<Polarisation>& getPolarisation() { return polarisation; }
+
    bool equally_spaced_gates;
    int smoothing_factor;
    int smoothing_area;
@@ -130,6 +130,7 @@ protected:
    
    std::vector<double> t_int;
    std::vector<double> timepoints;
+   std::vector<Polarisation> polarisation;
 
 private:
    
@@ -141,12 +142,16 @@ private:
    friend class boost::serialization::access;
 };
 
-BOOST_CLASS_VERSION(TransformedDataParameters, 2)
+BOOST_CLASS_VERSION(TransformedDataParameters, 3)
 
 template<class Archive>
 void TransformedDataParameters::serialize(Archive & ar, const unsigned int version)
 {
-   ar & polarisation_resolved;
+   bool polarisation_resolved;
+   if (version <= 2)
+      ar & polarisation_resolved;
+   else
+      ar & polarisation;
    ar & equally_spaced_gates;
    ar & smoothing_factor;
    ar & smoothing_area;

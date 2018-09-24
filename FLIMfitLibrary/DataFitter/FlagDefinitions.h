@@ -66,10 +66,6 @@ const int N_STATS = 11;
 #define DATA_MAPPED 1
 
 //----------------------------------------------
-#define MODE_STANDARD     0
-#define MODE_POLARISATION 1
-
-//----------------------------------------------
 #define DATA_FLOAT 0
 #define DATA_UINT16 1
 

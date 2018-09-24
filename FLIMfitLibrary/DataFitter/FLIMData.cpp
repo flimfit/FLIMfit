@@ -198,9 +198,6 @@ int FLIMData::getNumAuxillary()
    if (has_acceptor)
       num_aux++;
 
-   if (polarisation_resolved)
-      num_aux++;     // r_ss
-
    return num_aux;
 }
 
@@ -234,7 +231,6 @@ void FLIMData::updateRegions()
    // TODO(P:Low): make sure all data is of the same class
    data_class = images[0]->getDataClass();
    has_acceptor = images[0]->hasAcceptor();
-   polarisation_resolved = images[0]->isPolarisationResolved();
    data_type = images[0]->getAcquisitionParameters()->data_type;
    
    int err = 0;
@@ -482,12 +478,9 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
    if (has_acceptor)
       masked_acceptor = aux_data++;
 
-   if (polarisation_resolved)
-      masked_r_ss = aux_data++;
-
    mask = transformer.getMask();
    auto& tr_data = transformer.getTransformedData();
-   auto& r_ss = transformer.getSteadyStateAnisotropy();
+//   auto& r_ss = transformer.getSteadyStateAnisotropy();
    
    cv::Mat acceptor = images[iml]->getAcceptor();
    cv::Mat intensity = images[iml]->getIntensity();
@@ -507,8 +500,8 @@ int FLIMData::getMaskedData(int im, int region, float_iterator masked_data, int_
       {
          masked_intensity[idx*n_aux] = intensity.at<float>(p);
    
-         if (polarisation_resolved)
-            masked_r_ss[idx*n_aux] = r_ss[p];
+//         if (polarisation_resolved)
+//            masked_r_ss[idx*n_aux] = r_ss[p];
 
          if (has_acceptor)
             masked_acceptor[idx*n_aux] = acceptor.at<float>(p);
@@ -537,8 +530,8 @@ std::vector<std::string> FLIMData::getAuxParamNames()
    if ( has_acceptor )
       param_names.push_back("acceptor");
 
-   if ( polarisation_resolved )
-      param_names.push_back("r_ss");
+//   if ( polarisation_resolved )
+//      param_names.push_back("r_ss");
 
    return param_names;
 }

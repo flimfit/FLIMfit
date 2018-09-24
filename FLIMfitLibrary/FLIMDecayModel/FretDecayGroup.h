@@ -74,7 +74,6 @@ public:
    const std::vector<double>& getChannelFactors(int index);
    void setChannelFactors(int index, const std::vector<double>& channel_factors);
 
-
    int setVariables(const_double_iterator variables);
    int calculateModel(double_iterator a, int adim, double& kap);
    int calculateDerivatives(double_iterator b, int bdim, double_iterator& kap_derv);
