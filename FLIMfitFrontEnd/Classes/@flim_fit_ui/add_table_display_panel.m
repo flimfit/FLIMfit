@@ -25,20 +25,17 @@ function handles = add_table_display_panel(obj,handles,parent)
 
     % Author : Sean Warren
 
-
-    layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
-    top_layout = uix.HBox( 'Parent', layout, 'Spacing', 3 );
+    tab = uitab('Parent', parent);
+    layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {22,'1x'});
+    top_layout = uigridlayout('Parent', layout, 'ColumnSpacing', 3, 'ColumnWidth', {90, 90});
         
-    uicontrol( 'Style', 'text', 'String', 'Statistic  ', 'Parent', top_layout, ...
-               'HorizontalAlignment', 'right' );
+    uilabel('Text', 'Statistic  ', 'Parent', top_layout, ...
+               'HorizontalAlignment', 'right');
     
-    handles.table_stat_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {''}, 'Parent', top_layout );     
+    handles.table_stat_popupmenu = uidropdown('Items', {''}, 'Parent', top_layout);     
     
     % Results Panel
     %---------------------------------------
-    handles.results_table = uitable( 'Parent', layout );
-    
-    set(layout,'Heights',[22,-1])
-    set(top_layout,'Widths',[90,90])
-    
+    handles.results_table = uitable('Parent', layout);
+        
 end

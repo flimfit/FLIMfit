@@ -25,88 +25,53 @@ function handles = add_plotter_display_panel(obj,handles,parent)
 
     % Author : Sean Warren
 
-
-    layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
+    tab = uitab('Parent', parent, 'Title', 'Plotter');
+    layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
     
-    handles.graph_axes = axes('Parent',layout);
+    panel = uipanel('Parent', layout);
+    handles.graph_axes = axes('Parent', panel);
     
-    param_layout = uix.Grid( 'Parent', layout, 'Spacing', 3 );
-    uicontrol( 'Style', 'text', 'String', 'Label  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
+    param_layout = uigridlayout('Parent', layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90,90,90,90,90,90,90,90});
+    uilabel('Text', 'Label  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
            
-    handles.graph_independent_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', param_layout );
-    handles.graph_dependent_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', param_layout );
+    handles.graph_independent_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
+    handles.graph_dependent_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
         
-    uicontrol( 'Style', 'text', 'String', 'Combine  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Weighting  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
+    uilabel('Text', 'Combine  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Weighting  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
     
-    handles.graph_grouping_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'By Pixel' 'By Region' 'By FOV' 'By Well'}, 'Parent', param_layout );       
-    handles.graph_weighting_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'None','Intensity Weighted'}, 'Parent', param_layout );       
+    handles.graph_grouping_popupmenu = uidropdown('Items', {'By Pixel' 'By Region' 'By FOV' 'By Well'}, 'Parent', param_layout);       
+    handles.graph_weighting_popupmenu = uidropdown('Items', {'None','Intensity Weighted'}, 'Parent', param_layout);       
         
-    uicontrol( 'Style', 'text', 'String', 'Error bars  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Display  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
+    uilabel('Text', 'Error bars  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Display  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
 
-    handles.error_type_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Standard Deviation', 'Standard Error', '95% Confidence'}, 'Parent', param_layout );
-    handles.graph_display_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Line' 'Line with Scatter' 'Box Plot'}, 'Parent', param_layout );       
+    handles.error_type_popupmenu = uidropdown('Items', {'Standard Deviation', 'Standard Error', '95% Confidence'}, 'Parent', param_layout);
+    handles.graph_display_popupmenu = uidropdown('Items', {'Line' 'Line with Scatter' 'Box Plot'}, 'Parent', param_layout);       
 
         
-    uicontrol( 'Style', 'text', 'String', 'Data cursor  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uix.Empty( 'Parent', param_layout );
+    uilabel('Text', 'Data cursor  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    %uix.Empty('Parent', param_layout);
            
-    
 
-    handles.graph_dcm_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Off' 'Datatip' 'Window'}, 'Parent', param_layout ); 
-    uix.Empty( 'Parent', param_layout );
-    
+    handles.graph_dcm_popupmenu = uidropdown('Items', {'Off' 'Datatip' 'Window'}, 'Parent', param_layout); 
+    %uix.Empty('Parent', param_layout);
         
-    set( param_layout, 'Heights', [22,22] );
-    set( param_layout, 'Widths', [90,90,90,90,90,90,90,90] );
     
-    set( layout, 'Heights', [-1 70]) 
-    
-    
-    plate_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
-    
+    tab = uitab('Parent', parent, 'Title', 'Plate');
+    plate_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
         
-    plate_container = uicontainer( 'Parent', plate_layout );
-    handles.plate_axes = axes( 'Parent', plate_container );
+    plate_container = uipanel('Parent', plate_layout);
+    handles.plate_axes = axes('Parent', plate_container);
     
-    param_layout = uix.Grid( 'Parent', plate_layout, 'Spacing', 3 );
-    uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Mode  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    handles.plate_param_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', param_layout );
-    handles.plate_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Well Average','First Image'}, 'Parent', param_layout );
-    uicontrol( 'Style', 'text', 'String', 'Intensity merge  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uix.Empty( 'Parent', param_layout);
-    handles.plate_merge_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'No','Yes'}, 'Parent', param_layout );
+    param_layout = uigridlayout('Parent', plate_layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {100 100 100 100});
+    uilabel('Text', 'Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Mode  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    handles.plate_param_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
+    handles.plate_mode_popupmenu = uidropdown('Items', {'Well Average','First Image'}, 'Parent', param_layout);
+    uilabel('Text', 'Intensity merge  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    %uix.Empty('Parent', param_layout);
+    handles.plate_merge_popupmenu = uidropdown('Items', {'No','Yes'}, 'Parent', param_layout);
     
-    set( param_layout, 'Heights', [22,22] );
-    set( param_layout, 'Widths', [100,100,100,100] );
-    
-    set( plate_layout, 'Heights', [-1 70])
-    
-    
-    
-    
-
 end

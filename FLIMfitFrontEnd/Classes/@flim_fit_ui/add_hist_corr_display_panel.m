@@ -30,84 +30,57 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     % Author : Sean Warren
 
 
-    hist_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
+    tab = uitab('Parent', parent);
+    hist_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
     
-    handles.hist_axes = axes('Parent',hist_layout);
-    
-   
-    opt_layout = uix.Grid( 'Parent', hist_layout, 'Spacing', 3 );
-    uicontrol( 'Style', 'text', 'String', 'Parameter  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Weighting  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right' );
-    handles.hist_param_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', opt_layout );
-    handles.hist_weighting_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'None' 'Intensity Weighted'}, 'Parent', opt_layout );
+    panel = uipanel('Parent', hist_layout);
+    handles.hist_axes = axes('Parent', panel);
+       
+    opt_layout = uigridlayout('Parent', hist_layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90 90 90 90 90 90});
+    uilabel('Text', 'Parameter  ', 'Parent', opt_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Weighting  ', 'Parent', opt_layout, 'HorizontalAlignment', 'right');
+    handles.hist_param_popupmenu = uidropdown('Items', {''}, 'Parent', opt_layout);
+    handles.hist_weighting_popupmenu = uidropdown('Items', {'None' 'Intensity Weighted'}, 'Parent', opt_layout);
       
-    uicontrol( 'Style', 'text', 'String', 'Classes  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Source Data  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right' );
+    uilabel('Text', 'Classes  ', 'Parent', opt_layout, ...
+               'HorizontalAlignment', 'right');
+    uilabel('Text', 'Source Data  ', 'Parent', opt_layout, ...
+               'HorizontalAlignment', 'right');
 
-    handles.hist_classes_edit = uicontrol( 'Style', 'edit', ...
-            'String', '100', 'Parent', opt_layout );
-    handles.hist_source_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Selected Image' 'All Filtered'}, 'Parent', opt_layout );
+    handles.hist_classes_edit = uieditfield('Value', '100', 'Parent', opt_layout);
+    handles.hist_source_popupmenu = uidropdown('Items', {'Selected Image' 'All Filtered'}, 'Parent', opt_layout);
         
-    uicontrol( 'Style', 'text', 'String', 'Add False Colour  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right' );
-    uix.Empty( 'Parent', opt_layout );
+    uilabel('Text', 'Add False Colour  ', 'Parent', opt_layout, ...
+               'HorizontalAlignment', 'right');
+    %uix.Empty('Parent', opt_layout);
         
-    handles.hist_addcolour_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'On' 'Off'}, 'Parent', opt_layout );
-   uix.Empty( 'Parent', opt_layout );
+    handles.hist_addcolour_popupmenu = uidropdown('Items', {'On' 'Off'}, 'Parent', opt_layout);
+    %uix.Empty('Parent', opt_layout);
     
-    set( hist_layout, 'Heights', [-1,70] );
-    set( opt_layout, 'Widths', [90 90 90 90 90 90]);
-    set( opt_layout, 'Heights', [22 22]);
-
 
     
+    tab = uitab('Parent', parent);    
+    corr_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
     
-    corr_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
+    panel = uipanel('Parent', corr_layout);
+    handles.corr_axes = axes('Parent', panel);
     
-    handles.corr_axes = axes('Parent',corr_layout);
-    
-    param_layout = uix.Grid( 'Parent', corr_layout, 'Spacing', 3 );
-    uicontrol( 'Style', 'text', 'String', 'X Parameter  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-           uicontrol( 'Style', 'text', 'String', 'Y Parameter  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    handles.corr_param_x_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', param_layout );
-    handles.corr_param_y_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', param_layout );
+    param_layout =uigridlayout('Parent', corr_layout, 'RowSpacing', 3, 'RowHeight', {22 22});
+    uilabel('Text', 'X Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Y Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    handles.corr_param_x_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
+    handles.corr_param_y_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
         
-    uicontrol( 'Style', 'text', 'String', 'Source Data  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Plot  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
+    uilabel('Text', 'Source Data  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Plot  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
            
-    handles.corr_source_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Selected Image' 'All Filtered'}, 'Parent', param_layout );
-    handles.corr_display_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Pixels' 'Regions'}, 'Parent', param_layout );
+    handles.corr_source_popupmenu = uidropdown('Items', {'Selected Image' 'All Filtered'}, 'Parent', param_layout);
+    handles.corr_display_popupmenu = uidropdown('Items', {'Pixels' 'Regions'}, 'Parent', param_layout);
     
-    uicontrol( 'Style', 'text', 'String', 'Scale  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
-    uicontrol( 'Style', 'text', 'String', 'Color Parameter  ', 'Parent', param_layout, ...
-               'HorizontalAlignment', 'right' );
+    uilabel('Text', 'Scale  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'Color Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
     
-    handles.corr_scale_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Linear' 'Logarithmic'}, 'Parent', param_layout );
-    handles.corr_independent_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {''}, 'Parent', param_layout );
-        
-    uix.Empty( 'Parent', param_layout);
-        
-    set( corr_layout, 'Heights', [-1,70] );
-    set( param_layout, 'Heights', [22 22] );
-
+    handles.corr_scale_popupmenu = uidropdown('Items', {'Linear' 'Logarithmic'}, 'Parent', param_layout);
+    handles.corr_independent_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
 
 end

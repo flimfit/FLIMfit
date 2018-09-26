@@ -35,15 +35,15 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
     % Fit Params Panel
     %---------------------------------------
-    fit_params_panel = uix.TabPanel( 'Parent', parent, 'TabWidth', 80 );
+    fit_params_panel = uix.TabPanel('Parent', parent, 'TabWidth', 80);
     
     % Main Tab
-    fit_params_main_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
-    fit_params_main_label_layout = uix.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );
-    fit_params_main_opt_layout = uix.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );
-    fit_params_main_extra_layout = uix.VBox( 'Parent', fit_params_main_layout, 'Spacing', 1 );    
+    fit_params_main_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3);
+    fit_params_main_label_layout = uigridlayout('Parent', fit_params_main_layout, 'Spacing', 1);
+    fit_params_main_opt_layout = uigridlayout('Parent', fit_params_main_layout, 'Spacing', 1);
+    fit_params_main_extra_layout = uigridlayout('Parent', fit_params_main_layout, 'Spacing', 1);    
     
-    handles.auto_estimate_tau_checkbox = uicontrol( 'Style', 'checkbox', 'String', 'Automatically Estimate Lifetimes', 'Parent', fit_params_main_extra_layout);
+    handles.auto_estimate_tau_checkbox = uicontrol('Style', 'checkbox', 'String', 'Automatically Estimate Lifetimes', 'Parent', fit_params_main_extra_layout);
     handles.tau_guess_table = uitable('Parent', fit_params_main_extra_layout); 
   
        
@@ -60,14 +60,14 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     set(fit_params_main_extra_layout,'Heights',[22, -1])
     
     % Stray light tab
-    fit_params_stray_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
-    fit_params_stray_label_layout = uix.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );
-    fit_params_stray_opt_layout = uix.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );
-    fit_params_stray_extra_layout = uix.VBox( 'Parent', fit_params_stray_layout, 'Spacing', 1 );    
+    fit_params_stray_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3);
+    fit_params_stray_label_layout = uigridlayout('Parent', fit_params_stray_layout, 'Spacing', 1);
+    fit_params_stray_opt_layout = uigridlayout('Parent', fit_params_stray_layout, 'Spacing', 1);
+    fit_params_stray_extra_layout = uigridlayout('Parent', fit_params_stray_layout, 'Spacing', 1);    
     
-    fit_params_stray_col2_layout = uix.HBox( 'Parent', fit_params_stray_extra_layout, 'Spacing', 3 );
-    fit_params_stray_col2_label_layout = uix.VBox( 'Parent', fit_params_stray_col2_layout, 'Spacing', 1 );
-    fit_params_stray_col2_opt_layout = uix.VBox( 'Parent', fit_params_stray_col2_layout, 'Spacing', 1 );
+    fit_params_stray_col2_layout = uigridlayout('Parent', fit_params_stray_extra_layout, 'Spacing', 3);
+    fit_params_stray_col2_label_layout = uigridlayout('Parent', fit_params_stray_col2_layout, 'Spacing', 1);
+    fit_params_stray_col2_opt_layout = uigridlayout('Parent', fit_params_stray_col2_layout, 'Spacing', 1);
 
     add_fitting_param_control('stray','fit_offset','popupmenu','Offset',{'Fixed','Fitted Locally','Fitted Globally'});
     add_fitting_param_control('stray_col2','offset','edit','Offset', '0');
@@ -81,10 +81,10 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
    
         % Anisotropy tab
-        fit_params_anis_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-        fit_params_anis_label_layout = uix.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
-        fit_params_anis_opt_layout = uix.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
-        fit_params_anis_extra_layout = uix.VBox( 'Parent', fit_params_anis_layout, 'Spacing', 1 );
+        fit_params_anis_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3);
+        fit_params_anis_label_layout = uigridlayout('Parent', fit_params_anis_layout, 'Spacing', 1);
+        fit_params_anis_opt_layout = uigridlayout('Parent', fit_params_anis_layout, 'Spacing', 1);
+        fit_params_anis_extra_layout = uigridlayout('Parent', fit_params_anis_layout, 'Spacing', 1);
 
         add_fitting_param_control('anis','n_theta','popupmenu','No. Decays', {'0','1', '2', '3', '4', '5'});
         add_fitting_param_control('anis','n_theta_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
@@ -95,10 +95,10 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         set(fit_params_anis_extra_layout,'Heights',[92])
 
         % FRET tab
-        fit_params_fret_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-        fit_params_fret_label_layout = uix.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
-        fit_params_fret_opt_layout = uix.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
-        fit_params_fret_extra_layout = uix.VBox( 'Parent', fit_params_fret_layout, 'Spacing', 1 );
+        fit_params_fret_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3);
+        fit_params_fret_label_layout = uigridlayout('Parent', fit_params_fret_layout, 'Spacing', 1);
+        fit_params_fret_opt_layout = uigridlayout('Parent', fit_params_fret_layout, 'Spacing', 1);
+        fit_params_fret_extra_layout = uigridlayout('Parent', fit_params_fret_layout, 'Spacing', 1);
 
         add_fitting_param_control('fret','n_fret','popupmenu','No. FRET Species', {'0','1', '2', '3', '4', '5'});
         add_fitting_param_control('fret','n_fret_fix','popupmenu','No. Fixed', {'0','1', '2', '3', '4', '5'});
@@ -110,14 +110,14 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         set(fit_params_fret_extra_layout,'Heights',[92])
 
         % Advanced tab
-        fit_params_adv_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-        fit_params_adv_label_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-        fit_params_adv_opt_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-        fit_params_adv_extra_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
+        fit_params_adv_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3);
+        fit_params_adv_label_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
+        fit_params_adv_opt_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
+        fit_params_adv_extra_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
 
-        fit_params_adv_col2_layout = uix.HBox( 'Parent', fit_params_adv_extra_layout, 'Spacing', 3 );
-        fit_params_adv_col2_label_layout = uix.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
-        fit_params_adv_col2_opt_layout = uix.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
+        fit_params_adv_col2_layout = uigridlayout('Parent', fit_params_adv_extra_layout, 'Spacing', 3);
+        fit_params_adv_col2_label_layout = uigridlayout('Parent', fit_params_adv_col2_layout, 'Spacing', 1);
+        fit_params_adv_col2_opt_layout = uigridlayout('Parent', fit_params_adv_col2_layout, 'Spacing', 1);
 
         
         add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
@@ -146,9 +146,9 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         label_layout = eval(['fit_params_' layout '_label_layout;']);
         opt_layout = eval(['fit_params_' layout '_opt_layout;']);
 
-        label = uicontrol( 'Style', 'text', 'String', [label '  '], ... 
-                           'HorizontalAlignment', 'right', 'Parent', label_layout ); 
-        control = uicontrol( 'Style', style, 'String', string, 'Parent', opt_layout);
+        label = uilabel('Text', [label '  '], ... 
+                           'HorizontalAlignment', 'right', 'Parent', label_layout); 
+        control = uicontrol('Style', style, 'String', string, 'Parent', opt_layout);
         
         eval(['handles.' name '_label = label;']);
         eval(['handles.' name '_' style ' = control;']);

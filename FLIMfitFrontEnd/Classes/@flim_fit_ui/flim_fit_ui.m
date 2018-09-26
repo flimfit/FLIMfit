@@ -35,11 +35,11 @@ classdef flim_fit_ui
       
         function obj = flim_fit_ui(wait)
             
-            diagnostics('program','start');
-            set_splash('FLIMfit-logo-colour.png');
+            %diagnostics('program','start');
+            %set_splash('FLIMfit-logo-colour.png');
             
             % pause to allow splash screen to display
-            pause(0.1);
+            %pause(0.1);
             
                     
             obj.check_prefs();
@@ -94,7 +94,7 @@ classdef flim_fit_ui
             end
                         
             % Open a window and add some menus
-            obj.window = figure( ...
+            obj.window = uifigure(...
                 'Name', ['FLIMfit ' v], ...
                 'NumberTitle', 'off', ...
                 'MenuBar', 'none', ...
@@ -104,6 +104,7 @@ classdef flim_fit_ui
                 %'Units','normalized', ...
                 %'OuterPosition',[0 0.03 1 0.97]);
             
+                %{
             coords = get(0,'MonitorPositions');             
             %position only in main monitor
                         
@@ -122,6 +123,7 @@ classdef flim_fit_ui
             catch e %#ok
                disp('Warning: could not maximise window'); 
             end
+                %}
             handles = guidata(obj.window); 
              
         

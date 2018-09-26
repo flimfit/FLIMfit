@@ -27,44 +27,40 @@ function handles = add_image_display_panel(obj,handles,parent)
 
 
     % Plot display
-    handles.plot_panel = uipanel( 'Parent', parent );
+    tab = uitab('Parent', parent);
+    handles.plot_panel = uipanel('Parent', tab);
     handles.plot_axes = axes('Parent',handles.plot_panel);
     
     
     % Gallery display
     
-    gallery_layout = uix.VBox( 'Parent', parent, 'Spacing', 3 );
+    tab = uitab('Parent', parent);
+    gallery_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x',70});
 
-    gallery_layout_top = uix.HBox( 'Parent', gallery_layout, 'Spacing', 0 );
+    gallery_layout_top = uigridlayout('Parent', gallery_layout, 'ColumnWidth', {'1x', 22});
     
-    handles.gallery_panel = uipanel( 'Parent', gallery_layout_top, 'BorderType', 'none' );
-    handles.gallery_slider = uicontrol( 'Parent', gallery_layout_top, 'Style', 'slider' );
-    
-    set( gallery_layout_top, 'Widths', [-1 22] );
-    
-    bottom_layout = uix.Grid( 'Parent', gallery_layout, 'Spacing', 3 );
-    
-    uicontrol( 'Style', 'text', 'String', 'Image', 'Parent', bottom_layout );
-    uicontrol( 'Style', 'text', 'String', 'Columns', 'Parent', bottom_layout );
-    
-    handles.gallery_param_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', '-', 'Parent', bottom_layout);
-    handles.gallery_cols_edit = uicontrol( 'Style', 'edit', 'String', '6', 'Parent', bottom_layout);
-    
-    uicontrol( 'Style', 'text', 'String', 'Text Overlay', 'Parent', bottom_layout );
-    uicontrol( 'Style', 'text', 'String', 'Unit', 'Parent', bottom_layout );
-    
-    handles.gallery_overlay_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', '-', 'Parent', bottom_layout);
-    handles.gallery_unit_edit = uicontrol( 'Style', 'edit', 'String', '', 'Parent', bottom_layout);
-    
-    uicontrol( 'Style', 'text', 'String', 'Intensity Merge', 'Parent', bottom_layout );
-    uix.Empty( 'Parent', bottom_layout );
-    
-    handles.gallery_merge_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No', 'Yes'}, 'Parent', bottom_layout);
+    handles.gallery_panel = uipanel('Parent', gallery_layout_top, 'BorderType', 'none');
+    handles.gallery_slider = uislider('Parent', gallery_layout_top, 'Orientation', 'vertical');
         
-    set( bottom_layout, 'Widths',[90 90 90 90 90 90], 'Heights', [22 22] );
+    bottom_layout = uigridlayout('Parent', gallery_layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90 90 90 90 90 90});
     
+    uilabel('Text', 'Image', 'Parent', bottom_layout);
+    uilabel('Text', 'Columns', 'Parent', bottom_layout);
     
-    set(gallery_layout,'Heights',[-1,70]);
+    handles.gallery_param_popupmenu = uidropdown('Items', {'-'}, 'Parent', bottom_layout);
+    handles.gallery_cols_edit = uieditfield('Value', '6', 'Parent', bottom_layout);
     
+    uilabel('Text', 'Text Overlay', 'Parent', bottom_layout);
+    uilabel('Text', 'Unit', 'Parent', bottom_layout);
+    
+    handles.gallery_overlay_popupmenu = uidropdown('Items', {'-'}, 'Parent', bottom_layout);
+    handles.gallery_unit_edit = uieditfield('Value', '', 'Parent', bottom_layout);
+    
+    uilabel('Text', 'Intensity Merge', 'Parent', bottom_layout);
+    %uix.Empty('Parent', bottom_layout);
+    
+    handles.gallery_merge_popupmenu = uidropdown('Items', {'No', 'Yes'}, 'Parent', bottom_layout);
+            
+        
     
 end

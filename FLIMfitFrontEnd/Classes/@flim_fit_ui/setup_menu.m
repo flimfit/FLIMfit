@@ -164,8 +164,11 @@ function handles = setup_menu(obj,handles)
     %handles.menu_tools_estimate_irf = uimenu(menu_tools,'Label','Estimate IRF');
     handles.menu_tools_create_irf_shift_map = uimenu(menu_tools,'Label','Create IRF Shift Map...');
     handles.menu_tools_create_tvb_intensity_map = uimenu(menu_tools,'Label','Create TVB Intensity Map...');
+    handles.menu_tools_estimate_q_q_sigma = uimenu(menu_tools,'Label','Estimate Q, Qsigma...');
+
     handles.menu_tools_spectral_calibration = uimenu(menu_tools,'Label','Generate Detector Spectral Calibration...','Separator','on');
 
+    
     handles.menu_tools_add_pattern = uimenu(menu_tools,'Label','Add Pattern to Library...','Separator','on');
     handles.menu_tools_edit_pattern_library = uimenu(menu_tools,'Label','Edit Pattern Library...');
     handles.menu_tools_edit_model_library = uimenu(menu_tools,'Label','Edit Model Library...','Separator','on');
@@ -199,5 +202,8 @@ function handles = setup_menu(obj,handles)
     handles.menu_help_tracker = uimenu(menu_help,'Label','Open Issue Tracker...');
     handles.menu_help_bugs = uimenu(menu_help,'Label','File Bug Report...');
     handles.menu_help_check_version = uimenu(menu_help,'Label','Check for new version...');
+    
+    handles.menu_help_unload = uimenu(menu_help,'Label','Unload Mex','Separator','on','Accelerator','-');
+    handles.menu_help_load = uimenu(menu_help,'Label','Load Mex','Accelerator','+');
 end
 

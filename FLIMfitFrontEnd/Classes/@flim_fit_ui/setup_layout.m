@@ -27,22 +27,21 @@ function handles = setup_layout(obj, handles)
 
 
     % Start layout
-    %---------------------------------------
-    top_layout = uix.HBoxFlex( 'Parent', obj.window, 'Spacing', 5, 'Padding', 0, 'DividerMarkings', 'on' );
-    mid_layout = uix.VBoxFlex( 'Parent', top_layout, 'Spacing', 5, 'Padding', 0, 'DividerMarkings', 'on' );
+    %---------------------------------------    
+    top_layout = uigridlayout('Parent', obj.window, 'ColumnSpacing', 5, 'Padding', 0, 'ColumnWidth', {'1x', 500, '2x'});
+    mid_layout = uigridlayout('Parent', top_layout, 'RowSpacing', 5, 'Padding', 0); % 'DividerMarkings', 'on');
     
-    fitting_panel = uix.BoxPanel( 'Parent', top_layout, 'Title', 'Fitting Options' );
-    left_layout = uix.VBox( 'Parent', fitting_panel, 'Spacing', 5, 'Padding', 0 );
+    fitting_panel = uipanel('Parent', top_layout, 'Title', 'Fitting Options');
+    left_layout = uigridlayout('Parent', fitting_panel, 'RowSpacing', 5, 'Padding', 0, 'RowHeight', {125,'1x',30});
     
 
     % Decay Display
     %---------------------------------------
     
-    right_layout = uix.VBoxFlex( 'Parent', top_layout );
-    
-    topright_layout = uix.HBox( 'Parent', right_layout );
+    right_layout = uigridlayout('Parent', top_layout, 'RowHeight', {'1x',110});
+    topright_layout = uigridlayout('Parent', right_layout, 'ColumnWidth', {'1x', 0});
             
-    display_tabpanel = uix.TabPanel( 'Parent', topright_layout, 'TabWidth', 80 );
+    display_tabpanel = uitabgroup('Parent', topright_layout);
     handles.display_tabpanel = display_tabpanel;
     
     handles = obj.add_decay_display_panel(handles,display_tabpanel);
@@ -51,30 +50,24 @@ function handles = setup_layout(obj, handles)
     handles = obj.add_hist_corr_display_panel(handles,display_tabpanel);
     handles = obj.add_plotter_display_panel(handles,display_tabpanel);
 
-    set(display_tabpanel, 'TabTitles', {'Decay','Parameters','Images','Gallery','Histogram','Correlation','Plotter','Plate'});
-    set(display_tabpanel, 'Selection', 1);
+    %set(display_tabpanel, 'Selection', 1);
     
-    display_params_panel = uix.VBox( 'Parent', topright_layout );
+    display_params_panel = uigridlayout('Parent', topright_layout, 'RowHeight', {'1.5x' '1x' 76});
     
     col_names = {'Plot','Display','Merge','Min','Max','Auto'};
     col_width = {60 30 30 50 50 30};
-    handles.plot_select_table = uitable( 'ColumnName', col_names, 'ColumnWidth', col_width, 'RowName', [], 'Parent', display_params_panel );
-    handles.filter_table = uitable( 'Parent', display_params_panel );
+    handles.plot_select_table = uitable('ColumnName', col_names, 'ColumnWidth', col_width, 'RowName', [], 'Parent', display_params_panel);
+    handles.filter_table = uitable('Parent', display_params_panel);
 
-    colormap_panel = uix.Grid( 'Parent', display_params_panel, 'Spacing', 0 );
+    colormap_panel = uigridlayout('Parent', display_params_panel, 'RowSpacing', 0, 'ColumnSpacing', 0, 'RowHeight', {22 22 22}, 'ColumnWidth', {'1x', '1x'});
     
-    uicontrol( 'Style', 'text', 'String', 'Invert Colorscale? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel );
-    uicontrol( 'Style', 'text', 'String', 'Display Colormap? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel );
-    uicontrol( 'Style', 'text', 'String', 'Display Limits? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel );
-    handles.invert_colormap_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel );    
-    handles.show_colormap_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel, 'Value', 2 );    
-    handles.show_limits_popupmenu = uicontrol( 'Style', 'popupmenu', 'String', {'No','Yes'}, 'Parent', colormap_panel, 'Value', 2 );    
-    
-    set(colormap_panel, 'Widths', [-1 -1], 'Heights', [22 22 22]);
-    set(display_params_panel, 'Heights', [-1.5 -1 76] );
-    
-    set( topright_layout, 'Widths', [-1, 0] );
-   
+    uilabel('Text', 'Invert Colorscale? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel);
+    uilabel('Text', 'Display Colormap? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel);
+    uilabel('Text', 'Display Limits? ', 'HorizontalAlignment', 'right', 'Parent', colormap_panel);
+    handles.invert_colormap_popupmenu = uidropdown('Items', {'No','Yes'}, 'Parent', colormap_panel);    
+    handles.show_colormap_popupmenu = uidropdown('Items', {'No','Yes'}, 'Parent', colormap_panel, 'Value', 'Yes');
+    handles.show_limits_popupmenu = uidropdown('Items', {'No','Yes'}, 'Parent', colormap_panel, 'Value', 'Yes');
+           
     function display_panel_callback(~,src,~)
         
         
@@ -83,62 +76,47 @@ function handles = setup_layout(obj, handles)
         
         if src.NewValue < 8 
             % don't set platemap in this way
-            set( topright_layout, 'Widths', [-1, 0] )
+            set(topright_layout, 'Widths', [-1, 0])
         end
         
         
         if src.NewValue > 2
       
-            set( topright_layout, 'Widths', [-1, 253] )
+            set(topright_layout, 'Widths', [-1, 253])
         end
     end
     
-    set( display_tabpanel, 'SelectionChangedFcn', @display_panel_callback );
+    set(display_tabpanel, 'SelectionChangedFcn', @display_panel_callback);
     
     % Progress Panel
     %---------------------------------------
-    progress_panel = uix.BoxPanel( 'Parent', right_layout, 'Title', 'Progress' );
-    handles.progress_table = uitable( 'Parent', progress_panel );
-    
-    set( right_layout, 'Heights', [-1,110] );
-    
-    % Dataset Panel
-    %---------------------------------------
+    progress_panel = uipanel('Parent', right_layout, 'Title', 'Progress');
+    handles.progress_table = uitable('Parent', progress_panel);
         
-    dataset_panel = uix.BoxPanel( 'Parent', mid_layout, 'Title', 'Dataset' );
-    dataset_layout = uix.VBoxFlex( 'Parent', dataset_panel, 'Padding', 3, 'Spacing', 5 );
+    % Dataset Panel
+    %---------------------------------------       
+    dataset_panel = uipanel('Parent', mid_layout, 'Title', 'Dataset');
+    dataset_layout = uigridlayout('Parent', dataset_panel, 'Padding', 3, 'RowSpacing', 5, 'ColumnSpacing', 5, 'RowHeight', {'1x','2x'});%, 'MinimumHeights', [150 0]);
 
     % Intensity View
     %---------------------------------------
-    intensity_layout = uix.VBox( 'Parent', dataset_layout, 'Spacing', 3 );
+    intensity_layout = uigridlayout('Parent', dataset_layout, 'RowSpacing', 3, 'RowHeight', {22, '1x'});
     
-    intensity_opts_layout = uix.HBox( 'Parent', intensity_layout, 'Spacing', 3 );
-    handles.intensity_mode_limits_text = uicontrol( 'Style', 'text', 'String', ' ', 'Parent', intensity_opts_layout, ...
-               'HorizontalAlignment', 'left' );
-    uicontrol( 'Style', 'text', 'String', 'Mode ', 'Parent', intensity_opts_layout, ...
-               'HorizontalAlignment', 'right' );
-    handles.intensity_mode_popupmenu = uicontrol( 'Style', 'popupmenu', ...
-            'String', {'Integrated Intensity','Background','TVB Intensity Map','SV IRF','IRF Shift Map','Intensity Ratio'}, 'Parent', intensity_opts_layout );
-    
-    set( intensity_opts_layout, 'Widths', [80,-1,200] );
-    
-    
-    intensity_container = uicontainer( 'Parent', intensity_layout ); 
-    handles.intensity_axes = axes( 'Parent', intensity_container );
+    intensity_opts_layout = uigridlayout('Parent', intensity_layout, 'ColumnSpacing', 3, 'ColumnWidth', {80, '1x', 200});
+    handles.intensity_mode_limits_text = uilabel('Text', ' ', 'Parent', intensity_opts_layout, 'HorizontalAlignment', 'left');
+    uilabel('Text', 'Mode ', 'Parent', intensity_opts_layout, 'HorizontalAlignment', 'right');
+    handles.intensity_mode_popupmenu = uidropdown('Items', {'Integrated Intensity','Background','TVB Intensity Map','SV IRF','IRF Shift Map','Intensity Ratio'}, 'Parent', intensity_opts_layout);
+            
+    intensity_container = uipanel('Parent', intensity_layout); 
+    handles.intensity_axes = axes('Parent', intensity_container);
     set(handles.intensity_axes,'Units','normalized','Position',[0.02 0.02 0.94 0.94]);
-    set( intensity_layout, 'Heights', [22,-1] );
-
     
     
-    dataset_layout_left = uix.VBox( 'Parent', dataset_layout, 'Padding', 3 );
-    handles.data_series_table = uitable( 'Parent', dataset_layout_left );
+    dataset_layout_left = uigridlayout('Parent', dataset_layout, 'Padding', 3, 'RowHeight', {'1x', 22});
+    handles.data_series_table = uitable('Parent', dataset_layout_left);
     
-    handles.data_series_sel_all = uicontrol( 'Style', 'pushbutton', 'String', 'Select Multiple...', 'Parent', dataset_layout_left );
-    
-    set( dataset_layout_left, 'Heights', [-1,22] );
-    
-    set( dataset_layout, 'Heights', [-1,-2], 'MinimumHeights', [150 0] );
-
+    handles.data_series_sel_all = uibutton('Text', 'Select Multiple...', 'Parent', dataset_layout_left);
+        
     
     % Data Transformation Panel
     %---------------------------------------
@@ -149,17 +127,13 @@ function handles = setup_layout(obj, handles)
     %---------------------------------------
     handles = obj.add_fitting_params_panel(handles, left_layout);
 
-    fit_button_layout = uix.HBox( 'Parent', left_layout, 'Spacing', 3 );
+    fit_button_layout = uigridlayout('Parent', left_layout, 'ColumnSpacing', 3, 'ColumnWidth', {'1x', '2x'});
     
-    handles.binned_fit_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Fit Selected Decay', 'Parent', fit_button_layout );
-    handles.fit_pushbutton = uicontrol( 'Style', 'pushbutton', 'String', 'Fit Dataset', 'Parent', fit_button_layout );
-
-    set(fit_button_layout,'Widths',[-1,-2]);
-    
-    set(left_layout,'Heights',[125,-1,30])
-    
+    handles.binned_fit_pushbutton = uibutton('Text', 'Fit Selected Decay', 'Parent', fit_button_layout);
+    handles.fit_pushbutton = uibutton('Text', 'Fit Dataset', 'Parent', fit_button_layout);
         
-    set(top_layout,'Widths',[-1, 500, -2],'MinimumWidths',[200, 500, 0]);
+        
+%    set(top_layout,'Widths',[-1, 500, -2],'MinimumWidths',[200, 500, 0]);
     
 
 %    dragzoom([handles.highlight_axes handles.residuals_axes])

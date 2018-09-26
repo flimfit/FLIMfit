@@ -28,22 +28,22 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
     % Fit Params Panel
     %---------------------------------------
-    fit_params_panel = uix.TabPanel( 'Parent', parent, 'TabWidth', 80 );
+    fit_params_panel = uix.TabPanel('Parent', parent, 'TabWidth', 80);
     
     % Main Tab
-    fit_params_main_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3 );
+    fit_params_main_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3);
     
     handles.model_panel = uipanel('Parent',fit_params_main_layout);
     
     % Advanced tab
-    fit_params_adv_layout = uix.HBox( 'Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3 );
-    fit_params_adv_label_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-    fit_params_adv_opt_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
-    fit_params_adv_extra_layout = uix.VBox( 'Parent', fit_params_adv_layout,  'Spacing', 1 );
+    fit_params_adv_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3);
+    fit_params_adv_label_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
+    fit_params_adv_opt_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
+    fit_params_adv_extra_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
 
-    fit_params_adv_col2_layout = uix.HBox( 'Parent', fit_params_adv_extra_layout, 'Spacing', 3 );
-    fit_params_adv_col2_label_layout = uix.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
-    fit_params_adv_col2_opt_layout = uix.VBox( 'Parent', fit_params_adv_col2_layout, 'Spacing', 1 );
+    fit_params_adv_col2_layout = uigridlayout('Parent', fit_params_adv_extra_layout, 'Spacing', 3);
+    fit_params_adv_col2_label_layout = uigridlayout('Parent', fit_params_adv_col2_layout, 'Spacing', 1);
+    fit_params_adv_col2_opt_layout = uigridlayout('Parent', fit_params_adv_col2_layout, 'Spacing', 1);
 
 
     add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
@@ -73,9 +73,9 @@ function handles = add_fitting_params_panel(obj,handles,parent)
         label_layout = eval(['fit_params_' layout '_label_layout;']);
         opt_layout = eval(['fit_params_' layout '_opt_layout;']);
 
-        label = uicontrol( 'Style', 'text', 'String', [label '  '], ... 
-                           'HorizontalAlignment', 'right', 'Parent', label_layout ); 
-        control = uicontrol( 'Style', style, 'String', string, 'Parent', opt_layout);
+        label = uilabel('Text', [label '  '], ... 
+                           'HorizontalAlignment', 'right', 'Parent', label_layout); 
+        control = uicontrol('Style', style, 'String', string, 'Parent', opt_layout);
         
         handles.([name '_label']) = label;
         handles.([name '_' style]) = control;
