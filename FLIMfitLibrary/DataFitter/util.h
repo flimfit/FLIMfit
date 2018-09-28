@@ -28,6 +28,8 @@
 //=========================================================================
 
 #pragma once
+#include <limits>
+#include <iterator>
 
 template<typename it>
 void SetNaN(it var, int n)
