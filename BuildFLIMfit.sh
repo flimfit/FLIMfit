@@ -5,10 +5,7 @@
 # For llvm debugging, brew -unlink python
 #
 
-if [ -z ${OME+x} ]; then export OME=5.2; echo "Setting OME=5.2"; fi
-if [ -z ${BIO+x} ]; then export BIO=5.2; echo "Setting BIO=5.2"; fi
-
-if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2017b; echo "Setting MATLAB_VER=R2017b"; fi
+if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2018b; echo "Setting MATLAB_VER=R2018b"; fi
 
 export CC=/usr/local/opt/llvm/bin/clang
 export CXX=/usr/local/opt/llvm/bin/clang++
@@ -35,7 +32,7 @@ cd FLIMfitFrontEnd
 if [ -z ${VERSION+x} ]; then export VERSION=$(git describe); fi
 echo "VERSION = $VERSION"
 
-rm ../FLIMfitStandalone/BuiltApps/*.app
+rm -rf ../FLIMfitStandalone/BuiltApps/*.app
 
 cur_dir=$(grealpath .)
 if ! matlab -nodisplay -nosplash -r "cd('${cur_dir}'); compile(true); exit"; then
