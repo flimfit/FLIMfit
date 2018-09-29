@@ -551,34 +551,26 @@ classdef flim_data_series < handle & h5_serializer
         function bg = get.background(obj)
             %> Retrieve background in same shape as flim data
             
-            % Check that the background size is correct if we have an image
-            s = size(obj.background_image);
-            if obj.background_type == 2 && ...
-                      ~(~isempty(obj.background_image) && s(1) == obj.height && s(2) == obj.width)
-                obj.background_type = 0;
-            end
-            
+            bg = 0;
             switch obj.background_type
-                case 0
-                    bg = 0;
-                case 1
+                case 'Single Value'
                     bg = obj.background_value;
-                case 2
-                    obj.background_image = squeeze(obj.background_image);
-                    bg = obj.background_image;
-                    bg = reshape(bg,[1 1 s]);
-                    bg = repmat(bg,[obj.n_t obj.n_chan 1 1]);
-                case 3
+                case 'Image'
+                    % Check that the background size is correct if we have an image
+                    s = size(obj.background_image);
+                    if ~isempty(obj.background_image) && s(1) == obj.height && s(2) == obj.width
+                        obj.background_image = squeeze(obj.background_image);
+                        bg = obj.background_image;
+                        bg = reshape(bg,[1 1 s]);
+                        bg = repmat(bg,[obj.n_t obj.n_chan 1 1]);
+                    end
+                case 'TV Intensity Map'
                     if ~isempty(obj.tvb_I_image)
                         bg = reshape(obj.tvb_I_image,[1 1 obj.height obj.width]);
                         % replace genops!
                         %bg = bg .* obj.tvb_profile + obj.background_value;
                         bg = bsxfun(@times,bg,obj.tvb_profile) + obj.background_value;
-                    else
-                        bg = 0;
                     end
-                otherwise
-                    bg = 0;
             end
            
         end

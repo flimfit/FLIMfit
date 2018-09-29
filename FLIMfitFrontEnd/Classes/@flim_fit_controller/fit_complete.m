@@ -31,7 +31,7 @@ function fit_complete(obj,~,~)
     obj.display_fit_end();
 
     if ishandle(obj.table_stat_popupmenu)
-        set(obj.table_stat_popupmenu,'String',obj.fit_result.stat_names);
+        set(obj.table_stat_popupmenu,'Items',obj.fit_result.stat_names);
     end
     
     obj.update_table();

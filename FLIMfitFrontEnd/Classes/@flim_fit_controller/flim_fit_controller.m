@@ -32,6 +32,7 @@ classdef flim_fit_controller < flim_data_series_observer
         
         fitting_params_controller;
         fit_params;
+        window;
         
         roi_controller;
         data_series_list;
@@ -133,11 +134,11 @@ classdef flim_fit_controller < flim_data_series_observer
             obj.dll_interface = flim_dll_interface();
             
             if ishandle(obj.fit_pushbutton)
-                set(obj.fit_pushbutton,'Callback',@(~,~) EC(@obj.fit_pushbutton_callback));
+                set(obj.fit_pushbutton,'ButtonPushedFcn',@(~,~) EC(@obj.fit_pushbutton_callback));
             end
 
             if ishandle(obj.binned_fit_pushbutton)
-                set(obj.binned_fit_pushbutton,'Callback',@(~,~) EC(@obj.binned_fit_pushbutton_callback));
+                set(obj.binned_fit_pushbutton,'ButtonPushedFcn',@(~,~) EC(@obj.binned_fit_pushbutton_callback));
             end
 
             if ~isempty(obj.data_series_controller) 
@@ -158,7 +159,7 @@ classdef flim_fit_controller < flim_data_series_observer
             
             if ~isempty(obj.live_update_checkbox)
                 set(obj.live_update_checkbox,'Value',obj.live_update);
-                set(obj.live_update_checkbox,'Callback',@(~,~) EC(@obj.live_update_callback));
+                set(obj.live_update_checkbox,'ValueChangedFcn',@(~,~) EC(@obj.live_update_callback));
             end
             
             if ~isempty(obj.plot_select_table)
@@ -178,7 +179,7 @@ classdef flim_fit_controller < flim_data_series_observer
             end
             
             if ~isempty(obj.table_stat_popupmenu)
-                set(obj.table_stat_popupmenu,'Callback',@(~,~) EC(@obj.table_stat_updated));
+                set(obj.table_stat_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.table_stat_updated));
             end
             
             obj.update_list();
@@ -273,7 +274,7 @@ classdef flim_fit_controller < flim_data_series_observer
         function lims = get_cur_lims(obj,param)
             
             if ischar(param)
-                param_idx = strcmp(obj.params,param);
+                param_idx = strcmp(obj.fit_results.params,param);
                 param = find(param_idx);
             end
             
@@ -390,11 +391,11 @@ classdef flim_fit_controller < flim_data_series_observer
         function display_fit_end(obj)
             
             if ishandle(obj.fit_pushbutton)
-                set(obj.fit_pushbutton,'String','Fit Dataset');  
+                set(obj.fit_pushbutton,'Text','Fit Dataset');  
             end
             
             if ~isempty(obj.wait_handle)
-                delete(obj.wait_handle)
+                close(obj.wait_handle)
                 obj.wait_handle = [];       % delete seems to leave an invalid obj in the class so replace
             end
            
@@ -403,9 +404,9 @@ classdef flim_fit_controller < flim_data_series_observer
         function display_fit_start(obj)
             
             if ishandle(obj.fit_pushbutton)
-                set(obj.fit_pushbutton,'String','Stop Fit');
+                set(obj.fit_pushbutton,'Text','Stop Fit');
                 if obj.use_popup
-                    obj.wait_handle = ProgressDialog('Indeterminate', true, 'StatusMessage', 'Fitting...'); %waitbar(0,'Fitting...');
+                    obj.wait_handle = uiprogressdlg(obj.window,'Title','Please wait','Message','Fitting...','Indeterminate','on'); %ProgressDialog('Indeterminate', true, 'StatusMessage', 'Fitting...'); %waitbar(0,'Fitting...');
                     obj.dll_interface.progress_bar = obj.wait_handle;
                 end
             end

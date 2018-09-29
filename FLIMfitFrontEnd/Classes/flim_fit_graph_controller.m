@@ -43,29 +43,28 @@ classdef flim_fit_graph_controller < abstract_plot_controller
             obj = obj@abstract_plot_controller(handles,handles.graph_axes,handles.graph_dependent_popupmenu,true);            
             assign_handles(obj,handles);
 
-            set(obj.graph_independent_popupmenu,'Callback',@obj.ind_param_select_update);
+            set(obj.graph_independent_popupmenu,'ValueChangedFcn',@obj.ind_param_select_update);
             
-            set(obj.error_type_popupmenu,'Callback',@(~,~,~) obj.update_display);
-            set(obj.graph_grouping_popupmenu,'Callback',@(~,~,~) obj.update_display);
-            set(obj.graph_weighting_popupmenu,'Callback',@(~,~,~) obj.update_display);
-            set(obj.graph_display_popupmenu,'Callback',@(~,~,~) obj.update_display);
-            set(obj.graph_dcm_popupmenu,'Callback',@(~,~,~) obj.update_display)
+            set(obj.error_type_popupmenu,'ValueChangedFcn',@(~,~,~) obj.update_display);
+            set(obj.graph_grouping_popupmenu,'ValueChangedFcn',@(~,~,~) obj.update_display);
+            set(obj.graph_weighting_popupmenu,'ValueChangedFcn',@(~,~,~) obj.update_display);
+            set(obj.graph_display_popupmenu,'ValueChangedFcn',@(~,~,~) obj.update_display);
+            set(obj.graph_dcm_popupmenu,'ValueChangedFcn',@(~,~,~) obj.update_display)
             
             obj.register_tab_function('Plotter');
             obj.update_display();
         end
         
         function ind_param_select_update(obj,~,~)
-            idx = get(obj.graph_independent_popupmenu,'Value');
+            obj.ind_param = get(obj.graph_independent_popupmenu,'Value');
+            %{
             r = obj.fit_controller.fit_result;            
             ind_vars = fieldnames(r.metadata);
             if idx > length(ind_vars) || idx == 0
                 idx = 1;
                 set(obj.graph_independent_popupmenu,'Value',idx);
             end
-                
-            obj.ind_param = ind_vars{idx}; 
-            
+            %}              
             obj.update_display();
         end
         
@@ -75,7 +74,7 @@ classdef flim_fit_graph_controller < abstract_plot_controller
                 r = obj.fit_controller.fit_result;            
                 ind_vars = fieldnames(r.metadata);
                 
-                set(obj.graph_independent_popupmenu,'String',ind_vars);
+                set(obj.graph_independent_popupmenu,'Items',ind_vars);
                 
                 obj.ind_param_select_update([],[]);  
             end

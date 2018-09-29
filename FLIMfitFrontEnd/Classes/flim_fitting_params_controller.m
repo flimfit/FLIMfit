@@ -1,4 +1,4 @@
-classdef flim_fitting_params_controller < control_binder & flim_data_series_observer
+classdef flim_fitting_params_controller < ui_control_binder & flim_data_series_observer
    
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -45,7 +45,7 @@ classdef flim_fitting_params_controller < control_binder & flim_data_series_obse
         function obj = flim_fitting_params_controller(handles)
 
             obj = obj@flim_data_series_observer(handles.data_series_controller);
-            obj = obj@control_binder(flim_fitting_params());
+            obj = obj@ui_control_binder(flim_fitting_params());
             
             
             assign_handles(obj,handles);

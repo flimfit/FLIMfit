@@ -46,7 +46,7 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
                         
             if nargin >= 3
                 obj.param_popupmenu = param_popupmenu;
-                set(obj.param_popupmenu,'Callback',@obj.param_select_update);
+                set(obj.param_popupmenu,'ValueChangedFcn',@obj.param_select_update);
             else
                 obj.param_popupmenu = [];
             end

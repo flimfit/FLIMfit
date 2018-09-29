@@ -27,8 +27,8 @@ function get_return_data(obj)
 
 
     if ishandleandvalid(obj.progress_bar)
-        obj.progress_bar.StatusMessage = 'Processing Fit Results...';
-        obj.progress_bar.Indeterminate = true;
+        obj.progress_bar.Message = 'Processing Fit Results...';
+        obj.progress_bar.Indeterminate = 'off';
     end
     
     r = obj.fit_result;

@@ -43,10 +43,12 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
             obj = obj@flim_data_series_observer(handles.data_series_controller);
             assign_handles(obj,handles);
             
-            parent = get(obj.intensity_axes,'Parent');
+            parent = obj.intensity_axes.Parent;
             set(parent,'ResizeFcn',@(~,~) EC(@obj.update_figure));
             
-            set(obj.intensity_mode_popupmenu,'Callback',@(~,~) EC(@obj.update_figure));
+            disableDefaultInteractivity(obj.intensity_axes);
+            
+            set(obj.intensity_mode_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.update_figure));
             if ~isempty(obj.data_series_list)
                 addlistener(obj.data_series_list,'selection_updated',@(~,~) EC(@obj.data_update_evt));
             end
@@ -59,7 +61,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
         
         function set_click_callback(obj,callback)
             obj.callback = callback;
-            set(obj.intensity_axes,'ButtonDownFcn',@(~,~) EC(callback));
+            set(obj.intensity_axes,'ButtonDownFcn',@(src,evt) EC(callback,src,evt));
         end
 
         function data_update(obj)
@@ -83,56 +85,66 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                 end
                 
                 switch view
-                case 1 % integrated intensity
-                    intensity = obj.data_series.selected_intensity(selected);
-                    flt = intensity(intensity>0 & isfinite(intensity));
-                    
-                    if isempty(flt)
-                        lim(1) = 0;
-                        lim(2) = 0;
-                    else
-                        lim(1) = 1; %min(flt);
-                        lim(2) = round(prctile(flt,99.5));
-                    end
-                    
-                    cmap = gray(m-1);
-                case 2 % background
-                    intensity = obj.data_series.background_image;
-                    
-                    flt = intensity(isfinite(intensity));
-                    lim = prctile(flt,[0.01 99.9]);
-                    
-                    cmap = gray(m-1);
-                                        
-                case 3 % TVB I background
-                    intensity = obj.data_series.tvb_I_image;
-                    
-                    flt = intensity(isfinite(intensity));
-                    lim = prctile(flt,[0.01 99.9]);
-                    
-                    cmap = gray(m-1);
-                case 4 % irf image
-                    intensity = squeeze(sum(squeeze(obj.data_series.image_irf)));
-                    flt = intensity(intensity>0 & isfinite(intensity));
-                    lim = prctile(intensity,[0.01 99.9]);
-                    
-                    cmap = gray(m-1); 
-                case 5 % t0 map
-                    intensity = obj.data_series.t0_image;
-                    
-                    flt = intensity(isfinite(intensity));
-                    lim = prctile(flt,[0.01 99.9]);
+                    case "Integrated Intensity"
+                        intensity = obj.data_series.selected_intensity(selected);
+                        flt = intensity(intensity>0 & isfinite(intensity));
 
-                    cmap = jet(m-1);
-                case 6 % ratio
-                    intensity = obj.data_series.cur_data;
-                    intensity = sum(intensity,1);
-                    intensity = permute(intensity,[3 4 2 1]);
-                    
-                    intensity = intensity(:,:,2) ./ intensity(:,:,1);
-                    lim = prctile(intensity(isfinite(intensity)),[0.05 95]);
-                    
-                    cmap = jet(m-1);
+                        if isempty(flt)
+                            lim(1) = 0;
+                            lim(2) = 0;
+                        else
+                            lim(1) = 1; %min(flt);
+                            lim(2) = round(prctile(flt,99.5));
+                        end
+
+                        cmap = gray(m-1);
+                        
+                    case "Background"
+                        intensity = obj.data_series.background_image;
+
+                        flt = intensity(isfinite(intensity));
+                        lim = prctile(flt,[0.01 99.9]);
+
+                        cmap = gray(m-1);
+
+                    case "TVB Intensity Map"
+                        intensity = obj.data_series.tvb_I_image;
+
+                        flt = intensity(isfinite(intensity));
+                        lim = prctile(flt,[0.01 99.9]);
+
+                        cmap = gray(m-1);
+
+                    case "SV IRF"
+                        intensity = squeeze(sum(squeeze(obj.data_series.image_irf)));
+                        flt = intensity(intensity>0 & isfinite(intensity));
+                        lim = prctile(intensity,[0.01 99.9]);
+
+                        cmap = gray(m-1); 
+
+                    case 'IRF Shift Map'
+                        intensity = obj.data_series.t0_image;
+
+                        flt = intensity(isfinite(intensity));
+                        lim = prctile(flt,[0.01 99.9]);
+
+                        cmap = jet(m-1);
+
+                    case 'Intensity Ratio'
+                        intensity = obj.data_series.cur_data;
+                        intensity = sum(intensity,1);
+                        intensity = permute(intensity,[3 4 2 1]);
+
+                        intensity = intensity(:,:,2) ./ intensity(:,:,3);
+                        intensity = medfilt2(intensity,[5 5]);
+
+                        lim = prctile(intensity(isfinite(intensity)),[0.05 95]);
+                        %lim = [0.5 1.1];
+
+                        flt = intensity(isfinite(intensity));
+
+                        %lim = [0.1 0.5];
+                        cmap = jet(m-1);
                 end
                 
                 if isempty(flt)
@@ -140,7 +152,7 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                 else
                     txt = ['Max ' num2str(max(flt(:)))];
                 end
-                set(obj.intensity_mode_limits_text,'String',txt);
+                set(obj.intensity_mode_limits_text,'Text',txt);
                
 
                 intensity = (intensity - lim(1))/(lim(2)-lim(1));
@@ -204,12 +216,13 @@ classdef flim_data_intensity_view < handle & flim_data_series_observer
                      'HorizontalAlignment','right','VerticalAlignment','top');
     
                 colormap(ax,'gray');
+                set(obj.colorbar_axes, 'units', 'normalized');
                
+                %}
                 
                 
                 set(ax, 'units', 'normalized');
-                set(obj.colorbar_axes, 'units', 'normalized');
-               
+                
 
             end
             

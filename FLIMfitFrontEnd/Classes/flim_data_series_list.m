@@ -53,11 +53,11 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             set(obj.handle,'CellEditCallback',@obj.use_callback);
             
             if ~isempty(obj.data_series_sel_all)
-                set(obj.data_series_sel_all,'Callback',@obj.sel_all_callback);
+                set(obj.data_series_sel_all,'ButtonPushedFcn',@obj.sel_all_callback);
             end
 
             if ~isempty(obj.data_series_sel_none)
-                set(obj.data_series_sel_none,'Callback',@obj.sel_none_callback);
+                set(obj.data_series_sel_none,'ButtonPushedFcn',@obj.sel_none_callback);
             end
 
             
@@ -158,8 +158,8 @@ classdef flim_data_series_list < handle & flim_data_series_observer
                     edit = [true false(1,n_field)];
                     set(obj.handle,'ColumnEditable',edit);
                     
-                    w = [24 ones(1,n_field)*40];
-                    set(obj.handle,'ColumnWidth',num2cell(w));
+                    w = [{24} repmat({'auto'},1,n_field)];
+                    set(obj.handle,'ColumnWidth',w);
                     
                     if isempty(obj.selected) || obj.selected > obj.data_series.n_datasets  || obj.selected == 0
                         

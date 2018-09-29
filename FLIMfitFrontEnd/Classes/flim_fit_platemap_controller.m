@@ -39,8 +39,8 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             assign_handles(obj,handles);
 
             obj.register_tab_function('Plate');
-            set(obj.plate_mode_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
-            set(obj.plate_merge_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
+            set(obj.plate_mode_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.update_display));
+            set(obj.plate_merge_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.update_display));
         
             obj.update_display();
         end
@@ -217,7 +217,7 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                 set(ax,'XTick',0:1:n_col);
                 set(ax,'TickLength',[0 0]);
                 daspect(ax,[1 1 1]);
-                set(im,'uicontextmenu',obj.contextmenu);
+%TODO:          set(im,'uicontextmenu',obj.contextmenu);
             end
             
             

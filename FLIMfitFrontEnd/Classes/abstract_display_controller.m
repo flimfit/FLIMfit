@@ -63,6 +63,8 @@ classdef abstract_display_controller < handle
             
             obj.selected = obj.data_series_list.selected;
 
+            %{ 
+            TODO
             obj.contextmenu = uicontextmenu('Parent',obj.window);
             
             
@@ -80,7 +82,7 @@ classdef abstract_display_controller < handle
             end
            
             set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
-           
+            %} 
         end
         
         function auto_export = export(~,~)
@@ -256,10 +258,8 @@ classdef abstract_display_controller < handle
         end
         
         function ret = is_active_tab(obj,tab)
-            tabs = get(obj.display_tabpanel,'TabTitle');
-            sel = get(obj.display_tabpanel,'Selection');
-           
-            ret = strcmp(tabs{sel},tab);
+            tab_title = obj.display_tabpanel.SelectedTab.Title;
+            ret = strcmp(tab_title,tab);
         end
         
         function register_tab_function(obj,tab)
@@ -267,9 +267,7 @@ classdef abstract_display_controller < handle
             last_fcn = get(obj.display_tabpanel,'SelectionChangedFcn');
             
             function fcn(obj1,src)
-                tabs = get(obj.display_tabpanel,'TabTitles');
-           
-                if strcmp(tabs{src.NewValue},tab);
+                if obj.is_active_tab(tab)
                     obj.draw_plot();
                 end
                 last_fcn(obj1,src);

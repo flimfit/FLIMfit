@@ -30,14 +30,14 @@ function add_callback(object,callback)
         return;
     end
 
-    old_callback = get(object,'Callback');
+    old_callback = object.ValueChangedFcn;
     if ~isempty(old_callback)
         new_callback = @cb;
     else
         new_callback = callback;
     end
 
-    set(object,'Callback',new_callback);
+    object.ValueChangedFcn = new_callback;
 
     function cb(x,y)
         old_callback(x,y);

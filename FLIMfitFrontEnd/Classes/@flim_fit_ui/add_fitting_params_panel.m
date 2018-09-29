@@ -28,65 +28,50 @@ function handles = add_fitting_params_panel(obj,handles,parent)
     
     % Fit Params Panel
     %---------------------------------------
-    fit_params_panel = uix.TabPanel('Parent', parent, 'TabWidth', 80);
+    fit_params_panel = uitabgroup('Parent', parent);
     
     % Main Tab
-    fit_params_main_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 3, 'Padding', 3);
+    fit_tab = uitab('Parent', fit_params_panel, 'Title', 'Model');
+    fit_tab_layout = uigridlayout(fit_tab, [1,1], 'Padding', 3);
     
-    handles.model_panel = uipanel('Parent',fit_params_main_layout);
+    handles.model_panel = uipanel('Parent',fit_tab_layout);
     
     % Advanced tab
-    fit_params_adv_layout = uigridlayout('Parent', fit_params_panel, 'Spacing', 1, 'Padding', 3);
-    fit_params_adv_label_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
-    fit_params_adv_opt_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
-    fit_params_adv_extra_layout = uigridlayout('Parent', fit_params_adv_layout,  'Spacing', 1);
+    adv_tab = uitab('Parent', fit_params_panel, 'Title', 'Advanced');
+    adv_layout = uigridlayout(adv_tab, [1,3], 'ColumnSpacing', 1, 'Padding', 3, 'ColumnWidth', {200 150});
+    label_layout = uigridlayout(adv_layout, [10,1],  'RowSpacing', 1);
+    opt_layout = uigridlayout(adv_layout, [10,1],  'RowSpacing', 1);
+    
+    add_fitting_param_control('n_thread','edit','No. Threads', '4');
+    add_fitting_param_control('global_scope','popupmenu','Global Mode', {'Pixel-wise','Image-wise','Global'});
+    add_fitting_param_control('fitting_algorithm','popupmenu','Algorithm', {'Variable Projection' 'Maximum Likelihood'});
+    add_fitting_param_control('use_numerical_derivatives','popupmenu','Use Numerical Derivatives', {'No', 'Yes'});
+    add_fitting_param_control('weighting_mode','popupmenu','Weighting Mode', {'Average Data','Pixelwise Data'});
+    add_fitting_param_control('use_autosampling','popupmenu','Use Autosampling', {'No','Yes'});
+    add_fitting_param_control('image_irf_mode','popupmenu','IRF',{'Single Point', 'Use SV IRF', 'Use IRF Shift Map'});
 
-    fit_params_adv_col2_layout = uigridlayout('Parent', fit_params_adv_extra_layout, 'Spacing', 3);
-    fit_params_adv_col2_label_layout = uigridlayout('Parent', fit_params_adv_col2_layout, 'Spacing', 1);
-    fit_params_adv_col2_opt_layout = uigridlayout('Parent', fit_params_adv_col2_layout, 'Spacing', 1);
-
-
-    add_fitting_param_control('adv','n_thread','edit','No. Threads', '4');
-    add_fitting_param_control('adv','global_scope','popupmenu','Global Mode', {'Pixel-wise','Image-wise','Global'});
-    add_fitting_param_control('adv','fitting_algorithm','popupmenu','Use Numerical Derivatives', {'Variable Projection' 'Maximum Likelihood'});
-    add_fitting_param_control('adv','use_numerical_derivatives','popupmenu','Algorithm', {'No', 'Yes'});
-    add_fitting_param_control('adv','weighting_mode','popupmenu','Weighting Mode', {'Average Data','Pixelwise Data'});
-    add_fitting_param_control('adv','use_autosampling','popupmenu','Use Autosampling', {'No','Yes'});
-    add_fitting_param_control('adv','image_irf_mode','popupmenu','IRF',{'Single Point', 'Use SV IRF', 'Use IRF Shift Map'});
-
-    add_fitting_param_control('adv_col2','live_update','checkbox','', 'Live Fit');
-    %add_fitting_param_control('adv_col2','split_fit','checkbox','', 'Split Fit');
-    %add_fitting_param_control('adv_col2','use_memory_mapping','checkbox','', 'Memory Map Results');
-    add_fitting_param_control('adv_col2','calculate_errs','checkbox','', 'Calculate Errors');
-    add_fitting_param_control('adv_col2','use_image_t0_correction','checkbox','', 'Use FOV IRF shift');
-
-    set(fit_params_adv_layout,'Widths',[120 120 300])
-    set(fit_params_adv_col2_layout,'Widths',[20 -1])
-
-    set(fit_params_panel, 'TabTitles', {'Lifetime'; 'Advanced'});
-    set(fit_params_panel, 'Selection', 1);
-
+    add_fitting_param_control('live_update','popupmenu','Live Fit', {'No', 'Yes'});
+    add_fitting_param_control('calculate_errs','popupmenu','Calculate Errors', {'No', 'Yes'});
+    add_fitting_param_control('use_image_t0_correction','popupmenu','Use FOV IRF shift', {'No', 'Yes'});
+    
+    label_layout_sizes = num2cell(22*ones(1,length(opt_layout.Children)));        
+    set([label_layout opt_layout],'RowHeight',label_layout_sizes);
     
     
-    function add_fitting_param_control(layout, name, style, label, string)
-
-        label_layout = eval(['fit_params_' layout '_label_layout;']);
-        opt_layout = eval(['fit_params_' layout '_opt_layout;']);
-
-        label = uilabel('Text', [label '  '], ... 
-                           'HorizontalAlignment', 'right', 'Parent', label_layout); 
-        control = uicontrol('Style', style, 'String', string, 'Parent', opt_layout);
+    function add_fitting_param_control(name, style, label, string)
+        
+        label = uilabel('Text', [label '  '], 'HorizontalAlignment', 'right', 'Parent', label_layout); 
+        
+        switch style
+            case 'popupmenu'
+                control = uidropdown('Items', string, 'Parent', opt_layout);
+            case 'edit'
+                control = uieditfield('Value', string, 'Parent', opt_layout);
+        end
         
         handles.([name '_label']) = label;
         handles.([name '_' style]) = control;
-        
-        label_layout_sizes = get(label_layout,'Heights');
-        label_layout_sizes(end) = 22;
-        
-        set(label_layout,'Heights',label_layout_sizes);
-        set(opt_layout,'Heights',label_layout_sizes);
-
-        
+                
     end
 
 end

@@ -33,6 +33,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
        fitting_params_controller;
 
        decay_panel;
+       res_panel;
        
        highlight_display_mode_popupmenu;
        highlight_decay_mode_popupmenu;
@@ -44,6 +45,9 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
        xlim_residual;
        
        lh;
+       
+       decay_axes; 
+       residual_axes;
        
        
        data = [];
@@ -71,11 +75,14 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             assign_handles(obj,handles)
 
             addlistener(obj.roi_controller,'roi_updated',@(~,~) EC(@obj.roi_update));
-            set(obj.highlight_display_mode_popupmenu,'Callback',@(~,~) EC(@obj.display_mode_update));
-            set(obj.highlight_decay_mode_popupmenu,'Callback',@(~,~) EC(@obj.display_mode_update));
+            set(obj.highlight_display_mode_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.display_mode_update));
+            set(obj.highlight_decay_mode_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.display_mode_update));
             
             obj.register_tab_function('Decay');
             
+            obj.decay_axes = axes('OuterPosition',[0 0 1 1],'Box','off','Parent',obj.decay_panel);
+            obj.residual_axes = axes('OuterPosition',[0 0 1 1],'XTickLabel',[],'Parent',obj.res_panel);
+                       
             obj.update_display();
         end
         
@@ -116,14 +123,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
         
         function update_data(obj)
             
-            decay_mode = get(obj.highlight_decay_mode_popupmenu,'Value');
-
-            if isempty(decay_mode)
-                decay_mode = 1;
-            end
-
-            decay_modes = get(obj.highlight_decay_mode_popupmenu,'String');
-            obj.data_type = decay_modes{decay_mode};
+            decay_mode = obj.highlight_decay_mode_popupmenu.Value;
             
             obj.data = [];
             obj.fit = [];
@@ -157,19 +157,19 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 obj.t_irf = obj.data_series.irf.tr_t_irf(:);
 
                 switch decay_mode
-                    case 1
+                    case 'Intensity Decay'
                         [obj.data, obj.irf] = obj.data_series.get_roi(mask,dataset);
-                    case 2
+                    case 'Raw IRF'
                         obj.data = obj.data_series.irf.irf;
                         obj.t = d.irf.t_irf;
                         obj.bg_line = ones(size(obj.t))*d.irf.irf_background;
-                    case 3
+                    case 'TV Background'
                         obj.data = obj.data_series.tr_tvb_profile;
-                    case 4
+                    case 'Magic Angle'
                         [obj.data,obj.irf] = obj.data_series.get_magic_angle_roi(mask,dataset);
-                    case 5
+                    case 'Anisotropy Decay'
                         obj.data = obj.data_series.get_anisotropy_roi(mask,dataset);
-                    case 6
+                    case 'G Factor'
                         obj.data = obj.data_series.get_g_factor_roi(mask,dataset);
                         obj.bg_line = ones(size(obj.t))*d.g_factor;
                 end
@@ -186,7 +186,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                     obj.fit_binned = obj.fit_controller.fit_result.binned;
                     
                     switch decay_mode
-                        case 1
+                        case 'Intensity Decay'
                             obj.fit = obj.fit_controller.fitted_decay(obj.t,mask,obj.data_series_list.selected);
                         case 4
                             obj.fit = obj.fit_controller.fitted_magic_angle(obj.t,mask,obj.data_series_list.selected);
@@ -205,44 +205,23 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
             
         end
         
-        function [ha,ra] = setup_axes(obj,f)
-           
-            children = get(f,'Children');
-            if ~isempty(children)
-                for i=1:length(children)
-                    delete(children(i))
-                end
-            end
-            
-            set(f,'Units','Normalized');
-            ha = axes('OuterPosition',[0 0.3 1 0.7],'Box','off','Parent',f);
-            ra = axes('OuterPosition',[0 0 1 0.32],'XTickLabel',[],'Parent',f);
-      
-        end
         
         function draw_plot(obj,f)
             
             export_plot = (nargin == 2);
-            if ~export_plot
-                f = obj.plot_handle;
-            end
-            
-            try%#ok
-            set(f,'BackgroundColor','w');
-            end
-            try%#ok
-            set(f,'Color','w');
-            end
-            
-            children = get(f,'Children');
-            
-            if length(children) == 2
-                ra = children(1);
-                ha = children(2);
+            if export_plot
+                if isprop(f,'BackgroundColor')
+                    f.BackgroundColor = 'w';
+                else
+                    f.Color = 'w';
+                end
+                ha = axes('OuterPosition',[0 0.3 1 0.7],'Box','off','Parent',f);
+                ra = axes('OuterPosition',[0 0 1 0.32],'XTickLabel',[],'Parent',f);
             else
-                [ha,ra] = obj.setup_axes(f);
+                ra = obj.residual_axes;
+                ha = obj.decay_axes;
             end
-            
+                             
             obj.update_data();
             
             hold(ha,'off');
@@ -272,9 +251,11 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 sum_t = sum(obj.data);
                 avg_t = mean(obj.data);
                 
+                sum_t = sum_t / max(sum_t);
+                
                 txt = [obj.roi_controller.click_pos_txt ' Total Intensity = ' num2str(sum_t)];
                 txt = [txt ', Average / Timepoint = ' num2str(avg_t)];
-                set(obj.decay_pos_text,'String',txt);
+                set(obj.decay_pos_text,'Text',txt);
                 plot_fcn(ha,obj.t,obj.data,'o');
                 hold(ha,'on');
             end
@@ -291,11 +272,11 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 hold(ha,'on');
             end
             
-            set(ra,'OuterPosition',[0 0 1 0.32]);
+%            set(ra,'OuterPosition',[0 0 1 1]);
                            
             if ~isempty(obj.fit)
-                set(ra,'Visible','on');
-                set(ha,'OuterPosition',[0 0.3 1 0.7]);
+ %               set(ra,'Visible','on');
+ %               set(ha,'OuterPosition',[0 0.3 1 0.7]);
                 if obj.fit_binned
                     plot_style = 'b--';
                 else
@@ -324,7 +305,7 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 if ~isempty(m) && m>0
                     ylim(ra,[-m-1e-3 m+1e-3]);
                 end
-                set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
+                %TODO: set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
                 
             else
                 cla(ra);
@@ -374,12 +355,13 @@ classdef flim_data_decay_view < handle & abstract_display_controller ...
                 xlim(ra,obj.xlim_residual);
             end
 
-            if first_call
-                dragzoom([ha ra],'on',@obj.get_axis_lims)
-            end
+            %if first_call
+            %    dragzoom([ha ra],'on',@obj.get_axis_lims)
+            %end
             if ~export_plot
-                set(ha,'uicontextmenu',obj.contextmenu);
-                set(ra,'uicontextmenu',obj.contextmenu);
+                % TODO
+%                set(ha,'uicontextmenu',obj.contextmenu);
+%                set(ra,'uicontextmenu',obj.contextmenu);
             end
 
             set(ha, ...

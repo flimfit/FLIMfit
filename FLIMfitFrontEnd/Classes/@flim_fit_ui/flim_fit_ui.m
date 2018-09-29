@@ -36,12 +36,8 @@ classdef flim_fit_ui
         function obj = flim_fit_ui(wait)
             
             %diagnostics('program','start');
-            %set_splash('FLIMfit-logo-colour.png');
-            
-            % pause to allow splash screen to display
-            %pause(0.1);
-            
-                    
+            splash = set_splash('FLIMfit-logo-colour.png');
+                                
             obj.check_prefs();
            
             if nargin < 1
@@ -98,9 +94,7 @@ classdef flim_fit_ui
                 'Name', ['FLIMfit ' v], ...
                 'NumberTitle', 'off', ...
                 'MenuBar', 'none', ...
-                'Toolbar', 'none', ...
-                'HandleVisibility', 'off', ...
-                'Visible','off'); %, ...
+                'Toolbar', 'none'); %, ...
                 %'Units','normalized', ...
                 %'OuterPosition',[0 0.03 1 0.97]);
             
@@ -131,8 +125,7 @@ classdef flim_fit_ui
             handles.window = obj.window;
             handles.use_popup = true;
                                                            
-            handles = obj.setup_layout(handles);                        
-            handles = obj.setup_toolbar(handles);
+            handles = obj.setup_layout(handles);        
 
             handles.model_controller = flim_model_controller(handles.model_panel);            
             handles.data_series_controller = flim_data_series_controller(handles);                                    
@@ -167,7 +160,8 @@ classdef flim_fit_ui
             
             guidata(obj.window,handles);
             
-         
+            drawnow;
+            
             loadOmero();
             
             % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
@@ -209,18 +203,16 @@ classdef flim_fit_ui
             status = bfCheckJavaPath(autoloadBioFormats);
             assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
                 'to the static Java path or add it to the Matlab path.']);
-            
-            
+                        
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
             
-          
-            close all;
-            
-            set(obj.window,'Visible','on');
+            set(obj.window,'Visible','on','WindowState','maximized');
             set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
                        
+            close(splash);
+            
             if wait
                 waitfor(obj.window);
             end
@@ -274,15 +266,6 @@ classdef flim_fit_ui
             % Finally actually close window
             delete(handles.window);
            
-            % kluge to close the left over figure 
-            %- TBD work out what's leaving it open
-            h = get(0,'Children');
-            if ~isempty(h)
-                close(h);
-            end
-            
-            clear all;
-
         end
         
     end

@@ -13,6 +13,7 @@ classdef flim_model_controller < handle
         model_param_controls;
         
         main_layout;
+        main_container;
         group_layout;
         model_layout;
         channel_layout;
@@ -42,35 +43,33 @@ classdef flim_model_controller < handle
 
             obj.groups = ff_DecayModel(obj.model,'GetGroups');
 
-            layout = uix.VBox('Parent',fh,'Padding',5,'Spacing',2,'BackgroundColor','w');
+            fh.BackgroundColor = 'w';
+            
+            layout = uigridlayout(fh,[2, 1],'Padding',5,'RowSpacing',2,'RowHeight',{22,'1x'});
 
-            add_layout = uix.HBox('Parent',layout,'Spacing',5,'BackgroundColor','w');
+            add_layout = uigridlayout(layout,[1 5],'Padding',0,'ColumnSpacing',5,'ColumnWidth',{22,22,75,'1x',75});
             
-            uicontrol('Style','pushbutton','String','L','Parent',add_layout,'Callback',@(~,~) obj.load_from_library);
-            uicontrol('Style','pushbutton','String','+','Parent',add_layout,'Callback',@(~,~) obj.add_to_library);
+            uibutton('Text','L','Parent',add_layout,'ButtonPushedFcn',@(~,~) obj.load_from_library);
+            uibutton('Text','+','Parent',add_layout,'ButtonPushedFcn',@(~,~) obj.add_to_library);
             
             
-            uicontrol('Style','text','String','Add: ','Parent',add_layout,'BackgroundColor','w');
-            add_popup = uicontrol('Style','popupmenu','String',obj.decay_types,'Parent',add_layout);
-            uicontrol('Style','pushbutton','String','Add','Callback',{@obj.add_group,add_popup},'Parent',add_layout);
-            add_layout.Widths = [22 22 75 -1 75];
+            uilabel('Text','Add: ','Parent',add_layout,'BackgroundColor','w');
+            add_popup = uidropdown('Items',obj.decay_types,'Parent',add_layout);
+            uibutton('Text','Add','ButtonPushedFcn',{@obj.add_group,add_popup},'Parent',add_layout);
 
-            obj.scroll_panel = uix.ScrollingPanel('Parent',layout,'BackgroundColor','w');
-            obj.main_layout = uix.VBox('Parent',obj.scroll_panel,'Spacing',2,'BackgroundColor','w');
+            obj.scroll_panel = uipanel('Parent',layout,'BackgroundColor','w','Scrollable','on','BorderType','none');
+            obj.main_layout = uigridlayout(obj.scroll_panel,[1,1],'Padding',0,'RowSpacing',2);
             
-            obj.group_layout = uix.VBox('Parent',obj.main_layout,'Spacing',2,'BackgroundColor','w');
+            obj.group_layout = uigridlayout(obj.main_layout,[1,1],'Padding',0,'RowSpacing',2);
            
-            uicontrol('Style','text','String','Model Parameters','Parent',obj.main_layout,...
+            uilabel('Text','Model Parameters','Parent',obj.main_layout,...
                       'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor',obj.title_color);
-            obj.model_layout = uix.VBox('Parent',obj.main_layout,'Spacing',2,'BackgroundColor','w');
+            obj.model_layout = uigridlayout(obj.main_layout,[1,1],'Padding',0,'RowSpacing',2);
             
-            uicontrol('Style','text','String','Channel Factors','Parent',obj.main_layout,...
+            uilabel('Text','Channel Factors','Parent',obj.main_layout,...
                       'FontSize',10,'FontWeight','bold','HorizontalAlignment','left','BackgroundColor',obj.title_color);
-            obj.channel_layout = uix.VBox('Parent',obj.main_layout,'Spacing',2,'BackgroundColor','w');
+            obj.channel_layout = uigridlayout(obj.main_layout,[1 1],'Padding',0,'RowSpacing',2);
 
-            uix.Empty('Parent',obj.main_layout,'UserData','Empty');
-
-            layout.Heights = [22 -1];
             obj.draw();
             
         end
@@ -95,7 +94,7 @@ classdef flim_model_controller < handle
             params = fieldnames(obj.model_parameters);
             if isempty(obj.model_param_controls)
                 for i=1:length(params)
-                    obj.model_param_controls{i} = obj.draw_parameter(obj.model_layout, obj.model_parameters.(params{i})); 
+                    obj.model_param_controls{i} = obj.draw_parameter(obj.model_layout, 0, params{i}, obj.model_parameters.(params{i})); 
                 end
             else                
                 params = fieldnames(obj.model_parameters);
@@ -125,22 +124,25 @@ classdef flim_model_controller < handle
             end
           
             height = get_height(obj.main_layout);
-            obj.scroll_panel.Heights = height;
+            %obj.main_container.Position = [0 0 200 height];
                  
             function height = get_height(object)
                 
-                if isa(object,'uix.VBox')
+                if isa(object,'matlab.ui.container.GridLayout')
                     if isempty(object.Children)
                         height = 0;
                     else
-                        heights = arrayfun(@get_height,flipud(object.Children));
-                        object.Heights = heights;
+                        heights = arrayfun(@get_height,object.Children);
+                        if length(object.RowHeight) == 1
+                            heights = heights(1);
+                        end
+                        object.RowHeight = num2cell(heights);
                         height = sum(heights(heights>0) + 2) - 2;
                     end
-                elseif isa(object,'uix.BoxPanel')
+                elseif isa(object,'matlab.ui.container.Panel')
                     height = get_height(object.Children) + 24;
                 elseif strcmp(object.UserData,'Empty')
-                    height = -1;
+                    height = 0;
                 else
                     height = 22;
                 end
@@ -155,29 +157,27 @@ classdef flim_model_controller < handle
 
             if obj.map.isKey(group.id)
                 h = obj.map(group.id);
+                for j=1:length(params)
+                   obj.refresh_parameter_control(h.params{j}, idx, params{j}, group.Parameters.(params{j})); 
+                end
             else
-                h.box = uix.VBox('Parent',parent,'BackgroundColor','w');
-                title_layout = uix.HBox('Parent',h.box);
-                h.title = uicontrol('Parent',title_layout,'Style','text','String','','BackgroundColor',obj.title_color,...
+                h.box = uigridlayout(parent,[1 1],'Padding',0,'RowSpacing',0);
+                title_layout = uigridlayout(h.box,[1 3],'Padding',0,'ColumnSpacing',0,'ColumnWidth',{'1x', 60, 22});
+                h.title = uilabel('Parent',title_layout,'Text','','BackgroundColor',obj.title_color,...
                     'FontSize',10,'FontWeight','bold','HorizontalAlignment','left');
-                h.rename_button = uicontrol('Parent',title_layout,'Style','pushbutton','String','Rename');
-                h.close_button = uicontrol('Parent',title_layout,'Style','pushbutton','String','x');
-                title_layout.Widths = [-1, 60, 22];
+                h.rename_button = uibutton('Parent',title_layout,'Text','Rename');
+                h.close_button = uibutton('Parent',title_layout,'Text','x');
                 
-                h.layout = uix.VBox('Parent',h.box,'Spacing',2,'BackgroundColor','w');
+                h.layout = uigridlayout(h.box,[1 1],'Padding',0,'RowSpacing',2);
                 
                 for j=1:length(params)
-                    h.params{j} = obj.draw_parameter(h.layout, group.Parameters.(params{j})); 
+                    h.params{j} = obj.draw_parameter(h.layout, idx, params{j}, group.Parameters.(params{j})); 
                 end
             end
             
-            h.title.String = ['[' num2str(idx) '] ' group.Name];
-            h.close_button.Callback = {@obj.remove_group, idx};
-            h.rename_button.Callback = {@obj.rename_group, idx, group.Name};
-
-            for j=1:length(params)
-               obj.refresh_parameter_control(h.params{j}, idx, params{j}, group.Parameters.(params{j})); 
-            end
+            h.title.Text = ['[' num2str(idx) '] ' group.Name];
+            h.close_button.ButtonPushedFcn = {@obj.remove_group, idx};
+            h.rename_button.ButtonPushedFcn = {@obj.rename_group, idx, group.Name};
 
             for j=1:length(group.Variables)
                var_layout(j) = obj.draw_variable(h.layout, idx, j, group.Variables(j)); 
@@ -194,41 +194,37 @@ classdef flim_model_controller < handle
             obj.touched(end+1) = group.id;
         end
 
-        function h = draw_parameter(~, parent, value)
-            h.layout = uix.HBox('Parent',parent,'Spacing',5,'BackgroundColor','w');
-            uix.Empty('Parent',h.layout);
-            h.label = uicontrol('Style','text','Parent',h.layout,'FontWeight','bold','BackgroundColor','w');
-
+        function h = draw_parameter(obj, parent, group_idx, name, value)
+            h.layout = uigridlayout(parent,[1 3],'Padding',0,'ColumnSpacing',5,'ColumnWidth',{102 '1x' '1x'});
+            h.label = uilabel('Parent',h.layout,'Text',name,'FontWeight','bold','BackgroundColor','w');
+            h.label.Layout.Column = 2;
             if ischar(value)
-                h.control = uicontrol('Style','edit','Parent',h.layout);
+                h.control = uieditfield('numeric','Parent',h.layout);
             elseif isinteger(value)
                 v = arrayfun(@num2str,1:5,'UniformOutput',false);
-                h.control = uicontrol('Style','popupmenu','String',v,'Parent',h.layout);
+                h.control = uidropdown('Items',v,'Parent',h.layout);
             elseif islogical(value)
-                h.control = uicontrol('Style','popupmenu','String',{'No', 'Yes'},'Parent',h.layout);
+                h.control = uidropdown('Items',{'No', 'Yes'},'Parent',h.layout);
             elseif isnumeric(value)
-                h.control = uicontrol('Style','edit','Parent',h.layout);
-            else
-                uix.Empty('Parent',h.layout);
+                h.control = uieditfield('numeric','Parent',h.layout);
             end
-            h.layout.Widths = [102 -1 -1];
+            h.control.Layout.Column = 3;
+            obj.refresh_parameter_control(h, group_idx, name, value);
         end
         
         
         function refresh_parameter_control(obj, h, group_idx, name, value)
-            h.label.String = name;
+            h.label.Text = name;
             if ischar(value)
-                set(h.control,'String',value,'Callback',@(src,evt) obj.update_parameter(group_idx, name, src.String));
+                set(h.control,'Text',value,'ValueChangedFcn',@(src,evt) obj.update_parameter(group_idx, name, src.Text));
             elseif isinteger(value)
-                set(h.control,'Value',value,'Callback',@(src,evt) obj.update_parameter(group_idx, name, src.Value));
+                set(h.control,'Value',h.control.Items{value},'ValueChangedFcn',@(src,evt) obj.update_parameter(group_idx, name, str2double(src.Value)));
             elseif islogical(value)
-                set(h.control,'Value',value+1,'Callback',@(src,evt) obj.update_parameter(group_idx, name, src.Value-1));
+                set(h.control,'Value',h.control.Items{value+1},'ValueChangedFcn',@(src,evt) obj.update_parameter(group_idx, name, double(strcmp(src.Value,'Yes'))));
             elseif isnumeric(value)
-                set(h.control,'String',num2str(value),'Callback',@(src,evt) obj.update_parameter(group_idx, name, str2double(src.String)));
-            else
-                uix.Empty('Parent',h.layout);
+                set(h.control,'Text',num2str(value),'ValueChangedFcn',@(src,evt) obj.update_parameter(group_idx, name, str2double(src.Text)));
             end
-            h.layout.Widths = [102 -1 -1];
+            h.layout.ColumnWidth = {102 '1x' '1x'};
         end
         
         
@@ -238,33 +234,29 @@ classdef flim_model_controller < handle
             if obj.map.isKey(variable.id)
                 h = obj.map(variable.id);
             else
-                h.box = uix.HBox('Parent',parent,'Spacing',5,'BackgroundColor','w');
-                h.label = uicontrol('Style','text','Parent',h.box,'FontWeight','bold','BackgroundColor','w');
-                h.search_check = uicontrol('Style','checkbox','Parent',h.box,'BackgroundColor','w');
-                h.initial_edit = uicontrol('Style','edit','Parent',h.box);
-                h.initial_min_edit = uicontrol('Style','edit','Parent',h.box);
-                h.initial_max_edit = uicontrol('Style','edit','Parent',h.box);
-                h.popup = uicontrol('Style','popupmenu','Parent',h.box);
-                h.box.Widths = [75 22 -1 -1 -1 -1];
+                h.box = uigridlayout(parent,[1 6],'Padding',0,'ColumnSpacing',5,'ColumnWidth',{75 22 '1x' '1x' '1x' '1x'});
+                h.label = uilabel('Parent',h.box,'FontWeight','bold','BackgroundColor','w');
+                h.search_check = uicheckbox('Parent',h.box,'Text','');
+                h.initial_edit = uieditfield('numeric','Parent',h.box);
+                h.initial_min_edit = uieditfield('numeric','Parent',h.box);
+                h.initial_max_edit = uieditfield('numeric','Parent',h.box);
+                h.popup = uidropdown('Parent',h.box);
             end
             
-            set(h.label,'String',variable.Name);
+            set(h.label,'Text',variable.Name);
 
             set(h.search_check,'Value',variable.InitialSearch,...
-                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialSearch', logical(src.Value), h));
+                'ValueChangedFcn',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialSearch', src.Value, h));
             
-            set(h.initial_edit,'String',num2str(variable.InitialValue),...
-                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialValue', str2double(src.String), h));
-            set(h.initial_min_edit,'String',num2str(variable.InitialMin),...
-                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialMin', str2double(src.String), h));
-            set(h.initial_max_edit,'String',num2str(variable.InitialMax),...
-                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialMax', str2double(src.String), h));
+            set(h.initial_edit,'Value',variable.InitialValue,...
+                'ValueChangedFcn',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialValue', src.Value, h));
+            set(h.initial_min_edit,'Value',variable.InitialMin,...
+                'ValueChangedFcn',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialMin', src.Value, h));
+            set(h.initial_max_edit,'Value',variable.InitialMax,...
+                'ValueChangedFcn',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'InitialMax', src.Value, h));
 
-            idx = 1:length(variable.AllowedFittingTypes);
-            idx = idx(variable.AllowedFittingTypes == variable.FittingType);
-
-            set(h.popup,'String',obj.fit_options(variable.AllowedFittingTypes),'Value',idx,...
-                'Callback',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'FittingType', variable.AllowedFittingTypes(src.Value), h));
+            set(h.popup,'Items',obj.fit_options(variable.AllowedFittingTypes),'Value',obj.fit_options{variable.FittingType},...
+                'ValueChangedFcn',@(src,evt) obj.update_variable_option(group_idx, variable_idx, 'FittingType', variable.AllowedFittingTypes(src.Value), h));
             
             obj.update_variable_display(variable, h);
             
@@ -276,21 +268,21 @@ classdef flim_model_controller < handle
         function draw_channel(obj, parent, ~, idx)
 
             channel_names = ff_DecayModel(obj.model,'GetChannelFactorNames',idx);
-
             for i=1:length(channel_names)        
                 channel_factors = obj.get_channel_factors(idx, i);
                 
-                layout = uix.HBox('Parent',parent,'Spacing',2,'BackgroundColor','w'); 
-                uicontrol('Style','text','String',['[' num2str(idx) '] ' channel_names{i}],'Parent',layout,'BackgroundColor','w');
+                column_widths = [{75} repmat({'1x'},[1 length(channel_factors)])];
+                layout = uigridlayout(parent,[1 length(channel_factors)+1],'Padding',0,'ColumnSpacing',2,'ColumnWidth',column_widths); 
+                uilabel('Text',['[' num2str(idx) '] ' channel_names{i}],'Parent',layout,'BackgroundColor','w');
                 for j=1:length(channel_factors)
-                    obj.channel_controls{idx}{i}{j} = uicontrol('Style','edit','String',num2str(channel_factors(j)),'Parent',layout,'BackgroundColor','w',...
-                        'Callback',@(src,evt) obj.update_channel_factor(idx, i, j, str2double(src.String)));
+                    obj.channel_controls{idx}{i}{j} = uieditfield('numeric','Value',channel_factors(j),'Parent',layout,'BackgroundColor','w',...
+                        'ValueChangedFcn',@(src,evt) obj.update_channel_factor(idx, i, j, src.Value));
                 end
             end
         end
 
         function add_group(obj,~,~,add_popup)
-            type = add_popup.String{add_popup.Value};
+            type = add_popup.Value;
             if strcmp(type,'Pattern')
                [pattern,name] = get_library_pattern();
                pattern = mat2cell(pattern,size(pattern,1),ones(1,size(pattern,2)));
@@ -377,7 +369,7 @@ classdef flim_model_controller < handle
             ff_DecayModel(obj.model,'SetChannelFactors',group_idx,factor_idx,channel_factors);
             
             for i=1:length(channel_factors)
-                obj.channel_controls{group_idx}{factor_idx}{i}.String = num2str(channel_factors(i));
+                obj.channel_controls{group_idx}{factor_idx}{i}.Text = num2str(channel_factors(i));
             end
         end
         

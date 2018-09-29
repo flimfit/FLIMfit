@@ -59,18 +59,13 @@ classdef roi_controller < flim_data_series_observer
                       
             assign_handles(obj,toggles);
             
-            set(obj.tool_roi_rect_toggle,'State','off');
-            set(obj.tool_roi_poly_toggle,'State','off');
-            set(obj.tool_roi_circle_toggle,'State','off');
+            set(obj.tool_roi_rect_toggle,'Value',false);
+            set(obj.tool_roi_poly_toggle,'Value',false);
+            set(obj.tool_roi_circle_toggle,'Value',false);
                        
-            set(obj.tool_roi_rect_toggle,'OnCallback',@(evt,src) EC(@obj.on_callback,evt,src));
-            set(obj.tool_roi_rect_toggle,'OffCallback',@(evt,src) EC(@obj.off_callback,evt,src));
-            
-            set(obj.tool_roi_poly_toggle,'OnCallback',@(evt,src) EC(@obj.on_callback,evt,src));
-            set(obj.tool_roi_poly_toggle,'OffCallback',@(evt,src) EC(@obj.off_callback,evt,src));
-            
-            set(obj.tool_roi_circle_toggle,'OnCallback',@(evt,src) EC(@obj.on_callback,evt,src));
-            set(obj.tool_roi_circle_toggle,'OffCallback',@(evt,src) EC(@obj.off_callback,evt,src));
+            set(obj.tool_roi_rect_toggle,'ValueChangedFcn',@(evt,src) EC(@obj.callback,evt,src));
+            set(obj.tool_roi_poly_toggle,'ValueChangedFcn',@(evt,src) EC(@obj.callback,evt,src));
+            set(obj.tool_roi_circle_toggle,'ValueChangedFcn',@(evt,src) EC(@obj.callback,evt,src));
             
             
             obj.data_intensity_view.set_click_callback(@obj.click_callback);
@@ -82,7 +77,7 @@ classdef roi_controller < flim_data_series_observer
             
             d = obj.data_series_controller.data_series;
             if isempty(obj.roi_mask) || size(obj.roi_mask,1) ~= d.height ...
-                                    || size(obj.roi_mask,2) ~= d.width
+                                     || size(obj.roi_mask,2) ~= d.width
                 obj.roi_mask = [];
             end
            
@@ -103,7 +98,15 @@ classdef roi_controller < flim_data_series_observer
          
         end
         
-        function on_callback(obj,src,~)
+        function callback(obj,src,evt)
+            if evt.Value == 1
+                obj.on_callback(src,evt);
+            else
+                obj.off_callback(src,evt);
+            end
+        end
+        
+        function on_callback(obj,src,evt)
 
             if ~obj.waiting && obj.data_series.init
                 
@@ -116,55 +119,39 @@ classdef roi_controller < flim_data_series_observer
                     delete(obj.roi_handle);
                 end
               
+                other_tools = [obj.tool_roi_rect_toggle,obj.tool_roi_poly_toggle, obj.tool_roi_circle_toggle];
+                other_tools = other_tools(other_tools ~= src);
+                set(other_tools,'Value',false);
+                
                 switch src
                     case obj.tool_roi_rect_toggle
-
-                        set(obj.tool_roi_poly_toggle,'State','off');
-                        set(obj.tool_roi_circle_toggle,'State','off');
-
-                        obj.roi_handle = imrect(obj.data_intensity_view.intensity_axes);
-
+                        obj.roi_handle = drawrectangle(obj.data_intensity_view.intensity_axes);
                     case obj.tool_roi_poly_toggle
-
-                        set(obj.tool_roi_rect_toggle,'State','off');
-                        set(obj.tool_roi_circle_toggle,'State','off');
-
-                        obj.roi_handle = impoly(obj.data_intensity_view.intensity_axes);
-
+                        obj.roi_handle = drawpolygon(obj.data_intensity_view.intensity_axes);
                     case obj.tool_roi_circle_toggle
-
-                        set(obj.tool_roi_poly_toggle,'State','off');
-                        set(obj.tool_roi_rect_toggle,'State','off');
-
-                        obj.roi_handle = imellipse(obj.data_intensity_view.intensity_axes);
-
-
+                        obj.roi_handle = drawellipse(obj.data_intensity_view.intensity_axes);
                 end
-
-                
                 
                 if ~isempty(obj.roi_handle)
-                
                     addlistener(obj.roi_handle,'ObjectBeingDestroyed',@(~,~) EC(@obj.roi_being_destroyed));
-                    obj.roi_callback_id = addNewPositionCallback(obj.roi_handle,@(~,~) EC(@obj.roi_change_callback));        
+                    obj.roi_callback_id = addlistener(obj.roi_handle,'ROIMoved',@(~,~) EC(@obj.roi_change_callback));        
                     obj.update_mask();
 
                     notify(obj,'roi_updated');
                 end
 
                 obj.point_mode = true;
-                
                 obj.waiting = false;
                 
-                set(src,'State','off');
+                set(src,'Value',false);
             else
-                set(src,'State','off');
+                set(src,'Value',false);
             end
 
         end
         
         function off_callback(obj,~,~)
-           %set(src,'State','off');
+           %set(src,'Value','off');
            % if an roi is part complete then use robot framework to fire
            % esc to cancel
            if obj.waiting
@@ -184,19 +171,18 @@ classdef roi_controller < flim_data_series_observer
             notify(obj,'roi_updated');
         end
 
-        function click_callback(obj,src,~)
+        function click_callback(obj,src,evt)
             
             if obj.point_mode && ~isempty(obj.data_intensity_view.im)
-                click_pos = get(src,'CurrentPoint');
-                click_pos = click_pos(1,1:2);
+                click_pos = evt.IntersectionPoint(1:2);
                 click_pos = floor(click_pos); 
                 obj.click_pos_txt = ['X ' num2str(click_pos(1) - 1) '  Y ' num2str(click_pos(2) - 1) ];
                 
                 if ~isempty(obj.roi_handle) && isvalid(obj.roi_handle)
                     delete(obj.roi_handle);
                 end
-                    
-                obj.roi_handle = impoint(obj.data_intensity_view.intensity_axes,click_pos);
+                                    
+                obj.roi_handle = drawpoint(obj.data_intensity_view.intensity_axes,'Position',click_pos);
                
                 addlistener(obj.roi_handle,'ObjectBeingDestroyed',@(~,~) EC(@obj.roi_being_destroyed));
                 
@@ -207,9 +193,11 @@ classdef roi_controller < flim_data_series_observer
         
         function update_mask(obj)
             if ~isempty(obj.roi_handle)
-                try
-                obj.roi_mask = obj.roi_handle.createMask(obj.data_intensity_view.im);
-                catch %#ok
+                if isa(obj.roi_handle,'images.roi.Point')
+                    obj.roi_mask = false([obj.data_series.height obj.data_series.width]);
+                    obj.roi_mask(obj.roi_handle.Position(2),obj.roi_handle.Position(1)) = true;
+                else
+                    obj.roi_mask = createMask(obj.roi_handle,obj.data_intensity_view.im);
                 end
             end
         end
@@ -217,10 +205,7 @@ classdef roi_controller < flim_data_series_observer
         function roi_being_destroyed(obj)
             obj.roi_handle = [];
             if ~isempty(obj.roi_callback_id)
-                try
-                removeNewPositionCallback(obj.roi_handle,obj.roi_callback_id);
-                catch e
-                end
+                delete(obj.roi_callback_id);
             end
             obj.roi_callback_id = [];
         end

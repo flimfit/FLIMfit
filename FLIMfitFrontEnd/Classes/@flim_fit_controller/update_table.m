@@ -3,7 +3,6 @@ function update_table(obj)
 
         if ishandle(obj.table_stat_popupmenu)
             stat = get(obj.table_stat_popupmenu,'Value');
-            stat = obj.fit_result.stat_names{stat};
         else 
             stat = 'mean';
         end

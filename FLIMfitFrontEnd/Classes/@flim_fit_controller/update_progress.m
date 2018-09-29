@@ -35,10 +35,9 @@ function update_progress(obj,~,~)
 
         if ~isempty(obj.wait_handle)
             if progress > 0
-                obj.wait_handle.Indeterminate = false;
-                obj.wait_handle.FractionComplete = progress;
+                obj.wait_handle.Indeterminate = 'off';
+                obj.wait_handle.Value = progress;
             end
-            %waitbar(progress,obj.wait_handle);
         end
 
         table_data = [double((1:p.n_thread)); double(n_completed); ...

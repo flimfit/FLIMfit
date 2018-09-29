@@ -30,57 +30,55 @@ function handles = add_hist_corr_display_panel(obj,handles,parent)
     % Author : Sean Warren
 
 
-    tab = uitab('Parent', parent);
-    hist_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
+    tab = uitab('Parent', parent, 'Title', 'Histogram');
+    hist_layout = uigridlayout(tab, [2,1], 'Padding', 5, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
     
-    panel = uipanel('Parent', hist_layout);
-    handles.hist_axes = axes('Parent', panel);
+    panel = uipanel('Parent', hist_layout, 'BorderType', 'none');
+    handles.hist_axes = axes('Parent', panel, 'Visible', false);
        
-    opt_layout = uigridlayout('Parent', hist_layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90 90 90 90 90 90});
-    uilabel('Text', 'Parameter  ', 'Parent', opt_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Weighting  ', 'Parent', opt_layout, 'HorizontalAlignment', 'right');
+    opt_layout = uigridlayout(hist_layout, [2,6], 'Padding', 0, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90 90 90 90 90 90});
+    
+    uilabel('Text', 'Parameter  ', 'Parent', opt_layout, 'HorizontalAlignment', 'left');
     handles.hist_param_popupmenu = uidropdown('Items', {''}, 'Parent', opt_layout);
-    handles.hist_weighting_popupmenu = uidropdown('Items', {'None' 'Intensity Weighted'}, 'Parent', opt_layout);
+    
+    uilabel('Text', 'Weighting  ', 'Parent', opt_layout, 'HorizontalAlignment', 'left');
+    handles.hist_weighting_popupmenu = uidropdown('Items', {'Unweighted' 'Intensity Weighted'}, 'Parent', opt_layout);
       
-    uilabel('Text', 'Classes  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right');
-    uilabel('Text', 'Source Data  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right');
-
+    uilabel('Text', 'Classes  ', 'Parent', opt_layout, 'HorizontalAlignment', 'left');
     handles.hist_classes_edit = uieditfield('Value', '100', 'Parent', opt_layout);
+    
+    uilabel('Text', 'Source Data  ', 'Parent', opt_layout, 'HorizontalAlignment', 'left');
     handles.hist_source_popupmenu = uidropdown('Items', {'Selected Image' 'All Filtered'}, 'Parent', opt_layout);
         
-    uilabel('Text', 'Add False Colour  ', 'Parent', opt_layout, ...
-               'HorizontalAlignment', 'right');
-    %uix.Empty('Parent', opt_layout);
-        
+    uilabel('Text', 'False Colour  ', 'Parent', opt_layout, 'HorizontalAlignment', 'left');
     handles.hist_addcolour_popupmenu = uidropdown('Items', {'On' 'Off'}, 'Parent', opt_layout);
-    %uix.Empty('Parent', opt_layout);
     
 
+    % Correlation tab
+    tab = uitab('Parent', parent, 'Title', 'Correlation');    
+    corr_layout = uigridlayout(tab, [2,1], 'Padding', 5, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
     
-    tab = uitab('Parent', parent);    
-    corr_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
+    panel = uipanel('Parent', corr_layout, 'BorderType', 'none');
+    handles.corr_axes = axes('Parent', panel, 'Visible', false);
     
-    panel = uipanel('Parent', corr_layout);
-    handles.corr_axes = axes('Parent', panel);
+    param_layout = uigridlayout(corr_layout, [2,1], 'Padding', 0, 'RowSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90 90 90 90 90 90});
     
-    param_layout =uigridlayout('Parent', corr_layout, 'RowSpacing', 3, 'RowHeight', {22 22});
-    uilabel('Text', 'X Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Y Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
+    uilabel('Text', 'X Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'left');
     handles.corr_param_x_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
+
+    uilabel('Text', 'Y Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'left');
     handles.corr_param_y_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
         
-    uilabel('Text', 'Source Data  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Plot  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-           
+    uilabel('Text', 'Source Data  ', 'Parent', param_layout, 'HorizontalAlignment', 'left');
     handles.corr_source_popupmenu = uidropdown('Items', {'Selected Image' 'All Filtered'}, 'Parent', param_layout);
+    
+    uilabel('Text', 'Plot  ', 'Parent', param_layout, 'HorizontalAlignment', 'left');       
     handles.corr_display_popupmenu = uidropdown('Items', {'Pixels' 'Regions'}, 'Parent', param_layout);
     
-    uilabel('Text', 'Scale  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Color Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    
+    uilabel('Text', 'Scale  ', 'Parent', param_layout, 'HorizontalAlignment', 'left');
     handles.corr_scale_popupmenu = uidropdown('Items', {'Linear' 'Logarithmic'}, 'Parent', param_layout);
+
+    uilabel('Text', 'Color Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'left');
     handles.corr_independent_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
 
 end

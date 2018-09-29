@@ -51,7 +51,7 @@ classdef flim_data_series_controller < handle
                 obj.data_series = flim_data_series();
             end
             
-            set(obj.display_smoothed_popupmenu,'Callback',@obj.set_use_smoothing);
+            set(obj.display_smoothed_popupmenu,'ValueChangedFcn',@obj.set_use_smoothing);
             
         end
         

@@ -26,52 +26,50 @@ function handles = add_plotter_display_panel(obj,handles,parent)
     % Author : Sean Warren
 
     tab = uitab('Parent', parent, 'Title', 'Plotter');
-    layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
+    layout = uigridlayout(tab, [2,1], 'Padding', 5, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
     
-    panel = uipanel('Parent', layout);
-    handles.graph_axes = axes('Parent', panel);
+    panel = uipanel('Parent', layout, 'BorderType', 'none');
+    handles.graph_axes = axes('Parent', panel, 'Visible', false);
     
-    param_layout = uigridlayout('Parent', layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90,90,90,90,90,90,90,90});
+    param_layout = uigridlayout(layout, [2,8], 'Padding', 0, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90,90,90,90,90,90,90,90});
+    
     uilabel('Text', 'Label  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-           
     handles.graph_independent_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
+    
+    uilabel('Text', 'Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
     handles.graph_dependent_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
         
     uilabel('Text', 'Combine  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Weighting  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    
     handles.graph_grouping_popupmenu = uidropdown('Items', {'By Pixel' 'By Region' 'By FOV' 'By Well'}, 'Parent', param_layout);       
+    
+    uilabel('Text', 'Weighting  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
     handles.graph_weighting_popupmenu = uidropdown('Items', {'None','Intensity Weighted'}, 'Parent', param_layout);       
         
     uilabel('Text', 'Error bars  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Display  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-
     handles.error_type_popupmenu = uidropdown('Items', {'Standard Deviation', 'Standard Error', '95% Confidence'}, 'Parent', param_layout);
+    
+    uilabel('Text', 'Display  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
     handles.graph_display_popupmenu = uidropdown('Items', {'Line' 'Line with Scatter' 'Box Plot'}, 'Parent', param_layout);       
-
-        
+    
     uilabel('Text', 'Data cursor  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    %uix.Empty('Parent', param_layout);
-           
-
     handles.graph_dcm_popupmenu = uidropdown('Items', {'Off' 'Datatip' 'Window'}, 'Parent', param_layout); 
-    %uix.Empty('Parent', param_layout);
-        
     
+    % Plate display
     tab = uitab('Parent', parent, 'Title', 'Plate');
-    plate_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
+    plate_layout = uigridlayout(tab, [2,1], 'Padding', 5, 'RowSpacing', 3, 'RowHeight', {'1x', 70});
         
-    plate_container = uipanel('Parent', plate_layout);
-    handles.plate_axes = axes('Parent', plate_container);
+    plate_container = uipanel('Parent', plate_layout, 'BorderType', 'none');
+    handles.plate_axes = axes('Parent', plate_container, 'Visible', false);
     
-    param_layout = uigridlayout('Parent', plate_layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {100 100 100 100});
+    param_layout = uigridlayout(plate_layout, [2,4], 'Padding', 0, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {100 100 100 100});
+
     uilabel('Text', 'Parameter  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    uilabel('Text', 'Mode  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
     handles.plate_param_popupmenu = uidropdown('Items', {''}, 'Parent', param_layout);
+    
+    uilabel('Text', 'Mode  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
     handles.plate_mode_popupmenu = uidropdown('Items', {'Well Average','First Image'}, 'Parent', param_layout);
+    
     uilabel('Text', 'Intensity merge  ', 'Parent', param_layout, 'HorizontalAlignment', 'right');
-    %uix.Empty('Parent', param_layout);
     handles.plate_merge_popupmenu = uidropdown('Items', {'No','Yes'}, 'Parent', param_layout);
     
 end

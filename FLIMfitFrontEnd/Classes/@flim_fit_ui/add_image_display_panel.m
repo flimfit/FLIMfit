@@ -27,39 +27,38 @@ function handles = add_image_display_panel(obj,handles,parent)
 
 
     % Plot display
-    tab = uitab('Parent', parent);
-    handles.plot_panel = uipanel('Parent', tab);
-    handles.plot_axes = axes('Parent',handles.plot_panel);
+    tab = uitab('Parent', parent, 'Title', 'Images');
+    plot_layout = uigridlayout(tab, [1 1], 'Padding', 5);
+    handles.plot_panel = uipanel('Parent', plot_layout, 'BorderType', 'none');
+    %handles.plot_axes = axes('Parent',handles.plot_panel);
     
     
     % Gallery display
-    
-    tab = uitab('Parent', parent);
-    gallery_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {'1x',70});
+    tab = uitab('Parent', parent, 'Title', 'Gallery');
+    gallery_layout = uigridlayout(tab, [2,1], 'RowSpacing', 3, 'Padding', 5, 'RowHeight', {'1x',70});
 
-    gallery_layout_top = uigridlayout('Parent', gallery_layout, 'ColumnWidth', {'1x', 22});
-    
+    gallery_layout_top = uigridlayout(gallery_layout, [1,2], 'Padding', 0, 'ColumnWidth', {'1x', 22});
+      
     handles.gallery_panel = uipanel('Parent', gallery_layout_top, 'BorderType', 'none');
     handles.gallery_slider = uislider('Parent', gallery_layout_top, 'Orientation', 'vertical');
         
-    bottom_layout = uigridlayout('Parent', gallery_layout, 'RowSpacing', 3, 'ColumnSpacing', 3, 'RowHeight', {22 22}, 'ColumnWidth', {90 90 90 90 90 90});
+    bottom_layout = uigridlayout(gallery_layout, [2,6], 'RowSpacing', 3, 'ColumnSpacing', 3, 'Padding', 0, 'RowHeight', {22 22}, 'ColumnWidth', {90 90 90 90 90 90});
     
     uilabel('Text', 'Image', 'Parent', bottom_layout);
-    uilabel('Text', 'Columns', 'Parent', bottom_layout);
-    
     handles.gallery_param_popupmenu = uidropdown('Items', {'-'}, 'Parent', bottom_layout);
+
+    uilabel('Text', 'Intensity Merge', 'Parent', bottom_layout);
+    handles.gallery_merge_popupmenu = uidropdown('Items', {'No', 'Yes'}, 'Parent', bottom_layout);
+
+    uilabel('Text', 'Columns', 'Parent', bottom_layout);
     handles.gallery_cols_edit = uieditfield('Value', '6', 'Parent', bottom_layout);
     
     uilabel('Text', 'Text Overlay', 'Parent', bottom_layout);
-    uilabel('Text', 'Unit', 'Parent', bottom_layout);
-    
     handles.gallery_overlay_popupmenu = uidropdown('Items', {'-'}, 'Parent', bottom_layout);
+    
+    uilabel('Text', 'Unit', 'Parent', bottom_layout);
     handles.gallery_unit_edit = uieditfield('Value', '', 'Parent', bottom_layout);
     
-    uilabel('Text', 'Intensity Merge', 'Parent', bottom_layout);
-    %uix.Empty('Parent', bottom_layout);
-    
-    handles.gallery_merge_popupmenu = uidropdown('Items', {'No', 'Yes'}, 'Parent', bottom_layout);
             
         
     

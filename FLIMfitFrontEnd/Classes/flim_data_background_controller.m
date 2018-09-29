@@ -43,7 +43,7 @@ classdef flim_data_background_controller < flim_data_series_observer
         end
         
         function button_callback(obj,src,evtData)
-            background_string = get(obj.background_string_edit,'String');
+            background_string = get(obj.background_string_edit,'Value');
             obj.data_series.load_background(background_string);
         end
         

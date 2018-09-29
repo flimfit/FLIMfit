@@ -17,19 +17,19 @@ classdef flim_fit_hist_controller < abstract_plot_controller
     % with this program; if not, write to the Free Software Foundation, Inc.,
     % 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     %
-    % This software tool was developed with support from the UK 
-    % Engineering and Physical Sciences Council 
-    % through  a studentship from the Institute of Chemical Biology 
-    % and The Wellcome Trust through a grant entitled 
+    % This software tool was developed with support from the UK
+    % Engineering and Physical Sciences Council
+    % through  a studentship from the Institute of Chemical Biology
+    % and The Wellcome Trust through a grant entitled
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
+    
     % Author : Sean Warren
-
-   
+    
+    
     properties
         
         hist_weighting_popupmenu;
-        hist_classes_edit;    
+        hist_classes_edit;
         hist_source_popupmenu;
         hist_addcolour_popupmenu;
         
@@ -40,10 +40,10 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             obj = obj@abstract_plot_controller(handles,handles.hist_axes,handles.hist_param_popupmenu,false);
             assign_handles(obj,handles);
             
-            set(obj.hist_weighting_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
-            set(obj.hist_classes_edit,'Callback',@(~,~) EC(@obj.update_display));
-            set(obj.hist_source_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
-            set(obj.hist_addcolour_popupmenu,'Callback',@(~,~) EC(@obj.update_display));
+            set(obj.hist_weighting_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.update_display));
+            set(obj.hist_classes_edit,'ValueChangedFcn',@(~,~) EC(@obj.update_display));
+            set(obj.hist_source_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.update_display));
+            set(obj.hist_addcolour_popupmenu,'ValueChangedFcn',@(~,~) EC(@obj.update_display));
             
             obj.register_tab_function('Histogram');
             obj.update_display();
@@ -55,29 +55,30 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             if ~export_plot
                 ax = obj.plot_handle;
             end
-
+            
             
             param = obj.cur_param;
-
+            
             cla(ax);
-
-            if obj.fit_controller.has_fit && param > 0 && obj.selected > 0
+            
+            if obj.fit_controller.has_fit
                 
                 f = obj.fit_controller;
                 r = f.fit_result;
                 
                 source = get(obj.hist_source_popupmenu,'Value');
                 
-                if source == 1
-                    sel = obj.selected;
-                    indexing = 'dataset';
-                else
-                    sel = obj.fit_controller.selected;
-                    indexing = 'result';
+                switch source
+                    case 'Selected Image'
+                        sel = obj.selected;
+                        indexing = 'dataset';
+                    case 'All Filtered'
+                        sel = obj.fit_controller.selected;
+                        indexing = 'result';
                 end
                 
                 weighting = get(obj.hist_weighting_popupmenu,'Value');
-                hist_classes = str2double(get(obj.hist_classes_edit,'String'));
+                hist_classes = str2double(get(obj.hist_classes_edit,'Value'));
                 
                 param_data = [];
                 I_data = [];
@@ -86,7 +87,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     
                     new_data = obj.fit_controller.get_image(sel(i),param,indexing);
                     new_I_data = obj.fit_controller.get_intensity(sel(i),param,indexing);
-                        
+                    
                     filt = isfinite(new_data) & isfinite(new_I_data);
                     
                     new_data = new_data(filt);
@@ -94,9 +95,9 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                     
                     I_data = [I_data; new_I_data];
                     param_data = [param_data; new_data];
-                   
+                    
                 end
-               
+                
                 lims = f.get_cur_lims(param);
                 I_lims = f.get_cur_intensity_lims(param);
                 
@@ -104,7 +105,7 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 
                 intensity = I_data( filt );
                 param_data = param_data( filt );
-                                
+                
                 intensity = (intensity - I_lims(1))/(I_lims(2)-I_lims(1));
                 intensity(intensity<0) = 0;
                 intensity(intensity>1) = 1;
@@ -112,11 +113,13 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 x = linspace(lims(1),lims(2),hist_classes);
                 
                 cla(ax);
-
-                if weighting == 2
-                    weightedhist(ax,param_data,intensity,x);
-                else
-                     hist(ax,param_data,x);
+                
+                switch weighting
+                    case 'Intensity Weighting'
+                        weightedhist(ax,param_data,intensity,x);
+                    case 'Unweighted'
+                        hist(ax,param_data,x);
+                        estimate_truncated_normal(param_data);
                 end
                 
                 if all(isfinite(lims))
@@ -124,16 +127,15 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 end
                 xlabel(ax,r.latex_params{param});
                 ylabel(ax,'Frequency');
-                                
-                % add colour to histogram
-                addcolour = get(obj.hist_addcolour_popupmenu,'Value');
-                if addcolour < 2
                 
+                % add colour to histogram
+                if strcmp(obj.hist_addcolour_popupmenu.Value,'Yes')
+                    
                     nbins = length(x);
                     cscale = obj.colourscale(param);
                     % one colour at the start + one at the midpoint of each
                     % bin + 1 fencepost
-                    cmap = feval(cscale,(nbins*2)+ 1 );      
+                    cmap = feval(cscale,(nbins*2)+ 1 );
                     colour = cmap(2:2:end,:);   % only use midpoint colours
                     
                     h = findobj(ax,'Type','patch');
@@ -162,19 +164,14 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             r = obj.fit_controller.fit_result;
             
             weighting = get(obj.hist_weighting_popupmenu,'Value');
-            hist_classes = str2double(get(obj.hist_classes_edit,'String'));
+            hist_classes = str2double(get(obj.hist_classes_edit,'Value'));
             param = obj.cur_param;
             lims = f.get_cur_lims(param);
             
-            if weighting == 2
-                weighting_string = '(Intensity Weighted)';
-            else
-                weighting_string = '(Unweighted)';
-            end
+            weighting_string = ['(' weighting ')'];
             
             
-            
-            [path name ext] = fileparts(file);
+            [path, name, ext] = fileparts(file);
             
             hist_min_v = zeros(1,r.n_results);
             hist_max_v = zeros(1,r.n_results);
@@ -183,116 +180,117 @@ classdef flim_fit_hist_controller < abstract_plot_controller
             hist_se = zeros(1,r.n_results);
             hist_area = zeros(1,r.n_results);
             
-                
+            
             
             count = zeros(hist_classes,r.n_results);
             
             for i=1:r.n_results
-               
+                
                 param_data =  obj.fit_controller.get_image(i,param,'result');
                 
                 if ~isempty(param_data)
-                filt = param_data >= lims(1) & param_data <= lims(2) & ~isnan(param_data);
-                
-                param_data = param_data( filt );
-                
-                x = linspace(lims(1),lims(2),hist_classes);
+                    filt = param_data >= lims(1) & param_data <= lims(2) & ~isnan(param_data);
+                    
+                    param_data = param_data( filt );
+                    
+                    x = linspace(lims(1),lims(2),hist_classes);
+                    
+                    if ~isempty(param_data)
+                        
+                        switch weighting
+                            case 'Intensity Weighted'
+                                intensity = obj.fit_controller.get_intensity(i,param,'result');
+                                intensity = intensity( filt );
 
-                if ~isempty(param_data)
+                                count(:,i) = weightedhist(param_data,intensity,x)';
+                            case 'Unweighted'
+                                count(:,i) = hist(param_data,x)';
+                        end
+                    else
+                        param_data = NaN;
+                    end
                     
                     if weighting == 2
-                        intensity = obj.fit_controller.get_intensity(i,param,'result');
-                        intensity = intensity( filt );
-
-                        count(:,i) = weightedhist(param_data,intensity,x)';
+                        w_param_data = param_data.*intensity / mean(intensity(:));
                     else
-                        count(:,i) = hist(param_data,x)';
+                        w_param_data = param_data;
                     end
-                else
-                    param_data = NaN;
-                end
-                
-                if weighting == 2
-                    w_param_data = param_data.*intensity / mean(intensity(:));
-                else
-                    w_param_data = param_data;
-                end
-                
-                hist_min_v(i) = nanmin(w_param_data);
-                hist_max_v(i) = nanmax(w_param_data);
-                hist_mean(i) = nanmean(w_param_data);
-                hist_std(i) = nanstd(w_param_data);
-                hist_area(i) = sum(~isnan(param_data));
-                hist_se(i) = hist_std(i)/sqrt(hist_area(i));
-                
-                if ~strcmp(mode,'single')
-                    filename = [path filesep name ' ' hist_type ' histogram - ' r.names{i} ext];
-                    f = fopen(filename,'w');
-
-                    fprintf(f,'%s %s\r\n',r.names{i},weighting_string);
-                    fprintf(f,'%s\r\n',hist_type);
-                    fprintf(f,'Minimal value\t%f\r\n',hist_min_v(i));
-                    fprintf(f,'Maximal value\t%f\r\n',hist_max_v(i));
-                    fprintf(f,'Mean value\t%f\r\n',hist_mean(i));
-                    fprintf(f,'Standard deviation\t%f\r\n',hist_std(i));
-                    fprintf(f,'Standard error\t%f\r\n',hist_se(i));
-                    fprintf(f,'Area (pixels)\t%f\r\n\r\n',hist_area(i));
-
-                    fprintf(f,'%s\tNumber of Pixels\r\n',hist_type);
-
-                    for j=1:length(x)
-                        fprintf(f,'%f\t%f\r\n',x(j),count(:,i));
+                    
+                    hist_min_v(i) = nanmin(w_param_data);
+                    hist_max_v(i) = nanmax(w_param_data);
+                    hist_mean(i) = nanmean(w_param_data);
+                    hist_std(i) = nanstd(w_param_data);
+                    hist_area(i) = sum(~isnan(param_data));
+                    hist_se(i) = hist_std(i)/sqrt(hist_area(i));
+                    
+                    if ~strcmp(mode,'single')
+                        filename = [path filesep name ' ' hist_type ' histogram - ' r.names{i} ext];
+                        f = fopen(filename,'w');
+                        
+                        fprintf(f,'%s %s\r\n',r.names{i},weighting_string);
+                        fprintf(f,'%s\r\n',hist_type);
+                        fprintf(f,'Minimal value\t%f\r\n',hist_min_v(i));
+                        fprintf(f,'Maximal value\t%f\r\n',hist_max_v(i));
+                        fprintf(f,'Mean value\t%f\r\n',hist_mean(i));
+                        fprintf(f,'Standard deviation\t%f\r\n',hist_std(i));
+                        fprintf(f,'Standard error\t%f\r\n',hist_se(i));
+                        fprintf(f,'Area (pixels)\t%f\r\n\r\n',hist_area(i));
+                        
+                        fprintf(f,'%s\tNumber of Pixels\r\n',hist_type);
+                        
+                        for j=1:length(x)
+                            fprintf(f,'%f\t%f\r\n',x(j),count(:,i));
+                        end
+                        
+                        fclose(f);
                     end
-
-                    fclose(f);
-                end
                 end
                 
             end
             
             if strcmp(mode,'single')
                 filename = [path filesep name ' ' r.params{param} ' histogram' ext];
-                    f = fopen(filename,'w');
-
-                    fprintf(f,'%s %s\r\n',r.params{param},weighting_string);
-                    for i=1:r.n_results
-                        fprintf(f,'\t%s',r.names{i});
-                    end
-                    fprintf(f,'\r\nMinimal value');
-                    for i=1:r.n_results
-                        fprintf(f,'\t%f',hist_min_v(i));
-                    end
-                    fprintf(f,'\r\nMaximal value');
-                    for i=1:r.n_results
-                        fprintf(f,'\t%f',hist_max_v(i));
-                    end
-                    fprintf(f,'\r\nMean value');
-                    for i=1:r.n_results
-                        fprintf(f,'\t%f',hist_mean(i));
-                    end
-                    fprintf(f,'\r\nStandard deviation');
-                    for i=1:r.n_results
-                        fprintf(f,'\t%f',hist_std(i));
-                    end
-                    fprintf(f,'\r\nStandard error');
-                    for i=1:r.n_results
-                        fprintf(f,'\t%f',hist_se(i));
-                    end
-                    fprintf(f,'\r\nArea (pixels)');
-                    for i=1:r.n_results
-                        fprintf(f,'\t%f',hist_area(i));
-                    end
-                    fprintf(f,'\r\n\r\n');
-                    fclose(f);
-                    
-                    table = [x' count];
-                    
-                    dlmwrite(filename,table,'-append','delimiter','\t','newline','pc');
-                   
+                f = fopen(filename,'w');
+                
+                fprintf(f,'%s %s\r\n',r.params{param},weighting_string);
+                for i=1:r.n_results
+                    fprintf(f,'\t%s',r.names{i});
+                end
+                fprintf(f,'\r\nMinimal value');
+                for i=1:r.n_results
+                    fprintf(f,'\t%f',hist_min_v(i));
+                end
+                fprintf(f,'\r\nMaximal value');
+                for i=1:r.n_results
+                    fprintf(f,'\t%f',hist_max_v(i));
+                end
+                fprintf(f,'\r\nMean value');
+                for i=1:r.n_results
+                    fprintf(f,'\t%f',hist_mean(i));
+                end
+                fprintf(f,'\r\nStandard deviation');
+                for i=1:r.n_results
+                    fprintf(f,'\t%f',hist_std(i));
+                end
+                fprintf(f,'\r\nStandard error');
+                for i=1:r.n_results
+                    fprintf(f,'\t%f',hist_se(i));
+                end
+                fprintf(f,'\r\nArea (pixels)');
+                for i=1:r.n_results
+                    fprintf(f,'\t%f',hist_area(i));
+                end
+                fprintf(f,'\r\n\r\n');
+                fclose(f);
+                
+                table = [x' count];
+                
+                dlmwrite(filename,table,'-append','delimiter','\t','newline','pc');
+                
             end
             
         end
-               
+        
     end
     
 end

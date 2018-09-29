@@ -25,22 +25,17 @@ function handles = add_decay_display_panel(obj,handles,parent)
 
     % Author : Sean Warren
 
-    tab = uitab('Parent', parent);
-    decay_layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {22,'1x'});
+    handles.decay_tab = uitab('Parent', parent, 'Title', 'Decay');
+    decay_layout = uigridlayout(handles.decay_tab, [2,1], 'RowSpacing', 5, 'RowHeight', {22,'3x','1x'}, 'Padding', 5);
     
-    decay_display_layout = uigridlayout('Parent', decay_layout, 'ColumnSpacing', 3, 'ColumnWidth',  {'1x',200,100,50,100,50,100});
+    decay_display_layout = uigridlayout(decay_layout, [1,7], 'ColumnSpacing', 3, 'Padding', 0, 'ColumnWidth',  {'1x',170,170,170});
     handles.decay_pos_text = uilabel('Text', '   ', 'Parent', decay_display_layout, ...
                'HorizontalAlignment', 'left');
-    uilabel('Text', 'Show smoothed?  ', 'Parent', decay_display_layout, ...
-               'HorizontalAlignment', 'right');
-    handles.display_smoothed_popupmenu = uidropdown('Items', {'No','Yes'}, 'Parent', decay_display_layout);
-    uilabel('Text', 'Mode  ', 'Parent', decay_display_layout, 'HorizontalAlignment', 'right');
     handles.highlight_decay_mode_popupmenu = uidropdown('Items', {'Intensity Decay','Raw IRF','TV Background','Magic Angle','Anisotropy Decay','G Factor'}, 'Parent', decay_display_layout);
-    uilabel('Text', 'Display  ', 'Parent', decay_display_layout, ...
-               'HorizontalAlignment', 'right');
+    handles.display_smoothed_popupmenu = uidropdown('Items', {'Unsmoothed','Smoothed'}, 'Parent', decay_display_layout);
     handles.highlight_display_mode_popupmenu = uidropdown('Items', {'Linear' 'Logarithmic'}, 'Parent', decay_display_layout);
-    
             
-    handles.decay_panel = uipanel('Parent', decay_layout);
+    handles.decay_panel = uipanel('Parent', decay_layout, 'BackgroundColor', 'w', 'BorderType', 'none');
+    handles.res_panel = uipanel('Parent', decay_layout, 'BackgroundColor', 'w', 'BorderType', 'none');
     
 end

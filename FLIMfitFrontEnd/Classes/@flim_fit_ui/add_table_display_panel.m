@@ -25,17 +25,13 @@ function handles = add_table_display_panel(obj,handles,parent)
 
     % Author : Sean Warren
 
-    tab = uitab('Parent', parent);
-    layout = uigridlayout('Parent', tab, 'RowSpacing', 3, 'RowHeight', {22,'1x'});
-    top_layout = uigridlayout('Parent', layout, 'ColumnSpacing', 3, 'ColumnWidth', {90, 90});
+    handles.results_tab = uitab('Parent', parent, 'Title', 'Results');
+    layout = uigridlayout(handles.results_tab, [2,1], 'RowSpacing', 5, 'Padding', 5, 'RowHeight', {22,'1x'});
+    top_layout = uigridlayout(layout, [1,2], 'ColumnSpacing', 3, 'Padding', 0, 'ColumnWidth', {90, 90});
         
-    uilabel('Text', 'Statistic  ', 'Parent', top_layout, ...
-               'HorizontalAlignment', 'right');
-    
+    uilabel('Text', 'Statistic  ', 'Parent', top_layout, 'HorizontalAlignment', 'right');    
     handles.table_stat_popupmenu = uidropdown('Items', {''}, 'Parent', top_layout);     
     
-    % Results Panel
-    %---------------------------------------
     handles.results_table = uitable('Parent', layout);
         
 end

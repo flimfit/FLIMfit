@@ -43,24 +43,23 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             obj = obj@abstract_plot_controller(handles,handles.gallery_panel,handles.gallery_param_popupmenu,false);            
             assign_handles(obj,handles);
             
-           
-            set(obj.plot_handle,'ResizeFcn',@(~,~,~) obj.update_display);
+           set(obj.plot_handle,'ResizeFcn',@(~,~,~) obj.update_display);
 
             set(obj.plot_handle,'Units','Pixels');
              
-            set(obj.gallery_cols_edit,'Callback',@obj.gallery_params_update);
-            set(obj.gallery_overlay_popupmenu,'Callback',@obj.gallery_params_update);
-            set(obj.gallery_unit_edit,'Callback',@obj.gallery_params_update);
-            set(obj.gallery_merge_popupmenu,'Callback',@obj.gallery_params_update);
-            set(obj.gallery_slider,'Callback',@obj.gallery_params_update);
+            set(obj.gallery_cols_edit,'ValueChangedFcn',@obj.gallery_params_update);
+            set(obj.gallery_overlay_popupmenu,'ValueChangedFcn',@obj.gallery_params_update);
+            set(obj.gallery_unit_edit,'ValueChangedFcn',@obj.gallery_params_update);
+            set(obj.gallery_merge_popupmenu,'ValueChangedFcn',@obj.gallery_params_update);
+            set(obj.gallery_slider,'ValueChangingFcn',@obj.gallery_params_update);
             
             obj.register_tab_function('Gallery');
             obj.update_display();
         end
         
         function gallery_params_update(obj,~,~)
-            cols = round(str2double(get(obj.gallery_cols_edit,'String')));
-            set(obj.gallery_cols_edit,'String',num2str(cols));
+            cols = round(str2double(get(obj.gallery_cols_edit,'Value')));
+            set(obj.gallery_cols_edit,'Value',num2str(cols));
             
             obj.update_display();
         end
@@ -69,7 +68,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             if obj.fit_controller.has_fit
                 r = obj.fit_controller.fit_result;
                 metafields = fieldnames(r.metadata);
-                set(obj.gallery_overlay_popupmenu,'String',['-' metafields']);
+                set(obj.gallery_overlay_popupmenu,'Items',metafields);
             end
         end
         
@@ -90,23 +89,16 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             children = get(fig,'Children');
             delete(children);
             
-            if ~obj.fit_controller.has_fit || param == 0 
+            if ~obj.fit_controller.has_fit
                 return
             end
             
-            merge = get(obj.gallery_merge_popupmenu,'Value');
+            merge = strcmp(obj.gallery_merge_popupmenu.Value,'Yes');
             merge = merge - 1;
             
             overlay = get(obj.gallery_overlay_popupmenu,'Value');
-            names = get(obj.gallery_overlay_popupmenu,'String');
-            if overlay == 1 || overlay > length(names)
-                overlay = [];
-            else
-                overlay = names{overlay};
-            end
-
-            unit = get(obj.gallery_unit_edit,'String');
-            cols = str2double(get(obj.gallery_cols_edit,'String'));
+            unit = get(obj.gallery_unit_edit,'Value');
+            cols = str2double(get(obj.gallery_cols_edit,'Value'));
             
             
             if export_plot
@@ -147,7 +139,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             if n_im > 0
                 
                 
-                if isempty(overlay);
+                if isempty(overlay)
                     meta = [];
                 else
                     meta = r.metadata.(overlay);
@@ -187,21 +179,20 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 pos = get(obj.gallery_slider,'Position');
                 h = new_height*rows;
                 pos = [pos(1) fig_size(2)-h pos(3) h];
-                
-                if scroll_pos > 0
-                    step = [1 rows]/scroll_pos;
+                if rows > 1
+                    set(obj.gallery_slider,'Limits',[1,rows],'MajorTicks',1:rows,'Position',pos);
+                    val = get(obj.gallery_slider,'Value');
+                    val = round(val);
+                    set(obj.gallery_slider,'Value',val);
                 else
-                    step = [1 1];
-                end
-                set(obj.gallery_slider,'Min',0,'Max',scroll_pos,'SliderStep',step,'Position',pos);
-                val = get(obj.gallery_slider,'Value');
-                val = round(val);
-                val = min(val,scroll_pos);
-                val = max(0,val);
-                set(obj.gallery_slider,'Value',val);
+                    set(obj.gallery_slider,'Visible',false);
+                    val = 1;
+                end    
+%                val = min(val,scroll_pos);
+%                val = max(0,val);
                 
                 
-                start_row = scroll_pos-val;
+                start_row = val; %scroll_pos-val;
                 
                 start = start_row*cols+1;
                 finish = min(n_im,start+n_disp-1);
@@ -217,19 +208,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     idx = idx + 1;
                     
                     im_data = obj.fit_controller.get_image(sel(i),param,'result');
-                    
-                    %{
-                    im_data1 = obj.fit_controller.get_image(sel(i),'offset','result');
-                    im_data2 = obj.fit_controller.get_image(sel(i),'I_0','result');
-                    
-                    im_data = im_data2 ./ im_data1;
-                    %im_data = im_data2;
-                    %}
-                    
-                    %mdata = obj.apply_colourmap(im_data,param,f.get_cur_lims(param));
-                    
-                    %M(i) = im2frame(mdata);
-                    
+                                        
                     if merge
                         I_data = f.get_intensity(sel(i),param,'result');
                         gallery_I_data(ci:ci+r.height-1,ri:ri+r.width-1) = I_data;
@@ -252,9 +231,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     end
                     label{idx} = t;
                 end
-                
-                %implay(M);
-                
+                                
                 % Subsample if possible
                 scale = max(floor(1/ratio),1);
                 gallery_data = gallery_data(1:scale:end,1:scale:end);

@@ -1,4 +1,4 @@
-classdef flim_data_masking_controller < control_binder & flim_data_series_observer
+classdef flim_data_masking_controller < ui_control_binder & flim_data_series_observer
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -41,7 +41,7 @@ classdef flim_data_masking_controller < control_binder & flim_data_series_observ
         function obj = flim_data_masking_controller(handles)
         
             obj = obj@flim_data_series_observer(handles.data_series_controller);
-            obj = obj@control_binder(handles.data_series_controller.data_series);
+            obj = obj@ui_control_binder(handles.data_series_controller.data_series);
             
             assign_handles(obj,handles);
             
