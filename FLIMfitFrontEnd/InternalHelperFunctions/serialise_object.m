@@ -71,13 +71,17 @@ function root_element = serialise(obj,doc_node,name)
     for i=1:length(flds)
         val = obj.(flds{i});
         this_element = doc_node.createElement(flds{i}); 
-        if isobject(val) || isstruct(val)
+        if (isobject(val) || isstruct(val)) && ~(isenum(val))
             for j=1:length(val)
                 sub_element = serialise(val(j),doc_node);
                 this_element.appendChild(sub_element);
             end
         elseif ~iscell(val) && ~isjava(val)                            
 
+            if isenum(val)
+                val = double(val);
+            end
+            
             if all(size(val)>1)% check for a multidimensional matrix
                 str = serialize(val);
                 str = base64encode(str,'java',true);
