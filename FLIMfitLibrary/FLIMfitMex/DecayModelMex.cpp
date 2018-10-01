@@ -183,21 +183,19 @@ mxArray* getParametersFromObject(QObject* obj)
          QByteArray vs;
          switch (v.type())
          {
-         case QMetaType::Bool:
+         case QVariant::Type::Bool:
             vv = mxCreateLogicalScalar(v.toDouble());
             break;
-         case QMetaType::Int:
-         case QMetaType::UInt:
-         case QMetaType::Long:
+         case QVariant::Type::Int:
+         case QVariant::Type::UInt:
             vv = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);
             static_cast<int64_t*>(mxGetData(vv))[0] = v.toInt();
             break;
-         case QMetaType::Double:
-         case QMetaType::Float:
+         case QVariant::Type::Double:
             vv = mxCreateDoubleScalar(v.toDouble());
             mxSetFieldByNumber(s, 0, idx, vv);
-         case QMetaType::Char:
-         case QMetaType::QString:
+         case QVariant::Type::Char:
+         case QVariant::Type::String:
             vs = v.toString().toLocal8Bit();
             vv = mxCreateStringFromNChars(vs.constData(), vs.length());
             break;
