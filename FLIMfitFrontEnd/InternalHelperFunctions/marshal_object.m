@@ -109,7 +109,6 @@ function obj = marshal(obj_node, obj_name, obj)
                              if ismethod(child_obj,'init')
                                  child_obj.init();
                              end
-                             disp(child_obj)
                              idx = idx + 1;
                              obj.(child_name)(idx) = child_obj;
                          end
