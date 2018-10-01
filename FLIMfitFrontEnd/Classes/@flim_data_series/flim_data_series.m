@@ -327,7 +327,7 @@ classdef flim_data_series < handle & h5_serializer
                 end
                 
                 if ~isempty(file)
-                    serialise_object(obj,file);
+                    serialise_object(obj,file,'flim_data_series');
                 end
                 
                 
