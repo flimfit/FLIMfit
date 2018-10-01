@@ -262,6 +262,13 @@ classdef flim_fit_ui
                 end
             end
         
+            % Get rid of global figure created by plotboxpos
+            global f_temp
+            if ~isempty(f_temp) && ishandle(f_temp)
+                close(f_temp)
+                f_temp = [];
+            end
+            
             % Finally actually close window
             delete(handles.window);
         
