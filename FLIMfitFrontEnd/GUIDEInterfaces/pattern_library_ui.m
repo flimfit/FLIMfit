@@ -28,7 +28,7 @@ list_updated();
 
 
     function pattern_library = get_pattern_library()
-        pattern_library = getpref('FLIMfit','pattern_library',containers.Map('KeyType','char','ValueType','double'));
+        pattern_library = getpref('FLIMfit','pattern_library',containers.Map('KeyType','char','ValueType','any'));
     end
 
     function [pattern,name,pattern_library] = get_current_pattern()

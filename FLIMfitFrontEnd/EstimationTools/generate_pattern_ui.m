@@ -55,7 +55,7 @@ function generate_pattern_ui(t, data, irf, T)
         name = inputdlg('Pattern Name','Pattern Name');
         
         if ~isempty(name)
-            pattern_library = getpref('FLIMfit','pattern_library',containers.Map('KeyType','char','ValueType','double'));
+            pattern_library = getpref('FLIMfit','pattern_library',containers.Map('KeyType','char','ValueType','any'));
             pattern_library(name{1}) = pattern;           
             setpref('FLIMfit','pattern_library',pattern_library);
             close(fh)

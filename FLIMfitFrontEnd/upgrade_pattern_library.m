@@ -1,6 +1,6 @@
 function upgrade_pattern_library()
 
-    pattern_library = getpref('FLIMfit','pattern_library',containers.Map('KeyType','char','ValueType','double'));
+    pattern_library = getpref('FLIMfit','pattern_library',containers.Map('KeyType','char','ValueType','any'));
 
     keys = pattern_library.keys;
 
