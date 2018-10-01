@@ -36,54 +36,28 @@ classdef flim_fit_ui
         function obj = flim_fit_ui(wait)
             
             diagnostics('program','start');
-            set_splash('FLIMfit-logo-colour.png');
-            
-            % pause to allow splash screen to display
-            pause(0.1);
-            
-                    
+            splash = set_splash('FLIMfit-logo-colour.png');
+                                
             obj.check_prefs();
            
             if nargin < 1
-                wait = false;
-            end
-                        
-            if ~isdeployed
-                addpath_global_analysis();
-                if ispc
-                    path_ = [pwd '\pdftops.exe'];
-                end
-                if ismac
-                    path_ = [pwd '/pdftops.bin'];
-                end
-            else
-                
-                wait = true;
-                if ispc
-                    path_ = [ctfroot '\FLIMfit\pdftops.exe'];
-                end
-                if ismac
-                    user_string('ghostscript','gs-noX11');
-                    path_ = [ctfroot '/FLIMfit/pdftops.bin'];
-                end
-                
+                wait = is_deployed;
             end
             
-            % set up pdftops path
-            user_string('pdftops',path_);
+            if ~isdeployed
+                addpath_global_analysis();
+            end
+            
+            obj.init_pdftops();
             
             % Fix for inverted text in segmentation on one PC
             % use software to do graphics where available
-            if contains(computer,'PCWIN')
-                opengl software;
-            end
+            %if contains(computer,'PCWIN')
+            %    opengl software;
+            %end
             
-           
-           
-           
             profile = profile_controller.get_instance();
             profile.load_profile();
-            
 
             % Try and read in version number
             try
@@ -100,9 +74,7 @@ classdef flim_fit_ui
                 'MenuBar', 'none', ...
                 'Toolbar', 'none', ...
                 'HandleVisibility', 'off', ...
-                'Visible','off'); %, ...
-                %'Units','normalized', ...
-                %'OuterPosition',[0 0.03 1 0.97]);
+                'Visible','off');
             
             coords = get(0,'MonitorPositions');             
             %position only in main monitor
@@ -151,10 +123,7 @@ classdef flim_fit_ui
             handles.graph_controller = flim_fit_graph_controller(handles);
             handles.platemap_controller = flim_fit_platemap_controller(handles);            
             
-            
-            
             handles = obj.setup_menu(handles);            
-            
             handles.file_menu_controller = file_menu_controller(handles);
             handles.omero_menu_controller = omero_menu_controller(handles);
             handles.irf_menu_controller = irf_menu_controller(handles);
@@ -165,7 +134,31 @@ classdef flim_fit_ui
             
             guidata(obj.window,handles);
             
-         
+            obj.init_omero_bioformats();
+          
+            close(splash);
+            
+            set(obj.window,'Visible','on','CloseRequestFcn',@obj.close_request_fcn);
+                       
+            if wait
+                waitfor(obj.window);
+            end
+            
+        end
+        
+        function vx = split_ver(obj,ver)
+            % Convert version string into a number
+            tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
+            if ~isempty(tk{1})
+                tk = tk{1};
+                vx = str2double(tk{1})*1e6 + str2double(tk{2})*1e3 + str2double(tk{3});
+            else 
+                vx = 0;
+            end
+        end
+
+        function init_omero_bioformats(~,~)
+            
             loadOmero();
             
             % find paths to OMEuiUtils.jar and ini4j.jar - approach copied from
@@ -184,7 +177,6 @@ classdef flim_fit_ui
                     end
                     if ~isempty(path) && exist(path, 'file') == 2
                         javaaddpath(path);
-                        disp(['Added ' jar])
                     else 
                         assert(['Cannot automatically locate ' jar]);
                     end
@@ -208,34 +200,39 @@ classdef flim_fit_ui
             assert(status, ['Missing Bio-Formats library. Either add loci_tools.jar '...
                 'to the static Java path or add it to the Matlab path.']);
             
-            
             % initialize logging
             %loci.common.DebugTools.enableLogging('INFO');
             loci.common.DebugTools.enableLogging('ERROR');
             
-          
-            close all;
-            
-            set(obj.window,'Visible','on');
-            set(obj.window,'CloseRequestFcn',@obj.close_request_fcn);
-                       
-            if wait
-                waitfor(obj.window);
-            end
-            
         end
         
-        function vx = split_ver(obj,ver)
-            % Convert version string into a number
-            tk = regexp(ver,'([0-9]+).([0-9]+).([0-9]+)','tokens');
-            if ~isempty(tk{1})
-                tk = tk{1};
-                vx = str2double(tk{1})*1e6 + str2double(tk{2})*1e3 + str2double(tk{3});
-            else 
-                vx = 0;
+        function init_pdftops(obj)
+            
+            if ~isdeployed
+                addpath_global_analysis();
+                if ispc
+                    path_ = [pwd '\pdftops.exe'];
+                end
+                if ismac
+                    path_ = [pwd '/pdftops.bin'];
+                end
+            else
+                
+                wait = true;
+                if ispc
+                    path_ = [ctfroot '\FLIMfit\pdftops.exe'];
+                end
+                if ismac
+                    user_string('ghostscript','gs-noX11');
+                    path_ = [ctfroot '/FLIMfit/pdftops.bin'];
+                end
+                
             end
+            
+            % set up pdftops path
+            user_string('pdftops',path_);
+            
         end
-
         
         function close_request_fcn(obj,~,~)
             
@@ -247,13 +244,10 @@ classdef flim_fit_ui
             delete(handles.data_series_controller.data_series)
             
             if ~isempty(client)                
-                
                 disp('Closing OMERO session');
                 client.closeSession();
-                %
                 handles.omero_logon_manager.session = [];
                 handles.omero_logon_manager.client = [];
-                
             end
             
         
@@ -267,20 +261,10 @@ classdef flim_fit_ui
                     delete(handles.(names{i}));
                 end
             end
-            
-       
+        
             % Finally actually close window
             delete(handles.window);
-           
-            % kluge to close the left over figure 
-            %- TBD work out what's leaving it open
-            h = get(0,'Children');
-            if ~isempty(h)
-                close(h);
-            end
-            
-            clear all;
-
+        
         end
         
     end
