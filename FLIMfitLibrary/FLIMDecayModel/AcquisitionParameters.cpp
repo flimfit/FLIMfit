@@ -75,6 +75,9 @@ void AcquisitionParameters::setT(int n_t_full, double t_[], double t_int_[])
 
 void AcquisitionParameters::setPolarisation(const std::vector<Polarisation>& polarisation_)
 {
+   if (polarisation_.size() != n_chan)
+      throw std::runtime_error("Incorrect number of channels in polarisation vector");
+      
    polarisation = polarisation_;
 }
 

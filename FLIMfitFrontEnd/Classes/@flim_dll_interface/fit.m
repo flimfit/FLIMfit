@@ -145,9 +145,9 @@
     acq = struct();
     acq.data_type = strcmp(d.mode,'tcspc');
     acq.t_rep = 1e6/d.rep_rate;
-    acq.polarisation_resolved = d.polarisation_resolved;
     acq.n_chan = d.n_chan;
     acq.counts_per_photon = d.counts_per_photon;
+    acq.polarisation = uint8(d.polarisation);
     
     if obj.bin
         acq.n_x = 1;
