@@ -67,22 +67,14 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
         function update_param_menu(obj,~,~)
             if obj.fit_controller.has_fit
                 obj.param_list = obj.fit_controller.fit_result.fit_param_list();
-                new_list = ['-',obj.param_list];
-                for i=1:length(obj.param_popupmenu) 
-                    old_list = get(obj.param_popupmenu(i),'String')';
-                    
-                    changed = length(old_list)~=length(new_list) || ...
-                        any(~cellfun(@strcmp,old_list,new_list));
-
-                    if changed
-                        set(obj.param_popupmenu(i),'String',new_list);
-
-                        if get(obj.param_popupmenu(i),'Value') > length(obj.param_list)
-                            set(obj.param_popupmenu(i),'Value',1);
-                        end
-
-                        obj.param_select_update();    
-                    end          
+                new_list = obj.param_list;
+                for i=1:length(obj.param_popupmenu)
+                    value = obj.param_popupmenu(i).Value;
+                    if ~any(strcmp(new_list,value))
+                        value = new_list(1);
+                    end
+                    set(obj.param_popupmenu(i),'Items',new_list,'Value',value);
+                    obj.param_select_update();    
                 end
             end
             
@@ -90,12 +82,10 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
         
         function param_select_update(obj,src,evt)
             % Get parameters from potentially multiple popupmenus
-            val = get(obj.param_popupmenu,'Value');
-            if iscell(val)
-                val = cell2mat(val);
+            for i=1:length(obj.param_popupmenu)
+               param = obj.param_popupmenu.Value;
+               obj.cur_param(i) = find(strcmp(obj.param_list,param));
             end
-            idx = val-1;
-            obj.cur_param = idx;
             
             obj.update_display();
         end
