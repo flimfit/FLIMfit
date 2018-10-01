@@ -232,46 +232,47 @@ inline mxArray* convertCvMat(const cv::Mat im)
   Vector conversion
 */
 
-template<typename T, typename U>
+template<typename T, typename U, typename V>
 std::vector<T> getUVector(const mxArray* v)
 {
    std::vector<T> vec;
    if (mxIsNumeric(v))
-      if (U* data = (U*)mxGetData(v))
+      if (V* data = (V*)mxGetData(v))
       {
          size_t len = mxGetNumberOfElements(v);
          vec.resize(len);
 
          for (size_t i = 0; i < len; i++)
-            vec[i] = static_cast<T>(data[i]);
+            vec[i] = static_cast<T>((U)data[i]);
       }
    return vec;
 
 };
 
-template<typename T>
+
+template<typename T, typename U = T>
 std::vector<T> getVector(const mxArray* v)
 {
    if (mxIsDouble(v))
-      return getUVector<T, double>(v);
+      return getUVector<T, U, double>(v);
    else if (mxIsSingle(v))
-      return getUVector<T, float>(v);
+      return getUVector<T, U, float>(v);
    else if (mxIsInt64(v))
-      return getUVector<T, int64_t>(v);
+      return getUVector<T, U, int64_t>(v);
    else if (mxIsInt32(v))
-      return getUVector<T, int32_t>(v);
+      return getUVector<T, U, int32_t>(v);
    else if (mxIsInt16(v))
-      return getUVector<T, int16_t>(v);
+      return getUVector<T, U, int16_t>(v);
    else if (mxIsInt8(v))
-      return getUVector<T, int8_t>(v);
+      return getUVector<T, U, int8_t>(v);
    else if (mxIsUint64(v))
-      return getUVector<T, uint64_t>(v);
+      return getUVector<T, U, uint64_t>(v);
    else if (mxIsUint32(v))
-      return getUVector<T, uint32_t>(v);
+      return getUVector<T, U, uint32_t>(v);
    else if (mxIsUint16(v))
-      return getUVector<T, uint16_t>(v);
+      return getUVector<T, U, uint16_t>(v);
    else if (mxIsUint8(v))
-      return getUVector<T, uint8_t>(v);
+      return getUVector<T, U, uint8_t>(v);
 
    return std::vector<T>();
 }

@@ -69,7 +69,7 @@ std::shared_ptr<AcquisitionParameters> getAcquisitionParameters(const mxArray* a
 
    if (mxGetFieldNumber(acq_params_struct, "polarisation") >= 0)
    {
-      auto polarisation = getVector<Polarisation>(getFieldFromStruct(acq_params_struct, 0, "polarisation"));
+      auto polarisation = getVector<Polarisation,int>(getFieldFromStruct(acq_params_struct, 0, "polarisation"));
       acq->setPolarisation(polarisation);
    }
    
