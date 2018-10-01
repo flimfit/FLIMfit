@@ -80,7 +80,7 @@ function init_dataset(obj,setting_file_name)
                  
     obj.data_size = size(obj.cur_data);
     obj.data_size = [obj.data_size ones(1,4-length(obj.data_size))];
-
+    
     % If a data setting file exists load it
     
     if nargin < 2 || isempty(setting_file_name)
@@ -109,6 +109,11 @@ function init_dataset(obj,setting_file_name)
     if isempty(obj.counts_per_photon)
         obj.counts_per_photon = 1;
     end
+    
+    if numel(obj.polarisation) ~= obj.n_chan
+        obj.polarisation = zeros([1, obj.n_chan]);
+    end
+
     
     obj.compute_tr_data();
 

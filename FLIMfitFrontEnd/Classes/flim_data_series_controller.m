@@ -31,9 +31,14 @@ classdef flim_data_series_controller < handle
         data_series;
         fitting_params_controller;
         model_controller;
+        pol_table;
         display_smoothed_popupmenu;
         window;
         version;
+    end
+    
+    properties(Transient = true)
+        lh; 
     end
     
     events
@@ -52,6 +57,7 @@ classdef flim_data_series_controller < handle
             end
             
             set(obj.display_smoothed_popupmenu,'Callback',@obj.set_use_smoothing);
+            set(obj.pol_table,'CellEditCallback',@obj.pol_table_updated);
             
         end
         
@@ -129,9 +135,30 @@ classdef flim_data_series_controller < handle
         
         function loaded_new_dataset(obj)
             obj.model_controller.set_n_channel(obj.data_series.n_chan);
+            obj.lh = addlistener(obj.data_series,'polarisation','PostSet',@obj.polarisation_changed);
+
+            obj.update_polarisation();
             notify(obj,'new_dataset');
         end
 
+        function polarisation_changed(obj,~,~)
+            obj.update_polarisation();
+        end
+        
+        function update_polarisation(obj)
+            n_chan = obj.data_series.n_chan;
+            for i=1:length(obj.data_series.polarisation)
+                pol_str{i,1} = char(obj.data_series.polarisation(i)); %#ok
+            end
+            obj.pol_table.Data = [ num2cell((1:n_chan)') pol_str ];
+        end
+        
+        function pol_table_updated(obj,~,~)
+            pol = obj.pol_table.Data(:,2);
+            pol = cellfun(@(p) Polarisation.(p),pol);
+            obj.data_series.polarisation = pol;
+        end
+        
         function intensity = selected_intensity(obj,selected,apply_mask)
             if nargin == 2
                 apply_mask = true;
