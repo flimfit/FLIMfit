@@ -55,11 +55,6 @@ classdef flim_data_series_list < handle & flim_data_series_observer
             if ~isempty(obj.data_series_sel_all)
                 set(obj.data_series_sel_all,'Callback',@obj.sel_all_callback);
             end
-
-            if ~isempty(obj.data_series_sel_none)
-                set(obj.data_series_sel_none,'Callback',@obj.sel_none_callback);
-            end
-
             
             obj.selected = 1;
             obj.data_update();
@@ -92,42 +87,19 @@ classdef flim_data_series_list < handle & flim_data_series_observer
         end
         
         function sel_all_callback(obj,~,~)
-            
             flim_data_selector(obj.data_series_controller);
-            
-            %{
-            data = get(obj.handle,'Data');
-            use = data(:,1);
-            use = cell2mat(use);
-            use = true(size(use));
-            
-            obj.data_series.use = use;
-            
-            use = num2cell(use);
-            data(:,1) = use;
-            set(obj.handle,'Data',data);
-            %}
-            
-        end
-        
-        function sel_none_callback(obj,~,~)
-           %{
-            data = get(obj.handle,'Data');
-            use = data(:,1);
-            use = cell2mat(use);
-            use = false(size(use));
-            
-            obj.data_series.use = use;
-            
-            use = num2cell(use);
-            data(:,1) = use;
-            set(obj.handle,'Data',data);
-            %}
-            
         end
         
         function data_set(obj)
-            obj.lh = addlistener(obj.data_series,'use','PostSet',@(~,~) EC(@obj.data_update));
+            obj.lh = addlistener(obj.data_series,'use','PostSet',@(~,~) EC(@obj.use_update));
+        end
+        
+        function use_update(obj)
+            use_new = obj.data_series.use;
+            use_old = cell2mat(obj.handle.Data(:,1));
+            if all(size(use_new)==size(use_old)) && ~all(use_new == use_old)
+                obj.data_update();
+            end
         end
         
         function data_update(obj)
@@ -158,11 +130,13 @@ classdef flim_data_series_list < handle & flim_data_series_observer
                     edit = [true false(1,n_field)];
                     set(obj.handle,'ColumnEditable',edit);
                     
-                    w = [24 ones(1,n_field)*40];
-                    set(obj.handle,'ColumnWidth',num2cell(w));
+                    wold = get(obj.handle,'ColumnWidth');
+                    if ischar(wold) % only set once
+                        w = [{24} repmat({'auto'},[1,n_field])];
+                        set(obj.handle,'ColumnWidth',w);
+                    end
                     
                     if isempty(obj.selected) || obj.selected > obj.data_series.n_datasets  || obj.selected == 0
-                        
                         sel = 1;
                         obj.selected = sel;
                         
