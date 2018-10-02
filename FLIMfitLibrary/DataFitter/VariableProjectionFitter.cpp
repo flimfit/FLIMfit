@@ -277,12 +277,14 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
       {
          std::vector<double> trial(nl);
          std::copy_n(initial.begin(), nl, trial.begin());
+         int var_idx = 0;
          for (int j = 0; j < global_parameters.size(); j++)
          {
             if (global_parameters[j]->initial_search)
             {
-               int idx = ((int)(i / std::pow(n_initial, j))) % n_initial;
+               int idx = ((int)(i / std::pow(n_initial, var_idx))) % n_initial;
                trial[j] = global_parameters[j]->initial_min + idx * (global_parameters[j]->initial_max - global_parameters[j]->initial_min) / (n_initial - 1);
+               var_idx++;
             }
          }
 
