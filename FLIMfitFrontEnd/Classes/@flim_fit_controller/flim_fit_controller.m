@@ -66,10 +66,7 @@ classdef flim_fit_controller < flim_data_series_observer
         start_time;
         
         selected;
-        
-        live_update = false;
-        refit_after_return = false;
-        
+                
         use_popup = false;
         
         plot_select_table;
@@ -128,8 +125,6 @@ classdef flim_fit_controller < flim_data_series_observer
             obj.plot_lims = containers.Map('KeyType','char','ValueType','any');
             obj.auto_lim = containers.Map('KeyType','char','ValueType','logical');
             
-            
-            obj.fit_result = flim_fit_result();
             obj.dll_interface = flim_dll_interface();
             
             if ishandle(obj.fit_pushbutton)
@@ -155,12 +150,7 @@ classdef flim_fit_controller < flim_data_series_observer
             if ~isempty(obj.roi_controller)
                 addlistener(obj.roi_controller,'roi_updated',@(~,~) EC(@obj.roi_mask_updated));
             end
-            
-            if ~isempty(obj.live_update_checkbox)
-                set(obj.live_update_checkbox,'Value',obj.live_update);
-                set(obj.live_update_checkbox,'Callback',@(~,~) EC(@obj.live_update_callback));
-            end
-            
+                        
             if ~isempty(obj.plot_select_table)
                 set(obj.plot_select_table,'CellEditCallback',@(~,~) EC(@obj.plot_select_update));
             end
@@ -188,27 +178,12 @@ classdef flim_fit_controller < flim_data_series_observer
         
         function fit_params_updated(obj)
             obj.fit_params = obj.fitting_params_controller.fit_params;
-            if obj.data_series_controller.data_series.init && obj.live_update
-                obj.fit(true);
-            else
-                obj.has_fit = false;
-            end
+            obj.has_fit = false;
         end
         
         function roi_mask_updated(obj)
-            d = obj.data_series_controller.data_series;
-            if ~(obj.has_fit && obj.fit_result.binned == false) && d.init
-                updated_live_fit = false;
-                if obj.live_update 
-                    decay = obj.data_series.get_roi(obj.roi_controller.roi_mask,obj.data_series_list.selected);
-                    if ~all(isnan(decay))
-                        obj.fit(true);
-                        updated_live_fit = true;
-                    end
-                end
-                if ~updated_live_fit
-                   obj.clear_fit();
-                end
+            if (obj.has_fit && obj.fit_result.binned) 
+                obj.clear_fit();
             end
         end
         
@@ -226,7 +201,7 @@ classdef flim_fit_controller < flim_data_series_observer
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
                     [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
             else            
-                [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
+                [param_data, mask] = obj.fit_result.get_image(im,param,indexing); % the original line - YA May 30 2013                
             end
             
             param_name = obj.fit_result.params{param};
@@ -253,7 +228,7 @@ classdef flim_fit_controller < flim_data_series_observer
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
                 [param_data, mask] = obj.data_series_controller.data_series.get_image(im,param,indexing);
             else
-                [param_data, mask] = obj.dll_interface.get_image(im,param,indexing); % the original line - YA May 30 2013                
+                [param_data, mask] = obj.fit_result.get_image(im,param,indexing); % the original line - YA May 30 2013                
                 param_data = obj.normalise_intensity(param_data,im,indexing);
             end
                         
@@ -304,15 +279,7 @@ classdef flim_fit_controller < flim_data_series_observer
         function lims = set_cur_lims(obj,param,lims)
             obj.cur_lims(param,:) = lims;
         end
-        
-        
-        function live_update_callback(obj)
-            obj.live_update = get(obj.live_update_checkbox,'Value');
-            if obj.live_update == false
-                obj.clear_fit();
-            end
-        end
-        
+                
         function fit_pushbutton_callback(obj)
             d = obj.data_series_controller.data_series;
             if d.init
@@ -344,13 +311,13 @@ classdef flim_fit_controller < flim_data_series_observer
             if isa(obj.data_series_controller.data_series,'OMERO_data_series') && ~isempty(obj.data_series_controller.data_series.fitted_data)
                 decay = NaN;
             else            
-                decay = obj.dll_interface.fitted_decay(t,im_mask,selected);
+                decay = obj.dll_interface.fitted_decay(im_mask,selected);
             end
 
         end
         
         function anis = fitted_anisotropy(obj,t,im_mask,selected)
-            decay = obj.fitted_decay(t,im_mask,selected);
+            decay = obj.fitted_decay(im_mask,selected);
             
             d = obj.data_series;
             
@@ -370,7 +337,7 @@ classdef flim_fit_controller < flim_data_series_observer
         end
         
         function magic = fitted_magic_angle(obj,t,im_mask,selected)
-            decay = obj.fitted_decay(t,im_mask,selected);
+            decay = obj.fitted_decay(im_mask,selected);
             
             para = decay(:,1);
             perp = decay(:,2);

@@ -40,16 +40,13 @@ function fit_complete(obj,~,~)
     obj.fit_in_progress = false;
     obj.terminating = false;
     
-    obj.update_progress([],[]);
-    
-    [~, ~, ~, ~, chi2] = obj.dll_interface.get_progress();
-    
+    obj.update_progress();
+        
     t_exec = toc(obj.start_time);    
     disp(['Total execution time: ' num2str(t_exec)]);
     
     obj.selected = 1:obj.fit_result.n_results;
-    
-    
+        
     obj.update_filter_table();
     obj.update_list();
     obj.update_display_table();
@@ -60,14 +57,5 @@ function fit_complete(obj,~,~)
         getReport(ME)
     end
     notify(obj,'fit_completed');    
-    
-    
-    
-    if obj.refit_after_return
-        obj.refit_after_return = false;
-        obj.fit(true);
-    end
-
-    
 end
 
