@@ -37,7 +37,7 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
     else
         obj.bin = false;
     end
-
+   
     err = 0;
 
     prof = get_profile();
@@ -64,8 +64,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
         obj.datasets = sel;
         obj.use = datasets(d.loaded);    
     end
-
-    obj.im_size = [d.height d.width];
 
     acq = struct();
     acq.data_type = strcmp(d.mode,'tcspc');

@@ -28,11 +28,6 @@ classdef flim_dll_interface < handle
     
     properties
         fit_result;
-        
-        progress_cur_group;
-        progress_n_completed
-        progress_iter;
-        progress_chi2;
         progress;
         
         fit_in_progress = false;
@@ -55,12 +50,8 @@ classdef flim_dll_interface < handle
         bin;
         
         fit_timer;
-        wait_handle;
         start_time;
-        
-        im_size;
-        
-        single_guess;
+
         use;
         
         dll_id;

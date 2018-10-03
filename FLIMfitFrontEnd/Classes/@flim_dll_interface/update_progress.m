@@ -1,4 +1,5 @@
-function fit_complete(obj,~,~)
+function update_progress(obj)
+
 
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -26,24 +27,16 @@ function fit_complete(obj,~,~)
     % Author : Sean Warren
 
     
-    obj.fit_result = obj.dll_interface.fit_result;
-    
-    obj.display_fit_end();
+    if obj.fit_in_progress
 
-    obj.has_fit = true;
-    obj.fit_in_progress = false;
-    obj.terminating = false;
-    
-    obj.update_progress();
-        
-    t_exec = toc(obj.start_time);    
-    disp(['Total execution time: ' num2str(t_exec)]);
-       
-    try
-        notify(obj,'fit_updated');    
-    catch ME
-        getReport(ME)
+        p = obj.fit_params;
+
+        [progress, n_completed, cur_group, iter, chi2] = obj.dll_interface.get_progress();
+
+        table_data = [double((1:p.n_thread)); double(n_completed); ...
+                      double(cur_group); double(iter); double(chi2)];
+
+        set(obj.progress_table,'Data',table_data);
     end
-    notify(obj,'fit_completed');    
+    
 end
-

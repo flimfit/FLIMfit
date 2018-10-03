@@ -36,9 +36,6 @@ function clear_fit(obj)
     
     obj.dll_interface.clear_fit();
     
-    set(obj.results_table,'ColumnName',[]);
-    set(obj.results_table,'Data',[]);    
-
     set(obj.progress_table,'ColumnName',[]);
     set(obj.progress_table,'Data',[]);    
 
