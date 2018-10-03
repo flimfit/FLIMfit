@@ -33,6 +33,8 @@ using std::max;
 
 #include "ConcurrencyAnalysis.h"
 
+#include "LinearMLModel.h"
+
 
 typedef dlib::matrix<double, 0, 1> column_vector;
 
@@ -330,6 +332,34 @@ void VariableProjectionFitter::fitFcn(int nl, std::vector<double>& initial, int&
          {
             setVariables(initial.begin());
             getResidualNonNegative(initial.data(), fvec, -1, 0);
+
+            bool refine_linear = true;
+            if (refine_linear)
+            {
+               auto& B = vp[0];
+               getModel(B.model, irf_idx[0], *(B.a));
+
+
+               LinearMLModel model(n, l, (*(B.a)).begin(), nmax);
+               column_vector x(l);
+
+               for (int i = 0; i < s; i++)
+               {
+                  model.setData(y + i * n);
+
+                  for (int j = 0; j < l; j++)
+                     x(j) = log(lin_params[j + i * lmax]);
+
+                  dlib::find_min_trust_region(
+                     dlib::objective_delta_stop_strategy(1e-7),
+                     model, x, 10);
+
+                  for (int j = 0; j < l; j++)
+                     lin_params[j + i * lmax] = exp(x(j));
+               }
+
+            }
+
          }
       }
 

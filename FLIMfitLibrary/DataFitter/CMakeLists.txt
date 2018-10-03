@@ -49,6 +49,7 @@ set(SOURCE
    cminpack_support.cpp
    FitResults.cpp
    MeanLifetimeEstimator.cpp
+   LinearMLModel.cpp
 )
 
 set(HEADERS   
@@ -69,7 +70,8 @@ set(HEADERS
    RegionStats.h
    RegionStatsCalculator.h
    ProgressReporter.h
-   DecayResampler.h   
+   DecayResampler.h 
+   LinearMLModel.h
 )
 
 # Make library
