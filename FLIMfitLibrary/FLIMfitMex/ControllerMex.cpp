@@ -197,7 +197,7 @@ void ControllerMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    const auto& controller = getSharedPtrFromMatlab<FitController>(prhs[0]);
 
    if (ptr_set.find(controller) == ptr_set.end())
-      mexErrMsgIdAndTxt2("FLIMfitMex:invalidControllerPointer", "Invalid controller pointer");
+      mexErrMsgIdAndTxt("FLIMfitMex:invalidControllerPointer", "Invalid controller pointer");
 
    // Get command
    std::string command = getStringFromMatlab(prhs[1]);

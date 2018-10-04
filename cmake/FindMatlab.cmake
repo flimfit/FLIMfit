@@ -881,6 +881,8 @@ endfunction()
 #          [OUTPUT_NAME output_name]
 #          [DOCUMENTATION file.txt]
 #          [LINK_TO target1 target2 ...]
+#          [MEX_API api]
+#          [DEFAULT_RELEASE default_release]
 #          [...]
 #      )
 #
@@ -896,6 +898,13 @@ endfunction()
 #     if given, overrides the default name. The default name is
 #     the name of the target without any prefix and
 #     with ``Matlab_MEX_EXTENSION`` suffix.
+#   ``MEX_API``
+#     if given, specifies the MEX API to use. Valid options are C, C++ and
+#     FORTRAN. By default, the C API is used.
+#   ``DEFAULT_RELEASE``
+#     if, given specifies the Matlab API version to use. Valid options are 
+#     currently R2017b for the large array dimensions API and R2018a for the
+#     interleaved complex API
 #   ``DOCUMENTATION``
 #     if given, the file ``file.txt`` will be considered as
 #     being the documentation file for the MEX file. This file is copied into
@@ -931,7 +940,7 @@ function(matlab_add_mex)
   endif()
 
   set(options EXECUTABLE MODULE SHARED)
-  set(oneValueArgs NAME DOCUMENTATION OUTPUT_NAME)
+  set(oneValueArgs NAME DOCUMENTATION OUTPUT_NAME MEX_API DEFAULT_RELEASE)
   set(multiValueArgs LINK_TO SRC)
 
   set(prefix _matlab_addmex_prefix)
@@ -945,9 +954,39 @@ function(matlab_add_mex)
     set(${prefix}_OUTPUT_NAME ${${prefix}_NAME})
   endif()
 
+  if (NOT ${prefix}_MEX_API)
+    set(${prefix}_MEX_API "C")
+  endif()
+
+  if(NOT ${Matlab_VERSION_STRING} VERSION_LESS "9.1") # For 9.1 (R2016b) and newer, add version source file
+    string(TOUPPER "${${prefix}_MEX_API}" mex_api)
+    if(${mex_api} STREQUAL "C++") 
+      set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/cpp_mexapi_version.cpp")
+      set(API_EXPORT "mexfilerequiredapiversion")
+    elseif(${mex_api} STREQUAL "C")
+      set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/c_mexapi_version.c")
+      set(API_EXPORT "mexfilerequiredapiversion")
+    elseif(${mex_api} STREQUAL "Fortran")
+      set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/fortran_mexapi_version.F ")
+      set(API_EXPORT "_MEXFILEREQUIREDAPIVERSION")
+    else()
+      message(FATAL_ERROR "[MATLAB] MEX_API must be one of C, C++ or FORTRAN")
+    endif()
+  endif()
+
+  if (NOT ${prefix}_DEFAULT_RELEASE)
+    set(${prefix}_DEFAULT_RELEASE "R2017b")
+  endif()
+
+  if(NOT ${Matlab_VERSION_STRING} VERSION_LESS "9.4") # For 9.4 (R2018a) and newer, add API macro
+      set(MEX_API_MACRO "MATLAB_DEFAULT_RELEASE=${${prefix}_DEFAULT_RELEASE}")
+  endif()
+
+
   if(${prefix}_EXECUTABLE)
     add_executable(${${prefix}_NAME}
       ${${prefix}_SRC}
+      ${MEX_VERSION_FILE}
       ${${prefix}_DOCUMENTATION}
       ${${prefix}_UNPARSED_ARGUMENTS})
   else()
@@ -960,6 +999,7 @@ function(matlab_add_mex)
     add_library(${${prefix}_NAME}
       ${type}
       ${${prefix}_SRC}
+      ${MEX_VERSION_FILE}
       ${${prefix}_DOCUMENTATION}
       ${${prefix}_UNPARSED_ARGUMENTS})
   endif()
@@ -985,6 +1025,9 @@ function(matlab_add_mex)
         OUTPUT_NAME ${${prefix}_OUTPUT_NAME}
         SUFFIX ".${Matlab_MEX_EXTENSION}")
 
+  if(MEX_API_MACRO)
+    target_compile_definitions(${${prefix}_NAME} PRIVATE ${MEX_API_MACRO})
+  endif()
 
   # documentation
   if(NOT ${${prefix}_DOCUMENTATION} STREQUAL "")
@@ -1015,7 +1058,7 @@ function(matlab_add_mex)
   if(WIN32)
     set_target_properties(${${prefix}_NAME}
       PROPERTIES
-        DEFINE_SYMBOL "DLL_EXPORT_SYM=__declspec(dllexport)")
+        DEFINE_SYMBOL "DLL_EXPORT_SYM=")
   else()
 
     if(HAS_MINUS_PTHREAD AND NOT APPLE)

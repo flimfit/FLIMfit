@@ -117,7 +117,7 @@ void FLIMImageMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          else if (mxIsSingle(data))
             data_class = FLIMImage::DataFloat;
          else
-            mexErrMsgIdAndTxt2("FLIMfit:invalidDataClass", "data must be single precision floating point or uint16");
+            mexErrMsgIdAndTxt("FLIMfit:invalidDataClass", "data must be single precision floating point or uint16");
 
          image = std::make_shared<FLIMImage>(acq, FLIMImage::InMemory, data_class, mxGetData(data));
       }
@@ -135,13 +135,13 @@ void FLIMImageMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
          else if (data_class_str == "float" || data_class_str == "single")
             data_class = FLIMImage::DataFloat;
          else
-            mexErrMsgIdAndTxt2("FLIMfit:unknownDataClass", "Data class is not recognised; should be uint16, uint32 or float/single");
+            mexErrMsgIdAndTxt("FLIMfit:unknownDataClass", "Data class is not recognised; should be uint16, uint32 or float/single");
 
          image = std::make_shared<FLIMImage>(acq, mapped_file, data_class, map_offset);
       }
       else
       {
-         mexErrMsgIdAndTxt2("FLIMfit:dataNotProvided", "Data must be provided using 'data' or 'mapped_file' named arguments");
+         mexErrMsgIdAndTxt("FLIMfit:dataNotProvided", "Data must be provided using 'data' or 'mapped_file' named arguments");
       }
 
       image_ptr.insert(image);
@@ -168,5 +168,5 @@ void FLIMImageMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    else if (command == "SetAcceptor")
       setAcceptor(image, nlhs, plhs, nrhs, prhs);
    else
-      mexErrMsgIdAndTxt2("FLIMfitMex:invalidCommand", "Unrecognised command");
+      mexErrMsgIdAndTxt("FLIMfitMex:invalidCommand", "Unrecognised command");
 }
