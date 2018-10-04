@@ -954,7 +954,7 @@ function(matlab_add_mex)
     set(${prefix}_OUTPUT_NAME ${${prefix}_NAME})
   endif()
 
-  if (NOT ${prefix}_MEX_API)
+  if(NOT ${prefix}_MEX_API)
     set(${prefix}_MEX_API "C")
   endif()
 
@@ -962,20 +962,26 @@ function(matlab_add_mex)
     string(TOUPPER "${${prefix}_MEX_API}" mex_api)
     if(${mex_api} STREQUAL "C++") 
       set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/cpp_mexapi_version.cpp")
-      set(API_EXPORT "mexfilerequiredapiversion")
+      list(APPEND _export_symbols "mexFunction" "mexfilerequiredapiversion")
     elseif(${mex_api} STREQUAL "C")
       set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/c_mexapi_version.c")
-      set(API_EXPORT "mexfilerequiredapiversion")
-    elseif(${mex_api} STREQUAL "Fortran")
+      list(APPEND _export_symbols "mexFunction" "mexfilerequiredapiversion")
+    elseif(${mex_api} STREQUAL "FORTRAN")
       set(MEX_VERSION_FILE "${Matlab_ROOT_DIR}/extern/version/fortran_mexapi_version.F ")
-      set(API_EXPORT "_MEXFILEREQUIREDAPIVERSION")
+      list(APPEND _export_symbols "_MEXFUNCTION" "_MEXFILEREQUIREDAPIVERSION")
     else()
       message(FATAL_ERROR "[MATLAB] MEX_API must be one of C, C++ or FORTRAN")
     endif()
   endif()
 
-  if (NOT ${prefix}_DEFAULT_RELEASE)
+
+  if(NOT ${prefix}_DEFAULT_RELEASE)
     set(${prefix}_DEFAULT_RELEASE "R2017b")
+  endif()
+
+  set(_valid_default_release "R2017b;R2018a")
+  if(NOT ${prefix}_DEFAULT_RELEASE IN_LIST _valid_default_release)
+    message(FATAL_ERROR "[MATLAB] DEFAULT_RELEASE must be one of ${_valid_default_release}")
   endif()
 
   if(NOT ${Matlab_VERSION_STRING} VERSION_LESS "9.4") # For 9.4 (R2018a) and newer, add API macro
@@ -1025,9 +1031,7 @@ function(matlab_add_mex)
         OUTPUT_NAME ${${prefix}_OUTPUT_NAME}
         SUFFIX ".${Matlab_MEX_EXTENSION}")
 
-  if(MEX_API_MACRO)
-    target_compile_definitions(${${prefix}_NAME} PRIVATE ${MEX_API_MACRO})
-  endif()
+  target_compile_definitions(${${prefix}_NAME} PRIVATE ${MEX_API_MACRO} MATLAB_MEX_FILE)
 
   # documentation
   if(NOT ${${prefix}_DOCUMENTATION} STREQUAL "")
@@ -1042,18 +1046,12 @@ function(matlab_add_mex)
 
   # entry point in the mex file + taking care of visibility and symbol clashes.
   if (MSVC)
-    get_target_property(
-        _previous_link_flags
-        ${${prefix}_NAME}
-        LINK_FLAGS)
-    if(NOT _previous_link_flags)
-      set(_previous_link_flags)
-    endif()
-
-    set_target_properties(${${prefix}_NAME}
-      PROPERTIES
-        LINK_FLAGS "${_previous_link_flags} /EXPORT:mexFunction")
+    foreach(_sym ${_export_symbols})
+      set(_link_flags "${_link_flags} /EXPORT:${_sym}")
+    endforeach()
+    set_property(TARGET ${${prefix}_NAME} APPEND PROPERTY LINK_FLAGS ${_link_flags})
   endif()
+
 
   if(WIN32)
     set_target_properties(${${prefix}_NAME}
