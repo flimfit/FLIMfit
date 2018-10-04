@@ -1,4 +1,4 @@
-classdef abstract_plot_controller < flim_fit_observer & abstract_display_controller
+classdef abstract_plot_controller < abstract_display_controller
     
     % Copyright (C) 2013 Imperial College London.
     % All rights reserved.
@@ -28,6 +28,7 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
 
     properties
         param_popupmenu;
+        result_controller;
         
         param_list;     
         cur_param;   
@@ -40,7 +41,6 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
         function obj = abstract_plot_controller(handles,plot_handle,param_popupmenu,exports_data)
                        
             obj = obj@abstract_display_controller(handles,plot_handle,exports_data);
-            obj = obj@flim_fit_observer(handles.fit_controller);
             
             obj.plot_handle = plot_handle;
                         
@@ -52,6 +52,9 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
             end
                                                 
             assign_handles(obj,handles);
+            
+            addlistener(obj.result_controller,'result_updated',@(~,~) EC(@obj.result_update));
+            addlistener(obj.result_controller,'result_display_updated',@(~,~) EC(@obj.result_display_update));
            
         end
         
@@ -65,9 +68,9 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
         
         
         function update_param_menu(obj,~,~)
-            if obj.fit_controller.has_fit
-                obj.param_list = obj.fit_controller.fit_result.fit_param_list();
-                new_list = ['-',obj.param_list];
+            if ~isempty(obj.result_controller.fit_result)
+                obj.param_list = obj.result_controller.fit_result.fit_param_list();
+                new_list = obj.param_list;
                 for i=1:length(obj.param_popupmenu) 
                     old_list = get(obj.param_popupmenu(i),'String')';
                     
@@ -94,8 +97,7 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
             if iscell(val)
                 val = cell2mat(val);
             end
-            idx = val-1;
-            obj.cur_param = idx;
+            obj.cur_param = val;
             
             obj.update_display();
         end
@@ -104,14 +106,14 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
             obj.update_display();
         end
         
-        function fit_update(obj)
+        function result_update(obj)
             obj.update_param_menu();
             obj.plot_fit_update();
             obj.update_display();
-            obj.ap_lh = addlistener(obj.fit_controller.fit_result,'cur_lims','PostSet',@(~,~) EC(@obj.lims_update));
+            %obj.ap_lh = addlistener(obj.result_controller.fit_result,'cur_lims','PostSet',@(~,~) EC(@obj.lims_update));
         end
         
-        function fit_display_update(obj)
+        function result_display_update(obj)
             obj.update_display();
         end
                 
@@ -136,9 +138,9 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
         
         function cscale = colourscale(obj,param)
             
-            param = obj.fit_controller.fit_result.params{param};
+            param = obj.result_controller.fit_result.params{param};
+            invert = obj.result_controller.invert_colormap;
             
-            invert = obj.fit_controller.invert_colormap;
             if contains(param,' I') || strcmp(param,'I') 
                 cscale = @gray;
             elseif invert && (contains(param,'tau') || contains(param,'theta'))
@@ -152,11 +154,11 @@ classdef abstract_plot_controller < flim_fit_observer & abstract_display_control
         
         function im_data = plot_figure(obj,h,hc,dataset,param,merge,text)
 
-            if ~obj.fit_controller.has_fit || (~isempty(obj.fit_controller.fit_result.binned) && obj.fit_controller.fit_result.binned == 1)
+            if isempty(obj.result_controller.fit_result) || obj.result_controller.fit_result.binned
                 return
             end
             
-            f = obj.fit_controller;
+            f = obj.result_controller;
 
             intensity = f.get_intensity(dataset,param,'result');
             im_data = f.get_image(dataset,param,'result');

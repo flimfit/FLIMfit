@@ -66,8 +66,8 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
         end
         
         function plot_fit_update(obj)
-            if obj.fit_controller.has_fit
-                r = obj.fit_controller.fit_result;
+            if ~isempty(obj.result_controller.fit_result)
+                r = obj.result_controller.fit_result;
                 metafields = fieldnames(r.metadata);
                 set(obj.gallery_overlay_popupmenu,'String',['-' metafields']);
             end
@@ -83,14 +83,14 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             
             param = obj.cur_param;
             
-            f = obj.fit_controller;
+            f = obj.result_controller;
             r = f.fit_result;
-            sel = obj.fit_controller.selected;
+            sel = obj.result_controller.selected;
            
             children = get(fig,'Children');
             delete(children);
             
-            if ~obj.fit_controller.has_fit || param == 0 
+            if isempty(obj.result_controller.fit_result) || param == 0 
                 return
             end
             
@@ -116,10 +116,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                 pos_fig(3:4) = pos(3:4);
                 set(pa,'Position',pos_fig);
             end
-            
-            
-                       
-            
+
             %{
             % Find first cols entry from each Column and sort by column order
             % ---
@@ -137,8 +134,6 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             sel = new_sel(idx);
             % --- 
             %}
-            
-
 
             n_im = length(sel);
             
@@ -147,7 +142,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
             if n_im > 0
                 
                 
-                if isempty(overlay);
+                if isempty(overlay)
                     meta = [];
                 else
                     meta = r.metadata.(overlay);
@@ -216,7 +211,7 @@ classdef flim_fit_gallery_controller < abstract_plot_controller
                     ci = floor(idx/cols) * r.height + 1;
                     idx = idx + 1;
                     
-                    im_data = obj.fit_controller.get_image(sel(i),param,'result');
+                    im_data = f.get_image(sel(i),param,'result');
                     
                     %{
                     im_data1 = obj.fit_controller.get_image(sel(i),'offset','result');

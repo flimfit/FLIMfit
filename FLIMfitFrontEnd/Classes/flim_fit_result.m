@@ -71,7 +71,7 @@ classdef (Abstract) flim_fit_result < handle
     end
     
     properties(Transient = true)
-        binned;
+        binned = false;
         t_exec;
         job;
         ready = true;

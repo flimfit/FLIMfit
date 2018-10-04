@@ -38,6 +38,9 @@ methods
 
         obj.datasets = datasets;
         obj.smoothing = (2*data_series.binning+1)^2;
+        
+        obj.width = data_series.width;
+        obj.height = data_series.height;
 
         obj.ptr = ptr;
         [summary, stats] = ff_FitResults(obj.ptr,'GetStats');

@@ -50,10 +50,12 @@ classdef flim_fit_controller < flim_data_series_observer
         has_fit = false;
         fit_in_progress = false;
         terminating = false;
+        use_popup = true;
         
         wait_handle;
         cur_fit;
-        start_time;
+        start_time;        
+        fit_timer;
         
         selected;
          
@@ -63,7 +65,6 @@ classdef flim_fit_controller < flim_data_series_observer
     events
         progress_update;
         fit_updated;
-        fit_display_updated;
         fit_completed;
     end
         
@@ -85,14 +86,7 @@ classdef flim_fit_controller < flim_data_series_observer
             
             set(obj.fit_pushbutton,'Callback',@(~,~) EC(@obj.fit_pushbutton_callback));
             set(obj.binned_fit_pushbutton,'Callback',@(~,~) EC(@obj.binned_fit_pushbutton_callback));
-            
-            if ~isempty(obj.data_series_controller) 
-                addlistener(obj.data_series_controller,'new_dataset',@(~,~) EC(@obj.new_dataset));
-            end
-            
-            addlistener(obj.dll_interface,'fit_completed',@(~,~) EC(@obj.fit_complete));
-            addlistener(obj.dll_interface,'progress_update',@(~,~) EC(@obj.update_progress));
-            
+                                    
             if ~isempty(obj.fitting_params_controller)
                 addlistener(obj.fitting_params_controller,'fit_params_update',@(~,~) EC(@obj.fit_params_updated));
                 obj.fit_params = obj.fitting_params_controller.fit_params;
@@ -133,9 +127,7 @@ classdef flim_fit_controller < flim_data_series_observer
         end
         
         function data_update(obj)
-        end
-        
-        function new_dataset(obj)
+            obj.clear_fit();
         end
         
         function decay = fitted_decay(obj,t,im_mask,selected)
@@ -199,8 +191,7 @@ classdef flim_fit_controller < flim_data_series_observer
             if ishandle(obj.fit_pushbutton)
                 set(obj.fit_pushbutton,'String','Stop Fit');
                 if obj.use_popup
-                    obj.wait_handle = ProgressDialog('Indeterminate', true, 'StatusMessage', 'Fitting...'); %waitbar(0,'Fitting...');
-                    obj.dll_interface.progress_bar = obj.wait_handle;
+                    obj.wait_handle = ProgressDialog('Indeterminate', true, 'StatusMessage', 'Fitting...'); 
                 end
             end
         end

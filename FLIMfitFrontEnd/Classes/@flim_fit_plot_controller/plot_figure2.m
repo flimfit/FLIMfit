@@ -26,7 +26,7 @@ function [fig,im_data,lims] = plot_figure2(obj,dataset,im,merge,options,indexing
     % Author : Sean Warren
 
 
-    f = obj.fit_controller;
+    f = obj.result_controller;
     r = f.fit_result;
     if isempty(f.fit_result) || (~isempty(f.fit_result.binned) && f.fit_result.binned == 1)
         return

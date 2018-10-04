@@ -26,7 +26,7 @@ function update_results(obj,~,~)
     % Author : Sean Warren
 
     
-    obj.fit_result = obj.flim_fit_results.fit_result;
+    obj.fit_result = obj.fit_controller.fit_result;
     
     if ishandle(obj.table_stat_popupmenu)
         set(obj.table_stat_popupmenu,'String',obj.fit_result.stat_names);
@@ -39,5 +39,7 @@ function update_results(obj,~,~)
     obj.update_filter_table();
     obj.update_list();
     obj.update_display_table();
+    
+    notify(obj,'result_updated')
 end
 

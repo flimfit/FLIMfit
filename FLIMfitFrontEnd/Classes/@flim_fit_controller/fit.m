@@ -64,9 +64,8 @@ function fit(obj,varargin)
 
             obj.start_time = tic;
 
-
             if bin == false
-                err = obj.dll_interface.fit(obj.data_series_controller.data_series, obj.fit_params);
+                obj.dll_interface.fit(obj.data_series_controller.data_series, obj.fit_params);
             else
                 if isempty(roi_mask)
                     roi_mask = obj.roi_controller.roi_mask;
@@ -75,21 +74,12 @@ function fit(obj,varargin)
                     dataset = obj.data_series_list.selected;
                 end
 
-                err = obj.dll_interface.fit(obj.data_series_controller.data_series, obj.fit_params, roi_mask, dataset);
+                obj.dll_interface.fit(obj.data_series_controller.data_series, obj.fit_params, roi_mask, dataset);
             end
-
-            if err ~= 0
-                if err == -1005
-                    msgbox('Unable to allocate enough memory to process the fit requested. Reducing the number of threads may help, alternatively close any other open programs and restart Matlab.','Fitting Error','error');
-                else
-                    msgbox(['An error code was returned from the fitting code ( ' num2str(err) ' )'],'Fitting Error','error');
-                end
-
-                obj.fit_in_progress = false;
-                obj.terminating = false;
-                obj.display_fit_end();
-            end
-
+            
+            obj.fit_timer = timer('TimerFcn',@(~,~) obj.update_progress(), 'ExecutionMode', 'fixedSpacing', 'Period', 0.1);
+            start(obj.fit_timer)
+            
         end
 
     catch e

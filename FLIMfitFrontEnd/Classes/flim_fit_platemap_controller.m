@@ -70,11 +70,10 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
             col_headers = num2str(col_headers');
             col_headers = cellstr(col_headers)';
             
-            if obj.fit_controller.has_fit && param>0
+            if ~isempty(obj.result_controller.fit_result) && param>0
 
-                r = obj.fit_controller.fit_result;  
-                f = obj.fit_controller;
-                sel = obj.fit_controller.selected;
+                r = obj.result_controller.fit_result;  
+                f = obj.result_controller;
 
                 md = r.metadata;
 
@@ -83,8 +82,8 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     return
                 end
 
-                im_row = md.Row(sel);
-                im_col = md.Column(sel);
+                im_row = md.Row;
+                im_col = md.Column;
                 
                 for i=1:length(im_col)
                     if isempty(im_col{i})
@@ -119,7 +118,6 @@ classdef flim_fit_platemap_controller < abstract_plot_controller
                     for col = 1:n_col
 
                         sel_well = strcmp(im_row,row) & cell2mat(im_col)==col;
-                        sel_well = sel(sel_well);
 
                         y = 0;
                         yn = 0;

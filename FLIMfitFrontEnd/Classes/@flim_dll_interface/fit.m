@@ -1,4 +1,4 @@
-function err = fit(obj, data_series, fit_params, roi_mask, selected)
+function fit(obj, data_series, fit_params, roi_mask, selected)
 % Copyright (C) 2013 Imperial College London.
 % All rights reserved.
 %
@@ -38,8 +38,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
         obj.bin = false;
     end
    
-    err = 0;
-
     prof = get_profile();
 
     p = fit_params;
@@ -191,15 +189,6 @@ function err = fit(obj, data_series, fit_params, roi_mask, selected)
 
     ff_FLIMData(data,'Release')
 
-    obj.start_time = tic;
-
     ff_Controller(obj.dll_id,'StartFit');
-
-    if err ~= 0
-        return;
-    end
-
-    obj.fit_timer = timer('TimerFcn',@(~,~) obj.update_progress(), 'ExecutionMode', 'fixedSpacing', 'Period', 0.1);
-    start(obj.fit_timer)
 
  end

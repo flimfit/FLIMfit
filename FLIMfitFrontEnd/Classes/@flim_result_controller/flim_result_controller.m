@@ -66,6 +66,10 @@ classdef flim_result_controller < flim_data_series_observer
         lh = {};
     end
     
+    events
+        result_updated;
+        result_display_updated;
+    end
     
     methods
         
@@ -346,7 +350,7 @@ classdef flim_result_controller < flim_data_series_observer
             
             obj.update_display_table();
             
-            notify(obj,'fit_display_updated');
+            notify(obj,'result_display_updated');
             
         end
         

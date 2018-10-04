@@ -61,9 +61,9 @@ classdef flim_fit_hist_controller < abstract_plot_controller
 
             cla(ax);
 
-            if obj.fit_controller.has_fit && param > 0 && obj.selected > 0
+            if ~isempty(obj.result_controller.fit_result) && param > 0 && obj.selected > 0
                 
-                f = obj.fit_controller;
+                f = obj.result_controller;
                 r = f.fit_result;
                 
                 source = get(obj.hist_source_popupmenu,'Value');
@@ -84,8 +84,8 @@ classdef flim_fit_hist_controller < abstract_plot_controller
                 md = [];
                 for i=1:length(sel)
                     
-                    new_data = obj.fit_controller.get_image(sel(i),param,indexing);
-                    new_I_data = obj.fit_controller.get_intensity(sel(i),param,indexing);
+                    new_data = f.get_image(sel(i),param,indexing);
+                    new_I_data = f.get_intensity(sel(i),param,indexing);
                         
                     filt = isfinite(new_data) & isfinite(new_I_data);
                     

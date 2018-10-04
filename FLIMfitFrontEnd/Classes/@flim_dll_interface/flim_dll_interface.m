@@ -27,14 +27,8 @@ classdef flim_dll_interface < handle
     
     
     properties
-        fit_result;
         progress;
-        
-        fit_in_progress = false;
-        
         datasets;
-                
-        progress_bar;
     end
     
     events
@@ -43,15 +37,10 @@ classdef flim_dll_interface < handle
     end
     
     properties(Access='protected')
-        
         data_series;
         use_image_irf;
         
-        bin;
-        
-        fit_timer;
-        start_time;
-
+        bin;        
         use;
         
         dll_id;
@@ -64,49 +53,19 @@ classdef flim_dll_interface < handle
         end
                 
         function clear_fit(obj)
-            obj.fit_result = [];
             if ~isempty(obj.dll_id)
                 ff_Controller(obj.dll_id,'Clear');
                 obj.dll_id = [];
             end
         end
         
-        function get_return_data(obj)
-            if ishandleandvalid(obj.progress_bar)
-                obj.progress_bar.StatusMessage = 'Processing Fit Results...';
-                obj.progress_bar.Indeterminate = true;
-            end
-            
-            % Get timing information
-            t_exec = toc(obj.start_time);
-            disp(['DLL execution time: ' num2str(t_exec)]);
-            
+        function fit_result = get_fit_result(obj)
             result_ptr = ff_Controller(obj.dll_id,'GetFitResults');
-            obj.fit_result = flim_fit_result_mex(result_ptr,obj.data_series,obj.datasets);
-            
-            obj.progress_bar = [];
+            fit_result = flim_fit_result_mex(result_ptr,obj.data_series,obj.datasets);
         end
         
-        function update_progress(obj)
-            [obj.progress, finished] = ff_Controller(obj.dll_id,'GetFitStatus');
-            
-            if finished
-                obj.get_return_data();
-                obj.fit_in_progress = false;
-                stop(obj.fit_timer);
-                delete(obj.fit_timer);
-                notify(obj,'fit_completed');
-            else
-                notify(obj,'progress_update');
-            end
-        end
-        
-        function [progress, n_completed, cur_group, iter, chi2] = get_progress(obj)
-            progress = obj.progress;
-            n_completed = obj.progress_n_completed;
-            cur_group = obj.progress_cur_group;
-            iter = obj.progress_iter;
-            chi2 = obj.progress_chi2;
+        function [progress, finished] = get_progress(obj)
+            [progress, finished] = ff_Controller(obj.dll_id,'GetFitStatus');
         end
         
         function decay = fitted_decay(obj,mask,selected)               
@@ -114,7 +73,7 @@ classdef flim_dll_interface < handle
                 loc = uint32(0);
                 im = 1;
             else
-                [~,im] = find(obj.fit_result.image == selected); 
+                [~,im] = find(obj.datasets == selected); 
 
                 mask = mask(:);
                 loc = 0:(length(mask)-1);

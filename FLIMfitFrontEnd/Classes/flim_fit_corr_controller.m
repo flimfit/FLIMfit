@@ -50,7 +50,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
 
         function ind_param_select_update(obj,~,~)
             idx = get(obj.corr_independent_popupmenu,'Value');
-            r = obj.fit_controller.fit_result;            
+            r = obj.result_controller.fit_result;            
             ind_vars = ['-'; fieldnames(r.metadata)];
             if idx > length(ind_vars) || idx == 0
                 idx = 1;
@@ -62,9 +62,9 @@ classdef flim_fit_corr_controller < abstract_plot_controller
         end
         
         function plot_fit_update(obj)
-            if obj.fit_controller.has_fit
+            if ~isempty(obj.result_controller.fit_result)
                 
-                r = obj.fit_controller.fit_result;            
+                r = obj.result_controller.fit_result;            
                 ind_vars = fieldnames(r.metadata);
                 
                 set(obj.corr_independent_popupmenu,'String',['-'; ind_vars]);
@@ -75,7 +75,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
 
         function draw_plot(obj,ax)
             
-            f = obj.fit_controller;
+            f = obj.result_controller;
             r = f.fit_result;
             
             export_plot = (nargin == 2);
@@ -100,7 +100,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
             end
                                     
             cla(ax)
-            if obj.fit_controller.has_fit && all(param > 0)
+            if ~isempty(obj.result_controller.fit_result) && all(param > 0)
                 
                 param_data_x = [];
                 param_data_y = [];
@@ -143,7 +143,7 @@ classdef flim_fit_corr_controller < abstract_plot_controller
                 
                 param_data_x = param_data_x( sel );
                 param_data_y = param_data_y( sel );
-                param_weight = param_weight( sel )
+                param_weight = param_weight( sel );
                 
                 n_bin = 64;
                 

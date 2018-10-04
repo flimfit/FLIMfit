@@ -17,15 +17,15 @@ classdef abstract_display_controller < handle
     % with this program; if not, write to the Free Software Foundation, Inc.,
     % 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     %
-    % This software tool was developed with support from the UK 
-    % Engineering and Physical Sciences Council 
-    % through  a studentship from the Institute of Chemical Biology 
-    % and The Wellcome Trust through a grant entitled 
+    % This software tool was developed with support from the UK
+    % Engineering and Physical Sciences Council
+    % through  a studentship from the Institute of Chemical Biology
+    % and The Wellcome Trust through a grant entitled
     % "The Open Microscopy Environment: Image Informatics for Biological Sciences" (Ref: 095931).
-
+    
     % Author : Sean Warren
-
-
+    
+    
     properties
         plot_handle;
         handle_is_axes;
@@ -46,41 +46,41 @@ classdef abstract_display_controller < handle
     end
     
     methods
-
+        
         
         function obj = abstract_display_controller(handles,plot_handle,exports_data)
-                       
+            
             obj.plot_handle = plot_handle;
             obj.handle_is_axes = strcmp(get(plot_handle,'type'),'axes');
-                        
+            
             if nargin < 3
                 exports_data = false;
             end
-                        
+            
             assign_handles(obj,handles);
-
+            
             addlistener(obj.data_series_list,'selection_updated',@(~,~) EC(@obj.selection_updated));
             
             obj.selected = obj.data_series_list.selected;
-
+            
             obj.contextmenu = uicontextmenu('Parent',obj.window);
             
             
             uimenu(obj.contextmenu,'Label','Save as...','Callback',...
                 @(~,~,~) obj.save_as() );
-            if strfind(computer, 'PCWIN') 
-               uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
+            if ispc
+                uimenu(obj.contextmenu,'Label','Save as Powerpoint...','Callback',...
                     @(~,~,~) obj.save_as_ppt() );
                 uimenu(obj.contextmenu,'Label','Export to Current Powerpoint','Callback',...
                     @(~,~,~) obj.export_to_ppt() );
             end
             if exports_data
                 uimenu(obj.contextmenu,'Label','Export Data...','Callback',...
-                @(~,~,~) obj.export_data() );
+                    @(~,~,~) obj.export_data() );
             end
-           
+            
             set(obj.plot_handle,'uicontextmenu',obj.contextmenu);
-           
+            
         end
         
         function auto_export = export(~,~)
@@ -92,61 +92,53 @@ classdef abstract_display_controller < handle
             if strcmp(obj.registered_tab, 'Decay')
                 param_name = 'Decay';
             else
-                
-                if  obj.fit_controller.has_fit == 0
-                    param_name = [];
-                else
-                    param_name = obj.fit_controller.fit_result.params{obj.cur_param};
+                if isempty(obj.result_controller.fit_result)
+                    errordlg('Sorry! No image available.');
+                    return;
                 end
+                param_name = obj.result_controller.fit_result.params{obj.cur_param};
             end
             
-            if isempty(param_name)
-                errordlg('Sorry! No image available.');
+            % should be done by overloading but for now use 'ifs'
+            % in the interests of keeping the file_side stable
+            if obj.fit_controller.data_series.loaded_from_OMERO
+                [filename, pathname, dataset, before_list] = obj.fit_controller.data_series.prompt_for_export('root filename', '','.tiff');
             else
                 
-                % should be done by overloading but for now use 'ifs'
-                % in the interests of keeping the file_side stable
+                default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
+                [filename, pathname, ~] = uiputfile( ...
+                    {'*.tif', 'TIFF image (*.tif)';...
+                    '*.pdf','PDF document (*.pdf)';...
+                    '*.png','PNG image (*.png)';...
+                    '*.eps','EPS image (*.eps)';...
+                    '*.fig','Matlab figure (*.fig)'},...
+                    'Select root file name',[default_path filesep]);
+            end
+            
+            if filename~=0
+                
+                [~,name,ext] = fileparts(filename);
+                ext = ext(2:end);
+                
+                [f,ref] = obj.make_hidden_fig();
+                obj.draw_plot(ref);
+                
+                filename = [pathname name  param_name '.' ext];
+                
+                switch ext
+                    case 'fig'
+                        savefig(f,filename);
+                    otherwise
+                        export_fig(f, filename );
+                end
+                close(f);
+                
                 if obj.fit_controller.data_series.loaded_from_OMERO
-                    default_name = [''];
-                    [filename, pathname, dataset, before_list] = obj.fit_controller.data_series.prompt_for_export('root filename', '','.tiff');
-                     
-                else
-                    
-                    default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
-                    [filename, pathname, ~] = uiputfile( ...
-                        {'*.tif', 'TIFF image (*.tif)';...
-                        '*.pdf','PDF document (*.pdf)';...
-                        '*.png','PNG image (*.png)';...
-                        '*.eps','EPS image (*.eps)';...
-                        '*.fig','Matlab figure (*.fig)'},...
-                        'Select root file name',[default_path filesep]);
+                    obj.fit_controller.data_series.export_new_images(pathname,[name '.' ext],before_list, dataset);
                 end
                 
-                if filename~=0
-                    
-                    [~,name,ext] = fileparts(filename);
-                    ext = ext(2:end);
-                    
-                    [f,ref] = obj.make_hidden_fig();
-                    obj.draw_plot(ref);
-                    
-                    filename = [pathname name  param_name '.' ext];
-
-                    switch ext
-                        case 'fig'
-                            savefig(f,filename); 
-                        otherwise
-                            export_fig(f, filename );
-                    end
-                    close(f);
-                    
-                    if obj.fit_controller.data_series.loaded_from_OMERO
-                         obj.fit_controller.data_series.export_new_images(pathname,[name '.' ext],before_list, dataset);
-                    end
-                    
-                    
-                    
-                end
+                
+                
             end
             
         end
@@ -176,9 +168,9 @@ classdef abstract_display_controller < handle
             end
             
             [filename, pathname, ~] = uiputfile( ...
-                        {'*.ppt', 'Powerpoint (*.ppt)'},...
-                         'Select root file name',[default_path filesep]);
-
+                {'*.ppt', 'Powerpoint (*.ppt)'},...
+                'Select root file name',[default_path filesep]);
+            
             if filename ~= 0
                 
                 [f,ref] = obj.make_hidden_fig([300, 400]);
@@ -188,13 +180,13 @@ classdef abstract_display_controller < handle
                 [~,name,ext] = fileparts(filename);
                 file = [pathname filesep name ' ' param_name '.' ext];
                 % pptfigure does not seem to have been updated to 2014b.
-                % Comment out for now. 
+                % Comment out for now.
                 %if length(get(f,'children')) == 1 % if only one axis use pptfigure, gives better plots
                 %    ppt=saveppt2(file,'init');
                 %    pptfigure(f,'ppt',ppt);
                 %    saveppt2(file,'ppt',ppt,'close');
                 %else
-                    saveppt2(file,'figure',f,'stretch',false);
+                saveppt2(file,'figure',f,'stretch',false);
                 %end
                 setpref('GlobalAnalysisFrontEnd','LastFigureExportFolder',pathname);
                 
@@ -203,7 +195,7 @@ classdef abstract_display_controller < handle
         end
         
         function export_to_ppt(obj,varargin)
-           
+            
             [f,ref] = obj.make_hidden_fig([400,300]);
             
             obj.draw_plot(ref);
@@ -214,33 +206,33 @@ classdef abstract_display_controller < handle
             end
             close(f);
         end
-            
         
-        function export_data(obj,filename)   
+        
+        function export_data(obj,filename)
             
             if nargin < 2
-            
+                
                 default_path = getpref('GlobalAnalysisFrontEnd','DefaultFolder');
-
+                
                 [file, pathname, ~] = uiputfile( ...
-                            {'*.csv', 'Comma Separated  Values (*.csv)'},...
-                             'Select file name',[default_path filesep]);
-                         
+                    {'*.csv', 'Comma Separated  Values (*.csv)'},...
+                    'Select file name',[default_path filesep]);
+                
                 if file ~= 0
                     filename = [pathname filesep file];
-                else 
+                else
                     return
                 end
                 
             end
-                 
+            
             if obj.export(filename) % returns true if it wants us to autoexport
                 cell2csv(filename,obj.raw_data);
             end
-                
+            
         end
         
-        function plot_fit_update(obj) 
+        function plot_fit_update(obj)
         end
         
         function selection_updated(obj)
@@ -258,7 +250,7 @@ classdef abstract_display_controller < handle
         function ret = is_active_tab(obj,tab)
             tabs = get(obj.display_tabpanel,'TabTitle');
             sel = get(obj.display_tabpanel,'Selection');
-           
+            
             ret = strcmp(tabs{sel},tab);
         end
         
@@ -268,13 +260,13 @@ classdef abstract_display_controller < handle
             
             function fcn(obj1,src)
                 tabs = get(obj.display_tabpanel,'TabTitles');
-           
-                if strcmp(tabs{src.NewValue},tab);
+                
+                if strcmp(tabs{src.NewValue},tab)
                     obj.draw_plot();
                 end
                 last_fcn(obj1,src);
             end
-        
+            
             set(obj.display_tabpanel,'SelectionChangedFcn',@fcn);
             
             obj.registered_tab = tab;
@@ -289,16 +281,16 @@ classdef abstract_display_controller < handle
                 pos(3:4) = sz;
                 set(f,'Position',pos)
             end
-          
+            
             if obj.handle_is_axes
                 ref = axes('Parent',f);
             else
                 ref = f;
             end
         end
-            
         
-       
+        
+        
     end
     
 end

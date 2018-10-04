@@ -25,20 +25,30 @@ function fit_complete(obj,~,~)
 
     % Author : Sean Warren
 
+    stop(obj.fit_timer);
+    obj.fit_timer = [];
     
-    obj.fit_result = obj.dll_interface.fit_result;
+    if ishandleandvalid(obj.wait_handle)
+        obj.wait_handle.StatusMessage = 'Processing Fit Results...';
+        obj.wait_handle.Indeterminate = true;
+    end
+    
+    obj.fit_result = obj.dll_interface.get_fit_result();
     
     obj.display_fit_end();
 
     obj.has_fit = true;
     obj.fit_in_progress = false;
     obj.terminating = false;
-    
-    obj.update_progress();
-        
+            
     t_exec = toc(obj.start_time);    
     disp(['Total execution time: ' num2str(t_exec)]);
        
+    if ishandleandvalid(obj.wait_handle)
+        close(obj.wait_handle);
+        obj.wait_handle = [];
+    end
+        
     try
         notify(obj,'fit_updated');    
     catch ME
