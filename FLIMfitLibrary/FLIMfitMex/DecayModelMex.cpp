@@ -442,7 +442,7 @@ void DecayModelMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    const auto& model = getSharedPtrFromMatlab<QDecayModel>(prhs[0]);
 
    if (model_ptr.find(model) == model_ptr.end())
-      mexErrMsgIdAndTxt2("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
+      mexErrMsgIdAndTxt("FLIMfitMex:invalidImagePointer", "Invalid image pointer");
 
    // Get command
    std::string command = getStringFromMatlab(prhs[1]);

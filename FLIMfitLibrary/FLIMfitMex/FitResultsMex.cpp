@@ -170,6 +170,6 @@ void FitResultsMex(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    else if (command == "Clear")
       releaseSharedPtrFromMatlab<FitResults>(prhs[0]);
    else
-      mexErrMsgIdAndTxt2("FLIMfitMex:invalidIndex", "Unrecognised command");
+      mexErrMsgIdAndTxt("FLIMfitMex:invalidIndex", "Unrecognised command");
 
 }
