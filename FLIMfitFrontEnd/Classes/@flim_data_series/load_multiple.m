@@ -27,9 +27,8 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     % Author : Sean Warren
     
     % get dimensions from first file
-    reader = get_flim_reader(obj.file_names{1});
+    reader = get_flim_reader(obj.file_names{1},obj.reader_settings);
     obj.data_type = reader.data_type;
-    %obj.rep_rate = meta.rep_rate; % TODO: rep rate
     
     if strcmp(reader.error_message,'cancelled')
         return
@@ -45,19 +44,25 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     
     chan_info = reader.chan_info;
     obj.mode = reader.FLIM_type;
-    obj.reader_settings = reader.settings;
     obj.data_type = reader.data_type;
     
     % Determine which planes we need to load 
-    [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,chan_info);
-    [Z,C,T] = meshgrid(z,c,t);
-    obj.ZCT = [Z(:) C(:) T(:)];
-    obj.n_chan = length(channels);
+    if isempty(obj.ZCT) || isempty(obj.channels)
+        [z,c,t,channels] = zct_selection_dialog(reader.sizeZCT,chan_info);
+        [Z,C,T] = meshgrid(z,c,t);
+        obj.ZCT = [Z(:) C(:) T(:)];
+        obj.channels = channels;
+    else
+        Z = obj.ZCT(:,1);
+        C = obj.ZCT(:,2);
+        T = obj.ZCT(:,3);
+    end
+    
+    obj.n_chan = length(obj.channels); 
 
     
-    obj.channels = channels;
     if polarisation_resolved
-        assert(length(channels) == 2);
+        assert(length(obj.channels) == 2);
     end
     
     images_per_file = size(obj.ZCT,1);
@@ -81,7 +86,7 @@ function load_multiple(obj, polarisation_resolved, data_setting_file, channels)
     obj.n_datasets = n_images * images_per_file;
     
     obj.t = reader.delays;
-    obj.data_size = [length(reader.delays) length(channels) reader.sizeXY obj.n_datasets];
+    obj.data_size = [length(reader.delays) length(obj.channels) reader.sizeXY obj.n_datasets];
     
     if isfinite(reader.rep_rate)
         obj.rep_rate = reader.rep_rate / 1e6;

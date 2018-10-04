@@ -71,12 +71,21 @@ function root_element = serialise(obj,doc_node,name)
     for i=1:length(flds)
         val = obj.(flds{i});
         this_element = doc_node.createElement(flds{i}); 
-        if (isobject(val) || isstruct(val)) && ~(isenum(val))
+        if (isobject(val) || isstruct(val)) && ~isenum(val)
             for j=1:length(val)
                 sub_element = serialise(val(j),doc_node);
                 this_element.appendChild(sub_element);
             end
-        elseif ~iscell(val) && ~isjava(val)                            
+        elseif iscell(val)
+            if all(cellfun(@ischar,val))
+                this_element.setAttribute('cell','true');
+                for j=1:length(val)
+                    sub_element = doc_node.createElement('char');
+                    sub_element.appendChild(doc_node.createTextNode(val{j}));
+                    this_element.appendChild(sub_element);
+                end
+            end
+        elseif ~isjava(val)                            
 
             if isenum(val)
                 val = double(val);

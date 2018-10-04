@@ -97,12 +97,10 @@ classdef flim_data_series < handle & h5_serializer
     end
     
     properties(Transient)
-        
         datasetId = -1;   %Set invalid OMERO dataset/plate Id as default
         plateId = -1;
         
         polarisation_resolved = false;
-
         
         acceptor;
         intensity_normalisation;

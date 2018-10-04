@@ -29,6 +29,10 @@ function obj = marshal_object(doc_node,type,obj)
 
     % Author : Sean Warren
 
+    if nargin < 3
+        obj = struct();
+    end
+    
     obj_node = doc_node.getFirstChild();
     obj_name = char(obj_node.getNodeName);
 
@@ -37,8 +41,8 @@ function obj = marshal_object(doc_node,type,obj)
         obj_name = char(obj_node.getNodeName);
     end
     
-    if nargin == 4 && ~strcmp(obj_name,type)
-        MException('FLIM:UnexpectedObject','Object specified by XML was not of the type expected')
+    if ~strcmp(obj_name,type)
+        throw(MException('FLIM:UnexpectedObject','Object specified by XML was not of the type expected'));
     end
     
     obj = marshal(obj_node, obj_name, obj);
@@ -47,9 +51,7 @@ end
     
 function obj = marshal(obj_node, obj_name, obj)   
 
-    if strcmp(obj_name,'struct')
-        obj = struct();
-    elseif nargin < 3
+    if nargin < 3
         mc = meta.class.fromName(obj_name);
 
         if isempty(mc)
@@ -69,16 +71,15 @@ function obj = marshal(obj_node, obj_name, obj)
          child = child_nodes.item(i-1);
          child_name = char(child.getNodeName);
 
-         encoded = false;
+         encoded = false; celldata = false;
          if child.hasAttributes
              attr = child.getAttributes;
              for j=1:attr.getLength()
-                 if strcmp(attr.item(j-1),'encoded="true"')
-                     encoded = true;
-                 end
+                 encoded = encoded | strcmp(attr.item(j-1),'encoded="true"');
+                 celldata = celldata | strcmp(attr.item(j-1),'cell="true"');
              end
          end
-
+         
          if child.hasChildNodes && (isstruct(obj) || ~isempty(findprop(obj,child_name)))
              
              if child.getChildNodes.getLength == 1             
@@ -88,7 +89,6 @@ function obj = marshal(obj_node, obj_name, obj)
                  if encoded
                      child_value = base64decode(child_value);
                      child_value = deserialize(child_value);
-
                  else
                      child_value = eval(child_value);
                  end
@@ -102,7 +102,10 @@ function obj = marshal(obj_node, obj_name, obj)
                  for j=1:child.getChildNodes.getLength
                      item = child.getChildNodes.item(j-1);
                      name = char(item.getNodeName);
-                     if ~strcmp(name,'#text') 
+                     if strcmp(name,'char') && celldata
+                         idx = idx + 1;
+                         obj.(child_name){idx} = char(item.getFirstChild().getData);
+                     elseif ~strcmp(name,'#text') 
                          child_mc = meta.class.fromName(name);
                          if ~isempty(child_mc)
                              child_obj = marshal(item, name);

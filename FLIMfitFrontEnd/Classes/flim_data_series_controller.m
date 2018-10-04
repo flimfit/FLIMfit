@@ -72,7 +72,7 @@ classdef flim_data_series_controller < handle
             end
         end
         
-        function clear_data_series(obj)
+        function clear(obj)
             delete(obj.data_series);
             obj.data_series = flim_data_series();
         end
@@ -82,7 +82,7 @@ classdef flim_data_series_controller < handle
                 polarisation_resolved = false;
             end
 
-            obj.clear_data_series();
+            obj.clear();
             obj.data_series.load_data_series(root_path,mode,polarisation_resolved);
                         
             if ~isempty(obj.window)
@@ -93,7 +93,7 @@ classdef flim_data_series_controller < handle
         end
         
         function load_raw(obj,file)
-            obj.clear_data_series();
+            obj.clear();
             obj.data_series.load_raw_data(file);           
                        
             if ~isempty(obj.window)
@@ -111,7 +111,7 @@ classdef flim_data_series_controller < handle
             end
 
             % load new dataset
-            obj.clear_data_series();
+            obj.clear();
             obj.data_series.load_single(file,polarisation_resolved);
                         
             if ~isempty(obj.window)
