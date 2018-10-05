@@ -2,9 +2,11 @@
 #include "MexUtils.h"
 #include <stdexcept>
 
-DLL_EXPORT_SYM
+MEXFUNCTION_LINKAGE
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+   std::string err;
+
    try
    {
       AssertInputCondition(nrhs >= 1);
@@ -19,6 +21,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    }
    catch (std::runtime_error e)
    {
-      mexErrMsgIdAndTxt("FLIMfitMex:runtimeErrorOccurred", e.what());
+      err = e.what();
    }
+
+   if (!err.empty())
+      mexErrMsgIdAndTxt("FLIMfitMex:exceptionOccurred", err.c_str());
 }
