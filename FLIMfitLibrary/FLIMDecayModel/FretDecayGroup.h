@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MultiExponentialDecayGroup.h"
+#include "MultiExponentialDecayGroupPrivate.h"
 #include <functional>
 #include <cmath>
 

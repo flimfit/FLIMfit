@@ -1,5 +1,5 @@
 #pragma once
-#include "MultiExponentialDecayGroup.h"
+#include "MultiExponentialDecayGroupPrivate.h"
 
 
 class AnisotropyDecayGroup : public MultiExponentialDecayGroupPrivate
