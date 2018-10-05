@@ -1077,44 +1077,18 @@ function(matlab_add_mex)
     # MEX file). In order to propagate the visibility options to the libraries
     # to which the MEX file is linked against, the -Wl,--exclude-libs,ALL
     # option should also be specified.
+    
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+      set(_link_flags -Wl,--no-undefined,-Wl,--version-script,${Matlab_EXTERN_LIBRARY_DIR}/c_exportsmexfileversion.map)
+    elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") #Match Clang or AppleClang
+       set(_link_flags -Wl,--no-undefined,-Wl,-exported_symbols_list,${Matlab_EXTERN_LIBRARY_DIR}/c_exportsmexfileversion.map)
+    endif()
 
     set_target_properties(${${prefix}_NAME}
       PROPERTIES
-        CXX_VISIBILITY_PRESET "hidden"
-        C_VISIBILITY_PRESET "hidden"
-        VISIBILITY_INLINES_HIDDEN ON
+        DEFINE_SYMBOL "DLL_EXPORT_SYM=__attribute__ ((visibility (\"default\")))" 
+        LINK_FLAGS "${_link_flags}"
     )
-
-    #  get_target_property(
-    #    _previous_link_flags
-    #    ${${prefix}_NAME}
-    #    LINK_FLAGS)
-    #  if(NOT _previous_link_flags)
-    #    set(_previous_link_flags)
-    #  endif()
-
-    #  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    #    set_target_properties(${${prefix}_NAME}
-    #      PROPERTIES
-    #        LINK_FLAGS "${_previous_link_flags} -Wl,--exclude-libs,ALL"
-    #        # -Wl,--version-script=${_FindMatlab_SELF_DIR}/MatlabLinuxVisibility.map"
-    #    )
-    #  elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    #    # in this case, all other symbols become hidden.
-    #    set_target_properties(${${prefix}_NAME}
-    #      PROPERTIES
-    #        LINK_FLAGS "${_previous_link_flags} -Wl,-exported_symbol,_mexFunction"
-    #        #-Wl,-exported_symbols_list,${_FindMatlab_SELF_DIR}/MatlabOSXVisilibity.map"
-    #    )
-    #  endif()
-
-
-
-    set_target_properties(${${prefix}_NAME}
-      PROPERTIES
-        DEFINE_SYMBOL "DLL_EXPORT_SYM=__attribute__ ((visibility (\"default\")))"
-    )
-
 
   endif()
 
