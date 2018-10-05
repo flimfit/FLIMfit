@@ -11,18 +11,6 @@ project(FLIMfit)
 cmake_minimum_required(VERSION 3.9)
 
 find_package(OpenCV REQUIRED)
-find_package(OpenMP REQUIRED)
-
-set(CMAKE_AUTOMOC ON)
-
-# Enable OpenMP support, disable for XCode
-#===================================================
-if(APPLE AND ${CMAKE_GENERATOR} MATCHES "Xcode")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-   set(CMAKE_XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT "YES")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-reorder")
-endif()
-
 
 
 # Include optimisation flags in Visual Studio
@@ -44,7 +32,7 @@ endif(UNIX)
 
 # Add platform specific flags
 #===================================================
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL} ${OpenMP_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_FLAGS_ALL}")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${PLATFORM_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${PLATFORM_FLAGS_DEBUG}")
 

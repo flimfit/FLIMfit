@@ -2,7 +2,7 @@
 project(FLIMWidgets)
 
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 find_package(BOOST REQUIRED COMPONENTS system serialization)
 
 qt5_wrap_ui(UI_HEADERS FittingParametersWidget.ui)

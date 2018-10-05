@@ -33,9 +33,8 @@ if (BUILD_OPENCV)
    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .tbd .dylib .so)
 endif ()
 
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5PrintSupport)
-
+find_package(Qt5 COMPONENTS Widgets PrintSupport REQUIRED)
+set(CMAKE_AUTOMOC ON)
 
 set(CMAKE_DEBUG_POSTFIX "")
 set(FlimReaderMEX_OUT_DIR ${CMAKE_SOURCE_DIR}/FLIMfitFrontEnd/Libraries/)

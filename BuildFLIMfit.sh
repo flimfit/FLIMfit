@@ -7,14 +7,17 @@
 
 if [ -z ${MATLAB_VER+x} ]; then export MATLAB_VER=R2018b; echo "Setting MATLAB_VER=R2018b"; fi
 
-export CC=/usr/local/opt/llvm/bin/clang
-export CXX=/usr/local/opt/llvm/bin/clang++
-export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib"
 export PATH="/usr/local/opt/qt5/bin:$PATH"
 export MKLROOT=/opt/intel/mkl
 
+
+
 [ "$1" == "--clean" ] && rm -rf GeneratedProjects/Unix
-if ! cmake -GNinja -H. -BGeneratedProjects/Unix -DBUILD_OPENCV:bool=TRUE; then
+if ! cmake -GNinja -H. -BGeneratedProjects/Unix \
+    -DBUILD_OPENCV:bool=TRUE \
+    -DOpenMP_CXX_FLAGS="-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include" \
+    -DOpenMP_CXX_LIB_NAMES="omp" \
+    -DOpenMP_omp_LIBRARY=/usr/local/opt/libomp/lib/libomp.dylib; then
    echo 'Error configuring project'
    exit 1
 fi

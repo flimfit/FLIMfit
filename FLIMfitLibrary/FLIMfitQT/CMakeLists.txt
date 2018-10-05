@@ -1,12 +1,9 @@
 project(FLIMfitQT)
 
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5PrintSupport REQUIRED)
+find_package(Qt5 COMPONENTS Widgets PrintSupport REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 find_package(BOOST REQUIRED COMPONENTS system serialization)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 qt5_wrap_ui(UI_HEADERS DecayWidget.ui
                        FLIMfitWindow.ui
